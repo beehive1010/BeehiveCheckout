@@ -59,8 +59,6 @@ export const authConfig = {
   async doLogin(params: any) {
     // Call backend to verify the signed payload
     try {
-      console.log('doLogin called with params:', params);
-      
       // Extract data from Thirdweb's parameter structure
       const address = params.payload?.address || params.address;
       const message = params.payload?.message || params.message;
@@ -68,11 +66,7 @@ export const authConfig = {
       
       // Validate required fields
       if (!address || !signature || !message) {
-        console.error('Missing required auth fields:', {
-          address: !!address,
-          signature: !!signature,
-          message: !!message
-        });
+        console.error('Authentication failed: Missing required fields');
         throw new Error('Missing required authentication fields');
       }
       
@@ -125,10 +119,7 @@ export const authConfig = {
   async getLoginPayload(params: any) {
     // Call backend and return the payload for signing
     try {
-      console.log('getLoginPayload called with params:', params);
-      
       if (!params.address) {
-        console.error('No address provided for login payload');
         throw new Error('Wallet address is required');
       }
       
@@ -144,7 +135,6 @@ export const authConfig = {
       
       if (response.ok) {
         const data = await response.json();
-        console.log('Login payload received:', data.payload);
         return data.payload;
       } else {
         const errorData = await response.json();
@@ -153,7 +143,7 @@ export const authConfig = {
       }
     } catch (error) {
       console.error('Failed to get login payload:', error);
-      throw error; // Re-throw to ensure Thirdweb handles the error
+      throw error;
     }
   },
   
