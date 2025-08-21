@@ -397,47 +397,28 @@ export default function Dashboard() {
         <Card className="bg-secondary border-border glow-hover">
           <CardContent className="p-6">
             <h3 className="text-lg font-semibold text-honey mb-4">Matrix Placement</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center py-2 border-b border-border">
-                <span className="text-muted-foreground">Level 1</span>
-                <div className="text-right">
-                  <span className="text-honey font-semibold">3 members</span>
-                  <span className="text-muted-foreground"> / placement </span>
-                  <span className="text-green-400 font-semibold">1 member</span>
-                </div>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b border-border">
-                <span className="text-muted-foreground">Level 2</span>
-                <div className="text-right">
-                  <span className="text-honey font-semibold">9 members</span>
-                  <span className="text-muted-foreground"> / placement </span>
-                  <span className="text-green-400 font-semibold">3 members</span>
-                </div>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b border-border">
-                <span className="text-muted-foreground">Level 3</span>
-                <div className="text-right">
-                  <span className="text-honey font-semibold">27 members</span>
-                  <span className="text-muted-foreground"> / placement </span>
-                  <span className="text-green-400 font-semibold">9 members</span>
-                </div>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b border-border">
-                <span className="text-muted-foreground">Level 4</span>
-                <div className="text-right">
-                  <span className="text-honey font-semibold">81 members</span>
-                  <span className="text-muted-foreground"> / placement </span>
-                  <span className="text-green-400 font-semibold">27 members</span>
-                </div>
-              </div>
-              <div className="flex justify-between items-center py-2">
-                <span className="text-muted-foreground">Level 5</span>
-                <div className="text-right">
-                  <span className="text-honey font-semibold">243 members</span>
-                  <span className="text-muted-foreground"> / placement </span>
-                  <span className="text-green-400 font-semibold">81 members</span>
-                </div>
-              </div>
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {Array.from({length: 19}, (_, i) => {
+                const level = i + 1;
+                const members = Math.pow(3, level);
+                const placement = Math.pow(3, level - 1);
+                const formatNumber = (num: number) => {
+                  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+                  if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
+                  return num.toString();
+                };
+                
+                return (
+                  <div key={level} className="flex justify-between items-center py-2 border-b border-border last:border-b-0">
+                    <span className="text-muted-foreground">Level {level}</span>
+                    <div className="text-right">
+                      <span className="text-honey font-semibold">{formatNumber(members)} members</span>
+                      <span className="text-muted-foreground"> / placement </span>
+                      <span className="text-green-400 font-semibold">{formatNumber(placement)} members</span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
