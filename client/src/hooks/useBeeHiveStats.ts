@@ -20,6 +20,11 @@ interface UserReferralStats {
     joinDate: string;
     earnings: number;
   }>;
+  downlineMatrix: Array<{
+    level: number;
+    members: number;
+    placements: number;
+  }>;
 }
 
 export function useCompanyStats() {

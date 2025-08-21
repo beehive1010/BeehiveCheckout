@@ -509,28 +509,49 @@ export default function Dashboard() {
               Your Downline Matrix (19 Levels)
             </h3>
             <div className="space-y-1 max-h-80 md:max-h-96 overflow-y-auto custom-scrollbar">
-              {Array.from({length: 19}, (_, i) => {
-                const level = i + 1;
-                const members = Math.pow(3, level);
-                const placement = Math.pow(3, level - 1);
-                const formatNumber = (num: number) => {
-                  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-                  if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
-                  return num.toString();
-                };
-                
-                return (
-                  <div key={level} className="flex justify-between items-center py-1.5 px-2 md:py-2 border-b border-border/50 last:border-b-0 hover:bg-muted/20 rounded-sm">
-                    <span className="text-muted-foreground text-sm md:text-base">Level {level}</span>
+              {isLoadingUserStats ? (
+                Array.from({length: 19}, (_, i) => (
+                  <div key={i + 1} className="flex justify-between items-center py-1.5 px-2 md:py-2 border-b border-border/50 last:border-b-0">
+                    <span className="text-muted-foreground text-sm md:text-base">Level {i + 1}</span>
                     <div className="text-right">
-                      <span className="text-honey font-semibold text-xs md:text-sm">{formatNumber(members)}</span>
+                      <span className="text-honey font-semibold text-xs md:text-sm">...</span>
                       <span className="text-muted-foreground text-xs hidden md:inline"> / placement </span>
                       <span className="text-muted-foreground text-xs md:hidden"> / </span>
-                      <span className="text-green-400 font-semibold text-xs md:text-sm">{formatNumber(placement)}</span>
+                      <span className="text-green-400 font-semibold text-xs md:text-sm">...</span>
                     </div>
                   </div>
-                );
-              })}
+                ))
+              ) : (
+                userStats?.downlineMatrix?.map((levelData) => {
+                  const formatNumber = (num: number) => {
+                    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+                    if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
+                    return num.toString();
+                  };
+                  
+                  return (
+                    <div key={levelData.level} className="flex justify-between items-center py-1.5 px-2 md:py-2 border-b border-border/50 last:border-b-0 hover:bg-muted/20 rounded-sm">
+                      <span className="text-muted-foreground text-sm md:text-base">Level {levelData.level}</span>
+                      <div className="text-right">
+                        <span className="text-honey font-semibold text-xs md:text-sm">{formatNumber(levelData.members)}</span>
+                        <span className="text-muted-foreground text-xs hidden md:inline"> / placement </span>
+                        <span className="text-muted-foreground text-xs md:hidden"> / </span>
+                        <span className="text-green-400 font-semibold text-xs md:text-sm">{formatNumber(levelData.placements)}</span>
+                      </div>
+                    </div>
+                  );
+                }) || Array.from({length: 19}, (_, i) => (
+                  <div key={i + 1} className="flex justify-between items-center py-1.5 px-2 md:py-2 border-b border-border/50 last:border-b-0">
+                    <span className="text-muted-foreground text-sm md:text-base">Level {i + 1}</span>
+                    <div className="text-right">
+                      <span className="text-honey font-semibold text-xs md:text-sm">0</span>
+                      <span className="text-muted-foreground text-xs hidden md:inline"> / placement </span>
+                      <span className="text-muted-foreground text-xs md:hidden"> / </span>
+                      <span className="text-green-400 font-semibold text-xs md:text-sm">0</span>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>

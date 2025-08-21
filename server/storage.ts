@@ -1255,12 +1255,74 @@ export class DatabaseStorage implements IStorage {
         earnings: 0 // Will be calculated from earnings table later
       }));
 
+      // Get real downline matrix data for all 19 levels
+      const downlineMatrix = [];
+      for (let level = 1; level <= 19; level++) {
+        try {
+          // Count members at this specific level in the user's downline
+          const levelMembersResult = await db.execute(sql`
+            WITH RECURSIVE downline_tree AS (
+              SELECT wallet_address, referrer_wallet, current_level, 1 as depth
+              FROM users 
+              WHERE referrer_wallet = ${walletAddress}
+              
+              UNION ALL
+              
+              SELECT u.wallet_address, u.referrer_wallet, u.current_level, dt.depth + 1
+              FROM users u
+              JOIN downline_tree dt ON u.referrer_wallet = dt.wallet_address
+              WHERE dt.depth < 19
+            )
+            SELECT COUNT(*) as member_count
+            FROM downline_tree 
+            WHERE current_level = ${level}
+          `);
+
+          const memberCount = Number(levelMembersResult[0]?.member_count || 0);
+          
+          // Count total placements at this level (matrix positions filled)
+          const placementResult = await db.execute(sql`
+            WITH RECURSIVE downline_tree AS (
+              SELECT wallet_address, referrer_wallet, 1 as depth
+              FROM users 
+              WHERE referrer_wallet = ${walletAddress}
+              
+              UNION ALL
+              
+              SELECT u.wallet_address, u.referrer_wallet, dt.depth + 1
+              FROM users u
+              JOIN downline_tree dt ON u.referrer_wallet = dt.wallet_address
+              WHERE dt.depth < 19
+            )
+            SELECT COUNT(*) as placement_count
+            FROM downline_tree 
+            WHERE depth = ${level}
+          `);
+
+          const placementCount = Number(placementResult[0]?.placement_count || 0);
+
+          downlineMatrix.push({
+            level,
+            members: memberCount,
+            placements: placementCount
+          });
+        } catch (error) {
+          console.error(`Error fetching downline data for level ${level}:`, error);
+          downlineMatrix.push({
+            level,
+            members: 0,
+            placements: 0
+          });
+        }
+      }
+
       return {
         directReferrals,
         totalTeam,
         totalEarnings,
         pendingRewards,
-        directReferralsList
+        directReferralsList,
+        downlineMatrix
       };
     } catch (error) {
       console.error('Get user referral stats error:', error);
@@ -1269,7 +1331,12 @@ export class DatabaseStorage implements IStorage {
         totalTeam: 0,
         totalEarnings: 0,
         pendingRewards: 0,
-        directReferralsList: []
+        directReferralsList: [],
+        downlineMatrix: Array.from({length: 19}, (_, i) => ({
+          level: i + 1,
+          members: 0,
+          placements: 0
+        }))
       };
     }
   }
