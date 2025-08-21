@@ -316,13 +316,33 @@
   },
   "education": {
     "title": "Education Center",
+    "subtitle": "Learn blockchain, DeFi, and Web3 technologies",
+    "search": {
+      "placeholder": "Search courses, topics, or instructors..."
+    },
+    "filters": {
+      "category": "Category",
+      "allCategories": "All Categories",
+      "level": "Level",
+      "allLevels": "All Levels",
+      "type": "Type",
+      "allTypes": "All Types",
+      "payment": "Payment",
+      "allPayments": "All Payment Types",
+      "online": "Online",
+      "video": "Video",
+      "free": "Free",
+      "paid": "Paid"
+    },
     "progress": {
       "title": "Learning Progress",
       "subtitle": "Track your educational journey",
       "completed": "Completed",
       "inProgress": "In Progress",
       "hours": "Hours",
-      "label": "Progress"
+      "label": "Progress",
+      "coursesCompleted": "Courses Completed",
+      "hoursLearned": "Hours Learned"
     },
     "free": "Free",
     "levelRequired": "Level Required",
@@ -333,6 +353,50 @@
     "purchase": "Purchase Course",
     "enrolling": "Enrolling...",
     "insufficientBCC": "Insufficient BCC",
+    "courseType": {
+      "online": "Live Online",
+      "video": "Self-Paced Video"
+    },
+    "buttons": {
+      "viewDetails": "View Details",
+      "claimFree": "Claim Free Course",
+      "purchaseCourse": "Purchase Course",
+      "completed": "Completed",
+      "continue": "Continue",
+      "getAccess": "Get Access",
+      "enrollNow": "Enroll Now",
+      "startLearning": "Start Learning"
+    },
+    "status": {
+      "clickToView": "Click to view details and enroll",
+      "enrolled": "Enrolled",
+      "available": "Available",
+      "requiresUpgrade": "Requires Level {level}",
+      "requiresBCC": "Requires {amount} BCC"
+    },
+    "courseDetails": {
+      "overview": "Course Overview",
+      "curriculum": "Curriculum",
+      "lessons": "Lessons",
+      "instructor": "Instructor",
+      "requirements": "Requirements",
+      "whatYouLearn": "What You'll Learn",
+      "courseContent": "Course Content",
+      "zoomDetails": "Zoom Meeting Details",
+      "meetingId": "Meeting ID",
+      "password": "Password",
+      "joinLink": "Join Meeting"
+    },
+    "lessons": {
+      "lesson": "Lesson",
+      "unlock": "Unlock Lesson",
+      "unlocking": "Unlocking...",
+      "watch": "Watch Lesson",
+      "completed": "Completed",
+      "locked": "Locked",
+      "free": "Free",
+      "progress": "Progress: {percent}%"
+    },
     "enroll": {
       "success": {
         "title": "Enrollment Successful!",
@@ -342,6 +406,12 @@
         "title": "Enrollment Failed",
         "description": "Unable to enroll in course. Please try again."
       }
+    },
+    "errors": {
+      "courseNotFound": "Course not found",
+      "loadingError": "Failed to load course data",
+      "accessDenied": "Access denied - insufficient level or BCC",
+      "networkError": "Network error - please try again"
     }
   },
   "discover": {
