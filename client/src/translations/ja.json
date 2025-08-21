@@ -32,27 +32,27 @@
     "features": {
       "membership": {
         "title": "Web3メンバーシップ",
-        "description": "19レベルの安全なオンチェーンメンバーシップ資格"
+        "description": "19レベルの安全なオンチェーンメンバーシップ認証"
       },
       "referral": {
         "title": "3×3マトリックスシステム",
         "description": "強制マトリックス紹介プログラムで報酬を獲得"
       },
       "education": {
-        "title": "学習して稼ぐ",
-        "description": "トークンを獲得しながらプレミアムコースやワークショップにアクセス"
+        "title": "学習＆獲得",
+        "description": "トークンを獲得しながらプレミアムコースとワークショップにアクセス"
       },
       "marketplace": {
         "title": "NFTマーケットプレイス",
-        "description": "BCCトークンで限定商用NFTを獲得"
+        "description": "BCCトークンで独占的なマーチャントNFTを請求"
       },
       "tokens": {
         "title": "BCC報酬",
-        "description": "転送可能と制限付きバケットを持つデュアルトークンシステム"
+        "description": "転送可能および制限付きバケットを持つデュアルトークンシステム"
       },
       "rewards": {
         "title": "スマート報酬",
-        "description": "ロールアップメカニズム付き48時間アップグレードカウントダウン"
+        "description": "ロールアップメカニズム付きの48時間アップグレードカウントダウン"
       }
     },
     "stats": {
@@ -62,7 +62,7 @@
     },
     "platformFeatures": {
       "title": "プラットフォーム機能",
-      "subtitle": "Beehiveを最高のWeb3メンバーシッププラットフォームにする強力な機能を発見",
+      "subtitle": "Beehiveを究極のWeb3メンバーシッププラットフォームにする強力な機能を発見",
       "exclusiveLevels": "19の独占レベル",
       "exclusiveCollections": "独占コレクション",
       "autoPlacement": "自動配置システム",
@@ -73,97 +73,28 @@
     "ctaStats": {
       "membershipLevels": "メンバーシップレベル",
       "matrixSystem": "マトリックスシステム",
-      "earningPotential": "収益ポテンシャル"
-    },
-    "howItWorks": {
-      "title": "仕組み",
-      "subtitle": "簡単な3ステップで始めてWeb3メンバーシップの力を解き放つ",
-      "step1": {
-        "title": "ウォレット接続",
-        "description": "開始するためにWeb3ウォレットを接続"
-      },
-      "step2": {
-        "title": "登録とアクティベート",
-        "description": "登録を完了してレベル1メンバーシップをアクティベート"
-      },
-      "step3": {
-        "title": "学習して稼ぐ",
-        "description": "プラットフォーム機能にアクセスして報酬獲得を開始"
-      }
+      "nftMarketplace": "NFTマーケットプレイス"
     },
     "cta": {
-      "title": "旅を始める準備はできましたか？",
-      "description": "Beehiveエコシステムで既に稼いでいる数千人のメンバーに参加",
-      "button": "今すぐBeehiveに参加"
-    }
-  },
-  "registration": {
-    "title": "登録完了",
-    "subtitle": "Beehiveプロフィールを設定",
-    "walletAddress": "ウォレットアドレス",
-    "email": "メールアドレス",
-    "emailPlaceholder": "メールアドレスを入力",
-    "username": "ユーザー名",
-    "usernamePlaceholder": "ユーザー名を選択",
-    "secondaryPassword": "セカンダリパスワード",
-    "passwordPlaceholder": "安全なパスワードを作成",
-    "confirmPassword": "パスワード確認",
-    "confirmPasswordPlaceholder": "パスワードを確認",
-    "referrer": "紹介者",
-    "register": "登録完了",
-    "registering": "処理中...",
-    "agreement": "登録することで、利用規約とプライバシーポリシーに同意します",
-    "noReferrerInfo": {
-      "title": "紹介リンクが必要",
-      "description": "Beehiveに参加するには、既存メンバーからの紹介リンクが必要です。これにより、3×3マトリックスシステムのアップラインに接続されます。",
-      "getLink": "開始するにはBeehiveメンバーに紹介リンクを求めてください。"
-    },
-    "errors": {
-      "emailRequired": "メールアドレスが必要です",
-      "emailInvalid": "有効なメールアドレスを入力してください",
-      "usernameRequired": "ユーザー名が必要です",
-      "usernameTooShort": "ユーザー名は最低3文字必要です",
-      "passwordRequired": "セカンダリパスワードが必要です",
-      "passwordTooShort": "パスワードは最低6文字必要です",
-      "passwordMismatch": "パスワードが一致しません",
-      "referrerRequired": "登録には有効な紹介リンクが必要です"
-    },
-    "success": {
-      "title": "登録成功！",
-      "description": "プロフィールが作成されました。メンバーシップをアクティベートできます。"
-    },
-    "error": {
-      "title": "登録失敗",
-      "description": "再試行するか、問題が続く場合はサポートにお問い合わせください。"
-    },
-    "walletRequired": {
-      "title": "ウォレット接続が必要",
-      "description": "登録を完了するために、まずウォレットを接続してください。"
+      "title": "始める準備はできましたか？",
+      "subtitle": "今日Beehiveコミュニティに参加して、Web3の旅を始めましょう",
+      "button": "ウォレットを接続して開始"
     }
   },
   "dashboard": {
-    "welcome": {
-      "title": "Beehiveへようこそ！",
-      "description": "レベル1メンバーシップをアクティベートして、すべてのプラットフォーム機能をアンロックし、報酬獲得を開始しましょう。"
-    },
-    "membershipLevel": "メンバーシップレベル",
-    "price": "価格",
-    "activateLevel1": "レベル1バンブルビー(BBC) NFTをアクティベート",
-    "activating": "アクティベート中...",
-    "activationNote": "アクティベート後、タスク、教育、ハイブワールドを含むすべてのメンバー機能にアクセスできます。",
-    "status": {
-      "active": "アクティブ"
-    },
-    "balances": {
-      "bccFree": "BCC（無料）",
-      "bccLocked": "BCC（ロック）"
+    "welcome": "おかえりなさい",
+    "membership": {
+      "title": "メンバーシップステータス",
+      "level": "レベル",
+      "nextLevel": "次のレベル",
+      "progress": "進行状況"
     },
     "quickActions": {
       "tasks": {
-        "description": "BCCトークンで商用NFTを閲覧・獲得"
+        "description": "マーチャントNFTを参照し、BCCトークンを請求する"
       },
       "education": {
-        "description": "コースと学習材料にアクセス"
+        "description": "コースと学習素材にアクセス"
       },
       "hiveworld": {
         "description": "紹介マトリックスと報酬を確認"
@@ -176,234 +107,19 @@
         "description": "Beehiveへようこそ！すべてのメンバー機能にアクセスできるようになりました。"
       },
       "error": {
-        "title": "アクティベート失敗",
-        "description": "再試行するかサポートにお問い合わせください。"
+        "title": "アクティベーション失敗",
+        "description": "メンバーシップをアクティベートできませんでした。再試行するかサポートにお問い合わせください。"
       }
     },
-    "member": "メンバー",
-    "userCentre": "ユーザーセンター",
-    "verifying": "NFT所有権を検証中...",
-    "nftVerified": "NFT検証済み",
-    "reward": "報酬",
-    "bccBalance": "BCC残高",
-    "nfts": "NFTs",
-    "accountOverview": "アカウント概要",
-    "userAvatar": "ユーザーアバター",
-    "levelText": "レベル {{level}}",
-    "priceLevel1": "130 USDT",
-    "activity": {
-      "rewardReceived": "報酬受領",
-      "fromReferralUpgrade": "紹介アップグレードから",
-      "rewardAmount": "+{{amount}} 報酬",
-      "nftClaimed": "NFT獲得",
-      "merchantNft": "商用NFT購入済み",
-      "bccDeduction": "-{{amount}} BCC",
-      "newReferral": "新しい紹介",
-      "userJoined": "ユーザーがあなたのネットワークに参加",
-      "activeStatus": "アクティブ"
+    "activateLevel1": "レベル1メンバーシップをアクティベート",
+    "activating": "アクティベート中...",
+    "activationNote": "アクティベート後、タスク、教育、ハイブワールドを含むすべてのメンバー機能にアクセスできます。",
+    "status": {
+      "active": "アクティブ"
     },
-    "referralLink": {
-      "title": "紹介リンク",
-      "show": "表示",
-      "hide": "非表示",
-      "copied": "リンクがコピーされました！",
-      "copiedDesc": "紹介リンクがクリップボードにコピーされました"
-    },
-    "social": {
-      "twitter": "Twitter",
-      "telegram": "Telegram", 
-      "whatsapp": "WhatsApp"
-    },
-    "stats": {
-      "totalRewards": "総報酬",
-      "bccBalance": "BCC残高",
-      "bccLocked": "BCCロック済み",
-      "nftsOwned": "所有NFT数"
-    },
-    "tokenPurchase": {
-      "bccDescription": "プラットフォーム利用のためのBeehive暗号コインを購入",
-      "cthDescription": "Alpha Centauriエコシステム用のCTHトークンを購入",
-      "topUpDescription": "Beehiveエコシステムに参加するためのBCCとCTHトークンを購入"
-    },
-    "globalStats": {
-      "title": "グローバル統計",
-      "totalMembers": "総メンバー数",
-      "totalRewardsPaid": "支払済み報酬総額",
-      "pendingRewards": "保留中の報酬",
-      "highestLevel": "最高レベル",
-      "membersByLevel": "レベル別メンバー数",
-      "members": "メンバー"
-    },
-    "uplineNetwork": {
-      "title": "アップラインネットワーク",
-      "earnings": "収益",
-      "loading": "ネットワークデータを読み込み中...",
-      "noReferrals": "紹介データがありません",
-      "shareMessage": "紹介リンクを共有してネットワークを拡大"
-    },
-    "downlineMatrix": {
-      "title": "ダウンラインマトリックス",
-      "placement": "配置"
-    }
-  },
-  "tasks": {
-    "title": "タスク & マーケットプレイス",
-    "pageTitle": "タスク",
-    "categories": {
-      "membership": "メンバーシップ",
-      "advertisement": "広告"
-    },
-    "membership": {
-      "title": "バンブルビーメンバーシップNFT",
-      "description": "マルチチェーン対応USDT支払いの正規メンバーシップレベル",
-      "level": "レベル",
-      "usdt": "USDT",
-      "status": {
-        "owned": "所有",
-        "available": "利用可能",
-        "locked": "ロック"
-      },
-      "getStarted": "開始する",
-      "upgradeNow": "今すぐアップグレード",
-      "lockedMessage": "前のレベルを先に完了してください"
-    },
-    "advertisement": {
-      "title": "広告NFTコレクション",
-      "description": "BCCトークンで獲得可能な限定商用NFT",
-      "noNfts": "現在利用可能な広告NFTはありません。",
-      "loading": "NFT読み込み中..."
-    },
-    "availableBalance": "利用可能残高",
-    "restrictedFirst": "制限付きBCCが最初に使用されます",
-    "restrictedBCC": "制限付きビーハイブ暗号コイン",
-    "transferableBCC": "転送可能ビーハイブ暗号コイン",
-    "claim": "獲得",
-    "claiming": "獲得中...",
-    "insufficientBCC": "BCC不足",
-    "claimModal": {
-      "title": "NFT獲得",
-      "price": "価格",
-      "availableRestricted": "利用可能（制限付き）",
-      "availableTransferable": "利用可能（転送可能）",
-      "confirmation": "制限付きBCCが最初に使用されます。このNFTの獲得を続行しますか？",
-      "confirm": "獲得確認",
-      "cancel": "キャンセル"
-    },
-    "claim": {
-      "success": {
-        "title": "NFT獲得成功！",
-        "description": "NFTがウォレットにミントされました。"
-      },
-      "error": {
-        "title": "獲得失敗",
-        "description": "NFTを獲得できません。残高を確認して再試行してください。"
-      }
-    }
-  },
-  "education": {
-    "title": "教育センター",
-    "progress": {
-      "title": "学習進歩",
-      "subtitle": "教育の旅を追跡",
-      "completed": "完了",
-      "inProgress": "進行中",
-      "hours": "時間",
-      "label": "進歩"
-    },
-    "free": "無料",
-    "levelRequired": "必要レベル",
-    "duration": "期間",
-    "completed": "完了",
-    "continue": "学習を続ける",
-    "startFree": "コース開始",
-    "purchase": "コース購入",
-    "enrolling": "登録中...",
-    "insufficientBCC": "BCC不足",
-    "enroll": {
-      "success": {
-        "title": "登録成功！",
-        "description": "このコースにアクセスできるようになりました。"
-      },
-      "error": {
-        "title": "登録失敗",
-        "description": "コースに登録できません。再試行してください。"
-      }
-    }
-  },
-  "discover": {
-    "title": "発見",
-    "subtitle": "Web3 DAppsとサービスを探索",
-    "search": {
-      "placeholder": "DApps、プロトコル、またはサービスを検索...",
-      "recent": "最近",
-      "trending": "トレンド",
-      "clear": "クリア"
-    },
-    "featured": {
-      "title": "Beehive注目",
-      "viewAll": "すべて表示"
-    },
-    "categories": {
-      "title": "カテゴリー",
-      "all": "全て",
-      "defi": "DeFi",
-      "nft": "NFT",
-      "gamefi": "GameFi",
-      "dao": "DAO",
-      "bridge": "ブリッジ",
-      "lending": "レンディング",
-      "dex": "DEX",
-      "yield": "イールド",
-      "insurance": "保険",
-      "social": "ソーシャル",
-      "tools": "ツール",
-      "education": "教育"
-    },
-    "trending": {
-      "title": "今トレンド",
-      "subtitle": "エコシステムで人気のDApps",
-      "users": "ユーザー",
-      "tvl": "TVL",
-      "volume": "24時間取引量"
-    },
-    "ecosystem": {
-      "title": "ビーハイブエコシステム",
-      "subtitle": "ネイティブプラットフォームサービスとツール",
-      "membership": {
-        "title": "メンバーシップシステム",
-        "subtitle": "ウォリアーから神話の頂点まで19レベル進行",
-        "levels": "19レベル",
-        "members": "アクティブメンバー"
-      },
-      "matrix": {
-        "title": "3×3マトリックス",
-        "subtitle": "分散型紹介・報酬システム",
-        "structure": "自動配置",
-        "rewards": "即時報酬"
-      },
-      "education": {
-        "title": "教育ハブ",
-        "subtitle": "Web3学習とスキル開発",
-        "courses": "コース",
-        "certificates": "証明書"
-      }
-    },
-    "networks": {
-      "title": "サポートネットワーク",
-      "subtitle": "マルチチェーンエコシステムサポート"
-    },
-    "stats": {
-      "title": "プラットフォーム統計",
-      "totalValue": "総ロック価値",
-      "transactions": "総取引数",
-      "users": "アクティブユーザー",
-      "protocols": "統合プロトコル"
-    },
-    "news": {
-      "title": "最新ニュース",
-      "subtitle": "Web3の発展を最新情報で確認",
-      "readMore": "もっと読む",
-      "minutes": "分読み"
+    "balances": {
+      "bccFree": "BCC（フリー）",
+      "bccLocked": "BCC（ロック済み）"
     }
   },
   "hiveworld": {
@@ -427,15 +143,24 @@
     },
     "rewardHistory": {
       "title": "報酬履歴",
-      "directBonus": "直接紹介ボーナス"
+      "directBonus": "直接紹介ボーナス",
+      "upgradeReward": "アップグレード報酬（保留中）",
+      "rollupReward": "ロールアップ報酬",
+      "completed": "完了",
+      "expired": "期限切れ",
+      "noRewards": "まだ報酬履歴がありません"
+    },
+    "linkCopied": {
+      "title": "リンクがコピーされました！",
+      "description": "紹介リンクがクリップボードにコピーされました。"
     },
     "blog": {
       "title": "ハイブワールド知識センター",
-      "subtitle": "Web3、ブロックチェーン技術、分散型エコシステムの最新情報をお届けします",
+      "subtitle": "Web3、ブロックチェーン技術、分散型エコシステムの最新洞察を探索",
       "searchPlaceholder": "記事を検索...",
       "allTopics": "すべてのトピック",
       "noArticles": "記事が見つかりません",
-      "noArticlesDesc": "検索語句を調整するか、異なるトピックをご覧ください",
+      "noArticlesDesc": "検索語句を調整するか、異なるトピックを探索してください",
       "tags": {
         "Web3": "Web3",
         "Blockchain": "ブロックチェーン",
@@ -457,7 +182,7 @@
         "1": {
           "title": "Web3メンバーシップシステムの未来",
           "excerpt": "ブロックチェーン技術が業界全体のメンバーシップとロイヤルティプログラムをどのように革新しているかを探索。",
-          "author": "ビーハイブチーム"
+          "author": "Beehiveチーム"
         },
         "2": {
           "title": "NFTベースのアクセス制御の理解",
@@ -466,12 +191,12 @@
         },
         "3": {
           "title": "持続可能な紹介経済の構築",
-          "excerpt": "成功する紹介プログラムの仕組みと、それらがどのように持続的な価値を創造するか。",
+          "excerpt": "成功した紹介プログラムの仕組みと、それらがどのように永続的価値を創造するか。",
           "author": "戦略チーム"
         },
         "4": {
           "title": "マルチチェーン決済統合ガイド",
-          "excerpt": "dApps向けクロスチェーン決済ソリューションの実装に関する技術的詳細解説。",
+          "excerpt": "dApps向けクロスチェーン決済ソリューション実装の技術的詳細分析。",
           "author": "開発チーム"
         },
         "5": {
@@ -481,532 +206,5 @@
         }
       }
     }
-      "activeDirect": "アクティブ直接",
-      "activeIndirect": "アクティブ間接",
-      "availableSlot": "利用可能スロット"
-    },
-    "referralLink": {
-      "title": "あなたの紹介リンク",
-      "copy": "コピー"
-    },
-    "rewardHistory": {
-      "title": "報酬履歴",
-      "directBonus": "直接紹介ボーナス",
-      "upgradeReward": "アップグレード報酬（保留中）",
-      "rollupReward": "ロールアップ報酬",
-      "completed": "完了",
-      "expired": "期限切れ",
-      "noRewards": "まだ報酬履歴がありません"
-    },
-    "linkCopied": {
-      "title": "リンクがコピーされました！",
-      "description": "紹介リンクがクリップボードにコピーされました。"
-    }
-  },
-  "me": {
-    "title": "プロフィールと設定",
-    "editProfile": "プロフィール編集",
-    "status": {
-      "active": "アクティブ",
-      "memberSince": "メンバー開始"
-    },
-    "balances": {
-      "usdt": "USDT残高",
-      "bccTransferable": "ビーハイブ暗号コイン（転送可能）",
-      "bccRestricted": "ビーハイブ暗号コイン（制限付き）",
-      "cth": "ケンタウリハニー（CTH）"
-    },
-    "learning": {
-      "title": "学習進歩",
-      "coursesCompleted": "完了コース",
-      "studyHours": "学習時間",
-      "certificates": "獲得証明書"
-    },
-    "referral": {
-      "title": "紹介パフォーマンス",
-      "directReferrals": "直接紹介",
-      "totalTeamSize": "総チームサイズ",
-      "totalEarnings": "総収益",
-      "thisMonth": "今月"
-    },
-    "settings": {
-      "title": "アカウント設定",
-      "language": "言語",
-      "languageDescription": "希望の言語を選択",
-      "notifications": "メール通知",
-      "notificationsDescription": "報酬とアクティビティの更新を受信",
-      "twoFactor": "二要素認証",
-      "twoFactorDescription": "アカウントに追加のセキュリティを追加",
-      "enabled": "有効",
-      "disabled": "無効",
-      "enable2FA": "2FAを有効化",
-      "changePassword": "パスワード変更",
-      "deactivateAccount": "アカウント無効化"
-    }
-  },
-  "membership": {
-    "purchase": {
-      "button": "レベル{level}を購入 (${price} USDT)",
-      "approving": "USDT承認中...",
-      "preparing": "支払い準備中...",
-      "paying": "支払い処理中...",
-      "verifying": "取引確認中...",
-      "finalizing": "購入完了中...",
-      "completed": "購入完了！",
-      "retry": "購入再試行",
-      "connectWallet": "購入にはウォレット接続",
-      "selectChain": "支払いチェーン選択",
-      "selectChainDescription": "レベル{level}メンバーシップのUSDT支払いに使用するブロックチェーンを選択",
-      "payWithGas": "USDTで支払い • ガス費{symbol}",
-      "success": {
-        "title": "メンバーシップ購入完了！",
-        "description": "メンバーシップが正常にアクティベートされました。"
-      },
-      "error": {
-        "title": "購入失敗",
-        "description": "購入処理でエラーが発生しました。再試行してください。"
-      }
-    },
-    "levels": {
-      "title": "メンバーシップレベル",
-      "subtitle": "レベルを選択して限定特典をアンロック",
-      "currentLevel": "現在のレベル",
-      "priceUSDT": "USDT",
-      "benefits": "主要特典",
-      "owned": "所有",
-      "selected": "選択済み",
-      "activated": "アクティベート済み",
-      "higherLevelOwned": "上位レベルアクティブ",
-      "selectionInfo": "このメンバーシップレベルを取得するには購入ボタンをクリック"
-    },
-    "level": {
-      "1": {
-        "title": "ウォリアー",
-        "subtitle": "ウォリアー • 上昇を開始 • $130 USDT"
-      },
-      "2": {
-        "title": "ブロンズ",
-        "subtitle": "ブロンズ • 実証された献身 • $150 USDT"
-      },
-      "3": {
-        "title": "シルバー",
-        "subtitle": "シルバー • 新星上昇 • $200 USDT"
-      },
-      "4": {
-        "title": "ゴールド",
-        "subtitle": "ゴールド • エリートステータス • $250 USDT"
-      },
-      "5": {
-        "title": "エリート",
-        "subtitle": "エリート • 優秀なメンバー • $300 USDT"
-      },
-      "6": {
-        "title": "プラチナ",
-        "subtitle": "プラチナ • 威信あるランク • $350 USDT"
-      },
-      "7": {
-        "title": "マスター",
-        "subtitle": "マスター • 熟練した実践者 • $400 USDT"
-      },
-      "8": {
-        "title": "ダイアモンド",
-        "subtitle": "ダイアモンド • 卓越した優秀さ • $450 USDT"
-      },
-      "9": {
-        "title": "グランドマスター",
-        "subtitle": "グランドマスター • 至高の熟練 • $500 USDT"
-      },
-      "10": {
-        "title": "スターシャイン",
-        "subtitle": "スターシャイン • 輝かしい達成 • $550 USDT"
-      },
-      "11": {
-        "title": "エピック",
-        "subtitle": "エピック • 伝説のステータス • $600 USDT"
-      },
-      "12": {
-        "title": "ホール",
-        "subtitle": "ホール • 殿堂入り • $650 USDT"
-      },
-      "13": {
-        "title": "最強王",
-        "subtitle": "最強王 • 王者の支配 • $700 USDT"
-      },
-      "14": {
-        "title": "王の王",
-        "subtitle": "王の王 • 至高の統治者 • $750 USDT"
-      },
-      "15": {
-        "title": "栄光王",
-        "subtitle": "栄光王 • 栄光ある統治 • $800 USDT"
-      },
-      "16": {
-        "title": "伝説の覇王",
-        "subtitle": "伝説の覇王 • 神話の力 • $850 USDT"
-      },
-      "17": {
-        "title": "至高王",
-        "subtitle": "至高王 • 究極の権威 • $900 USDT"
-      },
-      "18": {
-        "title": "至高神話",
-        "subtitle": "至高神話 • 神聖な伝説 • $950 USDT"
-      },
-      "19": {
-        "title": "神話の頂点",
-        "subtitle": "神話の頂点 • 力の頂点 • $1000 USDT"
-      }
-    },
-    "benefits": {
-      "l1": {
-        "basic": "基本プラットフォームアクセス",
-        "education": "教育コンテンツアクセス",
-        "rewards": "紹介報酬資格"
-      },
-      "l2": {
-        "enhanced": "強化された報酬マルチプライヤー",
-        "bonus": "レベル2ボーナス機能",
-        "network": "拡張ネットワークアクセス"
-      },
-      "l3": {
-        "advanced": "高度取引ツール",
-        "exclusive": "限定メンバーイベント",
-        "priority": "優先カスタマーサポート"
-      },
-      "l4": {
-        "premium": "プレミアムコンテンツライブラリ",
-        "mentorship": "メンターシップ機会",
-        "tools": "プロフェッショナル取引ツール"
-      },
-      "l5": {
-        "elite": "エリートメンバーステータス",
-        "leadership": "リーダーシップ開発",
-        "insights": "市場洞察アクセス"
-      },
-      "l6": {
-        "mastery": "マスターレベルリソース",
-        "networking": "VIPネットワーキングイベント",
-        "rewards": "強化された報酬率"
-      },
-      "l7": {
-        "expert": "エキスパートレベル認定",
-        "community": "プライベートコミュニティアクセス",
-        "alpha": "アルファ投資機会"
-      },
-      "l8": {
-        "legendary": "伝説ステータス特典",
-        "influence": "プラットフォーム影響力投票",
-        "opportunities": "限定機会"
-      },
-      "l9": {
-        "mastery": "完全システム習得",
-        "inner_circle": "インナーサークルメンバーシップ",
-        "exclusive": "超限定特典"
-      },
-      "l10": {
-        "grandmaster": "グランドマスター認定",
-        "authority": "プラットフォーム権威役割",
-        "legacy": "レガシープログラムアクセス"
-      },
-      "l11": {
-        "wisdom": "知恵評議会メンバー",
-        "cosmic": "宇宙レベル報酬",
-        "transcendent": "超越特典"
-      },
-      "l12": {
-        "oracle": "オラクル顧問役割",
-        "foresight": "市場先見ツール",
-        "divine": "神聖層特権"
-      },
-      "l13": {
-        "immortal": "不滅ステータス特典",
-        "eternal": "永続報酬ストリーム",
-        "infinite": "無限成長ポテンシャル"
-      },
-      "l14": {
-        "celestial": "天体層アクセス",
-        "heavenly": "天の報酬率",
-        "ascended": "昇天メンバー特典"
-      },
-      "l15": {
-        "divine": "神聖権威ステータス",
-        "godlike": "神のような影響力",
-        "ultimate": "究極プラットフォームアクセス"
-      },
-      "l16": {
-        "supreme": "至高司令官役割",
-        "omnipotent": "全能決定権",
-        "sovereign": "主権メンバー権利"
-      },
-      "l17": {
-        "transcendent": "超越的存在",
-        "beyond": "通常限界を超越",
-        "unlimited": "無限の可能性"
-      },
-      "l18": {
-        "absolute": "絶対権力アクセス",
-        "perfection": "完璧層特典",
-        "apex": "頂点捕食者ステータス"
-      },
-      "l19": {
-        "mythical": "神話的伝説ステータス",
-        "peak": "ピークパフォーマンス層",
-        "legendary": "伝説的創設者特典"
-      }
-    }
-  },
-  "welcome": {
-    "title": "Beehiveへようこそ！🎉",
-    "subtitle": "レベル1ウォリアーNFTを購入してメンバーシップを完了させ、プラットフォームの全機能をアンロックしてWeb3の旅を始めましょう！",
-    "nft": {
-      "title": "レベル1ウォリアーNFT",
-      "description": "ブロックチェーン上のメンバーシップ資格証明",
-      "tokenId": "トークンID: 0",
-      "price": "価格",
-      "priceAmount": "130 USDT"
-    },
-    "benefits": {
-      "title": "アンロックされる機能：",
-      "dashboard": "完全なダッシュボードアクセス",
-      "tasks": "タスク & NFTマーケットプレイス",
-      "education": "教育センター",
-      "discover": "Web3 DAppsを発見",
-      "tokens": "BCCトークン報酬",
-      "hiveworld": "HiveWorldマトリックスシステム"
-    },
-    "premium": {
-      "title": "💎 プレミアムメンバーシップ",
-      "description": "マルチチェーン決済サポート付きの130 USDTでレベル1ウォリアーNFTを購入しましょう！"
-    },
-    "success": {
-      "title": "購入成功！",
-      "description": "レベル1メンバーシップが有効化されました。Beehiveへようこそ！"
-    },
-    "error": {
-      "title": "購入失敗",
-      "description": "購入中にエラーが発生しました。もう一度お試しください。"
-    },
-    "supportText": "問題がありますか？サポートチームにお気軽にお問い合わせください。"
-  },
-  "tokenPurchase": {
-    "title": "トークン購入",
-    "description": "1トークン=0.01 USDTで複数チェーンでBCCとCTHトークンを購入",
-    "connectWallet": {
-      "title": "ウォレット接続",
-      "description": "BCCとCTHトークンを購入するためにウォレットを接続してください"
-    },
-    "form": {
-      "tokenType": "トークンタイプ",
-      "paymentChain": "支払いチェーン",
-      "tokenAmount": "トークン数量",
-      "enterAmount": "トークン数量を入力",
-      "totalCost": "合計コスト：${amount} USDT"
-    },
-    "tokens": {
-      "bcc": {
-        "name": "BCC（Beehive Crypto Coin）",
-        "title": "BCCトークン",
-        "description": "マーケットプレイス購入と報酬のための転送可能ユーティリティトークン",
-        "uses": {
-          "marketplace": "NFTマーケットプレイスで使用",
-          "education": "教育コースアクセス",
-          "advertisement": "広告NFT"
-        }
-      },
-      "cth": {
-        "name": "CTH（Centauri Honey）",
-        "title": "CTHトークン",
-        "description": "Alpha Centauriチェーン取引のためのネイティブガストークン",
-        "uses": {
-          "gas": "ネットワークガス料金",
-          "operations": "チェーン操作",
-          "transactions": "取引コスト"
-        }
-      }
-    },
-    "buttons": {
-      "creating": "購入作成中...",
-      "purchase": "{amount}個の{token}トークンを購入",
-      "cancelPayment": "支払いキャンセル"
-    },
-    "payment": {
-      "title": "支払いを完了",
-      "description": "${amount} USDTを支払い{tokenAmount}個の{tokenType}トークンを受け取る"
-    },
-    "balances": {
-      "title": "あなたのトークン残高",
-      "bccTotal": "BCC合計：",
-      "transferable": "転送可能：",
-      "restricted": "制限付き：",
-      "cthBalance": "CTH残高：",
-      "noBalances": "残高が見つかりません"
-    },
-    "history": {
-      "title": "最近の購入",
-      "noPurchases": "購入履歴なし"
-    },
-    "messages": {
-      "purchaseCreated": "購入作成済み",
-      "readyToPurchase": "{amount}個の{token}トークンの購入準備完了",
-      "error": "エラー",
-      "createFailed": "購入作成に失敗",
-      "tokensAirdropped": "トークンエアドロップ完了！🪂",
-      "tokensAdded": "{amount}個の{token}トークンがウォレットに追加されました",
-      "confirmFailed": "購入確認に失敗",
-      "walletNotConnected": "ウォレット未接続",
-      "connectToPurchase": "トークン購入にはウォレット接続してください",
-      "invalidAmount": "無効な数量",
-      "enterValidAmount": "有効なトークン数量を入力してください"
-    }
-  },
-  "footer": {
-    "description": "ブロックチェーンベースの報酬を持つWeb3メンバーシップ・学習プラットフォーム。",
-    "platform": "プラットフォーム",
-    "support": "サポート",
-    "helpCenter": "ヘルプセンター",
-    "documentation": "ドキュメント",
-    "contact": "お問い合わせ",
-    "status": "ステータス",
-    "legal": "法的",
-    "privacy": "プライバシーポリシー",
-    "terms": "利用規約",
-    "cookies": "クッキーポリシー",
-    "copyright": "© 2024 Beehive. 全著作権所有。"
-  },
-  "ads": {
-    "title": "広告NFT",
-    "description": "BCCトークンで広告NFTを獲得してプロモーションサービスを解除",
-    "nftCenter": "NFTセンター",
-    "manageNfts": "NFTを管理",
-    "browseNfts": "広告NFTを閲覧",
-    "exploreServices": "利用可能なプロモーションサービスとDAppパートナーシップを探索",
-    "claimNft": "NFTを獲得",
-    "soldOut": "売り切れ",
-    "claiming": "獲得中...",
-    "confirmClaim": "獲得を確認",
-    "bccRequired": "BCC必要",
-    "available": "利用可能",
-    "cost": "コスト",
-    "bucketSelection": "この広告NFTを獲得するために使用するBCCバケットを選択",
-    "transferableBcc": "転送可能BCC",
-    "restrictedBcc": "制限付きBCC",
-    "claim": {
-      "success": {
-        "title": "NFT獲得成功！",
-        "description": "広告NFTが獲得され、BCCトークンがロックされました。"
-      },
-      "error": {
-        "title": "獲得失敗",
-        "description": "広告NFTの獲得に失敗しました"
-      }
-    },
-    "burn": {
-      "title": "NFT焼却成功！",
-      "description": "サービスコード：{code}",
-      "error": {
-        "title": "焼却失敗",
-        "description": "NFTの焼却に失敗しました"
-      }
-    },
-    "status": {
-      "active": "アクティブ",
-      "used": "使用済み",
-      "burned": "焼却済み",
-      "claimed": "使用準備完了",
-      "serviceActivated": "サービス有効化済み"
-    }
-  },
-  "blogpost": {
-    "linkCopied": {
-      "title": "リンクをコピーしました！",
-      "description": "ブログ記事のリンクがクリップボードにコピーされました"
-    },
-    "author": "著者",
-    "publishedOn": "公開日",
-    "tags": "タグ",
-    "relatedPosts": "関連記事",
-    "sharePost": "この記事をシェア"
-  },
-  "activity": {
-    "rewardReceived": "報酬受領",
-    "fromReferralUpgrade": "紹介アップグレードから",
-    "nftClaimed": "NFT獲得済み",
-    "newReferral": "新しい紹介",
-    "memberSince": "メンバー開始日"
-  },
-  "errors": {
-    "walletNotConnected": "ウォレットが接続されていません",
-    "failedToFetch": "NFTの取得に失敗",
-    "failedToClaim": "NFTの獲得に失敗",
-    "failedToBurn": "NFTの焼却に失敗",
-    "insufficientBcc": "BCC不足",
-    "maxLevel": "最大レベル",
-    "inactive": "非アクティブ"
-  },
-  "buttons": {
-    "getStarted": "開始する",
-    "connectWallet": "ウォレット接続",
-    "copied": "コピーしました！",
-    "close": "閉じる",
-    "viewInCenter": "NFTセンターで表示",
-    "burnForService": "サービスコード用に焼却",
-    "burnNft": "NFT焼却",
-    "confirmBurn": "焼却確認",
-    "burning": "焼却中...",
-    "useNftService": "NFTサービスを使用",
-    "topUp": "チャージ"
-  }
-  },
-  "blogpost": {
-    "linkCopied": {
-      "title": "リンクがコピーされました！",
-      "description": "ブログ投稿のリンクがクリップボードにコピーされました"
-    },
-    "author": "著者",
-    "publishedOn": "公開日",
-    "tags": "タグ",
-    "relatedPosts": "関連投稿",
-    "sharePost": "この投稿を共有"
-  },
-  "activity": {
-    "rewardReceived": "報酬受領",
-    "fromReferralUpgrade": "紹介アップグレードから",
-    "nftClaimed": "NFT獲得済み",
-    "newReferral": "新しい紹介",
-    "memberSince": "メンバー開始日"
-  },
-  "errors": {
-    "walletNotConnected": "ウォレットが接続されていません",
-    "failedToFetch": "NFTの取得に失敗",
-    "failedToClaim": "NFTの獲得に失敗",
-    "failedToBurn": "NFTの焼却に失敗",
-    "insufficientBcc": "BCC不足",
-    "maxLevel": "最大レベル",
-    "inactive": "非アクティブ"
-  },
-  "buttons": {
-    "getStarted": "開始する",
-    "connectWallet": "ウォレット接続",
-    "copied": "コピーしました！",
-    "close": "閉じる",
-    "viewInCenter": "NFTセンターで表示",
-    "burnForService": "サービスコードのために焼却",
-    "burnNft": "NFTを焼却",
-    "confirmBurn": "焼却を確認",
-    "burning": "焼却中...",
-    "useNftService": "NFTサービスを使用",
-    "topUp": "チャージ"
-  },
-  "selectors": {
-    "category": "カテゴリー",
-    "level": "レベル",
-    "type": "タイプ",
-    "payment": "支払い",
-    "onlineZoom": "オンライン（Zoom）",
-    "videoLessons": "ビデオレッスン",
-    "freeCourses": "無料コース",
-    "paidBcc": "有料（BCC）",
-    "completed": "完了",
-    "enrolled": "登録済み"
   }
 }
