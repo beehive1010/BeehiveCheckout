@@ -526,8 +526,10 @@
       "priceAmount": "130 USDT"
     },
     "benefits": {
-      "tasks": "任务和奖励系统",
-      "education": "专属教育内容",
+      "title": "您将解锁的功能：",
+      "dashboard": "完整仪表板访问",
+      "tasks": "任务和NFT市场",
+      "education": "教育中心",
       "discover": "发现Web3 DApps",
       "tokens": "BCC代币奖励",
       "hiveworld": "蜂巢世界矩阵系统"
@@ -542,8 +544,9 @@
     },
     "error": {
       "title": "购买失败",
-      "description": "无法完成购买。请重试。"
-    }
+      "description": "您的购买出现错误。请重试。"
+    },
+    "supportText": "跨多个区块链的安全支付，即时NFT交付"
   },
   "tokenPurchase": {
     "title": "代币购买",
