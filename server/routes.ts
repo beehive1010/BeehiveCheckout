@@ -367,6 +367,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get individual course details
+  app.get("/api/education/courses/:courseId", async (req, res) => {
+    try {
+      const { courseId } = req.params;
+      const course = await storage.getCourse(courseId);
+      
+      if (!course) {
+        return res.status(404).json({ error: 'Course not found' });
+      }
+      
+      res.json(course);
+    } catch (error) {
+      console.error('Get course error:', error);
+      res.status(500).json({ error: 'Failed to get course' });
+    }
+  });
+
+  // Get course lessons (for video courses)
+  app.get("/api/education/courses/:courseId/lessons", async (req, res) => {
+    try {
+      const { courseId } = req.params;
+      
+      // First check if course exists
+      const course = await storage.getCourse(courseId);
+      if (!course) {
+        return res.status(404).json({ error: 'Course not found' });
+      }
+      
+      const lessons = await storage.getCourseLessons(courseId);
+      res.json(lessons);
+    } catch (error) {
+      console.error('Get course lessons error:', error);
+      res.status(500).json({ error: 'Failed to get course lessons' });
+    }
+  });
+
+  // Get user's course access
+  app.get("/api/education/access/:courseId", requireWallet, async (req: any, res) => {
+    try {
+      const { courseId } = req.params;
+      
+      const access = await storage.getCourseAccess(req.walletAddress, courseId);
+      
+      if (!access) {
+        return res.status(404).json({ error: 'Course access not found' });
+      }
+      
+      res.json(access);
+    } catch (error) {
+      console.error('Get course access error:', error);
+      res.status(500).json({ error: 'Failed to get course access' });
+    }
+  });
+
+  // Get user's lesson access for a course
+  app.get("/api/education/lessons/access/:courseId", requireWallet, async (req: any, res) => {
+    try {
+      const { courseId } = req.params;
+      
+      const lessonAccess = await storage.getLessonAccessByCourse(req.walletAddress, courseId);
+      res.json(lessonAccess);
+    } catch (error) {
+      console.error('Get lesson access error:', error);
+      res.status(500).json({ error: 'Failed to get lesson access' });
+    }
+  });
+
   app.get("/api/education/progress", requireWallet, async (req: any, res) => {
     try {
       const courseAccess = await storage.getCourseAccessByWallet(req.walletAddress);
