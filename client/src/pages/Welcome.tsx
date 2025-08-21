@@ -115,15 +115,15 @@ export default function Welcome() {
               transition={{ delay: 0.8, duration: 0.6 }}
               className="space-y-4"
             >
-              <h3 className="text-lg font-semibold text-honey">What You'll Unlock:</h3>
+              <h3 className="text-lg font-semibold text-honey">{t('welcome.benefits.title')}</h3>
               <div className="grid gap-3">
                 {[
-                  { icon: "fas fa-tachometer-alt", text: "Full Dashboard Access" },
-                  { icon: "fas fa-tasks", text: "Tasks & NFT Marketplace" },
-                  { icon: "fas fa-graduation-cap", text: "Education Center" },
-                  { icon: "fas fa-globe", text: "Discover Web3 DApps" },
+                  { icon: "fas fa-tachometer-alt", text: t('welcome.benefits.dashboard') },
+                  { icon: "fas fa-tasks", text: t('welcome.benefits.tasks') },
+                  { icon: "fas fa-graduation-cap", text: t('welcome.benefits.education') },
+                  { icon: "fas fa-globe", text: t('welcome.benefits.discover') },
+                  { icon: "fas fa-coins", text: t('welcome.benefits.tokens') },
                   { icon: "fas fa-users", text: t('welcome.benefits.hiveworld') },
-                  { icon: "fas fa-coins", text: "BCC Token Rewards" },
                 ].map((benefit, index) => (
                   <motion.div
                     key={index}
@@ -149,9 +149,9 @@ export default function Welcome() {
               className="text-center space-y-6"
             >
               <div className="p-4 bg-honey/10 rounded-lg border border-honey/20">
-                <p className="text-honey font-medium mb-2">💎 Premium Membership</p>
+                <p className="text-honey font-medium mb-2">{t('welcome.premium.title')}</p>
                 <p className="text-sm text-muted-foreground">
-                  Purchase your Level 1 Warrior NFT for <strong>130 USDT</strong> with multi-chain payment support!
+                  {t('welcome.premium.description')}
                 </p>
               </div>
 

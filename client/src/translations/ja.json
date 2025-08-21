@@ -627,9 +627,37 @@
     }
   },
   "welcome": {
+    "title": "Beehiveへようこそ！🎉",
+    "subtitle": "レベル1ウォリアーNFTを購入してメンバーシップを完了させ、プラットフォームの全機能をアンロックしてWeb3の旅を始めましょう！",
+    "nft": {
+      "title": "レベル1ウォリアーNFT",
+      "description": "ブロックチェーン上のメンバーシップ資格証明",
+      "tokenId": "トークンID：0",
+      "price": "価格",
+      "priceAmount": "130 USDT"
+    },
     "benefits": {
+      "title": "アンロックされる機能：",
+      "dashboard": "フルダッシュボードアクセス",
+      "tasks": "タスクとNFTマーケットプレイス",
+      "education": "教育センター",
+      "discover": "Web3 DAppsを発見",
+      "tokens": "BCCトークン報酬",
       "hiveworld": "HiveWorldマトリックスシステム"
-    }
+    },
+    "premium": {
+      "title": "💎 プレミアムメンバーシップ",
+      "description": "マルチチェーン決済対応でレベル1ウォリアーNFTを130 USDTで購入！"
+    },
+    "success": {
+      "title": "購入成功！",
+      "description": "レベル1メンバーシップが有効化されました。Beehiveへようこそ！"
+    },
+    "error": {
+      "title": "購入失敗",
+      "description": "購入でエラーが発生しました。もう一度お試しください。"
+    },
+    "supportText": "複数のブロックチェーンでの安全な決済と即座のNFT配信"
   },
   "footer": {
     "description": "ブロックチェーンベースの報酬を持つWeb3メンバーシップ・学習プラットフォーム。",
