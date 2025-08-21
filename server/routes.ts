@@ -104,13 +104,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const body = insertUserSchema.parse(req.body);
       
-      // Validate mandatory referrer
-      if (!body.referrerWallet) {
-        return res.status(400).json({ 
-          error: 'Referral link required', 
-          message: 'A valid referral link is required to register' 
-        });
-      }
       
       // Check if user already exists
       const existingUser = await storage.getUser(body.walletAddress);

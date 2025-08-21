@@ -277,7 +277,7 @@ export default function Tasks() {
                         transaction={claimTo({
                           contract: merchantNFTContract,
                           quantity: BigInt(1),
-                          tokenId: BigInt(nft.id),
+                          tokenId: BigInt(1), // Use sequential number instead of UUID
                           to: account?.address || walletAddress || "",
                         })}
                       />
@@ -293,7 +293,7 @@ export default function Tasks() {
                       transaction={claimTo({
                         contract: merchantNFTContract,
                         quantity: BigInt(1),
-                        tokenId: BigInt(nft.id),
+                        tokenId: BigInt(1), // Use sequential number instead of UUID
                         to: account?.address || walletAddress || "",
                       })}
                     />
