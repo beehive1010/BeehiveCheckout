@@ -303,6 +303,213 @@
       "deactivateAccount": "Deactivate Account"
     }
   },
+  "membership": {
+    "levels": {
+      "title": "Membership Levels",
+      "subtitle": "Choose your level and unlock exclusive benefits",
+      "currentLevel": "Current Level",
+      "priceUSDT": "USDT",
+      "benefits": "Key Benefits",
+      "owned": "Owned",
+      "selected": "Selected",
+      "activated": "Activated",
+      "higherLevelOwned": "Higher Level Active",
+      "selectionInfo": "Click the purchase button to acquire this membership level"
+    },
+    "level": {
+      "1": {
+        "title": "Warrior",
+        "subtitle": "勇士 • Start your journey"
+      },
+      "2": {
+        "title": "Knight",
+        "subtitle": "骑士 • Honor and valor"
+      },
+      "3": {
+        "title": "Guardian",
+        "subtitle": "守护者 • Protect and defend"
+      },
+      "4": {
+        "title": "Protector",
+        "subtitle": "保护者 • Shield your allies"
+      },
+      "5": {
+        "title": "Defender",
+        "subtitle": "防御者 • Fortress of strength"
+      },
+      "6": {
+        "title": "Champion",
+        "subtitle": "冠军 • Arena master"
+      },
+      "7": {
+        "title": "Hero",
+        "subtitle": "英雄 • Legend in making"
+      },
+      "8": {
+        "title": "Legend",
+        "subtitle": "传奇 • Stories of greatness"
+      },
+      "9": {
+        "title": "Master",
+        "subtitle": "大师 • Perfect your craft"
+      },
+      "10": {
+        "title": "Grandmaster",
+        "subtitle": "宗师 • Ultimate mastery"
+      },
+      "11": {
+        "title": "Sage",
+        "subtitle": "圣贤 • Wisdom incarnate"
+      },
+      "12": {
+        "title": "Oracle",
+        "subtitle": "先知 • See the future"
+      },
+      "13": {
+        "title": "Immortal",
+        "subtitle": "不朽者 • Eternal existence"
+      },
+      "14": {
+        "title": "Celestial",
+        "subtitle": "天尊 • Heavenly power"
+      },
+      "15": {
+        "title": "Divine",
+        "subtitle": "神圣 • Godlike presence"
+      },
+      "16": {
+        "title": "Supreme",
+        "subtitle": "至尊 • Ultimate authority"
+      },
+      "17": {
+        "title": "Transcendent",
+        "subtitle": "超越者 • Beyond limits"
+      },
+      "18": {
+        "title": "Absolute",
+        "subtitle": "绝对者 • Perfect form"
+      },
+      "19": {
+        "title": "Mythical Peak",
+        "subtitle": "神话巅峰 • Legendary summit"
+      }
+    },
+    "benefits": {
+      "l1": {
+        "basic": "Basic platform access",
+        "education": "Educational content access",
+        "rewards": "Referral rewards eligibility"
+      },
+      "l2": {
+        "enhanced": "Enhanced rewards multiplier",
+        "bonus": "Level 2 bonus features",
+        "network": "Extended network access"
+      },
+      "l3": {
+        "advanced": "Advanced trading tools",
+        "exclusive": "Exclusive member events",
+        "priority": "Priority customer support"
+      },
+      "l4": {
+        "premium": "Premium content library",
+        "mentorship": "Mentorship opportunities",
+        "tools": "Professional trading tools"
+      },
+      "l5": {
+        "elite": "Elite member status",
+        "leadership": "Leadership development",
+        "insights": "Market insights access"
+      },
+      "l6": {
+        "mastery": "Mastery-level resources",
+        "networking": "VIP networking events",
+        "rewards": "Enhanced reward rates"
+      },
+      "l7": {
+        "expert": "Expert-level certification",
+        "community": "Private community access",
+        "alpha": "Alpha investment opportunities"
+      },
+      "l8": {
+        "legendary": "Legendary status perks",
+        "influence": "Platform influence voting",
+        "opportunities": "Exclusive opportunities"
+      },
+      "l9": {
+        "mastery": "Complete system mastery",
+        "inner_circle": "Inner circle membership",
+        "exclusive": "Ultra-exclusive benefits"
+      },
+      "l10": {
+        "grandmaster": "Grandmaster recognition",
+        "authority": "Platform authority role",
+        "legacy": "Legacy program access"
+      },
+      "l11": {
+        "wisdom": "Wisdom council member",
+        "cosmic": "Cosmic-level rewards",
+        "transcendent": "Transcendent benefits"
+      },
+      "l12": {
+        "oracle": "Oracle advisory role",
+        "foresight": "Market foresight tools",
+        "divine": "Divine tier privileges"
+      },
+      "l13": {
+        "immortal": "Immortal status benefits",
+        "eternal": "Eternal reward streams",
+        "infinite": "Infinite growth potential"
+      },
+      "l14": {
+        "celestial": "Celestial tier access",
+        "heavenly": "Heavenly reward rates",
+        "ascended": "Ascended member perks"
+      },
+      "l15": {
+        "divine": "Divine authority status",
+        "godlike": "Godlike influence power",
+        "ultimate": "Ultimate platform access"
+      },
+      "l16": {
+        "supreme": "Supreme commander role",
+        "omnipotent": "Omnipotent decision power",
+        "sovereign": "Sovereign member rights"
+      },
+      "l17": {
+        "transcendent": "Transcendent existence",
+        "beyond": "Beyond normal limits",
+        "unlimited": "Unlimited possibilities"
+      },
+      "l18": {
+        "absolute": "Absolute power access",
+        "perfection": "Perfection tier benefits",
+        "apex": "Apex predator status"
+      },
+      "l19": {
+        "mythical": "Mythical legend status",
+        "peak": "Peak performance tier",
+        "legendary": "Legendary founder perks"
+      }
+    },
+    "purchase": {
+      "button": "Purchase Membership",
+      "connectWallet": "Connect Wallet to Purchase",
+      "paying": "Processing Payment...",
+      "verifying": "Verifying On-Chain...",
+      "finalizing": "Finalizing Membership...",
+      "completed": "Membership Activated!",
+      "retry": "Retry Purchase",
+      "cancel": "Cancel Payment",
+      "success": {
+        "title": "Membership Purchase Successful!",
+        "description": "Your new membership level has been activated and benefits unlocked."
+      },
+      "error": {
+        "title": "Purchase Failed",
+        "description": "Unable to complete membership purchase. Please try again."
+      }
+    }
+  },
   "footer": {
     "description": "Web3 membership and learning platform with blockchain-based rewards.",
     "platform": "Platform",

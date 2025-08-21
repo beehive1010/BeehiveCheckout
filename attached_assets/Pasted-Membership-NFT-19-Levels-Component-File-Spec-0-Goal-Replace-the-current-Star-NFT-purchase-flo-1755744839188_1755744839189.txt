@@ -1,0 +1,311 @@
+Membership NFT (19 Levels) Component & File Spec
+0) Goal
+Replace the current “Star NFT” purchase flow with a Membership NFT flow that supports 19 levels (L1–L19) purchased in USDT, integrates with the reward/placement rules, and records activation for routing/permissions. Keep the existing responsive/mobile patterns and i18n.
+
+1) Files to Add / Rename
+components/membership/ClaimMembershipButton.tsx
+
+
+Replaces ClaimStarNFTButton.
+
+
+Encapsulates the end-to-end “approve → pay → claim/verify → persist → callbacks” flow for one Membership Level.
+
+
+Works for any levelId 1..19; uses a level config source (see §2).
+
+
+components/membership/MembershipLevelList.tsx
+
+
+Replaces StarNFTClaimList.
+
+
+Renders the 19 membership cards with level badge, localized name, price, benefits, and a single-select interaction.
+
+
+Hosts one ClaimMembershipButton per card; enables only the currently selected level.
+
+
+components/membership/MembershipBadge.tsx
+
+
+Replaces NFTBadge usage.
+
+
+Visual badge for L1–L19 (hexagon/honeycomb style).
+
+
+Accepts level: 1|…|19 and renders the correct icon/gradient.
+
+
+lib/config/membershipLevels.ts
+
+
+Level metadata (see §2).
+
+
+Used by both the list and the claim button.
+
+
+i18n keys: keep display strings in dictionaries; this file only carries identifiers and prices.
+
+
+lib/membership/events.ts
+
+
+Defines event names and payload shapes emitted during the claim flow (purchase completed, on-chain verified, DB persisted, reward event created, etc.).
+
+
+Ensures analytics and background jobs subscribe consistently.
+
+
+
+2) Level Catalog (source of truth)
+Store the following in lib/config/membershipLevels.ts as a typed list (no code here—structure only):
+level (1..19)
+
+
+slug (e.g., warrior, bronze, silver, …)
+
+
+i18nKey (e.g., membership.level.1.title, membership.level.1.subtitle)
+
+
+priceUSDT
+
+
+badgeTheme (visual theme id)
+
+
+benefitsKeys (array of i18n keys to show 2–3 highlights per level)
+
+
+Prices (USDT)
+L1: 130
+
+
+L2: 150
+
+
+L3: 200
+
+
+L4: 250
+
+
+L5: 300
+
+
+L6: 350
+
+
+L7: 400
+
+
+L8: 450
+
+
+L9: 500
+
+
+L10: 550
+
+
+L11: 600
+
+
+L12: 650
+
+
+L13: 700
+
+
+L14: 750
+
+
+L15: 800
+
+
+L16: 850
+
+
+L17: 900
+
+
+L18: 950
+
+
+L19: 1000
+
+
+Naming (ZH / EN)
+ Use your screenshot naming for titles; map each level’s ZH/EN name to i18n keys (e.g., L1 勇士 / Warrior … L19 神话巅峰 / Mythical Peak). Do not hardcode strings in components.
+
+3) ClaimMembershipButton — Responsibilities
+Inputs (props)
+walletAddress (string) — primary key for DB and on-chain target.
+
+
+level (1..19) — the membership level this button will purchase.
+
+
+onSuccess?() — fired after DB state is persisted and UI can refresh.
+
+
+onError?(err) — any error surfaced with a sanitized message.
+
+
+disabled? — externally disable during selection/validation.
+
+
+UI States
+Idle → Approving (if needed) → Paying → Verifying on-chain → Persisting → Success / Error
+
+
+All states must be mobile friendly (one primary CTA, full-width on phones, clear progress text).
+
+
+Flow
+Preflight
+
+
+Require connected wallet; if missing, prompt connect.
+
+
+Pull level config by level; show priceUSDT.
+
+
+Anti-double-click guard.
+
+
+Payment
+
+
+Prepare a USDT payment for that level’s price using the embedded pay widget.
+
+
+On payment success, capture transactionHash and move to verify.
+
+
+On-chain Verification
+
+
+Confirm the wallet now owns the BBC token for the given level.
+
+
+If not visible yet (indexer lag), retry with exponential backoff for a short window.
+
+
+Persistence & Activation
+
+
+Write a membership order record keyed by (wallet, level, txHash).
+
+
+Set memberActivated = true if this is the first level; update currentLevel.
+
+
+Credit BCC per level policy (locked/unlocked split), writing to the wallet’s BCC buckets.
+
+
+Emit Reward Event to feed matrix/placement/48h timers (see §5 & §6).
+
+
+Callbacks
+
+
+On success: fire onSuccess(); close modal; show toast.
+
+
+On error: fire onError(err); keep the modal open with recovery guidance.
+
+
+Edge Cases
+Network/gas errors → readable error; encourage retry.
+
+
+Payment success but verification pending → show “finalizing” state; reconcile in background; notify when done.
+
+
+Idempotency: identical (wallet, level, txHash) must not create duplicate orders or double-activate.
+
+
+
+4) MembershipLevelList — Responsibilities
+Render 19 cards using the level config source.
+
+
+Single-select behavior: only the selected card’s button is enabled.
+
+
+Each card shows:
+
+
+Badge with MembershipBadge.
+
+
+Localized title + subtitle (ZH/EN, etc.).
+
+
+Price in USDT (prominent).
+
+
+2–3 key benefits (i18n keys).
+
+
+ClaimMembershipButton for that level.
+
+
+Responsive Layout
+
+
+Mobile: 1-column list with large touch targets.
+
+
+Tablet: 2-column grid.
+
+
+Desktop: 3–4-column honeycomb grid.
+
+
+Access guard
+
+
+If the viewer already owns a higher level, optionally dim lower levels or show “Owned / Higher level active”.
+
+
+
+5) Reward & Placement Hooks (triggered from the button)
+When a purchase is verified and persisted:
+Matrix Placement (3×3 forced)
+
+
+Place the wallet into the sponsor’s structure. If sponsor’s 3 direct slots are full, auto-place to the earliest downline with <3 slots (FIFO by activation).
+
+
+If this was an overflow placement at L1, the placement receiver gets the L1 direct bonus (100 USDT).
+
+
+Rewards
+
+
+L1 special: credit 100 USDT to the sponsor or placement receiver (immediate, no upgrade dependency).
+
+
+L2+: create a 48-hour pending reward for the sponsor if they are below the required level; resolve to sponsor if they upgrade in time, otherwise roll up to the nearest qualified upline.
+
+
+Enqueue payout jobs; all items idempotent with clear statuses (queued, processing, sent, failed).
+
+
+BCC crediting
+
+
+On every successful level purchase: credit the wallet’s BCC according to policy:
+
+
+unlock a portion into transferable,
+
+
+add bonus into restricted (non-transferable; spendable only in Tasks).
