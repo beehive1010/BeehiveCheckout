@@ -1,0 +1,300 @@
+1. Membership & Entry
+Entry Cost: 130 USDT total
+
+
+100 USDT → goes to the direct sponsor (instant referral bonus)
+
+
+30 USDT → goes to the admin wallet (platform fee)
+
+
+On-chain actions:
+
+
+Claim Membership NFT
+
+
+Pay 130 USDT
+
+
+Referral Binding:
+
+
+Each member must join via an invitation link.
+
+
+Once referral is bound, it is permanent and cannot be changed.
+
+
+Referral Bonus:
+
+
+The sponsor receives 100 USDT immediately for each referral.
+
+
+Unlimited earning potential.
+
+
+
+2. Level Progression
+Sequential upgrade required: Members must upgrade level by level; skipping levels is not allowed.
+
+
+Level Fees:
+
+
+Level
+Name
+Fee (USDT)
+1
+Warrior
+130 (100 reward + 30 fee)
+2
+Bronze
+150
+3
+Silver
+200
+4
+Gold
+250
+5
+Elite
+300
+6
+Platinum
+350
+7
+Master
+400
+8
+Diamond
+450
+9
+Grandmaster
+500
+10
+Star
+550
+11
+Epic
+600
+12
+Hall
+650
+13
+Strong King
+700
+14
+Peerless King
+750
+15
+Glory King
+800
+16
+Legendary Lord
+850
+17
+Supreme Lord
+900
+18
+Supreme Myth
+950
+19
+Mythic Peak
+1000
+
+
+3. Matrix Structure
+3×3 Matrix System
+
+
+Each member’s first layer can have up to 3 people.
+
+
+After the first layer is full, new members are automatically placed (“spillover”) into the next available slot in the downline.
+
+
+Effect: Even if a new member is not directly sponsored by you, if they spill into your team matrix, you still receive the corresponding level rewards.
+
+
+
+4. Reward Mechanisms
+1) Referral Reward
+Every new member you directly invite gives you 100 USDT immediately.
+
+
+No time limit, no upgrade requirement.
+
+
+Pure referral bonus, unlimited.
+
+
+
+2) Level Upgrade & Unlocking Conditions
+Bronze (Level 2):
+
+
+Condition: Must have 3 direct referrals (Warriors)
+
+
+Pay 150 USDT to upgrade
+
+
+Unlocks Bronze rewards (when downline in 2nd layer upgrades to Bronze, you earn 150 USDT each).
+
+
+Silver (Level 3):
+
+
+Pay 200 USDT to upgrade
+
+
+Unlocks Silver rewards (when 3rd layer downline upgrades to Silver, you earn 200 USDT each).
+
+
+Gold → Mythic Peak (Levels 4–19):
+
+
+Pay the required fee for each level
+
+
+Each level unlocks corresponding downline rewards (250–1000 USDT)
+
+
+No additional referral requirement (only Bronze requires 3 directs).
+
+
+
+3) Reward Distribution Rules
+Immediate Payout: Direct referral bonus (100 USDT) is paid instantly.
+
+
+Level Rewards (from downline upgrades):
+
+
+When your downline upgrades, the system generates a pending reward for you.
+
+
+Each pending reward has a 72-hour countdown.
+
+
+Unlock Condition:
+
+
+You must have already upgraded to the same level.
+
+
+For Bronze, you must also have 3 direct referrals.
+
+
+Claim: If you meet the conditions within 72 hours, you can click “Claim” and the reward will be instantly credited.
+
+
+Auto Upstream (Pass-Up): If you do not meet the conditions within 72 hours, the full reward amount is 100% passed up to the nearest qualified upline, and a new 72-hour countdown starts for them.
+
+
+
+4) Earnings Wallet
+Every member has a “Earnings Wallet” that shows:
+
+
+Balance (claimable earnings)
+
+
+Pending rewards with countdown timers
+
+
+Members can click “Claim” to move unlocked rewards into their wallet balance immediately.
+
+
+Wallet balance can be:
+
+
+Withdrawn to wallet (optional), or
+
+
+Reused for upgrades/other purposes (depending on product design).
+
+
+
+5. Examples
+Example 1: Referral
+Member A refers 3 people (each pays 130 USDT).
+
+
+A receives: 100 × 3 = 300 USDT immediately.
+
+
+Example 2: Upgrade to Bronze
+A has 3 directs and pays 150 USDT to upgrade to Bronze.
+
+
+When A’s 2nd-layer downline upgrades to Bronze, A earns 150 USDT each.
+
+
+If 9 people in A’s 2nd layer upgrade → 150 × 9 = 1350 USDT.
+
+
+Example 3: 72h Pass-Up
+Member B’s downline upgrades to Silver, generating 200 USDT reward for B.
+
+
+If B upgrades to Silver within 72 hours → B can claim the 200 USDT.
+
+
+If B fails to upgrade → the 200 USDT is passed up 100% to the nearest upline who has Silver, with a new 72-hour timer.
+
+
+
+6. Backend Responsibilities
+Blockchain layer:
+
+
+Only records NFT Claim + USDT payments.
+
+
+Backend system:
+
+
+Maintains referral binding (immutable).
+
+
+Validates upgrade payments against level costs.
+
+
+Issues referral rewards instantly.
+
+
+Generates level rewards with 72h countdown and pass-up logic.
+
+
+Manages 3×3 matrix placement and spillover.
+
+
+Provides members with their Earnings Wallet data and claim function.
+
+
+
+✅ Summary for Agent
+ The BeeHive system works as follows:
+Entry = 130 USDT (100 to sponsor, 30 to admin).
+
+
+Level progression: pay 150 → 1000 USDT step by step.
+
+
+3×3 matrix with automatic spillover.
+
+
+Rewards:
+
+
+Direct referral reward: instant 100 USDT each.
+
+
+Level rewards: generated when downline upgrades, subject to 72h countdown. If conditions are met → claim instantly; if not → reward is 100% passed up to the next qualified upline.
+
+
+Backend orchestrates all logic. Blockchain is only used for proof of payment (USDT) and proof of membership (NFT Claim).
+
