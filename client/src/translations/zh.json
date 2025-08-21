@@ -2,6 +2,12 @@
   "nav": {
     "marketplace": "市场"
   },
+  "blockchain": {
+    "name": "Alpha-centauri (ACC)",
+    "gasToken": "Centauri Honey (CTH)",
+    "utilityToken": "Beehive Crypto Coin (BCC)",
+    "membershipNFT": "Bumblebees (BBC)"
+  },
   "membership": {
     "levels": {
       "title": "会员等级",
