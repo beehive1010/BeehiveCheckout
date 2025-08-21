@@ -1,18 +1,17 @@
-import { useState } from 'react';
 import { useWallet } from '../hooks/useWallet';
 import { useI18n } from '../contexts/I18nContext';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Switch } from '../components/ui/switch';
-import { Label } from '../components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import HexagonIcon from '../components/UI/HexagonIcon';
+import Learn from './Learn';
+import Referrals from './Referrals';
+import Settings from './Settings';
 
 export default function Me() {
   const { userData, walletAddress, currentLevel, bccBalance } = useWallet();
-  const { t, language, setLanguage, languages } = useI18n();
-  const [notifications, setNotifications] = useState(true);
+  const { t, language } = useI18n();
 
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -26,21 +25,10 @@ export default function Me() {
     });
   };
 
-  const mockProgressData = {
-    completedCourses: 5,
-    totalCourses: 12,
-    studyHours: 28,
-    certificates: 3,
-    directReferrals: 3,
-    totalTeam: 12,
-    totalEarnings: 1100,
-    monthlyEarnings: 350
-  };
-
   return (
     <div className="container mx-auto px-4 py-8">
       <h2 className="text-2xl font-bold text-honey mb-6">
-        {t('me.title')}
+        User Center
       </h2>
       
       {/* Profile Card */}
@@ -124,156 +112,47 @@ export default function Me() {
         </Card>
       </div>
 
-      {/* Stats & Progress */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Learning Progress */}
-        <Card className="bg-secondary border-border">
-          <CardHeader>
-            <CardTitle className="text-honey">{t('me.learning.title')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-muted-foreground">{t('me.learning.coursesCompleted')}</span>
-                <span className="text-honey">{mockProgressData.completedCourses} / {mockProgressData.totalCourses}</span>
-              </div>
-              <div className="progress-bar">
-                <div 
-                  className="progress-fill"
-                  style={{ width: `${(mockProgressData.completedCourses / mockProgressData.totalCourses) * 100}%` }}
-                ></div>
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-muted-foreground">{t('me.learning.studyHours')}</span>
-                <span className="text-honey">{mockProgressData.studyHours} hours</span>
-              </div>
-              <div className="progress-bar">
-                <div className="bg-blue-400 h-2 rounded-full" style={{ width: '70%' }}></div>
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-muted-foreground">{t('me.learning.certificates')}</span>
-                <span className="text-honey">{mockProgressData.certificates}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Referral Performance */}
-        <Card className="bg-secondary border-border">
-          <CardHeader>
-            <CardTitle className="text-honey">{t('me.referral.title')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">{t('me.referral.directReferrals')}</span>
-              <span className="text-honey font-semibold">{mockProgressData.directReferrals}</span>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">{t('me.referral.totalTeamSize')}</span>
-              <span className="text-honey font-semibold">{mockProgressData.totalTeam}</span>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">{t('me.referral.totalEarnings')}</span>
-              <span className="text-green-400 font-semibold">{mockProgressData.totalEarnings} USDT</span>
-            </div>
-            
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">{t('me.referral.thisMonth')}</span>
-              <span className="text-honey font-semibold">{mockProgressData.monthlyEarnings} USDT</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Settings */}
-      <Card className="bg-secondary border-border">
-        <CardHeader>
-          <CardTitle className="text-honey">{t('me.settings.title')}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Language Setting */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-            <div>
-              <p className="text-honey font-medium">{t('me.settings.language')}</p>
-              <p className="text-muted-foreground text-sm">{t('me.settings.languageDescription')}</p>
-            </div>
-            <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger className="w-40 select-honey" data-testid="select-profile-language">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-secondary border-border">
-                {languages.map((lang) => (
-                  <SelectItem 
-                    key={lang.code} 
-                    value={lang.code}
-                    className="text-honey hover:bg-muted"
-                  >
-                    {lang.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          {/* Email Notifications */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-            <div>
-              <p className="text-honey font-medium">{t('me.settings.notifications')}</p>
-              <p className="text-muted-foreground text-sm">{t('me.settings.notificationsDescription')}</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Switch 
-                checked={notifications} 
-                onCheckedChange={setNotifications}
-                data-testid="switch-notifications"
-              />
-              <Label htmlFor="notifications" className="text-honey">
-                {notifications ? t('me.settings.enabled') : t('me.settings.disabled')}
-              </Label>
-            </div>
-          </div>
-          
-          {/* Two-Factor Authentication */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-            <div>
-              <p className="text-honey font-medium">{t('me.settings.twoFactor')}</p>
-              <p className="text-muted-foreground text-sm">{t('me.settings.twoFactorDescription')}</p>
-            </div>
-            <Button 
-              className="btn-honey"
-              data-testid="button-enable-2fa"
-            >
-              {t('me.settings.enable2FA')}
-            </Button>
-          </div>
-          
-          {/* Action Buttons */}
-          <div className="border-t border-border pt-6">
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-              <Button 
-                className="btn-honey"
-                data-testid="button-change-password"
-              >
-                {t('me.settings.changePassword')}
-              </Button>
-              <Button 
-                variant="destructive"
-                data-testid="button-deactivate-account"
-              >
-                {t('me.settings.deactivateAccount')}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Tab Navigation */}
+      <Tabs defaultValue="learn" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 bg-secondary border-border mb-6">
+          <TabsTrigger 
+            value="learn" 
+            className="data-[state=active]:bg-honey data-[state=active]:text-black text-honey"
+            data-testid="tab-learn"
+          >
+            <i className="fas fa-graduation-cap mr-2"></i>
+            Learn
+          </TabsTrigger>
+          <TabsTrigger 
+            value="referrals" 
+            className="data-[state=active]:bg-honey data-[state=active]:text-black text-honey"
+            data-testid="tab-referrals"
+          >
+            <i className="fas fa-users mr-2"></i>
+            Referrals
+          </TabsTrigger>
+          <TabsTrigger 
+            value="settings" 
+            className="data-[state=active]:bg-honey data-[state=active]:text-black text-honey"
+            data-testid="tab-settings"
+          >
+            <i className="fas fa-cog mr-2"></i>
+            Settings
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="learn" className="mt-0">
+          <Learn />
+        </TabsContent>
+        
+        <TabsContent value="referrals" className="mt-0">
+          <Referrals />
+        </TabsContent>
+        
+        <TabsContent value="settings" className="mt-0">
+          <Settings />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
