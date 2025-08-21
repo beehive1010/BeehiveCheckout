@@ -24,6 +24,7 @@ import NotFound from "@/pages/not-found";
 import Header from "@/components/Layout/Header";
 import Navigation from "@/components/Layout/Navigation";
 import Footer from "@/components/Layout/Footer";
+import { RouteGuard } from "@/components/RouteGuard";
 
 function Router() {
   return (
@@ -52,26 +53,28 @@ function App() {
         <Web3Provider>
           <I18nProvider>
             <TooltipProvider>
-              <div className="min-h-screen bg-background text-foreground">
-                <Header />
-                <Navigation />
-                <main className="min-h-[calc(100vh-theme(spacing.32))] pb-16 md:pb-0">
-                  <Router />
-                </main>
-                {isLandingPage && <Footer />}
-                <Toaster />
-                <HotToaster 
-                  position="top-right"
-                  toastOptions={{
-                    duration: 4000,
-                    style: {
-                      background: 'var(--background)',
-                      color: 'var(--foreground)',
-                      border: '1px solid var(--border)',
-                    },
-                  }}
-                />
-              </div>
+              <RouteGuard>
+                <div className="min-h-screen bg-background text-foreground">
+                  <Header />
+                  <Navigation />
+                  <main className="min-h-[calc(100vh-theme(spacing.32))] pb-16 md:pb-0">
+                    <Router />
+                  </main>
+                  {isLandingPage && <Footer />}
+                  <Toaster />
+                  <HotToaster 
+                    position="top-right"
+                    toastOptions={{
+                      duration: 4000,
+                      style: {
+                        background: 'var(--background)',
+                        color: 'var(--foreground)',
+                        border: '1px solid var(--border)',
+                      },
+                    }}
+                  />
+                </div>
+              </RouteGuard>
             </TooltipProvider>
           </I18nProvider>
         </Web3Provider>
