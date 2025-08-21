@@ -473,6 +473,183 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Membership verification endpoint
+  app.post("/api/membership/verify", requireWallet, async (req: any, res) => {
+    try {
+      const { txHash, level } = req.body;
+      
+      if (!txHash || !level) {
+        return res.status(400).json({ error: 'Transaction hash and level required' });
+      }
+
+      // Mock verification - in production would check on-chain
+      // Check if BBC token for the level exists in wallet
+      console.log(`Verifying membership L${level} for ${req.walletAddress} with tx ${txHash}`);
+      
+      // Simulate on-chain verification delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Mock verification result (in production, would call smart contract)
+      const verified = true; // Would check actual BBC token ownership
+      
+      res.json({ 
+        verified,
+        txHash,
+        level,
+        walletAddress: req.walletAddress
+      });
+    } catch (error) {
+      console.error('Membership verification error:', error);
+      res.status(500).json({ error: 'Failed to verify membership' });
+    }
+  });
+
+  // Membership claim endpoint
+  app.post("/api/membership/claim", requireWallet, async (req: any, res) => {
+    try {
+      const { level, txHash, priceUSDT } = req.body;
+      
+      if (!level || !txHash || !priceUSDT) {
+        return res.status(400).json({ error: 'Level, transaction hash, and price required' });
+      }
+
+      // Get user data
+      const user = await storage.getUser(req.walletAddress);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Check for duplicate order
+      const existingOrders = await storage.getOrdersByWallet(req.walletAddress);
+      const duplicateOrder = existingOrders.find(order => 
+        order.txHash === txHash && order.level === level
+      );
+      
+      if (duplicateOrder) {
+        return res.status(400).json({ error: 'Order already exists' });
+      }
+
+      // Create order record
+      const order = await storage.createOrder({
+        walletAddress: req.walletAddress,
+        level,
+        amountUSDT: priceUSDT,
+        chain: 'alpha-centauri',
+        txHash,
+        status: 'completed',
+      });
+
+      // Get or create membership state
+      let membershipState = await storage.getMembershipState(req.walletAddress);
+      
+      const previousLevel = user.currentLevel;
+      const isFirstLevel = !user.memberActivated && level === 1;
+      
+      if (!membershipState) {
+        membershipState = await storage.createMembershipState({
+          walletAddress: req.walletAddress,
+          levelsOwned: [level],
+          activeLevel: level,
+        });
+      } else {
+        // Update membership state
+        const currentLevelsOwned = membershipState.levelsOwned || [];
+        if (!currentLevelsOwned.includes(level)) {
+          const updatedLevelsOwned = [...currentLevelsOwned, level].sort((a, b) => a - b);
+          const newActiveLevel = Math.max(membershipState.activeLevel, level);
+          
+          await storage.updateMembershipState(req.walletAddress, {
+            levelsOwned: updatedLevelsOwned,
+            activeLevel: newActiveLevel,
+          });
+        }
+      }
+
+      // Update user activation status and level
+      const userUpdates: Partial<typeof user> = {};
+      if (isFirstLevel) {
+        userUpdates.memberActivated = true;
+      }
+      if (level > user.currentLevel) {
+        userUpdates.currentLevel = level;
+      }
+      
+      if (Object.keys(userUpdates).length > 0) {
+        await storage.updateUser(req.walletAddress, userUpdates);
+      }
+
+      // Credit BCC tokens based on level
+      const bccReward = calculateBCCReward(level);
+      if (bccReward.total > 0) {
+        let bccBalance = await storage.getBCCBalance(req.walletAddress);
+        
+        if (!bccBalance) {
+          bccBalance = await storage.createBCCBalance({
+            walletAddress: req.walletAddress,
+            transferable: bccReward.transferable,
+            restricted: bccReward.restricted,
+          });
+        } else {
+          await storage.updateBCCBalance(req.walletAddress, {
+            transferable: bccBalance.transferable + bccReward.transferable,
+            restricted: bccBalance.restricted + bccReward.restricted,
+          });
+        }
+      }
+
+      // Create reward event for referral system
+      if (user.referrerWallet) {
+        const rewardAmount = level === 1 ? 100 : calculateRewardAmount(level);
+        const eventType = level === 1 ? 'L1_direct' : 'L2plus_upgrade';
+        
+        await storage.createRewardEvent({
+          buyerWallet: req.walletAddress,
+          sponsorWallet: user.referrerWallet,
+          eventType,
+          level,
+          amount: rewardAmount,
+          status: level === 1 ? 'completed' : 'pending',
+          timerStartAt: level > 1 ? new Date() : undefined,
+          timerExpireAt: level > 1 ? new Date(Date.now() + 48 * 60 * 60 * 1000) : undefined,
+        });
+      }
+
+      res.json({ 
+        success: true,
+        orderId: order.id,
+        activated: isFirstLevel,
+        previousLevel,
+        newLevel: level,
+        bccRewarded: bccReward.total
+      });
+    } catch (error) {
+      console.error('Membership claim error:', error);
+      res.status(500).json({ error: 'Failed to claim membership' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
+}
+
+// Helper functions
+function calculateBCCReward(level: number): { transferable: number; restricted: number; total: number } {
+  // Base BCC reward calculation per level
+  const baseReward = level * 50; // 50 BCC per level
+  const transferable = Math.floor(baseReward * 0.3); // 30% transferable
+  const restricted = baseReward - transferable; // 70% restricted
+  
+  return {
+    transferable,
+    restricted,
+    total: baseReward
+  };
+}
+
+function calculateRewardAmount(level: number): number {
+  // Reward amount calculation for referral system
+  if (level <= 5) return 50;
+  if (level <= 10) return 100;
+  if (level <= 15) return 200;
+  return 300;
 }
