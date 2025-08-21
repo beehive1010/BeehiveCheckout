@@ -23,8 +23,23 @@ const languageOptions = [
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
     const saved = localStorage.getItem('beehive-language');
-    return (saved as Language) || 'en';
+    // Validate the saved language exists in our translations
+    const validLanguages: Language[] = ['en', 'zh', 'th', 'ms', 'ko'];
+    if (saved && validLanguages.includes(saved as Language)) {
+      return saved as Language;
+    }
+    // Default to English and clear invalid stored language
+    localStorage.setItem('beehive-language', 'en');
+    return 'en';
   });
+
+  // Debug: Add window function to force reset to English
+  useEffect(() => {
+    (window as any).forceEnglish = () => {
+      setLanguage('en');
+      window.location.reload();
+    };
+  }, []);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
@@ -37,6 +52,17 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     
     for (const k of keys) {
       value = value?.[k];
+    }
+    
+    // If translation not found in current language, try English as fallback
+    if (!value && language !== 'en') {
+      let englishValue: any = translations.en;
+      for (const k of keys) {
+        englishValue = englishValue?.[k];
+      }
+      if (englishValue) {
+        return englishValue;
+      }
     }
     
     return value || key;
