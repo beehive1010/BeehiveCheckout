@@ -7,12 +7,12 @@ export const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || '3123b1ac2ebdb966dd415c6e964dc335'
 });
 
-// Define Alpha Centauri chain
+// Define Alpha Centauri chain (ACC)
 export const alphaCentauri = defineChain({
   id: 141941,
-  name: 'Alpha Centauri',
+  name: 'Alpha-centauri (ACC)',
   nativeCurrency: {
-    name: 'CTH',
+    name: 'Centauri Honey',
     symbol: 'CTH',
     decimals: 18,
   },
@@ -72,31 +72,31 @@ export const parseReferralFromUrl = (): string | null => {
 // Mock contract interaction functions
 // In a real implementation, these would interact with actual smart contracts
 export const mockContractFunctions = {
-  // Check BBC membership level
+  // Check Bumblebees (BBC) membership level
   checkMembershipLevel: async (walletAddress: string): Promise<number> => {
-    // Mock implementation - would call actual BBC contract
-    console.log(`Checking membership level for ${walletAddress}`);
+    // Mock implementation - would call actual Bumblebees contract
+    console.log(`Checking Bumblebees membership level for ${walletAddress}`);
     return 0; // Return 0 for no membership, 1-19 for levels
   },
   
-  // Check BCC balance
+  // Check Beehive Crypto Coin (BCC) balance
   checkBCCBalance: async (walletAddress: string): Promise<{ transferable: number; restricted: number }> => {
     // Mock implementation - would call actual BCC contract
-    console.log(`Checking BCC balance for ${walletAddress}`);
+    console.log(`Checking Beehive Crypto Coin balance for ${walletAddress}`);
     return { transferable: 0, restricted: 0 };
   },
   
-  // Mint BBC membership NFT
+  // Mint Bumblebees (BBC) membership NFT
   mintMembershipNFT: async (walletAddress: string, level: number, txHash: string): Promise<boolean> => {
-    // Mock implementation - would call BBC contract mint function
-    console.log(`Minting Level ${level} BBC NFT for ${walletAddress} with tx ${txHash}`);
+    // Mock implementation - would call Bumblebees contract mint function
+    console.log(`Minting Level ${level} Bumblebees NFT for ${walletAddress} with tx ${txHash}`);
     return true;
   },
   
-  // Transfer BCC tokens
+  // Transfer Beehive Crypto Coin (BCC) tokens
   transferBCC: async (from: string, to: string, amount: number): Promise<string> => {
     // Mock implementation - would call BCC contract transfer function
-    console.log(`Transferring ${amount} BCC from ${from} to ${to}`);
+    console.log(`Transferring ${amount} Beehive Crypto Coin from ${from} to ${to}`);
     return 'mock-tx-hash';
   },
   

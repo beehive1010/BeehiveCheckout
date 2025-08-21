@@ -129,7 +129,7 @@ export default function Tasks() {
           NFT Marketplace
         </h1>
         <p className="text-muted-foreground text-sm md:text-base mb-3">
-          Discover and purchase exclusive NFTs with USDT and BCC tokens
+          Discover and purchase Bumblebees (BBC) with USDT and Advertisement NFTs with Beehive Crypto Coin (BCC)
         </p>
         <MobileDivider className="md:hidden" />
       </div>
@@ -179,7 +179,7 @@ export default function Tasks() {
             data-testid="filter-membership"
           >
             <i className="fas fa-crown mr-2"></i>
-            Premium Membership
+            Bumblebees (BBC)
           </button>
           <button
             onClick={() => setActiveCategory('advertisement')}
@@ -191,7 +191,7 @@ export default function Tasks() {
             data-testid="filter-advertisement"
           >
             <i className="fas fa-bullhorn mr-2"></i>
-            Advertisement Spots
+            Advertisement NFTs
           </button>
         </div>
       </div>
@@ -199,7 +199,7 @@ export default function Tasks() {
       {/* Content Area */}
       {activeCategory === 'membership' ? (
         <>
-          <MobileDivider withText="Premium Membership Collection" className="mb-6" />
+          <MobileDivider withText="Bumblebees (BBC) Collection" className="mb-6" />
           
           {/* Premium Membership Showcase */}
           <div className="bg-gradient-to-br from-honey/10 to-honey/5 rounded-lg p-6 mb-6 border border-honey/20">
@@ -207,46 +207,46 @@ export default function Tasks() {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-honey/20 rounded-full mb-4">
                 <i className="fas fa-crown text-2xl text-honey"></i>
               </div>
-              <h2 className="text-2xl font-bold text-honey mb-2">19-Level Membership System</h2>
-              <p className="text-muted-foreground">From Warrior ($130) to Mythical Peak ($1000) - Unlock exclusive benefits with blockchain-verified credentials</p>
+              <h2 className="text-2xl font-bold text-honey mb-2">Bumblebees (BBC) - 19-Level NFT System</h2>
+              <p className="text-muted-foreground">From Warrior ($130) to Mythical Peak ($1000) - Premium membership NFTs on Alpha-centauri blockchain</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div className="bg-secondary/50 rounded-lg p-4 text-center">
                 <i className="fas fa-shield-alt text-honey text-xl mb-2"></i>
-                <h3 className="font-semibold text-sm">Secure & Verified</h3>
-                <p className="text-xs text-muted-foreground">Blockchain-backed membership credentials</p>
+                <h3 className="font-semibold text-sm">Bumblebees NFTs</h3>
+                <p className="text-xs text-muted-foreground">Secure membership NFTs on Alpha-centauri (ACC)</p>
               </div>
               <div className="bg-secondary/50 rounded-lg p-4 text-center">
                 <i className="fas fa-coins text-honey text-xl mb-2"></i>
                 <h3 className="font-semibold text-sm">USDT Payments</h3>
-                <p className="text-xs text-muted-foreground">$130-$1000 USDT • Real value memberships</p>
+                <p className="text-xs text-muted-foreground">$130-$1000 USDT • Gas paid in Centauri Honey (CTH)</p>
               </div>
               <div className="bg-secondary/50 rounded-lg p-4 text-center">
                 <i className="fas fa-users text-honey text-xl mb-2"></i>
-                <h3 className="font-semibold text-sm">Upline Rewards</h3>
-                <p className="text-xs text-muted-foreground">100% rewards distributed to qualified uplines</p>
+                <h3 className="font-semibold text-sm">BCC Rewards</h3>
+                <p className="text-xs text-muted-foreground">Earn Beehive Crypto Coin • 100% to uplines</p>
               </div>
             </div>
             
             <div className="text-center">
               <div className="inline-flex items-center bg-honey/10 text-honey px-4 py-2 rounded-lg">
                 <i className="fas fa-clock mr-2"></i>
-                <span className="text-sm font-medium">Coming Soon - Full System Launch</span>
+                <span className="text-sm font-medium">Bumblebees (BBC) - Coming Soon</span>
               </div>
             </div>
           </div>
         </>
       ) : (
         <>
-          <MobileDivider withText={`Advertisement Marketplace • ${nfts.length} Spots Available`} className="mb-6" />
+          <MobileDivider withText={`Advertisement NFTs • ${nfts.length} Available`} className="mb-6" />
           
           {/* Marketplace Header */}
           <div className="bg-secondary/30 rounded-lg p-4 mb-6 border border-border">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
               <div>
-                <h3 className="text-lg font-semibold text-honey mb-1">Premium Advertisement Spots</h3>
-                <p className="text-sm text-muted-foreground">Purchase high-visibility ad placements with your BCC tokens</p>
+                <h3 className="text-lg font-semibold text-honey mb-1">Advertisement NFTs</h3>
+                <p className="text-sm text-muted-foreground">Purchase exclusive ad placements with Beehive Crypto Coin (BCC) tokens</p>
               </div>
               <div className="flex items-center space-x-2 text-sm">
                 <div className="flex items-center bg-honey/10 px-3 py-1 rounded-full">

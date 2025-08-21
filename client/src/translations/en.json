@@ -112,7 +112,7 @@
     },
     "membershipLevel": "Membership Level",
     "price": "Price",
-    "activateLevel1": "Activate Level 1 Membership",
+    "activateLevel1": "Activate Level 1 Bumblebees (BBC) NFT",
     "activating": "Activating...",
     "activationNote": "After activation, you'll have access to all member features including Tasks, Education, and HiveWorld.",
     "status": {
@@ -146,11 +146,11 @@
     }
   },
   "tasks": {
-    "title": "Merchant NFT Marketplace",
+    "title": "NFT Marketplace",
     "availableBalance": "Available Balance",
     "restrictedFirst": "Restricted BCC will be used first",
-    "restrictedBCC": "Restricted BCC",
-    "transferableBCC": "Transferable BCC",
+    "restrictedBCC": "Restricted Beehive Crypto Coin",
+    "transferableBCC": "Transferable Beehive Crypto Coin",
     "claim": "Claim",
     "claiming": "Claiming...",
     "insufficientBCC": "Insufficient BCC",
@@ -273,9 +273,9 @@
     },
     "balances": {
       "usdt": "USDT Balance",
-      "bccTransferable": "BCC (Transferable)",
-      "bccRestricted": "BCC (Restricted)",
-      "cth": "CTH Tokens"
+      "bccTransferable": "Beehive Crypto Coin (Transferable)",
+      "bccRestricted": "Beehive Crypto Coin (Restricted)",
+      "cth": "Centauri Honey (CTH)"
     },
     "learning": {
       "title": "Learning Progress",
