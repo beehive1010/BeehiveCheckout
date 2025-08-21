@@ -109,11 +109,10 @@ export default function HiveWorld() {
       {/* Header Section */}
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-honey mb-4">
-          HiveWorld Blog
+          {t('hiveworld.blog.title')}
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Insights, updates, and deep-dives from the Beehive team. 
-          Stay informed about the latest in Web3, blockchain technology, and our ecosystem.
+          {t('hiveworld.blog.subtitle')}
         </p>
       </div>
       
@@ -123,7 +122,7 @@ export default function HiveWorld() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
-              placeholder="Search articles..."
+              placeholder={t('hiveworld.blog.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -140,7 +139,7 @@ export default function HiveWorld() {
             onClick={() => setSelectedTag(null)}
             className={!selectedTag ? "bg-honey text-black" : ""}
           >
-            All Topics
+            {t('hiveworld.blog.allTopics')}
           </Button>
           {allTags.map(tag => (
             <Button
@@ -216,10 +215,10 @@ export default function HiveWorld() {
       {filteredBlogs.length === 0 && (
         <div className="text-center py-12">
           <h3 className="text-xl font-semibold text-muted-foreground mb-2">
-            No articles found
+            {t('hiveworld.blog.noArticles')}
           </h3>
           <p className="text-muted-foreground">
-            Try adjusting your search terms or selected topics.
+            {t('hiveworld.blog.noArticlesDesc')}
           </p>
         </div>
       )}
