@@ -464,29 +464,32 @@ export default function ClaimMembershipButton({
             </div>
 
             {/* PayEmbed Container */}
-            <div className="p-3 sm:p-4 overflow-hidden">
+            <div className="p-3 sm:p-4 overflow-hidden min-h-[400px]">
               <PayEmbed
                 client={client}
                 payOptions={{
                   mode: "direct_payment",
                   paymentInfo: {
-                    amount: membershipLevel.priceUSDT.toString(),
+                    amount: (membershipLevel.priceUSDT * 1000000).toString(), // Convert to USDT wei (6 decimals)
                     sellerAddress: selectedChain.bridgeWallet,
                     chain: selectedChain.chain,
-                    token: {
-                      address: selectedChain.usdtAddress,
-                      symbol: 'USDT',
-                      name: 'Tether USD',
-                    },
+                    token: selectedChain.usdtAddress,
                   },
                   metadata: {
-                    name: `Beehive L${level} Membership (${selectedChain.name})`,
-                    description: `Level ${level} membership upgrade via ${selectedChain.name} USDT`,
-                    image: "/membership-badge.png",
+                    name: `Beehive Level ${level} Membership`,
+                    description: `Exclusive Level ${level} membership with special privileges and rewards`,
                   },
                   onPurchaseSuccess: handlePaymentSuccess,
+                  onPurchaseError: (error: any) => {
+                    console.error('PayEmbed purchase error:', error);
+                    handleError('Payment failed. Please try again.', 'payment');
+                  },
                 }}
                 theme="dark"
+                style={{
+                  backgroundColor: 'transparent',
+                  color: 'white',
+                }}
               />
             </div>
           </div>
