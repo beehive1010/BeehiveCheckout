@@ -807,6 +807,10 @@
   "tokenPurchase": {
     "title": "购买代币",
     "description": "以1代币=0.01 USDT的价格跨多链购买BCC和CTH代币",
+    "testnet": {
+      "warning": "测试网提示：通用桥目前不支持测试网络。",
+      "note": "用于测试目的，支付可能是模拟的。真实支付需要主网部署。"
+    },
     "connectWallet": {
       "title": "连接您的钱包",
       "description": "连接您的钱包购买BCC和CTH代币"
