@@ -304,7 +304,7 @@ export default function Registration() {
             <Button
               type="submit"
               className="w-full btn-honey"
-              disabled={isRegistering || !localStorage.getItem('beehive-referrer')}
+              disabled={isRegistering}
               data-testid="button-register"
             >
               {isRegistering ? (
