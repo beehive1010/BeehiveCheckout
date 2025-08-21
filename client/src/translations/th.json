@@ -210,6 +210,40 @@
   },
   "discover": {
     "title": "ค้นพบ",
+    "subtitle": "สำรวจ Web3 DApps และบริการ",
+    "search": {
+      "placeholder": "ค้นหา DApps, โปรโตคอล หรือบริการ...",
+      "recent": "ล่าสุด",
+      "trending": "ทริ้นดิ้ง",
+      "clear": "ล้าง"
+    },
+    "featured": {
+      "title": "เด่นใน Beehive",
+      "viewAll": "ดูทั้งหมด"
+    },
+    "categories": {
+      "title": "หมวดหมู่",
+      "all": "ทั้งหมด",
+      "defi": "DeFi",
+      "nft": "NFT",
+      "gamefi": "GameFi",
+      "dao": "DAO",
+      "bridge": "สะพานข้ามเชน",
+      "lending": "การให้กู้",
+      "dex": "ตลาดแลกเปลี่ยนแบบกระจาย",
+      "yield": "ผลตอบแทน",
+      "insurance": "ประกันภัย",
+      "social": "สังคม",
+      "tools": "เครื่องมือ",
+      "education": "การศึกษา"
+    },
+    "trending": {
+      "title": "กำลังแรงในขณะนี้",
+      "subtitle": "DApps ยอดนิยมในระบบนิเวศ",
+      "users": "ผู้ใช้",
+      "tvl": "มูลค่าที่ถูกล็อกรวม",
+      "volume": "ปริมาณการซื้อขาย 24 ชม."
+    },
     "explorer": {
       "title": "เครื่องมือสำรวจบล็อกเชน",
       "latestBlock": "บล็อกล่าสุด",
@@ -230,10 +264,64 @@
       "activeLevels": "ระดับที่เปิดใช้งาน",
       "totalRewards": "รางวัลทั้งหมดที่แจกจ่าย"
     },
+    "dapps": {
+      "uniswap": "Uniswap",
+      "uniswapDesc": "โปรโตคอลแลกเปลี่ยนแบบกระจายชั้นนำ",
+      "opensea": "OpenSea",
+      "openseaDesc": "ตลาด NFT ที่ใหญ่ที่สุด",
+      "compound": "Compound",
+      "compoundDesc": "โปรโตคอลตลาดเงินอัลกอริทึม",
+      "pancakeswap": "PancakeSwap",
+      "pancakeswapDesc": "DEX ชั้นนำของ BSC พร้อมการทำฟาร์ม",
+      "axieinfinity": "Axie Infinity",
+      "axieinfinityDesc": "เกม play-to-earn ยอดนิยม"
+    },
+    "news": {
+      "matrix30": {
+        "title": "BeeHive เปิดตัวระบบ Matrix 3.0 ใหม่",
+        "description": "Matrix 3×3 ที่ปรับปรุงแล้วพร้อมการกระจายสมาร์ทคอนแทรกต์อัตโนมัติและกลไกรางวัลที่ดีขึ้น"
+      },
+      "bridge": {
+        "title": "สะพาน USDT หลายเชนเปิดใช้งานแล้ว",
+        "description": "การชำระเงิน USDT ที่ราบรื่นผ่านเครือข่าย Ethereum, Polygon และ Arbitrum"
+      },
+      "education": {
+        "title": "ศูนย์การศึกษามีหลักสูตรถึง 50+ แล้ว",
+        "description": "แพลตฟอร์มการเรียนรู้ Web3 ที่ครอบคลุมพร้อมโปรแกรมใบรับรอง"
+      }
+    },
+    "chains": {
+      "ethereum": "อีเธอเรียม",
+      "polygon": "โพลิกอน",
+      "arbitrum": "อาร์บิทรัม",
+      "optimism": "ออปติมิซึม",
+      "bsc": "BSC",
+      "avalanche": "อวาแลนช์"
+    },
     "ecosystem": {
-      "title": "ภาพรวมระบบนิเวศ",
-      "description": "สำรวจส่วนประกอบที่เชื่อมโยงกันของแพลตฟอร์ม Beehive"
-    }
+      "title": "ระบบนิเวศ BeeHive",
+      "subtitle": "บริการและเครื่องมือของแพลตฟอร์ม",
+      "membership": {
+        "title": "ระบบสมาชิก",
+        "subtitle": "การก้าวหน้า 19 ระดับจากนักรบถึงจุดสูงสุดของเทพนิยาย",
+        "levels": "19 ระดับ",
+        "members": "สมาชิกที่ใช้งานอยู่"
+      },
+      "matrix": {
+        "title": "เมทริกซ์ 3×3",
+        "subtitle": "ระบบการแนะนำและรางวัลแบบกระจายอำนาจ",
+        "structure": "การจัดวางอัตโนมัติ",
+        "rewards": "รางวัลทันที"
+      },
+      "education": {
+        "title": "ศูนย์กลางการศึกษา",
+        "subtitle": "หลักสูตรและวัสดุการเรียนรู้ที่ครอบคลุม",
+        "courses": "หลักสูตร",
+        "certificates": "ใบรับรอง"
+      }
+    },
+    "featured": "เด่น",
+    "trending": "ทริ้นดิ้ง"
   },
   "hiveworld": {
     "title": "HiveWorld - Matrix ของคุณ",
@@ -788,101 +876,7 @@
       "serviceActivated": "บริการเปิดใช้งานแล้ว"
     }
   },
-  "discover": {
-    "dapps": {
-      "uniswap": "Uniswap",
-      "uniswapDesc": "โปรโตคอลแลกเปลี่ยนแบบกระจายชั้นนำ",
-      "opensea": "OpenSea",
-      "openseaDesc": "ตลาด NFT ที่ใหญ่ที่สุด",
-      "compound": "Compound",
-      "compoundDesc": "โปรโตคอลตลาดเงินอัลกอริทึม",
-      "pancakeswap": "PancakeSwap",
-      "pancakeswapDesc": "DEX ชั้นนำของ BSC พร้อมการทำฟาร์ม",
-      "axieinfinity": "Axie Infinity",
-      "axieinfinityDesc": "เกม play-to-earn ยอดนิยม"
-    },
-    "news": {
-      "matrix30": {
-        "title": "BeeHive เปิดตัวระบบ Matrix 3.0 ใหม่",
-        "description": "Matrix 3×3 ที่ปรับปรุงแล้วพร้อมการกระจายสมาร์ทคอนแทรกต์อัตโนมัติและกลไกรางวัลที่ดีขึ้น"
-      },
-      "bridge": {
-        "title": "สะพาน USDT หลายเชนเปิดใช้งานแล้ว",
-        "description": "การชำระเงิน USDT ที่ราบรื่นผ่านเครือข่าย Ethereum, Polygon และ Arbitrum"
-      },
-      "education": {
-        "title": "ศูนย์การศึกษามีหลักสูตรถึง 50+ แล้ว",
-        "description": "แพลตฟอร์มการเรียนรู้ Web3 ที่ครอบคลุมพร้อมโปรแกรมใบรับรอง"
-      }
-    },
-    "chains": {
-      "ethereum": "อีเธอเรียม",
-      "polygon": "โพลิกอน",
-      "arbitrum": "อาร์บิทรัม",
-      "optimism": "ออปติมิซึม",
-      "bsc": "BSC",
-      "avalanche": "อวาแลนช์"
-    }
-  },
-  "discover": {
-    "title": "ค้นพบ",
-    "subtitle": "สำรวจ Web3 DApps และบริการ",
-    "search": {
-      "placeholder": "ค้นหา DApps, โปรโตคอล หรือบริการ...",
-      "recent": "ล่าสุด",
-      "trending": "ทริ้นดิ้ง",
-      "clear": "ล้าง"
-    },
-    "featured": {
-      "title": "เด่นใน Beehive",
-      "viewAll": "ดูทั้งหมด"
-    },
-    "categories": {
-      "title": "หมวดหมู่",
-      "all": "ทั้งหมด",
-      "defi": "DeFi",
-      "nft": "NFT",
-      "gamefi": "GameFi",
-      "dao": "DAO",
-      "bridge": "สะพานข้ามเชน",
-      "lending": "การให้กู้",
-      "dex": "ตลาดแลกเปลี่ยนแบบกระจาย",
-      "yield": "ผลตอบแทน",
-      "insurance": "ประกันภัย",
-      "social": "สังคม",
-      "tools": "เครื่องมือ",
-      "education": "การศึกษา"
-    },
-    "trending": {
-      "title": "กำลังแรงในขณะนี้",
-      "subtitle": "DApps ยอดนิยมในระบบนิเวศ",
-      "users": "ผู้ใช้",
-      "tvl": "มูลค่าที่ถูกล็อกรวม",
-      "volume": "ปริมาณการซื้อขาย 24 ชม."
-    },
-    "ecosystem": {
-      "title": "ระบบนิเวศ BeeHive",
-      "subtitle": "บริการและเครื่องมือของแพลตฟอร์ม",
-      "membership": {
-        "title": "ระบบสมาชิก",
-        "subtitle": "การก้าวหน้า 19 ระดับจากนักรบถึงจุดสูงสุดของเทพนิยาย",
-        "levels": "19 ระดับ",
-        "members": "สมาชิกที่ใช้งานอยู่"
-      },
-      "matrix": {
-        "title": "เมทริกซ์ 3×3",
-        "subtitle": "ระบบการแนะนำและรางวัลแบบกระจายอำนาจ",
-        "structure": "การจัดวางอัตโนมัติ",
-        "rewards": "รางวัลทันที"
-      },
-      "education": {
-        "title": "ศูนย์กลางการศึกษา",
-        "subtitle": "การเรียนรู้และพัฒนาทักษะ Web3",
-        "courses": "หลักสูตร",
-        "certificates": "ใบรับรอง"
-      }
-    },
-    "networks": {
+  "footer": {
       "title": "เครือข่ายที่รองรับ",
       "subtitle": "การสนับสนุนระบบนิเวศหลายเชน"
     },
