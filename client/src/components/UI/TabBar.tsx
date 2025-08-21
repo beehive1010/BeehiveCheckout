@@ -23,8 +23,8 @@ export default function TabBar() {
   const { t } = useI18n();
   const [location] = useLocation();
 
-  // Only show TabBar for activated members
-  if (!isActivated) {
+  // Hide TabBar on landing page and for non-activated members
+  if (!isActivated || location === '/') {
     return null;
   }
 
