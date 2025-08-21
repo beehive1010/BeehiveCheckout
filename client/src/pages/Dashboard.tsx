@@ -59,17 +59,7 @@ export default function Dashboard() {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
-  const quickActions = [
-    {
-      key: 'hiveworld',
-      path: '/hiveworld',
-      icon: 'fas fa-sitemap',
-      titleKey: 'nav.hiveworld',
-      descriptionKey: 'dashboard.quickActions.hiveworld.description',
-      statKey: 'dashboard.quickActions.hiveworld.stat',
-      statValue: t('dashboard.quickActions.hiveworld.statValue')
-    }
-  ];
+  const quickActions = [];
 
   const recentActivities = [
     {
