@@ -11,7 +11,7 @@ import { useI18n } from '../../contexts/I18nContext';
 import { PayEmbed } from 'thirdweb/react';
 import { client, paymentChains, contractAddresses } from '../../lib/web3';
 import { useActiveAccount } from 'thirdweb/react';
-import { Coins, Zap, ArrowRight, Loader2 } from 'lucide-react';
+import { Coins, Zap, ArrowRight, Loader2, AlertTriangle, CheckCircle } from 'lucide-react';
 
 interface TokenBalance {
   BCC: {
@@ -309,30 +309,42 @@ export default function TokenPurchase() {
 
               {selectedPaymentChain && (
                 <div className="text-center space-y-4">
-                  <PayEmbed
-                    client={client}
-                    payOptions={{
-                      mode: "direct_payment",
-                      paymentInfo: {
-                        amount: usdtAmount.toString(),
-                        chain: selectedPaymentChain.chain,
-                        token: { address: selectedPaymentChain.usdtAddress },
-                        sellerAddress: selectedPaymentChain.bridgeWallet,
-                      },
-                      metadata: {
-                        name: `${tokenAmount} ${tokenType} Tokens`,
-                        description: `Purchase ${tokenAmount} ${tokenType} tokens for ${usdtAmount.toFixed(2)} USDT`,
-                      },
-                    }}
-                    className="mx-auto"
-                  />
-                  <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-                    <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                      {t('tokenPurchase.testnet.warning')}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-2">
+                  {/* Testnet Warning - More prominent */}
+                  <div className="bg-yellow-500/10 border-2 border-yellow-500/30 rounded-lg p-6">
+                    <div className="flex items-center justify-center mb-3">
+                      <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mr-2" />
+                      <p className="font-semibold text-yellow-700 dark:text-yellow-300">
+                        {t('tokenPurchase.testnet.warning')}
+                      </p>
+                    </div>
+                    <p className="text-sm text-yellow-600 dark:text-yellow-400 mb-4">
                       {t('tokenPurchase.testnet.note')}
                     </p>
+                    
+                    {/* Mock Payment Interface for Testnet */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                      <div className="text-center mb-4">
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Testnet Payment Simulation
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Amount: {usdtAmount.toFixed(2)} USDT → {tokenAmount} {tokenType} tokens
+                        </p>
+                      </div>
+                      
+                      <Button 
+                        onClick={handlePaymentSuccess}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white"
+                        data-testid="button-simulate-payment"
+                      >
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Simulate Payment Success
+                      </Button>
+                      
+                      <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">
+                        This simulates a successful payment for testing
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}
