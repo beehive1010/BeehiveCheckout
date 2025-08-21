@@ -401,8 +401,12 @@ export default function Education() {
             return (
               <Card 
                 key={course.id} 
-                className="group bg-gradient-to-br from-secondary to-secondary/50 border-honey/20 hover:border-honey/40 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-honey/20 cursor-pointer overflow-hidden"
-                onClick={() => setLocation(`/education/${course.id}`)}
+                className={`group bg-gradient-to-br from-secondary to-secondary/50 border-honey/20 transition-all duration-300 overflow-hidden ${
+                  canEnroll 
+                    ? 'hover:border-honey/40 hover:scale-105 hover:shadow-2xl hover:shadow-honey/20 cursor-pointer' 
+                    : 'opacity-60 cursor-not-allowed border-red-500/20'
+                }`}
+                onClick={() => canEnroll && setLocation(`/education/${course.id}`)}
               >
                 {/* Course Header with Icon */}
                 <div className="relative p-6 pb-4">
@@ -499,20 +503,27 @@ export default function Education() {
                         </div>
                       </div>
                     ) : (
-                      <div className="bg-gradient-to-r from-honey/10 to-honey/20 border border-honey/30 rounded-xl p-4">
+                      <div className={`bg-gradient-to-r rounded-xl p-4 ${
+                        !canEnroll 
+                          ? 'from-red-500/10 to-red-600/20 border border-red-500/30' 
+                          : 'from-honey/10 to-honey/20 border border-honey/30'
+                      }`}>
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-semibold text-honey mb-1">
-                              <i className="fas fa-info-circle mr-2"></i>
+                            <p className={`text-sm font-semibold mb-1 ${!canEnroll ? 'text-red-400' : 'text-honey'}`}>
+                              <i className={`fas ${!canEnroll ? 'fa-lock' : 'fa-info-circle'} mr-2`}></i>
                               {!canEnroll 
-                                ? `${t('education.filters.level')} ${course.requiredLevel} ${t('education.buttons.levelRequired')}`
+                                ? `Level ${course.requiredLevel} Required (Current: ${currentLevel})`
                                 : course.isFree 
                                 ? "Free Course Available"
                                 : `${course.priceBCC} BCC Required`
                               }
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              Click to view details and enroll
+                              {!canEnroll 
+                                ? "Upgrade membership to unlock"
+                                : "Click to view details and enroll"
+                              }
                             </p>
                           </div>
                           <i className="fas fa-arrow-right text-honey text-lg"></i>
