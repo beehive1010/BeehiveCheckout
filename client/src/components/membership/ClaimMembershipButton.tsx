@@ -253,7 +253,7 @@ export default function ClaimMembershipButton({
       // Create a dummy transaction to check for approvals needed
       const dummyTransaction = prepareTransaction({
         to: chain.bridgeWallet,
-        value: 0n,
+        value: BigInt(0),
         data: "0x",
         client,
         chain: chain.chain,
@@ -325,7 +325,7 @@ export default function ClaimMembershipButton({
   const getButtonText = () => {
     switch (claimState) {
       case 'approving':
-        return isApproving ? 'Approving USDT...' : 'Preparing Payment...';
+        return isApproving ? String(t('membership.purchase.approving')) : String(t('membership.purchase.preparing'));
       case 'paying':
         return String(t('membership.purchase.paying'));
       case 'verifying':
@@ -337,7 +337,7 @@ export default function ClaimMembershipButton({
       case 'error':
         return String(t('membership.purchase.retry'));
       default:
-        return `Purchase Level ${level} ($${membershipLevel.priceUSDT} USDT)`;
+        return String(t('membership.purchase.button')).replace('{level}', level.toString()).replace('{price}', membershipLevel.priceUSDT.toString());
     }
   };
 
@@ -363,9 +363,9 @@ export default function ClaimMembershipButton({
         <Card className="bg-secondary border-border">
           <CardContent className="p-4">
             <div className="text-center mb-4">
-              <h3 className="text-honey font-semibold mb-2">Select Payment Chain</h3>
+              <h3 className="text-honey font-semibold mb-2">{String(t('membership.purchase.selectChain'))}</h3>
               <p className="text-sm text-muted-foreground">
-                Choose which blockchain to pay USDT on for your Level {level} membership
+                {String(t('membership.purchase.selectChainDescription')).replace('{level}', level.toString())}
               </p>
             </div>
             
@@ -384,7 +384,7 @@ export default function ClaimMembershipButton({
                     </div>
                     <div className="flex-1 text-left">
                       <p className="font-medium">{chain.name}</p>
-                      <p className="text-xs text-muted-foreground">Pay with USDT • Gas in {chain.symbol}</p>
+                      <p className="text-xs text-muted-foreground">{String(t('membership.purchase.payWithGas')).replace('{symbol}', chain.symbol)}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-bold text-honey">${membershipLevel.priceUSDT}</p>
@@ -401,7 +401,7 @@ export default function ClaimMembershipButton({
               className="w-full mt-4"
               data-testid="button-cancel-chain-selector"
             >
-              Cancel
+              {String(t('common.cancel'))}
             </Button>
           </CardContent>
         </Card>
@@ -473,17 +473,17 @@ export default function ClaimMembershipButton({
                     amount: (membershipLevel.priceUSDT * 1000000).toString(), // Convert to USDT wei (6 decimals)
                     sellerAddress: selectedChain.bridgeWallet,
                     chain: selectedChain.chain,
-                    token: selectedChain.usdtAddress,
+                    token: {
+                      address: selectedChain.usdtAddress,
+                      symbol: 'USDT',
+                      name: 'Tether USD',
+                    },
                   },
                   metadata: {
                     name: `Beehive Level ${level} Membership`,
                     description: `Exclusive Level ${level} membership with special privileges and rewards`,
                   },
                   onPurchaseSuccess: handlePaymentSuccess,
-                  onPurchaseError: (error: any) => {
-                    console.error('PayEmbed purchase error:', error);
-                    handleError('Payment failed. Please try again.', 'payment');
-                  },
                 }}
                 theme="dark"
                 style={{

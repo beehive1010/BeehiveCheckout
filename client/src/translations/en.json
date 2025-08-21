@@ -9,6 +9,15 @@
     "me": "Me",
     "home": "Home"
   },
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "close": "Close",
+    "save": "Save",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
   "wallet": {
     "connect": "Connect Wallet",
     "disconnect": "Disconnect",
@@ -383,6 +392,28 @@
     }
   },
   "membership": {
+    "purchase": {
+      "button": "Purchase Level {level} (${price} USDT)",
+      "approving": "Approving USDT...",
+      "preparing": "Preparing Payment...",
+      "paying": "Processing Payment...",
+      "verifying": "Verifying Transaction...",
+      "finalizing": "Finalizing Purchase...",
+      "completed": "Purchase Complete!",
+      "retry": "Retry Purchase",
+      "connectWallet": "Connect Wallet to Purchase",
+      "selectChain": "Select Payment Chain",
+      "selectChainDescription": "Choose which blockchain to pay USDT on for your Level {level} membership",
+      "payWithGas": "Pay with USDT • Gas in {symbol}",
+      "success": {
+        "title": "Membership Purchased!",
+        "description": "Your membership has been successfully activated."
+      },
+      "error": {
+        "title": "Purchase Failed",
+        "description": "There was an error processing your purchase. Please try again."
+      }
+    },
     "levels": {
       "title": "Membership Levels",
       "subtitle": "Choose your level and unlock exclusive benefits",
