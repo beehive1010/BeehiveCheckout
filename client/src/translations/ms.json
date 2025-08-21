@@ -317,6 +317,217 @@
     "cookies": "Dasar Kuki",
     "copyright": "© 2024 Beehive. Hak cipta terpelihara."
   },
+  "membership": {
+    "purchase": {
+      "button": "Beli Tahap {level} (${price} USDT)",
+      "approving": "Meluluskan USDT...",
+      "preparing": "Menyediakan Pembayaran...",
+      "paying": "Memproses Pembayaran...",
+      "verifying": "Mengesahkan Transaksi...",
+      "finalizing": "Memuktamadkan Pembelian...",
+      "completed": "Pembelian Selesai!",
+      "retry": "Cuba Beli Semula",
+      "connectWallet": "Sambung Dompet untuk Membeli",
+      "selectChain": "Pilih Rantai Pembayaran",
+      "selectChainDescription": "Pilih blockchain untuk membayar USDT bagi keahlian Tahap {level} anda",
+      "payWithGas": "Bayar dengan USDT • Gas dalam {symbol}",
+      "success": {
+        "title": "Keahlian Dibeli!",
+        "description": "Keahlian anda telah berjaya diaktifkan."
+      },
+      "error": {
+        "title": "Pembelian Gagal",
+        "description": "Terdapat ralat memproses pembelian anda. Sila cuba lagi."
+      }
+    },
+    "levels": {
+      "title": "Tahap Keahlian",
+      "subtitle": "Pilih tahap anda dan buka kunci faedah eksklusif",
+      "currentLevel": "Tahap Semasa",
+      "priceUSDT": "USDT",
+      "benefits": "Faedah Utama",
+      "owned": "Dimiliki",
+      "selected": "Dipilih",
+      "activated": "Diaktifkan",
+      "higherLevelOwned": "Tahap Lebih Tinggi Aktif",
+      "selectionInfo": "Klik butang beli untuk memperoleh tahap keahlian ini"
+    },
+    "level": {
+      "1": {
+        "title": "Pahlawan",
+        "subtitle": "Pahlawan • Mulakan pendakian anda • $130 USDT"
+      },
+      "2": {
+        "title": "Gangsa",
+        "subtitle": "Gangsa • Dedikasi terbukti • $150 USDT"
+      },
+      "3": {
+        "title": "Perak",
+        "subtitle": "Perak • Bintang yang sedang naik • $200 USDT"
+      },
+      "4": {
+        "title": "Emas",
+        "subtitle": "Emas • Status elit • $250 USDT"
+      },
+      "5": {
+        "title": "Elit",
+        "subtitle": "Elit • Ahli terbilang • $300 USDT"
+      },
+      "6": {
+        "title": "Platinum",
+        "subtitle": "Platinum • Pangkat berprestij • $350 USDT"
+      },
+      "7": {
+        "title": "Sarjana",
+        "subtitle": "Sarjana • Pengamal mahir • $400 USDT"
+      },
+      "8": {
+        "title": "Berlian",
+        "subtitle": "Berlian • Kecemerlangan luar biasa • $450 USDT"
+      },
+      "9": {
+        "title": "Sarjana Agung",
+        "subtitle": "Sarjana Agung • Penguasaan tertinggi • $500 USDT"
+      },
+      "10": {
+        "title": "Sinar Bintang",
+        "subtitle": "Sinar Bintang • Pencapaian berseri • $550 USDT"
+      },
+      "11": {
+        "title": "Epik",
+        "subtitle": "Epik • Status legenda • $600 USDT"
+      },
+      "12": {
+        "title": "Dewan",
+        "subtitle": "Dewan • Dewan kemasyhuran • $650 USDT"
+      },
+      "13": {
+        "title": "Raja Terkuat",
+        "subtitle": "Raja Terkuat • Dominasi diraja • $700 USDT"
+      },
+      "14": {
+        "title": "Raja Segala Raja",
+        "subtitle": "Raja Segala Raja • Pemerintah tertinggi • $750 USDT"
+      },
+      "15": {
+        "title": "Raja Kemuliaan",
+        "subtitle": "Raja Kemuliaan • Pemerintahan mulia • $800 USDT"
+      },
+      "16": {
+        "title": "Maharaja Legenda",
+        "subtitle": "Maharaja Legenda • Kuasa mitos • $850 USDT"
+      },
+      "17": {
+        "title": "Tuan Tertinggi",
+        "subtitle": "Tuan Tertinggi • Kuasa muktamad • $900 USDT"
+      },
+      "18": {
+        "title": "Mitos Tertinggi",
+        "subtitle": "Mitos Tertinggi • Legenda ilahi • $950 USDT"
+      },
+      "19": {
+        "title": "Puncak Mitos",
+        "subtitle": "Puncak Mitos • Puncak kuasa • $1000 USDT"
+      }
+    },
+    "benefits": {
+      "l1": {
+        "basic": "Akses platform asas",
+        "education": "Akses kandungan pendidikan",
+        "rewards": "Kelayakan ganjaran rujukan"
+      },
+      "l2": {
+        "enhanced": "Pengganda ganjaran dipertingkat",
+        "bonus": "Ciri bonus Tahap 2",
+        "network": "Akses rangkaian lanjutan"
+      },
+      "l3": {
+        "advanced": "Alat dagangan lanjutan",
+        "exclusive": "Acara ahli eksklusif",
+        "priority": "Sokongan pelanggan keutamaan"
+      },
+      "l4": {
+        "premium": "Perpustakaan kandungan premium",
+        "mentorship": "Peluang bimbingan",
+        "tools": "Alat dagangan profesional"
+      },
+      "l5": {
+        "elite": "Status ahli elit",
+        "leadership": "Pembangunan kepimpinan",
+        "insights": "Akses pandangan pasaran"
+      },
+      "l6": {
+        "mastery": "Sumber tahap penguasaan",
+        "networking": "Acara rangkaian VIP",
+        "rewards": "Kadar ganjaran dipertingkat"
+      },
+      "l7": {
+        "expert": "Pensijilan tahap pakar",
+        "community": "Akses komuniti peribadi",
+        "alpha": "Peluang pelaburan alfa"
+      },
+      "l8": {
+        "legendary": "Keistimewaan status legenda",
+        "influence": "Undian pengaruh platform",
+        "opportunities": "Peluang eksklusif"
+      },
+      "l9": {
+        "mastery": "Penguasaan sistem lengkap",
+        "inner_circle": "Keahlian lingkaran dalam",
+        "exclusive": "Faedah ultra-eksklusif"
+      },
+      "l10": {
+        "grandmaster": "Pengiktirafan sarjana agung",
+        "authority": "Peranan kuasa platform",
+        "legacy": "Akses program warisan"
+      },
+      "l11": {
+        "wisdom": "Ahli majlis kebijaksanaan",
+        "cosmic": "Ganjaran tahap kosmik",
+        "transcendent": "Faedah transenden"
+      },
+      "l12": {
+        "oracle": "Peranan penasihat oracle",
+        "foresight": "Alat pandangan jauh pasaran",
+        "divine": "Keistimewaan peringkat ilahi"
+      },
+      "l13": {
+        "immortal": "Faedah status kekal",
+        "eternal": "Aliran ganjaran abadi",
+        "infinite": "Potensi pertumbuhan tanpa had"
+      },
+      "l14": {
+        "celestial": "Akses peringkat syurgawi",
+        "heavenly": "Kadar ganjaran syurgawi",
+        "ascended": "Keistimewaan ahli naik darjat"
+      },
+      "l15": {
+        "divine": "Status kuasa ilahi",
+        "godlike": "Kuasa pengaruh seperti tuhan",
+        "ultimate": "Akses platform muktamad"
+      },
+      "l16": {
+        "supreme": "Peranan panglima tertinggi",
+        "omnipotent": "Kuasa keputusan maha kuasa",
+        "sovereign": "Hak ahli berdaulat"
+      },
+      "l17": {
+        "transcendent": "Kewujudan transenden",
+        "beyond": "Melebihi had normal",
+        "unlimited": "Kemungkinan tanpa had"
+      },
+      "l18": {
+        "absolute": "Akses kuasa mutlak",
+        "perfection": "Faedah peringkat kesempurnaan",
+        "apex": "Status pemangsa puncak"
+      },
+      "l19": {
+        "mythical": "Status legenda mitos",
+        "peak": "Peringkat prestasi puncak",
+        "legendary": "Keistimewaan pengasas legenda"
+      }
+    }
+  },
   "ads": {
     "title": "NFT Iklan",
     "description": "Tuntut NFT Iklan dengan token BCC anda untuk membuka kunci perkhidmatan promosi",

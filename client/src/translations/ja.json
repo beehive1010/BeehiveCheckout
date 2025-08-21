@@ -616,6 +616,217 @@
     "cookies": "クッキーポリシー",
     "copyright": "© 2024 Beehive. 全著作権所有。"
   },
+  "membership": {
+    "purchase": {
+      "button": "レベル{level}購入 (${price} USDT)",
+      "approving": "USDT承認中...",
+      "preparing": "支払い準備中...",
+      "paying": "支払い処理中...",
+      "verifying": "取引確認中...",
+      "finalizing": "購入完了中...",
+      "completed": "購入完了！",
+      "retry": "再購入",
+      "connectWallet": "購入にはウォレット接続",
+      "selectChain": "支払いチェーン選択",
+      "selectChainDescription": "レベル{level}メンバーシップのUSDT支払いに使用するブロックチェーンを選択",
+      "payWithGas": "USDTで支払い • {symbol}でガス代",
+      "success": {
+        "title": "メンバーシップ購入完了！",
+        "description": "メンバーシップが正常にアクティベートされました。"
+      },
+      "error": {
+        "title": "購入失敗",
+        "description": "購入処理中にエラーが発生しました。再試行してください。"
+      }
+    },
+    "levels": {
+      "title": "メンバーシップレベル",
+      "subtitle": "レベルを選択して独占特典をアンロック",
+      "currentLevel": "現在のレベル",
+      "priceUSDT": "USDT",
+      "benefits": "主要特典",
+      "owned": "所有済み",
+      "selected": "選択済み",
+      "activated": "アクティブ",
+      "higherLevelOwned": "より高いレベルがアクティブ",
+      "selectionInfo": "このメンバーシップレベルを取得するには購入ボタンをクリック"
+    },
+    "level": {
+      "1": {
+        "title": "ウォリアー",
+        "subtitle": "ウォリアー • 上昇の始まり • $130 USDT"
+      },
+      "2": {
+        "title": "ブロンズ",
+        "subtitle": "ブロンズ • 献身の証明 • $150 USDT"
+      },
+      "3": {
+        "title": "シルバー",
+        "subtitle": "シルバー • 上昇する星 • $200 USDT"
+      },
+      "4": {
+        "title": "ゴールド",
+        "subtitle": "ゴールド • エリートステータス • $250 USDT"
+      },
+      "5": {
+        "title": "エリート",
+        "subtitle": "エリート • 卓越したメンバー • $300 USDT"
+      },
+      "6": {
+        "title": "プラチナ",
+        "subtitle": "プラチナ • 威厳あるランク • $350 USDT"
+      },
+      "7": {
+        "title": "マスター",
+        "subtitle": "マスター • 熟練した実践者 • $400 USDT"
+      },
+      "8": {
+        "title": "ダイアモンド",
+        "subtitle": "ダイアモンド • 卓越した優秀性 • $450 USDT"
+      },
+      "9": {
+        "title": "グランドマスター",
+        "subtitle": "グランドマスター • 最高の熟練度 • $500 USDT"
+      },
+      "10": {
+        "title": "スターシャイン",
+        "subtitle": "スターシャイン • 輝く成果 • $550 USDT"
+      },
+      "11": {
+        "title": "エピック",
+        "subtitle": "エピック • 伝説的地位 • $600 USDT"
+      },
+      "12": {
+        "title": "ホール",
+        "subtitle": "ホール • 名誉の殿堂 • $650 USDT"
+      },
+      "13": {
+        "title": "最強王",
+        "subtitle": "最強王 • 王室の支配 • $700 USDT"
+      },
+      "14": {
+        "title": "王の王",
+        "subtitle": "王の王 • 最高統治者 • $750 USDT"
+      },
+      "15": {
+        "title": "栄光王",
+        "subtitle": "栄光王 • 栄光ある統治 • $800 USDT"
+      },
+      "16": {
+        "title": "伝説の覇王",
+        "subtitle": "伝説の覇王 • 神話的な力 • $850 USDT"
+      },
+      "17": {
+        "title": "至高主",
+        "subtitle": "至高主 • 究極の権威 • $900 USDT"
+      },
+      "18": {
+        "title": "至高神話",
+        "subtitle": "至高神話 • 神聖な伝説 • $950 USDT"
+      },
+      "19": {
+        "title": "神話の頂点",
+        "subtitle": "神話の頂点 • 力の頂点 • $1000 USDT"
+      }
+    },
+    "benefits": {
+      "l1": {
+        "basic": "基本プラットフォームアクセス",
+        "education": "教育コンテンツアクセス",
+        "rewards": "紹介報酬資格"
+      },
+      "l2": {
+        "enhanced": "強化された報酬倍率",
+        "bonus": "レベル2ボーナス機能",
+        "network": "拡張ネットワークアクセス"
+      },
+      "l3": {
+        "advanced": "高度な取引ツール",
+        "exclusive": "独占メンバーイベント",
+        "priority": "優先カスタマーサポート"
+      },
+      "l4": {
+        "premium": "プレミアムコンテンツライブラリ",
+        "mentorship": "メンターシップ機会",
+        "tools": "プロフェッショナル取引ツール"
+      },
+      "l5": {
+        "elite": "エリートメンバーステータス",
+        "leadership": "リーダーシップ開発",
+        "insights": "市場インサイトアクセス"
+      },
+      "l6": {
+        "mastery": "マスタリーレベルリソース",
+        "networking": "VIPネットワーキングイベント",
+        "rewards": "強化された報酬率"
+      },
+      "l7": {
+        "expert": "エキスパートレベル認証",
+        "community": "プライベートコミュニティアクセス",
+        "alpha": "アルファ投資機会"
+      },
+      "l8": {
+        "legendary": "伝説的ステータス特典",
+        "influence": "プラットフォーム影響力投票",
+        "opportunities": "独占機会"
+      },
+      "l9": {
+        "mastery": "完全なシステムマスタリー",
+        "inner_circle": "インナーサークルメンバーシップ",
+        "exclusive": "ウルトラ独占特典"
+      },
+      "l10": {
+        "grandmaster": "グランドマスター認定",
+        "authority": "プラットフォーム権威役割",
+        "legacy": "レガシープログラムアクセス"
+      },
+      "l11": {
+        "wisdom": "知恵評議会メンバー",
+        "cosmic": "コスミックレベル報酬",
+        "transcendent": "超越的特典"
+      },
+      "l12": {
+        "oracle": "オラクル顧問役割",
+        "foresight": "市場先見ツール",
+        "divine": "神聖ティア特権"
+      },
+      "l13": {
+        "immortal": "不滅ステータス特典",
+        "eternal": "永続報酬ストリーム",
+        "infinite": "無限成長ポテンシャル"
+      },
+      "l14": {
+        "celestial": "天体ティアアクセス",
+        "heavenly": "天国報酬率",
+        "ascended": "昇格メンバー特典"
+      },
+      "l15": {
+        "divine": "神聖権威ステータス",
+        "godlike": "神のような影響力",
+        "ultimate": "究極プラットフォームアクセス"
+      },
+      "l16": {
+        "supreme": "最高司令官役割",
+        "omnipotent": "全能決定権",
+        "sovereign": "主権メンバー権利"
+      },
+      "l17": {
+        "transcendent": "超越的存在",
+        "beyond": "通常限界を超越",
+        "unlimited": "無限の可能性"
+      },
+      "l18": {
+        "absolute": "絶対権力アクセス",
+        "perfection": "完璧ティア特典",
+        "apex": "頂点捕食者ステータス"
+      },
+      "l19": {
+        "mythical": "神話的伝説ステータス",
+        "peak": "ピークパフォーマンスティア",
+        "legendary": "伝説的創設者特典"
+      }
+    }
+  },
   "ads": {
     "title": "広告NFT",
     "description": "BCCトークンで広告NFTを獲得してプロモーションサービスを解除",
