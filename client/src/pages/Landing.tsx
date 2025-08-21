@@ -101,9 +101,9 @@ export default function Landing() {
         {/* Features Grid */}
         <div className="mb-24">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-honey mb-4">Platform Features</h2>
+            <h2 className="text-4xl font-bold text-honey mb-4">{t('landing.platformFeatures.title')}</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Discover the powerful features that make Beehive the ultimate Web3 membership platform
+              {t('landing.platformFeatures.subtitle')}
             </p>
           </div>
           
@@ -123,7 +123,7 @@ export default function Landing() {
               <p className="text-muted-foreground leading-relaxed">
                 {t('landing.features.membership.description')}
               </p>
-              <div className="mt-4 text-sm text-honey/70">19 Exclusive Levels</div>
+              <div className="mt-4 text-sm text-honey/70">{t('landing.platformFeatures.exclusiveLevels')}</div>
             </CardContent>
           </Card>
 
@@ -142,7 +142,7 @@ export default function Landing() {
               <p className="text-muted-foreground leading-relaxed">
                 {t('landing.features.referral.description')}
               </p>
-              <div className="mt-4 text-sm text-honey/70">Auto-placement System</div>
+              <div className="mt-4 text-sm text-honey/70">{t('landing.platformFeatures.autoPlacement')}</div>
             </CardContent>
           </Card>
 
@@ -161,7 +161,7 @@ export default function Landing() {
               <p className="text-muted-foreground leading-relaxed">
                 {t('landing.features.education.description')}
               </p>
-              <div className="mt-4 text-sm text-honey/70">Premium Courses</div>
+              <div className="mt-4 text-sm text-honey/70">{t('landing.platformFeatures.premiumCourses')}</div>
             </CardContent>
           </Card>
 
@@ -218,7 +218,7 @@ export default function Landing() {
               <p className="text-muted-foreground leading-relaxed">
                 {t('landing.features.rewards.description')}
               </p>
-              <div className="mt-4 text-sm text-honey/70">48hr Countdown</div>
+              <div className="mt-4 text-sm text-honey/70">{t('landing.platformFeatures.countdown')}</div>
             </CardContent>
           </Card>
           </div>
@@ -231,7 +231,7 @@ export default function Landing() {
               {t('landing.howItWorks.title')}
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Get started in just three simple steps and unlock the power of Web3 membership
+              {t('landing.howItWorks.subtitle')}
             </p>
           </div>
           
