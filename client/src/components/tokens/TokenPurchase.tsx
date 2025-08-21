@@ -40,12 +40,34 @@ export default function TokenPurchase() {
   const { data: balances, isLoading: balancesLoading } = useQuery<TokenBalance>({
     queryKey: ['/api/tokens/balances'],
     enabled: !!account?.address,
+    queryFn: async () => {
+      const response = await fetch('/api/tokens/balances', {
+        headers: {
+          'X-Wallet-Address': account!.address,
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch token balances');
+      }
+      return response.json();
+    },
   });
 
   // Get purchase history
   const { data: purchases, isLoading: purchasesLoading } = useQuery<any[]>({
     queryKey: ['/api/tokens/purchases'],
     enabled: !!account?.address,
+    queryFn: async () => {
+      const response = await fetch('/api/tokens/purchases', {
+        headers: {
+          'X-Wallet-Address': account!.address,
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch purchase history');
+      }
+      return response.json();
+    },
   });
 
   // Create token purchase mutation
@@ -286,24 +308,33 @@ export default function TokenPurchase() {
               </div>
 
               {selectedPaymentChain && (
-                <PayEmbed
-                  client={client}
-                  payOptions={{
-                    mode: "direct_payment",
-                    paymentInfo: {
-                      amount: usdtAmount.toString(),
-                      chain: selectedPaymentChain.chain,
-                      token: { address: selectedPaymentChain.usdtAddress },
-                      sellerAddress: selectedPaymentChain.bridgeWallet,
-                    },
-                    metadata: {
-                      name: `${tokenAmount} ${tokenType} Tokens`,
-                      description: `Purchase ${tokenAmount} ${tokenType} tokens for ${usdtAmount.toFixed(2)} USDT`,
-                    },
-                  }}
-                  onPaymentSuccess={handlePaymentSuccess}
-                  className="mx-auto"
-                />
+                <div className="text-center space-y-4">
+                  <PayEmbed
+                    client={client}
+                    payOptions={{
+                      mode: "direct_payment",
+                      paymentInfo: {
+                        amount: usdtAmount.toString(),
+                        chain: selectedPaymentChain.chain,
+                        token: { address: selectedPaymentChain.usdtAddress },
+                        sellerAddress: selectedPaymentChain.bridgeWallet,
+                      },
+                      metadata: {
+                        name: `${tokenAmount} ${tokenType} Tokens`,
+                        description: `Purchase ${tokenAmount} ${tokenType} tokens for ${usdtAmount.toFixed(2)} USDT`,
+                      },
+                    }}
+                    className="mx-auto"
+                  />
+                  <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+                    <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                      {t('tokenPurchase.testnet.warning')}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {t('tokenPurchase.testnet.note')}
+                    </p>
+                  </div>
+                </div>
               )}
 
               <Button

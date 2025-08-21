@@ -494,6 +494,10 @@
   "tokenPurchase": {
     "title": "Purchase Tokens",
     "description": "Buy BCC and CTH tokens at 1 token = 0.01 USDT across multiple chains",
+    "testnet": {
+      "warning": "Testnet Notice: Universal Bridge does not support testnets at this time.",
+      "note": "For testing purposes, payments may be simulated. Real payments require mainnet deployment."
+    },
     "connectWallet": {
       "title": "Connect Your Wallet",
       "description": "Connect your wallet to purchase BCC and CTH tokens"
