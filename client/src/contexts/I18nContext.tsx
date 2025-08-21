@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { translations } from '../lib/i18n';
 
-type Language = 'en' | 'zh' | 'th' | 'ms' | 'ko';
+type Language = 'en' | 'zh' | 'th' | 'ms' | 'ko' | 'ja';
 
 interface I18nContextType {
   language: Language;
@@ -18,13 +18,14 @@ const languageOptions = [
   { code: 'th' as Language, name: 'ไทย' },
   { code: 'ms' as Language, name: 'Malay' },
   { code: 'ko' as Language, name: '한국어' },
+  { code: 'ja' as Language, name: '日本語' },
 ];
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
     const saved = localStorage.getItem('beehive-language');
     // Validate the saved language exists in our translations
-    const validLanguages: Language[] = ['en', 'zh', 'th', 'ms', 'ko'];
+    const validLanguages: Language[] = ['en', 'zh', 'th', 'ms', 'ko', 'ja'];
     if (saved && validLanguages.includes(saved as Language)) {
       return saved as Language;
     }
