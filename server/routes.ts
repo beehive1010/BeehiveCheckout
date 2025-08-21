@@ -1,6 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { db } from "./db";
+import { sql } from "drizzle-orm";
 import { 
   insertUserSchema,
   insertMembershipStateSchema,
@@ -143,27 +145,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         restricted: 0,
       });
 
-      // Create referral node if referrer exists
+      // Create referral structure using existing database schema
       if (body.referrerWallet) {
-        await storage.createReferralNode({
-          walletAddress: user.walletAddress,
-          parentWallet: body.referrerWallet,
-          children: [],
-        });
-
-        // Add to parent's children
-        const parentNode = await storage.getReferralNode(body.referrerWallet);
-        if (parentNode) {
-          await storage.updateReferralNode(body.referrerWallet, {
-            children: [...parentNode.children, user.walletAddress],
-          });
-        }
+        // Use direct SQL to work with existing schema
+        await db.execute(sql`
+          INSERT INTO referral_nodes (wallet_address, parent_wallet, children)
+          VALUES (${user.walletAddress.toLowerCase()}, ${body.referrerWallet.toLowerCase()}, '[]'::jsonb)
+        `);
+        
+        // Update parent's children array
+        await db.execute(sql`
+          UPDATE referral_nodes 
+          SET children = jsonb_insert(children, '{999}', ${JSON.stringify(user.walletAddress.toLowerCase())}::jsonb)
+          WHERE wallet_address = ${body.referrerWallet.toLowerCase()}
+        `);
       } else {
-        await storage.createReferralNode({
-          walletAddress: user.walletAddress,
-          parentWallet: null,
-          children: [],
-        });
+        await db.execute(sql`
+          INSERT INTO referral_nodes (wallet_address, parent_wallet, children)
+          VALUES (${user.walletAddress.toLowerCase()}, null, '[]'::jsonb)
+        `);
       }
 
       res.json({ user });
@@ -238,36 +238,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Process referral rewards
-      const referralNode = await storage.getReferralNode(req.walletAddress);
-      if (referralNode?.parentWallet && level === 1) {
-        // L1 direct bonus (immediate)
-        await storage.createRewardEvent({
-          buyerWallet: req.walletAddress,
-          sponsorWallet: referralNode.parentWallet,
-          eventType: 'L1_direct',
-          level: 1,
-          amount: 100,
-          status: 'completed',
-          timerStartAt: null,
-          timerExpireAt: null,
-        });
-      } else if (referralNode?.parentWallet && level > 1) {
-        // L2+ upgrade reward (with timer)
-        const timerStart = new Date();
-        const timerExpire = new Date(timerStart.getTime() + 48 * 60 * 60 * 1000); // 48 hours
-        
-        await storage.createRewardEvent({
-          buyerWallet: req.walletAddress,
-          sponsorWallet: referralNode.parentWallet,
-          eventType: 'L2plus_upgrade',
-          level: level,
-          amount: level * 50, // Escalating rewards
-          status: 'pending',
-          timerStartAt: timerStart,
-          timerExpireAt: timerExpire,
-        });
-      }
+      // Process BeeHive referral rewards
+      await storage.processReferralRewards(req.walletAddress, level);
 
       res.json({ success: true, membershipState });
     } catch (error) {
@@ -520,28 +492,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Referral node not found' });
       }
 
-      // Get children details
+      // Get children details using existing database structure  
+      const childrenResult = await db.execute(sql`
+        SELECT wallet_address FROM referral_nodes 
+        WHERE parent_wallet = ${req.walletAddress.toLowerCase()}
+      `);
+      
       const childrenDetails = await Promise.all(
-        referralNode.children.map(async (childWallet) => {
-          const childUser = await storage.getUser(childWallet);
-          const childNode = await storage.getReferralNode(childWallet);
+        childrenResult.rows.map(async (row: any) => {
+          const childUser = await storage.getUser(row.wallet_address);
           return {
-            walletAddress: childWallet,
+            walletAddress: row.wallet_address,
             username: childUser?.username,
             memberActivated: childUser?.memberActivated,
             currentLevel: childUser?.currentLevel,
-            children: childNode?.children || [],
           };
         })
       );
 
-      // Get reward events
-      const rewardEvents = await storage.getRewardEventsByWallet(req.walletAddress);
+      // Get BeeHive earnings data instead of old reward events
+      const earnings = await storage.getEarningsWalletByWallet(req.walletAddress);
 
       res.json({
         referralNode,
         childrenDetails,
-        rewardEvents,
+        earnings,
       });
     } catch (error) {
       console.error('Get matrix error:', error);
@@ -585,57 +560,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Job endpoints for background processing
+  // Job endpoints for BeeHive timer processing
   app.post("/api/jobs/process-timers", async (req, res) => {
     try {
-      // Get all pending reward events with expired timers
-      // This won't work with DatabaseStorage - we need to implement a proper query
-      // For now, return empty result since we're using database storage
-      const expiredEvents: any[] = [];
-
-      let processedCount = 0;
-      
-      for (const event of expiredEvents) {
-        try {
-          // Check if sponsor has required level
-          const sponsor = await storage.getUser(event.sponsorWallet);
-          const sponsorMembership = await storage.getMembershipState(event.sponsorWallet);
-          
-          if (sponsor && sponsorMembership && sponsorMembership.activeLevel >= event.level) {
-            // Sponsor qualified - award reward
-            await storage.updateRewardEvent(event.id, { status: 'completed' });
-          } else {
-            // Roll up to next qualified upline
-            const sponsorNode = await storage.getReferralNode(event.sponsorWallet);
-            if (sponsorNode?.parentWallet) {
-              const uplineUser = await storage.getUser(sponsorNode.parentWallet);
-              const uplineMembership = await storage.getMembershipState(sponsorNode.parentWallet);
-              
-              if (uplineUser && uplineMembership && uplineMembership.activeLevel >= event.level) {
-                // Award to upline
-                await storage.createRewardEvent({
-                  buyerWallet: event.buyerWallet,
-                  sponsorWallet: sponsorNode.parentWallet,
-                  eventType: 'rollup',
-                  level: event.level,
-                  amount: event.amount,
-                  status: 'completed',
-                  timerStartAt: null,
-                  timerExpireAt: null,
-                });
-              }
-            }
-            
-            await storage.updateRewardEvent(event.id, { status: 'expired' });
-          }
-          
-          processedCount++;
-        } catch (err) {
-          console.error('Error processing reward event:', err);
-        }
-      }
-
-      res.json({ processedCount });
+      // BeeHive system handles timer processing automatically
+      // This endpoint is kept for compatibility but processing is done during purchase
+      res.json({ processedCount: 0, message: 'BeeHive system handles rewards automatically' });
     } catch (error) {
       console.error('Process timers error:', error);
       res.status(500).json({ error: 'Failed to process timers' });
@@ -795,7 +725,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get global dashboard statistics (visible to all members)
   app.get("/api/beehive/dashboard-stats", async (req, res) => {
     try {
-      const stats = await storage.getGlobalStatistics();
+      const stats = await storage.getGlobalStatisticsCustom();
       res.json(stats);
     } catch (error) {
       console.error('Get dashboard stats error:', error);
@@ -856,7 +786,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // In production, this would verify on-chain NFT ownership
-      const verification = await storage.createNFTVerification({
+      const verification = await storage.createNFTVerificationCustom({
         ...validation.data,
         verificationStatus: 'verified', // Would be determined by actual verification
         lastVerified: new Date(),
