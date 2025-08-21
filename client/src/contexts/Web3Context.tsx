@@ -46,7 +46,7 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
 
 export function Web3Provider({ children }: { children: React.ReactNode }) {
   return (
-    <ThirdwebProvider client={client}>
+    <ThirdwebProvider>
       <Web3ContextProvider>
         {children}
       </Web3ContextProvider>
