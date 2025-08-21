@@ -240,7 +240,8 @@
     },
     "tokenPurchase": {
       "bccDescription": "플랫폼 사용을 위한 Beehive 암호화폐 구매",
-      "cthDescription": "Alpha Centauri 생태계를 위한 CTH 토큰 구매"
+      "cthDescription": "Alpha Centauri 생태계를 위한 CTH 토큰 구매",
+      "topUpDescription": "Beehive 생태계에 참여하기 위해 BCC와 CTH 토큰을 구매"
     },
     "globalStats": {
       "title": "글로벌 통계",
@@ -948,7 +949,8 @@
     "burnNft": "NFT 소각",
     "confirmBurn": "소각 확인",
     "burning": "소각 중...",
-    "useNftService": "NFT 서비스 사용"
+    "useNftService": "NFT 서비스 사용",
+    "topUp": "충전"
   },
   "selectors": {
     "category": "카테고리",
