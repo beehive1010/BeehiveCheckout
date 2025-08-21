@@ -10,21 +10,27 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-      <div className="container mx-auto px-4 py-4">
+      <div className="container mx-auto px-4 py-3 md:py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" data-testid="link-home">
-            <div className="flex items-center space-x-3 cursor-pointer">
-              <HexagonIcon className="w-10 h-10">
-                <i className="fas fa-layer-group text-honey text-sm"></i>
+            <div className="flex items-center space-x-2 md:space-x-3 cursor-pointer">
+              <HexagonIcon className="w-8 h-8 md:w-10 md:h-10">
+                <i className="fas fa-layer-group text-honey text-xs md:text-sm"></i>
               </HexagonIcon>
-              <h1 className="text-xl font-bold text-honey">Beehive</h1>
+              <h1 className="text-lg md:text-xl font-bold text-honey">Beehive</h1>
             </div>
           </Link>
 
+          {/* Mobile Divider */}
+          <div className="md:hidden h-6 w-px bg-border mx-3"></div>
+
           {/* Language Switcher & Wallet */}
-          <div className="flex items-center space-x-4">
-            <LanguageSwitcher />
+          <div className="flex items-center space-x-2 md:space-x-4">
+            <div className="hidden sm:block">
+              <LanguageSwitcher />
+            </div>
+            <div className="sm:hidden w-px h-4 bg-border"></div>
             <WalletConnect />
           </div>
         </div>
