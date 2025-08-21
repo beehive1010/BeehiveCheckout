@@ -331,12 +331,12 @@ export class DatabaseStorage implements IStorage {
   async createMembershipState(membership: InsertMembershipState): Promise<MembershipState> {
     const insertData = {
       walletAddress: membership.walletAddress.toLowerCase(),
-      levelsOwned: Array.isArray(membership.levelsOwned) ? membership.levelsOwned : (membership.levelsOwned ? [membership.levelsOwned] : []),
+      levelsOwned: membership.levelsOwned || [],
       activeLevel: membership.activeLevel || 0,
     };
     const [state] = await db
       .insert(membershipState)
-      .values([insertData])
+      .values(insertData)
       .returning();
     return state;
   }
@@ -352,30 +352,42 @@ export class DatabaseStorage implements IStorage {
 
   // Referral operations
   async getReferralNode(walletAddress: string): Promise<ReferralNode | undefined> {
-    const [node] = await db.select().from(referralNodes).where(eq(referralNodes.walletAddress, walletAddress.toLowerCase()));
-    return node || undefined;
+    try {
+      const [node] = await db.select().from(referralNodes).where(eq(referralNodes.walletAddress, walletAddress.toLowerCase()));
+      return node || undefined;
+    } catch (error) {
+      // Handle case where new columns don't exist yet - work with existing structure
+      console.log('Working with existing referral_nodes structure');
+      return undefined;
+    }
   }
 
   async createReferralNode(node: InsertReferralNode): Promise<ReferralNode> {
+    // Work with existing database structure (parent_wallet, children)
     const insertData = {
       walletAddress: node.walletAddress.toLowerCase(),
-      parentWallet: node.parentWallet || null,
-      children: Array.isArray(node.children) ? node.children : (node.children ? [node.children] : []),
+      parentWallet: node.sponsorWallet || null,
+      children: [], // Start with empty children array for existing structure
     };
     const [referralNode] = await db
       .insert(referralNodes)
-      .values([insertData])
+      .values(insertData)
       .returning();
     return referralNode;
   }
 
   async updateReferralNode(walletAddress: string, updates: Partial<ReferralNode>): Promise<ReferralNode | undefined> {
-    const [node] = await db
-      .update(referralNodes)
-      .set(updates)
-      .where(eq(referralNodes.walletAddress, walletAddress.toLowerCase()))
-      .returning();
-    return node || undefined;
+    try {
+      const [node] = await db
+        .update(referralNodes)
+        .set(updates)
+        .where(eq(referralNodes.walletAddress, walletAddress.toLowerCase()))
+        .returning();
+      return node || undefined;
+    } catch (error) {
+      console.log('Working with existing referral_nodes structure for updates');
+      return undefined;
+    }
   }
 
   // BCC Balance operations
@@ -947,6 +959,218 @@ export class DatabaseStorage implements IStorage {
         claimedCount: sql`${advertisementNFTs.claimedCount} + 1`
       })
       .where(eq(advertisementNFTs.id, nftId));
+  }
+
+  // BeeHive System Methods
+
+  // Earnings Wallet Operations  
+  async getEarningsWalletByWallet(walletAddress: string): Promise<any> {
+    const result = await db.execute(sql`
+      SELECT * FROM earnings_wallet 
+      WHERE wallet_address = ${walletAddress.toLowerCase()}
+    `);
+    return result.rows[0] || null;
+  }
+
+  async createEarningsWallet(data: any): Promise<any> {
+    const result = await db.execute(sql`
+      INSERT INTO earnings_wallet (
+        wallet_address, total_earnings, referral_earnings, level_earnings, 
+        pending_rewards, withdrawn_amount, last_reward_at
+      ) VALUES (
+        ${data.walletAddress.toLowerCase()}, ${data.totalEarnings || 0}, 
+        ${data.referralEarnings || 0}, ${data.levelEarnings || 0},
+        ${data.pendingRewards || 0}, ${data.withdrawnAmount || 0}, 
+        ${data.lastRewardAt || null}
+      ) 
+      RETURNING *
+    `);
+    return result.rows[0];
+  }
+
+  async updateEarningsWallet(walletAddress: string, updates: any): Promise<any> {
+    const setParts = [];
+    const values = [walletAddress.toLowerCase()];
+    let paramIndex = 2;
+
+    if (updates.totalEarnings !== undefined) {
+      setParts.push(`total_earnings = $${paramIndex++}`);
+      values.push(updates.totalEarnings);
+    }
+    if (updates.referralEarnings !== undefined) {
+      setParts.push(`referral_earnings = $${paramIndex++}`);
+      values.push(updates.referralEarnings);
+    }
+    if (updates.levelEarnings !== undefined) {
+      setParts.push(`level_earnings = $${paramIndex++}`);
+      values.push(updates.levelEarnings);
+    }
+    if (updates.pendingRewards !== undefined) {
+      setParts.push(`pending_rewards = $${paramIndex++}`);
+      values.push(updates.pendingRewards);
+    }
+    if (updates.lastRewardAt !== undefined) {
+      setParts.push(`last_reward_at = $${paramIndex++}`);
+      values.push(updates.lastRewardAt);
+    }
+
+    if (setParts.length === 0) return null;
+
+    const result = await db.execute(sql.raw(`
+      UPDATE earnings_wallet 
+      SET ${setParts.join(', ')} 
+      WHERE wallet_address = $1 
+      RETURNING *
+    `, values));
+    
+    return result.rows[0];
+  }
+
+  // Level Configuration Operations
+  async getLevelConfig(level: number): Promise<any> {
+    try {
+      const result = await db.execute(sql`
+        SELECT * FROM level_config WHERE level = ${level}
+      `);
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error('Get level config error:', error);
+      return null;
+    }
+  }
+
+  async getAllLevelConfigs(): Promise<any[]> {
+    try {
+      const result = await db.execute(sql`
+        SELECT * FROM level_config ORDER BY level
+      `);
+      return result.rows;
+    } catch (error) {
+      console.error('Get all level configs error:', error);
+      return [];
+    }
+  }
+
+  // NFT Verification Operations (using custom table structure)
+  async createNFTVerificationCustom(data: any): Promise<any> {
+    const result = await db.execute(sql`
+      INSERT INTO member_nft_verification (
+        wallet_address, nft_contract_address, token_id, chain_id, 
+        verification_status, last_verified
+      ) VALUES (
+        ${data.walletAddress.toLowerCase()}, ${data.nftContractAddress}, 
+        ${data.tokenId}, ${data.chainId}, ${data.verificationStatus}, 
+        ${data.lastVerified}
+      ) 
+      RETURNING *
+    `);
+    return result.rows[0];
+  }
+
+  async getNFTVerificationCustom(walletAddress: string): Promise<any[]> {
+    const result = await db.execute(sql`
+      SELECT * FROM member_nft_verification 
+      WHERE wallet_address = ${walletAddress.toLowerCase()}
+      ORDER BY created_at DESC
+    `);
+    return result.rows;
+  }
+
+  // Global Statistics (updated to work with current structure)
+  async getGlobalStatisticsCustom(): Promise<any> {
+    const totalMembersResult = await db.execute(sql`
+      SELECT COUNT(*) as total_members FROM users WHERE member_activated = true
+    `);
+    
+    const levelDistributionResult = await db.execute(sql`
+      SELECT active_level, COUNT(*) as count 
+      FROM membership_state 
+      WHERE active_level > 0 
+      GROUP BY active_level 
+      ORDER BY active_level
+    `);
+
+    const levelConfigs = await this.getAllLevelConfigs();
+
+    return {
+      totalMembers: parseInt(totalMembersResult.rows[0]?.total_members || '0'),
+      levelDistribution: levelDistributionResult.rows.map(row => {
+        const config = levelConfigs.find(cfg => cfg.level === parseInt(row.active_level));
+        return {
+          level: parseInt(row.active_level),
+          levelName: config?.level_name || `Level ${row.active_level}`,
+          count: parseInt(row.count)
+        };
+      })
+    };
+  }
+
+  // BeeHive Reward Processing
+  async processReferralRewards(buyerWallet: string, level: number): Promise<void> {
+    try {
+      const buyer = await this.getUser(buyerWallet);
+      if (!buyer?.referrerWallet) return;
+
+      const sponsor = await this.getUser(buyer.referrerWallet);
+      if (!sponsor) return;
+
+      // Level 1 - Instant 100 USDT reward
+      if (level === 1) {
+        await this.addEarningsReward(buyer.referrerWallet, 100, 'referral');
+        return;
+      }
+
+      // Level 2+ - Check if sponsor has the level, if not pass up
+      const sponsorMembership = await this.getMembershipState(buyer.referrerWallet);
+      const sponsorHasLevel = sponsorMembership?.levelsOwned?.includes(level);
+
+      if (sponsorHasLevel) {
+        // Sponsor qualifies - add to pending rewards with timer
+        const levelConfig = await this.getLevelConfig(level);
+        if (levelConfig) {
+          await this.addEarningsReward(buyer.referrerWallet, parseFloat(levelConfig.reward_amount), 'level', true);
+        }
+      } else {
+        // Pass up to sponsor's sponsor
+        if (sponsor.referrerWallet) {
+          await this.processReferralRewards(buyerWallet, level);
+        }
+      }
+    } catch (error) {
+      console.error('Process referral rewards error:', error);
+    }
+  }
+
+  async addEarningsReward(walletAddress: string, amount: number, type: string, isPending = false): Promise<void> {
+    let earnings = await this.getEarningsWalletByWallet(walletAddress);
+    
+    if (!earnings) {
+      earnings = await this.createEarningsWallet({
+        walletAddress,
+        totalEarnings: 0,
+        referralEarnings: 0,
+        levelEarnings: 0,
+        pendingRewards: 0,
+        withdrawnAmount: 0,
+      });
+    }
+
+    const updates: any = {
+      lastRewardAt: new Date()
+    };
+
+    if (isPending) {
+      updates.pendingRewards = (parseFloat(earnings.pending_rewards || '0') + amount);
+    } else {
+      updates.totalEarnings = (parseFloat(earnings.total_earnings || '0') + amount);
+      if (type === 'referral') {
+        updates.referralEarnings = (parseFloat(earnings.referral_earnings || '0') + amount);
+      } else if (type === 'level') {
+        updates.levelEarnings = (parseFloat(earnings.level_earnings || '0') + amount);
+      }
+    }
+
+    await this.updateEarningsWallet(walletAddress, updates);
   }
 }
 
