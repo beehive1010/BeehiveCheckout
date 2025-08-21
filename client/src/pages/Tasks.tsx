@@ -9,12 +9,15 @@ import { useToast } from '../hooks/use-toast';
 import { apiRequest } from '../lib/queryClient';
 import MobileDivider from '../components/UI/MobileDivider';
 
-interface MerchantNFT {
+interface MarketplaceNFT {
   id: string;
   title: string;
   description: string;
   imageUrl: string;
-  priceBCC: number;
+  price: number;
+  currency: 'BCC' | 'USDT';
+  category: 'membership' | 'advertisement';
+  membershipLevel?: number; // For membership NFTs
   active: boolean;
 }
 
@@ -23,18 +26,25 @@ export default function Tasks() {
   const { t } = useI18n();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedNFT, setSelectedNFT] = useState<MerchantNFT | null>(null);
+  const [selectedNFT, setSelectedNFT] = useState<MarketplaceNFT | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<'all' | 'membership' | 'advertisement'>('all');
 
-  // Fetch merchant NFTs
-  const { data: nfts, isLoading: isLoadingNFTs } = useQuery<MerchantNFT[]>({
-    queryKey: ['/api/tasks/nfts'],
+  // Fetch marketplace NFTs
+  const { data: allNfts, isLoading: isLoadingNFTs } = useQuery<MarketplaceNFT[]>({
+    queryKey: ['/api/marketplace/nfts'],
     queryFn: async () => {
-      const response = await fetch('/api/tasks/nfts');
+      const response = await fetch('/api/marketplace/nfts');
       if (!response.ok) throw new Error('Failed to fetch NFTs');
       return response.json();
     },
   });
+
+  // Filter NFTs by category
+  const nfts = allNfts?.filter(nft => {
+    if (activeCategory === 'all') return true;
+    return nft.category === activeCategory;
+  }) || [];
 
   // Claim NFT mutation
   const claimNFTMutation = useMutation({
@@ -71,18 +81,33 @@ export default function Tasks() {
     },
   });
 
-  const handleClaimClick = (nft: MerchantNFT) => {
+  const handlePurchaseClick = (nft: MarketplaceNFT) => {
     setSelectedNFT(nft);
     setIsModalOpen(true);
   };
 
-  const handleConfirmClaim = () => {
+  const handleConfirmPurchase = () => {
     if (selectedNFT) {
       claimNFTMutation.mutate(selectedNFT.id);
     }
   };
 
   const totalBCC = (bccBalance?.transferable || 0) + (bccBalance?.restricted || 0);
+
+  const getButtonText = (nft: MarketplaceNFT) => {
+    if (nft.currency === 'BCC') {
+      return totalBCC < nft.price ? String(t('marketplace.insufficientBCC')) : String(t('marketplace.purchase'));
+    } else {
+      return String(t('marketplace.purchaseUSDT'));
+    }
+  };
+
+  const isButtonDisabled = (nft: MarketplaceNFT) => {
+    if (nft.currency === 'BCC') {
+      return totalBCC < nft.price || claimNFTMutation.isPending;
+    }
+    return claimNFTMutation.isPending;
+  };
 
   if (isLoadingNFTs) {
     return (
@@ -111,8 +136,11 @@ export default function Tasks() {
       {/* Mobile Header */}
       <div className="mb-6">
         <h2 className="text-xl md:text-2xl font-bold text-honey mb-2">
-          {String(t('tasks.title'))}
+          {String(t('marketplace.title'))}
         </h2>
+        <p className="text-muted-foreground text-sm mb-3">
+          {String(t('marketplace.subtitle'))}
+        </p>
         <MobileDivider className="md:hidden" />
       </div>
       
@@ -146,16 +174,89 @@ export default function Tasks() {
         </CardContent>
       </Card>
 
+      {/* Category Filter */}
+      <div className="mb-6">
+        <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+          <button
+            onClick={() => setActiveCategory('all')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeCategory === 'all'
+                ? 'bg-honey text-black'
+                : 'bg-secondary text-muted-foreground hover:text-honey hover:bg-honey/10'
+            }`}
+            data-testid="filter-all"
+          >
+            {String(t('marketplace.categories.all'))}
+          </button>
+          <button
+            onClick={() => setActiveCategory('membership')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeCategory === 'membership'
+                ? 'bg-honey text-black'
+                : 'bg-secondary text-muted-foreground hover:text-honey hover:bg-honey/10'
+            }`}
+            data-testid="filter-membership"
+          >
+            <i className="fas fa-crown mr-2"></i>
+            {String(t('marketplace.categories.membership'))}
+          </button>
+          <button
+            onClick={() => setActiveCategory('advertisement')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              activeCategory === 'advertisement'
+                ? 'bg-honey text-black'
+                : 'bg-secondary text-muted-foreground hover:text-honey hover:bg-honey/10'
+            }`}
+            data-testid="filter-advertisement"
+          >
+            <i className="fas fa-bullhorn mr-2"></i>
+            {String(t('marketplace.categories.advertisement'))}
+          </button>
+        </div>
+      </div>
+
       {/* Section Divider */}
-      <MobileDivider withText="Available Tasks" className="mb-6" />
+      <MobileDivider withText={`${nfts.length} NFTs Available`} className="mb-6" />
 
       {/* NFT Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
         {nfts?.map((nft) => (
           <Card 
             key={nft.id}
-            className="bg-secondary border-border glow-hover card-hover overflow-hidden"
+            className="bg-secondary border-border glow-hover card-hover overflow-hidden relative"
           >
+            {/* Category Badge */}
+            <div className="absolute top-2 left-2 z-10">
+              <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                nft.category === 'membership' 
+                  ? 'bg-purple-500/20 text-purple-300' 
+                  : 'bg-blue-500/20 text-blue-300'
+              }`}>
+                {nft.category === 'membership' ? (
+                  <>
+                    <i className="fas fa-crown mr-1"></i>
+                    {nft.membershipLevel && `L${nft.membershipLevel}`}
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-bullhorn mr-1"></i>
+                    AD
+                  </>
+                )}
+              </span>
+            </div>
+
+            {/* Currency Badge */}
+            <div className="absolute top-2 right-2 z-10">
+              <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                nft.currency === 'USDT' 
+                  ? 'bg-green-500/20 text-green-300' 
+                  : 'bg-honey/20 text-honey'
+              }`}>
+                {nft.currency}
+              </span>
+            </div>
+
             <img 
               src={nft.imageUrl}
               alt={nft.title}
@@ -171,32 +272,34 @@ export default function Tasks() {
               {/* Mobile: Stack price and button */}
               <div className="md:hidden space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-honey font-bold text-sm">{nft.priceBCC} BCC</span>
-                  <span className={`text-xs px-2 py-1 rounded ${totalBCC >= nft.priceBCC ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                    {totalBCC >= nft.priceBCC ? 'Available' : 'Insufficient'}
-                  </span>
+                  <span className="text-honey font-bold text-sm">{nft.price} {nft.currency}</span>
+                  {nft.currency === 'BCC' && (
+                    <span className={`text-xs px-2 py-1 rounded ${totalBCC >= nft.price ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                      {totalBCC >= nft.price ? 'Available' : 'Insufficient'}
+                    </span>
+                  )}
                 </div>
                 <MobileDivider />
                 <Button
-                  onClick={() => handleClaimClick(nft)}
-                  className="btn-honey w-full text-xs"
-                  disabled={totalBCC < nft.priceBCC || claimNFTMutation.isPending}
-                  data-testid={`button-claim-${nft.id}`}
+                  onClick={() => handlePurchaseClick(nft)}
+                  className={nft.currency === 'USDT' ? 'bg-green-600 hover:bg-green-700 text-white w-full text-xs' : 'btn-honey w-full text-xs'}
+                  disabled={isButtonDisabled(nft)}
+                  data-testid={`button-purchase-${nft.id}`}
                 >
-                  {totalBCC < nft.priceBCC ? String(t('tasks.insufficientBCC')) : String(t('tasks.claim'))}
+                  {getButtonText(nft)}
                 </Button>
               </div>
               
               {/* Desktop: Side by side */}
               <div className="hidden md:flex justify-between items-center">
-                <span className="text-honey font-bold">{nft.priceBCC} BCC</span>
+                <span className="text-honey font-bold">{nft.price} {nft.currency}</span>
                 <Button
-                  onClick={() => handleClaimClick(nft)}
-                  className="btn-honey"
-                  disabled={totalBCC < nft.priceBCC || claimNFTMutation.isPending}
-                  data-testid={`button-claim-${nft.id}`}
+                  onClick={() => handlePurchaseClick(nft)}
+                  className={nft.currency === 'USDT' ? 'bg-green-600 hover:bg-green-700 text-white' : 'btn-honey'}
+                  disabled={isButtonDisabled(nft)}
+                  data-testid={`button-purchase-${nft.id}`}
                 >
-                  {totalBCC < nft.priceBCC ? String(t('tasks.insufficientBCC')) : String(t('tasks.claim'))}
+                  {getButtonText(nft)}
                 </Button>
               </div>
             </CardContent>
@@ -204,57 +307,79 @@ export default function Tasks() {
         )) || []}
       </div>
 
-      {/* Claim Confirmation Modal */}
+      {/* Purchase Confirmation Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="bg-secondary border-border max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-honey">{String(t('tasks.claimModal.title'))}</DialogTitle>
+            <DialogTitle className="text-honey">{String(t('marketplace.purchaseModal.title'))}</DialogTitle>
           </DialogHeader>
           
           {selectedNFT && (
             <div className="space-y-4">
               <div className="bg-muted rounded-lg p-4">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-muted-foreground">{String(t('tasks.claimModal.price'))}</span>
-                  <span className="text-honey font-semibold">{selectedNFT.priceBCC} BCC</span>
+                  <span className="text-muted-foreground">{String(t('marketplace.purchaseModal.item'))}</span>
+                  <span className="text-honey font-semibold">{selectedNFT.title}</span>
                 </div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-muted-foreground">{String(t('tasks.claimModal.availableRestricted'))}</span>
-                  <span className="text-honey">{bccBalance?.restricted || 0} BCC</span>
+                  <span className="text-muted-foreground">{String(t('marketplace.purchaseModal.price'))}</span>
+                  <span className="text-honey font-bold">{selectedNFT.price} {selectedNFT.currency}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">{String(t('tasks.claimModal.availableTransferable'))}</span>
-                  <span className="text-honey">{bccBalance?.transferable || 0} BCC</span>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-muted-foreground">{String(t('marketplace.purchaseModal.category'))}</span>
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    selectedNFT.category === 'membership' 
+                      ? 'bg-purple-500/20 text-purple-300' 
+                      : 'bg-blue-500/20 text-blue-300'
+                  }`}>
+                    {selectedNFT.category === 'membership' ? 'Membership' : 'Advertisement'}
+                  </span>
                 </div>
+                
+                {selectedNFT.currency === 'BCC' && (
+                  <>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-muted-foreground">{String(t('marketplace.purchaseModal.availableRestricted'))}</span>
+                      <span className="text-honey">{bccBalance?.restricted || 0} BCC</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">{String(t('marketplace.purchaseModal.availableTransferable'))}</span>
+                      <span className="text-honey">{bccBalance?.transferable || 0} BCC</span>
+                    </div>
+                  </>
+                )}
               </div>
               
               <p className="text-muted-foreground text-sm">
-                {String(t('tasks.claimModal.confirmation'))}
+                {selectedNFT.currency === 'USDT' 
+                  ? String(t('marketplace.purchaseModal.confirmationUSDT'))
+                  : String(t('marketplace.purchaseModal.confirmationBCC'))
+                }
               </p>
               
               <div className="flex space-x-3">
                 <Button
-                  onClick={handleConfirmClaim}
-                  className="flex-1 btn-honey"
+                  onClick={handleConfirmPurchase}
+                  className={`flex-1 ${selectedNFT.currency === 'USDT' ? 'bg-green-600 hover:bg-green-700 text-white' : 'btn-honey'}`}
                   disabled={claimNFTMutation.isPending}
-                  data-testid="button-confirm-claim"
+                  data-testid="button-confirm-purchase"
                 >
                   {claimNFTMutation.isPending ? (
                     <>
                       <i className="fas fa-spinner fa-spin mr-2"></i>
-                      {String(t('tasks.claiming'))}
+                      {String(t('marketplace.purchasing'))}
                     </>
                   ) : (
-                    String(t('tasks.claimModal.confirm'))
+                    String(t('marketplace.purchaseModal.confirm'))
                   )}
                 </Button>
                 <Button
                   onClick={() => setIsModalOpen(false)}
                   variant="secondary"
                   className="flex-1"
-                  data-testid="button-cancel-claim"
+                  data-testid="button-cancel-purchase"
                 >
-                  {String(t('tasks.claimModal.cancel'))}
+                  {String(t('marketplace.purchaseModal.cancel'))}
                 </Button>
               </div>
             </div>
