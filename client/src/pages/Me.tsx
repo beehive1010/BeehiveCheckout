@@ -8,6 +8,8 @@ import HexagonIcon from '../components/UI/HexagonIcon';
 import Learn from './Learn';
 import Referrals from './Referrals';
 import Settings from './Settings';
+import { AcademicCapIcon, UsersIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
+import { IconActivity } from '@tabler/icons-react';
 
 export default function Me() {
   const { userData, walletAddress, currentLevel, bccBalance } = useWallet();
@@ -114,30 +116,30 @@ export default function Me() {
 
       {/* Tab Navigation */}
       <Tabs defaultValue="learn" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-secondary border-border mb-6">
+        <TabsList className="grid w-full grid-cols-3 bg-secondary/50 border border-honey/20 rounded-xl p-1 mb-6 backdrop-blur-sm">
           <TabsTrigger 
             value="learn" 
-            className="data-[state=active]:bg-honey data-[state=active]:text-black text-honey"
+            className="relative flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 data-[state=active]:bg-honey data-[state=active]:text-black data-[state=active]:shadow-lg data-[state=active]:shadow-honey/25 text-honey hover:bg-honey/10 hover:text-honey"
             data-testid="tab-learn"
           >
-            <i className="fas fa-graduation-cap mr-2"></i>
-            Learn
+            <AcademicCapIcon className="w-5 h-5" />
+            <span className="font-semibold">Learn</span>
           </TabsTrigger>
           <TabsTrigger 
             value="referrals" 
-            className="data-[state=active]:bg-honey data-[state=active]:text-black text-honey"
+            className="relative flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 data-[state=active]:bg-honey data-[state=active]:text-black data-[state=active]:shadow-lg data-[state=active]:shadow-honey/25 text-honey hover:bg-honey/10 hover:text-honey"
             data-testid="tab-referrals"
           >
-            <i className="fas fa-users mr-2"></i>
-            Referrals
+            <UsersIcon className="w-5 h-5" />
+            <span className="font-semibold">Referrals</span>
           </TabsTrigger>
           <TabsTrigger 
             value="settings" 
-            className="data-[state=active]:bg-honey data-[state=active]:text-black text-honey"
+            className="relative flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 data-[state=active]:bg-honey data-[state=active]:text-black data-[state=active]:shadow-lg data-[state=active]:shadow-honey/25 text-honey hover:bg-honey/10 hover:text-honey"
             data-testid="tab-settings"
           >
-            <i className="fas fa-cog mr-2"></i>
-            Settings
+            <Cog6ToothIcon className="w-5 h-5" />
+            <span className="font-semibold">Settings</span>
           </TabsTrigger>
         </TabsList>
         
@@ -157,7 +159,8 @@ export default function Me() {
       {/* Recent Activity */}
       <Card className="bg-secondary border-border mt-6">
         <CardContent className="p-6">
-          <h3 className="text-lg font-semibold text-honey mb-4">
+          <h3 className="text-lg font-semibold text-honey mb-4 flex items-center gap-2">
+            <IconActivity className="w-5 h-5" />
             Recent Activity
           </h3>
           <div className="space-y-3">
