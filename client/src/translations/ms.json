@@ -1,0 +1,320 @@
+{
+  "nav": {
+    "dashboard": "Papan Pemuka",
+    "tasks": "Tugas",
+    "education": "Pendidikan",
+    "discover": "Terokai",
+    "hiveworld": "Dunia Sarang",
+    "me": "Saya"
+  },
+  "wallet": {
+    "connect": "Sambung Dompet",
+    "disconnect": "Putuskan Sambungan",
+    "connected": "Disambungkan"
+  },
+  "landing": {
+    "hero": {
+      "title": "Selamat Datang ke Beehive",
+      "subtitle": "Platform keahlian dan pembelajaran Web3 dengan ganjaran blockchain"
+    },
+    "getStarted": "Mula",
+    "features": {
+      "membership": {
+        "title": "Keahlian Web3",
+        "description": "Kelayakan keahlian on-chain yang selamat dengan 19 tahap"
+      },
+      "referral": {
+        "title": "Sistem Matrix 3×3",
+        "description": "Peroleh ganjaran melalui program rujukan matrix paksa kami"
+      },
+      "education": {
+        "title": "Belajar dan Peroleh",
+        "description": "Akses kursus premium dan bengkel sambil memperoleh token"
+      },
+      "marketplace": {
+        "title": "Pasar NFT",
+        "description": "Tuntut NFT pedagang eksklusif dengan token BCC anda"
+      },
+      "tokens": {
+        "title": "Ganjaran BCC",
+        "description": "Sistem token dwi dengan baldi boleh pindah dan terhad"
+      },
+      "rewards": {
+        "title": "Ganjaran Pintar",
+        "description": "Countdown naik taraf 48 jam dengan mekanisme roll-up"
+      }
+    },
+    "howItWorks": {
+      "title": "Bagaimana Ia Berfungsi",
+      "step1": {
+        "title": "Sambung Dompet",
+        "description": "Sambungkan dompet Web3 anda untuk bermula"
+      },
+      "step2": {
+        "title": "Daftar dan Aktifkan",
+        "description": "Lengkapkan pendaftaran dan aktifkan keahlian Tahap 1"
+      },
+      "step3": {
+        "title": "Belajar dan Peroleh",
+        "description": "Akses ciri platform dan mula memperoleh ganjaran"
+      }
+    },
+    "cta": {
+      "title": "Bersedia Memulakan Perjalanan Anda?",
+      "description": "Sertai ribuan ahli yang sudah memperoleh dalam ekosistem Beehive",
+      "button": "Sertai Beehive Sekarang"
+    }
+  },
+  "registration": {
+    "title": "Lengkapkan Pendaftaran",
+    "subtitle": "Sediakan profil Beehive anda",
+    "walletAddress": "Alamat Dompet",
+    "email": "Alamat E-mel",
+    "emailPlaceholder": "Masukkan e-mel anda",
+    "username": "Nama Pengguna",
+    "usernamePlaceholder": "Pilih nama pengguna",
+    "secondaryPassword": "Kata Laluan Sekunder",
+    "passwordPlaceholder": "Buat kata laluan yang selamat",
+    "confirmPassword": "Sahkan Kata Laluan",
+    "confirmPasswordPlaceholder": "Sahkan kata laluan anda",
+    "referrer": "Dirujuk oleh",
+    "register": "Lengkapkan Pendaftaran",
+    "registering": "Memproses...",
+    "agreement": "Dengan mendaftar, anda bersetuju dengan Terma Perkhidmatan dan Dasar Privasi kami",
+    "errors": {
+      "emailRequired": "Alamat e-mel diperlukan",
+      "emailInvalid": "Sila masukkan alamat e-mel yang sah",
+      "usernameRequired": "Nama pengguna diperlukan",
+      "usernameTooShort": "Nama pengguna mesti sekurang-kurangnya 3 aksara",
+      "passwordRequired": "Kata laluan sekunder diperlukan",
+      "passwordTooShort": "Kata laluan mesti sekurang-kurangnya 6 aksara",
+      "passwordMismatch": "Kata laluan tidak sepadan"
+    },
+    "success": {
+      "title": "Pendaftaran Berjaya!",
+      "description": "Profil anda telah dibuat. Anda kini boleh mengaktifkan keahlian anda."
+    },
+    "error": {
+      "title": "Pendaftaran Gagal",
+      "description": "Sila cuba lagi atau hubungi sokongan jika masalah berterusan."
+    },
+    "walletRequired": {
+      "title": "Sambungan Dompet Diperlukan",
+      "description": "Sila sambungkan dompet anda dahulu untuk melengkapkan pendaftaran."
+    }
+  },
+  "dashboard": {
+    "welcome": {
+      "title": "Selamat Datang ke Beehive!",
+      "description": "Aktifkan keahlian Tahap 1 anda untuk membuka kunci semua ciri platform dan mula memperoleh ganjaran."
+    },
+    "membershipLevel": "Tahap Keahlian",
+    "price": "Harga",
+    "activateLevel1": "Aktifkan Keahlian Tahap 1",
+    "activating": "Mengaktifkan...",
+    "activationNote": "Selepas pengaktifan, anda akan mempunyai akses kepada semua ciri ahli termasuk Tugas, Pendidikan, dan HiveWorld.",
+    "status": {
+      "active": "Aktif"
+    },
+    "balances": {
+      "bccFree": "BCC (Percuma)",
+      "bccLocked": "BCC (Terkunci)"
+    },
+    "quickActions": {
+      "tasks": {
+        "description": "Semak imbas dan tuntut NFT pedagang dengan token BCC anda"
+      },
+      "education": {
+        "description": "Akses kursus dan bahan pembelajaran"
+      },
+      "hiveworld": {
+        "description": "Lihat matrix rujukan dan ganjaran anda"
+      }
+    },
+    "recentActivity": "Aktiviti Terkini",
+    "activation": {
+      "success": {
+        "title": "Keahlian Diaktifkan!",
+        "description": "Selamat datang ke Beehive! Anda kini mempunyai akses kepada semua ciri ahli."
+      },
+      "error": {
+        "title": "Pengaktifan Gagal",
+        "description": "Sila cuba lagi atau hubungi sokongan."
+      }
+    }
+  },
+  "tasks": {
+    "title": "Pasar NFT Pedagang",
+    "availableBalance": "Baki Tersedia",
+    "restrictedFirst": "BCC terhad akan digunakan dahulu",
+    "restrictedBCC": "BCC Terhad",
+    "transferableBCC": "BCC Boleh Pindah",
+    "claim": "Tuntut",
+    "claiming": "Menuntut...",
+    "insufficientBCC": "BCC Tidak Mencukupi",
+    "claimModal": {
+      "title": "Tuntut NFT",
+      "price": "Harga",
+      "availableRestricted": "Tersedia (Terhad)",
+      "availableTransferable": "Tersedia (Boleh Pindah)",
+      "confirmation": "BCC terhad akan digunakan dahulu. Teruskan dengan menuntut NFT ini?",
+      "confirm": "Sahkan Tuntutan",
+      "cancel": "Batal"
+    },
+    "claim": {
+      "success": {
+        "title": "NFT Berjaya Dituntut!",
+        "description": "NFT telah ditempa ke dompet anda."
+      },
+      "error": {
+        "title": "Tuntutan Gagal",
+        "description": "Tidak dapat menuntut NFT. Sila semak baki anda dan cuba lagi."
+      }
+    }
+  },
+  "education": {
+    "title": "Pusat Pendidikan",
+    "progress": {
+      "title": "Kemajuan Pembelajaran",
+      "subtitle": "Jejak perjalanan pendidikan anda",
+      "completed": "Selesai",
+      "inProgress": "Dalam Kemajuan",
+      "hours": "Jam",
+      "label": "Kemajuan"
+    },
+    "free": "Percuma",
+    "levelRequired": "Tahap Diperlukan",
+    "duration": "Tempoh",
+    "completed": "Selesai",
+    "continue": "Teruskan Pembelajaran",
+    "startFree": "Mulakan Kursus",
+    "purchase": "Beli Kursus",
+    "enrolling": "Mendaftar...",
+    "insufficientBCC": "BCC Tidak Mencukupi",
+    "enroll": {
+      "success": {
+        "title": "Pendaftaran Berjaya!",
+        "description": "Anda kini mempunyai akses kepada kursus ini."
+      },
+      "error": {
+        "title": "Pendaftaran Gagal",
+        "description": "Tidak dapat mendaftar untuk kursus. Sila cuba lagi."
+      }
+    }
+  },
+  "discover": {
+    "title": "Terokai",
+    "explorer": {
+      "title": "Penjelajah Blockchain",
+      "latestBlock": "Blok Terkini",
+      "gasPrice": "Harga Gas (Gwei)",
+      "tps": "TPS"
+    },
+    "partners": {
+      "title": "Rangkaian Rakan Kongsi"
+    },
+    "activity": {
+      "title": "Aktiviti Rangkaian Terkini",
+      "noData": "Memuat data rangkaian..."
+    },
+    "about": {
+      "title": "Tentang Beehive",
+      "description": "Ekosistem terdesentralisasi yang menghubungkan ahli melalui teknologi blockchain.",
+      "totalMembers": "Jumlah Ahli",
+      "activeLevels": "Tahap Aktif",
+      "totalRewards": "Jumlah Ganjaran Diagihkan"
+    },
+    "ecosystem": {
+      "title": "Gambaran Keseluruhan Ekosistem",
+      "description": "Terokai komponen yang saling berkaitan dalam platform Beehive."
+    }
+  },
+  "hiveworld": {
+    "title": "HiveWorld - Matrix Anda",
+    "stats": {
+      "directReferrals": "Rujukan Langsung",
+      "totalTeam": "Jumlah Pasukan",
+      "pending": "Belum Selesai",
+      "totalEarned": "Jumlah Diperoleh"
+    },
+    "matrix": {
+      "title": "Matrix 3×3 Anda",
+      "you": "ANDA",
+      "activeDirect": "Langsung Aktif",
+      "activeIndirect": "Tidak Langsung Aktif",
+      "availableSlot": "Slot Tersedia"
+    },
+    "referralLink": {
+      "title": "Pautan Rujukan Anda",
+      "copy": "Salin"
+    },
+    "rewardHistory": {
+      "title": "Sejarah Ganjaran",
+      "directBonus": "Bonus Rujukan Langsung",
+      "upgradeReward": "Ganjaran Naik Taraf (Belum Selesai)",
+      "rollupReward": "Ganjaran Roll-up",
+      "completed": "Selesai",
+      "expired": "Tamat Tempoh",
+      "noRewards": "Belum ada sejarah ganjaran"
+    },
+    "linkCopied": {
+      "title": "Pautan Disalin!",
+      "description": "Pautan rujukan anda telah disalin ke papan keratan."
+    }
+  },
+  "me": {
+    "title": "Profil & Tetapan",
+    "editProfile": "Edit Profil",
+    "status": {
+      "active": "Aktif",
+      "memberSince": "Ahli sejak"
+    },
+    "balances": {
+      "usdt": "Baki USDT",
+      "bccTransferable": "BCC (Boleh Pindah)",
+      "bccRestricted": "BCC (Terhad)",
+      "cth": "Token CTH"
+    },
+    "learning": {
+      "title": "Kemajuan Pembelajaran",
+      "coursesCompleted": "Kursus Selesai",
+      "studyHours": "Jam Belajar",
+      "certificates": "Sijil Diperoleh"
+    },
+    "referral": {
+      "title": "Prestasi Rujukan",
+      "directReferrals": "Rujukan Langsung",
+      "totalTeamSize": "Saiz Pasukan Keseluruhan",
+      "totalEarnings": "Jumlah Perolehan",
+      "thisMonth": "Bulan Ini"
+    },
+    "settings": {
+      "title": "Tetapan Akaun",
+      "language": "Bahasa",
+      "languageDescription": "Pilih bahasa pilihan anda",
+      "notifications": "Pemberitahuan E-mel",
+      "notificationsDescription": "Terima kemas kini tentang ganjaran dan aktiviti",
+      "twoFactor": "Pengesahan Dua Faktor",
+      "twoFactorDescription": "Tambah keselamatan tambahan kepada akaun anda",
+      "enabled": "Diaktifkan",
+      "disabled": "Dinyahaktifkan",
+      "enable2FA": "Aktifkan 2FA",
+      "changePassword": "Tukar Kata Laluan",
+      "deactivateAccount": "Nyahaktifkan Akaun"
+    }
+  },
+  "footer": {
+    "description": "Platform keahlian dan pembelajaran Web3 dengan ganjaran blockchain.",
+    "platform": "Platform",
+    "support": "Sokongan",
+    "helpCenter": "Pusat Bantuan",
+    "documentation": "Dokumentasi",
+    "contact": "Hubungi Kami",
+    "status": "Status",
+    "legal": "Undang-undang",
+    "privacy": "Dasar Privasi",
+    "terms": "Terma Perkhidmatan",
+    "cookies": "Dasar Kuki",
+    "copyright": "© 2024 Beehive. Hak cipta terpelihara. Dibina dengan Thirdweb dan Replit."
+  }
+}

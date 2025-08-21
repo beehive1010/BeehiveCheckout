@@ -1,0 +1,320 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "tasks": "Tasks",
+    "education": "Education",
+    "discover": "Discover",
+    "hiveworld": "HiveWorld",
+    "me": "Me"
+  },
+  "wallet": {
+    "connect": "Connect Wallet",
+    "disconnect": "Disconnect",
+    "connected": "Connected"
+  },
+  "landing": {
+    "hero": {
+      "title": "Welcome to Beehive",
+      "subtitle": "Web3 membership and learning platform with blockchain-based rewards"
+    },
+    "getStarted": "Get Started",
+    "features": {
+      "membership": {
+        "title": "Web3 Membership",
+        "description": "Secure on-chain membership credentials with 19 levels"
+      },
+      "referral": {
+        "title": "3×3 Matrix System",
+        "description": "Earn rewards through our forced matrix referral program"
+      },
+      "education": {
+        "title": "Learn & Earn",
+        "description": "Access premium courses and workshops while earning tokens"
+      },
+      "marketplace": {
+        "title": "NFT Marketplace",
+        "description": "Claim exclusive merchant NFTs with your BCC tokens"
+      },
+      "tokens": {
+        "title": "BCC Rewards",
+        "description": "Dual token system with transferable and restricted buckets"
+      },
+      "rewards": {
+        "title": "Smart Rewards",
+        "description": "48-hour upgrade countdown with roll-up mechanisms"
+      }
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "step1": {
+        "title": "Connect Wallet",
+        "description": "Connect your Web3 wallet to get started"
+      },
+      "step2": {
+        "title": "Register & Activate",
+        "description": "Complete registration and activate Level 1 membership"
+      },
+      "step3": {
+        "title": "Learn & Earn",
+        "description": "Access platform features and start earning rewards"
+      }
+    },
+    "cta": {
+      "title": "Ready to Start Your Journey?",
+      "description": "Join thousands of members already earning in the Beehive ecosystem",
+      "button": "Join Beehive Now"
+    }
+  },
+  "registration": {
+    "title": "Complete Registration",
+    "subtitle": "Set up your Beehive profile",
+    "walletAddress": "Wallet Address",
+    "email": "Email Address",
+    "emailPlaceholder": "Enter your email",
+    "username": "Username",
+    "usernamePlaceholder": "Choose a username",
+    "secondaryPassword": "Secondary Password",
+    "passwordPlaceholder": "Create a secure password",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "referrer": "Referred by",
+    "register": "Complete Registration",
+    "registering": "Processing...",
+    "agreement": "By registering, you agree to our Terms of Service and Privacy Policy",
+    "errors": {
+      "emailRequired": "Email address is required",
+      "emailInvalid": "Please enter a valid email address",
+      "usernameRequired": "Username is required",
+      "usernameTooShort": "Username must be at least 3 characters",
+      "passwordRequired": "Secondary password is required",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "passwordMismatch": "Passwords do not match"
+    },
+    "success": {
+      "title": "Registration Successful!",
+      "description": "Your profile has been created. You can now activate your membership."
+    },
+    "error": {
+      "title": "Registration Failed",
+      "description": "Please try again or contact support if the problem persists."
+    },
+    "walletRequired": {
+      "title": "Wallet Connection Required",
+      "description": "Please connect your wallet first to complete registration."
+    }
+  },
+  "dashboard": {
+    "welcome": {
+      "title": "Welcome to Beehive!",
+      "description": "Activate your Level 1 membership to unlock all platform features and start earning rewards."
+    },
+    "membershipLevel": "Membership Level",
+    "price": "Price",
+    "activateLevel1": "Activate Level 1 Membership",
+    "activating": "Activating...",
+    "activationNote": "After activation, you'll have access to all member features including Tasks, Education, and HiveWorld.",
+    "status": {
+      "active": "Active"
+    },
+    "balances": {
+      "bccFree": "BCC (Free)",
+      "bccLocked": "BCC (Locked)"
+    },
+    "quickActions": {
+      "tasks": {
+        "description": "Browse and claim merchant NFTs with your BCC tokens"
+      },
+      "education": {
+        "description": "Access courses and learning materials"
+      },
+      "hiveworld": {
+        "description": "View your referral matrix and rewards"
+      }
+    },
+    "recentActivity": "Recent Activity",
+    "activation": {
+      "success": {
+        "title": "Membership Activated!",
+        "description": "Welcome to Beehive! You now have access to all member features."
+      },
+      "error": {
+        "title": "Activation Failed",
+        "description": "Please try again or contact support."
+      }
+    }
+  },
+  "tasks": {
+    "title": "Merchant NFT Marketplace",
+    "availableBalance": "Available Balance",
+    "restrictedFirst": "Restricted BCC will be used first",
+    "restrictedBCC": "Restricted BCC",
+    "transferableBCC": "Transferable BCC",
+    "claim": "Claim",
+    "claiming": "Claiming...",
+    "insufficientBCC": "Insufficient BCC",
+    "claimModal": {
+      "title": "Claim NFT",
+      "price": "Price",
+      "availableRestricted": "Available (Restricted)",
+      "availableTransferable": "Available (Transferable)",
+      "confirmation": "Restricted BCC will be used first. Proceed with claiming this NFT?",
+      "confirm": "Confirm Claim",
+      "cancel": "Cancel"
+    },
+    "claim": {
+      "success": {
+        "title": "NFT Claimed Successfully!",
+        "description": "The NFT has been minted to your wallet."
+      },
+      "error": {
+        "title": "Claim Failed",
+        "description": "Unable to claim NFT. Please check your balance and try again."
+      }
+    }
+  },
+  "education": {
+    "title": "Education Center",
+    "progress": {
+      "title": "Learning Progress",
+      "subtitle": "Track your educational journey",
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "hours": "Hours",
+      "label": "Progress"
+    },
+    "free": "Free",
+    "levelRequired": "Level Required",
+    "duration": "Duration",
+    "completed": "Completed",
+    "continue": "Continue Learning",
+    "startFree": "Start Course",
+    "purchase": "Purchase Course",
+    "enrolling": "Enrolling...",
+    "insufficientBCC": "Insufficient BCC",
+    "enroll": {
+      "success": {
+        "title": "Enrollment Successful!",
+        "description": "You now have access to this course."
+      },
+      "error": {
+        "title": "Enrollment Failed",
+        "description": "Unable to enroll in course. Please try again."
+      }
+    }
+  },
+  "discover": {
+    "title": "Discover",
+    "explorer": {
+      "title": "Blockchain Explorer",
+      "latestBlock": "Latest Block",
+      "gasPrice": "Gas Price (Gwei)",
+      "tps": "TPS"
+    },
+    "partners": {
+      "title": "Partner Networks"
+    },
+    "activity": {
+      "title": "Recent Network Activity",
+      "noData": "Loading network data..."
+    },
+    "about": {
+      "title": "About Beehive",
+      "description": "A decentralized ecosystem connecting members through blockchain technology.",
+      "totalMembers": "Total Members",
+      "activeLevels": "Active Levels",
+      "totalRewards": "Total Rewards Distributed"
+    },
+    "ecosystem": {
+      "title": "Ecosystem Overview",
+      "description": "Explore the interconnected components of the Beehive platform."
+    }
+  },
+  "hiveworld": {
+    "title": "HiveWorld - Your Matrix",
+    "stats": {
+      "directReferrals": "Direct Referrals",
+      "totalTeam": "Total Team",
+      "pending": "Pending",
+      "totalEarned": "Total Earned"
+    },
+    "matrix": {
+      "title": "Your 3×3 Matrix",
+      "you": "YOU",
+      "activeDirect": "Active Direct",
+      "activeIndirect": "Active Indirect",
+      "availableSlot": "Available Slot"
+    },
+    "referralLink": {
+      "title": "Your Referral Link",
+      "copy": "Copy"
+    },
+    "rewardHistory": {
+      "title": "Reward History",
+      "directBonus": "Direct Referral Bonus",
+      "upgradeReward": "Upgrade Reward (Pending)",
+      "rollupReward": "Roll-up Reward",
+      "completed": "Completed",
+      "expired": "Expired",
+      "noRewards": "No reward history yet"
+    },
+    "linkCopied": {
+      "title": "Link Copied!",
+      "description": "Your referral link has been copied to clipboard."
+    }
+  },
+  "me": {
+    "title": "Profile & Settings",
+    "editProfile": "Edit Profile",
+    "status": {
+      "active": "Active",
+      "memberSince": "Member since"
+    },
+    "balances": {
+      "usdt": "USDT Balance",
+      "bccTransferable": "BCC (Transferable)",
+      "bccRestricted": "BCC (Restricted)",
+      "cth": "CTH Tokens"
+    },
+    "learning": {
+      "title": "Learning Progress",
+      "coursesCompleted": "Courses Completed",
+      "studyHours": "Study Hours",
+      "certificates": "Certificates Earned"
+    },
+    "referral": {
+      "title": "Referral Performance",
+      "directReferrals": "Direct Referrals",
+      "totalTeamSize": "Total Team Size",
+      "totalEarnings": "Total Earnings",
+      "thisMonth": "This Month"
+    },
+    "settings": {
+      "title": "Account Settings",
+      "language": "Language",
+      "languageDescription": "Choose your preferred language",
+      "notifications": "Email Notifications",
+      "notificationsDescription": "Receive updates about rewards and activities",
+      "twoFactor": "Two-Factor Authentication",
+      "twoFactorDescription": "Add extra security to your account",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "enable2FA": "Enable 2FA",
+      "changePassword": "Change Password",
+      "deactivateAccount": "Deactivate Account"
+    }
+  },
+  "footer": {
+    "description": "Web3 membership and learning platform with blockchain-based rewards.",
+    "platform": "Platform",
+    "support": "Support",
+    "helpCenter": "Help Center",
+    "documentation": "Documentation",
+    "contact": "Contact Us",
+    "status": "Status",
+    "legal": "Legal",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "cookies": "Cookie Policy",
+    "copyright": "© 2024 Beehive. All rights reserved. Built with Thirdweb and Replit."
+  }
+}

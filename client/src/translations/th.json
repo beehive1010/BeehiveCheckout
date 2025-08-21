@@ -1,0 +1,320 @@
+{
+  "nav": {
+    "dashboard": "แดชบอร์ด",
+    "tasks": "งาน",
+    "education": "การศึกษา",
+    "discover": "ค้นพบ",
+    "hiveworld": "โลกแห่งรังผึ้ง",
+    "me": "ฉัน"
+  },
+  "wallet": {
+    "connect": "เชื่อมต่อกระเป๋าเงิน",
+    "disconnect": "ตัดการเชื่อมต่อ",
+    "connected": "เชื่อมต่อแล้ว"
+  },
+  "landing": {
+    "hero": {
+      "title": "ยินดีต้อนรับสู่ Beehive",
+      "subtitle": "แพลตฟอร์มสมาชิกและการเรียนรู้ Web3 พร้อมรางวัลบล็อกเชน"
+    },
+    "getStarted": "เริ่มต้น",
+    "features": {
+      "membership": {
+        "title": "สมาชิก Web3",
+        "description": "ข้อมูลประจำตัวสมาชิกบนเชนที่ปลอดภัย 19 ระดับ"
+      },
+      "referral": {
+        "title": "ระบบ Matrix 3×3",
+        "description": "รับรางวัลผ่านโปรแกรมการแนะนำแบบบังคับ matrix"
+      },
+      "education": {
+        "title": "เรียนและหาเงิน",
+        "description": "เข้าถึงหลักสูตรพรีเมียมและเวิร์กช็อปพร้อมรับโทเค็น"
+      },
+      "marketplace": {
+        "title": "ตลาด NFT",
+        "description": "รับ NFT พิเศษจากร้านค้าด้วยโทเค็น BCC ของคุณ"
+      },
+      "tokens": {
+        "title": "รางวัล BCC",
+        "description": "ระบบโทเค็นคู่พร้อมถังที่โอนย้ายได้และจำกัด"
+      },
+      "rewards": {
+        "title": "รางวัลอัจฉริยะ",
+        "description": "การนับถอยหลัง 48 ชั่วโมงสำหรับอัพเกรดพร้อมกลไกส่งต่อ"
+      }
+    },
+    "howItWorks": {
+      "title": "วิธีการทำงาน",
+      "step1": {
+        "title": "เชื่อมต่อกระเป๋าเงิน",
+        "description": "เชื่อมต่อกระเป๋าเงิน Web3 ของคุณเพื่อเริ่มต้น"
+      },
+      "step2": {
+        "title": "ลงทะเบียนและเปิดใช้งาน",
+        "description": "ลงทะเบียนให้เสร็จสิ้นและเปิดใช้งานสมาชิกระดับ 1"
+      },
+      "step3": {
+        "title": "เรียนและหาเงิน",
+        "description": "เข้าถึงฟีเจอร์แพลตฟอร์มและเริ่มรับรางวัล"
+      }
+    },
+    "cta": {
+      "title": "พร้อมเริ่มต้นการเดินทางของคุณแล้วหรือยัง?",
+      "description": "เข้าร่วมกับสมาชิกหลายพันคนที่กำลังหาเงินในระบบนิเวศ Beehive",
+      "button": "เข้าร่วม Beehive ตอนนี้"
+    }
+  },
+  "registration": {
+    "title": "ลงทะเบียนให้เสร็จสิ้น",
+    "subtitle": "ตั้งค่าโปรไฟล์ Beehive ของคุณ",
+    "walletAddress": "ที่อยู่กระเป๋าเงิน",
+    "email": "ที่อยู่อีเมล",
+    "emailPlaceholder": "ป้อนอีเมลของคุณ",
+    "username": "ชื่อผู้ใช้",
+    "usernamePlaceholder": "เลือกชื่อผู้ใช้",
+    "secondaryPassword": "รหัสผ่านสำรอง",
+    "passwordPlaceholder": "สร้างรหัสผ่านที่ปลอดภัย",
+    "confirmPassword": "ยืนยันรหัสผ่าน",
+    "confirmPasswordPlaceholder": "ยืนยันรหัสผ่านของคุณ",
+    "referrer": "แนะนำโดย",
+    "register": "ลงทะเบียนให้เสร็จสิ้น",
+    "registering": "กำลังดำเนินการ...",
+    "agreement": "การลงทะเบียนแสดงว่าคุณยอมรับข้อตกลงการให้บริการและนโยบายความเป็นส่วนตัวของเรา",
+    "errors": {
+      "emailRequired": "จำเป็นต้องมีที่อยู่อีเมล",
+      "emailInvalid": "กรุณาป้อนที่อยู่อีเมลที่ถูกต้อง",
+      "usernameRequired": "จำเป็นต้องมีชื่อผู้ใช้",
+      "usernameTooShort": "ชื่อผู้ใช้ต้องมีอย่างน้อย 3 ตัวอักษร",
+      "passwordRequired": "จำเป็นต้องมีรหัสผ่านสำรอง",
+      "passwordTooShort": "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร",
+      "passwordMismatch": "รหัสผ่านไม่ตรงกัน"
+    },
+    "success": {
+      "title": "ลงทะเบียนสำเร็จ!",
+      "description": "โปรไฟล์ของคุณได้ถูกสร้างแล้ว คุณสามารถเปิดใช้งานสมาชิกของคุณได้แล้ว"
+    },
+    "error": {
+      "title": "การลงทะเบียนล้มเหลว",
+      "description": "กรุณาลองอีกครั้งหรือติดต่อฝ่ายสนับสนุนหากปัญหายังคงอยู่"
+    },
+    "walletRequired": {
+      "title": "จำเป็นต้องเชื่อมต่อกระเป๋าเงิน",
+      "description": "กรุณาเชื่อมต่อกระเป๋าเงินของคุณก่อนเพื่อลงทะเบียนให้เสร็จสิ้น"
+    }
+  },
+  "dashboard": {
+    "welcome": {
+      "title": "ยินดีต้อนรับสู่ Beehive!",
+      "description": "เปิดใช้งานสมาชิกระดับ 1 ของคุณเพื่อปลดล็อกฟีเจอร์ทั้งหมดของแพลตฟอร์มและเริ่มรับรางวัล"
+    },
+    "membershipLevel": "ระดับสมาชิก",
+    "price": "ราคา",
+    "activateLevel1": "เปิดใช้งานสมาชิกระดับ 1",
+    "activating": "กำลังเปิดใช้งาน...",
+    "activationNote": "หลังจากเปิดใช้งานแล้ว คุณจะสามารถเข้าถึงฟีเจอร์สมาชิกทั้งหมด รวมถึงงาน การศึกษา และ HiveWorld",
+    "status": {
+      "active": "เปิดใช้งาน"
+    },
+    "balances": {
+      "bccFree": "BCC (ฟรี)",
+      "bccLocked": "BCC (ล็อค)"
+    },
+    "quickActions": {
+      "tasks": {
+        "description": "เรียกดูและรับ NFT จากร้านค้าด้วยโทเค็น BCC ของคุณ"
+      },
+      "education": {
+        "description": "เข้าถึงหลักสูตรและเนื้อหาการเรียนรู้"
+      },
+      "hiveworld": {
+        "description": "ดู matrix การแนะนำและรางวัลของคุณ"
+      }
+    },
+    "recentActivity": "กิจกรรมล่าสุด",
+    "activation": {
+      "success": {
+        "title": "เปิดใช้งานสมาชิกแล้ว!",
+        "description": "ยินดีต้อนรับสู่ Beehive! คุณสามารถเข้าถึงฟีเจอร์สมาชิกทั้งหมดได้แล้ว"
+      },
+      "error": {
+        "title": "การเปิดใช้งานล้มเหลว",
+        "description": "กรุณาลองอีกครั้งหรือติดต่อฝ่ายสนับสนุน"
+      }
+    }
+  },
+  "tasks": {
+    "title": "ตลาด NFT ร้านค้า",
+    "availableBalance": "ยอดคงเหลือที่ใช้ได้",
+    "restrictedFirst": "BCC ที่จำกัดจะถูกใช้ก่อน",
+    "restrictedBCC": "BCC ที่จำกัด",
+    "transferableBCC": "BCC ที่โอนย้ายได้",
+    "claim": "รับ",
+    "claiming": "กำลังรับ...",
+    "insufficientBCC": "BCC ไม่เพียงพอ",
+    "claimModal": {
+      "title": "รับ NFT",
+      "price": "ราคา",
+      "availableRestricted": "ที่ใช้ได้ (จำกัด)",
+      "availableTransferable": "ที่ใช้ได้ (โอนย้ายได้)",
+      "confirmation": "BCC ที่จำกัดจะถูกใช้ก่อน ดำเนินการรับ NFT นี้หรือไม่?",
+      "confirm": "ยืนยันการรับ",
+      "cancel": "ยกเลิก"
+    },
+    "claim": {
+      "success": {
+        "title": "รับ NFT สำเร็จ!",
+        "description": "NFT ได้ถูกสร้างไปยังกระเป๋าเงินของคุณแล้ว"
+      },
+      "error": {
+        "title": "การรับล้มเหลว",
+        "description": "ไม่สามารถรับ NFT ได้ กรุณาตรวจสอบยอดคงเหลือและลองอีกครั้ง"
+      }
+    }
+  },
+  "education": {
+    "title": "ศูนย์การศึกษา",
+    "progress": {
+      "title": "ความก้าวหน้าการเรียนรู้",
+      "subtitle": "ติดตามเส้นทางการศึกษาของคุณ",
+      "completed": "เสร็จสิ้น",
+      "inProgress": "กำลังดำเนินการ",
+      "hours": "ชั่วโมง",
+      "label": "ความก้าวหน้า"
+    },
+    "free": "ฟรี",
+    "levelRequired": "ระดับที่ต้องการ",
+    "duration": "ระยะเวลา",
+    "completed": "เสร็จสิ้น",
+    "continue": "เรียนต่อ",
+    "startFree": "เริ่มหลักสูตร",
+    "purchase": "ซื้อหลักสูตร",
+    "enrolling": "กำลังลงทะเบียน...",
+    "insufficientBCC": "BCC ไม่เพียงพอ",
+    "enroll": {
+      "success": {
+        "title": "ลงทะเบียนสำเร็จ!",
+        "description": "คุณสามารถเข้าถึงหลักสูตรนี้ได้แล้ว"
+      },
+      "error": {
+        "title": "การลงทะเบียนล้มเหลว",
+        "description": "ไม่สามารถลงทะเบียนหลักสูตรได้ กรุณาลองอีกครั้ง"
+      }
+    }
+  },
+  "discover": {
+    "title": "ค้นพบ",
+    "explorer": {
+      "title": "เครื่องมือสำรวจบล็อกเชน",
+      "latestBlock": "บล็อกล่าสุด",
+      "gasPrice": "ราคาแก๊ส (Gwei)",
+      "tps": "TPS"
+    },
+    "partners": {
+      "title": "เครือข่ายพันธมิตร"
+    },
+    "activity": {
+      "title": "กิจกรรมเครือข่ายล่าสุด",
+      "noData": "กำลังโหลดข้อมูลเครือข่าย..."
+    },
+    "about": {
+      "title": "เกี่ยวกับ Beehive",
+      "description": "ระบบนิเวศแบบกระจายอำนาจที่เชื่อมต่อสมาชิกผ่านเทคโนโลยีบล็อกเชน",
+      "totalMembers": "สมาชิกทั้งหมด",
+      "activeLevels": "ระดับที่เปิดใช้งาน",
+      "totalRewards": "รางวัลทั้งหมดที่แจกจ่าย"
+    },
+    "ecosystem": {
+      "title": "ภาพรวมระบบนิเวศ",
+      "description": "สำรวจส่วนประกอบที่เชื่อมโยงกันของแพลตฟอร์ม Beehive"
+    }
+  },
+  "hiveworld": {
+    "title": "HiveWorld - Matrix ของคุณ",
+    "stats": {
+      "directReferrals": "การแนะนำโดยตรง",
+      "totalTeam": "ทีมทั้งหมด",
+      "pending": "รอดำเนินการ",
+      "totalEarned": "รายได้ทั้งหมด"
+    },
+    "matrix": {
+      "title": "Matrix 3×3 ของคุณ",
+      "you": "คุณ",
+      "activeDirect": "ใช้งานโดยตรง",
+      "activeIndirect": "ใช้งานโดยอ้อม",
+      "availableSlot": "ช่องว่าง"
+    },
+    "referralLink": {
+      "title": "ลิงก์แนะนำของคุณ",
+      "copy": "คัดลอก"
+    },
+    "rewardHistory": {
+      "title": "ประวัติรางวัล",
+      "directBonus": "โบนัสการแนะนำโดยตรง",
+      "upgradeReward": "รางวัลการอัพเกรด (รอดำเนินการ)",
+      "rollupReward": "รางวัลการส่งต่อ",
+      "completed": "เสร็จสิ้น",
+      "expired": "หมดอายุ",
+      "noRewards": "ยังไม่มีประวัติรางวัล"
+    },
+    "linkCopied": {
+      "title": "คัดลอกลิงก์แล้ว!",
+      "description": "ลิงก์แนะนำของคุณได้ถูกคัดลอกไปยังคลิปบอร์ดแล้ว"
+    }
+  },
+  "me": {
+    "title": "โปรไฟล์และการตั้งค่า",
+    "editProfile": "แก้ไขโปรไฟล์",
+    "status": {
+      "active": "เปิดใช้งาน",
+      "memberSince": "สมาชิกตั้งแต่"
+    },
+    "balances": {
+      "usdt": "ยอดคงเหลือ USDT",
+      "bccTransferable": "BCC (โอนย้ายได้)",
+      "bccRestricted": "BCC (จำกัด)",
+      "cth": "โทเค็น CTH"
+    },
+    "learning": {
+      "title": "ความก้าวหน้าการเรียนรู้",
+      "coursesCompleted": "หลักสูตรที่เสร็จสิ้น",
+      "studyHours": "ชั่วโมงการศึกษา",
+      "certificates": "ใบรับรองที่ได้รับ"
+    },
+    "referral": {
+      "title": "ผลการดำเนินการแนะนำ",
+      "directReferrals": "การแนะนำโดยตรง",
+      "totalTeamSize": "ขนาดทีมทั้งหมด",
+      "totalEarnings": "รายได้ทั้งหมด",
+      "thisMonth": "เดือนนี้"
+    },
+    "settings": {
+      "title": "การตั้งค่าบัญชี",
+      "language": "ภาษา",
+      "languageDescription": "เลือกภาษาที่คุณต้องการ",
+      "notifications": "การแจ้งเตือนทางอีเมล",
+      "notificationsDescription": "รับการอัพเดตเกี่ยวกับรางวัลและกิจกรรม",
+      "twoFactor": "การยืนยันตัวตนสองขั้นตอน",
+      "twoFactorDescription": "เพิ่มความปลอดภัยให้กับบัญชีของคุณ",
+      "enabled": "เปิดใช้งาน",
+      "disabled": "ปิดใช้งาน",
+      "enable2FA": "เปิดใช้งาน 2FA",
+      "changePassword": "เปลี่ยนรหัสผ่าน",
+      "deactivateAccount": "ปิดใช้งานบัญชี"
+    }
+  },
+  "footer": {
+    "description": "แพลตฟอร์มสมาชิกและการเรียนรู้ Web3 พร้อมรางวัลบล็อกเชน",
+    "platform": "แพลตฟอร์ม",
+    "support": "การสนับสนุน",
+    "helpCenter": "ศูนย์ช่วยเหลือ",
+    "documentation": "เอกสาร",
+    "contact": "ติดต่อเรา",
+    "status": "สถานะ",
+    "legal": "กฎหมาย",
+    "privacy": "นโยบายความเป็นส่วนตัว",
+    "terms": "ข้อตกลงการให้บริการ",
+    "cookies": "นโยบายคุกกี้",
+    "copyright": "© 2024 Beehive สงวนลิขสิทธิ์ สร้างด้วย Thirdweb และ Replit"
+  }
+}
