@@ -7,6 +7,7 @@ import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { useToast } from '../hooks/use-toast';
 import { apiRequest } from '../lib/queryClient';
+import MobileDivider from '../components/UI/MobileDivider';
 
 interface MerchantNFT {
   id: string;
@@ -54,8 +55,8 @@ export default function Tasks() {
     },
     onSuccess: () => {
       toast({
-        title: t('tasks.claim.success.title'),
-        description: t('tasks.claim.success.description'),
+        title: String(t('tasks.claim.success.title')),
+        description: String(t('tasks.claim.success.description')),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       setIsModalOpen(false);
@@ -63,8 +64,8 @@ export default function Tasks() {
     },
     onError: (error: any) => {
       toast({
-        title: t('tasks.claim.error.title'),
-        description: error.message || t('tasks.claim.error.description'),
+        title: String(t('tasks.claim.error.title')),
+        description: error.message || String(t('tasks.claim.error.description')),
         variant: 'destructive',
       });
     },
@@ -106,35 +107,50 @@ export default function Tasks() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h2 className="text-2xl font-bold text-honey mb-6">
-        {t('tasks.title')}
-      </h2>
+    <div className="container mx-auto px-4 py-4 md:py-8">
+      {/* Mobile Header */}
+      <div className="mb-6">
+        <h2 className="text-xl md:text-2xl font-bold text-honey mb-2">
+          {String(t('tasks.title'))}
+        </h2>
+        <MobileDivider className="md:hidden" />
+      </div>
       
       {/* Balance Header */}
       <Card className="bg-secondary border-border mb-6">
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
-            <div>
-              <h3 className="text-honey font-semibold">{t('tasks.availableBalance')}</h3>
-              <p className="text-muted-foreground text-sm">{t('tasks.restrictedFirst')}</p>
+        <CardContent className="p-3 md:p-4">
+          <div className="flex flex-col space-y-3 md:space-y-0 md:flex-row md:justify-between md:items-center">
+            <div className="text-center md:text-left">
+              <h3 className="text-honey font-semibold text-sm md:text-base">{String(t('tasks.availableBalance'))}</h3>
+              <p className="text-muted-foreground text-xs md:text-sm">{String(t('tasks.restrictedFirst'))}</p>
             </div>
-            <div className="flex space-x-4">
+            
+            {/* Mobile Divider */}
+            <MobileDivider className="md:hidden" />
+            
+            <div className="flex justify-center md:justify-end space-x-6 md:space-x-4">
               <div className="text-center">
-                <p className="text-honey font-bold">{bccBalance?.restricted || 0}</p>
-                <p className="text-muted-foreground text-xs">{t('tasks.restrictedBCC')}</p>
+                <p className="text-honey font-bold text-lg md:text-base">{bccBalance?.restricted || 0}</p>
+                <p className="text-muted-foreground text-xs">{String(t('tasks.restrictedBCC'))}</p>
               </div>
+              
+              {/* Vertical divider for mobile */}
+              <MobileDivider orientation="vertical" className="md:hidden h-12" />
+              
               <div className="text-center">
-                <p className="text-honey font-bold">{bccBalance?.transferable || 0}</p>
-                <p className="text-muted-foreground text-xs">{t('tasks.transferableBCC')}</p>
+                <p className="text-honey font-bold text-lg md:text-base">{bccBalance?.transferable || 0}</p>
+                <p className="text-muted-foreground text-xs">{String(t('tasks.transferableBCC'))}</p>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
+      {/* Section Divider */}
+      <MobileDivider withText="Available Tasks" className="mb-6" />
+
       {/* NFT Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
         {nfts?.map((nft) => (
           <Card 
             key={nft.id}
@@ -146,12 +162,33 @@ export default function Tasks() {
               className="w-full h-48 object-cover"
               loading="lazy"
             />
-            <CardContent className="p-4">
-              <h4 className="text-honey font-semibold mb-2">{nft.title}</h4>
-              <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+            <CardContent className="p-3 md:p-4">
+              <h4 className="text-honey font-semibold mb-2 text-sm md:text-base">{nft.title}</h4>
+              <p className="text-muted-foreground text-xs md:text-sm mb-3 md:mb-4 line-clamp-2">
                 {nft.description}
               </p>
-              <div className="flex justify-between items-center">
+              
+              {/* Mobile: Stack price and button */}
+              <div className="md:hidden space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-honey font-bold text-sm">{nft.priceBCC} BCC</span>
+                  <span className={`text-xs px-2 py-1 rounded ${totalBCC >= nft.priceBCC ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                    {totalBCC >= nft.priceBCC ? 'Available' : 'Insufficient'}
+                  </span>
+                </div>
+                <MobileDivider />
+                <Button
+                  onClick={() => handleClaimClick(nft)}
+                  className="btn-honey w-full text-xs"
+                  disabled={totalBCC < nft.priceBCC || claimNFTMutation.isPending}
+                  data-testid={`button-claim-${nft.id}`}
+                >
+                  {totalBCC < nft.priceBCC ? String(t('tasks.insufficientBCC')) : String(t('tasks.claim'))}
+                </Button>
+              </div>
+              
+              {/* Desktop: Side by side */}
+              <div className="hidden md:flex justify-between items-center">
                 <span className="text-honey font-bold">{nft.priceBCC} BCC</span>
                 <Button
                   onClick={() => handleClaimClick(nft)}
@@ -159,7 +196,7 @@ export default function Tasks() {
                   disabled={totalBCC < nft.priceBCC || claimNFTMutation.isPending}
                   data-testid={`button-claim-${nft.id}`}
                 >
-                  {totalBCC < nft.priceBCC ? t('tasks.insufficientBCC') : t('tasks.claim')}
+                  {totalBCC < nft.priceBCC ? String(t('tasks.insufficientBCC')) : String(t('tasks.claim'))}
                 </Button>
               </div>
             </CardContent>
@@ -171,28 +208,28 @@ export default function Tasks() {
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="bg-secondary border-border max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-honey">{t('tasks.claimModal.title')}</DialogTitle>
+            <DialogTitle className="text-honey">{String(t('tasks.claimModal.title'))}</DialogTitle>
           </DialogHeader>
           
           {selectedNFT && (
             <div className="space-y-4">
               <div className="bg-muted rounded-lg p-4">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-muted-foreground">{t('tasks.claimModal.price')}</span>
+                  <span className="text-muted-foreground">{String(t('tasks.claimModal.price'))}</span>
                   <span className="text-honey font-semibold">{selectedNFT.priceBCC} BCC</span>
                 </div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-muted-foreground">{t('tasks.claimModal.availableRestricted')}</span>
+                  <span className="text-muted-foreground">{String(t('tasks.claimModal.availableRestricted'))}</span>
                   <span className="text-honey">{bccBalance?.restricted || 0} BCC</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">{t('tasks.claimModal.availableTransferable')}</span>
+                  <span className="text-muted-foreground">{String(t('tasks.claimModal.availableTransferable'))}</span>
                   <span className="text-honey">{bccBalance?.transferable || 0} BCC</span>
                 </div>
               </div>
               
               <p className="text-muted-foreground text-sm">
-                {t('tasks.claimModal.confirmation')}
+                {String(t('tasks.claimModal.confirmation'))}
               </p>
               
               <div className="flex space-x-3">
@@ -205,10 +242,10 @@ export default function Tasks() {
                   {claimNFTMutation.isPending ? (
                     <>
                       <i className="fas fa-spinner fa-spin mr-2"></i>
-                      {t('tasks.claiming')}
+                      {String(t('tasks.claiming'))}
                     </>
                   ) : (
-                    t('tasks.claimModal.confirm')
+                    String(t('tasks.claimModal.confirm'))
                   )}
                 </Button>
                 <Button
@@ -217,7 +254,7 @@ export default function Tasks() {
                   className="flex-1"
                   data-testid="button-cancel-claim"
                 >
-                  {t('tasks.claimModal.cancel')}
+                  {String(t('tasks.claimModal.cancel'))}
                 </Button>
               </div>
             </div>
