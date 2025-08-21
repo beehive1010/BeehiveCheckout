@@ -67,7 +67,7 @@ export default function Dashboard() {
       titleKey: 'nav.tasks',
       descriptionKey: 'dashboard.quickActions.tasks.description',
       statKey: 'dashboard.quickActions.tasks.stat',
-      statValue: '12 Available'
+      statValue: t('dashboard.quickActions.tasks.statValue')
     },
     {
       key: 'education',
@@ -76,7 +76,7 @@ export default function Dashboard() {
       titleKey: 'nav.education',
       descriptionKey: 'dashboard.quickActions.education.description',
       statKey: 'dashboard.quickActions.education.stat',
-      statValue: 'Progress: 65%'
+      statValue: t('dashboard.quickActions.education.statValue')
     },
     {
       key: 'hiveworld',
@@ -85,29 +85,29 @@ export default function Dashboard() {
       titleKey: 'nav.hiveworld',
       descriptionKey: 'dashboard.quickActions.hiveworld.description',
       statKey: 'dashboard.quickActions.hiveworld.stat',
-      statValue: '3 Direct Refs'
+      statValue: t('dashboard.quickActions.hiveworld.statValue')
     }
   ];
 
   const recentActivities = [
     {
       icon: 'fas fa-gift',
-      type: 'Reward Received',
-      description: 'From referral upgrade',
+      type: t('dashboard.activity.rewardReceived'),
+      description: t('dashboard.activity.fromReferralUpgrade'),
       amount: '+100 Rewards',
       color: 'text-green-400'
     },
     {
       icon: 'fas fa-shopping-cart',
-      type: 'NFT Claimed',
-      description: 'Merchant NFT #1234',
+      type: t('dashboard.activity.nftClaimed'),
+      description: t('dashboard.activity.merchantNft'),
       amount: '-50 BCC',
       color: 'text-muted-foreground'
     },
     {
       icon: 'fas fa-user-plus',
-      type: 'New Referral',
-      description: '0x1234...5678 joined',
+      type: t('dashboard.activity.newReferral'),
+      description: t('dashboard.activity.userJoined'),
       amount: 'Active',
       color: 'text-green-400'
     }
@@ -407,7 +407,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-bold text-honey mb-2">{t('buttons.buyBccToken')}</h3>
-                <p className="text-muted-foreground text-sm">Purchase BCC tokens for NFT advertisements and platform features</p>
+                <p className="text-muted-foreground text-sm">{t('dashboard.tokenPurchase.bccDescription')}</p>
               </div>
               <Button 
                 className="bg-honey text-black hover:bg-honey/90 font-semibold"
@@ -425,7 +425,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-bold text-purple-400 mb-2">{t('buttons.buyCthToken')}</h3>
-                <p className="text-muted-foreground text-sm">Purchase CTH tokens for advanced trading and rewards features</p>
+                <p className="text-muted-foreground text-sm">{t('dashboard.tokenPurchase.cthDescription')}</p>
               </div>
               <Button 
                 className="bg-purple-500 text-white hover:bg-purple-600 font-semibold"
@@ -443,7 +443,7 @@ export default function Dashboard() {
         <CardHeader>
           <CardTitle className="text-honey flex items-center gap-2">
             <Building2 className="h-6 w-6" />
-            BeeHive Global Stats
+            {t('dashboard.globalStats.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -452,19 +452,19 @@ export default function Dashboard() {
               <div className="text-3xl font-bold text-honey mb-2">
                 {isLoadingCompanyStats ? '...' : companyStats?.totalMembers || 0}
               </div>
-              <p className="text-muted-foreground text-sm">Total Members</p>
+              <p className="text-muted-foreground text-sm">{t('dashboard.globalStats.totalMembers')}</p>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-green-400 mb-2">
                 {isLoadingCompanyStats ? '...' : Math.floor(companyStats?.totalRewards || 0)}
               </div>
-              <p className="text-muted-foreground text-sm">Total Rewards Paid</p>
+              <p className="text-muted-foreground text-sm">{t('dashboard.globalStats.totalRewardsPaid')}</p>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-blue-400 mb-2">
                 {isLoadingCompanyStats ? '...' : Math.floor(companyStats?.pendingRewards || 0)}
               </div>
-              <p className="text-muted-foreground text-sm">Pending Rewards</p>
+              <p className="text-muted-foreground text-sm">{t('dashboard.globalStats.pendingRewards')}</p>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-purple-400 mb-2">
@@ -473,7 +473,7 @@ export default function Dashboard() {
                     Math.max(...companyStats.levelDistribution.map(l => l.level)) : 0
                 }
               </div>
-              <p className="text-muted-foreground text-sm">Highest Level</p>
+              <p className="text-muted-foreground text-sm">{t('dashboard.globalStats.highestLevel')}</p>
             </div>
           </div>
           
@@ -482,14 +482,14 @@ export default function Dashboard() {
             <div className="mt-6">
               <h4 className="text-lg font-semibold text-honey mb-4 flex items-center gap-2">
                 <Crown className="h-5 w-5" />
-                Members by Level
+                {t('dashboard.globalStats.membersByLevel')}
               </h4>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 max-h-60 overflow-y-auto">
                 {companyStats.levelDistribution.map((levelData) => (
                   <div key={levelData.level} className="bg-muted/30 rounded-lg p-3 text-center">
                     <div className="text-sm font-medium text-honey">Level {levelData.level}</div>
                     <div className="text-2xl font-bold text-honey">{levelData.count}</div>
-                    <div className="text-xs text-muted-foreground">members</div>
+                    <div className="text-xs text-muted-foreground">{t('dashboard.globalStats.members')}</div>
                   </div>
                 ))}
               </div>
@@ -503,7 +503,7 @@ export default function Dashboard() {
           <CardContent className="p-4 md:p-6">
             <h3 className="text-lg font-semibold text-honey mb-4 flex items-center gap-2">
               <i className="fas fa-sitemap text-honey"></i>
-              Your Downline Matrix (19 Levels)
+              {t('dashboard.downlineMatrix.title')}
             </h3>
             <div className="space-y-1 max-h-80 md:max-h-96 overflow-y-auto custom-scrollbar">
               {isLoadingUserStats ? (
@@ -512,7 +512,7 @@ export default function Dashboard() {
                     <span className="text-muted-foreground text-sm md:text-base">Level {i + 1}</span>
                     <div className="text-right">
                       <span className="text-honey font-semibold text-xs md:text-sm">...</span>
-                      <span className="text-muted-foreground text-xs hidden md:inline"> / placement </span>
+                      <span className="text-muted-foreground text-xs hidden md:inline"> / {t('dashboard.downlineMatrix.placement')} </span>
                       <span className="text-muted-foreground text-xs md:hidden"> / </span>
                       <span className="text-green-400 font-semibold text-xs md:text-sm">...</span>
                     </div>
@@ -531,7 +531,7 @@ export default function Dashboard() {
                       <span className="text-muted-foreground text-sm md:text-base">Level {levelData.level}</span>
                       <div className="text-right">
                         <span className="text-honey font-semibold text-xs md:text-sm">{formatNumber(levelData.members)}</span>
-                        <span className="text-muted-foreground text-xs hidden md:inline"> / placement </span>
+                        <span className="text-muted-foreground text-xs hidden md:inline"> / {t('dashboard.downlineMatrix.placement')} </span>
                         <span className="text-muted-foreground text-xs md:hidden"> / </span>
                         <span className="text-green-400 font-semibold text-xs md:text-sm">{formatNumber(levelData.placements)}</span>
                       </div>
@@ -542,7 +542,7 @@ export default function Dashboard() {
                     <span className="text-muted-foreground text-sm md:text-base">Level {i + 1}</span>
                     <div className="text-right">
                       <span className="text-honey font-semibold text-xs md:text-sm">0</span>
-                      <span className="text-muted-foreground text-xs hidden md:inline"> / placement </span>
+                      <span className="text-muted-foreground text-xs hidden md:inline"> / {t('dashboard.downlineMatrix.placement')} </span>
                       <span className="text-muted-foreground text-xs md:hidden"> / </span>
                       <span className="text-green-400 font-semibold text-xs md:text-sm">0</span>
                     </div>
@@ -557,7 +557,7 @@ export default function Dashboard() {
           <CardContent className="p-4 md:p-6">
             <h3 className="text-lg font-semibold text-honey mb-4 flex items-center gap-2">
               <i className="fas fa-arrow-up text-honey"></i>
-              Your Upline Network
+              {t('dashboard.uplineNetwork.title')}
             </h3>
             <div className="space-y-3">
               {/* Real Direct Referrals List */}
@@ -574,7 +574,7 @@ export default function Dashboard() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground text-xs">
-                        Earnings: {referral.earnings} USDT
+                        {t('dashboard.uplineNetwork.earnings')}: {referral.earnings} USDT
                       </span>
                       <span className="text-green-400 text-xs">
                         {new Date(referral.joinDate).toLocaleDateString()}
@@ -586,10 +586,10 @@ export default function Dashboard() {
                 <div className="bg-muted/30 rounded-lg p-6 text-center">
                   <Users className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
                   <p className="text-muted-foreground text-sm">
-                    {isLoadingUserStats ? 'Loading referrals...' : 'No direct referrals yet'}
+                    {isLoadingUserStats ? t('dashboard.uplineNetwork.loading') : t('dashboard.uplineNetwork.noReferrals')}
                   </p>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Share your referral link to start building your team!
+                    {t('dashboard.uplineNetwork.shareMessage')}
                   </p>
                 </div>
               )}
