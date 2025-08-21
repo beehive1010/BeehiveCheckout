@@ -147,7 +147,7 @@ export const authConfig = {
 
 // Contract addresses (these would be set after deployment)
 export const contractAddresses = {
-  BBC_MEMBERSHIP: import.meta.env.VITE_BBC_CONTRACT_ADDRESS || '0x1234567890123456789012345678901234567890',
+  BBC_MEMBERSHIP: import.meta.env.VITE_BBC_CONTRACT_ADDRESS || '0x6D513487bd63430Ca71Cd1d9A7DeA5aAcDbf0322',
   BCC_TOKEN: import.meta.env.VITE_BCC_CONTRACT_ADDRESS || '0x1234567890123456789012345678901234567891',
   MERCHANT_NFTS: import.meta.env.VITE_MERCHANT_CONTRACT_ADDRESS || '0x1234567890123456789012345678901234567892',
   USDT: {
@@ -157,6 +157,25 @@ export const contractAddresses = {
     optimism: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
     alphaCentauri: '0x1234567890123456789012345678901234567893',
   },
+};
+
+// Helper function to convert membership level to token ID
+// Level 1 = Token ID 0, Level 2 = Token ID 1, ..., Level 18 = Token ID 17
+export const levelToTokenId = (level: number): bigint => {
+  if (level < 1 || level > 18) {
+    throw new Error(`Invalid membership level: ${level}. Must be between 1 and 18.`);
+  }
+  return BigInt(level - 1);
+};
+
+// Helper function to convert token ID to membership level  
+// Token ID 0 = Level 1, Token ID 1 = Level 2, ..., Token ID 17 = Level 18
+export const tokenIdToLevel = (tokenId: bigint): number => {
+  const level = Number(tokenId) + 1;
+  if (level < 1 || level > 18) {
+    throw new Error(`Invalid token ID: ${tokenId}. Must be between 0 and 17.`);
+  }
+  return level;
 };
 
 // Contract instances

@@ -9,7 +9,7 @@ import { useToast } from '../hooks/use-toast';
 import { TransactionWidget, useActiveAccount, useReadContract } from "thirdweb/react";
 import { getNFT } from "thirdweb/extensions/erc1155";
 import { claimTo } from "thirdweb/extensions/erc1155";
-import { bbcMembershipContract, client } from "../lib/web3";
+import { bbcMembershipContract, client, levelToTokenId } from "../lib/web3";
 
 export default function Dashboard() {
   const { 
@@ -140,7 +140,7 @@ export default function Dashboard() {
                 transaction={claimTo({
                   contract: bbcMembershipContract,
                   quantity: BigInt(1),
-                  tokenId: BigInt(1), // Level 1 Warrior/勇士
+                  tokenId: levelToTokenId(1), // Level 1 Warrior/勇士 -> Token ID 0
                   to: account?.address || walletAddress || "",
                 })}
               />
