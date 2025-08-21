@@ -6,15 +6,33 @@ import { z } from "zod";
 // User profiles table
 export const users = pgTable("users", {
   walletAddress: varchar("wallet_address", { length: 42 }).primaryKey(),
-  email: text("email").notNull(),
-  username: text("username").notNull().unique(),
-  secondaryPasswordHash: text("secondary_password_hash").notNull(),
+  email: text("email"),
+  username: text("username").unique(),
+  secondaryPasswordHash: text("secondary_password_hash"),
   ipfsHash: text("ipfs_hash"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastUpdatedAt: timestamp("last_updated_at").defaultNow().notNull(),
   referrerWallet: varchar("referrer_wallet", { length: 42 }),
   memberActivated: boolean("member_activated").default(false).notNull(),
   currentLevel: integer("current_level").default(0).notNull(),
   preferredLanguage: text("preferred_language").default("en").notNull(),
+  
+  // Registration wizard state
+  registrationStatus: text("registration_status").default("not_started").notNull(),
+  // not_started, profile_saved, ipfs_uploaded, prepared_for_purchase, paid_waiting_verification, completed
+  
+  // IPFS metadata for wizard
+  ipfsAvatarCid: text("ipfs_avatar_cid"),
+  ipfsCoverCid: text("ipfs_cover_cid"),
+  ipfsProfileJsonCid: text("ipfs_profile_json_cid"),
+  
+  // Prepared membership data
+  preparedLevel: integer("prepared_level"),
+  preparedTokenId: integer("prepared_token_id"),
+  preparedPrice: integer("prepared_price"), // in USDT cents
+  
+  // Activation tracking
+  activationAt: timestamp("activation_at"),
 });
 
 // Membership state table
@@ -47,10 +65,13 @@ export const orders = pgTable("orders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   walletAddress: varchar("wallet_address", { length: 42 }).notNull().references(() => users.walletAddress),
   level: integer("level").notNull(),
+  tokenId: integer("token_id").notNull(),
   amountUSDT: integer("amount_usdt").notNull(),
   chain: text("chain").notNull(),
   txHash: text("tx_hash"),
+  payembedIntentId: text("payembed_intent_id"), // PayEmbed transaction ID
   status: text("status").default("pending").notNull(),
+  // pending, paid, minting, completed, failed
   createdAt: timestamp("created_at").defaultNow().notNull(),
   completedAt: timestamp("completed_at"),
 });
@@ -143,6 +164,40 @@ export const insertUserSchema = createInsertSchema(users).pick({
   ipfsHash: true,
   referrerWallet: true,
   preferredLanguage: true,
+  registrationStatus: true,
+  ipfsAvatarCid: true,
+  ipfsCoverCid: true,
+  ipfsProfileJsonCid: true,
+  preparedLevel: true,
+  preparedTokenId: true,
+  preparedPrice: true,
+});
+
+// Registration wizard schemas for step-by-step updates
+export const profileStepSchema = createInsertSchema(users).pick({
+  walletAddress: true,
+  email: true,
+  username: true,
+  secondaryPasswordHash: true,
+  referrerWallet: true,
+  preferredLanguage: true,
+  registrationStatus: true,
+});
+
+export const ipfsStepSchema = createInsertSchema(users).pick({
+  walletAddress: true,
+  ipfsAvatarCid: true,
+  ipfsCoverCid: true,
+  ipfsProfileJsonCid: true,
+  registrationStatus: true,
+});
+
+export const preparationStepSchema = createInsertSchema(users).pick({
+  walletAddress: true,
+  preparedLevel: true,
+  preparedTokenId: true,
+  preparedPrice: true,
+  registrationStatus: true,
 });
 
 export const insertMembershipStateSchema = createInsertSchema(membershipState).pick({
@@ -166,9 +221,11 @@ export const insertBCCBalanceSchema = createInsertSchema(bccBalances).pick({
 export const insertOrderSchema = createInsertSchema(orders).pick({
   walletAddress: true,
   level: true,
+  tokenId: true,
   amountUSDT: true,
   chain: true,
   txHash: true,
+  payembedIntentId: true,
   status: true,
 });
 
