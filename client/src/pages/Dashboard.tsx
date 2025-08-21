@@ -256,7 +256,7 @@ export default function Dashboard() {
             {/* Balance Display */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               <div className="balance-card">
-                <p className="text-muted-foreground text-xs">USDT</p>
+                <p className="text-muted-foreground text-xs">Reward</p>
                 <p className="text-honey font-bold">245.50</p>
               </div>
               <div className="balance-card">
@@ -275,7 +275,6 @@ export default function Dashboard() {
           </div>
         </CardContent>
       </Card>
-
       {/* Referral Link Card */}
       <Card className="bg-secondary border-border glow-hover mb-6">
         <CardContent className="p-6">
@@ -359,7 +358,6 @@ export default function Dashboard() {
           )}
         </CardContent>
       </Card>
-
       {/* User Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card className="bg-secondary border-border glow-hover">
@@ -404,7 +402,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-
       {/* Token Purchase Buttons */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <Card className="bg-gradient-to-r from-honey/10 to-honey/5 border-honey/20 glow-hover">
@@ -443,7 +440,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-
       {/* Company-Wide Statistics */}
       <Card className="bg-secondary border-border glow-hover mb-8">
         <CardHeader>
@@ -503,7 +499,6 @@ export default function Dashboard() {
           )}
         </CardContent>
       </Card>
-
       {/* Matrix & Network Stats - Mobile Optimized */}
       <div className="grid grid-cols-1 gap-4 mb-8">
         <Card className="bg-secondary border-border glow-hover">
@@ -583,7 +578,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-
       {/* Quick Actions Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {quickActions.map((action) => (
@@ -613,7 +607,6 @@ export default function Dashboard() {
           </Card>
         ))}
       </div>
-
     </div>
   );
 }
