@@ -5,7 +5,7 @@ import { useI18n } from '../../contexts/I18nContext';
 import { getMembershipLevel } from '../../lib/config/membershipLevels';
 import { membershipEventEmitter } from '../../lib/membership/events';
 import { ConnectButton } from "thirdweb/react";
-import { client, alphaCentauri } from '../../lib/web3';
+import { client, alphaCentauri, bbcMembershipContract, levelToTokenId } from '../../lib/web3';
 import { PayEmbed } from "thirdweb/react";
 
 type ClaimState = 'idle' | 'approving' | 'paying' | 'verifying' | 'persisting' | 'success' | 'error';
@@ -53,7 +53,7 @@ export default function ClaimMembershipButton({
           level,
           priceUSDT: membershipLevel.priceUSDT,
           txHash: transactionHash,
-          chain: alphaCentauri.name,
+          chain: alphaCentauri.name || 'Alpha-centauri',
           timestamp: Date.now()
         }
       });
@@ -264,7 +264,6 @@ export default function ClaimMembershipButton({
       <div className={className}>
         <ConnectButton 
           client={client}
-          chain={chain}
           connectButton={{
             label: String(t('membership.purchase.connectWallet'))
           }}
@@ -283,6 +282,7 @@ export default function ClaimMembershipButton({
             paymentInfo: {
               amount: membershipLevel.priceUSDT.toString(),
               sellerAddress: process.env.VITE_SELLER_ADDRESS || "",
+              chain: alphaCentauri,
             },
             metadata: {
               name: `Beehive L${level} Membership`,
@@ -290,8 +290,7 @@ export default function ClaimMembershipButton({
               image: "/membership-badge.png",
             },
           }}
-          onPaymentSuccess={handlePaymentSuccess}
-          onError={(error: any) => handleError(error.message || 'Payment failed', 'payment')}
+          theme="dark"
         />
         
         <Button
