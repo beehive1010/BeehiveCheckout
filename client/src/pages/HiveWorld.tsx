@@ -1,348 +1,228 @@
-import { useState } from 'react';
-import { useWallet } from '../hooks/useWallet';
 import { useI18n } from '../contexts/I18nContext';
-import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
-import { useToast } from '../hooks/use-toast';
+import { Input } from '../components/ui/input';
 import HexagonIcon from '../components/UI/HexagonIcon';
+import { useLocation } from 'wouter';
+import { useState } from 'react';
+import { Search, Calendar, User, Eye, ArrowRight } from 'lucide-react';
 
-interface MatrixData {
-  referralNode: {
-    walletAddress: string;
-    parentWallet: string | null;
-    children: string[];
-    createdAt: string;
-  };
-  childrenDetails: Array<{
-    walletAddress: string;
-    username: string;
-    memberActivated: boolean;
-    currentLevel: number;
-    children: string[];
-  }>;
-  rewardEvents: Array<{
-    id: string;
-    buyerWallet: string;
-    sponsorWallet: string;
-    eventType: string;
-    level: number;
-    amount: number;
-    status: string;
-    timerStartAt: string | null;
-    timerExpireAt: string | null;
-    createdAt: string;
-  }>;
-}
+// Mock blog data - in real implementation would come from API
+const mockBlogs = [
+  {
+    id: '1',
+    title: 'The Future of Web3 Membership Systems',
+    excerpt: 'Exploring how blockchain technology is revolutionizing membership and loyalty programs across industries.',
+    content: 'Full blog content here...',
+    author: 'Beehive Team',
+    imageUrl: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&h=400&fit=crop',
+    publishedAt: '2024-12-20T10:00:00Z',
+    tags: ['Web3', 'Blockchain', 'Membership'],
+    views: 1250,
+    language: 'en'
+  },
+  {
+    id: '2', 
+    title: 'Understanding NFT-Based Access Control',
+    excerpt: 'How NFTs are being used to gate content and create exclusive community experiences.',
+    content: 'Full blog content here...',
+    author: 'Technical Team',
+    imageUrl: 'https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?w=800&h=400&fit=crop',
+    publishedAt: '2024-12-18T14:30:00Z',
+    tags: ['NFT', 'Access Control', 'Technology'],
+    views: 892,
+    language: 'en'
+  },
+  {
+    id: '3',
+    title: 'Building Sustainable Referral Economies',
+    excerpt: 'The mechanics behind successful referral programs and how they create lasting value.',
+    content: 'Full blog content here...',
+    author: 'Strategy Team',
+    imageUrl: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=800&h=400&fit=crop',
+    publishedAt: '2024-12-15T09:15:00Z',
+    tags: ['Referrals', 'Economics', 'Strategy'],
+    views: 567,
+    language: 'en'
+  },
+  {
+    id: '4',
+    title: 'Multi-Chain Payment Integration Guide',
+    excerpt: 'Technical deep-dive into implementing cross-chain payment solutions for dApps.',
+    content: 'Full blog content here...',
+    author: 'Dev Team',
+    imageUrl: 'https://images.unsplash.com/photo-1642104704074-907c0698cbd9?w=800&h=400&fit=crop',
+    publishedAt: '2024-12-12T16:45:00Z',
+    tags: ['Multi-chain', 'Payments', 'Development'],
+    views: 723,
+    language: 'en'
+  },
+  {
+    id: '5',
+    title: 'Community Governance in Decentralized Platforms',
+    excerpt: 'Best practices for implementing fair and effective governance systems in Web3 communities.',
+    content: 'Full blog content here...',
+    author: 'Community Team',
+    imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=400&fit=crop',
+    publishedAt: '2024-12-10T11:20:00Z',
+    tags: ['Governance', 'Community', 'DAO'],
+    views: 934,
+    language: 'en'
+  }
+];
 
 export default function HiveWorld() {
-  const { walletAddress, userData } = useWallet();
   const { t } = useI18n();
-  const { toast } = useToast();
-  const [referralLink, setReferralLink] = useState('');
-
-  // Generate referral link
-  const generateReferralLink = () => {
-    if (walletAddress) {
-      const baseUrl = window.location.origin;
-      return `${baseUrl}/?ref=${walletAddress}`;
-    }
-    return '';
-  };
-
-  // Fetch matrix data
-  const { data: matrixData, isLoading: isLoadingMatrix } = useQuery<MatrixData>({
-    queryKey: ['/api/hiveworld/matrix'],
-    enabled: !!walletAddress,
-    queryFn: async () => {
-      const response = await fetch('/api/hiveworld/matrix', {
-        headers: {
-          'X-Wallet-Address': walletAddress!,
-        },
-      });
-      if (!response.ok) throw new Error('Failed to fetch matrix data');
-      return response.json();
-    },
+  const [, setLocation] = useLocation();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  
+  // Get all unique tags
+  const allTags = Array.from(new Set(mockBlogs.flatMap(blog => blog.tags)));
+  
+  // Filter blogs based on search and tag
+  const filteredBlogs = mockBlogs.filter(blog => {
+    const matchesSearch = blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         blog.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesTag = !selectedTag || blog.tags.includes(selectedTag);
+    return matchesSearch && matchesTag;
   });
-
-  const copyReferralLink = () => {
-    const link = generateReferralLink();
-    navigator.clipboard.writeText(link);
-    toast({
-      title: t('hiveworld.linkCopied.title'),
-      description: t('hiveworld.linkCopied.description'),
+  
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
   };
-
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  
+  const formatViews = (views: number) => {
+    if (views >= 1000) {
+      return `${(views / 1000).toFixed(1)}k`;
+    }
+    return views.toString();
   };
-
-  const getDirectReferrals = () => {
-    return matrixData?.childrenDetails.length || 0;
-  };
-
-  const getTotalTeam = () => {
-    let total = 0;
-    matrixData?.childrenDetails.forEach(child => {
-      total += 1 + child.children.length; // Child + their children
-    });
-    return total;
-  };
-
-  const getPendingRewards = () => {
-    return matrixData?.rewardEvents
-      .filter(event => event.status === 'pending')
-      .reduce((sum, event) => sum + event.amount, 0) || 0;
-  };
-
-  const getTotalEarned = () => {
-    return matrixData?.rewardEvents
-      .filter(event => event.status === 'completed')
-      .reduce((sum, event) => sum + event.amount, 0) || 0;
-  };
-
-  const getTimeRemaining = (expireAt: string | null) => {
-    if (!expireAt) return null;
-    
-    const now = new Date().getTime();
-    const expire = new Date(expireAt).getTime();
-    const remaining = expire - now;
-    
-    if (remaining <= 0) return 'Expired';
-    
-    const hours = Math.floor(remaining / (1000 * 60 * 60));
-    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-    
-    return `${hours}h ${minutes}m`;
-  };
-
-  if (isLoadingMatrix) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="space-y-6">
-          <div className="h-8 bg-muted skeleton w-64"></div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-20 bg-muted skeleton"></div>
-            ))}
-          </div>
-          <div className="h-96 bg-muted skeleton"></div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h2 className="text-2xl font-bold text-honey mb-6">
-        {t('hiveworld.title')}
-      </h2>
+      {/* Header Section */}
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold text-honey mb-4">
+          HiveWorld Blog
+        </h1>
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          Insights, updates, and deep-dives from the Beehive team. 
+          Stay informed about the latest in Web3, blockchain technology, and our ecosystem.
+        </p>
+      </div>
       
-      {/* Referral Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-secondary border-border text-center">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-honey">{getDirectReferrals()}</div>
-            <div className="text-muted-foreground text-sm">{t('hiveworld.stats.directReferrals')}</div>
-          </CardContent>
-        </Card>
+      {/* Search and Filter Section */}
+      <div className="mb-8">
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Search articles..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+              data-testid="input-search-blogs"
+            />
+          </div>
+        </div>
         
-        <Card className="bg-secondary border-border text-center">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-honey">{getTotalTeam()}</div>
-            <div className="text-muted-foreground text-sm">{t('hiveworld.stats.totalTeam')}</div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-secondary border-border text-center">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-honey">{getPendingRewards()}</div>
-            <div className="text-muted-foreground text-sm">{t('hiveworld.stats.pending')} (USDT)</div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-secondary border-border text-center">
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-honey">{getTotalEarned()}</div>
-            <div className="text-muted-foreground text-sm">{t('hiveworld.stats.totalEarned')} (USDT)</div>
-          </CardContent>
-        </Card>
+        {/* Tag Filter */}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={!selectedTag ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedTag(null)}
+            className={!selectedTag ? "bg-honey text-black" : ""}
+          >
+            All Topics
+          </Button>
+          {allTags.map(tag => (
+            <Button
+              key={tag}
+              variant={selectedTag === tag ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+              className={selectedTag === tag ? "bg-honey text-black" : ""}
+              data-testid={`button-tag-${tag.toLowerCase()}`}
+            >
+              {tag}
+            </Button>
+          ))}
+        </div>
       </div>
 
-      {/* 3x3 Matrix Visualization */}
-      <Card className="bg-secondary border-border mb-6">
-        <CardContent className="p-6">
-          <h3 className="text-honey font-semibold text-lg mb-4">
-            {t('hiveworld.matrix.title')}
-          </h3>
-          <div className="flex flex-col items-center space-y-4">
-            {/* You (Root) */}
-            <div className="flex justify-center">
-              <div className="relative">
-                <HexagonIcon size="xl">
-                  <i className="fas fa-user text-honey text-xl"></i>
-                </HexagonIcon>
-                <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-honey font-semibold">
-                  {t('hiveworld.matrix.you')}
+      {/* Blog Posts Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {filteredBlogs.map((blog) => (
+          <Card 
+            key={blog.id} 
+            className="bg-secondary border-border glow-hover card-hover cursor-pointer transition-all duration-300 hover:scale-105"
+            onClick={() => setLocation(`/hiveworld/${blog.id}`)}
+            data-testid={`card-blog-${blog.id}`}
+          >
+            <div className="aspect-video overflow-hidden rounded-t-lg">
+              <img 
+                src={blog.imageUrl} 
+                alt={blog.title}
+                className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+              />
+            </div>
+            <CardContent className="p-6">
+              <div className="flex flex-wrap gap-2 mb-3">
+                {blog.tags.map(tag => (
+                  <Badge key={tag} variant="secondary" className="text-xs">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+              
+              <h3 className="text-xl font-bold text-honey mb-3 line-clamp-2">
+                {blog.title}
+              </h3>
+              
+              <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
+                {blog.excerpt}
+              </p>
+              
+              <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  <span>{blog.author}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Eye className="h-4 w-4" />
+                  <span>{formatViews(blog.views)}</span>
                 </div>
               </div>
-            </div>
-            
-            {/* Level 1 (Direct Referrals) */}
-            <div className="flex justify-center space-x-8">
-              {[0, 1, 2].map((index) => {
-                const child = matrixData?.childrenDetails[index];
-                return (
-                  <div key={index} className="relative">
-                    <HexagonIcon size="lg">
-                      <i className={`fas fa-user ${child?.memberActivated ? 'text-green-400' : 'text-muted-foreground'}`}></i>
-                    </HexagonIcon>
-                    <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-center">
-                      {child ? (
-                        <>
-                          <div className={child.memberActivated ? 'text-green-400' : 'text-muted-foreground'}>
-                            L{child.currentLevel}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {formatAddress(child.walletAddress)}
-                          </div>
-                        </>
-                      ) : (
-                        <div className="text-muted-foreground">Empty</div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            
-            {/* Level 2 (Indirect Referrals) */}
-            <div className="grid grid-cols-9 gap-2 max-w-md">
-              {[...Array(9)].map((_, index) => {
-                const parentIndex = Math.floor(index / 3);
-                const child = matrixData?.childrenDetails[parentIndex];
-                const grandChildIndex = index % 3;
-                const hasGrandChild = child && child.children.length > grandChildIndex;
-                
-                return (
-                  <div key={index} className="flex justify-center">
-                    <HexagonIcon className="w-10 h-10">
-                      <i className={`fas ${hasGrandChild ? 'fa-user text-blue-400' : 'fa-plus text-muted-foreground'} text-xs`}></i>
-                    </HexagonIcon>
-                  </div>
-                );
-              })}
-            </div>
-            
-            {/* Legend */}
-            <div className="flex justify-center space-x-6 text-xs mt-4">
-              <div className="flex items-center space-x-1">
-                <i className="fas fa-user text-green-400"></i>
-                <span className="text-muted-foreground">{t('hiveworld.matrix.activeDirect')}</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <i className="fas fa-user text-blue-400"></i>
-                <span className="text-muted-foreground">{t('hiveworld.matrix.activeIndirect')}</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <i className="fas fa-plus text-muted-foreground"></i>
-                <span className="text-muted-foreground">{t('hiveworld.matrix.availableSlot')}</span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Referral Link */}
-      <Card className="bg-secondary border-border mb-6">
-        <CardContent className="p-6">
-          <h3 className="text-honey font-semibold text-lg mb-4">
-            {t('hiveworld.referralLink.title')}
-          </h3>
-          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-            <Input
-              type="text"
-              value={generateReferralLink()}
-              readOnly
-              className="flex-1 input-honey"
-              data-testid="input-referral-link"
-            />
-            <Button
-              onClick={copyReferralLink}
-              className="btn-honey"
-              data-testid="button-copy-referral"
-            >
-              <i className="fas fa-copy mr-2"></i>
-              {t('hiveworld.referralLink.copy')}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Reward History */}
-      <Card className="bg-secondary border-border">
-        <CardContent className="p-6">
-          <h3 className="text-honey font-semibold text-lg mb-4">
-            {t('hiveworld.rewardHistory.title')}
-          </h3>
-          <div className="space-y-3">
-            {matrixData?.rewardEvents.length ? (
-              matrixData.rewardEvents.map((reward) => (
-                <div 
-                  key={reward.id}
-                  className="flex items-center justify-between py-3 border-b border-border last:border-b-0"
-                >
-                  <div className="flex items-center space-x-3">
-                    <i className={`fas ${
-                      reward.eventType === 'L1_direct' ? 'fa-gift text-green-400' :
-                      reward.eventType === 'L2plus_upgrade' ? 'fa-clock text-yellow-400' :
-                      'fa-arrow-up text-blue-400'
-                    }`}></i>
-                    <div>
-                      <p className="text-honey text-sm font-medium">
-                        {reward.eventType === 'L1_direct' && t('hiveworld.rewardHistory.directBonus')}
-                        {reward.eventType === 'L2plus_upgrade' && t('hiveworld.rewardHistory.upgradeReward')}
-                        {reward.eventType === 'rollup' && t('hiveworld.rewardHistory.rollupReward')}
-                      </p>
-                      <p className="text-muted-foreground text-xs">
-                        From: {formatAddress(reward.buyerWallet)} • L{reward.level}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className={`font-semibold ${
-                      reward.status === 'completed' ? 'text-green-400' :
-                      reward.status === 'pending' ? 'text-yellow-400' : 'text-red-400'
-                    }`}>
-                      +{reward.amount} USDT
-                    </p>
-                    <p className="text-muted-foreground text-xs">
-                      {reward.status === 'pending' && reward.timerExpireAt 
-                        ? getTimeRemaining(reward.timerExpireAt)
-                        : reward.status === 'completed' 
-                        ? t('hiveworld.rewardHistory.completed')
-                        : reward.status === 'expired'
-                        ? t('hiveworld.rewardHistory.expired')
-                        : reward.status
-                      }
-                    </p>
-                  </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Calendar className="h-4 w-4" />
+                  <span>{formatDate(blog.publishedAt)}</span>
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <i className="fas fa-gift text-4xl text-muted-foreground mb-4"></i>
-                <p className="text-muted-foreground">
-                  {t('hiveworld.rewardHistory.noRewards')}
-                </p>
+                <ArrowRight className="h-4 w-4 text-honey" />
               </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      
+      {filteredBlogs.length === 0 && (
+        <div className="text-center py-12">
+          <h3 className="text-xl font-semibold text-muted-foreground mb-2">
+            No articles found
+          </h3>
+          <p className="text-muted-foreground">
+            Try adjusting your search terms or selected topics.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

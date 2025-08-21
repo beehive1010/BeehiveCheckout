@@ -16,6 +16,7 @@ const tabItems: TabItem[] = [
   { key: 'tasks', path: '/tasks', icon: 'fas fa-tasks', labelKey: 'nav.tasks' },
   { key: 'education', path: '/education', icon: 'fas fa-graduation-cap', labelKey: 'nav.education' },
   { key: 'home', path: '/dashboard', icon: '', labelKey: 'nav.home' }, // Special home tab with logo
+  { key: 'hiveworld', path: '/hiveworld', icon: 'fas fa-newspaper', labelKey: 'nav.hiveworld' },
   { key: 'discover', path: '/discover', icon: 'fas fa-compass', labelKey: 'nav.discover' },
 ];
 
@@ -42,7 +43,7 @@ export default function TabBar() {
       <div className="bg-background/95 backdrop-blur-lg border-t border-border/50 shadow-lg shadow-black/10">
         {/* Safe area for iPhone notch */}
         <div className="pb-safe">
-          <div className="grid grid-cols-4 h-16 px-2">
+          <div className="grid grid-cols-5 h-16 px-2">
             {tabItems.map((item, index) => {
               const isActive = location === item.path;
               const isHomeTab = item.key === 'home';
