@@ -795,6 +795,77 @@
     },
     "supportText": "跨多个区块链的安全支付，即时NFT交付"
   },
+  "tokenPurchase": {
+    "title": "购买代币",
+    "description": "以1代币=0.01 USDT的价格跨多链购买BCC和CTH代币",
+    "connectWallet": {
+      "title": "连接您的钱包",
+      "description": "连接您的钱包购买BCC和CTH代币"
+    },
+    "form": {
+      "tokenType": "代币类型",
+      "paymentChain": "支付链",
+      "tokenAmount": "代币数量",
+      "enterAmount": "输入代币数量",
+      "totalCost": "总成本：${amount} USDT"
+    },
+    "tokens": {
+      "bcc": {
+        "name": "BCC（蜂巢加密币）",
+        "title": "BCC代币",
+        "description": "用于市场购买和奖励的可转移实用代币",
+        "uses": {
+          "marketplace": "NFT市场使用",
+          "education": "教育课程访问",
+          "advertisement": "广告NFT"
+        }
+      },
+      "cth": {
+        "name": "CTH（半人马蜂蜜）",
+        "title": "CTH代币",
+        "description": "Alpha Centauri链交易的原生Gas代币",
+        "uses": {
+          "gas": "网络Gas费用",
+          "operations": "链操作",
+          "transactions": "交易成本"
+        }
+      }
+    },
+    "buttons": {
+      "creating": "创建购买中...",
+      "purchase": "购买{amount}个{token}代币",
+      "cancelPayment": "取消支付"
+    },
+    "payment": {
+      "title": "完成您的支付",
+      "description": "支付${amount} USDT获得{tokenAmount}个{tokenType}代币"
+    },
+    "balances": {
+      "title": "您的代币余额",
+      "bccTotal": "BCC总计：",
+      "transferable": "可转移：",
+      "restricted": "受限：",
+      "cthBalance": "CTH余额：",
+      "noBalances": "未找到余额"
+    },
+    "history": {
+      "title": "最近购买",
+      "noPurchases": "暂无购买记录"
+    },
+    "messages": {
+      "purchaseCreated": "购买已创建",
+      "readyToPurchase": "准备购买{amount}个{token}代币",
+      "error": "错误",
+      "createFailed": "创建购买失败",
+      "tokensAirdropped": "代币已空投！🪂",
+      "tokensAdded": "{amount}个{token}代币已添加到您的钱包",
+      "confirmFailed": "确认购买失败",
+      "walletNotConnected": "钱包未连接",
+      "connectToPurchase": "请连接您的钱包购买代币",
+      "invalidAmount": "无效数量",
+      "enterValidAmount": "请输入有效的代币数量"
+    }
+  },
   "registration": {
     "title": "完成注册",
     "subtitle": "设置您的Beehive个人资料",

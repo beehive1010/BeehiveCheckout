@@ -678,6 +678,77 @@
       "hiveworld": "하이브월드 매트릭스 시스템"
     }
   },
+  "tokenPurchase": {
+    "title": "토큰 구매",
+    "description": "1토큰 = 0.01 USDT로 멀티체인에서 BCC와 CTH 토큰 구매",
+    "connectWallet": {
+      "title": "지갑 연결",
+      "description": "BCC와 CTH 토큰을 구매하려면 지갑을 연결하세요"
+    },
+    "form": {
+      "tokenType": "토큰 유형",
+      "paymentChain": "결제 체인",
+      "tokenAmount": "토큰 수량",
+      "enterAmount": "토큰 수량 입력",
+      "totalCost": "총 비용: ${amount} USDT"
+    },
+    "tokens": {
+      "bcc": {
+        "name": "BCC (Beehive Crypto Coin)",
+        "title": "BCC 토큰",
+        "description": "마켓플레이스 구매와 보상을 위한 전송 가능한 유틸리티 토큰",
+        "uses": {
+          "marketplace": "NFT 마켓플레이스 사용",
+          "education": "교육 과정 접근",
+          "advertisement": "광고 NFT"
+        }
+      },
+      "cth": {
+        "name": "CTH (Centauri Honey)",
+        "title": "CTH 토큰",
+        "description": "Alpha Centauri 체인 거래를 위한 네이티브 가스 토큰",
+        "uses": {
+          "gas": "네트워크 가스 수수료",
+          "operations": "체인 작업",
+          "transactions": "거래 비용"
+        }
+      }
+    },
+    "buttons": {
+      "creating": "구매 생성 중...",
+      "purchase": "{amount}개 {token} 토큰 구매",
+      "cancelPayment": "결제 취소"
+    },
+    "payment": {
+      "title": "결제 완료",
+      "description": "${amount} USDT를 지불하여 {tokenAmount}개의 {tokenType} 토큰을 받으세요"
+    },
+    "balances": {
+      "title": "토큰 잔액",
+      "bccTotal": "BCC 총계:",
+      "transferable": "전송 가능:",
+      "restricted": "제한됨:",
+      "cthBalance": "CTH 잔액:",
+      "noBalances": "잔액을 찾을 수 없음"
+    },
+    "history": {
+      "title": "최근 구매",
+      "noPurchases": "구매 내역 없음"
+    },
+    "messages": {
+      "purchaseCreated": "구매 생성됨",
+      "readyToPurchase": "{amount}개 {token} 토큰 구매 준비 완료",
+      "error": "오류",
+      "createFailed": "구매 생성 실패",
+      "tokensAirdropped": "토큰 에어드롭 완료! 🪂",
+      "tokensAdded": "{amount}개 {token} 토큰이 지갑에 추가되었습니다",
+      "confirmFailed": "구매 확인 실패",
+      "walletNotConnected": "지갑 연결되지 않음",
+      "connectToPurchase": "토큰을 구매하려면 지갑을 연결해 주세요",
+      "invalidAmount": "유효하지 않은 수량",
+      "enterValidAmount": "유효한 토큰 수량을 입력해 주세요"
+    }
+  },
   "footer": {
     "description": "블록체인 기반 보상이 있는 Web3 멤버십 및 학습 플랫폼",
     "platform": "플랫폼",
