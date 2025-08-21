@@ -21,6 +21,7 @@ import BlogPost from "@/pages/BlogPost";
 import Me from "@/pages/Me";
 import AdvertisementNFTs from "@/pages/AdvertisementNFTs";
 import NFTCenter from "@/pages/NFTCenter";
+import TokenPurchase from "@/components/tokens/TokenPurchase";
 import NotFound from "@/pages/not-found";
 
 // Layout components
@@ -44,6 +45,17 @@ function Router() {
       <Route path="/me" component={Me} />
       <Route path="/ads" component={AdvertisementNFTs} />
       <Route path="/nft-center" component={NFTCenter} />
+      <Route path="/tokens" component={() => (
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-honey mb-2">Token Purchase</h1>
+            <p className="text-muted-foreground">
+              Buy BCC and CTH tokens across multiple chains at 1 token = 0.01 USDT
+            </p>
+          </div>
+          <TokenPurchase />
+        </div>
+      )} />
       <Route component={NotFound} />
     </Switch>
   );

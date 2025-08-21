@@ -486,3 +486,50 @@ export const insertBridgePaymentSchema = createInsertSchema(bridgePayments).pick
 
 export type InsertBridgePayment = z.infer<typeof insertBridgePaymentSchema>;
 export type BridgePayment = typeof bridgePayments.$inferSelect;
+
+// Token Purchases Table - for BCC and CTH token buying
+export const tokenPurchases = pgTable("token_purchases", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  walletAddress: varchar("wallet_address", { length: 42 }).notNull().references(() => users.walletAddress),
+  tokenType: text("token_type").notNull(), // 'BCC' or 'CTH'
+  tokenAmount: integer("token_amount").notNull(), // Amount of tokens purchased (in smallest unit)
+  usdtAmount: integer("usdt_amount").notNull(), // Amount paid in USDT cents (1 token = 1 cent)
+  sourceChain: text("source_chain").notNull(), // ethereum, polygon, arbitrum, optimism
+  txHash: text("tx_hash"), // Payment transaction hash
+  payembedIntentId: text("payembed_intent_id"), // PayEmbed transaction ID
+  airdropTxHash: text("airdrop_tx_hash"), // Airdrop transaction hash
+  status: text("status").default("pending").notNull(),
+  // pending, paid, airdropped, failed
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+});
+
+// CTH Balances Table - Similar to BCC but for CTH token
+export const cthBalances = pgTable("cth_balances", {
+  walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
+  balance: integer("balance").default(0).notNull(), // CTH balance in smallest unit
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+});
+
+export const insertTokenPurchaseSchema = createInsertSchema(tokenPurchases).pick({
+  walletAddress: true,
+  tokenType: true,
+  tokenAmount: true,
+  usdtAmount: true,
+  sourceChain: true,
+  txHash: true,
+  payembedIntentId: true,
+  airdropTxHash: true,
+  status: true,
+});
+
+export const insertCTHBalanceSchema = createInsertSchema(cthBalances).pick({
+  walletAddress: true,
+  balance: true,
+});
+
+export type InsertTokenPurchase = z.infer<typeof insertTokenPurchaseSchema>;
+export type TokenPurchase = typeof tokenPurchases.$inferSelect;
+
+export type InsertCTHBalance = z.infer<typeof insertCTHBalanceSchema>;
+export type CTHBalance = typeof cthBalances.$inferSelect;

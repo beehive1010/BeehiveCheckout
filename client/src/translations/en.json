@@ -168,6 +168,11 @@
       "bccLocked": "BCC (Locked)"
     },
     "quickActions": {
+      "tokens": {
+        "title": "Buy Tokens",
+        "description": "Purchase BCC and CTH tokens across multiple chains",
+        "stat": "Balance:"
+      },
       "tasks": {
         "description": "Browse and claim merchant NFTs with your BCC tokens"
       },

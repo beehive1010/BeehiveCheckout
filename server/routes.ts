@@ -14,7 +14,9 @@ import {
   insertMemberNFTVerificationSchema,
   insertNFTPurchaseSchema,
   insertCourseAccessSchema,
-  insertBridgePaymentSchema
+  insertBridgePaymentSchema,
+  insertTokenPurchaseSchema,
+  insertCTHBalanceSchema
 } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcrypt";
@@ -978,6 +980,180 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Bridge monitoring error:', error);
       res.status(500).json({ error: 'Failed to fetch pending payments' });
+    }
+  });
+
+  // ========== TOKEN PURCHASE ROUTES ==========
+  
+  // Purchase BCC or CTH tokens (1 token = 0.01 USDT)
+  app.post("/api/tokens/purchase", requireWallet, async (req: any, res) => {
+    try {
+      const { tokenType, tokenAmount, sourceChain, payembedIntentId } = req.body;
+      
+      if (!tokenType || !tokenAmount || !sourceChain) {
+        return res.status(400).json({ error: 'Token type, amount, and source chain required' });
+      }
+
+      if (!['BCC', 'CTH'].includes(tokenType)) {
+        return res.status(400).json({ error: 'Invalid token type. Must be BCC or CTH' });
+      }
+
+      if (tokenAmount <= 0) {
+        return res.status(400).json({ error: 'Token amount must be positive' });
+      }
+
+      // Calculate USDT amount (1 token = 0.01 USDT = 1 cent)
+      const usdtAmount = tokenAmount; // tokenAmount is already in cents
+
+      // Create token purchase record
+      const purchase = await storage.createTokenPurchase({
+        walletAddress: req.walletAddress,
+        tokenType,
+        tokenAmount,
+        usdtAmount,
+        sourceChain,
+        payembedIntentId,
+        status: 'pending'
+      });
+
+      res.json({ success: true, purchase });
+    } catch (error) {
+      console.error('Token purchase error:', error);
+      res.status(500).json({ error: 'Failed to create token purchase' });
+    }
+  });
+
+  // Confirm token purchase and trigger airdrop
+  app.post("/api/tokens/confirm-purchase", requireWallet, async (req: any, res) => {
+    try {
+      const { purchaseId, txHash } = req.body;
+      
+      if (!purchaseId || !txHash) {
+        return res.status(400).json({ error: 'Purchase ID and transaction hash required' });
+      }
+
+      // Get the purchase record
+      const purchase = await storage.getTokenPurchase(purchaseId);
+      if (!purchase) {
+        return res.status(404).json({ error: 'Purchase not found' });
+      }
+
+      if (purchase.walletAddress !== req.walletAddress) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      if (purchase.status !== 'pending') {
+        return res.status(400).json({ error: 'Purchase already processed' });
+      }
+
+      // Update purchase status
+      await storage.updateTokenPurchase(purchaseId, {
+        status: 'paid',
+        txHash
+      });
+
+      // Trigger airdrop based on token type
+      let airdropTxHash = '';
+      if (purchase.tokenType === 'BCC') {
+        // Airdrop BCC tokens to user's BCC balance
+        const bccBalance = await storage.getBCCBalance(req.walletAddress);
+        if (bccBalance) {
+          // Add to transferable bucket (BCC purchased with USDT is transferable)
+          await storage.updateBCCBalance(req.walletAddress, {
+            transferable: bccBalance.transferable + purchase.tokenAmount
+          });
+        } else {
+          // Create new BCC balance
+          await storage.createBCCBalance({
+            walletAddress: req.walletAddress,
+            transferable: purchase.tokenAmount,
+            restricted: 0
+          });
+        }
+        airdropTxHash = `bcc-airdrop-${Date.now()}`;
+      } else if (purchase.tokenType === 'CTH') {
+        // Airdrop CTH tokens to user's CTH balance
+        const cthBalance = await storage.getCTHBalance(req.walletAddress);
+        if (cthBalance) {
+          await storage.updateCTHBalance(req.walletAddress, {
+            balance: cthBalance.balance + purchase.tokenAmount
+          });
+        } else {
+          // Create new CTH balance
+          await storage.createCTHBalance({
+            walletAddress: req.walletAddress,
+            balance: purchase.tokenAmount
+          });
+        }
+        airdropTxHash = `cth-airdrop-${Date.now()}`;
+      }
+
+      // Update purchase with airdrop info
+      await storage.updateTokenPurchase(purchaseId, {
+        status: 'airdropped',
+        airdropTxHash,
+        completedAt: new Date()
+      });
+
+      const updatedPurchase = await storage.getTokenPurchase(purchaseId);
+      res.json({ success: true, purchase: updatedPurchase, message: `${purchase.tokenType} tokens airdropped successfully` });
+    } catch (error) {
+      console.error('Token purchase confirmation error:', error);
+      res.status(500).json({ error: 'Failed to confirm token purchase' });
+    }
+  });
+
+  // Get user's token balances
+  app.get("/api/tokens/balances", requireWallet, async (req: any, res) => {
+    try {
+      const bccBalance = await storage.getBCCBalance(req.walletAddress);
+      const cthBalance = await storage.getCTHBalance(req.walletAddress);
+
+      res.json({
+        BCC: {
+          transferable: bccBalance?.transferable || 0,
+          restricted: bccBalance?.restricted || 0,
+          total: (bccBalance?.transferable || 0) + (bccBalance?.restricted || 0)
+        },
+        CTH: {
+          balance: cthBalance?.balance || 0
+        }
+      });
+    } catch (error) {
+      console.error('Token balances error:', error);
+      res.status(500).json({ error: 'Failed to get token balances' });
+    }
+  });
+
+  // Get user's token purchase history
+  app.get("/api/tokens/purchases", requireWallet, async (req: any, res) => {
+    try {
+      const purchases = await storage.getTokenPurchasesByWallet(req.walletAddress);
+      res.json(purchases);
+    } catch (error) {
+      console.error('Token purchases error:', error);
+      res.status(500).json({ error: 'Failed to get token purchases' });
+    }
+  });
+
+  // Get token purchase by ID
+  app.get("/api/tokens/purchase/:id", requireWallet, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const purchase = await storage.getTokenPurchase(id);
+      
+      if (!purchase) {
+        return res.status(404).json({ error: 'Purchase not found' });
+      }
+
+      if (purchase.walletAddress !== req.walletAddress) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      res.json(purchase);
+    } catch (error) {
+      console.error('Token purchase fetch error:', error);
+      res.status(500).json({ error: 'Failed to fetch token purchase' });
     }
   });
 

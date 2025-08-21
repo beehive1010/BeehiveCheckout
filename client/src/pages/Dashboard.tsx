@@ -61,6 +61,15 @@ export default function Dashboard() {
 
   const quickActions = [
     {
+      key: 'tokens',
+      path: '/tokens',
+      icon: 'fas fa-coins',
+      titleKey: 'dashboard.quickActions.tokens.title',
+      descriptionKey: 'dashboard.quickActions.tokens.description',
+      statKey: 'dashboard.quickActions.tokens.stat',
+      statValue: `${(bccBalance?.transferable || 0) + (bccBalance?.restricted || 0)} BCC`
+    },
+    {
       key: 'tasks',
       path: '/tasks',
       icon: 'fas fa-tasks',

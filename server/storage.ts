@@ -43,7 +43,13 @@ import {
   type AdvertisementNFT,
   type InsertAdvertisementNFT,
   type AdvertisementNFTClaim,
-  type InsertAdvertisementNFTClaim
+  type InsertAdvertisementNFTClaim,
+  tokenPurchases,
+  cthBalances,
+  type TokenPurchase,
+  type InsertTokenPurchase,
+  type CTHBalance,
+  type InsertCTHBalance
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql } from "drizzle-orm";
@@ -134,6 +140,17 @@ export interface IStorage {
   getBridgePaymentsByWallet(walletAddress: string): Promise<BridgePayment[]>;
   updateBridgePayment(id: string, updates: Partial<BridgePayment>): Promise<BridgePayment | undefined>;
   getPendingBridgePayments(): Promise<BridgePayment[]>;
+
+  // Token Purchase operations
+  createTokenPurchase(purchase: InsertTokenPurchase): Promise<TokenPurchase>;
+  getTokenPurchase(id: string): Promise<TokenPurchase | undefined>;
+  getTokenPurchasesByWallet(walletAddress: string): Promise<TokenPurchase[]>;
+  updateTokenPurchase(id: string, updates: Partial<TokenPurchase>): Promise<TokenPurchase | undefined>;
+
+  // CTH Balance operations
+  getCTHBalance(walletAddress: string): Promise<CTHBalance | undefined>;
+  createCTHBalance(balance: InsertCTHBalance): Promise<CTHBalance>;
+  updateCTHBalance(walletAddress: string, updates: Partial<CTHBalance>): Promise<CTHBalance | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1339,6 +1356,64 @@ export class DatabaseStorage implements IStorage {
         }))
       };
     }
+  }
+
+  // Token Purchase operations
+  async createTokenPurchase(purchase: InsertTokenPurchase): Promise<TokenPurchase> {
+    const [tokenPurchase] = await db
+      .insert(tokenPurchases)
+      .values({
+        ...purchase,
+        walletAddress: purchase.walletAddress.toLowerCase(),
+      })
+      .returning();
+    return tokenPurchase;
+  }
+
+  async getTokenPurchase(id: string): Promise<TokenPurchase | undefined> {
+    const [purchase] = await db.select().from(tokenPurchases).where(eq(tokenPurchases.id, id));
+    return purchase || undefined;
+  }
+
+  async getTokenPurchasesByWallet(walletAddress: string): Promise<TokenPurchase[]> {
+    return await db.select().from(tokenPurchases)
+      .where(eq(tokenPurchases.walletAddress, walletAddress.toLowerCase()))
+      .orderBy(desc(tokenPurchases.createdAt));
+  }
+
+  async updateTokenPurchase(id: string, updates: Partial<TokenPurchase>): Promise<TokenPurchase | undefined> {
+    const [purchase] = await db
+      .update(tokenPurchases)
+      .set(updates)
+      .where(eq(tokenPurchases.id, id))
+      .returning();
+    return purchase || undefined;
+  }
+
+  // CTH Balance operations
+  async getCTHBalance(walletAddress: string): Promise<CTHBalance | undefined> {
+    const [balance] = await db.select().from(cthBalances).where(eq(cthBalances.walletAddress, walletAddress.toLowerCase()));
+    return balance || undefined;
+  }
+
+  async createCTHBalance(balance: InsertCTHBalance): Promise<CTHBalance> {
+    const [cthBalance] = await db
+      .insert(cthBalances)
+      .values({
+        ...balance,
+        walletAddress: balance.walletAddress.toLowerCase(),
+      })
+      .returning();
+    return cthBalance;
+  }
+
+  async updateCTHBalance(walletAddress: string, updates: Partial<CTHBalance>): Promise<CTHBalance | undefined> {
+    const [balance] = await db
+      .update(cthBalances)
+      .set({ ...updates, lastUpdated: new Date() })
+      .where(eq(cthBalances.walletAddress, walletAddress.toLowerCase()))
+      .returning();
+    return balance || undefined;
   }
 }
 
