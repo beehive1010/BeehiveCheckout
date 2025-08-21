@@ -438,13 +438,14 @@ export default function ClaimMembershipButton({
             payOptions={{
               mode: "direct_payment",
               paymentInfo: {
-                amount: membershipLevel.priceUSDT.toString(), // PayEmbed expects actual USDT amount
+                amount: `${membershipLevel.priceUSDT}.00`, // Ensure exact format: "150.00"
                 sellerAddress: selectedChain.bridgeWallet,
                 chain: selectedChain.chain,
                 token: {
                   address: selectedChain.usdtAddress,
                   symbol: 'USDT',
                   name: 'Tether USD',
+                  decimals: 6, // USDT has 6 decimals
                 },
               },
               metadata: {
