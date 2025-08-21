@@ -883,6 +883,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Advertisement NFT endpoints
+  app.get("/api/ads/nfts", async (req, res) => {
+    try {
+      const nfts = await storage.getAdvertisementNFTs();
+      res.json(nfts);
+    } catch (error) {
+      console.error('Get advertisement NFTs error:', error);
+      res.status(500).json({ error: 'Failed to get advertisement NFTs' });
+    }
+  });
+
+  app.post("/api/ads/claim", requireWallet, async (req: any, res) => {
+    try {
+      const { nftId, bucketType } = req.body;
+      
+      if (!nftId || !bucketType) {
+        return res.status(400).json({ error: 'NFT ID and bucket type required' });
+      }
+
+      if (!['transferable', 'restricted'].includes(bucketType)) {
+        return res.status(400).json({ error: 'Invalid bucket type' });
+      }
+
+      // Get the NFT
+      const nft = await storage.getAdvertisementNFTById(nftId);
+      if (!nft) {
+        return res.status(404).json({ error: 'Advertisement NFT not found' });
+      }
+
+      // Check if user has enough BCC balance
+      const bccBalance = await storage.getBCCBalance(req.walletAddress);
+      if (!bccBalance) {
+        return res.status(400).json({ error: 'No BCC balance found' });
+      }
+
+      const availableBalance = bucketType === 'transferable' ? bccBalance.transferable : bccBalance.restricted;
+      if (availableBalance < nft.priceBCC) {
+        return res.status(400).json({ error: `Insufficient ${bucketType} BCC balance` });
+      }
+
+      // Check supply limit
+      if (nft.claimedCount >= nft.totalSupply) {
+        return res.status(400).json({ error: 'Advertisement NFT sold out' });
+      }
+
+      // Deduct BCC balance
+      const newBalance = bucketType === 'transferable' 
+        ? { transferable: bccBalance.transferable - nft.priceBCC }
+        : { restricted: bccBalance.restricted - nft.priceBCC };
+      
+      await storage.updateBCCBalance(req.walletAddress, newBalance);
+
+      // Create the claim (BCC is locked in the NFT)
+      const claim = await storage.createAdvertisementNFTClaim({
+        walletAddress: req.walletAddress,
+        nftId: nft.id,
+        bccAmountLocked: nft.priceBCC,
+        bucketUsed: bucketType,
+        activeCode: '', // Generated in storage method
+        status: 'claimed'
+      });
+
+      // Increment claimed count
+      await storage.incrementAdvertisementNFTClaimed(nft.id);
+
+      res.json(claim);
+    } catch (error) {
+      console.error('Advertisement NFT claim error:', error);
+      res.status(500).json({ error: 'Failed to claim advertisement NFT' });
+    }
+  });
+
+  app.get("/api/ads/my-nfts", requireWallet, async (req: any, res) => {
+    try {
+      const claims = await storage.getUserAdvertisementNFTClaims(req.walletAddress);
+      res.json(claims);
+    } catch (error) {
+      console.error('Get user advertisement NFTs error:', error);
+      res.status(500).json({ error: 'Failed to get your advertisement NFTs' });
+    }
+  });
+
+  app.post("/api/ads/burn", requireWallet, async (req: any, res) => {
+    try {
+      const { claimId } = req.body;
+      
+      if (!claimId) {
+        return res.status(400).json({ error: 'Claim ID required' });
+      }
+
+      // Burn the NFT and get the service code
+      const burnedClaim = await storage.burnAdvertisementNFT(claimId, req.walletAddress);
+      if (!burnedClaim) {
+        return res.status(404).json({ error: 'Advertisement NFT claim not found or already burned' });
+      }
+
+      // Return the active code for the service
+      res.json({
+        success: true,
+        serviceCode: burnedClaim.activeCode,
+        message: 'Advertisement NFT burned successfully. Use the service code to activate your promotional service.'
+      });
+    } catch (error) {
+      console.error('Advertisement NFT burn error:', error);
+      res.status(500).json({ error: 'Failed to burn advertisement NFT' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

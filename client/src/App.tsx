@@ -19,6 +19,7 @@ import Discover from "@/pages/Discover";
 import HiveWorld from "@/pages/HiveWorld";
 import BlogPost from "@/pages/BlogPost";
 import Me from "@/pages/Me";
+import AdvertisementNFTs from "@/pages/AdvertisementNFTs";
 import NotFound from "@/pages/not-found";
 
 // Layout components
@@ -40,6 +41,7 @@ function Router() {
       <Route path="/hiveworld" component={HiveWorld} />
       <Route path="/hiveworld/:id" component={BlogPost} />
       <Route path="/me" component={Me} />
+      <Route path="/ads" component={AdvertisementNFTs} />
       <Route component={NotFound} />
     </Switch>
   );

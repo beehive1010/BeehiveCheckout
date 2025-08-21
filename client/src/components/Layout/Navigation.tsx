@@ -16,6 +16,7 @@ const navItems: NavItem[] = [
   { key: 'tasks', path: '/tasks', icon: 'fas fa-tasks', labelKey: 'nav.tasks' },
   { key: 'education', path: '/education', icon: 'fas fa-graduation-cap', labelKey: 'nav.education' },
   { key: 'discover', path: '/discover', icon: 'fas fa-compass', labelKey: 'nav.discover' },
+  { key: 'ads', path: '/ads', icon: 'fas fa-bullhorn', labelKey: 'nav.ads' },
   { key: 'hiveworld', path: '/hiveworld', icon: 'fas fa-sitemap', labelKey: 'nav.hiveworld' },
   { key: 'me', path: '/me', icon: 'fas fa-user', labelKey: 'nav.me' },
 ];

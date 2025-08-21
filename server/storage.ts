@@ -10,6 +10,8 @@ import {
   courses,
   courseAccess,
   bridgePayments,
+  advertisementNFTs,
+  advertisementNFTClaims,
   type User, 
   type InsertUser,
   type MembershipState,
@@ -31,10 +33,14 @@ import {
   type CourseAccess,
   type InsertCourseAccess,
   type BridgePayment,
-  type InsertBridgePayment
+  type InsertBridgePayment,
+  type AdvertisementNFT,
+  type InsertAdvertisementNFT,
+  type AdvertisementNFTClaim,
+  type InsertAdvertisementNFTClaim
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -522,6 +528,71 @@ export class DatabaseStorage implements IStorage {
       .from(bridgePayments)
       .where(eq(bridgePayments.status, 'pending'))
       .orderBy(desc(bridgePayments.createdAt));
+  }
+
+  // Advertisement NFT methods
+  async getAdvertisementNFTs(): Promise<AdvertisementNFT[]> {
+    return await db.select().from(advertisementNFTs).where(eq(advertisementNFTs.active, true)).orderBy(desc(advertisementNFTs.createdAt));
+  }
+
+  async getAdvertisementNFTById(id: string): Promise<AdvertisementNFT | undefined> {
+    const [nft] = await db.select().from(advertisementNFTs).where(eq(advertisementNFTs.id, id));
+    return nft || undefined;
+  }
+
+  async createAdvertisementNFTClaim(claim: InsertAdvertisementNFTClaim): Promise<AdvertisementNFTClaim> {
+    // Generate unique active code
+    const activeCode = `${claim.nftId.slice(0, 8)}-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+    
+    const [newClaim] = await db
+      .insert(advertisementNFTClaims)
+      .values({
+        ...claim,
+        walletAddress: claim.walletAddress.toLowerCase(),
+        activeCode,
+      })
+      .returning();
+    return newClaim;
+  }
+
+  async getUserAdvertisementNFTClaims(walletAddress: string): Promise<(AdvertisementNFTClaim & { nft: AdvertisementNFT })[]> {
+    const claims = await db
+      .select({
+        claim: advertisementNFTClaims,
+        nft: advertisementNFTs,
+      })
+      .from(advertisementNFTClaims)
+      .innerJoin(advertisementNFTs, eq(advertisementNFTClaims.nftId, advertisementNFTs.id))
+      .where(eq(advertisementNFTClaims.walletAddress, walletAddress.toLowerCase()))
+      .orderBy(desc(advertisementNFTClaims.claimedAt));
+
+    return claims.map(row => ({ ...row.claim, nft: row.nft }));
+  }
+
+  async burnAdvertisementNFT(claimId: string, walletAddress: string): Promise<AdvertisementNFTClaim | undefined> {
+    const [claim] = await db
+      .update(advertisementNFTClaims)
+      .set({
+        status: 'burned',
+        burnedAt: new Date(),
+        codeUsedAt: new Date(),
+      })
+      .where(and(
+        eq(advertisementNFTClaims.id, claimId),
+        eq(advertisementNFTClaims.walletAddress, walletAddress.toLowerCase()),
+        eq(advertisementNFTClaims.status, 'claimed')
+      ))
+      .returning();
+    return claim || undefined;
+  }
+
+  async incrementAdvertisementNFTClaimed(nftId: string): Promise<void> {
+    await db
+      .update(advertisementNFTs)
+      .set({
+        claimedCount: sql`${advertisementNFTs.claimedCount} + 1`
+      })
+      .where(eq(advertisementNFTs.id, nftId));
   }
 }
 
