@@ -659,6 +659,77 @@
     },
     "supportText": "複数のブロックチェーンでの安全な決済と即座のNFT配信"
   },
+  "tokenPurchase": {
+    "title": "トークン購入",
+    "description": "1トークン=0.01 USDTで複数チェーンでBCCとCTHトークンを購入",
+    "connectWallet": {
+      "title": "ウォレット接続",
+      "description": "BCCとCTHトークンを購入するためにウォレットを接続してください"
+    },
+    "form": {
+      "tokenType": "トークンタイプ",
+      "paymentChain": "支払いチェーン",
+      "tokenAmount": "トークン数量",
+      "enterAmount": "トークン数量を入力",
+      "totalCost": "合計コスト：${amount} USDT"
+    },
+    "tokens": {
+      "bcc": {
+        "name": "BCC（Beehive Crypto Coin）",
+        "title": "BCCトークン",
+        "description": "マーケットプレイス購入と報酬のための転送可能ユーティリティトークン",
+        "uses": {
+          "marketplace": "NFTマーケットプレイスで使用",
+          "education": "教育コースアクセス",
+          "advertisement": "広告NFT"
+        }
+      },
+      "cth": {
+        "name": "CTH（Centauri Honey）",
+        "title": "CTHトークン",
+        "description": "Alpha Centauriチェーン取引のためのネイティブガストークン",
+        "uses": {
+          "gas": "ネットワークガス料金",
+          "operations": "チェーン操作",
+          "transactions": "取引コスト"
+        }
+      }
+    },
+    "buttons": {
+      "creating": "購入作成中...",
+      "purchase": "{amount}個の{token}トークンを購入",
+      "cancelPayment": "支払いキャンセル"
+    },
+    "payment": {
+      "title": "支払いを完了",
+      "description": "${amount} USDTを支払い{tokenAmount}個の{tokenType}トークンを受け取る"
+    },
+    "balances": {
+      "title": "あなたのトークン残高",
+      "bccTotal": "BCC合計：",
+      "transferable": "転送可能：",
+      "restricted": "制限付き：",
+      "cthBalance": "CTH残高：",
+      "noBalances": "残高が見つかりません"
+    },
+    "history": {
+      "title": "最近の購入",
+      "noPurchases": "購入履歴なし"
+    },
+    "messages": {
+      "purchaseCreated": "購入作成済み",
+      "readyToPurchase": "{amount}個の{token}トークンの購入準備完了",
+      "error": "エラー",
+      "createFailed": "購入作成に失敗",
+      "tokensAirdropped": "トークンエアドロップ完了！🪂",
+      "tokensAdded": "{amount}個の{token}トークンがウォレットに追加されました",
+      "confirmFailed": "購入確認に失敗",
+      "walletNotConnected": "ウォレット未接続",
+      "connectToPurchase": "トークン購入にはウォレット接続してください",
+      "invalidAmount": "無効な数量",
+      "enterValidAmount": "有効なトークン数量を入力してください"
+    }
+  },
   "footer": {
     "description": "ブロックチェーンベースの報酬を持つWeb3メンバーシップ・学習プラットフォーム。",
     "platform": "プラットフォーム",

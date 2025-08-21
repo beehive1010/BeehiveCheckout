@@ -426,6 +426,77 @@
     },
     "supportText": "Secure payments across multiple blockchains with instant NFT delivery"
   },
+  "tokenPurchase": {
+    "title": "Purchase Tokens",
+    "description": "Buy BCC and CTH tokens at 1 token = 0.01 USDT across multiple chains",
+    "connectWallet": {
+      "title": "Connect Your Wallet",
+      "description": "Connect your wallet to purchase BCC and CTH tokens"
+    },
+    "form": {
+      "tokenType": "Token Type",
+      "paymentChain": "Payment Chain",
+      "tokenAmount": "Token Amount",
+      "enterAmount": "Enter token amount",
+      "totalCost": "Total Cost: ${amount} USDT"
+    },
+    "tokens": {
+      "bcc": {
+        "name": "BCC (Beehive Crypto Coin)",
+        "title": "BCC Token",
+        "description": "Transferable utility token for marketplace purchases and rewards",
+        "uses": {
+          "marketplace": "Use in NFT Marketplace",
+          "education": "Education Course Access", 
+          "advertisement": "Advertisement NFTs"
+        }
+      },
+      "cth": {
+        "name": "CTH (Centauri Honey)",
+        "title": "CTH Token", 
+        "description": "Native gas token for Alpha Centauri chain transactions",
+        "uses": {
+          "gas": "Network Gas Fees",
+          "operations": "Chain Operations",
+          "transactions": "Transaction Costs"
+        }
+      }
+    },
+    "buttons": {
+      "creating": "Creating Purchase...",
+      "purchase": "Purchase {amount} {token} Tokens",
+      "cancelPayment": "Cancel Payment"
+    },
+    "payment": {
+      "title": "Complete Your Payment",
+      "description": "Pay ${amount} USDT to receive {tokenAmount} {tokenType} tokens"
+    },
+    "balances": {
+      "title": "Your Token Balances",
+      "bccTotal": "BCC Total:",
+      "transferable": "Transferable:",
+      "restricted": "Restricted:",
+      "cthBalance": "CTH Balance:",
+      "noBalances": "No balances found"
+    },
+    "history": {
+      "title": "Recent Purchases",
+      "noPurchases": "No purchases yet"
+    },
+    "messages": {
+      "purchaseCreated": "Purchase Created",
+      "readyToPurchase": "Ready to purchase {amount} {token} tokens",
+      "error": "Error",
+      "createFailed": "Failed to create purchase",
+      "tokensAirdropped": "Tokens Airdropped! 🪂",
+      "tokensAdded": "{amount} {token} tokens have been added to your wallet",
+      "confirmFailed": "Failed to confirm purchase",
+      "walletNotConnected": "Wallet Not Connected",
+      "connectToPurchase": "Please connect your wallet to purchase tokens",
+      "invalidAmount": "Invalid Amount",
+      "enterValidAmount": "Please enter a valid token amount"
+    }
+  },
   "nftCenter": {
     "title": "NFT Center",
     "description": "Manage your Advertisement NFTs, view locked BCC amounts, and activate promotional services",

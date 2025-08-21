@@ -75,14 +75,14 @@ export default function TokenPurchase() {
       setPurchaseId(data.purchase.id);
       setShowPayEmbed(true);
       toast({
-        title: "Purchase Created",
-        description: `Ready to purchase ${tokenAmount} ${tokenType} tokens`,
+        title: t('tokenPurchase.messages.purchaseCreated'),
+        description: t('tokenPurchase.messages.readyToPurchase', { amount: tokenAmount, token: tokenType }),
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error?.message || "Failed to create purchase",
+        title: t('tokenPurchase.messages.error'),
+        description: error?.message || t('tokenPurchase.messages.createFailed'),
         variant: "destructive",
       });
     },
@@ -104,14 +104,14 @@ export default function TokenPurchase() {
       setPurchaseId('');
       setTokenAmount('100');
       toast({
-        title: "Tokens Airdropped! 🪂",
-        description: `${tokenAmount} ${tokenType} tokens have been added to your wallet`,
+        title: t('tokenPurchase.messages.tokensAirdropped'),
+        description: t('tokenPurchase.messages.tokensAdded', { amount: tokenAmount, token: tokenType }),
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error?.message || "Failed to confirm purchase",
+        title: t('tokenPurchase.messages.error'),
+        description: error?.message || t('tokenPurchase.messages.confirmFailed'),
         variant: "destructive",
       });
     },
@@ -120,8 +120,8 @@ export default function TokenPurchase() {
   const handleCreatePurchase = () => {
     if (!account?.address) {
       toast({
-        title: "Wallet Not Connected",
-        description: "Please connect your wallet to purchase tokens",
+        title: t('tokenPurchase.messages.walletNotConnected'),
+        description: t('tokenPurchase.messages.connectToPurchase'),
         variant: "destructive",
       });
       return;
@@ -130,8 +130,8 @@ export default function TokenPurchase() {
     const amount = parseInt(tokenAmount);
     if (amount <= 0 || isNaN(amount)) {
       toast({
-        title: "Invalid Amount",
-        description: "Please enter a valid token amount",
+        title: t('tokenPurchase.messages.invalidAmount'),
+        description: t('tokenPurchase.messages.enterValidAmount'),
         variant: "destructive",
       });
       return;
@@ -161,9 +161,9 @@ export default function TokenPurchase() {
         <CardContent className="flex items-center justify-center py-12">
           <div className="text-center">
             <Coins className="h-12 w-12 mx-auto mb-4 text-honey" />
-            <h3 className="text-xl font-semibold mb-2">Connect Your Wallet</h3>
+            <h3 className="text-xl font-semibold mb-2">{t('tokenPurchase.connectWallet.title')}</h3>
             <p className="text-muted-foreground">
-              Connect your wallet to purchase BCC and CTH tokens
+              {t('tokenPurchase.connectWallet.description')}
             </p>
           </div>
         </CardContent>
@@ -178,10 +178,10 @@ export default function TokenPurchase() {
         <CardHeader className="border-b border-honey/10 bg-honey/5">
           <CardTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5 text-honey" />
-            Purchase Tokens
+            {t('tokenPurchase.title')}
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            Buy BCC and CTH tokens at 1 token = 0.01 USDT across multiple chains
+            {t('tokenPurchase.description')}
           </p>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
@@ -190,20 +190,20 @@ export default function TokenPurchase() {
               {/* Token Type Selection */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Token Type</Label>
+                  <Label>{t('tokenPurchase.form.tokenType')}</Label>
                   <Select value={tokenType} onValueChange={(value: 'BCC' | 'CTH') => setTokenType(value)}>
                     <SelectTrigger data-testid="select-token-type">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="BCC">BCC (Beehive Crypto Coin)</SelectItem>
-                      <SelectItem value="CTH">CTH (Centauri Honey)</SelectItem>
+                      <SelectItem value="BCC">{t('tokenPurchase.tokens.bcc.name')}</SelectItem>
+                      <SelectItem value="CTH">{t('tokenPurchase.tokens.cth.name')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label>Payment Chain</Label>
+                  <Label>{t('tokenPurchase.form.paymentChain')}</Label>
                   <Select value={selectedChain} onValueChange={setSelectedChain}>
                     <SelectTrigger data-testid="select-payment-chain">
                       <SelectValue />
@@ -224,43 +224,43 @@ export default function TokenPurchase() {
 
               {/* Amount Input */}
               <div>
-                <Label>Token Amount</Label>
+                <Label>{t('tokenPurchase.form.tokenAmount')}</Label>
                 <Input
                   type="number"
                   value={tokenAmount}
                   onChange={(e) => setTokenAmount(e.target.value)}
-                  placeholder="Enter token amount"
+                  placeholder={t('tokenPurchase.form.enterAmount')}
                   min="1"
                   data-testid="input-token-amount"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Total Cost: ${usdtAmount.toFixed(2)} USDT
+                  {t('tokenPurchase.form.totalCost', { amount: usdtAmount.toFixed(2) })}
                 </p>
               </div>
 
               {/* Token Info Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className={`p-4 rounded-lg border-2 transition-all ${tokenType === 'BCC' ? 'border-honey bg-honey/10' : 'border-border bg-secondary/50'}`}>
-                  <h4 className="font-semibold text-honey mb-2">BCC Token</h4>
+                  <h4 className="font-semibold text-honey mb-2">{t('tokenPurchase.tokens.bcc.title')}</h4>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Transferable utility token for marketplace purchases and rewards
+                    {t('tokenPurchase.tokens.bcc.description')}
                   </p>
                   <div className="text-xs text-honey">
-                    • Use in NFT Marketplace<br/>
-                    • Education Course Access<br/>
-                    • Advertisement NFTs
+                    • {t('tokenPurchase.tokens.bcc.uses.marketplace')}<br/>
+                    • {t('tokenPurchase.tokens.bcc.uses.education')}<br/>
+                    • {t('tokenPurchase.tokens.bcc.uses.advertisement')}
                   </div>
                 </div>
 
                 <div className={`p-4 rounded-lg border-2 transition-all ${tokenType === 'CTH' ? 'border-honey bg-honey/10' : 'border-border bg-secondary/50'}`}>
-                  <h4 className="font-semibold text-honey mb-2">CTH Token</h4>
+                  <h4 className="font-semibold text-honey mb-2">{t('tokenPurchase.tokens.cth.title')}</h4>
                   <p className="text-sm text-muted-foreground mb-2">
-                    Native gas token for Alpha Centauri chain transactions
+                    {t('tokenPurchase.tokens.cth.description')}
                   </p>
                   <div className="text-xs text-honey">
-                    • Network Gas Fees<br/>
-                    • Chain Operations<br/>
-                    • Transaction Costs
+                    • {t('tokenPurchase.tokens.cth.uses.gas')}<br/>
+                    • {t('tokenPurchase.tokens.cth.uses.operations')}<br/>
+                    • {t('tokenPurchase.tokens.cth.uses.transactions')}
                   </div>
                 </div>
               </div>

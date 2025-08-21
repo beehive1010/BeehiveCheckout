@@ -402,6 +402,77 @@
       "hiveworld": "Sistem Matrix HiveWorld"
     }
   },
+  "tokenPurchase": {
+    "title": "Beli Token",
+    "description": "Beli token BCC dan CTH pada 1 token = 0.01 USDT merentasi pelbagai blockchain",
+    "connectWallet": {
+      "title": "Sambung Dompet Anda",
+      "description": "Sambung dompet anda untuk membeli token BCC dan CTH"
+    },
+    "form": {
+      "tokenType": "Jenis Token",
+      "paymentChain": "Rantai Pembayaran",
+      "tokenAmount": "Jumlah Token",
+      "enterAmount": "Masukkan jumlah token",
+      "totalCost": "Jumlah Kos: ${amount} USDT"
+    },
+    "tokens": {
+      "bcc": {
+        "name": "BCC (Beehive Crypto Coin)",
+        "title": "Token BCC",
+        "description": "Token utiliti boleh pindah untuk pembelian pasaran dan ganjaran",
+        "uses": {
+          "marketplace": "Guna dalam Pasaran NFT",
+          "education": "Akses Kursus Pendidikan",
+          "advertisement": "NFT Iklan"
+        }
+      },
+      "cth": {
+        "name": "CTH (Centauri Honey)",
+        "title": "Token CTH",
+        "description": "Token gas natif untuk transaksi rantai Alpha Centauri",
+        "uses": {
+          "gas": "Yuran Gas Rangkaian",
+          "operations": "Operasi Rantai",
+          "transactions": "Kos Transaksi"
+        }
+      }
+    },
+    "buttons": {
+      "creating": "Mencipta Pembelian...",
+      "purchase": "Beli {amount} Token {token}",
+      "cancelPayment": "Batal Pembayaran"
+    },
+    "payment": {
+      "title": "Lengkapkan Pembayaran Anda",
+      "description": "Bayar ${amount} USDT untuk menerima {tokenAmount} token {tokenType}"
+    },
+    "balances": {
+      "title": "Baki Token Anda",
+      "bccTotal": "Jumlah BCC:",
+      "transferable": "Boleh Dipindah:",
+      "restricted": "Terhad:",
+      "cthBalance": "Baki CTH:",
+      "noBalances": "Tiada baki dijumpai"
+    },
+    "history": {
+      "title": "Pembelian Terkini",
+      "noPurchases": "Tiada pembelian lagi"
+    },
+    "messages": {
+      "purchaseCreated": "Pembelian Dicipta",
+      "readyToPurchase": "Sedia untuk membeli {amount} token {token}",
+      "error": "Ralat",
+      "createFailed": "Gagal mencipta pembelian",
+      "tokensAirdropped": "Token Dikembangkan! 🪂",
+      "tokensAdded": "{amount} token {token} telah ditambah ke dompet anda",
+      "confirmFailed": "Gagal mengesahkan pembelian",
+      "walletNotConnected": "Dompet Tidak Disambung",
+      "connectToPurchase": "Sila sambung dompet anda untuk membeli token",
+      "invalidAmount": "Jumlah Tidak Sah",
+      "enterValidAmount": "Sila masukkan jumlah token yang sah"
+    }
+  },
   "footer": {
     "description": "Platform keahlian dan pembelajaran Web3 dengan ganjaran blockchain.",
     "platform": "Platform",
