@@ -151,9 +151,38 @@ export default function Registration() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Wallet Address Display */}
             <div>
-              <Label className="text-honey">{t('registration.walletAddress')}</Label>
-              <div className="mt-1 p-3 bg-muted rounded-lg text-sm font-mono text-muted-foreground">
-                {walletAddress}
+              <Label className="text-honey">{String(t('registration.walletAddress'))}</Label>
+              <div className="mt-1 p-3 bg-muted rounded-lg text-muted-foreground relative group">
+                {/* Mobile: Truncated display */}
+                <div className="block md:hidden">
+                  <div className="text-xs font-mono break-all">
+                    <span className="text-honey">{walletAddress?.slice(0, 6)}</span>
+                    <span className="text-muted-foreground/60">...</span>
+                    <span className="text-honey">{walletAddress?.slice(-4)}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground/60 mt-1">
+                    Tap to copy full address
+                  </div>
+                </div>
+                
+                {/* Desktop: Full display */}
+                <div className="hidden md:block text-sm font-mono break-all">
+                  {walletAddress}
+                </div>
+                
+                {/* Copy button (invisible but covers the area) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(walletAddress || '');
+                    toast({
+                      title: 'Copied!',
+                      description: 'Wallet address copied to clipboard',
+                    });
+                  }}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  data-testid="button-copy-wallet"
+                />
               </div>
             </div>
 
