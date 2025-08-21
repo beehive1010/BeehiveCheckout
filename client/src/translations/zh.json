@@ -76,6 +76,217 @@
       "button": "立即加入蜂巢"
     }
   },
+  "membership": {
+    "purchase": {
+      "button": "购买级别 {level} (${price} USDT)",
+      "approving": "批准USDT中...",
+      "preparing": "准备支付中...",
+      "paying": "处理支付中...",
+      "verifying": "验证交易中...",
+      "finalizing": "完成购买中...",
+      "completed": "购买完成！",
+      "retry": "重试购买",
+      "connectWallet": "连接钱包以购买",
+      "selectChain": "选择支付链",
+      "selectChainDescription": "选择在哪个区块链上支付USDT购买级别 {level} 会员",
+      "payWithGas": "用USDT支付 • {symbol}支付手续费",
+      "success": {
+        "title": "会员购买成功！",
+        "description": "您的会员已成功激活。"
+      },
+      "error": {
+        "title": "购买失败",
+        "description": "处理您的购买时出错。请重试。"
+      }
+    },
+    "levels": {
+      "title": "会员级别",
+      "subtitle": "选择您的级别并解锁专属福利",
+      "currentLevel": "当前级别",
+      "priceUSDT": "USDT",
+      "benefits": "核心福利",
+      "owned": "已拥有",
+      "selected": "已选择",
+      "activated": "已激活",
+      "higherLevelOwned": "更高级别已激活",
+      "selectionInfo": "点击购买按钮获取此会员级别"
+    },
+    "level": {
+      "1": {
+        "title": "勇士",
+        "subtitle": "勇士 • 开始您的征程 • $130 USDT"
+      },
+      "2": {
+        "title": "青铜",
+        "subtitle": "青铜 • 证明奉献 • $150 USDT"
+      },
+      "3": {
+        "title": "白银",
+        "subtitle": "白银 • 冉冉升起 • $200 USDT"
+      },
+      "4": {
+        "title": "黄金",
+        "subtitle": "黄金 • 精英地位 • $250 USDT"
+      },
+      "5": {
+        "title": "精英",
+        "subtitle": "精英 • 杰出成员 • $300 USDT"
+      },
+      "6": {
+        "title": "铂金",
+        "subtitle": "铂金 • 威望等级 • $350 USDT"
+      },
+      "7": {
+        "title": "大师",
+        "subtitle": "大师 • 熟练实践者 • $400 USDT"
+      },
+      "8": {
+        "title": "钻石",
+        "subtitle": "钻石 • 卓越优秀 • $450 USDT"
+      },
+      "9": {
+        "title": "宗师",
+        "subtitle": "宗师 • 至高精通 • $500 USDT"
+      },
+      "10": {
+        "title": "星耀",
+        "subtitle": "星耀 • 辉煌成就 • $550 USDT"
+      },
+      "11": {
+        "title": "史诗",
+        "subtitle": "史诗 • 传奇地位 • $600 USDT"
+      },
+      "12": {
+        "title": "殿堂",
+        "subtitle": "殿堂 • 名人堂 • $650 USDT"
+      },
+      "13": {
+        "title": "最强王者",
+        "subtitle": "最强王者 • 王室统治 • $700 USDT"
+      },
+      "14": {
+        "title": "无双王者",
+        "subtitle": "无双王者 • 至高统治者 • $750 USDT"
+      },
+      "15": {
+        "title": "荣耀王者",
+        "subtitle": "荣耀王者 • 光荣统治 • $800 USDT"
+      },
+      "16": {
+        "title": "传奇主宰",
+        "subtitle": "传奇主宰 • 神话力量 • $850 USDT"
+      },
+      "17": {
+        "title": "至尊主宰",
+        "subtitle": "至尊主宰 • 终极权威 • $900 USDT"
+      },
+      "18": {
+        "title": "至尊神话",
+        "subtitle": "至尊神话 • 神圣传说 • $950 USDT"
+      },
+      "19": {
+        "title": "神话巅峰",
+        "subtitle": "神话巅峰 • 力量顶峰 • $1000 USDT"
+      }
+    },
+    "benefits": {
+      "l1": {
+        "basic": "基础平台访问",
+        "education": "教育内容访问",
+        "rewards": "推荐奖励资格"
+      },
+      "l2": {
+        "enhanced": "增强奖励倍数",
+        "bonus": "2级奖励功能",
+        "network": "扩展网络访问"
+      },
+      "l3": {
+        "advanced": "高级交易工具",
+        "exclusive": "专属成员活动",
+        "priority": "优先客户支持"
+      },
+      "l4": {
+        "premium": "高级内容库",
+        "mentorship": "导师机会",
+        "tools": "专业交易工具"
+      },
+      "l5": {
+        "elite": "精英成员地位",
+        "leadership": "领导力发展",
+        "insights": "市场洞察访问"
+      },
+      "l6": {
+        "mastery": "精通级资源",
+        "networking": "VIP网络活动",
+        "rewards": "增强奖励率"
+      },
+      "l7": {
+        "expert": "专家级认证",
+        "community": "私人社区访问",
+        "alpha": "阿尔法投资机会"
+      },
+      "l8": {
+        "legendary": "传奇地位特权",
+        "influence": "平台影响力投票",
+        "opportunities": "独家机会"
+      },
+      "l9": {
+        "mastery": "完整系统精通",
+        "inner_circle": "内圈成员",
+        "exclusive": "超独家福利"
+      },
+      "l10": {
+        "grandmaster": "宗师认可",
+        "authority": "平台权威角色",
+        "legacy": "传承计划访问"
+      },
+      "l11": {
+        "wisdom": "智慧议会成员",
+        "cosmic": "宇宙级奖励",
+        "transcendent": "超越福利"
+      },
+      "l12": {
+        "oracle": "神谕顾问角色",
+        "foresight": "市场预见工具",
+        "divine": "神圣层特权"
+      },
+      "l13": {
+        "immortal": "不朽地位福利",
+        "eternal": "永恒奖励流",
+        "infinite": "无限成长潜力"
+      },
+      "l14": {
+        "celestial": "天体层访问",
+        "heavenly": "天堂奖励率",
+        "ascended": "升华成员特权"
+      },
+      "l15": {
+        "divine": "神圣权威地位",
+        "godlike": "神般影响力",
+        "ultimate": "终极平台访问"
+      },
+      "l16": {
+        "supreme": "至高指挥官角色",
+        "omnipotent": "全能决定权",
+        "sovereign": "主权成员权利"
+      },
+      "l17": {
+        "transcendent": "超越存在",
+        "beyond": "超越常规限制",
+        "unlimited": "无限可能性"
+      },
+      "l18": {
+        "absolute": "绝对权力访问",
+        "perfection": "完美层福利",
+        "apex": "顶级捕食者地位"
+      },
+      "l19": {
+        "mythical": "神话传说地位",
+        "peak": "巅峰表现层",
+        "legendary": "传奇创始人特权"
+      }
+    }
+  },
   "ads": {
     "title": "广告NFT",
     "description": "使用您的BCC代币获取广告NFT以解锁推广服务",
