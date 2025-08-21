@@ -120,17 +120,105 @@
     "balances": {
       "bccFree": "BCC（自由）",
       "bccLocked": "BCC（锁定）"
+    },
+    "member": "会员",
+    "userCentre": "用户中心",
+    "verifying": "正在验证NFT所有权...",
+    "nftVerified": "NFT已验证",
+    "reward": "奖励",
+    "bccBalance": "BCC余额",
+    "nfts": "NFTs",
+    "accountOverview": "账户概览",
+    "userAvatar": "用户头像",
+    "levelText": "等级 {{level}}",
+    "priceLevel1": "130 USDT",
+    "activity": {
+      "rewardReceived": "收到奖励",
+      "fromReferralUpgrade": "来自推荐升级",
+      "rewardAmount": "+{{amount}} 奖励",
+      "nftClaimed": "NFT已认领",
+      "merchantNft": "商户NFT已购买",
+      "bccDeduction": "-{{amount}} BCC",
+      "newReferral": "新推荐",
+      "userJoined": "用户加入您的网络",
+      "activeStatus": "活跃"
+    },
+    "referralLink": {
+      "title": "推荐链接",
+      "show": "显示",
+      "hide": "隐藏",
+      "copied": "链接已复制！",
+      "copiedDesc": "推荐链接已复制到剪贴板"
+    },
+    "social": {
+      "twitter": "Twitter",
+      "telegram": "Telegram",
+      "whatsapp": "WhatsApp"
+    },
+    "stats": {
+      "totalRewards": "总奖励",
+      "bccBalance": "BCC余额",
+      "bccLocked": "BCC已锁定",
+      "nftsOwned": "拥有的NFT"
+    },
+    "tokenPurchase": {
+      "bccDescription": "购买Beehive加密币以便在平台上使用",
+      "cthDescription": "购买CTH代币用于Alpha Centauri生态系统",
+      "topUpDescription": "购买BCC和CTH代币以参与Beehive生态系统"
+    },
+    "globalStats": {
+      "title": "全球统计",
+      "totalMembers": "总会员数",
+      "totalRewardsPaid": "已支付的总奖励",
+      "pendingRewards": "待处理奖励",
+      "highestLevel": "最高级别",
+      "membersByLevel": "按级别统计会员",
+      "members": "会员"
+    },
+    "uplineNetwork": {
+      "title": "上线网络",
+      "earnings": "收益",
+      "level": "级别",
+      "directReferrals": "直接推荐",
+      "totalTeam": "总团队",
+      "monthlyEarnings": "月收益"
     }
   },
   "tasks": {
     "title": "任务中心",
     "subtitle": "浏览商户NFT，认领有价值的奖励",
+    "search": "搜索NFT...",
+    "filters": {
+      "all": "全部",
+      "available": "可用",
+      "claimed": "已认领"
+    },
     "noTasks": "暂无可用任务",
     "loading": "加载任务中...",
     "claimReward": "认领奖励",
     "claiming": "认领中...",
     "claimed": "已认领",
-    "insufficientBcc": "BCC不足"
+    "insufficientBcc": "BCC不足",
+    "nft": {
+      "title": "商户NFT",
+      "description": "认领独家商户NFT以获得奖励",
+      "price": "价格",
+      "availableRestricted": "可用（受限）",
+      "availableTransferable": "可用（可转移）",
+      "confirmation": "将首先使用受限BCC。是否继续认领此NFT？",
+      "confirm": "确认认领",
+      "cancel": "取消"
+    },
+    "claim": {
+      "success": {
+        "title": "NFT认领成功！",
+        "description": "NFT已铸造到您的钱包。"
+      },
+      "error": {
+        "title": "认领失败",
+        "description": "无法认领NFT。请检查您的余额并重试。"
+      }
+    }
   },
   "marketplace": {
     "title": "NFT市场",
@@ -148,21 +236,66 @@
   },
   "education": {
     "title": "教育中心",
-    "subtitle": "掌握Web3技能，获得认证",
-    "courses": "课程",
-    "workshops": "研讨会",
-    "certificates": "证书",
-    "progress": "进度",
-    "enroll": "报名",
-    "continue": "继续",
-    "completed": "已完成"
+    "progress": {
+      "title": "学习进度",
+      "subtitle": "跟踪您的教育旅程",
+      "completed": "已完成",
+      "inProgress": "进行中",
+      "hours": "小时",
+      "label": "进度"
+    },
+    "free": "免费",
+    "levelRequired": "所需级别",
+    "duration": "持续时间",
+    "completed": "已完成",
+    "continue": "继续学习",
+    "startFree": "开始课程",
+    "purchase": "购买课程",
+    "enrolling": "注册中...",
+    "insufficientBCC": "BCC不足",
+    "enroll": {
+      "success": {
+        "title": "注册成功！",
+        "description": "您现在可以访问此课程。"
+      },
+      "error": {
+        "title": "注册失败",
+        "description": "无法注册课程。请重试。"
+      }
+    }
   },
   "discover": {
-    "title": "发现Web3",
-    "subtitle": "探索去中心化应用和协议生态系统",
+    "title": "发现",
+    "subtitle": "探索Web3 DApps和服务",
+    "search": {
+      "placeholder": "搜索DApps、协议或服务...",
+      "recent": "最近",
+      "trending": "热门",
+      "clear": "清除"
+    },
     "featured": {
-      "title": "精选DApps",
-      "subtitle": "探索Web3生态系统中最创新的应用"
+      "title": "Beehive精选",
+      "viewAll": "查看全部"
+    },
+    "categories": {
+      "title": "类别",
+      "all": "全部",
+      "defi": "DeFi",
+      "nft": "NFT",
+      "gamefi": "GameFi",
+      "dao": "DAO",
+      "bridge": "桥接",
+      "lending": "借贷",
+      "dex": "DEX",
+      "launchpad": "启动板",
+      "analytics": "分析",
+      "wallet": "钱包",
+      "insurance": "保险",
+      "yield": "收益"
+    },
+    "popular": {
+      "title": "热门DApps",
+      "subtitle": "社区最受欢迎的应用"
     },
     "networks": {
       "title": "支持的网络",
@@ -381,8 +514,8 @@
       "purchasing": "购买中..."
     },
     "tokens": {
-      "bcc": "BeeHive Crypto Coin (BCC)",
-      "cth": "Centauri Honey (CTH)"
+      "bcc": "BeeHive加密币 (BCC)",
+      "cth": "半人马座蜂蜜 (CTH)"
     },
     "chains": {
       "ethereum": "以太坊主网",
@@ -446,6 +579,20 @@
       "claimed": "准备使用",
       "serviceActivated": "服务已激活"
     }
+  },
+  "footer": {
+    "description": "基于区块链奖励的Web3会员和学习平台。",
+    "platform": "平台",
+    "support": "支持",
+    "helpCenter": "帮助中心",
+    "documentation": "文档",
+    "contact": "联系我们",
+    "status": "状态",
+    "legal": "法律",
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "cookies": "Cookie政策",
+    "copyright": "© 2024 Beehive. 版权所有。"
   },
   "blogpost": {
     "linkCopied": {
