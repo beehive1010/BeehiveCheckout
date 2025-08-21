@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { createThirdwebClient, ConnectButton, useActiveAccount, useConnect } from 'thirdweb/react';
+import { createThirdwebClient } from 'thirdweb';
+import { useActiveAccount, useConnect } from 'thirdweb/react';
 import { createWallet } from 'thirdweb/wallets';
 
 const client = createThirdwebClient({
-  clientId: process.env.VITE_THIRDWEB_CLIENT_ID || import.meta.env.VITE_THIRDWEB_CLIENT_ID || "demo-client-id"
+  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || "demo-client-id"
 });
 
 interface Web3ContextType {

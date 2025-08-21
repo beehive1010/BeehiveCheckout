@@ -3,7 +3,7 @@ import { ethereum, polygon, arbitrum, optimism } from 'thirdweb/chains';
 
 // Initialize Thirdweb client
 export const client = createThirdwebClient({
-  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || process.env.VITE_THIRDWEB_CLIENT_ID || 'demo-client-id'
+  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || 'demo-client-id'
 });
 
 // Supported chains
@@ -11,9 +11,9 @@ export const supportedChains = [ethereum, polygon, arbitrum, optimism];
 
 // Contract addresses (these would be set after deployment)
 export const contractAddresses = {
-  BBC_MEMBERSHIP: process.env.VITE_BBC_CONTRACT_ADDRESS || '',
-  BCC_TOKEN: process.env.VITE_BCC_CONTRACT_ADDRESS || '',
-  MERCHANT_NFTS: process.env.VITE_MERCHANT_CONTRACT_ADDRESS || '',
+  BBC_MEMBERSHIP: import.meta.env.VITE_BBC_CONTRACT_ADDRESS || '',
+  BCC_TOKEN: import.meta.env.VITE_BCC_CONTRACT_ADDRESS || '',
+  MERCHANT_NFTS: import.meta.env.VITE_MERCHANT_CONTRACT_ADDRESS || '',
   USDT: {
     ethereum: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     polygon: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
