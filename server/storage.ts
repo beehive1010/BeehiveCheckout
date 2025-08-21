@@ -1047,30 +1047,7 @@ export class DatabaseStorage implements IStorage {
     return result.rows[0];
   }
 
-  // Level Configuration Operations
-  async getLevelConfig(level: number): Promise<any> {
-    try {
-      const result = await db.execute(sql`
-        SELECT * FROM level_config WHERE level = ${level}
-      `);
-      return result.rows[0] || null;
-    } catch (error) {
-      console.error('Get level config error:', error);
-      return null;
-    }
-  }
-
-  async getAllLevelConfigs(): Promise<any[]> {
-    try {
-      const result = await db.execute(sql`
-        SELECT * FROM level_config ORDER BY level
-      `);
-      return result.rows;
-    } catch (error) {
-      console.error('Get all level configs error:', error);
-      return [];
-    }
-  }
+  // Level Configuration Operations (duplicate removed)
 
   // NFT Verification Operations (using custom table structure)
   async createNFTVerificationCustom(data: any): Promise<any> {
@@ -1119,7 +1096,7 @@ export class DatabaseStorage implements IStorage {
         const config = levelConfigs.find(cfg => cfg.level === parseInt(row.active_level));
         return {
           level: parseInt(row.active_level),
-          levelName: config?.level_name || `Level ${row.active_level}`,
+          levelName: config?.levelName || `Level ${row.active_level}`,
           count: parseInt(row.count)
         };
       })
@@ -1146,7 +1123,7 @@ export class DatabaseStorage implements IStorage {
         // Sponsor qualifies - add to pending rewards with timer
         const levelConfig = await this.getLevelConfig(level);
         if (levelConfig) {
-          await this.addEarningsReward(buyer.referrerWallet, parseFloat(levelConfig.reward_amount), 'level', true);
+          await this.addEarningsReward(buyer.referrerWallet, levelConfig.rewardAmount, 'level', true);
         }
       } else {
         // Pass up using existing parent_wallet structure
@@ -1179,13 +1156,13 @@ export class DatabaseStorage implements IStorage {
     };
 
     if (isPending) {
-      updates.pendingRewards = (parseFloat(earnings.pending_rewards || '0') + amount);
+      updates.pendingRewards = amount;
     } else {
-      updates.totalEarnings = (parseFloat(earnings.total_earnings || '0') + amount);
+      updates.totalEarnings = amount;
       if (type === 'referral') {
-        updates.referralEarnings = (parseFloat(earnings.referral_earnings || '0') + amount);
+        updates.referralEarnings = amount;
       } else if (type === 'level') {
-        updates.levelEarnings = (parseFloat(earnings.level_earnings || '0') + amount);
+        updates.levelEarnings = amount;
       }
     }
 
