@@ -183,6 +183,30 @@
   color: var(--honey);
 }
 
+/* Custom scrollbar for mobile-friendly matrix view */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--honey)) hsl(var(--secondary));
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: hsl(var(--secondary));
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--honey));
+  border-radius: 2px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--honey) / 0.8);
+}
+
 /* Balance card styles */
 .balance-card {
   background: var(--bee-black);
