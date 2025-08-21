@@ -265,10 +265,10 @@ export default function Education() {
         <div className="flex flex-col sm:flex-row gap-3">
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
             <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-category">
-              <SelectValue placeholder="Category" />
+              <SelectValue placeholder={t('education.filters.category')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="all">{t('education.filters.allCategories')}</SelectItem>
               {filterOptions.categories.map(category => (
                 <SelectItem key={category} value={category}>
                   {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -279,13 +279,13 @@ export default function Education() {
           
           <Select value={selectedLevel} onValueChange={setSelectedLevel}>
             <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-level">
-              <SelectValue placeholder="Level" />
+              <SelectValue placeholder={t('education.filters.level')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Levels</SelectItem>
+              <SelectItem value="all">{t('education.filters.allLevels')}</SelectItem>
               {filterOptions.levels.map(level => (
                 <SelectItem key={level} value={level.toString()}>
-                  Level {level}
+                  {t('education.filters.level')} {level}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -293,13 +293,13 @@ export default function Education() {
           
           <Select value={selectedType} onValueChange={setSelectedType}>
             <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-type">
-              <SelectValue placeholder="Type" />
+              <SelectValue placeholder={t('education.filters.type')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="all">{t('education.filters.allTypes')}</SelectItem>
               {filterOptions.types.map((type, index) => (
                 <SelectItem key={`type-${type}-${index}`} value={type}>
-                  {type === 'online' ? 'Online (Zoom)' : 'Video Lessons'}
+                  {type === 'online' ? t('education.filters.onlineZoom') : t('education.filters.videoLessons')}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -307,13 +307,13 @@ export default function Education() {
           
           <Select value={selectedPayment} onValueChange={setSelectedPayment}>
             <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-payment">
-              <SelectValue placeholder="Payment" />
+              <SelectValue placeholder={t('education.filters.payment')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Courses</SelectItem>
+              <SelectItem value="all">{t('education.filters.allCourses')}</SelectItem>
               {filterOptions.payments.map((payment, index) => (
                 <SelectItem key={`payment-${payment}-${index}`} value={payment}>
-                  {payment === 'free' ? 'Free Courses' : 'Paid (BCC)'}
+                  {payment === 'free' ? t('education.filters.freeCourses') : t('education.filters.paidBCC')}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -373,7 +373,7 @@ export default function Education() {
                         variant="outline"
                         className={course.courseType === 'online' ? "bg-blue-600 text-white border-blue-600" : "bg-purple-600 text-white border-purple-600"}
                       >
-                        {course.courseType === 'online' ? 'Online (Zoom)' : 'Video Lessons'}
+                        {course.courseType === 'online' ? t('education.filters.onlineZoom') : t('education.filters.videoLessons')}
                       </Badge>
                       <Badge 
                         variant={course.isFree ? "secondary" : "default"}
@@ -420,7 +420,7 @@ export default function Education() {
                       <div className="bg-blue-600/10 border border-blue-600/20 rounded-lg p-3">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-medium text-blue-400">Zoom Meeting</p>
+                            <p className="text-sm font-medium text-blue-400">{t('education.courseTypes.zoomMeeting')}</p>
                             <p className="text-xs text-muted-foreground">Password: {course.zoomPassword}</p>
                           </div>
                           <Button
@@ -429,7 +429,7 @@ export default function Education() {
                             className="bg-blue-600 hover:bg-blue-700 text-white"
                           >
                             <i className="fas fa-video mr-2"></i>
-                            Join
+                            {t('education.buttons.join')}
                           </Button>
                         </div>
                       </div>
@@ -439,8 +439,8 @@ export default function Education() {
                       <div className="bg-purple-600/10 border border-purple-600/20 rounded-lg p-3">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm font-medium text-purple-400">Video Access</p>
-                            <p className="text-xs text-muted-foreground">Stream online or download</p>
+                            <p className="text-sm font-medium text-purple-400">{t('education.courseTypes.videoAccess')}</p>
+                            <p className="text-xs text-muted-foreground">{t('education.courseTypes.streamOrDownload')}</p>
                           </div>
                           <div className="flex gap-2">
                             <Button
@@ -449,7 +449,7 @@ export default function Education() {
                               className="bg-purple-600 hover:bg-purple-700 text-white"
                             >
                               <i className="fas fa-play mr-2"></i>
-                              Watch
+                              {t('education.buttons.watch')}
                             </Button>
                             {course.downloadLink && (
                               <Button
@@ -459,7 +459,7 @@ export default function Education() {
                                 className="border-purple-600 text-purple-400 hover:bg-purple-600 hover:text-white"
                               >
                                 <i className="fas fa-download mr-2"></i>
-                                Download
+                                {t('education.buttons.download')}
                               </Button>
                             )}
                           </div>
@@ -472,7 +472,7 @@ export default function Education() {
                       disabled
                     >
                       <i className="fas fa-check mr-2"></i>
-                      {access.completed ? 'Completed' : 'Enrolled'}
+                      {access.completed ? t('education.buttons.completed') : t('education.buttons.enrolled')}
                     </Button>
                   </div>
                 ) : (
@@ -499,21 +499,21 @@ export default function Education() {
                     {claimCourseMutation.isPending ? (
                       <>
                         <i className="fas fa-spinner fa-spin mr-2"></i>
-                        Claiming...
+                        {t('education.buttons.claiming')}
                       </>
                     ) : !canEnroll ? (
-                      `Level ${course.requiredLevel} Required`
+                      `${t('education.filters.level')} ${course.requiredLevel} ${t('education.buttons.levelRequired')}`
                     ) : !canAfford && !course.isFree ? (
-                      'Insufficient BCC'
+                      t('education.buttons.insufficientBCC')
                     ) : course.isFree ? (
                       <>
                         <i className="fas fa-gift mr-2"></i>
-                        Claim Free Course
+                        {t('education.buttons.claimFree')}
                       </>
                     ) : (
                       <>
                         <i className="fas fa-coins mr-2"></i>
-                        Claim for {course.priceBCC} BCC
+                        {t('education.buttons.claimPaid').replace('{}', course.priceBCC.toString())}
                       </>
                     )}
                   </Button>
