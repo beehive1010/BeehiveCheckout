@@ -190,7 +190,8 @@
     },
     "tokenPurchase": {
       "bccDescription": "购买Beehive加密币用于平台使用",
-      "cthDescription": "购买CTH代币用于Alpha Centauri生态系统"
+      "cthDescription": "购买CTH代币用于Alpha Centauri生态系统",
+      "topUpDescription": "购买BCC和CTH代币参与蜂巢生态系统"
     },
     "globalStats": {
       "title": "全球统计",
@@ -743,7 +744,8 @@
     "burning": "销毁中...",
     "useNftService": "使用NFT服务",
     "buyBccToken": "购买BCC代币",
-    "buyCthToken": "购买CTH代币"
+    "buyCthToken": "购买CTH代币",
+    "topUp": "充值"
   },
   "selectors": {
     "category": "类别",

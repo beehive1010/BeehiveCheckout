@@ -236,7 +236,8 @@
     },
     "tokenPurchase": {
       "bccDescription": "Purchase Beehive Crypto Coins for platform usage",
-      "cthDescription": "Buy CTH tokens for Alpha Centauri ecosystem"
+      "cthDescription": "Buy CTH tokens for Alpha Centauri ecosystem",
+      "topUpDescription": "Buy BCC and CTH tokens to participate in the Beehive ecosystem"
     },
     "globalStats": {
       "title": "Global Statistics",
@@ -1053,7 +1054,8 @@
     "burnNft": "Burn NFT",
     "confirmBurn": "Confirm Burn",
     "burning": "Burning...",
-    "useNftService": "Use NFT Service"
+    "useNftService": "Use NFT Service",
+    "topUp": "Top Up"
   },
   "selectors": {
     "category": "Category",

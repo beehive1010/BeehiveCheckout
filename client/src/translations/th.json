@@ -211,7 +211,8 @@
     },
     "tokenPurchase": {
       "bccDescription": "ซื้อ Beehive Crypto Coins สำหรับการใช้งานแพลตฟอร์ม",
-      "cthDescription": "ซื้อโทเค็น CTH สำหรับระบบนิเวศ Alpha Centauri"
+      "cthDescription": "ซื้อโทเค็น CTH สำหรับระบบนิเวศ Alpha Centauri",
+      "topUpDescription": "ซื้อโทเค็น BCC และ CTH เพื่อเข้าร่วมระบบนิเวศ Beehive"
     },
     "globalStats": {
       "title": "สถิติระดับโลก",
@@ -804,7 +805,8 @@
     "burnNft": "เผา NFT",
     "confirmBurn": "ยืนยันการเผา",
     "burning": "กำลังเผา...",
-    "useNftService": "ใช้บริการ NFT"
+    "useNftService": "ใช้บริการ NFT",
+    "topUp": "เติมเงิน"
   },
   "selectors": {
     "category": "หมวดหมู่",
