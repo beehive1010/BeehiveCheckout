@@ -360,6 +360,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Legacy enroll endpoint - kept for compatibility
   app.post("/api/education/enroll", requireWallet, async (req: any, res) => {
     try {
       const { courseId } = req.body;
@@ -416,6 +417,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Enroll error:', error);
       res.status(500).json({ error: 'Failed to enroll in course' });
+    }
+  });
+
+  // New BCC claim endpoint for courses
+  app.post("/api/education/claim", requireWallet, async (req: any, res) => {
+    try {
+      const { courseId, useBCCBucket } = req.body;
+      
+      if (!courseId || !useBCCBucket) {
+        return res.status(400).json({ error: 'Course ID and BCC bucket type required' });
+      }
+
+      if (!['transferable', 'restricted'].includes(useBCCBucket)) {
+        return res.status(400).json({ error: 'Invalid BCC bucket type' });
+      }
+
+      // Check if user is activated
+      const user = await storage.getUser(req.walletAddress);
+      if (!user?.memberActivated) {
+        return res.status(403).json({ error: 'Membership activation required' });
+      }
+
+      // Get course details
+      const course = await storage.getCourse(courseId);
+      if (!course) {
+        return res.status(404).json({ error: 'Course not found' });
+      }
+
+      // Check level requirement
+      if (user.currentLevel < course.requiredLevel) {
+        return res.status(403).json({ error: `Level ${course.requiredLevel} required` });
+      }
+
+      // Check if already enrolled
+      const existingAccess = await storage.getCourseAccess(req.walletAddress, courseId);
+      if (existingAccess) {
+        return res.status(400).json({ error: 'Already enrolled in this course' });
+      }
+
+      // Handle payment for paid courses
+      if (!course.isFree && course.priceBCC > 0) {
+        const bccBalance = await storage.getBCCBalance(req.walletAddress);
+        if (!bccBalance) {
+          return res.status(400).json({ error: 'No BCC balance found' });
+        }
+
+        const availableAmount = useBCCBucket === 'transferable' ? bccBalance.transferable : bccBalance.restricted;
+        if (availableAmount < course.priceBCC) {
+          return res.status(400).json({ error: `Insufficient ${useBCCBucket} BCC balance` });
+        }
+
+        // Deduct BCC from specified bucket
+        const updateData = useBCCBucket === 'transferable' 
+          ? { transferable: bccBalance.transferable - course.priceBCC }
+          : { restricted: bccBalance.restricted - course.priceBCC };
+
+        await storage.updateBCCBalance(req.walletAddress, updateData);
+      }
+
+      // Create course access
+      const access = await storage.createCourseAccess({
+        walletAddress: req.walletAddress,
+        courseId: courseId,
+        progress: 0,
+        completed: false,
+      });
+
+      res.json({ 
+        success: true, 
+        access,
+        bucketUsed: useBCCBucket,
+        amountDeducted: course.isFree ? 0 : course.priceBCC
+      });
+    } catch (error) {
+      console.error('Course claim error:', error);
+      res.status(500).json({ error: 'Failed to claim course' });
     }
   });
 
@@ -716,7 +793,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const bridgePayment = await storage.createBridgePayment({
         ...result.data,
-        walletAddress: req.walletAddress,
+        walletAddress: (req as any).walletAddress,
       });
 
       res.json(bridgePayment);
@@ -746,7 +823,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user's bridge payments
   app.get("/api/bridge/payments", requireWallet, async (req, res) => {
     try {
-      const bridgePayments = await storage.getBridgePaymentsByWallet(req.walletAddress);
+      const bridgePayments = await storage.getBridgePaymentsByWallet((req as any).walletAddress);
       res.json(bridgePayments);
     } catch (error) {
       console.error('Bridge payments fetch error:', error);
