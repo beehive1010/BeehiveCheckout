@@ -44,8 +44,29 @@
         "description": "롤업 메커니즘이 있는 48시간 업그레이드 카운트다운"
       }
     },
+    "stats": {
+      "membershipLevels": "19개 멤버십 레벨",
+      "matrixSystem": "3×3 매트릭스 시스템",
+      "nftMarketplace": "NFT 마켓플레이스"
+    },
+    "platformFeatures": {
+      "title": "플랫폼 기능",
+      "subtitle": "Beehive를 최고의 Web3 멤버십 플랫폼으로 만드는 강력한 기능들을 발견하세요",
+      "exclusiveLevels": "19개 독점 레벨",
+      "exclusiveCollections": "독점 컬렉션",
+      "autoPlacement": "자동 배치 시스템",
+      "dualTokenSystem": "듀얼 토큰 시스템",
+      "premiumCourses": "프리미엄 코스",
+      "countdown": "48시간 카운트다운"
+    },
+    "ctaStats": {
+      "membershipLevels": "멤버십 레벨",
+      "matrixSystem": "매트릭스 시스템",
+      "earningPotential": "수익 잠재력"
+    },
     "howItWorks": {
       "title": "작동 방식",
+      "subtitle": "간단한 3단계로 시작하고 Web3 멤버십의 힘을 잠금 해제하세요",
       "step1": {
         "title": "지갑 연결",
         "description": "시작하려면 Web3 지갑을 연결하세요"
@@ -650,6 +671,11 @@
         "peak": "최고 성능 계층",
         "legendary": "전설적 창립자 특권"
       }
+    }
+  },
+  "welcome": {
+    "benefits": {
+      "hiveworld": "하이브월드 매트릭스 시스템"
     }
   },
   "footer": {

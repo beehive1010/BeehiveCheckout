@@ -55,8 +55,29 @@
         "description": "ロールアップメカニズム付き48時間アップグレードカウントダウン"
       }
     },
+    "stats": {
+      "membershipLevels": "19のメンバーシップレベル",
+      "matrixSystem": "3×3マトリックスシステム",
+      "nftMarketplace": "NFTマーケットプレイス"
+    },
+    "platformFeatures": {
+      "title": "プラットフォーム機能",
+      "subtitle": "Beehiveを最高のWeb3メンバーシッププラットフォームにする強力な機能を発見",
+      "exclusiveLevels": "19の独占レベル",
+      "exclusiveCollections": "独占コレクション",
+      "autoPlacement": "自動配置システム",
+      "dualTokenSystem": "デュアルトークンシステム",
+      "premiumCourses": "プレミアムコース",
+      "countdown": "48時間カウントダウン"
+    },
+    "ctaStats": {
+      "membershipLevels": "メンバーシップレベル",
+      "matrixSystem": "マトリックスシステム",
+      "earningPotential": "収益ポテンシャル"
+    },
     "howItWorks": {
       "title": "仕組み",
+      "subtitle": "簡単な3ステップで始めてWeb3メンバーシップの力を解き放つ",
       "step1": {
         "title": "ウォレット接続",
         "description": "開始するためにWeb3ウォレットを接続"
@@ -603,6 +624,11 @@
         "peak": "ピークパフォーマンス層",
         "legendary": "伝説的創設者特典"
       }
+    }
+  },
+  "welcome": {
+    "benefits": {
+      "hiveworld": "HiveWorldマトリックスシステム"
     }
   },
   "footer": {

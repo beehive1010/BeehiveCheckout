@@ -44,8 +44,29 @@
         "description": "การนับถอยหลัง 48 ชั่วโมงสำหรับอัพเกรดพร้อมกลไกส่งต่อ"
       }
     },
+    "stats": {
+      "membershipLevels": "19 ระดับสมาชิก",
+      "matrixSystem": "ระบบ Matrix 3×3",
+      "nftMarketplace": "ตลาด NFT"
+    },
+    "platformFeatures": {
+      "title": "ฟีเจอร์แพลตฟอร์ม",
+      "subtitle": "ค้นพบฟีเจอร์อันทรงพลังที่ทำให้ Beehive เป็นแพลตฟอร์มสมาชิก Web3 ที่ดีที่สุด",
+      "exclusiveLevels": "19 ระดับเฉพาะ",
+      "exclusiveCollections": "คอลเลกชั่นพิเศษ",
+      "autoPlacement": "ระบบจัดวางอัตโนมัติ",
+      "dualTokenSystem": "ระบบโทเค็นคู่",
+      "premiumCourses": "หลักสูตรพรีเมียม",
+      "countdown": "นับถอยหลัง 48 ชม."
+    },
+    "ctaStats": {
+      "membershipLevels": "ระดับสมาชิก",
+      "matrixSystem": "ระบบ Matrix",
+      "earningPotential": "ศักยภาพการหารายได้"
+    },
     "howItWorks": {
       "title": "วิธีการทำงาน",
+      "subtitle": "เริ่มต้นง่ายๆ ใน 3 ขั้นตอนและปลดล็อกพลังของสมาชิก Web3",
       "step1": {
         "title": "เชื่อมต่อกระเป๋าเงิน",
         "description": "เชื่อมต่อกระเป๋าเงิน Web3 ของคุณเพื่อเริ่มต้น"
@@ -606,6 +627,11 @@
         "peak": "ชั้นประสิทธิภาพสูงสุด",
         "legendary": "สิทธิพิเศษผู้ก่อตั้งตำนาน"
       }
+    }
+  },
+  "welcome": {
+    "benefits": {
+      "hiveworld": "ระบบ Matrix ของ HiveWorld"
     }
   },
   "footer": {
