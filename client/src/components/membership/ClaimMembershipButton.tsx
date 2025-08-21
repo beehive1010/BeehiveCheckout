@@ -438,7 +438,7 @@ export default function ClaimMembershipButton({
             payOptions={{
               mode: "direct_payment",
               paymentInfo: {
-                amount: (membershipLevel.priceUSDT * 1000000).toString(), // Convert to USDT wei (6 decimals)
+                amount: membershipLevel.priceUSDT.toString(), // PayEmbed expects actual USDT amount
                 sellerAddress: selectedChain.bridgeWallet,
                 chain: selectedChain.chain,
                 token: {
