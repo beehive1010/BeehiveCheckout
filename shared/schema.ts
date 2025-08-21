@@ -278,6 +278,36 @@ export const insertCourseAccessSchema = createInsertSchema(courseAccess).pick({
   completed: true,
 });
 
+// Advertisement NFTs table - different from merchant NFTs
+export const advertisementNFTs = pgTable("advertisement_nfts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  imageUrl: text("image_url").notNull(),
+  serviceName: text("service_name").notNull(), // DApp or service name
+  serviceType: text("service_type").notNull(), // 'dapp', 'banner', 'promotion'
+  priceBCC: integer("price_bcc").notNull(),
+  codeTemplate: text("code_template").notNull(), // Template for generating active codes
+  active: boolean("active").default(true).notNull(),
+  totalSupply: integer("total_supply").default(1000).notNull(),
+  claimedCount: integer("claimed_count").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Advertisement NFT Claims - BCC locked in NFTs
+export const advertisementNFTClaims = pgTable("advertisement_nft_claims", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  walletAddress: varchar("wallet_address", { length: 42 }).notNull().references(() => users.walletAddress),
+  nftId: varchar("nft_id").notNull().references(() => advertisementNFTs.id),
+  bccAmountLocked: integer("bcc_amount_locked").notNull(),
+  bucketUsed: text("bucket_used").notNull(), // 'restricted' or 'transferable'
+  activeCode: text("active_code").notNull(), // Generated unique code for this claim
+  status: text("status").default("claimed").notNull(), // 'claimed', 'burned'
+  claimedAt: timestamp("claimed_at").defaultNow().notNull(),
+  burnedAt: timestamp("burned_at"),
+  codeUsedAt: timestamp("code_used_at"),
+});
+
 export const insertBlogPostSchema = createInsertSchema(blogPosts).pick({
   title: true,
   excerpt: true,
@@ -287,6 +317,27 @@ export const insertBlogPostSchema = createInsertSchema(blogPosts).pick({
   published: true,
   tags: true,
   language: true,
+});
+
+export const insertAdvertisementNFTSchema = createInsertSchema(advertisementNFTs).pick({
+  title: true,
+  description: true,
+  imageUrl: true,
+  serviceName: true,
+  serviceType: true,
+  priceBCC: true,
+  codeTemplate: true,
+  active: true,
+  totalSupply: true,
+});
+
+export const insertAdvertisementNFTClaimSchema = createInsertSchema(advertisementNFTClaims).pick({
+  walletAddress: true,
+  nftId: true,
+  bccAmountLocked: true,
+  bucketUsed: true,
+  activeCode: true,
+  status: true,
 });
 
 // Types
@@ -322,6 +373,12 @@ export type CourseAccess = typeof courseAccess.$inferSelect;
 
 export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
 export type BlogPost = typeof blogPosts.$inferSelect;
+
+export type InsertAdvertisementNFT = z.infer<typeof insertAdvertisementNFTSchema>;
+export type AdvertisementNFT = typeof advertisementNFTs.$inferSelect;
+
+export type InsertAdvertisementNFTClaim = z.infer<typeof insertAdvertisementNFTClaimSchema>;
+export type AdvertisementNFTClaim = typeof advertisementNFTClaims.$inferSelect;
 
 // Bridge Payment Tracking Table
 export const bridgePayments = pgTable("bridge_payments", {
