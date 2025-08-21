@@ -274,6 +274,40 @@
       "hours": "ชั่วโมง",
       "label": "ความก้าวหน้า"
     },
+    "search": {
+      "placeholder": "สิ่งที่คุณต้องการเรียนรู้"
+    },
+    "filters": {
+      "category": "หมวดหมู่",
+      "allCategories": "หมวดหมู่ทั้งหมด",
+      "level": "ระดับ",
+      "allLevels": "ระดับทั้งหมด",
+      "type": "ประเภท",
+      "allTypes": "ประเภททั้งหมด",
+      "onlineZoom": "ออนไลน์ (Zoom)",
+      "videoLessons": "บทเรียนวิดีโอ",
+      "payment": "การชำระเงิน",
+      "allCourses": "หลักสูตรทั้งหมด",
+      "freeCourses": "หลักสูตรฟรี",
+      "paidBCC": "ชำระด้วย BCC"
+    },
+    "courseTypes": {
+      "zoomMeeting": "การประชุม Zoom",
+      "videoAccess": "การเข้าถึงวิดีโอ",
+      "streamOrDownload": "สตรีมหรือดาวน์โหลด"
+    },
+    "buttons": {
+      "join": "เข้าร่วม",
+      "watch": "ชม",
+      "download": "ดาวน์โหลด",
+      "completed": "เสร็จสิ้นแล้ว",
+      "enrolled": "ลงทะเบียนแล้ว",
+      "claiming": "กำลังรับสิทธิ์...",
+      "levelRequired": "ต้องการ",
+      "insufficientBCC": "BCC ไม่เพียงพอ",
+      "claimFree": "รับสิทธิ์หลักสูตรฟรี",
+      "claimPaid": "รับสิทธิ์ ({} BCC)"
+    },
     "free": "ฟรี",
     "levelRequired": "ระดับที่ต้องการ",
     "duration": "ระยะเวลา",
@@ -283,6 +317,16 @@
     "purchase": "ซื้อหลักสูตร",
     "enrolling": "กำลังลงทะเบียน...",
     "insufficientBCC": "BCC ไม่เพียงพอ",
+    "claim": {
+      "success": {
+        "title": "รับสิทธิ์หลักสูตรสำเร็จ!",
+        "description": "คุณสามารถเข้าถึงหลักสูตรนี้ได้แล้ว"
+      },
+      "error": {
+        "title": "การรับสิทธิ์ล้มเหลว",
+        "description": "ไม่สามารถรับสิทธิ์หลักสูตรได้ กรุณาลองอีกครั้ง"
+      }
+    },
     "enroll": {
       "success": {
         "title": "ลงทะเบียนสำเร็จ!",

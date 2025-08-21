@@ -328,6 +328,40 @@
       "hours": "시간",
       "label": "진행률"
     },
+    "search": {
+      "placeholder": "배우고 싶은 내용"
+    },
+    "filters": {
+      "category": "카테고리",
+      "allCategories": "모든 카테고리",
+      "level": "레벨",
+      "allLevels": "모든 레벨",
+      "type": "유형",
+      "allTypes": "모든 유형",
+      "onlineZoom": "온라인 (Zoom)",
+      "videoLessons": "비디오 레슨",
+      "payment": "결제",
+      "allCourses": "모든 코스",
+      "freeCourses": "무료 코스",
+      "paidBCC": "BCC 결제"
+    },
+    "courseTypes": {
+      "zoomMeeting": "Zoom 미팅",
+      "videoAccess": "비디오 액세스",
+      "streamOrDownload": "스트리밍 또는 다운로드"
+    },
+    "buttons": {
+      "join": "참여",
+      "watch": "시청",
+      "download": "다운로드",
+      "completed": "완료됨",
+      "enrolled": "등록됨",
+      "claiming": "클레임 중...",
+      "levelRequired": "필요",
+      "insufficientBCC": "BCC 부족",
+      "claimFree": "무료 코스 클레임",
+      "claimPaid": "클레임 ({} BCC)"
+    },
     "free": "무료",
     "levelRequired": "필요 레벨",
     "duration": "기간",
@@ -337,6 +371,16 @@
     "purchase": "코스 구매",
     "enrolling": "등록 중...",
     "insufficientBCC": "BCC 부족",
+    "claim": {
+      "success": {
+        "title": "코스 클레임 성공!",
+        "description": "이제 이 코스에 액세스할 수 있습니다."
+      },
+      "error": {
+        "title": "클레임 실패",
+        "description": "코스를 클레임할 수 없습니다. 다시 시도하세요."
+      }
+    },
     "enroll": {
       "success": {
         "title": "등록 성공!",
