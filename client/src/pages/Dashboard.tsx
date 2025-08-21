@@ -6,6 +6,10 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import HexagonIcon from '../components/UI/HexagonIcon';
 import { useToast } from '../hooks/use-toast';
+import { TransactionWidget, useActiveAccount, useReadContract } from "thirdweb/react";
+import { getNFT } from "thirdweb/extensions/erc1155";
+import { claimTo } from "thirdweb/extensions/erc1155";
+import { bbcMembershipContract, client } from "../lib/web3";
 
 export default function Dashboard() {
   const { 
@@ -20,6 +24,7 @@ export default function Dashboard() {
   const { t } = useI18n();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const account = useActiveAccount();
 
   const handleActivateLevel1 = () => {
     // Mock Level 1 activation - in real implementation would integrate with payment system
@@ -128,25 +133,18 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <Button
-              onClick={handleActivateLevel1}
-              size="lg"
-              className="btn-honey text-lg px-8 py-4 glow-hover"
-              disabled={isActivating}
-              data-testid="button-activate-level1"
-            >
-              {isActivating ? (
-                <>
-                  <i className="fas fa-spinner fa-spin mr-3"></i>
-                  {t('dashboard.activating')}
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-crown mr-3"></i>
-                  {t('dashboard.activateLevel1')}
-                </>
-              )}
-            </Button>
+            <div className="w-full">
+              <TransactionWidget
+                client={client}
+                theme="dark"
+                transaction={claimTo({
+                  contract: bbcMembershipContract,
+                  quantity: BigInt(1),
+                  tokenId: BigInt(1), // Level 1 Warrior/勇士
+                  to: account?.address || walletAddress || "",
+                })}
+              />
+            </div>
 
             <p className="text-sm text-muted-foreground mt-4">
               {t('dashboard.activationNote')}

@@ -1,4 +1,4 @@
-import { createThirdwebClient } from 'thirdweb';
+import { createThirdwebClient, getContract } from 'thirdweb';
 import { ethereum, polygon, arbitrum, optimism } from 'thirdweb/chains';
 import { defineChain } from 'thirdweb/chains';
 import { inAppWallet, createWallet } from 'thirdweb/wallets';
@@ -147,16 +147,42 @@ export const authConfig = {
 
 // Contract addresses (these would be set after deployment)
 export const contractAddresses = {
-  BBC_MEMBERSHIP: import.meta.env.VITE_BBC_CONTRACT_ADDRESS || '',
-  BCC_TOKEN: import.meta.env.VITE_BCC_CONTRACT_ADDRESS || '',
-  MERCHANT_NFTS: import.meta.env.VITE_MERCHANT_CONTRACT_ADDRESS || '',
+  BBC_MEMBERSHIP: import.meta.env.VITE_BBC_CONTRACT_ADDRESS || '0x1234567890123456789012345678901234567890',
+  BCC_TOKEN: import.meta.env.VITE_BCC_CONTRACT_ADDRESS || '0x1234567890123456789012345678901234567891',
+  MERCHANT_NFTS: import.meta.env.VITE_MERCHANT_CONTRACT_ADDRESS || '0x1234567890123456789012345678901234567892',
   USDT: {
     ethereum: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     polygon: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
     arbitrum: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
     optimism: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
+    alphaCentauri: '0x1234567890123456789012345678901234567893',
   },
 };
+
+// Contract instances
+export const bbcMembershipContract = getContract({
+  client,
+  address: contractAddresses.BBC_MEMBERSHIP,
+  chain: alphaCentauri,
+});
+
+export const bccTokenContract = getContract({
+  client,
+  address: contractAddresses.BCC_TOKEN,
+  chain: alphaCentauri,
+});
+
+export const merchantNFTContract = getContract({
+  client,
+  address: contractAddresses.MERCHANT_NFTS,
+  chain: alphaCentauri,
+});
+
+export const usdtContract = getContract({
+  client,
+  address: contractAddresses.USDT.alphaCentauri,
+  chain: alphaCentauri,
+});
 
 // Utility functions for Web3 operations
 export const formatWalletAddress = (address: string): string => {

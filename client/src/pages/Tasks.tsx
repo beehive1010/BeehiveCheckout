@@ -4,10 +4,12 @@ import { useI18n } from '../contexts/I18nContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { useToast } from '../hooks/use-toast';
 import { apiRequest } from '../lib/queryClient';
 import MobileDivider from '../components/UI/MobileDivider';
+import { TransactionWidget, useActiveAccount } from "thirdweb/react";
+import { claimTo } from "thirdweb/extensions/erc1155";
+import { merchantNFTContract, client } from "../lib/web3";
 // import MembershipLevelList from '../components/membership/MembershipLevelList';
 
 interface MarketplaceNFT {
@@ -24,9 +26,8 @@ export default function Tasks() {
   const { t } = useI18n();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedNFT, setSelectedNFT] = useState<MarketplaceNFT | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<'membership' | 'advertisement'>('membership');
+  const account = useActiveAccount();
 
   // Fetch advertisement NFTs (existing BCC marketplace)
   const { data: allNfts, isLoading: isLoadingNFTs } = useQuery<MarketplaceNFT[]>({
@@ -64,8 +65,6 @@ export default function Tasks() {
         description: String(t('tasks.claim.success.description')),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-      setIsModalOpen(false);
-      setSelectedNFT(null);
     },
     onError: (error: any) => {
       toast({
@@ -76,29 +75,8 @@ export default function Tasks() {
     },
   });
 
-  const handlePurchaseClick = (nft: MarketplaceNFT) => {
-    setSelectedNFT(nft);
-    setIsModalOpen(true);
-  };
-
-  const handleConfirmPurchase = () => {
-    if (selectedNFT) {
-      claimNFTMutation.mutate(selectedNFT.id);
-    }
-  };
 
   const totalBCC = (bccBalance?.transferable || 0) + (bccBalance?.restricted || 0);
-
-  const isButtonDisabled = (nft: MarketplaceNFT) => {
-    return !walletAddress || totalBCC < nft.priceBCC || claimNFTMutation.isPending;
-  };
-
-  const getButtonText = (nft: MarketplaceNFT) => {
-    if (!walletAddress) return String(t('wallet.connect'));
-    if (claimNFTMutation.isPending) return String(t('tasks.claiming'));
-    if (totalBCC < nft.priceBCC) return String(t('tasks.insufficientBCC'));
-    return String(t('tasks.claim'));
-  };
 
   if (!walletAddress) {
     return (
@@ -292,102 +270,33 @@ export default function Tasks() {
                       </span>
                     </div>
                     
-                    <Dialog open={isModalOpen && selectedNFT?.id === nft.id} onOpenChange={(open) => {
-                      if (!open) {
-                        setIsModalOpen(false);
-                        setSelectedNFT(null);
-                      }
-                    }}>
-                      <DialogTrigger asChild>
-                        <Button
-                          onClick={() => handlePurchaseClick(nft)}
-                          disabled={isButtonDisabled(nft)}
-                          className={`w-full text-xs ${
-                            isButtonDisabled(nft)
-                              ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                              : 'bg-honey hover:bg-honey/90 text-black'
-                          }`}
-                          data-testid={`button-claim-${nft.id}`}
-                        >
-                          {getButtonText(nft)}
-                        </Button>
-                      </DialogTrigger>
-                      
-                      <DialogContent className="bg-background border-border">
-                        <DialogHeader>
-                          <DialogTitle className="text-honey">{String(t('tasks.claimModal.title'))}</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="flex items-center space-x-4">
-                            <img src={nft.imageUrl} alt={nft.title} className="w-16 h-16 rounded-lg object-cover" />
-                            <div>
-                              <h4 className="font-semibold text-honey">{nft.title}</h4>
-                              <p className="text-sm text-muted-foreground">{nft.description}</p>
-                            </div>
-                          </div>
-                          
-                          <div className="bg-secondary p-4 rounded-lg space-y-2">
-                            <div className="flex justify-between">
-                              <span>{String(t('tasks.claimModal.price'))}:</span>
-                              <span className="font-bold text-honey">{nft.priceBCC} BCC</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>{String(t('tasks.claimModal.availableRestricted'))}:</span>
-                              <span>{bccBalance?.restricted || 0} BCC</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>{String(t('tasks.claimModal.availableTransferable'))}:</span>
-                              <span>{bccBalance?.transferable || 0} BCC</span>
-                            </div>
-                          </div>
-                          
-                          <p className="text-sm text-muted-foreground">
-                            {String(t('tasks.claimModal.confirmation'))}
-                          </p>
-                          
-                          <div className="flex space-x-2">
-                            <Button
-                              onClick={handleConfirmPurchase}
-                              disabled={claimNFTMutation.isPending || totalBCC < nft.priceBCC}
-                              className="flex-1 bg-honey hover:bg-honey/90 text-black"
-                            >
-                              {claimNFTMutation.isPending ? (
-                                <>
-                                  <i className="fas fa-spinner fa-spin mr-2"></i>
-                                  {String(t('tasks.claiming'))}
-                                </>
-                              ) : (
-                                String(t('tasks.claimModal.confirm'))
-                              )}
-                            </Button>
-                            <Button
-                              onClick={() => setIsModalOpen(false)}
-                              variant="outline"
-                              className="flex-1"
-                            >
-                              {String(t('tasks.claimModal.cancel'))}
-                            </Button>
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                    <div className="w-full">
+                      <TransactionWidget
+                        client={client}
+                        theme="dark"
+                        transaction={claimTo({
+                          contract: merchantNFTContract,
+                          quantity: BigInt(1),
+                          tokenId: BigInt(nft.id),
+                          to: account?.address || walletAddress || "",
+                        })}
+                      />
+                    </div>
                   </div>
                   
                   {/* Desktop: Side by side */}
                   <div className="hidden md:flex justify-between items-center">
                     <span className="text-honey font-bold">{nft.priceBCC} BCC</span>
-                    <Button
-                      onClick={() => handlePurchaseClick(nft)}
-                      disabled={isButtonDisabled(nft)}
-                      className={`${
-                        isButtonDisabled(nft)
-                          ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                          : 'bg-honey hover:bg-honey/90 text-black'
-                      }`}
-                      data-testid={`button-claim-${nft.id}`}
-                    >
-                      {getButtonText(nft)}
-                    </Button>
+                    <TransactionWidget
+                      client={client}
+                      theme="dark"
+                      transaction={claimTo({
+                        contract: merchantNFTContract,
+                        quantity: BigInt(1),
+                        tokenId: BigInt(nft.id),
+                        to: account?.address || walletAddress || "",
+                      })}
+                    />
                   </div>
                 </CardContent>
               </Card>
