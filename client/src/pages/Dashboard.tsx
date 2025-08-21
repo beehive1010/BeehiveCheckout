@@ -59,7 +59,6 @@ export default function Dashboard() {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
-  const quickActions = [];
 
   const recentActivities = [
     {
@@ -603,35 +602,6 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-      </div>
-      {/* Quick Actions Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {quickActions.map((action) => (
-          <Card 
-            key={action.key}
-            className="bg-secondary border-border glow-hover card-hover cursor-pointer"
-            onClick={() => setLocation(action.path)}
-            data-testid={`card-${action.key}`}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4 mb-4">
-                <HexagonIcon>
-                  <i className={`${action.icon} text-honey`}></i>
-                </HexagonIcon>
-                <h3 className="text-lg font-semibold text-honey">
-                  {t(action.titleKey)}
-                </h3>
-              </div>
-              <p className="text-muted-foreground text-sm mb-4">
-                {t(action.descriptionKey)}
-              </p>
-              <div className="flex justify-between items-center">
-                <span className="text-honey text-sm">{action.statValue}</span>
-                <i className="fas fa-arrow-right text-honey"></i>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
       </div>
     </div>
   );

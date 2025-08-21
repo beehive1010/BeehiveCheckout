@@ -249,7 +249,19 @@
       "totalRewardsPaid": "지급된 총 보상",
       "pendingRewards": "대기 중인 보상",
       "highestLevel": "최고 레벨",
-      "membersByLevel": "레벨별 회원"
+      "membersByLevel": "레벨별 회원",
+      "members": "회원"
+    },
+    "uplineNetwork": {
+      "title": "업라인 네트워크",
+      "earnings": "수익",
+      "loading": "네트워크 데이터 로딩 중...",
+      "noReferrals": "추천 데이터가 없습니다",
+      "shareMessage": "추천 링크를 공유하여 네트워크를 성장시키세요"
+    },
+    "downlineMatrix": {
+      "title": "다운라인 매트릭스",
+      "placement": "배치"
     }
   },
   "tasks": {
