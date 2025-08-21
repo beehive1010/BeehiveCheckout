@@ -4,10 +4,14 @@ import { useToast } from '../../hooks/use-toast';
 import { useI18n } from '../../contexts/I18nContext';
 import { getMembershipLevel } from '../../lib/config/membershipLevels';
 import { membershipEventEmitter } from '../../lib/membership/events';
-import { ConnectButton } from "thirdweb/react";
+import { ConnectButton, useActiveAccount } from "thirdweb/react";
 import { client, alphaCentauri, bbcMembershipContract, levelToTokenId, paymentChains } from '../../lib/web3';
 import { PayEmbed } from "thirdweb/react";
 import { Card, CardContent } from '../ui/card';
+import { FiX } from 'react-icons/fi';
+import { getApprovalForTransaction } from 'thirdweb/extensions/erc20';
+import { sendAndConfirmTransaction } from 'thirdweb';
+import toast from 'react-hot-toast';
 
 type ClaimState = 'idle' | 'approving' | 'paying' | 'verifying' | 'persisting' | 'success' | 'error';
 
@@ -33,6 +37,8 @@ export default function ClaimMembershipButton({
   const [doubleClickGuard, setDoubleClickGuard] = useState(false);
   const [selectedChain, setSelectedChain] = useState(paymentChains[0]); // Default to Ethereum
   const [showChainSelector, setShowChainSelector] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
+  const account = useActiveAccount();
   const { toast } = useToast();
   const { t } = useI18n();
 
@@ -213,10 +219,12 @@ export default function ClaimMembershipButton({
       }
     });
 
-    toast({
-      title: String(t('membership.purchase.error.title')),
-      description: String(t('membership.purchase.error.description')),
-      variant: 'destructive',
+    toast.error(`${String(t('membership.purchase.error.title'))}: ${String(t('membership.purchase.error.description'))}`, {
+      duration: 8000,
+      style: {
+        background: '#EF4444',
+        color: 'white',
+      },
     });
 
     onError?.(message);
@@ -227,30 +235,107 @@ export default function ClaimMembershipButton({
     setShowChainSelector(true);
   };
 
-  const handleChainSelected = (chain: typeof paymentChains[0]) => {
+  const handleChainSelected = async (chain: typeof paymentChains[0]) => {
+    if (!account) return;
+    
     setSelectedChain(chain);
     setShowChainSelector(false);
     setDoubleClickGuard(true);
-    setClaimState('paying');
 
-    // Emit purchase started event
-    membershipEventEmitter.emit({
-      type: 'MEMBERSHIP_PURCHASE_STARTED',
-      payload: {
-        walletAddress,
-        level,
-        priceUSDT: membershipLevel.priceUSDT,
-        selectedChain: chain.name,
-        timestamp: Date.now()
+    try {
+      setIsApproving(true);
+      setClaimState('approving');
+      
+      // Get USDT contract for the selected chain
+      const usdtContract = {
+        client,
+        chain: chain.chain,
+        address: chain.usdtAddress,
+      };
+
+      // Create a dummy transaction to check for approvals needed
+      const dummyTransaction = {
+        to: chain.bridgeWallet,
+        value: "0",
+        data: "0x",
+      };
+
+      // Check if approval is needed for USDT transfers
+      const approveTx = await getApprovalForTransaction({
+        transaction: dummyTransaction,
+        account,
+      });
+
+      if (approveTx) {
+        try {
+          await sendAndConfirmTransaction({ account, transaction: approveTx });
+          toast.success("USDT spending approved! You can now proceed with payment.", {
+            duration: 4000,
+            style: {
+              background: '#10B981',
+              color: 'white',
+            },
+          });
+        } catch (error: any) {
+          if (error.message?.includes('insufficient funds')) {
+            toast.error("You don't have enough gas to approve USDT spending.", {
+              duration: 6000,
+              style: {
+                background: '#EF4444',
+                color: 'white',
+              },
+            });
+          } else {
+            toast.error("Failed to approve USDT spending. Please try again.", {
+              duration: 6000,
+              style: {
+                background: '#EF4444', 
+                color: 'white',
+              },
+            });
+          }
+          setClaimState('idle');
+          setIsApproving(false);
+          return;
+        }
       }
-    });
 
-    // Reset guard after 2 seconds
-    setTimeout(() => setDoubleClickGuard(false), 2000);
+      // Proceed to payment
+      setClaimState('paying');
+
+      // Emit purchase started event
+      membershipEventEmitter.emit({
+        type: 'MEMBERSHIP_PURCHASE_STARTED',
+        payload: {
+          walletAddress,
+          level,
+          priceUSDT: membershipLevel.priceUSDT,
+          selectedChain: chain.name,
+          timestamp: Date.now()
+        }
+      });
+
+    } catch (error) {
+      console.error('Chain selection error:', error);
+      toast.error("Failed to prepare payment. Please try again.", {
+        duration: 6000,
+        style: {
+          background: '#EF4444',
+          color: 'white',
+        },
+      });
+      setClaimState('idle');
+    } finally {
+      setIsApproving(false);
+      // Reset guard after 2 seconds
+      setTimeout(() => setDoubleClickGuard(false), 2000);
+    }
   };
 
   const getButtonText = () => {
     switch (claimState) {
+      case 'approving':
+        return isApproving ? 'Approving USDT...' : 'Preparing Payment...';
       case 'paying':
         return String(t('membership.purchase.paying'));
       case 'verifying':
@@ -262,11 +347,11 @@ export default function ClaimMembershipButton({
       case 'error':
         return String(t('membership.purchase.retry'));
       default:
-        return String(t('membership.purchase.button'));
+        return `Purchase Level ${level} ($${membershipLevel.priceUSDT} USDT)`;
     }
   };
 
-  const isButtonDisabled = disabled || doubleClickGuard || ['paying', 'verifying', 'persisting', 'success'].includes(claimState);
+  const isButtonDisabled = disabled || doubleClickGuard || isApproving || ['approving', 'paying', 'verifying', 'persisting', 'success'].includes(claimState);
 
   if (!walletAddress) {
     return (
@@ -336,54 +421,86 @@ export default function ClaimMembershipButton({
 
   if (claimState === 'paying') {
     return (
-      <div className={`${className} space-y-4`}>
-        {/* Selected Chain Info */}
-        <div className="bg-secondary/50 rounded-lg p-3 border border-border">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className={`w-6 h-6 rounded-full bg-muted flex items-center justify-center ${selectedChain.color}`}>
-                <i className={`${selectedChain.icon} text-xs`}></i>
+      <div className="fixed inset-0 z-[9999] overflow-y-auto">
+        <div className="min-h-screen px-4 text-center">
+          {/* Background overlay */}
+          <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+            onClick={() => {
+              setClaimState('idle');
+              setShowChainSelector(false);
+            }}
+          />
+
+          {/* Centering trick */}
+          <span
+            className="inline-block h-screen align-middle"
+            aria-hidden="true"
+          >
+            &#8203;
+          </span>
+
+          {/* Modal content */}
+          <div className="inline-block w-full max-w-[500px] min-h-[600px] max-h-[80vh] my-8 align-middle transition-all transform bg-background rounded-2xl relative border border-border">
+            {/* Close button */}
+            <button
+              onClick={() => {
+                setClaimState('idle');
+                setShowChainSelector(false);
+              }}
+              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground p-2 rounded-full hover:bg-muted transition-colors z-10"
+              title={String(t('membership.purchase.cancel'))}
+            >
+              <FiX size={24} />
+            </button>
+
+            {/* Selected Chain Info Header */}
+            <div className="bg-secondary/50 rounded-t-2xl p-4 border-b border-border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-8 h-8 rounded-full bg-muted flex items-center justify-center ${selectedChain.color}`}>
+                    <i className={`${selectedChain.icon} text-sm`}></i>
+                  </div>
+                  <div>
+                    <p className="font-medium">{selectedChain.name}</p>
+                    <p className="text-xs text-muted-foreground">USDT Payment</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-bold text-honey">${membershipLevel.priceUSDT}</p>
+                  <p className="text-xs text-muted-foreground">Level {level} Membership</p>
+                </div>
               </div>
-              <span className="text-sm font-medium">{selectedChain.name}</span>
             </div>
-            <span className="text-xs text-muted-foreground">USDT Payment</span>
+
+            {/* PayEmbed Container */}
+            <div className="p-4">
+              <PayEmbed
+                client={client}
+                payOptions={{
+                  mode: "direct_payment",
+                  paymentInfo: {
+                    amount: membershipLevel.priceUSDT.toString(),
+                    sellerAddress: selectedChain.bridgeWallet,
+                    chain: selectedChain.chain,
+                    token: {
+                      address: selectedChain.usdtAddress,
+                      symbol: 'USDT',
+                      name: 'Tether USD',
+                    },
+                  },
+                  metadata: {
+                    name: `Beehive L${level} Membership (${selectedChain.name})`,
+                    description: `Level ${level} membership upgrade via ${selectedChain.name} USDT`,
+                    image: "/membership-badge.png",
+                  },
+                  onPurchaseSuccess: handlePaymentSuccess,
+                }}
+                theme="dark"
+              />
+            </div>
           </div>
         </div>
-
-        <PayEmbed
-          client={client}
-          payOptions={{
-            mode: "direct_payment",
-            paymentInfo: {
-              amount: membershipLevel.priceUSDT.toString(),
-              sellerAddress: selectedChain.bridgeWallet,
-              chain: selectedChain.chain,
-              token: {
-                address: selectedChain.usdtAddress,
-                symbol: 'USDT',
-                name: 'Tether USD',
-              },
-            },
-            metadata: {
-              name: `Beehive L${level} Membership (${selectedChain.name})`,
-              description: `Level ${level} membership upgrade via ${selectedChain.name} USDT`,
-              image: "/membership-badge.png",
-            },
-          }}
-          theme="dark"
-        />
-        
-        <Button
-          onClick={() => {
-            setClaimState('idle');
-            setShowChainSelector(false);
-          }}
-          variant="outline"
-          className="w-full"
-          data-testid="button-cancel-payment"
-        >
-          {String(t('membership.purchase.cancel'))}
-        </Button>
       </div>
     );
   }
@@ -392,23 +509,30 @@ export default function ClaimMembershipButton({
     <Button
       onClick={handleStartPurchase}
       disabled={isButtonDisabled}
-      className={`w-full transition-all duration-200 ${
+      className={`w-full transition-all duration-200 relative ${
         claimState === 'success' 
           ? 'bg-green-600 hover:bg-green-700' 
+          : claimState === 'approving'
+          ? 'bg-blue-600 hover:bg-blue-700'
           : 'bg-honey hover:bg-honey/90 text-black'
       } ${className}`}
       data-testid={`button-claim-membership-${level}`}
     >
-      {['verifying', 'persisting'].includes(claimState) && (
-        <i className="fas fa-spinner fa-spin mr-2"></i>
-      )}
-      {claimState === 'success' && (
-        <i className="fas fa-check mr-2"></i>
-      )}
-      {claimState === 'error' && (
-        <i className="fas fa-exclamation-triangle mr-2"></i>
-      )}
-      {getButtonText()}
+      <div className="flex items-center justify-center gap-2">
+        {['approving', 'verifying', 'persisting'].includes(claimState) && (
+          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+        )}
+        {claimState === 'success' && (
+          <i className="fas fa-check"></i>
+        )}
+        {claimState === 'error' && (
+          <i className="fas fa-exclamation-triangle"></i>
+        )}
+        <span>{getButtonText()}</span>
+        {claimState === 'idle' && (
+          <span className="text-lg">🔥</span>
+        )}
+      </div>
     </Button>
   );
 }

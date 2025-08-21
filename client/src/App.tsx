@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Web3Provider } from "./contexts/Web3Context";
 import { I18nProvider } from "./contexts/I18nContext";
 import { ThemeProvider } from "next-themes";
+import { Toaster as HotToaster } from "react-hot-toast";
 
 // Pages
 import Landing from "@/pages/Landing";
@@ -54,6 +55,17 @@ function App() {
                 </main>
                 <Footer />
                 <Toaster />
+                <HotToaster 
+                  position="top-right"
+                  toastOptions={{
+                    duration: 4000,
+                    style: {
+                      background: 'var(--background)',
+                      color: 'var(--foreground)',
+                      border: '1px solid var(--border)',
+                    },
+                  }}
+                />
               </div>
             </TooltipProvider>
           </I18nProvider>
