@@ -128,6 +128,19 @@ export default function Tasks() {
         <p className="text-muted-foreground text-sm md:text-base mb-3">
           {t('tasks.membership.description')} • {t('tasks.advertisement.description')}
         </p>
+        
+        {/* NFT Center Button */}
+        <div className="flex justify-center my-4">
+          <Button
+            onClick={() => window.location.href = '/nft-center'}
+            className="bg-honey text-black hover:bg-honey/90 px-6 py-2 font-semibold"
+            data-testid="button-nft-center"
+          >
+            <i className="fas fa-gems mr-2"></i>
+            NFT Center
+          </Button>
+        </div>
+        
         <MobileDivider className="md:hidden" />
       </div>
       
