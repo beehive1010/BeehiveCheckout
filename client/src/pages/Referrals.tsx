@@ -5,25 +5,37 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 export default function Referrals() {
-  const { walletAddress } = useWallet();
+  const { walletAddress, userData } = useWallet();
   const { t } = useI18n();
   const [copySuccess, setCopySuccess] = useState(false);
 
-  const mockReferralData = {
-    directReferrals: 3,
-    totalTeam: 12,
-    totalEarnings: 1100,
-    monthlyEarnings: 350,
-    matrix: [
-      { position: 1, wallet: '0x1234...5678', level: 2, joinDate: '2024-10-15', earnings: 150 },
-      { position: 2, wallet: '0x2345...6789', level: 1, joinDate: '2024-10-12', earnings: 130 },
-      { position: 3, wallet: '0x3456...7890', level: 3, joinDate: '2024-10-08', earnings: 200 },
-    ],
-    pendingCommissions: 45,
-    nextPayout: '2024-10-25'
+  // Fetch user referral statistics
+  const { data: userStats, isLoading: isStatsLoading } = useQuery<any>({
+    queryKey: ['/api/beehive/user-stats', walletAddress],
+    enabled: !!walletAddress
+  });
+
+  // Fetch user's referral tree/matrix data
+  const { data: referralTree, isLoading: isTreeLoading } = useQuery<any>({
+    queryKey: ['/api/beehive/referral-tree'],
+    enabled: !!walletAddress
+  });
+
+  // Calculate referral statistics from real data
+  const referralStats = {
+    directReferrals: userStats?.directReferralCount || 0,
+    totalTeam: userStats?.totalTeamCount || 0,
+    totalEarnings: userStats?.totalEarnings || 0,
+    monthlyEarnings: userStats?.monthlyEarnings || 0,
+    pendingCommissions: userStats?.pendingCommissions || 0,
+    nextPayout: userStats?.nextPayout || 'TBA'
   };
+
+  // Get direct referrals from tree data
+  const directReferrals = referralTree?.directReferrals || [];
 
   const referralLink = `https://beehive.app/register?ref=${walletAddress}`;
 
@@ -44,7 +56,7 @@ export default function Referrals() {
         <Card className="bg-secondary border-border text-center">
           <CardContent className="p-6">
             <i className="fas fa-users text-honey text-2xl mb-3"></i>
-            <div className="text-2xl font-bold text-honey">{mockReferralData.directReferrals}</div>
+            <div className="text-2xl font-bold text-honey">{isStatsLoading ? '...' : referralStats.directReferrals}</div>
             <div className="text-muted-foreground text-sm">{t('me.referral.directReferrals')}</div>
           </CardContent>
         </Card>
@@ -52,7 +64,7 @@ export default function Referrals() {
         <Card className="bg-secondary border-border text-center">
           <CardContent className="p-6">
             <i className="fas fa-sitemap text-blue-400 text-2xl mb-3"></i>
-            <div className="text-2xl font-bold text-honey">{mockReferralData.totalTeam}</div>
+            <div className="text-2xl font-bold text-honey">{isStatsLoading ? '...' : referralStats.totalTeam}</div>
             <div className="text-muted-foreground text-sm">{t('me.referral.totalTeamSize')}</div>
           </CardContent>
         </Card>
@@ -60,7 +72,7 @@ export default function Referrals() {
         <Card className="bg-secondary border-border text-center">
           <CardContent className="p-6">
             <i className="fas fa-dollar-sign text-green-400 text-2xl mb-3"></i>
-            <div className="text-2xl font-bold text-honey">{mockReferralData.totalEarnings}</div>
+            <div className="text-2xl font-bold text-honey">{isStatsLoading ? '...' : referralStats.totalEarnings}</div>
             <div className="text-muted-foreground text-sm">{t('me.referral.totalEarnings')}</div>
           </CardContent>
         </Card>
@@ -68,7 +80,7 @@ export default function Referrals() {
         <Card className="bg-secondary border-border text-center">
           <CardContent className="p-6">
             <i className="fas fa-calendar text-purple-400 text-2xl mb-3"></i>
-            <div className="text-2xl font-bold text-honey">{mockReferralData.monthlyEarnings}</div>
+            <div className="text-2xl font-bold text-honey">{isStatsLoading ? '...' : referralStats.monthlyEarnings}</div>
             <div className="text-muted-foreground text-sm">{t('me.referral.thisMonth')}</div>
           </CardContent>
         </Card>
@@ -153,8 +165,12 @@ export default function Referrals() {
           </CardHeader>
           <CardContent>
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-400 mb-2">{mockReferralData.pendingCommissions} USDT</div>
-              <p className="text-muted-foreground text-sm mb-4">Next payout: {mockReferralData.nextPayout}</p>
+              <div className="text-3xl font-bold text-green-400 mb-2">
+                {isStatsLoading ? '...' : referralStats.pendingCommissions} USDT
+              </div>
+              <p className="text-muted-foreground text-sm mb-4">
+                Next payout: {isStatsLoading ? '...' : referralStats.nextPayout}
+              </p>
               <Button className="btn-honey w-full" data-testid="button-claim-commissions">
                 <i className="fas fa-download mr-2"></i>
                 Claim Commissions
@@ -197,29 +213,39 @@ export default function Referrals() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {mockReferralData.matrix.map((referral, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
+            {isTreeLoading ? (
+              <div className="flex justify-center py-4">
+                <div className="text-muted-foreground">Loading referrals...</div>
+              </div>
+            ) : directReferrals.length === 0 ? (
+              <div className="text-center py-4 text-muted-foreground">
+                No direct referrals yet
+              </div>
+            ) : (
+              directReferrals.map((referral: any, index: number) => (
+                <div key={index} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 bg-honey/20 rounded-lg flex items-center justify-center">
                     <i className="fas fa-user text-honey text-sm"></i>
                   </div>
                   <div>
-                    <h4 className="font-medium text-honey">{formatAddress(referral.wallet)}</h4>
+                    <h4 className="font-medium text-honey">{formatAddress(referral.walletAddress)}</h4>
                     <p className="text-xs text-muted-foreground">
-                      Level {referral.level} • Joined {referral.joinDate}
+                      Level {referral.currentLevel || 1} • Joined {new Date(referral.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Badge className="bg-green-600 text-white">
-                    +{referral.earnings} USDT
+                    +{referral.earnings || 0} USDT
                   </Badge>
                   <Badge variant="secondary">
-                    Position {referral.position}
+                    Position {referral.matrixPosition || 0}
                   </Badge>
                 </div>
-              </div>
-            ))}
+                </div>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>

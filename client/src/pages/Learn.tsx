@@ -12,13 +12,13 @@ export default function Learn() {
   const [, setLocation] = useLocation();
 
   // Fetch user's course progress
-  const { data: userProgress = [], isLoading: isProgressLoading } = useQuery({
+  const { data: userProgress = [], isLoading: isProgressLoading } = useQuery<any[]>({
     queryKey: ['/api/education/progress'],
     enabled: !!userData?.user?.walletAddress
   });
 
   // Fetch all available courses
-  const { data: allCourses = [], isLoading: isCoursesLoading } = useQuery({
+  const { data: allCourses = [], isLoading: isCoursesLoading } = useQuery<any[]>({
     queryKey: ['/api/education/courses']
   });
 
@@ -182,8 +182,8 @@ export default function Learn() {
                 No courses enrolled yet
               </div>
             ) : (
-              recentCourses.map((course, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
+              recentCourses.map((course: any, index: number) => (
+                <div key={index} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 bg-honey/20 rounded-lg flex items-center justify-center">
                     <i className="fas fa-book text-honey text-sm"></i>
@@ -215,8 +215,9 @@ export default function Learn() {
                     <i className="fas fa-arrow-right"></i>
                   </Button>
                 </div>
-              </div>
-            ))}
+                </div>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
