@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useActiveAccount } from 'thirdweb/react';
 import { useNFTVerification } from '../hooks/useNFTVerification';
+import { useWallet } from '../hooks/useWallet';
 import { parseReferralFromUrl } from '../lib/web3';
 
 interface RouteGuardProps {
@@ -11,7 +12,8 @@ interface RouteGuardProps {
 export function RouteGuard({ children }: RouteGuardProps) {
   const account = useActiveAccount();
   const [location, setLocation] = useLocation();
-  const { hasLevel1NFT, isLoading } = useNFTVerification();
+  const { hasLevel1NFT, isLoading: isNFTLoading } = useNFTVerification();
+  const { isRegistered, isUserLoading } = useWallet();
 
   // Store referral link if present in URL
   useEffect(() => {
@@ -23,8 +25,8 @@ export function RouteGuard({ children }: RouteGuardProps) {
 
   // Route guarding logic
   useEffect(() => {
-    // Don't redirect while loading NFT verification
-    if (isLoading) return;
+    // Don't redirect while loading user data or NFT verification
+    if (isNFTLoading || isUserLoading) return;
 
     const isPublicRoute = location === '/' || 
                          location === '/landing' || 
@@ -41,35 +43,45 @@ export function RouteGuard({ children }: RouteGuardProps) {
       return;
     }
 
-    // Wallet is connected - begin authenticated flow
+    // Wallet is connected - check registration and NFT status
     if (hasLevel1NFT) {
       // User has Level 1 NFT - redirect to dashboard if on entry routes
       if (location === '/' || location === '/landing' || location === '/register' || location === '/welcome') {
         setLocation('/dashboard');
       }
       return;
+    } else if (isRegistered) {
+      // User is registered but no Level 1 NFT - redirect to welcome to claim NFT
+      if (location === '/' || location === '/landing' || location === '/register') {
+        setLocation('/welcome');
+        return;
+      }
+      
+      // Allow welcome flow and public routes
+      if (location === '/welcome' || location.startsWith('/blog/') || location === '/hiveworld') return;
+      
+      // For protected routes, redirect to welcome to claim NFT
+      setLocation('/welcome');
+      return;
     } else {
-      // User has wallet but no Level 1 NFT - guide through registration flow
+      // User has wallet but not registered - guide through registration flow
       if (location === '/' || location === '/landing') {
         // Connected wallet on landing page - start registration flow
         setLocation('/register');
         return;
       }
       
-      // Allow registration/welcome flow routes
-      if (location === '/register' || location === '/welcome') return;
-      
-      // Allow other public routes
-      if (location.startsWith('/blog/') || location === '/hiveworld') return;
+      // Allow registration flow and public routes
+      if (location === '/register' || location.startsWith('/blog/') || location === '/hiveworld') return;
       
       // For protected routes, redirect to registration
       setLocation('/register');
       return;
     }
-  }, [account?.address, hasLevel1NFT, isLoading, location, setLocation]);
+  }, [account?.address, hasLevel1NFT, isRegistered, isNFTLoading, isUserLoading, location, setLocation]);
 
-  // Show loading while checking NFT ownership
-  if (isLoading && account?.address) {
+  // Show loading while checking user data and NFT ownership
+  if ((isNFTLoading || isUserLoading) && account?.address) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
