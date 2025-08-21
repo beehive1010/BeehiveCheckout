@@ -49,7 +49,7 @@ function App() {
               <div className="min-h-screen bg-background text-foreground">
                 <Header />
                 <Navigation />
-                <main className="min-h-[calc(100vh-theme(spacing.32))] pb-20 md:pb-0">
+                <main className="min-h-[calc(100vh-theme(spacing.32))] pb-16 md:pb-0">
                   <Router />
                 </main>
                 <Footer />
