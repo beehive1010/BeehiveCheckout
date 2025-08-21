@@ -684,14 +684,14 @@
     "nft": {
       "title": "レベル1ウォリアーNFT",
       "description": "ブロックチェーン上のメンバーシップ資格証明",
-      "tokenId": "トークンID：0",
+      "tokenId": "トークンID: 0",
       "price": "価格",
       "priceAmount": "130 USDT"
     },
     "benefits": {
       "title": "アンロックされる機能：",
-      "dashboard": "フルダッシュボードアクセス",
-      "tasks": "タスクとNFTマーケットプレイス",
+      "dashboard": "完全なダッシュボードアクセス",
+      "tasks": "タスク & NFTマーケットプレイス",
       "education": "教育センター",
       "discover": "Web3 DAppsを発見",
       "tokens": "BCCトークン報酬",
@@ -699,7 +699,7 @@
     },
     "premium": {
       "title": "💎 プレミアムメンバーシップ",
-      "description": "マルチチェーン決済対応でレベル1ウォリアーNFTを130 USDTで購入！"
+      "description": "マルチチェーン決済サポート付きの130 USDTでレベル1ウォリアーNFTを購入しましょう！"
     },
     "success": {
       "title": "購入成功！",
@@ -707,9 +707,9 @@
     },
     "error": {
       "title": "購入失敗",
-      "description": "購入でエラーが発生しました。もう一度お試しください。"
+      "description": "購入中にエラーが発生しました。もう一度お試しください。"
     },
-    "supportText": "複数のブロックチェーンでの安全な決済と即座のNFT配信"
+    "supportText": "問題がありますか？サポートチームにお気軽にお問い合わせください。"
   },
   "tokenPurchase": {
     "title": "トークン購入",
