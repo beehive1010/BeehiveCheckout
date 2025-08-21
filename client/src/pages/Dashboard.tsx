@@ -162,7 +162,7 @@ export default function Dashboard() {
         <Card className="max-w-2xl mx-auto bg-secondary border-border">
           <CardContent className="p-8 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-honey mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Verifying NFT ownership...</p>
+            <p className="text-muted-foreground">{t('dashboard.verifying')}</p>
           </CardContent>
         </Card>
       </div>
@@ -237,7 +237,7 @@ export default function Dashboard() {
               </HexagonIcon>
               <div>
                 <h2 className="text-xl font-bold text-honey">
-                  {userData?.user?.username || 'Member'}
+                  {userData?.user?.username || t('dashboard.member')}
                 </h2>
                 <p className="text-muted-foreground text-sm">
                   {walletAddress ? formatAddress(walletAddress) : ''}
@@ -247,7 +247,7 @@ export default function Dashboard() {
                     Level {currentLevel}
                   </Badge>
                   <Badge variant="secondary" className="bg-green-600 text-white">
-                    NFT Verified ✓
+                    {t('dashboard.nftVerified')}
                   </Badge>
                 </div>
               </div>
@@ -256,11 +256,11 @@ export default function Dashboard() {
             {/* Balance Display */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               <div className="balance-card">
-                <p className="text-muted-foreground text-xs">Reward</p>
+                <p className="text-muted-foreground text-xs">{t('dashboard.reward')}</p>
                 <p className="text-honey font-bold">{isLoadingUserStats ? '...' : (userStats?.totalEarnings || 0)}</p>
               </div>
               <div className="balance-card">
-                <p className="text-muted-foreground text-xs">BCC Balance</p>
+                <p className="text-muted-foreground text-xs">{t('dashboard.bccBalance')}</p>
                 <p className="text-honey font-bold">{bccBalance?.transferable || 0}</p>
               </div>
               <div className="balance-card">
@@ -268,7 +268,7 @@ export default function Dashboard() {
                 <p className="text-honey font-bold">{bccBalance?.restricted || 0}</p>
               </div>
               <div className="balance-card">
-                <p className="text-muted-foreground text-xs">NFTs</p>
+                <p className="text-muted-foreground text-xs">{t('dashboard.nfts')}</p>
                 <p className="text-honey font-bold">{isLoadingUserStats ? '...' : 0}</p>
               </div>
             </div>
@@ -281,14 +281,14 @@ export default function Dashboard() {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-honey flex items-center gap-2">
               <Share2 className="h-5 w-5" />
-              Your Referral Link
+              {t('dashboard.referralLink.title')}
             </h3>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowReferralLink(!showReferralLink)}
             >
-              {showReferralLink ? 'Hide' : 'Show'}
+              {showReferralLink ? t('dashboard.referralLink.hide') : t('dashboard.referralLink.show')}
             </Button>
           </div>
           
@@ -305,8 +305,8 @@ export default function Dashboard() {
                   onClick={() => {
                     navigator.clipboard.writeText(referralLink);
                     toast({
-                      title: "Copied!",
-                      description: "Referral link copied to clipboard",
+                      title: t('dashboard.referralLink.copied'),
+                      description: t('dashboard.referralLink.copiedDesc'),
                     });
                   }}
                   size="sm"
@@ -327,7 +327,7 @@ export default function Dashboard() {
                   className="flex-1"
                   data-testid="button-share-twitter"
                 >
-                  <i className="fab fa-twitter mr-2"></i> Twitter
+                  <i className="fab fa-twitter mr-2"></i> {t('dashboard.social.twitter')}
                 </Button>
                 <Button
                   onClick={() => {
@@ -339,7 +339,7 @@ export default function Dashboard() {
                   className="flex-1"
                   data-testid="button-share-telegram"
                 >
-                  <i className="fab fa-telegram mr-2"></i> Telegram
+                  <i className="fab fa-telegram mr-2"></i> {t('dashboard.social.telegram')}
                 </Button>
                 <Button
                   onClick={() => {
@@ -351,7 +351,7 @@ export default function Dashboard() {
                   className="flex-1"
                   data-testid="button-share-whatsapp"
                 >
-                  <i className="fab fa-whatsapp mr-2"></i> WhatsApp
+                  <i className="fab fa-whatsapp mr-2"></i> {t('dashboard.social.whatsapp')}
                 </Button>
               </div>
             </div>
@@ -366,7 +366,7 @@ export default function Dashboard() {
             <h3 className="text-2xl font-bold text-honey">
               {isLoadingUserStats ? '...' : (userStats?.totalEarnings || 0)}
             </h3>
-            <p className="text-muted-foreground text-sm">Total Rewards</p>
+            <p className="text-muted-foreground text-sm">{t('dashboard.stats.totalRewards')}</p>
           </CardContent>
         </Card>
         
@@ -376,7 +376,7 @@ export default function Dashboard() {
             <h3 className="text-2xl font-bold text-honey">
               {typeof bccBalance === 'object' ? (bccBalance?.transferable || 0) : (bccBalance || 0)}
             </h3>
-            <p className="text-muted-foreground text-sm">BCC Balance </p>
+            <p className="text-muted-foreground text-sm">{t('dashboard.stats.bccBalance')}</p>
           </CardContent>
         </Card>
         
@@ -386,7 +386,7 @@ export default function Dashboard() {
             <h3 className="text-2xl font-bold text-honey">
               {typeof bccBalance === 'object' ? (bccBalance?.restricted || 0) : 0}
             </h3>
-            <p className="text-muted-foreground text-sm">BCC Locked</p>
+            <p className="text-muted-foreground text-sm">{t('dashboard.stats.bccLocked')}</p>
           </CardContent>
         </Card>
         
@@ -396,7 +396,7 @@ export default function Dashboard() {
             <h3 className="text-2xl font-bold text-honey">
               {isLoadingUserStats ? '...' : 0}
             </h3>
-            <p className="text-muted-foreground text-sm">NFTs Owned</p>
+            <p className="text-muted-foreground text-sm">{t('dashboard.stats.nftsOwned')}</p>
           </CardContent>
         </Card>
       </div>
@@ -406,7 +406,7 @@ export default function Dashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-bold text-honey mb-2">Buy BCC Token</h3>
+                <h3 className="text-lg font-bold text-honey mb-2">{t('buttons.buyBccToken')}</h3>
                 <p className="text-muted-foreground text-sm">Purchase BCC tokens for NFT advertisements and platform features</p>
               </div>
               <Button 
@@ -414,7 +414,7 @@ export default function Dashboard() {
                 data-testid="button-buy-bcc"
               >
                 <i className="fas fa-shopping-cart mr-2"></i>
-                Buy BCC
+                {t('buttons.buyBccToken')}
               </Button>
             </div>
           </CardContent>
@@ -424,7 +424,7 @@ export default function Dashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-bold text-purple-400 mb-2">Buy CTH Token</h3>
+                <h3 className="text-lg font-bold text-purple-400 mb-2">{t('buttons.buyCthToken')}</h3>
                 <p className="text-muted-foreground text-sm">Purchase CTH tokens for advanced trading and rewards features</p>
               </div>
               <Button 
@@ -432,7 +432,7 @@ export default function Dashboard() {
                 data-testid="button-buy-cth"
               >
                 <i className="fas fa-gem mr-2"></i>
-                Buy CTH
+                {t('buttons.buyCthToken')}
               </Button>
             </div>
           </CardContent>
