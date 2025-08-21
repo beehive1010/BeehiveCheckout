@@ -170,6 +170,8 @@
     "membership": {
       "title": "バンブルビーメンバーシップNFT",
       "description": "マルチチェーン対応USDT支払いの正規メンバーシップレベル",
+      "level": "レベル",
+      "usdt": "USDT",
       "status": {
         "owned": "所有",
         "available": "利用可能",
@@ -869,46 +871,6 @@
       "burned": "焼却済み",
       "claimed": "使用準備完了",
       "serviceActivated": "サービス有効化済み"
-    }
-  },
-  "discover": {
-    "dapps": {
-      "beehive": "BeeHiveメンバーシップ",
-      "beehiveDesc": "Web3報酬付き19レベルメンバーシップシステム",
-      "matrixRewards": "マトリックス報酬",
-      "matrixRewardsDesc": "3×3マトリックス紹介システム",
-      "uniswap": "Uniswap",
-      "uniswapDesc": "主要な分散型取引プロトコル",
-      "opensea": "OpenSea",
-      "openseaDesc": "最大のNFTマーケットプレイス",
-      "compound": "Compound",
-      "compoundDesc": "アルゴリズム金融市場プロトコル",
-      "pancakeswap": "PancakeSwap",
-      "pancakeswapDesc": "ファーミング機能付きBSC主要DEX",
-      "axieinfinity": "Axie Infinity",
-      "axieinfinityDesc": "人気のプレイ・トゥ・アーンゲーム"
-    },
-    "news": {
-      "matrix30": {
-        "title": "BeeHive、新しいMatrix 3.0システムを開始",
-        "description": "自動化されたスマートコントラクト配布と改善された報酬メカニズムを持つ強化された3×3マトリックス。"
-      },
-      "bridge": {
-        "title": "マルチチェーンUSDTブリッジが稼働開始",
-        "description": "Ethereum、Polygon、Arbitrumネットワーク間でのシームレスなUSDT決済。"
-      },
-      "education": {
-        "title": "教育ハブが50+コースに到達",
-        "description": "認定プログラム付きの包括的なWeb3学習プラットフォーム。"
-      }
-    },
-    "chains": {
-      "ethereum": "イーサリアム",
-      "polygon": "ポリゴン",
-      "arbitrum": "アービトラム",
-      "optimism": "オプティミズム",
-      "bsc": "BSC",
-      "avalanche": "アバランチ"
     }
   },
   "hiveworld": {

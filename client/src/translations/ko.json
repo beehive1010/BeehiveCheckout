@@ -151,6 +151,31 @@
   },
   "tasks": {
     "title": "판매자 NFT 마켓플레이스",
+    "pageTitle": "작업",
+    "categories": {
+      "membership": "멤버십",
+      "advertisement": "광고"
+    },
+    "membership": {
+      "title": "범블비 멤버십 NFT",
+      "description": "멀티체인 지원으로 USDT 결제가 가능한 정품 멤버십 레벨",
+      "level": "레벨",
+      "usdt": "USDT",
+      "status": {
+        "owned": "소유함",
+        "available": "사용 가능",
+        "locked": "잠금됨"
+      },
+      "getStarted": "시작하기",
+      "upgradeNow": "지금 업그레이드",
+      "lockedMessage": "이전 레벨을 먼저 완료하세요"
+    },
+    "advertisement": {
+      "title": "광고 NFT 컬렉션",
+      "description": "BCC 토큰으로 클레임 가능한 독점 판매자 NFT",
+      "noNfts": "현재 사용 가능한 광고 NFT가 없습니다.",
+      "loading": "NFT 로딩 중..."
+    },
     "availableBalance": "사용 가능한 잔액",
     "restrictedFirst": "제한된 BCC가 먼저 사용됩니다",
     "restrictedBCC": "제한된 BCC",
@@ -265,6 +290,40 @@
         "courses": "과정",
         "certificates": "인증서"
       }
+    },
+    "dapps": {
+      "uniswap": "Uniswap",
+      "uniswapDesc": "선도적인 탈중앙화 거래 프로토콜",
+      "opensea": "OpenSea",
+      "openseaDesc": "최대 NFT 마켓플레이스",
+      "compound": "Compound",
+      "compoundDesc": "알고리즘 화폐 시장 프로토콜",
+      "pancakeswap": "PancakeSwap",
+      "pancakeswapDesc": "파밍 기능이 있는 BSC 선도 DEX",
+      "axieinfinity": "Axie Infinity",
+      "axieinfinityDesc": "인기 있는 플레이-투-언 게임"
+    },
+    "news": {
+      "matrix30": {
+        "title": "BeeHive, 새로운 Matrix 3.0 시스템 출시",
+        "description": "자동화된 스마트 계약 배포와 개선된 보상 메커니즘을 갖춘 강화된 3×3 매트릭스."
+      },
+      "bridge": {
+        "title": "멀티체인 USDT 브리지 서비스 시작",
+        "description": "이더리움, 폴리곤, 아비트럼 네트워크 간 원활한 USDT 결제."
+      },
+      "education": {
+        "title": "교육 허브, 50+ 코스 달성",
+        "description": "인증 프로그램이 포함된 포괄적인 Web3 학습 플랫폼."
+      }
+    },
+    "chains": {
+      "ethereum": "이더리움",
+      "polygon": "폴리곤",
+      "arbitrum": "아비트럼",
+      "optimism": "옵티미즘",
+      "bsc": "BSC",
+      "avalanche": "아발란체"
     },
     "networks": {
       "title": "지원 네트워크",
@@ -859,42 +918,6 @@
       "burned": "소각됨",
       "claimed": "사용 준비",
       "serviceActivated": "서비스 활성화됨"
-    }
-  },
-  "discover": {
-    "dapps": {
-      "uniswap": "Uniswap",
-      "uniswapDesc": "선도적인 탈중앙화 거래 프로토콜",
-      "opensea": "OpenSea",
-      "openseaDesc": "최대 NFT 마켓플레이스",
-      "compound": "Compound",
-      "compoundDesc": "알고리즘 화폐 시장 프로토콜",
-      "pancakeswap": "PancakeSwap",
-      "pancakeswapDesc": "파밍 기능이 있는 BSC 선도 DEX",
-      "axieinfinity": "Axie Infinity",
-      "axieinfinityDesc": "인기 있는 플레이-투-언 게임"
-    },
-    "news": {
-      "matrix30": {
-        "title": "BeeHive, 새로운 Matrix 3.0 시스템 출시",
-        "description": "자동화된 스마트 계약 배포와 개선된 보상 메커니즘을 갖춘 강화된 3×3 매트릭스."
-      },
-      "bridge": {
-        "title": "멀티체인 USDT 브리지 서비스 시작",
-        "description": "이더리움, 폴리곤, 아비트럼 네트워크 간 원활한 USDT 결제."
-      },
-      "education": {
-        "title": "교육 허브, 50+ 코스 달성",
-        "description": "인증 프로그램이 포함된 포괄적인 Web3 학습 플랫폼."
-      }
-    },
-    "chains": {
-      "ethereum": "이더리움",
-      "polygon": "폴리곤",
-      "arbitrum": "아비트럼",
-      "optimism": "옵티미즘",
-      "bsc": "BSC",
-      "avalanche": "아발란체"
     }
   },
   "hiveworld": {
