@@ -297,6 +297,40 @@
       "hours": "Jam",
       "label": "Kemajuan"
     },
+    "search": {
+      "placeholder": "Apa yang anda mahu pelajari"
+    },
+    "filters": {
+      "category": "Kategori",
+      "allCategories": "Semua Kategori",
+      "level": "Tahap",
+      "allLevels": "Semua Tahap",
+      "type": "Jenis",
+      "allTypes": "Semua Jenis",
+      "onlineZoom": "Dalam Talian (Zoom)",
+      "videoLessons": "Pelajaran Video",
+      "payment": "Pembayaran",
+      "allCourses": "Semua Kursus",
+      "freeCourses": "Kursus Percuma",
+      "paidBCC": "Bayar dengan BCC"
+    },
+    "courseTypes": {
+      "zoomMeeting": "Mesyuarat Zoom",
+      "videoAccess": "Akses Video",
+      "streamOrDownload": "Strim atau Muat Turun"
+    },
+    "buttons": {
+      "join": "Sertai",
+      "watch": "Tonton",
+      "download": "Muat Turun",
+      "completed": "Selesai",
+      "enrolled": "Didaftarkan",
+      "claiming": "Menuntut...",
+      "levelRequired": "Diperlukan",
+      "insufficientBCC": "BCC Tidak Mencukupi",
+      "claimFree": "Tuntut Kursus Percuma",
+      "claimPaid": "Tuntut ({} BCC)"
+    },
     "free": "Percuma",
     "levelRequired": "Tahap Diperlukan",
     "duration": "Tempoh",
@@ -306,6 +340,16 @@
     "purchase": "Beli Kursus",
     "enrolling": "Mendaftar...",
     "insufficientBCC": "BCC Tidak Mencukupi",
+    "claim": {
+      "success": {
+        "title": "Kursus Berjaya Dituntut!",
+        "description": "Anda kini mempunyai akses kepada kursus ini."
+      },
+      "error": {
+        "title": "Tuntutan Gagal",
+        "description": "Tidak dapat menuntut kursus. Sila cuba lagi."
+      }
+    },
     "enroll": {
       "success": {
         "title": "Pendaftaran Berjaya!",
