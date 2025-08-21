@@ -41,20 +41,28 @@ export function RouteGuard({ children }: RouteGuardProps) {
       return;
     }
 
-    // Wallet is connected
+    // Wallet is connected - begin authenticated flow
     if (hasLevel1NFT) {
-      // User has Level 1 NFT - allow access to all routes
-      // Redirect to dashboard if on landing, registration, or welcome
+      // User has Level 1 NFT - redirect to dashboard if on entry routes
       if (location === '/' || location === '/landing' || location === '/register' || location === '/welcome') {
         setLocation('/dashboard');
       }
       return;
     } else {
-      // User has wallet but no Level 1 NFT
-      // Allow public routes and the registration/welcome flow
-      if (isPublicRoute || location === '/register' || location === '/welcome') return;
+      // User has wallet but no Level 1 NFT - guide through registration flow
+      if (location === '/' || location === '/landing') {
+        // Connected wallet on landing page - start registration flow
+        setLocation('/register');
+        return;
+      }
       
-      // For other protected routes, redirect to registration to start the flow
+      // Allow registration/welcome flow routes
+      if (location === '/register' || location === '/welcome') return;
+      
+      // Allow other public routes
+      if (location.startsWith('/blog/') || location === '/hiveworld') return;
+      
+      // For protected routes, redirect to registration
       setLocation('/register');
       return;
     }
