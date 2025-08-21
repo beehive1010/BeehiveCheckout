@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { useWallet } from './useWallet';
-import { apiRequest } from '../lib/queryClient';
 
 interface CompanyStats {
   totalMembers: number;
