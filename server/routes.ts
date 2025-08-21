@@ -7,7 +7,9 @@ import {
   insertReferralNodeSchema,
   insertBCCBalanceSchema,
   insertOrderSchema,
-  insertRewardEventSchema,
+  insertEarningsWalletSchema,
+  insertLevelConfigSchema,
+  insertMemberNFTVerificationSchema,
   insertNFTPurchaseSchema,
   insertCourseAccessSchema,
   insertBridgePaymentSchema
@@ -770,16 +772,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const rewardAmount = level === 1 ? 100 : calculateRewardAmount(level);
         const eventType = level === 1 ? 'L1_direct' : 'L2plus_upgrade';
         
-        await storage.createRewardEvent({
-          buyerWallet: req.walletAddress,
-          sponsorWallet: user.referrerWallet,
-          eventType,
-          level,
-          amount: rewardAmount,
-          status: level === 1 ? 'completed' : 'pending',
-          timerStartAt: level > 1 ? new Date() : undefined,
-          timerExpireAt: level > 1 ? new Date(Date.now() + 48 * 60 * 60 * 1000) : undefined,
-        });
+        // Process referral rewards using new BeeHive system
+        await storage.processReferralRewards(req.walletAddress, level);
       }
 
       res.json({ 
@@ -793,6 +787,151 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Membership claim error:', error);
       res.status(500).json({ error: 'Failed to claim membership' });
+    }
+  });
+
+  // BeeHive System API Routes
+  
+  // Get global dashboard statistics (visible to all members)
+  app.get("/api/beehive/dashboard-stats", async (req, res) => {
+    try {
+      const stats = await storage.getGlobalStatistics();
+      res.json(stats);
+    } catch (error) {
+      console.error('Get dashboard stats error:', error);
+      res.status(500).json({ error: 'Failed to get dashboard statistics' });
+    }
+  });
+
+  // Get level configuration
+  app.get("/api/beehive/level-configs", async (req, res) => {
+    try {
+      const levelConfigs = await storage.getAllLevelConfigs();
+      res.json(levelConfigs);
+    } catch (error) {
+      console.error('Get level configs error:', error);
+      res.status(500).json({ error: 'Failed to get level configurations' });
+    }
+  });
+
+  // Get member's earnings wallet (private - only own data)
+  app.get("/api/beehive/earnings", requireWallet, async (req: any, res) => {
+    try {
+      const earnings = await storage.getEarningsWalletByWallet(req.walletAddress);
+      res.json(earnings);
+    } catch (error) {
+      console.error('Get earnings error:', error);
+      res.status(500).json({ error: 'Failed to get earnings' });
+    }
+  });
+
+  // Get member's referral structure (private - only own data)
+  app.get("/api/beehive/referral-tree", requireWallet, async (req: any, res) => {
+    try {
+      const referralNode = await storage.getReferralNode(req.walletAddress);
+      if (!referralNode) {
+        return res.status(404).json({ error: 'Referral node not found' });
+      }
+      res.json(referralNode);
+    } catch (error) {
+      console.error('Get referral tree error:', error);
+      res.status(500).json({ error: 'Failed to get referral tree' });
+    }
+  });
+
+  // Verify member NFT ownership
+  app.post("/api/beehive/verify-nft", requireWallet, async (req: any, res) => {
+    try {
+      const { nftContractAddress, tokenId, chainId } = req.body;
+      
+      const validation = insertMemberNFTVerificationSchema.safeParse({
+        walletAddress: req.walletAddress,
+        nftContractAddress,
+        tokenId: tokenId.toString(),
+        chainId,
+      });
+
+      if (!validation.success) {
+        return res.status(400).json({ error: 'Invalid verification data' });
+      }
+
+      // In production, this would verify on-chain NFT ownership
+      const verification = await storage.createNFTVerification({
+        ...validation.data,
+        verificationStatus: 'verified', // Would be determined by actual verification
+        lastVerified: new Date(),
+      });
+
+      res.json({ success: true, verification });
+    } catch (error) {
+      console.error('NFT verification error:', error);
+      res.status(500).json({ error: 'Failed to verify NFT' });
+    }
+  });
+
+  // Process membership purchase and trigger rewards
+  app.post("/api/beehive/purchase-membership", requireWallet, async (req: any, res) => {
+    try {
+      const { level, txHash, chainId } = req.body;
+      
+      if (!level || !txHash) {
+        return res.status(400).json({ error: 'Level and transaction hash required' });
+      }
+
+      const user = await storage.getUser(req.walletAddress);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Get level configuration
+      const levelConfig = await storage.getLevelConfig(level);
+      if (!levelConfig) {
+        return res.status(400).json({ error: 'Invalid level' });
+      }
+
+      // Create order record
+      const order = await storage.createOrder({
+        walletAddress: req.walletAddress,
+        level,
+        tokenId: Math.floor(Math.random() * 1000000), // In production, this would be the actual NFT token ID
+        amountUSDT: levelConfig.priceUSDT,
+        chain: `chain-${chainId}`,
+        txHash,
+        status: 'completed',
+      });
+
+      // Update membership state
+      let membershipState = await storage.getMembershipState(req.walletAddress);
+      if (!membershipState) {
+        membershipState = await storage.createMembershipState({
+          walletAddress: req.walletAddress,
+          levelsOwned: [level],
+          activeLevel: level,
+        });
+      } else {
+        const updatedLevels = [...(membershipState.levelsOwned || []), level];
+        await storage.updateMembershipState(req.walletAddress, {
+          levelsOwned: updatedLevels,
+          activeLevel: Math.max(level, membershipState.activeLevel),
+        });
+      }
+
+      // Activate user if first membership
+      if (!user.memberActivated) {
+        await storage.updateUser(req.walletAddress, {
+          memberActivated: true,
+          currentLevel: level,
+          activationAt: new Date(),
+        });
+      }
+
+      // Process referral rewards (instant + timed)
+      await storage.processReferralRewards(req.walletAddress, level);
+
+      res.json({ success: true, order, message: 'Membership purchased and rewards processed' });
+    } catch (error) {
+      console.error('Purchase membership error:', error);
+      res.status(500).json({ error: 'Failed to process membership purchase' });
     }
   });
 
