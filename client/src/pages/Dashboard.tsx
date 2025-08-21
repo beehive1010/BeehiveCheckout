@@ -377,7 +377,7 @@ export default function Dashboard() {
             <h3 className="text-2xl font-bold text-honey">
               {typeof bccBalance === 'object' ? (bccBalance?.transferable || 0) : (bccBalance || 0)}
             </h3>
-            <p className="text-muted-foreground text-sm">BCC Balance (for NFT ads)</p>
+            <p className="text-muted-foreground text-sm">BCC Balance </p>
           </CardContent>
         </Card>
         
