@@ -585,34 +585,12 @@
     "userCenter": "User Center",
     "center": "Center"
   },
-  "hiveworld": {
-    "title": "HiveWorld - Your Matrix",
-    "stats": {
-      "directReferrals": "Direct Referrals",
-      "totalTeam": "Total Team",
-      "pending": "Pending",
-      "totalEarned": "Total Earned"
-    },
-    "matrix": {
-      "title": "Your 3×3 Matrix",
-      "you": "YOU",
-      "activeDirect": "Active Direct",
-      "activeIndirect": "Active Indirect",
-      "availableSlot": "Available Slot"
-    },
-    "referralLink": {
-      "title": "Your Referral Link",
-      "copy": "Copy"
-    },
-    "rewardHistory": {
-      "title": "Reward History",
-      "directBonus": "Direct Referral Bonus",
-      "upgradeReward": "Upgrade Reward (Pending)",
-      "rollupReward": "Roll-up Reward",
-      "completed": "Completed",
-      "expired": "Expired",
-      "noRewards": "No reward history yet"
-    },
+  "rewardHistory": {
+    "upgradeReward": "Upgrade Reward (Pending)",
+    "rollupReward": "Roll-up Reward",
+    "completed": "Completed",
+    "expired": "Expired",
+    "noRewards": "No reward history yet",
     "linkCopied": {
       "title": "Link Copied!",
       "description": "Your referral link has been copied to clipboard."
@@ -1010,26 +988,78 @@
     }
   },
   "hiveworld": {
-    "blogs": {
-      "web3membership": {
-        "title": "The Future of Web3 Membership Systems",
-        "excerpt": "Exploring how blockchain technology is revolutionizing membership and loyalty programs across industries."
+    "title": "HiveWorld - Your Matrix",
+    "stats": {
+      "directReferrals": "Direct Referrals",
+      "totalTeam": "Total Team",
+      "pending": "Pending",
+      "totalEarned": "Total Earned"
+    },
+    "matrix": {
+      "title": "Your 3×3 Matrix",
+      "you": "YOU",
+      "activeDirect": "Active Direct",
+      "activeIndirect": "Active Indirect",
+      "availableSlot": "Available Slot"
+    },
+    "referralLink": {
+      "title": "Your Referral Link",
+      "copy": "Copy"
+    },
+    "rewardHistory": {
+      "title": "Reward History",
+      "directBonus": "Direct Referral Bonus"
+    },
+    "blog": {
+      "title": "HiveWorld Knowledge Center",
+      "subtitle": "Stay informed with the latest insights on Web3, blockchain technology, and decentralized ecosystems",
+      "searchPlaceholder": "Search articles...",
+      "allTopics": "All Topics",
+      "noArticles": "No articles found",
+      "noArticlesDesc": "Try adjusting your search terms or browse different topics",
+      "tags": {
+        "Web3": "Web3",
+        "Blockchain": "Blockchain",
+        "Membership": "Membership",
+        "NFT": "NFT",
+        "Access Control": "Access Control",
+        "Technology": "Technology",
+        "Referrals": "Referrals",
+        "Economics": "Economics",
+        "Strategy": "Strategy",
+        "Multi-chain": "Multi-chain",
+        "Payments": "Payments",
+        "Development": "Development",
+        "Governance": "Governance",
+        "Community": "Community",
+        "DAO": "DAO"
       },
-      "nftaccess": {
-        "title": "Understanding NFT-Based Access Control",
-        "excerpt": "How NFTs are being used to gate content and create exclusive community experiences."
-      },
-      "referraleconomy": {
-        "title": "Building Sustainable Referral Economies",
-        "excerpt": "Best practices for creating long-term value in matrix-based referral systems."
-      },
-      "multichainpayment": {
-        "title": "Multi-Chain Payment Integration Guide",
-        "excerpt": "Technical deep-dive into cross-chain USDT payment processing and user experience optimization."
-      },
-      "governance": {
-        "title": "Community Governance in Decentralized Platforms",
-        "excerpt": "Implementing fair and transparent decision-making processes in Web3 communities."
+      "posts": {
+        "1": {
+          "title": "The Future of Web3 Membership Systems",
+          "excerpt": "Exploring how blockchain technology is revolutionizing membership and loyalty programs across industries.",
+          "author": "Beehive Team"
+        },
+        "2": {
+          "title": "Understanding NFT-Based Access Control",
+          "excerpt": "How NFTs are being used to gate content and create exclusive community experiences.",
+          "author": "Technical Team"
+        },
+        "3": {
+          "title": "Building Sustainable Referral Economies",
+          "excerpt": "The mechanics behind successful referral programs and how they create lasting value.",
+          "author": "Strategy Team"
+        },
+        "4": {
+          "title": "Multi-Chain Payment Integration Guide",
+          "excerpt": "Technical deep-dive into implementing cross-chain payment solutions for dApps.",
+          "author": "Dev Team"
+        },
+        "5": {
+          "title": "Community Governance in Decentralized Platforms",
+          "excerpt": "Best practices for implementing fair and effective governance systems in Web3 communities.",
+          "author": "Community Team"
+        }
       }
     }
   },
