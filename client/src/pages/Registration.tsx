@@ -28,6 +28,12 @@ export default function Registration() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
+    // Check for mandatory referral link
+    const referrerWallet = localStorage.getItem('beehive-referrer');
+    if (!referrerWallet) {
+      newErrors.referrer = t('registration.errors.referrerRequired');
+    }
+
     if (!formData.email) {
       newErrors.email = t('registration.errors.emailRequired');
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
@@ -125,6 +131,43 @@ export default function Registration() {
               <p className="text-muted-foreground">
                 {t('registration.walletRequired.description')}
               </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Check if user came without referral link
+  if (!localStorage.getItem('beehive-referrer')) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="w-full max-w-md mx-4">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <HexagonIcon className="mx-auto mb-4">
+                <i className="fas fa-link text-destructive"></i>
+              </HexagonIcon>
+              <h2 className="text-xl font-bold text-destructive mb-4">
+                {t('registration.noReferrerInfo.title')}
+              </h2>
+              <p className="text-muted-foreground mb-4">
+                {t('registration.noReferrerInfo.description')}
+              </p>
+              <div className="p-4 bg-muted rounded-lg text-left">
+                <p className="text-sm text-muted-foreground mb-2">
+                  <strong>How to get a referral link:</strong>
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {t('registration.noReferrerInfo.getLink')}
+                </p>
+              </div>
+              <div className="mt-4 text-xs text-muted-foreground">
+                <p>Referral links look like:</p>
+                <code className="bg-muted px-2 py-1 rounded">
+                  beehive.app/?ref=0x1234...abcd
+                </code>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -266,22 +309,44 @@ export default function Registration() {
               )}
             </div>
 
-            {/* Referrer Info */}
-            {localStorage.getItem('beehive-referrer') && (
-              <div className="p-3 bg-muted rounded-lg">
-                <p className="text-sm text-honey font-medium">
-                  {t('registration.referrer')}
-                </p>
-                <p className="text-sm text-muted-foreground font-mono">
-                  {localStorage.getItem('beehive-referrer')}
-                </p>
-              </div>
-            )}
+            {/* Referrer Info - Now Mandatory */}
+            <div className="p-3 border rounded-lg">
+              <Label className="text-honey font-medium">
+                {t('registration.referrer')} *
+              </Label>
+              {localStorage.getItem('beehive-referrer') ? (
+                <div className="mt-2 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                  <div className="flex items-center text-green-600 mb-2">
+                    <i className="fas fa-check-circle mr-2"></i>
+                    <span className="text-sm font-medium">Valid Upline Detected</span>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Upline Wallet Address:</p>
+                    <p className="text-sm font-mono break-all text-honey">
+                      {localStorage.getItem('beehive-referrer')}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  <div className="flex items-center text-destructive mb-2">
+                    <i className="fas fa-exclamation-triangle mr-2"></i>
+                    <span className="text-sm font-medium">Referral Link Required</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    You must use a valid referral link to register. Please ask your upline for their referral link.
+                  </p>
+                </div>
+              )}
+              {errors.referrer && (
+                <p className="text-destructive text-sm mt-1">{errors.referrer}</p>
+              )}
+            </div>
 
             <Button
               type="submit"
               className="w-full btn-honey"
-              disabled={isRegistering}
+              disabled={isRegistering || !localStorage.getItem('beehive-referrer')}
               data-testid="button-register"
             >
               {isRegistering ? (

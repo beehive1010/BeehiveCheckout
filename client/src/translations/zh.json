@@ -8,6 +8,23 @@
     "utilityToken": "Beehive Crypto Coin (BCC)",
     "membershipNFT": "Bumblebees (BBC)"
   },
+  "registration": {
+    "title": "完成注册",
+    "subtitle": "设置您的蜂巢账户",
+    "referrer": "上线推荐人",
+    "errors": {
+      "referrerRequired": "需要有效的推荐链接才能注册"
+    },
+    "noReferrerInfo": {
+      "title": "需要推荐链接",
+      "description": "要加入蜂巢，您需要来自现有成员的推荐链接。这将您连接到我们3×3矩阵系统中的上线。",
+      "getLink": "请向蜂巢成员索取他们的推荐链接以开始。"
+    },
+    "walletRequired": {
+      "title": "需要连接钱包",
+      "description": "请先连接您的钱包以完成注册。"
+    }
+  },
   "membership": {
     "levels": {
       "title": "会员等级",
