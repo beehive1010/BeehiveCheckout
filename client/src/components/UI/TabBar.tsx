@@ -55,17 +55,11 @@ export default function TabBar() {
                   data-testid={`tab-${item.key}`}
                 >
                   <button
-                    className={`
-                      w-full h-full flex flex-col items-center justify-center transition-all duration-300 relative
-                      ${isActive 
-                        ? '' 
-                        : 'hover:scale-105 active:scale-95'
-                      }
-                    `}
+                    className="w-full h-full flex flex-col items-center justify-center transition-all duration-300 relative mt-[-12px] mb-[-12px]"
                   >
                     {isHomeTab ? (
                       // Special elevated home tab
-                      <div className="relative flex flex-col items-center">
+                      (<div className="relative flex flex-col items-center">
                         <div className={`
                           relative p-3 rounded-2xl transition-all duration-300 transform
                           ${isActive 
@@ -82,17 +76,16 @@ export default function TabBar() {
                             <div className="absolute inset-0 rounded-2xl border-2 border-honey/50 animate-pulse"></div>
                           )}
                         </div>
-                        
                         <span className={`
                           text-xs font-semibold mt-1 transition-all duration-300
                           ${isActive ? 'text-honey scale-105' : 'text-muted-foreground'}
                         `}>
                           {String(t(item.labelKey))}
                         </span>
-                      </div>
+                      </div>)
                     ) : (
                       // Regular tabs with modern styling
-                      <div className="flex flex-col items-center relative">
+                      (<div className="flex flex-col items-center relative">
                         <div className={`
                           relative p-2 rounded-xl transition-all duration-300
                           ${isActive 
@@ -113,7 +106,6 @@ export default function TabBar() {
                             <div className="absolute -top-1 -right-1 w-2 h-2 bg-honey rounded-full animate-pulse shadow-sm shadow-honey/50"></div>
                           )}
                         </div>
-                        
                         <span className={`
                           text-xs font-medium mt-1 transition-all duration-300
                           ${isActive 
@@ -123,12 +115,11 @@ export default function TabBar() {
                         `}>
                           {String(t(item.labelKey))}
                         </span>
-                        
                         {/* Active bottom indicator */}
                         {isActive && (
                           <div className="absolute -bottom-1 w-1 h-1 bg-honey rounded-full"></div>
                         )}
-                      </div>
+                      </div>)
                     )}
                   </button>
                 </Link>
