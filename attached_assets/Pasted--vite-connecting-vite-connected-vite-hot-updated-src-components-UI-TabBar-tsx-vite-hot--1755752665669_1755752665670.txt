@@ -1,0 +1,32 @@
+[vite] connecting...
+[vite] connected.
+[vite] hot updated: /src/components/UI/TabBar.tsx
+[vite] hot updated: /src/index.css?v=b4pzAFjMmpFc2H9VaqfUN
+[vite] hot updated: /src/components/UI/WalletConnect.tsx
+[vite] hot updated: /src/index.css?v=b4pzAFjMmpFc2H9VaqfUN
+Badge is not defined
+Badge is not defined
+The above error occurred in the <WalletConnect> component:
+
+    at WalletConnect (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/src/components/UI/WalletConnect.tsx?t=1755752080584:25:56)
+    at div
+    at div
+    at div
+    at header
+    at Header (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/src/components/Layout/Header.tsx:25:17)
+    at div
+    at Provider (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-47SA6T6L.js?v=55265084:48:15)
+    at TooltipProvider (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=55265084:65:5)
+    at I18nProvider (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/src/contexts/I18nContext.tsx:28:32)
+    at Web3ContextProvider (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/src/contexts/Web3Context.tsx:25:32)
+    at QueryClientProvider (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-T4YKTNDN.js?v=55265084:2933:3)
+    at ThirdwebProviderCore (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/thirdweb_react.js?v=55265084:11987:51)
+    at ThirdwebProvider (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/thirdweb_react.js?v=55265084:12034:139)
+    at Web3Provider (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/src/contexts/Web3Context.tsx:55:32)
+    at V (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js?v=55265084:44:25)
+    at J (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js?v=55265084:42:18)
+    at QueryClientProvider (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-T4YKTNDN.js?v=55265084:2933:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
