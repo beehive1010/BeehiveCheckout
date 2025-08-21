@@ -360,7 +360,13 @@
       "levelRequired": "필요",
       "insufficientBCC": "BCC 부족",
       "claimFree": "무료 코스 클레임",
-      "claimPaid": "클레임 ({} BCC)"
+      "claimPaid": "클레임 ({} BCC)",
+      "viewDetails": "세부사항 보기",
+      "purchaseCourse": "코스 구매",
+      "continue": "계속",
+      "getAccess": "액세스 받기",
+      "enrollNow": "지금 등록",
+      "startLearning": "학습 시작"
     },
     "free": "무료",
     "levelRequired": "필요 레벨",
