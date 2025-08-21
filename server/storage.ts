@@ -34,7 +34,7 @@ import {
   type InsertBridgePayment
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -506,7 +506,7 @@ export class DatabaseStorage implements IStorage {
     return await db.select()
       .from(bridgePayments)
       .where(eq(bridgePayments.walletAddress, walletAddress.toLowerCase()))
-      .orderBy(bridgePayments.createdAt);
+      .orderBy(desc(bridgePayments.createdAt));
   }
 
   async updateBridgePayment(id: string, updates: Partial<BridgePayment>): Promise<BridgePayment | undefined> {
@@ -521,7 +521,7 @@ export class DatabaseStorage implements IStorage {
     return await db.select()
       .from(bridgePayments)
       .where(eq(bridgePayments.status, 'pending'))
-      .orderBy(bridgePayments.createdAt);
+      .orderBy(desc(bridgePayments.createdAt));
   }
 }
 
