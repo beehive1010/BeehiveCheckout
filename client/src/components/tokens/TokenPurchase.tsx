@@ -39,12 +39,22 @@ export default function TokenPurchase() {
   // Get user token balances
   const { data: balances, isLoading: balancesLoading } = useQuery<TokenBalance>({
     queryKey: ['/api/tokens/balances'],
+    queryFn: async () => {
+      const response = await fetch('/api/tokens/balances', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch balances');
+      return response.json();
+    },
     enabled: !!account?.address,
   });
 
   // Get purchase history
   const { data: purchases, isLoading: purchasesLoading } = useQuery<any[]>({
     queryKey: ['/api/tokens/purchases'],
+    queryFn: async () => {
+      const response = await fetch('/api/tokens/purchases', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch purchases');
+      return response.json();
+    },
     enabled: !!account?.address,
   });
 

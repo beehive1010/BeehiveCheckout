@@ -1,5 +1,5 @@
 import { createThirdwebClient, getContract } from 'thirdweb';
-import { ethereum, polygon, arbitrum, optimism, arbitrumSepolia } from 'thirdweb/chains';
+import { ethereum, polygon, arbitrum, optimism, arbitrumSepolia, bsc } from 'thirdweb/chains';
 import { defineChain } from 'thirdweb/chains';
 import { inAppWallet, createWallet } from 'thirdweb/wallets';
 
@@ -28,7 +28,7 @@ export const alphaCentauri = defineChain({
 });
 
 // Supported chains
-export const supportedChains = [ethereum, polygon, arbitrum, arbitrumSepolia, optimism, alphaCentauri];
+export const supportedChains = [ethereum, polygon, arbitrum, arbitrumSepolia, optimism, bsc, alphaCentauri];
 
 // Enhanced wallet configuration with social login options
 export const wallets = [
@@ -183,6 +183,7 @@ export const contractAddresses = {
     arbitrum: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
     arbitrumSepolia: '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d', // Sepolia USDT
     optimism: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
+    bsc: '0x55d398326f99059fF775485246999027B3197955', // BSC USDT
     alphaCentauri: '0x1234567890123456789012345678901234567893',
   },
   // Bridge wallet addresses for receiving USDT payments
@@ -192,6 +193,7 @@ export const contractAddresses = {
     arbitrum: import.meta.env.VITE_BRIDGE_WALLET_ARB || '0x1234567890123456789012345678901234567896',
     arbitrumSepolia: import.meta.env.VITE_BRIDGE_WALLET_ARB_SEPOLIA || '0x1234567890123456789012345678901234567898',
     optimism: import.meta.env.VITE_BRIDGE_WALLET_OP || '0x1234567890123456789012345678901234567897',
+    bsc: import.meta.env.VITE_BRIDGE_WALLET_BSC || '0x1234567890123456789012345678901234567899',
   },
 };
 
@@ -241,6 +243,15 @@ export const paymentChains = [
     bridgeWallet: contractAddresses.BRIDGE_WALLETS.optimism,
     icon: 'fas fa-circle',
     color: 'text-red-400'
+  },
+  { 
+    chain: bsc, 
+    name: 'BSC', 
+    symbol: 'BNB',
+    usdtAddress: contractAddresses.USDT.bsc,
+    bridgeWallet: contractAddresses.BRIDGE_WALLETS.bsc,
+    icon: 'fas fa-coins',
+    color: 'text-yellow-400'
   },
 ];
 
