@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from '../hooks/use-toast';
 import { apiRequest } from '../lib/queryClient';
 import MobileDivider from '../components/UI/MobileDivider';
-import MembershipLevelList from '../components/membership/MembershipLevelList';
+// import MembershipLevelList from '../components/membership/MembershipLevelList';
 
 interface MarketplaceNFT {
   id: string;
@@ -124,11 +124,12 @@ export default function Tasks() {
     <div className="container mx-auto px-4 py-4 md:py-8">
       {/* Mobile Header */}
       <div className="mb-6">
-        <h2 className="text-xl md:text-2xl font-bold text-honey mb-2">
-          {String(t('tasks.title'))}
-        </h2>
-        <p className="text-muted-foreground text-sm mb-3">
-          Dual NFT marketplace with membership and advertisement categories
+        <h1 className="text-2xl md:text-3xl font-bold text-honey mb-2 flex items-center">
+          <i className="fas fa-store mr-3 text-honey"></i>
+          NFT Marketplace
+        </h1>
+        <p className="text-muted-foreground text-sm md:text-base mb-3">
+          Discover and purchase exclusive NFTs with USDT and BCC tokens
         </p>
         <MobileDivider className="md:hidden" />
       </div>
@@ -178,7 +179,7 @@ export default function Tasks() {
             data-testid="filter-membership"
           >
             <i className="fas fa-crown mr-2"></i>
-            Membership NFTs (USDT)
+            Premium Membership
           </button>
           <button
             onClick={() => setActiveCategory('advertisement')}
@@ -190,7 +191,7 @@ export default function Tasks() {
             data-testid="filter-advertisement"
           >
             <i className="fas fa-bullhorn mr-2"></i>
-            Advertisement NFTs (BCC)
+            Advertisement Spots
           </button>
         </div>
       </div>
@@ -198,21 +199,63 @@ export default function Tasks() {
       {/* Content Area */}
       {activeCategory === 'membership' ? (
         <>
-          <MobileDivider withText="19-Level Membership System" className="mb-6" />
-          <MembershipLevelList 
-            onPurchaseSuccess={() => {
-              // Refresh user data after membership purchase
-              queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-              toast({
-                title: "Membership Activated!",
-                description: "Your new membership level has been activated successfully.",
-              });
-            }}
-          />
+          <MobileDivider withText="Premium Membership Collection" className="mb-6" />
+          
+          {/* Premium Membership Showcase */}
+          <div className="bg-gradient-to-br from-honey/10 to-honey/5 rounded-lg p-6 mb-6 border border-honey/20">
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-honey/20 rounded-full mb-4">
+                <i className="fas fa-crown text-2xl text-honey"></i>
+              </div>
+              <h2 className="text-2xl font-bold text-honey mb-2">19-Level Membership System</h2>
+              <p className="text-muted-foreground">Unlock exclusive benefits with our blockchain-verified membership NFTs</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-secondary/50 rounded-lg p-4 text-center">
+                <i className="fas fa-shield-alt text-honey text-xl mb-2"></i>
+                <h3 className="font-semibold text-sm">Secure & Verified</h3>
+                <p className="text-xs text-muted-foreground">Blockchain-backed membership credentials</p>
+              </div>
+              <div className="bg-secondary/50 rounded-lg p-4 text-center">
+                <i className="fas fa-coins text-honey text-xl mb-2"></i>
+                <h3 className="font-semibold text-sm">USDT Payments</h3>
+                <p className="text-xs text-muted-foreground">Purchase levels 1-19 with stable currency</p>
+              </div>
+              <div className="bg-secondary/50 rounded-lg p-4 text-center">
+                <i className="fas fa-users text-honey text-xl mb-2"></i>
+                <h3 className="font-semibold text-sm">Referral Rewards</h3>
+                <p className="text-xs text-muted-foreground">Earn BCC tokens through our matrix system</p>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <div className="inline-flex items-center bg-honey/10 text-honey px-4 py-2 rounded-lg">
+                <i className="fas fa-clock mr-2"></i>
+                <span className="text-sm font-medium">Coming Soon - Full System Launch</span>
+              </div>
+            </div>
+          </div>
         </>
       ) : (
         <>
-          <MobileDivider withText={`Advertisement NFTs (${nfts.length} Available)`} className="mb-6" />
+          <MobileDivider withText={`Advertisement Marketplace • ${nfts.length} Spots Available`} className="mb-6" />
+          
+          {/* Marketplace Header */}
+          <div className="bg-secondary/30 rounded-lg p-4 mb-6 border border-border">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-semibold text-honey mb-1">Premium Advertisement Spots</h3>
+                <p className="text-sm text-muted-foreground">Purchase high-visibility ad placements with your BCC tokens</p>
+              </div>
+              <div className="flex items-center space-x-2 text-sm">
+                <div className="flex items-center bg-honey/10 px-3 py-1 rounded-full">
+                  <i className="fas fa-coins text-honey mr-2"></i>
+                  <span className="text-honey font-medium">BCC Only</span>
+                </div>
+              </div>
+            </div>
+          </div>
           
           {/* NFT Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
