@@ -513,6 +513,58 @@
     "linkCopied": {
       "title": "링크 복사됨!",
       "description": "추천 링크가 클립보드에 복사되었습니다."
+    },
+    "blog": {
+      "title": "하이브월드 지식센터",
+      "subtitle": "Web3, 블록체인 기술, 탈중앙화 생태계의 최신 인사이트를 확인하세요",
+      "searchPlaceholder": "기사 검색...",
+      "allTopics": "모든 주제",
+      "noArticles": "기사를 찾을 수 없습니다",
+      "noArticlesDesc": "검색어를 조정하거나 다른 주제를 탐색해보세요",
+      "tags": {
+        "Web3": "Web3",
+        "Blockchain": "블록체인",
+        "Membership": "멤버십",
+        "NFT": "NFT",
+        "Access Control": "액세스 제어",
+        "Technology": "기술",
+        "Referrals": "추천",
+        "Economics": "경제학",
+        "Strategy": "전략",
+        "Multi-chain": "멀티체인",
+        "Payments": "결제",
+        "Development": "개발",
+        "Governance": "거버넌스",
+        "Community": "커뮤니티",
+        "DAO": "DAO"
+      },
+      "posts": {
+        "1": {
+          "title": "Web3 멤버십 시스템의 미래",
+          "excerpt": "블록체인 기술이 여러 산업의 멤버십 및 로열티 프로그램을 어떻게 혁신하고 있는지 탐색합니다.",
+          "author": "Beehive 팀"
+        },
+        "2": {
+          "title": "NFT 기반 액세스 제어 이해",
+          "excerpt": "NFT가 콘텐츠 게이팅과 독점적 커뮤니티 경험 창조에 어떻게 사용되는지.",
+          "author": "기술팀"
+        },
+        "3": {
+          "title": "지속 가능한 추천 경제 구축",
+          "excerpt": "성공적인 추천 프로그램 뒤의 메커니즘과 지속적인 가치 창조 방법.",
+          "author": "전략팀"
+        },
+        "4": {
+          "title": "멀티체인 결제 통합 가이드",
+          "excerpt": "dApp용 크로스체인 결제 솔루션 구현에 대한 기술적 심층 분석.",
+          "author": "개발팀"
+        },
+        "5": {
+          "title": "탈중앙화 플랫폼에서의 커뮤니티 거버넌스",
+          "excerpt": "Web3 커뮤니티에서 공정하고 효과적인 거버넌스 시스템 구현을 위한 모범 사례.",
+          "author": "커뮤니티팀"
+        }
+      }
     }
   },
   "me": {

@@ -427,6 +427,70 @@
     },
     "rewardHistory": {
       "title": "報酬履歴",
+      "directBonus": "直接紹介ボーナス"
+    },
+    "blog": {
+      "title": "ハイブワールド知識センター",
+      "subtitle": "Web3、ブロックチェーン技術、分散型エコシステムの最新情報をお届けします",
+      "searchPlaceholder": "記事を検索...",
+      "allTopics": "すべてのトピック",
+      "noArticles": "記事が見つかりません",
+      "noArticlesDesc": "検索語句を調整するか、異なるトピックをご覧ください",
+      "tags": {
+        "Web3": "Web3",
+        "Blockchain": "ブロックチェーン",
+        "Membership": "メンバーシップ",
+        "NFT": "NFT",
+        "Access Control": "アクセス制御",
+        "Technology": "技術",
+        "Referrals": "紹介",
+        "Economics": "経済学",
+        "Strategy": "戦略",
+        "Multi-chain": "マルチチェーン",
+        "Payments": "決済",
+        "Development": "開発",
+        "Governance": "ガバナンス",
+        "Community": "コミュニティ",
+        "DAO": "DAO"
+      },
+      "posts": {
+        "1": {
+          "title": "Web3メンバーシップシステムの未来",
+          "excerpt": "ブロックチェーン技術が業界全体のメンバーシップとロイヤルティプログラムをどのように革新しているかを探索。",
+          "author": "ビーハイブチーム"
+        },
+        "2": {
+          "title": "NFTベースのアクセス制御の理解",
+          "excerpt": "NFTがコンテンツゲーティングと排他的コミュニティ体験の創造にどのように使用されているか。",
+          "author": "技術チーム"
+        },
+        "3": {
+          "title": "持続可能な紹介経済の構築",
+          "excerpt": "成功する紹介プログラムの仕組みと、それらがどのように持続的な価値を創造するか。",
+          "author": "戦略チーム"
+        },
+        "4": {
+          "title": "マルチチェーン決済統合ガイド",
+          "excerpt": "dApps向けクロスチェーン決済ソリューションの実装に関する技術的詳細解説。",
+          "author": "開発チーム"
+        },
+        "5": {
+          "title": "分散プラットフォームにおけるコミュニティガバナンス",
+          "excerpt": "Web3コミュニティで公正で効果的なガバナンスシステムを実装するためのベストプラクティス。",
+          "author": "コミュニティチーム"
+        }
+      }
+    }
+      "activeDirect": "アクティブ直接",
+      "activeIndirect": "アクティブ間接",
+      "availableSlot": "利用可能スロット"
+    },
+    "referralLink": {
+      "title": "あなたの紹介リンク",
+      "copy": "コピー"
+    },
+    "rewardHistory": {
+      "title": "報酬履歴",
       "directBonus": "直接紹介ボーナス",
       "upgradeReward": "アップグレード報酬（保留中）",
       "rollupReward": "ロールアップ報酬",
@@ -852,29 +916,46 @@
       "serviceActivated": "サービス有効化済み"
     }
   },
-  "hiveworld": {
-    "blogs": {
-      "web3membership": {
-        "title": "Web3メンバーシップシステムの未来",
-        "excerpt": "ブロックチェーン技術が業界全体のメンバーシップとロイヤルティプログラムをどのように革新しているかを探索。"
-      },
-      "nftaccess": {
-        "title": "NFTベースのアクセス制御の理解",
-        "excerpt": "NFTがコンテンツゲーティングと排他的コミュニティ体験の創造にどのように使用されているか。"
-      },
-      "referraleconomy": {
-        "title": "持続可能な紹介経済の構築",
-        "excerpt": "マトリックスベースの紹介システムで長期的価値を創造するためのベストプラクティス。"
-      },
-      "multichainpayment": {
-        "title": "マルチチェーン決済統合ガイド",
-        "excerpt": "クロスチェーンUSDT決済処理とユーザーエクスペリエンス最適化の技術的詳細解説。"
-      },
-      "governance": {
-        "title": "分散プラットフォームにおけるコミュニティガバナンス",
-        "excerpt": "Web3コミュニティで公正で透明な意思決定プロセスの実装。"
-      }
-    }
+  "blogpost": {
+    "linkCopied": {
+      "title": "リンクをコピーしました！",
+      "description": "ブログ記事のリンクがクリップボードにコピーされました"
+    },
+    "author": "著者",
+    "publishedOn": "公開日",
+    "tags": "タグ",
+    "relatedPosts": "関連記事",
+    "sharePost": "この記事をシェア"
+  },
+  "activity": {
+    "rewardReceived": "報酬受領",
+    "fromReferralUpgrade": "紹介アップグレードから",
+    "nftClaimed": "NFT獲得済み",
+    "newReferral": "新しい紹介",
+    "memberSince": "メンバー開始日"
+  },
+  "errors": {
+    "walletNotConnected": "ウォレットが接続されていません",
+    "failedToFetch": "NFTの取得に失敗",
+    "failedToClaim": "NFTの獲得に失敗",
+    "failedToBurn": "NFTの焼却に失敗",
+    "insufficientBcc": "BCC不足",
+    "maxLevel": "最大レベル",
+    "inactive": "非アクティブ"
+  },
+  "buttons": {
+    "getStarted": "開始する",
+    "connectWallet": "ウォレット接続",
+    "copied": "コピーしました！",
+    "close": "閉じる",
+    "viewInCenter": "NFTセンターで表示",
+    "burnForService": "サービスコード用に焼却",
+    "burnNft": "NFT焼却",
+    "confirmBurn": "焼却確認",
+    "burning": "焼却中...",
+    "useNftService": "NFTサービスを使用",
+    "topUp": "チャージ"
+  }
   },
   "blogpost": {
     "linkCopied": {
