@@ -22,10 +22,6 @@ export default function WalletConnect() {
         chains={supportedChains}
         wallets={wallets}
         theme="dark"
-        accountAbstraction={{
-          chain: alphaCentauri, // Use Alpha-centauri for account abstraction
-          sponsorGas: true, // Sponsor gas fees for users
-        }}
         auth={authConfig}
         connectModal={{ 
           showThirdwebBranding: false, 
