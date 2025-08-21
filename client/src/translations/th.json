@@ -168,6 +168,58 @@
         "title": "การเปิดใช้งานล้มเหลว",
         "description": "กรุณาลองอีกครั้งหรือติดต่อฝ่ายสนับสนุน"
       }
+    },
+    "member": "สมาชิก",
+    "userCentre": "ศูนย์ผู้ใช้",
+    "verifying": "กำลังตรวจสอบความเป็นเจ้าของ NFT...",
+    "nftVerified": "NFT ได้รับการตรวจสอบ",
+    "reward": "รางวัล",
+    "bccBalance": "ยอดคงเหลือ BCC",
+    "nfts": "NFTs",
+    "accountOverview": "ภาพรวมบัญชี",
+    "userAvatar": "อวตาร์ผู้ใช้",
+    "levelText": "ระดับ {{level}}",
+    "priceLevel1": "130 USDT",
+    "activity": {
+      "rewardReceived": "ได้รับรางวัล",
+      "fromReferralUpgrade": "จากการอัพเกรดการแนะนำ",
+      "rewardAmount": "+{{amount}} รางวัล",
+      "nftClaimed": "ได้รับ NFT",
+      "merchantNft": "ซื้อ NFT ร้านค้าแล้ว",
+      "bccDeduction": "-{{amount}} BCC",
+      "newReferral": "การแนะนำใหม่",
+      "userJoined": "ผู้ใช้เข้าร่วมเครือข่ายของคุณ",
+      "activeStatus": "เปิดใช้งาน"
+    },
+    "referralLink": {
+      "title": "ลิงก์การแนะนำ",
+      "show": "แสดง",
+      "hide": "ซ่อน",
+      "copied": "คัดลอกลิงก์แล้ว!",
+      "copiedDesc": "คัดลอกลิงก์การแนะนำไปยังคลิปบอร์ดแล้ว"
+    },
+    "social": {
+      "twitter": "Twitter",
+      "telegram": "Telegram", 
+      "whatsapp": "WhatsApp"
+    },
+    "stats": {
+      "totalRewards": "รางวัลทั้งหมด",
+      "bccBalance": "ยอดคงเหลือ BCC",
+      "bccLocked": "BCC ที่ล็อค",
+      "nftsOwned": "NFTs ที่เป็นเจ้าของ"
+    },
+    "tokenPurchase": {
+      "bccDescription": "ซื้อ Beehive Crypto Coins สำหรับการใช้งานแพลตฟอร์ม",
+      "cthDescription": "ซื้อโทเค็น CTH สำหรับระบบนิเวศ Alpha Centauri"
+    },
+    "globalStats": {
+      "title": "สถิติระดับโลก",
+      "totalMembers": "สมาชิกทั้งหมด",
+      "totalRewardsPaid": "รางวัลที่จ่ายทั้งหมด",
+      "pendingRewards": "รางวัลที่รอดำเนินการ",
+      "highestLevel": "ระดับสูงสุด",
+      "membersByLevel": "สมาชิกตามระดับ"
     }
   },
   "tasks": {

@@ -179,6 +179,58 @@
         "title": "アクティベート失敗",
         "description": "再試行するかサポートにお問い合わせください。"
       }
+    },
+    "member": "メンバー",
+    "userCentre": "ユーザーセンター",
+    "verifying": "NFT所有権を検証中...",
+    "nftVerified": "NFT検証済み",
+    "reward": "報酬",
+    "bccBalance": "BCC残高",
+    "nfts": "NFTs",
+    "accountOverview": "アカウント概要",
+    "userAvatar": "ユーザーアバター",
+    "levelText": "レベル {{level}}",
+    "priceLevel1": "130 USDT",
+    "activity": {
+      "rewardReceived": "報酬受領",
+      "fromReferralUpgrade": "紹介アップグレードから",
+      "rewardAmount": "+{{amount}} 報酬",
+      "nftClaimed": "NFT獲得",
+      "merchantNft": "商用NFT購入済み",
+      "bccDeduction": "-{{amount}} BCC",
+      "newReferral": "新しい紹介",
+      "userJoined": "ユーザーがあなたのネットワークに参加",
+      "activeStatus": "アクティブ"
+    },
+    "referralLink": {
+      "title": "紹介リンク",
+      "show": "表示",
+      "hide": "非表示",
+      "copied": "リンクがコピーされました！",
+      "copiedDesc": "紹介リンクがクリップボードにコピーされました"
+    },
+    "social": {
+      "twitter": "Twitter",
+      "telegram": "Telegram", 
+      "whatsapp": "WhatsApp"
+    },
+    "stats": {
+      "totalRewards": "総報酬",
+      "bccBalance": "BCC残高",
+      "bccLocked": "BCCロック済み",
+      "nftsOwned": "所有NFT数"
+    },
+    "tokenPurchase": {
+      "bccDescription": "プラットフォーム利用のためのBeehive暗号コインを購入",
+      "cthDescription": "Alpha Centauriエコシステム用のCTHトークンを購入"
+    },
+    "globalStats": {
+      "title": "グローバル統計",
+      "totalMembers": "総メンバー数",
+      "totalRewardsPaid": "支払済み報酬総額",
+      "pendingRewards": "保留中の報酬",
+      "highestLevel": "最高レベル",
+      "membersByLevel": "レベル別メンバー数"
     }
   },
   "tasks": {

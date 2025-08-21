@@ -162,6 +162,58 @@
         "title": "Pengaktifan Gagal",
         "description": "Sila cuba lagi atau hubungi sokongan."
       }
+    },
+    "member": "Ahli",
+    "userCentre": "Pusat Pengguna",
+    "verifying": "Mengesahkan pemilikan NFT...",
+    "nftVerified": "NFT Disahkan",
+    "reward": "Ganjaran",
+    "bccBalance": "Baki BCC",
+    "nfts": "NFTs",
+    "accountOverview": "Gambaran Keseluruhan Akaun",
+    "userAvatar": "Avatar Pengguna",
+    "levelText": "Tahap {{level}}",
+    "priceLevel1": "130 USDT",
+    "activity": {
+      "rewardReceived": "Ganjaran Diterima",
+      "fromReferralUpgrade": "Dari peningkatan rujukan",
+      "rewardAmount": "+{{amount}} Ganjaran",
+      "nftClaimed": "NFT Dituntut",
+      "merchantNft": "NFT pedagang dibeli",
+      "bccDeduction": "-{{amount}} BCC",
+      "newReferral": "Rujukan Baru",
+      "userJoined": "Pengguna menyertai rangkaian anda",
+      "activeStatus": "Aktif"
+    },
+    "referralLink": {
+      "title": "Pautan Rujukan",
+      "show": "Tunjuk",
+      "hide": "Sembunyikan",
+      "copied": "Pautan Disalin!",
+      "copiedDesc": "Pautan rujukan telah disalin ke papan keratan"
+    },
+    "social": {
+      "twitter": "Twitter",
+      "telegram": "Telegram", 
+      "whatsapp": "WhatsApp"
+    },
+    "stats": {
+      "totalRewards": "Jumlah Ganjaran",
+      "bccBalance": "Baki BCC",
+      "bccLocked": "BCC Terkunci",
+      "nftsOwned": "NFT Dimiliki"
+    },
+    "tokenPurchase": {
+      "bccDescription": "Beli Beehive Crypto Coins untuk kegunaan platform",
+      "cthDescription": "Beli token CTH untuk ekosistem Alpha Centauri"
+    },
+    "globalStats": {
+      "title": "Statistik Global",
+      "totalMembers": "Jumlah Ahli",
+      "totalRewardsPaid": "Jumlah Ganjaran Dibayar",
+      "pendingRewards": "Ganjaran Tertangguh",
+      "highestLevel": "Tahap Tertinggi",
+      "membersByLevel": "Ahli Mengikut Tahap"
     }
   },
   "tasks": {

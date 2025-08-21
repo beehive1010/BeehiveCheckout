@@ -168,6 +168,58 @@
         "title": "활성화 실패",
         "description": "다시 시도하거나 지원팀에 문의하세요."
       }
+    },
+    "member": "회원",
+    "userCentre": "사용자 센터",
+    "verifying": "NFT 소유권 확인 중...",
+    "nftVerified": "NFT 검증됨",
+    "reward": "보상",
+    "bccBalance": "BCC 잔액",
+    "nfts": "NFTs",
+    "accountOverview": "계정 개요",
+    "userAvatar": "사용자 아바타",
+    "levelText": "레벨 {{level}}",
+    "priceLevel1": "130 USDT",
+    "activity": {
+      "rewardReceived": "보상 받음",
+      "fromReferralUpgrade": "추천 업그레이드로부터",
+      "rewardAmount": "+{{amount}} 보상",
+      "nftClaimed": "NFT 획득",
+      "merchantNft": "판매자 NFT 구매됨",
+      "bccDeduction": "-{{amount}} BCC",
+      "newReferral": "새 추천",
+      "userJoined": "사용자가 네트워크에 가입함",
+      "activeStatus": "활성"
+    },
+    "referralLink": {
+      "title": "추천 링크",
+      "show": "표시",
+      "hide": "숨기기",
+      "copied": "링크 복사됨!",
+      "copiedDesc": "추천 링크가 클립보드에 복사되었습니다"
+    },
+    "social": {
+      "twitter": "Twitter",
+      "telegram": "Telegram", 
+      "whatsapp": "WhatsApp"
+    },
+    "stats": {
+      "totalRewards": "총 보상",
+      "bccBalance": "BCC 잔액",
+      "bccLocked": "BCC 잠김",
+      "nftsOwned": "보유 NFT"
+    },
+    "tokenPurchase": {
+      "bccDescription": "플랫폼 사용을 위한 Beehive 암호화폐 구매",
+      "cthDescription": "Alpha Centauri 생태계를 위한 CTH 토큰 구매"
+    },
+    "globalStats": {
+      "title": "글로벌 통계",
+      "totalMembers": "총 회원 수",
+      "totalRewardsPaid": "지급된 총 보상",
+      "pendingRewards": "대기 중인 보상",
+      "highestLevel": "최고 레벨",
+      "membersByLevel": "레벨별 회원"
     }
   },
   "tasks": {
