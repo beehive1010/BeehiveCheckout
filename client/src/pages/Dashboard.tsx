@@ -268,7 +268,8 @@ export default function Dashboard() {
                 <p className="text-honey font-bold">{bccBalance?.restricted || 0}</p>
               </div>
               <div className="balance-card">
-                <p className="text-muted-foreground text-xs">CTH</p>
+                <p className="text-muted-foreground text-xs">NFTs
+</p>
                 <p className="text-honey font-bold">42</p>
               </div>
             </div>
