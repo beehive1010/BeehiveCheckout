@@ -25,6 +25,11 @@ interface UserReferralStats {
 export function useCompanyStats() {
   return useQuery<CompanyStats>({
     queryKey: ['/api/beehive/company-stats'],
+    queryFn: async () => {
+      const response = await fetch('/api/beehive/company-stats', { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch company stats');
+      return response.json();
+    },
     staleTime: 30000, // 30 seconds
   });
 }
@@ -34,6 +39,15 @@ export function useUserReferralStats() {
 
   return useQuery<UserReferralStats>({
     queryKey: ['/api/beehive/user-stats', walletAddress],
+    queryFn: async () => {
+      if (!walletAddress) throw new Error('No wallet address');
+      const response = await fetch(`/api/beehive/user-stats/${walletAddress}`, { 
+        credentials: 'include',
+        headers: { 'x-wallet-address': walletAddress }
+      });
+      if (!response.ok) throw new Error('Failed to fetch user stats');
+      return response.json();
+    },
     enabled: !!walletAddress,
     staleTime: 15000, // 15 seconds
   });
