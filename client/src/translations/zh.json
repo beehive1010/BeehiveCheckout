@@ -811,6 +811,23 @@
   },
   "education": {
     "title": "教育中心",
+    "search": {
+      "placeholder": "您想学习什么"
+    },
+    "filters": {
+      "category": "分类",
+      "level": "级别", 
+      "type": "类型",
+      "payment": "付费方式",
+      "allCategories": "所有分类",
+      "allLevels": "所有级别",
+      "allTypes": "所有类型",
+      "allCourses": "所有课程",
+      "onlineZoom": "在线（Zoom）",
+      "videoLessons": "视频课程",
+      "freeCourses": "免费课程",
+      "paidBCC": "付费（BCC）"
+    },
     "progress": {
       "title": "学习进度",
       "subtitle": "跟踪您的教育旅程",
@@ -822,20 +839,31 @@
     "free": "免费",
     "levelRequired": "需要级别",
     "duration": "时长",
-    "completed": "已完成",
-    "continue": "继续学习",
-    "startFree": "开始课程",
-    "purchase": "购买课程",
-    "enrolling": "注册中...",
-    "insufficientBCC": "BCC不足",
-    "enroll": {
+    "buttons": {
+      "join": "加入",
+      "watch": "观看",
+      "download": "下载",
+      "completed": "已完成",
+      "enrolled": "已注册",
+      "claiming": "获取中...",
+      "levelRequired": "需要级别",
+      "insufficientBCC": "BCC不足",
+      "claimFree": "获取免费课程",
+      "claimPaid": "使用 {} BCC 获取"
+    },
+    "courseTypes": {
+      "zoomMeeting": "Zoom会议",
+      "videoAccess": "视频访问",
+      "streamOrDownload": "在线观看或下载"
+    },
+    "claim": {
       "success": {
-        "title": "注册成功！",
+        "title": "课程获取成功！",
         "description": "您现在可以访问此课程。"
       },
       "error": {
-        "title": "注册失败",
-        "description": "无法注册课程。请重试。"
+        "title": "获取失败",
+        "description": "无法获取课程。请重试。"
       }
     }
   },
