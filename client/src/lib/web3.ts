@@ -61,12 +61,17 @@ export const authConfig = {
     try {
       console.log('doLogin called with params:', params);
       
+      // Extract data from Thirdweb's parameter structure
+      const address = params.payload?.address || params.address;
+      const message = params.payload?.message || params.message;
+      const signature = params.signature;
+      
       // Validate required fields
-      if (!params.address || !params.signature || !params.message) {
+      if (!address || !signature || !message) {
         console.error('Missing required auth fields:', {
-          address: !!params.address,
-          signature: !!params.signature,
-          message: !!params.message
+          address: !!address,
+          signature: !!signature,
+          message: !!message
         });
         throw new Error('Missing required authentication fields');
       }
@@ -77,9 +82,9 @@ export const authConfig = {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          address: params.address,
-          signature: params.signature,
-          message: params.message,
+          address: address,
+          signature: signature,
+          message: message,
         }),
       });
       
