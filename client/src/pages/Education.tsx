@@ -19,6 +19,12 @@ interface Course {
   priceBCC: number;
   isFree: boolean;
   duration: string;
+  courseType: 'online' | 'video';
+  zoomMeetingId?: string;
+  zoomPassword?: string;
+  zoomLink?: string;
+  videoUrl?: string;
+  downloadLink?: string;
 }
 
 interface CourseAccess {
@@ -41,6 +47,7 @@ export default function Education() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedLevel, setSelectedLevel] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
+  const [selectedPayment, setSelectedPayment] = useState('all');
 
   // Fetch courses
   const { data: courses, isLoading: isLoadingCourses } = useQuery<Course[]>({
@@ -67,35 +74,35 @@ export default function Education() {
     },
   });
 
-  // Enroll in course mutation
-  const enrollMutation = useMutation({
-    mutationFn: async (courseId: string) => {
-      const response = await fetch('/api/education/enroll', {
+  // Claim course with BCC mutation
+  const claimCourseMutation = useMutation({
+    mutationFn: async (data: { courseId: string; useBCCBucket: 'transferable' | 'restricted' }) => {
+      const response = await fetch('/api/education/claim', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-Wallet-Address': walletAddress!,
         },
-        body: JSON.stringify({ courseId }),
+        body: JSON.stringify(data),
       });
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to enroll');
+        throw new Error(error.error || 'Failed to claim course');
       }
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: t('education.enroll.success.title'),
-        description: t('education.enroll.success.description'),
+        title: t('education.claim.success.title') || 'Course Claimed!',
+        description: t('education.claim.success.description') || 'You now have access to this course.',
       });
       queryClient.invalidateQueries({ queryKey: ['/api/education/progress'] });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     },
     onError: (error: any) => {
       toast({
-        title: t('education.enroll.error.title'),
-        description: error.message || t('education.enroll.error.description'),
+        title: t('education.claim.error.title') || 'Claim Failed',
+        description: error.message || t('education.claim.error.description') || 'Failed to claim course',
         variant: 'destructive',
       });
     },
@@ -122,14 +129,20 @@ export default function Education() {
     }, 0);
   };
 
-  const getCourseIcon = (title: string) => {
-    if (title.includes('Blockchain')) return 'fas fa-cube';
-    if (title.includes('DeFi')) return 'fas fa-chart-line';
-    if (title.includes('NFT')) return 'fas fa-palette';
-    if (title.includes('Trading')) return 'fas fa-chart-bar';
-    if (title.includes('Development')) return 'fas fa-code';
-    if (title.includes('Workshop')) return 'fas fa-video';
-    return 'fas fa-book';
+  const getCourseIcon = (course: Course) => {
+    // First check course type
+    if (course.courseType === 'online') return 'fas fa-video';
+    if (course.courseType === 'video') return 'fas fa-play-circle';
+    
+    // Then check title content for specific icons
+    if (course.title.includes('Blockchain')) return 'fas fa-cube';
+    if (course.title.includes('DeFi')) return 'fas fa-chart-line';
+    if (course.title.includes('NFT')) return 'fas fa-palette';
+    if (course.title.includes('Trading')) return 'fas fa-chart-bar';
+    if (course.title.includes('Development')) return 'fas fa-code';
+    
+    // Default based on course type
+    return course.courseType === 'online' ? 'fas fa-video' : 'fas fa-play-circle';
   };
 
   const getCourseCategory = (title: string) => {
@@ -141,10 +154,14 @@ export default function Education() {
     return 'general';
   };
 
-  const getCourseType = (course: Course) => {
+  const getCourseContentType = (course: Course) => {
+    return course.courseType; // 'online' or 'video'
+  };
+
+  const getCoursePaymentType = (course: Course) => {
     if (course.isFree) return 'free';
-    if (course.priceBCC > 0) return 'premium';
-    return 'standard';
+    if (course.priceBCC > 0) return 'paid';
+    return 'free';
   };
 
   // Filter courses based on search and filters
@@ -165,23 +182,28 @@ export default function Education() {
       const matchesLevel = selectedLevel === 'all' || 
         course.requiredLevel.toString() === selectedLevel;
       
-      // Type filter
+      // Type filter (content type)
       const matchesType = selectedType === 'all' || 
-        getCourseType(course) === selectedType;
+        getCourseContentType(course) === selectedType;
       
-      return matchesSearch && matchesCategory && matchesLevel && matchesType;
+      // Payment filter
+      const matchesPayment = selectedPayment === 'all' || 
+        getCoursePaymentType(course) === selectedPayment;
+      
+      return matchesSearch && matchesCategory && matchesLevel && matchesType && matchesPayment;
     });
-  }, [courses, searchQuery, selectedCategory, selectedLevel, selectedType]);
+  }, [courses, searchQuery, selectedCategory, selectedLevel, selectedType, selectedPayment]);
 
   // Get unique categories, levels, and types for filter options
   const filterOptions = useMemo(() => {
-    if (!courses) return { categories: [], levels: [], types: [] };
+    if (!courses) return { categories: [], levels: [], types: [], payments: [] };
     
     const categories = Array.from(new Set(courses.map(course => getCourseCategory(course.title))));
     const levels = Array.from(new Set(courses.map(course => course.requiredLevel))).sort((a, b) => a - b);
-    const types = Array.from(new Set(courses.map(course => getCourseType(course))));
+    const types = Array.from(new Set(courses.map(course => getCourseContentType(course))));
+    const payments = Array.from(new Set(courses.map(course => getCoursePaymentType(course))));
     
-    return { categories, levels, types };
+    return { categories, levels, types, payments };
   }, [courses]);
 
   if (isLoadingCourses || isLoadingProgress) {
@@ -275,9 +297,25 @@ export default function Education() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="free">Free</SelectItem>
-              <SelectItem value="premium">Premium</SelectItem>
-              <SelectItem value="standard">Standard</SelectItem>
+              {filterOptions.types.map((type, index) => (
+                <SelectItem key={`type-${type}-${index}`} value={type}>
+                  {type === 'online' ? 'Online (Zoom)' : 'Video Lessons'}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          <Select value={selectedPayment} onValueChange={setSelectedPayment}>
+            <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-payment">
+              <SelectValue placeholder="Payment" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Courses</SelectItem>
+              {filterOptions.payments.map((payment, index) => (
+                <SelectItem key={`payment-${payment}-${index}`} value={payment}>
+                  {payment === 'free' ? 'Free Courses' : 'Paid (BCC)'}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -326,16 +364,24 @@ export default function Education() {
               <CardContent className="p-6">
                 <div className="flex items-center space-x-3 mb-4">
                   <HexagonIcon>
-                    <i className={`${getCourseIcon(course.title)} text-honey`}></i>
+                    <i className={`${getCourseIcon(course)} text-honey`}></i>
                   </HexagonIcon>
-                  <div>
+                  <div className="flex-1">
                     <h3 className="text-honey font-semibold">{course.title}</h3>
-                    <Badge 
-                      variant={course.isFree ? "secondary" : "default"}
-                      className={course.isFree ? "bg-green-600 text-white" : "bg-honey text-black"}
-                    >
-                      {course.isFree ? t('education.free') : `${course.priceBCC} BCC`}
-                    </Badge>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge 
+                        variant="outline"
+                        className={course.courseType === 'online' ? "bg-blue-600 text-white border-blue-600" : "bg-purple-600 text-white border-purple-600"}
+                      >
+                        {course.courseType === 'online' ? 'Online (Zoom)' : 'Video Lessons'}
+                      </Badge>
+                      <Badge 
+                        variant={course.isFree ? "secondary" : "default"}
+                        className={course.isFree ? "bg-green-600 text-white" : "bg-honey text-black"}
+                      >
+                        {course.isFree ? t('education.free') || 'Free' : `${course.priceBCC} BCC`}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
                 
@@ -367,45 +413,111 @@ export default function Education() {
                   </div>
                 )}
 
-                <Button
-                  onClick={() => enrollMutation.mutate(course.id)}
-                  className={hasAccess ? "w-full btn-honey" : !canEnroll ? "w-full btn-honey opacity-50 cursor-not-allowed" : "w-full btn-honey"}
-                  disabled={!canEnroll || (!canAfford && !course.isFree) || enrollMutation.isPending}
-                  data-testid={`button-course-${course.id}`}
-                >
-                  {enrollMutation.isPending ? (
-                    <>
-                      <i className="fas fa-spinner fa-spin mr-2"></i>
-                      {t('education.enrolling')}
-                    </>
-                  ) : hasAccess ? (
-                    access.completed ? (
+                {hasAccess ? (
+                  <div className="space-y-2">
+                    {/* Show course access content based on type */}
+                    {course.courseType === 'online' && course.zoomLink && (
+                      <div className="bg-blue-600/10 border border-blue-600/20 rounded-lg p-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-blue-400">Zoom Meeting</p>
+                            <p className="text-xs text-muted-foreground">Password: {course.zoomPassword}</p>
+                          </div>
+                          <Button
+                            onClick={() => window.open(course.zoomLink, '_blank')}
+                            size="sm"
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                          >
+                            <i className="fas fa-video mr-2"></i>
+                            Join
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {course.courseType === 'video' && course.videoUrl && (
+                      <div className="bg-purple-600/10 border border-purple-600/20 rounded-lg p-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-purple-400">Video Access</p>
+                            <p className="text-xs text-muted-foreground">Stream online or download</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={() => window.open(course.videoUrl, '_blank')}
+                              size="sm"
+                              className="bg-purple-600 hover:bg-purple-700 text-white"
+                            >
+                              <i className="fas fa-play mr-2"></i>
+                              Watch
+                            </Button>
+                            {course.downloadLink && (
+                              <Button
+                                onClick={() => window.open(course.downloadLink, '_blank')}
+                                size="sm"
+                                variant="outline"
+                                className="border-purple-600 text-purple-400 hover:bg-purple-600 hover:text-white"
+                              >
+                                <i className="fas fa-download mr-2"></i>
+                                Download
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <Button
+                      className="w-full bg-green-600 hover:bg-green-700 text-white"
+                      disabled
+                    >
+                      <i className="fas fa-check mr-2"></i>
+                      {access.completed ? 'Completed' : 'Enrolled'}
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    onClick={() => {
+                      if (course.isFree) {
+                        claimCourseMutation.mutate({ 
+                          courseId: course.id, 
+                          useBCCBucket: 'transferable' 
+                        });
+                      } else {
+                        // Prefer restricted BCC first, then transferable
+                        const preferredBucket = (bccBalance?.restricted || 0) >= course.priceBCC ? 'restricted' : 'transferable';
+                        claimCourseMutation.mutate({ 
+                          courseId: course.id, 
+                          useBCCBucket: preferredBucket 
+                        });
+                      }
+                    }}
+                    className={!canEnroll ? "w-full btn-honey opacity-50 cursor-not-allowed" : "w-full btn-honey"}
+                    disabled={!canEnroll || (!canAfford && !course.isFree) || claimCourseMutation.isPending}
+                    data-testid={`button-course-${course.id}`}
+                  >
+                    {claimCourseMutation.isPending ? (
                       <>
-                        <i className="fas fa-check mr-2"></i>
-                        {t('education.completed')}
+                        <i className="fas fa-spinner fa-spin mr-2"></i>
+                        Claiming...
+                      </>
+                    ) : !canEnroll ? (
+                      `Level ${course.requiredLevel} Required`
+                    ) : !canAfford && !course.isFree ? (
+                      'Insufficient BCC'
+                    ) : course.isFree ? (
+                      <>
+                        <i className="fas fa-gift mr-2"></i>
+                        Claim Free Course
                       </>
                     ) : (
                       <>
-                        <i className="fas fa-play mr-2"></i>
-                        {t('education.continue')}
+                        <i className="fas fa-coins mr-2"></i>
+                        Claim for {course.priceBCC} BCC
                       </>
-                    )
-                  ) : !canEnroll ? (
-                    `Level ${course.requiredLevel} Required`
-                  ) : !canAfford && !course.isFree ? (
-                    t('education.insufficientBCC')
-                  ) : course.isFree ? (
-                    <>
-                      <i className="fas fa-play mr-2"></i>
-                      {t('education.startFree')}
-                    </>
-                  ) : (
-                    <>
-                      <i className="fas fa-shopping-cart mr-2"></i>
-                      {t('education.purchase')}
-                    </>
-                  )}
-                </Button>
+                    )}
+                  </Button>
+                )}
               </CardContent>
             </Card>
           );

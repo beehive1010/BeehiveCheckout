@@ -100,6 +100,12 @@ export const courses = pgTable("courses", {
   priceBCC: integer("price_bcc").default(0).notNull(),
   isFree: boolean("is_free").default(true).notNull(),
   duration: text("duration").notNull(),
+  courseType: text("course_type").default("video").notNull(), // "online" or "video"
+  zoomMeetingId: text("zoom_meeting_id"), // For online courses
+  zoomPassword: text("zoom_password"), // For online courses
+  zoomLink: text("zoom_link"), // For online courses
+  videoUrl: text("video_url"), // For video courses
+  downloadLink: text("download_link"), // For video courses with downloads
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -185,6 +191,12 @@ export const insertCourseSchema = createInsertSchema(courses).pick({
   priceBCC: true,
   isFree: true,
   duration: true,
+  courseType: true,
+  zoomMeetingId: true,
+  zoomPassword: true,
+  zoomLink: true,
+  videoUrl: true,
+  downloadLink: true,
 });
 
 export const insertCourseAccessSchema = createInsertSchema(courseAccess).pick({
