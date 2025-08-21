@@ -294,9 +294,9 @@ export default function Discover() {
       {/* Featured DApps */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold text-honey">{t('discover.featuredSection.title')}</h3>
+          <h3 className="text-lg font-semibold text-honey">{t('discover.featured.title')}</h3>
           <Button variant="ghost" size="sm" className="text-honey hover:text-honey/80">
-            {t('discover.featuredSection.viewAll')} <i className="fas fa-arrow-right ml-2"></i>
+            {t('discover.featured.viewAll')} <i className="fas fa-arrow-right ml-2"></i>
           </Button>
         </div>
         
