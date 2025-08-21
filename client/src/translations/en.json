@@ -193,6 +193,58 @@
         "title": "Activation Failed",
         "description": "Please try again or contact support."
       }
+    },
+    "member": "Member",
+    "userCentre": "User Centre",
+    "verifying": "Verifying NFT ownership...",
+    "nftVerified": "NFT Verified",
+    "reward": "Reward",
+    "bccBalance": "BCC Balance",
+    "nfts": "NFTs",
+    "accountOverview": "Account Overview",
+    "userAvatar": "User Avatar",
+    "levelText": "Level {{level}}",
+    "priceLevel1": "130 USDT",
+    "activity": {
+      "rewardReceived": "Reward Received",
+      "fromReferralUpgrade": "From referral upgrade",
+      "rewardAmount": "+{{amount}} Rewards",
+      "nftClaimed": "NFT Claimed",
+      "merchantNft": "Merchant NFT purchased",
+      "bccDeduction": "-{{amount}} BCC",
+      "newReferral": "New Referral",
+      "userJoined": "User joined your network",
+      "activeStatus": "Active"
+    },
+    "referralLink": {
+      "title": "Referral Link",
+      "show": "Show",
+      "hide": "Hide",
+      "copied": "Link Copied!",
+      "copiedDesc": "Referral link copied to clipboard"
+    },
+    "social": {
+      "twitter": "Twitter",
+      "telegram": "Telegram", 
+      "whatsapp": "WhatsApp"
+    },
+    "stats": {
+      "totalRewards": "Total Rewards",
+      "bccBalance": "BCC Balance",
+      "bccLocked": "BCC Locked",
+      "nftsOwned": "NFTs Owned"
+    },
+    "tokenPurchase": {
+      "bccDescription": "Purchase Beehive Crypto Coins for platform usage",
+      "cthDescription": "Buy CTH tokens for Alpha Centauri ecosystem"
+    },
+    "globalStats": {
+      "title": "Global Statistics",
+      "totalMembers": "Total Members",
+      "totalRewardsPaid": "Total Rewards Paid",
+      "pendingRewards": "Pending Rewards",
+      "highestLevel": "Highest Level",
+      "membersByLevel": "Members by Level"
     }
   },
   "tasks": {

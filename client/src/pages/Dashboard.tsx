@@ -103,21 +103,21 @@ export default function Dashboard() {
       icon: 'fas fa-gift',
       type: t('dashboard.activity.rewardReceived'),
       description: t('dashboard.activity.fromReferralUpgrade'),
-      amount: '+100 Rewards',
+      amount: t('dashboard.activity.rewardAmount', { amount: 100 }),
       color: 'text-green-400'
     },
     {
       icon: 'fas fa-shopping-cart',
       type: t('dashboard.activity.nftClaimed'),
       description: t('dashboard.activity.merchantNft'),
-      amount: '-50 BCC',
+      amount: t('dashboard.activity.bccDeduction', { amount: 50 }),
       color: 'text-muted-foreground'
     },
     {
       icon: 'fas fa-user-plus',
       type: t('dashboard.activity.newReferral'),
       description: t('dashboard.activity.userJoined'),
-      amount: 'Active',
+      amount: t('dashboard.activity.activeStatus'),
       color: 'text-green-400'
     }
   ];
@@ -199,11 +199,11 @@ export default function Dashboard() {
               <div className="flex justify-between items-center">
                 <div>
                   <p className="text-sm text-muted-foreground">{t('dashboard.membershipLevel')}</p>
-                  <p className="text-2xl font-bold text-honey">Level 1</p>
+                  <p className="text-2xl font-bold text-honey">{t('dashboard.levelText', { level: 1 })}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">{t('dashboard.price')}</p>
-                  <p className="text-2xl font-bold text-honey">130 USDT</p>
+                  <p className="text-2xl font-bold text-honey">{t('dashboard.priceLevel1')}</p>
                 </div>
               </div>
             </div>
@@ -242,7 +242,7 @@ export default function Dashboard() {
               <HexagonIcon size="lg">
                 <img 
                   src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=64&h=64" 
-                  alt="User Avatar" 
+                  alt={t('dashboard.userAvatar')} 
                   className="w-12 h-12 rounded-full" 
                 />
               </HexagonIcon>
@@ -255,7 +255,7 @@ export default function Dashboard() {
                 </p>
                 <div className="flex items-center space-x-2 mt-2">
                   <Badge className="bg-honey text-black font-semibold text-xs">
-                    Level {currentLevel}
+                    {t('dashboard.levelText', { level: currentLevel })}
                   </Badge>
                   <Badge variant="secondary" className="bg-green-600 text-white text-xs">
                     {t('dashboard.nftVerified')}
@@ -279,7 +279,7 @@ export default function Dashboard() {
             {/* Balance Display - Separate Section with Proper Spacing */}
             <div className="border-t border-border/20 pt-4 mt-4">
               <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
-                Account Overview
+                {t('dashboard.accountOverview')}
               </h3>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <div className="bg-muted/40 rounded-lg p-3 border border-border/30">
@@ -541,7 +541,7 @@ export default function Dashboard() {
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 max-h-60 overflow-y-auto">
                 {companyStats.levelDistribution.map((levelData) => (
                   <div key={levelData.level} className="bg-muted/30 rounded-lg p-3 text-center">
-                    <div className="text-sm font-medium text-honey">Level {levelData.level}</div>
+                    <div className="text-sm font-medium text-honey">{t('dashboard.levelText', { level: levelData.level })}</div>
                     <div className="text-2xl font-bold text-honey">{levelData.count}</div>
                     <div className="text-xs text-muted-foreground">{t('dashboard.globalStats.members')}</div>
                   </div>

@@ -172,14 +172,7 @@
       "shareMessage": "分享您的推荐链接开始建立您的团队！"
     },
     "userCentre": "用户中心",
-    "activity": {
-      "rewardReceived": "奖励已收到",
-      "fromReferralUpgrade": "来自推荐升级",
-      "nftClaimed": "NFT已获取",
-      "merchantNft": "商家NFT #1234",
-      "newReferral": "新推荐",
-      "userJoined": "0x1234...5678 已加入"
-    },
+,
     "quickActions": {
       "tasks": {
         "description": "使用您的BCC代币浏览和获取商家NFT",
@@ -204,6 +197,21 @@
         "title": "激活失败",
         "description": "请重试或联系支持。"
       }
+    },
+    "accountOverview": "账户概览",
+    "userAvatar": "用户头像",
+    "levelText": "等级 {{level}}",
+    "priceLevel1": "130 USDT",
+    "activity": {
+      "rewardReceived": "奖励已收到",
+      "fromReferralUpgrade": "来自推荐升级",
+      "rewardAmount": "+{{amount}} 奖励",
+      "nftClaimed": "NFT已获取",
+      "merchantNft": "商家NFT已购买",
+      "bccDeduction": "-{{amount}} BCC",
+      "newReferral": "新推荐",
+      "userJoined": "用户已加入您的网络",
+      "activeStatus": "活跃"
     }
   },
   "membership": {
