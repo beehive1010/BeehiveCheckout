@@ -1,112 +1,619 @@
 {
   "nav": {
-    "marketplace": "市场"
+    "dashboard": "仪表板",
+    "tasks": "任务",
+    "marketplace": "市场",
+    "education": "教育",
+    "discover": "发现",
+    "hiveworld": "蜂巢世界",
+    "me": "我",
+    "home": "主页"
   },
-  "blockchain": {
-    "name": "Alpha-centauri (ACC)",
-    "gasToken": "Centauri Honey (CTH)",
-    "utilityToken": "Beehive Crypto Coin (BCC)",
-    "membershipNFT": "Bumblebees (BBC)"
+  "common": {
+    "cancel": "取消",
+    "confirm": "确认",
+    "close": "关闭",
+    "save": "保存",
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功"
+  },
+  "wallet": {
+    "connect": "连接钱包",
+    "disconnect": "断开连接",
+    "connected": "已连接"
+  },
+  "landing": {
+    "hero": {
+      "title": "欢迎来到蜂巢",
+      "subtitle": "基于区块链奖励的Web3会员和学习平台"
+    },
+    "getStarted": "开始使用",
+    "features": {
+      "membership": {
+        "title": "Web3 会员制",
+        "description": "具有19个级别的安全链上会员资格"
+      },
+      "referral": {
+        "title": "3×3 矩阵系统",
+        "description": "通过我们的强制矩阵推荐计划获得奖励"
+      },
+      "education": {
+        "title": "学习赚取",
+        "description": "访问高端课程和研讨会，同时获得代币"
+      },
+      "marketplace": {
+        "title": "NFT 市场",
+        "description": "使用您的BCC代币获取独家商家NFT"
+      },
+      "tokens": {
+        "title": "BCC 奖励",
+        "description": "具有可转移和受限制桶的双重代币系统"
+      },
+      "rewards": {
+        "title": "智能奖励",
+        "description": "48小时升级倒计时与累积机制"
+      }
+    },
+    "howItWorks": {
+      "title": "运作方式",
+      "step1": {
+        "title": "连接钱包",
+        "description": "连接您的Web3钱包开始使用"
+      },
+      "step2": {
+        "title": "注册并激活",
+        "description": "完成注册并激活1级会员"
+      },
+      "step3": {
+        "title": "学习赚取",
+        "description": "访问平台功能并开始获得奖励"
+      }
+    },
+    "cta": {
+      "title": "准备开始您的旅程了吗？",
+      "description": "加入已在蜂巢生态系统中赚取收益的数千名会员",
+      "button": "立即加入蜂巢"
+    }
   },
   "registration": {
     "title": "完成注册",
-    "subtitle": "设置您的蜂巢账户",
+    "subtitle": "设置您的蜂巢档案",
+    "walletAddress": "钱包地址",
+    "email": "电子邮件地址",
+    "emailPlaceholder": "输入您的电子邮件",
+    "username": "用户名",
+    "usernamePlaceholder": "选择用户名",
+    "secondaryPassword": "辅助密码",
+    "passwordPlaceholder": "创建安全密码",
+    "confirmPassword": "确认密码",
+    "confirmPasswordPlaceholder": "确认您的密码",
     "referrer": "上线推荐人",
-    "errors": {
-      "referrerRequired": "需要有效的推荐链接才能注册"
-    },
+    "register": "完成注册",
+    "registering": "处理中...",
+    "agreement": "注册即表示您同意我们的服务条款和隐私政策",
     "noReferrerInfo": {
       "title": "需要推荐链接",
       "description": "要加入蜂巢，您需要来自现有成员的推荐链接。这将您连接到我们3×3矩阵系统中的上线。",
       "getLink": "请向蜂巢成员索取他们的推荐链接以开始。"
+    },
+    "errors": {
+      "emailRequired": "电子邮件地址为必填项",
+      "emailInvalid": "请输入有效的电子邮件地址",
+      "usernameRequired": "用户名为必填项",
+      "usernameTooShort": "用户名至少需要3个字符",
+      "passwordRequired": "辅助密码为必填项",
+      "passwordTooShort": "密码至少需要6个字符",
+      "passwordMismatch": "密码不匹配",
+      "referrerRequired": "需要有效的推荐链接才能注册"
+    },
+    "success": {
+      "title": "注册成功！",
+      "description": "您的档案已创建。您现在可以激活您的会员资格。"
+    },
+    "error": {
+      "title": "注册失败",
+      "description": "请重试，如果问题持续存在，请联系支持。"
     },
     "walletRequired": {
       "title": "需要连接钱包",
       "description": "请先连接您的钱包以完成注册。"
     }
   },
+  "dashboard": {
+    "welcome": {
+      "title": "欢迎来到蜂巢！",
+      "description": "激活您的1级会员资格以解锁所有平台功能并开始获得奖励。"
+    },
+    "membershipLevel": "会员级别",
+    "price": "价格",
+    "activateLevel1": "激活1级大黄蜂(BBC) NFT",
+    "activating": "激活中...",
+    "activationNote": "激活后，您将可以访问所有成员功能，包括任务、教育和蜂巢世界。",
+    "status": {
+      "active": "活跃"
+    },
+    "balances": {
+      "bccFree": "BCC (免费)",
+      "bccLocked": "BCC (锁定)"
+    },
+    "quickActions": {
+      "tasks": {
+        "description": "使用您的BCC代币浏览和获取商家NFT"
+      },
+      "education": {
+        "description": "访问课程和学习材料"
+      },
+      "hiveworld": {
+        "description": "查看您的推荐矩阵和奖励"
+      }
+    },
+    "recentActivity": "最近活动",
+    "activation": {
+      "success": {
+        "title": "会员已激活！",
+        "description": "欢迎来到蜂巢！您现在可以访问所有成员功能。"
+      },
+      "error": {
+        "title": "激活失败",
+        "description": "请重试或联系支持。"
+      }
+    }
+  },
+  "tasks": {
+    "title": "任务和市场",
+    "pageTitle": "任务",
+    "categories": {
+      "membership": "会员资格",
+      "advertisement": "广告"
+    },
+    "membership": {
+      "title": "大黄蜂会员NFT",
+      "description": "正宗的会员级别，支持多链USDT支付",
+      "status": {
+        "owned": "拥有",
+        "available": "可用",
+        "locked": "锁定"
+      },
+      "getStarted": "开始使用",
+      "upgradeNow": "立即升级",
+      "lockedMessage": "请先完成前面的级别"
+    },
+    "advertisement": {
+      "title": "广告NFT收藏",
+      "description": "可使用BCC代币获取的独家商家NFT",
+      "noNfts": "暂时没有可用的广告NFT。",
+      "loading": "加载NFT中..."
+    },
+    "availableBalance": "可用余额",
+    "restrictedFirst": "将首先使用受限制的BCC",
+    "restrictedBCC": "受限制的蜂巢加密币",
+    "transferableBCC": "可转移的蜂巢加密币",
+    "claim": "获取",
+    "claiming": "获取中...",
+    "insufficientBCC": "BCC不足",
+    "claimModal": {
+      "title": "获取NFT",
+      "price": "价格",
+      "availableRestricted": "可用（受限制）",
+      "availableTransferable": "可用（可转移）",
+      "confirmation": "将首先使用受限制的BCC。继续获取此NFT？",
+      "confirm": "确认获取",
+      "cancel": "取消"
+    },
+    "claim": {
+      "success": {
+        "title": "NFT获取成功！",
+        "description": "NFT已铸造到您的钱包。"
+      },
+      "error": {
+        "title": "获取失败",
+        "description": "无法获取NFT。请检查您的余额并重试。"
+      }
+    }
+  },
+  "education": {
+    "title": "教育中心",
+    "progress": {
+      "title": "学习进度",
+      "subtitle": "跟踪您的教育旅程",
+      "completed": "已完成",
+      "inProgress": "进行中",
+      "hours": "小时",
+      "label": "进度"
+    },
+    "free": "免费",
+    "levelRequired": "所需级别",
+    "duration": "时长",
+    "completed": "已完成",
+    "continue": "继续学习",
+    "startFree": "开始课程",
+    "purchase": "购买课程",
+    "enrolling": "注册中...",
+    "insufficientBCC": "BCC不足",
+    "enroll": {
+      "success": {
+        "title": "注册成功！",
+        "description": "您现在可以访问此课程。"
+      },
+      "error": {
+        "title": "注册失败",
+        "description": "无法注册课程。请重试。"
+      }
+    }
+  },
+  "discover": {
+    "title": "发现",
+    "subtitle": "探索Web3 DApps和服务",
+    "search": {
+      "placeholder": "搜索DApps、协议或服务...",
+      "recent": "最近",
+      "trending": "趋势",
+      "clear": "清除"
+    },
+    "featured": {
+      "title": "蜂巢精选",
+      "viewAll": "查看全部"
+    },
+    "categories": {
+      "title": "分类",
+      "defi": "DeFi",
+      "nft": "NFT",
+      "gamefi": "GameFi",
+      "dao": "DAO",
+      "bridge": "跨链桥",
+      "lending": "借贷",
+      "dex": "去中心化交易所",
+      "yield": "收益",
+      "insurance": "保险",
+      "social": "社交",
+      "tools": "工具",
+      "education": "教育"
+    },
+    "trending": {
+      "title": "现在流行",
+      "subtitle": "生态系统中的热门DApps",
+      "users": "用户",
+      "tvl": "总锁定价值",
+      "volume": "24小时交易量"
+    },
+    "ecosystem": {
+      "title": "蜂巢生态系统",
+      "subtitle": "原生平台服务和工具",
+      "membership": {
+        "title": "会员系统",
+        "subtitle": "从战士到神话巅峰的19级进阶",
+        "levels": "19个级别",
+        "members": "活跃成员"
+      },
+      "matrix": {
+        "title": "3×3矩阵",
+        "subtitle": "去中心化推荐和奖励系统",
+        "structure": "自动放置",
+        "rewards": "即时奖励"
+      },
+      "education": {
+        "title": "教育中心",
+        "subtitle": "Web3学习和技能发展",
+        "courses": "课程",
+        "certificates": "证书"
+      }
+    },
+    "networks": {
+      "title": "支持的网络",
+      "subtitle": "多链生态系统支持"
+    },
+    "stats": {
+      "title": "平台统计",
+      "totalValue": "总锁定价值",
+      "transactions": "总交易数",
+      "users": "活跃用户",
+      "protocols": "集成协议"
+    },
+    "news": {
+      "title": "最新消息",
+      "subtitle": "了解Web3发展的最新动态",
+      "readMore": "阅读更多",
+      "minutes": "分钟阅读"
+    }
+  },
+  "hiveworld": {
+    "title": "蜂巢世界 - 您的矩阵",
+    "stats": {
+      "directReferrals": "直接推荐",
+      "totalTeam": "总团队",
+      "pending": "待处理",
+      "totalEarned": "总收入"
+    },
+    "matrix": {
+      "title": "您的3×3矩阵",
+      "you": "您",
+      "activeDirect": "活跃直接",
+      "activeIndirect": "活跃间接",
+      "availableSlot": "可用位置"
+    },
+    "referralLink": {
+      "title": "您的推荐链接",
+      "copy": "复制"
+    },
+    "rewardHistory": {
+      "title": "奖励历史",
+      "directBonus": "直接推荐奖金",
+      "upgradeReward": "升级奖励（待处理）",
+      "rollupReward": "累积奖励",
+      "completed": "已完成",
+      "expired": "已过期",
+      "noRewards": "还没有奖励历史"
+    },
+    "linkCopied": {
+      "title": "链接已复制！",
+      "description": "您的推荐链接已复制到剪贴板。"
+    }
+  },
+  "me": {
+    "title": "个人资料和设置",
+    "editProfile": "编辑个人资料",
+    "status": {
+      "active": "活跃",
+      "memberSince": "会员自"
+    },
+    "balances": {
+      "usdt": "USDT余额",
+      "bccTransferable": "蜂巢加密币（可转移）",
+      "bccRestricted": "蜂巢加密币（受限制）",
+      "cth": "半人马蜂蜜（CTH）"
+    },
+    "learning": {
+      "title": "学习进度",
+      "coursesCompleted": "已完成课程",
+      "studyHours": "学习时间",
+      "certificates": "获得证书"
+    },
+    "referral": {
+      "title": "推荐表现",
+      "directReferrals": "直接推荐",
+      "totalTeamSize": "总团队规模",
+      "totalEarnings": "总收入",
+      "thisMonth": "本月"
+    },
+    "settings": {
+      "title": "账户设置",
+      "language": "语言",
+      "languageDescription": "选择您的首选语言",
+      "notifications": "电子邮件通知",
+      "notificationsDescription": "接收关于奖励和活动的更新",
+      "twoFactor": "双重身份验证",
+      "twoFactorDescription": "为您的账户增加额外安全性",
+      "enabled": "已启用",
+      "disabled": "已禁用",
+      "enable2FA": "启用2FA",
+      "changePassword": "更改密码",
+      "deactivateAccount": "停用账户"
+    }
+  },
   "membership": {
+    "purchase": {
+      "button": "购买级别 {level} (${price} USDT)",
+      "approving": "批准USDT中...",
+      "preparing": "准备支付中...",
+      "paying": "处理支付中...",
+      "verifying": "验证交易中...",
+      "finalizing": "完成购买中...",
+      "completed": "购买完成！",
+      "retry": "重试购买",
+      "connectWallet": "连接钱包以购买",
+      "selectChain": "选择支付链",
+      "selectChainDescription": "选择用于支付{level}级会员USDT的区块链",
+      "payWithGas": "使用USDT支付 • 燃料费用{symbol}",
+      "success": {
+        "title": "会员已购买！",
+        "description": "您的会员资格已成功激活。"
+      },
+      "error": {
+        "title": "购买失败",
+        "description": "处理您的购买时出现错误。请重试。"
+      }
+    },
     "levels": {
       "title": "会员等级",
-      "subtitle": "选择您的等级并解锁专属权益"
+      "subtitle": "选择您的等级并解锁专属权益",
+      "currentLevel": "当前级别",
+      "priceUSDT": "USDT",
+      "benefits": "主要权益",
+      "owned": "拥有",
+      "selected": "已选择",
+      "activated": "已激活",
+      "higherLevelOwned": "更高级别已激活",
+      "selectionInfo": "点击购买按钮获取此会员级别"
     },
     "level": {
       "1": {
         "title": "勇士",
-        "subtitle": "Warrior • 开始您的征程 • $130 USDT"
+        "subtitle": "勇士 • 开始您的征程 • $130 USDT"
       },
       "2": {
         "title": "青铜",
-        "subtitle": "Bronze • 证明奉献 • $150 USDT"
+        "subtitle": "青铜 • 证明奉献 • $150 USDT"
       },
       "3": {
         "title": "白银",
-        "subtitle": "Silver • 新星崛起 • $200 USDT"
+        "subtitle": "白银 • 新星崛起 • $200 USDT"
       },
       "4": {
         "title": "黄金",
-        "subtitle": "Gold • 精英地位 • $250 USDT"
+        "subtitle": "黄金 • 精英地位 • $250 USDT"
       },
       "5": {
         "title": "精英",
-        "subtitle": "Elite • 杰出成员 • $300 USDT"
+        "subtitle": "精英 • 杰出成员 • $300 USDT"
       },
       "6": {
         "title": "铂金",
-        "subtitle": "Platinum • 声望等级 • $350 USDT"
+        "subtitle": "铂金 • 声望等级 • $350 USDT"
       },
       "7": {
         "title": "大师",
-        "subtitle": "Master • 技能精通 • $400 USDT"
+        "subtitle": "大师 • 技能精通 • $400 USDT"
       },
       "8": {
         "title": "钻石",
-        "subtitle": "Diamond • 卓越非凡 • $450 USDT"
+        "subtitle": "钻石 • 卓越非凡 • $450 USDT"
       },
       "9": {
         "title": "宗师",
-        "subtitle": "Grandmaster • 至高掌握 • $500 USDT"
+        "subtitle": "宗师 • 至高掌握 • $500 USDT"
       },
       "10": {
         "title": "星耀",
-        "subtitle": "Star Shine • 辉煌成就 • $550 USDT"
+        "subtitle": "星耀 • 辉煌成就 • $550 USDT"
       },
       "11": {
         "title": "史诗",
-        "subtitle": "Epic • 传奇地位 • $600 USDT"
+        "subtitle": "史诗 • 传奇地位 • $600 USDT"
       },
       "12": {
         "title": "殿堂",
-        "subtitle": "Hall • 名人堂 • $650 USDT"
+        "subtitle": "殿堂 • 名人堂 • $650 USDT"
       },
       "13": {
-        "title": "最強王者",
-        "subtitle": "The Strongest King • 王者统治 • $700 USDT"
+        "title": "最强王者",
+        "subtitle": "最强王者 • 王者统治 • $700 USDT"
       },
       "14": {
         "title": "无双王者",
-        "subtitle": "The King of Kings • 至高统治者 • $750 USDT"
+        "subtitle": "无双王者 • 至高统治者 • $750 USDT"
       },
       "15": {
         "title": "荣耀王者",
-        "subtitle": "Glory King • 荣耀统治 • $800 USDT"
+        "subtitle": "荣耀王者 • 荣耀统治 • $800 USDT"
       },
       "16": {
         "title": "传奇主宰",
-        "subtitle": "Legendary Overlord • 神话力量 • $850 USDT"
+        "subtitle": "传奇主宰 • 神话力量 • $850 USDT"
       },
       "17": {
         "title": "至尊主宰",
-        "subtitle": "Supreme Lord • 终极权威 • $900 USDT"
+        "subtitle": "至尊主宰 • 终极权威 • $900 USDT"
       },
       "18": {
         "title": "至尊神话",
-        "subtitle": "Supreme Myth • 神圣传说 • $950 USDT"
+        "subtitle": "至尊神话 • 神圣传说 • $950 USDT"
       },
       "19": {
         "title": "神话巅峰",
-        "subtitle": "Mythical Peak • 力量巅峰 • $1000 USDT"
+        "subtitle": "神话巅峰 • 力量巅峰 • $1000 USDT"
+      }
+    },
+    "benefits": {
+      "l1": {
+        "basic": "基础平台访问权限",
+        "education": "教育内容访问权限",
+        "rewards": "推荐奖励资格"
+      },
+      "l2": {
+        "enhanced": "增强奖励倍增器",
+        "bonus": "2级奖励功能",
+        "network": "扩展网络访问权限"
+      },
+      "l3": {
+        "advanced": "高级交易工具",
+        "exclusive": "专属会员活动",
+        "priority": "优先客户支持"
+      },
+      "l4": {
+        "premium": "高端内容库",
+        "mentorship": "指导机会",
+        "tools": "专业交易工具"
+      },
+      "l5": {
+        "elite": "精英会员地位",
+        "leadership": "领导力发展",
+        "insights": "市场洞察访问权限"
+      },
+      "l6": {
+        "mastery": "大师级资源",
+        "networking": "VIP网络活动",
+        "rewards": "增强奖励率"
+      },
+      "l7": {
+        "expert": "专家级认证",
+        "community": "私人社区访问权限",
+        "alpha": "Alpha投资机会"
+      },
+      "l8": {
+        "legendary": "传奇地位特权",
+        "influence": "平台影响力投票",
+        "opportunities": "独家机会"
+      },
+      "l9": {
+        "mastery": "完整系统掌握",
+        "inner_circle": "内圈会员资格",
+        "exclusive": "超级独家权益"
+      },
+      "l10": {
+        "grandmaster": "宗师认可",
+        "authority": "平台权威角色",
+        "legacy": "传承项目访问权限"
+      },
+      "l11": {
+        "wisdom": "智慧委员会成员",
+        "cosmic": "宇宙级奖励",
+        "transcendent": "超越权益"
+      },
+      "l12": {
+        "oracle": "预言者顾问角色",
+        "foresight": "市场先见工具",
+        "divine": "神级特权"
+      },
+      "l13": {
+        "immortal": "不朽地位权益",
+        "eternal": "永恒奖励流",
+        "infinite": "无限增长潜力"
+      },
+      "l14": {
+        "celestial": "天体级访问权限",
+        "heavenly": "天堂奖励率",
+        "ascended": "升华会员特权"
+      },
+      "l15": {
+        "divine": "神圣权威地位",
+        "godlike": "神般影响力",
+        "ultimate": "终极平台访问权限"
+      },
+      "l16": {
+        "supreme": "至高指挥官角色",
+        "omnipotent": "全能决策权",
+        "sovereign": "主权会员权利"
+      },
+      "l17": {
+        "transcendent": "超越存在",
+        "beyond": "超越常规限制",
+        "unlimited": "无限可能"
+      },
+      "l18": {
+        "absolute": "绝对权力访问权限",
+        "perfection": "完美级权益",
+        "apex": "顶级掠食者地位"
+      },
+      "l19": {
+        "mythical": "神话传说地位",
+        "peak": "巅峰表现级",
+        "legendary": "传奇创始人特权"
       }
     }
+  },
+  "footer": {
+    "description": "基于区块链奖励的Web3会员和学习平台。",
+    "platform": "平台",
+    "support": "支持",
+    "helpCenter": "帮助中心",
+    "documentation": "文档",
+    "contact": "联系我们",
+    "status": "状态",
+    "legal": "法律",
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "cookies": "Cookie政策",
+    "copyright": "© 2024 蜂巢。保留所有权利。"
   }
 }
