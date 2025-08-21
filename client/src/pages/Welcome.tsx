@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useI18n } from '../contexts/I18nContext';
 import { useLocation } from 'wouter';
-import { useActiveAccount } from 'thirdweb/react';
+import { useActiveAccount, useSwitchActiveWalletChain } from 'thirdweb/react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { useToast } from '../hooks/use-toast';
 import { ClaimButton } from "thirdweb/react";
 import { claimTo } from "thirdweb/extensions/erc1155";
-import { bbcMembershipContract } from '../lib/web3';
+import { bbcMembershipContract, alphaCentauri } from '../lib/web3';
 import HexagonIcon from '../components/UI/HexagonIcon';
 import { useNFTVerification } from '../hooks/useNFTVerification';
 import { motion } from 'framer-motion';
@@ -19,6 +19,8 @@ export default function Welcome() {
   const account = useActiveAccount();
   const { hasLevel1NFT, isLoading } = useNFTVerification();
   const [claimingStarted, setClaimingStarted] = useState(false);
+  const switchChain = useSwitchActiveWalletChain();
+  const [isWrongChain, setIsWrongChain] = useState(false);
 
   // If user already has Level 1 NFT, redirect to dashboard
   if (hasLevel1NFT && !isLoading) {
@@ -31,6 +33,29 @@ export default function Welcome() {
     setLocation('/');
     return null;
   }
+
+  // Check if user is on the correct chain
+  const currentChainId = account?.chain?.id;
+  const requiredChainId = alphaCentauri.id;
+  const needsChainSwitch = currentChainId !== requiredChainId;
+
+  const handleSwitchChain = async () => {
+    try {
+      await switchChain(alphaCentauri);
+      setIsWrongChain(false);
+      toast({
+        title: "Chain Switched",
+        description: "Successfully switched to Alpha Centauri network",
+      });
+    } catch (error) {
+      console.error('Failed to switch chain:', error);
+      toast({
+        title: "Chain Switch Failed",
+        description: "Please manually switch to Alpha Centauri network in your wallet",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleClaimSuccess = () => {
     toast({
@@ -46,9 +71,22 @@ export default function Welcome() {
 
   const handleClaimError = (error: any) => {
     console.error('Claim error:', error);
+    
+    // Extract meaningful error message
+    let errorMessage = t('welcome.error.description');
+    if (error?.message) {
+      errorMessage = error.message;
+    } else if (error?.reason) {
+      errorMessage = error.reason;
+    } else if (error?.data?.message) {
+      errorMessage = error.data.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    }
+    
     toast({
       title: t('welcome.error.title'),
-      description: t('welcome.error.description'),
+      description: errorMessage,
       variant: "destructive",
     });
     setClaimingStarted(false);
@@ -158,7 +196,27 @@ export default function Welcome() {
                 </p>
               </div>
 
-              {!claimingStarted ? (
+              {needsChainSwitch ? (
+                <div className="space-y-4">
+                  <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                    <div className="flex items-center text-yellow-600 mb-2">
+                      <i className="fas fa-exclamation-triangle mr-2"></i>
+                      <span className="text-sm font-medium">Wrong Network</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      You need to switch to Alpha Centauri network to claim your NFT.
+                    </p>
+                    <Button
+                      onClick={handleSwitchChain}
+                      className="w-full bg-yellow-600 hover:bg-yellow-700 text-black"
+                      data-testid="button-switch-chain"
+                    >
+                      <i className="fas fa-exchange-alt mr-2"></i>
+                      Switch to Alpha Centauri
+                    </Button>
+                  </div>
+                </div>
+              ) : !claimingStarted ? (
                 <ClaimButton
                   contractAddress={bbcMembershipContract.address}
                   chain={bbcMembershipContract.chain}
@@ -183,7 +241,7 @@ export default function Welcome() {
                   {({ onClick, isLoading: claimLoading }) => (
                     <Button
                       onClick={onClick}
-                      disabled={claimLoading || claimingStarted}
+                      disabled={claimLoading || claimingStarted || needsChainSwitch}
                       className="w-full btn-honey py-6 text-lg"
                       data-testid="button-claim-nft"
                     >
