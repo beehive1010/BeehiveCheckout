@@ -411,89 +411,65 @@ export default function ClaimMembershipButton({
 
   if (claimState === 'paying') {
     return (
-      <div className="fixed inset-0 z-[9999] overflow-y-auto">
-        <div className="min-h-screen px-4 text-center">
-          {/* Background overlay */}
-          <div
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
-            onClick={() => {
-              setClaimState('idle');
-              setShowChainSelector(false);
-            }}
-          />
-
-          {/* Centering trick */}
-          <span
-            className="inline-block h-screen align-middle"
-            aria-hidden="true"
-          >
-            &#8203;
-          </span>
-
-          {/* Modal content */}
-          <div className="inline-block w-full max-w-[500px] mx-2 sm:mx-0 min-h-[500px] sm:min-h-[600px] max-h-[90vh] sm:max-h-[80vh] my-4 sm:my-8 align-middle transition-all transform bg-background rounded-2xl relative border border-border">
-            {/* Close button */}
-            <button
-              onClick={() => {
-                setClaimState('idle');
-                setShowChainSelector(false);
-              }}
-              className="absolute top-3 right-3 sm:top-4 sm:right-4 text-muted-foreground hover:text-foreground p-3 sm:p-2 rounded-full hover:bg-muted transition-colors z-10 min-w-[44px] min-h-[44px] flex items-center justify-center"
-              title={String(t('membership.purchase.cancel'))}
-            >
-              <FiX size={20} />
-            </button>
-
-            {/* Selected Chain Info Header */}
-            <div className="bg-secondary/50 rounded-t-2xl p-3 sm:p-4 border-b border-border">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-8 h-8 rounded-full bg-muted flex items-center justify-center ${selectedChain.color}`}>
-                    <i className={`${selectedChain.icon} text-sm`}></i>
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm sm:text-base">{selectedChain.name}</p>
-                    <p className="text-xs text-muted-foreground">USDT Payment</p>
-                  </div>
-                </div>
-                <div className="text-left sm:text-right">
-                  <p className="text-lg sm:text-xl font-bold text-honey">${membershipLevel.priceUSDT}</p>
-                  <p className="text-xs text-muted-foreground">Level {level} Membership</p>
-                </div>
+      <div className="w-full space-y-4">
+        {/* Payment Header */}
+        <div className="bg-secondary/30 rounded-lg p-4 border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className={`w-8 h-8 rounded-full bg-muted flex items-center justify-center ${selectedChain.color}`}>
+                <i className={`${selectedChain.icon} text-sm`}></i>
+              </div>
+              <div>
+                <p className="font-medium">{selectedChain.name}</p>
+                <p className="text-xs text-muted-foreground">USDT Payment</p>
               </div>
             </div>
-
-            {/* PayEmbed Container */}
-            <div className="p-3 sm:p-4 overflow-hidden min-h-[400px]">
-              <PayEmbed
-                client={client}
-                payOptions={{
-                  mode: "direct_payment",
-                  paymentInfo: {
-                    amount: (membershipLevel.priceUSDT * 1000000).toString(), // Convert to USDT wei (6 decimals)
-                    sellerAddress: selectedChain.bridgeWallet,
-                    chain: selectedChain.chain,
-                    token: {
-                      address: selectedChain.usdtAddress,
-                      symbol: 'USDT',
-                      name: 'Tether USD',
-                    },
-                  },
-                  metadata: {
-                    name: `Beehive Level ${level} Membership`,
-                    description: `Exclusive Level ${level} membership with special privileges and rewards`,
-                  },
-                  onPurchaseSuccess: handlePaymentSuccess,
-                }}
-                theme="dark"
-                style={{
-                  backgroundColor: 'transparent',
-                  color: 'white',
-                }}
-              />
+            <div className="text-right">
+              <p className="text-lg font-bold text-honey">${membershipLevel.priceUSDT}</p>
+              <p className="text-xs text-muted-foreground">Level {level} Membership</p>
             </div>
           </div>
         </div>
+
+        {/* Simple PayEmbed Container */}
+        <div className="border rounded-lg overflow-hidden">
+          <PayEmbed
+            client={client}
+            payOptions={{
+              mode: "direct_payment",
+              paymentInfo: {
+                amount: (membershipLevel.priceUSDT * 1000000).toString(), // Convert to USDT wei (6 decimals)
+                sellerAddress: selectedChain.bridgeWallet,
+                chain: selectedChain.chain,
+                token: {
+                  address: selectedChain.usdtAddress,
+                  symbol: 'USDT',
+                  name: 'Tether USD',
+                },
+              },
+              metadata: {
+                name: `Beehive Level ${level} Membership`,
+                description: `Exclusive Level ${level} membership with special privileges and rewards`,
+              },
+              onPurchaseSuccess: handlePaymentSuccess,
+            }}
+            theme="dark"
+          />
+        </div>
+
+        {/* Cancel Button */}
+        <Button
+          onClick={() => {
+            setClaimState('idle');
+            setShowChainSelector(false);
+          }}
+          variant="outline"
+          className="w-full"
+          data-testid="button-cancel-payment"
+        >
+          <FiX className="mr-2" />
+          Cancel Payment
+        </Button>
       </div>
     );
   }
