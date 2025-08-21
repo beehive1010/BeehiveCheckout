@@ -329,7 +329,13 @@
       "levelRequired": "Diperlukan",
       "insufficientBCC": "BCC Tidak Mencukupi",
       "claimFree": "Tuntut Kursus Percuma",
-      "claimPaid": "Tuntut ({} BCC)"
+      "claimPaid": "Tuntut ({} BCC)",
+      "viewDetails": "Lihat Butiran",
+      "purchaseCourse": "Beli Kursus",
+      "continue": "Teruskan",
+      "getAccess": "Dapatkan Akses",
+      "enrollNow": "Daftar Sekarang",
+      "startLearning": "Mula Belajar"
     },
     "free": "Percuma",
     "levelRequired": "Tahap Diperlukan",

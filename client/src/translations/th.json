@@ -306,7 +306,13 @@
       "levelRequired": "ต้องการ",
       "insufficientBCC": "BCC ไม่เพียงพอ",
       "claimFree": "รับสิทธิ์หลักสูตรฟรี",
-      "claimPaid": "รับสิทธิ์ ({} BCC)"
+      "claimPaid": "รับสิทธิ์ ({} BCC)",
+      "viewDetails": "ดูรายละเอียด",
+      "purchaseCourse": "ซื้อคอร์ส",
+      "continue": "ดำเนินต่อ",
+      "getAccess": "รับสิทธิ์",
+      "enrollNow": "ลงทะเบียนตอนนี้",
+      "startLearning": "เริ่มเรียน"
     },
     "free": "ฟรี",
     "levelRequired": "ระดับที่ต้องการ",

@@ -252,7 +252,7 @@
       "onlineZoom": "在线（Zoom）",
       "videoLessons": "视频课程",
       "freeCourses": "免费课程",
-      "paidBcc": "付费（BCC）"
+      "paidBCC": "付费（BCC）"
     },
     "progress": {
       "title": "学习进度",
@@ -277,80 +277,13 @@
       "levelRequired": "级别要求",
       "insufficientBCC": "BCC不足",
       "claimFree": "免费获取",
-      "claimPaid": "花费 {} BCC 获取"
-    },
-    "categories": {
-      "blockchain": "区块链",
-      "finance": "金融",
-      "nft": "NFT",
-      "trading": "交易",
-      "development": "开发",
-      "general": "通用"
-    },
-    "free": "免费",
-    "levelRequired": "所需级别",
-    "duration": "持续时间",
-    "completed": "已完成",
-    "continue": "继续学习",
-    "startFree": "开始课程",
-    "purchase": "购买课程",
-    "enrolling": "注册中...",
-    "insufficientBCC": "BCC不足",
-    "claim": {
-      "success": {
-        "title": "注册成功！",
-        "description": "您现在可以访问此课程。"
-      },
-      "error": {
-        "title": "注册失败",
-        "description": "无法注册课程。请重试。"
-      }
-    }
-  },
-  "education": {
-    "title": "教育中心",
-    "subtitle": "掌握Web3技能，获得认证",
-    "search": {
-      "placeholder": "搜索课程、主题或技能..."
-    },
-    "filters": {
-      "category": "类别",
-      "level": "级别",
-      "type": "类型",
-      "payment": "支付",
-      "allCategories": "所有类别",
-      "allLevels": "所有级别",
-      "allTypes": "所有类型",
-      "allCourses": "所有课程",
-      "onlineZoom": "在线（Zoom）",
-      "videoLessons": "视频课程",
-      "freeCourses": "免费课程",
-      "paidBcc": "付费（BCC）"
-    },
-    "progress": {
-      "title": "学习进度",
-      "subtitle": "跟踪您的教育旅程",
-      "completed": "已完成",
-      "inProgress": "进行中",
-      "hours": "小时",
-      "label": "进度"
-    },
-    "courseTypes": {
-      "zoomMeeting": "Zoom会议",
-      "videoAccess": "视频访问",
-      "streamOrDownload": "在线观看或下载"
-    },
-    "buttons": {
-      "join": "加入",
-      "watch": "观看",
-      "download": "下载",
-      "completed": "已完成",
-      "enrolled": "已注册",
-      "claiming": "注册中...",
-      "levelRequired": "级别要求",
-      "insufficientBCC": "BCC不足",
-      "claimFree": "免费获取",
-      "claimPaid": "{} BCC 获取"
+      "claimPaid": "{} BCC 获取",
+      "viewDetails": "查看详情",
+      "purchaseCourse": "购买课程",
+      "continue": "继续",
+      "getAccess": "获取访问权限",
+      "enrollNow": "立即注册",
+      "startLearning": "开始学习"
     },
     "categories": {
       "blockchain": "区块链",

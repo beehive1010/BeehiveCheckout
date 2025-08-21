@@ -252,7 +252,7 @@
       "onlineZoom": "オンライン（Zoom）",
       "videoLessons": "ビデオレッスン",
       "freeCourses": "無料コース",
-      "paidBcc": "有料（BCC）"
+      "paidBCC": "有料（BCC）"
     },
     "progress": {
       "title": "学習進歩",
@@ -277,80 +277,13 @@
       "levelRequired": "レベル要件",
       "insufficientBCC": "BCC不足",
       "claimFree": "無料で取得",
-      "claimPaid": "{} BCC で取得"
-    },
-    "categories": {
-      "blockchain": "ブロックチェーン",
-      "finance": "金融",
-      "nft": "NFT",
-      "trading": "トレーディング",
-      "development": "開発",
-      "general": "一般"
-    },
-    "free": "無料",
-    "levelRequired": "必要レベル",
-    "duration": "期間",
-    "completed": "完了",
-    "continue": "学習を続ける",
-    "startFree": "コース開始",
-    "purchase": "コース購入",
-    "enrolling": "登録中...",
-    "insufficientBCC": "BCC不足",
-    "claim": {
-      "success": {
-        "title": "登録成功！",
-        "description": "このコースにアクセスできるようになりました。"
-      },
-      "error": {
-        "title": "登録失敗",
-        "description": "コースに登録できません。再試行してください。"
-      }
-    }
-  },
-  "education": {
-    "title": "教育センター",
-    "subtitle": "Web3スキルをマスターし、認証を取得",
-    "search": {
-      "placeholder": "コース、トピック、スキルを検索..."
-    },
-    "filters": {
-      "category": "カテゴリー",
-      "level": "レベル",
-      "type": "タイプ",
-      "payment": "支払い",
-      "allCategories": "すべてのカテゴリー",
-      "allLevels": "すべてのレベル",
-      "allTypes": "すべてのタイプ",
-      "allCourses": "すべてのコース",
-      "onlineZoom": "オンライン（Zoom）",
-      "videoLessons": "ビデオレッスン",
-      "freeCourses": "無料コース",
-      "paidBcc": "有料（BCC）"
-    },
-    "progress": {
-      "title": "学習進歩",
-      "subtitle": "教育の旅を追跡",
-      "completed": "完了",
-      "inProgress": "進行中",
-      "hours": "時間",
-      "label": "進歩"
-    },
-    "courseTypes": {
-      "zoomMeeting": "Zoom会議",
-      "videoAccess": "ビデオアクセス",
-      "streamOrDownload": "オンライン視聴またはダウンロード"
-    },
-    "buttons": {
-      "join": "参加",
-      "watch": "視聴",
-      "download": "ダウンロード",
-      "completed": "完了",
-      "enrolled": "登録済み",
-      "claiming": "登録中...",
-      "levelRequired": "レベル要件",
-      "insufficientBCC": "BCC不足",
-      "claimFree": "無料で取得",
-      "claimPaid": "{} BCC で取得"
+      "claimPaid": "{} BCC で取得",
+      "viewDetails": "詳細を見る",
+      "purchaseCourse": "コース購入",
+      "continue": "続ける",
+      "getAccess": "アクセス取得",
+      "enrollNow": "今すぐ登録",
+      "startLearning": "学習開始"
     },
     "categories": {
       "blockchain": "ブロックチェーン",

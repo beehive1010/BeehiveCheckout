@@ -328,11 +328,11 @@
       "type": "Type",
       "allTypes": "All Types",
       "payment": "Payment",
-      "allPayments": "All Payment Types",
-      "online": "Online",
-      "video": "Video",
-      "free": "Free",
-      "paid": "Paid"
+      "allCourses": "All Courses",
+      "onlineZoom": "Online (Zoom)",
+      "videoLessons": "Video Lessons",
+      "freeCourses": "Free Courses",
+      "paidBCC": "Paid (BCC)"
     },
     "progress": {
       "title": "Learning Progress",
@@ -365,7 +365,9 @@
       "continue": "Continue",
       "getAccess": "Get Access",
       "enrollNow": "Enroll Now",
-      "startLearning": "Start Learning"
+      "startLearning": "Start Learning",
+      "enrolled": "Enrolled",
+      "levelRequired": "Level Required"
     },
     "status": {
       "clickToView": "Click to view details and enroll",
