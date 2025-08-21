@@ -61,24 +61,6 @@ export default function Dashboard() {
 
   const quickActions = [
     {
-      key: 'tasks',
-      path: '/tasks',
-      icon: 'fas fa-tasks',
-      titleKey: 'nav.tasks',
-      descriptionKey: 'dashboard.quickActions.tasks.description',
-      statKey: 'dashboard.quickActions.tasks.stat',
-      statValue: t('dashboard.quickActions.tasks.statValue')
-    },
-    {
-      key: 'education',
-      path: '/education',
-      icon: 'fas fa-graduation-cap',
-      titleKey: 'nav.education',
-      descriptionKey: 'dashboard.quickActions.education.description',
-      statKey: 'dashboard.quickActions.education.stat',
-      statValue: t('dashboard.quickActions.education.statValue')
-    },
-    {
       key: 'hiveworld',
       path: '/hiveworld',
       icon: 'fas fa-sitemap',
