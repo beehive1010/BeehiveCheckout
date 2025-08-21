@@ -257,6 +257,7 @@
     },
     "categories": {
       "title": "カテゴリー",
+      "all": "全て",
       "defi": "DeFi",
       "nft": "NFT",
       "gamefi": "GameFi",
@@ -872,6 +873,10 @@
   },
   "discover": {
     "dapps": {
+      "beehive": "BeeHiveメンバーシップ",
+      "beehiveDesc": "Web3報酬付き19レベルメンバーシップシステム",
+      "matrixRewards": "マトリックス報酬",
+      "matrixRewardsDesc": "3×3マトリックス紹介システム",
       "uniswap": "Uniswap",
       "uniswapDesc": "主要な分散型取引プロトコル",
       "opensea": "OpenSea",
