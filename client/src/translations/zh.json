@@ -55,8 +55,17 @@
         "description": "48小时升级倒计时与累积机制"
       }
     },
+    "platformFeatures": {
+      "title": "平台功能",
+      "subtitle": "探索让蜂巢成为终极Web3会员平台的强大功能",
+      "exclusiveLevels": "19个专属等级",
+      "autoPlacement": "自动配置系统",
+      "premiumCourses": "高端课程",
+      "countdown": "48小时倒计时"
+    },
     "howItWorks": {
       "title": "运作方式",
+      "subtitle": "仅需三个简单步骤即可开始并解锁Web3会员的力量",
       "step1": {
         "title": "连接钱包",
         "description": "连接您的Web3钱包开始使用"
@@ -592,5 +601,19 @@
     "paidBcc": "付费（BCC）",
     "completed": "已完成",
     "enrolled": "已注册"
+  },
+  "footer": {
+    "description": "基于区块链奖励的Web3会员和学习平台。",
+    "platform": "平台",
+    "support": "支持",
+    "helpCenter": "帮助中心",
+    "documentation": "文档",
+    "contact": "联系我们",
+    "status": "状态",
+    "legal": "法律",
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "cookies": "Cookie政策",
+    "copyright": "© 2024 Beehive. 版权所有。"
   }
 }
