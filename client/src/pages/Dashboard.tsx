@@ -260,7 +260,7 @@ export default function Dashboard() {
                 <p className="text-honey font-bold">245.50</p>
               </div>
               <div className="balance-card">
-                <p className="text-muted-foreground text-xs">{t('dashboard.balances.bccFree')}</p>
+                <p className="text-muted-foreground text-xs">BCC Balance</p>
                 <p className="text-honey font-bold">{bccBalance?.transferable || 0}</p>
               </div>
               <div className="balance-card">
