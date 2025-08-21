@@ -7,6 +7,7 @@ import { Button } from '../components/ui/button';
 import { useToast } from '../hooks/use-toast';
 import { apiRequest } from '../lib/queryClient';
 import MobileDivider from '../components/UI/MobileDivider';
+import UserProfile from '../components/UI/UserProfile';
 import { TransactionWidget, useActiveAccount } from "thirdweb/react";
 import { claimTo } from "thirdweb/extensions/erc1155";
 import { merchantNFTContract, client, bbcMembershipContract, levelToTokenId } from "../lib/web3";
@@ -115,6 +116,9 @@ export default function Tasks() {
 
   return (
     <div className="container mx-auto px-4 py-4 md:py-8">
+      {/* User Profile Component */}
+      <UserProfile />
+      
       {/* Mobile Header */}
       <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-honey mb-2 flex items-center">
