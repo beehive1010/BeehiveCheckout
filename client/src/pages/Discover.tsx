@@ -49,7 +49,7 @@ export default function Discover() {
   };
 
   const categories = [
-    { id: 'all', name: 'All', icon: 'fas fa-th-large' },
+    { id: 'all', name: t('discover.categories.all'), icon: 'fas fa-th-large' },
     { id: 'defi', name: t('discover.categories.defi'), icon: 'fas fa-coins' },
     { id: 'nft', name: t('discover.categories.nft'), icon: 'fas fa-gem' },
     { id: 'gamefi', name: t('discover.categories.gamefi'), icon: 'fas fa-gamepad' },
@@ -63,10 +63,10 @@ export default function Discover() {
   const featuredDApps: DApp[] = [
     {
       id: 'beehive-membership',
-      name: 'BeeHive Membership',
+      name: t('discover.dapps.beehive'),
       category: 'dao',
       icon: 'fas fa-crown',
-      description: '19-level membership system with Web3 rewards',
+      description: t('discover.dapps.beehiveDesc'),
       users: '12.8K',
       featured: true,
       verified: true,
@@ -114,10 +114,10 @@ export default function Discover() {
   const trendingDApps: DApp[] = [
     {
       id: 'matrix-rewards',
-      name: 'Matrix Rewards',
+      name: t('discover.dapps.matrixRewards'),
       category: 'dao',
       icon: 'fas fa-sitemap',
-      description: '3×3 matrix referral system',
+      description: t('discover.dapps.matrixRewardsDesc'),
       users: '8.4K',
       trending: true,
       verified: true,

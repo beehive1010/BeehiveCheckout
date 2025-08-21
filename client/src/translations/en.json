@@ -257,6 +257,7 @@
     },
     "categories": {
       "title": "Categories",
+      "all": "All",
       "defi": "DeFi",
       "nft": "NFT",
       "gamefi": "GameFi", 
@@ -738,6 +739,10 @@
   },
   "discover": {
     "dapps": {
+      "beehive": "BeeHive Membership",
+      "beehiveDesc": "19-level membership system with Web3 rewards",
+      "matrixRewards": "Matrix Rewards",
+      "matrixRewardsDesc": "3×3 matrix referral system",
       "uniswap": "Uniswap",
       "uniswapDesc": "Leading decentralized exchange protocol",
       "opensea": "OpenSea",

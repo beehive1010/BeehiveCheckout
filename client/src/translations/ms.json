@@ -204,29 +204,102 @@
   },
   "discover": {
     "title": "Terokai",
-    "explorer": {
-      "title": "Penjelajah Blockchain",
-      "latestBlock": "Blok Terkini",
-      "gasPrice": "Harga Gas (Gwei)",
-      "tps": "TPS"
+    "subtitle": "Jelajahi Web3 DApps dan Perkhidmatan",
+    "search": {
+      "placeholder": "Cari DApps, protokol, atau perkhidmatan...",
+      "recent": "Terkini",
+      "trending": "Trending",
+      "clear": "Kosongkan"
     },
-    "partners": {
-      "title": "Rangkaian Rakan Kongsi"
+    "featured": {
+      "title": "Diketengahkan di Beehive",
+      "viewAll": "Lihat Semua"
     },
-    "activity": {
-      "title": "Aktiviti Rangkaian Terkini",
-      "noData": "Memuat data rangkaian..."
+    "categories": {
+      "title": "Kategori",
+      "all": "Semua",
+      "defi": "DeFi",
+      "nft": "NFT",
+      "gamefi": "GameFi",
+      "dao": "DAO",
+      "bridge": "Bridge",
+      "lending": "Pinjaman",
+      "dex": "Pertukaran Terdesentralisasi",
+      "yield": "Hasil",
+      "insurance": "Insurans",
+      "social": "Sosial",
+      "tools": "Alat",
+      "education": "Pendidikan"
     },
-    "about": {
-      "title": "Tentang Beehive",
-      "description": "Ekosistem terdesentralisasi yang menghubungkan ahli melalui teknologi blockchain.",
-      "totalMembers": "Jumlah Ahli",
-      "activeLevels": "Tahap Aktif",
-      "totalRewards": "Jumlah Ganjaran Diagihkan"
+    "trending": {
+      "title": "Trending Sekarang",
+      "subtitle": "DApps popular dalam ekosistem",
+      "users": "pengguna",
+      "tvl": "TVL",
+      "volume": "Volume 24j"
     },
     "ecosystem": {
-      "title": "Gambaran Keseluruhan Ekosistem",
-      "description": "Terokai komponen yang saling berkaitan dalam platform Beehive."
+      "title": "Ekosistem BeeHive",
+      "subtitle": "Perkhidmatan dan alat platform asal",
+      "membership": {
+        "title": "Sistem Keahlian",
+        "subtitle": "Kemajuan 19 tahap dari Warrior ke Mythical Peak",
+        "levels": "19 Tahap",
+        "members": "Ahli Aktif"
+      },
+      "matrix": {
+        "title": "Matrix 3×3",
+        "subtitle": "Sistem rujukan dan ganjaran terdesentralisasi",
+        "structure": "Auto-placement",
+        "rewards": "Ganjaran Instant"
+      },
+      "education": {
+        "title": "Hub Pendidikan",
+        "subtitle": "Pembelajaran Web3 dan pembangunan kemahiran",
+        "courses": "Kursus",
+        "certificates": "Sijil"
+      }
+    },
+    "networks": {
+      "title": "Rangkaian yang Disokong",
+      "subtitle": "Sokongan ekosistem multi-chain"
+    },
+    "stats": {
+      "title": "Statistik Platform",
+      "totalValue": "Jumlah Nilai Dikunci",
+      "transactions": "Jumlah Transaksi",
+      "users": "Pengguna Aktif",
+      "protocols": "Protokol Terintegrasi"
+    },
+    "news": {
+      "title": "Berita Terkini",
+      "subtitle": "Kekal terkini dengan perkembangan Web3",
+      "readMore": "Baca Lagi",
+      "minutes": "min baca"
+    },
+    "dapps": {
+      "beehive": "Keahlian BeeHive",
+      "beehiveDesc": "Sistem keahlian 19 tahap dengan ganjaran Web3",
+      "matrixRewards": "Ganjaran Matrix",
+      "matrixRewardsDesc": "Sistem rujukan matrix 3×3",
+      "uniswap": "Uniswap",
+      "uniswapDesc": "Protokol pertukaran terdesentralisasi terkemuka",
+      "opensea": "OpenSea",
+      "openseaDesc": "Pasaran NFT terbesar",
+      "compound": "Compound",
+      "compoundDesc": "Protokol pasaran wang algoritma",
+      "pancakeswap": "PancakeSwap",
+      "pancakeswapDesc": "DEX terkemuka BSC dengan farming",
+      "axieinfinity": "Axie Infinity",
+      "axieinfinityDesc": "Platform gaming main-untuk-dapat popular"
+    },
+    "chains": {
+      "ethereum": "Ethereum",
+      "polygon": "Polygon",
+      "arbitrum": "Arbitrum",
+      "optimism": "Optimism",
+      "bsc": "BSC",
+      "avalanche": "Avalanche"
     }
   },
   "hiveworld": {

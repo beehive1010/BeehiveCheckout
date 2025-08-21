@@ -354,7 +354,85 @@
     }
   },
   "discover": {
+    "title": "发现",
+    "subtitle": "探索Web3 DApps和服务",
+    "search": {
+      "placeholder": "搜索DApps、协议或服务...",
+      "recent": "最近",
+      "trending": "热门",
+      "clear": "清除"
+    },
+    "featured": {
+      "title": "Beehive精选",
+      "viewAll": "查看全部"
+    },
+    "categories": {
+      "title": "分类",
+      "all": "全部",
+      "defi": "DeFi",
+      "nft": "NFT",
+      "gamefi": "GameFi",
+      "dao": "DAO",
+      "bridge": "跨链桥",
+      "lending": "借贷",
+      "dex": "去中心化交易所",
+      "yield": "收益",
+      "insurance": "保险",
+      "social": "社交",
+      "tools": "工具",
+      "education": "教育"
+    },
+    "trending": {
+      "title": "当前热门",
+      "subtitle": "生态系统中的热门DApps",
+      "users": "用户",
+      "tvl": "总锁定价值",
+      "volume": "24小时交易量"
+    },
+    "ecosystem": {
+      "title": "BeeHive生态系统",
+      "subtitle": "原生平台服务和工具",
+      "membership": {
+        "title": "会员系统",
+        "subtitle": "从勇士到神话巅峰的19级进阶",
+        "levels": "19个等级",
+        "members": "活跃会员"
+      },
+      "matrix": {
+        "title": "3×3矩阵",
+        "subtitle": "去中心化推荐和奖励系统",
+        "structure": "自动配置",
+        "rewards": "即时奖励"
+      },
+      "education": {
+        "title": "教育中心",
+        "subtitle": "Web3学习和技能发展",
+        "courses": "课程",
+        "certificates": "证书"
+      }
+    },
+    "networks": {
+      "title": "支持的网络",
+      "subtitle": "多链生态系统支持"
+    },
+    "stats": {
+      "title": "平台统计",
+      "totalValue": "总锁定价值",
+      "transactions": "总交易数",
+      "users": "活跃用户",
+      "protocols": "集成协议"
+    },
+    "news": {
+      "title": "最新动态",
+      "subtitle": "了解Web3最新发展",
+      "readMore": "阅读更多",
+      "minutes": "分钟阅读"
+    },
     "dapps": {
+      "beehive": "BeeHive会员",
+      "beehiveDesc": "19级会员系统，获得Web3奖励",
+      "matrixRewards": "矩阵奖励",
+      "matrixRewardsDesc": "3×3矩阵推荐系统",
       "uniswap": "Uniswap",
       "uniswapDesc": "领先的去中心化交易协议",
       "opensea": "OpenSea",

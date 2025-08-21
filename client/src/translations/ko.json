@@ -210,29 +210,102 @@
   },
   "discover": {
     "title": "탐색",
-    "explorer": {
-      "title": "블록체인 탐색기",
-      "latestBlock": "최신 블록",
-      "gasPrice": "가스 가격 (Gwei)",
-      "tps": "TPS"
+    "subtitle": "Web3 DApps 및 서비스 탐색",
+    "search": {
+      "placeholder": "DApps, 프로토콜 또는 서비스 검색...",
+      "recent": "최근",
+      "trending": "트렌딩",
+      "clear": "지우기"
     },
-    "partners": {
-      "title": "파트너 네트워크"
+    "featured": {
+      "title": "Beehive 추천",
+      "viewAll": "모두 보기"
     },
-    "activity": {
-      "title": "최근 네트워크 활동",
-      "noData": "네트워크 데이터 로딩 중..."
+    "categories": {
+      "title": "카테고리",
+      "all": "전체",
+      "defi": "DeFi",
+      "nft": "NFT",
+      "gamefi": "GameFi",
+      "dao": "DAO",
+      "bridge": "브릿지",
+      "lending": "대출",
+      "dex": "탈중앙 거래소",
+      "yield": "수익률",
+      "insurance": "보험",
+      "social": "소셜",
+      "tools": "도구",
+      "education": "교육"
     },
-    "about": {
-      "title": "Beehive 소개",
-      "description": "블록체인 기술을 통해 회원들을 연결하는 탈중앙화 생태계",
-      "totalMembers": "총 회원 수",
-      "activeLevels": "활성 레벨",
-      "totalRewards": "총 배포된 보상"
+    "trending": {
+      "title": "지금 트렌딩",
+      "subtitle": "생태계의 인기 DApps",
+      "users": "사용자",
+      "tvl": "TVL",
+      "volume": "24시간 거래량"
     },
     "ecosystem": {
-      "title": "생태계 개요",
-      "description": "Beehive 플랫폼의 상호 연결된 구성 요소를 탐색하세요."
+      "title": "BeeHive 생태계",
+      "subtitle": "네이티브 플랫폼 서비스 및 도구",
+      "membership": {
+        "title": "멤버십 시스템",
+        "subtitle": "워리어부터 신화의 정점까지 19단계 진행",
+        "levels": "19단계",
+        "members": "활성 회원"
+      },
+      "matrix": {
+        "title": "3×3 매트릭스",
+        "subtitle": "탈중앙화 추천 및 보상 시스템",
+        "structure": "자동 배치",
+        "rewards": "즉시 보상"
+      },
+      "education": {
+        "title": "교육 허브",
+        "subtitle": "Web3 학습 및 기술 개발",
+        "courses": "과정",
+        "certificates": "인증서"
+      }
+    },
+    "networks": {
+      "title": "지원 네트워크",
+      "subtitle": "멀티체인 생태계 지원"
+    },
+    "stats": {
+      "title": "플랫폼 통계",
+      "totalValue": "총 고정 가치",
+      "transactions": "총 거래",
+      "users": "활성 사용자",
+      "protocols": "통합 프로토콜"
+    },
+    "news": {
+      "title": "최신 뉴스",
+      "subtitle": "Web3 개발 소식을 최신으로 유지",
+      "readMore": "더 읽기",
+      "minutes": "분 읽기"
+    },
+    "dapps": {
+      "beehive": "BeeHive 멤버십",
+      "beehiveDesc": "Web3 보상이 있는 19단계 멤버십 시스템",
+      "matrixRewards": "매트릭스 보상",
+      "matrixRewardsDesc": "3×3 매트릭스 추천 시스템",
+      "uniswap": "Uniswap",
+      "uniswapDesc": "선도적인 탈중앙 거래소 프로토콜",
+      "opensea": "OpenSea",
+      "openseaDesc": "최대 NFT 마켓플레이스",
+      "compound": "Compound",
+      "compoundDesc": "알고리즘 화폐 시장 프로토콜",
+      "pancakeswap": "PancakeSwap",
+      "pancakeswapDesc": "농업과 함께하는 BSC 최고 DEX",
+      "axieinfinity": "Axie Infinity",
+      "axieinfinityDesc": "인기 있는 플레이투언 게임"
+    },
+    "chains": {
+      "ethereum": "이더리움",
+      "polygon": "폴리곤",
+      "arbitrum": "아비트럼",
+      "optimism": "옵티미즘",
+      "bsc": "BSC",
+      "avalanche": "아발란체"
     }
   },
   "hiveworld": {

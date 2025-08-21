@@ -824,6 +824,106 @@
       "avalanche": "อวาแลนช์"
     }
   },
+  "discover": {
+    "title": "ค้นพบ",
+    "subtitle": "สำรวจ Web3 DApps และบริการ",
+    "search": {
+      "placeholder": "ค้นหา DApps, โปรโตคอล หรือบริการ...",
+      "recent": "ล่าสุด",
+      "trending": "ทริ้นดิ้ง",
+      "clear": "ล้าง"
+    },
+    "featured": {
+      "title": "เด่นใน Beehive",
+      "viewAll": "ดูทั้งหมด"
+    },
+    "categories": {
+      "title": "หมวดหมู่",
+      "all": "ทั้งหมด",
+      "defi": "DeFi",
+      "nft": "NFT",
+      "gamefi": "GameFi",
+      "dao": "DAO",
+      "bridge": "สะพานข้ามเชน",
+      "lending": "การให้กู้",
+      "dex": "ตลาดแลกเปลี่ยนแบบกระจาย",
+      "yield": "ผลตอบแทน",
+      "insurance": "ประกันภัย",
+      "social": "สังคม",
+      "tools": "เครื่องมือ",
+      "education": "การศึกษา"
+    },
+    "trending": {
+      "title": "กำลังแรงในขณะนี้",
+      "subtitle": "DApps ยอดนิยมในระบบนิเวศ",
+      "users": "ผู้ใช้",
+      "tvl": "มูลค่าที่ถูกล็อกรวม",
+      "volume": "ปริมาณการซื้อขาย 24 ชม."
+    },
+    "ecosystem": {
+      "title": "ระบบนิเวศ BeeHive",
+      "subtitle": "บริการและเครื่องมือของแพลตฟอร์ม",
+      "membership": {
+        "title": "ระบบสมาชิก",
+        "subtitle": "การก้าวหน้า 19 ระดับจากนักรบถึงจุดสูงสุดของเทพนิยาย",
+        "levels": "19 ระดับ",
+        "members": "สมาชิกที่ใช้งานอยู่"
+      },
+      "matrix": {
+        "title": "เมทริกซ์ 3×3",
+        "subtitle": "ระบบการแนะนำและรางวัลแบบกระจายอำนาจ",
+        "structure": "การจัดวางอัตโนมัติ",
+        "rewards": "รางวัลทันที"
+      },
+      "education": {
+        "title": "ศูนย์กลางการศึกษา",
+        "subtitle": "การเรียนรู้และพัฒนาทักษะ Web3",
+        "courses": "หลักสูตร",
+        "certificates": "ใบรับรอง"
+      }
+    },
+    "networks": {
+      "title": "เครือข่ายที่รองรับ",
+      "subtitle": "การสนับสนุนระบบนิเวศหลายเชน"
+    },
+    "stats": {
+      "title": "สถิติแพลตฟอร์ม",
+      "totalValue": "มูลค่าที่ถูกล็อกรวม",
+      "transactions": "จำนวนธุรกรรมทั้งหมด",
+      "users": "ผู้ใช้งานที่ใช้งานอยู่",
+      "protocols": "โปรโตคอลที่รวมเข้ากัน"
+    },
+    "news": {
+      "title": "ข่าวล่าสุด",
+      "subtitle": "ติดตามความคืบหน้าของ Web3",
+      "readMore": "อ่านเพิ่มเติม",
+      "minutes": "นาทีอ่าน"
+    },
+    "dapps": {
+      "beehive": "สมาชิก BeeHive",
+      "beehiveDesc": "ระบบสมาชิก 19 ระดับพร้อมรางวัล Web3",
+      "matrixRewards": "รางวัลเมทริกซ์",
+      "matrixRewardsDesc": "ระบบการแนะนำเมทริกซ์ 3×3",
+      "uniswap": "Uniswap",
+      "uniswapDesc": "โปรโตคอลการแลกเปลี่ยนแบบกระจายชั้นนำ",
+      "opensea": "OpenSea",
+      "openseaDesc": "ตลาด NFT ที่ใหญ่ที่สุด",
+      "compound": "Compound",
+      "compoundDesc": "โปรโตคอลตลาดเงินอัลกอริทึม",
+      "pancakeswap": "PancakeSwap",
+      "pancakeswapDesc": "DEX ชั้นนำใน BSC พร้อมการทำฟาร์ม",
+      "axieinfinity": "Axie Infinity",
+      "axieinfinityDesc": "เกมเล่นแล้วได้เงินยอดนิยม"
+    },
+    "chains": {
+      "ethereum": "อีเธอร์",
+      "polygon": "Polygon",
+      "arbitrum": "Arbitrum",
+      "optimism": "Optimism",
+      "bsc": "BSC",
+      "avalanche": "Avalanche"
+    }
+  },
   "hiveworld": {
     "blogs": {
       "web3membership": {
