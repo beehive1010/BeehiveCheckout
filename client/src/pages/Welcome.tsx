@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useI18n } from '../contexts/I18nContext';
 import { useLocation } from 'wouter';
-import { useActiveAccount, useSwitchActiveWalletChain } from 'thirdweb/react';
+import { useActiveAccount, useSwitchActiveWalletChain, TransactionWidget, useReadContract } from 'thirdweb/react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { useToast } from '../hooks/use-toast';
-import { ClaimButton } from "thirdweb/react";
 import { claimTo } from "thirdweb/extensions/erc1155";
-import { bbcMembershipContract, alphaCentauri } from '../lib/web3';
+import { getNFT } from "thirdweb/extensions/erc1155";
+import { bbcMembershipContract, alphaCentauri, client } from '../lib/web3';
 import HexagonIcon from '../components/UI/HexagonIcon';
 import { useNFTVerification } from '../hooks/useNFTVerification';
 import { motion } from 'framer-motion';
@@ -20,7 +20,12 @@ export default function Welcome() {
   const { hasLevel1NFT, isLoading } = useNFTVerification();
   const [claimingStarted, setClaimingStarted] = useState(false);
   const switchChain = useSwitchActiveWalletChain();
-  const [isWrongChain, setIsWrongChain] = useState(false);
+  
+  // Get NFT metadata for Level 1 (Token ID 0)
+  const { data: nft } = useReadContract(getNFT, {
+    contract: bbcMembershipContract,
+    tokenId: BigInt(0),
+  });
 
   // If user already has Level 1 NFT, redirect to dashboard
   if (hasLevel1NFT && !isLoading) {
@@ -216,51 +221,34 @@ export default function Welcome() {
                     </Button>
                   </div>
                 </div>
-              ) : !claimingStarted ? (
-                <ClaimButton
-                  contractAddress={bbcMembershipContract.address}
-                  chain={bbcMembershipContract.chain}
-                  client={bbcMembershipContract.client}
-                  claimParams={{
-                    type: "ERC1155",
-                    tokenId: 0n, // Level 1 = Token ID 0
-                    quantity: 1n,
-                    to: account?.address || "",
-                  }}
-                  onTransactionSent={() => {
-                    setClaimingStarted(true);
-                    toast({
-                      title: t('welcome.transactionSent.title'),
-                      description: t('welcome.transactionSent.description'),
-                    });
-                  }}
-                  onTransactionConfirmed={handleClaimSuccess}
-                  onError={handleClaimError}
-                  className="w-full"
-                >
-                  {({ onClick, isLoading: claimLoading }) => (
-                    <Button
-                      onClick={onClick}
-                      disabled={claimLoading || claimingStarted || needsChainSwitch}
-                      className="w-full btn-honey py-6 text-lg"
-                      data-testid="button-claim-nft"
-                    >
-                      {claimLoading || claimingStarted ? (
-                        <>
-                          <i className="fas fa-spinner fa-spin mr-3"></i>
-                          {t('welcome.claimingText')}
-                        </>
-                      ) : (
-                        <>
-                          <i className="fas fa-gift mr-3"></i>
-                          {t('welcome.claimButton')}
-                        </>
-                      )}
-                    </Button>
-                  )}
-                </ClaimButton>
               ) : (
-                <div className="text-center space-y-4">
+                <div className="w-full">
+                  <TransactionWidget
+                    client={client}
+                    theme="dark"
+                    transaction={claimTo({
+                      contract: bbcMembershipContract,
+                      quantity: BigInt(1),
+                      tokenId: BigInt(0), // Level 1 = Token ID 0
+                      to: account?.address || "",
+                    })}
+                    title={nft?.metadata?.name || "Level 1 Warrior NFT"}
+                    description={nft?.metadata?.description || "Your first membership NFT - completely FREE!"}
+                    onTransactionSent={() => {
+                      setClaimingStarted(true);
+                      toast({
+                        title: t('welcome.transactionSent.title'),
+                        description: t('welcome.transactionSent.description'),
+                      });
+                    }}
+                    onTransactionConfirmed={handleClaimSuccess}
+                    onError={handleClaimError}
+                  />
+                </div>
+              )}
+
+              {claimingStarted && (
+                <div className="mt-6 text-center space-y-4">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-honey mx-auto"></div>
                   <p className="text-honey font-medium">{t('welcome.processingTitle')}</p>
                   <p className="text-sm text-muted-foreground">
