@@ -172,7 +172,6 @@
       "shareMessage": "分享您的推荐链接开始建立您的团队！"
     },
     "userCentre": "用户中心",
-,
     "quickActions": {
       "tasks": {
         "description": "使用您的BCC代币浏览和获取商家NFT",
@@ -212,6 +211,36 @@
       "newReferral": "新推荐",
       "userJoined": "用户已加入您的网络",
       "activeStatus": "活跃"
+    },
+    "referralLink": {
+      "title": "推荐链接",
+      "show": "显示",
+      "hide": "隐藏",
+      "copied": "链接已复制！",
+      "copiedDesc": "推荐链接已复制到剪贴板"
+    },
+    "social": {
+      "twitter": "Twitter",
+      "telegram": "Telegram", 
+      "whatsapp": "WhatsApp"
+    },
+    "stats": {
+      "totalRewards": "总奖励",
+      "bccBalance": "BCC余额",
+      "bccLocked": "BCC锁定",
+      "nftsOwned": "拥有的NFT"
+    },
+    "tokenPurchase": {
+      "bccDescription": "购买Beehive加密币用于平台使用",
+      "cthDescription": "购买CTH代币用于Alpha Centauri生态系统"
+    },
+    "globalStats": {
+      "title": "全球统计",
+      "totalMembers": "总成员数",
+      "totalRewardsPaid": "总奖励支付",
+      "pendingRewards": "待处理奖励",
+      "highestLevel": "最高等级",
+      "membersByLevel": "按等级分布成员"
     }
   },
   "membership": {
