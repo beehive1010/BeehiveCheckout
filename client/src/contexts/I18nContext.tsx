@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { translations } from '../lib/i18n';
 
-type Language = 'en' | 'zh' | 'th' | 'ms' | 'ko' | 'ja';
+type Language = 'en' | 'zh' | 'th' | 'ms' | 'ko';
 
 interface I18nContextType {
   language: Language;
@@ -18,7 +18,6 @@ const languageOptions = [
   { code: 'th' as Language, name: 'ไทย' },
   { code: 'ms' as Language, name: 'Malay' },
   { code: 'ko' as Language, name: '한국어' },
-  { code: 'ja' as Language, name: '日本語' },
 ];
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {

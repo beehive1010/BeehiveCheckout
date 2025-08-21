@@ -244,12 +244,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMembershipState(membership: InsertMembershipState): Promise<MembershipState> {
+    const insertData = {
+      walletAddress: membership.walletAddress.toLowerCase(),
+      levelsOwned: Array.isArray(membership.levelsOwned) ? membership.levelsOwned : (membership.levelsOwned ? [membership.levelsOwned] : []),
+      activeLevel: membership.activeLevel || 0,
+    };
     const [state] = await db
       .insert(membershipState)
-      .values({
-        ...membership,
-        walletAddress: membership.walletAddress.toLowerCase(),
-      })
+      .values(insertData)
       .returning();
     return state;
   }
@@ -270,12 +272,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createReferralNode(node: InsertReferralNode): Promise<ReferralNode> {
+    const insertData = {
+      walletAddress: node.walletAddress.toLowerCase(),
+      parentWallet: node.parentWallet || null,
+      children: Array.isArray(node.children) ? node.children : (node.children ? [node.children] : []),
+    };
     const [referralNode] = await db
       .insert(referralNodes)
-      .values({
-        ...node,
-        walletAddress: node.walletAddress.toLowerCase(),
-      })
+      .values(insertData)
       .returning();
     return referralNode;
   }
