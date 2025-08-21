@@ -266,6 +266,36 @@ export default function Dashboard() {
                 {t('dashboard.userCentre')}
               </Button>
             </div>
+
+            {/* Token Top Up Section */}
+            <div className="border-t border-border/20 pt-4 mt-4">
+              <div className="bg-gradient-to-r from-honey/10 via-purple-500/10 to-honey/5 border-honey/20 glow-hover rounded-lg border p-4">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
+                  <div className="flex-1">
+                    <h3 className="text-base md:text-lg font-bold text-honey mb-1 md:mb-2">{t('buttons.topUp')}</h3>
+                    <p className="text-muted-foreground text-xs md:text-sm">{t('dashboard.tokenPurchase.topUpDescription')}</p>
+                    <div className="flex items-center gap-4 mt-2">
+                      <div className="flex items-center gap-1">
+                        <i className="fas fa-coins text-honey text-sm"></i>
+                        <span className="text-xs text-muted-foreground">BCC</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <i className="fas fa-gem text-purple-400 text-sm"></i>
+                        <span className="text-xs text-muted-foreground">CTH</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => setLocation('/tokens')}
+                    className="bg-gradient-to-r from-honey to-purple-500 text-black hover:from-honey/90 hover:to-purple-500/90 font-semibold w-full md:w-auto flex-shrink-0"
+                    data-testid="button-top-up"
+                  >
+                    <i className="fas fa-credit-card mr-2"></i>
+                    {t('buttons.topUp')}
+                  </Button>
+                </div>
+              </div>
+            </div>
             
             {/* Balance Display - Separate Section with Proper Spacing */}
             <div className="border-t border-border/20 pt-4 mt-4">
@@ -440,37 +470,6 @@ export default function Dashboard() {
               {isLoadingUserStats ? '...' : 0}
             </h3>
             <p className="text-muted-foreground text-sm">{t('dashboard.stats.nftsOwned')}</p>
-          </CardContent>
-        </Card>
-      </div>
-      {/* Token Top Up Button */}
-      <div className="mb-8">
-        <Card className="bg-gradient-to-r from-honey/10 via-purple-500/10 to-honey/5 border-honey/20 glow-hover">
-          <CardContent className="p-4 md:p-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
-              <div className="flex-1">
-                <h3 className="text-base md:text-lg font-bold text-honey mb-1 md:mb-2">{t('buttons.topUp')}</h3>
-                <p className="text-muted-foreground text-xs md:text-sm">{t('dashboard.tokenPurchase.topUpDescription')}</p>
-                <div className="flex items-center gap-4 mt-2">
-                  <div className="flex items-center gap-1">
-                    <i className="fas fa-coins text-honey text-sm"></i>
-                    <span className="text-xs text-muted-foreground">BCC</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <i className="fas fa-gem text-purple-400 text-sm"></i>
-                    <span className="text-xs text-muted-foreground">CTH</span>
-                  </div>
-                </div>
-              </div>
-              <Button 
-                onClick={() => setLocation('/tokens')}
-                className="bg-gradient-to-r from-honey to-purple-500 text-black hover:from-honey/90 hover:to-purple-500/90 font-semibold w-full md:w-auto flex-shrink-0"
-                data-testid="button-top-up"
-              >
-                <i className="fas fa-credit-card mr-2"></i>
-                {t('buttons.topUp')}
-              </Button>
-            </div>
           </CardContent>
         </Card>
       </div>
