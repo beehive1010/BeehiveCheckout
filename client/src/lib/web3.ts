@@ -3,7 +3,7 @@ import { ethereum, polygon, arbitrum, optimism } from 'thirdweb/chains';
 
 // Initialize Thirdweb client
 export const client = createThirdwebClient({
-  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || 'demo-client-id'
+  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || '3123b1ac2ebdb966dd415c6e964dc335'
 });
 
 // Supported chains
