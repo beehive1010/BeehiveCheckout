@@ -2,10 +2,12 @@
   "nav": {
     "dashboard": "Dashboard",
     "tasks": "Tasks",
+    "marketplace": "Marketplace",
     "education": "Education",
     "discover": "Discover",
     "hiveworld": "HiveWorld",
-    "me": "Me"
+    "me": "Me",
+    "home": "Home"
   },
   "wallet": {
     "connect": "Connect Wallet",
