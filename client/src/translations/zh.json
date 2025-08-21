@@ -601,6 +601,17 @@
   },
   "hiveworld": {
     "title": "蜂巢世界 - 您的矩阵",
+    "blog": {
+      "title": "蜂巢世界博客",
+      "subtitle": "来自蜂巢团队的洞察、更新和深度分析。了解Web3、区块链技术和我们生态系统的最新动态。",
+      "searchPlaceholder": "搜索文章...",
+      "allTopics": "所有主题",
+      "noArticles": "未找到文章",
+      "noArticlesDesc": "请尝试调整您的搜索词或选择的主题。",
+      "author": "作者",
+      "views": "浏览量",
+      "publishedOn": "发布于"
+    },
     "stats": {
       "directReferrals": "直接推荐",
       "totalTeam": "总团队",
