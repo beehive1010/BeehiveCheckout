@@ -490,33 +490,6 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Recent Activity */}
-      <Card className="bg-secondary border-border">
-        <CardContent className="p-6">
-          <h3 className="text-lg font-semibold text-honey mb-4">
-            {t('dashboard.recentActivity')}
-          </h3>
-          <div className="space-y-3">
-            {recentActivities.map((activity, index) => (
-              <div 
-                key={index}
-                className="flex items-center justify-between py-2 border-b border-border last:border-b-0"
-              >
-                <div className="flex items-center space-x-3">
-                  <i className={`${activity.icon} text-honey-dark`}></i>
-                  <div>
-                    <p className="text-honey text-sm font-medium">{activity.type}</p>
-                    <p className="text-muted-foreground text-xs">{activity.description}</p>
-                  </div>
-                </div>
-                <span className={`font-semibold ${activity.color}`}>
-                  {activity.amount}
-                </span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
