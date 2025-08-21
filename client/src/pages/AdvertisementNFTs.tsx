@@ -48,11 +48,23 @@ export default function AdvertisementNFTs() {
   // Fetch available Advertisement NFTs
   const { data: nfts = [], isLoading: isLoadingNFTs } = useQuery<AdvertisementNFT[]>({
     queryKey: ['/api/ads/nfts'],
+    queryFn: async () => {
+      const response = await fetch('/api/ads/nfts');
+      if (!response.ok) throw new Error('Failed to fetch NFTs');
+      return response.json();
+    },
   });
 
   // Fetch user's Advertisement NFT claims
   const { data: myNFTs = [], isLoading: isLoadingMyNFTs } = useQuery<AdvertisementNFTClaim[]>({
     queryKey: ['/api/ads/my-nfts'],
+    queryFn: async () => {
+      const response = await fetch('/api/ads/my-nfts', {
+        headers: { 'X-Wallet-Address': walletAddress! },
+      });
+      if (!response.ok) throw new Error('Failed to fetch user NFTs');
+      return response.json();
+    },
     enabled: !!walletAddress,
   });
 
@@ -142,11 +154,10 @@ export default function AdvertisementNFTs() {
     }
   };
 
-  const canAfford = (price: number, bucketType: string) => {
+  const canAfford = (price: number, bucketType: 'transferable' | 'restricted') => {
     if (!bccBalance) return false;
-    return bucketType === 'transferable' 
-      ? bccBalance.transferable >= price 
-      : bccBalance.restricted >= price;
+    const balance = bucketType === 'transferable' ? bccBalance.transferable : bccBalance.restricted;
+    return balance >= price;
   };
 
   return (
@@ -234,13 +245,65 @@ export default function AdvertisementNFTs() {
                   </div>
                 </div>
 
-                <Button 
-                  onClick={() => window.location.href = '/nft-center'}
-                  className="w-full bg-honey text-black hover:bg-honey/90"
-                  data-testid={`button-view-in-center-${nft.id}`}
-                >
-                  View in NFT Center
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button 
+                      className="w-full bg-honey text-black hover:bg-honey/90"
+                      disabled={nft.claimedCount >= nft.totalSupply}
+                      data-testid={`button-claim-${nft.id}`}
+                    >
+                      {nft.claimedCount >= nft.totalSupply ? 'Sold Out' : 'Claim NFT'}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-background border-border">
+                    <DialogHeader>
+                      <DialogTitle className="text-honey">Claim {nft.title}</DialogTitle>
+                      <DialogDescription className="text-muted-foreground">
+                        Choose which BCC bucket to use for claiming this Advertisement NFT
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <Select
+                        value={selectedBucketType}
+                        onValueChange={(value: 'transferable' | 'restricted') => setSelectedBucketType(value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="transferable">
+                            Transferable BCC ({bccBalance?.transferable || 0} available)
+                          </SelectItem>
+                          <SelectItem value="restricted">
+                            Restricted BCC ({bccBalance?.restricted || 0} available)
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      
+                      <div className="bg-secondary/50 rounded-lg p-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span>Cost:</span>
+                          <span className="text-honey font-semibold">{nft.priceBCC} BCC</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span>Available:</span>
+                          <span className={canAfford(nft.priceBCC, selectedBucketType) ? 'text-green-400' : 'text-red-400'}>
+                            {selectedBucketType === 'transferable' ? bccBalance?.transferable || 0 : bccBalance?.restricted || 0} BCC
+                          </span>
+                        </div>
+                      </div>
+
+                      <Button
+                        onClick={() => claimNFTMutation.mutate({ nftId: nft.id, bucketType: selectedBucketType })}
+                        disabled={!canAfford(nft.priceBCC, selectedBucketType) || claimNFTMutation.isPending}
+                        className="w-full bg-honey text-black hover:bg-honey/90"
+                        data-testid={`button-confirm-claim-${nft.id}`}
+                      >
+                        {claimNFTMutation.isPending ? 'Claiming...' : 'Confirm Claim'}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </CardContent>
             </Card>
           ))
