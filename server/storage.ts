@@ -1174,6 +1174,116 @@ export class DatabaseStorage implements IStorage {
 
     await this.updateEarningsWallet(walletAddress, updates);
   }
+
+  // Company-wide statistics
+  async getCompanyStats(): Promise<any> {
+    try {
+      // Total members (activated users)
+      const [totalMembersResult] = await db.execute(sql`
+        SELECT COUNT(*) as total FROM users WHERE member_activated = true
+      `);
+      const totalMembers = Number(totalMembersResult.total);
+
+      // Members by level
+      const levelDistribution = await db.execute(sql`
+        SELECT m.active_level, COUNT(*) as count 
+        FROM membership_state m 
+        INNER JOIN users u ON m.wallet_address = u.wallet_address 
+        WHERE u.member_activated = true
+        GROUP BY m.active_level 
+        ORDER BY m.active_level
+      `);
+
+      // Total rewards paid out
+      const [totalRewardsResult] = await db.execute(sql`
+        SELECT COALESCE(SUM(total_earnings), 0) as total_rewards 
+        FROM earnings_wallet
+      `);
+      const totalRewards = Number(totalRewardsResult.total_rewards);
+
+      // Pending rewards
+      const [pendingRewardsResult] = await db.execute(sql`
+        SELECT COALESCE(SUM(pending_rewards), 0) as pending_rewards 
+        FROM earnings_wallet
+      `);
+      const pendingRewards = Number(pendingRewardsResult.pending_rewards);
+
+      return {
+        totalMembers,
+        levelDistribution: levelDistribution.map(row => ({
+          level: row.active_level,
+          count: Number(row.count)
+        })),
+        totalRewards,
+        pendingRewards,
+      };
+    } catch (error) {
+      console.error('Get company stats error:', error);
+      throw error;
+    }
+  }
+
+  // User-specific referral statistics
+  async getUserReferralStats(walletAddress: string): Promise<any> {
+    try {
+      // Get user's referral node
+      const userNode = await this.getReferralNode(walletAddress);
+      
+      // Direct referrals count
+      const directReferrals = userNode?.children ? JSON.parse(userNode.children as any).length : 0;
+
+      // Total team size (all descendants)
+      const [teamSizeResult] = await db.execute(sql`
+        WITH RECURSIVE team_tree AS (
+          SELECT wallet_address, parent_wallet, 1 as level
+          FROM referral_nodes 
+          WHERE parent_wallet = ${walletAddress}
+          
+          UNION ALL
+          
+          SELECT rn.wallet_address, rn.parent_wallet, tt.level + 1
+          FROM referral_nodes rn
+          JOIN team_tree tt ON rn.parent_wallet = tt.wallet_address
+          WHERE tt.level < 19
+        )
+        SELECT COUNT(*) as total_team FROM team_tree
+      `);
+      const totalTeam = Number(teamSizeResult.total_team);
+
+      // User's earnings
+      const earnings = await this.getEarningsWalletByWallet(walletAddress);
+      const totalEarnings = earnings?.totalEarnings || 0;
+      const pendingRewards = earnings?.pendingRewards || 0;
+
+      // Recent direct referrals with real data
+      const directReferralsList = await db.execute(sql`
+        SELECT u.wallet_address, u.username, u.current_level, u.created_at,
+               e.total_earnings
+        FROM users u
+        LEFT JOIN earnings_wallet e ON u.wallet_address = e.wallet_address
+        WHERE u.referrer_wallet = ${walletAddress} AND u.member_activated = true
+        ORDER BY u.created_at DESC
+        LIMIT 10
+      `);
+
+      return {
+        directReferrals,
+        totalTeam,
+        totalEarnings,
+        pendingRewards,
+        directReferralsList: directReferralsList.map(row => ({
+          walletAddress: row.wallet_address,
+          username: row.username,
+          level: row.current_level,
+          joinDate: row.created_at,
+          earnings: Number(row.total_earnings || 0)
+        }))
+      };
+    } catch (error) {
+      console.error('Get user referral stats error:', error);
+      throw error;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

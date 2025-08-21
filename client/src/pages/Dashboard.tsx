@@ -1,7 +1,7 @@
 import { useWallet } from '../hooks/useWallet';
 import { useI18n } from '../contexts/I18nContext';
 import { useLocation } from 'wouter';
-import { Card, CardContent } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
@@ -11,8 +11,9 @@ import { TransactionWidget, useActiveAccount } from "thirdweb/react";
 import { claimTo } from "thirdweb/extensions/erc1155";
 import { bbcMembershipContract, client, levelToTokenId } from "../lib/web3";
 import { useNFTVerification } from '../hooks/useNFTVerification';
+import { useCompanyStats, useUserReferralStats } from '../hooks/useBeeHiveStats';
 import { useState } from 'react';
-import { Copy, Share2, Users, Award, TrendingUp, DollarSign } from 'lucide-react';
+import { Copy, Share2, Users, Award, TrendingUp, DollarSign, Building2, Crown } from 'lucide-react';
 
 export default function Dashboard() {
   const { 
@@ -29,6 +30,8 @@ export default function Dashboard() {
   const { toast } = useToast();
   const account = useActiveAccount();
   const { hasLevel1NFT, isLoading: isCheckingNFT } = useNFTVerification();
+  const { data: companyStats, isLoading: isLoadingCompanyStats } = useCompanyStats();
+  const { data: userStats, isLoading: isLoadingUserStats } = useUserReferralStats();
   const [showReferralLink, setShowReferralLink] = useState(false);
   
   const referralLink = `${window.location.origin}/register?ref=${walletAddress}`;
@@ -357,12 +360,14 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* Comprehensive Stats Grid */}
+      {/* User Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card className="bg-secondary border-border glow-hover">
           <CardContent className="p-6 text-center">
             <Users className="h-8 w-8 text-honey mx-auto mb-2" />
-            <h3 className="text-2xl font-bold text-honey">247</h3>
+            <h3 className="text-2xl font-bold text-honey">
+              {isLoadingUserStats ? '...' : userStats?.totalTeam || 0}
+            </h3>
             <p className="text-muted-foreground text-sm">Total Team Size</p>
           </CardContent>
         </Card>
@@ -370,7 +375,9 @@ export default function Dashboard() {
         <Card className="bg-secondary border-border glow-hover">
           <CardContent className="p-6 text-center">
             <TrendingUp className="h-8 w-8 text-honey mx-auto mb-2" />
-            <h3 className="text-2xl font-bold text-honey">12</h3>
+            <h3 className="text-2xl font-bold text-honey">
+              {isLoadingUserStats ? '...' : userStats?.directReferrals || 0}
+            </h3>
             <p className="text-muted-foreground text-sm">Direct Referrals</p>
           </CardContent>
         </Card>
@@ -378,7 +385,9 @@ export default function Dashboard() {
         <Card className="bg-secondary border-border glow-hover">
           <CardContent className="p-6 text-center">
             <Award className="h-8 w-8 text-honey mx-auto mb-2" />
-            <h3 className="text-2xl font-bold text-honey">1,850</h3>
+            <h3 className="text-2xl font-bold text-honey">
+              {isLoadingUserStats ? '...' : (userStats?.totalEarnings || 0)}
+            </h3>
             <p className="text-muted-foreground text-sm">Total Rewards (USDT)</p>
           </CardContent>
         </Card>
@@ -386,11 +395,73 @@ export default function Dashboard() {
         <Card className="bg-secondary border-border glow-hover">
           <CardContent className="p-6 text-center">
             <DollarSign className="h-8 w-8 text-honey mx-auto mb-2" />
-            <h3 className="text-2xl font-bold text-honey">320</h3>
+            <h3 className="text-2xl font-bold text-honey">
+              {isLoadingUserStats ? '...' : (userStats?.pendingRewards || 0)}
+            </h3>
             <p className="text-muted-foreground text-sm">Pending Rewards</p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Company-Wide Statistics */}
+      <Card className="bg-secondary border-border glow-hover mb-8">
+        <CardHeader>
+          <CardTitle className="text-honey flex items-center gap-2">
+            <Building2 className="h-6 w-6" />
+            BeeHive Global Stats
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-honey mb-2">
+                {isLoadingCompanyStats ? '...' : companyStats?.totalMembers || 0}
+              </div>
+              <p className="text-muted-foreground text-sm">Total Members</p>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-green-400 mb-2">
+                {isLoadingCompanyStats ? '...' : Math.floor(companyStats?.totalRewards || 0)}
+              </div>
+              <p className="text-muted-foreground text-sm">Total Paid (USDT)</p>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-blue-400 mb-2">
+                {isLoadingCompanyStats ? '...' : Math.floor(companyStats?.pendingRewards || 0)}
+              </div>
+              <p className="text-muted-foreground text-sm">Pending Rewards</p>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-purple-400 mb-2">
+                {isLoadingCompanyStats ? '...' : 
+                  companyStats?.levelDistribution?.length ? 
+                    Math.max(...companyStats.levelDistribution.map(l => l.level)) : 0
+                }
+              </div>
+              <p className="text-muted-foreground text-sm">Highest Level</p>
+            </div>
+          </div>
+          
+          {/* Level Distribution */}
+          {!isLoadingCompanyStats && companyStats?.levelDistribution && (
+            <div className="mt-6">
+              <h4 className="text-lg font-semibold text-honey mb-4 flex items-center gap-2">
+                <Crown className="h-5 w-5" />
+                Members by Level
+              </h4>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 max-h-60 overflow-y-auto">
+                {companyStats.levelDistribution.map((levelData) => (
+                  <div key={levelData.level} className="bg-muted/30 rounded-lg p-3 text-center">
+                    <div className="text-sm font-medium text-honey">Level {levelData.level}</div>
+                    <div className="text-2xl font-bold text-honey">{levelData.count}</div>
+                    <div className="text-xs text-muted-foreground">members</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Matrix & Network Stats - Mobile Optimized */}
       <div className="grid grid-cols-1 gap-4 mb-8">
@@ -434,42 +505,39 @@ export default function Dashboard() {
               Your Upline Network
             </h3>
             <div className="space-y-3">
-              <div className="bg-muted/30 rounded-lg p-3">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-muted-foreground text-sm">Direct Sponsor</span>
-                  <span className="text-honey font-semibold">0x1234...5678</span>
+              {/* Real Direct Referrals List */}
+              {!isLoadingUserStats && userStats?.directReferralsList && userStats.directReferralsList.length > 0 ? (
+                userStats.directReferralsList.slice(0, 5).map((referral, index) => (
+                  <div key={referral.walletAddress} className="bg-muted/30 rounded-lg p-3">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-muted-foreground text-sm">
+                        {referral.username || formatAddress(referral.walletAddress)}
+                      </span>
+                      <Badge className="bg-honey text-black">
+                        Level {referral.level}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground text-xs">
+                        Earnings: {referral.earnings} USDT
+                      </span>
+                      <span className="text-green-400 text-xs">
+                        {new Date(referral.joinDate).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="bg-muted/30 rounded-lg p-6 text-center">
+                  <Users className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground text-sm">
+                    {isLoadingUserStats ? 'Loading referrals...' : 'No direct referrals yet'}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Share your referral link to start building your team!
+                  </p>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground text-xs">Joined</span>
-                  <span className="text-green-400 text-xs">Oct 15, 2024</span>
-                </div>
-              </div>
-              
-              <div className="bg-muted/30 rounded-lg p-3">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-muted-foreground text-sm">Level 2 Sponsor</span>
-                  <span className="text-honey font-semibold">0x2345...6789</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground text-xs">Matrix Position</span>
-                  <span className="text-blue-400 text-xs">Position 3</span>
-                </div>
-              </div>
-              
-              <div className="bg-muted/30 rounded-lg p-3">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-muted-foreground text-sm">Level 3 Sponsor</span>
-                  <span className="text-honey font-semibold">0x3456...7890</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground text-xs">Active Since</span>
-                  <span className="text-purple-400 text-xs">Sep 28, 2024</span>
-                </div>
-              </div>
-              
-              <div className="text-center py-2">
-                <span className="text-muted-foreground text-xs">+ 2 more levels above</span>
-              </div>
+              )}
             </div>
           </CardContent>
         </Card>
