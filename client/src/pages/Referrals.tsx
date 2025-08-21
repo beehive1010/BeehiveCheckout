@@ -74,29 +74,72 @@ export default function Referrals() {
         </Card>
       </div>
 
-      {/* Referral Link */}
+      {/* Referral Link - Mobile Optimized */}
       <Card className="bg-secondary border-border">
         <CardHeader>
           <CardTitle className="text-honey">Your Referral Link</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex space-x-2">
-            <Input 
-              value={referralLink} 
-              readOnly 
-              className="font-mono text-sm"
-              data-testid="input-referral-link"
-            />
-            <Button 
-              onClick={copyToClipboard} 
-              className="btn-honey"
-              data-testid="button-copy-referral-link"
-            >
-              <i className={`fas ${copySuccess ? 'fa-check' : 'fa-copy'} mr-2`}></i>
-              {copySuccess ? 'Copied!' : 'Copy'}
-            </Button>
+          <div className="space-y-3">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-2">
+              <Input 
+                value={referralLink} 
+                readOnly 
+                className="font-mono text-sm flex-1"
+                data-testid="input-referral-link"
+              />
+              <Button 
+                onClick={copyToClipboard} 
+                className="btn-honey w-full sm:w-auto whitespace-nowrap"
+                data-testid="button-copy-referral-link"
+              >
+                <i className={`fas ${copySuccess ? 'fa-check' : 'fa-copy'} mr-2`}></i>
+                {copySuccess ? 'Copied!' : 'Copy Link'}
+              </Button>
+            </div>
+            
+            {/* Social Share Buttons - Mobile Friendly */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-4">
+              <Button
+                onClick={() => {
+                  const url = `https://twitter.com/intent/tweet?text=Join me on Beehive! ${encodeURIComponent(referralLink)}`;
+                  window.open(url, '_blank');
+                }}
+                variant="outline"
+                className="text-xs sm:text-sm"
+                data-testid="button-share-twitter"
+              >
+                <i className="fab fa-twitter mr-1 sm:mr-2"></i>
+                <span className="hidden sm:inline">Twitter</span>
+                <span className="sm:hidden">X</span>
+              </Button>
+              <Button
+                onClick={() => {
+                  const url = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=Join me on Beehive!`;
+                  window.open(url, '_blank');
+                }}
+                variant="outline"
+                className="text-xs sm:text-sm"
+                data-testid="button-share-telegram"
+              >
+                <i className="fab fa-telegram mr-1 sm:mr-2"></i>
+                <span>Telegram</span>
+              </Button>
+              <Button
+                onClick={() => {
+                  const url = `whatsapp://send?text=Join me on Beehive! ${encodeURIComponent(referralLink)}`;
+                  window.open(url, '_blank');
+                }}
+                variant="outline"
+                className="text-xs sm:text-sm col-span-2 sm:col-span-1"
+                data-testid="button-share-whatsapp"
+              >
+                <i className="fab fa-whatsapp mr-1 sm:mr-2"></i>
+                <span>WhatsApp</span>
+              </Button>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground mt-2">
+          <p className="text-sm text-muted-foreground mt-3">
             Share this link to earn referral rewards when new members join through your invitation.
           </p>
         </CardContent>
