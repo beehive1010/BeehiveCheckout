@@ -128,15 +128,15 @@ export default function NFTCenter() {
           data-testid="button-back-to-tasks"
         >
           <ArrowLeftIcon className="w-4 h-4 mr-2" />
-          Back to Tasks
+{t('nftCenter.backToTasks')}
         </Button>
         <div className="text-center flex-1">
           <h1 className="text-4xl font-bold text-honey mb-4 flex items-center justify-center gap-3">
             <IconWallet className="w-8 h-8" />
-            NFT Center
+{t('nftCenter.title')}
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Manage your Advertisement NFTs, view locked BCC amounts, and activate promotional services
+{t('nftCenter.description')}
           </p>
         </div>
       </div>
@@ -158,14 +158,14 @@ export default function NFTCenter() {
         ) : myNFTs.length === 0 ? (
           <div className="col-span-full text-center py-12">
             <IconWallet className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-muted-foreground mb-2">No NFTs Found</h3>
-            <p className="text-muted-foreground mb-4">You don't have any Advertisement NFTs yet</p>
+            <h3 className="text-xl font-semibold text-muted-foreground mb-2">{t('nftCenter.noNfts.title')}</h3>
+            <p className="text-muted-foreground mb-4">{t('nftCenter.noNfts.description')}</p>
             <Button 
               onClick={() => setLocation('/ads')}
               className="bg-honey text-black hover:bg-honey/90"
               data-testid="button-browse-nfts"
             >
-              Browse Advertisement NFTs
+{t('nftCenter.noNfts.browseButton')}
             </Button>
           </div>
         ) : (
