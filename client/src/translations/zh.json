@@ -28,124 +28,49 @@
       "title": "欢迎来到蜂巢",
       "subtitle": "基于区块链奖励的Web3会员和学习平台"
     },
-    "getStarted": "开始使用",
     "features": {
       "membership": {
-        "title": "Web3 会员制",
-        "description": "具有19个级别的安全链上会员资格"
-      },
-      "referral": {
-        "title": "3×3 矩阵系统",
-        "description": "通过我们的强制矩阵推荐计划获得奖励"
-      },
-      "education": {
-        "title": "学习赚取",
-        "description": "访问高端课程和研讨会，同时获得代币"
-      },
-      "marketplace": {
-        "title": "NFT 市场",
-        "description": "使用您的BCC代币获取独家商家NFT"
-      },
-      "tokens": {
-        "title": "BCC 奖励",
-        "description": "具有可转移和受限制桶的双重代币系统"
+        "title": "分级会员",
+        "description": "从勇士到神话峰顶的19级系统"
       },
       "rewards": {
-        "title": "智能奖励",
-        "description": "48小时升级倒计时与累积机制"
+        "title": "区块链奖励",
+        "description": "通过参与和推荐获得代币"
+      },
+      "education": {
+        "title": "Web3教育",
+        "description": "从初学者到专家的综合课程"
       }
     },
     "stats": {
-      "membershipLevels": "19个会员等级",
-      "matrixSystem": "3×3矩阵系统",
-      "nftMarketplace": "NFT市场"
-    },
-    "platformFeatures": {
-      "title": "平台功能",
-      "subtitle": "探索让蜂巢成为终极Web3会员平台的强大功能",
-      "exclusiveLevels": "19个专属等级",
-      "exclusiveCollections": "独家收藏",
-      "autoPlacement": "自动配置系统",
-      "dualTokenSystem": "双代币系统",
-      "premiumCourses": "高端课程",
-      "countdown": "48小时倒计时"
-    },
-    "ctaStats": {
-      "membershipLevels": "会员等级",
-      "matrixSystem": "矩阵系统",
-      "earningPotential": "收益潜力"
-    },
-    "howItWorks": {
-      "title": "运作方式",
-      "subtitle": "仅需三个简单步骤即可开始并解锁Web3会员的力量",
-      "step1": {
-        "title": "连接钱包",
-        "description": "连接您的Web3钱包开始使用"
-      },
-      "step2": {
-        "title": "注册并激活",
-        "description": "完成注册并激活1级会员"
-      },
-      "step3": {
-        "title": "学习赚取",
-        "description": "访问平台功能并开始获得奖励"
-      }
+      "totalValue": "10.2M",
+      "totalMembers": "150K+",
+      "coursesAvailable": "200+",
+      "nftsMinted": "50K+"
     },
     "cta": {
-      "title": "准备开始您的旅程了吗？",
-      "description": "加入已在蜂巢生态系统中赚取收益的数千名会员",
-      "button": "立即加入蜂巢"
+      "title": "准备开始了吗？",
+      "subtitle": "今天就加入蜂巢社区，开始您的Web3之旅",
+      "button": "连接钱包开始"
     }
   },
   "dashboard": {
-    "nftRequired": {
-      "title": "需要NFT访问权限",
-      "description": "您需要拥有1级会员NFT（代币ID 0）才能访问仪表板。",
-      "requiredNft": "必需的NFT",
-      "level1Warrior": "1级勇士",
-      "tokenId": "代币ID",
-      "getButton": "获取1级NFT"
+    "welcome": "欢迎回来",
+    "membership": {
+      "title": "会员状态",
+      "level": "等级",
+      "nextLevel": "下一等级",
+      "progress": "进度"
     },
-    "welcome": {
-      "title": "欢迎来到蜂巢！",
-      "description": "激活您的1级会员以解锁所有平台功能并开始获得奖励。",
-      "subtitle": "开始探索平台并建立您的Web3影响力。"
-    },
-    "membershipLevel": "会员级别",
-    "price": "价格",
-    "activateLevel1": "激活1级大黄蜂（BBC）NFT",
-    "activating": "激活中...",
-    "activationNote": "激活后，您将可以访问所有会员功能，包括任务、教育和蜂巢世界。",
-    "status": {
-      "active": "活跃"
-    },
-    "balances": {
-      "bccFree": "BCC（免费）",
-      "bccLocked": "BCC（锁定）"
-    },
-    "verifying": "验证NFT所有权...",
-    "member": "成员",
-    "nftVerified": "NFT已验证 ✓",
-    "reward": "奖励",
-    "bccBalance": "BCC余额",
-    "nfts": "NFTs",
-    "userCentre": "用户中心",
-    "accountOverview": "账户概览",
-    "userAvatar": "用户头像", 
-    "levelText": "等级 {{level}}",
-    "priceLevel1": "130 USDT",
     "quickActions": {
       "tasks": {
-        "description": "使用您的BCC代币浏览和获取商家NFT",
-        "statValue": "12个可用"
+        "description": "浏览和认领商户NFT以获得BCC代币"
       },
       "education": {
-        "description": "访问课程和学习材料",
-        "statValue": "进度：65%"
+        "description": "访问课程和学习材料"
       },
       "hiveworld": {
-        "description": "查看您的推荐矩阵和奖励",
-        "statValue": "3个直接推荐"
+        "description": "查看推荐矩阵和奖励"
       }
     },
     "recentActivity": "最近活动",
@@ -156,455 +81,18 @@
       },
       "error": {
         "title": "激活失败",
-        "description": "请重试或联系支持。"
+        "description": "无法激活您的会员资格。请重试或联系支持。"
       }
     },
-    "activity": {
-      "rewardReceived": "奖励已收到",
-      "fromReferralUpgrade": "来自推荐升级",
-      "rewardAmount": "+{{amount}} 奖励",
-      "nftClaimed": "NFT已获取",
-      "merchantNft": "商家NFT已购买",
-      "bccDeduction": "-{{amount}} BCC",
-      "newReferral": "新推荐",
-      "userJoined": "用户已加入您的网络",
-      "activeStatus": "活跃"
-    },
-    "referralLink": {
-      "title": "推荐链接",
-      "show": "显示",
-      "hide": "隐藏",
-      "copied": "链接已复制！",
-      "copiedDesc": "推荐链接已复制到剪贴板"
-    },
-    "social": {
-      "twitter": "Twitter",
-      "telegram": "Telegram", 
-      "whatsapp": "WhatsApp"
-    },
-    "stats": {
-      "totalRewards": "总奖励",
-      "bccBalance": "BCC余额",
-      "bccLocked": "BCC锁定",
-      "nftsOwned": "拥有的NFT"
-    },
-    "tokenPurchase": {
-      "bccDescription": "购买Beehive加密币用于平台使用",
-      "cthDescription": "购买CTH代币用于Alpha Centauri生态系统",
-      "topUpDescription": "购买BCC和CTH代币参与蜂巢生态系统"
-    },
-    "globalStats": {
-      "title": "全球统计",
-      "totalMembers": "总成员数",
-      "totalRewardsPaid": "总奖励支付",
-      "pendingRewards": "待处理奖励",
-      "highestLevel": "最高等级",
-      "membersByLevel": "按等级分布成员",
-      "members": "成员"
-    },
-    "uplineNetwork": {
-      "title": "上线网络",
-      "earnings": "收益",
-      "loading": "加载网络数据中...",
-      "noReferrals": "暂无推荐数据",
-      "shareMessage": "分享您的推荐链接来发展网络"
-    },
-    "downlineMatrix": {
-      "title": "下线矩阵",
-      "placement": "位置"
-    }
-  },
-  "membership": {
-    "purchase": {
-      "button": "购买级别 {level} (${price} USDT)",
-      "approving": "批准USDT中...",
-      "preparing": "准备支付中...",
-      "paying": "处理支付中...",
-      "verifying": "验证交易中...",
-      "finalizing": "完成购买中...",
-      "completed": "购买完成！",
-      "retry": "重试购买",
-      "connectWallet": "连接钱包以购买",
-      "selectChain": "选择支付链",
-      "selectChainDescription": "选择在哪个区块链上支付USDT购买级别 {level} 会员",
-      "payWithGas": "用USDT支付 • {symbol}支付手续费",
-      "success": {
-        "title": "会员购买成功！",
-        "description": "您的会员已成功激活。"
-      },
-      "error": {
-        "title": "购买失败",
-        "description": "处理您的购买时出错。请重试。"
-      }
-    },
-    "levels": {
-      "title": "会员级别",
-      "subtitle": "选择您的级别并解锁专属福利",
-      "currentLevel": "当前级别",
-      "priceUSDT": "USDT",
-      "benefits": "核心福利",
-      "owned": "已拥有",
-      "selected": "已选择",
-      "activated": "已激活",
-      "higherLevelOwned": "更高级别已激活",
-      "selectionInfo": "点击购买按钮获取此会员级别"
-    },
-    "level": {
-      "1": {
-        "title": "勇士",
-        "subtitle": "勇士 • 开始您的征程 • $130 USDT"
-      },
-      "2": {
-        "title": "青铜",
-        "subtitle": "青铜 • 证明奉献 • $150 USDT"
-      },
-      "3": {
-        "title": "白银",
-        "subtitle": "白银 • 冉冉升起 • $200 USDT"
-      },
-      "4": {
-        "title": "黄金",
-        "subtitle": "黄金 • 精英地位 • $250 USDT"
-      },
-      "5": {
-        "title": "精英",
-        "subtitle": "精英 • 杰出成员 • $300 USDT"
-      },
-      "6": {
-        "title": "铂金",
-        "subtitle": "铂金 • 威望等级 • $350 USDT"
-      },
-      "7": {
-        "title": "大师",
-        "subtitle": "大师 • 熟练实践者 • $400 USDT"
-      },
-      "8": {
-        "title": "钻石",
-        "subtitle": "钻石 • 卓越优秀 • $450 USDT"
-      },
-      "9": {
-        "title": "宗师",
-        "subtitle": "宗师 • 至高精通 • $500 USDT"
-      },
-      "10": {
-        "title": "星耀",
-        "subtitle": "星耀 • 辉煌成就 • $550 USDT"
-      },
-      "11": {
-        "title": "史诗",
-        "subtitle": "史诗 • 传奇地位 • $600 USDT"
-      },
-      "12": {
-        "title": "殿堂",
-        "subtitle": "殿堂 • 名人堂 • $650 USDT"
-      },
-      "13": {
-        "title": "最强王者",
-        "subtitle": "最强王者 • 王室统治 • $700 USDT"
-      },
-      "14": {
-        "title": "无双王者",
-        "subtitle": "无双王者 • 至高统治者 • $750 USDT"
-      },
-      "15": {
-        "title": "荣耀王者",
-        "subtitle": "荣耀王者 • 光荣统治 • $800 USDT"
-      },
-      "16": {
-        "title": "传奇主宰",
-        "subtitle": "传奇主宰 • 神话力量 • $850 USDT"
-      },
-      "17": {
-        "title": "至尊主宰",
-        "subtitle": "至尊主宰 • 终极权威 • $900 USDT"
-      },
-      "18": {
-        "title": "至尊神话",
-        "subtitle": "至尊神话 • 神圣传说 • $950 USDT"
-      },
-      "19": {
-        "title": "神话巅峰",
-        "subtitle": "神话巅峰 • 力量顶峰 • $1000 USDT"
-      }
-    },
-    "benefits": {
-      "l1": {
-        "basic": "基础平台访问",
-        "education": "教育内容访问",
-        "rewards": "推荐奖励资格"
-      },
-      "l2": {
-        "enhanced": "增强奖励倍数",
-        "bonus": "2级奖励功能",
-        "network": "扩展网络访问"
-      },
-      "l3": {
-        "advanced": "高级交易工具",
-        "exclusive": "专属成员活动",
-        "priority": "优先客户支持"
-      },
-      "l4": {
-        "premium": "高级内容库",
-        "mentorship": "导师机会",
-        "tools": "专业交易工具"
-      },
-      "l5": {
-        "elite": "精英成员地位",
-        "leadership": "领导力发展",
-        "insights": "市场洞察访问"
-      },
-      "l6": {
-        "mastery": "精通级资源",
-        "networking": "VIP网络活动",
-        "rewards": "增强奖励率"
-      },
-      "l7": {
-        "expert": "专家级认证",
-        "community": "私人社区访问",
-        "alpha": "阿尔法投资机会"
-      },
-      "l8": {
-        "legendary": "传奇地位特权",
-        "influence": "平台影响力投票",
-        "opportunities": "独家机会"
-      },
-      "l9": {
-        "mastery": "完整系统精通",
-        "inner_circle": "内圈成员",
-        "exclusive": "超独家福利"
-      },
-      "l10": {
-        "grandmaster": "宗师认可",
-        "authority": "平台权威角色",
-        "legacy": "传承计划访问"
-      },
-      "l11": {
-        "wisdom": "智慧议会成员",
-        "cosmic": "宇宙级奖励",
-        "transcendent": "超越福利"
-      },
-      "l12": {
-        "oracle": "神谕顾问角色",
-        "foresight": "市场预见工具",
-        "divine": "神圣层特权"
-      },
-      "l13": {
-        "immortal": "不朽地位福利",
-        "eternal": "永恒奖励流",
-        "infinite": "无限成长潜力"
-      },
-      "l14": {
-        "celestial": "天体层访问",
-        "heavenly": "天堂奖励率",
-        "ascended": "升华成员特权"
-      },
-      "l15": {
-        "divine": "神圣权威地位",
-        "godlike": "神般影响力",
-        "ultimate": "终极平台访问"
-      },
-      "l16": {
-        "supreme": "至高指挥官角色",
-        "omnipotent": "全能决定权",
-        "sovereign": "主权成员权利"
-      },
-      "l17": {
-        "transcendent": "超越存在",
-        "beyond": "超越常规限制",
-        "unlimited": "无限可能性"
-      },
-      "l18": {
-        "absolute": "绝对权力访问",
-        "perfection": "完美层福利",
-        "apex": "顶级捕食者地位"
-      },
-      "l19": {
-        "mythical": "神话传说地位",
-        "peak": "巅峰表现层",
-        "legendary": "传奇创始人特权"
-      }
-    }
-  },
-  "ads": {
-    "title": "广告NFT",
-    "description": "使用您的BCC代币获取广告NFT以解锁推广服务",
-    "nftCenter": "NFT中心",
-    "manageNfts": "管理您的NFT",
-    "browseNfts": "浏览广告NFT",
-    "exploreServices": "探索可用的推广服务和DApp合作伙伴关系",
-    "claimNft": "获取NFT",
-    "soldOut": "售罄",
-    "claiming": "获取中...",
-    "confirmClaim": "确认获取",
-    "bccRequired": "需要BCC",
-    "available": "可用",
-    "cost": "费用",
-    "bucketSelection": "选择用于获取此广告NFT的BCC桶",
-    "transferableBcc": "可转移BCC",
-    "restrictedBcc": "受限制BCC",
-    "claim": {
-      "success": {
-        "title": "NFT获取成功！",
-        "description": "您的广告NFT已获取，BCC代币已锁定。"
-      },
-      "error": {
-        "title": "获取失败",
-        "description": "获取广告NFT失败"
-      }
-    },
-    "burn": {
-      "title": "NFT销毁成功！",
-      "description": "服务代码：{code}",
-      "error": {
-        "title": "销毁失败",
-        "description": "销毁NFT失败"
-      }
-    },
+    "activateLevel1": "激活1级会员",
+    "activating": "激活中...",
+    "activationNote": "激活后，您将可以访问所有会员功能，包括任务、教育和蜂巢世界。",
     "status": {
-      "active": "活跃",
-      "used": "已使用",
-      "burned": "已销毁",
-      "claimed": "准备使用",
-      "serviceActivated": "服务已激活"
+      "active": "活跃"
     },
-    "nftCenter": {
-      "title": "NFT中心",
-      "description": "管理您的广告NFT，查看锁定的BCC数量，并激活推广服务",
-      "backToTasks": "返回任务",
-      "noNfts": {
-        "title": "未找到NFT",
-        "description": "您还没有任何广告NFT",
-        "browse": "浏览广告NFT"
-      },
-      "useNft": "使用NFT服务",
-      "activating": "激活中...",
-      "activeCode": "激活代码",
-      "serviceStatus": "服务状态",
-      "currentStatus": "当前状态",
-      "activatedOn": "激活于",
-      "readyToActivate": "准备激活",
-      "bccLocked": "BCC已锁定",
-      "bucketUsed": "使用的桶",
-      "warning": {
-        "title": "重要",
-        "description": "使用此NFT将永久销毁NFT和其中锁定的{amount}个BCC代币。作为回报，您将获得激活{service}推广服务的服务代码。此操作无法撤消。"
-      }
-    }
-  },
-  "discover": {
-    "title": "发现",
-    "subtitle": "探索Web3 DApps和服务",
-    "search": {
-      "placeholder": "搜索DApps、协议或服务...",
-      "recent": "最近",
-      "trending": "热门",
-      "clear": "清除"
-    },
-    "featured": "精选",
-    "featuredSection": {
-      "title": "Beehive精选",
-      "viewAll": "查看全部"
-    },
-    "categories": {
-      "title": "分类",
-      "all": "全部",
-      "defi": "DeFi",
-      "nft": "NFT",
-      "gamefi": "GameFi",
-      "dao": "DAO",
-      "bridge": "跨链桥",
-      "lending": "借贷",
-      "dex": "去中心化交易所",
-      "yield": "收益",
-      "insurance": "保险",
-      "social": "社交",
-      "tools": "工具",
-      "education": "教育"
-    },
-    "trending": "热门",
-    "trendingSection": {
-      "title": "当前热门",
-      "subtitle": "生态系统中的热门DApps",
-      "users": "用户",
-      "tvl": "总锁定价值",
-      "volume": "24小时交易量"
-    },
-    "ecosystem": {
-      "title": "BeeHive生态系统",
-      "subtitle": "原生平台服务和工具",
-      "membership": {
-        "title": "会员系统",
-        "subtitle": "从勇士到神话巅峰的19级进阶",
-        "levels": "19个等级",
-        "members": "活跃会员"
-      },
-      "matrix": {
-        "title": "3×3矩阵",
-        "subtitle": "去中心化推荐和奖励系统",
-        "structure": "自动配置",
-        "rewards": "即时奖励"
-      },
-      "education": {
-        "title": "教育中心",
-        "subtitle": "Web3学习和技能发展",
-        "courses": "课程",
-        "certificates": "证书"
-      }
-    },
-    "networks": {
-      "title": "支持的网络",
-      "subtitle": "多链生态系统支持"
-    },
-    "stats": {
-      "title": "平台统计",
-      "totalValue": "总锁定价值",
-      "transactions": "总交易数",
-      "users": "活跃用户",
-      "protocols": "集成协议"
-    },
-    "news": {
-      "title": "最新动态",
-      "subtitle": "了解Web3最新发展",
-      "readMore": "阅读更多",
-      "minutes": "分钟阅读"
-    },
-    "dapps": {
-      "beehive": "BeeHive会员",
-      "beehiveDesc": "19级会员系统，获得Web3奖励",
-      "matrixRewards": "矩阵奖励",
-      "matrixRewardsDesc": "3×3矩阵推荐系统",
-      "uniswap": "Uniswap",
-      "uniswapDesc": "领先的去中心化交易协议",
-      "opensea": "OpenSea",
-      "openseaDesc": "最大的NFT市场",
-      "compound": "Compound",
-      "compoundDesc": "算法货币市场协议",
-      "pancakeswap": "PancakeSwap",
-      "pancakeswapDesc": "BSC领先的DEX与流动性挖矿",
-      "axieinfinity": "Axie Infinity",
-      "axieinfinityDesc": "流行的边玩边赚游戏"
-    },
-    "news": {
-      "matrix30": {
-        "title": "蜂巢推出新的Matrix 3.0系统",
-        "description": "增强的3×3矩阵，具有自动智能合约分配和改进的奖励机制。"
-      },
-      "bridge": {
-        "title": "多链USDT桥接现已上线",
-        "description": "在以太坊、Polygon和Arbitrum网络上无缝的USDT支付。"
-      },
-      "education": {
-        "title": "教育中心达到50+课程",
-        "description": "具有认证程序的综合Web3学习平台。"
-      }
-    },
-    "chains": {
-      "ethereum": "以太坊",
-      "polygon": "Polygon",
-      "arbitrum": "Arbitrum",
-      "optimism": "Optimism",
-      "bsc": "BSC",
-      "avalanche": "雪崩"
+    "balances": {
+      "bccFree": "BCC（自由）",
+      "bccLocked": "BCC（锁定）"
     }
   },
   "hiveworld": {
@@ -628,19 +116,28 @@
     },
     "rewardHistory": {
       "title": "奖励历史",
-      "directBonus": "直接推荐奖励"
+      "directBonus": "直接推荐奖金",
+      "upgradeReward": "升级奖励（待定）",
+      "rollupReward": "汇总奖励",
+      "completed": "已完成",
+      "expired": "已过期",
+      "noRewards": "暂无奖励历史"
+    },
+    "linkCopied": {
+      "title": "链接已复制！",
+      "description": "推荐链接已复制到剪贴板。"
     },
     "blog": {
       "title": "蜂巢世界知识中心",
-      "subtitle": "及时了解Web3、区块链技术和去中心化生态系统的最新见解",
+      "subtitle": "探索Web3、区块链技术和去中心化生态系统的最新见解",
       "searchPlaceholder": "搜索文章...",
       "allTopics": "所有主题",
       "noArticles": "未找到文章",
-      "noArticlesDesc": "请尝试调整您的搜索词或浏览不同的主题",
+      "noArticlesDesc": "请调整搜索词或探索不同的主题",
       "tags": {
         "Web3": "Web3",
         "Blockchain": "区块链",
-        "Membership": "会员制",
+        "Membership": "会员",
         "NFT": "NFT",
         "Access Control": "访问控制",
         "Technology": "技术",
@@ -657,12 +154,12 @@
       "posts": {
         "1": {
           "title": "Web3会员系统的未来",
-          "excerpt": "探索区块链技术如何在各行业中变革会员和忠诚度计划。",
+          "excerpt": "探索区块链技术如何革新各行业的会员和忠诚度计划。",
           "author": "蜂巢团队"
         },
         "2": {
           "title": "理解基于NFT的访问控制",
-          "excerpt": "如何使用NFT来限制内容访问并创造独家社区体验。",
+          "excerpt": "NFT如何用于内容门控和创造独家社区体验。",
           "author": "技术团队"
         },
         "3": {
@@ -671,8 +168,8 @@
           "author": "策略团队"
         },
         "4": {
-          "title": "多链支付集成指南",
-          "excerpt": "关于为dApp实施跨链支付解决方案的技术深入分析。",
+          "title": "多链支付整合指南",
+          "excerpt": "为dApps实施跨链支付解决方案的技术深度分析。",
           "author": "开发团队"
         },
         "5": {
@@ -682,455 +179,5 @@
         }
       }
     }
-  },
-  "blogpost": {
-    "linkCopied": {
-      "title": "链接已复制！",
-      "description": "博客文章链接已复制到剪贴板"
-    },
-    "author": "作者",
-    "publishedOn": "发布于",
-    "tags": "标签",
-    "relatedPosts": "相关文章",
-    "sharePost": "分享此文章"
-  },
-  "activity": {
-      "title": "奖励历史",
-      "directBonus": "直接推荐奖金",
-      "upgradeReward": "升级奖励（待处理）",
-      "rollupReward": "累积奖励",
-      "completed": "已完成",
-      "expired": "已过期",
-      "noRewards": "尚无奖励历史"
-    },
-    "linkCopied": {
-      "title": "链接已复制！",
-      "description": "您的推荐链接已复制到剪贴板。"
-    },
-    "blogs": {
-      "web3membership": {
-        "title": "Web3会员系统的未来",
-        "excerpt": "探索区块链技术如何革新各行业的会员和忠诚度计划。"
-      },
-      "nftaccess": {
-        "title": "理解基于NFT的访问控制",
-        "excerpt": "NFT如何被用于内容门禁和创造独家社区体验。"
-      },
-      "referraleconomy": {
-        "title": "构建可持续的推荐经济",
-        "excerpt": "在基于矩阵的推荐系统中创造长期价值的最佳实践。"
-      },
-      "multichainpayment": {
-        "title": "多链支付集成指南",
-        "excerpt": "跨链USDT支付处理和用户体验优化的技术深度解析。"
-      },
-      "governance": {
-        "title": "去中心化平台中的社区治理",
-        "excerpt": "在Web3社区中实施公平透明决策过程。"
-      }
-    }
-  },
-  "blogpost": {
-    "linkCopied": {
-      "title": "链接已复制！",
-      "description": "博客文章链接已复制到剪贴板"
-    },
-    "author": "作者",
-    "publishedOn": "发布于",
-    "tags": "标签",
-    "relatedPosts": "相关文章",
-    "sharePost": "分享这篇文章"
-  },
-  "activity": {
-    "rewardReceived": "奖励已收到",
-    "fromReferralUpgrade": "来自推荐升级",
-    "nftClaimed": "NFT已获取",
-    "newReferral": "新推荐",
-    "memberSince": "会员自"
-  },
-  "errors": {
-    "walletNotConnected": "钱包未连接",
-    "failedToFetch": "获取NFT失败",
-    "failedToClaim": "获取NFT失败",
-    "failedToBurn": "销毁NFT失败",
-    "insufficientBcc": "BCC不足",
-    "maxLevel": "最高级别",
-    "inactive": "未激活"
-  },
-  "buttons": {
-    "getStarted": "开始使用",
-    "connectWallet": "连接钱包",
-    "copied": "已复制！",
-    "close": "关闭",
-    "viewInCenter": "在NFT中心查看",
-    "burnForService": "销毁获取服务代码",
-    "burnNft": "销毁NFT",
-    "confirmBurn": "确认销毁",
-    "burning": "销毁中...",
-    "useNftService": "使用NFT服务",
-    "buyBccToken": "购买BCC代币",
-    "buyCthToken": "购买CTH代币",
-    "topUp": "充值"
-  },
-  "selectors": {
-    "category": "类别",
-    "level": "级别",
-    "type": "类型",
-    "payment": "支付",
-    "onlineZoom": "在线（Zoom）",
-    "videoLessons": "视频课程",
-    "freeCourses": "免费课程",
-    "paidBcc": "付费（BCC）",
-    "completed": "已完成",
-    "enrolled": "已注册"
-  },
-  "welcome": {
-    "title": "欢迎来到蜂巢！🎉",
-    "subtitle": "通过购买1级勇士NFT来完成您的会员资格。这将解锁所有平台功能并开始您的Web3旅程！",
-    "nft": {
-      "title": "1级勇士NFT",
-      "description": "您在区块链上的会员凭证",
-      "tokenId": "代币 ID: 0",
-      "price": "价格",
-      "priceAmount": "130 USDT"
-    },
-    "benefits": {
-      "title": "您将解锁的功能：",
-      "dashboard": "完整仪表板访问",
-      "tasks": "任务与NFT市场",
-      "education": "教育中心",
-      "discover": "探索Web3 DApps",
-      "tokens": "BCC代币奖励",
-      "hiveworld": "蜂巢世界矩阵系统"
-    },
-    "premium": {
-      "title": "💎 高级会员",
-      "description": "以130 USDT购买您的1级勇士NFT，支持多链支付！"
-    },
-    "success": {
-      "title": "购买成功！",
-      "description": "您的1级会员已激活。欢迎来到蜂巢！"
-    },
-    "error": {
-      "title": "购买失败",
-      "description": "您的购买遇到错误。请重试。"
-    },
-    "supportText": "遇到问题？联系我们的支持团队获取帮助。"
-  },
-  "tokenPurchase": {
-    "title": "购买代币",
-    "description": "以1代币=0.01 USDT的价格跨多链购买BCC和CTH代币",
-    "testnet": {
-      "warning": "测试网提示：通用桥目前不支持测试网络。",
-      "note": "用于测试目的，支付可能是模拟的。真实支付需要主网部署。"
-    },
-    "connectWallet": {
-      "title": "连接您的钱包",
-      "description": "连接您的钱包购买BCC和CTH代币"
-    },
-    "form": {
-      "tokenType": "代币类型",
-      "paymentChain": "支付链",
-      "tokenAmount": "代币数量",
-      "enterAmount": "输入代币数量",
-      "totalCost": "总成本：${amount} USDT"
-    },
-    "tokens": {
-      "bcc": {
-        "name": "BCC（蜂巢加密币）",
-        "title": "BCC代币",
-        "description": "用于市场购买和奖励的可转移实用代币",
-        "uses": {
-          "marketplace": "NFT市场使用",
-          "education": "教育课程访问",
-          "advertisement": "广告NFT"
-        }
-      },
-      "cth": {
-        "name": "CTH（半人马蜂蜜）",
-        "title": "CTH代币",
-        "description": "Alpha Centauri链交易的原生Gas代币",
-        "uses": {
-          "gas": "网络Gas费用",
-          "operations": "链操作",
-          "transactions": "交易成本"
-        }
-      }
-    },
-    "buttons": {
-      "creating": "创建购买中...",
-      "purchase": "购买{amount}个{token}代币",
-      "cancelPayment": "取消支付"
-    },
-    "payment": {
-      "title": "完成您的支付",
-      "description": "支付${amount} USDT获得{tokenAmount}个{tokenType}代币"
-    },
-    "balances": {
-      "title": "您的代币余额",
-      "bccTotal": "BCC总计：",
-      "transferable": "可转移：",
-      "restricted": "受限：",
-      "cthBalance": "CTH余额：",
-      "noBalances": "未找到余额"
-    },
-    "history": {
-      "title": "最近购买",
-      "noPurchases": "暂无购买记录"
-    },
-    "messages": {
-      "purchaseCreated": "购买已创建",
-      "readyToPurchase": "准备购买{amount}个{token}代币",
-      "error": "错误",
-      "createFailed": "创建购买失败",
-      "tokensAirdropped": "代币已空投！🪂",
-      "tokensAdded": "{amount}个{token}代币已添加到您的钱包",
-      "confirmFailed": "确认购买失败",
-      "walletNotConnected": "钱包未连接",
-      "connectToPurchase": "请连接您的钱包购买代币",
-      "invalidAmount": "无效数量",
-      "enterValidAmount": "请输入有效的代币数量"
-    }
-  },
-  "registration": {
-    "title": "完成注册",
-    "subtitle": "设置您的Beehive个人资料",
-    "walletAddress": "钱包地址",
-    "email": "邮箱地址",
-    "emailPlaceholder": "输入您的邮箱",
-    "username": "用户名",
-    "usernamePlaceholder": "选择一个用户名",
-    "secondaryPassword": "二级密码",
-    "passwordPlaceholder": "创建一个安全密码",
-    "confirmPassword": "确认密码",
-    "confirmPasswordPlaceholder": "确认您的密码",
-    "referrer": "上级推荐人",
-    "register": "完成注册",
-    "registering": "处理中...",
-    "agreement": "注册即表示您同意我们的服务条款和隐私政策",
-    "noReferrerInfo": {
-      "title": "需要推荐链接",
-      "description": "要加入Beehive，您需要现有会员的推荐链接。这将您连接到我们3×3矩阵系统中的上线。",
-      "getLink": "向Beehive会员索要推荐链接以开始使用。"
-    },
-    "errors": {
-      "emailRequired": "邮箱地址是必需的",
-      "emailInvalid": "请输入有效的邮箱地址",
-      "usernameRequired": "用户名是必需的",
-      "usernameTooShort": "用户名必须至少3个字符",
-      "passwordRequired": "二级密码是必需的",
-      "passwordTooShort": "密码必须至少6个字符",
-      "passwordMismatch": "密码不匹配",
-      "referrerRequired": "注册需要有效的推荐链接"
-    },
-    "success": {
-      "title": "注册成功！",
-      "description": "您的个人资料已创建。现在可以激活您的会员。"
-    },
-    "error": {
-      "title": "注册失败",
-      "description": "请重试或如果问题持续存在请联系支持。"
-    },
-    "walletRequired": {
-      "title": "需要连接钱包",
-      "description": "请先连接您的钱包以完成注册。"
-    }
-  },
-  "tasks": {
-    "title": "任务和市场",
-    "pageTitle": "任务",
-    "categories": {
-      "membership": "会员",
-      "advertisement": "广告"
-    },
-    "membership": {
-      "title": "大黄蜂会员NFT",
-      "description": "具有多链支持USDT支付的正宗会员级别",
-      "level": "级别",
-      "usdt": "USDT",
-      "status": {
-        "owned": "已拥有",
-        "available": "可用",
-        "locked": "锁定"
-      },
-      "getStarted": "开始使用",
-      "upgradeNow": "立即升级",
-      "lockedMessage": "先完成前面的级别"
-    },
-    "advertisement": {
-      "title": "广告NFT收藏",
-      "description": "使用BCC代币可获取的独家商家NFT",
-      "noNfts": "目前没有可用的广告NFT。",
-      "loading": "加载NFT中..."
-    },
-    "availableBalance": "可用余额",
-    "restrictedFirst": "优先使用受限制BCC",
-    "restrictedBCC": "受限制蜂巢加密币",
-    "transferableBCC": "可转移蜂巢加密币",
-    "claim": "获取",
-    "claiming": "获取中...",
-    "insufficientBCC": "BCC不足",
-    "claimModal": {
-      "title": "获取NFT",
-      "price": "价格",
-      "availableRestricted": "可用（受限制）",
-      "availableTransferable": "可用（可转移）",
-      "confirmation": "将优先使用受限制的BCC。继续获取此NFT？",
-      "confirm": "确认获取",
-      "cancel": "取消"
-    },
-    "claim": {
-      "success": {
-        "title": "NFT获取成功！",
-        "description": "NFT已铸造到您的钱包。"
-      },
-      "error": {
-        "title": "获取失败",
-        "description": "无法获取NFT。请检查您的余额并重试。"
-      }
-    }
-  },
-  "education": {
-    "title": "教育中心",
-    "search": {
-      "placeholder": "您想学习什么"
-    },
-    "filters": {
-      "category": "分类",
-      "level": "级别", 
-      "type": "类型",
-      "payment": "付费方式",
-      "allCategories": "所有分类",
-      "allLevels": "所有级别",
-      "allTypes": "所有类型",
-      "allCourses": "所有课程",
-      "onlineZoom": "在线（Zoom）",
-      "videoLessons": "视频课程",
-      "freeCourses": "免费课程",
-      "paidBCC": "付费（BCC）"
-    },
-    "progress": {
-      "title": "学习进度",
-      "subtitle": "跟踪您的教育旅程",
-      "completed": "已完成",
-      "inProgress": "进行中",
-      "hours": "小时",
-      "label": "进度"
-    },
-    "free": "免费",
-    "levelRequired": "需要级别",
-    "duration": "时长",
-    "buttons": {
-      "join": "加入",
-      "watch": "观看",
-      "download": "下载",
-      "completed": "已完成",
-      "enrolled": "已注册",
-      "claiming": "获取中...",
-      "levelRequired": "需要级别",
-      "insufficientBCC": "BCC不足",
-      "claimFree": "获取免费课程",
-      "claimPaid": "使用 {} BCC 获取"
-    },
-    "courseTypes": {
-      "zoomMeeting": "Zoom会议",
-      "videoAccess": "视频访问",
-      "streamOrDownload": "在线观看或下载"
-    },
-    "claim": {
-      "success": {
-        "title": "课程获取成功！",
-        "description": "您现在可以访问此课程。"
-      },
-      "error": {
-        "title": "获取失败",
-        "description": "无法获取课程。请重试。"
-      }
-    }
-  },
-  "nftCenter": {
-    "title": "NFT中心",
-    "description": "管理您的广告NFT，查看锁定的BCC数量，并激活推广服务",
-    "backToTasks": "返回任务",
-    "noNfts": {
-      "title": "未找到NFT",
-      "description": "您还没有任何广告NFT",
-      "browseButton": "浏览广告NFT"
-    },
-    "dialog": {
-      "title": "广告NFT详情和服务管理"
-    }
-  },
-  "userProfile": {
-    "username": "用户名",
-    "level": "级别",
-    "userCenter": "用户中心",
-    "center": "中心"
-  },
-  "me": {
-    "title": "个人资料和设置",
-    "editProfile": "编辑个人资料",
-    "status": {
-      "active": "活跃",
-      "memberSince": "会员自"
-    },
-    "balances": {
-      "usdt": "USDT余额",
-      "bccTransferable": "蜂巢加密币（可转移）",
-      "bccRestricted": "蜂巢加密币（受限制）",
-      "cth": "半人马蜜糖（CTH）"
-    },
-    "learning": {
-      "title": "学习进度",
-      "coursesCompleted": "课程完成",
-      "studyHours": "学习小时",
-      "certificates": "获得证书"
-    },
-    "referral": {
-      "title": "推荐表现",
-      "directReferrals": "直接推荐",
-      "totalTeamSize": "团队总规模",
-      "totalEarnings": "总收益",
-      "thisMonth": "本月"
-    },
-    "settings": {
-      "title": "帐户设置",
-      "language": "语言",
-      "languageDescription": "选择您的首选语言",
-      "notifications": "邮件通知",
-      "notificationsDescription": "接收有关奖励和活动的更新",
-      "twoFactor": "双因素身份验证",
-      "twoFactorDescription": "为您的帐户添加额外安全性",
-      "enabled": "已启用",
-      "disabled": "已禁用",
-      "enable2FA": "启用双因素验证",
-      "changePassword": "更改密码",
-      "deactivateAccount": "停用帐户"
-    }
-  },
-  "welcome": {
-    "title": "欢迎来到Beehive！🎉",
-    "subtitle": "通过购买您的1级勇士NFT来完成您的会员。这将解锁所有平台功能并开始您的Web3旅程！",
-    "nft": {
-      "title": "1级勇士NFT",
-      "description": "您在区块链上的会员凭证",
-      "tokenId": "代币ID：0",
-      "price": "价格",
-      "priceAmount": "130 USDT"
-    }
-  },
-  "footer": {
-    "description": "基于区块链奖励的Web3会员和学习平台。",
-    "platform": "平台",
-    "support": "支持",
-    "helpCenter": "帮助中心",
-    "documentation": "文档",
-    "contact": "联系我们",
-    "status": "状态",
-    "legal": "法律",
-    "privacy": "隐私政策",
-    "terms": "服务条款",
-    "cookies": "Cookie政策",
-    "copyright": "© 2024 Beehive. 版权所有。"
   }
 }
