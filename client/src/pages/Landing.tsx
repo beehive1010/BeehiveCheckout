@@ -58,15 +58,15 @@ export default function Landing() {
             <div className="flex flex-wrap justify-center items-center gap-8 mb-12 text-sm md:text-base">
               <div className="flex items-center gap-2 bg-secondary/50 rounded-full px-4 py-2 backdrop-blur-sm border border-honey/20">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-muted-foreground">19 Membership Levels</span>
+                <span className="text-muted-foreground">{t('landing.stats.membershipLevels')}</span>
               </div>
               <div className="flex items-center gap-2 bg-secondary/50 rounded-full px-4 py-2 backdrop-blur-sm border border-honey/20">
                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                <span className="text-muted-foreground">3×3 Matrix System</span>
+                <span className="text-muted-foreground">{t('landing.stats.matrixSystem')}</span>
               </div>
               <div className="flex items-center gap-2 bg-secondary/50 rounded-full px-4 py-2 backdrop-blur-sm border border-honey/20">
                 <div className="w-2 h-2 bg-honey rounded-full animate-pulse"></div>
-                <span className="text-muted-foreground">NFT Marketplace</span>
+                <span className="text-muted-foreground">{t('landing.stats.nftMarketplace')}</span>
               </div>
             </div>
           </div>
@@ -180,7 +180,7 @@ export default function Landing() {
               <p className="text-muted-foreground leading-relaxed">
                 {t('landing.features.marketplace.description')}
               </p>
-              <div className="mt-4 text-sm text-honey/70">Exclusive Collections</div>
+              <div className="mt-4 text-sm text-honey/70">{t('landing.platformFeatures.exclusiveCollections')}</div>
             </CardContent>
           </Card>
 
@@ -199,7 +199,7 @@ export default function Landing() {
               <p className="text-muted-foreground leading-relaxed">
                 {t('landing.features.tokens.description')}
               </p>
-              <div className="mt-4 text-sm text-honey/70">Dual Token System</div>
+              <div className="mt-4 text-sm text-honey/70">{t('landing.platformFeatures.dualTokenSystem')}</div>
             </CardContent>
           </Card>
 
@@ -306,15 +306,15 @@ export default function Landing() {
               <div className="grid grid-cols-3 gap-8 mb-12">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-honey mb-2">19</div>
-                  <div className="text-sm text-muted-foreground">Membership Levels</div>
+                  <div className="text-sm text-muted-foreground">{t('landing.ctaStats.membershipLevels')}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-honey mb-2">3×3</div>
-                  <div className="text-sm text-muted-foreground">Matrix System</div>
+                  <div className="text-sm text-muted-foreground">{t('landing.ctaStats.matrixSystem')}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-honey mb-2">∞</div>
-                  <div className="text-sm text-muted-foreground">Earning Potential</div>
+                  <div className="text-sm text-muted-foreground">{t('landing.ctaStats.earningPotential')}</div>
                 </div>
               </div>
               

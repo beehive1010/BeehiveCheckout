@@ -55,13 +55,25 @@
         "description": "48小时升级倒计时与累积机制"
       }
     },
+    "stats": {
+      "membershipLevels": "19个会员等级",
+      "matrixSystem": "3×3矩阵系统",
+      "nftMarketplace": "NFT市场"
+    },
     "platformFeatures": {
       "title": "平台功能",
       "subtitle": "探索让蜂巢成为终极Web3会员平台的强大功能",
       "exclusiveLevels": "19个专属等级",
+      "exclusiveCollections": "独家收藏",
       "autoPlacement": "自动配置系统",
+      "dualTokenSystem": "双代币系统",
       "premiumCourses": "高端课程",
       "countdown": "48小时倒计时"
+    },
+    "ctaStats": {
+      "membershipLevels": "会员等级",
+      "matrixSystem": "矩阵系统",
+      "earningPotential": "收益潜力"
     },
     "howItWorks": {
       "title": "运作方式",
@@ -601,6 +613,11 @@
     "paidBcc": "付费（BCC）",
     "completed": "已完成",
     "enrolled": "已注册"
+  },
+  "welcome": {
+    "benefits": {
+      "hiveworld": "蜂巢世界矩阵系统"
+    }
   },
   "footer": {
     "description": "基于区块链奖励的Web3会员和学习平台。",
