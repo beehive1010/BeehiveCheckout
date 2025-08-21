@@ -253,23 +253,35 @@ export default function Dashboard() {
               </div>
             </div>
             
-            {/* Balance Display */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div className="balance-card">
-                <p className="text-muted-foreground text-xs">{t('dashboard.reward')}</p>
-                <p className="text-honey font-bold">{isLoadingUserStats ? '...' : (userStats?.totalEarnings || 0)}</p>
-              </div>
-              <div className="balance-card">
-                <p className="text-muted-foreground text-xs">{t('dashboard.bccBalance')}</p>
-                <p className="text-honey font-bold">{bccBalance?.transferable || 0}</p>
-              </div>
-              <div className="balance-card">
-                <p className="text-muted-foreground text-xs">{t('dashboard.balances.bccLocked')}</p>
-                <p className="text-honey font-bold">{bccBalance?.restricted || 0}</p>
-              </div>
-              <div className="balance-card">
-                <p className="text-muted-foreground text-xs">{t('dashboard.nfts')}</p>
-                <p className="text-honey font-bold">{isLoadingUserStats ? '...' : 0}</p>
+            {/* User Centre Button and Balance Display */}
+            <div className="flex flex-col items-end space-y-4">
+              <Button
+                onClick={() => setLocation('/me')}
+                className="bg-honey text-black hover:bg-honey/90 font-semibold"
+                data-testid="button-user-centre"
+              >
+                <i className="fas fa-user-cog mr-2"></i>
+                {t('dashboard.userCentre')}
+              </Button>
+              
+              {/* Balance Display */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div className="balance-card">
+                  <p className="text-muted-foreground text-xs">{t('dashboard.reward')}</p>
+                  <p className="text-honey font-bold">{isLoadingUserStats ? '...' : (userStats?.totalEarnings || 0)}</p>
+                </div>
+                <div className="balance-card">
+                  <p className="text-muted-foreground text-xs">{t('dashboard.bccBalance')}</p>
+                  <p className="text-honey font-bold">{bccBalance?.transferable || 0}</p>
+                </div>
+                <div className="balance-card">
+                  <p className="text-muted-foreground text-xs">{t('dashboard.balances.bccLocked')}</p>
+                  <p className="text-honey font-bold">{bccBalance?.restricted || 0}</p>
+                </div>
+                <div className="balance-card">
+                  <p className="text-muted-foreground text-xs">{t('dashboard.nfts')}</p>
+                  <p className="text-honey font-bold">{isLoadingUserStats ? '...' : 0}</p>
+                </div>
               </div>
             </div>
           </div>
