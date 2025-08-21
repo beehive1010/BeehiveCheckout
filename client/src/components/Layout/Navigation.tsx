@@ -13,7 +13,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { key: 'dashboard', path: '/dashboard', icon: 'fas fa-home', labelKey: 'nav.dashboard' },
-  { key: 'tasks', path: '/tasks', icon: 'fas fa-store', labelKey: 'nav.marketplace' },
+  { key: 'tasks', path: '/tasks', icon: 'fas fa-tasks', labelKey: 'nav.tasks' },
   { key: 'education', path: '/education', icon: 'fas fa-graduation-cap', labelKey: 'nav.education' },
   { key: 'discover', path: '/discover', icon: 'fas fa-compass', labelKey: 'nav.discover' },
   { key: 'hiveworld', path: '/hiveworld', icon: 'fas fa-sitemap', labelKey: 'nav.hiveworld' },
