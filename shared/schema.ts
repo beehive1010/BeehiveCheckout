@@ -44,11 +44,28 @@ export const membershipState = pgTable("membership_state", {
   lastUpgradeAt: timestamp("last_upgrade_at"),
 });
 
-// Referral nodes table
+// Referral nodes table - Enhanced for 3x3 matrix system
 export const referralNodes = pgTable("referral_nodes", {
   walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
-  parentWallet: varchar("parent_wallet", { length: 42 }),
-  children: jsonb("children").$type<string[]>().default([]).notNull(),
+  sponsorWallet: varchar("sponsor_wallet", { length: 42 }), // Direct sponsor (upline)
+  placerWallet: varchar("placer_wallet", { length: 42 }), // Who placed this member (for spillover)
+  matrixPosition: integer("matrix_position").default(0).notNull(), // 0-8 position in 3x3 matrix
+  leftLeg: jsonb("left_leg").$type<string[]>().default([]).notNull(), // Left leg positions 0,1,2
+  middleLeg: jsonb("middle_leg").$type<string[]>().default([]).notNull(), // Middle leg positions 3,4,5  
+  rightLeg: jsonb("right_leg").$type<string[]>().default([]).notNull(), // Right leg positions 6,7,8
+  directReferralCount: integer("direct_referral_count").default(0).notNull(),
+  totalTeamCount: integer("total_team_count").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Member NFT verification table
+export const memberNFTVerification = pgTable("member_nft_verification", {
+  walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
+  nftContractAddress: varchar("nft_contract_address", { length: 42 }).notNull(),
+  tokenId: varchar("token_id").notNull(),
+  chainId: integer("chain_id").notNull(),
+  verificationStatus: text("verification_status").default("pending").notNull(), // 'pending', 'verified', 'failed'
+  lastVerified: timestamp("last_verified"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -76,18 +93,37 @@ export const orders = pgTable("orders", {
   completedAt: timestamp("completed_at"),
 });
 
-// Reward events table
-export const rewardEvents = pgTable("reward_events", {
+// Earnings wallet table - tracks all member earnings and rewards
+export const earningsWallet = pgTable("earnings_wallet", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  buyerWallet: varchar("buyer_wallet", { length: 42 }).notNull(),
-  sponsorWallet: varchar("sponsor_wallet", { length: 42 }).notNull(),
-  eventType: text("event_type").notNull(), // 'L1_direct', 'L2plus_upgrade', 'rollup'
-  level: integer("level").notNull(),
-  amount: integer("amount").notNull(),
-  status: text("status").default("pending").notNull(), // 'pending', 'completed', 'expired'
+  walletAddress: varchar("wallet_address", { length: 42 }).notNull().references(() => users.walletAddress),
+  rewardType: text("reward_type").notNull(), // 'instant_referral', 'level_reward', 'passup_reward'
+  amount: integer("amount").notNull(), // Amount in USDT cents
+  sourceWallet: varchar("source_wallet", { length: 42 }).notNull(), // Who triggered this reward
+  fromLevel: integer("from_level").notNull(), // Level that triggered reward
+  status: text("status").default("pending").notNull(), // 'pending', 'paid', 'expired'
+  
+  // Timer tracking for 72-hour countdown rewards
   timerStartAt: timestamp("timer_start_at"),
   timerExpireAt: timestamp("timer_expire_at"),
+  
+  // Pass-up tracking
+  passedUpFrom: varchar("passed_up_from", { length: 42 }), // Original recipient who passed it up
+  passUpReason: text("pass_up_reason"), // 'under_leveled', 'max_count_reached'
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+});
+
+// Level progression configuration (19 levels from Warrior to Mythic Peak)
+export const levelConfig = pgTable("level_config", {
+  level: integer("level").primaryKey(),
+  levelName: text("level_name").notNull(),
+  priceUSDT: integer("price_usdt").notNull(), // Price in USDT cents
+  rewardAmount: integer("reward_amount").notNull(), // Reward amount in USDT cents
+  adminFee: integer("admin_fee").notNull(), // Admin fee in USDT cents
+  requiredDirectReferrals: integer("required_direct_referrals").default(1).notNull(),
+  maxMatrixCount: integer("max_matrix_count").default(9).notNull(), // 3x3 = 9 max
 });
 
 // Merchant NFTs table
@@ -208,8 +244,46 @@ export const insertMembershipStateSchema = createInsertSchema(membershipState).p
 
 export const insertReferralNodeSchema = createInsertSchema(referralNodes).pick({
   walletAddress: true,
-  parentWallet: true,
-  children: true,
+  sponsorWallet: true,
+  placerWallet: true,
+  matrixPosition: true,
+  leftLeg: true,
+  middleLeg: true,
+  rightLeg: true,
+  directReferralCount: true,
+  totalTeamCount: true,
+});
+
+export const insertEarningsWalletSchema = createInsertSchema(earningsWallet).pick({
+  walletAddress: true,
+  rewardType: true,
+  amount: true,
+  sourceWallet: true,
+  fromLevel: true,
+  status: true,
+  timerStartAt: true,
+  timerExpireAt: true,
+  passedUpFrom: true,
+  passUpReason: true,
+});
+
+export const insertLevelConfigSchema = createInsertSchema(levelConfig).pick({
+  level: true,
+  levelName: true,
+  priceUSDT: true,
+  rewardAmount: true,
+  adminFee: true,
+  requiredDirectReferrals: true,
+  maxMatrixCount: true,
+});
+
+export const insertMemberNFTVerificationSchema = createInsertSchema(memberNFTVerification).pick({
+  walletAddress: true,
+  nftContractAddress: true,
+  tokenId: true,
+  chainId: true,
+  verificationStatus: true,
+  lastVerified: true,
 });
 
 export const insertBCCBalanceSchema = createInsertSchema(bccBalances).pick({
@@ -356,8 +430,14 @@ export type BCCBalance = typeof bccBalances.$inferSelect;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type Order = typeof orders.$inferSelect;
 
-export type InsertRewardEvent = z.infer<typeof insertRewardEventSchema>;
-export type RewardEvent = typeof rewardEvents.$inferSelect;
+export type InsertEarningsWallet = z.infer<typeof insertEarningsWalletSchema>;
+export type EarningsWallet = typeof earningsWallet.$inferSelect;
+
+export type InsertLevelConfig = z.infer<typeof insertLevelConfigSchema>;
+export type LevelConfig = typeof levelConfig.$inferSelect;
+
+export type InsertMemberNFTVerification = z.infer<typeof insertMemberNFTVerificationSchema>;
+export type MemberNFTVerification = typeof memberNFTVerification.$inferSelect;
 
 export type InsertMerchantNFT = z.infer<typeof insertMerchantNFTSchema>;
 export type MerchantNFT = typeof merchantNFTs.$inferSelect;

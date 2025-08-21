@@ -4,7 +4,9 @@ import {
   referralNodes,
   bccBalances,
   orders,
-  rewardEvents,
+  earningsWallet,
+  levelConfig,
+  memberNFTVerification,
   merchantNFTs,
   nftPurchases,
   courses,
@@ -22,8 +24,12 @@ import {
   type InsertBCCBalance,
   type Order,
   type InsertOrder,
-  type RewardEvent,
-  type InsertRewardEvent,
+  type EarningsWallet,
+  type InsertEarningsWallet,
+  type LevelConfig,
+  type InsertLevelConfig,
+  type MemberNFTVerification,
+  type InsertMemberNFTVerification,
   type MerchantNFT,
   type InsertMerchantNFT,
   type NFTPurchase,
@@ -71,11 +77,36 @@ export interface IStorage {
   getOrdersByWallet(walletAddress: string): Promise<Order[]>;
   updateOrder(id: string, updates: Partial<Order>): Promise<Order | undefined>;
 
-  // Reward operations
-  createRewardEvent(event: InsertRewardEvent): Promise<RewardEvent>;
-  getRewardEvent(id: string): Promise<RewardEvent | undefined>;
-  getRewardEventsByWallet(walletAddress: string): Promise<RewardEvent[]>;
-  updateRewardEvent(id: string, updates: Partial<RewardEvent>): Promise<RewardEvent | undefined>;
+  // Earnings wallet operations
+  createEarningsWalletEntry(entry: InsertEarningsWallet): Promise<EarningsWallet>;
+  getEarningsWalletByWallet(walletAddress: string): Promise<EarningsWallet[]>;
+  updateEarningsWalletEntry(id: string, updates: Partial<EarningsWallet>): Promise<EarningsWallet | undefined>;
+  getPendingEarningsEntries(): Promise<EarningsWallet[]>;
+  getExpiredEarningsEntries(): Promise<EarningsWallet[]>;
+
+  // Level configuration operations
+  getLevelConfig(level: number): Promise<LevelConfig | undefined>;
+  getAllLevelConfigs(): Promise<LevelConfig[]>;
+  createOrUpdateLevelConfig(config: InsertLevelConfig): Promise<LevelConfig>;
+
+  // NFT verification operations
+  getMemberNFTVerification(walletAddress: string): Promise<MemberNFTVerification | undefined>;
+  createNFTVerification(verification: InsertMemberNFTVerification): Promise<MemberNFTVerification>;
+  updateNFTVerification(walletAddress: string, updates: Partial<MemberNFTVerification>): Promise<MemberNFTVerification | undefined>;
+
+  // Dashboard statistics
+  getTotalMemberCount(): Promise<number>;
+  getMemberCountByLevel(): Promise<{ level: number; count: number }[]>;
+  getGlobalStatistics(): Promise<{
+    totalMembers: number;
+    totalEarnings: number;
+    levelDistribution: { level: number; levelName: string; count: number }[];
+  }>;
+
+  // BeeHive business logic operations
+  processReferralRewards(buyerWallet: string, level: number): Promise<void>;
+  findMatrixPlacement(sponsorWallet: string): Promise<{ placerWallet: string; position: number }>;
+  passUpReward(originalRecipient: string, reward: EarningsWallet): Promise<void>;
 
   // Merchant NFT operations
   getMerchantNFTs(): Promise<MerchantNFT[]>;
@@ -112,6 +143,9 @@ export class DatabaseStorage implements IStorage {
 
   private async initializeSeedData() {
     try {
+      // Initialize the 19-level BeeHive configuration first
+      await this.initializeLevelConfig();
+      
       // Check if sample data already exists
       const existingNFTs = await db.select().from(merchantNFTs).limit(1);
       if (existingNFTs.length > 0) return; // Data already seeded
@@ -222,6 +256,41 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  private async initializeLevelConfig() {
+    try {
+      // Check if level config already exists
+      const existingLevels = await db.select().from(levelConfig).limit(1);
+      if (existingLevels.length > 0) return;
+
+      // BeeHive 19-level configuration
+      const levels: InsertLevelConfig[] = [
+        { level: 1, levelName: "Warrior", priceUSDT: 13000, rewardAmount: 10000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 2, levelName: "Bronze", priceUSDT: 13000, rewardAmount: 10000, adminFee: 3000, requiredDirectReferrals: 3, maxMatrixCount: 9 },
+        { level: 3, levelName: "Silver", priceUSDT: 16000, rewardAmount: 13000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 4, levelName: "Gold", priceUSDT: 24000, rewardAmount: 21000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 5, levelName: "Platinum", priceUSDT: 40000, rewardAmount: 37000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 6, levelName: "Diamond", priceUSDT: 72000, rewardAmount: 69000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 7, levelName: "Master", priceUSDT: 136000, rewardAmount: 133000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 8, levelName: "Grandmaster", priceUSDT: 264000, rewardAmount: 261000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 9, levelName: "Elite", priceUSDT: 520000, rewardAmount: 517000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 10, levelName: "Supreme", priceUSDT: 1032000, rewardAmount: 1029000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 11, levelName: "Legendary", priceUSDT: 2056000, rewardAmount: 2053000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 12, levelName: "Mythical", priceUSDT: 4104000, rewardAmount: 4101000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 13, levelName: "Immortal", priceUSDT: 8200000, rewardAmount: 8197000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 14, levelName: "Celestial", priceUSDT: 16392000, rewardAmount: 16389000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 15, levelName: "Transcendent", priceUSDT: 32776000, rewardAmount: 32773000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 16, levelName: "Divine", priceUSDT: 65544000, rewardAmount: 65541000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 17, levelName: "Cosmic", priceUSDT: 131080000, rewardAmount: 131077000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 18, levelName: "Universal", priceUSDT: 262152000, rewardAmount: 262149000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 19, levelName: "Mythic Peak", priceUSDT: 100000000, rewardAmount: 99997000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 }
+      ];
+
+      await db.insert(levelConfig).values(levels);
+    } catch (error) {
+      console.error('Error initializing level config:', error);
+    }
+  }
+
   // User operations
   async getUser(walletAddress: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.walletAddress, walletAddress.toLowerCase()));
@@ -267,7 +336,7 @@ export class DatabaseStorage implements IStorage {
     };
     const [state] = await db
       .insert(membershipState)
-      .values(insertData)
+      .values([insertData])
       .returning();
     return state;
   }
@@ -295,7 +364,7 @@ export class DatabaseStorage implements IStorage {
     };
     const [referralNode] = await db
       .insert(referralNodes)
-      .values(insertData)
+      .values([insertData])
       .returning();
     return referralNode;
   }
@@ -369,33 +438,318 @@ export class DatabaseStorage implements IStorage {
     return order || undefined;
   }
 
-  // Reward operations
-  async createRewardEvent(insertEvent: InsertRewardEvent): Promise<RewardEvent> {
-    const [event] = await db
-      .insert(rewardEvents)
-      .values(insertEvent)
+  // Earnings wallet operations
+  async createEarningsWalletEntry(entry: InsertEarningsWallet): Promise<EarningsWallet> {
+    const [earnings] = await db
+      .insert(earningsWallet)
+      .values({
+        ...entry,
+        walletAddress: entry.walletAddress.toLowerCase(),
+        sourceWallet: entry.sourceWallet.toLowerCase(),
+      })
       .returning();
-    return event;
+    return earnings;
   }
 
-  async getRewardEvent(id: string): Promise<RewardEvent | undefined> {
-    const [event] = await db.select().from(rewardEvents).where(eq(rewardEvents.id, id));
-    return event || undefined;
+  async getEarningsWalletByWallet(walletAddress: string): Promise<EarningsWallet[]> {
+    return await db.select().from(earningsWallet)
+      .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()))
+      .orderBy(desc(earningsWallet.createdAt));
   }
 
-  async getRewardEventsByWallet(walletAddress: string): Promise<RewardEvent[]> {
-    return await db.select().from(rewardEvents).where(
-      eq(rewardEvents.buyerWallet, walletAddress.toLowerCase())
-    );
-  }
-
-  async updateRewardEvent(id: string, updates: Partial<RewardEvent>): Promise<RewardEvent | undefined> {
-    const [event] = await db
-      .update(rewardEvents)
+  async updateEarningsWalletEntry(id: string, updates: Partial<EarningsWallet>): Promise<EarningsWallet | undefined> {
+    const [entry] = await db
+      .update(earningsWallet)
       .set(updates)
-      .where(eq(rewardEvents.id, id))
+      .where(eq(earningsWallet.id, id))
       .returning();
-    return event || undefined;
+    return entry || undefined;
+  }
+
+  async getPendingEarningsEntries(): Promise<EarningsWallet[]> {
+    return await db.select().from(earningsWallet)
+      .where(eq(earningsWallet.status, 'pending'))
+      .orderBy(desc(earningsWallet.createdAt));
+  }
+
+  async getExpiredEarningsEntries(): Promise<EarningsWallet[]> {
+    const now = new Date();
+    return await db.select().from(earningsWallet)
+      .where(and(
+        eq(earningsWallet.status, 'pending'),
+        sql`${earningsWallet.timerExpireAt} < ${now}`
+      ))
+      .orderBy(desc(earningsWallet.createdAt));
+  }
+
+  // Level configuration operations
+  async getLevelConfig(level: number): Promise<LevelConfig | undefined> {
+    const [config] = await db.select().from(levelConfig).where(eq(levelConfig.level, level));
+    return config || undefined;
+  }
+
+  async getAllLevelConfigs(): Promise<LevelConfig[]> {
+    return await db.select().from(levelConfig).orderBy(levelConfig.level);
+  }
+
+  async createOrUpdateLevelConfig(config: InsertLevelConfig): Promise<LevelConfig> {
+    const existing = await this.getLevelConfig(config.level);
+    if (existing) {
+      const [updated] = await db
+        .update(levelConfig)
+        .set(config)
+        .where(eq(levelConfig.level, config.level))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(levelConfig)
+        .values(config)
+        .returning();
+      return created;
+    }
+  }
+
+  // NFT verification operations
+  async getMemberNFTVerification(walletAddress: string): Promise<MemberNFTVerification | undefined> {
+    const [verification] = await db.select().from(memberNFTVerification)
+      .where(eq(memberNFTVerification.walletAddress, walletAddress.toLowerCase()));
+    return verification || undefined;
+  }
+
+  async createNFTVerification(verification: InsertMemberNFTVerification): Promise<MemberNFTVerification> {
+    const [nftVerification] = await db
+      .insert(memberNFTVerification)
+      .values({
+        ...verification,
+        walletAddress: verification.walletAddress.toLowerCase(),
+      })
+      .returning();
+    return nftVerification;
+  }
+
+  async updateNFTVerification(walletAddress: string, updates: Partial<MemberNFTVerification>): Promise<MemberNFTVerification | undefined> {
+    const [verification] = await db
+      .update(memberNFTVerification)
+      .set(updates)
+      .where(eq(memberNFTVerification.walletAddress, walletAddress.toLowerCase()))
+      .returning();
+    return verification || undefined;
+  }
+
+  // Dashboard statistics
+  async getTotalMemberCount(): Promise<number> {
+    const [result] = await db.select({ count: sql<number>`count(*)` })
+      .from(users)
+      .where(eq(users.memberActivated, true));
+    return result.count || 0;
+  }
+
+  async getMemberCountByLevel(): Promise<{ level: number; count: number }[]> {
+    const results = await db.select({
+      level: membershipState.activeLevel,
+      count: sql<number>`count(*)`
+    })
+    .from(membershipState)
+    .groupBy(membershipState.activeLevel)
+    .orderBy(membershipState.activeLevel);
+    
+    return results.map(r => ({ level: r.level, count: r.count || 0 }));
+  }
+
+  async getGlobalStatistics(): Promise<{
+    totalMembers: number;
+    totalEarnings: number;
+    levelDistribution: { level: number; levelName: string; count: number }[];
+  }> {
+    // Get total members
+    const totalMembers = await this.getTotalMemberCount();
+
+    // Get total earnings paid out
+    const [earningsResult] = await db.select({
+      total: sql<number>`coalesce(sum(${earningsWallet.amount}), 0)`
+    })
+    .from(earningsWallet)
+    .where(eq(earningsWallet.status, 'paid'));
+    const totalEarnings = earningsResult?.total || 0;
+
+    // Get level distribution with names
+    const levelCounts = await db.select({
+      level: membershipState.activeLevel,
+      count: sql<number>`count(*)`
+    })
+    .from(membershipState)
+    .where(sql`${membershipState.activeLevel} > 0`)
+    .groupBy(membershipState.activeLevel)
+    .orderBy(membershipState.activeLevel);
+
+    const levelConfigs = await this.getAllLevelConfigs();
+    const levelDistribution = levelCounts.map(lc => {
+      const config = levelConfigs.find(cfg => cfg.level === lc.level);
+      return {
+        level: lc.level,
+        levelName: config?.levelName || `Level ${lc.level}`,
+        count: lc.count || 0
+      };
+    });
+
+    return {
+      totalMembers,
+      totalEarnings,
+      levelDistribution
+    };
+  }
+
+  // BeeHive business logic operations
+  async processReferralRewards(buyerWallet: string, level: number): Promise<void> {
+    const levelConfig = await this.getLevelConfig(level);
+    if (!levelConfig) return;
+
+    const buyer = await this.getUser(buyerWallet);
+    if (!buyer) return;
+
+    const referralNode = await this.getReferralNode(buyerWallet);
+    if (!referralNode || !referralNode.sponsorWallet) return;
+
+    // 1. Process instant 100 USDT referral bonus to sponsor
+    await this.createEarningsWalletEntry({
+      walletAddress: referralNode.sponsorWallet,
+      rewardType: 'instant_referral',
+      amount: 10000, // 100 USDT in cents
+      sourceWallet: buyerWallet,
+      fromLevel: level,
+      status: 'paid', // Instant payment
+    });
+
+    // 2. Process level reward with 72-hour timer
+    const now = new Date();
+    const expiryTime = new Date(now.getTime() + (72 * 60 * 60 * 1000)); // 72 hours
+
+    const sponsorMembership = await this.getMembershipState(referralNode.sponsorWallet);
+    
+    // Check if sponsor is qualified for level reward (must have same or higher level)
+    if (sponsorMembership && sponsorMembership.activeLevel >= level) {
+      // Check for Bronze special rule (Level 2 requires 3 direct referrals)
+      if (level === 2) {
+        if (referralNode.directReferralCount < 3) {
+          // Pass up the reward
+          await this.passUpReward(referralNode.sponsorWallet, {
+            walletAddress: referralNode.sponsorWallet,
+            rewardType: 'level_reward',
+            amount: levelConfig.rewardAmount,
+            sourceWallet: buyerWallet,
+            fromLevel: level,
+            status: 'pending',
+            timerStartAt: now,
+            timerExpireAt: expiryTime,
+            passUpReason: 'bronze_direct_referral_requirement',
+          } as EarningsWallet);
+          return;
+        }
+      }
+
+      // Sponsor qualifies for level reward
+      await this.createEarningsWalletEntry({
+        walletAddress: referralNode.sponsorWallet,
+        rewardType: 'level_reward',
+        amount: levelConfig.rewardAmount,
+        sourceWallet: buyerWallet,
+        fromLevel: level,
+        status: 'pending',
+        timerStartAt: now,
+        timerExpireAt: expiryTime,
+      });
+    } else {
+      // Sponsor is under-leveled, pass up the reward
+      await this.passUpReward(referralNode.sponsorWallet, {
+        walletAddress: referralNode.sponsorWallet,
+        rewardType: 'level_reward',
+        amount: levelConfig.rewardAmount,
+        sourceWallet: buyerWallet,
+        fromLevel: level,
+        status: 'pending',
+        timerStartAt: now,
+        timerExpireAt: expiryTime,
+        passUpReason: 'under_leveled',
+      } as EarningsWallet);
+    }
+  }
+
+  async findMatrixPlacement(sponsorWallet: string): Promise<{ placerWallet: string; position: number }> {
+    // Simple 3x3 matrix placement algorithm
+    // First, try to place under direct sponsor
+    const sponsorNode = await this.getReferralNode(sponsorWallet);
+    if (!sponsorNode) {
+      return { placerWallet: sponsorWallet, position: 0 };
+    }
+
+    // Calculate total children across all legs
+    const totalChildren = sponsorNode.leftLeg.length + sponsorNode.middleLeg.length + sponsorNode.rightLeg.length;
+    
+    if (totalChildren < 9) {
+      // Space available under sponsor
+      if (sponsorNode.leftLeg.length < 3) {
+        return { placerWallet: sponsorWallet, position: sponsorNode.leftLeg.length };
+      } else if (sponsorNode.middleLeg.length < 3) {
+        return { placerWallet: sponsorWallet, position: 3 + sponsorNode.middleLeg.length };
+      } else if (sponsorNode.rightLeg.length < 3) {
+        return { placerWallet: sponsorWallet, position: 6 + sponsorNode.rightLeg.length };
+      }
+    }
+
+    // Sponsor's matrix is full, look for spillover placement
+    // Check children of sponsor for available spots
+    const allChildren = [...sponsorNode.leftLeg, ...sponsorNode.middleLeg, ...sponsorNode.rightLeg];
+    
+    for (const childWallet of allChildren) {
+      const childNode = await this.getReferralNode(childWallet);
+      if (childNode) {
+        const childTotal = childNode.leftLeg.length + childNode.middleLeg.length + childNode.rightLeg.length;
+        if (childTotal < 9) {
+          // Found space under this child
+          if (childNode.leftLeg.length < 3) {
+            return { placerWallet: childWallet, position: childNode.leftLeg.length };
+          } else if (childNode.middleLeg.length < 3) {
+            return { placerWallet: childWallet, position: 3 + childNode.middleLeg.length };
+          } else if (childNode.rightLeg.length < 3) {
+            return { placerWallet: childWallet, position: 6 + childNode.rightLeg.length };
+          }
+        }
+      }
+    }
+
+    // If no space found, place under sponsor at position 0 (this shouldn't happen with proper matrix management)
+    return { placerWallet: sponsorWallet, position: 0 };
+  }
+
+  async passUpReward(originalRecipient: string, reward: EarningsWallet): Promise<void> {
+    // Find the next qualified upline member
+    let currentNode = await this.getReferralNode(originalRecipient);
+    let passUpCount = 0;
+    const maxPassUps = 10; // Prevent infinite loops
+
+    while (currentNode && currentNode.sponsorWallet && passUpCount < maxPassUps) {
+      const uplineMembership = await this.getMembershipState(currentNode.sponsorWallet);
+      
+      if (uplineMembership && uplineMembership.activeLevel >= reward.fromLevel) {
+        // Found qualified upline member
+        await this.createEarningsWalletEntry({
+          ...reward,
+          walletAddress: currentNode.sponsorWallet,
+          rewardType: 'passup_reward',
+          passedUpFrom: originalRecipient,
+          passUpReason: reward.passUpReason,
+        });
+        return;
+      }
+
+      // Move up the chain
+      currentNode = await this.getReferralNode(currentNode.sponsorWallet);
+      passUpCount++;
+    }
+
+    // If no qualified upline found, the reward is forfeited (admin keeps it)
+    console.log(`Reward of ${reward.amount} cents from ${reward.sourceWallet} forfeited - no qualified upline found`);
   }
 
   // Merchant NFT operations
