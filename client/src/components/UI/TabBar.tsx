@@ -13,7 +13,7 @@ interface TabItem {
 }
 
 const tabItems: TabItem[] = [
-  { key: 'tasks', path: '/tasks', icon: 'fas fa-store', labelKey: 'nav.marketplace' },
+  { key: 'tasks', path: '/tasks', icon: 'fas fa-tasks', labelKey: 'nav.tasks' },
   { key: 'education', path: '/education', icon: 'fas fa-graduation-cap', labelKey: 'nav.education' },
   { key: 'home', path: '/dashboard', icon: '', labelKey: 'nav.home' }, // Special home tab with logo
   { key: 'discover', path: '/discover', icon: 'fas fa-compass', labelKey: 'nav.discover' },
