@@ -10,6 +10,7 @@ import Referrals from './Referrals';
 import Settings from './Settings';
 import { AcademicCapIcon, UsersIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { IconActivity } from '@tabler/icons-react';
+import { useLocation } from 'wouter';
 
 export default function Me() {
   const { 
@@ -24,6 +25,7 @@ export default function Me() {
     isBalancesLoading 
   } = useWallet();
   const { t, language } = useI18n();
+  const [, setLocation] = useLocation();
 
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -129,6 +131,18 @@ export default function Me() {
             <div className="text-muted-foreground text-sm">{t('me.balances.cth')}</div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Top Up Button */}
+      <div className="flex justify-center mb-6">
+        <Button 
+          onClick={() => setLocation('/tokens')}
+          className="bg-honey text-black hover:bg-honey/90 font-semibold px-8 py-3 text-lg"
+          data-testid="button-top-up"
+        >
+          <i className="fas fa-plus mr-2"></i>
+          {t('buttons.topUp')}
+        </Button>
       </div>
 
       {/* Tab Navigation */}

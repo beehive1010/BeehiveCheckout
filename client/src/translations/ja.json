@@ -222,7 +222,8 @@
     },
     "tokenPurchase": {
       "bccDescription": "プラットフォーム利用のためのBeehive暗号コインを購入",
-      "cthDescription": "Alpha Centauriエコシステム用のCTHトークンを購入"
+      "cthDescription": "Alpha Centauriエコシステム用のCTHトークンを購入",
+      "topUpDescription": "Beehiveエコシステムに参加するためのBCCとCTHトークンを購入"
     },
     "globalStats": {
       "title": "グローバル統計",
@@ -900,7 +901,8 @@
     "burnNft": "NFTを焼却",
     "confirmBurn": "焼却を確認",
     "burning": "焼却中...",
-    "useNftService": "NFTサービスを使用"
+    "useNftService": "NFTサービスを使用",
+    "topUp": "チャージ"
   },
   "selectors": {
     "category": "カテゴリー",
