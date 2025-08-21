@@ -3,6 +3,7 @@ import { useI18n } from '../contexts/I18nContext';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { useLocation } from 'wouter';
 
 interface DApp {
   id: string;
@@ -17,6 +18,7 @@ interface DApp {
   featured?: boolean;
   verified: boolean;
   chainId?: number;
+  website?: string;
 }
 
 interface NewsItem {
@@ -30,8 +32,21 @@ interface NewsItem {
 
 export default function Discover() {
   const { t } = useI18n();
+  const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
+
+  const handleDAppClick = (dapp: DApp) => {
+    if (!dapp.website) return;
+    
+    if (dapp.website.startsWith('http')) {
+      // External link - open in new tab
+      window.open(dapp.website, '_blank', 'noopener,noreferrer');
+    } else {
+      // Internal link - navigate within app
+      setLocation(dapp.website);
+    }
+  };
 
   const categories = [
     { id: 'all', name: 'All', icon: 'fas fa-th-large' },
@@ -54,7 +69,8 @@ export default function Discover() {
       description: '19-level membership system with Web3 rewards',
       users: '12.8K',
       featured: true,
-      verified: true
+      verified: true,
+      website: '/dashboard' // Internal link to dashboard
     },
     {
       id: 'uniswap',
@@ -66,7 +82,8 @@ export default function Discover() {
       tvl: '$3.2B',
       volume: '$847M',
       featured: true,
-      verified: true
+      verified: true,
+      website: 'https://app.uniswap.org'
     },
     {
       id: 'opensea',
@@ -77,7 +94,8 @@ export default function Discover() {
       users: '1.8M',
       volume: '$124M',
       featured: true,
-      verified: true
+      verified: true,
+      website: 'https://opensea.io'
     },
     {
       id: 'compound',
@@ -88,7 +106,8 @@ export default function Discover() {
       users: '180K',
       tvl: '$1.8B',
       featured: true,
-      verified: true
+      verified: true,
+      website: 'https://compound.finance'
     }
   ];
 
@@ -101,7 +120,8 @@ export default function Discover() {
       description: '3×3 matrix referral system',
       users: '8.4K',
       trending: true,
-      verified: true
+      verified: true,
+      website: '/hiveworld' // Internal link to matrix system
     },
     {
       id: 'pancakeswap',
@@ -113,7 +133,8 @@ export default function Discover() {
       tvl: '$1.2B',
       volume: '$234M',
       trending: true,
-      verified: true
+      verified: true,
+      website: 'https://pancakeswap.finance'
     },
     {
       id: 'axie-infinity',
@@ -123,7 +144,8 @@ export default function Discover() {
       description: 'Popular play-to-earn game',
       users: '2.8M',
       trending: true,
-      verified: true
+      verified: true,
+      website: 'https://axieinfinity.com'
     }
   ];
 
@@ -280,18 +302,28 @@ export default function Discover() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {featuredDApps.map((dapp) => (
-            <Card key={dapp.id} className="bg-secondary border-border glow-hover card-hover cursor-pointer">
+            <Card 
+              key={dapp.id} 
+              className="bg-secondary border-border glow-hover card-hover cursor-pointer transition-all hover:scale-105"
+              onClick={() => handleDAppClick(dapp)}
+              data-testid={`dapp-card-${dapp.id}`}
+            >
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-honey/20 rounded-lg flex items-center justify-center">
+                    <div className="w-10 h-10 bg-honey/20 rounded-lg flex items-center justify-center hover:bg-honey/30 transition-colors">
                       <i className={`${dapp.icon} text-honey`}></i>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-foreground text-sm">{dapp.name}</h4>
-                      {dapp.verified && (
-                        <i className="fas fa-check-circle text-green-400 text-xs"></i>
-                      )}
+                      <h4 className="font-semibold text-foreground text-sm hover:text-honey transition-colors">{dapp.name}</h4>
+                      <div className="flex items-center space-x-1">
+                        {dapp.verified && (
+                          <i className="fas fa-check-circle text-green-400 text-xs"></i>
+                        )}
+                        {dapp.website && (
+                          <i className="fas fa-external-link-alt text-muted-foreground text-xs"></i>
+                        )}
+                      </div>
                     </div>
                   </div>
                   {dapp.featured && (
@@ -358,18 +390,28 @@ export default function Discover() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {trendingDApps.map((dapp) => (
-            <Card key={dapp.id} className="bg-secondary border-border glow-hover card-hover cursor-pointer">
+            <Card 
+              key={dapp.id} 
+              className="bg-secondary border-border glow-hover card-hover cursor-pointer transition-all hover:scale-105"
+              onClick={() => handleDAppClick(dapp)}
+              data-testid={`trending-dapp-card-${dapp.id}`}
+            >
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-honey/20 rounded-lg flex items-center justify-center">
+                    <div className="w-10 h-10 bg-honey/20 rounded-lg flex items-center justify-center hover:bg-honey/30 transition-colors">
                       <i className={`${dapp.icon} text-honey`}></i>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-foreground text-sm">{dapp.name}</h4>
-                      {dapp.verified && (
-                        <i className="fas fa-check-circle text-green-400 text-xs"></i>
-                      )}
+                      <h4 className="font-semibold text-foreground text-sm hover:text-honey transition-colors">{dapp.name}</h4>
+                      <div className="flex items-center space-x-1">
+                        {dapp.verified && (
+                          <i className="fas fa-check-circle text-green-400 text-xs"></i>
+                        )}
+                        {dapp.website && (
+                          <i className="fas fa-external-link-alt text-muted-foreground text-xs"></i>
+                        )}
+                      </div>
                     </div>
                   </div>
                   {dapp.trending && (
