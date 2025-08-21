@@ -36,10 +36,18 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
 
   const connectWallet = async () => {
     try {
+      // Check if MetaMask is available
+      if (typeof window.ethereum === 'undefined') {
+        alert('Please install MetaMask to connect your wallet');
+        return;
+      }
+
       const wallet = createWallet("io.metamask");
-      await connect(wallet);
+      const result = await connect(wallet);
+      console.log("Wallet connected successfully:", result);
     } catch (error) {
       console.error("Failed to connect wallet:", error);
+      alert('Failed to connect wallet. Please try again or check if MetaMask is installed.');
     }
   };
 
@@ -67,7 +75,7 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
 
 export function Web3Provider({ children }: { children: React.ReactNode }) {
   return (
-    <ThirdwebProvider>
+    <ThirdwebProvider client={client}>
       <Web3ContextProvider>
         {children}
       </Web3ContextProvider>
