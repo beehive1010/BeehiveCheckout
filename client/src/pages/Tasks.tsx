@@ -4,23 +4,28 @@ import { useI18n } from '../contexts/I18nContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { useToast } from '../hooks/use-toast';
 import { apiRequest } from '../lib/queryClient';
 import MobileDivider from '../components/UI/MobileDivider';
 import UserProfile from '../components/UI/UserProfile';
-import { TransactionWidget, useActiveAccount } from "thirdweb/react";
-import { claimTo } from "thirdweb/extensions/erc1155";
-import { merchantNFTContract, client, bbcMembershipContract, levelToTokenId } from "../lib/web3";
 import { membershipLevels, getMembershipLevel } from '../lib/config/membershipLevels';
 import ClaimMembershipButton from '../components/membership/ClaimMembershipButton';
+import { StarIcon, FireIcon, TagIcon, GiftIcon } from '@heroicons/react/24/outline';
 
-interface MarketplaceNFT {
+interface AdvertisementNFT {
   id: string;
   title: string;
   description: string;
   imageUrl: string;
+  serviceName: string;
+  serviceType: 'dapp' | 'banner' | 'promotion';
   priceBCC: number;
-  active: boolean;
+  totalSupply: number;
+  claimedCount: number;
+  createdAt: string;
 }
 
 export default function Tasks() {
@@ -29,20 +34,17 @@ export default function Tasks() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeCategory, setActiveCategory] = useState<'membership' | 'advertisement'>('membership');
-  const account = useActiveAccount();
+  const [selectedBucketType, setSelectedBucketType] = useState<'transferable' | 'restricted'>('transferable');
 
-  // Fetch advertisement NFTs (existing BCC marketplace)
-  const { data: allNfts, isLoading: isLoadingNFTs } = useQuery<MarketplaceNFT[]>({
-    queryKey: ['/api/tasks/nfts'],
+  // Fetch advertisement NFTs
+  const { data: nfts = [], isLoading: isLoadingNFTs } = useQuery<AdvertisementNFT[]>({
+    queryKey: ['/api/ads/nfts'],
     queryFn: async () => {
-      const response = await fetch('/api/tasks/nfts');
+      const response = await fetch('/api/ads/nfts');
       if (!response.ok) throw new Error('Failed to fetch NFTs');
       return response.json();
     },
   });
-
-  // All NFTs from the existing endpoint are advertisement NFTs
-  const nfts = allNfts || [];
 
   // Helper function to determine if a level is available for purchase
   const getLevelStatus = (level: number) => {
@@ -60,14 +62,14 @@ export default function Tasks() {
 
   // Claim NFT mutation
   const claimNFTMutation = useMutation({
-    mutationFn: async (nftId: string) => {
-      const response = await fetch('/api/tasks/claim', {
+    mutationFn: async ({ nftId, bucketType }: { nftId: string; bucketType: string }) => {
+      const response = await fetch('/api/ads/claim', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-Wallet-Address': walletAddress!,
         },
-        body: JSON.stringify({ nftId }),
+        body: JSON.stringify({ nftId, bucketType }),
       });
       if (!response.ok) {
         const error = await response.json();
@@ -77,15 +79,15 @@ export default function Tasks() {
     },
     onSuccess: () => {
       toast({
-        title: String(t('tasks.claim.success.title')),
-        description: String(t('tasks.claim.success.description')),
+        title: 'NFT Claimed Successfully!',
+        description: 'Your Advertisement NFT has been claimed and BCC tokens are locked.',
       });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     },
     onError: (error: any) => {
       toast({
-        title: String(t('tasks.claim.error.title')),
-        description: error.message || String(t('tasks.claim.error.description')),
+        title: 'Claim Failed',
+        description: error.message || 'Failed to claim Advertisement NFT',
         variant: 'destructive',
       });
     },
@@ -93,6 +95,30 @@ export default function Tasks() {
 
 
   const totalBCC = (bccBalance?.transferable || 0) + (bccBalance?.restricted || 0);
+
+  const getServiceTypeIcon = (type: string) => {
+    switch (type) {
+      case 'dapp': return <StarIcon className="w-4 h-4" />;
+      case 'banner': return <TagIcon className="w-4 h-4" />;
+      case 'promotion': return <GiftIcon className="w-4 h-4" />;
+      default: return <StarIcon className="w-4 h-4" />;
+    }
+  };
+
+  const getServiceTypeColor = (type: string) => {
+    switch (type) {
+      case 'dapp': return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+      case 'banner': return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
+      case 'promotion': return 'bg-green-500/20 text-green-400 border-green-500/30';
+      default: return 'bg-honey/20 text-honey border-honey/30';
+    }
+  };
+
+  const canAfford = (price: number, bucketType: 'transferable' | 'restricted') => {
+    if (!bccBalance) return false;
+    const balance = bucketType === 'transferable' ? bccBalance.transferable : bccBalance.restricted;
+    return balance >= price;
+  };
 
   if (!walletAddress) {
     return (
@@ -144,37 +170,6 @@ export default function Tasks() {
         <MobileDivider className="md:hidden" />
       </div>
       
-      {/* Balance Header - Only show for advertisement category */}
-      {activeCategory === 'advertisement' && (
-        <Card className="bg-secondary border-border mb-6">
-          <CardContent className="p-3 md:p-4">
-            <div className="flex flex-col space-y-3 md:space-y-0 md:flex-row md:justify-between md:items-center">
-              <div className="text-center md:text-left">
-                <h3 className="text-honey font-semibold text-sm md:text-base">{t('tasks.availableBalance')}</h3>
-                <p className="text-muted-foreground text-xs md:text-sm">{t('tasks.restrictedFirst')}</p>
-              </div>
-              
-              {/* Mobile Divider */}
-              <MobileDivider className="md:hidden" />
-              
-              <div className="flex justify-center md:justify-end space-x-6 md:space-x-4">
-                <div className="text-center">
-                  <p className="text-honey font-bold text-lg md:text-base">{bccBalance?.restricted || 0}</p>
-                  <p className="text-muted-foreground text-xs">{t('tasks.restrictedBCC')}</p>
-                </div>
-                
-                {/* Vertical divider for mobile */}
-                <MobileDivider orientation="vertical" className="md:hidden h-12" />
-                
-                <div className="text-center">
-                  <p className="text-honey font-bold text-lg md:text-base">{bccBalance?.transferable || 0}</p>
-                  <p className="text-muted-foreground text-xs">{t('tasks.transferableBCC')}</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Category Filter */}
       <div className="mb-6">
@@ -395,72 +390,121 @@ export default function Tasks() {
             </div>
           </div>
           
-          {/* NFT Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-            {nfts?.map((nft) => (
-              <Card 
-                key={nft.id}
-                className="bg-secondary border-border glow-hover card-hover overflow-hidden relative"
-              >
-                {/* BCC Badge */}
-                <div className="absolute top-2 right-2 z-10">
-                  <span className="text-xs px-2 py-1 rounded-full font-medium bg-honey/20 text-honey">
-                    BCC
-                  </span>
-                </div>
-
-                <img 
-                  src={nft.imageUrl}
-                  alt={nft.title}
-                  className="w-full h-48 object-cover"
-                  loading="lazy"
-                />
-                <CardContent className="p-3 md:p-4">
-                  <h4 className="text-honey font-semibold mb-2 text-sm md:text-base">{nft.title}</h4>
-                  <p className="text-muted-foreground text-xs md:text-sm mb-3 md:mb-4 line-clamp-2">
-                    {nft.description}
-                  </p>
-                  
-                  {/* Mobile: Stack price and button */}
-                  <div className="md:hidden space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-honey font-bold text-sm">{nft.priceBCC} BCC</span>
-                      <span className={`text-xs px-2 py-1 rounded ${totalBCC >= nft.priceBCC ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                        {totalBCC >= nft.priceBCC ? t('tasks.membership.status.available') : t('tasks.claim.insufficientBCC')}
-                      </span>
-                    </div>
-                    
-                    <div className="w-full">
-                      <TransactionWidget
-                        client={client}
-                        theme="dark"
-                        transaction={claimTo({
-                          contract: merchantNFTContract,
-                          quantity: BigInt(1),
-                          tokenId: BigInt(1), // Use sequential number instead of UUID
-                          to: account?.address || walletAddress || "",
-                        })}
-                      />
-                    </div>
-                  </div>
-                  
-                  {/* Desktop: Side by side */}
-                  <div className="hidden md:flex justify-between items-center">
-                    <span className="text-honey font-bold">{nft.priceBCC} BCC</span>
-                    <TransactionWidget
-                      client={client}
-                      theme="dark"
-                      transaction={claimTo({
-                        contract: merchantNFTContract,
-                        quantity: BigInt(1),
-                        tokenId: BigInt(1), // Use sequential number instead of UUID
-                        to: account?.address || walletAddress || "",
-                      })}
+          {/* Advertisement NFT Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {isLoadingNFTs ? (
+              // Loading skeletons
+              Array.from({ length: 6 }).map((_, i) => (
+                <Card key={i} className="bg-secondary border-border animate-pulse">
+                  <div className="aspect-video bg-muted rounded-t-lg"></div>
+                  <CardContent className="p-6">
+                    <div className="h-6 bg-muted rounded mb-2"></div>
+                    <div className="h-4 bg-muted rounded mb-4"></div>
+                    <div className="h-10 bg-muted rounded"></div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              nfts.map((nft) => (
+                <Card key={nft.id} className="bg-secondary border-border glow-hover group">
+                  <div className="relative overflow-hidden rounded-t-lg">
+                    <img
+                      src={nft.imageUrl}
+                      alt={nft.title}
+                      className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-300"
                     />
+                    <div className="absolute top-3 right-3">
+                      <Badge className={`${getServiceTypeColor(nft.serviceType)} border`}>
+                        <span className="flex items-center gap-1">
+                          {getServiceTypeIcon(nft.serviceType)}
+                          {nft.serviceType.toUpperCase()}
+                        </span>
+                      </Badge>
+                    </div>
+                    <div className="absolute top-3 left-3">
+                      <Badge className="bg-honey text-black">
+                        {nft.serviceName}
+                      </Badge>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-semibold text-honey mb-2">{nft.title}</h3>
+                    <p className="text-muted-foreground text-sm mb-4 line-clamp-2">{nft.description}</p>
+                    
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-honey">{nft.priceBCC}</div>
+                        <div className="text-xs text-muted-foreground">BCC Required</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-sm font-semibold">{nft.totalSupply - nft.claimedCount}</div>
+                        <div className="text-xs text-muted-foreground">Available</div>
+                      </div>
+                    </div>
+
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button 
+                          className="w-full bg-honey text-black hover:bg-honey/90"
+                          disabled={nft.claimedCount >= nft.totalSupply}
+                          data-testid={`button-claim-${nft.id}`}
+                        >
+                          {nft.claimedCount >= nft.totalSupply ? 'Sold Out' : 'Claim NFT'}
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="bg-background border-border">
+                        <DialogHeader>
+                          <DialogTitle className="text-honey">Claim {nft.title}</DialogTitle>
+                          <DialogDescription className="text-muted-foreground">
+                            Choose which BCC bucket to use for claiming this Advertisement NFT
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <Select
+                            value={selectedBucketType}
+                            onValueChange={(value: 'transferable' | 'restricted') => setSelectedBucketType(value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="transferable">
+                                Transferable BCC ({bccBalance?.transferable || 0} available)
+                              </SelectItem>
+                              <SelectItem value="restricted">
+                                Restricted BCC ({bccBalance?.restricted || 0} available)
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          
+                          <div className="bg-secondary/50 rounded-lg p-4">
+                            <div className="flex justify-between items-center mb-2">
+                              <span>Cost:</span>
+                              <span className="text-honey font-semibold">{nft.priceBCC} BCC</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span>Available:</span>
+                              <span className={canAfford(nft.priceBCC, selectedBucketType) ? 'text-green-400' : 'text-red-400'}>
+                                {selectedBucketType === 'transferable' ? bccBalance?.transferable || 0 : bccBalance?.restricted || 0} BCC
+                              </span>
+                            </div>
+                          </div>
+
+                          <Button
+                            onClick={() => claimNFTMutation.mutate({ nftId: nft.id, bucketType: selectedBucketType })}
+                            disabled={!canAfford(nft.priceBCC, selectedBucketType) || claimNFTMutation.isPending}
+                            className="w-full bg-honey text-black hover:bg-honey/90"
+                            data-testid={`button-confirm-claim-${nft.id}`}
+                          >
+                            {claimNFTMutation.isPending ? 'Claiming...' : 'Confirm Claim'}
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </>
       )}
