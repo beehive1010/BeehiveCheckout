@@ -152,7 +152,30 @@
     }
   },
   "tasks": {
-    "title": "NFT Marketplace",
+    "title": "Tasks & Marketplace",
+    "pageTitle": "Tasks",
+    "categories": {
+      "membership": "Membership",
+      "advertisement": "Advertisement"
+    },
+    "membership": {
+      "title": "Bumblebees Membership NFTs",
+      "description": "Authentic membership levels with USDT payments on multi-chain support",
+      "status": {
+        "owned": "Owned",
+        "available": "Available",
+        "locked": "Locked"
+      },
+      "getStarted": "Get Started",
+      "upgradeNow": "Upgrade Now",
+      "lockedMessage": "Complete previous levels first"
+    },
+    "advertisement": {
+      "title": "Advertisement NFT Collection", 
+      "description": "Exclusive merchant NFTs claimable with BCC tokens",
+      "noNfts": "No advertisement NFTs available at the moment.",
+      "loading": "Loading NFTs..."
+    },
     "availableBalance": "Available Balance",
     "restrictedFirst": "Restricted BCC will be used first",
     "restrictedBCC": "Restricted Beehive Crypto Coin",

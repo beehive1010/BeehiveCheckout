@@ -27,10 +27,8 @@ export default function Header() {
 
           {/* Language Switcher & Wallet */}
           <div className="flex items-center space-x-2 md:space-x-4">
-            <div className="hidden sm:block">
-              <LanguageSwitcher />
-            </div>
-            <div className="sm:hidden w-px h-4 bg-border"></div>
+            <LanguageSwitcher />
+            <div className="w-px h-6 bg-border"></div>
             <WalletConnect />
           </div>
         </div>
