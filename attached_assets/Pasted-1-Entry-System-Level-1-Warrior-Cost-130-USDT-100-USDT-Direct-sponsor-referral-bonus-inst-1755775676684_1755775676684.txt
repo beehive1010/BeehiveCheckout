@@ -1,0 +1,186 @@
+1. Entry System
+Level 1 – Warrior
+
+
+Cost: 130 USDT
+
+
+100 USDT → Direct sponsor (referral bonus, instant payout)
+
+
+30 USDT → Admin wallet (platform fee)
+
+
+On-chain: Claim NFT + USDT payment
+
+
+Unlocks: Eligibility to progress into the 19-level system
+
+
+
+2. Referral Bonuses
+Direct Referral Bonus:
+
+
+Every direct invite generates 100 USDT (from the new member’s entry cost).
+
+
+Paid instantly, unlimited.
+
+
+Referral Binding: Permanent once established.
+
+
+
+3. Level Progression & Upgrade Rewards
+Level
+Name
+Upgrade Fee (USDT)
+Reward Triggered (When Downline Upgrades)
+Special Condition
+1
+Warrior
+130 (100 sponsor + 30 admin fee)
+Direct sponsor earns 100 USDT
+None
+2
+Bronze
+150
+Upline earns 150 USDT (from 2nd layer downline upgrading to Bronze)
+Must have 3 directs to activate Bronze rewards
+3
+Silver
+200
+Upline earns 200 USDT (from 3rd layer downline upgrading to Silver)
+Must have upgraded to Silver
+4
+Gold
+250
+Upline earns 250 USDT
+Must have upgraded to Gold
+5
+Elite
+300
+Upline earns 300 USDT
+Must have upgraded to Elite
+6
+Platinum
+350
+Upline earns 350 USDT
+Must have upgraded to Platinum
+7
+Master
+400
+Upline earns 400 USDT
+Must have upgraded to Master
+8
+Diamond
+450
+Upline earns 450 USDT
+Must have upgraded to Diamond
+9
+Grandmaster
+500
+Upline earns 500 USDT
+Must have upgraded to Grandmaster
+10
+Star
+550
+Upline earns 550 USDT
+Must have upgraded to Star
+11
+Epic
+600
+Upline earns 600 USDT
+Must have upgraded to Epic
+12
+Hall
+650
+Upline earns 650 USDT
+Must have upgraded to Hall
+13
+Strong King
+700
+Upline earns 700 USDT
+Must have upgraded to Strong King
+14
+Peerless King
+750
+Upline earns 750 USDT
+Must have upgraded to Peerless King
+15
+Glory King
+800
+Upline earns 800 USDT
+Must have upgraded to Glory King
+16
+Legendary Lord
+850
+Upline earns 850 USDT
+Must have upgraded to Legendary Lord
+17
+Supreme Lord
+900
+Upline earns 900 USDT
+Must have upgraded to Supreme Lord
+18
+Supreme Myth
+950
+Upline earns 950 USDT
+Must have upgraded to Supreme Myth
+19
+Mythic Peak
+1000
+Upline earns 1000 USDT
+Must have upgraded to Mythic Peak
+
+
+4. Reward Timing & Pass-Up Logic
+Direct Referral Reward: Paid instantly (no countdown).
+
+
+Level Upgrade Rewards:
+
+
+Generated when a downline member upgrades to a given level.
+
+
+Each reward is locked under a 72-hour countdown.
+
+
+To unlock: Upline must already be upgraded to that level (and for Bronze, must also have 3 directs).
+
+
+If unlocked within 72h → Claimable instantly.
+
+
+If not unlocked → 100% of the reward is passed up to the nearest qualified upline, and a new 72h countdown starts for them.
+
+
+
+5. Earnings Wallet
+Shows:
+
+
+Balance (claimable earnings)
+
+
+Pending rewards + countdown timers
+
+
+Functions:
+
+
+Claim: Move unlocked rewards into balance instantly
+
+
+Withdraw: (optional) Convert balance to USDT payout
+
+
+Re-use: Balance can also be reused for upgrades (depending on product design)
+
+
+
+✅ One-Sentence Summary:
+ The BeeHive system = 130 USDT entry (100 referral + 30 admin), 19-level sequential upgrades (150–1000 USDT), 3×3 automatic spillover matrix, dual rewards (instant referral + 72h level rewards with pass-up), and an earnings wallet for pending/claimable rewards.
+
