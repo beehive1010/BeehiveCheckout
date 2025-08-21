@@ -397,42 +397,46 @@ export default function Dashboard() {
         <Card className="bg-secondary border-border glow-hover">
           <CardContent className="p-6">
             <h3 className="text-lg font-semibold text-honey mb-4">Matrix Placement</h3>
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="bg-muted rounded p-3">
-                <div className="w-8 h-8 bg-honey rounded-full mx-auto mb-1"></div>
-                <p className="text-xs text-muted-foreground">You</p>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center py-2 border-b border-border">
+                <span className="text-muted-foreground">Level 1</span>
+                <div className="text-right">
+                  <span className="text-honey font-semibold">3 members</span>
+                  <span className="text-muted-foreground"> / placement </span>
+                  <span className="text-green-400 font-semibold">1 member</span>
+                </div>
               </div>
-              <div className="bg-muted rounded p-3">
-                <div className="w-8 h-8 bg-green-500 rounded-full mx-auto mb-1"></div>
-                <p className="text-xs text-muted-foreground">Active</p>
+              <div className="flex justify-between items-center py-2 border-b border-border">
+                <span className="text-muted-foreground">Level 2</span>
+                <div className="text-right">
+                  <span className="text-honey font-semibold">8 members</span>
+                  <span className="text-muted-foreground"> / placement </span>
+                  <span className="text-green-400 font-semibold">2 members</span>
+                </div>
               </div>
-              <div className="bg-muted rounded p-3">
-                <div className="w-8 h-8 bg-gray-400 rounded-full mx-auto mb-1"></div>
-                <p className="text-xs text-muted-foreground">Empty</p>
+              <div className="flex justify-between items-center py-2 border-b border-border">
+                <span className="text-muted-foreground">Level 3</span>
+                <div className="text-right">
+                  <span className="text-honey font-semibold">15 members</span>
+                  <span className="text-muted-foreground"> / placement </span>
+                  <span className="text-green-400 font-semibold">5 members</span>
+                </div>
               </div>
-              <div className="bg-muted rounded p-3">
-                <div className="w-8 h-8 bg-green-500 rounded-full mx-auto mb-1"></div>
-                <p className="text-xs text-muted-foreground">Active</p>
+              <div className="flex justify-between items-center py-2 border-b border-border">
+                <span className="text-muted-foreground">Level 4</span>
+                <div className="text-right">
+                  <span className="text-honey font-semibold">42 members</span>
+                  <span className="text-muted-foreground"> / placement </span>
+                  <span className="text-green-400 font-semibold">8 members</span>
+                </div>
               </div>
-              <div className="bg-muted rounded p-3">
-                <div className="w-8 h-8 bg-green-500 rounded-full mx-auto mb-1"></div>
-                <p className="text-xs text-muted-foreground">Active</p>
-              </div>
-              <div className="bg-muted rounded p-3">
-                <div className="w-8 h-8 bg-gray-400 rounded-full mx-auto mb-1"></div>
-                <p className="text-xs text-muted-foreground">Empty</p>
-              </div>
-              <div className="bg-muted rounded p-3">
-                <div className="w-8 h-8 bg-green-500 rounded-full mx-auto mb-1"></div>
-                <p className="text-xs text-muted-foreground">Active</p>
-              </div>
-              <div className="bg-muted rounded p-3">
-                <div className="w-8 h-8 bg-gray-400 rounded-full mx-auto mb-1"></div>
-                <p className="text-xs text-muted-foreground">Empty</p>
-              </div>
-              <div className="bg-muted rounded p-3">
-                <div className="w-8 h-8 bg-green-500 rounded-full mx-auto mb-1"></div>
-                <p className="text-xs text-muted-foreground">Active</p>
+              <div className="flex justify-between items-center py-2">
+                <span className="text-muted-foreground">Level 5</span>
+                <div className="text-right">
+                  <span className="text-honey font-semibold">89 members</span>
+                  <span className="text-muted-foreground"> / placement </span>
+                  <span className="text-green-400 font-semibold">12 members</span>
+                </div>
               </div>
             </div>
           </CardContent>
