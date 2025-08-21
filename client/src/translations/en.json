@@ -819,46 +819,6 @@
       }
     }
   },
-  "discover": {
-    "dapps": {
-      "beehive": "BeeHive Membership",
-      "beehiveDesc": "19-level membership system with Web3 rewards",
-      "matrixRewards": "Matrix Rewards",
-      "matrixRewardsDesc": "3×3 matrix referral system",
-      "uniswap": "Uniswap",
-      "uniswapDesc": "Leading decentralized exchange protocol",
-      "opensea": "OpenSea",
-      "openseaDesc": "Largest NFT marketplace",
-      "compound": "Compound",
-      "compoundDesc": "Algorithmic money market protocol",
-      "pancakeswap": "PancakeSwap",
-      "pancakeswapDesc": "BSC leading DEX with farming",
-      "axieinfinity": "Axie Infinity",
-      "axieinfinityDesc": "Popular play-to-earn game"
-    },
-    "news": {
-      "matrix30": {
-        "title": "BeeHive Launches New Matrix 3.0 System",
-        "description": "Enhanced 3×3 matrix with automated smart contract distribution and improved reward mechanisms."
-      },
-      "bridge": {
-        "title": "Multi-Chain USDT Bridge Now Live",
-        "description": "Seamless USDT payments across Ethereum, Polygon, and Arbitrum networks."
-      },
-      "education": {
-        "title": "Education Hub Reaches 50+ Courses",
-        "description": "Comprehensive Web3 learning platform with certification programs."
-      }
-    },
-    "chains": {
-      "ethereum": "Ethereum",
-      "polygon": "Polygon",
-      "arbitrum": "Arbitrum",
-      "optimism": "Optimism",
-      "bsc": "BSC",
-      "avalanche": "Avalanche"
-    }
-  },
   "hiveworld": {
     "blogs": {
       "web3membership": {
