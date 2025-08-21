@@ -153,6 +153,56 @@ export default function Me() {
           <Settings />
         </TabsContent>
       </Tabs>
+
+      {/* Recent Activity */}
+      <Card className="bg-secondary border-border mt-6">
+        <CardContent className="p-6">
+          <h3 className="text-lg font-semibold text-honey mb-4">
+            Recent Activity
+          </h3>
+          <div className="space-y-3">
+            {[
+              {
+                icon: 'fas fa-gift',
+                type: 'Reward Received',
+                description: 'From referral upgrade',
+                amount: '+100 USDT',
+                color: 'text-green-400'
+              },
+              {
+                icon: 'fas fa-shopping-cart',
+                type: 'NFT Claimed',
+                description: 'Merchant NFT #1234',
+                amount: '-50 BCC',
+                color: 'text-muted-foreground'
+              },
+              {
+                icon: 'fas fa-user-plus',
+                type: 'New Referral',
+                description: '0x1234...5678 joined',
+                amount: 'Active',
+                color: 'text-green-400'
+              }
+            ].map((activity, index) => (
+              <div 
+                key={index}
+                className="flex items-center justify-between py-2 border-b border-border last:border-b-0"
+              >
+                <div className="flex items-center space-x-3">
+                  <i className={`${activity.icon} text-honey-dark`}></i>
+                  <div>
+                    <p className="text-honey text-sm font-medium">{activity.type}</p>
+                    <p className="text-muted-foreground text-xs">{activity.description}</p>
+                  </div>
+                </div>
+                <span className={`font-semibold ${activity.color}`}>
+                  {activity.amount}
+                </span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
