@@ -44,8 +44,29 @@
         "description": "Countdown naik taraf 48 jam dengan mekanisme roll-up"
       }
     },
+    "stats": {
+      "membershipLevels": "19 Tahap Keahlian",
+      "matrixSystem": "Sistem Matrix 3×3",
+      "nftMarketplace": "Pasar NFT"
+    },
+    "platformFeatures": {
+      "title": "Ciri Platform",
+      "subtitle": "Temui ciri berkuasa yang menjadikan Beehive platform keahlian Web3 terbaik",
+      "exclusiveLevels": "19 Tahap Eksklusif",
+      "exclusiveCollections": "Koleksi Eksklusif",
+      "autoPlacement": "Sistem Auto-placement",
+      "dualTokenSystem": "Sistem Token Dwi",
+      "premiumCourses": "Kursus Premium",
+      "countdown": "Countdown 48 jam"
+    },
+    "ctaStats": {
+      "membershipLevels": "Tahap Keahlian",
+      "matrixSystem": "Sistem Matrix",
+      "earningPotential": "Potensi Pendapatan"
+    },
     "howItWorks": {
       "title": "Bagaimana Ia Berfungsi",
+      "subtitle": "Bermula dalam tiga langkah mudah dan buka kunci kuasa keahlian Web3",
       "step1": {
         "title": "Sambung Dompet",
         "description": "Sambungkan dompet Web3 anda untuk bermula"
@@ -374,6 +395,11 @@
       "enable2FA": "Aktifkan 2FA",
       "changePassword": "Tukar Kata Laluan",
       "deactivateAccount": "Nyahaktifkan Akaun"
+    }
+  },
+  "welcome": {
+    "benefits": {
+      "hiveworld": "Sistem Matrix HiveWorld"
     }
   },
   "footer": {
