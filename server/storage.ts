@@ -1246,7 +1246,16 @@ export class DatabaseStorage implements IStorage {
       const userNode = await this.getReferralNode(walletAddress);
       
       // Direct referrals count
-      const directReferrals = userNode?.children ? JSON.parse(userNode.children as any).length : 0;
+      let directReferrals = 0;
+      if (userNode?.children && typeof userNode.children === 'string' && userNode.children.trim() !== '') {
+        try {
+          const parsedChildren = JSON.parse(userNode.children);
+          directReferrals = Array.isArray(parsedChildren) ? parsedChildren.length : 0;
+        } catch (jsonError) {
+          console.error('Failed to parse children JSON:', jsonError);
+          directReferrals = 0;
+        }
+      }
 
       // Total team size - simplified for now
       const totalTeam = directReferrals; // Will expand to full recursive count later

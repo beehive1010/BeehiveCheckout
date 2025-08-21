@@ -210,7 +210,7 @@ export default function TokenPurchase() {
                     </SelectTrigger>
                     <SelectContent>
                       {paymentChains.map((chain) => (
-                        <SelectItem key={chain.chain.name} value={chain.chain.name.toLowerCase()}>
+                        <SelectItem key={chain.chain?.name || chain.name} value={chain.chain?.name?.toLowerCase() || chain.name.toLowerCase()}>
                           <div className="flex items-center gap-2">
                             <i className={chain.icon}></i>
                             {chain.name}
@@ -304,7 +304,7 @@ export default function TokenPurchase() {
                       amount: usdtAmount.toString(),
                       chain: selectedPaymentChain.chain,
                       token: { address: selectedPaymentChain.usdtAddress },
-                      recipient: selectedPaymentChain.bridgeWallet,
+                      sellerAddress: selectedPaymentChain.bridgeWallet,
                     },
                     metadata: {
                       name: `${tokenAmount} ${tokenType} Tokens`,
