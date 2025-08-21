@@ -7,14 +7,45 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Function to get wallet address from Web3 context
+function getWalletAddress(): string | null {
+  // Get wallet address from localStorage or sessionStorage where it's stored
+  // This is a fallback method to access wallet address in the query client
+  try {
+    // Check if we can access the wallet address from the document
+    const walletAddressElement = document.querySelector('[data-wallet-address]');
+    if (walletAddressElement) {
+      return walletAddressElement.getAttribute('data-wallet-address');
+    }
+    
+    // Fallback to checking sessionStorage or localStorage
+    return sessionStorage.getItem('wallet-address') || localStorage.getItem('wallet-address');
+  } catch {
+    return null;
+  }
+}
+
 export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
+  walletAddress?: string,
 ): Promise<Response> {
+  const headers: Record<string, string> = {};
+  
+  if (data) {
+    headers["Content-Type"] = "application/json";
+  }
+  
+  // Include wallet address header if available
+  const addressToUse = walletAddress || getWalletAddress();
+  if (addressToUse) {
+    headers["X-Wallet-Address"] = addressToUse;
+  }
+
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
@@ -29,7 +60,16 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    const headers: Record<string, string> = {};
+    
+    // Include wallet address header if available
+    const walletAddress = getWalletAddress();
+    if (walletAddress) {
+      headers["X-Wallet-Address"] = walletAddress;
+    }
+    
     const res = await fetch(queryKey.join("/") as string, {
+      headers,
       credentials: "include",
     });
 
