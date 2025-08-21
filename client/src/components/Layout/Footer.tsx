@@ -7,7 +7,7 @@ export default function Footer() {
   return (
     <footer className="bg-secondary border-t border-border mt-12">
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <div className="flex items-center space-x-3 mb-4">
               <HexagonIcon className="w-8 h-8">
@@ -18,16 +18,6 @@ export default function Footer() {
             <p className="text-muted-foreground text-sm">
               {t('footer.description')}
             </p>
-          </div>
-          
-          <div>
-            <h4 className="text-honey font-semibold mb-3">{t('footer.platform')}</h4>
-            <ul className="space-y-2 text-muted-foreground text-sm">
-              <li><a href="/tasks" className="hover:text-honey transition-colors">{t('nav.tasks')}</a></li>
-              <li><a href="/education" className="hover:text-honey transition-colors">{t('nav.education')}</a></li>
-              <li><a href="/hiveworld" className="hover:text-honey transition-colors">{t('nav.hiveworld')}</a></li>
-              <li><a href="/discover" className="hover:text-honey transition-colors">{t('nav.discover')}</a></li>
-            </ul>
           </div>
           
           <div>

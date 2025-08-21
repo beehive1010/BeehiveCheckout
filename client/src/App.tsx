@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -41,6 +41,9 @@ function Router() {
 }
 
 function App() {
+  const [location] = useLocation();
+  const isLandingPage = location === '/';
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
@@ -53,7 +56,7 @@ function App() {
                 <main className="min-h-[calc(100vh-theme(spacing.32))] pb-16 md:pb-0">
                   <Router />
                 </main>
-                <Footer />
+                {isLandingPage && <Footer />}
                 <Toaster />
                 <HotToaster 
                   position="top-right"
