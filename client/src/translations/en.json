@@ -321,79 +321,79 @@
     "level": {
       "1": {
         "title": "Warrior",
-        "subtitle": "勇士 • Start your journey"
+        "subtitle": "勇士 • Begin your ascent • $130 USDT"
       },
       "2": {
-        "title": "Knight",
-        "subtitle": "骑士 • Honor and valor"
+        "title": "Bronze",
+        "subtitle": "青铜 • Proven dedication • $150 USDT"
       },
       "3": {
-        "title": "Guardian",
-        "subtitle": "守护者 • Protect and defend"
+        "title": "Silver",
+        "subtitle": "白银 • Rising star • $200 USDT"
       },
       "4": {
-        "title": "Protector",
-        "subtitle": "保护者 • Shield your allies"
+        "title": "Gold",
+        "subtitle": "黄金 • Elite status • $250 USDT"
       },
       "5": {
-        "title": "Defender",
-        "subtitle": "防御者 • Fortress of strength"
+        "title": "Elite",
+        "subtitle": "精英 • Distinguished member • $300 USDT"
       },
       "6": {
-        "title": "Champion",
-        "subtitle": "冠军 • Arena master"
+        "title": "Platinum",
+        "subtitle": "铂金 • Prestigious rank • $350 USDT"
       },
       "7": {
-        "title": "Hero",
-        "subtitle": "英雄 • Legend in making"
+        "title": "Master",
+        "subtitle": "大师 • Skilled practitioner • $400 USDT"
       },
       "8": {
-        "title": "Legend",
-        "subtitle": "传奇 • Stories of greatness"
+        "title": "Diamond",
+        "subtitle": "钻石 • Exceptional excellence • $450 USDT"
       },
       "9": {
-        "title": "Master",
-        "subtitle": "大师 • Perfect your craft"
+        "title": "Grandmaster",
+        "subtitle": "宗师 • Supreme mastery • $500 USDT"
       },
       "10": {
-        "title": "Grandmaster",
-        "subtitle": "宗师 • Ultimate mastery"
+        "title": "Star Shine",
+        "subtitle": "星耀 • Radiant achievement • $550 USDT"
       },
       "11": {
-        "title": "Sage",
-        "subtitle": "圣贤 • Wisdom incarnate"
+        "title": "Epic",
+        "subtitle": "史诗 • Legendary status • $600 USDT"
       },
       "12": {
-        "title": "Oracle",
-        "subtitle": "先知 • See the future"
+        "title": "Hall",
+        "subtitle": "殿堂 • Hall of fame • $650 USDT"
       },
       "13": {
-        "title": "Immortal",
-        "subtitle": "不朽者 • Eternal existence"
+        "title": "The Strongest King",
+        "subtitle": "最強王者 • Royal dominance • $700 USDT"
       },
       "14": {
-        "title": "Celestial",
-        "subtitle": "天尊 • Heavenly power"
+        "title": "The King of Kings",
+        "subtitle": "无双王者 • Supreme ruler • $750 USDT"
       },
       "15": {
-        "title": "Divine",
-        "subtitle": "神圣 • Godlike presence"
+        "title": "Glory King",
+        "subtitle": "荣耀王者 • Glorious reign • $800 USDT"
       },
       "16": {
-        "title": "Supreme",
-        "subtitle": "至尊 • Ultimate authority"
+        "title": "Legendary Overlord",
+        "subtitle": "传奇主宰 • Mythical power • $850 USDT"
       },
       "17": {
-        "title": "Transcendent",
-        "subtitle": "超越者 • Beyond limits"
+        "title": "Supreme Lord",
+        "subtitle": "至尊主宰 • Ultimate authority • $900 USDT"
       },
       "18": {
-        "title": "Absolute",
-        "subtitle": "绝对者 • Perfect form"
+        "title": "Supreme Myth",
+        "subtitle": "至尊神话 • Divine legend • $950 USDT"
       },
       "19": {
         "title": "Mythical Peak",
-        "subtitle": "神话巅峰 • Legendary summit"
+        "subtitle": "神话巅峰 • Apex of power • $1000 USDT"
       }
     },
     "benefits": {

@@ -208,7 +208,7 @@ export default function Tasks() {
                 <i className="fas fa-crown text-2xl text-honey"></i>
               </div>
               <h2 className="text-2xl font-bold text-honey mb-2">19-Level Membership System</h2>
-              <p className="text-muted-foreground">Unlock exclusive benefits with our blockchain-verified membership NFTs</p>
+              <p className="text-muted-foreground">From Warrior ($130) to Mythical Peak ($1000) - Unlock exclusive benefits with blockchain-verified credentials</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -220,12 +220,12 @@ export default function Tasks() {
               <div className="bg-secondary/50 rounded-lg p-4 text-center">
                 <i className="fas fa-coins text-honey text-xl mb-2"></i>
                 <h3 className="font-semibold text-sm">USDT Payments</h3>
-                <p className="text-xs text-muted-foreground">Purchase levels 1-19 with stable currency</p>
+                <p className="text-xs text-muted-foreground">$130-$1000 USDT • Real value memberships</p>
               </div>
               <div className="bg-secondary/50 rounded-lg p-4 text-center">
                 <i className="fas fa-users text-honey text-xl mb-2"></i>
-                <h3 className="font-semibold text-sm">Referral Rewards</h3>
-                <p className="text-xs text-muted-foreground">Earn BCC tokens through our matrix system</p>
+                <h3 className="font-semibold text-sm">Upline Rewards</h3>
+                <p className="text-xs text-muted-foreground">100% rewards distributed to qualified uplines</p>
               </div>
             </div>
             
