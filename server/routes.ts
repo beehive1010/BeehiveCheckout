@@ -184,17 +184,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const membershipState = await storage.getMembershipState(req.walletAddress);
       const bccBalance = await storage.getBCCBalance(req.walletAddress);
+      const cthBalance = await storage.getCTHBalance(req.walletAddress);
       const referralNode = await storage.getReferralNode(req.walletAddress);
 
       res.json({
         user,
         membershipState,
         bccBalance,
+        cthBalance,
         referralNode,
       });
     } catch (error) {
       console.error('Get user error:', error);
       res.status(500).json({ error: 'Failed to get user data' });
+    }
+  });
+
+  // User Activity endpoint
+  app.get("/api/user/activity", requireWallet, async (req: any, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 50;
+      const activity = await storage.getUserActivity(req.walletAddress, limit);
+      
+      res.json({ activity });
+    } catch (error) {
+      console.error('Get user activity error:', error);
+      res.status(500).json({ error: 'Failed to get user activity' });
+    }
+  });
+
+  // User Balances endpoint
+  app.get("/api/user/balances", requireWallet, async (req: any, res) => {
+    try {
+      const balances = await storage.getUserBalances(req.walletAddress);
+      
+      res.json(balances);
+    } catch (error) {
+      console.error('Get user balances error:', error);
+      res.status(500).json({ error: 'Failed to get user balances' });
     }
   });
 

@@ -73,7 +73,42 @@ export function useWallet() {
   const currentLevel = userData?.user?.currentLevel || 0;
   const membershipState = userData?.membershipState;
   const bccBalance = userData?.bccBalance;
+  const cthBalance = userData?.cthBalance;
   const referralNode = userData?.referralNode;
+
+  // Get user activity
+  const { data: userActivity, isLoading: isActivityLoading } = useQuery({
+    queryKey: ['/api/user/activity'],
+    enabled: !!walletAddress && isRegistered,
+    queryFn: async () => {
+      const response = await fetch('/api/user/activity?limit=10', {
+        headers: {
+          'X-Wallet-Address': walletAddress!,
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch user activity');
+      }
+      return response.json();
+    },
+  });
+
+  // Get user balances  
+  const { data: userBalances, isLoading: isBalancesLoading } = useQuery({
+    queryKey: ['/api/user/balances'],
+    enabled: !!walletAddress && isRegistered,
+    queryFn: async () => {
+      const response = await fetch('/api/user/balances', {
+        headers: {
+          'X-Wallet-Address': walletAddress!,
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch user balances');
+      }
+      return response.json();
+    },
+  });
 
   return {
     // Wallet connection
@@ -88,7 +123,14 @@ export function useWallet() {
     currentLevel,
     membershipState,
     bccBalance,
+    cthBalance,
     referralNode,
+    
+    // User activity and balances
+    userActivity: userActivity?.activity || [],
+    isActivityLoading,
+    userBalances,
+    isBalancesLoading,
     
     // Actions
     register: registerMutation.mutate,
