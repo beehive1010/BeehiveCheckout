@@ -9,8 +9,9 @@ import { apiRequest } from '../lib/queryClient';
 import MobileDivider from '../components/UI/MobileDivider';
 import { TransactionWidget, useActiveAccount } from "thirdweb/react";
 import { claimTo } from "thirdweb/extensions/erc1155";
-import { merchantNFTContract, client } from "../lib/web3";
-// import MembershipLevelList from '../components/membership/MembershipLevelList';
+import { merchantNFTContract, client, bbcMembershipContract, levelToTokenId } from "../lib/web3";
+import { membershipLevels, getMembershipLevel } from '../lib/config/membershipLevels';
+import ClaimMembershipButton from '../components/membership/ClaimMembershipButton';
 
 interface MarketplaceNFT {
   id: string;
@@ -22,7 +23,7 @@ interface MarketplaceNFT {
 }
 
 export default function Tasks() {
-  const { walletAddress, bccBalance } = useWallet();
+  const { walletAddress, bccBalance, currentLevel, isActivated } = useWallet();
   const { t } = useI18n();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -41,6 +42,20 @@ export default function Tasks() {
 
   // All NFTs from the existing endpoint are advertisement NFTs
   const nfts = allNfts || [];
+
+  // Helper function to determine if a level is available for purchase
+  const getLevelStatus = (level: number) => {
+    if (level <= currentLevel) {
+      return 'owned'; // User already owns this level
+    } else if (level === currentLevel + 1) {
+      return 'available'; // Next level available for purchase
+    } else {
+      return 'locked'; // Level is locked until previous levels are purchased
+    }
+  };
+
+  // Get available membership levels (up to level 18)
+  const availableLevels = membershipLevels.slice(0, 18);
 
   // Claim NFT mutation
   const claimNFTMutation = useMutation({
@@ -103,11 +118,11 @@ export default function Tasks() {
       {/* Mobile Header */}
       <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-honey mb-2 flex items-center">
-          <i className="fas fa-store mr-3 text-honey"></i>
-          NFT Marketplace
+          <i className="fas fa-tasks mr-3 text-honey"></i>
+          Tasks
         </h1>
         <p className="text-muted-foreground text-sm md:text-base mb-3">
-          Discover and purchase Bumblebees (BBC) with USDT and Advertisement NFTs with Beehive Crypto Coin (BCC)
+          Level up your membership and unlock exclusive features • Purchase Advertisement NFTs with BCC
         </p>
         <MobileDivider className="md:hidden" />
       </div>
@@ -177,42 +192,170 @@ export default function Tasks() {
       {/* Content Area */}
       {activeCategory === 'membership' ? (
         <>
-          <MobileDivider withText="Bumblebees (BBC) Collection" className="mb-6" />
+          <MobileDivider withText={`Membership Levels • Level ${currentLevel} ${currentLevel > 0 ? 'Active' : 'Inactive'}`} className="mb-6" />
           
-          {/* Premium Membership Showcase */}
-          <div className="bg-gradient-to-br from-honey/10 to-honey/5 rounded-lg p-6 mb-6 border border-honey/20">
-            <div className="text-center mb-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-honey/20 rounded-full mb-4">
-                <i className="fas fa-crown text-2xl text-honey"></i>
+          {/* User Status Header */}
+          <Card className="bg-secondary border-border mb-6">
+            <CardContent className="p-4">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                  <h3 className="text-honey font-semibold text-lg">Your Membership Progress</h3>
+                  <p className="text-muted-foreground text-sm">
+                    {currentLevel === 0 
+                      ? "Start your journey by purchasing Level 1 Warrior membership"
+                      : `Current Level: ${currentLevel} • Next: Level ${currentLevel + 1} ${availableLevels[currentLevel]?.titleEn || 'Max Level'}`
+                    }
+                  </p>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="text-center">
+                    <p className="text-honey font-bold text-xl">{currentLevel}</p>
+                    <p className="text-muted-foreground text-xs">Current Level</p>
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-honey/20 flex items-center justify-center">
+                    <i className="fas fa-crown text-honey"></i>
+                  </div>
+                </div>
               </div>
-              <h2 className="text-2xl font-bold text-honey mb-2">Bumblebees (BBC) - 19-Level NFT System</h2>
-              <p className="text-muted-foreground">From Warrior ($130) to Mythical Peak ($1000) - Premium membership NFTs on Alpha-centauri blockchain</p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-secondary/50 rounded-lg p-4 text-center">
-                <i className="fas fa-shield-alt text-honey text-xl mb-2"></i>
-                <h3 className="font-semibold text-sm">Bumblebees NFTs</h3>
-                <p className="text-xs text-muted-foreground">Secure membership NFTs on Alpha-centauri (ACC)</p>
-              </div>
-              <div className="bg-secondary/50 rounded-lg p-4 text-center">
-                <i className="fas fa-coins text-honey text-xl mb-2"></i>
-                <h3 className="font-semibold text-sm">USDT Payments</h3>
-                <p className="text-xs text-muted-foreground">$130-$1000 USDT • Gas paid in Centauri Honey (CTH)</p>
-              </div>
-              <div className="bg-secondary/50 rounded-lg p-4 text-center">
-                <i className="fas fa-users text-honey text-xl mb-2"></i>
-                <h3 className="font-semibold text-sm">BCC Rewards</h3>
-                <p className="text-xs text-muted-foreground">Earn Beehive Crypto Coin • 100% to uplines</p>
-              </div>
-            </div>
-            
-            <div className="text-center">
-              <div className="inline-flex items-center bg-honey/10 text-honey px-4 py-2 rounded-lg">
-                <i className="fas fa-clock mr-2"></i>
-                <span className="text-sm font-medium">Bumblebees (BBC) - Coming Soon</span>
-              </div>
-            </div>
+            </CardContent>
+          </Card>
+          
+          {/* Membership Levels Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {availableLevels.map((level) => {
+              const status = getLevelStatus(level.level);
+              const isOwned = status === 'owned';
+              const isAvailable = status === 'available';
+              const isLocked = status === 'locked';
+              
+              return (
+                <Card 
+                  key={level.level}
+                  className={`border transition-all relative overflow-hidden ${
+                    isOwned 
+                      ? 'bg-green-500/10 border-green-500/30' 
+                      : isAvailable 
+                      ? 'bg-honey/10 border-honey/30 glow-hover' 
+                      : 'bg-muted/30 border-muted'
+                  }`}
+                >
+                  {/* Status Badge */}
+                  <div className="absolute top-2 right-2 z-10">
+                    {isOwned && (
+                      <span className="text-xs px-2 py-1 rounded-full font-medium bg-green-500/20 text-green-400">
+                        <i className="fas fa-check mr-1"></i>Owned
+                      </span>
+                    )}
+                    {isAvailable && (
+                      <span className="text-xs px-2 py-1 rounded-full font-medium bg-honey/20 text-honey">
+                        Available
+                      </span>
+                    )}
+                    {isLocked && (
+                      <span className="text-xs px-2 py-1 rounded-full font-medium bg-muted text-muted-foreground">
+                        <i className="fas fa-lock mr-1"></i>Locked
+                      </span>
+                    )}
+                  </div>
+
+                  <CardContent className="p-4">
+                    <div className="text-center mb-4">
+                      <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mb-3 ${
+                        isOwned 
+                          ? 'bg-green-500/20' 
+                          : isAvailable 
+                          ? 'bg-honey/20' 
+                          : 'bg-muted/50'
+                      }`}>
+                        <i className={`fas fa-crown text-xl ${
+                          isOwned 
+                            ? 'text-green-400' 
+                            : isAvailable 
+                            ? 'text-honey' 
+                            : 'text-muted-foreground'
+                        }`}></i>
+                      </div>
+                      
+                      <h3 className={`font-bold text-lg ${
+                        isOwned 
+                          ? 'text-green-400' 
+                          : isAvailable 
+                          ? 'text-honey' 
+                          : 'text-muted-foreground'
+                      }`}>
+                        Level {level.level}
+                      </h3>
+                      
+                      <p className={`text-sm font-medium ${
+                        isOwned 
+                          ? 'text-green-400/80' 
+                          : isAvailable 
+                          ? 'text-honey/80' 
+                          : 'text-muted-foreground'
+                      }`}>
+                        {level.titleEn} / {level.titleZh}
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="text-center">
+                        <p className={`text-2xl font-bold ${
+                          isOwned 
+                            ? 'text-green-400' 
+                            : isAvailable 
+                            ? 'text-honey' 
+                            : 'text-muted-foreground'
+                        }`}>
+                          ${level.priceUSDT}
+                        </p>
+                        <p className="text-xs text-muted-foreground">USDT</p>
+                      </div>
+
+                      {/* Purchase Button */}
+                      {isOwned ? (
+                        <Button 
+                          disabled 
+                          className="w-full bg-green-500/20 text-green-400 hover:bg-green-500/20"
+                          data-testid={`button-owned-level-${level.level}`}
+                        >
+                          <i className="fas fa-check mr-2"></i>
+                          Owned
+                        </Button>
+                      ) : isAvailable ? (
+                        <ClaimMembershipButton
+                          walletAddress={walletAddress || ''}
+                          level={level.level}
+                          className="w-full"
+                          onSuccess={() => {
+                            toast({
+                              title: 'Membership Upgraded!',
+                              description: `You are now Level ${level.level} ${level.titleEn}!`,
+                            });
+                            queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+                          }}
+                          onError={(error) => {
+                            toast({
+                              title: 'Purchase Failed',
+                              description: error,
+                              variant: 'destructive',
+                            });
+                          }}
+                        />
+                      ) : (
+                        <Button 
+                          disabled 
+                          className="w-full bg-muted text-muted-foreground"
+                          data-testid={`button-locked-level-${level.level}`}
+                        >
+                          <i className="fas fa-lock mr-2"></i>
+                          Locked
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </>
       ) : (
