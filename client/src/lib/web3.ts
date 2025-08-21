@@ -1,13 +1,33 @@
 import { createThirdwebClient } from 'thirdweb';
 import { ethereum, polygon, arbitrum, optimism } from 'thirdweb/chains';
+import { defineChain } from 'thirdweb/chains';
 
 // Initialize Thirdweb client
 export const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || '3123b1ac2ebdb966dd415c6e964dc335'
 });
 
+// Define Alpha Centauri chain
+export const alphaCentauri = defineChain({
+  id: 141941,
+  name: 'Alpha Centauri',
+  nativeCurrency: {
+    name: 'ETH',
+    symbol: 'ETH',
+    decimals: 18,
+  },
+  rpc: 'https://rpc.alpha-centauri.io',
+  blockExplorers: [
+    {
+      name: 'Alpha Centauri Explorer',
+      url: 'https://explorer.alpha-centauri.io',
+      apiUrl: 'https://explorer.alpha-centauri.io/api',
+    },
+  ],
+});
+
 // Supported chains
-export const supportedChains = [ethereum, polygon, arbitrum, optimism];
+export const supportedChains = [ethereum, polygon, arbitrum, optimism, alphaCentauri];
 
 // Contract addresses (these would be set after deployment)
 export const contractAddresses = {

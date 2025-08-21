@@ -3,6 +3,7 @@ import { useWallet } from '../../hooks/useWallet';
 import { useI18n } from '../../contexts/I18nContext';
 import { Badge } from '../ui/badge';
 import { useWeb3 } from '../../contexts/Web3Context';
+import { supportedChains } from '../../lib/web3';
 
 export default function WalletConnect() {
   const { currentLevel, isConnected, walletAddress } = useWallet();
@@ -18,6 +19,7 @@ export default function WalletConnect() {
       )}
       <ConnectButton
         client={client}
+        chains={supportedChains}
         theme="dark"
         connectButton={{
           label: t('wallet.connect'),
