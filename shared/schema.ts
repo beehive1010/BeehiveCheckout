@@ -303,16 +303,6 @@ export const insertOrderSchema = createInsertSchema(orders).pick({
   status: true,
 });
 
-export const insertRewardEventSchema = createInsertSchema(rewardEvents).pick({
-  buyerWallet: true,
-  sponsorWallet: true,
-  eventType: true,
-  level: true,
-  amount: true,
-  status: true,
-  timerStartAt: true,
-  timerExpireAt: true,
-});
 
 export const insertMerchantNFTSchema = createInsertSchema(merchantNFTs).pick({
   title: true,
