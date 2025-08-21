@@ -79,10 +79,15 @@
     "passwordPlaceholder": "Create a secure password",
     "confirmPassword": "Confirm Password",
     "confirmPasswordPlaceholder": "Confirm your password",
-    "referrer": "Referred by",
+    "referrer": "Upline Referrer",
     "register": "Complete Registration",
     "registering": "Processing...",
     "agreement": "By registering, you agree to our Terms of Service and Privacy Policy",
+    "noReferrerInfo": {
+      "title": "Referral Link Required",
+      "description": "To join Beehive, you need a referral link from an existing member. This connects you to your upline in our 3×3 matrix system.",
+      "getLink": "Ask a Beehive member for their referral link to get started."
+    },
     "errors": {
       "emailRequired": "Email address is required",
       "emailInvalid": "Please enter a valid email address",
@@ -90,7 +95,8 @@
       "usernameTooShort": "Username must be at least 3 characters",
       "passwordRequired": "Secondary password is required",
       "passwordTooShort": "Password must be at least 6 characters",
-      "passwordMismatch": "Passwords do not match"
+      "passwordMismatch": "Passwords do not match",
+      "referrerRequired": "A valid referral link is required to register"
     },
     "success": {
       "title": "Registration Successful!",
