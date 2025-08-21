@@ -402,7 +402,29 @@
       "tokenId": "Token ID: 0",
       "price": "Price",
       "priceAmount": "130 USDT"
-    }
+    },
+    "benefits": {
+      "title": "What You'll Unlock:",
+      "dashboard": "Full Dashboard Access",
+      "tasks": "Tasks & NFT Marketplace",
+      "education": "Education Center",
+      "discover": "Discover Web3 DApps",
+      "tokens": "BCC Token Rewards",
+      "hiveworld": "HiveWorld Matrix System"
+    },
+    "premium": {
+      "title": "💎 Premium Membership",
+      "description": "Purchase your Level 1 Warrior NFT for 130 USDT with multi-chain payment support!"
+    },
+    "success": {
+      "title": "Purchase Successful!",
+      "description": "Your Level 1 membership has been activated. Welcome to Beehive!"
+    },
+    "error": {
+      "title": "Purchase Failed",
+      "description": "There was an error with your purchase. Please try again."
+    },
+    "supportText": "Secure payments across multiple blockchains with instant NFT delivery"
   },
   "nftCenter": {
     "title": "NFT Center",

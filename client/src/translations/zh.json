@@ -763,9 +763,37 @@
     "enrolled": "已注册"
   },
   "welcome": {
+    "title": "欢迎来到蜂巢！🎉",
+    "subtitle": "通过购买1级勇士NFT来完成您的会员资格。这将解锁所有平台功能并开始您的Web3旅程！",
+    "nft": {
+      "title": "1级勇士NFT",
+      "description": "您在区块链上的会员资格",
+      "tokenId": "代币ID：0",
+      "price": "价格",
+      "priceAmount": "130 USDT"
+    },
     "benefits": {
+      "title": "您将解锁的功能：",
+      "dashboard": "完整仪表板访问权限",
+      "tasks": "任务和NFT市场",
+      "education": "教育中心",
+      "discover": "发现Web3 DApps",
+      "tokens": "BCC代币奖励",
       "hiveworld": "蜂巢世界矩阵系统"
-    }
+    },
+    "premium": {
+      "title": "💎 高级会员",
+      "description": "以130 USDT购买您的1级勇士NFT，支持多链支付！"
+    },
+    "success": {
+      "title": "购买成功！",
+      "description": "您的1级会员已激活。欢迎来到蜂巢！"
+    },
+    "error": {
+      "title": "购买失败",
+      "description": "您的购买出现错误。请重试。"
+    },
+    "supportText": "跨多个区块链的安全支付，即时NFT交付"
   },
   "registration": {
     "title": "完成注册",
