@@ -1,6 +1,7 @@
 import { createThirdwebClient } from 'thirdweb';
 import { ethereum, polygon, arbitrum, optimism } from 'thirdweb/chains';
 import { defineChain } from 'thirdweb/chains';
+import { inAppWallet, createWallet } from 'thirdweb/wallets';
 
 // Initialize Thirdweb client
 export const client = createThirdwebClient({
@@ -28,6 +29,121 @@ export const alphaCentauri = defineChain({
 
 // Supported chains
 export const supportedChains = [ethereum, polygon, arbitrum, optimism, alphaCentauri];
+
+// Enhanced wallet configuration with social login options
+export const wallets = [
+  inAppWallet({
+    auth: {
+      options: [
+        "google",
+        "discord",
+        "telegram",
+        "farcaster", 
+        "email",
+        "x",
+        "passkey",
+        "phone",
+        "apple",
+      ],
+    },
+  }),
+  createWallet("io.metamask"),
+  createWallet("com.coinbase.wallet"),
+  createWallet("me.rainbow"),
+  createWallet("io.rabby"),
+  createWallet("io.zerion.wallet"),
+];
+
+// Authentication hooks for backend integration
+export const authConfig = {
+  async doLogin(params: any) {
+    // Call backend to verify the signed payload
+    try {
+      const response = await fetch('/api/auth/verify-signature', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          address: params.address,
+          signature: params.signature,
+          message: params.message,
+        }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Store auth token or session info
+        localStorage.setItem('beehive-auth-token', data.token);
+      }
+    } catch (error) {
+      console.error('Login verification failed:', error);
+    }
+  },
+  
+  async doLogout() {
+    // Call backend to logout the user
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('beehive-auth-token')}`,
+        },
+      });
+      
+      // Clear local auth data
+      localStorage.removeItem('beehive-auth-token');
+      localStorage.removeItem('beehive-user');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  },
+  
+  async getLoginPayload(params: any) {
+    // Call backend and return the payload for signing
+    try {
+      const response = await fetch('/api/auth/login-payload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          address: params.address,
+        }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        return data.payload;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Failed to get login payload:', error);
+      return null;
+    }
+  },
+  
+  async isLoggedIn() {
+    // Check if user is logged in by validating token
+    try {
+      const token = localStorage.getItem('beehive-auth-token');
+      if (!token) return false;
+      
+      const response = await fetch('/api/auth/verify-token', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      return response.ok;
+    } catch (error) {
+      console.error('Token verification failed:', error);
+      return false;
+    }
+  },
+};
 
 // Contract addresses (these would be set after deployment)
 export const contractAddresses = {
