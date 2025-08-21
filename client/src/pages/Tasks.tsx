@@ -103,10 +103,10 @@ export default function Tasks() {
               <i className="fas fa-wallet text-4xl mb-4"></i>
             </div>
             <h3 className="text-xl font-bold text-honey">
-              {String(t('registration.walletRequired.title'))}
+              {t('registration.walletRequired.title')}
             </h3>
             <p className="text-muted-foreground">
-              {String(t('registration.walletRequired.description'))}
+              {t('registration.walletRequired.description')}
             </p>
           </CardContent>
         </Card>
@@ -123,10 +123,10 @@ export default function Tasks() {
       <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-honey mb-2 flex items-center">
           <i className="fas fa-tasks mr-3 text-honey"></i>
-          Tasks
+          {t('tasks.pageTitle')}
         </h1>
         <p className="text-muted-foreground text-sm md:text-base mb-3">
-          Level up your membership and unlock exclusive features • Purchase Advertisement NFTs with BCC
+          {t('tasks.membership.description')} • {t('tasks.advertisement.description')}
         </p>
         <MobileDivider className="md:hidden" />
       </div>
@@ -137,8 +137,8 @@ export default function Tasks() {
           <CardContent className="p-3 md:p-4">
             <div className="flex flex-col space-y-3 md:space-y-0 md:flex-row md:justify-between md:items-center">
               <div className="text-center md:text-left">
-                <h3 className="text-honey font-semibold text-sm md:text-base">{String(t('tasks.availableBalance'))}</h3>
-                <p className="text-muted-foreground text-xs md:text-sm">{String(t('tasks.restrictedFirst'))}</p>
+                <h3 className="text-honey font-semibold text-sm md:text-base">{t('tasks.availableBalance')}</h3>
+                <p className="text-muted-foreground text-xs md:text-sm">{t('tasks.restrictedFirst')}</p>
               </div>
               
               {/* Mobile Divider */}
@@ -147,7 +147,7 @@ export default function Tasks() {
               <div className="flex justify-center md:justify-end space-x-6 md:space-x-4">
                 <div className="text-center">
                   <p className="text-honey font-bold text-lg md:text-base">{bccBalance?.restricted || 0}</p>
-                  <p className="text-muted-foreground text-xs">{String(t('tasks.restrictedBCC'))}</p>
+                  <p className="text-muted-foreground text-xs">{t('tasks.restrictedBCC')}</p>
                 </div>
                 
                 {/* Vertical divider for mobile */}
@@ -155,7 +155,7 @@ export default function Tasks() {
                 
                 <div className="text-center">
                   <p className="text-honey font-bold text-lg md:text-base">{bccBalance?.transferable || 0}</p>
-                  <p className="text-muted-foreground text-xs">{String(t('tasks.transferableBCC'))}</p>
+                  <p className="text-muted-foreground text-xs">{t('tasks.transferableBCC')}</p>
                 </div>
               </div>
             </div>
@@ -176,7 +176,7 @@ export default function Tasks() {
             data-testid="filter-membership"
           >
             <i className="fas fa-crown mr-2"></i>
-            Bumblebees (BBC)
+            {t('tasks.categories.membership')}
           </button>
           <button
             onClick={() => setActiveCategory('advertisement')}
@@ -188,7 +188,7 @@ export default function Tasks() {
             data-testid="filter-advertisement"
           >
             <i className="fas fa-bullhorn mr-2"></i>
-            Advertisement NFTs
+            {t('tasks.categories.advertisement')}
           </button>
         </div>
       </div>
@@ -196,25 +196,25 @@ export default function Tasks() {
       {/* Content Area */}
       {activeCategory === 'membership' ? (
         <>
-          <MobileDivider withText={`Membership Levels • Level ${currentLevel} ${currentLevel > 0 ? 'Active' : 'Inactive'}`} className="mb-6" />
+          <MobileDivider withText={`${t('tasks.membership.title')} • ${t('tasks.membership.level')} ${currentLevel} ${currentLevel > 0 ? t('tasks.membership.status.owned') : 'Inactive'}`} className="mb-6" />
           
           {/* User Status Header */}
           <Card className="bg-secondary border-border mb-6">
             <CardContent className="p-4">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                  <h3 className="text-honey font-semibold text-lg">Your Membership Progress</h3>
+                  <h3 className="text-honey font-semibold text-lg">{t('tasks.membership.title')}</h3>
                   <p className="text-muted-foreground text-sm">
                     {currentLevel === 0 
-                      ? "Start your journey by purchasing Level 1 Warrior membership"
-                      : `Current Level: ${currentLevel} • Next: Level ${currentLevel + 1} ${availableLevels[currentLevel]?.titleEn || 'Max Level'}`
+                      ? t('tasks.membership.getStarted')
+                      : `${t('tasks.membership.level')} ${currentLevel} • ${t('tasks.membership.upgradeNow')}: ${t('tasks.membership.level')} ${currentLevel + 1} ${availableLevels[currentLevel]?.titleEn || 'Max Level'}`
                     }
                   </p>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="text-center">
                     <p className="text-honey font-bold text-xl">{currentLevel}</p>
-                    <p className="text-muted-foreground text-xs">Current Level</p>
+                    <p className="text-muted-foreground text-xs">{t('tasks.membership.level')}</p>
                   </div>
                   <div className="w-8 h-8 rounded-full bg-honey/20 flex items-center justify-center">
                     <i className="fas fa-crown text-honey"></i>
@@ -247,17 +247,17 @@ export default function Tasks() {
                   <div className="absolute top-2 right-2 z-10">
                     {isOwned && (
                       <span className="text-xs px-2 py-1 rounded-full font-medium bg-green-500/20 text-green-400">
-                        <i className="fas fa-check mr-1"></i>Owned
+                        <i className="fas fa-check mr-1"></i>{t('tasks.membership.status.owned')}
                       </span>
                     )}
                     {isAvailable && (
                       <span className="text-xs px-2 py-1 rounded-full font-medium bg-honey/20 text-honey">
-                        Available
+                        {t('tasks.membership.status.available')}
                       </span>
                     )}
                     {isLocked && (
                       <span className="text-xs px-2 py-1 rounded-full font-medium bg-muted text-muted-foreground">
-                        <i className="fas fa-lock mr-1"></i>Locked
+                        <i className="fas fa-lock mr-1"></i>{t('tasks.membership.status.locked')}
                       </span>
                     )}
                   </div>
@@ -287,7 +287,7 @@ export default function Tasks() {
                           ? 'text-honey' 
                           : 'text-muted-foreground'
                       }`}>
-                        Level {level.level}
+                        {t('tasks.membership.level')} {level.level}
                       </h3>
                       
                       <p className={`text-sm font-medium ${
@@ -312,7 +312,7 @@ export default function Tasks() {
                         }`}>
                           ${level.priceUSDT}
                         </p>
-                        <p className="text-xs text-muted-foreground">USDT</p>
+                        <p className="text-xs text-muted-foreground">{t('tasks.membership.usdt')}</p>
                       </div>
 
                       {/* Purchase Button */}
@@ -323,7 +323,7 @@ export default function Tasks() {
                           data-testid={`button-owned-level-${level.level}`}
                         >
                           <i className="fas fa-check mr-2"></i>
-                          Owned
+                          {t('tasks.membership.status.owned')}
                         </Button>
                       ) : isAvailable ? (
                         <ClaimMembershipButton
@@ -352,7 +352,7 @@ export default function Tasks() {
                           data-testid={`button-locked-level-${level.level}`}
                         >
                           <i className="fas fa-lock mr-2"></i>
-                          Locked
+                          {t('tasks.membership.status.locked')}
                         </Button>
                       )}
                     </div>
@@ -364,14 +364,14 @@ export default function Tasks() {
         </>
       ) : (
         <>
-          <MobileDivider withText={`Advertisement NFTs • ${nfts.length} Available`} className="mb-6" />
+          <MobileDivider withText={`${t('tasks.advertisement.title')} • ${nfts.length} ${t('tasks.membership.status.available')}`} className="mb-6" />
           
           {/* Marketplace Header */}
           <div className="bg-secondary/30 rounded-lg p-4 mb-6 border border-border">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
               <div>
-                <h3 className="text-lg font-semibold text-honey mb-1">Advertisement NFTs</h3>
-                <p className="text-sm text-muted-foreground">Purchase exclusive ad placements with Beehive Crypto Coin (BCC) tokens</p>
+                <h3 className="text-lg font-semibold text-honey mb-1">{t('tasks.advertisement.title')}</h3>
+                <p className="text-sm text-muted-foreground">{t('tasks.advertisement.description')}</p>
               </div>
               <div className="flex items-center space-x-2 text-sm">
                 <div className="flex items-center bg-honey/10 px-3 py-1 rounded-full">
@@ -413,7 +413,7 @@ export default function Tasks() {
                     <div className="flex justify-between items-center">
                       <span className="text-honey font-bold text-sm">{nft.priceBCC} BCC</span>
                       <span className={`text-xs px-2 py-1 rounded ${totalBCC >= nft.priceBCC ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                        {totalBCC >= nft.priceBCC ? 'Available' : 'Insufficient'}
+                        {totalBCC >= nft.priceBCC ? t('tasks.membership.status.available') : t('tasks.claim.insufficientBCC')}
                       </span>
                     </div>
                     
