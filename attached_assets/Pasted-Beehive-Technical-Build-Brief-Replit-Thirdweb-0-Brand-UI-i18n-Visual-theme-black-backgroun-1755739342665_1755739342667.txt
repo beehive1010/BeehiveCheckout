@@ -1,0 +1,527 @@
+Beehive — Technical Build Brief (Replit + Thirdweb)
+0) Brand, UI, i18n
+Visual theme: black background, honey-yellow typography, honeycomb accents, soft glow on hover.
+
+
+Languages: EN / ZH / TH / MS / KO / JA. Route-level i18n with JSON dictionaries; language switcher global.
+
+
+
+1) Stack & Hosting
+Runtime: Replit (Next.js + Node environment).
+
+
+Database: Replit’s built-in database (key–value). Model data as namespaced documents keyed by wallet address or deterministic composite keys. Provide simple “index” keys for lookups (see §6).
+
+
+Web3: Thirdweb SDK v5 (client provider on every page), thirdweb deploy for contracts, PayEmbed for USDT purchases and marketplace claims.
+
+
+Storage: IPFS via thirdweb upload for user and NFT metadata.
+
+
+Background work: Replit scheduled task or external cron hitting a secured /jobs/… endpoint to process timers (48h) and queues.
+
+
+
+2) Identity, Session, Gatekeeping
+Wallet = identity. The connected wallet address is the primary key for user, member, referral, balances, purchases, and access.
+
+
+App shell wraps every page with Thirdweb v5 provider; components read the current wallet from context.
+
+
+On Landing → Get Started: connect wallet, then immediately check Membership NFT Level ≥ 1 on-chain.
+
+
+If yes → Dashboard.
+
+
+If no → Registration.
+
+
+Members-only gate: without Level 1 BBC AND activated flag, block Dashboard and all member pages.
+
+
+
+3) Registration Flow (first-time wallets)
+Step 1: capture email / username / secondary password (secondary password is stored hashed, associated with wallet).
+
+
+Step 2: thirdweb upload profile metadata to IPFS; store IPFS hash with the wallet record.
+
+
+Step 3: Lazy-mint a User NFT that embeds wallet + profile metadata (this is not the membership NFT).
+
+
+Step 4: save the wallet-keyed user record in Replit DB; redirect to Dashboard (state = not-activated).
+
+
+
+4) Referral Attribution
+Referral link format: https://<domain>/?ref=<referrerWallet>.
+
+
+On Landing load, if ref exists and the visitor connects a wallet for the first time, persist:
+
+
+referrerWallet, refereeWallet, timestamp.
+
+
+Maintain a referral tree keyed by wallet addresses. This tree powers:
+
+
+3×3 forced matrix placement,
+
+
+eligibility checks,
+
+
+roll-up logic.
+
+
+
+5) Membership System (BBC, L1–L19) — USDT Purchase
+Users buy Membership NFT BBC with USDT via Thirdweb PayEmbed.
+
+
+Level 1 price: 130 USDT; higher levels have tiered USDT prices.
+
+
+After successful PayEmbed payment:
+
+
+Verify on-chain BBC ownership for the wallet and level.
+
+
+Mark wallet as memberActivated = true, set currentLevel.
+
+
+Trigger matrix placement & reward logic events.
+
+
+Gating rule: no Level 1 → no access to member pages (Dashboard, Tasks, Education, Discover internals, HiveWorld, Me assets).
+
+
+
+6) Replit DB Data Modeling (key–value without tables)
+Use JSON documents under deterministic keys; keep small “index” keys for lookups.
+user:<wallet> → profile doc (email, username, secPwdHash, ipfsHash, createdAt, referrerWallet, currentLevel, memberActivated).
+
+
+member:<wallet> → membership doc (levelsOwned[], activeLevel, joinAt, lastUpgradeAt).
+
+
+ref:<wallet> → referral node doc (parentWallet, children[] in activation order, createdAt).
+
+
+order:bbc:<txHash> → membership purchase order (wallet, level, amountUSDT, chain, status, createdAt).
+
+
+reward:event:<id> → event doc for rewards (buyerWallet, eventType, level, sponsorWallet, status, timers).
+
+
+reward:queue:<id> → payout job (toWallet, amountUSDC, reason, status, txHash?).
+
+
+matrix:placements:<wallet> → three slots tracking direct placements; overflow placed FIFO to earliest child subtree not full.
+
+
+balance:bcc:<wallet> → two buckets: transferable, restricted (non-transferable, spendable only on Tasks).
+
+
+task:nft:<id> → merchant NFT listing (price in BCC, metadataUri, seller, active).
+
+
+purchase:task:<txOrId> → marketplace purchase record (wallet, itemId, amountBCC, bucketUsed, createdAt).
+
+
+edu:course:<id> and edu:access:<wallet>:<courseId> → course meta and access state.
+
+
+job:timer:<id> → 48h countdown timers for upgrade-dependent rewards (startAt, expireAt, stakeLevel, sponsorWallet, buyerWallet).
+
+
+Create minimal secondary indexes (arrays of keys) where needed, e.g.,
+ idx:ref:children:<wallet> (list of child wallets), idx:orders:<wallet>, idx:rewards:pending, etc.
+
+7) BCC Policy & Wallet Buckets
+Lock on membership purchase: when a wallet buys/activates a BBC level, credit BCC per level policy.
+
+
+Two buckets per wallet:
+
+
+transferable BCC: normal utility.
+
+
+restricted BCC: non-transferable, can only be spent in Tasks marketplace.
+
+
+Tasks purchase logic:
+
+
+Prefer consuming restricted bucket first, then transferable.
+
+
+Deduct in Replit DB; mint Merchant NFT via Thirdweb only after successful deduction.
+
+
+Keep an auditable ledger (credits/debits) under ledger:bcc:<wallet>:<id>.
+
+
+
+8) Tasks — Merchant NFT Marketplace
+Grid of merchant NFT cards; each item displays price in BCC.
+
+
+“Claim” button uses PayEmbed or direct Thirdweb claim for the merchant contract.
+
+
+Before mint:
+
+
+Validate wallet is active member.
+
+
+Validate BCC bucket sufficiency; deduct restricted→transferable.
+
+
+If success, mint Merchant NFT to buyer wallet; record purchase.
+
+
+Optional: seller settlement with BCC or accounting entry (phase 2).
+
+
+
+9) Education Module
+Each course sets a required membership level and free/paid type.
+
+
+Free: level-gated view.
+
+
+Paid: pay in BCC; on successful BCC payment, create edu:access:<wallet>:<courseId>.
+
+
+Deliver content:
+
+
+Video via short-lived signed URLs (from IPFS gateway or controlled CDN).
+
+
+Zoom live: show meeting + passcode only for hasAccess == true.
+
+
+Track progress per wallet; show hex-grid progress visuals.
+
+
+
+10) Discover Module
+Show a lightweight blockchain explorer view and partner logos.
+
+
+Partner logos link out; warn that external sites are third-party.
+
+
+
+11) Me Module
+Show profile, current level, membership state.
+
+
+Wallet balances: USDT / BCC (transferable) / BCC (restricted) / CTH.
+
+
+Profit/rewards history, points, education progress.
+
+
+
+12) Matrix Placement & Rewards (3×3 Forced Matrix)
+Structure
+Each wallet can hold up to 3 direct placements.
+
+
+The 4th and beyond referrals are auto-placed under the earliest downline wallet that has < 3 placements (FIFO by activation time).
+
+
+Auto-placement also assigns the direct reward to the placement receiver.
+
+
+Level 1 (special case)
+Activation fee: 130 USDT.
+
+
+Direct bonus: 100 USDT to the sponsor or placement receiver immediately on the referee’s L1 activation.
+
+
+No upgrade dependency applies to the L1 100 USDT bonus.
+
+
+Levels 2+ (upgrade-dependent)
+A sponsor must be at the same level (or higher) to receive 100% of the downline’s upgrade fee.
+
+
+If sponsor is below the required level when a downline upgrades:
+
+
+Start a 48-hour countdown.
+
+
+If sponsor upgrades to the required level within 48h → sponsor receives the reward.
+
+
+If not → reward rolls up to the nearest upline wallet that already has that level (or higher).
+
+
+Timers & jobs
+On every downline upgrade event, create a job:timer:<id> with expireAt = +48h linked to the sponsor and level.
+
+
+A scheduled job checks expired timers:
+
+
+If sponsor met the level in time → enqueue payout to sponsor.
+
+
+Else → walk up the tree to find the nearest qualified upline; enqueue payout there.
+
+
+All decisions and payouts are auditable (store reason, who, when, which level).
+
+
+
+13) Reward & Payout Processing
+Event creation
+On membership activation or upgrade, create a reward:event:
+
+
+For L1: immediate 100 USDT to sponsor or placement receiver.
+
+
+For L2+: create pending reward with 48h condition against sponsor.
+
+
+Queue & payout
+For each resolved reward, push a reward:queue item:
+
+
+toWallet, amountUSDC, reason (L1_direct, L2plus_upgrade, rollup), sourceWallet, level.
+
+
+Payout execution options (choose one and keep only that path in production):
+
+
+Thirdweb Engine: call transactions API to transfer USDC to toWallet; store tx hash.
+
+
+Server signer with Thirdweb SDK: execute ERC20 transfer from hot wallet (only if Engine is not used; Engine is recommended).
+
+
+Idempotency
+Each queue item processed once; store status + txHash to prevent duplicates.
+
+
+Unexpected failures re-enqueue with backoff; alert via webhook/email if retries exceed threshold.
+
+
+
+14) Contracts to Deploy (with thirdweb deploy)
+BBC Membership NFT
+
+
+Recommended form: ERC-1155 (tokenId = level 1..19) or 19 ERC-721 drops; prefer 1155 for simplicity.
+
+
+Metadata fields include level, name, description, image.
+
+
+BCC (ERC-20, transferable)
+
+
+Standard ERC-20 for unlocked, transferable utility.
+
+
+Merchant NFT collections
+
+
+ERC-1155 for marketplace items.
+
+
+(Optional, Phase 2) Marketplace or Spending Vault
+
+
+If you want on-chain enforcement for “restricted BCC”, deploy a vault/allowlist contract that only allows spending to whitelisted merchant contracts.
+
+
+Phase 1: enforce restricted BCC in app logic + Replit DB ledger.
+
+
+USDT
+
+
+Use chain’s USDT contract addresses supported by PayEmbed. Configure per chain (OP/Arb/ACC).
+
+
+
+15) Page-by-Page Acceptance Criteria
+Landing
+“Get Started” connects wallet via Thirdweb v5.
+
+
+If wallet has BBC Level ≥ 1 → Dashboard; else → Registration.
+
+
+Registration
+Captures email/username/secondary password and writes to user:<wallet>.
+
+
+Uploads profile metadata to IPFS and stores IPFS hash.
+
+
+Lazy-mints User NFT.
+
+
+Creates referral link if arriving with ?ref= and writes referral node + parent.
+
+
+Dashboard
+If not activated: shows Buy Level 1 (130 USDT) via PayEmbed. After success → membership verified → set activated + level.
+
+
+If activated: show quick tiles to Tasks / Education / Discover / HiveWorld / Me, plus balances and level.
+
+
+Tasks
+Lists merchant NFTs; “Claim” validates member, deducts BCC buckets, mints NFT, records purchase.
+
+
+Handles insufficient BCC errors gracefully.
+
+
+Education
+Shows locked/unlocked by level. Free items open; paid items charge BCC and grant access immediately.
+
+
+Learning progress updates after video/lesson viewed.
+
+
+Discover
+Partner logos link out; basic chain explorer widget.
+
+
+HiveWorld
+Renders referral tree (3×3 matrix). Shows pending and paid rewards, roll-ups, timers.
+
+
+Me
+Shows profile, current level, USDT/BCC/CTH balances, points, learning progress.
+
+
+
+16) Background Jobs (Replit)
+/jobs/run-payouts: drain reward:queue:*, send USDC via Engine, mark status, store txHash.
+
+
+/jobs/check-timers: scan job:timer:* for expired 48h windows, resolve to sponsor or roll-up target, enqueue payout.
+
+
+Protect job endpoints with a shared secret; schedule with Replit’s scheduler or external cron.
+
+
+
+17) Security & Compliance
+Never store raw secondary password—hash with a strong algorithm.
+
+
+Use per-route guards: member-only routes verify BBC on-chain at first entry and then rely on cached activation flag.
+
+
+Wallet signatures for sensitive profile changes.
+
+
+Engine/API keys only on server side; never expose in the client.
+
+
+Idempotent order and reward processing (keyed by txHash or deterministic reward id).
+
+
+
+18) Observability & Admin
+Create lightweight admin pages gated by a server token to:
+
+
+Inspect a wallet’s node in the matrix,
+
+
+Manually resolve or re-queue a failed reward,
+
+
+Adjust BCC buckets (with reason logging),
+
+
+View job logs and payout history.
+
+
+Emit structured logs for each event and payout; keep a human-readable audit trail.
+
+
+
+19) Rollout & QA Checklist
+Wallet connect across chains (OP/Arb/ACC) verified.
+
+
+L1 purchase 130 USDT → BBC minted/owned → activation flag set.
+
+
+L1 direct referral → 100 USDT credited to sponsor or placement receiver.
+
+
+3×3 forced matrix: direct 3 placements fill; the 4th auto-places under earliest downline lacking 3 referrals.
+
+
+L2+ upgrade: sponsor below level triggers 48h timer; upgrade in time → reward; else roll up to nearest qualified upline.
+
+
+Tasks purchase consumes restricted BCC first; mints merchant NFT on success.
+
+
+Education free vs paid (BCC) gating works; access granted and progress tracked.
+
+
+Referral link attribution saved on first connect; tree visual matches data.
+
+
+
+20) What the Agent Must Deliver (no code listed—just outcomes)
+Next.js app on Replit with Thirdweb v5 provider globally.
+
+
+Replit DB namespaces and simple index keys as described.
+
+
+Thirdweb contracts deployed via thirdweb deploy:
+
+
+BBC ERC-1155 (levels),
+
+
+BCC ERC-20,
+
+
+Merchant ERC-1155 collections,
+
+
+(Optional) Spending Vault/Marketplace for phase-2 on-chain restricted spending.
+
+
+PayEmbed integrated for USDT (BBC) and for merchant claims where applicable.
+
+
+Job endpoints and scheduler set up for payouts and 48h timers.
+
+
+Admin utilities for support and audits.
+
+
+Full i18n copy and black/yellow hive UI.
+

@@ -1,0 +1,174 @@
+1) Purpose & Scope
+Beehive v2.0 is a Web3 membership and learning platform that uses on-chain membership credentials, an internal utility token, a merchant NFT marketplace, and a 3×3 forced-matrix referral program. All member-only features are wallet-gated and registration-gated: visitors only see the Landing Page until they connect a wallet and complete registration.
+Key principles:
+• Wallet address = primary key across the system.
+• Membership credential (BBC) has 19 levels (L1–L19) and is purchased with USDT.
+• BCC is locked when buying a membership and unlocks by level; a bonus portion is non-transferable and can only buy merchant NFTs in Tasks.
+• Referral is a 3×3 forced matrix with 48-hour upgrade countdown for higher-level rewards and roll-up to qualified uplines.
+￼
+2) UX, UI & Responsiveness
+2.1 Brand & Theme
+• Dark background (near black) with honey-yellow typography and accents.
+• Honeycomb geometry for cards, grids, dividers, and iconography.
+• Soft glow and micro-interactions on focus/hover; subtle motion (opacity/scale) under 200ms.
+2.2 Responsive Design
+• Mobile first with progressive enhancement to tablet and desktop.
+• Breakpoints (guideline):
+• Mobile ≤ 480 px: single-column flows, condensed headers, full-width CTAs.
+• Tablet 481–1024 px: 2-column content, sticky tab bar.
+• Desktop ≥ 1025 px: multi-panel dashboards, honeycomb grids.
+• Navigation:
+• Pre-registration: only Landing is accessible.
+• Post-registration: tab bar / side nav for Dashboard / Tasks / Education / Discover / HiveWorld / Me.
+• Accessibility: keyboard focus states, sufficient contrast, scalable typography, RTL readiness for future locales.
+2.3 Multilingual
+• Languages: English, Chinese, Thai, Malay, Korean, Japanese.
+• All copy pulled from i18n dictionaries; language switcher is global and persists.
+￼
+3) Identity, Gating & Navigation
+• Wallet connect is the identity handshake; the wallet address becomes the global user ID.
+• On Landing → Get Started:
+1. Prompt wallet connection.
+2. Check on-chain whether the wallet holds BBC Level ≥ 1.
+3. If no record exists, launch Registration.
+4. After registration, user lands on Dashboard (inactive) until a Level 1 membership is purchased and verified.
+• Route guards:
+• Without Level 1 and activation flag, block all member routes (Dashboard, Tasks, Education, Discover internals, HiveWorld, Me).
+• Only the Landing Page and public marketing content remain visible.
+￼
+4) Registration (first-time wallet)
+1. Collect email, username, secondary password (secondary password stored hashed).
+2. Upload profile metadata to IPFS (avatar, display name, country, preferred language).
+3. Persist a wallet-keyed user record in the platform’s key–value database.
+4. Lazy-mint a “User NFT” to bind identity metadata to the wallet (this is not the membership credential).
+5. If a referral parameter is present (see §6), capture attribution now.
+6. Redirect to Dashboard (inactive) with a clear prompt to purchase L1.
+￼
+5) Membership System (BBC)
+• 19 levels (L1–L19).
+• USDT-only purchase; Level 1 entry fee is 130 USDT.
+• After successful payment:
+• Verify on-chain ownership of the BBC token for the target level.
+• Mark the wallet memberActivated = true, set currentLevel.
+• Credit BCC per level policy (see §7).
+• Trigger matrix placement and reward events (see §8–§9).
+Gating rule: No Level 1 → No access to member areas.
+￼
+6) Referral Attribution & Link Format
+• Referral link format: https://<domain>/?ref=<referrerWallet>.
+• When the Landing Page loads and the visitor connects a wallet:
+• If this wallet has no prior attribution, record referrerWallet and refereeWallet.
+• Maintain a referral tree by wallet address. This powers:
+• 3×3 forced-matrix auto-placement,
+• 48-hour upgrade countdown, and
+• roll-up reward routing.
+￼
+7) BCC Policy (Locked & Restricted Buckets)
+• On buying or upgrading a BBC level, the system locks BCC for the wallet; portions unlock at specific levels.
+• Two tracked buckets per wallet:
+• Transferable BCC: unlocked, normal token utility.
+• Restricted BCC: non-transferable, only usable to purchase merchant NFTs in Tasks.
+• For Tasks purchases: consume Restricted BCC first, then Transferable BCC. Maintain an auditable ledger of credits/debits.
+￼
+8) 3×3 Forced-Matrix Placement
+• Each wallet can host up to 3 direct placements.
+• The 4th+ referral is auto-placed under the earliest downline node that has < 3 placements(FIFO by activation).
+• Auto-placement also assigns the direct bonus to the placement receiver (if applicable by level rules).
+• The matrix is strictly wallet-address keyed and must be deterministic.
+￼
+9) Rewards & Timing Rules
+9.1 Level 1 (special)
+• L1 fee: 130 USDT.
+• Direct bonus: 100 USDT to the sponsor or to the placement receiver (if auto-placed).
+• No upgrade dependency for this L1 direct bonus.
+9.2 Levels 2+ (upgrade-dependent)
+• To receive 100% of a downline’s upgrade fee, the sponsor must already hold the same level or higher.
+• If the sponsor is below the needed level when a downline upgrades:
+• Start a 48-hour countdown for the sponsor to upgrade.
+• If sponsor upgrades within 48h → they receive the reward.
+• If not → the reward rolls up to the nearest qualified upline (same level or above).
+9.3 Delayed Release & Roll-up
+• Rewards may be configured with delayed release to give new Users time to upgrade and become Members.
+• If the countdown expires without qualification, the pending reward reassigns upward; nothing is burned.
+￼
+10) Frontend Modules (post-registration)
+10.1 Dashboard
+• Status header: avatar, wallet, current membership level, activation state, balances (USDT/BCC/CTH).
+• Primary CTA (inactive): Buy Level 1 (130 USDT) via an embedded pay widget.
+• When active: tiles for Tasks / Education / Discover / HiveWorld / Me.
+10.2 Tasks (Merchant NFT Market)
+• Honeycomb grid of merchant NFTs with images, descriptions, and prices in BCC.
+• “Claim” flow:
+• Validate active membership.
+• Deduct BCC (Restricted bucket first).
+• Mint merchant NFT to wallet.
+• Record purchase details and update ledger.
+10.3 Education
+• Courses tagged with required membership level and free/paid.
+• Free: level-gated view.
+• Paid: pay in BCC, then grant access.
+• Delivery: video (short-lived signed URLs) and live (meeting ID + passcode only when access = true).
+• Show learning progress (honeycomb fill visual).
+10.4 Discover
+• Lightweight blockchain explorer snapshot (latest blocks/txs).
+• Partner logos linking out to partner sites (clearly marked as external).
+10.5 HiveWorld
+• Visualize the 3×3 matrix (parent → children).
+• Show pending vs. paid rewards, countdown timers, and roll-up history.
+• Include referral link generator with copy button.
+10.6 Me
+• Profile, current level, language setting.
+• Wallet balances: USDT, BCC (transferable), BCC (restricted), CTH.
+• Points and learning progress.
+￼
+11) Data Model (conceptual, key–value)
+Store small JSON documents under deterministic keys keyed by wallet address:
+• User profile (wallet-keyed): email, username, secondary password (hash), IPFS hash, createdAt, referrerWallet, memberActivated, currentLevel.
+• Membership state (wallet-keyed): levelsOwned, activeLevel, joinAt, lastUpgradeAt.
+• Referral node (wallet-keyed): parentWallet, children (ordered), createdAt.
+• Matrix placements (wallet-keyed): three direct slots, overflow queue info if needed.
+• Orders (membership): wallet, level, amountUSDT, chain, txHash, status, timestamps.
+• Reward events/queue: buyer, sponsor, level, amounts, countdown timestamps, final receiver, payout txHash, status.
+• BCC balances (wallet-keyed): transferable, restricted + ledger entries.
+• Merchant NFTs & purchases: item metadata, price in BCC, seller, active; purchase records.
+• Courses & access: course metadata, required level, free/paid, delivery; access records per wallet.
+Maintain minimal secondary indexes (lists of keys) for fast lookups where necessary (e.g., pending rewards, children of a node).
+￼
+12) Background Processing
+• Countdown worker: scans reward events with 48-hour timers; when expired, checks sponsor level and either grants reward or rolls up to next qualified upline; enqueues payout jobs.
+• Payout worker: drains the reward queue, transfers USDC to target wallets via the platform’s execution service, records transaction hashes, and marks items complete.
+• Idempotency: every order/reward has a deterministic ID; mark processed items to prevent duplicates; failed attempts re-queued with backoff and alerting.
+￼
+13) Smart Contracts (deployment & roles)
+• BBC Membership: recommended ERC-1155 (tokenId = 1..19), metadata includes level, name, image, and description.
+• BCC (ERC-20): circulating supply for unlocked balances.
+• Merchant NFT collections: ERC-1155 for marketplace items.
+• Optional spending guard (phase 2): a vault or allow-spend contract to enforce on-chain rules for restricted BCC (phase-1 enforcement is at the app/DB level).
+• USDT: use chain addresses supported by the embedded pay widget; configure per network.
+All contracts are deployed with a generic EVM contract deployment CLI; store deployed addresses in environment config.
+￼
+14) Security, Compliance & Observability
+• Hash secondary passwords; never store secrets on the client.
+• Wallet signatures for sensitive profile updates.
+• Execution-service API keys only on the server.
+• Route-level guards and on-chain verification on first entry; cache activation state with periodic re-checks.
+• Structured logs for: wallet connects, orders, placements, rewards, payouts, countdown transitions.
+• Admin tools (protected): inspect a wallet’s matrix node, re-queue failed rewards, adjust BCC buckets with reasons, view payout history.
+￼
+15) Acceptance Criteria (end-to-end)
+1. Pre-registration shows only Landing; “Get Started” connects wallet.
+2. Registration saves wallet-keyed profile, uploads IPFS metadata, lazy-mints User NFT, captures referral (if present).
+3. Level 1 purchase (130 USDT) sets activation, verifies BBC ownership, and unlocks member routes.
+4. L1 direct bonus pays 100 USDT to sponsor or placement receiver; auto-placement fills the 3×3 matrix correctly.
+5. L2+ upgrades start 48-hour timers for under-leveled sponsors; on time → sponsor gets reward; else → roll-up to nearest qualified upline.
+6. Tasks consumes restricted BCC first, then transferable; mints merchant NFT; records purchase; errors handled gracefully.
+7. Education respects level gates; free opens, paid grants access after BCC payment; progress tracked.
+8. HiveWorld accurately visualizes the matrix, timers, payouts, and roll-ups.
+9. Responsive UI works on mobile, tablet, desktop with consistent black/yellow honeycomb design and i18n.
+￼
+16) Implementation Notes for the Agent
+• Treat the wallet address as the single source of truth for all joins and lookups.
+• Use deterministic keys in the key–value store and keep JSON documents small and auditable.
+• Monetary flows must be idempotent and logged with transaction hashes or unique event IDs.
+• Enforce restricted BCC spending in app logic now; plan a phase-2 contract if stricter on-chain control is required.
+• All member gating and reward logic should remain functional on mobile layouts with the same UX fidelity as desktop.
