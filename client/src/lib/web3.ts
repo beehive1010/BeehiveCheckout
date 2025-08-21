@@ -1,5 +1,5 @@
 import { createThirdwebClient, getContract } from 'thirdweb';
-import { ethereum, polygon, arbitrum, optimism } from 'thirdweb/chains';
+import { ethereum, polygon, arbitrum, optimism, arbitrumSepolia } from 'thirdweb/chains';
 import { defineChain } from 'thirdweb/chains';
 import { inAppWallet, createWallet } from 'thirdweb/wallets';
 
@@ -28,7 +28,7 @@ export const alphaCentauri = defineChain({
 });
 
 // Supported chains
-export const supportedChains = [ethereum, polygon, arbitrum, optimism, alphaCentauri];
+export const supportedChains = [ethereum, polygon, arbitrum, arbitrumSepolia, optimism, alphaCentauri];
 
 // Enhanced wallet configuration with social login options
 export const wallets = [
@@ -172,11 +172,16 @@ export const authConfig = {
 export const contractAddresses = {
   BBC_MEMBERSHIP: import.meta.env.VITE_BBC_CONTRACT_ADDRESS || '0x6D513487bd63430Ca71Cd1d9A7DeA5aAcDbf0322',
   BCC_TOKEN: import.meta.env.VITE_BCC_CONTRACT_ADDRESS || '0x1234567890123456789012345678901234567891',
+  CTH_TOKEN: {
+    arbitrumSepolia: '0x4022797e9EC167Fd48281fa452Ee49d7c169f125',
+    alphaCentauri: '0x0000000000000000000000000000000000000000', // Native CTH on Alpha Centauri L3
+  },
   MERCHANT_NFTS: import.meta.env.VITE_MERCHANT_CONTRACT_ADDRESS || '0x1234567890123456789012345678901234567892',
   USDT: {
     ethereum: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     polygon: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
     arbitrum: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+    arbitrumSepolia: '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d', // Sepolia USDT
     optimism: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
     alphaCentauri: '0x1234567890123456789012345678901234567893',
   },
@@ -185,6 +190,7 @@ export const contractAddresses = {
     ethereum: import.meta.env.VITE_BRIDGE_WALLET_ETH || '0x1234567890123456789012345678901234567894',
     polygon: import.meta.env.VITE_BRIDGE_WALLET_POLYGON || '0x1234567890123456789012345678901234567895',
     arbitrum: import.meta.env.VITE_BRIDGE_WALLET_ARB || '0x1234567890123456789012345678901234567896',
+    arbitrumSepolia: import.meta.env.VITE_BRIDGE_WALLET_ARB_SEPOLIA || '0x1234567890123456789012345678901234567898',
     optimism: import.meta.env.VITE_BRIDGE_WALLET_OP || '0x1234567890123456789012345678901234567897',
   },
 };
@@ -217,6 +223,15 @@ export const paymentChains = [
     bridgeWallet: contractAddresses.BRIDGE_WALLETS.arbitrum,
     icon: 'fas fa-circle',
     color: 'text-blue-300'
+  },
+  { 
+    chain: arbitrumSepolia, 
+    name: 'Arbitrum Sepolia', 
+    symbol: 'ETH',
+    usdtAddress: contractAddresses.USDT.arbitrumSepolia,
+    bridgeWallet: contractAddresses.BRIDGE_WALLETS.arbitrumSepolia,
+    icon: 'fas fa-vial',
+    color: 'text-orange-400'
   },
   { 
     chain: optimism, 
@@ -281,6 +296,70 @@ export const formatWalletAddress = (address: string): string => {
 
 export const isValidWalletAddress = (address: string): boolean => {
   return /^0x[a-fA-F0-9]{40}$/.test(address);
+};
+
+// CTH bridging functions for Arbitrum Sepolia -> Alpha Centauri L3
+export const bridgeUtils = {
+  // Check if CTH tokens can be auto-bridged from Arbitrum Sepolia to Alpha Centauri L3
+  async canBridgeCTH(amount: number, userAddress: string): Promise<boolean> {
+    try {
+      // Check CTH balance on Arbitrum Sepolia
+      const cthContract = getContract({
+        client,
+        address: contractAddresses.CTH_TOKEN.arbitrumSepolia,
+        chain: arbitrumSepolia,
+      });
+      
+      // Return true for demo - in production, check actual balance
+      return amount > 0 && userAddress.length === 42;
+    } catch (error) {
+      console.error('Failed to check CTH bridging eligibility:', error);
+      return false;
+    }
+  },
+  
+  // Initiate auto-bridge of CTH tokens from Arbitrum Sepolia to Alpha Centauri L3
+  async initiateCTHBridge(amount: number, userAddress: string): Promise<{ success: boolean; txHash?: string }> {
+    try {
+      // In production, this would:
+      // 1. Lock CTH tokens on Arbitrum Sepolia
+      // 2. Submit bridge transaction
+      // 3. Wait for L3 confirmation
+      // 4. Return bridge transaction hash
+      
+      console.log(`Initiating CTH bridge: ${amount} CTH for ${userAddress}`);
+      console.log(`From: Arbitrum Sepolia (${contractAddresses.CTH_TOKEN.arbitrumSepolia})`);
+      console.log(`To: Alpha Centauri L3 (native CTH)`);
+      
+      // Simulate bridge transaction
+      const mockTxHash = `0x${Math.random().toString(16).slice(2).padStart(64, '0')}`;
+      
+      return {
+        success: true,
+        txHash: mockTxHash
+      };
+    } catch (error) {
+      console.error('CTH bridge failed:', error);
+      return { success: false };
+    }
+  },
+  
+  // Check bridge status for CTH tokens
+  async checkBridgeStatus(txHash: string): Promise<'pending' | 'completed' | 'failed'> {
+    try {
+      // In production, query the bridge status from Alpha Centauri L3
+      // For demo, simulate bridge completion after 30 seconds
+      return 'completed';
+    } catch (error) {
+      console.error('Failed to check bridge status:', error);
+      return 'failed';
+    }
+  },
+  
+  // Get estimated bridge time for CTH tokens (in seconds)
+  getEstimatedBridgeTime(): number {
+    return 300; // 5 minutes for L2 -> L3 bridge
+  }
 };
 
 export const generateReferralLink = (walletAddress: string): string => {
