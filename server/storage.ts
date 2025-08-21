@@ -351,14 +351,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Referral operations
-  async getReferralNode(walletAddress: string): Promise<ReferralNode | undefined> {
+  async getReferralNode(walletAddress: string): Promise<any> {
     try {
-      const [node] = await db.select().from(referralNodes).where(eq(referralNodes.walletAddress, walletAddress.toLowerCase()));
-      return node || undefined;
+      // Work directly with existing database structure
+      const result = await db.execute(sql`
+        SELECT wallet_address, parent_wallet, children, created_at 
+        FROM referral_nodes 
+        WHERE wallet_address = ${walletAddress.toLowerCase()}
+      `);
+      return result.rows[0] || null;
     } catch (error) {
-      // Handle case where new columns don't exist yet - work with existing structure
-      console.log('Working with existing referral_nodes structure');
-      return undefined;
+      console.error('Get referral node error:', error);
+      return null;
     }
   }
 
@@ -1105,14 +1109,11 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  // BeeHive Reward Processing
+  // BeeHive Reward Processing (adapted for existing database structure)
   async processReferralRewards(buyerWallet: string, level: number): Promise<void> {
     try {
       const buyer = await this.getUser(buyerWallet);
       if (!buyer?.referrerWallet) return;
-
-      const sponsor = await this.getUser(buyer.referrerWallet);
-      if (!sponsor) return;
 
       // Level 1 - Instant 100 USDT reward
       if (level === 1) {
@@ -1131,8 +1132,9 @@ export class DatabaseStorage implements IStorage {
           await this.addEarningsReward(buyer.referrerWallet, parseFloat(levelConfig.reward_amount), 'level', true);
         }
       } else {
-        // Pass up to sponsor's sponsor
-        if (sponsor.referrerWallet) {
+        // Pass up using existing parent_wallet structure
+        const sponsorNode = await this.getReferralNode(buyer.referrerWallet);
+        if (sponsorNode?.parent_wallet) {
           await this.processReferralRewards(buyerWallet, level);
         }
       }
