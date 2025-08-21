@@ -392,12 +392,15 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Matrix Placement & Upline Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      {/* Matrix & Network Stats - Mobile Optimized */}
+      <div className="grid grid-cols-1 gap-4 mb-8">
         <Card className="bg-secondary border-border glow-hover">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-honey mb-4">Matrix Placement</h3>
-            <div className="space-y-2 max-h-96 overflow-y-auto">
+          <CardContent className="p-4 md:p-6">
+            <h3 className="text-lg font-semibold text-honey mb-4 flex items-center gap-2">
+              <i className="fas fa-sitemap text-honey"></i>
+              Your Downline Matrix (19 Levels)
+            </h3>
+            <div className="space-y-1 max-h-80 md:max-h-96 overflow-y-auto custom-scrollbar">
               {Array.from({length: 19}, (_, i) => {
                 const level = i + 1;
                 const members = Math.pow(3, level);
@@ -409,12 +412,13 @@ export default function Dashboard() {
                 };
                 
                 return (
-                  <div key={level} className="flex justify-between items-center py-2 border-b border-border last:border-b-0">
-                    <span className="text-muted-foreground">Level {level}</span>
+                  <div key={level} className="flex justify-between items-center py-1.5 px-2 md:py-2 border-b border-border/50 last:border-b-0 hover:bg-muted/20 rounded-sm">
+                    <span className="text-muted-foreground text-sm md:text-base">Level {level}</span>
                     <div className="text-right">
-                      <span className="text-honey font-semibold">{formatNumber(members)} members</span>
-                      <span className="text-muted-foreground"> / placement </span>
-                      <span className="text-green-400 font-semibold">{formatNumber(placement)} members</span>
+                      <span className="text-honey font-semibold text-xs md:text-sm">{formatNumber(members)}</span>
+                      <span className="text-muted-foreground text-xs hidden md:inline"> / placement </span>
+                      <span className="text-muted-foreground text-xs md:hidden"> / </span>
+                      <span className="text-green-400 font-semibold text-xs md:text-sm">{formatNumber(placement)}</span>
                     </div>
                   </div>
                 );
@@ -424,18 +428,48 @@ export default function Dashboard() {
         </Card>
         
         <Card className="bg-secondary border-border glow-hover">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-honey mb-4">Upline Statistics</h3>
+          <CardContent className="p-4 md:p-6">
+            <h3 className="text-lg font-semibold text-honey mb-4 flex items-center gap-2">
+              <i className="fas fa-arrow-up text-honey"></i>
+              Your Upline Network
+            </h3>
             <div className="space-y-3">
-              {Array.from({length: 5}, (_, i) => (
-                <div key={i} className="flex justify-between items-center py-2 border-b border-border last:border-b-0">
-                  <span className="text-muted-foreground">Level {i + 1}</span>
-                  <div className="flex items-center gap-4">
-                    <span className="text-honey font-semibold">{Math.floor(Math.random() * 50) + 10}</span>
-                    <span className="text-sm text-muted-foreground">members</span>
-                  </div>
+              <div className="bg-muted/30 rounded-lg p-3">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-muted-foreground text-sm">Direct Sponsor</span>
+                  <span className="text-honey font-semibold">0x1234...5678</span>
                 </div>
-              ))}
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground text-xs">Joined</span>
+                  <span className="text-green-400 text-xs">Oct 15, 2024</span>
+                </div>
+              </div>
+              
+              <div className="bg-muted/30 rounded-lg p-3">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-muted-foreground text-sm">Level 2 Sponsor</span>
+                  <span className="text-honey font-semibold">0x2345...6789</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground text-xs">Matrix Position</span>
+                  <span className="text-blue-400 text-xs">Position 3</span>
+                </div>
+              </div>
+              
+              <div className="bg-muted/30 rounded-lg p-3">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-muted-foreground text-sm">Level 3 Sponsor</span>
+                  <span className="text-honey font-semibold">0x3456...7890</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground text-xs">Active Since</span>
+                  <span className="text-purple-400 text-xs">Sep 28, 2024</span>
+                </div>
+              </div>
+              
+              <div className="text-center py-2">
+                <span className="text-muted-foreground text-xs">+ 2 more levels above</span>
+              </div>
             </div>
           </CardContent>
         </Card>
