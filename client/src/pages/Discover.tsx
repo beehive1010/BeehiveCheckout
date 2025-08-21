@@ -74,10 +74,10 @@ export default function Discover() {
     },
     {
       id: 'uniswap',
-      name: 'Uniswap',
+      name: t('discover.dapps.uniswap'),
       category: 'dex',
       icon: 'fas fa-swimming-pool',
-      description: 'Leading decentralized exchange protocol',
+      description: t('discover.dapps.uniswapDesc'),
       users: '2.1M',
       tvl: '$3.2B',
       volume: '$847M',
@@ -87,10 +87,10 @@ export default function Discover() {
     },
     {
       id: 'opensea',
-      name: 'OpenSea',
+      name: t('discover.dapps.opensea'),
       category: 'nft',
       icon: 'fas fa-ship',
-      description: 'Largest NFT marketplace',
+      description: t('discover.dapps.openseaDesc'),
       users: '1.8M',
       volume: '$124M',
       featured: true,
@@ -99,10 +99,10 @@ export default function Discover() {
     },
     {
       id: 'compound',
-      name: 'Compound',
+      name: t('discover.dapps.compound'),
       category: 'defi',
       icon: 'fas fa-piggy-bank',
-      description: 'Algorithmic money market protocol',
+      description: t('discover.dapps.compoundDesc'),
       users: '180K',
       tvl: '$1.8B',
       featured: true,
@@ -125,10 +125,10 @@ export default function Discover() {
     },
     {
       id: 'pancakeswap',
-      name: 'PancakeSwap',
+      name: t('discover.dapps.pancakeswap'),
       category: 'dex',
       icon: 'fas fa-layer-group',
-      description: 'BSC leading DEX with farming',
+      description: t('discover.dapps.pancakeswapDesc'),
       users: '890K',
       tvl: '$1.2B',
       volume: '$234M',
@@ -138,10 +138,10 @@ export default function Discover() {
     },
     {
       id: 'axie-infinity',
-      name: 'Axie Infinity',
+      name: t('discover.dapps.axieinfinity'),
       category: 'gamefi',
       icon: 'fas fa-dragon',
-      description: 'Popular play-to-earn game',
+      description: t('discover.dapps.axieinfinityDesc'),
       users: '2.8M',
       trending: true,
       verified: true,
@@ -183,35 +183,35 @@ export default function Discover() {
   ];
 
   const networks = [
-    { name: 'Ethereum', icon: 'fab fa-ethereum', color: 'text-blue-400', chainId: 1 },
-    { name: 'Polygon', icon: 'fas fa-link', color: 'text-purple-400', chainId: 137 },
-    { name: 'Arbitrum', icon: 'fas fa-circle', color: 'text-blue-500', chainId: 42161 },
-    { name: 'Optimism', icon: 'fas fa-gem', color: 'text-red-400', chainId: 10 },
-    { name: 'BSC', icon: 'fas fa-coins', color: 'text-yellow-400', chainId: 56 },
-    { name: 'Avalanche', icon: 'fas fa-mountain', color: 'text-red-500', chainId: 43114 }
+    { name: t('discover.chains.ethereum'), icon: 'fab fa-ethereum', color: 'text-blue-400', chainId: 1 },
+    { name: t('discover.chains.polygon'), icon: 'fas fa-link', color: 'text-purple-400', chainId: 137 },
+    { name: t('discover.chains.arbitrum'), icon: 'fas fa-circle', color: 'text-blue-500', chainId: 42161 },
+    { name: t('discover.chains.optimism'), icon: 'fas fa-gem', color: 'text-red-400', chainId: 10 },
+    { name: t('discover.chains.bsc'), icon: 'fas fa-coins', color: 'text-yellow-400', chainId: 56 },
+    { name: t('discover.chains.avalanche'), icon: 'fas fa-mountain', color: 'text-red-500', chainId: 43114 }
   ];
 
   const news: NewsItem[] = [
     {
       id: '1',
-      title: 'BeeHive Launches New Matrix 3.0 System',
-      description: 'Enhanced 3×3 matrix with automated smart contract distribution and improved reward mechanisms.',
+      title: t('discover.news.matrix30.title'),
+      description: t('discover.news.matrix30.description'),
       readTime: 3,
       timestamp: '2 hours ago',
       category: 'Platform'
     },
     {
       id: '2',
-      title: 'Multi-Chain USDT Bridge Now Live',
-      description: 'Seamless USDT payments across Ethereum, Polygon, and Arbitrum networks.',
+      title: t('discover.news.bridge.title'),
+      description: t('discover.news.bridge.description'),
       readTime: 2,
       timestamp: '6 hours ago',
       category: 'Technology'
     },
     {
       id: '3',
-      title: 'Education Hub Reaches 50+ Courses',
-      description: 'Comprehensive Web3 learning platform with certification programs.',
+      title: t('discover.news.education.title'),
+      description: t('discover.news.education.description'),
       readTime: 4,
       timestamp: '1 day ago',
       category: 'Education'

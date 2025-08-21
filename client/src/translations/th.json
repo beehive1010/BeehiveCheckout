@@ -533,5 +533,159 @@
     "terms": "ข้อตกลงการให้บริการ",
     "cookies": "นโยบายคุกกี้",
     "copyright": "© 2024 Beehive สงวนลิขสิทธิ์"
+  },
+  "ads": {
+    "title": "โฆษณา NFT",
+    "description": "รับโฆษณา NFT ด้วยโทเค็น BCC ของคุณเพื่อปลดล็อกบริการโปรโมชั่น",
+    "nftCenter": "ศูนย์ NFT",
+    "manageNfts": "จัดการ NFT ของคุณ",
+    "browseNfts": "เรียกดูโฆษณา NFT",
+    "exploreServices": "สำรวจบริการโปรโมชั่นและความร่วมมือ DApp ที่มีอยู่",
+    "claimNft": "รับ NFT",
+    "soldOut": "ขายหมด",
+    "claiming": "กำลังรับ...",
+    "confirmClaim": "ยืนยันการรับ",
+    "bccRequired": "ต้องการ BCC",
+    "available": "มีให้",
+    "cost": "ค่าใช้จ่าย",
+    "bucketSelection": "เลือกถัง BCC ที่จะใช้สำหรับรับโฆษณา NFT นี้",
+    "transferableBcc": "BCC ที่โอนได้",
+    "restrictedBcc": "BCC ที่จำกัด",
+    "claim": {
+      "success": {
+        "title": "รับ NFT สำเร็จ!",
+        "description": "โฆษณา NFT ของคุณได้รับแล้วและโทเค็น BCC ถูกล็อก"
+      },
+      "error": {
+        "title": "การรับล้มเหลว",
+        "description": "การรับโฆษณา NFT ล้มเหลว"
+      }
+    },
+    "burn": {
+      "title": "เผา NFT สำเร็จ!",
+      "description": "รหัสบริการ: {code}",
+      "error": {
+        "title": "การเผาล้มเหลว",
+        "description": "การเผา NFT ล้มเหลว"
+      }
+    },
+    "status": {
+      "active": "ใช้งานได้",
+      "used": "ใช้แล้ว",
+      "burned": "เผาแล้ว",
+      "claimed": "พร้อมใช้",
+      "serviceActivated": "บริการเปิดใช้งานแล้ว"
+    }
+  },
+  "discover": {
+    "dapps": {
+      "uniswap": "Uniswap",
+      "uniswapDesc": "โปรโตคอลแลกเปลี่ยนแบบกระจายชั้นนำ",
+      "opensea": "OpenSea",
+      "openseaDesc": "ตลาด NFT ที่ใหญ่ที่สุด",
+      "compound": "Compound",
+      "compoundDesc": "โปรโตคอลตลาดเงินอัลกอริทึม",
+      "pancakeswap": "PancakeSwap",
+      "pancakeswapDesc": "DEX ชั้นนำของ BSC พร้อมการทำฟาร์ม",
+      "axieinfinity": "Axie Infinity",
+      "axieinfinityDesc": "เกม play-to-earn ยอดนิยม"
+    },
+    "news": {
+      "matrix30": {
+        "title": "BeeHive เปิดตัวระบบ Matrix 3.0 ใหม่",
+        "description": "Matrix 3×3 ที่ปรับปรุงแล้วพร้อมการกระจายสมาร์ทคอนแทรกต์อัตโนมัติและกลไกรางวัลที่ดีขึ้น"
+      },
+      "bridge": {
+        "title": "สะพาน USDT หลายเชนเปิดใช้งานแล้ว",
+        "description": "การชำระเงิน USDT ที่ราบรื่นผ่านเครือข่าย Ethereum, Polygon และ Arbitrum"
+      },
+      "education": {
+        "title": "ศูนย์การศึกษามีหลักสูตรถึง 50+ แล้ว",
+        "description": "แพลตฟอร์มการเรียนรู้ Web3 ที่ครอบคลุมพร้อมโปรแกรมใบรับรอง"
+      }
+    },
+    "chains": {
+      "ethereum": "อีเธอเรียม",
+      "polygon": "โพลิกอน",
+      "arbitrum": "อาร์บิทรัม",
+      "optimism": "ออปติมิซึม",
+      "bsc": "BSC",
+      "avalanche": "อวาแลนช์"
+    }
+  },
+  "hiveworld": {
+    "blogs": {
+      "web3membership": {
+        "title": "อนาคตของระบบสมาชิก Web3",
+        "excerpt": "สำรวจว่าเทคโนโลยีบล็อกเชนกำลังปฏิวัติโปรแกรมสมาชิกและความภักดีในทุกอุตสาหกรรม"
+      },
+      "nftaccess": {
+        "title": "ทำความเข้าใจการควบคุมการเข้าถึงแบบ NFT",
+        "excerpt": "วิธีที่ NFT ถูกใช้เพื่อป้องกันเนื้อหาและสร้างประสบการณ์ชุมชนพิเศษ"
+      },
+      "referraleconomy": {
+        "title": "การสร้างเศรษฐกิจการแนะนำที่ยั่งยืน",
+        "excerpt": "แนวทางปฏิบัติที่ดีที่สุดสำหรับการสร้างมูลค่าระยะยาวในระบบการแนะนำแบบเมทริกซ์"
+      },
+      "multichainpayment": {
+        "title": "คู่มือการรวมการชำระเงินหลายเชน",
+        "excerpt": "การศึกษาเชิงลึกทางเทคนิคในการประมวลผลการชำระเงิน USDT ข้ามเชนและการปรับแต่งประสบการณ์ผู้ใช้"
+      },
+      "governance": {
+        "title": "การกำกับดูแลชุมชนในแพลตฟอร์มแบบกระจาย",
+        "excerpt": "การใช้กระบวนการตัดสินใจที่ยุติธรรมและโปร่งใสในชุมชน Web3"
+      }
+    }
+  },
+  "blogpost": {
+    "linkCopied": {
+      "title": "คัดลอกลิงก์แล้ว!",
+      "description": "ลิงก์โพสต์บล็อกถูกคัดลอกไปยังคลิปบอร์ดแล้ว"
+    },
+    "author": "ผู้เขียน",
+    "publishedOn": "เผยแพร่เมื่อ",
+    "tags": "แท็ก",
+    "relatedPosts": "โพสต์ที่เกี่ยวข้อง",
+    "sharePost": "แชร์โพสต์นี้"
+  },
+  "activity": {
+    "rewardReceived": "ได้รับรางวัล",
+    "fromReferralUpgrade": "จากการอัพเกรดการแนะนำ",
+    "nftClaimed": "รับ NFT แล้ว",
+    "newReferral": "การแนะนำใหม่",
+    "memberSince": "สมาชิกตั้งแต่"
+  },
+  "errors": {
+    "walletNotConnected": "ไม่ได้เชื่อมต่อกระเป๋าเงิน",
+    "failedToFetch": "การดึง NFT ล้มเหลว",
+    "failedToClaim": "การรับ NFT ล้มเหลว",
+    "failedToBurn": "การเผา NFT ล้มเหลว",
+    "insufficientBcc": "BCC ไม่เพียงพอ",
+    "maxLevel": "ระดับสูงสุด",
+    "inactive": "ไม่ใช้งาน"
+  },
+  "buttons": {
+    "getStarted": "เริ่มต้น",
+    "connectWallet": "เชื่อมต่อกระเป๋าเงิน",
+    "copied": "คัดลอกแล้ว!",
+    "close": "ปิด",
+    "viewInCenter": "ดูในศูนย์ NFT",
+    "burnForService": "เผาเพื่อรหัสบริการ",
+    "burnNft": "เผา NFT",
+    "confirmBurn": "ยืนยันการเผา",
+    "burning": "กำลังเผา...",
+    "useNftService": "ใช้บริการ NFT"
+  },
+  "selectors": {
+    "category": "หมวดหมู่",
+    "level": "ระดับ",
+    "type": "ประเภท",
+    "payment": "การชำระเงิน",
+    "onlineZoom": "ออนไลน์ (Zoom)",
+    "videoLessons": "บทเรียนวิดีโอ",
+    "freeCourses": "หลักสูตรฟรี",
+    "paidBcc": "ชำระเงิน (BCC)",
+    "completed": "เสร็จสิ้น",
+    "enrolled": "ลงทะเบียน"
   }
 }

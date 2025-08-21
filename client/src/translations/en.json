@@ -669,5 +669,182 @@
     "terms": "Terms of Service",
     "cookies": "Cookie Policy",
     "copyright": "© 2024 Beehive. All rights reserved."
+  },
+  "ads": {
+    "title": "Advertisement NFTs",
+    "description": "Claim Advertisement NFTs with your BCC tokens to unlock promotional services",
+    "nftCenter": "NFT Center",
+    "manageNfts": "Manage Your NFTs",
+    "browseNfts": "Browse Advertisement NFTs",
+    "exploreServices": "Explore available promotional services and DApp partnerships",
+    "claimNft": "Claim NFT",
+    "soldOut": "Sold Out",
+    "claiming": "Claiming...",
+    "confirmClaim": "Confirm Claim",
+    "bccRequired": "BCC Required",
+    "available": "Available",
+    "cost": "Cost",
+    "bucketSelection": "Choose which BCC bucket to use for claiming this Advertisement NFT",
+    "transferableBcc": "Transferable BCC",
+    "restrictedBcc": "Restricted BCC",
+    "claim": {
+      "success": {
+        "title": "NFT Claimed Successfully!",
+        "description": "Your Advertisement NFT has been claimed and BCC tokens are locked."
+      },
+      "error": {
+        "title": "Claim Failed",
+        "description": "Failed to claim Advertisement NFT"
+      }
+    },
+    "burn": {
+      "title": "NFT Burned Successfully!",
+      "description": "Service code: {code}",
+      "error": {
+        "title": "Burn Failed",
+        "description": "Failed to burn NFT"
+      }
+    },
+    "status": {
+      "active": "ACTIVE",
+      "used": "USED",
+      "burned": "BURNED",
+      "claimed": "Ready to Use",
+      "serviceActivated": "Service Activated"
+    },
+    "nftCenter": {
+      "title": "NFT Center",
+      "description": "Manage your Advertisement NFTs, view locked BCC amounts, and activate promotional services",
+      "backToTasks": "Back to Tasks",
+      "noNfts": {
+        "title": "No NFTs Found",
+        "description": "You don't have any Advertisement NFTs yet",
+        "browse": "Browse Advertisement NFTs"
+      },
+      "useNft": "Use NFT Service",
+      "activating": "Activating...",
+      "activeCode": "Active Code",
+      "serviceStatus": "Service Status",
+      "currentStatus": "Current Status",
+      "activatedOn": "Activated On",
+      "readyToActivate": "Ready to Activate",
+      "bccLocked": "BCC Locked",
+      "bucketUsed": "Bucket Used",
+      "warning": {
+        "title": "Important",
+        "description": "Using this NFT will permanently burn both the NFT and the {amount} BCC tokens locked within it. In return, you'll receive the service code to activate your promotional service with {service}. This action cannot be undone."
+      }
+    }
+  },
+  "discover": {
+    "dapps": {
+      "uniswap": "Uniswap",
+      "uniswapDesc": "Leading decentralized exchange protocol",
+      "opensea": "OpenSea",
+      "openseaDesc": "Largest NFT marketplace",
+      "compound": "Compound",
+      "compoundDesc": "Algorithmic money market protocol",
+      "pancakeswap": "PancakeSwap",
+      "pancakeswapDesc": "BSC leading DEX with farming",
+      "axieinfinity": "Axie Infinity",
+      "axieinfinityDesc": "Popular play-to-earn game"
+    },
+    "news": {
+      "matrix30": {
+        "title": "BeeHive Launches New Matrix 3.0 System",
+        "description": "Enhanced 3×3 matrix with automated smart contract distribution and improved reward mechanisms."
+      },
+      "bridge": {
+        "title": "Multi-Chain USDT Bridge Now Live",
+        "description": "Seamless USDT payments across Ethereum, Polygon, and Arbitrum networks."
+      },
+      "education": {
+        "title": "Education Hub Reaches 50+ Courses",
+        "description": "Comprehensive Web3 learning platform with certification programs."
+      }
+    },
+    "chains": {
+      "ethereum": "Ethereum",
+      "polygon": "Polygon",
+      "arbitrum": "Arbitrum",
+      "optimism": "Optimism",
+      "bsc": "BSC",
+      "avalanche": "Avalanche"
+    }
+  },
+  "hiveworld": {
+    "blogs": {
+      "web3membership": {
+        "title": "The Future of Web3 Membership Systems",
+        "excerpt": "Exploring how blockchain technology is revolutionizing membership and loyalty programs across industries."
+      },
+      "nftaccess": {
+        "title": "Understanding NFT-Based Access Control",
+        "excerpt": "How NFTs are being used to gate content and create exclusive community experiences."
+      },
+      "referraleconomy": {
+        "title": "Building Sustainable Referral Economies",
+        "excerpt": "Best practices for creating long-term value in matrix-based referral systems."
+      },
+      "multichainpayment": {
+        "title": "Multi-Chain Payment Integration Guide",
+        "excerpt": "Technical deep-dive into cross-chain USDT payment processing and user experience optimization."
+      },
+      "governance": {
+        "title": "Community Governance in Decentralized Platforms",
+        "excerpt": "Implementing fair and transparent decision-making processes in Web3 communities."
+      }
+    }
+  },
+  "blogpost": {
+    "linkCopied": {
+      "title": "Link copied!",
+      "description": "Blog post link copied to clipboard"
+    },
+    "author": "Author",
+    "publishedOn": "Published on",
+    "tags": "Tags",
+    "relatedPosts": "Related Posts",
+    "sharePost": "Share this post"
+  },
+  "activity": {
+    "rewardReceived": "Reward Received",
+    "fromReferralUpgrade": "From referral upgrade",
+    "nftClaimed": "NFT Claimed",
+    "newReferral": "New Referral",
+    "memberSince": "Member since"
+  },
+  "errors": {
+    "walletNotConnected": "Wallet not connected",
+    "failedToFetch": "Failed to fetch NFTs",
+    "failedToClaim": "Failed to claim NFT",
+    "failedToBurn": "Failed to burn NFT",
+    "insufficientBcc": "Insufficient BCC",
+    "maxLevel": "Max Level",
+    "inactive": "Inactive"
+  },
+  "buttons": {
+    "getStarted": "Get Started",
+    "connectWallet": "Connect Wallet",
+    "copied": "Copied!",
+    "close": "Close",
+    "viewInCenter": "View in NFT Center",
+    "burnForService": "Burn for Service Code",
+    "burnNft": "Burn NFT",
+    "confirmBurn": "Confirm Burn",
+    "burning": "Burning...",
+    "useNftService": "Use NFT Service"
+  },
+  "selectors": {
+    "category": "Category",
+    "level": "Level",
+    "type": "Type",
+    "payment": "Payment",
+    "onlineZoom": "Online (Zoom)",
+    "videoLessons": "Video Lessons",
+    "freeCourses": "Free Courses",
+    "paidBcc": "Paid (BCC)",
+    "completed": "Completed",
+    "enrolled": "Enrolled"
   }
 }

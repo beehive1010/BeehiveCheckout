@@ -79,15 +79,15 @@ export default function Tasks() {
     },
     onSuccess: () => {
       toast({
-        title: 'NFT Claimed Successfully!',
-        description: 'Your Advertisement NFT has been claimed and BCC tokens are locked.',
+        title: t('ads.claim.success.title'),
+        description: t('ads.claim.success.description'),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     },
     onError: (error: any) => {
       toast({
-        title: 'Claim Failed',
-        description: error.message || 'Failed to claim Advertisement NFT',
+        title: t('ads.claim.error.title'),
+        description: error.message || t('ads.claim.error.description'),
         variant: 'destructive',
       });
     },
@@ -434,11 +434,11 @@ export default function Tasks() {
                     <div className="flex justify-between items-center mb-4">
                       <div className="text-center">
                         <div className="text-2xl font-bold text-honey">{nft.priceBCC}</div>
-                        <div className="text-xs text-muted-foreground">BCC Required</div>
+                        <div className="text-xs text-muted-foreground">{t('ads.bccRequired')}</div>
                       </div>
                       <div className="text-center">
                         <div className="text-sm font-semibold">{nft.totalSupply - nft.claimedCount}</div>
-                        <div className="text-xs text-muted-foreground">Available</div>
+                        <div className="text-xs text-muted-foreground">{t('ads.available')}</div>
                       </div>
                     </div>
 
@@ -449,14 +449,14 @@ export default function Tasks() {
                           disabled={nft.claimedCount >= nft.totalSupply}
                           data-testid={`button-claim-${nft.id}`}
                         >
-                          {nft.claimedCount >= nft.totalSupply ? 'Sold Out' : 'Claim NFT'}
+                          {nft.claimedCount >= nft.totalSupply ? t('ads.soldOut') : t('ads.claimNft')}
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="bg-background border-border">
                         <DialogHeader>
-                          <DialogTitle className="text-honey">Claim {nft.title}</DialogTitle>
+                          <DialogTitle className="text-honey">{t('ads.claimNft')} {nft.title}</DialogTitle>
                           <DialogDescription className="text-muted-foreground">
-                            Choose which BCC bucket to use for claiming this Advertisement NFT
+                            {t('ads.bucketSelection')}
                           </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
@@ -469,21 +469,21 @@ export default function Tasks() {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="transferable">
-                                Transferable BCC ({bccBalance?.transferable || 0} available)
+                                {t('ads.transferableBcc')} ({bccBalance?.transferable || 0} {t('ads.available')})
                               </SelectItem>
                               <SelectItem value="restricted">
-                                Restricted BCC ({bccBalance?.restricted || 0} available)
+                                {t('ads.restrictedBcc')} ({bccBalance?.restricted || 0} {t('ads.available')})
                               </SelectItem>
                             </SelectContent>
                           </Select>
                           
                           <div className="bg-secondary/50 rounded-lg p-4">
                             <div className="flex justify-between items-center mb-2">
-                              <span>Cost:</span>
+                              <span>{t('ads.cost')}:</span>
                               <span className="text-honey font-semibold">{nft.priceBCC} BCC</span>
                             </div>
                             <div className="flex justify-between items-center">
-                              <span>Available:</span>
+                              <span>{t('ads.available')}:</span>
                               <span className={canAfford(nft.priceBCC, selectedBucketType) ? 'text-green-400' : 'text-red-400'}>
                                 {selectedBucketType === 'transferable' ? bccBalance?.transferable || 0 : bccBalance?.restricted || 0} BCC
                               </span>
@@ -496,7 +496,7 @@ export default function Tasks() {
                             className="w-full bg-honey text-black hover:bg-honey/90"
                             data-testid={`button-confirm-claim-${nft.id}`}
                           >
-                            {claimNFTMutation.isPending ? 'Claiming...' : 'Confirm Claim'}
+                            {claimNFTMutation.isPending ? t('ads.claiming') : t('ads.confirmClaim')}
                           </Button>
                         </div>
                       </DialogContent>
