@@ -121,21 +121,21 @@ export default function Dashboard() {
             </HexagonIcon>
             
             <h1 className="text-3xl font-bold text-honey mb-4">
-              NFT Access Required
+              {t('dashboard.nftRequired.title')}
             </h1>
             
             <p className="text-muted-foreground text-lg mb-6">
-              You need to own a Level 1 Membership NFT (Token ID 0) to access the dashboard.
+              {t('dashboard.nftRequired.description')}
             </p>
 
             <div className="bg-muted rounded-lg p-4 mb-6">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-sm text-muted-foreground">Required NFT</p>
-                  <p className="text-2xl font-bold text-honey">Level 1 Warrior</p>
+                  <p className="text-sm text-muted-foreground">{t('dashboard.nftRequired.requiredNft')}</p>
+                  <p className="text-2xl font-bold text-honey">{t('dashboard.nftRequired.level1Warrior')}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Token ID</p>
+                  <p className="text-sm text-muted-foreground">{t('dashboard.nftRequired.tokenId')}</p>
                   <p className="text-2xl font-bold text-honey">0</p>
                 </div>
               </div>
@@ -145,7 +145,7 @@ export default function Dashboard() {
               onClick={() => setLocation('/tasks')}
               className="bg-honey text-black hover:bg-honey/90"
             >
-              Get Level 1 NFT
+{t('dashboard.nftRequired.getButton')}
             </Button>
           </CardContent>
         </Card>

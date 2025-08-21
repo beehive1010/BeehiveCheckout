@@ -30,7 +30,7 @@ export default function UserProfile() {
             {/* Mobile: Stack username and level vertically, Desktop: Side by side */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
               <div className="min-w-0">
-                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Username :</p>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-1">{t('userProfile.username')} :</p>
                 <div className="bg-background px-2 sm:px-3 py-1 rounded-full border border-border">
                   <span className="text-xs sm:text-sm font-mono truncate block">
                     {walletAddress ? formatAddress(walletAddress) : '0x000...0000'}
@@ -39,7 +39,7 @@ export default function UserProfile() {
               </div>
               
               <div className="flex-shrink-0">
-                <p className="text-xs sm:text-sm text-muted-foreground mb-1">Level :</p>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-1">{t('userProfile.level')} :</p>
                 <div className="bg-background px-2 sm:px-3 py-1 rounded-full border border-border min-w-[50px] sm:min-w-[60px] text-center">
                   <span className="text-xs sm:text-sm">
                     {currentLevel > 0 ? currentLevel : ''}
@@ -56,8 +56,8 @@ export default function UserProfile() {
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 rounded-full w-full sm:w-auto text-sm sm:text-base"
           data-testid="button-user-center"
         >
-          <span className="sm:hidden">Center</span>
-          <span className="hidden sm:inline">User Center</span>
+          <span className="sm:hidden">{t('userProfile.center')}</span>
+          <span className="hidden sm:inline">{t('userProfile.userCenter')}</span>
         </Button>
       </div>
     </div>

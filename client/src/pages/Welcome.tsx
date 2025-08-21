@@ -76,10 +76,10 @@ export default function Welcome() {
               transition={{ delay: 0.4, duration: 0.6 }}
             >
               <CardTitle className="text-3xl font-bold text-honey mb-4">
-                Welcome to Beehive! 🎉
+                {t('welcome.title')}
               </CardTitle>
               <p className="text-muted-foreground text-lg">
-                Complete your membership by purchasing your Level 1 Warrior NFT. This unlocks all platform features and starts your Web3 journey!
+                {t('welcome.subtitle')}
               </p>
             </motion.div>
           </CardHeader>
@@ -94,16 +94,16 @@ export default function Welcome() {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-bold text-honey mb-2">Level 1 Warrior NFT</h3>
-                  <p className="text-muted-foreground">Your membership credential on the blockchain</p>
+                  <h3 className="text-xl font-bold text-honey mb-2">{t('welcome.nft.title')}</h3>
+                  <p className="text-muted-foreground">{t('welcome.nft.description')}</p>
                   <div className="flex items-center mt-3 text-sm">
                     <i className="fas fa-layer-group text-honey mr-2"></i>
-                    <span className="text-honey font-medium">Token ID: 0</span>
+                    <span className="text-honey font-medium">{t('welcome.nft.tokenId')}</span>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Price</p>
-                  <p className="text-2xl font-bold text-honey">130 USDT</p>
+                  <p className="text-sm text-muted-foreground">{t('welcome.nft.price')}</p>
+                  <p className="text-2xl font-bold text-honey">{t('welcome.nft.priceAmount')}</p>
                 </div>
               </div>
             </motion.div>
