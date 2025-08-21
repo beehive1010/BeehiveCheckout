@@ -235,29 +235,77 @@
   },
   "discover": {
     "title": "Discover",
-    "explorer": {
-      "title": "Blockchain Explorer",
-      "latestBlock": "Latest Block",
-      "gasPrice": "Gas Price (Gwei)",
-      "tps": "TPS"
+    "subtitle": "Explore Web3 DApps and Services",
+    "search": {
+      "placeholder": "Search DApps, protocols, or services...",
+      "recent": "Recent",
+      "trending": "Trending",
+      "clear": "Clear"
     },
-    "partners": {
-      "title": "Partner Networks"
+    "featured": {
+      "title": "Featured on Beehive",
+      "viewAll": "View All"
     },
-    "activity": {
-      "title": "Recent Network Activity",
-      "noData": "Loading network data..."
+    "categories": {
+      "title": "Categories",
+      "defi": "DeFi",
+      "nft": "NFT",
+      "gamefi": "GameFi", 
+      "dao": "DAO",
+      "bridge": "Bridge",
+      "lending": "Lending",
+      "dex": "DEX",
+      "yield": "Yield",
+      "insurance": "Insurance",
+      "social": "Social",
+      "tools": "Tools",
+      "education": "Education"
     },
-    "about": {
-      "title": "About Beehive",
-      "description": "A decentralized ecosystem connecting members through blockchain technology.",
-      "totalMembers": "Total Members",
-      "activeLevels": "Active Levels",
-      "totalRewards": "Total Rewards Distributed"
+    "trending": {
+      "title": "Trending Now",
+      "subtitle": "Popular DApps in the ecosystem",
+      "users": "users",
+      "tvl": "TVL",
+      "volume": "24h Volume"
     },
     "ecosystem": {
-      "title": "Ecosystem Overview",
-      "description": "Explore the interconnected components of the Beehive platform."
+      "title": "BeeHive Ecosystem",
+      "subtitle": "Native platform services and tools",
+      "membership": {
+        "title": "Membership System",
+        "subtitle": "19-level progression from Warrior to Mythical Peak",
+        "levels": "19 Levels",
+        "members": "Active Members"
+      },
+      "matrix": {
+        "title": "3×3 Matrix",
+        "subtitle": "Decentralized referral and reward system",
+        "structure": "Auto-placement",
+        "rewards": "Instant Rewards"
+      },
+      "education": {
+        "title": "Education Hub",
+        "subtitle": "Web3 learning and skill development",
+        "courses": "Courses",
+        "certificates": "Certificates"
+      }
+    },
+    "networks": {
+      "title": "Supported Networks",
+      "subtitle": "Multi-chain ecosystem support"
+    },
+    "stats": {
+      "title": "Platform Statistics",
+      "totalValue": "Total Value Locked",
+      "transactions": "Total Transactions",
+      "users": "Active Users",
+      "protocols": "Integrated Protocols"
+    },
+    "news": {
+      "title": "Latest News",
+      "subtitle": "Stay updated with Web3 developments",
+      "readMore": "Read More",
+      "minutes": "min read"
     }
   },
   "hiveworld": {
