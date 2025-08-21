@@ -123,15 +123,74 @@
       "bccFree": "BCC（免费）",
       "bccLocked": "BCC（锁定）"
     },
+    "verifying": "验证NFT所有权...",
+    "member": "成员",
+    "nftVerified": "NFT已验证 ✓",
+    "reward": "奖励",
+    "bccBalance": "BCC余额",
+    "nfts": "NFTs",
+    "referralLink": {
+      "title": "您的推荐链接",
+      "hide": "隐藏",
+      "show": "显示",
+      "copied": "已复制！",
+      "copiedDesc": "推荐链接已复制到剪贴板"
+    },
+    "social": {
+      "twitter": "推特",
+      "telegram": "电报",
+      "whatsapp": "微信"
+    },
+    "stats": {
+      "totalRewards": "总奖励",
+      "bccBalance": "BCC余额",
+      "bccLocked": "BCC锁定",
+      "nftsOwned": "拥有的NFTs"
+    },
+    "tokenPurchase": {
+      "bccDescription": "购买BCC代币用于NFT广告和平台功能",
+      "cthDescription": "购买CTH代币用于高级交易和奖励功能"
+    },
+    "globalStats": {
+      "title": "蜂巢全球统计",
+      "totalMembers": "总成员数",
+      "totalRewardsPaid": "总奖励支付",
+      "pendingRewards": "待处理奖励",
+      "highestLevel": "最高等级",
+      "membersByLevel": "按等级分布成员",
+      "members": "成员"
+    },
+    "downlineMatrix": {
+      "title": "您的下线矩阵（19个等级）",
+      "placement": "配置"
+    },
+    "uplineNetwork": {
+      "title": "您的上线网络",
+      "earnings": "收益",
+      "loading": "加载推荐中...",
+      "noReferrals": "尚无直接推荐",
+      "shareMessage": "分享您的推荐链接开始建立您的团队！"
+    },
+    "activity": {
+      "rewardReceived": "奖励已收到",
+      "fromReferralUpgrade": "来自推荐升级",
+      "nftClaimed": "NFT已获取",
+      "merchantNft": "商家NFT #1234",
+      "newReferral": "新推荐",
+      "userJoined": "0x1234...5678 已加入"
+    },
     "quickActions": {
       "tasks": {
-        "description": "使用您的BCC代币浏览和获取商家NFT"
+        "description": "使用您的BCC代币浏览和获取商家NFT",
+        "statValue": "12个可用"
       },
       "education": {
-        "description": "访问课程和学习材料"
+        "description": "访问课程和学习材料",
+        "statValue": "进度：65%"
       },
       "hiveworld": {
-        "description": "查看您的推荐矩阵和奖励"
+        "description": "查看您的推荐矩阵和奖励",
+        "statValue": "3个直接推荐"
       }
     },
     "recentActivity": "最近活动",
