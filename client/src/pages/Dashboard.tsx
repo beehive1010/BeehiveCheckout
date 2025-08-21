@@ -234,7 +234,7 @@ export default function Dashboard() {
     <div className="container mx-auto px-4 py-8">
       {/* Membership Status Card */}
       <Card className="bg-secondary border-border glow-hover mb-8">
-        <CardContent className="p-6">
+        <CardContent className="p-4 md:p-6">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-4">
               <HexagonIcon size="lg">
@@ -263,7 +263,7 @@ export default function Dashboard() {
             </div>
             
             {/* User Centre Button and Balance Display */}
-            <div className="flex flex-col items-end space-y-4">
+            <div className="flex flex-col items-start lg:items-end space-y-4 w-full lg:w-auto">
               <Button
                 onClick={() => setLocation('/me')}
                 className="bg-honey text-black hover:bg-honey/90 font-semibold"
@@ -274,22 +274,22 @@ export default function Dashboard() {
               </Button>
               
               {/* Balance Display */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div className="balance-card">
-                  <p className="text-muted-foreground text-xs">{t('dashboard.reward')}</p>
-                  <p className="text-honey font-bold">{isLoadingUserStats ? '...' : (userStats?.totalEarnings || 0)}</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                <div className="bg-muted/30 rounded-lg p-3 text-center min-w-0">
+                  <p className="text-muted-foreground text-xs mb-1 truncate">{t('dashboard.reward')}</p>
+                  <p className="text-honey font-bold text-sm">{isLoadingUserStats ? '...' : (userStats?.totalEarnings || 0)}</p>
                 </div>
-                <div className="balance-card">
-                  <p className="text-muted-foreground text-xs">{t('dashboard.bccBalance')}</p>
-                  <p className="text-honey font-bold">{bccBalance?.transferable || 0}</p>
+                <div className="bg-muted/30 rounded-lg p-3 text-center min-w-0">
+                  <p className="text-muted-foreground text-xs mb-1 truncate">{t('dashboard.bccBalance')}</p>
+                  <p className="text-honey font-bold text-sm">{bccBalance?.transferable || 0}</p>
                 </div>
-                <div className="balance-card">
-                  <p className="text-muted-foreground text-xs">{t('dashboard.balances.bccLocked')}</p>
-                  <p className="text-honey font-bold">{bccBalance?.restricted || 0}</p>
+                <div className="bg-muted/30 rounded-lg p-3 text-center min-w-0">
+                  <p className="text-muted-foreground text-xs mb-1 truncate">{t('dashboard.balances.bccLocked')}</p>
+                  <p className="text-honey font-bold text-sm">{bccBalance?.restricted || 0}</p>
                 </div>
-                <div className="balance-card">
-                  <p className="text-muted-foreground text-xs">{t('dashboard.nfts')}</p>
-                  <p className="text-honey font-bold">{isLoadingUserStats ? '...' : 0}</p>
+                <div className="bg-muted/30 rounded-lg p-3 text-center min-w-0">
+                  <p className="text-muted-foreground text-xs mb-1 truncate">{t('dashboard.nfts')}</p>
+                  <p className="text-honey font-bold text-sm">{isLoadingUserStats ? '...' : 0}</p>
                 </div>
               </div>
             </div>
