@@ -22,18 +22,20 @@ const languageOptions = [
 ];
 
 const I18nProvider = ({ children }: { children: React.ReactNode }) => {
-  const [language, setLanguageState] = useState<Language>(() => {
+  const [language, setLanguageState] = useState<Language>('en');
+
+  // Initialize language from localStorage after component mounts
+  useEffect(() => {
     const saved = localStorage.getItem('beehive-language');
-    // Validate the saved language exists in our translations
     const validLanguages: Language[] = ['en', 'zh', 'th', 'ms', 'ko', 'ja'];
     if (saved && validLanguages.includes(saved as Language)) {
-      return saved as Language;
+      setLanguageState(saved as Language);
+    } else {
+      // Default to English and clear invalid stored language
+      localStorage.setItem('beehive-language', 'en');
+      setLanguageState('en');
     }
-    // Default to English and clear invalid stored language
-    localStorage.setItem('beehive-language', 'en');
-    return 'en';
-  });
-
+  }, []);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
@@ -41,25 +43,30 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const t = (key: string): string => {
-    const keys = key.split('.');
-    let value: any = translations[language];
-    
-    for (const k of keys) {
-      value = value?.[k];
-    }
-    
-    // If translation not found in current language, try English as fallback
-    if (!value && language !== 'en') {
-      let englishValue: any = translations.en;
+    try {
+      const keys = key.split('.');
+      let value: any = translations[language];
+      
       for (const k of keys) {
-        englishValue = englishValue?.[k];
+        value = value?.[k];
       }
-      if (englishValue) {
-        return englishValue;
+      
+      // If translation not found in current language, try English as fallback
+      if (!value && language !== 'en') {
+        let englishValue: any = translations.en;
+        for (const k of keys) {
+          englishValue = englishValue?.[k];
+        }
+        if (englishValue) {
+          return englishValue;
+        }
       }
+      
+      return value || key;
+    } catch (error) {
+      console.error('Translation error:', error, key);
+      return key;
     }
-    
-    return value || key;
   };
 
   const value = {
