@@ -59,6 +59,18 @@ export const authConfig = {
   async doLogin(params: any) {
     // Call backend to verify the signed payload
     try {
+      console.log('doLogin called with params:', params);
+      
+      // Validate required fields
+      if (!params.address || !params.signature || !params.message) {
+        console.error('Missing required auth fields:', {
+          address: !!params.address,
+          signature: !!params.signature,
+          message: !!params.message
+        });
+        throw new Error('Missing required authentication fields');
+      }
+      
       const response = await fetch('/api/auth/verify-signature', {
         method: 'POST',
         headers: {
@@ -73,11 +85,17 @@ export const authConfig = {
       
       if (response.ok) {
         const data = await response.json();
+        console.log('Authentication successful:', data);
         // Store auth token or session info
         localStorage.setItem('beehive-auth-token', data.token);
+      } else {
+        const errorData = await response.json();
+        console.error('Authentication failed:', errorData);
+        throw new Error(errorData.error || 'Authentication failed');
       }
     } catch (error) {
       console.error('Login verification failed:', error);
+      throw error; // Re-throw to ensure Thirdweb handles the error
     }
   },
   
@@ -102,6 +120,13 @@ export const authConfig = {
   async getLoginPayload(params: any) {
     // Call backend and return the payload for signing
     try {
+      console.log('getLoginPayload called with params:', params);
+      
+      if (!params.address) {
+        console.error('No address provided for login payload');
+        throw new Error('Wallet address is required');
+      }
+      
       const response = await fetch('/api/auth/login-payload', {
         method: 'POST',
         headers: {
@@ -114,13 +139,16 @@ export const authConfig = {
       
       if (response.ok) {
         const data = await response.json();
+        console.log('Login payload received:', data.payload);
         return data.payload;
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to get login payload:', errorData);
+        throw new Error(errorData.error || 'Failed to get login payload');
       }
-      
-      return null;
     } catch (error) {
       console.error('Failed to get login payload:', error);
-      return null;
+      throw error; // Re-throw to ensure Thirdweb handles the error
     }
   },
   
