@@ -12,7 +12,17 @@ import { AcademicCapIcon, UsersIcon, Cog6ToothIcon } from '@heroicons/react/24/o
 import { IconActivity } from '@tabler/icons-react';
 
 export default function Me() {
-  const { userData, walletAddress, currentLevel, bccBalance } = useWallet();
+  const { 
+    userData, 
+    walletAddress, 
+    currentLevel, 
+    bccBalance, 
+    cthBalance, 
+    userActivity, 
+    isActivityLoading,
+    userBalances,
+    isBalancesLoading 
+  } = useWallet();
   const { t, language } = useI18n();
 
   const formatAddress = (address: string) => {
@@ -39,7 +49,10 @@ export default function Me() {
           <div className="flex flex-col lg:flex-row items-start lg:items-center space-y-4 lg:space-y-0 lg:space-x-6">
             <HexagonIcon size="xl">
               <img 
-                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=96&h=96" 
+                src={userData?.user?.ipfsHash 
+                  ? `https://ipfs.io/ipfs/${userData.user.ipfsHash}` 
+                  : `https://api.dicebear.com/7.x/shapes/svg?seed=${walletAddress || 'default'}`
+                } 
                 alt="Profile Avatar" 
                 className="w-20 h-20 rounded-full" 
               />
@@ -84,7 +97,9 @@ export default function Me() {
         <Card className="bg-secondary border-border text-center">
           <CardContent className="p-6">
             <i className="fas fa-dollar-sign text-green-400 text-2xl mb-3"></i>
-            <div className="text-2xl font-bold text-honey">245.50</div>
+            <div className="text-2xl font-bold text-honey">
+              {isBalancesLoading ? '...' : (userBalances?.usdt?.toFixed(2) || '0.00')}
+            </div>
             <div className="text-muted-foreground text-sm">{t('me.balances.usdt')}</div>
           </CardContent>
         </Card>
@@ -108,7 +123,9 @@ export default function Me() {
         <Card className="bg-secondary border-border text-center">
           <CardContent className="p-6">
             <i className="fas fa-gem text-purple-400 text-2xl mb-3"></i>
-            <div className="text-2xl font-bold text-honey">42</div>
+            <div className="text-2xl font-bold text-honey">
+              {cthBalance?.balance || 0}
+            </div>
             <div className="text-muted-foreground text-sm">{t('me.balances.cth')}</div>
           </CardContent>
         </Card>
@@ -164,45 +181,74 @@ export default function Me() {
             Recent Activity
           </h3>
           <div className="space-y-3">
-            {[
-              {
-                icon: 'fas fa-gift',
-                type: 'Reward Received',
-                description: 'From referral upgrade',
-                amount: '+100 USDT',
-                color: 'text-green-400'
-              },
-              {
-                icon: 'fas fa-shopping-cart',
-                type: 'NFT Claimed',
-                description: 'Merchant NFT #1234',
-                amount: '-50 BCC',
-                color: 'text-muted-foreground'
-              },
-              {
-                icon: 'fas fa-user-plus',
-                type: 'New Referral',
-                description: '0x1234...5678 joined',
-                amount: 'Active',
-                color: 'text-green-400'
-              }
-            ].map((activity, index) => (
-              <div 
-                key={index}
-                className="flex items-center justify-between py-2 border-b border-border last:border-b-0"
-              >
-                <div className="flex items-center space-x-3">
-                  <i className={`${activity.icon} text-honey-dark`}></i>
-                  <div>
-                    <p className="text-honey text-sm font-medium">{activity.type}</p>
-                    <p className="text-muted-foreground text-xs">{activity.description}</p>
-                  </div>
-                </div>
-                <span className={`font-semibold ${activity.color}`}>
-                  {activity.amount}
-                </span>
+            {isActivityLoading ? (
+              <div className="flex justify-center py-4">
+                <div className="text-muted-foreground">Loading activity...</div>
               </div>
-            ))}
+            ) : userActivity.length === 0 ? (
+              <div className="text-center py-4 text-muted-foreground">
+                No recent activity
+              </div>
+            ) : (
+              userActivity.slice(0, 10).map((activity: any) => {
+                const getActivityIcon = (type: string) => {
+                  switch (type) {
+                    case 'reward': return 'fas fa-gift';
+                    case 'nft_purchase': return 'fas fa-shopping-cart';  
+                    case 'token_purchase': return 'fas fa-coins';
+                    case 'membership': return 'fas fa-star';
+                    default: return 'fas fa-circle';
+                  }
+                };
+
+                const getActivityColor = (type: string, amount?: string) => {
+                  if (amount?.startsWith('+')) return 'text-green-400';
+                  if (amount?.startsWith('-')) return 'text-muted-foreground';
+                  return 'text-honey';
+                };
+
+                return (
+                  <div 
+                    key={activity.id}
+                    className="flex items-center justify-between py-2 border-b border-border last:border-b-0"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <i className={`${getActivityIcon(activity.type)} text-honey-dark`}></i>
+                      <div>
+                        <p className="text-honey text-sm font-medium">
+                          {activity.type === 'reward' ? 'Reward Received' :
+                           activity.type === 'nft_purchase' ? 'NFT Purchase' :
+                           activity.type === 'token_purchase' ? 'Token Purchase' :
+                           activity.type === 'membership' ? 'Membership Purchase' :
+                           activity.description}
+                        </p>
+                        <p className="text-muted-foreground text-xs">
+                          {activity.description}
+                          {activity.timestamp && (
+                            <span className="ml-2">
+                              • {formatDate(activity.timestamp)}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    {activity.amount && (
+                      <span className={`font-semibold text-sm ${getActivityColor(activity.type, activity.amount)}`}>
+                        {activity.amount}
+                      </span>
+                    )}
+                    {activity.status && (
+                      <Badge 
+                        variant={activity.status === 'completed' ? 'default' : 'secondary'}
+                        className={activity.status === 'completed' ? 'bg-green-600' : ''}
+                      >
+                        {activity.status}
+                      </Badge>
+                    )}
+                  </div>
+                );
+              })
+            )}
           </div>
         </CardContent>
       </Card>

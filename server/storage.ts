@@ -151,6 +151,22 @@ export interface IStorage {
   getCTHBalance(walletAddress: string): Promise<CTHBalance | undefined>;
   createCTHBalance(balance: InsertCTHBalance): Promise<CTHBalance>;
   updateCTHBalance(walletAddress: string, updates: Partial<CTHBalance>): Promise<CTHBalance | undefined>;
+
+  // User Activity operations
+  getUserActivity(walletAddress: string, limit?: number): Promise<Array<{
+    id: string;
+    type: 'reward' | 'purchase' | 'nft_purchase' | 'token_purchase' | 'membership';
+    description: string;
+    amount?: string;
+    timestamp: Date;
+    status?: string;
+  }>>;
+  getUserBalances(walletAddress: string): Promise<{
+    usdt?: number;
+    bccTransferable: number;
+    bccRestricted: number;
+    cth: number;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -346,14 +362,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMembershipState(membership: InsertMembershipState): Promise<MembershipState> {
-    const insertData = {
-      walletAddress: membership.walletAddress.toLowerCase(),
-      levelsOwned: membership.levelsOwned || [],
-      activeLevel: membership.activeLevel || 0,
-    };
     const [state] = await db
       .insert(membershipState)
-      .values(insertData)
+      .values({
+        walletAddress: membership.walletAddress.toLowerCase(),
+        levelsOwned: membership.levelsOwned || [],
+        activeLevel: membership.activeLevel || 0,
+      })
       .returning();
     return state;
   }
@@ -982,16 +997,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(advertisementNFTs.id, nftId));
   }
 
-  // BeeHive System Methods
-
-  // Earnings Wallet Operations  
-  async getEarningsWalletByWallet(walletAddress: string): Promise<any> {
-    const result = await db.execute(sql`
-      SELECT * FROM earnings_wallet 
-      WHERE wallet_address = ${walletAddress.toLowerCase()}
-    `);
-    return result.rows[0] || null;
-  }
 
   async createEarningsWallet(data: any): Promise<any> {
     const result = await db.execute(sql`
@@ -1037,12 +1042,8 @@ export class DatabaseStorage implements IStorage {
 
     if (setParts.length === 0) return null;
 
-    const result = await db.execute(sql.raw(`
-      UPDATE earnings_wallet 
-      SET ${setParts.join(', ')} 
-      WHERE wallet_address = $1 
-      RETURNING *
-    `, values));
+    const queryStr = `UPDATE earnings_wallet SET ${setParts.join(', ')} WHERE wallet_address = $1 RETURNING *`;
+    const result = await db.execute(sql.raw(queryStr, values));
     
     return result.rows[0];
   }
@@ -1093,49 +1094,16 @@ export class DatabaseStorage implements IStorage {
     return {
       totalMembers: parseInt(totalMembersResult.rows[0]?.total_members || '0'),
       levelDistribution: levelDistributionResult.rows.map(row => {
-        const config = levelConfigs.find(cfg => cfg.level === parseInt(row.active_level));
+        const config = levelConfigs.find(cfg => cfg.level === parseInt(row.active_level as string));
         return {
-          level: parseInt(row.active_level),
+          level: parseInt(row.active_level as string),
           levelName: config?.levelName || `Level ${row.active_level}`,
-          count: parseInt(row.count)
+          count: parseInt(row.count as string)
         };
       })
     };
   }
 
-  // BeeHive Reward Processing (adapted for existing database structure)
-  async processReferralRewards(buyerWallet: string, level: number): Promise<void> {
-    try {
-      const buyer = await this.getUser(buyerWallet);
-      if (!buyer?.referrerWallet) return;
-
-      // Level 1 - Instant 100 USDT reward
-      if (level === 1) {
-        await this.addEarningsReward(buyer.referrerWallet, 100, 'referral');
-        return;
-      }
-
-      // Level 2+ - Check if sponsor has the level, if not pass up
-      const sponsorMembership = await this.getMembershipState(buyer.referrerWallet);
-      const sponsorHasLevel = sponsorMembership?.levelsOwned?.includes(level);
-
-      if (sponsorHasLevel) {
-        // Sponsor qualifies - add to pending rewards with timer
-        const levelConfig = await this.getLevelConfig(level);
-        if (levelConfig) {
-          await this.addEarningsReward(buyer.referrerWallet, levelConfig.rewardAmount, 'level', true);
-        }
-      } else {
-        // Pass up using existing parent_wallet structure
-        const sponsorNode = await this.getReferralNode(buyer.referrerWallet);
-        if (sponsorNode?.parent_wallet) {
-          await this.processReferralRewards(buyerWallet, level);
-        }
-      }
-    } catch (error) {
-      console.error('Process referral rewards error:', error);
-    }
-  }
 
   async addEarningsReward(walletAddress: string, amount: number, type: string, isPending = false): Promise<void> {
     let earnings = await this.getEarningsWalletByWallet(walletAddress);
@@ -1176,7 +1144,7 @@ export class DatabaseStorage implements IStorage {
       const totalMembersResult = await db.execute(sql`
         SELECT COUNT(*) as total FROM users WHERE member_activated = true
       `);
-      const totalMembers = Number(totalMembersResult[0]?.total || 0);
+      const totalMembers = Number(totalMembersResult.rows[0]?.total || 0);
 
       // Members by level
       const levelDistributionResult = await db.execute(sql`
@@ -1194,7 +1162,7 @@ export class DatabaseStorage implements IStorage {
       // Pending rewards - simplified for now  
       const pendingRewards = 0; // Will be calculated from actual pending data later
 
-      const levelDistribution = Array.from(levelDistributionResult).map((row: any) => ({
+      const levelDistribution = levelDistributionResult.rows.map((row: any) => ({
         level: Number(row.active_level),
         count: Number(row.count)
       }));
@@ -1250,7 +1218,7 @@ export class DatabaseStorage implements IStorage {
         LIMIT 10
       `);
 
-      const directReferralsList = Array.from(directReferralsResult).map((row: any) => ({
+      const directReferralsList = directReferralsResult.rows.map((row: any) => ({
         walletAddress: row.wallet_address,
         username: row.username,
         level: row.current_level,
@@ -1281,7 +1249,7 @@ export class DatabaseStorage implements IStorage {
             WHERE current_level = ${level}
           `);
 
-          const memberCount = Number(levelMembersResult[0]?.member_count || 0);
+          const memberCount = Number(levelMembersResult.rows[0]?.member_count || 0);
           
           // Count total placements at this level (matrix positions filled)
           const placementResult = await db.execute(sql`
@@ -1302,7 +1270,7 @@ export class DatabaseStorage implements IStorage {
             WHERE depth = ${level}
           `);
 
-          const placementCount = Number(placementResult[0]?.placement_count || 0);
+          const placementCount = Number(placementResult.rows[0]?.placement_count || 0);
 
           downlineMatrix.push({
             level,
@@ -1400,6 +1368,140 @@ export class DatabaseStorage implements IStorage {
       .where(eq(cthBalances.walletAddress, walletAddress.toLowerCase()))
       .returning();
     return balance || undefined;
+  }
+
+  // User Activity operations
+  async getUserActivity(walletAddress: string, limit = 50): Promise<Array<{
+    id: string;
+    type: 'reward' | 'purchase' | 'nft_purchase' | 'token_purchase' | 'membership';
+    description: string;
+    amount?: string;
+    timestamp: Date;
+    status?: string;
+  }>> {
+    const activities: Array<{
+      id: string;
+      type: 'reward' | 'purchase' | 'nft_purchase' | 'token_purchase' | 'membership';
+      description: string;
+      amount?: string;
+      timestamp: Date;
+      status?: string;
+    }> = [];
+
+    try {
+      // Get earnings/rewards
+      const earnings = await db.select()
+        .from(earningsWallet)
+        .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()))
+        .orderBy(desc(earningsWallet.createdAt))
+        .limit(limit);
+
+      earnings.forEach(earning => {
+        activities.push({
+          id: earning.id,
+          type: 'reward',
+          description: earning.rewardType === 'instant_referral' 
+            ? 'Referral bonus received' 
+            : earning.rewardType === 'level_reward'
+            ? 'Level reward received'
+            : 'Reward received',
+          amount: `+${(earning.amount / 100).toFixed(2)} USDT`,
+          timestamp: earning.createdAt,
+          status: earning.status
+        });
+      });
+
+      // Get NFT purchases
+      const userNftPurchases = await db.select({
+        id: nftPurchases.id,
+        amountBCC: nftPurchases.amountBCC,
+        createdAt: nftPurchases.createdAt,
+        nftTitle: merchantNFTs.title
+      })
+        .from(nftPurchases)
+        .leftJoin(merchantNFTs, eq(nftPurchases.nftId, merchantNFTs.id))
+        .where(eq(nftPurchases.walletAddress, walletAddress.toLowerCase()))
+        .orderBy(desc(nftPurchases.createdAt))
+        .limit(limit);
+
+      userNftPurchases.forEach((purchase: any) => {
+        activities.push({
+          id: purchase.id,
+          type: 'nft_purchase',
+          description: `Purchased NFT: ${purchase.nftTitle || 'Unknown NFT'}`,
+          amount: `-${purchase.amountBCC} BCC`,
+          timestamp: purchase.createdAt
+        });
+      });
+
+      // Get token purchases
+      const userTokenPurchases = await db.select()
+        .from(tokenPurchases)
+        .where(eq(tokenPurchases.walletAddress, walletAddress.toLowerCase()))
+        .orderBy(desc(tokenPurchases.createdAt))
+        .limit(limit);
+
+      userTokenPurchases.forEach((purchase: any) => {
+        activities.push({
+          id: purchase.id,
+          type: 'token_purchase',
+          description: `Purchased ${purchase.tokenAmount} ${purchase.tokenType} tokens`,
+          amount: `${(purchase.usdtAmount / 100).toFixed(2)} USDT`,
+          timestamp: purchase.createdAt,
+          status: purchase.status
+        });
+      });
+
+      // Get membership purchases/orders
+      const userOrders = await db.select()
+        .from(orders)
+        .where(eq(orders.walletAddress, walletAddress.toLowerCase()))
+        .orderBy(desc(orders.createdAt))
+        .limit(limit);
+
+      userOrders.forEach((order: any) => {
+        activities.push({
+          id: order.id,
+          type: 'membership',
+          description: `Level ${order.level} membership purchase`,
+          amount: `${(order.amountUSDT / 100).toFixed(2)} USDT`,
+          timestamp: order.createdAt,
+          status: order.status
+        });
+      });
+
+      // Sort all activities by timestamp and limit
+      activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+      return activities.slice(0, limit);
+    } catch (error) {
+      console.error('Error getting user activity:', error);
+      return [];
+    }
+  }
+
+  async getUserBalances(walletAddress: string): Promise<{
+    usdt?: number;
+    bccTransferable: number;
+    bccRestricted: number;
+    cth: number;
+  }> {
+    try {
+      const bccBalance = await this.getBCCBalance(walletAddress);
+      const cthBalance = await this.getCTHBalance(walletAddress);
+
+      return {
+        bccTransferable: bccBalance?.transferable || 0,
+        bccRestricted: bccBalance?.restricted || 0,
+        cth: cthBalance?.balance || 0
+      };
+    } catch (error) {
+      console.error('Error getting user balances:', error);
+      return {
+        bccTransferable: 0,
+        bccRestricted: 0,
+        cth: 0
+      };
+    }
   }
 }
 
