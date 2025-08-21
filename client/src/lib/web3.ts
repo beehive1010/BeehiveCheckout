@@ -157,7 +157,54 @@ export const contractAddresses = {
     optimism: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
     alphaCentauri: '0x1234567890123456789012345678901234567893',
   },
+  // Bridge wallet addresses for receiving USDT payments
+  BRIDGE_WALLETS: {
+    ethereum: import.meta.env.VITE_BRIDGE_WALLET_ETH || '0x1234567890123456789012345678901234567894',
+    polygon: import.meta.env.VITE_BRIDGE_WALLET_POLYGON || '0x1234567890123456789012345678901234567895',
+    arbitrum: import.meta.env.VITE_BRIDGE_WALLET_ARB || '0x1234567890123456789012345678901234567896',
+    optimism: import.meta.env.VITE_BRIDGE_WALLET_OP || '0x1234567890123456789012345678901234567897',
+  },
 };
+
+// Supported chains for USDT payments
+export const paymentChains = [
+  { 
+    chain: ethereum, 
+    name: 'Ethereum', 
+    symbol: 'ETH',
+    usdtAddress: contractAddresses.USDT.ethereum,
+    bridgeWallet: contractAddresses.BRIDGE_WALLETS.ethereum,
+    icon: 'fab fa-ethereum',
+    color: 'text-blue-400'
+  },
+  { 
+    chain: polygon, 
+    name: 'Polygon', 
+    symbol: 'MATIC',
+    usdtAddress: contractAddresses.USDT.polygon,
+    bridgeWallet: contractAddresses.BRIDGE_WALLETS.polygon,
+    icon: 'fas fa-hexagon',
+    color: 'text-purple-400'
+  },
+  { 
+    chain: arbitrum, 
+    name: 'Arbitrum', 
+    symbol: 'ARB',
+    usdtAddress: contractAddresses.USDT.arbitrum,
+    bridgeWallet: contractAddresses.BRIDGE_WALLETS.arbitrum,
+    icon: 'fas fa-circle',
+    color: 'text-blue-300'
+  },
+  { 
+    chain: optimism, 
+    name: 'Optimism', 
+    symbol: 'OP',
+    usdtAddress: contractAddresses.USDT.optimism,
+    bridgeWallet: contractAddresses.BRIDGE_WALLETS.optimism,
+    icon: 'fas fa-circle',
+    color: 'text-red-400'
+  },
+];
 
 // Helper function to convert membership level to token ID
 // Level 1 = Token ID 0, Level 2 = Token ID 1, ..., Level 18 = Token ID 17

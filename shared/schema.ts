@@ -224,3 +224,40 @@ export type Course = typeof courses.$inferSelect;
 
 export type InsertCourseAccess = z.infer<typeof insertCourseAccessSchema>;
 export type CourseAccess = typeof courseAccess.$inferSelect;
+
+// Bridge Payment Tracking Table
+export const bridgePayments = pgTable("bridge_payments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  walletAddress: varchar("wallet_address").notNull(),
+  sourceChain: varchar("source_chain").notNull(), // ethereum, polygon, arbitrum, optimism
+  sourceTxHash: varchar("source_tx_hash").notNull().unique(),
+  targetChain: varchar("target_chain").notNull().default("alpha-centauri"),
+  targetTxHash: varchar("target_tx_hash"),
+  usdtAmount: varchar("usdt_amount").notNull(),
+  membershipLevel: integer("membership_level").notNull(),
+  status: varchar("status").notNull().default("pending"), // pending, verified, minted, failed
+  bridgeWallet: varchar("bridge_wallet").notNull(),
+  nftTokenId: varchar("nft_token_id"),
+  verifiedAt: timestamp("verified_at"),
+  mintedAt: timestamp("minted_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertBridgePaymentSchema = createInsertSchema(bridgePayments).pick({
+  walletAddress: true,
+  sourceChain: true,
+  sourceTxHash: true,
+  targetChain: true,
+  targetTxHash: true,
+  usdtAmount: true,
+  membershipLevel: true,
+  status: true,
+  bridgeWallet: true,
+  nftTokenId: true,
+  verifiedAt: true,
+  mintedAt: true,
+});
+
+export type InsertBridgePayment = z.infer<typeof insertBridgePaymentSchema>;
+export type BridgePayment = typeof bridgePayments.$inferSelect;
