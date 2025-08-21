@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { createThirdwebClient } from 'thirdweb';
-import { ThirdwebProvider, useActiveAccount, useConnect } from 'thirdweb/react';
-import { createWallet } from 'thirdweb/wallets';
+import { ThirdwebProvider, useActiveAccount } from 'thirdweb/react';
 
 const client = createThirdwebClient({
   clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || "3123b1ac2ebdb966dd415c6e964dc335"
@@ -12,15 +11,12 @@ interface Web3ContextType {
   account: any;
   isConnected: boolean;
   walletAddress: string | null;
-  connectWallet: () => Promise<void>;
-  disconnectWallet: () => void;
 }
 
 const Web3Context = createContext<Web3ContextType | undefined>(undefined);
 
 function Web3ContextProvider({ children }: { children: React.ReactNode }) {
   const account = useActiveAccount();
-  const { connect } = useConnect();
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
@@ -34,36 +30,11 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     }
   }, [account]);
 
-  const connectWallet = async () => {
-    try {
-      // Check if MetaMask is available
-      if (typeof window.ethereum === 'undefined') {
-        alert('Please install MetaMask to connect your wallet');
-        return;
-      }
-
-      const wallet = createWallet("io.metamask");
-      const result = await connect(wallet);
-      console.log("Wallet connected successfully:", result);
-    } catch (error) {
-      console.error("Failed to connect wallet:", error);
-      alert('Failed to connect wallet. Please try again or check if MetaMask is installed.');
-    }
-  };
-
-  const disconnectWallet = () => {
-    // Handle disconnect logic
-    setIsConnected(false);
-    setWalletAddress(null);
-  };
-
   const value = {
     client,
     account,
     isConnected,
     walletAddress,
-    connectWallet,
-    disconnectWallet,
   };
 
   return (

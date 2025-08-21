@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '../lib/queryClient';
 
 export function useWallet() {
-  const { isConnected, walletAddress, connectWallet, disconnectWallet } = useWeb3();
+  const { isConnected, walletAddress } = useWeb3();
   const queryClient = useQueryClient();
 
   // Get user data including membership state
@@ -79,8 +79,6 @@ export function useWallet() {
     // Wallet connection
     isConnected,
     walletAddress,
-    connectWallet,
-    disconnectWallet,
     
     // User state
     userData,

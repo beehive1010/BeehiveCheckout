@@ -7,7 +7,7 @@ import { Card, CardContent } from '../components/ui/card';
 import HexagonIcon from '../components/UI/HexagonIcon';
 
 export default function Landing() {
-  const { isConnected, isRegistered, isActivated, connectWallet } = useWallet();
+  const { isConnected, isRegistered, isActivated } = useWallet();
   const { t } = useI18n();
   const [, setLocation] = useLocation();
 
@@ -31,7 +31,8 @@ export default function Landing() {
 
   const handleGetStarted = async () => {
     if (!isConnected) {
-      await connectWallet();
+      // ConnectButton will handle wallet connection
+      console.log('Please use Connect Wallet button');
     }
   };
 
