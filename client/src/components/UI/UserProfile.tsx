@@ -56,7 +56,7 @@ export default function UserProfile() {
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 rounded-full w-full sm:w-auto text-sm sm:text-base"
           data-testid="button-user-center"
         >
-          <span className="sm:hidden">{t('userProfile.center')}</span>
+          <span className="sm:hidden">{t('userProfile.userCenter')}</span>
           <span className="hidden sm:inline">{t('userProfile.userCenter')}</span>
         </Button>
       </div>
