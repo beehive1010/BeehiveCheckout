@@ -10,7 +10,9 @@ import {
   merchantNFTs,
   nftPurchases,
   courses,
+  courseLessons,
   courseAccess,
+  lessonAccess,
   bridgePayments,
   advertisementNFTs,
   advertisementNFTClaims,
@@ -36,8 +38,12 @@ import {
   type InsertNFTPurchase,
   type Course,
   type InsertCourse,
+  type CourseLesson,
+  type InsertCourseLesson,
   type CourseAccess,
   type InsertCourseAccess,
+  type LessonAccess,
+  type InsertLessonAccess,
   type BridgePayment,
   type InsertBridgePayment,
   type AdvertisementNFT,
@@ -127,12 +133,16 @@ export interface IStorage {
   getCourses(): Promise<Course[]>;
   getCourse(id: string): Promise<Course | undefined>;
   createCourse(course: InsertCourse): Promise<Course>;
+  getCourseLessons(courseId: string): Promise<CourseLesson[]>;
 
   // Course Access operations
   getCourseAccess(walletAddress: string, courseId: string): Promise<CourseAccess | undefined>;
   getCourseAccessByWallet(walletAddress: string): Promise<CourseAccess[]>;
   createCourseAccess(access: InsertCourseAccess): Promise<CourseAccess>;
   updateCourseAccess(walletAddress: string, courseId: string, updates: Partial<CourseAccess>): Promise<CourseAccess | undefined>;
+
+  // Lesson Access operations
+  getLessonAccessByCourse(walletAddress: string, courseId: string): Promise<LessonAccess[]>;
 
   // Bridge payment operations
   createBridgePayment(bridgePayment: InsertBridgePayment): Promise<BridgePayment>;
@@ -852,6 +862,12 @@ export class DatabaseStorage implements IStorage {
     return course;
   }
 
+  async getCourseLessons(courseId: string): Promise<CourseLesson[]> {
+    return await db.select().from(courseLessons)
+      .where(eq(courseLessons.courseId, courseId))
+      .orderBy(courseLessons.lessonOrder);
+  }
+
   // Course Access operations
   async getCourseAccess(walletAddress: string, courseId: string): Promise<CourseAccess | undefined> {
     const [access] = await db.select().from(courseAccess).where(
@@ -890,6 +906,17 @@ export class DatabaseStorage implements IStorage {
       )
       .returning();
     return access || undefined;
+  }
+
+  // Lesson Access operations
+  async getLessonAccessByCourse(walletAddress: string, courseId: string): Promise<LessonAccess[]> {
+    return await db.select().from(lessonAccess)
+      .where(
+        and(
+          eq(lessonAccess.walletAddress, walletAddress.toLowerCase()),
+          eq(lessonAccess.courseId, courseId)
+        )
+      );
   }
 
   // Bridge Payment Methods
