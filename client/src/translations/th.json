@@ -220,7 +220,19 @@
       "totalRewardsPaid": "รางวัลที่จ่ายทั้งหมด",
       "pendingRewards": "รางวัลที่รอดำเนินการ",
       "highestLevel": "ระดับสูงสุด",
-      "membersByLevel": "สมาชิกตามระดับ"
+      "membersByLevel": "สมาชิกตามระดับ",
+      "members": "สมาชิก"
+    },
+    "uplineNetwork": {
+      "title": "เครือข่ายอัพไลน์",
+      "earnings": "รายได้",
+      "loading": "กำลังโหลดข้อมูลเครือข่าย...",
+      "noReferrals": "ไม่มีข้อมูลการแนะนำ",
+      "shareMessage": "แชร์ลิงก์แนะนำของคุณเพื่อขยายเครือข่าย"
+    },
+    "downlineMatrix": {
+      "title": "เมทริกซ์ดาวน์ไลน์",
+      "placement": "ตำแหน่ง"
     }
   },
   "tasks": {

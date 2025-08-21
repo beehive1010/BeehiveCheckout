@@ -199,7 +199,19 @@
       "totalRewardsPaid": "总奖励支付",
       "pendingRewards": "待处理奖励",
       "highestLevel": "最高等级",
-      "membersByLevel": "按等级分布成员"
+      "membersByLevel": "按等级分布成员",
+      "members": "成员"
+    },
+    "uplineNetwork": {
+      "title": "上线网络",
+      "earnings": "收益",
+      "loading": "加载网络数据中...",
+      "noReferrals": "暂无推荐数据",
+      "shareMessage": "分享您的推荐链接来发展网络"
+    },
+    "downlineMatrix": {
+      "title": "下线矩阵",
+      "placement": "位置"
     }
   },
   "membership": {

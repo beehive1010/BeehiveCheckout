@@ -245,7 +245,19 @@
       "totalRewardsPaid": "Total Rewards Paid",
       "pendingRewards": "Pending Rewards",
       "highestLevel": "Highest Level",
-      "membersByLevel": "Members by Level"
+      "membersByLevel": "Members by Level",
+      "members": "Members"
+    },
+    "uplineNetwork": {
+      "title": "Upline Network",
+      "earnings": "Earnings",
+      "loading": "Loading network data...",
+      "noReferrals": "No referral data available",
+      "shareMessage": "Share your referral link to grow your network"
+    },
+    "downlineMatrix": {
+      "title": "Downline Matrix",
+      "placement": "Placement"
     }
   },
   "tasks": {

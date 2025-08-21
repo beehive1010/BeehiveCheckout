@@ -243,7 +243,19 @@
       "totalRewardsPaid": "Jumlah Ganjaran Dibayar",
       "pendingRewards": "Ganjaran Tertangguh",
       "highestLevel": "Tahap Tertinggi",
-      "membersByLevel": "Ahli Mengikut Tahap"
+      "membersByLevel": "Ahli Mengikut Tahap",
+      "members": "Ahli"
+    },
+    "uplineNetwork": {
+      "title": "Rangkaian Upline",
+      "earnings": "Pendapatan",
+      "loading": "Memuatkan data rangkaian...",
+      "noReferrals": "Tiada data rujukan",
+      "shareMessage": "Kongsikan pautan rujukan anda untuk mengembangkan rangkaian"
+    },
+    "downlineMatrix": {
+      "title": "Matriks Downline",
+      "placement": "Penempatan"
     }
   },
   "tasks": {

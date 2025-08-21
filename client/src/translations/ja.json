@@ -231,7 +231,19 @@
       "totalRewardsPaid": "支払済み報酬総額",
       "pendingRewards": "保留中の報酬",
       "highestLevel": "最高レベル",
-      "membersByLevel": "レベル別メンバー数"
+      "membersByLevel": "レベル別メンバー数",
+      "members": "メンバー"
+    },
+    "uplineNetwork": {
+      "title": "アップラインネットワーク",
+      "earnings": "収益",
+      "loading": "ネットワークデータを読み込み中...",
+      "noReferrals": "紹介データがありません",
+      "shareMessage": "紹介リンクを共有してネットワークを拡大"
+    },
+    "downlineMatrix": {
+      "title": "ダウンラインマトリックス",
+      "placement": "配置"
     }
   },
   "tasks": {
