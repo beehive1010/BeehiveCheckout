@@ -83,7 +83,7 @@ export default function Registration() {
             title: t('registration.success.title'),
             description: t('registration.success.description'),
           });
-          setLocation('/dashboard');
+          setLocation('/welcome');
         },
         onError: (error: any) => {
           toast({
