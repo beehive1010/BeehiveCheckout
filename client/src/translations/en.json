@@ -121,9 +121,18 @@
     }
   },
   "dashboard": {
+    "nftRequired": {
+      "title": "NFT Access Required",
+      "description": "You need to own a Level 1 Membership NFT (Token ID 0) to access the dashboard.",
+      "requiredNft": "Required NFT",
+      "level1Warrior": "Level 1 Warrior",
+      "tokenId": "Token ID",
+      "getButton": "Get Level 1 NFT"
+    },
     "welcome": {
       "title": "Welcome to Beehive!",
-      "description": "Activate your Level 1 membership to unlock all platform features and start earning rewards."
+      "description": "Activate your Level 1 membership to unlock all platform features and start earning rewards.",
+      "subtitle": "Start exploring the platform and building your Web3 presence."
     },
     "membershipLevel": "Membership Level",
     "price": "Price",
@@ -367,20 +376,6 @@
       "tokenId": "Token ID: 0",
       "price": "Price",
       "priceAmount": "130 USDT"
-    }
-  },
-  "dashboard": {
-    "nftRequired": {
-      "title": "NFT Access Required",
-      "description": "You need to own a Level 1 Membership NFT (Token ID 0) to access the dashboard.",
-      "requiredNft": "Required NFT",
-      "level1Warrior": "Level 1 Warrior",
-      "tokenId": "Token ID",
-      "getButton": "Get Level 1 NFT"
-    },
-    "welcome": {
-      "title": "Welcome to Your Dashboard!",
-      "subtitle": "Start exploring the platform and building your Web3 presence."
     }
   },
   "nftCenter": {
