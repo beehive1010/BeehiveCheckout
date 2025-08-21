@@ -275,11 +275,11 @@ export default function TokenPurchase() {
                 {createPurchaseMutation.isPending ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Creating Purchase...
+                    {t('tokenPurchase.buttons.creating')}
                   </>
                 ) : (
                   <>
-                    Purchase {tokenAmount} {tokenType} Tokens
+                    {t('tokenPurchase.buttons.purchase', { amount: tokenAmount, token: tokenType })}
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </>
                 )}
@@ -289,9 +289,9 @@ export default function TokenPurchase() {
             // Payment Embed
             <div className="space-y-4">
               <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">Complete Your Payment</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('tokenPurchase.payment.title')}</h3>
                 <p className="text-muted-foreground">
-                  Pay ${usdtAmount.toFixed(2)} USDT to receive {tokenAmount} {tokenType} tokens
+                  {t('tokenPurchase.payment.description', { amount: usdtAmount.toFixed(2), tokenAmount, tokenType })}
                 </p>
               </div>
 
@@ -325,7 +325,7 @@ export default function TokenPurchase() {
                 className="w-full"
                 data-testid="button-cancel-payment"
               >
-                Cancel Payment
+                {t('tokenPurchase.buttons.cancelPayment')}
               </Button>
             </div>
           )}
@@ -337,7 +337,7 @@ export default function TokenPurchase() {
         {/* Current Balances */}
         <Card className="border-honey/20 bg-gradient-to-br from-background to-secondary/20">
           <CardHeader className="border-b border-honey/10 bg-honey/5">
-            <CardTitle className="text-lg">Your Token Balances</CardTitle>
+            <CardTitle className="text-lg">{t('tokenPurchase.balances.title')}</CardTitle>
           </CardHeader>
           <CardContent className="p-4 space-y-4">
             {balancesLoading ? (
@@ -348,27 +348,27 @@ export default function TokenPurchase() {
             ) : balances ? (
               <>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm">BCC Total:</span>
+                  <span className="text-sm">{t('tokenPurchase.balances.bccTotal')}</span>
                   <span className="font-semibold text-honey">{balances.BCC.total.toLocaleString()}</span>
                 </div>
                 <div className="text-xs space-y-1 text-muted-foreground">
                   <div className="flex justify-between">
-                    <span>Transferable:</span>
+                    <span>{t('tokenPurchase.balances.transferable')}</span>
                     <span>{balances.BCC.transferable.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Restricted:</span>
+                    <span>{t('tokenPurchase.balances.restricted')}</span>
                     <span>{balances.BCC.restricted.toLocaleString()}</span>
                   </div>
                 </div>
                 <hr className="border-honey/20" />
                 <div className="flex justify-between items-center">
-                  <span className="text-sm">CTH Balance:</span>
+                  <span className="text-sm">{t('tokenPurchase.balances.cthBalance')}</span>
                   <span className="font-semibold text-honey">{balances.CTH.balance.toLocaleString()}</span>
                 </div>
               </>
             ) : (
-              <p className="text-sm text-muted-foreground">No balances found</p>
+              <p className="text-sm text-muted-foreground">{t('tokenPurchase.balances.noBalances')}</p>
             )}
           </CardContent>
         </Card>
@@ -376,7 +376,7 @@ export default function TokenPurchase() {
         {/* Recent Purchases */}
         <Card className="border-honey/20 bg-gradient-to-br from-background to-secondary/20">
           <CardHeader className="border-b border-honey/10 bg-honey/5">
-            <CardTitle className="text-lg">Recent Purchases</CardTitle>
+            <CardTitle className="text-lg">{t('tokenPurchase.history.title')}</CardTitle>
           </CardHeader>
           <CardContent className="p-4">
             {purchasesLoading ? (
@@ -405,7 +405,7 @@ export default function TokenPurchase() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No purchases yet</p>
+              <p className="text-sm text-muted-foreground">{t('tokenPurchase.history.noPurchases')}</p>
             )}
           </CardContent>
         </Card>
