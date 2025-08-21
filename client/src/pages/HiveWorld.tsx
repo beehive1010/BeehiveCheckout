@@ -150,7 +150,7 @@ export default function HiveWorld() {
               className={selectedTag === tag ? "bg-honey text-black" : ""}
               data-testid={`button-tag-${tag.toLowerCase()}`}
             >
-              {tag}
+              {t(`hiveworld.blog.tags.${tag}`) || tag}
             </Button>
           ))}
         </div>
@@ -176,23 +176,23 @@ export default function HiveWorld() {
               <div className="flex flex-wrap gap-2 mb-3">
                 {blog.tags.map(tag => (
                   <Badge key={tag} variant="secondary" className="text-xs">
-                    {tag}
+                    {t(`hiveworld.blog.tags.${tag}`) || tag}
                   </Badge>
                 ))}
               </div>
               
               <h3 className="text-xl font-bold text-honey mb-3 line-clamp-2">
-                {blog.title}
+                {t(`hiveworld.blog.posts.${blog.id}.title`) || blog.title}
               </h3>
               
               <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
-                {blog.excerpt}
+                {t(`hiveworld.blog.posts.${blog.id}.excerpt`) || blog.excerpt}
               </p>
               
               <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  <span>{blog.author}</span>
+                  <span>{t(`hiveworld.blog.posts.${blog.id}.author`) || blog.author}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Eye className="h-4 w-4" />
