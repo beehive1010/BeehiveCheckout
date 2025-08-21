@@ -441,40 +441,40 @@ export default function ClaimMembershipButton({
           </span>
 
           {/* Modal content */}
-          <div className="inline-block w-full max-w-[500px] min-h-[600px] max-h-[80vh] my-8 align-middle transition-all transform bg-background rounded-2xl relative border border-border">
+          <div className="inline-block w-full max-w-[500px] mx-2 sm:mx-0 min-h-[500px] sm:min-h-[600px] max-h-[90vh] sm:max-h-[80vh] my-4 sm:my-8 align-middle transition-all transform bg-background rounded-2xl relative border border-border">
             {/* Close button */}
             <button
               onClick={() => {
                 setClaimState('idle');
                 setShowChainSelector(false);
               }}
-              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground p-2 rounded-full hover:bg-muted transition-colors z-10"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 text-muted-foreground hover:text-foreground p-3 sm:p-2 rounded-full hover:bg-muted transition-colors z-10 min-w-[44px] min-h-[44px] flex items-center justify-center"
               title={String(t('membership.purchase.cancel'))}
             >
-              <FiX size={24} />
+              <FiX size={20} />
             </button>
 
             {/* Selected Chain Info Header */}
-            <div className="bg-secondary/50 rounded-t-2xl p-4 border-b border-border">
-              <div className="flex items-center justify-between">
+            <div className="bg-secondary/50 rounded-t-2xl p-3 sm:p-4 border-b border-border">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
                 <div className="flex items-center space-x-3">
                   <div className={`w-8 h-8 rounded-full bg-muted flex items-center justify-center ${selectedChain.color}`}>
                     <i className={`${selectedChain.icon} text-sm`}></i>
                   </div>
                   <div>
-                    <p className="font-medium">{selectedChain.name}</p>
+                    <p className="font-medium text-sm sm:text-base">{selectedChain.name}</p>
                     <p className="text-xs text-muted-foreground">USDT Payment</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-honey">${membershipLevel.priceUSDT}</p>
+                <div className="text-left sm:text-right">
+                  <p className="text-lg sm:text-xl font-bold text-honey">${membershipLevel.priceUSDT}</p>
                   <p className="text-xs text-muted-foreground">Level {level} Membership</p>
                 </div>
               </div>
             </div>
 
             {/* PayEmbed Container */}
-            <div className="p-4">
+            <div className="p-3 sm:p-4 overflow-hidden">
               <PayEmbed
                 client={client}
                 payOptions={{
