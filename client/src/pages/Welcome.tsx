@@ -1,16 +1,14 @@
 import { useState } from 'react';
 import { useI18n } from '../contexts/I18nContext';
 import { useLocation } from 'wouter';
-import { useActiveAccount, useSwitchActiveWalletChain, TransactionWidget, useReadContract } from 'thirdweb/react';
+import { useActiveAccount } from 'thirdweb/react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { useToast } from '../hooks/use-toast';
-import { claimTo } from "thirdweb/extensions/erc1155";
-import { getNFT } from "thirdweb/extensions/erc1155";
-import { bbcMembershipContract, alphaCentauri, client } from '../lib/web3';
 import HexagonIcon from '../components/UI/HexagonIcon';
 import { useNFTVerification } from '../hooks/useNFTVerification';
 import { motion } from 'framer-motion';
+import ClaimMembershipButton from '../components/membership/ClaimMembershipButton';
 
 export default function Welcome() {
   const { t } = useI18n();
@@ -18,14 +16,6 @@ export default function Welcome() {
   const { toast } = useToast();
   const account = useActiveAccount();
   const { hasLevel1NFT, isLoading } = useNFTVerification();
-  const [claimingStarted, setClaimingStarted] = useState(false);
-  const switchChain = useSwitchActiveWalletChain();
-  
-  // Get NFT metadata for Level 1 (Token ID 0)
-  const { data: nft } = useReadContract(getNFT, {
-    contract: bbcMembershipContract,
-    tokenId: BigInt(0),
-  });
 
   // If user already has Level 1 NFT, redirect to dashboard
   if (hasLevel1NFT && !isLoading) {
@@ -39,30 +29,7 @@ export default function Welcome() {
     return null;
   }
 
-  // Check if user is on the correct chain
-  const currentChainId = account?.chain?.id;
-  const requiredChainId = alphaCentauri.id;
-  const needsChainSwitch = currentChainId !== requiredChainId;
-
-  const handleSwitchChain = async () => {
-    try {
-      await switchChain(alphaCentauri);
-      setIsWrongChain(false);
-      toast({
-        title: "Chain Switched",
-        description: "Successfully switched to Alpha Centauri network",
-      });
-    } catch (error) {
-      console.error('Failed to switch chain:', error);
-      toast({
-        title: "Chain Switch Failed",
-        description: "Please manually switch to Alpha Centauri network in your wallet",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleClaimSuccess = () => {
+  const handlePurchaseSuccess = () => {
     toast({
       title: t('welcome.success.title'),
       description: t('welcome.success.description'),
@@ -74,27 +41,13 @@ export default function Welcome() {
     }, 2000);
   };
 
-  const handleClaimError = (error: any) => {
-    console.error('Claim error:', error);
-    
-    // Extract meaningful error message
-    let errorMessage = t('welcome.error.description');
-    if (error?.message) {
-      errorMessage = error.message;
-    } else if (error?.reason) {
-      errorMessage = error.reason;
-    } else if (error?.data?.message) {
-      errorMessage = error.data.message;
-    } else if (typeof error === 'string') {
-      errorMessage = error;
-    }
-    
+  const handlePurchaseError = (error: string) => {
+    console.error('Purchase error:', error);
     toast({
       title: t('welcome.error.title'),
-      description: errorMessage,
+      description: error || t('welcome.error.description'),
       variant: "destructive",
     });
-    setClaimingStarted(false);
   };
 
   return (
@@ -123,10 +76,10 @@ export default function Welcome() {
               transition={{ delay: 0.4, duration: 0.6 }}
             >
               <CardTitle className="text-3xl font-bold text-honey mb-4">
-                {t('welcome.title')}
+                Welcome to Beehive! 🎉
               </CardTitle>
               <p className="text-muted-foreground text-lg">
-                {t('welcome.subtitle')}
+                Complete your membership by purchasing your Level 1 Warrior NFT. This unlocks all platform features and starts your Web3 journey!
               </p>
             </motion.div>
           </CardHeader>
@@ -141,16 +94,16 @@ export default function Welcome() {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-bold text-honey mb-2">{t('welcome.nftTitle')}</h3>
-                  <p className="text-muted-foreground">{t('welcome.nftDescription')}</p>
+                  <h3 className="text-xl font-bold text-honey mb-2">Level 1 Warrior NFT</h3>
+                  <p className="text-muted-foreground">Your membership credential on the blockchain</p>
                   <div className="flex items-center mt-3 text-sm">
                     <i className="fas fa-layer-group text-honey mr-2"></i>
-                    <span className="text-honey font-medium">{t('welcome.tokenId')}</span>
+                    <span className="text-honey font-medium">Token ID: 0</span>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Collection</p>
-                  <p className="text-lg font-bold text-honey">{t('welcome.collection')}</p>
+                  <p className="text-sm text-muted-foreground">Price</p>
+                  <p className="text-2xl font-bold text-honey">130 USDT</p>
                 </div>
               </div>
             </motion.div>
@@ -162,15 +115,15 @@ export default function Welcome() {
               transition={{ delay: 0.8, duration: 0.6 }}
               className="space-y-4"
             >
-              <h3 className="text-lg font-semibold text-honey">{t('welcome.unlockTitle')}</h3>
+              <h3 className="text-lg font-semibold text-honey">What You'll Unlock:</h3>
               <div className="grid gap-3">
                 {[
-                  { icon: "fas fa-tachometer-alt", text: t('welcome.benefits.dashboard') },
-                  { icon: "fas fa-tasks", text: t('welcome.benefits.tasks') },
-                  { icon: "fas fa-graduation-cap", text: t('welcome.benefits.education') },
-                  { icon: "fas fa-globe", text: t('welcome.benefits.discover') },
-                  { icon: "fas fa-users", text: t('welcome.benefits.hiveworld') },
-                  { icon: "fas fa-coins", text: t('welcome.benefits.rewards') },
+                  { icon: "fas fa-tachometer-alt", text: "Full Dashboard Access" },
+                  { icon: "fas fa-tasks", text: "Tasks & NFT Marketplace" },
+                  { icon: "fas fa-graduation-cap", text: "Education Center" },
+                  { icon: "fas fa-globe", text: "Discover Web3 DApps" },
+                  { icon: "fas fa-users", text: "HiveWorld Matrix System" },
+                  { icon: "fas fa-coins", text: "BCC Token Rewards" },
                 ].map((benefit, index) => (
                   <motion.div
                     key={index}
@@ -196,66 +149,19 @@ export default function Welcome() {
               className="text-center space-y-6"
             >
               <div className="p-4 bg-honey/10 rounded-lg border border-honey/20">
-                <p className="text-honey font-medium mb-2">{t('welcome.giftTitle')}</p>
-                <p className="text-sm text-muted-foreground" dangerouslySetInnerHTML={{ __html: t('welcome.giftDescription').replace('**FREE**', '<strong>FREE</strong>') }}>
+                <p className="text-honey font-medium mb-2">💎 Premium Membership</p>
+                <p className="text-sm text-muted-foreground">
+                  Purchase your Level 1 Warrior NFT for <strong>130 USDT</strong> with multi-chain payment support!
                 </p>
               </div>
 
-              {needsChainSwitch ? (
-                <div className="space-y-4">
-                  <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                    <div className="flex items-center text-yellow-600 mb-2">
-                      <i className="fas fa-exclamation-triangle mr-2"></i>
-                      <span className="text-sm font-medium">Wrong Network</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      You need to switch to Alpha Centauri network to claim your NFT.
-                    </p>
-                    <Button
-                      onClick={handleSwitchChain}
-                      className="w-full bg-yellow-600 hover:bg-yellow-700 text-black"
-                      data-testid="button-switch-chain"
-                    >
-                      <i className="fas fa-exchange-alt mr-2"></i>
-                      Switch to Alpha Centauri
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="w-full">
-                  <TransactionWidget
-                    client={client}
-                    theme="dark"
-                    transaction={claimTo({
-                      contract: bbcMembershipContract,
-                      quantity: BigInt(1),
-                      tokenId: BigInt(0), // Level 1 = Token ID 0
-                      to: account?.address || "",
-                    })}
-                    title={nft?.metadata?.name || "Level 1 Warrior NFT"}
-                    description={nft?.metadata?.description || "Your first membership NFT - completely FREE!"}
-                    onTransactionSent={() => {
-                      setClaimingStarted(true);
-                      toast({
-                        title: t('welcome.transactionSent.title'),
-                        description: t('welcome.transactionSent.description'),
-                      });
-                    }}
-                    onTransactionConfirmed={handleClaimSuccess}
-                    onError={handleClaimError}
-                  />
-                </div>
-              )}
-
-              {claimingStarted && (
-                <div className="mt-6 text-center space-y-4">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-honey mx-auto"></div>
-                  <p className="text-honey font-medium">{t('welcome.processingTitle')}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {t('welcome.processingDescription')}
-                  </p>
-                </div>
-              )}
+              <ClaimMembershipButton
+                walletAddress={account?.address || ""}
+                level={1}
+                onSuccess={handlePurchaseSuccess}
+                onError={handlePurchaseError}
+                className="w-full"
+              />
 
               <div className="pt-4 border-t border-border">
                 <p className="text-xs text-muted-foreground">
