@@ -1,0 +1,196 @@
+Wallet-Gated Registration & Level-1 Claim (USDT 130)
+Goal
+
+From Landing: connect wallet → complete registration → mint & claim Membership NFT Level 1 (tokenId = 0) at 130 USDT via a multi-chain PayEmbed → verify ownership → enter Dashboard.
+
+After launch, every time a user connects a wallet, the app should check ownership of tokenId 0 using useActiveAccount and route either to Dashboard (has NFT) or to Registration (no NFT).
+
+Contract & Asset Assumptions
+
+Membership NFT collection uses an ERC-1155 style layout with tokenId = 0 mapped to Level 1.
+
+Level-1 price: 130 USDT.
+
+PayEmbed is configured for multi-chain settlement (e.g., OP / Arbitrum / ACC test chain).
+
+Route Guarding (Global)
+
+Wrap the app with the web3 provider and read the current wallet via useActiveAccount().
+
+When a wallet is connected:
+
+Read balance for (membershipContract, tokenId = 0, wallet).
+
+If balance > 0 → route to /dashboard.
+
+Else → route to /register.
+
+Guard all member-only routes (Dashboard, Tasks, Education, Discover internals, HiveWorld, Me). If a connected wallet does not hold tokenId 0, redirect to Registration.
+
+Landing Page (Public)
+
+Single primary CTA: “Get Started”.
+
+Action: Connect Wallet.
+
+After connection, immediately run the Route Guarding check above.
+
+Registration Flow (Wallet-gated)
+
+The registration is a wizard with a visible stepper and animated progress. Each step shows a clear state: current, completed, error, with inline tips and a top progress bar. The flow must be resumable if the user reloads or closes the modal.
+
+Step 1 — Profile
+
+UI
+
+Inputs: Email, Username, Secondary Password, optional Referrer Code/URL (pre-filled from query if present).
+
+Validation: email format, username uniqueness (client hint), minimum rules for secondary password (length/charset).
+
+Data to persist (draft)
+
+walletAddress (primary key)
+
+email, username, secondaryPasswordHash
+
+referrerWallet (if present from URL)
+
+createdAt, lastUpdatedAt
+
+registrationStatus: "profile_saved"
+
+Next condition
+
+All fields valid → Save draft → advance.
+
+Step 2 — Upload to IPFS
+
+UI
+
+Upload avatar and (optionally) cover or ID/photo proof.
+
+Show file validation (type/size) and a small preview.
+
+Action
+
+Use storage API to upload files/JSON metadata to IPFS.
+
+Receive CIDs and store them on the user record.
+
+Data to persist
+
+ipfs.avatarCid, ipfs.coverCid, ipfs.profileJsonCid
+
+registrationStatus: "ipfs_uploaded"
+
+Next condition
+
+At least avatar uploaded (as per your policy) → advance.
+
+Step 3 — Prepare Level-1 Membership
+
+Intent
+
+Get the membership asset ready for claiming while keeping payment gated.
+
+Actions
+
+Prepare/Lazy-mint metadata for tokenId = 0 if required by your drop setup.
+
+Pre-compute the PayEmbed transaction for Level-1 (USDT 130) so the next step loads instantly.
+
+Data to persist
+
+prepared.level = 1, tokenId = 0
+
+prepared.price = 130 USDT
+
+registrationStatus: "prepared_for_purchase"
+
+Next condition
+
+Preparation complete → advance.
+
+Step 4 — Pay & Claim (Multi-Chain PayEmbed)
+
+UI
+
+Show a PayEmbed modal with:
+
+Network selector (e.g., OP / Arbitrum / ACC).
+
+Clear label: “Level 1 Membership — 130 USDT”.
+
+“Processing / Waiting for confirmation” states.
+
+Provide cancellation (back to previous step) and retry on failure.
+
+Actions
+
+User completes USDT payment via PayEmbed on the chosen network.
+
+On payment success:
+
+Claim the membership NFT tokenId = 0 to the connected wallet (or verify the claim if the route mints atomically).
+
+Capture transaction hash, chain, amount, timestamp.
+
+Data to persist
+
+orders.push({ wallet, level:1, tokenId:0, price:130, chain, txHash, status:"paid" })
+
+registrationStatus: "paid_waiting_verification"
+
+Step 5 — On-chain Verification & Activation
+
+Actions
+
+Poll balanceOf(wallet, tokenId=0) until visible (short backoff window).
+
+When balance > 0:
+
+Mark membership active and finalize onboarding.
+
+Data to persist
+
+memberActivated = true
+
+currentLevel = 1
+
+activationAt = <timestamp>
+
+Update most recent orders[...].status = "completed"
+
+UI
+
+Show success animation (checkmark, honeycomb pulse).
+
+CTA: “Enter Dashboard”.
+
+Post-Registration Behavior
+
+From now on, any time the user connects a wallet, the app uses useActiveAccount() and the Route Guarding to decide:
+
+Has tokenId 0? → go straight to Dashboard.
+
+Doesn’t have it? → send to Registration (wizard can resume from last step if a draft exists).
+
+UX & Animation Guidelines
+
+Stepper with 5 labeled stages: Connect, Profile, Upload, Pay & Claim, Verify & Activate.
+
+Top progress bar (animated width) mirrors the current stage.
+
+Per-step micro-animations: button press → loading spinner → success check.
+
+Error states: show a concise reason (network, approval, gas, insufficient balance), one-tap retry, and a back action.
+
+Mobile-first: full-screen modal on phones, large tap targets, safe-area padding; responsive cards on tablet/desktop.
+
+Edge Cases & Idempotency
+
+Payment success but verification delayed: keep the user in a “Finalizing” state; continue polling; allow the user to navigate away and resume later.
+
+User switches wallets mid-flow: warn and force restart; tie the draft to the original wallet address.
+
+Double-submit protection: disable primary CTA while a step is processing; dedupe orders by (wallet, tokenId, txHash).

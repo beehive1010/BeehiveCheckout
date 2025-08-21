@@ -105,11 +105,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const body = insertUserSchema.parse(req.body);
       
+      // Validate required fields for registration
+      if (!body.email || !body.username || !body.secondaryPasswordHash) {
+        return res.status(400).json({ error: 'Email, username, and password are required' });
+      }
       
-      // Check if user already exists
+      // Check if user already exists by wallet
       const existingUser = await storage.getUser(body.walletAddress);
       if (existingUser) {
-        return res.status(400).json({ error: 'User already registered' });
+        return res.status(400).json({ error: 'User already registered with this wallet address' });
+      }
+
+      // Check if username already exists
+      try {
+        const existingUsername = await storage.getUserByUsername(body.username);
+        if (existingUsername) {
+          return res.status(400).json({ error: 'Username already taken. Please choose a different username.' });
+        }
+      } catch (error) {
+        // Username doesn't exist, continue
       }
 
       // Hash secondary password
@@ -686,6 +700,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const order = await storage.createOrder({
         walletAddress: req.walletAddress,
         level,
+        tokenId: level - 1, // Level 1 = tokenId 0, Level 2 = tokenId 1, etc.
         amountUSDT: priceUSDT,
         chain: 'alpha-centauri',
         txHash,

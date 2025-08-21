@@ -1,15 +1,13 @@
 import { useEffect } from 'react';
-import { useWallet } from '../hooks/useWallet';
 import { useI18n } from '../contexts/I18nContext';
-import { useLocation } from 'wouter';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
+import { ConnectButton } from 'thirdweb/react';
+import { client, supportedChains, wallets, authConfig } from '../lib/web3';
 import HexagonIcon from '../components/UI/HexagonIcon';
 
 export default function Landing() {
-  const { isConnected, isRegistered, isActivated } = useWallet();
   const { t } = useI18n();
-  const [, setLocation] = useLocation();
 
   // Check URL for referral parameter
   useEffect(() => {
@@ -19,22 +17,6 @@ export default function Landing() {
       localStorage.setItem('beehive-referrer', referrer);
     }
   }, []);
-
-  // Redirect logic based on wallet and registration status
-  useEffect(() => {
-    if (isConnected && isRegistered && isActivated) {
-      setLocation('/dashboard');
-    } else if (isConnected && !isRegistered) {
-      setLocation('/register');
-    }
-  }, [isConnected, isRegistered, isActivated, setLocation]);
-
-  const handleGetStarted = async () => {
-    if (!isConnected) {
-      // ConnectButton will handle wallet connection
-      console.log('Please use Connect Wallet button');
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background honeycomb-pattern bg-honeycomb">
@@ -53,15 +35,27 @@ export default function Landing() {
             </p>
           </div>
 
-          <Button 
-            onClick={handleGetStarted}
-            size="lg"
-            className="btn-honey text-lg px-8 py-4 glow-hover animate-pulse-subtle"
+          <ConnectButton
+            client={client}
+            chains={supportedChains}
+            wallets={wallets}
+            theme="dark"
+            auth={authConfig}
+            connectModal={{ 
+              showThirdwebBranding: false, 
+              size: "wide",
+              title: "Connect to Beehive",
+              titleIcon: "🐝",
+            }}
+            connectButton={{
+              label: t('landing.getStarted'),
+              className: "btn-honey text-lg px-8 py-4 glow-hover animate-pulse-subtle"
+            }}
+            detailsButton={{
+              className: "btn-honey text-lg px-8 py-4 glow-hover"
+            }}
             data-testid="button-get-started"
-          >
-            <i className="fas fa-rocket mr-3"></i>
-            {t('landing.getStarted')}
-          </Button>
+          />
         </div>
 
         {/* Features Grid */}
@@ -212,15 +206,27 @@ export default function Landing() {
               <p className="text-muted-foreground mb-6">
                 {t('landing.cta.description')}
               </p>
-              <Button 
-                onClick={handleGetStarted}
-                size="lg"
-                className="btn-honey text-lg px-8 py-4 glow-hover"
+              <ConnectButton
+                client={client}
+                chains={supportedChains}
+                wallets={wallets}
+                theme="dark"
+                auth={authConfig}
+                connectModal={{ 
+                  showThirdwebBranding: false, 
+                  size: "wide",
+                  title: "Connect to Beehive",
+                  titleIcon: "🐝",
+                }}
+                connectButton={{
+                  label: t('landing.cta.button'),
+                  className: "btn-honey text-lg px-8 py-4 glow-hover"
+                }}
+                detailsButton={{
+                  className: "btn-honey text-lg px-8 py-4 glow-hover"
+                }}
                 data-testid="button-cta-start"
-              >
-                <i className="fas fa-arrow-right mr-3"></i>
-                {t('landing.cta.button')}
-              </Button>
+              />
             </CardContent>
           </Card>
         </div>
