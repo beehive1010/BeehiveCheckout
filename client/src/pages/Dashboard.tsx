@@ -235,7 +235,9 @@ export default function Dashboard() {
       {/* Membership Status Card */}
       <Card className="bg-secondary border-border glow-hover mb-8">
         <CardContent className="p-4 md:p-6">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between space-y-4 lg:space-y-0">
+          {/* Mobile-first layout with proper separation */}
+          <div className="space-y-4">
+            {/* User Profile Section */}
             <div className="flex items-center space-x-4">
               <HexagonIcon size="lg">
                 <img 
@@ -244,52 +246,81 @@ export default function Dashboard() {
                   className="w-12 h-12 rounded-full" 
                 />
               </HexagonIcon>
-              <div>
-                <h2 className="text-xl font-bold text-honey">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg md:text-xl font-bold text-honey truncate">
                   {userData?.user?.username || t('dashboard.member')}
                 </h2>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-muted-foreground text-xs md:text-sm truncate">
                   {walletAddress ? formatAddress(walletAddress) : ''}
                 </p>
-                <div className="flex items-center space-x-2 mt-1">
-                  <Badge className="bg-honey text-black font-semibold">
+                <div className="flex items-center space-x-2 mt-2">
+                  <Badge className="bg-honey text-black font-semibold text-xs">
                     Level {currentLevel}
                   </Badge>
-                  <Badge variant="secondary" className="bg-green-600 text-white">
+                  <Badge variant="secondary" className="bg-green-600 text-white text-xs">
                     {t('dashboard.nftVerified')}
                   </Badge>
                 </div>
               </div>
             </div>
             
-            {/* User Centre Button and Balance Display */}
-            <div className="flex flex-col items-start lg:items-end space-y-4 w-full lg:w-auto">
+            {/* User Centre Button - Mobile Full Width */}
+            <div className="flex justify-center md:justify-start">
               <Button
                 onClick={() => setLocation('/me')}
-                className="bg-honey text-black hover:bg-honey/90 font-semibold"
+                className="bg-honey text-black hover:bg-honey/90 font-semibold w-full md:w-auto"
                 data-testid="button-user-centre"
               >
                 <i className="fas fa-user-cog mr-2"></i>
                 {t('dashboard.userCentre')}
               </Button>
-              
-              {/* Balance Display */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                <div className="bg-muted/30 rounded-lg p-3 text-center min-w-0">
-                  <p className="text-muted-foreground text-xs mb-1 truncate">{t('dashboard.reward')}</p>
-                  <p className="text-honey font-bold text-sm">{isLoadingUserStats ? '...' : (userStats?.totalEarnings || 0)}</p>
+            </div>
+            
+            {/* Balance Display - Separate Section with Proper Spacing */}
+            <div className="border-t border-border/20 pt-4 mt-4">
+              <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
+                Account Overview
+              </h3>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="bg-muted/40 rounded-lg p-3 border border-border/30">
+                  <div className="text-center">
+                    <p className="text-muted-foreground text-xs mb-1 font-medium">
+                      {t('dashboard.reward')}
+                    </p>
+                    <p className="text-honey font-bold text-base">
+                      {isLoadingUserStats ? '...' : (userStats?.totalEarnings || 0)}
+                    </p>
+                  </div>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3 text-center min-w-0">
-                  <p className="text-muted-foreground text-xs mb-1 truncate">{t('dashboard.bccBalance')}</p>
-                  <p className="text-honey font-bold text-sm">{bccBalance?.transferable || 0}</p>
+                <div className="bg-muted/40 rounded-lg p-3 border border-border/30">
+                  <div className="text-center">
+                    <p className="text-muted-foreground text-xs mb-1 font-medium">
+                      {t('dashboard.bccBalance')}
+                    </p>
+                    <p className="text-honey font-bold text-base">
+                      {bccBalance?.transferable || 0}
+                    </p>
+                  </div>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3 text-center min-w-0">
-                  <p className="text-muted-foreground text-xs mb-1 truncate">{t('dashboard.balances.bccLocked')}</p>
-                  <p className="text-honey font-bold text-sm">{bccBalance?.restricted || 0}</p>
+                <div className="bg-muted/40 rounded-lg p-3 border border-border/30">
+                  <div className="text-center">
+                    <p className="text-muted-foreground text-xs mb-1 font-medium">
+                      {t('dashboard.balances.bccLocked')}
+                    </p>
+                    <p className="text-honey font-bold text-base">
+                      {bccBalance?.restricted || 0}
+                    </p>
+                  </div>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3 text-center min-w-0">
-                  <p className="text-muted-foreground text-xs mb-1 truncate">{t('dashboard.nfts')}</p>
-                  <p className="text-honey font-bold text-sm">{isLoadingUserStats ? '...' : 0}</p>
+                <div className="bg-muted/40 rounded-lg p-3 border border-border/30">
+                  <div className="text-center">
+                    <p className="text-muted-foreground text-xs mb-1 font-medium">
+                      {t('dashboard.nfts')}
+                    </p>
+                    <p className="text-honey font-bold text-base">
+                      {isLoadingUserStats ? '...' : 0}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -422,16 +453,17 @@ export default function Dashboard() {
         </Card>
       </div>
       {/* Token Purchase Buttons */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8">
         <Card className="bg-gradient-to-r from-honey/10 to-honey/5 border-honey/20 glow-hover">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-bold text-honey mb-2">{t('buttons.buyBccToken')}</h3>
-                <p className="text-muted-foreground text-sm">{t('dashboard.tokenPurchase.bccDescription')}</p>
+          <CardContent className="p-4 md:p-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
+              <div className="flex-1">
+                <h3 className="text-base md:text-lg font-bold text-honey mb-1 md:mb-2">{t('buttons.buyBccToken')}</h3>
+                <p className="text-muted-foreground text-xs md:text-sm">{t('dashboard.tokenPurchase.bccDescription')}</p>
               </div>
               <Button 
-                className="bg-honey text-black hover:bg-honey/90 font-semibold"
+                onClick={() => setLocation('/tokens')}
+                className="bg-honey text-black hover:bg-honey/90 font-semibold w-full md:w-auto flex-shrink-0"
                 data-testid="button-buy-bcc"
               >
                 <i className="fas fa-shopping-cart mr-2"></i>
@@ -442,14 +474,15 @@ export default function Dashboard() {
         </Card>
 
         <Card className="bg-gradient-to-r from-purple-500/10 to-purple-500/5 border-purple-500/20 glow-hover">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-bold text-purple-400 mb-2">{t('buttons.buyCthToken')}</h3>
-                <p className="text-muted-foreground text-sm">{t('dashboard.tokenPurchase.cthDescription')}</p>
+          <CardContent className="p-4 md:p-6">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
+              <div className="flex-1">
+                <h3 className="text-base md:text-lg font-bold text-purple-400 mb-1 md:mb-2">{t('buttons.buyCthToken')}</h3>
+                <p className="text-muted-foreground text-xs md:text-sm">{t('dashboard.tokenPurchase.cthDescription')}</p>
               </div>
               <Button 
-                className="bg-purple-500 text-white hover:bg-purple-600 font-semibold"
+                onClick={() => setLocation('/tokens')}
+                className="bg-purple-500 text-white hover:bg-purple-600 font-semibold w-full md:w-auto flex-shrink-0"
                 data-testid="button-buy-cth"
               >
                 <i className="fas fa-gem mr-2"></i>
