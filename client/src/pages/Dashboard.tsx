@@ -409,33 +409,33 @@ export default function Dashboard() {
               <div className="flex justify-between items-center py-2 border-b border-border">
                 <span className="text-muted-foreground">Level 2</span>
                 <div className="text-right">
-                  <span className="text-honey font-semibold">8 members</span>
+                  <span className="text-honey font-semibold">9 members</span>
                   <span className="text-muted-foreground"> / placement </span>
-                  <span className="text-green-400 font-semibold">2 members</span>
+                  <span className="text-green-400 font-semibold">3 members</span>
                 </div>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-border">
                 <span className="text-muted-foreground">Level 3</span>
                 <div className="text-right">
-                  <span className="text-honey font-semibold">15 members</span>
+                  <span className="text-honey font-semibold">27 members</span>
                   <span className="text-muted-foreground"> / placement </span>
-                  <span className="text-green-400 font-semibold">5 members</span>
+                  <span className="text-green-400 font-semibold">9 members</span>
                 </div>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-border">
                 <span className="text-muted-foreground">Level 4</span>
                 <div className="text-right">
-                  <span className="text-honey font-semibold">42 members</span>
+                  <span className="text-honey font-semibold">81 members</span>
                   <span className="text-muted-foreground"> / placement </span>
-                  <span className="text-green-400 font-semibold">8 members</span>
+                  <span className="text-green-400 font-semibold">27 members</span>
                 </div>
               </div>
               <div className="flex justify-between items-center py-2">
                 <span className="text-muted-foreground">Level 5</span>
                 <div className="text-right">
-                  <span className="text-honey font-semibold">89 members</span>
+                  <span className="text-honey font-semibold">243 members</span>
                   <span className="text-muted-foreground"> / placement </span>
-                  <span className="text-green-400 font-semibold">12 members</span>
+                  <span className="text-green-400 font-semibold">81 members</span>
                 </div>
               </div>
             </div>
