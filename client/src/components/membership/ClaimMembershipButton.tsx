@@ -10,8 +10,7 @@ import { PayEmbed } from "thirdweb/react";
 import { Card, CardContent } from '../ui/card';
 import { FiX } from 'react-icons/fi';
 import { getApprovalForTransaction } from 'thirdweb/extensions/erc20';
-import { sendAndConfirmTransaction } from 'thirdweb';
-import toast from 'react-hot-toast';
+import { sendAndConfirmTransaction, prepareTransaction } from 'thirdweb';
 
 type ClaimState = 'idle' | 'approving' | 'paying' | 'verifying' | 'persisting' | 'success' | 'error';
 
@@ -219,12 +218,10 @@ export default function ClaimMembershipButton({
       }
     });
 
-    toast.error(`${String(t('membership.purchase.error.title'))}: ${String(t('membership.purchase.error.description'))}`, {
-      duration: 8000,
-      style: {
-        background: '#EF4444',
-        color: 'white',
-      },
+    toast({
+      title: String(t('membership.purchase.error.title')),
+      description: String(t('membership.purchase.error.description')),
+      variant: 'destructive',
     });
 
     onError?.(message);
@@ -254,11 +251,13 @@ export default function ClaimMembershipButton({
       };
 
       // Create a dummy transaction to check for approvals needed
-      const dummyTransaction = {
+      const dummyTransaction = prepareTransaction({
         to: chain.bridgeWallet,
-        value: "0",
+        value: 0n,
         data: "0x",
-      };
+        client,
+        chain: chain.chain,
+      });
 
       // Check if approval is needed for USDT transfers
       const approveTx = await getApprovalForTransaction({
@@ -269,29 +268,22 @@ export default function ClaimMembershipButton({
       if (approveTx) {
         try {
           await sendAndConfirmTransaction({ account, transaction: approveTx });
-          toast.success("USDT spending approved! You can now proceed with payment.", {
-            duration: 4000,
-            style: {
-              background: '#10B981',
-              color: 'white',
-            },
+          toast({
+            title: "USDT Approved",
+            description: "USDT spending approved! You can now proceed with payment.",
           });
         } catch (error: any) {
           if (error.message?.includes('insufficient funds')) {
-            toast.error("You don't have enough gas to approve USDT spending.", {
-              duration: 6000,
-              style: {
-                background: '#EF4444',
-                color: 'white',
-              },
+            toast({
+              title: "Insufficient Gas",
+              description: "You don't have enough gas to approve USDT spending.",
+              variant: 'destructive',
             });
           } else {
-            toast.error("Failed to approve USDT spending. Please try again.", {
-              duration: 6000,
-              style: {
-                background: '#EF4444', 
-                color: 'white',
-              },
+            toast({
+              title: "Approval Failed",
+              description: "Failed to approve USDT spending. Please try again.",
+              variant: 'destructive',
             });
           }
           setClaimState('idle');
@@ -317,12 +309,10 @@ export default function ClaimMembershipButton({
 
     } catch (error) {
       console.error('Chain selection error:', error);
-      toast.error("Failed to prepare payment. Please try again.", {
-        duration: 6000,
-        style: {
-          background: '#EF4444',
-          color: 'white',
-        },
+      toast({
+        title: "Preparation Failed",
+        description: "Failed to prepare payment. Please try again.",
+        variant: 'destructive',
       });
       setClaimState('idle');
     } finally {

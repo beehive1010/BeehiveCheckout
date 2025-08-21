@@ -25,7 +25,7 @@ interface MarketplaceNFT {
 
 export default function Tasks() {
   const { walletAddress, bccBalance, currentLevel, isActivated } = useWallet();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeCategory, setActiveCategory] = useState<'membership' | 'advertisement'>('membership');
@@ -297,7 +297,7 @@ export default function Tasks() {
                           ? 'text-honey/80' 
                           : 'text-muted-foreground'
                       }`}>
-                        {level.titleEn} / {level.titleZh}
+                        {language === 'zh' ? level.titleZh : level.titleEn}
                       </p>
                     </div>
 
@@ -332,14 +332,14 @@ export default function Tasks() {
                           className="w-full"
                           onSuccess={() => {
                             toast({
-                              title: 'Membership Upgraded!',
-                              description: `You are now Level ${level.level} ${level.titleEn}!`,
+                              title: t('membership.purchase.success.title'),
+                              description: t('membership.purchase.success.description'),
                             });
                             queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
                           }}
                           onError={(error) => {
                             toast({
-                              title: 'Purchase Failed',
+                              title: t('membership.purchase.error.title'),
                               description: error,
                               variant: 'destructive',
                             });
