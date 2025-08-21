@@ -12,8 +12,8 @@ export const alphaCentauri = defineChain({
   id: 141941,
   name: 'Alpha Centauri',
   nativeCurrency: {
-    name: 'ETH',
-    symbol: 'ETH',
+    name: 'CTH',
+    symbol: 'CTH',
     decimals: 18,
   },
   rpc: 'https://rpc.alpha-centauri.io',
