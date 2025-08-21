@@ -16,6 +16,7 @@ import Tasks from "@/pages/Tasks";
 import Education from "@/pages/Education";
 import Discover from "@/pages/Discover";
 import HiveWorld from "@/pages/HiveWorld";
+import BlogPost from "@/pages/BlogPost";
 import Me from "@/pages/Me";
 import NotFound from "@/pages/not-found";
 
@@ -34,6 +35,7 @@ function Router() {
       <Route path="/education" component={Education} />
       <Route path="/discover" component={Discover} />
       <Route path="/hiveworld" component={HiveWorld} />
+      <Route path="/hiveworld/:id" component={BlogPost} />
       <Route path="/me" component={Me} />
       <Route component={NotFound} />
     </Switch>

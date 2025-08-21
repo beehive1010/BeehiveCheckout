@@ -119,6 +119,21 @@ export const courseAccess = pgTable("course_access", {
   grantedAt: timestamp("granted_at").defaultNow().notNull(),
 });
 
+// Blog posts table for Hiveworld
+export const blogPosts = pgTable("blog_posts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  excerpt: text("excerpt").notNull(),
+  content: text("content").notNull(),
+  author: text("author").notNull(),
+  imageUrl: text("image_url"),
+  published: boolean("published").default(true).notNull(),
+  publishedAt: timestamp("published_at").defaultNow().notNull(),
+  tags: jsonb("tags").$type<string[]>().default([]).notNull(),
+  views: integer("views").default(0).notNull(),
+  language: text("language").default("en").notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   walletAddress: true,
@@ -206,6 +221,17 @@ export const insertCourseAccessSchema = createInsertSchema(courseAccess).pick({
   completed: true,
 });
 
+export const insertBlogPostSchema = createInsertSchema(blogPosts).pick({
+  title: true,
+  excerpt: true,
+  content: true,
+  author: true,
+  imageUrl: true,
+  published: true,
+  tags: true,
+  language: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -236,6 +262,9 @@ export type Course = typeof courses.$inferSelect;
 
 export type InsertCourseAccess = z.infer<typeof insertCourseAccessSchema>;
 export type CourseAccess = typeof courseAccess.$inferSelect;
+
+export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
+export type BlogPost = typeof blogPosts.$inferSelect;
 
 // Bridge Payment Tracking Table
 export const bridgePayments = pgTable("bridge_payments", {

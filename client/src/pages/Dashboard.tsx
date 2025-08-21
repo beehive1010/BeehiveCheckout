@@ -4,12 +4,15 @@ import { useLocation } from 'wouter';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
+import { Input } from '../components/ui/input';
 import HexagonIcon from '../components/UI/HexagonIcon';
 import { useToast } from '../hooks/use-toast';
-import { TransactionWidget, useActiveAccount, useReadContract } from "thirdweb/react";
-import { getNFT } from "thirdweb/extensions/erc1155";
+import { TransactionWidget, useActiveAccount } from "thirdweb/react";
 import { claimTo } from "thirdweb/extensions/erc1155";
 import { bbcMembershipContract, client, levelToTokenId } from "../lib/web3";
+import { useNFTVerification } from '../hooks/useNFTVerification';
+import { useState } from 'react';
+import { Copy, Share2, Users, Award, TrendingUp, DollarSign } from 'lucide-react';
 
 export default function Dashboard() {
   const { 
@@ -25,6 +28,10 @@ export default function Dashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const account = useActiveAccount();
+  const { hasLevel1NFT, isLoading: isCheckingNFT } = useNFTVerification();
+  const [showReferralLink, setShowReferralLink] = useState(false);
+  
+  const referralLink = `${window.location.origin}/register?ref=${walletAddress}`;
 
   const handleActivateLevel1 = () => {
     // Mock Level 1 activation - in real implementation would integrate with payment system
@@ -102,6 +109,62 @@ export default function Dashboard() {
       color: 'text-green-400'
     }
   ];
+
+  // Show NFT verification requirement if user doesn't have Level 1 NFT
+  if (!hasLevel1NFT && !isCheckingNFT) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-2xl mx-auto bg-secondary border-border glow-hover">
+          <CardContent className="p-8 text-center">
+            <HexagonIcon className="mx-auto mb-6" size="xl">
+              <i className="fas fa-lock text-honey text-3xl"></i>
+            </HexagonIcon>
+            
+            <h1 className="text-3xl font-bold text-honey mb-4">
+              NFT Access Required
+            </h1>
+            
+            <p className="text-muted-foreground text-lg mb-6">
+              You need to own a Level 1 Membership NFT (Token ID 0) to access the dashboard.
+            </p>
+
+            <div className="bg-muted rounded-lg p-4 mb-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-sm text-muted-foreground">Required NFT</p>
+                  <p className="text-2xl font-bold text-honey">Level 1 Warrior</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Token ID</p>
+                  <p className="text-2xl font-bold text-honey">0</p>
+                </div>
+              </div>
+            </div>
+
+            <Button 
+              onClick={() => setLocation('/tasks')}
+              className="bg-honey text-black hover:bg-honey/90"
+            >
+              Get Level 1 NFT
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+  
+  if (isCheckingNFT) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-2xl mx-auto bg-secondary border-border">
+          <CardContent className="p-8 text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-honey mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Verifying NFT ownership...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (!isActivated) {
     return (
@@ -181,7 +244,7 @@ export default function Dashboard() {
                     Level {currentLevel}
                   </Badge>
                   <Badge variant="secondary" className="bg-green-600 text-white">
-                    {t('dashboard.status.active')}
+                    NFT Verified ✓
                   </Badge>
                 </div>
               </div>
@@ -209,6 +272,189 @@ export default function Dashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Referral Link Card */}
+      <Card className="bg-secondary border-border glow-hover mb-6">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-honey flex items-center gap-2">
+              <Share2 className="h-5 w-5" />
+              Your Referral Link
+            </h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowReferralLink(!showReferralLink)}
+            >
+              {showReferralLink ? 'Hide' : 'Show'}
+            </Button>
+          </div>
+          
+          {showReferralLink && (
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <Input 
+                  value={referralLink}
+                  readOnly
+                  className="bg-muted"
+                  data-testid="input-referral-link"
+                />
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(referralLink);
+                    toast({
+                      title: "Copied!",
+                      description: "Referral link copied to clipboard",
+                    });
+                  }}
+                  size="sm"
+                  data-testid="button-copy-referral"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => {
+                    const url = `https://twitter.com/intent/tweet?text=Join me on Beehive! ${encodeURIComponent(referralLink)}`;
+                    window.open(url, '_blank');
+                  }}
+                  size="sm"
+                  variant="outline"
+                  className="flex-1"
+                  data-testid="button-share-twitter"
+                >
+                  <i className="fab fa-twitter mr-2"></i> Twitter
+                </Button>
+                <Button
+                  onClick={() => {
+                    const url = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=Join me on Beehive!`;
+                    window.open(url, '_blank');
+                  }}
+                  size="sm"
+                  variant="outline"
+                  className="flex-1"
+                  data-testid="button-share-telegram"
+                >
+                  <i className="fab fa-telegram mr-2"></i> Telegram
+                </Button>
+                <Button
+                  onClick={() => {
+                    const url = `whatsapp://send?text=Join me on Beehive! ${encodeURIComponent(referralLink)}`;
+                    window.open(url, '_blank');
+                  }}
+                  size="sm"
+                  variant="outline"
+                  className="flex-1"
+                  data-testid="button-share-whatsapp"
+                >
+                  <i className="fab fa-whatsapp mr-2"></i> WhatsApp
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Comprehensive Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <Card className="bg-secondary border-border glow-hover">
+          <CardContent className="p-6 text-center">
+            <Users className="h-8 w-8 text-honey mx-auto mb-2" />
+            <h3 className="text-2xl font-bold text-honey">247</h3>
+            <p className="text-muted-foreground text-sm">Total Team Size</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-secondary border-border glow-hover">
+          <CardContent className="p-6 text-center">
+            <TrendingUp className="h-8 w-8 text-honey mx-auto mb-2" />
+            <h3 className="text-2xl font-bold text-honey">12</h3>
+            <p className="text-muted-foreground text-sm">Direct Referrals</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-secondary border-border glow-hover">
+          <CardContent className="p-6 text-center">
+            <Award className="h-8 w-8 text-honey mx-auto mb-2" />
+            <h3 className="text-2xl font-bold text-honey">1,850</h3>
+            <p className="text-muted-foreground text-sm">Total Rewards (USDT)</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-secondary border-border glow-hover">
+          <CardContent className="p-6 text-center">
+            <DollarSign className="h-8 w-8 text-honey mx-auto mb-2" />
+            <h3 className="text-2xl font-bold text-honey">320</h3>
+            <p className="text-muted-foreground text-sm">Pending Rewards</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Matrix Placement & Upline Stats */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <Card className="bg-secondary border-border glow-hover">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-honey mb-4">Matrix Placement</h3>
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="bg-muted rounded p-3">
+                <div className="w-8 h-8 bg-honey rounded-full mx-auto mb-1"></div>
+                <p className="text-xs text-muted-foreground">You</p>
+              </div>
+              <div className="bg-muted rounded p-3">
+                <div className="w-8 h-8 bg-green-500 rounded-full mx-auto mb-1"></div>
+                <p className="text-xs text-muted-foreground">Active</p>
+              </div>
+              <div className="bg-muted rounded p-3">
+                <div className="w-8 h-8 bg-gray-400 rounded-full mx-auto mb-1"></div>
+                <p className="text-xs text-muted-foreground">Empty</p>
+              </div>
+              <div className="bg-muted rounded p-3">
+                <div className="w-8 h-8 bg-green-500 rounded-full mx-auto mb-1"></div>
+                <p className="text-xs text-muted-foreground">Active</p>
+              </div>
+              <div className="bg-muted rounded p-3">
+                <div className="w-8 h-8 bg-green-500 rounded-full mx-auto mb-1"></div>
+                <p className="text-xs text-muted-foreground">Active</p>
+              </div>
+              <div className="bg-muted rounded p-3">
+                <div className="w-8 h-8 bg-gray-400 rounded-full mx-auto mb-1"></div>
+                <p className="text-xs text-muted-foreground">Empty</p>
+              </div>
+              <div className="bg-muted rounded p-3">
+                <div className="w-8 h-8 bg-green-500 rounded-full mx-auto mb-1"></div>
+                <p className="text-xs text-muted-foreground">Active</p>
+              </div>
+              <div className="bg-muted rounded p-3">
+                <div className="w-8 h-8 bg-gray-400 rounded-full mx-auto mb-1"></div>
+                <p className="text-xs text-muted-foreground">Empty</p>
+              </div>
+              <div className="bg-muted rounded p-3">
+                <div className="w-8 h-8 bg-green-500 rounded-full mx-auto mb-1"></div>
+                <p className="text-xs text-muted-foreground">Active</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-secondary border-border glow-hover">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-honey mb-4">Upline Statistics</h3>
+            <div className="space-y-3">
+              {Array.from({length: 5}, (_, i) => (
+                <div key={i} className="flex justify-between items-center py-2 border-b border-border last:border-b-0">
+                  <span className="text-muted-foreground">Level {i + 1}</span>
+                  <div className="flex items-center gap-4">
+                    <span className="text-honey font-semibold">{Math.floor(Math.random() * 50) + 10}</span>
+                    <span className="text-sm text-muted-foreground">members</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Quick Actions Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
