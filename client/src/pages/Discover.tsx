@@ -294,9 +294,9 @@ export default function Discover() {
       {/* Featured DApps */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold text-honey">{t('discover.featured.title')}</h3>
+          <h3 className="text-lg font-semibold text-honey">{t('discover.featuredSection.title')}</h3>
           <Button variant="ghost" size="sm" className="text-honey hover:text-honey/80">
-            {t('discover.featured.viewAll')} <i className="fas fa-arrow-right ml-2"></i>
+            {t('discover.featuredSection.viewAll')} <i className="fas fa-arrow-right ml-2"></i>
           </Button>
         </div>
         
@@ -336,9 +336,9 @@ export default function Discover() {
                   {dapp.description}
                 </p>
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-muted-foreground">{dapp.users} {t('discover.trending.users')}</span>
+                  <span className="text-muted-foreground">{dapp.users} {t('discover.trendingSection.users')}</span>
                   {dapp.tvl && (
-                    <span className="text-honey">{dapp.tvl} {t('discover.trending.tvl')}</span>
+                    <span className="text-honey">{dapp.tvl} {t('discover.trendingSection.tvl')}</span>
                   )}
                 </div>
               </CardContent>
@@ -384,8 +384,8 @@ export default function Discover() {
       {/* Trending DApps */}
       <div className="space-y-4">
         <div>
-          <h3 className="text-lg font-semibold text-honey">{t('discover.trending.title')}</h3>
-          <p className="text-muted-foreground text-sm">{t('discover.trending.subtitle')}</p>
+          <h3 className="text-lg font-semibold text-honey">{t('discover.trendingSection.title')}</h3>
+          <p className="text-muted-foreground text-sm">{t('discover.trendingSection.subtitle')}</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -425,18 +425,18 @@ export default function Discover() {
                 </p>
                 <div className="space-y-1 text-xs">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">{t('discover.trending.users')}</span>
+                    <span className="text-muted-foreground">{t('discover.trendingSection.users')}</span>
                     <span className="text-foreground">{dapp.users}</span>
                   </div>
                   {dapp.tvl && (
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">{t('discover.trending.tvl')}</span>
+                      <span className="text-muted-foreground">{t('discover.trendingSection.tvl')}</span>
                       <span className="text-honey">{dapp.tvl}</span>
                     </div>
                   )}
                   {dapp.volume && (
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">{t('discover.trending.volume')}</span>
+                      <span className="text-muted-foreground">{t('discover.trendingSection.volume')}</span>
                       <span className="text-green-400">{dapp.volume}</span>
                     </div>
                   )}

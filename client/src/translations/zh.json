@@ -76,6 +76,55 @@
       "button": "立即加入蜂巢"
     }
   },
+  "dashboard": {
+    "nftRequired": {
+      "title": "需要NFT访问权限",
+      "description": "您需要拥有1级会员NFT（代币ID 0）才能访问仪表板。",
+      "requiredNft": "必需的NFT",
+      "level1Warrior": "1级勇士",
+      "tokenId": "代币ID",
+      "getButton": "获取1级NFT"
+    },
+    "welcome": {
+      "title": "欢迎来到蜂巢！",
+      "description": "激活您的1级会员以解锁所有平台功能并开始获得奖励。",
+      "subtitle": "开始探索平台并建立您的Web3影响力。"
+    },
+    "membershipLevel": "会员级别",
+    "price": "价格",
+    "activateLevel1": "激活1级大黄蜂（BBC）NFT",
+    "activating": "激活中...",
+    "activationNote": "激活后，您将可以访问所有会员功能，包括任务、教育和蜂巢世界。",
+    "status": {
+      "active": "活跃"
+    },
+    "balances": {
+      "bccFree": "BCC（免费）",
+      "bccLocked": "BCC（锁定）"
+    },
+    "quickActions": {
+      "tasks": {
+        "description": "使用您的BCC代币浏览和获取商家NFT"
+      },
+      "education": {
+        "description": "访问课程和学习材料"
+      },
+      "hiveworld": {
+        "description": "查看您的推荐矩阵和奖励"
+      }
+    },
+    "recentActivity": "最近活动",
+    "activation": {
+      "success": {
+        "title": "会员已激活！",
+        "description": "欢迎来到蜂巢！您现在可以访问所有会员功能。"
+      },
+      "error": {
+        "title": "激活失败",
+        "description": "请重试或联系支持。"
+      }
+    }
+  },
   "membership": {
     "purchase": {
       "button": "购买级别 {level} (${price} USDT)",
@@ -362,7 +411,8 @@
       "trending": "热门",
       "clear": "清除"
     },
-    "featured": {
+    "featured": "精选",
+    "featuredSection": {
       "title": "Beehive精选",
       "viewAll": "查看全部"
     },
@@ -382,7 +432,8 @@
       "tools": "工具",
       "education": "教育"
     },
-    "trending": {
+    "trending": "热门",
+    "trendingSection": {
       "title": "当前热门",
       "subtitle": "生态系统中的热门DApps",
       "users": "用户",
