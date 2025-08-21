@@ -1,5 +1,6 @@
 import { useWallet } from '../hooks/useWallet';
 import { useI18n } from '../contexts/I18nContext';
+import { useLocation } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -41,6 +42,7 @@ export default function Education() {
   const { t } = useI18n();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   
   // Filter and search states
   const [searchQuery, setSearchQuery] = useState('');
@@ -360,7 +362,11 @@ export default function Education() {
           const canAfford = course.isFree || (bccBalance?.transferable || 0) >= course.priceBCC;
 
           return (
-            <Card key={course.id} className="bg-secondary border-border glow-hover card-hover">
+            <Card 
+              key={course.id} 
+              className="bg-secondary border-border glow-hover card-hover cursor-pointer transition-all hover:scale-105"
+              onClick={() => setLocation(`/education/${course.id}`)}
+            >
               <CardContent className="p-6">
                 <div className="flex items-center space-x-3 mb-4">
                   <HexagonIcon>

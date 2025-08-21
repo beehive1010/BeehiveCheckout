@@ -166,6 +166,20 @@ export const courses = pgTable("courses", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Course lessons table for video courses
+export const courseLessons = pgTable("course_lessons", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  courseId: varchar("course_id").notNull().references(() => courses.id),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  videoUrl: text("video_url").notNull(),
+  duration: text("duration").notNull(),
+  lessonOrder: integer("lesson_order").notNull(),
+  priceBCC: integer("price_bcc").default(0).notNull(),
+  isFree: boolean("is_free").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Course access table
 export const courseAccess = pgTable("course_access", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -174,6 +188,18 @@ export const courseAccess = pgTable("course_access", {
   progress: integer("progress").default(0).notNull(),
   completed: boolean("completed").default(false).notNull(),
   grantedAt: timestamp("granted_at").defaultNow().notNull(),
+  zoomNickname: text("zoom_nickname"), // For online courses, generated nickname + 3 digits
+});
+
+// Lesson access table for tracking individual lesson unlocks
+export const lessonAccess = pgTable("lesson_access", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  walletAddress: varchar("wallet_address", { length: 42 }).notNull().references(() => users.walletAddress),
+  lessonId: varchar("lesson_id").notNull().references(() => courseLessons.id),
+  courseId: varchar("course_id").notNull().references(() => courses.id),
+  unlockedAt: timestamp("unlocked_at").defaultNow().notNull(),
+  watchProgress: integer("watch_progress").default(0).notNull(), // Percentage watched
+  completed: boolean("completed").default(false).notNull(),
 });
 
 // Blog posts table for Hiveworld
@@ -335,11 +361,31 @@ export const insertCourseSchema = createInsertSchema(courses).pick({
   downloadLink: true,
 });
 
+export const insertCourseLessonSchema = createInsertSchema(courseLessons).pick({
+  courseId: true,
+  title: true,
+  description: true,
+  videoUrl: true,
+  duration: true,
+  lessonOrder: true,
+  priceBCC: true,
+  isFree: true,
+});
+
+export const insertLessonAccessSchema = createInsertSchema(lessonAccess).pick({
+  walletAddress: true,
+  lessonId: true,
+  courseId: true,
+  watchProgress: true,
+  completed: true,
+});
+
 export const insertCourseAccessSchema = createInsertSchema(courseAccess).pick({
   walletAddress: true,
   courseId: true,
   progress: true,
   completed: true,
+  zoomNickname: true,
 });
 
 // Advertisement NFTs table - different from merchant NFTs
@@ -437,6 +483,12 @@ export type NFTPurchase = typeof nftPurchases.$inferSelect;
 
 export type InsertCourse = z.infer<typeof insertCourseSchema>;
 export type Course = typeof courses.$inferSelect;
+
+export type InsertCourseLesson = z.infer<typeof insertCourseLessonSchema>;
+export type CourseLesson = typeof courseLessons.$inferSelect;
+
+export type InsertLessonAccess = z.infer<typeof insertLessonAccessSchema>;
+export type LessonAccess = typeof lessonAccess.$inferSelect;
 
 export type InsertCourseAccess = z.infer<typeof insertCourseAccessSchema>;
 export type CourseAccess = typeof courseAccess.$inferSelect;

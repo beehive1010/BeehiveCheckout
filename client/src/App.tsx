@@ -15,6 +15,7 @@ import Welcome from "@/pages/Welcome";
 import Dashboard from "@/pages/Dashboard";
 import Tasks from "@/pages/Tasks";
 import Education from "@/pages/Education";
+import CourseDetails from "@/pages/CourseDetails";
 import Discover from "@/pages/Discover";
 import HiveWorld from "@/pages/HiveWorld";
 import BlogPost from "@/pages/BlogPost";
@@ -39,6 +40,7 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/tasks" component={Tasks} />
       <Route path="/education" component={Education} />
+      <Route path="/education/:courseId" component={CourseDetails} />
       <Route path="/discover" component={Discover} />
       <Route path="/hiveworld" component={HiveWorld} />
       <Route path="/hiveworld/:id" component={BlogPost} />
