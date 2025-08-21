@@ -24,9 +24,13 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     if (account?.address) {
       setIsConnected(true);
       setWalletAddress(account.address);
+      // Store wallet address for API client access
+      sessionStorage.setItem('wallet-address', account.address);
     } else {
       setIsConnected(false);
       setWalletAddress(null);
+      // Remove wallet address when disconnected
+      sessionStorage.removeItem('wallet-address');
     }
   }, [account]);
 

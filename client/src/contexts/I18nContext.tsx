@@ -6,7 +6,7 @@ type Language = 'en' | 'zh' | 'th' | 'ms' | 'ko' | 'ja';
 interface I18nContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
+  t: (key: string, interpolations?: Record<string, string | number>) => string;
   languages: { code: Language; name: string }[];
 }
 
@@ -42,7 +42,7 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem('beehive-language', lang);
   };
 
-  const t = (key: string): string => {
+  const t = (key: string, interpolations?: Record<string, string | number>): string => {
     try {
       const keys = key.split('.');
       let value: any = translations[language];
@@ -58,11 +58,22 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
           englishValue = englishValue?.[k];
         }
         if (englishValue) {
-          return englishValue;
+          value = englishValue;
         }
       }
       
-      return value || key;
+      let result = value || key;
+      
+      // Handle interpolation
+      if (interpolations && typeof result === 'string') {
+        for (const [placeholder, replacement] of Object.entries(interpolations)) {
+          // Handle both {placeholder} and ${placeholder} formats
+          result = result.replace(new RegExp(`\\{${placeholder}\\}`, 'g'), String(replacement));
+          result = result.replace(new RegExp(`\\$\\{${placeholder}\\}`, 'g'), String(replacement));
+        }
+      }
+      
+      return result;
     } catch (error) {
       console.error('Translation error:', error, key);
       return key;
