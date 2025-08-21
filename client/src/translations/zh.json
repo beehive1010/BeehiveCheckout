@@ -610,7 +610,51 @@
       "noArticlesDesc": "请尝试调整您的搜索词或选择的主题。",
       "author": "作者",
       "views": "浏览量",
-      "publishedOn": "发布于"
+      "publishedOn": "发布于",
+      "posts": {
+        "1": {
+          "title": "Web3会员系统的未来",
+          "excerpt": "探索区块链技术如何在各行业中变革会员和忠诚度计划。",
+          "author": "蜂巢团队"
+        },
+        "2": {
+          "title": "理解基于NFT的访问控制",
+          "excerpt": "如何使用NFT来限制内容访问并创造独家社区体验。",
+          "author": "技术团队"
+        },
+        "3": {
+          "title": "构建可持续的推荐经济",
+          "excerpt": "成功推荐计划背后的机制以及它们如何创造持久价值。",
+          "author": "策略团队"
+        },
+        "4": {
+          "title": "多链支付集成指南",
+          "excerpt": "为dApps实施跨链支付解决方案的技术深度分析。",
+          "author": "开发团队"
+        },
+        "5": {
+          "title": "去中心化平台中的社区治理",
+          "excerpt": "在Web3社区中实施公平有效治理系统的最佳实践。",
+          "author": "社区团队"
+        }
+      },
+      "tags": {
+        "Web3": "Web3",
+        "Blockchain": "区块链",
+        "Membership": "会员制",
+        "NFT": "NFT",
+        "Access Control": "访问控制",
+        "Technology": "技术",
+        "Referrals": "推荐",
+        "Economics": "经济学",
+        "Strategy": "策略",
+        "Multi-chain": "多链",
+        "Payments": "支付",
+        "Development": "开发",
+        "Governance": "治理",
+        "Community": "社区",
+        "DAO": "DAO"
+      }
     },
     "stats": {
       "directReferrals": "直接推荐",
