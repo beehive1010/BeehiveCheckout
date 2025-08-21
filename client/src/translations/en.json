@@ -55,8 +55,29 @@
         "description": "48-hour upgrade countdown with roll-up mechanisms"
       }
     },
+    "stats": {
+      "membershipLevels": "19 Membership Levels",
+      "matrixSystem": "3×3 Matrix System",
+      "nftMarketplace": "NFT Marketplace"
+    },
+    "platformFeatures": {
+      "title": "Platform Features",
+      "subtitle": "Discover the powerful features that make Beehive the ultimate Web3 membership platform",
+      "exclusiveLevels": "19 Exclusive Levels",
+      "exclusiveCollections": "Exclusive Collections",
+      "autoPlacement": "Auto-placement System",
+      "dualTokenSystem": "Dual Token System",
+      "premiumCourses": "Premium Courses",
+      "countdown": "48hr Countdown"
+    },
+    "ctaStats": {
+      "membershipLevels": "Membership Levels",
+      "matrixSystem": "Matrix System",
+      "earningPotential": "Earning Potential"
+    },
     "howItWorks": {
       "title": "How It Works",
+      "subtitle": "Get started in just three simple steps and unlock the power of Web3 membership",
       "step1": {
         "title": "Connect Wallet",
         "description": "Connect your Web3 wallet to get started"
@@ -734,6 +755,11 @@
     "transactionSent": {
       "title": "Transaction Sent",
       "description": "Please wait while your NFT is being claimed..."
+    }
+  },
+  "welcome": {
+    "benefits": {
+      "hiveworld": "HiveWorld Matrix System"
     }
   },
   "footer": {

@@ -122,7 +122,7 @@ export default function Welcome() {
                   { icon: "fas fa-tasks", text: "Tasks & NFT Marketplace" },
                   { icon: "fas fa-graduation-cap", text: "Education Center" },
                   { icon: "fas fa-globe", text: "Discover Web3 DApps" },
-                  { icon: "fas fa-users", text: "HiveWorld Matrix System" },
+                  { icon: "fas fa-users", text: t('welcome.benefits.hiveworld') },
                   { icon: "fas fa-coins", text: "BCC Token Rewards" },
                 ].map((benefit, index) => (
                   <motion.div
