@@ -526,8 +526,10 @@
       "priceAmount": "130 USDT"
     },
     "benefits": {
-      "tasks": "タスクと報酬システム",
-      "education": "独占的な教育コンテンツ",
+      "title": "アンロックされる機能：",
+      "dashboard": "フルダッシュボードアクセス",
+      "tasks": "タスク＆NFTマーケットプレイス",
+      "education": "教育センター",
       "discover": "Web3 DAppsを発見",
       "tokens": "BCCトークン報酬",
       "hiveworld": "ハイブワールドマトリックスシステム"
@@ -543,7 +545,8 @@
     "error": {
       "title": "購入失敗",
       "description": "購入でエラーが発生しました。再試行してください。"
-    }
+    },
+    "supportText": "複数のブロックチェーンでの安全な支払い、即時NFT配送"
   },
   "tokenPurchase": {
     "title": "トークン購入",

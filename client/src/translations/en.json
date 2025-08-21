@@ -150,11 +150,6 @@
       "tokenId": "Token ID",
       "getButton": "Get Level 1 NFT"
     },
-    "welcome": {
-      "title": "Welcome to Beehive!",
-      "description": "Activate your Level 1 membership to unlock all platform features and start earning rewards.",
-      "subtitle": "Start exploring the platform and building your Web3 presence."
-    },
     "membershipLevel": "Membership Level",
     "price": "Price",
     "activateLevel1": "Activate Level 1 Bumblebees (BBC) NFT",
@@ -936,47 +931,6 @@
         "title": "Purchase Failed",
         "description": "Unable to complete membership purchase. Please try again."
       }
-    }
-  },
-  "welcome": {
-    "title": "Welcome to Beehive! \ud83c\udf89",
-    "subtitle": "Congratulations on completing your registration! Now claim your first membership NFT to unlock all platform features.",
-    "nftTitle": "Level 1 Warrior NFT",
-    "nftDescription": "Your membership credential on the blockchain",
-    "tokenId": "Token ID: 0",
-    "collection": "Bumblebees (BBC)",
-    "unlockTitle": "What You'll Unlock:",
-    "benefits": {
-      "dashboard": "Full Dashboard Access",
-      "tasks": "Tasks & NFT Marketplace",
-      "education": "Education Center",
-      "discover": "Discover Web3 DApps",
-      "hiveworld": "HiveWorld Matrix System",
-      "rewards": "BCC Token Rewards"
-    },
-    "giftTitle": "\ud83c\udf81 Special Welcome Gift",
-    "giftDescription": "Claim your Level 1 Warrior NFT completely **FREE** as a welcome gift!",
-    "claimButton": "Claim Level 1 Warrior NFT",
-    "claimingText": "Claiming Your NFT...",
-    "processingTitle": "Processing your NFT claim...",
-    "processingDescription": "This may take a few moments. Please don't close this page.",
-    "supportText": "Having trouble? Contact our support team for assistance.",
-    "success": {
-      "title": "\ud83c\udf89 NFT Claimed Successfully!",
-      "description": "Your Level 1 Warrior NFT has been claimed. Welcome to Beehive!"
-    },
-    "error": {
-      "title": "Claim Failed",
-      "description": "Failed to claim your NFT. Please try again."
-    },
-    "transactionSent": {
-      "title": "Transaction Sent",
-      "description": "Please wait while your NFT is being claimed..."
-    }
-  },
-  "welcome": {
-    "benefits": {
-      "hiveworld": "HiveWorld Matrix System"
     }
   },
   "footer": {
