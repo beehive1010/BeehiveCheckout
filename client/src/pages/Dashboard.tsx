@@ -257,7 +257,7 @@ export default function Dashboard() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               <div className="balance-card">
                 <p className="text-muted-foreground text-xs">Reward</p>
-                <p className="text-honey font-bold">245.50</p>
+                <p className="text-honey font-bold">{isLoadingUserStats ? '...' : (userStats?.totalEarnings || 0)}</p>
               </div>
               <div className="balance-card">
                 <p className="text-muted-foreground text-xs">BCC Balance</p>
@@ -268,9 +268,8 @@ export default function Dashboard() {
                 <p className="text-honey font-bold">{bccBalance?.restricted || 0}</p>
               </div>
               <div className="balance-card">
-                <p className="text-muted-foreground text-xs">NFTs
-</p>
-                <p className="text-honey font-bold">42</p>
+                <p className="text-muted-foreground text-xs">NFTs</p>
+                <p className="text-honey font-bold">{isLoadingUserStats ? '...' : 0}</p>
               </div>
             </div>
           </div>
@@ -385,8 +384,7 @@ export default function Dashboard() {
           <CardContent className="p-6 text-center">
             <i className="fas fa-lock h-8 w-8 text-honey mx-auto mb-2 text-2xl"></i>
             <h3 className="text-2xl font-bold text-honey">
-              {/* BCC locked amount - will be fetched from real data */}
-              0
+              {typeof bccBalance === 'object' ? (bccBalance?.restricted || 0) : 0}
             </h3>
             <p className="text-muted-foreground text-sm">BCC Locked</p>
           </CardContent>
@@ -396,8 +394,7 @@ export default function Dashboard() {
           <CardContent className="p-6 text-center">
             <i className="fas fa-image h-8 w-8 text-honey mx-auto mb-2 text-2xl"></i>
             <h3 className="text-2xl font-bold text-honey">
-              {/* NFTs owned count - will be fetched from real data */}
-              0
+              {isLoadingUserStats ? '...' : 0}
             </h3>
             <p className="text-muted-foreground text-sm">NFTs Owned</p>
           </CardContent>
