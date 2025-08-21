@@ -4,6 +4,7 @@ import zh from '../translations/zh.json';
 import th from '../translations/th.json';
 import ms from '../translations/ms.json';
 import ko from '../translations/ko.json';
+import ja from '../translations/ja.json';
 
 export const translations = {
   en,
@@ -11,6 +12,7 @@ export const translations = {
   th,
   ms,
   ko,
+  ja,
 } as const;
 
 export type SupportedLanguage = keyof typeof translations;
@@ -35,6 +37,7 @@ export const formatNumber = (num: number, locale: SupportedLanguage): string => 
     th: 'th-TH',
     ms: 'ms-MY',
     ko: 'ko-KR',
+    ja: 'ja-JP',
   };
   
   return new Intl.NumberFormat(localeMap[locale]).format(num);
@@ -51,6 +54,7 @@ export const formatCurrency = (
     th: 'th-TH',
     ms: 'ms-MY',
     ko: 'ko-KR',
+    ja: 'ja-JP',
   };
   
   return new Intl.NumberFormat(localeMap[locale], {
@@ -70,6 +74,7 @@ export const formatDate = (
     th: 'th-TH',
     ms: 'ms-MY',
     ko: 'ko-KR',
+    ja: 'ja-JP',
   };
   
   const defaultOptions: Intl.DateTimeFormatOptions = {
