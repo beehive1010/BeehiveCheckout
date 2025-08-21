@@ -328,7 +328,7 @@ export default function Discover() {
                   </div>
                   {dapp.featured && (
                     <span className="text-xs px-2 py-1 rounded-full bg-honey/20 text-honey">
-                      Featured
+                      {t('discover.featured')}
                     </span>
                   )}
                 </div>
@@ -416,7 +416,7 @@ export default function Discover() {
                   </div>
                   {dapp.trending && (
                     <span className="text-xs px-2 py-1 rounded-full bg-red-500/20 text-red-400">
-                      🔥 {t('discover.trending.title')}
+                      🔥 {t('discover.trending')}
                     </span>
                   )}
                 </div>

@@ -315,8 +315,46 @@
       "title": "Latest News",
       "subtitle": "Stay updated with Web3 developments",
       "readMore": "Read More",
-      "minutes": "min read"
-    }
+      "minutes": "min read",
+      "matrix30": {
+        "title": "Matrix 3.0 Launch - Enhanced Rewards",
+        "description": "Experience our upgraded matrix system with improved reward distribution and faster processing times"
+      },
+      "bridge": {
+        "title": "Multi-Chain Bridge Integration", 
+        "description": "Seamlessly transfer assets across multiple blockchains with our new bridge technology"
+      },
+      "education": {
+        "title": "New Web3 Certification Program",
+        "description": "Advanced certification courses now available for blockchain development and DeFi protocols"
+      }
+    },
+    "dapps": {
+      "beehive": "Beehive Platform",
+      "beehiveDesc": "Web3 membership platform with 19-level progression, 3×3 matrix rewards, and educational ecosystem",
+      "uniswap": "Uniswap",
+      "uniswapDesc": "Leading decentralized exchange for token swapping and liquidity provision",
+      "opensea": "OpenSea",
+      "openseaDesc": "The world's largest NFT marketplace for buying, selling, and trading digital assets",
+      "compound": "Compound",
+      "compoundDesc": "Algorithmic money market protocol for earning interest on crypto assets",
+      "matrixRewards": "Matrix Rewards",
+      "matrixRewardsDesc": "Beehive's 3×3 matrix system for earning passive income through referral networks",
+      "pancakeswap": "PancakeSwap",
+      "pancakeswapDesc": "Popular DEX on BSC chain with farming, pools, and lottery features",
+      "axieinfinity": "Axie Infinity",
+      "axieinfinityDesc": "Play-to-earn game where players battle, breed, and trade fantasy creatures called Axies"
+    },
+    "chains": {
+      "ethereum": "Ethereum",
+      "polygon": "Polygon",
+      "arbitrum": "Arbitrum",
+      "optimism": "Optimism", 
+      "bsc": "BSC",
+      "avalanche": "Avalanche"
+    },
+    "featured": "Featured",
+    "trending": "Trending"
   },
   "welcome": {
     "title": "Welcome to Beehive! 🎉",
