@@ -5,8 +5,9 @@ import { useI18n } from '../../contexts/I18nContext';
 import { getMembershipLevel } from '../../lib/config/membershipLevels';
 import { membershipEventEmitter } from '../../lib/membership/events';
 import { ConnectButton } from "thirdweb/react";
-import { client, alphaCentauri, bbcMembershipContract, levelToTokenId } from '../../lib/web3';
+import { client, alphaCentauri, bbcMembershipContract, levelToTokenId, paymentChains } from '../../lib/web3';
 import { PayEmbed } from "thirdweb/react";
+import { Card, CardContent } from '../ui/card';
 
 type ClaimState = 'idle' | 'approving' | 'paying' | 'verifying' | 'persisting' | 'success' | 'error';
 
@@ -30,6 +31,8 @@ export default function ClaimMembershipButton({
   const [claimState, setClaimState] = useState<ClaimState>('idle');
   const [txHash, setTxHash] = useState<string>('');
   const [doubleClickGuard, setDoubleClickGuard] = useState(false);
+  const [selectedChain, setSelectedChain] = useState(paymentChains[0]); // Default to Ethereum
+  const [showChainSelector, setShowChainSelector] = useState(false);
   const { toast } = useToast();
   const { t } = useI18n();
 
@@ -221,10 +224,15 @@ export default function ClaimMembershipButton({
 
   const handleStartPurchase = () => {
     if (doubleClickGuard || disabled) return;
-    
+    setShowChainSelector(true);
+  };
+
+  const handleChainSelected = (chain: typeof paymentChains[0]) => {
+    setSelectedChain(chain);
+    setShowChainSelector(false);
     setDoubleClickGuard(true);
     setClaimState('paying');
-    
+
     // Emit purchase started event
     membershipEventEmitter.emit({
       type: 'MEMBERSHIP_PURCHASE_STARTED',
@@ -232,6 +240,7 @@ export default function ClaimMembershipButton({
         walletAddress,
         level,
         priceUSDT: membershipLevel.priceUSDT,
+        selectedChain: chain.name,
         timestamp: Date.now()
       }
     });
@@ -272,21 +281,92 @@ export default function ClaimMembershipButton({
     );
   }
 
+  // Chain Selector Modal
+  if (showChainSelector) {
+    return (
+      <div className={`${className} space-y-4`}>
+        <Card className="bg-secondary border-border">
+          <CardContent className="p-4">
+            <div className="text-center mb-4">
+              <h3 className="text-honey font-semibold mb-2">Select Payment Chain</h3>
+              <p className="text-sm text-muted-foreground">
+                Choose which blockchain to pay USDT on for your Level {level} membership
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-3">
+              {paymentChains.map((chain) => (
+                <Button
+                  key={chain.name}
+                  onClick={() => handleChainSelected(chain)}
+                  variant="outline"
+                  className="h-auto p-4 justify-start hover:bg-honey/10 hover:border-honey/30"
+                  data-testid={`button-select-${chain.name.toLowerCase()}`}
+                >
+                  <div className="flex items-center space-x-3 w-full">
+                    <div className={`w-8 h-8 rounded-full bg-muted flex items-center justify-center ${chain.color}`}>
+                      <i className={`${chain.icon} text-sm`}></i>
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="font-medium">{chain.name}</p>
+                      <p className="text-xs text-muted-foreground">Pay with USDT • Gas in {chain.symbol}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-honey">${membershipLevel.priceUSDT}</p>
+                      <p className="text-xs text-muted-foreground">USDT</p>
+                    </div>
+                  </div>
+                </Button>
+              ))}
+            </div>
+            
+            <Button
+              onClick={() => setShowChainSelector(false)}
+              variant="outline"
+              className="w-full mt-4"
+              data-testid="button-cancel-chain-selector"
+            >
+              Cancel
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (claimState === 'paying') {
     return (
       <div className={`${className} space-y-4`}>
+        {/* Selected Chain Info */}
+        <div className="bg-secondary/50 rounded-lg p-3 border border-border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className={`w-6 h-6 rounded-full bg-muted flex items-center justify-center ${selectedChain.color}`}>
+                <i className={`${selectedChain.icon} text-xs`}></i>
+              </div>
+              <span className="text-sm font-medium">{selectedChain.name}</span>
+            </div>
+            <span className="text-xs text-muted-foreground">USDT Payment</span>
+          </div>
+        </div>
+
         <PayEmbed
           client={client}
           payOptions={{
             mode: "direct_payment",
             paymentInfo: {
               amount: membershipLevel.priceUSDT.toString(),
-              sellerAddress: process.env.VITE_SELLER_ADDRESS || "",
-              chain: alphaCentauri,
+              sellerAddress: selectedChain.bridgeWallet,
+              chain: selectedChain.chain,
+              token: {
+                address: selectedChain.usdtAddress,
+                symbol: 'USDT',
+                name: 'Tether USD',
+              },
             },
             metadata: {
-              name: `Beehive L${level} Membership`,
-              description: `Level ${level} membership upgrade`,
+              name: `Beehive L${level} Membership (${selectedChain.name})`,
+              description: `Level ${level} membership upgrade via ${selectedChain.name} USDT`,
               image: "/membership-badge.png",
             },
           }}
@@ -294,7 +374,10 @@ export default function ClaimMembershipButton({
         />
         
         <Button
-          onClick={() => setClaimState('idle')}
+          onClick={() => {
+            setClaimState('idle');
+            setShowChainSelector(false);
+          }}
           variant="outline"
           className="w-full"
           data-testid="button-cancel-payment"

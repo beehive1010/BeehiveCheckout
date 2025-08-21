@@ -9,6 +9,7 @@ import {
   nftPurchases,
   courses,
   courseAccess,
+  bridgePayments,
   type User, 
   type InsertUser,
   type MembershipState,
@@ -28,7 +29,9 @@ import {
   type Course,
   type InsertCourse,
   type CourseAccess,
-  type InsertCourseAccess
+  type InsertCourseAccess,
+  type BridgePayment,
+  type InsertBridgePayment
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
@@ -87,6 +90,13 @@ export interface IStorage {
   getCourseAccessByWallet(walletAddress: string): Promise<CourseAccess[]>;
   createCourseAccess(access: InsertCourseAccess): Promise<CourseAccess>;
   updateCourseAccess(walletAddress: string, courseId: string, updates: Partial<CourseAccess>): Promise<CourseAccess | undefined>;
+
+  // Bridge payment operations
+  createBridgePayment(bridgePayment: InsertBridgePayment): Promise<BridgePayment>;
+  getBridgePayment(sourceTxHash: string): Promise<BridgePayment | undefined>;
+  getBridgePaymentsByWallet(walletAddress: string): Promise<BridgePayment[]>;
+  updateBridgePayment(id: string, updates: Partial<BridgePayment>): Promise<BridgePayment | undefined>;
+  getPendingBridgePayments(): Promise<BridgePayment[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -472,6 +482,46 @@ export class DatabaseStorage implements IStorage {
       )
       .returning();
     return access || undefined;
+  }
+
+  // Bridge Payment Methods
+  async createBridgePayment(bridgePayment: InsertBridgePayment): Promise<BridgePayment> {
+    const [payment] = await db.insert(bridgePayments)
+      .values({
+        ...bridgePayment,
+        walletAddress: bridgePayment.walletAddress.toLowerCase(),
+      })
+      .returning();
+    return payment;
+  }
+
+  async getBridgePayment(sourceTxHash: string): Promise<BridgePayment | undefined> {
+    const [payment] = await db.select()
+      .from(bridgePayments)
+      .where(eq(bridgePayments.sourceTxHash, sourceTxHash));
+    return payment || undefined;
+  }
+
+  async getBridgePaymentsByWallet(walletAddress: string): Promise<BridgePayment[]> {
+    return await db.select()
+      .from(bridgePayments)
+      .where(eq(bridgePayments.walletAddress, walletAddress.toLowerCase()))
+      .orderBy(bridgePayments.createdAt);
+  }
+
+  async updateBridgePayment(id: string, updates: Partial<BridgePayment>): Promise<BridgePayment | undefined> {
+    const [updated] = await db.update(bridgePayments)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(bridgePayments.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async getPendingBridgePayments(): Promise<BridgePayment[]> {
+    return await db.select()
+      .from(bridgePayments)
+      .where(eq(bridgePayments.status, 'pending'))
+      .orderBy(bridgePayments.createdAt);
   }
 }
 

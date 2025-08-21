@@ -9,7 +9,8 @@ import {
   insertOrderSchema,
   insertRewardEventSchema,
   insertNFTPurchaseSchema,
-  insertCourseAccessSchema
+  insertCourseAccessSchema,
+  insertBridgePaymentSchema
 } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcrypt";
@@ -700,6 +701,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Membership claim error:', error);
       res.status(500).json({ error: 'Failed to claim membership' });
+    }
+  });
+
+  // Bridge Payment Routes for Cross-Chain USDT Support
+
+  // Start bridge payment process
+  app.post("/api/bridge/payment", requireWallet, async (req, res) => {
+    try {
+      const result = insertBridgePaymentSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ error: result.error.issues });
+      }
+
+      const bridgePayment = await storage.createBridgePayment({
+        ...result.data,
+        walletAddress: req.walletAddress,
+      });
+
+      res.json(bridgePayment);
+    } catch (error) {
+      console.error('Bridge payment creation error:', error);
+      res.status(500).json({ error: 'Failed to create bridge payment' });
+    }
+  });
+
+  // Get bridge payment status
+  app.get("/api/bridge/payment/:txHash", requireWallet, async (req, res) => {
+    try {
+      const { txHash } = req.params;
+      const bridgePayment = await storage.getBridgePayment(txHash);
+      
+      if (!bridgePayment) {
+        return res.status(404).json({ error: 'Bridge payment not found' });
+      }
+
+      res.json(bridgePayment);
+    } catch (error) {
+      console.error('Bridge payment fetch error:', error);
+      res.status(500).json({ error: 'Failed to fetch bridge payment' });
+    }
+  });
+
+  // Get user's bridge payments
+  app.get("/api/bridge/payments", requireWallet, async (req, res) => {
+    try {
+      const bridgePayments = await storage.getBridgePaymentsByWallet(req.walletAddress);
+      res.json(bridgePayments);
+    } catch (error) {
+      console.error('Bridge payments fetch error:', error);
+      res.status(500).json({ error: 'Failed to fetch bridge payments' });
+    }
+  });
+
+  // Update bridge payment status (webhook endpoint for monitoring)
+  app.post("/api/bridge/payment/:id/update", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status, targetTxHash, nftTokenId, verifiedAt, mintedAt } = req.body;
+
+      const updatedPayment = await storage.updateBridgePayment(id, {
+        status,
+        targetTxHash,
+        nftTokenId,
+        verifiedAt: verifiedAt ? new Date(verifiedAt) : undefined,
+        mintedAt: mintedAt ? new Date(mintedAt) : undefined,
+        updatedAt: new Date(),
+      });
+
+      if (!updatedPayment) {
+        return res.status(404).json({ error: 'Bridge payment not found' });
+      }
+
+      res.json(updatedPayment);
+    } catch (error) {
+      console.error('Bridge payment update error:', error);
+      res.status(500).json({ error: 'Failed to update bridge payment' });
+    }
+  });
+
+  // Monitor pending bridge payments
+  app.get("/api/bridge/monitor", async (req, res) => {
+    try {
+      const pendingPayments = await storage.getPendingBridgePayments();
+      res.json(pendingPayments);
+    } catch (error) {
+      console.error('Bridge monitoring error:', error);
+      res.status(500).json({ error: 'Failed to fetch pending payments' });
     }
   });
 
