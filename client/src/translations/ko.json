@@ -533,5 +533,159 @@
     "terms": "서비스 약관",
     "cookies": "쿠키 정책",
     "copyright": "© 2024 Beehive. 모든 권리 보유."
+  },
+  "ads": {
+    "title": "광고 NFT",
+    "description": "BCC 토큰으로 광고 NFT를 클레임하여 프로모션 서비스를 잠금 해제하세요",
+    "nftCenter": "NFT 센터",
+    "manageNfts": "NFT 관리",
+    "browseNfts": "광고 NFT 찾아보기",
+    "exploreServices": "사용 가능한 프로모션 서비스 및 DApp 파트너십 탐색",
+    "claimNft": "NFT 클레임",
+    "soldOut": "매진",
+    "claiming": "클레임 중...",
+    "confirmClaim": "클레임 확인",
+    "bccRequired": "BCC 필요",
+    "available": "사용 가능",
+    "cost": "비용",
+    "bucketSelection": "이 광고 NFT를 클레임하는 데 사용할 BCC 버킷을 선택하세요",
+    "transferableBcc": "전송 가능한 BCC",
+    "restrictedBcc": "제한된 BCC",
+    "claim": {
+      "success": {
+        "title": "NFT 클레임 성공!",
+        "description": "광고 NFT가 클레임되었고 BCC 토큰이 잠금되었습니다."
+      },
+      "error": {
+        "title": "클레임 실패",
+        "description": "광고 NFT 클레임에 실패했습니다"
+      }
+    },
+    "burn": {
+      "title": "NFT 소각 성공!",
+      "description": "서비스 코드: {code}",
+      "error": {
+        "title": "소각 실패",
+        "description": "NFT 소각에 실패했습니다"
+      }
+    },
+    "status": {
+      "active": "활성",
+      "used": "사용됨",
+      "burned": "소각됨",
+      "claimed": "사용 준비",
+      "serviceActivated": "서비스 활성화됨"
+    }
+  },
+  "discover": {
+    "dapps": {
+      "uniswap": "Uniswap",
+      "uniswapDesc": "선도적인 탈중앙화 거래 프로토콜",
+      "opensea": "OpenSea",
+      "openseaDesc": "최대 NFT 마켓플레이스",
+      "compound": "Compound",
+      "compoundDesc": "알고리즘 화폐 시장 프로토콜",
+      "pancakeswap": "PancakeSwap",
+      "pancakeswapDesc": "파밍 기능이 있는 BSC 선도 DEX",
+      "axieinfinity": "Axie Infinity",
+      "axieinfinityDesc": "인기 있는 플레이-투-언 게임"
+    },
+    "news": {
+      "matrix30": {
+        "title": "BeeHive, 새로운 Matrix 3.0 시스템 출시",
+        "description": "자동화된 스마트 계약 배포와 개선된 보상 메커니즘을 갖춘 강화된 3×3 매트릭스."
+      },
+      "bridge": {
+        "title": "멀티체인 USDT 브리지 서비스 시작",
+        "description": "이더리움, 폴리곤, 아비트럼 네트워크 간 원활한 USDT 결제."
+      },
+      "education": {
+        "title": "교육 허브, 50+ 코스 달성",
+        "description": "인증 프로그램이 포함된 포괄적인 Web3 학습 플랫폼."
+      }
+    },
+    "chains": {
+      "ethereum": "이더리움",
+      "polygon": "폴리곤",
+      "arbitrum": "아비트럼",
+      "optimism": "옵티미즘",
+      "bsc": "BSC",
+      "avalanche": "아발란체"
+    }
+  },
+  "hiveworld": {
+    "blogs": {
+      "web3membership": {
+        "title": "Web3 멤버십 시스템의 미래",
+        "excerpt": "블록체인 기술이 여러 산업의 멤버십 및 로열티 프로그램을 어떻게 혁신하고 있는지 탐색합니다."
+      },
+      "nftaccess": {
+        "title": "NFT 기반 액세스 제어 이해",
+        "excerpt": "NFT가 콘텐츠 게이팅과 독점적 커뮤니티 경험 창조에 어떻게 사용되는지."
+      },
+      "referraleconomy": {
+        "title": "지속 가능한 추천 경제 구축",
+        "excerpt": "매트릭스 기반 추천 시스템에서 장기적 가치를 창출하는 모범 사례."
+      },
+      "multichainpayment": {
+        "title": "멀티체인 결제 통합 가이드",
+        "excerpt": "크로스체인 USDT 결제 처리 및 사용자 경험 최적화에 대한 기술적 심층 분석."
+      },
+      "governance": {
+        "title": "탈중앙화 플랫폼의 커뮤니티 거버넌스",
+        "excerpt": "Web3 커뮤니티에서 공정하고 투명한 의사결정 프로세스 구현."
+      }
+    }
+  },
+  "blogpost": {
+    "linkCopied": {
+      "title": "링크가 복사되었습니다!",
+      "description": "블로그 포스트 링크가 클립보드에 복사되었습니다"
+    },
+    "author": "작성자",
+    "publishedOn": "게시일",
+    "tags": "태그",
+    "relatedPosts": "관련 포스트",
+    "sharePost": "이 포스트 공유"
+  },
+  "activity": {
+    "rewardReceived": "보상 수령됨",
+    "fromReferralUpgrade": "추천 업그레이드로부터",
+    "nftClaimed": "NFT 클레임됨",
+    "newReferral": "새로운 추천",
+    "memberSince": "멤버 시작일"
+  },
+  "errors": {
+    "walletNotConnected": "지갑이 연결되지 않음",
+    "failedToFetch": "NFT 가져오기 실패",
+    "failedToClaim": "NFT 클레임 실패",
+    "failedToBurn": "NFT 소각 실패",
+    "insufficientBcc": "BCC 부족",
+    "maxLevel": "최대 레벨",
+    "inactive": "비활성"
+  },
+  "buttons": {
+    "getStarted": "시작하기",
+    "connectWallet": "지갑 연결",
+    "copied": "복사됨!",
+    "close": "닫기",
+    "viewInCenter": "NFT 센터에서 보기",
+    "burnForService": "서비스 코드를 위해 소각",
+    "burnNft": "NFT 소각",
+    "confirmBurn": "소각 확인",
+    "burning": "소각 중...",
+    "useNftService": "NFT 서비스 사용"
+  },
+  "selectors": {
+    "category": "카테고리",
+    "level": "레벨",
+    "type": "타입",
+    "payment": "결제",
+    "onlineZoom": "온라인 (Zoom)",
+    "videoLessons": "비디오 레슨",
+    "freeCourses": "무료 코스",
+    "paidBcc": "유료 (BCC)",
+    "completed": "완료됨",
+    "enrolled": "등록됨"
   }
 }

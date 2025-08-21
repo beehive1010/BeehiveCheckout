@@ -10,7 +10,7 @@ import { useToast } from '../hooks/use-toast';
 import { prepareContractCall, sendTransaction, getContract } from 'thirdweb';
 import { useActiveAccount } from 'thirdweb/react';
 import { polygon } from 'thirdweb/chains';
-import { client } from '../lib/client';
+import { client } from '../lib/web3';
 import { StarIcon, FireIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { IconCode, IconWallet, IconFlame } from '@tabler/icons-react';
 import { useLocation } from 'wouter';
@@ -83,7 +83,7 @@ export default function NFTCenter() {
     },
     onSuccess: (data) => {
       toast({
-        title: 'NFT Burned Successfully!',
+        title: t('ads.burn.title'),
         description: `Service code: ${data.serviceCode}`,
         duration: 10000,
       });
@@ -92,8 +92,8 @@ export default function NFTCenter() {
     },
     onError: (error: any) => {
       toast({
-        title: 'Burn Failed',
-        description: error.message || 'Failed to burn NFT',
+        title: t('ads.burn.error.title'),
+        description: error.message || t('ads.burn.error.description'),
         variant: 'destructive',
       });
     },
@@ -184,7 +184,7 @@ export default function NFTCenter() {
                 />
                 <div className="absolute top-3 right-3">
                   <Badge className={claim.status === 'burned' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-green-500/20 text-green-400 border-green-500/30'}>
-                    {claim.status === 'burned' ? 'USED' : 'ACTIVE'}
+                    {claim.status === 'burned' ? t('ads.status.used') : t('ads.status.active')}
                   </Badge>
                 </div>
                 <div className="absolute top-3 left-3">
@@ -217,7 +217,7 @@ export default function NFTCenter() {
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground text-sm">Status:</span>
                     <span className={claim.status === 'burned' ? 'text-red-400' : 'text-green-400'}>
-                      {claim.status === 'burned' ? 'Service Activated' : 'Ready to Use'}
+                      {claim.status === 'burned' ? t('ads.status.serviceActivated') : t('ads.status.claimed')}
                     </span>
                   </div>
                 </div>

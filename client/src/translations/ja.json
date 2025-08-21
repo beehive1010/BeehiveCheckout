@@ -615,5 +615,159 @@
     "terms": "利用規約",
     "cookies": "クッキーポリシー",
     "copyright": "© 2024 Beehive. 全著作権所有。"
+  },
+  "ads": {
+    "title": "広告NFT",
+    "description": "BCCトークンで広告NFTを獲得してプロモーションサービスを解除",
+    "nftCenter": "NFTセンター",
+    "manageNfts": "NFTを管理",
+    "browseNfts": "広告NFTを閲覧",
+    "exploreServices": "利用可能なプロモーションサービスとDAppパートナーシップを探索",
+    "claimNft": "NFTを獲得",
+    "soldOut": "売り切れ",
+    "claiming": "獲得中...",
+    "confirmClaim": "獲得を確認",
+    "bccRequired": "BCC必要",
+    "available": "利用可能",
+    "cost": "コスト",
+    "bucketSelection": "この広告NFTを獲得するために使用するBCCバケットを選択",
+    "transferableBcc": "転送可能BCC",
+    "restrictedBcc": "制限付きBCC",
+    "claim": {
+      "success": {
+        "title": "NFT獲得成功！",
+        "description": "広告NFTが獲得され、BCCトークンがロックされました。"
+      },
+      "error": {
+        "title": "獲得失敗",
+        "description": "広告NFTの獲得に失敗しました"
+      }
+    },
+    "burn": {
+      "title": "NFT焼却成功！",
+      "description": "サービスコード：{code}",
+      "error": {
+        "title": "焼却失敗",
+        "description": "NFTの焼却に失敗しました"
+      }
+    },
+    "status": {
+      "active": "アクティブ",
+      "used": "使用済み",
+      "burned": "焼却済み",
+      "claimed": "使用準備完了",
+      "serviceActivated": "サービス有効化済み"
+    }
+  },
+  "discover": {
+    "dapps": {
+      "uniswap": "Uniswap",
+      "uniswapDesc": "主要な分散型取引プロトコル",
+      "opensea": "OpenSea",
+      "openseaDesc": "最大のNFTマーケットプレイス",
+      "compound": "Compound",
+      "compoundDesc": "アルゴリズム金融市場プロトコル",
+      "pancakeswap": "PancakeSwap",
+      "pancakeswapDesc": "ファーミング機能付きBSC主要DEX",
+      "axieinfinity": "Axie Infinity",
+      "axieinfinityDesc": "人気のプレイ・トゥ・アーンゲーム"
+    },
+    "news": {
+      "matrix30": {
+        "title": "BeeHive、新しいMatrix 3.0システムを開始",
+        "description": "自動化されたスマートコントラクト配布と改善された報酬メカニズムを持つ強化された3×3マトリックス。"
+      },
+      "bridge": {
+        "title": "マルチチェーンUSDTブリッジが稼働開始",
+        "description": "Ethereum、Polygon、Arbitrumネットワーク間でのシームレスなUSDT決済。"
+      },
+      "education": {
+        "title": "教育ハブが50+コースに到達",
+        "description": "認定プログラム付きの包括的なWeb3学習プラットフォーム。"
+      }
+    },
+    "chains": {
+      "ethereum": "イーサリアム",
+      "polygon": "ポリゴン",
+      "arbitrum": "アービトラム",
+      "optimism": "オプティミズム",
+      "bsc": "BSC",
+      "avalanche": "アバランチ"
+    }
+  },
+  "hiveworld": {
+    "blogs": {
+      "web3membership": {
+        "title": "Web3メンバーシップシステムの未来",
+        "excerpt": "ブロックチェーン技術が業界全体のメンバーシップとロイヤルティプログラムをどのように革新しているかを探索。"
+      },
+      "nftaccess": {
+        "title": "NFTベースのアクセス制御の理解",
+        "excerpt": "NFTがコンテンツゲーティングと排他的コミュニティ体験の創造にどのように使用されているか。"
+      },
+      "referraleconomy": {
+        "title": "持続可能な紹介経済の構築",
+        "excerpt": "マトリックスベースの紹介システムで長期的価値を創造するためのベストプラクティス。"
+      },
+      "multichainpayment": {
+        "title": "マルチチェーン決済統合ガイド",
+        "excerpt": "クロスチェーンUSDT決済処理とユーザーエクスペリエンス最適化の技術的詳細解説。"
+      },
+      "governance": {
+        "title": "分散プラットフォームにおけるコミュニティガバナンス",
+        "excerpt": "Web3コミュニティで公正で透明な意思決定プロセスの実装。"
+      }
+    }
+  },
+  "blogpost": {
+    "linkCopied": {
+      "title": "リンクがコピーされました！",
+      "description": "ブログ投稿のリンクがクリップボードにコピーされました"
+    },
+    "author": "著者",
+    "publishedOn": "公開日",
+    "tags": "タグ",
+    "relatedPosts": "関連投稿",
+    "sharePost": "この投稿を共有"
+  },
+  "activity": {
+    "rewardReceived": "報酬受領",
+    "fromReferralUpgrade": "紹介アップグレードから",
+    "nftClaimed": "NFT獲得済み",
+    "newReferral": "新しい紹介",
+    "memberSince": "メンバー開始日"
+  },
+  "errors": {
+    "walletNotConnected": "ウォレットが接続されていません",
+    "failedToFetch": "NFTの取得に失敗",
+    "failedToClaim": "NFTの獲得に失敗",
+    "failedToBurn": "NFTの焼却に失敗",
+    "insufficientBcc": "BCC不足",
+    "maxLevel": "最大レベル",
+    "inactive": "非アクティブ"
+  },
+  "buttons": {
+    "getStarted": "開始する",
+    "connectWallet": "ウォレット接続",
+    "copied": "コピーしました！",
+    "close": "閉じる",
+    "viewInCenter": "NFTセンターで表示",
+    "burnForService": "サービスコードのために焼却",
+    "burnNft": "NFTを焼却",
+    "confirmBurn": "焼却を確認",
+    "burning": "焼却中...",
+    "useNftService": "NFTサービスを使用"
+  },
+  "selectors": {
+    "category": "カテゴリー",
+    "level": "レベル",
+    "type": "タイプ",
+    "payment": "支払い",
+    "onlineZoom": "オンライン（Zoom）",
+    "videoLessons": "ビデオレッスン",
+    "freeCourses": "無料コース",
+    "paidBcc": "有料（BCC）",
+    "completed": "完了",
+    "enrolled": "登録済み"
   }
 }

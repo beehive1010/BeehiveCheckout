@@ -168,8 +168,8 @@ export default function BlogPost() {
   const copyLink = () => {
     navigator.clipboard.writeText(window.location.href);
     toast({
-      title: "Link copied!",
-      description: "Blog post link copied to clipboard",
+      title: t('blogpost.linkCopied.title'),
+      description: t('blogpost.linkCopied.description'),
     });
   };
 

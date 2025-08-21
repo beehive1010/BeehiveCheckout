@@ -316,5 +316,159 @@
     "terms": "Terma Perkhidmatan",
     "cookies": "Dasar Kuki",
     "copyright": "© 2024 Beehive. Hak cipta terpelihara."
+  },
+  "ads": {
+    "title": "NFT Iklan",
+    "description": "Tuntut NFT Iklan dengan token BCC anda untuk membuka kunci perkhidmatan promosi",
+    "nftCenter": "Pusat NFT",
+    "manageNfts": "Urus NFT Anda",
+    "browseNfts": "Semak Imbas NFT Iklan",
+    "exploreServices": "Terokai perkhidmatan promosi dan kerjasama DApp yang tersedia",
+    "claimNft": "Tuntut NFT",
+    "soldOut": "Habis Dijual",
+    "claiming": "Menuntut...",
+    "confirmClaim": "Sahkan Tuntutan",
+    "bccRequired": "BCC Diperlukan",
+    "available": "Tersedia",
+    "cost": "Kos",
+    "bucketSelection": "Pilih baldi BCC untuk menuntut NFT Iklan ini",
+    "transferableBcc": "BCC Boleh Pindah",
+    "restrictedBcc": "BCC Terhad",
+    "claim": {
+      "success": {
+        "title": "NFT Berjaya Dituntut!",
+        "description": "NFT Iklan anda telah dituntut dan token BCC dikunci."
+      },
+      "error": {
+        "title": "Tuntutan Gagal",
+        "description": "Gagal menuntut NFT Iklan"
+      }
+    },
+    "burn": {
+      "title": "NFT Berjaya Dibakar!",
+      "description": "Kod perkhidmatan: {code}",
+      "error": {
+        "title": "Pembakaran Gagal",
+        "description": "Gagal membakar NFT"
+      }
+    },
+    "status": {
+      "active": "AKTIF",
+      "used": "DIGUNAKAN",
+      "burned": "DIBAKAR",
+      "claimed": "Sedia Digunakan",
+      "serviceActivated": "Perkhidmatan Diaktifkan"
+    }
+  },
+  "discover": {
+    "dapps": {
+      "uniswap": "Uniswap",
+      "uniswapDesc": "Protokol pertukaran terdesentralisasi terkemuka",
+      "opensea": "OpenSea",
+      "openseaDesc": "Pasaran NFT terbesar",
+      "compound": "Compound",
+      "compoundDesc": "Protokol pasaran wang algoritma",
+      "pancakeswap": "PancakeSwap",
+      "pancakeswapDesc": "DEX terkemuka BSC dengan farming",
+      "axieinfinity": "Axie Infinity",
+      "axieinfinityDesc": "Permainan main-untuk-peroleh popular"
+    },
+    "news": {
+      "matrix30": {
+        "title": "BeeHive Melancarkan Sistem Matrix 3.0 Baharu",
+        "description": "Matrix 3×3 yang dipertingkatkan dengan pengedaran kontrak pintar automatik dan mekanisme ganjaran yang lebih baik."
+      },
+      "bridge": {
+        "title": "Jambatan USDT Multi-Chain Kini Aktif",
+        "description": "Pembayaran USDT yang lancar merentas rangkaian Ethereum, Polygon, dan Arbitrum."
+      },
+      "education": {
+        "title": "Hab Pendidikan Mencapai 50+ Kursus",
+        "description": "Platform pembelajaran Web3 menyeluruh dengan program pensijilan."
+      }
+    },
+    "chains": {
+      "ethereum": "Ethereum",
+      "polygon": "Polygon",
+      "arbitrum": "Arbitrum",
+      "optimism": "Optimism",
+      "bsc": "BSC",
+      "avalanche": "Avalanche"
+    }
+  },
+  "hiveworld": {
+    "blogs": {
+      "web3membership": {
+        "title": "Masa Depan Sistem Keahlian Web3",
+        "excerpt": "Meneroka bagaimana teknologi blockchain merevolusikan program keahlian dan kesetiaan merentas industri."
+      },
+      "nftaccess": {
+        "title": "Memahami Kawalan Akses Berasaskan NFT",
+        "excerpt": "Bagaimana NFT digunakan untuk melindungi kandungan dan mencipta pengalaman komuniti eksklusif."
+      },
+      "referraleconomy": {
+        "title": "Membina Ekonomi Rujukan Yang Mampan",
+        "excerpt": "Amalan terbaik untuk mencipta nilai jangka panjang dalam sistem rujukan berasaskan matriks."
+      },
+      "multichainpayment": {
+        "title": "Panduan Integrasi Pembayaran Multi-Chain",
+        "excerpt": "Kajian mendalam teknikal tentang pemprosesan pembayaran USDT merentas rantaian dan pengoptimuman pengalaman pengguna."
+      },
+      "governance": {
+        "title": "Tadbir Urus Komuniti dalam Platform Terdesentralisasi",
+        "excerpt": "Melaksanakan proses membuat keputusan yang adil dan telus dalam komuniti Web3."
+      }
+    }
+  },
+  "blogpost": {
+    "linkCopied": {
+      "title": "Pautan disalin!",
+      "description": "Pautan pos blog telah disalin ke papan keratan"
+    },
+    "author": "Pengarang",
+    "publishedOn": "Diterbitkan pada",
+    "tags": "Tag",
+    "relatedPosts": "Pos Berkaitan",
+    "sharePost": "Kongsi pos ini"
+  },
+  "activity": {
+    "rewardReceived": "Ganjaran Diterima",
+    "fromReferralUpgrade": "Dari naik taraf rujukan",
+    "nftClaimed": "NFT Dituntut",
+    "newReferral": "Rujukan Baharu",
+    "memberSince": "Ahli sejak"
+  },
+  "errors": {
+    "walletNotConnected": "Dompet tidak disambungkan",
+    "failedToFetch": "Gagal mengambil NFT",
+    "failedToClaim": "Gagal menuntut NFT",
+    "failedToBurn": "Gagal membakar NFT",
+    "insufficientBcc": "BCC tidak mencukupi",
+    "maxLevel": "Tahap Maksimum",
+    "inactive": "Tidak Aktif"
+  },
+  "buttons": {
+    "getStarted": "Mula",
+    "connectWallet": "Sambung Dompet",
+    "copied": "Disalin!",
+    "close": "Tutup",
+    "viewInCenter": "Lihat di Pusat NFT",
+    "burnForService": "Bakar untuk Kod Perkhidmatan",
+    "burnNft": "Bakar NFT",
+    "confirmBurn": "Sahkan Pembakaran",
+    "burning": "Membakar...",
+    "useNftService": "Gunakan Perkhidmatan NFT"
+  },
+  "selectors": {
+    "category": "Kategori",
+    "level": "Tahap",
+    "type": "Jenis",
+    "payment": "Pembayaran",
+    "onlineZoom": "Dalam Talian (Zoom)",
+    "videoLessons": "Pelajaran Video",
+    "freeCourses": "Kursus Percuma",
+    "paidBcc": "Berbayar (BCC)",
+    "completed": "Selesai",
+    "enrolled": "Didaftarkan"
   }
 }
