@@ -251,7 +251,7 @@ export class DatabaseStorage implements IStorage {
     };
     const [state] = await db
       .insert(membershipState)
-      .values(insertData)
+      .values([insertData])
       .returning();
     return state;
   }
@@ -279,7 +279,7 @@ export class DatabaseStorage implements IStorage {
     };
     const [referralNode] = await db
       .insert(referralNodes)
-      .values(insertData)
+      .values([insertData])
       .returning();
     return referralNode;
   }

@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { createThirdwebClient } from 'thirdweb';
-import { useActiveAccount, useConnect } from 'thirdweb/react';
+import { ThirdwebProvider, useActiveAccount, useConnect } from 'thirdweb/react';
 import { createWallet } from 'thirdweb/wallets';
 
 const client = createThirdwebClient({
-  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || "demo-client-id"
+  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || "3123b1ac2ebdb966dd415c6e964dc335"
 });
 
 interface Web3ContextType {
@@ -18,7 +18,7 @@ interface Web3ContextType {
 
 const Web3Context = createContext<Web3ContextType | undefined>(undefined);
 
-export function Web3Provider({ children }: { children: React.ReactNode }) {
+function Web3ContextProvider({ children }: { children: React.ReactNode }) {
   const account = useActiveAccount();
   const { connect } = useConnect();
   const [isConnected, setIsConnected] = useState(false);
@@ -62,6 +62,16 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
     <Web3Context.Provider value={value}>
       {children}
     </Web3Context.Provider>
+  );
+}
+
+export function Web3Provider({ children }: { children: React.ReactNode }) {
+  return (
+    <ThirdwebProvider>
+      <Web3ContextProvider>
+        {children}
+      </Web3ContextProvider>
+    </ThirdwebProvider>
   );
 }
 
