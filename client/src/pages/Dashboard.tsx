@@ -94,7 +94,7 @@ export default function Dashboard() {
       icon: 'fas fa-gift',
       type: 'Reward Received',
       description: 'From referral upgrade',
-      amount: '+100 USDT',
+      amount: '+100 Rewards',
       color: 'text-green-400'
     },
     {
@@ -364,41 +364,82 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card className="bg-secondary border-border glow-hover">
           <CardContent className="p-6 text-center">
-            <Users className="h-8 w-8 text-honey mx-auto mb-2" />
-            <h3 className="text-2xl font-bold text-honey">
-              {isLoadingUserStats ? '...' : userStats?.totalTeam || 0}
-            </h3>
-            <p className="text-muted-foreground text-sm">Total Team Size</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-secondary border-border glow-hover">
-          <CardContent className="p-6 text-center">
-            <TrendingUp className="h-8 w-8 text-honey mx-auto mb-2" />
-            <h3 className="text-2xl font-bold text-honey">
-              {isLoadingUserStats ? '...' : userStats?.directReferrals || 0}
-            </h3>
-            <p className="text-muted-foreground text-sm">Direct Referrals</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-secondary border-border glow-hover">
-          <CardContent className="p-6 text-center">
             <Award className="h-8 w-8 text-honey mx-auto mb-2" />
             <h3 className="text-2xl font-bold text-honey">
               {isLoadingUserStats ? '...' : (userStats?.totalEarnings || 0)}
             </h3>
-            <p className="text-muted-foreground text-sm">Total Rewards (USDT)</p>
+            <p className="text-muted-foreground text-sm">Total Rewards</p>
           </CardContent>
         </Card>
         
         <Card className="bg-secondary border-border glow-hover">
           <CardContent className="p-6 text-center">
-            <DollarSign className="h-8 w-8 text-honey mx-auto mb-2" />
+            <i className="fas fa-coins h-8 w-8 text-honey mx-auto mb-2 text-2xl"></i>
             <h3 className="text-2xl font-bold text-honey">
-              {isLoadingUserStats ? '...' : (userStats?.pendingRewards || 0)}
+              {typeof bccBalance === 'object' ? (bccBalance?.transferable || 0) : (bccBalance || 0)}
             </h3>
-            <p className="text-muted-foreground text-sm">Pending Rewards</p>
+            <p className="text-muted-foreground text-sm">BCC Balance (for NFT ads)</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-secondary border-border glow-hover">
+          <CardContent className="p-6 text-center">
+            <i className="fas fa-lock h-8 w-8 text-honey mx-auto mb-2 text-2xl"></i>
+            <h3 className="text-2xl font-bold text-honey">
+              {/* BCC locked amount - will be fetched from real data */}
+              0
+            </h3>
+            <p className="text-muted-foreground text-sm">BCC Locked</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-secondary border-border glow-hover">
+          <CardContent className="p-6 text-center">
+            <i className="fas fa-image h-8 w-8 text-honey mx-auto mb-2 text-2xl"></i>
+            <h3 className="text-2xl font-bold text-honey">
+              {/* NFTs owned count - will be fetched from real data */}
+              0
+            </h3>
+            <p className="text-muted-foreground text-sm">NFTs Owned</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Token Purchase Buttons */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <Card className="bg-gradient-to-r from-honey/10 to-honey/5 border-honey/20 glow-hover">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-honey mb-2">Buy BCC Token</h3>
+                <p className="text-muted-foreground text-sm">Purchase BCC tokens for NFT advertisements and platform features</p>
+              </div>
+              <Button 
+                className="bg-honey text-black hover:bg-honey/90 font-semibold"
+                data-testid="button-buy-bcc"
+              >
+                <i className="fas fa-shopping-cart mr-2"></i>
+                Buy BCC
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-purple-500/10 to-purple-500/5 border-purple-500/20 glow-hover">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-purple-400 mb-2">Buy CTH Token</h3>
+                <p className="text-muted-foreground text-sm">Purchase CTH tokens for advanced trading and rewards features</p>
+              </div>
+              <Button 
+                className="bg-purple-500 text-white hover:bg-purple-600 font-semibold"
+                data-testid="button-buy-cth"
+              >
+                <i className="fas fa-gem mr-2"></i>
+                Buy CTH
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -423,7 +464,7 @@ export default function Dashboard() {
               <div className="text-3xl font-bold text-green-400 mb-2">
                 {isLoadingCompanyStats ? '...' : Math.floor(companyStats?.totalRewards || 0)}
               </div>
-              <p className="text-muted-foreground text-sm">Total Paid (USDT)</p>
+              <p className="text-muted-foreground text-sm">Total Rewards Paid</p>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-blue-400 mb-2">
