@@ -11,6 +11,7 @@ import { Toaster as HotToaster } from "react-hot-toast";
 // Pages
 import Landing from "@/pages/Landing";
 import Registration from "@/pages/Registration";
+import Welcome from "@/pages/Welcome";
 import Dashboard from "@/pages/Dashboard";
 import Tasks from "@/pages/Tasks";
 import Education from "@/pages/Education";
@@ -31,6 +32,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Landing} />
       <Route path="/register" component={Registration} />
+      <Route path="/welcome" component={Welcome} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/tasks" component={Tasks} />
       <Route path="/education" component={Education} />
