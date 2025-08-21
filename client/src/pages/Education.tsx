@@ -77,39 +77,6 @@ export default function Education() {
     },
   });
 
-  // Claim course with BCC mutation
-  const claimCourseMutation = useMutation({
-    mutationFn: async (data: { courseId: string; useBCCBucket: 'transferable' | 'restricted' }) => {
-      const response = await fetch('/api/education/claim', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Wallet-Address': walletAddress!,
-        },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to claim course');
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: t('education.claim.success.title') || 'Course Claimed!',
-        description: t('education.claim.success.description') || 'You now have access to this course.',
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/education/progress'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: t('education.claim.error.title') || 'Claim Failed',
-        description: error.message || t('education.claim.error.description') || 'Failed to claim course',
-        variant: 'destructive',
-      });
-    },
-  });
 
   const getCourseAccess = (courseId: string) => {
     return courseProgress?.find(access => access.courseId === courseId);
@@ -514,140 +481,45 @@ export default function Education() {
                     </div>
                   )}
 
-                  {hasAccess ? (
-                    <div className="space-y-3">
-                      {/* Enhanced course access content */}
-                      {course.courseType === 'online' && course.zoomLink && (
-                        <div className="bg-gradient-to-r from-blue-500/10 to-blue-600/20 border border-blue-500/30 rounded-xl p-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-semibold text-blue-400 mb-1">
-                                <i className="fas fa-video mr-2"></i>
-                                {t('education.courseTypes.zoomMeeting')}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                Password: <span className="font-mono bg-background/50 px-1 rounded">{course.zoomPassword}</span>
-                              </p>
-                            </div>
-                            <Button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                window.open(course.zoomLink, '_blank');
-                              }}
-                              size="sm"
-                              className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg"
-                            >
-                              <i className="fas fa-external-link-alt mr-2"></i>
-                              {t('education.buttons.join')}
-                            </Button>
+                  {/* Course Status Display */}
+                  <div className="space-y-3">
+                    {hasAccess ? (
+                      <div className="bg-gradient-to-r from-green-500/10 to-green-600/20 border border-green-500/30 rounded-xl p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-semibold text-green-400 mb-1">
+                              <i className="fas fa-check-circle mr-2"></i>
+                              {access.completed ? t('education.buttons.completed') : t('education.buttons.enrolled')}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {access.progress}% complete
+                            </p>
                           </div>
+                          <i className="fas fa-arrow-right text-honey text-lg"></i>
                         </div>
-                      )}
-                      
-                      {course.courseType === 'video' && course.videoUrl && (
-                        <div className="bg-gradient-to-r from-purple-500/10 to-purple-600/20 border border-purple-500/30 rounded-xl p-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-semibold text-purple-400 mb-1">
-                                <i className="fas fa-play-circle mr-2"></i>
-                                {t('education.courseTypes.videoAccess')}
-                              </p>
-                              <p className="text-xs text-muted-foreground">{t('education.courseTypes.streamOrDownload')}</p>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  window.open(course.videoUrl, '_blank');
-                                }}
-                                size="sm"
-                                className="bg-purple-500 hover:bg-purple-600 text-white"
-                              >
-                                <i className="fas fa-play mr-2"></i>
-                                {t('education.buttons.watch')}
-                              </Button>
-                              {course.downloadLink && (
-                                <Button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    window.open(course.downloadLink, '_blank');
-                                  }}
-                                  size="sm"
-                                  variant="outline"
-                                  className="border-purple-500/50 text-purple-400 hover:bg-purple-500 hover:text-white"
-                                >
-                                  <i className="fas fa-download"></i>
-                                </Button>
-                              )}
-                            </div>
+                      </div>
+                    ) : (
+                      <div className="bg-gradient-to-r from-honey/10 to-honey/20 border border-honey/30 rounded-xl p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-semibold text-honey mb-1">
+                              <i className="fas fa-info-circle mr-2"></i>
+                              {!canEnroll 
+                                ? `${t('education.filters.level')} ${course.requiredLevel} ${t('education.buttons.levelRequired')}`
+                                : course.isFree 
+                                ? "Free Course Available"
+                                : `${course.priceBCC} BCC Required`
+                              }
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Click to view details and enroll
+                            </p>
                           </div>
+                          <i className="fas fa-arrow-right text-honey text-lg"></i>
                         </div>
-                      )}
-                      
-                      <Button
-                        className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg"
-                        disabled
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <i className="fas fa-check-circle mr-2"></i>
-                        {access.completed ? t('education.buttons.completed') : t('education.buttons.enrolled')}
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (course.isFree) {
-                          claimCourseMutation.mutate({ 
-                            courseId: course.id, 
-                            useBCCBucket: 'transferable' 
-                          });
-                        } else {
-                          const preferredBucket = (bccBalance?.restricted || 0) >= course.priceBCC ? 'restricted' : 'transferable';
-                          claimCourseMutation.mutate({ 
-                            courseId: course.id, 
-                            useBCCBucket: preferredBucket 
-                          });
-                        }
-                      }}
-                      className={
-                        !canEnroll 
-                          ? "w-full bg-gradient-to-r from-gray-500 to-gray-600 opacity-50 cursor-not-allowed text-white" 
-                          : !canAfford && !course.isFree
-                          ? "w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white"
-                          : "w-full bg-gradient-to-r from-honey to-honey/80 hover:from-honey/80 hover:to-honey text-black font-semibold shadow-lg"
-                      }
-                      disabled={!canEnroll || (!canAfford && !course.isFree) || claimCourseMutation.isPending}
-                      data-testid={`button-course-${course.id}`}
-                    >
-                      {claimCourseMutation.isPending ? (
-                        <>
-                          <i className="fas fa-spinner fa-spin mr-2"></i>
-                          {t('education.buttons.claiming')}
-                        </>
-                      ) : !canEnroll ? (
-                        <>
-                          <i className="fas fa-lock mr-2"></i>
-                          {t('education.filters.level')} {course.requiredLevel} {t('education.buttons.levelRequired')}
-                        </>
-                      ) : !canAfford && !course.isFree ? (
-                        <>
-                          <i className="fas fa-exclamation-triangle mr-2"></i>
-                          {t('education.buttons.insufficientBCC')}
-                        </>
-                      ) : course.isFree ? (
-                        <>
-                          <i className="fas fa-gift mr-2"></i>
-                          {t('education.buttons.claimFree')}
-                        </>
-                      ) : (
-                        <>
-                          <i className="fas fa-coins mr-2"></i>
-                          {t('education.buttons.claimPaid').replace('{}', course.priceBCC.toString())}
-                        </>
-                      )}
-                    </Button>
-                  )}
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             );
