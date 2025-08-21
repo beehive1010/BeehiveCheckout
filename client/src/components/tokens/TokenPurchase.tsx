@@ -43,7 +43,7 @@ export default function TokenPurchase() {
   });
 
   // Get purchase history
-  const { data: purchases, isLoading: purchasesLoading } = useQuery({
+  const { data: purchases, isLoading: purchasesLoading } = useQuery<any[]>({
     queryKey: ['/api/tokens/purchases'],
     enabled: !!account?.address,
   });
@@ -55,13 +55,11 @@ export default function TokenPurchase() {
       tokenAmount: number;
       sourceChain: string;
     }) => {
-      return await apiRequest(`/api/tokens/purchase`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: {
-          'x-wallet-address': account?.address || '',
-        },
+      const response = await apiRequest('POST', `/api/tokens/purchase`, {
+        ...data,
+        walletAddress: account?.address,
       });
+      return response.json();
     },
     onSuccess: (data) => {
       setPurchaseId(data.purchase.id);
@@ -83,13 +81,11 @@ export default function TokenPurchase() {
   // Confirm purchase mutation (after payment)
   const confirmPurchaseMutation = useMutation({
     mutationFn: async (data: { purchaseId: string; txHash: string }) => {
-      return await apiRequest(`/api/tokens/confirm-purchase`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: {
-          'x-wallet-address': account?.address || '',
-        },
+      const response = await apiRequest('POST', `/api/tokens/confirm-purchase`, {
+        ...data,
+        walletAddress: account?.address,
       });
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tokens/balances'] });
@@ -147,7 +143,7 @@ export default function TokenPurchase() {
   };
 
   const usdtAmount = parseInt(tokenAmount) * 0.01; // 1 token = 0.01 USDT
-  const selectedPaymentChain = paymentChains.find(chain => chain.chain.name.toLowerCase() === selectedChain);
+  const selectedPaymentChain = paymentChains.find(chain => chain.chain?.name?.toLowerCase() === selectedChain);
 
   if (!account?.address) {
     return (
@@ -297,7 +293,7 @@ export default function TokenPurchase() {
                     paymentInfo: {
                       amount: usdtAmount.toString(),
                       chain: selectedPaymentChain.chain,
-                      token: selectedPaymentChain.usdtAddress,
+                      token: { address: selectedPaymentChain.usdtAddress },
                       recipient: selectedPaymentChain.bridgeWallet,
                     },
                     metadata: {
@@ -378,7 +374,7 @@ export default function TokenPurchase() {
                 <div className="h-4 bg-secondary rounded"></div>
                 <div className="h-4 bg-secondary rounded w-2/3"></div>
               </div>
-            ) : purchases && purchases.length > 0 ? (
+            ) : purchases && Array.isArray(purchases) && purchases.length > 0 ? (
               <div className="space-y-2 max-h-40 overflow-y-auto">
                 {purchases.slice(0, 5).map((purchase: any) => (
                   <div key={purchase.id} className="flex justify-between items-center text-sm">
