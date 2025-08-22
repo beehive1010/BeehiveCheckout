@@ -595,13 +595,9 @@ export default function ClaimMembershipButton({
                 amount={membershipLevel.priceUSDT.toString()}
                 tokenAddress={selectedChain.usdtAddress as `0x${string}`}
                 seller={selectedChain.bridgeWallet as `0x${string}`}
-                feePayer="buyer"
+                feePayer="seller"
                 name={`Beehive Level ${level} Membership (Test)`}
                 description={`Test purchase for Level ${level} membership using test USDT`}
-                onPurchaseSuccess={(result) => {
-                  console.log('CheckoutWidget purchase success:', result);
-                  handlePaymentSuccess(result.transactionHash);
-                }}
               />
             </div>
           ) : (
