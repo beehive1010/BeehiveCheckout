@@ -68,11 +68,21 @@ export default function Welcome() {
                 <i className="fas fa-crown text-honey text-3xl"></i>
               </div>
               <CardTitle className="text-2xl md:text-3xl font-bold text-honey mb-3">
-                {t('welcome.premium.title')}
+                {t('welcome.title')}
               </CardTitle>
-              <p className="text-muted-foreground text-lg">
-                {t('welcome.premium.description')}
+              <p className="text-muted-foreground text-lg mb-4">
+                {t('welcome.subtitle')}
               </p>
+              
+              {/* Pricing Information */}
+              <div className="bg-honey/5 rounded-lg p-4 mb-4 border border-honey/20">
+                <p className="text-sm text-muted-foreground mb-2">
+                  💰 {t('welcome.pricing.note')}
+                </p>
+                <p className="text-sm text-honey font-medium">
+                  🎁 {t('welcome.pricing.referral')}
+                </p>
+              </div>
             </CardHeader>
             
             <CardContent className="space-y-8">
