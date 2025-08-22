@@ -1190,7 +1190,7 @@
   },
   "membership": {
     "purchase": {
-      "button": "Unlock Membership Benefits - 130 USDT",
+      "button": "Unlock Membership - 130 USDT",
       "connectWallet": "Connect Wallet to Purchase",
       "selectChain": "Select Payment Chain",
       "selectChainDescription": "Choose which blockchain to use for your Level {level} membership payment",

@@ -821,7 +821,7 @@
   },
   "membership": {
     "purchase": {
-      "button": "会员权益解锁价格 - 130 USDT",
+      "button": "会员解锁价格 - 130 USDT",
       "connectWallet": "连接钱包进行购买",
       "selectChain": "选择支付链",
       "selectChainDescription": "选择用于等级{level}会员支付的区块链",

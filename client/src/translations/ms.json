@@ -1101,7 +1101,7 @@
   },
   "membership": {
     "purchase": {
-      "button": "Buka Kunci Faedah Keahlian - 130 USDT",
+      "button": "Buka Kunci Keahlian - 130 USDT",
       "connectWallet": "Sambung Dompet untuk Beli",
       "selectChain": "Pilih Rantai Pembayaran",
       "selectChainDescription": "Pilih blockchain untuk digunakan bagi pembayaran keahlian Tahap{level}",
