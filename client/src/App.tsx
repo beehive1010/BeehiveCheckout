@@ -28,6 +28,7 @@ import NotFound from "@/pages/not-found";
 // Admin Panel
 import AdminLogin from "@/pages/admin/AdminLogin";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminUsers from "@/pages/admin/AdminUsers";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { AdminRouteGuard } from "@/components/admin/AdminRouteGuard";
 
@@ -108,6 +109,13 @@ function Router() {
         <AdminRouteGuard>
           <AdminLayout>
             <AdminDashboard />
+          </AdminLayout>
+        </AdminRouteGuard>
+      )} />
+      <Route path="/admin/users" component={() => (
+        <AdminRouteGuard requiredPermission="users.read">
+          <AdminLayout>
+            <AdminUsers />
           </AdminLayout>
         </AdminRouteGuard>
       )} />
