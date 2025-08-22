@@ -57,46 +57,10 @@ export default function Welcome() {
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNGRkI4MDAiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yIDItNCA0LTRoMTZjMiAwIDQgMiA0IDR2MTZjMCAyLTIgNC00IDRIMzZWMzR6Ii8+PC9nPjwvZz48L3N2Zz4=')] bg-repeat"></div>
         </div>
 
-        <div className="relative z-10 container mx-auto px-2 sm:px-4 pt-20 pb-16">
-          <div className="text-center max-w-4xl mx-auto px-2 sm:px-0">
-            {/* Main Title */}
-            <div className="mb-8">
-              <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-honey via-yellow-400 to-honey bg-clip-text text-transparent mb-4">
-                {t('welcome.title')}
-              </h1>
-              <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                {t('welcome.subtitle')}
-              </p>
-            </div>
-
-            {/* Feature Cards */}
-            <div className="grid md:grid-cols-2 gap-6 mb-12">
-              <Card className="bg-secondary/50 backdrop-blur border-honey/20 hover:border-honey/40 transition-all duration-300 group">
-                <CardContent className="p-6 text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-honey/10 flex items-center justify-center group-hover:bg-honey/20 transition-colors">
-                    <i className="fas fa-graduation-cap text-honey text-2xl"></i>
-                  </div>
-                  <h3 className="text-lg font-semibold text-honey mb-2">{t('welcome.benefits.education')}</h3>
-                  <p className="text-sm text-muted-foreground">Learn Web3 through interactive courses</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-secondary/50 backdrop-blur border-honey/20 hover:border-honey/40 transition-all duration-300 group">
-                <CardContent className="p-6 text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-honey/10 flex items-center justify-center group-hover:bg-honey/20 transition-colors">
-                    <i className="fas fa-coins text-honey text-2xl"></i>
-                  </div>
-                  <h3 className="text-lg font-semibold text-honey mb-2">{t('welcome.benefits.tokens')}</h3>
-                  <p className="text-sm text-muted-foreground">Earn BCC tokens through platform activities</p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Membership Section */}
-      <div className="container mx-auto px-2 sm:px-4 pb-20">
+      <div className="container mx-auto px-2 sm:px-4 pt-20 pb-20">
         <div className="max-w-2xl mx-auto px-2 sm:px-0">
           <Card className="bg-secondary border-honey/30 shadow-2xl backdrop-blur">
             <CardHeader className="text-center pb-6">
