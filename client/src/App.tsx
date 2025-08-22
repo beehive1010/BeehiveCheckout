@@ -130,6 +130,7 @@ function Router() {
 function App() {
   const [location] = useLocation();
   const isLandingPage = location === '/';
+  const isAdminPage = location.startsWith('/admin/');
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -139,9 +140,9 @@ function App() {
             <TooltipProvider>
               <RouteGuard>
                 <div className="min-h-screen bg-background text-foreground">
-                  <Header />
-                  <Navigation />
-                  <main className="min-h-[calc(100vh-theme(spacing.32))] pb-16 md:pb-0">
+                  {!isAdminPage && <Header />}
+                  {!isAdminPage && <Navigation />}
+                  <main className={isAdminPage ? "min-h-screen" : "min-h-[calc(100vh-theme(spacing.32))] pb-16 md:pb-0"}>
                     <Router />
                   </main>
                   {isLandingPage && <Footer />}
