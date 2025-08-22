@@ -51,6 +51,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   };
 
+  // Helper function to verify admin session
+  async function verifyAdminSession(sessionToken: string) {
+    try {
+      const [session] = await db
+        .select({
+          adminId: adminSessions.adminId,
+          expiresAt: adminSessions.expiresAt,
+          id: adminUsers.id,
+          username: adminUsers.username,
+          email: adminUsers.email,
+          role: adminUsers.role,
+          active: adminUsers.active,
+          permissions: adminUsers.permissions,
+        })
+        .from(adminSessions)
+        .innerJoin(adminUsers, eq(adminUsers.id, adminSessions.adminId))
+        .where(and(
+          eq(adminSessions.sessionToken, sessionToken),
+          gte(adminSessions.expiresAt, new Date()),
+          eq(adminUsers.active, true)
+        ));
+
+      return session || null;
+    } catch (error) {
+      console.error('Session verification error:', error);
+      return null;
+    }
+  }
+
+  // Helper function to log admin actions
+  async function logAdminAction(
+    adminId: string,
+    action: string,
+    resourceType: string,
+    resourceId: string,
+    entityType: string,
+    oldValue: any,
+    newValue: any,
+    description: string
+  ) {
+    try {
+      await db.insert(auditLogs).values({
+        adminId,
+        action,
+        resourceType,
+        resourceId,
+        entityType,
+        oldValue,
+        newValue,
+        description,
+      });
+    } catch (error) {
+      console.error('Failed to log admin action:', error);
+    }
+  }
+
+  // Admin session verification middleware
+  const requireAdminAuth = async (req: any, res: any, next: any) => {
+    try {
+      const sessionToken = req.headers.authorization?.replace('Bearer ', '');
+      
+      if (!sessionToken) {
+        return res.status(401).json({ error: 'Admin authentication required' });
+      }
+      
+      const session = await verifyAdminSession(sessionToken);
+      
+      if (!session) {
+        return res.status(401).json({ error: 'Invalid or expired session' });
+      }
+      
+      req.adminUser = {
+        id: session.id,
+        username: session.username,
+        email: session.email,
+        role: session.role,
+        permissions: session.permissions || [],
+      };
+      next();
+    } catch (error) {
+      console.error('Admin auth middleware error:', error);
+      res.status(500).json({ error: 'Authentication failed' });
+    }
+  };
+  
+  // Role-based permission middleware
+  const requireAdminRole = (allowedRoles: string[]) => {
+    return (req: any, res: any, next: any) => {
+      if (!req.adminUser) {
+        return res.status(401).json({ error: 'Admin authentication required' });
+      }
+      
+      if (!allowedRoles.includes(req.adminUser.role)) {
+        return res.status(403).json({ error: 'Insufficient permissions' });
+      }
+      
+      next();
+    };
+  };
+
+  // Permission-based middleware
+  const requireAdminPermission = (requiredPermissions: string[]) => {
+    return (req: any, res: any, next: any) => {
+      if (!req.adminUser) {
+        return res.status(401).json({ error: 'Admin authentication required' });
+      }
+      
+      const userPermissions = req.adminUser.permissions || [];
+      const hasPermission = requiredPermissions.some(permission => 
+        userPermissions.includes(permission) || req.adminUser.role === 'super_admin'
+      );
+      
+      if (!hasPermission) {
+        return res.status(403).json({ error: 'Insufficient permissions' });
+      }
+      
+      next();
+    };
+  };
+
   // Enhanced authentication routes for social login
   app.post("/api/auth/login-payload", async (req, res) => {
     try {
@@ -1542,48 +1662,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Admin session verification middleware
-  const requireAdminAuth = async (req: any, res: any, next: any) => {
-    try {
-      const sessionToken = req.headers.authorization?.replace('Bearer ', '');
-      
-      if (!sessionToken) {
-        return res.status(401).json({ error: 'Admin authentication required' });
-      }
-      
-      const session = await verifyAdminSession(sessionToken);
-      
-      if (!session) {
-        return res.status(401).json({ error: 'Invalid or expired session' });
-      }
-      
-      req.adminUser = {
-        id: session.id,
-        username: session.username,
-        email: session.email,
-        role: session.role,
-      };
-      next();
-    } catch (error) {
-      console.error('Admin auth middleware error:', error);
-      res.status(500).json({ error: 'Authentication failed' });
-    }
-  };
-  
-  // Role-based permission middleware
-  const requireAdminRole = (allowedRoles: string[]) => {
-    return (req: any, res: any, next: any) => {
-      if (!req.adminUser) {
-        return res.status(401).json({ error: 'Admin authentication required' });
-      }
-      
-      if (!allowedRoles.includes(req.adminUser.role)) {
-        return res.status(403).json({ error: 'Insufficient permissions' });
-      }
-      
-      next();
-    };
-  };
   
   // Audit logging helper
   const logAdminAction = async (adminId: string, action: string, module: string, targetId?: string, targetType?: string, oldValues?: any, newValues?: any, description?: string) => {

@@ -588,6 +588,11 @@ export const adminUsers = pgTable("admin_users", {
   email: text("email").unique().notNull(),
   passwordHash: text("password_hash").notNull(),
   role: text("role").notNull().default("viewer"), // super_admin, ops_admin, creator_admin, viewer
+  permissions: text("permissions").array().default([]),
+  status: text("status").notNull().default("active"), // active, inactive, suspended
+  fullName: text("full_name"),
+  notes: text("notes"),
+  createdBy: text("created_by"),
   twoFactorSecret: text("two_factor_secret"),
   twoFactorEnabled: boolean("two_factor_enabled").default(false).notNull(),
   active: boolean("active").default(true).notNull(),
@@ -844,6 +849,3 @@ export type RedeemCode = typeof redeemCodes.$inferSelect;
 
 export type InsertSystemStatus = z.infer<typeof insertSystemStatusSchema>;
 export type SystemStatus = typeof systemStatus.$inferSelect;
-
-export type InsertAdminSession = z.infer<typeof insertAdminSessionSchema>;
-export type AdminSession = typeof adminSessions.$inferSelect;
