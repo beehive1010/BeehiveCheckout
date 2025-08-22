@@ -52,7 +52,7 @@ interface AdminUserFormData {
   confirmPassword: string;
   role: 'super_admin' | 'creator_admin' | 'support_admin' | 'viewer_admin';
   customPermissions: string[];
-  status: 'active' | 'inactive';
+  status: 'active' | 'inactive' | 'suspended';
   notes: string;
 }
 
@@ -341,7 +341,7 @@ export default function AdminUsers() {
       email: formData.email,
       fullName: formData.fullName,
       role: formData.role,
-      permissions: formData.customPermissions,
+      customPermissions: formData.customPermissions,
       status: formData.status,
       notes: formData.notes,
     };
@@ -439,9 +439,9 @@ export default function AdminUsers() {
   // Calculate statistics
   const stats = {
     total: adminUsers.length,
-    active: adminUsers.filter(u => u.status === 'active').length,
-    inactive: adminUsers.filter(u => u.status === 'inactive').length,
-    superAdmins: adminUsers.filter(u => u.role === 'super_admin').length,
+    active: adminUsers.filter((u: AdminUser) => u.status === 'active').length,
+    inactive: adminUsers.filter((u: AdminUser) => u.status === 'inactive').length,
+    superAdmins: adminUsers.filter((u: AdminUser) => u.role === 'super_admin').length,
   };
 
   // Verify super admin access
@@ -756,7 +756,7 @@ export default function AdminUsers() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {adminUsers.map((user) => (
+            {adminUsers.map((user: AdminUser) => (
               <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center space-x-4">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 flex items-center justify-center text-white font-semibold">
