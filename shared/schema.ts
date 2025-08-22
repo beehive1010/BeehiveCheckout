@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp, jsonb, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -95,24 +95,14 @@ export const orders = pgTable("orders", {
 
 // Earnings wallet table - tracks all member earnings and rewards
 export const earningsWallet = pgTable("earnings_wallet", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  walletAddress: varchar("wallet_address", { length: 42 }).notNull().references(() => users.walletAddress),
-  rewardType: text("reward_type").notNull(), // 'instant_referral', 'level_reward', 'passup_reward'
-  amount: integer("amount").notNull(), // Amount in USDT cents
-  sourceWallet: varchar("source_wallet", { length: 42 }).notNull(), // Who triggered this reward
-  fromLevel: integer("from_level").notNull(), // Level that triggered reward
-  status: text("status").default("pending").notNull(), // 'pending', 'paid', 'expired'
-  
-  // Timer tracking for 72-hour countdown rewards
-  timerStartAt: timestamp("timer_start_at"),
-  timerExpireAt: timestamp("timer_expire_at"),
-  
-  // Pass-up tracking
-  passedUpFrom: varchar("passed_up_from", { length: 42 }), // Original recipient who passed it up
-  passUpReason: text("pass_up_reason"), // 'under_leveled', 'max_count_reached'
-  
+  walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
+  totalEarnings: numeric("total_earnings", { precision: 10, scale: 2 }).default("0").notNull(),
+  referralEarnings: numeric("referral_earnings", { precision: 10, scale: 2 }).default("0").notNull(),
+  levelEarnings: numeric("level_earnings", { precision: 10, scale: 2 }).default("0").notNull(),
+  pendingRewards: numeric("pending_rewards", { precision: 10, scale: 2 }).default("0").notNull(),
+  withdrawnAmount: numeric("withdrawn_amount", { precision: 10, scale: 2 }).default("0").notNull(),
+  lastRewardAt: timestamp("last_reward_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  completedAt: timestamp("completed_at"),
 });
 
 // Level progression configuration (19 levels from Warrior to Mythic Peak)
@@ -282,15 +272,12 @@ export const insertReferralNodeSchema = createInsertSchema(referralNodes).pick({
 
 export const insertEarningsWalletSchema = createInsertSchema(earningsWallet).pick({
   walletAddress: true,
-  rewardType: true,
-  amount: true,
-  sourceWallet: true,
-  fromLevel: true,
-  status: true,
-  timerStartAt: true,
-  timerExpireAt: true,
-  passedUpFrom: true,
-  passUpReason: true,
+  totalEarnings: true,
+  referralEarnings: true,
+  levelEarnings: true,
+  pendingRewards: true,
+  withdrawnAmount: true,
+  lastRewardAt: true,
 });
 
 export const insertLevelConfigSchema = createInsertSchema(levelConfig).pick({
