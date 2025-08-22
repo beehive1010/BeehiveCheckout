@@ -566,11 +566,16 @@
   },
   "welcome": {
     "title": "Welcome to Beehive! 🎉",
-    "subtitle": "Complete your membership by purchasing your Level 1 Warrior NFT. This unlocks all platform features and starts your Web3 journey!",
+    "subtitle": "Start Your BeeHive Journey - Learn, Play & Earn in Web3 by Purchasing Your Membership NFT",
+    "description": "Complete your membership by purchasing your Level 1 Warrior NFT. This unlocks all platform features and starts your Web3 journey!",
+    "pricing": {
+      "note": "100 USDT for NFT Level 1 + 30 USDT one-time platform management fee",
+      "referral": "Referral Rewards: Earn 100% rewards on each level when NFTs are purchased in your network"
+    },
     "nft": {
       "title": "Level 1 Warrior NFT",
       "description": "Your membership credential on the blockchain",
-      "tokenId": "Token ID: 0",
+      "tokenId": "Token ID: 1",
       "price": "Price",
       "priceAmount": "130 USDT"
     },
