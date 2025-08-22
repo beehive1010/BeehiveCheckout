@@ -57,16 +57,16 @@ const navigationItems = [
     permission: 'contracts.read',
   },
   {
-    title: 'HiveWorld Blog',
-    href: '/admin/blog',
-    icon: FileText,
-    permission: 'blog.read',
-  },
-  {
     title: 'Courses',
     href: '/admin/courses',
     icon: BookOpen,
     permission: 'courses.read',
+  },
+  {
+    title: 'HiveWorld Blog',
+    href: '/admin/blog',
+    icon: FileText,
+    permission: 'blog.read',
   },
   {
     title: 'Discover Partners',
