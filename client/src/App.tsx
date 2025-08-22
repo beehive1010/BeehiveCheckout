@@ -39,71 +39,12 @@ import Footer from "@/components/Layout/Footer";
 import { RouteGuard } from "@/components/RouteGuard";
 
 function Router() {
+  const [location] = useLocation();
+  const isAdminRoute = location.startsWith('/admin');
+
   return (
     <Switch>
-      {/* Public routes */}
-      <Route path="/" component={Landing} />
-      <Route path="/register" component={Registration} />
-      <Route path="/welcome" component={Welcome} />
-      
-      {/* Main app routes - Protected with wallet connection and Level 1 NFT requirement */}
-      <Route path="/dashboard" component={() => (
-        <RouteGuard>
-          <Dashboard />
-        </RouteGuard>
-      )} />
-      <Route path="/tasks" component={() => (
-        <RouteGuard>
-          <Tasks />
-        </RouteGuard>
-      )} />
-      <Route path="/education" component={() => (
-        <RouteGuard>
-          <Education />
-        </RouteGuard>
-      )} />
-      <Route path="/education/:courseId" component={() => (
-        <RouteGuard>
-          <CourseDetails />
-        </RouteGuard>
-      )} />
-      <Route path="/discover" component={() => (
-        <RouteGuard>
-          <Discover />
-        </RouteGuard>
-      )} />
-      <Route path="/me" component={() => (
-        <RouteGuard>
-          <Me />
-        </RouteGuard>
-      )} />
-      <Route path="/ads" component={() => (
-        <RouteGuard>
-          <AdvertisementNFTs />
-        </RouteGuard>
-      )} />
-      <Route path="/nft-center" component={() => (
-        <RouteGuard>
-          <NFTCenter />
-        </RouteGuard>
-      )} />
-      
-      {/* Public routes - No authentication required */}
-      <Route path="/hiveworld" component={HiveWorld} />
-      <Route path="/hiveworld/:id" component={BlogPost} />
-      <Route path="/tokens" component={() => (
-        <div className="container mx-auto px-4 py-8 max-w-7xl">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-honey mb-2">Token Purchase</h1>
-            <p className="text-muted-foreground">
-              Buy BCC and CTH tokens across multiple chains at 1 token = 0.01 USDT
-            </p>
-          </div>
-          <TokenPurchase />
-        </div>
-      )} />
-      
-      {/* Admin Panel routes */}
+      {/* Admin Panel routes - No wallet requirement */}
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin/dashboard" component={() => (
         <AdminRouteGuard>
@@ -129,8 +70,47 @@ function Router() {
           </div>
         </div>
       )} />
-      
-      <Route component={NotFound} />
+
+      {/* Non-admin routes - Apply RouteGuard */}
+      <Route path="/">
+        {() => !isAdminRoute ? (
+          <RouteGuard>
+            <Switch>
+              {/* Public routes */}
+              <Route path="/" component={Landing} />
+              <Route path="/register" component={Registration} />
+              <Route path="/welcome" component={Welcome} />
+              
+              {/* Main app routes - Protected with wallet connection and Level 1 NFT requirement */}
+              <Route path="/dashboard" component={Dashboard} />
+              <Route path="/tasks" component={Tasks} />
+              <Route path="/education" component={Education} />
+              <Route path="/education/:courseId" component={CourseDetails} />
+              <Route path="/discover" component={Discover} />
+              <Route path="/me" component={Me} />
+              <Route path="/ads" component={AdvertisementNFTs} />
+              <Route path="/nft-center" component={NFTCenter} />
+              
+              {/* Public routes - No authentication required */}
+              <Route path="/hiveworld" component={HiveWorld} />
+              <Route path="/hiveworld/:id" component={BlogPost} />
+              <Route path="/tokens" component={() => (
+                <div className="container mx-auto px-4 py-8 max-w-7xl">
+                  <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-honey mb-2">Token Purchase</h1>
+                    <p className="text-muted-foreground">
+                      Buy BCC and CTH tokens across multiple chains at 1 token = 0.01 USDT
+                    </p>
+                  </div>
+                  <TokenPurchase />
+                </div>
+              )} />
+              
+              <Route component={NotFound} />
+            </Switch>
+          </RouteGuard>
+        ) : <NotFound />}
+      </Route>
     </Switch>
   );
 }
@@ -146,28 +126,26 @@ function App() {
         <Web3Provider>
           <I18nProvider>
             <TooltipProvider>
-              <RouteGuard>
-                <div className="min-h-screen bg-background text-foreground">
-                  {!isAdminPage && <Header />}
-                  {!isAdminPage && <Navigation />}
-                  <main className={isAdminPage ? "min-h-screen" : "min-h-[calc(100vh-theme(spacing.32))] pb-16 md:pb-0"}>
-                    <Router />
-                  </main>
-                  {isLandingPage && <Footer />}
-                  <Toaster />
-                  <HotToaster 
-                    position="top-right"
-                    toastOptions={{
-                      duration: 4000,
-                      style: {
-                        background: 'var(--background)',
-                        color: 'var(--foreground)',
-                        border: '1px solid var(--border)',
-                      },
-                    }}
-                  />
-                </div>
-              </RouteGuard>
+              <div className="min-h-screen bg-background text-foreground">
+                {!isAdminPage && <Header />}
+                {!isAdminPage && <Navigation />}
+                <main className={isAdminPage ? "min-h-screen" : "min-h-[calc(100vh-theme(spacing.32))] pb-16 md:pb-0"}>
+                  <Router />
+                </main>
+                {isLandingPage && <Footer />}
+                <Toaster />
+                <HotToaster 
+                  position="top-right"
+                  toastOptions={{
+                    duration: 4000,
+                    style: {
+                      background: 'var(--background)',
+                      color: 'var(--foreground)',
+                      border: '1px solid var(--border)',
+                    },
+                  }}
+                />
+              </div>
             </TooltipProvider>
           </I18nProvider>
         </Web3Provider>
