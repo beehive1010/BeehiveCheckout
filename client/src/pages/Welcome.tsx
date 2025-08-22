@@ -57,8 +57,8 @@ export default function Welcome() {
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNGRkI4MDAiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yIDItNCA0LTRoMTZjMiAwIDQgMiA0IDR2MTZjMCAyLTIgNC00IDRIMzZWMzR6Ii8+PC9nPjwvZz48L3N2Zz4=')] bg-repeat"></div>
         </div>
 
-        <div className="relative z-10 container mx-auto px-4 pt-20 pb-16">
-          <div className="text-center max-w-4xl mx-auto">
+        <div className="relative z-10 container mx-auto px-2 sm:px-4 pt-20 pb-16">
+          <div className="text-center max-w-4xl mx-auto px-2 sm:px-0">
             {/* Main Title */}
             <div className="mb-8">
               <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-honey via-yellow-400 to-honey bg-clip-text text-transparent mb-4">
@@ -96,8 +96,8 @@ export default function Welcome() {
       </div>
 
       {/* Membership Section */}
-      <div className="container mx-auto px-4 pb-20">
-        <div className="max-w-2xl mx-auto">
+      <div className="container mx-auto px-2 sm:px-4 pb-20">
+        <div className="max-w-2xl mx-auto px-2 sm:px-0">
           <Card className="bg-secondary border-honey/30 shadow-2xl backdrop-blur">
             <CardHeader className="text-center pb-6">
               <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-honey/20 to-honey/10 flex items-center justify-center">
