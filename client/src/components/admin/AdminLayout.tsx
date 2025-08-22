@@ -17,6 +17,7 @@ import {
   X,
   ChevronRight,
   Home,
+  Network,
 } from 'lucide-react';
 import HexagonIcon from '../UI/HexagonIcon';
 
@@ -40,7 +41,7 @@ const navigationItems = [
   {
     title: 'Referral Matrix',
     href: '/admin/referrals',
-    icon: BarChart3,
+    icon: Network,
     permission: 'referrals.read',
   },
   {
