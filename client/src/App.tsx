@@ -34,6 +34,9 @@ import AdminNFTs from "@/pages/admin/AdminNFTs";
 import AdminContracts from "@/pages/admin/AdminContracts";
 import AdminContractDetail from "@/pages/admin/AdminContractDetail";
 import AdminContractDeploy from "@/pages/admin/AdminContractDeploy";
+import AdminCourses from "@/pages/admin/AdminCourses";
+import Courses from "@/pages/Courses";
+import DiscoverPartners from "@/pages/DiscoverPartners";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { AdminRouteGuard } from "@/components/admin/AdminRouteGuard";
 
@@ -101,6 +104,13 @@ function Router() {
             </AdminLayout>
           </AdminRouteGuard>
         )} />
+        <Route path="/admin/courses" component={() => (
+          <AdminRouteGuard requiredPermission="courses.read">
+            <AdminLayout>
+              <AdminCourses />
+            </AdminLayout>
+          </AdminRouteGuard>
+        )} />
         <Route path="/admin/unauthorized" component={() => (
           <div className="min-h-screen flex items-center justify-center bg-background">
             <div className="text-center space-y-4">
@@ -131,6 +141,8 @@ function Router() {
         <Route path="/education" component={Education} />
         <Route path="/education/:courseId" component={CourseDetails} />
         <Route path="/discover" component={Discover} />
+        <Route path="/courses" component={Courses} />
+        <Route path="/discover-partners" component={DiscoverPartners} />
         <Route path="/me" component={Me} />
         <Route path="/ads" component={AdvertisementNFTs} />
         <Route path="/nft-center" component={NFTCenter} />

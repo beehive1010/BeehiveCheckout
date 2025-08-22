@@ -90,7 +90,7 @@ export function useAdminAuth() {
         'referrals.read', 'referrals.export',
         'nfts.read', 'nfts.create', 'nfts.update', 'nfts.mint',
         'contracts.read', 'contracts.deploy', 'contracts.manage',
-        'courses.read', 'courses.create', 'courses.update',
+        'courses.read', 'courses.create', 'courses.edit',
         'discover.read', 'discover.approve', 'discover.reject',
         'system.read', 'logs.read', 'logs.export'
       ],
