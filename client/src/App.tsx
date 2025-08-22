@@ -30,6 +30,7 @@ import AdminLogin from "@/pages/admin/AdminLogin";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminReferrals from "@/pages/admin/AdminReferrals";
+import AdminNFTs from "@/pages/admin/AdminNFTs";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { AdminRouteGuard } from "@/components/admin/AdminRouteGuard";
 
@@ -66,6 +67,13 @@ function Router() {
           <AdminRouteGuard requiredPermission="referrals.read">
             <AdminLayout>
               <AdminReferrals />
+            </AdminLayout>
+          </AdminRouteGuard>
+        )} />
+        <Route path="/admin/nfts" component={() => (
+          <AdminRouteGuard requiredPermission="nfts.read">
+            <AdminLayout>
+              <AdminNFTs />
             </AdminLayout>
           </AdminRouteGuard>
         )} />
