@@ -747,5 +747,29 @@
     "paidBcc": "付费（BCC）",
     "completed": "已完成",
     "enrolled": "已注册"
+  },
+  "membership": {
+    "purchase": {
+      "button": "购买等级{level} - ${price} USDT",
+      "connectWallet": "连接钱包进行购买",
+      "selectChain": "选择支付链",
+      "selectChainDescription": "选择用于等级{level}会员支付的区块链",
+      "payWithGas": "使用{symbol}支付燃料费",
+      "approving": "正在批准USDT...",
+      "preparing": "准备中...",
+      "paying": "正在处理支付...",
+      "verifying": "正在验证交易...",
+      "finalizing": "正在完成会员激活...",
+      "completed": "✅ 会员已激活！",
+      "retry": "重试购买",
+      "success": {
+        "title": "会员已激活！",
+        "description": "欢迎来到蜂巢！您的1级会员现已激活。"
+      },
+      "error": {
+        "title": "购买失败",
+        "description": "无法完成会员购买。请重试。"
+      }
+    }
   }
 }

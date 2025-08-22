@@ -1114,5 +1114,29 @@
     "paidBcc": "유료 (BCC)",
     "completed": "완료됨",
     "enrolled": "등록됨"
+  },
+  "membership": {
+    "purchase": {
+      "button": "레벨{level} 구매 - ${price} USDT",
+      "connectWallet": "구매를 위해 지갑 연결",
+      "selectChain": "결제 체인 선택",
+      "selectChainDescription": "레벨{level} 멤버십 결제에 사용할 블록체인을 선택하세요",
+      "payWithGas": "가스비로{symbol} 지불",
+      "approving": "USDT 승인 중...",
+      "preparing": "준비 중...",
+      "paying": "결제 처리 중...",
+      "verifying": "거래 확인 중...",
+      "finalizing": "멤버십 완료 중...",
+      "completed": "✅ 멤버십 활성화됨!",
+      "retry": "구매 재시도",
+      "success": {
+        "title": "멤버십 활성화됨!",
+        "description": "Beehive에 오신 것을 환영합니다! 레벨 1 멤버십이 활성화되었습니다."
+      },
+      "error": {
+        "title": "구매 실패",
+        "description": "멤버십 구매를 완료할 수 없습니다. 다시 시도해 주세요."
+      }
+    }
   }
 }
