@@ -99,10 +99,12 @@ export default function Welcome() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-honey">100 USDT</p>
-                    <p className="text-sm text-muted-foreground">NFT</p>
-                    <p className="text-sm font-medium text-honey mt-1">30 USDT</p>
-                    <p className="text-xs text-muted-foreground">一次性平台费</p>
+                    <div className="flex flex-col sm:block">
+                      <p className="text-lg font-bold text-honey">100 USDT</p>
+                      <p className="text-sm text-muted-foreground">NFT</p>
+                      <p className="text-sm font-medium text-honey mt-1">30 USDT</p>
+                      <p className="text-xs text-muted-foreground">一次性平台费</p>
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center justify-between text-sm">
