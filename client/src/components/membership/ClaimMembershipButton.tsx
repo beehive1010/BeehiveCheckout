@@ -47,6 +47,74 @@ export default function ClaimMembershipButton({
     return null;
   }
 
+  // NFT-based automatic activation for existing NFT holders
+  const handleNFTActivation = useCallback(async () => {
+    if (!account?.address) {
+      toast({
+        title: t('membership.purchase.error'),
+        description: t('membership.purchase.walletNotConnected'),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setClaimState('verifying');
+
+      const response = await fetch('/api/membership/nft-activate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nftContractAddress: '0x6D513487bd63430Ca71Cd1d9A7DeA5aAcDbf0322',
+          tokenId: levelToTokenId(level).toString(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('NFT activation failed');
+      }
+
+      const result = await response.json();
+
+      setClaimState('success');
+      
+      toast({
+        title: t('membership.purchase.success'),
+        description: t('membership.purchase.activationSuccess'),
+        variant: 'default',
+      });
+
+      // Emit activation event
+      membershipEventEmitter.emit({
+        type: 'MEMBERSHIP_PERSISTED',
+        payload: {
+          walletAddress: account.address,
+          level: result.level,
+          orderId: 'nft-activation',
+          activated: true,
+          previousLevel: 0,
+          timestamp: Date.now()
+        }
+      });
+
+      onSuccess?.();
+
+    } catch (error) {
+      console.error('NFT activation error:', error);
+      setClaimState('error');
+      
+      toast({
+        title: t('membership.purchase.error'),
+        description: t('membership.purchase.nftActivationFailed'),
+        variant: 'destructive',
+      });
+
+      onError?.(error instanceof Error ? error.message : 'NFT activation failed');
+    }
+  }, [account?.address, level, toast, t, onSuccess, onError]);
+
   const handlePaymentSuccess = useCallback(async (result: any) => {
     try {
       const transactionHash = result.transactionHash;
@@ -445,7 +513,6 @@ export default function ClaimMembershipButton({
                   address: selectedChain.usdtAddress,
                   symbol: 'USDT',
                   name: 'Tether USD',
-                  decimals: 6, // USDT has 6 decimals
                 },
               },
               metadata: {
