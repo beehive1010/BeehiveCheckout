@@ -156,6 +156,22 @@
       },
       "getButton": "Beli Keahlian"
     },
+    "activation": {
+      "title": "Selamat Datang ke Beehive",
+      "description": "Platform keahlian dan pembelajaran Web3 dengan ganjaran berasaskan blockchain. Aktifkan keahlian Tahap 1 anda untuk bermula!",
+      "membershipLevel": "Tahap Keahlian",
+      "price": "Harga",
+      "priceLevel1": "130 USDT",
+      "activationNote": "Selepas pengaktifan, anda akan mempunyai akses kepada semua ciri ahli termasuk Tugas, Pendidikan, dan HiveWorld.",
+      "success": {
+        "title": "Keahlian Diaktifkan!",
+        "description": "Selamat datang ke Beehive! Anda kini mempunyai akses kepada semua ciri ahli."
+      },
+      "error": {
+        "title": "Pengaktifan Gagal",
+        "description": "Tidak dapat mengaktifkan keahlian anda. Sila cuba lagi atau hubungi sokongan."
+      }
+    },
     "welcome": {
       "title": "Selamat Datang ke Beehive! 🎉",
       "subtitle": "Lengkapkan keahlian anda dengan membeli Level 1 Warrior NFT. Ini akan membuka kunci semua ciri platform dan memulakan perjalanan Web3 anda!",

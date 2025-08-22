@@ -223,22 +223,22 @@ export default function Dashboard() {
             </HexagonIcon>
             
             <h1 className="text-3xl font-bold text-honey mb-4">
-              Welcome to Beehive
+              {t('dashboard.activation.title')}
             </h1>
             
             <p className="text-muted-foreground text-lg mb-6">
-              Web3 membership and learning platform with blockchain-based rewards. Activate your Level 1 membership to get started!
+              {t('dashboard.activation.description')}
             </p>
 
             <div className="bg-muted rounded-lg p-4 mb-6">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-sm text-muted-foreground">{t('dashboard.membershipLevel')}</p>
+                  <p className="text-sm text-muted-foreground">{t('dashboard.activation.membershipLevel')}</p>
                   <p className="text-2xl font-bold text-honey">{t('dashboard.levelText', { level: 1 })}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">{t('dashboard.price')}</p>
-                  <p className="text-2xl font-bold text-honey">{t('dashboard.priceLevel1')}</p>
+                  <p className="text-sm text-muted-foreground">{t('dashboard.activation.price')}</p>
+                  <p className="text-2xl font-bold text-honey">{t('dashboard.activation.priceLevel1')}</p>
                 </div>
               </div>
             </div>
@@ -265,7 +265,7 @@ export default function Dashboard() {
             />
 
             <p className="text-sm text-muted-foreground mt-4">
-              {t('dashboard.activationNote')}
+              {t('dashboard.activation.activationNote')}
             </p>
           </CardContent>
         </Card>

@@ -130,6 +130,22 @@
       },
       "getButton": "购买会员资格"
     },
+    "activation": {
+      "title": "欢迎来到蜂巢",
+      "description": "基于区块链奖励的Web3会员和学习平台。激活您的1级会员资格即可开始！",
+      "membershipLevel": "会员级别",
+      "price": "价格",
+      "priceLevel1": "130 USDT",
+      "activationNote": "激活后，您将可以访问所有会员功能，包括任务、教育和蜂巢世界。",
+      "success": {
+        "title": "会员已激活！",
+        "description": "欢迎来到蜂巢！您现在可以访问所有会员功能。"
+      },
+      "error": {
+        "title": "激活失败",
+        "description": "无法激活您的会员资格。请重试或联系支持。"
+      }
+    },
     "membership": {
       "title": "会员状态",
       "level": "等级",
