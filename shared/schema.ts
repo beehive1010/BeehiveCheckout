@@ -585,3 +585,273 @@ export type TokenPurchase = typeof tokenPurchases.$inferSelect;
 
 export type InsertCTHBalance = z.infer<typeof insertCTHBalanceSchema>;
 export type CTHBalance = typeof cthBalances.$inferSelect;
+
+// Admin Panel Tables
+
+// Admin users table for admin panel authentication
+export const adminUsers = pgTable("admin_users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  username: text("username").unique().notNull(),
+  email: text("email").unique().notNull(),
+  passwordHash: text("password_hash").notNull(),
+  role: text("role").notNull().default("viewer"), // super_admin, ops_admin, creator_admin, viewer
+  twoFactorSecret: text("two_factor_secret"),
+  twoFactorEnabled: boolean("two_factor_enabled").default(false).notNull(),
+  active: boolean("active").default(true).notNull(),
+  lastLoginAt: timestamp("last_login_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Audit logs for tracking all admin actions
+export const auditLogs = pgTable("audit_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  adminId: varchar("admin_id").notNull().references(() => adminUsers.id),
+  action: text("action").notNull(), // create, update, delete, approve, reject, etc.
+  module: text("module").notNull(), // users, nfts, blog, discover, etc.
+  targetId: text("target_id"), // ID of the affected resource
+  targetType: text("target_type"), // user, nft, blog_post, partner, etc.
+  oldValues: jsonb("old_values"), // Previous state for updates
+  newValues: jsonb("new_values"), // New state for updates
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  severity: text("severity").notNull().default("info"), // info, warning, error, critical
+  description: text("description").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Discover partners table
+export const discoverPartners = pgTable("discover_partners", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  logoUrl: text("logo_url"), // IPFS URL
+  websiteUrl: text("website_url").notNull(),
+  shortDescription: text("short_description").notNull(),
+  longDescription: text("long_description").notNull(),
+  tags: jsonb("tags").$type<string[]>().default([]).notNull(),
+  chains: jsonb("chains").$type<string[]>().default([]).notNull(),
+  dappType: text("dapp_type").notNull(), // Wallet, Game, Tools, etc.
+  featured: boolean("featured").default(false).notNull(),
+  status: text("status").notNull().default("draft"), // draft, pending, approved, published, rejected
+  submitterWallet: varchar("submitter_wallet", { length: 42 }),
+  redeemCodeUsed: text("redeem_code_used"), // The redeem code that was consumed
+  approvedBy: varchar("approved_by").references(() => adminUsers.id),
+  approvedAt: timestamp("approved_at"),
+  rejectionReason: text("rejection_reason"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Ad slots for banner advertisements
+export const adSlots = pgTable("ad_slots", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  bannerImageUrl: text("banner_image_url").notNull(), // IPFS URL
+  linkUrl: text("link_url").notNull(),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  status: text("status").notNull().default("draft"), // draft, scheduled, active, expired, paused
+  position: text("position").notNull().default("top"), // top, sidebar, bottom
+  priority: integer("priority").default(0).notNull(),
+  createdBy: varchar("created_by").notNull().references(() => adminUsers.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Partner chains management
+export const partnerChains = pgTable("partner_chains", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  logoUrl: text("logo_url"), // IPFS URL
+  explorerUrl: text("explorer_url").notNull(),
+  docsUrl: text("docs_url"),
+  rpcUrl: text("rpc_url"),
+  chainId: integer("chain_id").unique(),
+  nativeCurrency: text("native_currency").notNull(),
+  status: text("status").notNull().default("active"), // active, inactive, maintenance
+  featured: boolean("featured").default(false).notNull(),
+  displayOrder: integer("display_order").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// DApp types for categorization
+export const dappTypes = pgTable("dapp_types", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  iconUrl: text("icon_url"), // IPFS URL
+  color: text("color").default("#FFA500").notNull(), // Hex color for UI
+  displayOrder: integer("display_order").default(0).notNull(),
+  active: boolean("active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Redeem codes for partner submission validation
+export const redeemCodes = pgTable("redeem_codes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  code: text("code").notNull().unique(),
+  serviceNftType: text("service_nft_type").notNull(), // "discover_listing", etc.
+  generatedFromWallet: varchar("generated_from_wallet", { length: 42 }).notNull(),
+  burnTxHash: text("burn_tx_hash").notNull(), // Transaction hash of the NFT burn
+  used: boolean("used").default(false).notNull(),
+  usedBy: varchar("used_by", { length: 42 }),
+  usedAt: timestamp("used_at"),
+  expiresAt: timestamp("expires_at").notNull(),
+  partnerId: varchar("partner_id").references(() => discoverPartners.id), // Set when code is used
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// System status monitoring
+export const systemStatus = pgTable("system_status", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  service: text("service").notNull(), // rpc_ethereum, rpc_polygon, bridge_health, etc.
+  status: text("status").notNull(), // healthy, degraded, down
+  latency: integer("latency"), // in milliseconds
+  blockHeight: varchar("block_height"),
+  errorMessage: text("error_message"),
+  lastChecked: timestamp("last_checked").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Admin session management
+export const adminSessions = pgTable("admin_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  adminId: varchar("admin_id").notNull().references(() => adminUsers.id),
+  sessionToken: text("session_token").notNull().unique(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Admin panel insert schemas
+export const insertAdminUserSchema = createInsertSchema(adminUsers).pick({
+  username: true,
+  email: true,
+  passwordHash: true,
+  role: true,
+  twoFactorSecret: true,
+  twoFactorEnabled: true,
+  active: true,
+});
+
+export const insertAuditLogSchema = createInsertSchema(auditLogs).pick({
+  adminId: true,
+  action: true,
+  module: true,
+  targetId: true,
+  targetType: true,
+  oldValues: true,
+  newValues: true,
+  ipAddress: true,
+  userAgent: true,
+  severity: true,
+  description: true,
+});
+
+export const insertDiscoverPartnerSchema = createInsertSchema(discoverPartners).pick({
+  name: true,
+  logoUrl: true,
+  websiteUrl: true,
+  shortDescription: true,
+  longDescription: true,
+  tags: true,
+  chains: true,
+  dappType: true,
+  featured: true,
+  status: true,
+  submitterWallet: true,
+  redeemCodeUsed: true,
+  rejectionReason: true,
+});
+
+export const insertAdSlotSchema = createInsertSchema(adSlots).pick({
+  title: true,
+  bannerImageUrl: true,
+  linkUrl: true,
+  startDate: true,
+  endDate: true,
+  status: true,
+  position: true,
+  priority: true,
+  createdBy: true,
+});
+
+export const insertPartnerChainSchema = createInsertSchema(partnerChains).pick({
+  name: true,
+  logoUrl: true,
+  explorerUrl: true,
+  docsUrl: true,
+  rpcUrl: true,
+  chainId: true,
+  nativeCurrency: true,
+  status: true,
+  featured: true,
+  displayOrder: true,
+});
+
+export const insertDappTypeSchema = createInsertSchema(dappTypes).pick({
+  name: true,
+  description: true,
+  iconUrl: true,
+  color: true,
+  displayOrder: true,
+  active: true,
+});
+
+export const insertRedeemCodeSchema = createInsertSchema(redeemCodes).pick({
+  code: true,
+  serviceNftType: true,
+  generatedFromWallet: true,
+  burnTxHash: true,
+  used: true,
+  usedBy: true,
+  expiresAt: true,
+  partnerId: true,
+});
+
+export const insertSystemStatusSchema = createInsertSchema(systemStatus).pick({
+  service: true,
+  status: true,
+  latency: true,
+  blockHeight: true,
+  errorMessage: true,
+});
+
+export const insertAdminSessionSchema = createInsertSchema(adminSessions).pick({
+  adminId: true,
+  sessionToken: true,
+  ipAddress: true,
+  userAgent: true,
+  expiresAt: true,
+});
+
+// Admin panel types
+export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
+export type AdminUser = typeof adminUsers.$inferSelect;
+
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type AuditLog = typeof auditLogs.$inferSelect;
+
+export type InsertDiscoverPartner = z.infer<typeof insertDiscoverPartnerSchema>;
+export type DiscoverPartner = typeof discoverPartners.$inferSelect;
+
+export type InsertAdSlot = z.infer<typeof insertAdSlotSchema>;
+export type AdSlot = typeof adSlots.$inferSelect;
+
+export type InsertPartnerChain = z.infer<typeof insertPartnerChainSchema>;
+export type PartnerChain = typeof partnerChains.$inferSelect;
+
+export type InsertDappType = z.infer<typeof insertDappTypeSchema>;
+export type DappType = typeof dappTypes.$inferSelect;
+
+export type InsertRedeemCode = z.infer<typeof insertRedeemCodeSchema>;
+export type RedeemCode = typeof redeemCodes.$inferSelect;
+
+export type InsertSystemStatus = z.infer<typeof insertSystemStatusSchema>;
+export type SystemStatus = typeof systemStatus.$inferSelect;
+
+export type InsertAdminSession = z.infer<typeof insertAdminSessionSchema>;
+export type AdminSession = typeof adminSessions.$inferSelect;
