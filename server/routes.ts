@@ -16,11 +16,21 @@ import {
   insertCourseAccessSchema,
   insertBridgePaymentSchema,
   insertTokenPurchaseSchema,
-  insertCTHBalanceSchema
+  insertCTHBalanceSchema,
+  insertAdminUserSchema,
+  insertAdminSessionSchema,
+  insertAuditLogSchema,
+  adminUsers,
+  adminSessions,
+  auditLogs,
+  type AdminUser,
+  type AdminSession
 } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
+import { eq, and, desc, gte } from "drizzle-orm";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // JWT secret for authentication
@@ -1356,6 +1366,227 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Advertisement NFT burn error:', error);
       res.status(500).json({ error: 'Failed to burn advertisement NFT' });
+    }
+  });
+
+  // Admin Panel Authentication Routes
+  
+  // Admin login
+  app.post("/api/admin/auth/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ error: 'Username and password required' });
+      }
+      
+      // Find admin user
+      const [admin] = await db.select().from(adminUsers).where(eq(adminUsers.username, username));
+      
+      if (!admin || !admin.active) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+      
+      // Verify password
+      const isValid = await bcrypt.compare(password, admin.passwordHash);
+      if (!isValid) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+      
+      // Create session token
+      const sessionToken = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours
+      
+      // Store session
+      await db.insert(adminSessions).values({
+        adminId: admin.id,
+        sessionToken,
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent') || '',
+        expiresAt,
+      });
+      
+      // Update last login
+      await db.update(adminUsers)
+        .set({ lastLoginAt: new Date() })
+        .where(eq(adminUsers.id, admin.id));
+      
+      res.json({
+        sessionToken,
+        admin: {
+          id: admin.id,
+          username: admin.username,
+          email: admin.email,
+          role: admin.role,
+        },
+        expiresAt,
+      });
+    } catch (error) {
+      console.error('Admin login error:', error);
+      res.status(500).json({ error: 'Login failed' });
+    }
+  });
+  
+  // Admin logout
+  app.post("/api/admin/auth/logout", async (req, res) => {
+    try {
+      const sessionToken = req.headers.authorization?.replace('Bearer ', '');
+      
+      if (sessionToken) {
+        await db.delete(adminSessions).where(eq(adminSessions.sessionToken, sessionToken));
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Admin logout error:', error);
+      res.status(500).json({ error: 'Logout failed' });
+    }
+  });
+  
+  // Admin session verification middleware
+  const requireAdminAuth = async (req: any, res: any, next: any) => {
+    try {
+      const sessionToken = req.headers.authorization?.replace('Bearer ', '');
+      
+      if (!sessionToken) {
+        return res.status(401).json({ error: 'Admin authentication required' });
+      }
+      
+      // Find valid session
+      const [session] = await db
+        .select({
+          session: adminSessions,
+          admin: adminUsers,
+        })
+        .from(adminSessions)
+        .innerJoin(adminUsers, eq(adminUsers.id, adminSessions.adminId))
+        .where(
+          and(
+            eq(adminSessions.sessionToken, sessionToken),
+            gte(adminSessions.expiresAt, new Date()),
+            eq(adminUsers.active, true)
+          )
+        );
+      
+      if (!session) {
+        return res.status(401).json({ error: 'Invalid or expired session' });
+      }
+      
+      req.adminUser = session.admin;
+      req.adminSession = session.session;
+      next();
+    } catch (error) {
+      console.error('Admin auth middleware error:', error);
+      res.status(500).json({ error: 'Authentication failed' });
+    }
+  };
+  
+  // Role-based permission middleware
+  const requireAdminRole = (allowedRoles: string[]) => {
+    return (req: any, res: any, next: any) => {
+      if (!req.adminUser) {
+        return res.status(401).json({ error: 'Admin authentication required' });
+      }
+      
+      if (!allowedRoles.includes(req.adminUser.role)) {
+        return res.status(403).json({ error: 'Insufficient permissions' });
+      }
+      
+      next();
+    };
+  };
+  
+  // Audit logging helper
+  const logAdminAction = async (adminId: string, action: string, module: string, targetId?: string, targetType?: string, oldValues?: any, newValues?: any, description?: string) => {
+    try {
+      await db.insert(auditLogs).values({
+        adminId,
+        action,
+        module,
+        targetId,
+        targetType,
+        oldValues,
+        newValues,
+        description: description || `${action} ${targetType || 'resource'}`,
+        severity: 'info',
+      });
+    } catch (error) {
+      console.error('Audit logging error:', error);
+    }
+  };
+  
+  // Admin session check
+  app.get("/api/admin/auth/me", requireAdminAuth, async (req: any, res) => {
+    res.json({
+      id: req.adminUser.id,
+      username: req.adminUser.username,
+      email: req.adminUser.email,
+      role: req.adminUser.role,
+    });
+  });
+  
+  // Admin users management (super admin only)
+  app.get("/api/admin/users", requireAdminAuth, requireAdminRole(['super_admin']), async (req: any, res) => {
+    try {
+      const admins = await db.select({
+        id: adminUsers.id,
+        username: adminUsers.username,
+        email: adminUsers.email,
+        role: adminUsers.role,
+        active: adminUsers.active,
+        twoFactorEnabled: adminUsers.twoFactorEnabled,
+        lastLoginAt: adminUsers.lastLoginAt,
+        createdAt: adminUsers.createdAt,
+      }).from(adminUsers).orderBy(desc(adminUsers.createdAt));
+      
+      res.json(admins);
+    } catch (error) {
+      console.error('Get admin users error:', error);
+      res.status(500).json({ error: 'Failed to get admin users' });
+    }
+  });
+  
+  // Create admin user (super admin only)
+  app.post("/api/admin/users", requireAdminAuth, requireAdminRole(['super_admin']), async (req: any, res) => {
+    try {
+      const { username, email, password, role } = req.body;
+      
+      if (!username || !email || !password || !role) {
+        return res.status(400).json({ error: 'All fields required' });
+      }
+      
+      // Hash password
+      const passwordHash = await bcrypt.hash(password, 12);
+      
+      // Create admin user
+      const [newAdmin] = await db.insert(adminUsers).values({
+        username,
+        email,
+        passwordHash,
+        role,
+      }).returning({
+        id: adminUsers.id,
+        username: adminUsers.username,
+        email: adminUsers.email,
+        role: adminUsers.role,
+      });
+      
+      // Log action
+      await logAdminAction(
+        req.adminUser.id,
+        'create',
+        'admin_users',
+        newAdmin.id,
+        'admin_user',
+        null,
+        { username, email, role },
+        `Created admin user: ${username}`
+      );
+      
+      res.json(newAdmin);
+    } catch (error) {
+      console.error('Create admin user error:', error);
+      res.status(500).json({ error: 'Failed to create admin user' });
     }
   });
 
