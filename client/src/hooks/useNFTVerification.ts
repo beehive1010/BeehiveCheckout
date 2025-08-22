@@ -5,36 +5,38 @@ import { bbcMembershipContracts, levelToTokenId } from "../lib/web3";
 export function useNFTVerification() {
   const account = useActiveAccount();
   
-  // Check Level 1 NFT balance on Arbitrum Sepolia
+  // Primary check: Level 1 NFT balance on Arbitrum Sepolia (main verification chain)
   const { 
     data: arbitrumLevel1Balance, 
-    isLoading: isCheckingArbitrum 
+    isLoading: isCheckingArbitrum,
+    error: arbitrumError
   } = useReadContract(
     balanceOf,
     {
       contract: bbcMembershipContracts.arbitrumSepolia,
       owner: account?.address || "",
-      tokenId: levelToTokenId(1), // Level 1 = Token ID 0
+      tokenId: levelToTokenId(1), // Level 1 = Token ID 1
     }
   );
 
-  // Check Level 1 NFT balance on Alpha Centauri
+  // Secondary check: Level 1 NFT balance on Alpha Centauri (for claimed NFTs)
   const { 
     data: alphaLevel1Balance, 
     isLoading: isCheckingAlpha, 
-    error 
+    error: alphaError
   } = useReadContract(
     balanceOf,
     {
       contract: bbcMembershipContracts.alphaCentauri,
       owner: account?.address || "",
-      tokenId: levelToTokenId(1), // Level 1 = Token ID 0
+      tokenId: levelToTokenId(1), // Level 1 = Token ID 1
     }
   );
 
   const isCheckingLevel1 = isCheckingArbitrum || isCheckingAlpha;
   
-  // User has Level 1 NFT if they own it on either chain
+  // Priority to Arbitrum Sepolia for verification (main chain for payments)
+  // Then fall back to Alpha Centauri for claimed NFTs
   const hasLevel1NFT = Boolean(
     (arbitrumLevel1Balance && arbitrumLevel1Balance > BigInt(0)) ||
     (alphaLevel1Balance && alphaLevel1Balance > BigInt(0))
@@ -42,8 +44,11 @@ export function useNFTVerification() {
   
   const isLoading = isCheckingLevel1;
   
-  // Return combined balance for backward compatibility
+  // Return combined balance for backward compatibility, prioritizing Arbitrum Sepolia
   const level1Balance = arbitrumLevel1Balance || alphaLevel1Balance || BigInt(0);
+  
+  // Combine errors
+  const error = arbitrumError || alphaError;
 
   return {
     hasLevel1NFT,

@@ -67,8 +67,10 @@ export default function ClaimMembershipButton({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          nftContractAddress: '0x6D513487bd63430Ca71Cd1d9A7DeA5aAcDbf0322',
+          // Use Arbitrum Sepolia contract for verification
+          nftContractAddress: '0xAc8c8662726b72f8DB4F5D1d1a16aC5b06B7a90D',
           tokenId: levelToTokenId(level).toString(),
+          verificationChain: 'arbitrum-sepolia',
         }),
       });
 
@@ -121,7 +123,7 @@ export default function ClaimMembershipButton({
       setTxHash(transactionHash);
       setClaimState('verifying');
 
-      // Emit payment completed event
+      // Emit payment completed event (payment on selected chain)
       membershipEventEmitter.emit({
         type: 'MEMBERSHIP_PAYMENT_COMPLETED',
         payload: {
@@ -129,7 +131,8 @@ export default function ClaimMembershipButton({
           level,
           priceUSDT: membershipLevel.priceUSDT,
           txHash: transactionHash,
-          chain: alphaCentauri.name || 'Alpha-centauri',
+          paymentChain: selectedChain.name, // Payment chain (e.g., Arbitrum Sepolia)
+          targetChain: 'Alpha-centauri', // Target chain for NFT claim
           timestamp: Date.now()
         }
       });
@@ -198,16 +201,21 @@ export default function ClaimMembershipButton({
     // Retry logic with exponential backoff
     for (let attempt = 0; attempt < 5; attempt++) {
       try {
-        // Check if the wallet now owns the BBC token for the given level
-        const response = await fetch('/api/membership/verify', {
+        // Verify payment on Arbitrum Sepolia using Thirdweb API
+        const response = await fetch('/api/membership/verify-cross-chain', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'X-Wallet-Address': walletAddress,
           },
           body: JSON.stringify({ 
-            txHash: transactionHash,
-            level 
+            paymentTxHash: transactionHash,
+            level,
+            tokenId: levelToTokenId(level).toString(),
+            sourceChain: selectedChain.name.toLowerCase().replace(' ', '-'), // e.g., 'arbitrum-sepolia'
+            targetChain: 'alpha-centauri',
+            bridgeWallet: selectedChain.bridgeWallet,
+            usdtAmount: membershipLevel.priceUSDT * 100, // Convert to cents
           }),
         });
 
@@ -233,7 +241,7 @@ export default function ClaimMembershipButton({
 
   const persistMembership = async (transactionHash: string) => {
     try {
-      const response = await fetch('/api/membership/claim', {
+      const response = await fetch('/api/membership/claim-cross-chain', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -241,7 +249,12 @@ export default function ClaimMembershipButton({
         },
         body: JSON.stringify({
           level,
-          txHash: transactionHash,
+          tokenId: levelToTokenId(level).toString(),
+          paymentTxHash: transactionHash,
+          sourceChain: selectedChain.name.toLowerCase().replace(' ', '-'),
+          targetChain: 'alpha-centauri',
+          bridgeWallet: selectedChain.bridgeWallet,
+          usdtAmount: membershipLevel.priceUSDT * 100, // Convert to cents
           priceUSDT: membershipLevel.priceUSDT,
         }),
       });
