@@ -260,27 +260,27 @@ export default function Dashboard() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
                     <div className="w-8 h-8 rounded-full bg-honey/20 flex items-center justify-center flex-shrink-0">
-                      <i className="fas fa-tasks text-honey text-sm"></i>
-                    </div>
-                    <span className="text-sm font-medium">Tasks & NFT Marketplace</span>
-                  </div>
-                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
-                    <div className="w-8 h-8 rounded-full bg-honey/20 flex items-center justify-center flex-shrink-0">
-                      <i className="fas fa-compass text-honey text-sm"></i>
-                    </div>
-                    <span className="text-sm font-medium">Discover Web3 Dapps</span>
-                  </div>
-                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
-                    <div className="w-8 h-8 rounded-full bg-honey/20 flex items-center justify-center flex-shrink-0">
-                      <i className="fas fa-sitemap text-honey text-sm"></i>
-                    </div>
-                    <span className="text-sm font-medium">HiveWorld Matrix System</span>
-                  </div>
-                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
-                    <div className="w-8 h-8 rounded-full bg-honey/20 flex items-center justify-center flex-shrink-0">
                       <i className="fas fa-graduation-cap text-honey text-sm"></i>
                     </div>
-                    <span className="text-sm font-medium">Education Center</span>
+                    <span className="text-sm font-medium">Web3 Learning Courses</span>
+                  </div>
+                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
+                    <div className="w-8 h-8 rounded-full bg-honey/20 flex items-center justify-center flex-shrink-0">
+                      <i className="fas fa-coins text-honey text-sm"></i>
+                    </div>
+                    <span className="text-sm font-medium">BCC Token Rewards</span>
+                  </div>
+                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
+                    <div className="w-8 h-8 rounded-full bg-honey/20 flex items-center justify-center flex-shrink-0">
+                      <i className="fas fa-users text-honey text-sm"></i>
+                    </div>
+                    <span className="text-sm font-medium">Referral Matrix System</span>
+                  </div>
+                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
+                    <div className="w-8 h-8 rounded-full bg-honey/20 flex items-center justify-center flex-shrink-0">
+                      <i className="fas fa-shopping-bag text-honey text-sm"></i>
+                    </div>
+                    <span className="text-sm font-medium">NFT Marketplace Access</span>
                   </div>
                 </div>
               </div>
