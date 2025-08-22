@@ -5,7 +5,7 @@ import { bbcMembershipContract, levelToTokenId } from "../lib/web3";
 export function useNFTVerification() {
   const account = useActiveAccount();
   
-  // Check if user owns Level 1 membership NFT (token ID 0)
+  // Check if user owns Level 1 membership NFT (token ID 0) using direct contract call
   const { data: level1Balance, isLoading: isCheckingLevel1, error } = useReadContract(
     balanceOf,
     {
