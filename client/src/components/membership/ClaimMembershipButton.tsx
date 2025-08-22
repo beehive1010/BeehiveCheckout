@@ -586,19 +586,81 @@ export default function ClaimMembershipButton({
         {/* Payment Container */}
         <div className="border rounded-lg overflow-hidden">
           {(selectedChain as any).isTestnet ? (
-            // 测试网络：使用CheckoutWidget，避免bridge
-            <div className="bg-background">
-              <CheckoutWidget
-                client={client}
-                theme="dark"
-                chain={selectedChain.chain}
-                amount={membershipLevel.priceUSDT.toString()}
-                tokenAddress={selectedChain.usdtAddress as `0x${string}`}
-                seller={selectedChain.bridgeWallet as `0x${string}`}
-                feePayer="seller"
-                name={`Beehive Level ${level} Membership (Test)`}
-                description={`Test purchase for Level ${level} membership using test USDT`}
-              />
+            // 测试网络：使用简单的手动转账按钮，完全避开bridge
+            <div className="p-4 space-y-4">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-2">测试网络 - 简化支付</p>
+                <p className="text-lg font-bold text-honey">${membershipLevel.priceUSDT} 测试USDT</p>
+                <p className="text-xs text-muted-foreground">向测试钱包转账</p>
+              </div>
+              
+              <div className="bg-secondary/20 rounded-lg p-3 text-xs">
+                <p className="font-medium mb-1">测试参数:</p>
+                <p>USDT合约: {selectedChain.usdtAddress}</p>
+                <p>接收地址: {selectedChain.bridgeWallet}</p>
+                <p>金额: {membershipLevel.priceUSDT * 1000000} (含6位小数)</p>
+              </div>
+
+              <Button
+                onClick={async () => {
+                  try {
+                    if (!account?.address) {
+                      toast({
+                        title: '请连接钱包',
+                        description: '需要连接钱包才能进行支付',
+                        variant: 'destructive',
+                      });
+                      return;
+                    }
+
+                    setClaimState('paying');
+                    
+                    // 创建转账交易
+                    const contract = getContract({
+                      client,
+                      chain: selectedChain.chain,
+                      address: selectedChain.usdtAddress as `0x${string}`,
+                    });
+
+                    const transaction = transfer({
+                      contract,
+                      to: selectedChain.bridgeWallet as `0x${string}`,
+                      amount: (membershipLevel.priceUSDT * 1000000).toString(),
+                    });
+
+                    // 发送交易
+                    const result = await sendAndConfirmTransaction({
+                      transaction,
+                      account,
+                    });
+
+                    console.log('Test payment transaction:', result.transactionHash);
+                    
+                    // 处理支付成功
+                    await handlePaymentSuccess(result.transactionHash);
+                    
+                  } catch (error) {
+                    console.error('Test payment error:', error);
+                    setClaimState('error');
+                    toast({
+                      title: '支付失败',
+                      description: '测试支付过程中出现错误，请重试',
+                      variant: 'destructive',
+                    });
+                  }
+                }}
+                disabled={claimState !== 'idle'}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                {claimState === 'paying' ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                    处理中...
+                  </>
+                ) : (
+                  '发送测试USDT'
+                )}
+              </Button>
             </div>
           ) : (
             // 生产网络：使用PayEmbed支持bridge
