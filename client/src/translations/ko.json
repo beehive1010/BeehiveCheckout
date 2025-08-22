@@ -181,6 +181,9 @@
     "welcome": {
       "title": "Beehive에 오신 것을 환영합니다! 🎉",
       "subtitle": "Level 1 Warrior NFT를 구매하여 멤버십을 완료하세요. 모든 플랫폼 기능이 잠금 해제되고 Web3 여정이 시작됩니다!",
+      "referral": {
+        "rewards": "추천 보상: 네트워크에서 NFT 구매 시 각 레벨에서 100% 보상 획득"
+      },
       "nft": {
         "title": "Level 1 Warrior NFT",
         "description": "블록체인상의 멤버십 자격증명",

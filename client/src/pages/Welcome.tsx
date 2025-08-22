@@ -74,15 +74,6 @@ export default function Welcome() {
                 {t('welcome.subtitle')}
               </p>
               
-              {/* Pricing Information */}
-              <div className="bg-honey/5 rounded-lg p-4 mb-4 border border-honey/20">
-                <p className="text-sm text-muted-foreground mb-2">
-                  💰 {t('welcome.pricing.note')}
-                </p>
-                <p className="text-sm text-honey font-medium">
-                  🎁 {t('welcome.pricing.referral')}
-                </p>
-              </div>
             </CardHeader>
             
             <CardContent className="space-y-8">
@@ -98,19 +89,18 @@ export default function Welcome() {
                       <p className="text-sm text-muted-foreground">{t('welcome.nft.description')}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="flex flex-col sm:block">
-                      <p className="text-lg font-bold text-honey">100 USDT</p>
-                      <p className="text-sm text-muted-foreground">NFT</p>
-                      <p className="text-sm font-medium text-honey mt-1">30 USDT</p>
-                      <p className="text-xs text-muted-foreground">一次性平台费</p>
-                    </div>
-                  </div>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-honey font-medium">{t('welcome.nft.tokenId')}</span>
                   <span className="text-muted-foreground">One-time purchase</span>
                 </div>
+              </div>
+
+              {/* Referral Rewards */}
+              <div className="bg-honey/5 rounded-lg p-4 border border-honey/20 text-center">
+                <p className="text-sm font-medium text-honey">
+                  🎁 {t('welcome.referral.rewards')}
+                </p>
               </div>
 
               {/* Benefits Grid */}
