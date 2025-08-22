@@ -131,8 +131,7 @@ export default function ClaimMembershipButton({
           level,
           priceUSDT: membershipLevel.priceUSDT,
           txHash: transactionHash,
-          paymentChain: selectedChain.name, // Payment chain (e.g., Arbitrum Sepolia)
-          targetChain: 'Alpha-centauri', // Target chain for NFT claim
+          chain: selectedChain.name.toLowerCase().replace(' ', '-'),
           timestamp: Date.now()
         }
       });
@@ -158,29 +157,36 @@ export default function ClaimMembershipButton({
         }
       });
 
-      // Verify on-chain with retry logic
-      const verified = await verifyOnChain(transactionHash);
+      // Check if this is test chain (Arbitrum Sepolia) - skip bridge verification
+      const isTestChain = selectedChain.name === 'Arbitrum Sepolia';
       
-      if (!verified) {
-        throw new Error('On-chain verification failed');
-      }
-
-      // Emit verification completed event
-      membershipEventEmitter.emit({
-        type: 'MEMBERSHIP_VERIFICATION_COMPLETED',
-        payload: {
-          walletAddress,
-          level,
-          txHash: transactionHash,
-          verified: true,
-          timestamp: Date.now()
+      if (isTestChain) {
+        // For test chain, directly persist membership without bridge verification
+        setClaimState('persisting');
+        await persistTestMembership(transactionHash);
+      } else {
+        // For other chains, use existing bridge verification
+        const verified = await verifyOnChain(transactionHash);
+        
+        if (!verified) {
+          throw new Error('On-chain verification failed');
         }
-      });
 
-      setClaimState('persisting');
+        // Emit verification completed event
+        membershipEventEmitter.emit({
+          type: 'MEMBERSHIP_VERIFICATION_COMPLETED',
+          payload: {
+            walletAddress,
+            level,
+            txHash: transactionHash,
+            verified: true,
+            timestamp: Date.now()
+          }
+        });
 
-      // Persist to database and activate membership
-      await persistMembership(transactionHash);
+        setClaimState('persisting');
+        await persistMembership(transactionHash);
+      }
       
       setClaimState('success');
       
@@ -281,6 +287,48 @@ export default function ClaimMembershipButton({
 
     } catch (error) {
       console.error('Persistence error:', error);
+      throw error;
+    }
+  };
+
+  const persistTestMembership = async (transactionHash: string) => {
+    try {
+      // For test chain, use direct membership claim endpoint
+      const response = await fetch('/api/membership/claim', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Wallet-Address': walletAddress,
+        },
+        body: JSON.stringify({
+          level,
+          txHash: transactionHash,
+          priceUSDT: membershipLevel.priceUSDT,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to persist membership');
+      }
+
+      const result = await response.json();
+      
+      // Emit persistence event
+      membershipEventEmitter.emit({
+        type: 'MEMBERSHIP_PERSISTED',
+        payload: {
+          walletAddress,
+          level,
+          orderId: result.orderId,
+          activated: result.activated,
+          previousLevel: result.previousLevel,
+          timestamp: Date.now()
+        }
+      });
+
+    } catch (error) {
+      console.error('Test membership persistence error:', error);
       throw error;
     }
   };

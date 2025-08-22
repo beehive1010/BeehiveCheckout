@@ -184,17 +184,17 @@ export const contractAddresses = {
     ethereum: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     polygon: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
     arbitrum: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
-    arbitrumSepolia: '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d', // Sepolia USDT
+    arbitrumSepolia: '0x4470734620414168Aa1673A30849DB25E5886E2A', // Test USDT
     optimism: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
     bsc: '0x55d398326f99059fF775485246999027B3197955', // BSC USDT
     alphaCentauri: '0x1234567890123456789012345678901234567893',
   },
-  // Bridge wallet addresses for receiving USDT payments
+  // Test wallet addresses for receiving USDT payments (testing without bridge)
   BRIDGE_WALLETS: {
     ethereum: import.meta.env.VITE_BRIDGE_WALLET_ETH || '0x1234567890123456789012345678901234567894',
     polygon: import.meta.env.VITE_BRIDGE_WALLET_POLYGON || '0x1234567890123456789012345678901234567895',
     arbitrum: import.meta.env.VITE_BRIDGE_WALLET_ARB || '0x1234567890123456789012345678901234567896',
-    arbitrumSepolia: import.meta.env.VITE_BRIDGE_WALLET_ARB_SEPOLIA || '0x1234567890123456789012345678901234567898',
+    arbitrumSepolia: import.meta.env.VITE_TEST_WALLET_ADDRESS || '0x742d35Cc6434C0532925a3b8D1b9e0C0D3c7c1d8', // Test wallet for direct USDT payments
     optimism: import.meta.env.VITE_BRIDGE_WALLET_OP || '0x1234567890123456789012345678901234567897',
     bsc: import.meta.env.VITE_BRIDGE_WALLET_BSC || '0x1234567890123456789012345678901234567899',
   },
