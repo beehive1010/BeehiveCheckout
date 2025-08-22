@@ -559,7 +559,7 @@ export default function ClaimMembershipButton({
     <Button
       onClick={handleStartPurchase}
       disabled={isButtonDisabled}
-      className={`w-full transition-all duration-200 relative ${
+      className={`w-full h-12 sm:h-14 transition-all duration-200 relative text-sm sm:text-base lg:text-lg font-semibold ${
         claimState === 'success' 
           ? 'bg-green-600 hover:bg-green-700' 
           : claimState === 'approving'
@@ -578,7 +578,7 @@ export default function ClaimMembershipButton({
         {claimState === 'error' && (
           <i className="fas fa-exclamation-triangle"></i>
         )}
-        <span>{getButtonText()}</span>
+        <span className="text-center leading-tight px-1 sm:px-2">{getButtonText()}</span>
         {claimState === 'idle' && (
           <span className="text-lg">🔥</span>
         )}
