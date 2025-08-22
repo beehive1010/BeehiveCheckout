@@ -323,7 +323,7 @@ export default function AdminBlog() {
 
   const togglePostStatus = async (post: BlogPost) => {
     try {
-      const newStatus = post.status === 'published' ? 'draft' : 'published';
+      const newStatus: 'published' | 'draft' | 'scheduled' = post.status === 'published' ? 'draft' : 'published';
       const updatedPost = { 
         ...post, 
         status: newStatus,
