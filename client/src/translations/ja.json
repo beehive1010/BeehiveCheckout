@@ -387,7 +387,56 @@
       "optimism": "Optimism",
       "bsc": "BSC",
       "avalanche": "アバランチ"
-    }
+    },
+    "trendingSection": {
+      "title": "トレンドアプリ",
+      "subtitle": "エコシステムで人気のDApps",
+      "users": "ユーザー",
+      "tvl": "TVL",
+      "volume": "24時間取引量"
+    },
+    "ecosystem": {
+      "title": "BeeHiveエコシステム",
+      "subtitle": "ネイティブプラットフォームサービスとツール",
+      "membership": {
+        "title": "メンバーシップシステム",
+        "subtitle": "戦士から神話の頂点まで19レベルの進行",
+        "levels": "19レベル",
+        "members": "アクティブメンバー"
+      },
+      "matrix": {
+        "title": "3×3マトリックス",
+        "subtitle": "分散化された紹介・報酬システム",
+        "structure": "自動配置",
+        "rewards": "即時報酬"
+      },
+      "education": {
+        "title": "教育ハブ",
+        "subtitle": "Web3学習とスキル開発",
+        "courses": "コース",
+        "certificates": "証明書"
+      }
+    },
+    "news": {
+      "title": "最新ニュース",
+      "subtitle": "Web3の最新動向を把握",
+      "readMore": "続きを読む",
+      "minutes": "分で読める",
+      "matrix30": {
+        "title": "Matrix 3.0リリース - 報酬強化",
+        "description": "改善された報酬配布とより高速な処理時間を備えたアップグレードされたマトリックスシステムを体験"
+      },
+      "bridge": {
+        "title": "マルチチェーンブリッジ統合",
+        "description": "新しいブリッジ技術により複数のブロックチェーン間でアセットをシームレスに転送"
+      },
+      "education": {
+        "title": "新しいWeb3認定プログラム",
+        "description": "ブロックチェーン開発とDeFiプロトコルの高度な認定コースが利用可能"
+      }
+    },
+    "featured": "特集",
+    "trending": "トレンド"
   },
   "hiveworld": {
     "title": "ハイブワールド - あなたのマトリックス",

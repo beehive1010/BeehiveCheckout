@@ -507,6 +507,13 @@
       "readMore": "더 읽기",
       "minutes": "분 읽기"
     },
+    "trendingSection": {
+      "title": "지금 트렌딩",
+      "subtitle": "생태계의 인기 DApps",
+      "users": "사용자",
+      "tvl": "TVL",
+      "volume": "24시간 거래량"
+    },
     "dapps": {
       "beehive": "BeeHive 멤버십",
       "beehiveDesc": "Web3 보상이 있는 19단계 멤버십 시스템",
@@ -530,7 +537,9 @@
       "optimism": "옵티미즘",
       "bsc": "BSC",
       "avalanche": "아발란체"
-    }
+    },
+    "featured": "추천",
+    "trending": "트렌딩"
   },
   "hiveworld": {
     "title": "HiveWorld - 당신의 매트릭스",

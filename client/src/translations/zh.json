@@ -387,7 +387,56 @@
       "optimism": "Optimism",
       "bsc": "BSC",
       "avalanche": "雪崩"
-    }
+    },
+    "trendingSection": {
+      "title": "热门应用",
+      "subtitle": "生态系统中的热门DApps",
+      "users": "用户",
+      "tvl": "TVL",
+      "volume": "24小时交易量"
+    },
+    "ecosystem": {
+      "title": "蜂巢生态系统",
+      "subtitle": "原生平台服务和工具",
+      "membership": {
+        "title": "会员系统",
+        "subtitle": "从勇士到神话巅峰的19级进阶",
+        "levels": "19个级别",
+        "members": "活跃会员"
+      },
+      "matrix": {
+        "title": "3×3矩阵",
+        "subtitle": "去中心化推荐和奖励系统",
+        "structure": "自动放置",
+        "rewards": "即时奖励"
+      },
+      "education": {
+        "title": "教育中心",
+        "subtitle": "Web3学习和技能发展",
+        "courses": "课程",
+        "certificates": "证书"
+      }
+    },
+    "news": {
+      "title": "最新动态",
+      "subtitle": "了解Web3最新发展",
+      "readMore": "阅读更多",
+      "minutes": "分钟阅读",
+      "matrix30": {
+        "title": "Matrix 3.0发布 - 增强奖励",
+        "description": "体验我们升级的矩阵系统，改进的奖励分配和更快的处理时间"
+      },
+      "bridge": {
+        "title": "多链桥接集成",
+        "description": "使用我们的新桥接技术在多个区块链之间无缝转移资产"
+      },
+      "education": {
+        "title": "新Web3认证项目",
+        "description": "现在提供区块链开发和DeFi协议的高级认证课程"
+      }
+    },
+    "featured": "精选",
+    "trending": "热门"
   },
   "hiveworld": {
     "title": "蜂巢世界 - 您的矩阵",
