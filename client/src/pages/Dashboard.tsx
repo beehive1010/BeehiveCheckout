@@ -150,11 +150,11 @@ export default function Dashboard() {
             </HexagonIcon>
             
             <h1 className="text-3xl font-bold text-honey mb-4">
-              {t('dashboard.welcome.title')}
+              Welcome to Beehive
             </h1>
             
             <p className="text-muted-foreground text-lg mb-6">
-              {t('dashboard.welcome.description')}
+              Web3 membership and learning platform with blockchain-based rewards. Activate your Level 1 membership to get started!
             </p>
 
             <div className="bg-muted rounded-lg p-4 mb-6">
