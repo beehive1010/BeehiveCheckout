@@ -813,7 +813,7 @@
   },
   "membership": {
     "purchase": {
-      "button": "レベル{level}を購入 - ${price} USDT",
+      "button": "メンバー特典アンロック - 130 USDT",
       "connectWallet": "購入のためウォレット接続",
       "selectChain": "支払いチェーンを選択",
       "selectChainDescription": "レベル{level}メンバーシップ支払いに使用するブロックチェーンを選択",
