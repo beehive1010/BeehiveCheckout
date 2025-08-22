@@ -6,7 +6,7 @@ import { getMembershipLevel } from '../../lib/config/membershipLevels';
 import { membershipEventEmitter } from '../../lib/membership/events';
 import { ConnectButton, useActiveAccount } from "thirdweb/react";
 import { client, alphaCentauri, bbcMembershipContract, levelToTokenId, paymentChains } from '../../lib/web3';
-import { PayEmbed } from "thirdweb/react";
+import { PayEmbed, CheckoutWidget } from "thirdweb/react";
 import { Card, CardContent } from '../ui/card';
 import { FiX } from 'react-icons/fi';
 import { getApprovalForTransaction, transfer } from 'thirdweb/extensions/erc20';
@@ -586,30 +586,26 @@ export default function ClaimMembershipButton({
         {/* Payment Container */}
         <div className="border rounded-lg overflow-hidden">
           {(selectedChain as any).isTestnet ? (
-            // 测试网络：使用transaction模式，避免bridge
-            <PayEmbed
-              client={client}
-              payOptions={{
-                mode: "transaction",
-                transaction: transfer({
-                  contract: getContract({
-                    client,
-                    chain: selectedChain.chain,
-                    address: selectedChain.usdtAddress as `0x${string}`,
-                  }),
-                  to: selectedChain.bridgeWallet as `0x${string}`,
-                  amount: (membershipLevel.priceUSDT * 1000000).toString(), // USDT has 6 decimals
-                }),
-                metadata: {
-                  name: `Beehive Level ${level} Membership (Test)`,
-                  description: `Test purchase for Level ${level} membership using test USDT`,
-                },
-                onPurchaseSuccess: handlePaymentSuccess,
-              }}
-              theme="dark"
-            />
+            // 测试网络：使用CheckoutWidget，避免bridge
+            <div className="bg-background">
+              <CheckoutWidget
+                client={client}
+                theme="dark"
+                chain={selectedChain.chain}
+                amount={membershipLevel.priceUSDT.toString()}
+                tokenAddress={selectedChain.usdtAddress as `0x${string}`}
+                seller={selectedChain.bridgeWallet as `0x${string}`}
+                feePayer="buyer"
+                name={`Beehive Level ${level} Membership (Test)`}
+                description={`Test purchase for Level ${level} membership using test USDT`}
+                onPurchaseSuccess={(result) => {
+                  console.log('CheckoutWidget purchase success:', result);
+                  handlePaymentSuccess(result.transactionHash);
+                }}
+              />
+            </div>
           ) : (
-            // 生产网络：使用direct_payment模式支持bridge
+            // 生产网络：使用PayEmbed支持bridge
             <PayEmbed
               client={client}
               payOptions={{

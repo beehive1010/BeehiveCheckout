@@ -230,16 +230,6 @@ export const paymentChains = [
     color: 'text-blue-300'
   },
   { 
-    chain: arbitrumSepolia, 
-    name: 'Arbitrum Sepolia', 
-    symbol: 'ETH',
-    usdtAddress: contractAddresses.USDT.arbitrumSepolia,
-    bridgeWallet: contractAddresses.BRIDGE_WALLETS.arbitrumSepolia,
-    icon: 'fas fa-vial',
-    color: 'text-orange-400',
-    isTestnet: true // 标识测试网络
-  },
-  { 
     chain: optimism, 
     name: 'Optimism', 
     symbol: 'OP',
@@ -256,6 +246,17 @@ export const paymentChains = [
     bridgeWallet: contractAddresses.BRIDGE_WALLETS.bsc,
     icon: 'fas fa-coins',
     color: 'text-yellow-400'
+  },
+  // 测试网络放在最下面
+  { 
+    chain: arbitrumSepolia, 
+    name: 'Arbitrum Sepolia', 
+    symbol: 'ETH',
+    usdtAddress: contractAddresses.USDT.arbitrumSepolia,
+    bridgeWallet: contractAddresses.BRIDGE_WALLETS.arbitrumSepolia,
+    icon: 'fas fa-vial',
+    color: 'text-orange-400',
+    isTestnet: true // 标识测试网络
   },
 ];
 
