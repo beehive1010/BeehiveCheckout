@@ -173,6 +173,22 @@
       },
       "getButton": "Purchase Membership"
     },
+    "activation": {
+      "title": "Welcome to Beehive",
+      "description": "Web3 membership and learning platform with blockchain-based rewards. Activate your Level 1 membership to get started!",
+      "membershipLevel": "Membership Level",
+      "price": "Price",
+      "priceLevel1": "130 USDT",
+      "activationNote": "After activation, you'll have access to all member features including Tasks, Education, and HiveWorld.",
+      "success": {
+        "title": "Membership Activated!",
+        "description": "Welcome to Beehive! You now have access to all member features."
+      },
+      "error": {
+        "title": "Activation Failed",
+        "description": "Unable to activate your membership. Please try again or contact support."
+      }
+    },
     "membershipLevel": "Membership Level",
     "price": "Price",
     "activateLevel1": "Activate Level 1 Bumblebees (BBC) NFT",
