@@ -7,9 +7,7 @@ import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import HexagonIcon from '../components/UI/HexagonIcon';
 import { useToast } from '../hooks/use-toast';
-import { TransactionWidget, useActiveAccount } from "thirdweb/react";
-import { claimTo } from "thirdweb/extensions/erc1155";
-import { bbcMembershipContract, client, levelToTokenId } from "../lib/web3";
+import ClaimMembershipButton from '../components/membership/ClaimMembershipButton';
 import { useNFTVerification } from '../hooks/useNFTVerification';
 import { useCompanyStats, useUserReferralStats } from '../hooks/useBeeHiveStats';
 import { useState } from 'react';
@@ -28,7 +26,6 @@ export default function Dashboard() {
   const { t } = useI18n();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const account = useActiveAccount();
   const { hasLevel1NFT, isLoading: isCheckingNFT } = useNFTVerification();
   const { data: companyStats, isLoading: isLoadingCompanyStats } = useCompanyStats();
   const { data: userStats, isLoading: isLoadingUserStats } = useUserReferralStats();
@@ -170,18 +167,26 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div className="w-full">
-              <TransactionWidget
-                client={client}
-                theme="dark"
-                transaction={claimTo({
-                  contract: bbcMembershipContract,
-                  quantity: BigInt(1),
-                  tokenId: levelToTokenId(1), // Level 1 Warrior/勇士 -> Token ID 0
-                  to: account?.address || walletAddress || "",
-                })}
-              />
-            </div>
+            <ClaimMembershipButton
+              walletAddress={walletAddress || ""}
+              level={1}
+              onSuccess={() => {
+                toast({
+                  title: t('dashboard.activation.success.title'),
+                  description: t('dashboard.activation.success.description'),
+                });
+                // Refresh user data after successful activation
+                window.location.reload();
+              }}
+              onError={(error) => {
+                toast({
+                  title: t('dashboard.activation.error.title'),
+                  description: error || t('dashboard.activation.error.description'),
+                  variant: 'destructive',
+                });
+              }}
+              className="w-full"
+            />
 
             <p className="text-sm text-muted-foreground mt-4">
               {t('dashboard.activationNote')}

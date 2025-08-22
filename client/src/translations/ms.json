@@ -1051,5 +1051,29 @@
     "paidBcc": "Berbayar (BCC)",
     "completed": "Selesai",
     "enrolled": "Didaftarkan"
+  },
+  "membership": {
+    "purchase": {
+      "button": "Beli Tahap{level} - ${price} USDT",
+      "connectWallet": "Sambung Dompet untuk Beli",
+      "selectChain": "Pilih Rantai Pembayaran",
+      "selectChainDescription": "Pilih blockchain untuk digunakan bagi pembayaran keahlian Tahap{level}",
+      "payWithGas": "Bayar dengan{symbol}untuk gas",
+      "approving": "Meluluskan USDT...",
+      "preparing": "Menyediakan...",
+      "paying": "Memproses Pembayaran...",
+      "verifying": "Mengesahkan Transaksi...",
+      "finalizing": "Menyelesaikan Keahlian...",
+      "completed": "✅ Keahlian Diaktifkan!",
+      "retry": "Cuba Beli Lagi",
+      "success": {
+        "title": "Keahlian Diaktifkan!",
+        "description": "Selamat datang ke Beehive! Keahlian Tahap 1 anda kini aktif."
+      },
+      "error": {
+        "title": "Pembelian Gagal",
+        "description": "Tidak dapat melengkapkan pembelian keahlian. Sila cuba lagi."
+      }
+    }
   }
 }

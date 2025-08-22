@@ -1140,5 +1140,29 @@
     "paidBcc": "Paid (BCC)",
     "completed": "Completed",
     "enrolled": "Enrolled"
+  },
+  "membership": {
+    "purchase": {
+      "button": "Purchase Level {level} - ${price} USDT",
+      "connectWallet": "Connect Wallet to Purchase",
+      "selectChain": "Select Payment Chain",
+      "selectChainDescription": "Choose which blockchain to use for your Level {level} membership payment",
+      "payWithGas": "Pay with {symbol} for gas",
+      "approving": "Approving USDT...",
+      "preparing": "Preparing...",
+      "paying": "Processing Payment...",
+      "verifying": "Verifying Transaction...",
+      "finalizing": "Finalizing Membership...",
+      "completed": "✅ Membership Activated!",
+      "retry": "Retry Purchase",
+      "success": {
+        "title": "Membership Activated!",
+        "description": "Welcome to Beehive! Your Level 1 membership is now active."
+      },
+      "error": {
+        "title": "Purchase Failed",
+        "description": "Unable to complete membership purchase. Please try again."
+      }
+    }
   }
 }
