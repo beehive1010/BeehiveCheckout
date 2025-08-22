@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+// import { storage } from "./storage"; // Temporarily commented out due to compilation issues
 import { db } from "./db";
 import { sql } from "drizzle-orm";
 import { 
@@ -1370,6 +1370,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin Panel Authentication Routes
+  const { authenticateAdmin, verifyAdminSession, logoutAdmin } = await import('./admin-auth.js');
   
   // Admin login
   app.post("/api/admin/auth/login", async (req, res) => {
@@ -1380,47 +1381,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Username and password required' });
       }
       
-      // Find admin user
-      const [admin] = await db.select().from(adminUsers).where(eq(adminUsers.username, username));
+      const result = await authenticateAdmin(username, password);
       
-      if (!admin || !admin.active) {
+      if (!result) {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
       
-      // Verify password
-      const isValid = await bcrypt.compare(password, admin.passwordHash);
-      if (!isValid) {
-        return res.status(401).json({ error: 'Invalid credentials' });
-      }
-      
-      // Create session token
-      const sessionToken = crypto.randomBytes(32).toString('hex');
-      const expiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours
-      
-      // Store session
-      await db.insert(adminSessions).values({
-        adminId: admin.id,
-        sessionToken,
-        ipAddress: req.ip,
-        userAgent: req.get('User-Agent') || '',
-        expiresAt,
-      });
-      
-      // Update last login
-      await db.update(adminUsers)
-        .set({ lastLoginAt: new Date() })
-        .where(eq(adminUsers.id, admin.id));
-      
-      res.json({
-        sessionToken,
-        admin: {
-          id: admin.id,
-          username: admin.username,
-          email: admin.email,
-          role: admin.role,
-        },
-        expiresAt,
-      });
+      res.json(result);
     } catch (error) {
       console.error('Admin login error:', error);
       res.status(500).json({ error: 'Login failed' });
@@ -1433,7 +1400,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sessionToken = req.headers.authorization?.replace('Bearer ', '');
       
       if (sessionToken) {
-        await db.delete(adminSessions).where(eq(adminSessions.sessionToken, sessionToken));
+        await logoutAdmin(sessionToken);
       }
       
       res.json({ success: true });
@@ -1452,28 +1419,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: 'Admin authentication required' });
       }
       
-      // Find valid session
-      const [session] = await db
-        .select({
-          session: adminSessions,
-          admin: adminUsers,
-        })
-        .from(adminSessions)
-        .innerJoin(adminUsers, eq(adminUsers.id, adminSessions.adminId))
-        .where(
-          and(
-            eq(adminSessions.sessionToken, sessionToken),
-            gte(adminSessions.expiresAt, new Date()),
-            eq(adminUsers.active, true)
-          )
-        );
+      const session = await verifyAdminSession(sessionToken);
       
       if (!session) {
         return res.status(401).json({ error: 'Invalid or expired session' });
       }
       
-      req.adminUser = session.admin;
-      req.adminSession = session.session;
+      req.adminUser = {
+        id: session.id,
+        username: session.username,
+        email: session.email,
+        role: session.role,
+      };
       next();
     } catch (error) {
       console.error('Admin auth middleware error:', error);
