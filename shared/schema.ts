@@ -437,6 +437,52 @@ export const insertAdvertisementNFTClaimSchema = createInsertSchema(advertisemen
   status: true,
 });
 
+// Member activation status table
+export const memberActivationStatus = pgTable("member_activation_status", {
+  walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
+  isActivated: boolean("is_activated").default(false).notNull(),
+  activationLevel: integer("activation_level").default(0).notNull(),
+  activatedAt: timestamp("activated_at"),
+  pendingUntil: timestamp("pending_until"), // 24-72 hour countdown for upgrades
+  upgradeTimerActive: boolean("upgrade_timer_active").default(false).notNull(),
+  lastUpgradeAttempt: timestamp("last_upgrade_attempt"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// NFT claim records table
+export const nftClaimRecords = pgTable("nft_claim_records", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  walletAddress: varchar("wallet_address", { length: 42 }).notNull().references(() => users.walletAddress),
+  level: integer("level").notNull(),
+  tokenId: integer("token_id").notNull(),
+  sourceChain: varchar("source_chain").notNull(), // arbitrum-sepolia
+  targetChain: varchar("target_chain").notNull(), // alpha-centauri
+  paymentTxHash: varchar("payment_tx_hash").notNull(), // Payment transaction on Arbitrum Sepolia
+  claimTxHash: varchar("claim_tx_hash"), // Claim transaction on Alpha Centauri
+  bridgeWallet: varchar("bridge_wallet", { length: 42 }).notNull(),
+  usdtAmount: integer("usdt_amount").notNull(), // Amount in USDT cents
+  status: varchar("status").notNull().default("pending"), // pending, verified, claimed, failed
+  verifiedAt: timestamp("verified_at"),
+  claimedAt: timestamp("claimed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Member levels table
+export const memberLevels = pgTable("member_levels", {
+  walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
+  currentLevel: integer("current_level").default(0).notNull(),
+  maxLevelAchieved: integer("max_level_achieved").default(0).notNull(),
+  levelsOwned: jsonb("levels_owned").$type<number[]>().default([]).notNull(),
+  nftTokenIds: jsonb("nft_token_ids").$type<number[]>().default([]).notNull(), // Token IDs owned
+  totalNFTsOwned: integer("total_nfts_owned").default(0).notNull(),
+  firstActivationAt: timestamp("first_activation_at"),
+  lastLevelUpgradeAt: timestamp("last_level_upgrade_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -488,6 +534,47 @@ export type AdvertisementNFT = typeof advertisementNFTs.$inferSelect;
 
 export type InsertAdvertisementNFTClaim = z.infer<typeof insertAdvertisementNFTClaimSchema>;
 export type AdvertisementNFTClaim = typeof advertisementNFTClaims.$inferSelect;
+
+// New table insert schemas
+export const insertMemberActivationStatusSchema = createInsertSchema(memberActivationStatus).pick({
+  walletAddress: true,
+  isActivated: true,
+  activationLevel: true,
+  pendingUntil: true,
+  upgradeTimerActive: true,
+});
+
+export const insertNFTClaimRecordSchema = createInsertSchema(nftClaimRecords).pick({
+  walletAddress: true,
+  level: true,
+  tokenId: true,
+  sourceChain: true,
+  targetChain: true,
+  paymentTxHash: true,
+  claimTxHash: true,
+  bridgeWallet: true,
+  usdtAmount: true,
+  status: true,
+});
+
+export const insertMemberLevelSchema = createInsertSchema(memberLevels).pick({
+  walletAddress: true,
+  currentLevel: true,
+  maxLevelAchieved: true,
+  levelsOwned: true,
+  nftTokenIds: true,
+  totalNFTsOwned: true,
+});
+
+// New types
+export type InsertMemberActivationStatus = z.infer<typeof insertMemberActivationStatusSchema>;
+export type MemberActivationStatus = typeof memberActivationStatus.$inferSelect;
+
+export type InsertNFTClaimRecord = z.infer<typeof insertNFTClaimRecordSchema>;
+export type NFTClaimRecord = typeof nftClaimRecords.$inferSelect;
+
+export type InsertMemberLevel = z.infer<typeof insertMemberLevelSchema>;
+export type MemberLevel = typeof memberLevels.$inferSelect;
 
 export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
 export type AdminUser = typeof adminUsers.$inferSelect;
