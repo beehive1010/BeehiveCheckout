@@ -1059,7 +1059,7 @@
   },
   "membership": {
     "purchase": {
-      "button": "ซื้อระดับ{level} - ${price} USDT",
+      "button": "ปลดล็อกสิทธิประโยชน์สมาชิก - 130 USDT",
       "connectWallet": "เชื่อมต่อกระเป๋าเงินเพื่อซื้อ",
       "selectChain": "เลือกเชนการชำระเงิน",
       "selectChainDescription": "เลือกบล็อกเชนที่จะใช้สำหรับการชำระเงินสมาชิกระดับ{level}",

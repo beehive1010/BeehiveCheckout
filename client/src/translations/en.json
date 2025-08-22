@@ -572,6 +572,9 @@
       "note": "100 USDT for NFT Level 1 + 30 USDT one-time platform management fee",
       "referral": "Referral Rewards: Earn 100% rewards on each level when NFTs are purchased in your network"
     },
+    "button": {
+      "unlock": "Unlock Membership Benefits - 130 USDT"
+    },
     "nft": {
       "title": "Level 1 Warrior NFT",
       "description": "Your membership credential on the blockchain",
@@ -1187,7 +1190,7 @@
   },
   "membership": {
     "purchase": {
-      "button": "Purchase Level {level} - ${price} USDT",
+      "button": "Unlock Membership Benefits - 130 USDT",
       "connectWallet": "Connect Wallet to Purchase",
       "selectChain": "Select Payment Chain",
       "selectChainDescription": "Choose which blockchain to use for your Level {level} membership payment",
