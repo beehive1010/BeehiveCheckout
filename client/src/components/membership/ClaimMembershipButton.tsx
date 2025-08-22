@@ -504,7 +504,7 @@ export default function ClaimMembershipButton({
                   key={chain.name}
                   onClick={() => handleChainSelected(chain)}
                   variant="outline"
-                  className="h-auto p-4 justify-start hover:bg-honey/10 hover:border-honey/30"
+                  className={`h-auto p-4 justify-start hover:bg-honey/10 hover:border-honey/30 ${(chain as any).isTestnet ? 'border-orange-500/50 bg-orange-500/5' : ''}`}
                   data-testid={`button-select-${chain.name.toLowerCase()}`}
                 >
                   <div className="flex items-center space-x-3 w-full">
@@ -512,12 +512,26 @@ export default function ClaimMembershipButton({
                       <i className={`${chain.icon} text-sm`}></i>
                     </div>
                     <div className="flex-1 text-left">
-                      <p className="font-medium">{chain.name}</p>
-                      <p className="text-xs text-muted-foreground">{String(t('membership.purchase.payWithGas')).replace('{symbol}', chain.symbol)}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{chain.name}</p>
+                        {(chain as any).isTestnet && (
+                          <span className="px-2 py-0.5 text-xs bg-orange-500/20 text-orange-600 rounded-full border border-orange-500/30">
+                            测试网
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {(chain as any).isTestnet 
+                          ? '使用测试USDT直接支付' 
+                          : String(t('membership.purchase.payWithGas')).replace('{symbol}', chain.symbol)
+                        }
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-bold text-honey">${membershipLevel.priceUSDT}</p>
-                      <p className="text-xs text-muted-foreground">USDT</p>
+                      <p className="text-xs text-muted-foreground">
+                        {(chain as any).isTestnet ? '测试USDT' : 'USDT'}
+                      </p>
                     </div>
                   </div>
                 </Button>
@@ -542,15 +556,24 @@ export default function ClaimMembershipButton({
     return (
       <div className="w-full space-y-4">
         {/* Payment Header */}
-        <div className="bg-secondary/30 rounded-lg p-4 border">
+        <div className={`bg-secondary/30 rounded-lg p-4 border ${(selectedChain as any).isTestnet ? 'border-orange-500/30 bg-orange-500/5' : ''}`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className={`w-8 h-8 rounded-full bg-muted flex items-center justify-center ${selectedChain.color}`}>
                 <i className={`${selectedChain.icon} text-sm`}></i>
               </div>
               <div>
-                <p className="font-medium">{selectedChain.name}</p>
-                <p className="text-xs text-muted-foreground">USDT Payment</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium">{selectedChain.name}</p>
+                  {(selectedChain as any).isTestnet && (
+                    <span className="px-2 py-0.5 text-xs bg-orange-500/20 text-orange-600 rounded-full border border-orange-500/30">
+                      测试
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {(selectedChain as any).isTestnet ? '测试USDT支付' : 'USDT Payment'}
+                </p>
               </div>
             </div>
             <div className="text-right">

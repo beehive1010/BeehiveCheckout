@@ -236,7 +236,8 @@ export const paymentChains = [
     usdtAddress: contractAddresses.USDT.arbitrumSepolia,
     bridgeWallet: contractAddresses.BRIDGE_WALLETS.arbitrumSepolia,
     icon: 'fas fa-vial',
-    color: 'text-orange-400'
+    color: 'text-orange-400',
+    isTestnet: true // 标识测试网络
   },
   { 
     chain: optimism, 
