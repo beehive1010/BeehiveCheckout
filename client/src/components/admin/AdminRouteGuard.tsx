@@ -35,7 +35,7 @@ export function AdminRouteGuard({
       setLocation('/admin/unauthorized');
       return;
     }
-  }, [isAuthenticated, isLoading, adminUser, requiredRoles, requiredPermission]);
+  }, [isAuthenticated, isLoading, requiredRoles, requiredPermission, hasRole, hasPermission, setLocation]);
 
   if (isLoading) {
     return (
