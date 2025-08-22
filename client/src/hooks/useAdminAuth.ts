@@ -16,7 +16,7 @@ export function useAdminAuth() {
 
   useEffect(() => {
     checkAuthStatus();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkAuthStatus = async () => {
     try {
@@ -40,12 +40,19 @@ export function useAdminAuth() {
         setAdminUser(userData);
         setIsAuthenticated(true);
       } else {
-        // Session expired or invalid
-        logout();
+        // Session expired or invalid - clear state without navigation
+        localStorage.removeItem('adminSessionToken');
+        localStorage.removeItem('adminUser');
+        setAdminUser(null);
+        setIsAuthenticated(false);
       }
     } catch (error) {
       console.error('Auth check failed:', error);
-      logout();
+      // Clear state without navigation on error
+      localStorage.removeItem('adminSessionToken');
+      localStorage.removeItem('adminUser');
+      setAdminUser(null);
+      setIsAuthenticated(false);
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +77,8 @@ export function useAdminAuth() {
       localStorage.removeItem('adminUser');
       setAdminUser(null);
       setIsAuthenticated(false);
-      setLocation('/admin/login');
+      // Only navigate if not already on login page
+      setTimeout(() => setLocation('/admin/login'), 0);
     }
   };
 
