@@ -29,6 +29,7 @@ import NotFound from "@/pages/not-found";
 import AdminLogin from "@/pages/admin/AdminLogin";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
+import AdminReferrals from "@/pages/admin/AdminReferrals";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { AdminRouteGuard } from "@/components/admin/AdminRouteGuard";
 
@@ -58,6 +59,13 @@ function Router() {
           <AdminRouteGuard requiredPermission="users.read">
             <AdminLayout>
               <AdminUsers />
+            </AdminLayout>
+          </AdminRouteGuard>
+        )} />
+        <Route path="/admin/referrals" component={() => (
+          <AdminRouteGuard requiredPermission="referrals.read">
+            <AdminLayout>
+              <AdminReferrals />
             </AdminLayout>
           </AdminRouteGuard>
         )} />
