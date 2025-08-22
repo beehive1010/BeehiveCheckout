@@ -170,7 +170,10 @@ export const authConfig = {
 
 // Contract addresses (these would be set after deployment)
 export const contractAddresses = {
-  BBC_MEMBERSHIP: import.meta.env.VITE_BBC_CONTRACT_ADDRESS || '0x6D513487bd63430Ca71Cd1d9A7DeA5aAcDbf0322',
+  BBC_MEMBERSHIP: {
+    arbitrumSepolia: '0xAc8c8662726b72f8DB4F5D1d1a16aC5b06B7a90D',
+    alphaCentauri: '0x5f6045Cc578b9f7E20416ede382f31FC151f32E7',
+  },
   BCC_TOKEN: import.meta.env.VITE_BCC_CONTRACT_ADDRESS || '0x1234567890123456789012345678901234567891',
   CTH_TOKEN: {
     arbitrumSepolia: '0x4022797e9EC167Fd48281fa452Ee49d7c169f125',
@@ -274,12 +277,22 @@ export const tokenIdToLevel = (tokenId: bigint): number => {
   return level;
 };
 
-// Contract instances
-export const bbcMembershipContract = getContract({
-  client,
-  address: contractAddresses.BBC_MEMBERSHIP,
-  chain: alphaCentauri,
-});
+// Contract instances for multiple chains
+export const bbcMembershipContracts = {
+  arbitrumSepolia: getContract({
+    client,
+    address: contractAddresses.BBC_MEMBERSHIP.arbitrumSepolia,
+    chain: arbitrumSepolia,
+  }),
+  alphaCentauri: getContract({
+    client,
+    address: contractAddresses.BBC_MEMBERSHIP.alphaCentauri,
+    chain: alphaCentauri,
+  }),
+};
+
+// Legacy single contract for backward compatibility (Alpha Centauri)
+export const bbcMembershipContract = bbcMembershipContracts.alphaCentauri;
 
 export const bccTokenContract = getContract({
   client,
