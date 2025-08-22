@@ -10,7 +10,7 @@ import { useToast } from '../hooks/use-toast';
 import ClaimMembershipButton from '../components/membership/ClaimMembershipButton';
 import { useNFTVerification } from '../hooks/useNFTVerification';
 import { useCompanyStats, useUserReferralStats } from '../hooks/useBeeHiveStats';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Copy, Share2, Users, Award, TrendingUp, DollarSign, Building2, Crown } from 'lucide-react';
 
 export default function Dashboard() {
@@ -213,10 +213,30 @@ export default function Dashboard() {
     );
   }
 
-  if (!isActivated) {
-    // Redirect to welcome page for activation
-    setLocation('/welcome');
-    return null;
+  if (!isActivated && hasLevel1NFT && !isCheckingNFT) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-2xl mx-auto bg-secondary border-border">
+          <CardContent className="p-8 text-center">
+            <HexagonIcon className="mx-auto mb-6" size="xl">
+              <i className="fas fa-crown text-honey text-3xl"></i>
+            </HexagonIcon>
+            <h1 className="text-3xl font-bold text-honey mb-4">
+              Activate Your Membership
+            </h1>
+            <p className="text-muted-foreground text-lg mb-6">
+              Complete your membership activation to access all platform features.
+            </p>
+            <Button 
+              onClick={() => setLocation('/welcome')}
+              className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-honey to-yellow-400 hover:from-yellow-400 hover:to-honey text-black"
+            >
+              Continue to Activation
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
