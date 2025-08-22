@@ -91,27 +91,81 @@ export default function AdminDiscover() {
   // Fetch partners
   const { data: partners = [], isLoading: isLoadingPartners } = useQuery({
     queryKey: ['/api/admin/discover/partners', { search: searchTerm, status: statusFilter, type: typeFilter }],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (statusFilter !== 'all') params.append('status', statusFilter);
+      if (typeFilter !== 'all') params.append('type', typeFilter);
+      
+      const response = await fetch(`/api/admin/discover/partners?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch partners');
+      }
+      
+      return response.json();
+    },
     enabled: hasPermission('discover.read'),
   });
 
   // Fetch DApp types
   const { data: dappTypes = [] } = useQuery<DappType[]>({
     queryKey: ['/api/admin/discover/dapp-types'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/discover/dapp-types', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch dapp types');
+      }
+      
+      return response.json();
+    },
     enabled: hasPermission('discover.read'),
   });
 
   // Fetch partner chains
   const { data: partnerChains = [] } = useQuery<PartnerChain[]>({
     queryKey: ['/api/admin/discover/chains'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/discover/chains', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch partner chains');
+      }
+      
+      return response.json();
+    },
     enabled: hasPermission('discover.read'),
   });
 
   // Partner actions mutations
   const approvePartnerMutation = useMutation({
-    mutationFn: (partnerId: string) => 
-      apiRequest(`/api/admin/discover/partners/${partnerId}/approve`, {
+    mutationFn: async (partnerId: string) => {
+      const response = await fetch(`/api/admin/discover/partners/${partnerId}/approve`, {
         method: 'POST',
-      }),
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to approve partner');
+      }
+      
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/discover/partners'] });
       toast({
@@ -122,11 +176,22 @@ export default function AdminDiscover() {
   });
 
   const rejectPartnerMutation = useMutation({
-    mutationFn: ({ partnerId, reason }: { partnerId: string; reason: string }) => 
-      apiRequest(`/api/admin/discover/partners/${partnerId}/reject`, {
+    mutationFn: async ({ partnerId, reason }: { partnerId: string; reason: string }) => {
+      const response = await fetch(`/api/admin/discover/partners/${partnerId}/reject`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+        },
         body: JSON.stringify({ reason }),
-      }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to reject partner');
+      }
+      
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/discover/partners'] });
       setRejectionReason('');
@@ -138,10 +203,20 @@ export default function AdminDiscover() {
   });
 
   const toggleFeaturedMutation = useMutation({
-    mutationFn: (partnerId: string) => 
-      apiRequest(`/api/admin/discover/partners/${partnerId}/toggle-featured`, {
+    mutationFn: async (partnerId: string) => {
+      const response = await fetch(`/api/admin/discover/partners/${partnerId}/toggle-featured`, {
         method: 'POST',
-      }),
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to toggle featured status');
+      }
+      
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/discover/partners'] });
       toast({
@@ -152,10 +227,20 @@ export default function AdminDiscover() {
   });
 
   const deletePartnerMutation = useMutation({
-    mutationFn: (partnerId: string) => 
-      apiRequest(`/api/admin/discover/partners/${partnerId}`, {
+    mutationFn: async (partnerId: string) => {
+      const response = await fetch(`/api/admin/discover/partners/${partnerId}`, {
         method: 'DELETE',
-      }),
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete partner');
+      }
+      
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/discover/partners'] });
       toast({
