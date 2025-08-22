@@ -45,17 +45,51 @@ function Router() {
       <Route path="/register" component={Registration} />
       <Route path="/welcome" component={Welcome} />
       
-      {/* Main app routes */}
-      <Route path="/dashboard" component={Dashboard} />
-      <Route path="/tasks" component={Tasks} />
-      <Route path="/education" component={Education} />
-      <Route path="/education/:courseId" component={CourseDetails} />
-      <Route path="/discover" component={Discover} />
+      {/* Main app routes - Protected with wallet connection and Level 1 NFT requirement */}
+      <Route path="/dashboard" component={() => (
+        <RouteGuard>
+          <Dashboard />
+        </RouteGuard>
+      )} />
+      <Route path="/tasks" component={() => (
+        <RouteGuard>
+          <Tasks />
+        </RouteGuard>
+      )} />
+      <Route path="/education" component={() => (
+        <RouteGuard>
+          <Education />
+        </RouteGuard>
+      )} />
+      <Route path="/education/:courseId" component={() => (
+        <RouteGuard>
+          <CourseDetails />
+        </RouteGuard>
+      )} />
+      <Route path="/discover" component={() => (
+        <RouteGuard>
+          <Discover />
+        </RouteGuard>
+      )} />
+      <Route path="/me" component={() => (
+        <RouteGuard>
+          <Me />
+        </RouteGuard>
+      )} />
+      <Route path="/ads" component={() => (
+        <RouteGuard>
+          <AdvertisementNFTs />
+        </RouteGuard>
+      )} />
+      <Route path="/nft-center" component={() => (
+        <RouteGuard>
+          <NFTCenter />
+        </RouteGuard>
+      )} />
+      
+      {/* Public routes - No authentication required */}
       <Route path="/hiveworld" component={HiveWorld} />
       <Route path="/hiveworld/:id" component={BlogPost} />
-      <Route path="/me" component={Me} />
-      <Route path="/ads" component={AdvertisementNFTs} />
-      <Route path="/nft-center" component={NFTCenter} />
       <Route path="/tokens" component={() => (
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           <div className="mb-8">
