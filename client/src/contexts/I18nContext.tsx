@@ -102,5 +102,5 @@ const useI18n = () => {
   return context;
 };
 
-// Export at the bottom for better Fast Refresh compatibility
-export { I18nProvider, useI18n };
+export { I18nProvider };
+export { useI18n };
