@@ -43,15 +43,18 @@ export function RouteGuard({ children }: RouteGuardProps) {
       return;
     }
 
-    // Wallet is connected - check registration and NFT status
+    // Wallet is connected - check NFT status first
     if (hasLevel1NFT) {
-      // User has Level 1 NFT - redirect to dashboard if on entry routes
+      // User has Member NFT - skip registration/welcome, go to dashboard
       if (location === '/' || location === '/landing' || location === '/register' || location === '/welcome') {
         setLocation('/dashboard');
       }
-      return;
-    } else if (isRegistered) {
-      // User is registered but no Level 1 NFT - redirect to welcome to claim NFT
+      return; // Allow access to all protected routes
+    } 
+    
+    // No Member NFT - check registration status
+    if (isRegistered) {
+      // User is registered but no Member NFT - redirect to welcome to claim NFT
       if (location === '/' || location === '/landing' || location === '/register') {
         setLocation('/welcome');
         return;
