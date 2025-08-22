@@ -1,0 +1,131 @@
+// Standalone admin authentication server to bypass compilation issues
+import express from 'express';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import bcrypt from 'bcrypt';
+import crypto from 'crypto';
+import ws from 'ws';
+
+neonConfig.webSocketConstructor = ws;
+
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL must be set');
+}
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const db = drizzle({ client: pool });
+
+export function setupAdminRoutes(app: express.Application) {
+  // Admin login
+  app.post("/api/admin/auth/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ error: 'Username and password required' });
+      }
+      
+      // Direct SQL query to avoid schema compilation issues
+      const result = await db.execute(`
+        SELECT id, username, email, role, password_hash, active 
+        FROM admin_users 
+        WHERE username = $1 AND active = true
+      `, [username]);
+
+      if (result.rows.length === 0) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+
+      const admin = result.rows[0] as any;
+      
+      // Verify password
+      const isValid = await bcrypt.compare(password, admin.password_hash);
+      if (!isValid) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+
+      // Create session token
+      const sessionToken = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours
+
+      // Store session
+      await db.execute(`
+        INSERT INTO admin_sessions (admin_id, session_token, expires_at, created_at)
+        VALUES ($1, $2, $3, $4)
+      `, [admin.id, sessionToken, expiresAt, new Date()]);
+
+      // Update last login
+      await db.execute(`
+        UPDATE admin_users SET last_login_at = $1 WHERE id = $2
+      `, [new Date(), admin.id]);
+
+      res.json({
+        sessionToken,
+        admin: {
+          id: admin.id,
+          username: admin.username,
+          email: admin.email,
+          role: admin.role,
+        },
+        expiresAt,
+      });
+    } catch (error) {
+      console.error('Admin login error:', error);
+      res.status(500).json({ error: 'Login failed' });
+    }
+  });
+
+  // Admin logout
+  app.post("/api/admin/auth/logout", async (req, res) => {
+    try {
+      const sessionToken = req.headers.authorization?.replace('Bearer ', '');
+      
+      if (sessionToken) {
+        await db.execute(`
+          DELETE FROM admin_sessions WHERE session_token = $1
+        `, [sessionToken]);
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Admin logout error:', error);
+      res.status(500).json({ error: 'Logout failed' });
+    }
+  });
+
+  // Admin session check
+  app.get("/api/admin/auth/me", async (req, res) => {
+    try {
+      const sessionToken = req.headers.authorization?.replace('Bearer ', '');
+      
+      if (!sessionToken) {
+        return res.status(401).json({ error: 'Admin authentication required' });
+      }
+      
+      const result = await db.execute(`
+        SELECT 
+          s.admin_id, s.expires_at,
+          u.id, u.username, u.email, u.role, u.active
+        FROM admin_sessions s
+        JOIN admin_users u ON u.id = s.admin_id
+        WHERE s.session_token = $1 AND s.expires_at > $2 AND u.active = true
+      `, [sessionToken, new Date()]);
+
+      if (result.rows.length === 0) {
+        return res.status(401).json({ error: 'Invalid or expired session' });
+      }
+
+      const session = result.rows[0] as any;
+      
+      res.json({
+        id: session.id,
+        username: session.username,
+        email: session.email,
+        role: session.role,
+      });
+    } catch (error) {
+      console.error('Session verification error:', error);
+      res.status(500).json({ error: 'Authentication failed' });
+    }
+  });
+}
