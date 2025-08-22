@@ -5,60 +5,39 @@ import { bbcMembershipContracts, levelToTokenId } from "../lib/web3";
 export function useNFTVerification() {
   const account = useActiveAccount();
   
-  // Primary check: Level 1 NFT balance on Arbitrum Sepolia (main verification chain)
-  const { 
-    data: arbitrumLevel1Balance, 
-    isLoading: isCheckingArbitrum,
-    error: arbitrumError
-  } = useReadContract(
-    balanceOf,
-    {
-      contract: bbcMembershipContracts.arbitrumSepolia,
-      owner: account?.address || "",
-      tokenId: levelToTokenId(1), // Level 1 = Token ID 1
-    }
-  );
-
-  // Secondary check: Level 1 NFT balance on Alpha Centauri (for claimed NFTs)
+  // Frontend displays Alpha Centauri NFT ownership only
+  // Backend handles cross-chain verification (Arbitrum Sepolia payment -> Alpha Centauri claim)
   const { 
     data: alphaLevel1Balance, 
     isLoading: isCheckingAlpha, 
-    error: alphaError
+    error
   } = useReadContract(
     balanceOf,
     {
       contract: bbcMembershipContracts.alphaCentauri,
       owner: account?.address || "",
-      tokenId: levelToTokenId(1), // Level 1 = Token ID 1
+      tokenId: levelToTokenId(1), // Level 1 = Token ID 1 on Alpha Centauri
     }
   );
 
-  const isCheckingLevel1 = isCheckingArbitrum || isCheckingAlpha;
+  const isCheckingLevel1 = isCheckingAlpha;
   
-  // Priority to Arbitrum Sepolia for verification (main chain for payments)
-  // Then fall back to Alpha Centauri for claimed NFTs
-  const hasLevel1NFT = Boolean(
-    (arbitrumLevel1Balance && arbitrumLevel1Balance > BigInt(0)) ||
-    (alphaLevel1Balance && alphaLevel1Balance > BigInt(0))
-  );
+  // Frontend only shows Alpha Centauri NFT ownership
+  // Users see they own NFT on Alpha Centauri (the target chain)
+  const hasLevel1NFT = Boolean(alphaLevel1Balance && alphaLevel1Balance > BigInt(0));
   
   const isLoading = isCheckingLevel1;
   
-  // Return combined balance for backward compatibility, prioritizing Arbitrum Sepolia
-  const level1Balance = arbitrumLevel1Balance || alphaLevel1Balance || BigInt(0);
-  
-  // Combine errors
-  const error = arbitrumError || alphaError;
+  // Return Alpha Centauri balance for display
+  const level1Balance = alphaLevel1Balance || BigInt(0);
 
   return {
     hasLevel1NFT,
     isLoading,
     error,
     level1Balance,
-    // Additional chain-specific data
-    arbitrumLevel1Balance,
+    // Alpha Centauri chain data (displayed to user)
     alphaLevel1Balance,
-    isCheckingArbitrum,
     isCheckingAlpha,
   };
 }
