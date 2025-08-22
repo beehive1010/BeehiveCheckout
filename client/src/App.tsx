@@ -42,76 +42,77 @@ function Router() {
   const [location] = useLocation();
   const isAdminRoute = location.startsWith('/admin');
 
-  return (
-    <Switch>
-      {/* Admin Panel routes - No wallet requirement */}
-      <Route path="/admin/login" component={AdminLogin} />
-      <Route path="/admin/dashboard" component={() => (
-        <AdminRouteGuard>
-          <AdminLayout>
-            <AdminDashboard />
-          </AdminLayout>
-        </AdminRouteGuard>
-      )} />
-      <Route path="/admin/users" component={() => (
-        <AdminRouteGuard requiredPermission="users.read">
-          <AdminLayout>
-            <AdminUsers />
-          </AdminLayout>
-        </AdminRouteGuard>
-      )} />
-      <Route path="/admin/unauthorized" component={() => (
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <div className="text-center space-y-4">
-            <h1 className="text-3xl font-bold text-honey">Access Denied</h1>
-            <p className="text-muted-foreground">
-              You don't have permission to access this area.
-            </p>
+  // Handle admin routes separately without RouteGuard
+  if (isAdminRoute) {
+    return (
+      <Switch>
+        <Route path="/admin/login" component={AdminLogin} />
+        <Route path="/admin/dashboard" component={() => (
+          <AdminRouteGuard>
+            <AdminLayout>
+              <AdminDashboard />
+            </AdminLayout>
+          </AdminRouteGuard>
+        )} />
+        <Route path="/admin/users" component={() => (
+          <AdminRouteGuard requiredPermission="users.read">
+            <AdminLayout>
+              <AdminUsers />
+            </AdminLayout>
+          </AdminRouteGuard>
+        )} />
+        <Route path="/admin/unauthorized" component={() => (
+          <div className="min-h-screen flex items-center justify-center bg-background">
+            <div className="text-center space-y-4">
+              <h1 className="text-3xl font-bold text-honey">Access Denied</h1>
+              <p className="text-muted-foreground">
+                You don't have permission to access this area.
+              </p>
+            </div>
           </div>
-        </div>
-      )} />
+        )} />
+        <Route component={NotFound} />
+      </Switch>
+    );
+  }
 
-      {/* Non-admin routes - Apply RouteGuard */}
-      <Route path="/">
-        {() => !isAdminRoute ? (
-          <RouteGuard>
-            <Switch>
-              {/* Public routes */}
-              <Route path="/" component={Landing} />
-              <Route path="/register" component={Registration} />
-              <Route path="/welcome" component={Welcome} />
-              
-              {/* Main app routes - Protected with wallet connection and Level 1 NFT requirement */}
-              <Route path="/dashboard" component={Dashboard} />
-              <Route path="/tasks" component={Tasks} />
-              <Route path="/education" component={Education} />
-              <Route path="/education/:courseId" component={CourseDetails} />
-              <Route path="/discover" component={Discover} />
-              <Route path="/me" component={Me} />
-              <Route path="/ads" component={AdvertisementNFTs} />
-              <Route path="/nft-center" component={NFTCenter} />
-              
-              {/* Public routes - No authentication required */}
-              <Route path="/hiveworld" component={HiveWorld} />
-              <Route path="/hiveworld/:id" component={BlogPost} />
-              <Route path="/tokens" component={() => (
-                <div className="container mx-auto px-4 py-8 max-w-7xl">
-                  <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-honey mb-2">Token Purchase</h1>
-                    <p className="text-muted-foreground">
-                      Buy BCC and CTH tokens across multiple chains at 1 token = 0.01 USDT
-                    </p>
-                  </div>
-                  <TokenPurchase />
-                </div>
-              )} />
-              
-              <Route component={NotFound} />
-            </Switch>
-          </RouteGuard>
-        ) : <NotFound />}
-      </Route>
-    </Switch>
+  // Handle regular user routes with RouteGuard
+  return (
+    <RouteGuard>
+      <Switch>
+        {/* Public routes */}
+        <Route path="/" component={Landing} />
+        <Route path="/register" component={Registration} />
+        <Route path="/welcome" component={Welcome} />
+        
+        {/* Main app routes - Protected with wallet connection and Level 1 NFT requirement */}
+        <Route path="/dashboard" component={Dashboard} />
+        <Route path="/tasks" component={Tasks} />
+        <Route path="/education" component={Education} />
+        <Route path="/education/:courseId" component={CourseDetails} />
+        <Route path="/discover" component={Discover} />
+        <Route path="/me" component={Me} />
+        <Route path="/ads" component={AdvertisementNFTs} />
+        <Route path="/nft-center" component={NFTCenter} />
+        
+        {/* Public routes - No authentication required */}
+        <Route path="/hiveworld" component={HiveWorld} />
+        <Route path="/hiveworld/:id" component={BlogPost} />
+        <Route path="/tokens" component={() => (
+          <div className="container mx-auto px-4 py-8 max-w-7xl">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-honey mb-2">Token Purchase</h1>
+              <p className="text-muted-foreground">
+                Buy BCC and CTH tokens across multiple chains at 1 token = 0.01 USDT
+              </p>
+            </div>
+            <TokenPurchase />
+          </div>
+        )} />
+        
+        <Route component={NotFound} />
+      </Switch>
+    </RouteGuard>
   );
 }
 
