@@ -465,7 +465,34 @@
       "optimism": "Optimism",
       "bsc": "BSC",
       "avalanche": "Avalanche"
-    }
+    },
+    "trendingSection": {
+      "title": "Trending Sekarang",
+      "subtitle": "DApps popular dalam ekosistem",
+      "users": "pengguna",
+      "tvl": "TVL",
+      "volume": "Volume 24j"
+    },
+    "news": {
+      "title": "Berita Terkini",
+      "subtitle": "Kekal terkini dengan perkembangan Web3",
+      "readMore": "Baca Lagi",
+      "minutes": "min baca",
+      "matrix30": {
+        "title": "Matrix 3.0 Dilancarkan - Ganjaran Dipertingkatkan",
+        "description": "Alami sistem matriks yang dinaik taraf dengan pengedaran ganjaran yang diperbaiki dan masa pemprosesan yang lebih pantas"
+      },
+      "bridge": {
+        "title": "Integrasi Bridge Multi-Chain",
+        "description": "Pindahkan aset dengan lancar merentasi pelbagai blockchain dengan teknologi bridge baharu kami"
+      },
+      "education": {
+        "title": "Program Pensijilan Web3 Baharu",
+        "description": "Kursus pensijilan lanjutan kini tersedia untuk pembangunan blockchain dan protokol DeFi"
+      }
+    },
+    "featured": "Diketengahkan",
+    "trending": "Trending"
   },
   "hiveworld": {
     "title": "HiveWorld - Matrix Anda",
