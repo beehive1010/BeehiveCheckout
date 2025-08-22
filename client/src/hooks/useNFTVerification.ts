@@ -12,6 +12,9 @@ export function useNFTVerification() {
       contract: bbcMembershipContract,
       owner: account?.address || "",
       tokenId: levelToTokenId(1), // Level 1 = Token ID 0
+    },
+    {
+      enabled: !!account?.address, // Only run when wallet is connected
     }
   );
 
