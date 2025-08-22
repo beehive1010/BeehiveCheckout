@@ -89,6 +89,7 @@ export function useAdminAuth() {
         'users.read', 'users.update', 'users.export',
         'referrals.read', 'referrals.export',
         'nfts.read', 'nfts.create', 'nfts.update', 'nfts.mint',
+        'contracts.read', 'contracts.deploy', 'contracts.manage',
         'courses.read', 'courses.create', 'courses.update',
         'discover.read', 'discover.approve', 'discover.reject',
         'system.read', 'logs.read', 'logs.export'
@@ -96,11 +97,13 @@ export function useAdminAuth() {
       creator_admin: [
         'blog.read', 'blog.create', 'blog.update',
         'nfts.read', 'nfts.create',
+        'contracts.read',
         'courses.read', 'courses.create',
         'discover.read'
       ],
       viewer: [
         'users.read', 'referrals.read', 'nfts.read',
+        'contracts.read',
         'blog.read', 'courses.read', 'discover.read',
         'system.read', 'logs.read'
       ]
