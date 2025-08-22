@@ -583,30 +583,60 @@ export default function ClaimMembershipButton({
           </div>
         </div>
 
-        {/* Simple PayEmbed Container */}
+        {/* Payment Container */}
         <div className="border rounded-lg overflow-hidden">
-          <PayEmbed
-            client={client}
-            payOptions={{
-              mode: "direct_payment",
-              paymentInfo: {
-                amount: `${membershipLevel.priceUSDT}.00`, // Ensure exact format: "150.00"
-                sellerAddress: selectedChain.bridgeWallet,
-                chain: selectedChain.chain,
-                token: {
-                  address: selectedChain.usdtAddress,
-                  symbol: 'USDT',
-                  name: 'Tether USD',
+          {(selectedChain as any).isTestnet ? (
+            // 测试网络：使用transaction模式，避免bridge
+            <PayEmbed
+              client={client}
+              payOptions={{
+                mode: "transaction",
+                transaction: async () => {
+                  // 创建简单的ERC20转账交易
+                  const { transfer } = await import('thirdweb/extensions/erc20');
+                  return transfer({
+                    contract: {
+                      client,
+                      chain: selectedChain.chain,
+                      address: selectedChain.usdtAddress,
+                    },
+                    to: selectedChain.bridgeWallet,
+                    amount: (membershipLevel.priceUSDT * 1000000).toString(), // USDT has 6 decimals
+                  });
                 },
-              },
-              metadata: {
-                name: `Beehive Level ${level} Membership`,
-                description: `Exclusive Level ${level} membership with special privileges and rewards`,
-              },
-              onPurchaseSuccess: handlePaymentSuccess,
-            }}
-            theme="dark"
-          />
+                metadata: {
+                  name: `Beehive Level ${level} Membership (Test)`,
+                  description: `Test purchase for Level ${level} membership using ${selectedChain.usdtAddress}`,
+                },
+                onPurchaseSuccess: handlePaymentSuccess,
+              }}
+              theme="dark"
+            />
+          ) : (
+            // 生产网络：使用direct_payment模式支持bridge
+            <PayEmbed
+              client={client}
+              payOptions={{
+                mode: "direct_payment",
+                paymentInfo: {
+                  amount: `${membershipLevel.priceUSDT}.00`,
+                  sellerAddress: selectedChain.bridgeWallet,
+                  chain: selectedChain.chain,
+                  token: {
+                    address: selectedChain.usdtAddress,
+                    symbol: 'USDT',
+                    name: 'Tether USD',
+                  },
+                },
+                metadata: {
+                  name: `Beehive Level ${level} Membership`,
+                  description: `Exclusive Level ${level} membership with special privileges and rewards`,
+                },
+                onPurchaseSuccess: handlePaymentSuccess,
+              }}
+              theme="dark"
+            />
+          )}
         </div>
 
         {/* Cancel Button */}
