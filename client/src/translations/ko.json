@@ -131,6 +131,37 @@
     }
   },
   "dashboard": {
+    "nftRequired": {
+      "title": "Beehive에 오신 것을 환영합니다! 🎉",
+      "description": "레벨 1 워리어 NFT를 구매하여 멤버십을 완료하세요. 이것은 매트릭스에서 위치를 활성화하고 Web3 여정을 시작합니다.",
+      "requiredNft": "레벨 1 워리어 NFT",
+      "nftDescription": "멤버십을 활성화하는 일회성 구매",
+      "level1Warrior": "레벨 1 워리어",
+      "tokenId": "토큰 ID: 0",
+      "price": "가격",
+      "priceAmount": "130 USDT",
+      "benefitsTitle": "잠금 해제될 기능:",
+      "benefits": {
+        "dashboard": "전체 대시보드 액세스",
+        "tasks": "작업 및 NFT 마켓플레이스",
+        "education": "교육 센터",
+        "discover": "Web3 Dapps 발견",
+        "tokens": "BCC 토큰 시스템",
+        "matrix": "HiveWorld 매트릭스 시스템"
+      },
+      "premiumTitle": "프리미엄 멤버십",
+      "premiumDescription": "레벨 1 NFT 멤버십을 활성화하고 매트릭스에서 위치를 취하고 보상을 받기 시작하세요.",
+      "supportText": "블록체인 기술로 구동되는 안전한 Web3 결제",
+      "purchaseSuccess": {
+        "title": "멤버십이 활성화되었습니다!",
+        "description": "레벨 1 NFT가 구매되었고 멤버십이 활성화되었습니다."
+      },
+      "purchaseError": {
+        "title": "구매 실패",
+        "description": "NFT 구매에 실패했습니다. 다시 시도해주세요."
+      },
+      "getButton": "멤버십 구매"
+    },
     "welcome": {
       "title": "Beehive에 오신 것을 환영합니다! 🎉",
       "subtitle": "Level 1 Warrior NFT를 구매하여 멤버십을 완료하세요. 모든 플랫폼 기능이 잠금 해제되고 Web3 여정이 시작됩니다!",

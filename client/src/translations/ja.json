@@ -99,6 +99,37 @@
   },
   "dashboard": {
     "welcome": "おかえりなさい",
+    "nftRequired": {
+      "title": "Beehiveへようこそ！🎉",
+      "description": "レベル1ウォリアーNFTを購入してメンバーシップを完了してください。これにより、マトリックス内のポジションがアクティブになり、Web3の旅が始まります。",
+      "requiredNft": "レベル1ウォリアーNFT",
+      "nftDescription": "メンバーシップをアクティブにするための一回限りの購入",
+      "level1Warrior": "レベル1ウォリアー",
+      "tokenId": "トークンID：0",
+      "price": "価格",
+      "priceAmount": "130 USDT",
+      "benefitsTitle": "解放される機能：",
+      "benefits": {
+        "dashboard": "完全なダッシュボードアクセス",
+        "tasks": "タスクとNFTマーケットプレイス",
+        "education": "教育センター",
+        "discover": "Web3 Dappsを発見",
+        "tokens": "BCCトークンシステム",
+        "matrix": "HiveWorldマトリックスシステム"
+      },
+      "premiumTitle": "プレミアムメンバーシップ",
+      "premiumDescription": "レベル1 NFTメンバーシップをアクティブ化し、マトリックスでポジションを取り、報酬を獲得し始めましょう。",
+      "supportText": "ブロックチェーン技術によって支えられた安全なWeb3決済",
+      "purchaseSuccess": {
+        "title": "メンバーシップがアクティブ化されました！",
+        "description": "レベル1 NFTが購入され、メンバーシップがアクティブになりました。"
+      },
+      "purchaseError": {
+        "title": "購入に失敗しました",
+        "description": "NFTの購入に失敗しました。もう一度お試しください。"
+      },
+      "getButton": "メンバーシップを購入"
+    },
     "membership": {
       "title": "メンバーシップ状況",
       "level": "レベル",

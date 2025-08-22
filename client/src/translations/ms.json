@@ -125,6 +125,37 @@
     }
   },
   "dashboard": {
+    "nftRequired": {
+      "title": "Selamat Datang ke Beehive! 🎉",
+      "description": "Lengkapkan keahlian anda dengan membeli Level 1 Warrior NFT. Ini mengaktifkan kedudukan anda dalam matriks dan memulakan perjalanan Web3 anda.",
+      "requiredNft": "Level 1 Warrior NFT",
+      "nftDescription": "Pembelian sekali untuk mengaktifkan keahlian anda",
+      "level1Warrior": "Pahlawan Tahap 1",
+      "tokenId": "Token ID: 0",
+      "price": "Harga",
+      "priceAmount": "130 USDT",
+      "benefitsTitle": "Apa Yang Akan Anda Buka:",
+      "benefits": {
+        "dashboard": "Akses Dashboard Penuh",
+        "tasks": "Tugas & Pasar NFT",
+        "education": "Pusat Pendidikan",
+        "discover": "Temui Web3 Dapps",
+        "tokens": "Sistem Token BCC",
+        "matrix": "Sistem Matriks HiveWorld"
+      },
+      "premiumTitle": "Keahlian Premium",
+      "premiumDescription": "Aktifkan keahlian Level 1 NFT anda dan ambil kedudukan dalam matriks, dan mula memperoleh ganjaran.",
+      "supportText": "Pembayaran Web3 yang selamat dikuasakan oleh teknologi blockchain",
+      "purchaseSuccess": {
+        "title": "Keahlian Diaktifkan!",
+        "description": "Level 1 NFT anda telah dibeli dan keahlian anda kini aktif."
+      },
+      "purchaseError": {
+        "title": "Pembelian Gagal",
+        "description": "Gagal membeli NFT. Sila cuba lagi."
+      },
+      "getButton": "Beli Keahlian"
+    },
     "welcome": {
       "title": "Selamat Datang ke Beehive! 🎉",
       "subtitle": "Lengkapkan keahlian anda dengan membeli Level 1 Warrior NFT. Ini akan membuka kunci semua ciri platform dan memulakan perjalanan Web3 anda!",
