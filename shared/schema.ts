@@ -579,6 +579,78 @@ export type TokenPurchase = typeof tokenPurchases.$inferSelect;
 export type InsertCTHBalance = z.infer<typeof insertCTHBalanceSchema>;
 export type CTHBalance = typeof cthBalances.$inferSelect;
 
+// Member Activation Tracking - For pending time system
+export const memberActivations = pgTable("member_activations", {
+  walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
+  activationType: text("activation_type").notNull(), // 'nft_purchase', 'admin_activated'
+  level: integer("level").notNull(), // Level activated/upgraded to
+  pendingUntil: timestamp("pending_until"), // 24hr countdown for upgrades
+  isPending: boolean("is_pending").default(true).notNull(),
+  activatedAt: timestamp("activated_at"),
+  pendingTimeoutHours: integer("pending_timeout_hours").default(24).notNull(), // Admin configurable
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Reward Distribution Tracking - For 72hr countdown system  
+export const rewardDistributions = pgTable("reward_distributions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  recipientWallet: varchar("recipient_wallet", { length: 42 }).notNull().references(() => users.walletAddress),
+  sourceWallet: varchar("source_wallet", { length: 42 }).notNull().references(() => users.walletAddress), // Who triggered the reward
+  rewardType: text("reward_type").notNull(), // 'direct_referral', 'level_bonus', 'matrix_spillover'
+  rewardAmount: numeric("reward_amount", { precision: 10, scale: 2 }).notNull(),
+  level: integer("level").notNull(), // Level that triggered reward
+  status: text("status").default("pending").notNull(), // 'pending', 'claimable', 'claimed', 'expired_redistributed'
+  pendingUntil: timestamp("pending_until"), // 72hr countdown
+  claimedAt: timestamp("claimed_at"),
+  redistributedTo: varchar("redistributed_to", { length: 42 }), // If expired, who got it
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Admin Settings for controlling pending times
+export const adminSettings = pgTable("admin_settings", {
+  settingKey: text("setting_key").primaryKey(),
+  settingValue: text("setting_value").notNull(),
+  description: text("description"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertMemberActivationSchema = createInsertSchema(memberActivations).pick({
+  walletAddress: true,
+  activationType: true,
+  level: true,
+  pendingUntil: true,
+  isPending: true,
+  activatedAt: true,
+  pendingTimeoutHours: true,
+});
+
+export const insertRewardDistributionSchema = createInsertSchema(rewardDistributions).pick({
+  recipientWallet: true,
+  sourceWallet: true,
+  rewardType: true,
+  rewardAmount: true,
+  level: true,
+  status: true,
+  pendingUntil: true,
+  claimedAt: true,
+  redistributedTo: true,
+});
+
+export const insertAdminSettingSchema = createInsertSchema(adminSettings).pick({
+  settingKey: true,
+  settingValue: true,
+  description: true,
+});
+
+export type InsertMemberActivation = z.infer<typeof insertMemberActivationSchema>;
+export type MemberActivation = typeof memberActivations.$inferSelect;
+
+export type InsertRewardDistribution = z.infer<typeof insertRewardDistributionSchema>;
+export type RewardDistribution = typeof rewardDistributions.$inferSelect;
+
+export type InsertAdminSetting = z.infer<typeof insertAdminSettingSchema>;
+export type AdminSetting = typeof adminSettings.$inferSelect;
+
 // Admin Panel Tables
 
 // Admin users table for admin panel authentication

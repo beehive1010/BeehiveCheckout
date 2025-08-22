@@ -405,10 +405,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Process BeeHive referral rewards
       await storage.processReferralRewards(req.walletAddress, level);
 
+      // Record member activation with pending time
+      await storage.createMemberActivation({
+        walletAddress: req.walletAddress,
+        activationType: 'manual_activation',
+        level: level,
+        isPending: false, // Immediate activation for manual payments
+        activatedAt: new Date(),
+      });
+
       res.json({ success: true, membershipState });
     } catch (error) {
       console.error('Activation error:', error);
       res.status(500).json({ error: 'Activation failed' });
+    }
+  });
+
+  // NFT-based automatic member activation
+  app.post("/api/membership/nft-activate", requireWallet, async (req: any, res) => {
+    try {
+      const { nftContractAddress, tokenId } = req.body;
+      
+      // Verify this is the correct Member NFT contract
+      if (nftContractAddress.toLowerCase() !== '0x6d513487bd63430ca71cd1d9a7dea5aacdbf0322') {
+        return res.status(400).json({ error: 'Invalid NFT contract' });
+      }
+
+      // Check if user is already activated
+      const user = await storage.getUser(req.walletAddress);
+      if (user?.memberActivated) {
+        return res.json({ success: true, message: 'User already activated' });
+      }
+
+      // Get admin settings for pending time
+      const pendingTimeHours = await storage.getAdminSetting('member_pending_hours') || '24';
+      const pendingUntil = new Date(Date.now() + parseInt(pendingTimeHours) * 60 * 60 * 1000);
+
+      // Automatically activate member to Level 1 (勇士 - Warrior)
+      await storage.updateUser(req.walletAddress, {
+        memberActivated: true,
+        currentLevel: 1,
+        activationAt: new Date(),
+      });
+
+      // Create membership state
+      let membershipState = await storage.getMembershipState(req.walletAddress);
+      if (!membershipState) {
+        membershipState = await storage.createMembershipState({
+          walletAddress: req.walletAddress,
+          levelsOwned: [1],
+          activeLevel: 1,
+        });
+      }
+
+      // Record activation with pending time for upgrades
+      await storage.createMemberActivation({
+        walletAddress: req.walletAddress,
+        activationType: 'nft_purchase',
+        level: 1,
+        pendingUntil: pendingUntil,
+        isPending: false, // Level 1 is immediate
+        activatedAt: new Date(),
+        pendingTimeoutHours: parseInt(pendingTimeHours),
+      });
+
+      // Credit initial BCC tokens for Level 1
+      const bccBalance = await storage.getBCCBalance(req.walletAddress);
+      if (!bccBalance) {
+        await storage.createBCCBalance({
+          walletAddress: req.walletAddress,
+          transferable: 60, // 60% of 100 BCC
+          restricted: 40,   // 40% of 100 BCC
+        });
+      }
+
+      // Process referral rewards (100 USDT direct referral reward)
+      await storage.processReferralRewards(req.walletAddress, 1);
+
+      // Create referral node in 3x3 matrix if not exists
+      await storage.createOrUpdateReferralNode(req.walletAddress);
+
+      res.json({ 
+        success: true, 
+        membershipState,
+        level: 1,
+        levelName: 'Warrior',
+        message: 'Member activated successfully!' 
+      });
+    } catch (error) {
+      console.error('NFT activation error:', error);
+      res.status(500).json({ error: 'NFT activation failed' });
+    }
+  });
+
+  // Admin controls for pending time management
+  app.post("/api/admin/settings", requireWallet, async (req: any, res) => {
+    try {
+      // TODO: Add admin authentication here
+      const { settingKey, settingValue, description } = req.body;
+      
+      await storage.updateAdminSetting({
+        settingKey,
+        settingValue,
+        description: description || '',
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Admin settings error:', error);
+      res.status(500).json({ error: 'Failed to update settings' });
+    }
+  });
+
+  // Get pending rewards with countdown
+  app.get("/api/rewards/pending", requireWallet, async (req: any, res) => {
+    try {
+      const pendingRewards = await storage.getPendingRewards(req.walletAddress);
+      const memberActivation = await storage.getMemberActivation(req.walletAddress);
+      
+      res.json({ 
+        pendingRewards,
+        memberActivation,
+        currentTime: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Pending rewards error:', error);
+      res.status(500).json({ error: 'Failed to get pending rewards' });
+    }
+  });
+
+  // Process reward spillovers (background job endpoint)
+  app.post("/api/rewards/process-spillover", async (req, res) => {
+    try {
+      const expiredRewards = await storage.getExpiredRewards();
+      
+      for (const reward of expiredRewards) {
+        // Find the nearest activated upline in 3x3 matrix
+        const spilloverRecipient = await storage.findNearestActivatedUpline(reward.recipientWallet);
+        
+        if (spilloverRecipient) {
+          // Redistribute reward to activated upline
+          await storage.redistributeReward(reward.id, spilloverRecipient);
+        }
+      }
+
+      res.json({ success: true, processedCount: expiredRewards.length });
+    } catch (error) {
+      console.error('Spillover processing error:', error);
+      res.status(500).json({ error: 'Spillover processing failed' });
     }
   });
 

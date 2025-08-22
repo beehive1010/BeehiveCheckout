@@ -21,6 +21,9 @@ import {
   discoverPartners,
   dappTypes,
   partnerChains,
+  memberActivations,
+  rewardDistributions,
+  adminSettings,
   type User, 
   type InsertUser,
   type MembershipState,
@@ -70,7 +73,13 @@ import {
   type DappType,
   type InsertDappType,
   type PartnerChain,
-  type InsertPartnerChain
+  type InsertPartnerChain,
+  type MemberActivation,
+  type InsertMemberActivation,
+  type RewardDistribution,
+  type InsertRewardDistribution,
+  type AdminSetting,
+  type InsertAdminSetting
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql } from "drizzle-orm";
@@ -524,47 +533,10 @@ export class DatabaseStorage implements IStorage {
     return order || undefined;
   }
 
-  // Earnings wallet operations
-  async createEarningsWalletEntry(entry: InsertEarningsWallet): Promise<EarningsWallet> {
-    const [earnings] = await db
-      .insert(earningsWallet)
-      .values({
-        ...entry,
-        walletAddress: entry.walletAddress.toLowerCase(),
-        sourceWallet: entry.sourceWallet.toLowerCase(),
-      })
-      .returning();
-    return earnings;
-  }
-
+  // Simple earnings wallet operations (for compatibility)
   async getEarningsWalletByWallet(walletAddress: string): Promise<EarningsWallet[]> {
     return await db.select().from(earningsWallet)
       .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()))
-      .orderBy(desc(earningsWallet.createdAt));
-  }
-
-  async updateEarningsWalletEntry(id: string, updates: Partial<EarningsWallet>): Promise<EarningsWallet | undefined> {
-    const [entry] = await db
-      .update(earningsWallet)
-      .set(updates)
-      .where(eq(earningsWallet.id, id))
-      .returning();
-    return entry || undefined;
-  }
-
-  async getPendingEarningsEntries(): Promise<EarningsWallet[]> {
-    return await db.select().from(earningsWallet)
-      .where(eq(earningsWallet.status, 'pending'))
-      .orderBy(desc(earningsWallet.createdAt));
-  }
-
-  async getExpiredEarningsEntries(): Promise<EarningsWallet[]> {
-    const now = new Date();
-    return await db.select().from(earningsWallet)
-      .where(and(
-        eq(earningsWallet.status, 'pending'),
-        sql`${earningsWallet.timerExpireAt} < ${now}`
-      ))
       .orderBy(desc(earningsWallet.createdAt));
   }
 
@@ -698,16 +670,16 @@ export class DatabaseStorage implements IStorage {
     if (!referralNode || !referralNode.sponsorWallet) return;
 
     // 1. Process instant 100 USDT referral bonus to sponsor
-    await this.createEarningsWalletEntry({
-      walletAddress: referralNode.sponsorWallet,
-      rewardType: 'instant_referral',
-      amount: 10000, // 100 USDT in cents
+    await this.createRewardDistribution({
+      recipientWallet: referralNode.sponsorWallet,
       sourceWallet: buyerWallet,
-      fromLevel: level,
-      status: 'paid', // Instant payment
+      rewardType: 'direct_referral',
+      rewardAmount: '100.00', // 100 USDT
+      level: level,
+      status: 'claimable', // Instant payment
     });
 
-    // 2. Process level reward with 72-hour timer
+    // 2. Process level reward with 72-hour timer  
     const now = new Date();
     const expiryTime = new Date(now.getTime() + (72 * 60 * 60 * 1000)); // 72 hours
 
@@ -718,46 +690,47 @@ export class DatabaseStorage implements IStorage {
       // Check for Bronze special rule (Level 2 requires 3 direct referrals)
       if (level === 2) {
         if (referralNode.directReferralCount < 3) {
-          // Pass up the reward
-          await this.passUpReward(referralNode.sponsorWallet, {
-            walletAddress: referralNode.sponsorWallet,
-            rewardType: 'level_reward',
-            amount: levelConfig.rewardAmount,
-            sourceWallet: buyerWallet,
-            fromLevel: level,
-            status: 'pending',
-            timerStartAt: now,
-            timerExpireAt: expiryTime,
-            passUpReason: 'bronze_direct_referral_requirement',
-          } as EarningsWallet);
+          // Pass up the reward to nearest activated upline
+          const nearestUpline = await this.findNearestActivatedUpline(referralNode.sponsorWallet);
+          if (nearestUpline) {
+            await this.createRewardDistribution({
+              recipientWallet: nearestUpline,
+              sourceWallet: buyerWallet,
+              rewardType: 'level_bonus',
+              rewardAmount: (levelConfig.rewardAmount / 100).toFixed(2), // Convert cents to dollars
+              level: level,
+              status: 'pending',
+              pendingUntil: expiryTime,
+            });
+          }
           return;
         }
       }
 
       // Sponsor qualifies for level reward
-      await this.createEarningsWalletEntry({
-        walletAddress: referralNode.sponsorWallet,
-        rewardType: 'level_reward',
-        amount: levelConfig.rewardAmount,
+      await this.createRewardDistribution({
+        recipientWallet: referralNode.sponsorWallet,
         sourceWallet: buyerWallet,
-        fromLevel: level,
+        rewardType: 'level_bonus',
+        rewardAmount: (levelConfig.rewardAmount / 100).toFixed(2), // Convert cents to dollars
+        level: level,
         status: 'pending',
-        timerStartAt: now,
-        timerExpireAt: expiryTime,
+        pendingUntil: expiryTime,
       });
     } else {
-      // Sponsor is under-leveled, pass up the reward
-      await this.passUpReward(referralNode.sponsorWallet, {
-        walletAddress: referralNode.sponsorWallet,
-        rewardType: 'level_reward',
-        amount: levelConfig.rewardAmount,
-        sourceWallet: buyerWallet,
-        fromLevel: level,
-        status: 'pending',
-        timerStartAt: now,
-        timerExpireAt: expiryTime,
-        passUpReason: 'under_leveled',
-      } as EarningsWallet);
+      // Sponsor is under-leveled, pass up the reward to nearest activated upline
+      const nearestUpline = await this.findNearestActivatedUpline(referralNode.sponsorWallet);
+      if (nearestUpline) {
+        await this.createRewardDistribution({
+          recipientWallet: nearestUpline,
+          sourceWallet: buyerWallet,
+          rewardType: 'level_bonus',
+          rewardAmount: (levelConfig.rewardAmount / 100).toFixed(2), // Convert cents to dollars
+          level: level,
+          status: 'pending',
+          pendingUntil: expiryTime,
+        });
+      }
     }
   }
 
@@ -808,35 +781,6 @@ export class DatabaseStorage implements IStorage {
     return { placerWallet: sponsorWallet, position: 0 };
   }
 
-  async passUpReward(originalRecipient: string, reward: EarningsWallet): Promise<void> {
-    // Find the next qualified upline member
-    let currentNode = await this.getReferralNode(originalRecipient);
-    let passUpCount = 0;
-    const maxPassUps = 10; // Prevent infinite loops
-
-    while (currentNode && currentNode.sponsorWallet && passUpCount < maxPassUps) {
-      const uplineMembership = await this.getMembershipState(currentNode.sponsorWallet);
-      
-      if (uplineMembership && uplineMembership.activeLevel >= reward.fromLevel) {
-        // Found qualified upline member
-        await this.createEarningsWalletEntry({
-          ...reward,
-          walletAddress: currentNode.sponsorWallet,
-          rewardType: 'passup_reward',
-          passedUpFrom: originalRecipient,
-          passUpReason: reward.passUpReason,
-        });
-        return;
-      }
-
-      // Move up the chain
-      currentNode = await this.getReferralNode(currentNode.sponsorWallet);
-      passUpCount++;
-    }
-
-    // If no qualified upline found, the reward is forfeited (admin keeps it)
-    console.log(`Reward of ${reward.amount} cents from ${reward.sourceWallet} forfeited - no qualified upline found`);
-  }
 
   // Merchant NFT operations
   async getMerchantNFTs(): Promise<MerchantNFT[]> {
@@ -1762,6 +1706,195 @@ export class DatabaseStorage implements IStorage {
       .values(chain)
       .returning();
     return created;
+  }
+
+  // Member Activation operations for NFT-based activation system
+  async createMemberActivation(activation: InsertMemberActivation): Promise<MemberActivation> {
+    const [created] = await db
+      .insert(memberActivations)
+      .values({
+        walletAddress: activation.walletAddress.toLowerCase(),
+        activationType: activation.activationType,
+        level: activation.level,
+        pendingUntil: activation.pendingUntil,
+        isPending: activation.isPending ?? true,
+        activatedAt: activation.activatedAt,
+        pendingTimeoutHours: activation.pendingTimeoutHours ?? 24,
+      })
+      .returning();
+    return created;
+  }
+
+  async getMemberActivation(walletAddress: string): Promise<MemberActivation | undefined> {
+    const [activation] = await db
+      .select()
+      .from(memberActivations)
+      .where(eq(memberActivations.walletAddress, walletAddress.toLowerCase()));
+    return activation || undefined;
+  }
+
+  async updateMemberActivation(walletAddress: string, updates: Partial<MemberActivation>): Promise<MemberActivation | undefined> {
+    const [updated] = await db
+      .update(memberActivations)
+      .set(updates)
+      .where(eq(memberActivations.walletAddress, walletAddress.toLowerCase()))
+      .returning();
+    return updated || undefined;
+  }
+
+  // Reward Distribution operations for 3x3 matrix spillover
+  async createRewardDistribution(reward: InsertRewardDistribution): Promise<RewardDistribution> {
+    const [created] = await db
+      .insert(rewardDistributions)
+      .values({
+        recipientWallet: reward.recipientWallet.toLowerCase(),
+        sourceWallet: reward.sourceWallet.toLowerCase(),
+        rewardType: reward.rewardType,
+        rewardAmount: reward.rewardAmount.toString(),
+        level: reward.level,
+        status: reward.status ?? 'pending',
+        pendingUntil: reward.pendingUntil,
+        claimedAt: reward.claimedAt,
+        redistributedTo: reward.redistributedTo?.toLowerCase(),
+      })
+      .returning();
+    return created;
+  }
+
+  async getPendingRewards(walletAddress: string): Promise<RewardDistribution[]> {
+    return await db
+      .select()
+      .from(rewardDistributions)
+      .where(and(
+        eq(rewardDistributions.recipientWallet, walletAddress.toLowerCase()),
+        eq(rewardDistributions.status, 'pending')
+      ))
+      .orderBy(desc(rewardDistributions.createdAt));
+  }
+
+  async getExpiredRewards(): Promise<RewardDistribution[]> {
+    const now = new Date();
+    return await db
+      .select()
+      .from(rewardDistributions)
+      .where(and(
+        eq(rewardDistributions.status, 'pending'),
+        sql`${rewardDistributions.pendingUntil} < ${now}`
+      ))
+      .orderBy(desc(rewardDistributions.createdAt));
+  }
+
+  async redistributeReward(rewardId: string, newRecipientWallet: string): Promise<RewardDistribution | undefined> {
+    const [updated] = await db
+      .update(rewardDistributions)
+      .set({
+        status: 'expired_redistributed',
+        redistributedTo: newRecipientWallet.toLowerCase(),
+      })
+      .where(eq(rewardDistributions.id, rewardId))
+      .returning();
+
+    if (updated) {
+      // Create new reward for the spillover recipient
+      await this.createRewardDistribution({
+        recipientWallet: newRecipientWallet,
+        sourceWallet: updated.sourceWallet,
+        rewardType: 'matrix_spillover',
+        rewardAmount: updated.rewardAmount,
+        level: updated.level,
+        status: 'claimable',
+      });
+    }
+
+    return updated || undefined;
+  }
+
+  // Admin Settings operations
+  async getAdminSetting(settingKey: string): Promise<string | undefined> {
+    const [setting] = await db
+      .select()
+      .from(adminSettings)
+      .where(eq(adminSettings.settingKey, settingKey));
+    return setting?.settingValue;
+  }
+
+  async updateAdminSetting(setting: InsertAdminSetting): Promise<AdminSetting> {
+    const [updated] = await db
+      .insert(adminSettings)
+      .values({
+        settingKey: setting.settingKey,
+        settingValue: setting.settingValue,
+        description: setting.description || '',
+        updatedAt: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: adminSettings.settingKey,
+        set: {
+          settingValue: setting.settingValue,
+          description: setting.description || '',
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return updated;
+  }
+
+  // 3x3 Matrix referral system operations
+  async createOrUpdateReferralNode(walletAddress: string): Promise<ReferralNode> {
+    const existingNode = await this.getReferralNode(walletAddress);
+    if (existingNode) {
+      return existingNode;
+    }
+
+    // Find sponsor from user's referrerWallet
+    const user = await this.getUser(walletAddress);
+    const sponsorWallet = user?.referrerWallet;
+
+    if (sponsorWallet) {
+      // Find matrix placement for new member
+      const placement = await this.findMatrixPlacement(sponsorWallet);
+      
+      return await this.createReferralNode({
+        walletAddress: walletAddress.toLowerCase(),
+        sponsorWallet: sponsorWallet.toLowerCase(),
+        placerWallet: placement.placerWallet.toLowerCase(),
+        matrixPosition: placement.position,
+        leftLeg: [],
+        middleLeg: [],
+        rightLeg: [],
+        directReferralCount: 0,
+        totalTeamCount: 0,
+      });
+    } else {
+      // Root member (no sponsor)
+      return await this.createReferralNode({
+        walletAddress: walletAddress.toLowerCase(),
+        sponsorWallet: null,
+        placerWallet: null,
+        matrixPosition: 0,
+        leftLeg: [],
+        middleLeg: [],
+        rightLeg: [],
+        directReferralCount: 0,
+        totalTeamCount: 0,
+      });
+    }
+  }
+
+  async findNearestActivatedUpline(walletAddress: string): Promise<string | null> {
+    const referralNode = await this.getReferralNode(walletAddress);
+    if (!referralNode || !referralNode.sponsorWallet) {
+      return null;
+    }
+
+    // Check if sponsor is activated
+    const sponsor = await this.getUser(referralNode.sponsorWallet);
+    if (sponsor?.memberActivated) {
+      return referralNode.sponsorWallet;
+    }
+
+    // Recursively check upline
+    return await this.findNearestActivatedUpline(referralNode.sponsorWallet);
   }
 }
 
