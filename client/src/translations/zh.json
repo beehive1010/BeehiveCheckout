@@ -631,9 +631,8 @@
     "title": "欢迎来到蜂巢！🎉",
     "subtitle": "开启BeeHive边学边玩边赚之旅 - 从购买会员NFT开始探索Web3新世界",
     "description": "通过购买您的1级勇士NFT来完成您的会员。这将解锁所有平台功能并开始您的Web3旅程！",
-    "pricing": {
-      "note": "100 USDT为NFT Level 1价格 + 平台30 USDT一次性管理费",
-      "referral": "推荐奖励：每个级别NFT购买时，每层获得100%奖励"
+    "referral": {
+      "rewards": "推荐奖励：您网络中购买NFT时，每个级别可获得100%奖励"
     },
     "button": {
       "unlock": "会员权益解锁价格 - 130 USDT"

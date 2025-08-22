@@ -175,6 +175,9 @@
     "welcome": {
       "title": "Selamat Datang ke Beehive! 🎉",
       "subtitle": "Lengkapkan keahlian anda dengan membeli Level 1 Warrior NFT. Ini akan membuka kunci semua ciri platform dan memulakan perjalanan Web3 anda!",
+      "referral": {
+        "rewards": "Ganjaran Rujukan: Dapatkan 100% ganjaran pada setiap tahap apabila NFT dibeli dalam rangkaian anda"
+      },
       "nft": {
         "title": "Level 1 Warrior NFT",
         "description": "Kelayakan keahlian anda di blockchain",

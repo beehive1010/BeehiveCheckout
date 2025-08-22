@@ -152,6 +152,13 @@
       "nextLevel": "次のレベル",
       "progress": "進捗"
     },
+    "welcome": {
+      "title": "Beehiveへようこそ! 🎉",
+      "subtitle": "レベル1ウォリアーNFTを購入してメンバーシップを完了してください。すべてのプラットフォーム機能が解放され、Web3の旅が始まります！",
+      "referral": {
+        "rewards": "紹介報酬：ネットワークでNFTが購入されたとき、各レベルで100%の報酬を獲得"
+      }
+    },
     "quickActions": {
       "tasks": {
         "description": "マーチャントNFTを閲覧・請求してBCCトークンを獲得"
