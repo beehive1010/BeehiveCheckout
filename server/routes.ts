@@ -666,6 +666,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin Discover Partner routes
+  app.get("/api/admin/discover/partners", requireAdminAuth, async (req: any, res) => {
+    try {
+      const { search, status, type } = req.query;
+      const partners = await storage.getDiscoverPartners({ search, status, type });
+      res.json(partners);
+    } catch (error) {
+      console.error('Get partners error:', error);
+      res.status(500).json({ error: 'Failed to get partners' });
+    }
+  });
+
+  app.get("/api/admin/discover/partners/:id", requireAdminAuth, async (req: any, res) => {
+    try {
+      const partner = await storage.getDiscoverPartner(req.params.id);
+      if (!partner) {
+        return res.status(404).json({ error: 'Partner not found' });
+      }
+      res.json(partner);
+    } catch (error) {
+      console.error('Get partner error:', error);
+      res.status(500).json({ error: 'Failed to get partner' });
+    }
+  });
+
+  app.post("/api/admin/discover/partners", requireAdminAuth, async (req: any, res) => {
+    try {
+      const partner = await storage.createDiscoverPartner(req.body);
+      res.json(partner);
+    } catch (error) {
+      console.error('Create partner error:', error);
+      res.status(500).json({ error: 'Failed to create partner' });
+    }
+  });
+
+  app.put("/api/admin/discover/partners/:id", requireAdminAuth, async (req: any, res) => {
+    try {
+      const partner = await storage.updateDiscoverPartner(req.params.id, req.body);
+      if (!partner) {
+        return res.status(404).json({ error: 'Partner not found' });
+      }
+      res.json(partner);
+    } catch (error) {
+      console.error('Update partner error:', error);
+      res.status(500).json({ error: 'Failed to update partner' });
+    }
+  });
+
+  app.delete("/api/admin/discover/partners/:id", requireAdminAuth, async (req: any, res) => {
+    try {
+      const success = await storage.deleteDiscoverPartner(req.params.id);
+      if (!success) {
+        return res.status(404).json({ error: 'Partner not found' });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Delete partner error:', error);
+      res.status(500).json({ error: 'Failed to delete partner' });
+    }
+  });
+
+  app.post("/api/admin/discover/partners/:id/approve", requireAdminAuth, async (req: any, res) => {
+    try {
+      const partner = await storage.approveDiscoverPartner(req.params.id, req.adminUser.id);
+      if (!partner) {
+        return res.status(404).json({ error: 'Partner not found' });
+      }
+      res.json(partner);
+    } catch (error) {
+      console.error('Approve partner error:', error);
+      res.status(500).json({ error: 'Failed to approve partner' });
+    }
+  });
+
+  app.post("/api/admin/discover/partners/:id/reject", requireAdminAuth, async (req: any, res) => {
+    try {
+      const { reason } = req.body;
+      if (!reason) {
+        return res.status(400).json({ error: 'Rejection reason is required' });
+      }
+      
+      const partner = await storage.rejectDiscoverPartner(req.params.id, reason);
+      if (!partner) {
+        return res.status(404).json({ error: 'Partner not found' });
+      }
+      res.json(partner);
+    } catch (error) {
+      console.error('Reject partner error:', error);
+      res.status(500).json({ error: 'Failed to reject partner' });
+    }
+  });
+
+  app.post("/api/admin/discover/partners/:id/toggle-featured", requireAdminAuth, async (req: any, res) => {
+    try {
+      const partner = await storage.togglePartnerFeatured(req.params.id);
+      if (!partner) {
+        return res.status(404).json({ error: 'Partner not found' });
+      }
+      res.json(partner);
+    } catch (error) {
+      console.error('Toggle featured error:', error);
+      res.status(500).json({ error: 'Failed to toggle featured status' });
+    }
+  });
+
+  // DApp Types routes
+  app.get("/api/admin/discover/dapp-types", requireAdminAuth, async (req: any, res) => {
+    try {
+      const dappTypes = await storage.getDappTypes();
+      res.json(dappTypes);
+    } catch (error) {
+      console.error('Get dapp types error:', error);
+      res.status(500).json({ error: 'Failed to get dapp types' });
+    }
+  });
+
+  // Partner Chains routes
+  app.get("/api/admin/discover/chains", requireAdminAuth, async (req: any, res) => {
+    try {
+      const chains = await storage.getPartnerChains();
+      res.json(chains);
+    } catch (error) {
+      console.error('Get chains error:', error);
+      res.status(500).json({ error: 'Failed to get partner chains' });
+    }
+  });
+
   // Job endpoints for BeeHive timer processing
   app.post("/api/jobs/process-timers", async (req, res) => {
     try {

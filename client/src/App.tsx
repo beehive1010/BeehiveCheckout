@@ -37,6 +37,7 @@ import AdminContractDeploy from "@/pages/admin/AdminContractDeploy";
 import AdminCourses from "@/pages/admin/AdminCourses";
 import AdminBlog from "@/pages/admin/AdminBlog";
 import AdminSystem from "@/pages/admin/AdminSystem";
+import AdminDiscover from "@/pages/admin/AdminDiscover";
 import Courses from "@/pages/Courses";
 import DiscoverPartners from "@/pages/DiscoverPartners";
 import { AdminLayout } from "@/components/admin/AdminLayout";
@@ -124,6 +125,13 @@ function Router() {
           <AdminRouteGuard requiredPermission="system.read">
             <AdminLayout>
               <AdminSystem />
+            </AdminLayout>
+          </AdminRouteGuard>
+        )} />
+        <Route path="/admin/discover" component={() => (
+          <AdminRouteGuard requiredPermission="discover.read">
+            <AdminLayout>
+              <AdminDiscover />
             </AdminLayout>
           </AdminRouteGuard>
         )} />

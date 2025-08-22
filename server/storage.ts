@@ -18,6 +18,9 @@ import {
   advertisementNFTClaims,
   adminUsers,
   adminSessions,
+  discoverPartners,
+  dappTypes,
+  partnerChains,
   type User, 
   type InsertUser,
   type MembershipState,
@@ -61,7 +64,13 @@ import {
   type TokenPurchase,
   type InsertTokenPurchase,
   type CTHBalance,
-  type InsertCTHBalance
+  type InsertCTHBalance,
+  type DiscoverPartner,
+  type InsertDiscoverPartner,
+  type DappType,
+  type InsertDappType,
+  type PartnerChain,
+  type InsertPartnerChain
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql } from "drizzle-orm";
@@ -1632,6 +1641,127 @@ export class DatabaseStorage implements IStorage {
   async deleteAdminSession(sessionToken: string): Promise<boolean> {
     const result = await db.delete(adminSessions).where(eq(adminSessions.sessionToken, sessionToken));
     return result.rowCount > 0;
+  }
+
+  // Discover Partners operations
+  async getDiscoverPartners(filters?: { search?: string; status?: string; type?: string }): Promise<DiscoverPartner[]> {
+    let query = db.select().from(discoverPartners);
+    
+    const conditions = [];
+    if (filters?.search) {
+      const searchTerm = `%${filters.search.toLowerCase()}%`;
+      conditions.push(sql`(
+        LOWER(${discoverPartners.name}) LIKE ${searchTerm} OR 
+        LOWER(${discoverPartners.shortDescription}) LIKE ${searchTerm}
+      )`);
+    }
+    if (filters?.status && filters.status !== 'all') {
+      conditions.push(eq(discoverPartners.status, filters.status));
+    }
+    if (filters?.type && filters.type !== 'all') {
+      conditions.push(eq(discoverPartners.dappType, filters.type));
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    return await query.orderBy(desc(discoverPartners.createdAt));
+  }
+
+  async getDiscoverPartner(id: string): Promise<DiscoverPartner | undefined> {
+    const [partner] = await db.select().from(discoverPartners).where(eq(discoverPartners.id, id));
+    return partner || undefined;
+  }
+
+  async createDiscoverPartner(partner: InsertDiscoverPartner): Promise<DiscoverPartner> {
+    const [createdPartner] = await db
+      .insert(discoverPartners)
+      .values(partner)
+      .returning();
+    return createdPartner;
+  }
+
+  async updateDiscoverPartner(id: string, updates: Partial<DiscoverPartner>): Promise<DiscoverPartner | undefined> {
+    const [partner] = await db
+      .update(discoverPartners)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(discoverPartners.id, id))
+      .returning();
+    return partner || undefined;
+  }
+
+  async deleteDiscoverPartner(id: string): Promise<boolean> {
+    const result = await db.delete(discoverPartners).where(eq(discoverPartners.id, id));
+    return result.rowCount > 0;
+  }
+
+  async approveDiscoverPartner(id: string, adminId: string): Promise<DiscoverPartner | undefined> {
+    const [partner] = await db
+      .update(discoverPartners)
+      .set({ 
+        status: 'approved',
+        approvedBy: adminId,
+        approvedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(discoverPartners.id, id))
+      .returning();
+    return partner || undefined;
+  }
+
+  async rejectDiscoverPartner(id: string, reason: string): Promise<DiscoverPartner | undefined> {
+    const [partner] = await db
+      .update(discoverPartners)
+      .set({ 
+        status: 'rejected',
+        rejectionReason: reason,
+        updatedAt: new Date()
+      })
+      .where(eq(discoverPartners.id, id))
+      .returning();
+    return partner || undefined;
+  }
+
+  async togglePartnerFeatured(id: string): Promise<DiscoverPartner | undefined> {
+    const partner = await this.getDiscoverPartner(id);
+    if (!partner) return undefined;
+    
+    const [updatedPartner] = await db
+      .update(discoverPartners)
+      .set({ 
+        featured: !partner.featured,
+        updatedAt: new Date()
+      })
+      .where(eq(discoverPartners.id, id))
+      .returning();
+    return updatedPartner || undefined;
+  }
+
+  // DApp Types operations
+  async getDappTypes(): Promise<DappType[]> {
+    return await db.select().from(dappTypes).where(eq(dappTypes.active, true)).orderBy(dappTypes.displayOrder);
+  }
+
+  async createDappType(dappType: InsertDappType): Promise<DappType> {
+    const [created] = await db
+      .insert(dappTypes)
+      .values(dappType)
+      .returning();
+    return created;
+  }
+
+  // Partner Chains operations
+  async getPartnerChains(): Promise<PartnerChain[]> {
+    return await db.select().from(partnerChains).orderBy(partnerChains.displayOrder);
+  }
+
+  async createPartnerChain(chain: InsertPartnerChain): Promise<PartnerChain> {
+    const [created] = await db
+      .insert(partnerChains)
+      .values(chain)
+      .returning();
+    return created;
   }
 }
 
