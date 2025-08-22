@@ -1416,27 +1416,32 @@ export class DatabaseStorage implements IStorage {
     }> = [];
 
     try {
-      // Get earnings/rewards
-      const earnings = await db.select()
+      // Get earnings summary (working with existing database structure)
+      const earningsSummary = await db.select({
+        walletAddress: earningsWallet.walletAddress,
+        totalEarnings: earningsWallet.totalEarnings,
+        referralEarnings: earningsWallet.referralEarnings,
+        levelEarnings: earningsWallet.levelEarnings,
+        lastRewardAt: earningsWallet.lastRewardAt,
+        createdAt: earningsWallet.createdAt
+      })
         .from(earningsWallet)
         .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()))
-        .orderBy(desc(earningsWallet.createdAt))
-        .limit(limit);
+        .limit(1);
 
-      earnings.forEach(earning => {
-        activities.push({
-          id: earning.id,
-          type: 'reward',
-          description: earning.rewardType === 'instant_referral' 
-            ? 'Referral bonus received' 
-            : earning.rewardType === 'level_reward'
-            ? 'Level reward received'
-            : 'Reward received',
-          amount: `+${(earning.amount / 100).toFixed(2)} USDT`,
-          timestamp: earning.createdAt,
-          status: earning.status
-        });
-      });
+      // Add earnings summary as activity if user has earnings
+      if (earningsSummary.length > 0) {
+        const summary = earningsSummary[0];
+        if (summary.totalEarnings && Number(summary.totalEarnings) > 0) {
+          activities.push({
+            id: `earnings-${summary.walletAddress}`,
+            type: 'reward',
+            description: 'Total platform earnings',
+            amount: `${Number(summary.totalEarnings).toFixed(2)} USDT`,
+            timestamp: summary.lastRewardAt || summary.createdAt
+          });
+        }
+      }
 
       // Get NFT purchases
       const userNftPurchases = await db.select({
