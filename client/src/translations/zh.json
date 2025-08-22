@@ -73,12 +73,28 @@
     "ctaStats": {
       "membershipLevels": "会员级别",
       "matrixSystem": "矩阵系统",
-      "nftMarketplace": "NFT市场"
+      "earningPotential": "盈利潜力"
+    },
+    "howItWorks": {
+      "title": "工作原理",
+      "subtitle": "只需三个简单步骤即可开始并释放Web3会员资格的力量",
+      "step1": {
+        "title": "连接钱包",
+        "description": "连接您的Web3钱包即可开始"
+      },
+      "step2": {
+        "title": "注册和激活",
+        "description": "完成注册并激活1级会员资格"
+      },
+      "step3": {
+        "title": "学习和赚钱",
+        "description": "访问平台功能并开始获得奖励"
+      }
     },
     "cta": {
-      "title": "准备开始了吗？",
-      "subtitle": "今天就加入蜂巢社区，开始您的Web3之旅",
-      "button": "连接钱包开始"
+      "title": "准备开始您的旅程了吗？",
+      "description": "加入数千名已经在蜂巢生态系统中赚钱的会员",
+      "button": "立即加入蜂巢"
     }
   },
   "dashboard": {

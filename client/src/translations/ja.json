@@ -73,12 +73,28 @@
     "ctaStats": {
       "membershipLevels": "メンバーシップレベル",
       "matrixSystem": "マトリックスシステム",
-      "nftMarketplace": "NFTマーケットプレイス"
+      "earningPotential": "収益ポテンシャル"
+    },
+    "howItWorks": {
+      "title": "仕組み",
+      "subtitle": "3つの簡単なステップで始めて、Web3メンバーシップの力を解き放ちましょう",
+      "step1": {
+        "title": "ウォレット接続",
+        "description": "始めるにはWeb3ウォレットを接続してください"
+      },
+      "step2": {
+        "title": "登録とアクティベート",
+        "description": "登録を完了してレベル1メンバーシップをアクティベートしてください"
+      },
+      "step3": {
+        "title": "学習と収益",
+        "description": "プラットフォーム機能にアクセスして報酬を獲得し始めましょう"
+      }
     },
     "cta": {
-      "title": "始める準備はできましたか？",
-      "subtitle": "今すぐBeehiveコミュニティに参加してWeb3の旅を開始",
-      "button": "ウォレットを接続して開始"
+      "title": "旅を始める準備はできましたか？",
+      "description": "すでにBeehiveエコシステムで収益を上げている数千人のメンバーに参加しましょう",
+      "button": "今すぐBeehiveに参加"
     }
   },
   "dashboard": {
