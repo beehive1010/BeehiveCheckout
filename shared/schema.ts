@@ -489,6 +489,12 @@ export type AdvertisementNFT = typeof advertisementNFTs.$inferSelect;
 export type InsertAdvertisementNFTClaim = z.infer<typeof insertAdvertisementNFTClaimSchema>;
 export type AdvertisementNFTClaim = typeof advertisementNFTClaims.$inferSelect;
 
+export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
+export type AdminUser = typeof adminUsers.$inferSelect;
+
+export type InsertAdminSession = z.infer<typeof insertAdminSessionSchema>;
+export type AdminSession = typeof adminSessions.$inferSelect;
+
 // Bridge Payment Tracking Table
 export const bridgePayments = pgTable("bridge_payments", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -719,11 +725,20 @@ export const insertAdminUserSchema = createInsertSchema(adminUsers).pick({
   email: true,
   passwordHash: true,
   role: true,
-  twoFactorSecret: true,
-  twoFactorEnabled: true,
-  active: true,
+  permissions: true,
+  status: true,
+  fullName: true,
+  notes: true,
+  createdBy: true,
 });
 
+export const insertAdminSessionSchema = createInsertSchema(adminSessions).pick({
+  adminId: true,
+  sessionToken: true,
+  ipAddress: true,
+  userAgent: true,
+  expiresAt: true,
+});
 export const insertAuditLogSchema = createInsertSchema(auditLogs).pick({
   adminId: true,
   action: true,
@@ -807,18 +822,8 @@ export const insertSystemStatusSchema = createInsertSchema(systemStatus).pick({
   errorMessage: true,
 });
 
-export const insertAdminSessionSchema = createInsertSchema(adminSessions).pick({
-  adminId: true,
-  sessionToken: true,
-  ipAddress: true,
-  userAgent: true,
-  expiresAt: true,
-});
 
 // Admin panel types
-export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
-export type AdminUser = typeof adminUsers.$inferSelect;
-
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 export type AuditLog = typeof auditLogs.$inferSelect;
 

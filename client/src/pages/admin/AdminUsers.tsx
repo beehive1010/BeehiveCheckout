@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
@@ -23,24 +23,25 @@ import {
   Mail,
   AlertTriangle,
   CheckCircle,
-  Clock
+  Clock,
+  Trash2
 } from 'lucide-react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { useToast } from '../../hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface AdminUser {
   id: string;
   username: string;
   email: string;
-  fullName: string;
+  fullName?: string;
   role: 'super_admin' | 'creator_admin' | 'support_admin' | 'viewer_admin';
   permissions: string[];
   status: 'active' | 'inactive' | 'suspended';
-  lastLogin: string;
+  lastLogin?: string;
   createdAt: string;
-  createdBy: string;
+  createdBy?: string;
   notes?: string;
-  avatar?: string;
 }
 
 interface AdminUserFormData {
@@ -113,8 +114,7 @@ const ROLE_PERMISSIONS = {
 export default function AdminUsers() {
   const { hasRole, adminUser } = useAdminAuth();
   const { toast } = useToast();
-  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -133,184 +133,142 @@ export default function AdminUsers() {
     notes: '',
   });
 
-  useEffect(() => {
-    loadAdminUsers();
-  }, [searchTerm, roleFilter, statusFilter]);
-
-  const loadAdminUsers = async () => {
-    try {
-      const realAdminUsers: AdminUser[] = [
-        {
-          id: 'admin-1',
-          username: 'superadmin',
-          email: 'admin@beehive.app',
-          fullName: 'Super Administrator',
-          role: 'super_admin',
-          permissions: ROLE_PERMISSIONS.super_admin,
-          status: 'active',
-          lastLogin: '2025-08-22T08:30:00Z',
-          createdAt: '2024-01-15T10:00:00Z',
-          createdBy: 'System',
-          notes: 'Primary system administrator with full access',
-          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400'
-        },
-        {
-          id: 'admin-2',
-          username: 'contentcreator',
-          email: 'content@beehive.app',
-          fullName: 'Content Creator Admin',
-          role: 'creator_admin',
-          permissions: ROLE_PERMISSIONS.creator_admin,
-          status: 'active',
-          lastLogin: '2025-08-22T07:15:00Z',
-          createdAt: '2024-03-10T14:30:00Z',
-          createdBy: 'superadmin',
-          notes: 'Manages blog content, courses, and NFTs',
-          avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b5bb?w=400'
-        },
-        {
-          id: 'admin-3',
-          username: 'support',
-          email: 'support@beehive.app',
-          fullName: 'Support Team Lead',
-          role: 'support_admin',
-          permissions: ROLE_PERMISSIONS.support_admin,
-          status: 'active',
-          lastLogin: '2025-08-21T16:45:00Z',
-          createdAt: '2024-05-20T09:15:00Z',
-          createdBy: 'superadmin',
-          notes: 'Handles user support and account management',
-          avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400'
-        },
-        {
-          id: 'admin-4',
-          username: 'analyst',
-          email: 'analytics@beehive.app',
-          fullName: 'Analytics Viewer',
-          role: 'viewer_admin',
-          permissions: ROLE_PERMISSIONS.viewer_admin,
-          status: 'active',
-          lastLogin: '2025-08-22T06:00:00Z',
-          createdAt: '2024-07-12T11:20:00Z',
-          createdBy: 'superadmin',
-          notes: 'Read-only access for analytics and reporting',
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400'
-        },
-        {
-          id: 'admin-5',
-          username: 'tempuser',
-          email: 'temp@beehive.app',
-          fullName: 'Temporary Admin',
-          role: 'viewer_admin',
-          permissions: ['users.read', 'system.read'],
-          status: 'inactive',
-          lastLogin: '2025-08-15T12:30:00Z',
-          createdAt: '2024-08-01T15:45:00Z',
-          createdBy: 'superadmin',
-          notes: 'Temporary access for external audit - now disabled',
-          avatar: 'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?w=400'
-        }
-      ];
-
-      const filteredUsers = realAdminUsers.filter(user => {
-        const matchesSearch = searchTerm === '' || 
-          user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.email.toLowerCase().includes(searchTerm.toLowerCase());
-        
-        const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-        const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
-        
-        return matchesSearch && matchesRole && matchesStatus;
-      });
-
-      setAdminUsers(filteredUsers);
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Failed to load admin users:', error);
-      setIsLoading(false);
-    }
-  };
-
-  const handleCreateUser = async () => {
-    try {
-      if (formData.password !== formData.confirmPassword) {
-        toast({
-          title: 'Password Mismatch',
-          description: 'Passwords do not match. Please try again.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      if (formData.password.length < 8) {
-        toast({
-          title: 'Weak Password',
-          description: 'Password must be at least 8 characters long.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      const permissions = formData.customPermissions.length > 0 
-        ? formData.customPermissions 
-        : ROLE_PERMISSIONS[formData.role];
-
-      const newUser: AdminUser = {
-        id: `admin-${Date.now()}`,
-        username: formData.username,
-        email: formData.email,
-        fullName: formData.fullName,
-        role: formData.role,
-        permissions,
-        status: formData.status,
-        lastLogin: '',
-        createdAt: new Date().toISOString(),
-        createdBy: adminUser?.username || 'system',
-        notes: formData.notes,
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400'
-      };
-
-      setAdminUsers(prev => [newUser, ...prev]);
-      setIsCreateDialogOpen(false);
-      resetForm();
-
-      toast({
-        title: 'Admin User Created',
-        description: `${newUser.fullName} has been added as ${newUser.role.replace('_', ' ')}.`,
-      });
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to create admin user. Please try again.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const toggleUserStatus = async (user: AdminUser) => {
-    try {
-      const newStatus: 'active' | 'inactive' | 'suspended' = user.status === 'active' ? 'inactive' : 'active';
-      const updatedUser = { ...user, status: newStatus };
+  // Fetch admin users with real API
+  const { data: adminUsers = [], isLoading, refetch } = useQuery({
+    queryKey: ['/api/admin/admin-users', { search: searchTerm, role: roleFilter, status: statusFilter }],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (roleFilter !== 'all') params.append('role', roleFilter);
+      if (statusFilter !== 'all') params.append('status', statusFilter);
       
-      setAdminUsers(prev =>
-        prev.map(u => u.id === user.id ? updatedUser : u)
-      );
-
-      toast({
-        title: 'User Status Updated',
-        description: `${user.fullName} is now ${newStatus}.`,
+      const response = await fetch(`/api/admin/admin-users?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+        },
       });
-    } catch (error) {
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch admin users');
+      }
+      
+      return response.json();
+    },
+  });
+
+  // Create admin user mutation
+  const createAdminUserMutation = useMutation({
+    mutationFn: async (userData: AdminUserFormData) => {
+      const response = await fetch('/api/admin/admin-users', {
+        method: 'POST',
+        body: JSON.stringify({
+          username: userData.username,
+          email: userData.email,
+          password: userData.password,
+          role: userData.role,
+          permissions: userData.customPermissions,
+          status: userData.status,
+          fullName: userData.fullName,
+          notes: userData.notes,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+        },
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create admin user');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/admin-users'] });
+      setIsCreateDialogOpen(false);
+      resetFormData();
+      toast({
+        title: 'Success',
+        description: 'Admin user created successfully',
+      });
+    },
+    onError: (error: any) => {
       toast({
         title: 'Error',
-        description: 'Failed to update user status.',
+        description: error.message || 'Failed to create admin user',
         variant: 'destructive',
       });
-    }
-  };
+    },
+  });
 
-  const resetForm = () => {
+  // Update admin user mutation
+  const updateAdminUserMutation = useMutation({
+    mutationFn: async ({ id, userData }: { id: string; userData: Partial<AdminUserFormData> }) => {
+      const response = await fetch(`/api/admin/admin-users/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(userData),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+        },
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update admin user');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/admin-users'] });
+      setIsEditDialogOpen(false);
+      setEditingUser(null);
+      resetFormData();
+      toast({
+        title: 'Success',
+        description: 'Admin user updated successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update admin user',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Delete admin user mutation
+  const deleteAdminUserMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/admin/admin-users/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+        },
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete admin user');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/admin-users'] });
+      toast({
+        title: 'Success',
+        description: 'Admin user deleted successfully',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete admin user',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Initialize form data
+  const resetFormData = () => {
     setFormData({
       username: '',
       email: '',
@@ -324,117 +282,218 @@ export default function AdminUsers() {
     });
   };
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return 'Never';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  // Handle form input changes
+  const handleFormChange = (field: keyof AdminUserFormData, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case 'super_admin':
-        return <Badge className="bg-red-500"><Crown className="w-3 h-3 mr-1" />Super Admin</Badge>;
-      case 'creator_admin':
-        return <Badge className="bg-purple-500">Creator Admin</Badge>;
-      case 'support_admin':
-        return <Badge className="bg-blue-500">Support Admin</Badge>;
-      case 'viewer_admin':
-        return <Badge className="bg-green-500">Viewer Admin</Badge>;
-      default:
-        return <Badge variant="outline">Unknown</Badge>;
+  // Handle role change (auto-populate permissions)
+  const handleRoleChange = (role: AdminUserFormData['role']) => {
+    setFormData(prev => ({
+      ...prev,
+      role,
+      customPermissions: ROLE_PERMISSIONS[role]
+    }));
+  };
+
+  // Handle permission toggle
+  const handlePermissionToggle = (permissionId: string, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      customPermissions: checked
+        ? [...prev.customPermissions, permissionId]
+        : prev.customPermissions.filter(p => p !== permissionId)
+    }));
+  };
+
+  // Handle create admin user
+  const handleCreateUser = () => {
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: 'Error',
+        description: 'Passwords do not match',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!formData.username || !formData.email || !formData.password) {
+      toast({
+        title: 'Error',
+        description: 'Please fill in all required fields',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    createAdminUserMutation.mutate(formData);
+  };
+
+  // Handle edit admin user
+  const handleEditUser = () => {
+    if (!editingUser) return;
+
+    const updateData: Partial<AdminUserFormData> = {
+      username: formData.username,
+      email: formData.email,
+      fullName: formData.fullName,
+      role: formData.role,
+      permissions: formData.customPermissions,
+      status: formData.status,
+      notes: formData.notes,
+    };
+
+    if (formData.password) {
+      if (formData.password !== formData.confirmPassword) {
+        toast({
+          title: 'Error',
+          description: 'Passwords do not match',
+          variant: 'destructive',
+        });
+        return;
+      }
+      updateData.password = formData.password;
+    }
+
+    updateAdminUserMutation.mutate({ id: editingUser.id, userData: updateData });
+  };
+
+  // Handle delete admin user
+  const handleDeleteUser = (userId: string) => {
+    if (confirm('Are you sure you want to delete this admin user? This action cannot be undone.')) {
+      deleteAdminUserMutation.mutate(userId);
     }
   };
 
+  // Open edit dialog
+  const openEditDialog = (user: AdminUser) => {
+    setEditingUser(user);
+    setFormData({
+      username: user.username,
+      email: user.email,
+      fullName: user.fullName || '',
+      password: '',
+      confirmPassword: '',
+      role: user.role,
+      customPermissions: user.permissions || [],
+      status: user.status,
+      notes: user.notes || '',
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  // Get role badge color
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case 'super_admin': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      case 'creator_admin': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+      case 'support_admin': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+      case 'viewer_admin': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+    }
+  };
+
+  // Get role icon
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'super_admin': return <Crown className="h-4 w-4" />;
+      case 'creator_admin': return <Edit className="h-4 w-4" />;
+      case 'support_admin': return <Users className="h-4 w-4" />;
+      case 'viewer_admin': return <Shield className="h-4 w-4" />;
+      default: return <Shield className="h-4 w-4" />;
+    }
+  };
+
+  // Get status badge
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge className="bg-green-500"><CheckCircle className="w-3 h-3 mr-1" />Active</Badge>;
+        return (
+          <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+            <CheckCircle className="h-3 w-3 mr-1" />
+            Active
+          </Badge>
+        );
       case 'inactive':
-        return <Badge variant="secondary"><UserX className="w-3 h-3 mr-1" />Inactive</Badge>;
+        return (
+          <Badge variant="outline" className="text-orange-600 border-orange-300">
+            <Clock className="h-3 w-3 mr-1" />
+            Inactive
+          </Badge>
+        );
       case 'suspended':
-        return <Badge className="bg-red-500"><AlertTriangle className="w-3 h-3 mr-1" />Suspended</Badge>;
+        return (
+          <Badge variant="destructive">
+            <AlertTriangle className="h-3 w-3 mr-1" />
+            Suspended
+          </Badge>
+        );
       default:
-        return <Badge variant="outline">Unknown</Badge>;
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
 
-  const getPermissionsByCategory = () => {
-    const categories = AVAILABLE_PERMISSIONS.reduce((acc, permission) => {
-      if (!acc[permission.category]) {
-        acc[permission.category] = [];
-      }
-      acc[permission.category].push(permission);
-      return acc;
-    }, {} as Record<string, typeof AVAILABLE_PERMISSIONS>);
-    return categories;
+  // Calculate statistics
+  const stats = {
+    total: adminUsers.length,
+    active: adminUsers.filter(u => u.status === 'active').length,
+    inactive: adminUsers.filter(u => u.status === 'inactive').length,
+    superAdmins: adminUsers.filter(u => u.role === 'super_admin').length,
   };
 
+  // Verify super admin access
   if (!hasRole(['super_admin'])) {
     return (
-      <div className="text-center py-8">
-        <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-        <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
-        <p className="text-muted-foreground">Only super administrators can manage admin users.</p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Access Denied
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>You need Super Administrator privileges to access this section.</p>
+        </CardContent>
+      </Card>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-honey">Admin Users</h1>
-            <p className="text-muted-foreground mt-2">Loading admin users...</p>
-          </div>
-        </div>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="animate-pulse space-y-4">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-20 bg-muted rounded"></div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Loading Admin Users...</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Please wait while we load the admin users data.</p>
+        </CardContent>
+      </Card>
     );
   }
-
-  const totalUsers = adminUsers.length;
-  const activeUsers = adminUsers.filter(u => u.status === 'active').length;
-  const inactiveUsers = adminUsers.filter(u => u.status === 'inactive').length;
-  const superAdmins = adminUsers.filter(u => u.role === 'super_admin').length;
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-honey">Admin Users</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage administrator accounts and permissions
-          </p>
+          <h1 className="text-3xl font-bold text-foreground">Admin Users</h1>
+          <p className="text-muted-foreground">Manage administrator accounts and permissions</p>
         </div>
-        
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-honey text-black hover:bg-honey/90" data-testid="button-create-admin">
-              <Plus className="w-4 h-4 mr-2" />
-              Create Admin
+            <Button onClick={resetFormData} className="bg-yellow-600 hover:bg-yellow-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Create Admin User
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create New Admin User</DialogTitle>
               <DialogDescription>
-                Add a new administrator with specific role and permissions
+                Set up a new administrator account with appropriate permissions.
               </DialogDescription>
             </DialogHeader>
             
@@ -446,153 +505,142 @@ export default function AdminUsers() {
               </TabsList>
               
               <TabsContent value="basic" className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4">
                   <div>
-                    <Label htmlFor="username">Username</Label>
+                    <Label htmlFor="username">Username *</Label>
                     <Input
                       id="username"
                       value={formData.username}
-                      onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
-                      placeholder="Enter username..."
-                      data-testid="input-admin-username"
+                      onChange={(e) => handleFormChange('username', e.target.value)}
+                      placeholder="Enter username"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="email">Email Address</Label>
+                    <Label htmlFor="email">Email *</Label>
                     <Input
                       id="email"
                       type="email"
                       value={formData.email}
-                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                      placeholder="admin@beehive.app"
-                      data-testid="input-admin-email"
+                      onChange={(e) => handleFormChange('email', e.target.value)}
+                      placeholder="Enter email address"
                     />
                   </div>
-                </div>
-                
-                <div>
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    value={formData.fullName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                    placeholder="Enter full name..."
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="notes">Notes (Optional)</Label>
-                  <Textarea
-                    id="notes"
-                    value={formData.notes}
-                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                    placeholder="Additional notes about this admin user..."
-                    rows={3}
-                  />
+                  <div>
+                    <Label htmlFor="fullName">Full Name</Label>
+                    <Input
+                      id="fullName"
+                      value={formData.fullName}
+                      onChange={(e) => handleFormChange('fullName', e.target.value)}
+                      placeholder="Enter full name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="notes">Notes</Label>
+                    <Textarea
+                      id="notes"
+                      value={formData.notes}
+                      onChange={(e) => handleFormChange('notes', e.target.value)}
+                      placeholder="Optional notes about this admin user"
+                      rows={3}
+                    />
+                  </div>
                 </div>
               </TabsContent>
               
               <TabsContent value="role" className="space-y-4">
-                <div>
-                  <Label htmlFor="role">Admin Role</Label>
-                  <Select value={formData.role} onValueChange={(value: any) => setFormData(prev => ({ ...prev, role: value, customPermissions: [] }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="super_admin">Super Admin (Full Access)</SelectItem>
-                      <SelectItem value="creator_admin">Creator Admin (Content Management)</SelectItem>
-                      <SelectItem value="support_admin">Support Admin (User Support)</SelectItem>
-                      <SelectItem value="viewer_admin">Viewer Admin (Read Only)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <Label>Custom Permissions (Override role defaults)</Label>
-                  <div className="mt-2 space-y-4 max-h-64 overflow-y-auto border rounded-lg p-4">
-                    {Object.entries(getPermissionsByCategory()).map(([category, permissions]) => (
-                      <div key={category}>
-                        <h4 className="font-medium text-honey mb-2">{category}</h4>
-                        <div className="grid grid-cols-2 gap-2 ml-4">
-                          {permissions.map((permission) => (
-                            <div key={permission.id} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={permission.id}
-                                checked={formData.customPermissions.includes(permission.id)}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    setFormData(prev => ({
-                                      ...prev,
-                                      customPermissions: [...prev.customPermissions, permission.id]
-                                    }));
-                                  } else {
-                                    setFormData(prev => ({
-                                      ...prev,
-                                      customPermissions: prev.customPermissions.filter(p => p !== permission.id)
-                                    }));
-                                  }
-                                }}
-                              />
-                              <Label htmlFor={permission.id} className="text-sm">
-                                {permission.name}
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="role">Role *</Label>
+                    <Select value={formData.role} onValueChange={handleRoleChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="super_admin">Super Admin</SelectItem>
+                        <SelectItem value="creator_admin">Creator Admin</SelectItem>
+                        <SelectItem value="support_admin">Support Admin</SelectItem>
+                        <SelectItem value="viewer_admin">Viewer Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Leave empty to use default role permissions
-                  </p>
+                  
+                  <div>
+                    <Label>Custom Permissions</Label>
+                    <div className="mt-2 space-y-3">
+                      {Object.entries(
+                        AVAILABLE_PERMISSIONS.reduce((acc, permission) => {
+                          if (!acc[permission.category]) {
+                            acc[permission.category] = [];
+                          }
+                          acc[permission.category].push(permission);
+                          return acc;
+                        }, {} as Record<string, typeof AVAILABLE_PERMISSIONS>)
+                      ).map(([category, permissions]) => (
+                        <div key={category} className="space-y-2">
+                          <Label className="text-sm font-medium">{category}</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            {permissions.map((permission) => (
+                              <div key={permission.id} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={permission.id}
+                                  checked={formData.customPermissions.includes(permission.id)}
+                                  onCheckedChange={(checked) =>
+                                    handlePermissionToggle(permission.id, checked as boolean)
+                                  }
+                                />
+                                <Label
+                                  htmlFor={permission.id}
+                                  className="text-sm font-normal"
+                                >
+                                  {permission.name}
+                                </Label>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </TabsContent>
               
               <TabsContent value="security" className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4">
                   <div>
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password">Password *</Label>
                     <Input
                       id="password"
                       type="password"
                       value={formData.password}
-                      onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                      placeholder="Enter secure password..."
+                      onChange={(e) => handleFormChange('password', e.target.value)}
+                      placeholder="Enter password"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <Label htmlFor="confirmPassword">Confirm Password *</Label>
                     <Input
                       id="confirmPassword"
                       type="password"
                       value={formData.confirmPassword}
-                      onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                      placeholder="Confirm password..."
+                      onChange={(e) => handleFormChange('confirmPassword', e.target.value)}
+                      placeholder="Confirm password"
                     />
                   </div>
-                </div>
-                
-                <div>
-                  <Label htmlFor="status">Initial Status</Label>
-                  <Select value={formData.status} onValueChange={(value: any) => setFormData(prev => ({ ...prev, status: value }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="p-4 border rounded-lg bg-muted/50">
-                  <h4 className="font-medium mb-2">Security Requirements</h4>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Password must be at least 8 characters long</li>
-                    <li>• Include numbers, letters, and special characters</li>
-                    <li>• Admin will be required to change password on first login</li>
-                  </ul>
+                  <div>
+                    <Label htmlFor="status">Account Status</Label>
+                    <Select 
+                      value={formData.status} 
+                      onValueChange={(value: 'active' | 'inactive') => handleFormChange('status', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </TabsContent>
             </Tabs>
@@ -601,83 +649,78 @@ export default function AdminUsers() {
               <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleCreateUser}>Create Admin User</Button>
+              <Button 
+                onClick={handleCreateUser}
+                disabled={createAdminUserMutation.isPending}
+                className="bg-yellow-600 hover:bg-yellow-700"
+              >
+                {createAdminUserMutation.isPending ? 'Creating...' : 'Create Admin User'}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <Users className="h-5 w-5 text-honey" />
-              <div>
-                <p className="text-sm text-muted-foreground">Total Admins</p>
-                <p className="text-2xl font-bold">{totalUsers}</p>
-              </div>
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Admins</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.total}</div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <UserCheck className="h-5 w-5 text-honey" />
-              <div>
-                <p className="text-sm text-muted-foreground">Active</p>
-                <p className="text-2xl font-bold">{activeUsers}</p>
-              </div>
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active</CardTitle>
+            <UserCheck className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{stats.active}</div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <UserX className="h-5 w-5 text-honey" />
-              <div>
-                <p className="text-sm text-muted-foreground">Inactive</p>
-                <p className="text-2xl font-bold">{inactiveUsers}</p>
-              </div>
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Inactive</CardTitle>
+            <UserX className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">{stats.inactive}</div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <Crown className="h-5 w-5 text-honey" />
-              <div>
-                <p className="text-sm text-muted-foreground">Super Admins</p>
-                <p className="text-2xl font-bold">{superAdmins}</p>
-              </div>
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Super Admins</CardTitle>
+            <Crown className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{stats.superAdmins}</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Search and Filters */}
+      {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Search className="h-5 w-5" />
-            <span>Search & Filter Admins</span>
-          </CardTitle>
+          <CardTitle>Filters</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <Input
-            placeholder="Search by username, email, or full name..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-muted"
-            data-testid="input-search-admins"
-          />
-          
-          <div className="flex gap-4">
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Search users..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
             <Select value={roleFilter} onValueChange={setRoleFilter}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by role" />
               </SelectTrigger>
               <SelectContent>
@@ -688,9 +731,8 @@ export default function AdminUsers() {
                 <SelectItem value="viewer_admin">Viewer Admin</SelectItem>
               </SelectContent>
             </Select>
-            
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -705,94 +747,250 @@ export default function AdminUsers() {
       </Card>
 
       {/* Admin Users List */}
-      <div className="space-y-4">
-        {adminUsers.map((user) => (
-          <Card key={user.id} className="overflow-hidden">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+      <Card>
+        <CardHeader>
+          <CardTitle>Admin Accounts</CardTitle>
+          <CardDescription>
+            Manage administrator accounts and their permissions
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {adminUsers.map((user) => (
+              <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 rounded-full overflow-hidden">
-                    <img 
-                      src={user.avatar} 
-                      alt={user.fullName}
-                      className="w-full h-full object-cover"
-                    />
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 flex items-center justify-center text-white font-semibold">
+                    {user.username.charAt(0).toUpperCase()}
                   </div>
-                  
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="font-semibold text-lg text-honey">{user.fullName}</h3>
-                      {getRoleBadge(user.role)}
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <h3 className="font-semibold">{user.fullName || user.username}</h3>
+                      <Badge className={getRoleBadgeColor(user.role)}>
+                        {getRoleIcon(user.role)}
+                        <span className="ml-1">{user.role.replace('_', ' ')}</span>
+                      </Badge>
                       {getStatusBadge(user.status)}
                     </div>
-                    
-                    <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-                      <div className="flex items-center space-x-1">
-                        <Mail className="w-4 h-4" />
-                        <span>{user.email}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Key className="w-4 h-4" />
-                        <span>@{user.username}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="w-4 h-4" />
-                        <span>Created: {formatDate(user.createdAt)}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Clock className="w-4 h-4" />
-                        <span>Last Login: {formatDate(user.lastLogin)}</span>
-                      </div>
-                    </div>
-                    
-                    {user.notes && (
-                      <p className="text-sm text-muted-foreground mt-2 italic">
-                        {user.notes}
-                      </p>
-                    )}
-                    
-                    <div className="flex flex-wrap gap-1 mt-3">
-                      <span className="text-xs text-muted-foreground mr-2">Permissions:</span>
-                      {user.permissions.slice(0, 5).map((permission, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {permission.replace('.', ':')}
-                        </Badge>
-                      ))}
-                      {user.permissions.length > 5 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{user.permissions.length - 5} more
-                        </Badge>
+                    <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                      <span className="flex items-center">
+                        <Mail className="h-3 w-3 mr-1" />
+                        {user.email}
+                      </span>
+                      {user.lastLogin && (
+                        <span className="flex items-center">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          Last login: {new Date(user.lastLogin).toLocaleDateString()}
+                        </span>
                       )}
                     </div>
+                    {user.notes && (
+                      <p className="text-xs text-muted-foreground mt-1">{user.notes}</p>
+                    )}
                   </div>
                 </div>
-                
                 <div className="flex items-center space-x-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => toggleUserStatus(user)}
-                    disabled={user.id === 'admin-1'}
-                    data-testid={`button-toggle-admin-${user.id}`}
+                    onClick={() => openEditDialog(user)}
                   >
-                    {user.status === 'active' ? (
-                      <>
-                        <UserX className="w-4 h-4 mr-1" />
-                        Disable
-                      </>
-                    ) : (
-                      <>
-                        <UserCheck className="w-4 h-4 mr-1" />
-                        Enable
-                      </>
-                    )}
+                    <Edit className="h-4 w-4" />
                   </Button>
+                  {user.role !== 'super_admin' || stats.superAdmins > 1 ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteUser(user.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  ) : null}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            ))}
+            
+            {adminUsers.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                No admin users found matching your criteria.
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Admin User</DialogTitle>
+            <DialogDescription>
+              Update administrator account information and permissions.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Tabs defaultValue="basic" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="basic">Basic Info</TabsTrigger>
+              <TabsTrigger value="role">Role & Permissions</TabsTrigger>
+              <TabsTrigger value="security">Security</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="basic" className="space-y-4">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="edit-username">Username *</Label>
+                  <Input
+                    id="edit-username"
+                    value={formData.username}
+                    onChange={(e) => handleFormChange('username', e.target.value)}
+                    placeholder="Enter username"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-email">Email *</Label>
+                  <Input
+                    id="edit-email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleFormChange('email', e.target.value)}
+                    placeholder="Enter email address"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-fullName">Full Name</Label>
+                  <Input
+                    id="edit-fullName"
+                    value={formData.fullName}
+                    onChange={(e) => handleFormChange('fullName', e.target.value)}
+                    placeholder="Enter full name"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-notes">Notes</Label>
+                  <Textarea
+                    id="edit-notes"
+                    value={formData.notes}
+                    onChange={(e) => handleFormChange('notes', e.target.value)}
+                    placeholder="Optional notes about this admin user"
+                    rows={3}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="role" className="space-y-4">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="edit-role">Role *</Label>
+                  <Select value={formData.role} onValueChange={handleRoleChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="super_admin">Super Admin</SelectItem>
+                      <SelectItem value="creator_admin">Creator Admin</SelectItem>
+                      <SelectItem value="support_admin">Support Admin</SelectItem>
+                      <SelectItem value="viewer_admin">Viewer Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <Label>Custom Permissions</Label>
+                  <div className="mt-2 space-y-3">
+                    {Object.entries(
+                      AVAILABLE_PERMISSIONS.reduce((acc, permission) => {
+                        if (!acc[permission.category]) {
+                          acc[permission.category] = [];
+                        }
+                        acc[permission.category].push(permission);
+                        return acc;
+                      }, {} as Record<string, typeof AVAILABLE_PERMISSIONS>)
+                    ).map(([category, permissions]) => (
+                      <div key={category} className="space-y-2">
+                        <Label className="text-sm font-medium">{category}</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          {permissions.map((permission) => (
+                            <div key={permission.id} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`edit-${permission.id}`}
+                                checked={formData.customPermissions.includes(permission.id)}
+                                onCheckedChange={(checked) =>
+                                  handlePermissionToggle(permission.id, checked as boolean)
+                                }
+                              />
+                              <Label
+                                htmlFor={`edit-${permission.id}`}
+                                className="text-sm font-normal"
+                              >
+                                {permission.name}
+                              </Label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="security" className="space-y-4">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="edit-password">New Password (leave blank to keep current)</Label>
+                  <Input
+                    id="edit-password"
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => handleFormChange('password', e.target.value)}
+                    placeholder="Enter new password"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-confirmPassword">Confirm New Password</Label>
+                  <Input
+                    id="edit-confirmPassword"
+                    type="password"
+                    value={formData.confirmPassword}
+                    onChange={(e) => handleFormChange('confirmPassword', e.target.value)}
+                    placeholder="Confirm new password"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-status">Account Status</Label>
+                  <Select 
+                    value={formData.status} 
+                    onValueChange={(value: 'active' | 'inactive') => handleFormChange('status', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleEditUser}
+              disabled={updateAdminUserMutation.isPending}
+              className="bg-yellow-600 hover:bg-yellow-700"
+            >
+              {updateAdminUserMutation.isPending ? 'Updating...' : 'Update Admin User'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
