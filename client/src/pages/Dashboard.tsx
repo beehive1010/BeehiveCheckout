@@ -287,20 +287,25 @@ export default function Dashboard() {
 
               {/* Activation Button */}
               <div className="text-center space-y-4">
-                <Button
-                  onClick={handleActivateLevel1}
-                  disabled={isActivating}
+                <ClaimMembershipButton
+                  walletAddress={walletAddress || ""}
+                  level={1}
+                  onSuccess={() => {
+                    toast({
+                      title: t('dashboard.activation.success.title'),
+                      description: t('dashboard.activation.success.description'),
+                    });
+                    window.location.reload();
+                  }}
+                  onError={(error) => {
+                    toast({
+                      title: t('dashboard.activation.error.title'),
+                      description: error || t('dashboard.activation.error.description'),
+                      variant: 'destructive',
+                    });
+                  }}
                   className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-honey to-yellow-400 hover:from-yellow-400 hover:to-honey text-black transition-all duration-300 shadow-lg hover:shadow-honey/25"
-                >
-                  {isActivating ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"></div>
-                      Activating...
-                    </>
-                  ) : (
-                    'Activate Membership'
-                  )}
-                </Button>
+                />
                 <p className="text-sm text-muted-foreground">
                   {t('dashboard.activation.activationNote')}
                 </p>
