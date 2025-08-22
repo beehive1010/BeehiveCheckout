@@ -10,7 +10,7 @@ import {
   Image,
   BookOpen,
   Globe,
-  BarChart3,
+  Code2,
   Settings,
   LogOut,
   Menu,
@@ -49,6 +49,12 @@ const navigationItems = [
     href: '/admin/nfts',
     icon: Image,
     permission: 'nfts.read',
+  },
+  {
+    title: 'Contracts',
+    href: '/admin/contracts',
+    icon: Code2,
+    permission: 'contracts.read',
   },
   {
     title: 'HiveWorld Blog',

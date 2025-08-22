@@ -31,6 +31,9 @@ import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminReferrals from "@/pages/admin/AdminReferrals";
 import AdminNFTs from "@/pages/admin/AdminNFTs";
+import AdminContracts from "@/pages/admin/AdminContracts";
+import AdminContractDetail from "@/pages/admin/AdminContractDetail";
+import AdminContractDeploy from "@/pages/admin/AdminContractDeploy";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { AdminRouteGuard } from "@/components/admin/AdminRouteGuard";
 
@@ -74,6 +77,27 @@ function Router() {
           <AdminRouteGuard requiredPermission="nfts.read">
             <AdminLayout>
               <AdminNFTs />
+            </AdminLayout>
+          </AdminRouteGuard>
+        )} />
+        <Route path="/admin/contracts" component={() => (
+          <AdminRouteGuard requiredPermission="contracts.read">
+            <AdminLayout>
+              <AdminContracts />
+            </AdminLayout>
+          </AdminRouteGuard>
+        )} />
+        <Route path="/admin/contracts/deploy" component={() => (
+          <AdminRouteGuard requiredPermission="contracts.deploy">
+            <AdminLayout>
+              <AdminContractDeploy />
+            </AdminLayout>
+          </AdminRouteGuard>
+        )} />
+        <Route path="/admin/contracts/:contractId" component={() => (
+          <AdminRouteGuard requiredPermission="contracts.read">
+            <AdminLayout>
+              <AdminContractDetail />
             </AdminLayout>
           </AdminRouteGuard>
         )} />
