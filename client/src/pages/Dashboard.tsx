@@ -89,10 +89,10 @@ export default function Dashboard() {
           <Card className="bg-secondary border-border shadow-2xl">
             <CardHeader className="text-center pb-4">
               <CardTitle className="text-2xl font-bold text-honey mb-2">
-                Welcome to Beehive! 🎉
+                {t('dashboard.nftRequired.title')}
               </CardTitle>
               <p className="text-muted-foreground text-sm">
-                Complete your membership by purchasing your Level 1 Warrior NFT. This activates your position in the matrix and starts your Web3 journey.
+                {t('dashboard.nftRequired.description')}
               </p>
             </CardHeader>
             
@@ -101,59 +101,59 @@ export default function Dashboard() {
               <div className="bg-muted rounded-lg p-4 border border-honey/20">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <h3 className="text-lg font-bold text-honey">Level 1 Warrior NFT</h3>
-                    <p className="text-xs text-muted-foreground">One-time purchase to active your membership</p>
+                    <h3 className="text-lg font-bold text-honey">{t('dashboard.nftRequired.requiredNft')}</h3>
+                    <p className="text-xs text-muted-foreground">{t('dashboard.nftRequired.nftDescription')}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-muted-foreground">Price</p>
-                    <p className="text-xl font-bold text-honey">130 USDT</p>
+                    <p className="text-xs text-muted-foreground">{t('dashboard.nftRequired.price')}</p>
+                    <p className="text-xl font-bold text-honey">{t('dashboard.nftRequired.priceAmount')}</p>
                   </div>
                 </div>
                 <div className="flex items-center text-xs">
                   <i className="fas fa-layer-group text-honey mr-2"></i>
-                  <span className="text-honey font-medium">Token ID: 0</span>
+                  <span className="text-honey font-medium">{t('dashboard.nftRequired.tokenId')}</span>
                 </div>
               </div>
 
               {/* Benefits Section */}
               <div className="space-y-3">
-                <h3 className="text-lg font-semibold text-honey">What You'll Unlock:</h3>
+                <h3 className="text-lg font-semibold text-honey">{t('dashboard.nftRequired.benefitsTitle')}</h3>
                 <div className="space-y-2">
                   <div className="flex items-center text-sm">
                     <div className="w-4 h-4 rounded-full bg-honey/20 flex items-center justify-center mr-3">
                       <i className="fas fa-check text-honey text-xs"></i>
                     </div>
-                    <span className="text-muted-foreground">Full Dashboard Access</span>
+                    <span className="text-muted-foreground">{t('dashboard.nftRequired.benefits.dashboard')}</span>
                   </div>
                   <div className="flex items-center text-sm">
                     <div className="w-4 h-4 rounded-full bg-honey/20 flex items-center justify-center mr-3">
                       <i className="fas fa-check text-honey text-xs"></i>
                     </div>
-                    <span className="text-muted-foreground">Tasks & NFT Marketplace</span>
+                    <span className="text-muted-foreground">{t('dashboard.nftRequired.benefits.tasks')}</span>
                   </div>
                   <div className="flex items-center text-sm">
                     <div className="w-4 h-4 rounded-full bg-honey/20 flex items-center justify-center mr-3">
                       <i className="fas fa-check text-honey text-xs"></i>
                     </div>
-                    <span className="text-muted-foreground">Education Center</span>
+                    <span className="text-muted-foreground">{t('dashboard.nftRequired.benefits.education')}</span>
                   </div>
                   <div className="flex items-center text-sm">
                     <div className="w-4 h-4 rounded-full bg-honey/20 flex items-center justify-center mr-3">
                       <i className="fas fa-check text-honey text-xs"></i>
                     </div>
-                    <span className="text-muted-foreground">Discover Web3 Dapps</span>
+                    <span className="text-muted-foreground">{t('dashboard.nftRequired.benefits.discover')}</span>
                   </div>
                   <div className="flex items-center text-sm">
                     <div className="w-4 h-4 rounded-full bg-honey/20 flex items-center justify-center mr-3">
                       <i className="fas fa-check text-honey text-xs"></i>
                     </div>
-                    <span className="text-muted-foreground">BCC Token System</span>
+                    <span className="text-muted-foreground">{t('dashboard.nftRequired.benefits.tokens')}</span>
                   </div>
                   <div className="flex items-center text-sm">
                     <div className="w-4 h-4 rounded-full bg-honey/20 flex items-center justify-center mr-3">
                       <i className="fas fa-check text-honey text-xs"></i>
                     </div>
-                    <span className="text-muted-foreground">HiveWorld Matrix System</span>
+                    <span className="text-muted-foreground">{t('dashboard.nftRequired.benefits.matrix')}</span>
                   </div>
                 </div>
               </div>
@@ -162,10 +162,10 @@ export default function Dashboard() {
               <div className="text-center space-y-4">
                 <div className="flex items-center justify-center">
                   <i className="fas fa-gem text-honey mr-2"></i>
-                  <span className="text-honey font-medium text-sm">Premium Membership</span>
+                  <span className="text-honey font-medium text-sm">{t('dashboard.nftRequired.premiumTitle')}</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Activate your Level 1 NFT membership and take it positions in matrix, and start earning rewards.
+                  {t('dashboard.nftRequired.premiumDescription')}
                 </p>
 
                 <ClaimMembershipButton
@@ -173,16 +173,16 @@ export default function Dashboard() {
                   level={1}
                   onSuccess={() => {
                     toast({
-                      title: "Membership Activated!",
-                      description: "Your Level 1 NFT has been purchased and your membership is now active.",
+                      title: t('dashboard.nftRequired.purchaseSuccess.title'),
+                      description: t('dashboard.nftRequired.purchaseSuccess.description'),
                     });
                     // Refresh page to show dashboard
                     window.location.reload();
                   }}
                   onError={(error) => {
                     toast({
-                      title: "Purchase Failed",
-                      description: error || "Failed to purchase NFT. Please try again.",
+                      title: t('dashboard.nftRequired.purchaseError.title'),
+                      description: error || t('dashboard.nftRequired.purchaseError.description'),
                       variant: 'destructive',
                     });
                   }}
@@ -190,7 +190,7 @@ export default function Dashboard() {
                 />
 
                 <p className="text-xs text-muted-foreground">
-                  Secure Web3 payment powered by blockchain technology
+                  {t('dashboard.nftRequired.supportText')}
                 </p>
               </div>
             </CardContent>
