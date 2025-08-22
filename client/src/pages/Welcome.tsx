@@ -70,17 +70,7 @@ export default function Welcome() {
             </div>
 
             {/* Feature Cards */}
-            <div className="grid md:grid-cols-3 gap-6 mb-12">
-              <Card className="bg-secondary/50 backdrop-blur border-honey/20 hover:border-honey/40 transition-all duration-300 group">
-                <CardContent className="p-6 text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-honey/10 flex items-center justify-center group-hover:bg-honey/20 transition-colors">
-                    <i className="fas fa-tachometer-alt text-honey text-2xl"></i>
-                  </div>
-                  <h3 className="text-lg font-semibold text-honey mb-2">{t('welcome.benefits.dashboard')}</h3>
-                  <p className="text-sm text-muted-foreground">Complete control over your Web3 journey</p>
-                </CardContent>
-              </Card>
-
+            <div className="grid md:grid-cols-2 gap-6 mb-12">
               <Card className="bg-secondary/50 backdrop-blur border-honey/20 hover:border-honey/40 transition-all duration-300 group">
                 <CardContent className="p-6 text-center">
                   <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-honey/10 flex items-center justify-center group-hover:bg-honey/20 transition-colors">
