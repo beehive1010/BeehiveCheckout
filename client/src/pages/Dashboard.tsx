@@ -84,42 +84,118 @@ export default function Dashboard() {
   // Show NFT verification requirement if user doesn't have Level 1 NFT
   if (!hasLevel1NFT && !isCheckingNFT) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Card className="max-w-2xl mx-auto bg-secondary border-border glow-hover">
-          <CardContent className="p-8 text-center">
-            <HexagonIcon className="mx-auto mb-6" size="xl">
-              <i className="fas fa-lock text-honey text-3xl"></i>
-            </HexagonIcon>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <Card className="bg-secondary border-border shadow-2xl">
+            <CardHeader className="text-center pb-4">
+              <CardTitle className="text-2xl font-bold text-honey mb-2">
+                Welcome to Beehive! 🎉
+              </CardTitle>
+              <p className="text-muted-foreground text-sm">
+                Complete your membership by purchasing your Level 1 Warrior NFT. This activates your position in the matrix and starts your Web3 journey.
+              </p>
+            </CardHeader>
             
-            <h1 className="text-3xl font-bold text-honey mb-4">
-              {t('dashboard.nftRequired.title')}
-            </h1>
-            
-            <p className="text-muted-foreground text-lg mb-6">
-              {t('dashboard.nftRequired.description')}
-            </p>
-
-            <div className="bg-muted rounded-lg p-4 mb-6">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-sm text-muted-foreground">{t('dashboard.nftRequired.requiredNft')}</p>
-                  <p className="text-2xl font-bold text-honey">{t('dashboard.nftRequired.level1Warrior')}</p>
+            <CardContent className="space-y-6">
+              {/* NFT Section */}
+              <div className="bg-muted rounded-lg p-4 border border-honey/20">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="text-lg font-bold text-honey">Level 1 Warrior NFT</h3>
+                    <p className="text-xs text-muted-foreground">One-time purchase to active your membership</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Price</p>
+                    <p className="text-xl font-bold text-honey">130 USDT</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">{t('dashboard.nftRequired.tokenId')}</p>
-                  <p className="text-2xl font-bold text-honey">0</p>
+                <div className="flex items-center text-xs">
+                  <i className="fas fa-layer-group text-honey mr-2"></i>
+                  <span className="text-honey font-medium">Token ID: 0</span>
                 </div>
               </div>
-            </div>
 
-            <Button 
-              onClick={() => setLocation('/tasks')}
-              className="bg-honey text-black hover:bg-honey/90"
-            >
-{t('dashboard.nftRequired.getButton')}
-            </Button>
-          </CardContent>
-        </Card>
+              {/* Benefits Section */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-honey">What You'll Unlock:</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center text-sm">
+                    <div className="w-4 h-4 rounded-full bg-honey/20 flex items-center justify-center mr-3">
+                      <i className="fas fa-check text-honey text-xs"></i>
+                    </div>
+                    <span className="text-muted-foreground">Full Dashboard Access</span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <div className="w-4 h-4 rounded-full bg-honey/20 flex items-center justify-center mr-3">
+                      <i className="fas fa-check text-honey text-xs"></i>
+                    </div>
+                    <span className="text-muted-foreground">Tasks & NFT Marketplace</span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <div className="w-4 h-4 rounded-full bg-honey/20 flex items-center justify-center mr-3">
+                      <i className="fas fa-check text-honey text-xs"></i>
+                    </div>
+                    <span className="text-muted-foreground">Education Center</span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <div className="w-4 h-4 rounded-full bg-honey/20 flex items-center justify-center mr-3">
+                      <i className="fas fa-check text-honey text-xs"></i>
+                    </div>
+                    <span className="text-muted-foreground">Discover Web3 Dapps</span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <div className="w-4 h-4 rounded-full bg-honey/20 flex items-center justify-center mr-3">
+                      <i className="fas fa-check text-honey text-xs"></i>
+                    </div>
+                    <span className="text-muted-foreground">BCC Token System</span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <div className="w-4 h-4 rounded-full bg-honey/20 flex items-center justify-center mr-3">
+                      <i className="fas fa-check text-honey text-xs"></i>
+                    </div>
+                    <span className="text-muted-foreground">HiveWorld Matrix System</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Premium Section */}
+              <div className="text-center space-y-4">
+                <div className="flex items-center justify-center">
+                  <i className="fas fa-gem text-honey mr-2"></i>
+                  <span className="text-honey font-medium text-sm">Premium Membership</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Activate your Level 1 NFT membership and take it positions in matrix, and start earning rewards.
+                </p>
+
+                <ClaimMembershipButton
+                  walletAddress={walletAddress || ""}
+                  level={1}
+                  onSuccess={() => {
+                    toast({
+                      title: "Membership Activated!",
+                      description: "Your Level 1 NFT has been purchased and your membership is now active.",
+                    });
+                    // Refresh page to show dashboard
+                    window.location.reload();
+                  }}
+                  onError={(error) => {
+                    toast({
+                      title: "Purchase Failed",
+                      description: error || "Failed to purchase NFT. Please try again.",
+                      variant: 'destructive',
+                    });
+                  }}
+                  className="w-full"
+                />
+
+                <p className="text-xs text-muted-foreground">
+                  Secure Web3 payment powered by blockchain technology
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
