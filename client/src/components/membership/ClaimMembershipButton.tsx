@@ -9,8 +9,8 @@ import { client, alphaCentauri, bbcMembershipContract, levelToTokenId, paymentCh
 import { PayEmbed } from "thirdweb/react";
 import { Card, CardContent } from '../ui/card';
 import { FiX } from 'react-icons/fi';
-import { getApprovalForTransaction } from 'thirdweb/extensions/erc20';
-import { sendAndConfirmTransaction, prepareTransaction } from 'thirdweb';
+import { getApprovalForTransaction, transfer } from 'thirdweb/extensions/erc20';
+import { sendAndConfirmTransaction, prepareTransaction, getContract } from 'thirdweb';
 
 type ClaimState = 'idle' | 'approving' | 'paying' | 'verifying' | 'persisting' | 'success' | 'error';
 
@@ -591,22 +591,18 @@ export default function ClaimMembershipButton({
               client={client}
               payOptions={{
                 mode: "transaction",
-                transaction: async () => {
-                  // 创建简单的ERC20转账交易
-                  const { transfer } = await import('thirdweb/extensions/erc20');
-                  return transfer({
-                    contract: {
-                      client,
-                      chain: selectedChain.chain,
-                      address: selectedChain.usdtAddress,
-                    },
-                    to: selectedChain.bridgeWallet,
-                    amount: (membershipLevel.priceUSDT * 1000000).toString(), // USDT has 6 decimals
-                  });
-                },
+                transaction: transfer({
+                  contract: getContract({
+                    client,
+                    chain: selectedChain.chain,
+                    address: selectedChain.usdtAddress as `0x${string}`,
+                  }),
+                  to: selectedChain.bridgeWallet as `0x${string}`,
+                  amount: (membershipLevel.priceUSDT * 1000000).toString(), // USDT has 6 decimals
+                }),
                 metadata: {
                   name: `Beehive Level ${level} Membership (Test)`,
-                  description: `Test purchase for Level ${level} membership using ${selectedChain.usdtAddress}`,
+                  description: `Test purchase for Level ${level} membership using test USDT`,
                 },
                 onPurchaseSuccess: handlePaymentSuccess,
               }}
