@@ -49,99 +49,104 @@ export default function Welcome() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
-      <div className="container mx-auto px-4 max-w-4xl">
-        {/* Simple Header */}
-        <div className="text-center mb-8">
-          <div className="mb-4">
-            <i className="fas fa-gift text-6xl text-honey"></i>
-          </div>
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            {t('welcome.title')}
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            {t('welcome.subtitle')}
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* NFT Information */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
-            <h2 className="text-2xl font-bold text-honey mb-4">{t('welcome.nft.title')}</h2>
-            <p className="text-gray-600 dark:text-gray-300 mb-4">{t('welcome.nft.description')}</p>
-            
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-300">{t('welcome.nft.tokenId')}</span>
-                <span className="font-medium text-gray-900 dark:text-white">Token ID: 0</span>
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <Card className="bg-secondary border-border shadow-2xl">
+          <CardHeader className="text-center pb-4">
+            <CardTitle className="text-2xl font-bold text-honey mb-2">
+              {t('welcome.title')}
+            </CardTitle>
+            <p className="text-muted-foreground text-sm">
+              {t('welcome.subtitle')}
+            </p>
+          </CardHeader>
+          
+          <CardContent className="space-y-6">
+            {/* NFT Section */}
+            <div className="bg-muted rounded-lg p-4 border border-honey/20">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h3 className="text-lg font-bold text-honey">{t('welcome.nft.title')}</h3>
+                  <p className="text-xs text-muted-foreground">{t('welcome.nft.description')}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">{t('welcome.nft.price')}</p>
+                  <p className="text-xl font-bold text-honey">{t('welcome.nft.priceAmount')}</p>
+                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-300">{t('welcome.nft.price')}</span>
-                <span className="text-2xl font-bold text-honey">{t('welcome.nft.priceAmount')}</span>
+              <div className="flex items-center text-xs">
+                <i className="fas fa-layer-group text-honey mr-2"></i>
+                <span className="text-honey font-medium">{t('welcome.nft.tokenId')}</span>
               </div>
             </div>
 
-            <div className="mt-6 p-4 bg-honey/10 rounded border-l-4 border-honey">
-              <p className="text-honey font-medium">{t('welcome.premium.title')}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+            {/* Benefits Section */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold text-honey">{t('welcome.benefits.title')}</h3>
+              <div className="space-y-2">
+                <div className="flex items-center text-sm">
+                  <div className="w-4 h-4 rounded-full bg-honey/20 flex items-center justify-center mr-3">
+                    <i className="fas fa-check text-honey text-xs"></i>
+                  </div>
+                  <span className="text-muted-foreground">{t('welcome.benefits.dashboard')}</span>
+                </div>
+                <div className="flex items-center text-sm">
+                  <div className="w-4 h-4 rounded-full bg-honey/20 flex items-center justify-center mr-3">
+                    <i className="fas fa-check text-honey text-xs"></i>
+                  </div>
+                  <span className="text-muted-foreground">{t('welcome.benefits.tasks')}</span>
+                </div>
+                <div className="flex items-center text-sm">
+                  <div className="w-4 h-4 rounded-full bg-honey/20 flex items-center justify-center mr-3">
+                    <i className="fas fa-check text-honey text-xs"></i>
+                  </div>
+                  <span className="text-muted-foreground">{t('welcome.benefits.education')}</span>
+                </div>
+                <div className="flex items-center text-sm">
+                  <div className="w-4 h-4 rounded-full bg-honey/20 flex items-center justify-center mr-3">
+                    <i className="fas fa-check text-honey text-xs"></i>
+                  </div>
+                  <span className="text-muted-foreground">{t('welcome.benefits.discover')}</span>
+                </div>
+                <div className="flex items-center text-sm">
+                  <div className="w-4 h-4 rounded-full bg-honey/20 flex items-center justify-center mr-3">
+                    <i className="fas fa-check text-honey text-xs"></i>
+                  </div>
+                  <span className="text-muted-foreground">{t('welcome.benefits.tokens')}</span>
+                </div>
+                <div className="flex items-center text-sm">
+                  <div className="w-4 h-4 rounded-full bg-honey/20 flex items-center justify-center mr-3">
+                    <i className="fas fa-check text-honey text-xs"></i>
+                  </div>
+                  <span className="text-muted-foreground">{t('welcome.benefits.hiveworld')}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Premium Section */}
+            <div className="text-center space-y-4">
+              <div className="flex items-center justify-center">
+                <i className="fas fa-gem text-honey mr-2"></i>
+                <span className="text-honey font-medium text-sm">{t('welcome.premium.title')}</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
                 {t('welcome.premium.description')}
               </p>
+
+              <ClaimMembershipButton
+                walletAddress={account?.address || ""}
+                level={1}
+                onSuccess={handlePurchaseSuccess}
+                onError={handlePurchaseError}
+                className="w-full"
+              />
+
+              <p className="text-xs text-muted-foreground">
+                {t('welcome.supportText')}
+              </p>
             </div>
-          </div>
-
-          {/* Benefits List */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
-            <h2 className="text-2xl font-bold text-honey mb-4">{t('welcome.benefits.title')}</h2>
-            
-            <ul className="space-y-4">
-              <li className="flex items-center">
-                <i className="fas fa-tachometer-alt text-honey w-6 mr-3"></i>
-                <span className="text-gray-700 dark:text-gray-300">{t('welcome.benefits.dashboard')}</span>
-              </li>
-              <li className="flex items-center">
-                <i className="fas fa-tasks text-honey w-6 mr-3"></i>
-                <span className="text-gray-700 dark:text-gray-300">{t('welcome.benefits.tasks')}</span>
-              </li>
-              <li className="flex items-center">
-                <i className="fas fa-graduation-cap text-honey w-6 mr-3"></i>
-                <span className="text-gray-700 dark:text-gray-300">{t('welcome.benefits.education')}</span>
-              </li>
-              <li className="flex items-center">
-                <i className="fas fa-globe text-honey w-6 mr-3"></i>
-                <span className="text-gray-700 dark:text-gray-300">{t('welcome.benefits.discover')}</span>
-              </li>
-              <li className="flex items-center">
-                <i className="fas fa-coins text-honey w-6 mr-3"></i>
-                <span className="text-gray-700 dark:text-gray-300">{t('welcome.benefits.tokens')}</span>
-              </li>
-              <li className="flex items-center">
-                <i className="fas fa-users text-honey w-6 mr-3"></i>
-                <span className="text-gray-700 dark:text-gray-300">{t('welcome.benefits.hiveworld')}</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {/* Purchase Section */}
-        <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 border border-gray-200 dark:border-gray-700 text-center">
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            Get Started with Level 1 Membership
-          </h3>
-          
-          <div className="max-w-md mx-auto mb-6">
-            <ClaimMembershipButton
-              walletAddress={account?.address || ""}
-              level={1}
-              onSuccess={handlePurchaseSuccess}
-              onError={handlePurchaseError}
-              className="w-full"
-            />
-          </div>
-
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {t('welcome.supportText')}
-          </p>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
