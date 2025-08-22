@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-// import { storage } from "./storage"; // Temporarily commented out due to compilation issues
+import { storage } from "./storage";
 import { db } from "./db";
 import { sql } from "drizzle-orm";
 import { 
@@ -1480,6 +1480,222 @@ export async function registerRoutes(app: Express): Promise<Server> {
       email: req.adminUser.email,
       role: req.adminUser.role,
     });
+  });
+
+  // Admin Users routes
+  app.get("/api/admin/admin-users", requireAdminAuth, requireAdminRole(['super_admin']), async (req: any, res) => {
+    try {
+      const { search, role, status } = req.query;
+      
+      let query = db.select().from(adminUsers);
+      const conditions = [];
+      
+      if (search) {
+        const searchTerm = `%${search.toLowerCase()}%`;
+        conditions.push(sql`(
+          LOWER(${adminUsers.username}) LIKE ${searchTerm} OR 
+          LOWER(${adminUsers.email}) LIKE ${searchTerm} OR 
+          LOWER(${adminUsers.fullName}) LIKE ${searchTerm}
+        )`);
+      }
+      if (role) {
+        conditions.push(eq(adminUsers.role, role));
+      }
+      if (status) {
+        conditions.push(eq(adminUsers.status, status));
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+      
+      const users = await query.orderBy(desc(adminUsers.createdAt));
+      
+      // Don't return password hashes
+      const safeUsers = users.map(user => ({
+        ...user,
+        passwordHash: undefined
+      }));
+      
+      res.json(safeUsers);
+    } catch (error) {
+      console.error('Get admin users error:', error);
+      res.status(500).json({ error: 'Failed to fetch admin users' });
+    }
+  });
+
+  app.get("/api/admin/admin-users/:id", requireAdminAuth, requireAdminRole(['super_admin']), async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, id));
+      
+      if (!user) {
+        return res.status(404).json({ error: 'Admin user not found' });
+      }
+      
+      // Don't return password hash
+      const safeUser = { ...user, passwordHash: undefined };
+      res.json(safeUser);
+    } catch (error) {
+      console.error('Get admin user error:', error);
+      res.status(500).json({ error: 'Failed to fetch admin user' });
+    }
+  });
+
+  app.post("/api/admin/admin-users", requireAdminAuth, requireAdminRole(['super_admin']), async (req: any, res) => {
+    try {
+      const { username, email, password, role, permissions, status, fullName, notes } = req.body;
+      
+      if (!username || !email || !password || !role) {
+        return res.status(400).json({ error: 'Username, email, password, and role are required' });
+      }
+      
+      // Check if username or email already exists
+      const existingUser = await db.select().from(adminUsers)
+        .where(sql`${adminUsers.username} = ${username} OR ${adminUsers.email} = ${email}`)
+        .limit(1);
+      
+      if (existingUser.length > 0) {
+        return res.status(400).json({ error: 'Username or email already exists' });
+      }
+      
+      // Hash password
+      const passwordHash = await bcrypt.hash(password, 12);
+      
+      // Create admin user
+      const [newUser] = await db.insert(adminUsers).values({
+        username,
+        email,
+        passwordHash,
+        role,
+        permissions: permissions || [],
+        status: status || 'active',
+        fullName,
+        notes,
+        createdBy: req.adminUser.username,
+      }).returning();
+      
+      // Log admin action
+      await logAdminAction(
+        req.adminUser.id,
+        'create',
+        'admin_users',
+        newUser.id,
+        'admin_user',
+        null,
+        { username, email, role },
+        `Created admin user: ${username}`
+      );
+      
+      // Don't return password hash
+      const safeUser = { ...newUser, passwordHash: undefined };
+      res.json(safeUser);
+    } catch (error) {
+      console.error('Create admin user error:', error);
+      res.status(500).json({ error: 'Failed to create admin user' });
+    }
+  });
+
+  app.put("/api/admin/admin-users/:id", requireAdminAuth, requireAdminRole(['super_admin']), async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { username, email, password, role, permissions, status, fullName, notes } = req.body;
+      
+      // Get existing user
+      const [existingUser] = await db.select().from(adminUsers).where(eq(adminUsers.id, id));
+      if (!existingUser) {
+        return res.status(404).json({ error: 'Admin user not found' });
+      }
+      
+      // Prevent modifying the last super admin
+      if (existingUser.role === 'super_admin' && role !== 'super_admin') {
+        const superAdminCount = await db.select().from(adminUsers)
+          .where(eq(adminUsers.role, 'super_admin'));
+        if (superAdminCount.length <= 1) {
+          return res.status(400).json({ error: 'Cannot modify the last super admin' });
+        }
+      }
+      
+      const updates: any = {
+        username,
+        email,
+        role,
+        permissions,
+        status,
+        fullName,
+        notes,
+      };
+      
+      // Hash new password if provided
+      if (password) {
+        updates.passwordHash = await bcrypt.hash(password, 12);
+      }
+      
+      const [updatedUser] = await db.update(adminUsers)
+        .set(updates)
+        .where(eq(adminUsers.id, id))
+        .returning();
+      
+      // Log admin action
+      await logAdminAction(
+        req.adminUser.id,
+        'update',
+        'admin_users',
+        id,
+        'admin_user',
+        { username: existingUser.username, email: existingUser.email, role: existingUser.role },
+        { username, email, role },
+        `Updated admin user: ${username}`
+      );
+      
+      // Don't return password hash
+      const safeUser = { ...updatedUser, passwordHash: undefined };
+      res.json(safeUser);
+    } catch (error) {
+      console.error('Update admin user error:', error);
+      res.status(500).json({ error: 'Failed to update admin user' });
+    }
+  });
+
+  app.delete("/api/admin/admin-users/:id", requireAdminAuth, requireAdminRole(['super_admin']), async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Get existing user
+      const [existingUser] = await db.select().from(adminUsers).where(eq(adminUsers.id, id));
+      if (!existingUser) {
+        return res.status(404).json({ error: 'Admin user not found' });
+      }
+      
+      // Prevent deleting the last super admin
+      if (existingUser.role === 'super_admin') {
+        const superAdminCount = await db.select().from(adminUsers)
+          .where(eq(adminUsers.role, 'super_admin'));
+        if (superAdminCount.length <= 1) {
+          return res.status(400).json({ error: 'Cannot delete the last super admin' });
+        }
+      }
+      
+      // Delete user
+      await db.delete(adminUsers).where(eq(adminUsers.id, id));
+      
+      // Log admin action
+      await logAdminAction(
+        req.adminUser.id,
+        'delete',
+        'admin_users',
+        id,
+        'admin_user',
+        { username: existingUser.username, email: existingUser.email, role: existingUser.role },
+        null,
+        `Deleted admin user: ${existingUser.username}`
+      );
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Delete admin user error:', error);
+      res.status(500).json({ error: 'Failed to delete admin user' });
+    }
   });
   
   // Admin users management (super admin only)

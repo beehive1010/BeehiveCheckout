@@ -16,6 +16,8 @@ import {
   bridgePayments,
   advertisementNFTs,
   advertisementNFTClaims,
+  adminUsers,
+  adminSessions,
   type User, 
   type InsertUser,
   type MembershipState,
@@ -50,6 +52,10 @@ import {
   type InsertAdvertisementNFT,
   type AdvertisementNFTClaim,
   type InsertAdvertisementNFTClaim,
+  type AdminUser,
+  type InsertAdminUser,
+  type AdminSession,
+  type InsertAdminSession,
   tokenPurchases,
   cthBalances,
   type TokenPurchase,
@@ -177,6 +183,19 @@ export interface IStorage {
     bccRestricted: number;
     cth: number;
   }>;
+
+  // Admin User operations
+  getAdminUsers(filters?: { search?: string; role?: string; status?: string }): Promise<AdminUser[]>;
+  getAdminUser(id: string): Promise<AdminUser | undefined>;
+  getAdminUserByUsername(username: string): Promise<AdminUser | undefined>;
+  createAdminUser(adminUser: InsertAdminUser): Promise<AdminUser>;
+  updateAdminUser(id: string, updates: Partial<AdminUser>): Promise<AdminUser | undefined>;
+  deleteAdminUser(id: string): Promise<boolean>;
+
+  // Admin Session operations
+  createAdminSession(session: InsertAdminSession): Promise<AdminSession>;
+  getAdminSession(sessionToken: string): Promise<AdminSession | undefined>;
+  deleteAdminSession(sessionToken: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1534,6 +1553,85 @@ export class DatabaseStorage implements IStorage {
         cth: 0
       };
     }
+  }
+
+  // Admin User operations
+  async getAdminUsers(filters?: { search?: string; role?: string; status?: string }): Promise<AdminUser[]> {
+    let query = db.select().from(adminUsers);
+    
+    // Apply filters
+    const conditions = [];
+    if (filters?.search) {
+      const searchTerm = `%${filters.search.toLowerCase()}%`;
+      conditions.push(sql`(
+        LOWER(${adminUsers.username}) LIKE ${searchTerm} OR 
+        LOWER(${adminUsers.email}) LIKE ${searchTerm} OR 
+        LOWER(${adminUsers.fullName}) LIKE ${searchTerm}
+      )`);
+    }
+    if (filters?.role) {
+      conditions.push(eq(adminUsers.role, filters.role));
+    }
+    if (filters?.status) {
+      conditions.push(eq(adminUsers.status, filters.status));
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    return await query.orderBy(desc(adminUsers.createdAt));
+  }
+
+  async getAdminUser(id: string): Promise<AdminUser | undefined> {
+    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.id, id));
+    return user || undefined;
+  }
+
+  async getAdminUserByUsername(username: string): Promise<AdminUser | undefined> {
+    const [user] = await db.select().from(adminUsers).where(eq(adminUsers.username, username));
+    return user || undefined;
+  }
+
+  async createAdminUser(adminUser: InsertAdminUser): Promise<AdminUser> {
+    const [user] = await db
+      .insert(adminUsers)
+      .values(adminUser)
+      .returning();
+    return user;
+  }
+
+  async updateAdminUser(id: string, updates: Partial<AdminUser>): Promise<AdminUser | undefined> {
+    const [user] = await db
+      .update(adminUsers)
+      .set(updates)
+      .where(eq(adminUsers.id, id))
+      .returning();
+    return user || undefined;
+  }
+
+  async deleteAdminUser(id: string): Promise<boolean> {
+    const result = await db.delete(adminUsers).where(eq(adminUsers.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Admin Session operations
+  async createAdminSession(session: InsertAdminSession): Promise<AdminSession> {
+    const [adminSession] = await db
+      .insert(adminSessions)
+      .values(session)
+      .returning();
+    return adminSession;
+  }
+
+  async getAdminSession(sessionToken: string): Promise<AdminSession | undefined> {
+    const [session] = await db.select().from(adminSessions).where(eq(adminSessions.sessionToken, sessionToken));
+    return session || undefined;
+  }
+
+  async deleteAdminSession(sessionToken: string): Promise<boolean> {
+    const result = await db.delete(adminSessions).where(eq(adminSessions.sessionToken, sessionToken));
+    return result.rowCount > 0;
   }
 }
 
