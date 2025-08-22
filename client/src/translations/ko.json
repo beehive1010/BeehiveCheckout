@@ -1164,7 +1164,7 @@
   },
   "membership": {
     "purchase": {
-      "button": "회원 혜택 잠금 해제 - 130 USDT",
+      "button": "회원 잠금 해제 - 130 USDT",
       "connectWallet": "구매를 위해 지갑 연결",
       "selectChain": "결제 체인 선택",
       "selectChainDescription": "레벨{level} 멤버십 결제에 사용할 블록체인을 선택하세요",
