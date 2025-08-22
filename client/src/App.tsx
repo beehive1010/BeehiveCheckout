@@ -25,6 +25,12 @@ import NFTCenter from "@/pages/NFTCenter";
 import TokenPurchase from "@/components/tokens/TokenPurchase";
 import NotFound from "@/pages/not-found";
 
+// Admin Panel
+import AdminLogin from "@/pages/admin/AdminLogin";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import { AdminLayout } from "@/components/admin/AdminLayout";
+import { AdminRouteGuard } from "@/components/admin/AdminRouteGuard";
+
 // Layout components
 import Header from "@/components/Layout/Header";
 import Navigation from "@/components/Layout/Navigation";
@@ -34,9 +40,12 @@ import { RouteGuard } from "@/components/RouteGuard";
 function Router() {
   return (
     <Switch>
+      {/* Public routes */}
       <Route path="/" component={Landing} />
       <Route path="/register" component={Registration} />
       <Route path="/welcome" component={Welcome} />
+      
+      {/* Main app routes */}
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/tasks" component={Tasks} />
       <Route path="/education" component={Education} />
@@ -58,6 +67,27 @@ function Router() {
           <TokenPurchase />
         </div>
       )} />
+      
+      {/* Admin Panel routes */}
+      <Route path="/admin/login" component={AdminLogin} />
+      <Route path="/admin/dashboard" component={() => (
+        <AdminRouteGuard>
+          <AdminLayout>
+            <AdminDashboard />
+          </AdminLayout>
+        </AdminRouteGuard>
+      )} />
+      <Route path="/admin/unauthorized" component={() => (
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="text-center space-y-4">
+            <h1 className="text-3xl font-bold text-honey">Access Denied</h1>
+            <p className="text-muted-foreground">
+              You don't have permission to access this area.
+            </p>
+          </div>
+        </div>
+      )} />
+      
       <Route component={NotFound} />
     </Switch>
   );
