@@ -214,63 +214,9 @@ export default function Dashboard() {
   }
 
   if (!isActivated) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card className="max-w-2xl mx-auto bg-secondary border-border glow-hover">
-          <CardContent className="p-8 text-center">
-            <HexagonIcon className="mx-auto mb-6" size="xl">
-              <i className="fas fa-rocket text-honey text-3xl"></i>
-            </HexagonIcon>
-            
-            <h1 className="text-3xl font-bold text-honey mb-4">
-              {t('dashboard.activation.title')}
-            </h1>
-            
-            <p className="text-muted-foreground text-lg mb-6">
-              {t('dashboard.activation.description')}
-            </p>
-
-            <div className="bg-muted rounded-lg p-4 mb-6">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-sm text-muted-foreground">{t('dashboard.activation.membershipLevel')}</p>
-                  <p className="text-2xl font-bold text-honey">{t('dashboard.levelText', { level: 1 })}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">{t('dashboard.activation.price')}</p>
-                  <p className="text-2xl font-bold text-honey">{t('dashboard.activation.priceLevel1')}</p>
-                </div>
-              </div>
-            </div>
-
-            <ClaimMembershipButton
-              walletAddress={walletAddress || ""}
-              level={1}
-              onSuccess={() => {
-                toast({
-                  title: t('dashboard.activation.success.title'),
-                  description: t('dashboard.activation.success.description'),
-                });
-                // Refresh user data after successful activation
-                window.location.reload();
-              }}
-              onError={(error) => {
-                toast({
-                  title: t('dashboard.activation.error.title'),
-                  description: error || t('dashboard.activation.error.description'),
-                  variant: 'destructive',
-                });
-              }}
-              className="w-full"
-            />
-
-            <p className="text-sm text-muted-foreground mt-4">
-              {t('dashboard.activation.activationNote')}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    // Redirect to welcome page for activation
+    setLocation('/welcome');
+    return null;
   }
 
   return (
