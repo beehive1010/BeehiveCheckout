@@ -23,6 +23,11 @@ import {
   adminUsers,
   adminSessions,
   auditLogs,
+  users,
+  membershipState,
+  bccBalances,
+  earningsWallet,
+  referralNodes,
   type AdminUser,
   type AdminSession
 } from "@shared/schema";
@@ -1822,6 +1827,261 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Delete admin user error:', error);
       res.status(500).json({ error: 'Failed to delete admin user' });
+    }
+  });
+
+  // Platform Users routes - For managing regular Web3 users
+  app.get("/api/admin/platform-users", requireAdminAuth, requireAdminPermission(['users.read']), async (req: any, res) => {
+    try {
+      const { search, level, status } = req.query;
+      
+      // Base query with joins to get comprehensive user data
+      let query = db
+        .select({
+          // User data
+          walletAddress: users.walletAddress,
+          username: users.username,
+          email: users.email,
+          currentLevel: users.currentLevel,
+          memberActivated: users.memberActivated,
+          registrationStatus: users.registrationStatus,
+          createdAt: users.createdAt,
+          lastUpdatedAt: users.lastUpdatedAt,
+          activationAt: users.activationAt,
+          referrerWallet: users.referrerWallet,
+          preferredLanguage: users.preferredLanguage,
+          
+          // Membership data
+          levelsOwned: membershipState.levelsOwned,
+          activeLevel: membershipState.activeLevel,
+          joinedAt: membershipState.joinedAt,
+          lastUpgradeAt: membershipState.lastUpgradeAt,
+          
+          // BCC balances
+          transferableBCC: bccBalances.transferable,
+          restrictedBCC: bccBalances.restricted,
+          
+          // Earnings data
+          totalEarnings: earningsWallet.totalEarnings,
+          referralEarnings: earningsWallet.referralEarnings,
+          levelEarnings: earningsWallet.levelEarnings,
+          pendingRewards: earningsWallet.pendingRewards,
+          withdrawnAmount: earningsWallet.withdrawnAmount,
+          
+          // Referral data
+          directReferralCount: referralNodes.directReferralCount,
+          totalTeamCount: referralNodes.totalTeamCount,
+          sponsorWallet: referralNodes.sponsorWallet,
+          matrixPosition: referralNodes.matrixPosition,
+        })
+        .from(users)
+        .leftJoin(membershipState, eq(users.walletAddress, membershipState.walletAddress))
+        .leftJoin(bccBalances, eq(users.walletAddress, bccBalances.walletAddress))
+        .leftJoin(earningsWallet, eq(users.walletAddress, earningsWallet.walletAddress))
+        .leftJoin(referralNodes, eq(users.walletAddress, referralNodes.walletAddress));
+      
+      const conditions = [];
+      
+      if (search) {
+        const searchTerm = `%${search.toLowerCase()}%`;
+        conditions.push(sql`(
+          LOWER(${users.username}) LIKE ${searchTerm} OR 
+          LOWER(${users.walletAddress}) LIKE ${searchTerm} OR 
+          LOWER(${users.email}) LIKE ${searchTerm}
+        )`);
+      }
+      
+      if (level && level !== 'all') {
+        if (level === '0') {
+          conditions.push(eq(users.memberActivated, false));
+        } else {
+          conditions.push(eq(users.currentLevel, parseInt(level)));
+        }
+      }
+      
+      if (status && status !== 'all') {
+        switch (status) {
+          case 'activated':
+            conditions.push(eq(users.memberActivated, true));
+            break;
+          case 'unactivated':
+            conditions.push(eq(users.memberActivated, false));
+            break;
+          case 'completed':
+            conditions.push(eq(users.registrationStatus, 'completed'));
+            break;
+          case 'pending':
+            conditions.push(sql`${users.registrationStatus} != 'completed'`);
+            break;
+        }
+      }
+      
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+      
+      const platformUsers = await query.orderBy(desc(users.createdAt));
+      
+      // Format the data to match the frontend interface
+      const formattedUsers = platformUsers.map(user => ({
+        ...user,
+        // Convert numeric values
+        transferableBCC: user.transferableBCC || 0,
+        restrictedBCC: user.restrictedBCC || 0,
+        totalEarnings: parseFloat(user.totalEarnings || '0'),
+        referralEarnings: parseFloat(user.referralEarnings || '0'),
+        levelEarnings: parseFloat(user.levelEarnings || '0'),
+        pendingRewards: parseFloat(user.pendingRewards || '0'),
+        withdrawnAmount: parseFloat(user.withdrawnAmount || '0'),
+        directReferralCount: user.directReferralCount || 0,
+        totalTeamCount: user.totalTeamCount || 0,
+        matrixPosition: user.matrixPosition || 0,
+        levelsOwned: user.levelsOwned || [],
+        activeLevel: user.activeLevel || 0,
+      }));
+      
+      res.json(formattedUsers);
+    } catch (error) {
+      console.error('Get platform users error:', error);
+      res.status(500).json({ error: 'Failed to fetch platform users' });
+    }
+  });
+
+  app.get("/api/admin/platform-users/:walletAddress", requireAdminAuth, requireAdminPermission(['users.read']), async (req: any, res) => {
+    try {
+      const { walletAddress } = req.params;
+      
+      // Get comprehensive user data
+      const [userData] = await db
+        .select({
+          // User data
+          walletAddress: users.walletAddress,
+          username: users.username,
+          email: users.email,
+          currentLevel: users.currentLevel,
+          memberActivated: users.memberActivated,
+          registrationStatus: users.registrationStatus,
+          createdAt: users.createdAt,
+          lastUpdatedAt: users.lastUpdatedAt,
+          activationAt: users.activationAt,
+          referrerWallet: users.referrerWallet,
+          preferredLanguage: users.preferredLanguage,
+          ipfsHash: users.ipfsHash,
+          
+          // Membership data
+          levelsOwned: membershipState.levelsOwned,
+          activeLevel: membershipState.activeLevel,
+          joinedAt: membershipState.joinedAt,
+          lastUpgradeAt: membershipState.lastUpgradeAt,
+          
+          // BCC balances
+          transferableBCC: bccBalances.transferable,
+          restrictedBCC: bccBalances.restricted,
+          
+          // Earnings data
+          totalEarnings: earningsWallet.totalEarnings,
+          referralEarnings: earningsWallet.referralEarnings,
+          levelEarnings: earningsWallet.levelEarnings,
+          pendingRewards: earningsWallet.pendingRewards,
+          withdrawnAmount: earningsWallet.withdrawnAmount,
+          
+          // Referral data
+          directReferralCount: referralNodes.directReferralCount,
+          totalTeamCount: referralNodes.totalTeamCount,
+          sponsorWallet: referralNodes.sponsorWallet,
+          placerWallet: referralNodes.placerWallet,
+          matrixPosition: referralNodes.matrixPosition,
+          leftLeg: referralNodes.leftLeg,
+          middleLeg: referralNodes.middleLeg,
+          rightLeg: referralNodes.rightLeg,
+        })
+        .from(users)
+        .leftJoin(membershipState, eq(users.walletAddress, membershipState.walletAddress))
+        .leftJoin(bccBalances, eq(users.walletAddress, bccBalances.walletAddress))
+        .leftJoin(earningsWallet, eq(users.walletAddress, earningsWallet.walletAddress))
+        .leftJoin(referralNodes, eq(users.walletAddress, referralNodes.walletAddress))
+        .where(eq(users.walletAddress, walletAddress.toLowerCase()));
+      
+      if (!userData) {
+        return res.status(404).json({ error: 'Platform user not found' });
+      }
+      
+      // Format the data
+      const formattedUser = {
+        ...userData,
+        transferableBCC: userData.transferableBCC || 0,
+        restrictedBCC: userData.restrictedBCC || 0,
+        totalEarnings: parseFloat(userData.totalEarnings || '0'),
+        referralEarnings: parseFloat(userData.referralEarnings || '0'),
+        levelEarnings: parseFloat(userData.levelEarnings || '0'),
+        pendingRewards: parseFloat(userData.pendingRewards || '0'),
+        withdrawnAmount: parseFloat(userData.withdrawnAmount || '0'),
+        directReferralCount: userData.directReferralCount || 0,
+        totalTeamCount: userData.totalTeamCount || 0,
+        matrixPosition: userData.matrixPosition || 0,
+        levelsOwned: userData.levelsOwned || [],
+        activeLevel: userData.activeLevel || 0,
+        leftLeg: userData.leftLeg || [],
+        middleLeg: userData.middleLeg || [],
+        rightLeg: userData.rightLeg || [],
+      };
+      
+      res.json(formattedUser);
+    } catch (error) {
+      console.error('Get platform user error:', error);
+      res.status(500).json({ error: 'Failed to fetch platform user' });
+    }
+  });
+
+  app.put("/api/admin/platform-users/:walletAddress", requireAdminAuth, requireAdminPermission(['users.update']), async (req: any, res) => {
+    try {
+      const { walletAddress } = req.params;
+      const { username, email, currentLevel, memberActivated, registrationStatus, preferredLanguage } = req.body;
+      
+      // Check if user exists
+      const [existingUser] = await db.select().from(users).where(eq(users.walletAddress, walletAddress.toLowerCase()));
+      if (!existingUser) {
+        return res.status(404).json({ error: 'Platform user not found' });
+      }
+      
+      // Update user data
+      const updates: any = {
+        lastUpdatedAt: new Date(),
+      };
+      
+      if (username !== undefined) updates.username = username;
+      if (email !== undefined) updates.email = email;
+      if (currentLevel !== undefined) updates.currentLevel = currentLevel;
+      if (memberActivated !== undefined) updates.memberActivated = memberActivated;
+      if (registrationStatus !== undefined) updates.registrationStatus = registrationStatus;
+      if (preferredLanguage !== undefined) updates.preferredLanguage = preferredLanguage;
+      
+      const [updatedUser] = await db.update(users)
+        .set(updates)
+        .where(eq(users.walletAddress, walletAddress.toLowerCase()))
+        .returning();
+      
+      // Log admin action
+      await logAdminAction(
+        req.adminUser.id,
+        'update',
+        'users',
+        walletAddress,
+        'platform_user',
+        { 
+          username: existingUser.username, 
+          email: existingUser.email, 
+          currentLevel: existingUser.currentLevel,
+          memberActivated: existingUser.memberActivated 
+        },
+        { username, email, currentLevel, memberActivated },
+        `Updated platform user: ${walletAddress}`
+      );
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error('Update platform user error:', error);
+      res.status(500).json({ error: 'Failed to update platform user' });
     }
   });
   

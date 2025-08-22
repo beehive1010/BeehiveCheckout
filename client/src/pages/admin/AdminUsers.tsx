@@ -3,459 +3,184 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { Label } from '../../components/ui/label';
-import { Textarea } from '../../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
-import { Checkbox } from '../../components/ui/checkbox';
 import { 
-  Shield, 
   Users, 
-  Plus,
-  Edit,
+  Wallet,
   Search,
-  UserCheck,
-  UserX,
   Crown,
-  Key,
+  TrendingUp,
   Calendar,
   Mail,
-  AlertTriangle,
   CheckCircle,
+  XCircle,
   Clock,
-  Trash2
+  DollarSign,
+  Link as LinkIcon,
+  Award,
+  Eye,
+  AlertTriangle
 } from 'lucide-react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { useToast } from '../../hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-interface AdminUser {
-  id: string;
-  username: string;
-  email: string;
-  fullName?: string;
-  role: 'super_admin' | 'creator_admin' | 'support_admin' | 'viewer_admin';
-  permissions: string[];
-  status: 'active' | 'inactive' | 'suspended';
-  lastLogin?: string;
+interface PlatformUser {
+  walletAddress: string;
+  username?: string;
+  email?: string;
+  currentLevel: number;
+  memberActivated: boolean;
+  registrationStatus: string;
   createdAt: string;
-  createdBy?: string;
-  notes?: string;
+  lastUpdatedAt: string;
+  activationAt?: string;
+  referrerWallet?: string;
+  preferredLanguage: string;
+  
+  // Membership data
+  levelsOwned: number[];
+  activeLevel: number;
+  joinedAt?: string;
+  lastUpgradeAt?: string;
+  
+  // BCC balances
+  transferableBCC: number;
+  restrictedBCC: number;
+  
+  // Earnings data
+  totalEarnings: number;
+  referralEarnings: number;
+  levelEarnings: number;
+  pendingRewards: number;
+  withdrawnAmount: number;
+  
+  // Referral data
+  directReferralCount: number;
+  totalTeamCount: number;
+  sponsorWallet?: string;
+  matrixPosition: number;
 }
 
-interface AdminUserFormData {
-  username: string;
-  email: string;
-  fullName: string;
-  password: string;
-  confirmPassword: string;
-  role: 'super_admin' | 'creator_admin' | 'support_admin' | 'viewer_admin';
-  customPermissions: string[];
-  status: 'active' | 'inactive' | 'suspended';
-  notes: string;
-}
-
-const AVAILABLE_PERMISSIONS = [
-  { id: 'users.read', name: 'View Users', category: 'Users' },
-  { id: 'users.update', name: 'Edit Users', category: 'Users' },
-  { id: 'users.export', name: 'Export User Data', category: 'Users' },
-  { id: 'referrals.read', name: 'View Referrals', category: 'Referrals' },
-  { id: 'referrals.export', name: 'Export Referral Data', category: 'Referrals' },
-  { id: 'nfts.read', name: 'View NFTs', category: 'NFTs' },
-  { id: 'nfts.create', name: 'Create NFTs', category: 'NFTs' },
-  { id: 'nfts.update', name: 'Edit NFTs', category: 'NFTs' },
-  { id: 'nfts.mint', name: 'Mint NFTs', category: 'NFTs' },
-  { id: 'contracts.read', name: 'View Contracts', category: 'Contracts' },
-  { id: 'contracts.deploy', name: 'Deploy Contracts', category: 'Contracts' },
-  { id: 'contracts.manage', name: 'Manage Contracts', category: 'Contracts' },
-  { id: 'courses.read', name: 'View Courses', category: 'Courses' },
-  { id: 'courses.create', name: 'Create Courses', category: 'Courses' },
-  { id: 'courses.edit', name: 'Edit Courses', category: 'Courses' },
-  { id: 'blog.read', name: 'View Blog', category: 'Blog' },
-  { id: 'blog.create', name: 'Create Posts', category: 'Blog' },
-  { id: 'blog.update', name: 'Edit Posts', category: 'Blog' },
-  { id: 'discover.read', name: 'View Partners', category: 'Discover' },
-  { id: 'discover.approve', name: 'Approve Partners', category: 'Discover' },
-  { id: 'discover.reject', name: 'Reject Partners', category: 'Discover' },
-  { id: 'system.read', name: 'View System Status', category: 'System' },
-  { id: 'logs.read', name: 'View Logs', category: 'System' },
-  { id: 'logs.export', name: 'Export Logs', category: 'System' },
+const MEMBERSHIP_LEVELS = [
+  { level: 1, name: 'Warrior', price: 25 },
+  { level: 2, name: 'Guardian', price: 50 },
+  { level: 3, name: 'Sentinel', price: 100 },
+  { level: 4, name: 'Champion', price: 200 },
+  { level: 5, name: 'Vanguard', price: 400 },
+  { level: 6, name: 'Elite', price: 800 },
+  { level: 7, name: 'Master', price: 1600 },
+  { level: 8, name: 'Grandmaster', price: 3200 },
+  { level: 9, name: 'Legendary', price: 6400 },
+  { level: 10, name: 'Mythic', price: 12800 },
+  { level: 11, name: 'Ascendant', price: 25600 },
+  { level: 12, name: 'Transcendent', price: 51200 },
+  { level: 13, name: 'Eternal', price: 102400 },
+  { level: 14, name: 'Cosmic', price: 204800 },
+  { level: 15, name: 'Universal', price: 409600 },
+  { level: 16, name: 'Infinite', price: 819200 },
+  { level: 17, name: 'Omnipotent', price: 1638400 },
+  { level: 18, name: 'Divine', price: 3276800 },
+  { level: 19, name: 'Mythic Peak', price: 6553600 },
 ];
 
-const ROLE_PERMISSIONS = {
-  super_admin: AVAILABLE_PERMISSIONS.map(p => p.id),
-  creator_admin: [
-    'blog.read', 'blog.create', 'blog.update',
-    'nfts.read', 'nfts.create',
-    'contracts.read',
-    'courses.read', 'courses.create',
-    'discover.read'
-  ],
-  support_admin: [
-    'users.read', 'users.update',
-    'referrals.read',
-    'nfts.read',
-    'courses.read',
-    'blog.read',
-    'system.read'
-  ],
-  viewer_admin: [
-    'users.read',
-    'referrals.read',
-    'nfts.read',
-    'courses.read',
-    'blog.read',
-    'discover.read',
-    'system.read'
-  ]
-};
-
 export default function AdminUsers() {
-  const { hasRole, adminUser } = useAdminAuth();
+  const { hasPermission } = useAdminAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
+  const [levelFilter, setLevelFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
-  const [formData, setFormData] = useState<AdminUserFormData>({
-    username: '',
-    email: '',
-    fullName: '',
-    password: '',
-    confirmPassword: '',
-    role: 'viewer_admin',
-    customPermissions: [],
-    status: 'active',
-    notes: '',
-  });
+  const [selectedUser, setSelectedUser] = useState<PlatformUser | null>(null);
 
-  // Fetch admin users with real API
-  const { data: adminUsers = [], isLoading, refetch } = useQuery({
-    queryKey: ['/api/admin/admin-users', { search: searchTerm, role: roleFilter, status: statusFilter }],
+  // Fetch platform users
+  const { data: platformUsers = [], isLoading, refetch } = useQuery({
+    queryKey: ['/api/admin/platform-users', { search: searchTerm, level: levelFilter, status: statusFilter }],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
-      if (roleFilter !== 'all') params.append('role', roleFilter);
+      if (levelFilter !== 'all') params.append('level', levelFilter);
       if (statusFilter !== 'all') params.append('status', statusFilter);
       
-      const response = await fetch(`/api/admin/admin-users?${params}`, {
+      const response = await fetch(`/api/admin/platform-users?${params}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
         },
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch admin users');
+        throw new Error('Failed to fetch platform users');
       }
       
       return response.json();
     },
+    enabled: hasPermission('users.read'),
   });
 
-  // Create admin user mutation
-  const createAdminUserMutation = useMutation({
-    mutationFn: async (userData: AdminUserFormData) => {
-      const response = await fetch('/api/admin/admin-users', {
-        method: 'POST',
-        body: JSON.stringify({
-          username: userData.username,
-          email: userData.email,
-          password: userData.password,
-          role: userData.role,
-          permissions: userData.customPermissions,
-          status: userData.status,
-          fullName: userData.fullName,
-          notes: userData.notes,
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
-        },
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create admin user');
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/admin-users'] });
-      setIsCreateDialogOpen(false);
-      resetFormData();
-      toast({
-        title: 'Success',
-        description: 'Admin user created successfully',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to create admin user',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  // Update admin user mutation
-  const updateAdminUserMutation = useMutation({
-    mutationFn: async ({ id, userData }: { id: string; userData: Partial<AdminUserFormData> }) => {
-      const response = await fetch(`/api/admin/admin-users/${id}`, {
+  // Update user mutation
+  const updateUserMutation = useMutation({
+    mutationFn: async ({ walletAddress, updates }: { walletAddress: string; updates: any }) => {
+      const response = await fetch(`/api/admin/platform-users/${walletAddress}`, {
         method: 'PUT',
-        body: JSON.stringify(userData),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
         },
+        body: JSON.stringify(updates),
       });
+      
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update admin user');
+        throw new Error('Failed to update user');
       }
+      
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/admin-users'] });
-      setIsEditDialogOpen(false);
-      setEditingUser(null);
-      resetFormData();
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/platform-users'] });
       toast({
-        title: 'Success',
-        description: 'Admin user updated successfully',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to update admin user',
-        variant: 'destructive',
+        title: 'User Updated',
+        description: 'User data has been updated successfully',
       });
     },
   });
 
-  // Delete admin user mutation
-  const deleteAdminUserMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const response = await fetch(`/api/admin/admin-users/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
-        },
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to delete admin user');
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/admin-users'] });
-      toast({
-        title: 'Success',
-        description: 'Admin user deleted successfully',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete admin user',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  // Initialize form data
-  const resetFormData = () => {
-    setFormData({
-      username: '',
-      email: '',
-      fullName: '',
-      password: '',
-      confirmPassword: '',
-      role: 'viewer_admin',
-      customPermissions: [],
-      status: 'active',
-      notes: '',
-    });
-  };
-
-  // Handle form input changes
-  const handleFormChange = (field: keyof AdminUserFormData, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  // Handle role change (auto-populate permissions)
-  const handleRoleChange = (role: AdminUserFormData['role']) => {
-    setFormData(prev => ({
-      ...prev,
-      role,
-      customPermissions: ROLE_PERMISSIONS[role]
-    }));
-  };
-
-  // Handle permission toggle
-  const handlePermissionToggle = (permissionId: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      customPermissions: checked
-        ? [...prev.customPermissions, permissionId]
-        : prev.customPermissions.filter(p => p !== permissionId)
-    }));
-  };
-
-  // Handle create admin user
-  const handleCreateUser = () => {
-    if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: 'Error',
-        description: 'Passwords do not match',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!formData.username || !formData.email || !formData.password) {
-      toast({
-        title: 'Error',
-        description: 'Please fill in all required fields',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    createAdminUserMutation.mutate(formData);
-  };
-
-  // Handle edit admin user
-  const handleEditUser = () => {
-    if (!editingUser) return;
-
-    const updateData: Partial<AdminUserFormData> = {
-      username: formData.username,
-      email: formData.email,
-      fullName: formData.fullName,
-      role: formData.role,
-      customPermissions: formData.customPermissions,
-      status: formData.status,
-      notes: formData.notes,
+  // Get level name and color
+  const getLevelInfo = (level: number) => {
+    const levelInfo = MEMBERSHIP_LEVELS.find(l => l.level === level);
+    return {
+      name: levelInfo?.name || 'Unactivated',
+      color: level === 0 ? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300' :
+             level <= 3 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+             level <= 6 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+             level <= 9 ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+             level <= 12 ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
+             level <= 15 ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
+             'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
     };
-
-    if (formData.password) {
-      if (formData.password !== formData.confirmPassword) {
-        toast({
-          title: 'Error',
-          description: 'Passwords do not match',
-          variant: 'destructive',
-        });
-        return;
-      }
-      updateData.password = formData.password;
-    }
-
-    updateAdminUserMutation.mutate({ id: editingUser.id, userData: updateData });
-  };
-
-  // Handle delete admin user
-  const handleDeleteUser = (userId: string) => {
-    if (confirm('Are you sure you want to delete this admin user? This action cannot be undone.')) {
-      deleteAdminUserMutation.mutate(userId);
-    }
-  };
-
-  // Open edit dialog
-  const openEditDialog = (user: AdminUser) => {
-    setEditingUser(user);
-    setFormData({
-      username: user.username,
-      email: user.email,
-      fullName: user.fullName || '',
-      password: '',
-      confirmPassword: '',
-      role: user.role,
-      customPermissions: user.permissions || [],
-      status: user.status,
-      notes: user.notes || '',
-    });
-    setIsEditDialogOpen(true);
-  };
-
-  // Get role badge color
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case 'super_admin': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
-      case 'creator_admin': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
-      case 'support_admin': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-      case 'viewer_admin': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
-    }
-  };
-
-  // Get role icon
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case 'super_admin': return <Crown className="h-4 w-4" />;
-      case 'creator_admin': return <Edit className="h-4 w-4" />;
-      case 'support_admin': return <Users className="h-4 w-4" />;
-      case 'viewer_admin': return <Shield className="h-4 w-4" />;
-      default: return <Shield className="h-4 w-4" />;
-    }
-  };
-
-  // Get status badge
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return (
-          <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-            <CheckCircle className="h-3 w-3 mr-1" />
-            Active
-          </Badge>
-        );
-      case 'inactive':
-        return (
-          <Badge variant="outline" className="text-orange-600 border-orange-300">
-            <Clock className="h-3 w-3 mr-1" />
-            Inactive
-          </Badge>
-        );
-      case 'suspended':
-        return (
-          <Badge variant="destructive">
-            <AlertTriangle className="h-3 w-3 mr-1" />
-            Suspended
-          </Badge>
-        );
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
   };
 
   // Calculate statistics
   const stats = {
-    total: adminUsers.length,
-    active: adminUsers.filter((u: AdminUser) => u.status === 'active').length,
-    inactive: adminUsers.filter((u: AdminUser) => u.status === 'inactive').length,
-    superAdmins: adminUsers.filter((u: AdminUser) => u.role === 'super_admin').length,
+    total: platformUsers.length,
+    activated: platformUsers.filter((u: PlatformUser) => u.memberActivated).length,
+    unactivated: platformUsers.filter((u: PlatformUser) => !u.memberActivated).length,
+    totalBCC: platformUsers.reduce((sum: number, u: PlatformUser) => sum + u.transferableBCC + u.restrictedBCC, 0),
+    totalEarnings: platformUsers.reduce((sum: number, u: PlatformUser) => sum + u.totalEarnings, 0),
   };
 
-  // Verify super admin access
-  if (!hasRole(['super_admin'])) {
+  // Access check
+  if (!hasPermission('users.read')) {
     return (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
+            <AlertTriangle className="h-5 w-5" />
             Access Denied
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p>You need Super Administrator privileges to access this section.</p>
+          <p>You need user management permissions to access this section.</p>
         </CardContent>
       </Card>
     );
@@ -465,10 +190,10 @@ export default function AdminUsers() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Loading Admin Users...</CardTitle>
+          <CardTitle>Loading Platform Users...</CardTitle>
         </CardHeader>
         <CardContent>
-          <p>Please wait while we load the admin users data.</p>
+          <p>Please wait while we load the user data.</p>
         </CardContent>
       </Card>
     );
@@ -479,256 +204,96 @@ export default function AdminUsers() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Admin Users</h1>
-          <p className="text-muted-foreground">Manage administrator accounts and permissions</p>
+          <h1 className="text-3xl font-bold text-foreground">Platform Users</h1>
+          <p className="text-muted-foreground">Manage Web3 platform members and their data</p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetFormData} className="bg-yellow-600 hover:bg-yellow-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Create Admin User
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Create New Admin User</DialogTitle>
-              <DialogDescription>
-                Set up a new administrator account with appropriate permissions.
-              </DialogDescription>
-            </DialogHeader>
-            
-            <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="basic">Basic Info</TabsTrigger>
-                <TabsTrigger value="role">Role & Permissions</TabsTrigger>
-                <TabsTrigger value="security">Security</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="basic" className="space-y-4">
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="username">Username *</Label>
-                    <Input
-                      id="username"
-                      value={formData.username}
-                      onChange={(e) => handleFormChange('username', e.target.value)}
-                      placeholder="Enter username"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Email *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleFormChange('email', e.target.value)}
-                      placeholder="Enter email address"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="fullName">Full Name</Label>
-                    <Input
-                      id="fullName"
-                      value={formData.fullName}
-                      onChange={(e) => handleFormChange('fullName', e.target.value)}
-                      placeholder="Enter full name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="notes">Notes</Label>
-                    <Textarea
-                      id="notes"
-                      value={formData.notes}
-                      onChange={(e) => handleFormChange('notes', e.target.value)}
-                      placeholder="Optional notes about this admin user"
-                      rows={3}
-                    />
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="role" className="space-y-4">
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="role">Role *</Label>
-                    <Select value={formData.role} onValueChange={handleRoleChange}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="super_admin">Super Admin</SelectItem>
-                        <SelectItem value="creator_admin">Creator Admin</SelectItem>
-                        <SelectItem value="support_admin">Support Admin</SelectItem>
-                        <SelectItem value="viewer_admin">Viewer Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label>Custom Permissions</Label>
-                    <div className="mt-2 space-y-3">
-                      {Object.entries(
-                        AVAILABLE_PERMISSIONS.reduce((acc, permission) => {
-                          if (!acc[permission.category]) {
-                            acc[permission.category] = [];
-                          }
-                          acc[permission.category].push(permission);
-                          return acc;
-                        }, {} as Record<string, typeof AVAILABLE_PERMISSIONS>)
-                      ).map(([category, permissions]) => (
-                        <div key={category} className="space-y-2">
-                          <Label className="text-sm font-medium">{category}</Label>
-                          <div className="grid grid-cols-2 gap-2">
-                            {permissions.map((permission) => (
-                              <div key={permission.id} className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={permission.id}
-                                  checked={formData.customPermissions.includes(permission.id)}
-                                  onCheckedChange={(checked) =>
-                                    handlePermissionToggle(permission.id, checked as boolean)
-                                  }
-                                />
-                                <Label
-                                  htmlFor={permission.id}
-                                  className="text-sm font-normal"
-                                >
-                                  {permission.name}
-                                </Label>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="security" className="space-y-4">
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="password">Password *</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={formData.password}
-                      onChange={(e) => handleFormChange('password', e.target.value)}
-                      placeholder="Enter password"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="confirmPassword">Confirm Password *</Label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      value={formData.confirmPassword}
-                      onChange={(e) => handleFormChange('confirmPassword', e.target.value)}
-                      placeholder="Confirm password"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="status">Account Status</Label>
-                    <Select 
-                      value={formData.status} 
-                      onValueChange={(value: 'active' | 'inactive') => handleFormChange('status', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-            
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleCreateUser}
-                disabled={createAdminUserMutation.isPending}
-                className="bg-yellow-600 hover:bg-yellow-700"
-              >
-                {createAdminUserMutation.isPending ? 'Creating...' : 'Create Admin User'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Admins</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Users className="h-8 w-8 text-blue-600" />
+              <div>
+                <p className="text-2xl font-bold">{stats.total}</p>
+                <p className="text-xs text-muted-foreground">Total Users</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active</CardTitle>
-            <UserCheck className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.active}</div>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-8 w-8 text-green-600" />
+              <div>
+                <p className="text-2xl font-bold">{stats.activated}</p>
+                <p className="text-xs text-muted-foreground">Activated</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Inactive</CardTitle>
-            <UserX className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{stats.inactive}</div>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Clock className="h-8 w-8 text-orange-600" />
+              <div>
+                <p className="text-2xl font-bold">{stats.unactivated}</p>
+                <p className="text-xs text-muted-foreground">Unactivated</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Super Admins</CardTitle>
-            <Crown className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.superAdmins}</div>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Crown className="h-8 w-8 text-yellow-600" />
+              <div>
+                <p className="text-2xl font-bold">{stats.totalBCC.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">Total BCC</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <DollarSign className="h-8 w-8 text-green-600" />
+              <div>
+                <p className="text-2xl font-bold">${stats.totalEarnings.toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground">Total Earnings</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters */}
       <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Search users..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+        <CardContent className="p-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Search by wallet address or username..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+                data-testid="input-search-users"
+              />
             </div>
-            <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <Select value={levelFilter} onValueChange={setLevelFilter}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by role" />
+                <SelectValue placeholder="Filter by level" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="super_admin">Super Admin</SelectItem>
-                <SelectItem value="creator_admin">Creator Admin</SelectItem>
-                <SelectItem value="support_admin">Support Admin</SelectItem>
-                <SelectItem value="viewer_admin">Viewer Admin</SelectItem>
+                <SelectItem value="all">All Levels</SelectItem>
+                <SelectItem value="0">Unactivated</SelectItem>
+                {MEMBERSHIP_LEVELS.slice(0, 10).map(level => (
+                  <SelectItem key={level.level} value={level.level.toString()}>
+                    Level {level.level} - {level.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -737,260 +302,243 @@ export default function AdminUsers() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-                <SelectItem value="suspended">Suspended</SelectItem>
+                <SelectItem value="activated">Activated</SelectItem>
+                <SelectItem value="unactivated">Unactivated</SelectItem>
+                <SelectItem value="completed">Registration Complete</SelectItem>
+                <SelectItem value="pending">Registration Pending</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </CardContent>
       </Card>
 
-      {/* Admin Users List */}
+      {/* Users List */}
       <Card>
         <CardHeader>
-          <CardTitle>Admin Accounts</CardTitle>
+          <CardTitle>Platform Members</CardTitle>
           <CardDescription>
-            Manage administrator accounts and their permissions
+            Web3 wallet users with membership levels and BCC balances
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {adminUsers.map((user: AdminUser) => (
-              <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 flex items-center justify-center text-white font-semibold">
-                    {user.username.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-semibold">{user.fullName || user.username}</h3>
-                      <Badge className={getRoleBadgeColor(user.role)}>
-                        {getRoleIcon(user.role)}
-                        <span className="ml-1">{user.role.replace('_', ' ')}</span>
-                      </Badge>
-                      {getStatusBadge(user.status)}
+            {platformUsers.map((user: PlatformUser) => {
+              const levelInfo = getLevelInfo(user.currentLevel);
+              return (
+                <div key={user.walletAddress} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-600 flex items-center justify-center text-white font-semibold">
+                      <Wallet className="h-6 w-6" />
                     </div>
-                    <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                      <span className="flex items-center">
-                        <Mail className="h-3 w-3 mr-1" />
-                        {user.email}
-                      </span>
-                      {user.lastLogin && (
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <h3 className="font-semibold">
+                          {user.username || `${user.walletAddress.slice(0, 6)}...${user.walletAddress.slice(-4)}`}
+                        </h3>
+                        <Badge className={levelInfo.color}>
+                          <Crown className="h-3 w-3 mr-1" />
+                          Level {user.currentLevel} - {levelInfo.name}
+                        </Badge>
+                        {user.memberActivated ? (
+                          <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Activated
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-orange-600 border-orange-300">
+                            <Clock className="h-3 w-3 mr-1" />
+                            Unactivated
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                        <span className="flex items-center">
+                          <Wallet className="h-3 w-3 mr-1" />
+                          {user.walletAddress}
+                        </span>
+                        {user.email && (
+                          <span className="flex items-center">
+                            <Mail className="h-3 w-3 mr-1" />
+                            {user.email}
+                          </span>
+                        )}
                         <span className="flex items-center">
                           <Calendar className="h-3 w-3 mr-1" />
-                          Last login: {new Date(user.lastLogin).toLocaleDateString()}
+                          Joined: {new Date(user.createdAt).toLocaleDateString()}
                         </span>
-                      )}
+                      </div>
+                      <div className="flex items-center space-x-4 text-sm text-muted-foreground mt-1">
+                        <span className="flex items-center">
+                          <Crown className="h-3 w-3 mr-1" />
+                          BCC: {user.transferableBCC.toLocaleString()} + {user.restrictedBCC.toLocaleString()} restricted
+                        </span>
+                        <span className="flex items-center">
+                          <DollarSign className="h-3 w-3 mr-1" />
+                          Earnings: ${user.totalEarnings.toFixed(2)}
+                        </span>
+                        <span className="flex items-center">
+                          <LinkIcon className="h-3 w-3 mr-1" />
+                          Team: {user.totalTeamCount} ({user.directReferralCount} direct)
+                        </span>
+                      </div>
                     </div>
-                    {user.notes && (
-                      <p className="text-xs text-muted-foreground mt-1">{user.notes}</p>
-                    )}
                   </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openEditDialog(user)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  {user.role !== 'super_admin' || stats.superAdmins > 1 ? (
+                  <div className="flex items-center space-x-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleDeleteUser(user.id)}
-                      className="text-red-600 hover:text-red-700"
+                      onClick={() => setSelectedUser(user)}
+                      data-testid={`button-view-user-${user.walletAddress}`}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Eye className="h-4 w-4 mr-1" />
+                      View Details
                     </Button>
-                  ) : null}
+                  </div>
                 </div>
-              </div>
-            ))}
-            
-            {adminUsers.length === 0 && (
+              );
+            })}
+            {platformUsers.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
-                No admin users found matching your criteria.
+                No platform users found matching your criteria.
               </div>
             )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Admin User</DialogTitle>
-            <DialogDescription>
-              Update administrator account information and permissions.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="basic">Basic Info</TabsTrigger>
-              <TabsTrigger value="role">Role & Permissions</TabsTrigger>
-              <TabsTrigger value="security">Security</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="basic" className="space-y-4">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="edit-username">Username *</Label>
-                  <Input
-                    id="edit-username"
-                    value={formData.username}
-                    onChange={(e) => handleFormChange('username', e.target.value)}
-                    placeholder="Enter username"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-email">Email *</Label>
-                  <Input
-                    id="edit-email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleFormChange('email', e.target.value)}
-                    placeholder="Enter email address"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-fullName">Full Name</Label>
-                  <Input
-                    id="edit-fullName"
-                    value={formData.fullName}
-                    onChange={(e) => handleFormChange('fullName', e.target.value)}
-                    placeholder="Enter full name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="edit-notes">Notes</Label>
-                  <Textarea
-                    id="edit-notes"
-                    value={formData.notes}
-                    onChange={(e) => handleFormChange('notes', e.target.value)}
-                    placeholder="Optional notes about this admin user"
-                    rows={3}
-                  />
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="role" className="space-y-4">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="edit-role">Role *</Label>
-                  <Select value={formData.role} onValueChange={handleRoleChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="super_admin">Super Admin</SelectItem>
-                      <SelectItem value="creator_admin">Creator Admin</SelectItem>
-                      <SelectItem value="support_admin">Support Admin</SelectItem>
-                      <SelectItem value="viewer_admin">Viewer Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <Label>Custom Permissions</Label>
-                  <div className="mt-2 space-y-3">
-                    {Object.entries(
-                      AVAILABLE_PERMISSIONS.reduce((acc, permission) => {
-                        if (!acc[permission.category]) {
-                          acc[permission.category] = [];
-                        }
-                        acc[permission.category].push(permission);
-                        return acc;
-                      }, {} as Record<string, typeof AVAILABLE_PERMISSIONS>)
-                    ).map(([category, permissions]) => (
-                      <div key={category} className="space-y-2">
-                        <Label className="text-sm font-medium">{category}</Label>
-                        <div className="grid grid-cols-2 gap-2">
-                          {permissions.map((permission) => (
-                            <div key={permission.id} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`edit-${permission.id}`}
-                                checked={formData.customPermissions.includes(permission.id)}
-                                onCheckedChange={(checked) =>
-                                  handlePermissionToggle(permission.id, checked as boolean)
-                                }
-                              />
-                              <Label
-                                htmlFor={`edit-${permission.id}`}
-                                className="text-sm font-normal"
-                              >
-                                {permission.name}
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
+      {/* User Details Dialog could go here */}
+      {selectedUser && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Award className="h-5 w-5" />
+              User Details: {selectedUser.username || selectedUser.walletAddress}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="profile" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="profile">Profile</TabsTrigger>
+                <TabsTrigger value="membership">Membership</TabsTrigger>
+                <TabsTrigger value="earnings">Earnings</TabsTrigger>
+                <TabsTrigger value="referrals">Referrals</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="profile" className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium">Wallet Address</p>
+                    <p className="text-sm text-muted-foreground">{selectedUser.walletAddress}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Username</p>
+                    <p className="text-sm text-muted-foreground">{selectedUser.username || 'Not set'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Email</p>
+                    <p className="text-sm text-muted-foreground">{selectedUser.email || 'Not set'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Registration Status</p>
+                    <p className="text-sm text-muted-foreground">{selectedUser.registrationStatus}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Created At</p>
+                    <p className="text-sm text-muted-foreground">{new Date(selectedUser.createdAt).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Last Updated</p>
+                    <p className="text-sm text-muted-foreground">{new Date(selectedUser.lastUpdatedAt).toLocaleString()}</p>
                   </div>
                 </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="security" className="space-y-4">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="edit-password">New Password (leave blank to keep current)</Label>
-                  <Input
-                    id="edit-password"
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => handleFormChange('password', e.target.value)}
-                    placeholder="Enter new password"
-                  />
+              </TabsContent>
+              
+              <TabsContent value="membership" className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium">Current Level</p>
+                    <p className="text-sm text-muted-foreground">{selectedUser.currentLevel} - {getLevelInfo(selectedUser.currentLevel).name}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Active Level</p>
+                    <p className="text-sm text-muted-foreground">{selectedUser.activeLevel}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Levels Owned</p>
+                    <p className="text-sm text-muted-foreground">{selectedUser.levelsOwned.join(', ') || 'None'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Member Activated</p>
+                    <p className="text-sm text-muted-foreground">{selectedUser.memberActivated ? 'Yes' : 'No'}</p>
+                  </div>
+                  {selectedUser.activationAt && (
+                    <div>
+                      <p className="text-sm font-medium">Activation Date</p>
+                      <p className="text-sm text-muted-foreground">{new Date(selectedUser.activationAt).toLocaleString()}</p>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <Label htmlFor="edit-confirmPassword">Confirm New Password</Label>
-                  <Input
-                    id="edit-confirmPassword"
-                    type="password"
-                    value={formData.confirmPassword}
-                    onChange={(e) => handleFormChange('confirmPassword', e.target.value)}
-                    placeholder="Confirm new password"
-                  />
+              </TabsContent>
+              
+              <TabsContent value="earnings" className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium">Total Earnings</p>
+                    <p className="text-sm text-muted-foreground">${selectedUser.totalEarnings.toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Referral Earnings</p>
+                    <p className="text-sm text-muted-foreground">${selectedUser.referralEarnings.toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Level Earnings</p>
+                    <p className="text-sm text-muted-foreground">${selectedUser.levelEarnings.toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Pending Rewards</p>
+                    <p className="text-sm text-muted-foreground">${selectedUser.pendingRewards.toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Withdrawn Amount</p>
+                    <p className="text-sm text-muted-foreground">${selectedUser.withdrawnAmount.toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">BCC Balances</p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedUser.transferableBCC.toLocaleString()} transferable + {selectedUser.restrictedBCC.toLocaleString()} restricted
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="edit-status">Account Status</Label>
-                  <Select 
-                    value={formData.status} 
-                    onValueChange={(value: 'active' | 'inactive') => handleFormChange('status', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
+              </TabsContent>
+              
+              <TabsContent value="referrals" className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium">Direct Referrals</p>
+                    <p className="text-sm text-muted-foreground">{selectedUser.directReferralCount}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Total Team</p>
+                    <p className="text-sm text-muted-foreground">{selectedUser.totalTeamCount}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Sponsor</p>
+                    <p className="text-sm text-muted-foreground">{selectedUser.sponsorWallet || 'None'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Referrer</p>
+                    <p className="text-sm text-muted-foreground">{selectedUser.referrerWallet || 'None'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Matrix Position</p>
+                    <p className="text-sm text-muted-foreground">{selectedUser.matrixPosition}</p>
+                  </div>
                 </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleEditUser}
-              disabled={updateAdminUserMutation.isPending}
-              className="bg-yellow-600 hover:bg-yellow-700"
-            >
-              {updateAdminUserMutation.isPending ? 'Updating...' : 'Update Admin User'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

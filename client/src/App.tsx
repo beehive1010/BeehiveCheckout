@@ -29,6 +29,7 @@ import NotFound from "@/pages/not-found";
 import AdminLogin from "@/pages/admin/AdminLogin";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
+import AdminUserManagement from "@/pages/admin/AdminUserManagement";
 import AdminReferrals from "@/pages/admin/AdminReferrals";
 import AdminNFTs from "@/pages/admin/AdminNFTs";
 import AdminContracts from "@/pages/admin/AdminContracts";
@@ -138,7 +139,7 @@ function Router() {
         <Route path="/admin/admin-users" component={() => (
           <AdminRouteGuard requiredRole="super_admin">
             <AdminLayout>
-              <AdminUsers />
+              <AdminUserManagement />
             </AdminLayout>
           </AdminRouteGuard>
         )} />
