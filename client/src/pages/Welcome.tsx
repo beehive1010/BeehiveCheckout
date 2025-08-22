@@ -5,9 +5,7 @@ import { useActiveAccount } from 'thirdweb/react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { useToast } from '../hooks/use-toast';
-import HexagonIcon from '../components/UI/HexagonIcon';
 import { useNFTVerification } from '../hooks/useNFTVerification';
-import { motion } from 'framer-motion';
 import ClaimMembershipButton from '../components/membership/ClaimMembershipButton';
 
 export default function Welcome() {
@@ -51,127 +49,100 @@ export default function Welcome() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="w-full max-w-2xl"
-      >
-        <Card className="bg-secondary border-border glow-hover">
-          <CardHeader className="text-center pb-8">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-            >
-              <HexagonIcon className="mx-auto mb-6" size="xl">
-                <i className="fas fa-gift text-honey text-4xl"></i>
-              </HexagonIcon>
-            </motion.div>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
+      <div className="container mx-auto px-4 max-w-4xl">
+        {/* Simple Header */}
+        <div className="text-center mb-8">
+          <div className="mb-4">
+            <i className="fas fa-gift text-6xl text-honey"></i>
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            {t('welcome.title')}
+          </h1>
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            {t('welcome.subtitle')}
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* NFT Information */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+            <h2 className="text-2xl font-bold text-honey mb-4">{t('welcome.nft.title')}</h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">{t('welcome.nft.description')}</p>
             
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.6 }}
-            >
-              <CardTitle className="text-3xl font-bold text-honey mb-4">
-                {t('welcome.title')}
-              </CardTitle>
-              <p className="text-muted-foreground text-lg">
-                {t('welcome.subtitle')}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600 dark:text-gray-300">{t('welcome.nft.tokenId')}</span>
+                <span className="font-medium text-gray-900 dark:text-white">Token ID: 0</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600 dark:text-gray-300">{t('welcome.nft.price')}</span>
+                <span className="text-2xl font-bold text-honey">{t('welcome.nft.priceAmount')}</span>
+              </div>
+            </div>
+
+            <div className="mt-6 p-4 bg-honey/10 rounded border-l-4 border-honey">
+              <p className="text-honey font-medium">{t('welcome.premium.title')}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                {t('welcome.premium.description')}
               </p>
-            </motion.div>
-          </CardHeader>
+            </div>
+          </div>
+
+          {/* Benefits List */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
+            <h2 className="text-2xl font-bold text-honey mb-4">{t('welcome.benefits.title')}</h2>
+            
+            <ul className="space-y-4">
+              <li className="flex items-center">
+                <i className="fas fa-tachometer-alt text-honey w-6 mr-3"></i>
+                <span className="text-gray-700 dark:text-gray-300">{t('welcome.benefits.dashboard')}</span>
+              </li>
+              <li className="flex items-center">
+                <i className="fas fa-tasks text-honey w-6 mr-3"></i>
+                <span className="text-gray-700 dark:text-gray-300">{t('welcome.benefits.tasks')}</span>
+              </li>
+              <li className="flex items-center">
+                <i className="fas fa-graduation-cap text-honey w-6 mr-3"></i>
+                <span className="text-gray-700 dark:text-gray-300">{t('welcome.benefits.education')}</span>
+              </li>
+              <li className="flex items-center">
+                <i className="fas fa-globe text-honey w-6 mr-3"></i>
+                <span className="text-gray-700 dark:text-gray-300">{t('welcome.benefits.discover')}</span>
+              </li>
+              <li className="flex items-center">
+                <i className="fas fa-coins text-honey w-6 mr-3"></i>
+                <span className="text-gray-700 dark:text-gray-300">{t('welcome.benefits.tokens')}</span>
+              </li>
+              <li className="flex items-center">
+                <i className="fas fa-users text-honey w-6 mr-3"></i>
+                <span className="text-gray-700 dark:text-gray-300">{t('welcome.benefits.hiveworld')}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Purchase Section */}
+        <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 border border-gray-200 dark:border-gray-700 text-center">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            Get Started with Level 1 Membership
+          </h3>
           
-          <CardContent className="space-y-8">
-            {/* NFT Info */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6, duration: 0.6 }}
-              className="bg-muted rounded-lg p-6 border border-honey/20"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-bold text-honey mb-2">{t('welcome.nft.title')}</h3>
-                  <p className="text-muted-foreground">{t('welcome.nft.description')}</p>
-                  <div className="flex items-center mt-3 text-sm">
-                    <i className="fas fa-layer-group text-honey mr-2"></i>
-                    <span className="text-honey font-medium">{t('welcome.nft.tokenId')}</span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">{t('welcome.nft.price')}</p>
-                  <p className="text-2xl font-bold text-honey">{t('welcome.nft.priceAmount')}</p>
-                </div>
-              </div>
-            </motion.div>
+          <div className="max-w-md mx-auto mb-6">
+            <ClaimMembershipButton
+              walletAddress={account?.address || ""}
+              level={1}
+              onSuccess={handlePurchaseSuccess}
+              onError={handlePurchaseError}
+              className="w-full"
+            />
+          </div>
 
-            {/* Benefits */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.8, duration: 0.6 }}
-              className="space-y-4"
-            >
-              <h3 className="text-lg font-semibold text-honey">{t('welcome.benefits.title')}</h3>
-              <div className="grid gap-3">
-                {[
-                  { icon: "fas fa-tachometer-alt", text: t('welcome.benefits.dashboard') },
-                  { icon: "fas fa-tasks", text: t('welcome.benefits.tasks') },
-                  { icon: "fas fa-graduation-cap", text: t('welcome.benefits.education') },
-                  { icon: "fas fa-globe", text: t('welcome.benefits.discover') },
-                  { icon: "fas fa-coins", text: t('welcome.benefits.tokens') },
-                  { icon: "fas fa-users", text: t('welcome.benefits.hiveworld') },
-                ].map((benefit, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.9 + index * 0.1, duration: 0.4 }}
-                    className="flex items-center text-muted-foreground"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-honey/10 flex items-center justify-center mr-3">
-                      <i className={`${benefit.icon} text-honey text-xs`}></i>
-                    </div>
-                    <span>{benefit.text}</span>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* Claim Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2, duration: 0.6 }}
-              className="text-center space-y-6"
-            >
-              <div className="p-4 bg-honey/10 rounded-lg border border-honey/20">
-                <p className="text-honey font-medium mb-2">{t('welcome.premium.title')}</p>
-                <p className="text-sm text-muted-foreground">
-                  {t('welcome.premium.description')}
-                </p>
-              </div>
-
-              <ClaimMembershipButton
-                walletAddress={account?.address || ""}
-                level={1}
-                onSuccess={handlePurchaseSuccess}
-                onError={handlePurchaseError}
-                className="w-full"
-              />
-
-              <div className="pt-4 border-t border-border">
-                <p className="text-xs text-muted-foreground">
-                  {t('welcome.supportText')}
-                </p>
-              </div>
-            </motion.div>
-          </CardContent>
-        </Card>
-      </motion.div>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t('welcome.supportText')}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
