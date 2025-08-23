@@ -638,7 +638,10 @@ export default function ClaimMembershipButton({
               <Button
                 onClick={async () => {
                   try {
+                    console.log('🚀 Test payment button clicked!');
+                    
                     if (!account?.address) {
+                      console.log('❌ No wallet connected');
                       toast({
                         title: '请连接钱包',
                         description: '需要连接钱包才能进行支付',
@@ -647,28 +650,41 @@ export default function ClaimMembershipButton({
                       return;
                     }
 
+                    console.log('✅ Wallet connected:', account.address);
+                    console.log('📋 Payment details:', {
+                      chain: selectedChain.name,
+                      usdtAddress: selectedChain.usdtAddress,
+                      bridgeWallet: selectedChain.bridgeWallet,
+                      amount: membershipLevel.priceUSDT * 1000000,
+                    });
+
                     setClaimState('paying');
+                    console.log('🔄 Set state to paying');
                     
                     // 创建转账交易
+                    console.log('🏗️ Creating USDT transfer contract...');
                     const contract = getContract({
                       client,
                       chain: selectedChain.chain,
                       address: selectedChain.usdtAddress as `0x${string}`,
                     });
 
+                    console.log('💰 Creating transfer transaction...');
                     const transaction = transfer({
                       contract,
                       to: selectedChain.bridgeWallet as `0x${string}`,
                       amount: (membershipLevel.priceUSDT * 1000000).toString(),
                     });
 
+                    console.log('📤 Sending transaction...');
                     // 发送交易
                     const result = await sendAndConfirmTransaction({
                       transaction,
                       account,
                     });
 
-                    console.log('Test payment transaction:', result.transactionHash);
+                    console.log('✅ Test payment transaction successful:', result.transactionHash);
+                    console.log('🎯 About to call handlePaymentSuccess...');
                     
                     // 处理支付成功
                     await handlePaymentSuccess(result);
