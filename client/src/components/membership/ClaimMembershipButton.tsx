@@ -5,7 +5,7 @@ import { useI18n } from '../../contexts/I18nContext';
 import { getMembershipLevel } from '../../lib/config/membershipLevels';
 import { membershipEventEmitter } from '../../lib/membership/events';
 import { ConnectButton, useActiveAccount } from "thirdweb/react";
-import { client, alphaCentauri, bbcMembershipContract, levelToTokenId, paymentChains } from '../../lib/web3';
+import { client, alphaCentauri, bbcMembershipContract, levelToTokenId, paymentChains, contractAddresses } from '../../lib/web3';
 import { PayEmbed, CheckoutWidget } from "thirdweb/react";
 import { Card, CardContent } from '../ui/card';
 import { FiX } from 'react-icons/fi';
@@ -140,19 +140,11 @@ export default function ClaimMembershipButton({
       // Check if this is test chain BEFORE calling verifyAndPersist
       const isTestChain = selectedChain.name === 'Arbitrum Sepolia' || (selectedChain as any).isTestnet;
       
-      console.log('=== Payment Success Debug ===');
-      console.log('Selected chain:', selectedChain.name);
-      console.log('Is testnet?:', (selectedChain as any).isTestnet);
-      console.log('Is test chain?:', isTestChain);
-      console.log('Transaction hash:', transactionHash);
-      
       if (isTestChain) {
-        console.log('✅ Test chain detected, bypassing bridge verification completely');
+        console.log('✅ Test chain detected - Processing membership and minting NFT');
         try {
           setClaimState('persisting');
-          console.log('🔄 Starting persistTestMembership...');
           await persistTestMembership(transactionHash);
-          console.log('✅ persistTestMembership completed successfully');
           setClaimState('success');
           
           toast({
@@ -160,9 +152,7 @@ export default function ClaimMembershipButton({
             description: String(t('membership.purchase.success.description')),
           });
 
-          console.log('🎉 About to call onSuccess callback');
           onSuccess?.();
-          console.log('✅ Test payment flow completed successfully');
           return;
         } catch (error) {
           console.error('❌ Error in test payment flow:', error);
@@ -327,10 +317,9 @@ export default function ClaimMembershipButton({
 
   const persistTestMembership = async (transactionHash: string) => {
     try {
-      console.log('🚀 persistTestMembership starting...');
-      console.log('Parameters:', { level, txHash: transactionHash, priceUSDT: membershipLevel.priceUSDT, walletAddress });
+      console.log('🚀 Processing membership purchase and NFT minting...');
       
-      // For test chain, use direct membership claim endpoint
+      // Step 1: Update database membership status
       const response = await fetch('/api/membership/claim', {
         method: 'POST',
         headers: {
@@ -344,16 +333,62 @@ export default function ClaimMembershipButton({
         }),
       });
 
-      console.log('📡 API response status:', response.status, response.statusText);
-
       if (!response.ok) {
         const error = await response.json();
-        console.error('❌ API error response:', error);
         throw new Error(error.error || 'Failed to persist membership');
       }
 
       const result = await response.json();
-      console.log('✅ API success response:', result);
+      console.log('✅ Membership updated in database');
+
+      // Step 2: Mint BBC Membership NFT to user's wallet
+      console.log('🎨 Minting BBC Membership NFT to your wallet...');
+
+      if (!account) {
+        throw new Error('Wallet account not available for minting');
+      }
+
+      // Import mint function from thirdweb
+      const { mintTo } = await import('thirdweb/extensions/erc721');
+      
+      // Get BBC membership contract
+      const bbcContract = getContract({
+        client,
+        chain: selectedChain.chain, // Arbitrum Sepolia
+        address: contractAddresses.BBC_MEMBERSHIP.arbitrumSepolia as `0x${string}`,
+      });
+
+      const mintTransaction = mintTo({
+        contract: bbcContract,
+        to: walletAddress as `0x${string}`,
+        nft: {
+          name: `BBC Membership Level ${level}`,
+          description: `Beehive Blockchain Community Membership NFT - Level ${level} (${membershipLevel.titleEn})`,
+          image: `https://beehive.example.com/nft/level${level}.png`, // Placeholder image
+          attributes: [
+            { trait_type: 'Level', value: level },
+            { trait_type: 'Membership Type', value: membershipLevel.titleEn },
+            { trait_type: 'Price USDT', value: membershipLevel.priceUSDT },
+            { trait_type: 'Chain', value: 'Arbitrum Sepolia' },
+          ],
+        },
+      });
+
+      console.log('📤 Sending mint transaction to blockchain...');
+      const mintResult = await sendAndConfirmTransaction({
+        transaction: mintTransaction,
+        account,
+      });
+
+      console.log('🎉 NFT minted successfully!', {
+        transactionHash: mintResult.transactionHash,
+        tokenId: level,
+        recipient: walletAddress,
+      });
+
+      // Update result with NFT transaction hash
+      result.nftTxHash = mintResult.transactionHash;
+      result.nftMinted = true;
       
       // Emit persistence event
       membershipEventEmitter.emit({
