@@ -34,7 +34,8 @@ export default function ClaimMembershipButton({
   const [claimState, setClaimState] = useState<ClaimState>('idle');
   const [txHash, setTxHash] = useState<string>('');
   const [doubleClickGuard, setDoubleClickGuard] = useState(false);
-  const [selectedChain, setSelectedChain] = useState(paymentChains[0]); // Default to Ethereum
+  // Default to test chain (Arbitrum Sepolia) for easier testing
+  const [selectedChain, setSelectedChain] = useState(paymentChains.find(chain => (chain as any).isTestnet) || paymentChains[0]);
   const [showChainSelector, setShowChainSelector] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const account = useActiveAccount();
