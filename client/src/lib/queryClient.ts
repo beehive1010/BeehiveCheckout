@@ -89,6 +89,16 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       staleTime: Infinity,
       retry: false,
+      // Handle undefined data from thirdweb queries
+      placeholderData: (previousData: any) => previousData,
+      // Provide default data for specific query keys that might be undefined
+      select: (data) => {
+        // Handle thirdweb's "unsupported_token" query
+        if (data === undefined || data === null) {
+          return false; // Return false for unsupported token queries
+        }
+        return data;
+      },
     },
     mutations: {
       retry: false,
