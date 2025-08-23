@@ -649,7 +649,7 @@ export default function ClaimMembershipButton({
                     console.log('Test payment transaction:', result.transactionHash);
                     
                     // 处理支付成功
-                    await handlePaymentSuccess(result.transactionHash);
+                    await handlePaymentSuccess(result);
                     
                   } catch (error) {
                     console.error('Test payment error:', error);
