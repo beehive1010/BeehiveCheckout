@@ -1,6 +1,7 @@
 // Temporary admin authentication module to bypass storage.ts compilation issues
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
+import { sql } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import ws from 'ws';
@@ -17,11 +18,11 @@ const db = drizzle({ client: pool });
 export async function authenticateAdmin(username: string, password: string) {
   try {
     // Direct SQL query to avoid schema compilation issues
-    const result = await db.execute(`
+    const result = await db.execute(sql`
       SELECT id, username, email, role, password_hash, active 
       FROM admin_users 
-      WHERE username = $1 AND active = true
-    `, [username]);
+      WHERE username = ${username} AND active = true
+    `);
 
     if (result.rows.length === 0) {
       return null;
@@ -40,15 +41,15 @@ export async function authenticateAdmin(username: string, password: string) {
     const expiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours
 
     // Store session
-    await db.execute(`
+    await db.execute(sql`
       INSERT INTO admin_sessions (admin_id, session_token, expires_at, created_at)
-      VALUES ($1, $2, $3, $4)
-    `, [admin.id, sessionToken, expiresAt, new Date()]);
+      VALUES (${admin.id}, ${sessionToken}, ${expiresAt}, ${new Date()})
+    `);
 
     // Update last login
-    await db.execute(`
-      UPDATE admin_users SET last_login_at = $1 WHERE id = $2
-    `, [new Date(), admin.id]);
+    await db.execute(sql`
+      UPDATE admin_users SET last_login_at = ${new Date()} WHERE id = ${admin.id}
+    `);
 
     return {
       sessionToken,
@@ -68,14 +69,14 @@ export async function authenticateAdmin(username: string, password: string) {
 
 export async function verifyAdminSession(sessionToken: string) {
   try {
-    const result = await db.execute(`
+    const result = await db.execute(sql`
       SELECT 
         s.admin_id, s.expires_at,
         u.id, u.username, u.email, u.role, u.active
       FROM admin_sessions s
       JOIN admin_users u ON u.id = s.admin_id
-      WHERE s.session_token = $1 AND s.expires_at > $2 AND u.active = true
-    `, [sessionToken, new Date()]);
+      WHERE s.session_token = ${sessionToken} AND s.expires_at > ${new Date()} AND u.active = true
+    `);
 
     if (result.rows.length === 0) {
       return null;
@@ -90,9 +91,9 @@ export async function verifyAdminSession(sessionToken: string) {
 
 export async function logoutAdmin(sessionToken: string) {
   try {
-    await db.execute(`
-      DELETE FROM admin_sessions WHERE session_token = $1
-    `, [sessionToken]);
+    await db.execute(sql`
+      DELETE FROM admin_sessions WHERE session_token = ${sessionToken}
+    `);
     return true;
   } catch (error) {
     console.error('Logout error:', error);
