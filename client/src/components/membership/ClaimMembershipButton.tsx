@@ -589,16 +589,9 @@ export default function ClaimMembershipButton({
             // 测试网络：使用简单的手动转账按钮，完全避开bridge
             <div className="p-4 space-y-4">
               <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-2">测试网络 - 简化支付</p>
+                <p className="text-sm text-muted-foreground mb-2">测试网络支付</p>
                 <p className="text-lg font-bold text-honey">${membershipLevel.priceUSDT} 测试USDT</p>
-                <p className="text-xs text-muted-foreground">向测试钱包转账</p>
-              </div>
-              
-              <div className="bg-secondary/20 rounded-lg p-3 text-xs">
-                <p className="font-medium mb-1">测试参数:</p>
-                <p>USDT合约: {selectedChain.usdtAddress}</p>
-                <p>接收地址: {selectedChain.bridgeWallet}</p>
-                <p>金额: {membershipLevel.priceUSDT * 1000000} (含6位小数)</p>
+                <p className="text-xs text-muted-foreground">使用测试代币购买会员</p>
               </div>
 
               <Button
@@ -677,7 +670,6 @@ export default function ClaimMembershipButton({
                       address: selectedChain.usdtAddress,
                       symbol: 'USDT',
                       name: 'Tether USD',
-                      decimals: 6,
                     },
                   },
                   metadata: {
