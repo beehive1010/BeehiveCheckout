@@ -53,15 +53,15 @@ app.use((req, res, next) => {
   app.get("/api/admin/stats", async (req, res) => {
     try {
       // Get real statistics from database
-      const [usersResult] = await adminDb.execute('SELECT COUNT(*) as count FROM users');
-      const [membershipResult] = await adminDb.execute('SELECT COUNT(*) as count FROM membership_state WHERE active_level > 0');
-      const [nftsResult] = await adminDb.execute('SELECT COUNT(*) as count FROM merchant_nfts');
-      const [blogResult] = await adminDb.execute('SELECT COUNT(*) as count FROM blog_posts');
-      const [coursesResult] = await adminDb.execute('SELECT COUNT(*) as count FROM courses');
-      const [ordersResult] = await adminDb.execute('SELECT COUNT(*) as count FROM orders WHERE created_at > CURRENT_DATE - INTERVAL \'7 days\'');
+      const usersResult = await adminDb.execute('SELECT COUNT(*) as count FROM users');
+      const membershipResult = await adminDb.execute('SELECT COUNT(*) as count FROM membership_state WHERE active_level > 0');
+      const nftsResult = await adminDb.execute('SELECT COUNT(*) as count FROM merchant_nfts');
+      const blogResult = await adminDb.execute('SELECT COUNT(*) as count FROM blog_posts');
+      const coursesResult = await adminDb.execute('SELECT COUNT(*) as count FROM courses');
+      const ordersResult = await adminDb.execute('SELECT COUNT(*) as count FROM orders WHERE created_at > CURRENT_DATE - INTERVAL \'7 days\'');
 
       // Get pending approvals (blog posts with pending status)
-      const [pendingResult] = await adminDb.execute(`
+      const pendingResult = await adminDb.execute(`
         SELECT COUNT(*) as count FROM blog_posts 
         WHERE status = 'pending' OR status = 'draft'
       `);
@@ -96,7 +96,7 @@ app.use((req, res, next) => {
       const result = await adminDb.execute(`
         SELECT id, username, email, role, password_hash, active 
         FROM admin_users 
-        WHERE username = $1 AND active = true
+        WHERE username = ? AND active = true
       `, [username]);
 
       if (result.rows.length === 0) {
@@ -118,7 +118,7 @@ app.use((req, res, next) => {
       // Store session
       await adminDb.execute(`
         INSERT INTO admin_sessions (admin_id, session_token, expires_at, created_at)
-        VALUES ($1, $2, $3, $4)
+        VALUES (?, ?, ?, ?)
       `, [admin.id, sessionToken, expiresAt, new Date()]);
 
       res.json({
