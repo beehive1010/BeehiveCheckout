@@ -348,30 +348,25 @@ export default function ClaimMembershipButton({
         throw new Error('Wallet account not available for minting');
       }
 
-      // Import mint function from thirdweb
-      const { mintTo } = await import('thirdweb/extensions/erc721');
+      // Import mint function from thirdweb for ERC1155
+      const { mintTo } = await import('thirdweb/extensions/erc1155');
       
-      // Get BBC membership contract
+      // Get BBC membership contract (ERC1155)
       const bbcContract = getContract({
         client,
         chain: selectedChain.chain, // Arbitrum Sepolia
         address: contractAddresses.BBC_MEMBERSHIP.arbitrumSepolia as `0x${string}`,
       });
 
+      // Calculate correct token ID: Level 1 = Token ID 0, Level 2 = Token ID 1, etc.
+      const tokenId = level - 1; // Level 1 → Token ID 0
+
       const mintTransaction = mintTo({
         contract: bbcContract,
         to: walletAddress as `0x${string}`,
-        nft: {
-          name: `BBC Membership Level ${level}`,
-          description: `Beehive Blockchain Community Membership NFT - Level ${level} (${membershipLevel.titleEn})`,
-          image: `https://beehive.example.com/nft/level${level}.png`, // Placeholder image
-          attributes: [
-            { trait_type: 'Level', value: level },
-            { trait_type: 'Membership Type', value: membershipLevel.titleEn },
-            { trait_type: 'Price USDT', value: membershipLevel.priceUSDT },
-            { trait_type: 'Chain', value: 'Arbitrum Sepolia' },
-          ],
-        },
+        tokenId: BigInt(tokenId),
+        amount: BigInt(1), // Mint 1 NFT
+        data: '0x', // Empty data
       });
 
       console.log('📤 Sending mint transaction to blockchain...');
