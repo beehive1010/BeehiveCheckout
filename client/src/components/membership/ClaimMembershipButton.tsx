@@ -358,8 +358,8 @@ export default function ClaimMembershipButton({
         address: contractAddresses.BBC_MEMBERSHIP.arbitrumSepolia as `0x${string}`,
       });
 
-      // Calculate correct token ID: Level 1 = Token ID 0, Level 2 = Token ID 1, etc.
-      const tokenId = level - 1; // Level 1 → Token ID 0
+      // Calculate correct token ID: Level 1 = Token ID 1, Level 2 = Token ID 2, etc.
+      const tokenId = level; // Level 1 → Token ID 1
 
       const mintTransaction = mintTo({
         contract: bbcContract,

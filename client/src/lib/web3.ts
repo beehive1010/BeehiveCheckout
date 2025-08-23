@@ -261,20 +261,20 @@ export const paymentChains = [
 ];
 
 // Helper function to convert membership level to token ID
-// Level 1 = Token ID 0, Level 2 = Token ID 1, ..., Level 19 = Token ID 18
+// Level 1 = Token ID 1, Level 2 = Token ID 2, ..., Level 19 = Token ID 19
 export const levelToTokenId = (level: number): bigint => {
   if (level < 1 || level > 19) {
     throw new Error(`Invalid membership level: ${level}. Must be between 1 and 19.`);
   }
-  return BigInt(level - 1); // Level 1 maps to Token ID 0
+  return BigInt(level); // Level 1 maps to Token ID 1
 };
 
 // Helper function to convert token ID to membership level  
-// Token ID 0 = Level 1, Token ID 1 = Level 2, ..., Token ID 18 = Level 19
+// Token ID 1 = Level 1, Token ID 2 = Level 2, ..., Token ID 19 = Level 19
 export const tokenIdToLevel = (tokenId: bigint): number => {
-  const level = Number(tokenId) + 1; // Token ID 0 maps to Level 1
+  const level = Number(tokenId); // Token ID 1 maps to Level 1
   if (level < 1 || level > 19) {
-    throw new Error(`Invalid token ID: ${tokenId}. Must be between 0 and 18.`);
+    throw new Error(`Invalid token ID: ${tokenId}. Must be between 1 and 19.`);
   }
   return level;
 };
