@@ -649,7 +649,7 @@ export default function ClaimMembershipButton({
                     });
                   }
                 }}
-                disabled={claimState !== 'idle'}
+                disabled={claimState === 'paying' || claimState === 'verifying' || claimState === 'persisting'}
                 className="w-full bg-orange-500 hover:bg-orange-600 text-white"
               >
                 {claimState === 'paying' ? (
@@ -664,28 +664,31 @@ export default function ClaimMembershipButton({
             </div>
           ) : (
             // 生产网络：使用PayEmbed支持bridge
-            <PayEmbed
-              client={client}
-              payOptions={{
-                mode: "direct_payment",
-                paymentInfo: {
-                  amount: `${membershipLevel.priceUSDT}.00`,
-                  sellerAddress: selectedChain.bridgeWallet,
-                  chain: selectedChain.chain,
-                  token: {
-                    address: selectedChain.usdtAddress,
-                    symbol: 'USDT',
-                    name: 'Tether USD',
+            <div className="min-h-[200px]">
+              <PayEmbed
+                client={client}
+                payOptions={{
+                  mode: "direct_payment",
+                  paymentInfo: {
+                    amount: `${membershipLevel.priceUSDT}.00`,
+                    sellerAddress: selectedChain.bridgeWallet,
+                    chain: selectedChain.chain,
+                    token: {
+                      address: selectedChain.usdtAddress,
+                      symbol: 'USDT',
+                      name: 'Tether USD',
+                      decimals: 6,
+                    },
                   },
-                },
-                metadata: {
-                  name: `Beehive Level ${level} Membership`,
-                  description: `Exclusive Level ${level} membership with special privileges and rewards`,
-                },
-                onPurchaseSuccess: handlePaymentSuccess,
-              }}
-              theme="dark"
-            />
+                  metadata: {
+                    name: `Beehive Level ${level} Membership`,
+                    description: `Exclusive Level ${level} membership with special privileges and rewards`,
+                  },
+                  onPurchaseSuccess: handlePaymentSuccess,
+                }}
+                theme="dark"
+              />
+            </div>
           )}
         </div>
 
