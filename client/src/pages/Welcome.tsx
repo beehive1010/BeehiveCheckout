@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useI18n } from '../contexts/I18nContext';
 import { useLocation } from 'wouter';
 import { useActiveAccount } from 'thirdweb/react';
@@ -15,15 +15,21 @@ export default function Welcome() {
   const account = useActiveAccount();
   const { hasLevel1NFT, isLoading } = useNFTVerification();
 
-  // If user already has Level 1 NFT, redirect to dashboard
-  if (hasLevel1NFT && !isLoading) {
-    setLocation('/dashboard');
-    return null;
-  }
+  // Handle redirects in useEffect to avoid setState during render
+  useEffect(() => {
+    if (hasLevel1NFT && !isLoading) {
+      setLocation('/dashboard');
+      return;
+    }
+    
+    if (!account?.address) {
+      setLocation('/');
+      return;
+    }
+  }, [hasLevel1NFT, isLoading, account?.address, setLocation]);
 
-  // If no wallet connected, redirect to landing
-  if (!account?.address) {
-    setLocation('/');
+  // Show loading or return early for redirects
+  if ((hasLevel1NFT && !isLoading) || !account?.address) {
     return null;
   }
 
