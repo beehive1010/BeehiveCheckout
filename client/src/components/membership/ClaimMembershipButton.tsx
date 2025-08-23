@@ -137,7 +137,25 @@ export default function ClaimMembershipButton({
         }
       });
 
-      // Start verification process
+      // Check if this is test chain BEFORE calling verifyAndPersist
+      const isTestChain = selectedChain.name === 'Arbitrum Sepolia' || (selectedChain as any).isTestnet;
+      
+      if (isTestChain) {
+        console.log('Test chain detected, bypassing bridge verification completely');
+        setClaimState('persisting');
+        await persistTestMembership(transactionHash);
+        setClaimState('success');
+        
+        toast({
+          title: String(t('membership.purchase.success.title')),
+          description: String(t('membership.purchase.success.description')),
+        });
+
+        onSuccess?.();
+        return;
+      }
+
+      // Start verification process for non-test chains only
       await verifyAndPersist(transactionHash);
     } catch (error) {
       console.error('Payment success handler error:', error);
