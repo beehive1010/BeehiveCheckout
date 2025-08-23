@@ -140,19 +140,34 @@ export default function ClaimMembershipButton({
       // Check if this is test chain BEFORE calling verifyAndPersist
       const isTestChain = selectedChain.name === 'Arbitrum Sepolia' || (selectedChain as any).isTestnet;
       
+      console.log('=== Payment Success Debug ===');
+      console.log('Selected chain:', selectedChain.name);
+      console.log('Is testnet?:', (selectedChain as any).isTestnet);
+      console.log('Is test chain?:', isTestChain);
+      console.log('Transaction hash:', transactionHash);
+      
       if (isTestChain) {
-        console.log('Test chain detected, bypassing bridge verification completely');
-        setClaimState('persisting');
-        await persistTestMembership(transactionHash);
-        setClaimState('success');
-        
-        toast({
-          title: String(t('membership.purchase.success.title')),
-          description: String(t('membership.purchase.success.description')),
-        });
+        console.log('✅ Test chain detected, bypassing bridge verification completely');
+        try {
+          setClaimState('persisting');
+          console.log('🔄 Starting persistTestMembership...');
+          await persistTestMembership(transactionHash);
+          console.log('✅ persistTestMembership completed successfully');
+          setClaimState('success');
+          
+          toast({
+            title: String(t('membership.purchase.success.title')),
+            description: String(t('membership.purchase.success.description')),
+          });
 
-        onSuccess?.();
-        return;
+          console.log('🎉 About to call onSuccess callback');
+          onSuccess?.();
+          console.log('✅ Test payment flow completed successfully');
+          return;
+        } catch (error) {
+          console.error('❌ Error in test payment flow:', error);
+          throw error;
+        }
       }
 
       // Start verification process for non-test chains only
@@ -312,6 +327,9 @@ export default function ClaimMembershipButton({
 
   const persistTestMembership = async (transactionHash: string) => {
     try {
+      console.log('🚀 persistTestMembership starting...');
+      console.log('Parameters:', { level, txHash: transactionHash, priceUSDT: membershipLevel.priceUSDT, walletAddress });
+      
       // For test chain, use direct membership claim endpoint
       const response = await fetch('/api/membership/claim', {
         method: 'POST',
@@ -326,12 +344,16 @@ export default function ClaimMembershipButton({
         }),
       });
 
+      console.log('📡 API response status:', response.status, response.statusText);
+
       if (!response.ok) {
         const error = await response.json();
+        console.error('❌ API error response:', error);
         throw new Error(error.error || 'Failed to persist membership');
       }
 
       const result = await response.json();
+      console.log('✅ API success response:', result);
       
       // Emit persistence event
       membershipEventEmitter.emit({
