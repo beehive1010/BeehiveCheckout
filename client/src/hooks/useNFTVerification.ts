@@ -1,35 +1,18 @@
-import { useActiveAccount, useReadContract } from "thirdweb/react";
-import { balanceOf } from "thirdweb/extensions/erc1155";
-import { bbcMembershipContracts, levelToTokenId } from "../lib/web3";
+import { useActiveAccount } from "thirdweb/react";
 
 export function useNFTVerification() {
   const account = useActiveAccount();
   
-  // Frontend displays Alpha Centauri NFT ownership only
-  // Backend handles cross-chain verification (Arbitrum Sepolia payment -> Alpha Centauri claim)
-  const { 
-    data: alphaLevel1Balance, 
-    isLoading: isCheckingAlpha, 
-    error
-  } = useReadContract(
-    balanceOf,
-    {
-      contract: bbcMembershipContracts.alphaCentauri,
-      owner: account?.address || "",
-      tokenId: levelToTokenId(1), // Level 1 = Token ID 1 on Alpha Centauri
-    }
-  );
-
-  const isCheckingLevel1 = isCheckingAlpha;
+  // TEMPORARY FIX: Skip NFT verification to avoid Alpha Centauri RPC issues
+  // For now, assume users don't have NFT until they complete payment process
+  // This will be updated once the payment flow creates NFTs on accessible chains
   
-  // Frontend only shows Alpha Centauri NFT ownership
-  // Users see they own NFT on Alpha Centauri (the target chain)
-  const hasLevel1NFT = Boolean(alphaLevel1Balance && alphaLevel1Balance > BigInt(0));
-  
-  const isLoading = isCheckingLevel1;
-  
-  // Return Alpha Centauri balance for display
-  const level1Balance = alphaLevel1Balance || BigInt(0);
+  const hasLevel1NFT = false; // Always false until payment system creates NFTs
+  const isLoading = false;    // No loading since we're not querying
+  const error = null;         // No error since we're not querying
+  const level1Balance = BigInt(0); // No balance since no NFT
+  const alphaLevel1Balance = BigInt(0); // Placeholder for compatibility
+  const isCheckingAlpha = false; // Not checking
 
   return {
     hasLevel1NFT,
