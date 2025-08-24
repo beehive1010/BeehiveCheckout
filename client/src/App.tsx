@@ -22,6 +22,7 @@ import BlogPost from "@/pages/BlogPost";
 import Me from "@/pages/Me";
 import AdvertisementNFTs from "@/pages/AdvertisementNFTs";
 import NFTCenter from "@/pages/NFTCenter";
+import AdminNFTManager from "@/pages/AdminNFTManager";
 import TokenPurchase from "@/components/tokens/TokenPurchase";
 import NotFound from "@/pages/not-found";
 
@@ -178,6 +179,7 @@ function Router() {
         <Route path="/me" component={Me} />
         <Route path="/ads" component={AdvertisementNFTs} />
         <Route path="/nft-center" component={NFTCenter} />
+        <Route path="/admin-nft-manager" component={AdminNFTManager} />
         
         {/* Public routes - No authentication required */}
         <Route path="/hiveworld" component={HiveWorld} />

@@ -29,6 +29,7 @@ import {
   bccBalances,
   earningsWallet,
   rewardDistributions,
+  advertisementNFTs,
   type AdminUser,
   type AdminSession
 } from "@shared/schema";
@@ -1943,6 +1944,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Merchant NFT endpoints
+  app.get("/api/merchant/nfts", async (req, res) => {
+    try {
+      const nfts = await storage.getMerchantNFTs();
+      res.json(nfts);
+    } catch (error) {
+      console.error('Get merchant NFTs error:', error);
+      res.status(500).json({ error: 'Failed to get merchant NFTs' });
+    }
+  });
+
+  app.post("/api/merchant/purchase", requireWallet, async (req: any, res) => {
+    try {
+      const { nftId, bucketType } = req.body;
+      
+      // Get NFT details
+      const nft = await storage.getMerchantNFT(nftId);
+      if (!nft) {
+        return res.status(404).json({ error: 'NFT not found' });
+      }
+
+      // Get user's BCC balance
+      const balance = await storage.getBCCBalance(req.walletAddress);
+      const availableBalance = bucketType === 'restricted' ? balance.restricted : balance.transferable;
+      
+      if (availableBalance < nft.priceBCC) {
+        return res.status(400).json({ error: `Insufficient ${bucketType} BCC balance` });
+      }
+
+      // Deduct BCC from user's balance
+      if (bucketType === 'restricted') {
+        await storage.updateBCCBalance(req.walletAddress, {
+          restricted: balance.restricted - nft.priceBCC
+        });
+      } else {
+        await storage.updateBCCBalance(req.walletAddress, {
+          transferable: balance.transferable - nft.priceBCC
+        });
+      }
+
+      // Create purchase record
+      const purchase = await storage.createNFTPurchase({
+        walletAddress: req.walletAddress,
+        nftId,
+        amountBCC: nft.priceBCC,
+        bucketUsed: bucketType,
+      });
+
+      res.json(purchase);
+    } catch (error) {
+      console.error('Merchant NFT purchase error:', error);
+      res.status(500).json({ error: 'Failed to purchase merchant NFT' });
+    }
+  });
+
+  app.get("/api/merchant/my-nfts", requireWallet, async (req: any, res) => {
+    try {
+      const purchases = await storage.getNFTPurchasesByWallet(req.walletAddress);
+      res.json(purchases);
+    } catch (error) {
+      console.error('Get user merchant NFTs error:', error);
+      res.status(500).json({ error: 'Failed to get your merchant NFTs' });
+    }
+  });
+
   // Advertisement NFT endpoints
   app.get("/api/ads/nfts", async (req, res) => {
     try {
@@ -2051,6 +2117,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   */ // END OF TEMPORARILY COMMENTED ADMIN ROUTES
+
+  // Admin NFT Management Routes (for populating data)
+  app.post("/api/admin/create-merchant-nft", requireWallet, async (req: any, res) => {
+    try {
+      // Check if user is admin (you can add proper admin check later)
+      const user = await storage.getUser(req.walletAddress);
+      if (!user || user.currentLevel < 1) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const { title, description, imageUrl, priceBCC } = req.body;
+      
+      const nft = await storage.createMerchantNFT({
+        title,
+        description,
+        imageUrl,
+        priceBCC,
+        active: true
+      });
+
+      res.json({ success: true, nft });
+    } catch (error) {
+      console.error('Create merchant NFT error:', error);
+      res.status(500).json({ error: 'Failed to create merchant NFT' });
+    }
+  });
+
+  app.post("/api/admin/create-advertisement-nft", requireWallet, async (req: any, res) => {
+    try {
+      // Check if user is admin
+      const user = await storage.getUser(req.walletAddress);
+      if (!user || user.currentLevel < 1) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const { title, description, imageUrl, serviceName, serviceType, priceBCC, codeTemplate } = req.body;
+      
+      const [nft] = await db
+        .insert(advertisementNFTs)
+        .values({
+          title,
+          description,
+          imageUrl,
+          serviceName,
+          serviceType,
+          priceBCC,
+          codeTemplate: codeTemplate || `SERVICE-${Date.now()}`,
+          totalSupply: 1000,
+          claimedCount: 0,
+          active: true
+        })
+        .returning();
+
+      res.json({ success: true, nft });
+    } catch (error) {
+      console.error('Create advertisement NFT error:', error);
+      res.status(500).json({ error: 'Failed to create advertisement NFT' });
+    }
+  });
 
   // Admin Panel Authentication Routes
   const { authenticateAdmin, verifyAdminSession, logoutAdmin } = await import('./admin-auth.js');
