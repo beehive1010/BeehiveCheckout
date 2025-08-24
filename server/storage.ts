@@ -860,7 +860,6 @@ export class DatabaseStorage implements IStorage {
         rewardAmount: directRewardAmount.toString(),
         level: level,
         status: 'claimable',
-        createdAt: new Date(),
       });
       
       console.log(`Created direct referral reward for ${user.referrerWallet}: ${directRewardAmount} USDT`);
