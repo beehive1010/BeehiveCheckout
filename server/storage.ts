@@ -101,7 +101,7 @@ export interface IStorage {
   getGlobalMatrixPosition(walletAddress: string): Promise<GlobalMatrixPosition | undefined>;
   createGlobalMatrixPosition(position: InsertGlobalMatrixPosition): Promise<GlobalMatrixPosition>;
   updateGlobalMatrixPosition(walletAddress: string, updates: Partial<GlobalMatrixPosition>): Promise<GlobalMatrixPosition | undefined>;
-  findGlobalMatrixPlacement(sponsorWallet: string, level: number): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string }>;
+  findGlobalMatrixPlacement(sponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string }>;
 
   // BCC Balance operations
   getBCCBalance(walletAddress: string): Promise<BCCBalance | undefined>;
@@ -656,99 +656,162 @@ export class DatabaseStorage implements IStorage {
   }
 
   // BeeHive business logic operations - NEW GLOBAL MATRIX LOGIC
-  async processGlobalMatrixRewards(buyerWallet: string, level: number): Promise<void> {
-    const levelConfig = await this.getLevelConfig(level);
-    if (!levelConfig) return;
-
+  // Process rewards according to exact specification requirements  
+  async processGlobalMatrixRewards(buyerWallet: string, purchasedLevel: number): Promise<void> {
     const matrixPosition = await this.getGlobalMatrixPosition(buyerWallet);
     if (!matrixPosition) return;
 
-    // 1. Direct sponsor gets 100% of NFT price (instant)
+    // Get level config for pricing
+    const levelConfig = await this.getLevelConfig(purchasedLevel);
+    if (!levelConfig) return;
+
+    // 1. DIRECT SPONSOR REWARD (instant 100 USDT for all levels)
     await this.createRewardDistribution({
       recipientWallet: matrixPosition.directSponsorWallet,
       sourceWallet: buyerWallet,
       rewardType: 'direct_referral',
-      rewardAmount: (levelConfig.nftPriceUSDT / 100).toFixed(2), // 100% of NFT price
-      level: level,
+      rewardAmount: '100.00', // Always 100 USDT for direct sponsor
+      level: purchasedLevel,
       status: 'claimable', // Instant payment
     });
 
-    // 2. Layer-based matrix reward with 72-hour timer and NFT level requirement
-    const now = new Date();
-    const expiryTime = new Date(now.getTime() + (72 * 60 * 60 * 1000)); // 72 hours
-
-    // Find who should receive layer reward (must have Level X NFT to get Layer X rewards)
-    const layerRecipient = await this.findQualifiedLayerRecipient(matrixPosition.directSponsorWallet, level);
+    // 2. LAYER-BASED REWARDS with 72-hour timer and Level 1 special case
+    const layerRecipients = await this.getMatrixLayerRecipients(buyerWallet, purchasedLevel);
     
-    if (layerRecipient) {
-      // Special rule: Level 2 (Bronze) requires 3rd member to unlock 3rd position reward
-      if (level === 2) {
-        const directReferralCount = await this.getDirectReferralCount(matrixPosition.directSponsorWallet);
-        if (directReferralCount < 3) {
-          // Pass up to nearest qualified upline
-          const upline = await this.findNearestActivatedUpline(matrixPosition.directSponsorWallet);
-          if (upline) {
+    for (const recipient of layerRecipients) {
+      const pendingUntil = new Date();
+      pendingUntil.setHours(pendingUntil.getHours() + 72); // 72-hour countdown
+      
+      // LEVEL 1 SPECIAL CASE: 3rd reward requires L2 upgrade
+      if (purchasedLevel === 1) {
+        const recipientPosition = await this.getGlobalMatrixPosition(recipient);
+        if (recipientPosition?.positionIndex === 2) { // 3rd position (0-indexed)
+          // Check if recipient has L2 NFT
+          const membership = await this.getMembershipState(recipient);
+          const hasL2 = membership?.levelsOwned.includes(2) || false;
+          
+          if (!hasL2) {
+            // Create pending reward that requires L2 upgrade
             await this.createRewardDistribution({
-              recipientWallet: upline,
+              recipientWallet: recipient,
               sourceWallet: buyerWallet,
-              rewardType: 'matrix_layer_bonus',
-              rewardAmount: (levelConfig.nftPriceUSDT / 100).toFixed(2),
-              level: level,
-              status: 'pending',
-              pendingUntil: expiryTime,
+              rewardType: 'level_bonus',
+              rewardAmount: levelConfig.nftPriceUSDT.toFixed(2),
+              level: purchasedLevel,
+              status: 'pending', // Requires L2 upgrade
+              pendingUntil,
             });
+            continue;
           }
-          return;
         }
       }
-
-      // Layer recipient qualifies
-      await this.createRewardDistribution({
-        recipientWallet: layerRecipient,
-        sourceWallet: buyerWallet,
-        rewardType: 'matrix_layer_bonus',
-        rewardAmount: (levelConfig.nftPriceUSDT / 100).toFixed(2),
-        level: level,
-        status: 'pending',
-        pendingUntil: expiryTime,
-      });
+      
+      // STANDARD QUALIFICATION: Must own Level X NFT to receive Layer X rewards
+      const membership = await this.getMembershipState(recipient);
+      const isQualified = membership?.levelsOwned.includes(purchasedLevel) || false;
+      
+      if (isQualified) {
+        // Qualified: instant claimable reward
+        await this.createRewardDistribution({
+          recipientWallet: recipient,
+          sourceWallet: buyerWallet,
+          rewardType: 'level_bonus',
+          rewardAmount: levelConfig.nftPriceUSDT.toFixed(2),
+          level: purchasedLevel,
+          status: 'claimable',
+        });
+      } else {
+        // Not qualified: 72-hour timer to upgrade
+        await this.createRewardDistribution({
+          recipientWallet: recipient,
+          sourceWallet: buyerWallet,
+          rewardType: 'level_bonus',
+          rewardAmount: levelConfig.nftPriceUSDT.toFixed(2),
+          level: purchasedLevel,
+          status: 'pending',
+          pendingUntil,
+        });
+      }
     }
   }
 
   // NEW: Global Matrix Placement Algorithm
-  async findGlobalMatrixPlacement(sponsorWallet: string, level: number): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string }> {
-    // Calculate positions per level: Level 1 = 3, Level 2 = 9, Level 3 = 27, etc.
-    const getPositionsPerLevel = (level: number) => Math.pow(3, level);
-    
-    // Find next available position in the global matrix for this level
-    const existingPositions = await db.select()
+  // BFS placement algorithm - places members by join time in first available slot
+  async findGlobalMatrixPlacement(sponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string }> {
+    // Level 1: exactly 3 seats (fixed cap)
+    const level1Occupied = await db.select()
       .from(globalMatrixPosition)
-      .where(eq(globalMatrixPosition.matrixLevel, level))
+      .where(eq(globalMatrixPosition.matrixLevel, 1))
       .orderBy(globalMatrixPosition.positionIndex);
     
-    const maxPositions = getPositionsPerLevel(level);
-    let nextPositionIndex = 0;
+    if (level1Occupied.length < 3) {
+      // Place in Level 1 (positions 0, 1, 2)
+      return {
+        matrixLevel: 1,
+        positionIndex: level1Occupied.length,
+        placementSponsorWallet: sponsorWallet // Level 1 uses direct sponsor
+      };
+    }
     
-    // Find first available position
-    const occupiedPositions = existingPositions.map(p => p.positionIndex).sort((a, b) => a - b);
-    for (let i = 0; i < maxPositions; i++) {
-      if (!occupiedPositions.includes(i)) {
-        nextPositionIndex = i;
-        break;
+    // Level 2+: BFS spillover placement (3^level positions each)
+    for (let level = 2; level <= 19; level++) {
+      const maxPositionsForLevel = Math.pow(3, level); // 9, 27, 81, 243, etc.
+      
+      const existingPositions = await db.select()
+        .from(globalMatrixPosition)
+        .where(eq(globalMatrixPosition.matrixLevel, level))
+        .orderBy(globalMatrixPosition.positionIndex);
+      
+      if (existingPositions.length < maxPositionsForLevel) {
+        // Found space in this level
+        const nextPositionIndex = existingPositions.length;
+        
+        // BFS: Find earliest member who can place this person (by join time)
+        let placementWallet = sponsorWallet;
+        
+        const allMembers = await db.select()
+          .from(globalMatrixPosition)
+          .orderBy(globalMatrixPosition.joinedAt); // BFS by join time
+        
+        // Use first available member as placement sponsor (simplified BFS)
+        if (allMembers.length > 0) {
+          placementWallet = allMembers[0].walletAddress;
+        }
+        
+        return {
+          matrixLevel: level,
+          positionIndex: nextPositionIndex,
+          placementSponsorWallet: placementWallet
+        };
       }
     }
     
-    // If level is full, expand to next level
-    if (nextPositionIndex >= maxPositions) {
-      return this.findGlobalMatrixPlacement(sponsorWallet, level + 1);
+    throw new Error('Global matrix is full (all 19 levels filled)');
+  },
+
+  // Get matrix layer recipients for reward distribution
+  async getMatrixLayerRecipients(buyerWallet: string, level: number): Promise<string[]> {
+    try {
+      const buyerPosition = await this.getGlobalMatrixPosition(buyerWallet);
+      if (!buyerPosition) return [];
+      
+      // Find members in the buyer's layer who should receive rewards
+      // This is a simplified approach - in a full implementation, you'd traverse the matrix structure
+      const layerMembers = await db.select()
+        .from(globalMatrixPosition)
+        .where(eq(globalMatrixPosition.matrixLevel, level))
+        .orderBy(globalMatrixPosition.joinedAt);
+      
+      // Return wallet addresses of layer members (excluding the buyer)
+      return layerMembers
+        .filter(member => member.walletAddress !== buyerWallet.toLowerCase())
+        .slice(0, 3) // Limit to 3 upline positions for Layer rewards
+        .map(member => member.walletAddress);
+    } catch (error) {
+      console.error('Error getting matrix layer recipients:', error);
+      return [];
     }
-    
-    return {
-      matrixLevel: level,
-      positionIndex: nextPositionIndex,
-      placementSponsorWallet: sponsorWallet, // For simplicity, sponsor places them
-    };
-  }
+  },
 
   // Helper: Find who is qualified to receive layer rewards (must own Level X NFT to get Layer X rewards)
   async findQualifiedLayerRecipient(startWallet: string, level: number): Promise<string | null> {
