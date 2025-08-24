@@ -98,6 +98,9 @@ import { eq, and, desc, sql, isNull, inArray, not, gt, lt } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
+  // NFT operations
+  recordNFTPurchase(purchase: InsertNFTPurchase): Promise<NFTPurchase>;
+  
   // User operations
   getUser(walletAddress: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -403,6 +406,18 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error initializing level config:', error);
     }
+  }
+
+  // NFT operations
+  async recordNFTPurchase(purchase: InsertNFTPurchase): Promise<NFTPurchase> {
+    const [nftPurchase] = await db
+      .insert(nftPurchases)
+      .values({
+        ...purchase,
+        walletAddress: purchase.walletAddress.toLowerCase(),
+      })
+      .returning();
+    return nftPurchase;
   }
 
   // User operations
@@ -787,7 +802,7 @@ export class DatabaseStorage implements IStorage {
         
         const allMembers = await db.select()
           .from(globalMatrixPosition)
-          .orderBy(globalMatrixPosition.joinedAt); // BFS by join time
+          .orderBy(sql`joined_at`); // BFS by join time
         
         // Use first available member as placement sponsor (simplified BFS)
         if (allMembers.length > 0) {

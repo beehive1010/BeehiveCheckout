@@ -230,32 +230,16 @@ app.use((req, res, next) => {
       // Note: User is_active status is already set during membership activation
       // This just records the NFT claim in database
       
-      // 2. Record in member_nft_verification
-      await storage.db.insert(storage.memberNFTVerification).values({
-        wallet_address: walletAddress,
-        nft_contract_address: '0x99265477249389469929CEA07c4a337af9e12cdA',
-        token_id: `level-${level}-${Date.now()}`,
-        chain_id: 421614,
-        verification_status: isRealNFT ? 'verified' : 'pending',
-        last_verified: new Date(),
-      }).onConflictDoUpdate({
-        target: storage.memberNFTVerification.wallet_address,
-        set: {
-          verification_status: isRealNFT ? 'verified' : 'pending',
-          last_verified: new Date(),
-        }
+      // Record in nft_purchases (simplified without direct DB access)
+      await storage.recordNFTPurchase({
+        walletAddress: walletAddress.toLowerCase(),
+        nftId: `beehive-level-${level}`,
+        amountBCC: level === 1 ? 100 : level * 50 + 50, // Level 1 = 100 BCC, then +50 per level
+        txHash: txHash,
+        bucketUsed: 'transferable' // Since we give 100% transferable BCC
       });
       
-      // 3. Record in nft_purchases  
-      await storage.db.insert(storage.nftPurchases).values({
-        wallet_address: walletAddress,
-        nft_id: `beehive-level-${level}`,
-        amount_bcc: level * 100, // Level 1 = 100 BCC equivalent
-        tx_hash: txHash,
-        bucket_used: 'transferable' // Since we give 100% transferable BCC
-      });
-      
-      // 4. Update membership_state 
+      // Update membership_state 
       await storage.updateMembershipState(walletAddress, {
         activeLevel: level,
         lastUpgradeAt: new Date()
