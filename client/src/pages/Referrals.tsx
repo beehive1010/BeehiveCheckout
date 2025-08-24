@@ -103,14 +103,18 @@ export default function Referrals() {
               <p className="text-sm text-muted-foreground mb-3">
                 BeeHive uses a single shared 19-level global matrix where all users are placed in one company-wide structure.
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 gap-4 text-sm">
                 <div>
-                  <h5 className="font-medium text-white mb-2">✅ Direct Sponsor Reward</h5>
-                  <p className="text-muted-foreground">Instant 100 USDT when your direct referral buys any Level NFT</p>
+                  <h5 className="font-medium text-white mb-2">⏳ Layer-Based Rewards Only (72h Timer)</h5>
+                  <p className="text-muted-foreground">When a member in your Layer n purchases Level n NFT, you receive the NFT price as reward. Must own Level X NFT to receive Layer X rewards.</p>
                 </div>
-                <div>
-                  <h5 className="font-medium text-white mb-2">⏳ Layer Rewards (72h Timer)</h5>
-                  <p className="text-muted-foreground">Must own Level X NFT to receive rewards from Level X members. Third member rule applies.</p>
+                <div className="mt-2 p-3 bg-yellow-600/10 border border-yellow-600/20 rounded">
+                  <h6 className="font-medium text-yellow-400 text-xs mb-1">SPECIAL RULES:</h6>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li>• Level 1: 3rd reward requires Level 2 upgrade</li>
+                    <li>• Level 2: Must own L2 + at least one Layer 1 member with L2</li>
+                    <li>• Level 3-19: Just need to own that level or higher</li>
+                  </ul>
                 </div>
               </div>
             </div>
