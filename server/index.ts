@@ -235,28 +235,27 @@ app.use((req, res, next) => {
       
       // 2. Record in member_nft_verification
       await storage.db.insert(storage.memberNFTVerification).values({
-        walletAddress,
-        nftContractAddress: '0x99265477249389469929CEA07c4a337af9e12cdA',
-        tokenId: `level-${level}-${Date.now()}`,
-        chainId: 421614,
-        verificationStatus: isRealNFT ? 'verified' : 'pending',
-        lastVerified: new Date(),
+        wallet_address: walletAddress,
+        nft_contract_address: '0x99265477249389469929CEA07c4a337af9e12cdA',
+        token_id: `level-${level}-${Date.now()}`,
+        chain_id: 421614,
+        verification_status: isRealNFT ? 'verified' : 'pending',
+        last_verified: new Date(),
       }).onConflictDoUpdate({
-        target: storage.memberNFTVerification.walletAddress,
+        target: storage.memberNFTVerification.wallet_address,
         set: {
-          verificationStatus: isRealNFT ? 'verified' : 'pending',
-          lastVerified: new Date(),
+          verification_status: isRealNFT ? 'verified' : 'pending',
+          last_verified: new Date(),
         }
       });
       
       // 3. Record in nft_purchases  
       await storage.db.insert(storage.nftPurchases).values({
-        walletAddress,
-        nftId: `beehive-level-${level}`,
-        priceUSDT: level * 100, // Level 1 = 100 USDT
-        txHash,
-        status: isRealNFT ? 'completed' : 'simulated',
-        purchaseType: 'membership'
+        wallet_address: walletAddress,
+        nft_id: `beehive-level-${level}`,
+        amount_bcc: level * 100, // Level 1 = 100 BCC equivalent
+        tx_hash: txHash,
+        bucket_used: 'transferable' // Since we give 100% transferable BCC
       });
       
       // 4. Update membership_state 
