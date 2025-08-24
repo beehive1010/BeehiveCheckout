@@ -366,6 +366,7 @@ export default function Dashboard() {
                   {t('dashboard.activation.activationNote')}
                 </p>
               </div>
+              
             </CardContent>
           </Card>
         </div>

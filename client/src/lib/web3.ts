@@ -247,17 +247,6 @@ export const paymentChains = [
     icon: 'fas fa-coins',
     color: 'text-yellow-400'
   },
-  // 测试网络放在最下面
-  { 
-    chain: arbitrumSepolia, 
-    name: 'Arbitrum Sepolia', 
-    symbol: 'ETH',
-    usdtAddress: contractAddresses.USDT.arbitrumSepolia,
-    bridgeWallet: contractAddresses.BRIDGE_WALLETS.arbitrumSepolia,
-    icon: 'fas fa-vial',
-    color: 'text-orange-400',
-    isTestnet: true // 标识测试网络
-  },
 ];
 
 // Helper function to convert membership level to token ID
