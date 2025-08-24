@@ -386,6 +386,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Process BeeHive referral rewards
+      console.log('About to process referral rewards...');
       await storage.processReferralRewards(req.walletAddress, level);
 
       // Record member activation with pending time
@@ -409,8 +410,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { nftContractAddress, tokenId } = req.body;
       
-      // Verify this is the correct Member NFT contract
-      if (nftContractAddress.toLowerCase() !== '0x6d513487bd63430ca71cd1d9a7dea5aacdbf0322') {
+      // Verify this is the correct Member NFT contract (updated demo address)
+      const validContracts = [
+        '0x6d513487bd63430ca71cd1d9a7dea5aacdbf0322', // Original
+        '0x99265477249389469929CEA07c4a337af9e12cdA'.toLowerCase() // Demo Beehive Member NFT
+      ];
+      if (!validContracts.includes(nftContractAddress.toLowerCase())) {
         return res.status(400).json({ error: 'Invalid NFT contract' });
       }
 

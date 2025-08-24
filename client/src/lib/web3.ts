@@ -173,6 +173,7 @@ export const contractAddresses = {
   BBC_MEMBERSHIP: {
     arbitrumSepolia: '0xAc8c8662726b72f8DB4F5D1d1a16aC5b06B7a90D',
     alphaCentauri: '0x5f6045Cc578b9f7E20416ede382f31FC151f32E7',
+    demo: '0x99265477249389469929CEA07c4a337af9e12cdA', // Demo Beehive Member NFT
   },
   BCC_TOKEN: import.meta.env.VITE_BCC_CONTRACT_ADDRESS || '0x1234567890123456789012345678901234567891',
   CTH_TOKEN: {
