@@ -483,22 +483,7 @@ export default function ClaimMembershipButton({
 
 
   const getButtonText = () => {
-    switch (claimState) {
-      case 'approving':
-        return isApproving ? String(t('membership.purchase.approving')) : String(t('membership.purchase.preparing'));
-      case 'paying':
-        return String(t('membership.purchase.paying'));
-      case 'verifying':
-        return String(t('membership.purchase.verifying'));
-      case 'persisting':
-        return String(t('membership.purchase.finalizing'));
-      case 'success':
-        return String(t('membership.purchase.completed'));
-      case 'error':
-        return String(t('membership.purchase.retry'));
-      default:
-        return String(t('membership.purchase.button')).replace('{level}', level.toString()).replace('{price}', membershipLevel.priceUSDT.toString());
-    }
+    return "Claim the NFT";
   };
 
   const isButtonDisabled = disabled || doubleClickGuard || isApproving || ['approving', 'paying', 'verifying', 'persisting', 'success'].includes(claimState);
