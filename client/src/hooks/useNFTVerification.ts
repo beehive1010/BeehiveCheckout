@@ -7,6 +7,16 @@ export function useNFTVerification() {
   // Check activation status from database instead of NFT ownership
   const { data: registrationStatus, isLoading } = useQuery({
     queryKey: ['/api/wallet/registration-status'],
+    queryFn: async () => {
+      if (!account?.address) return null;
+      const response = await fetch('/api/wallet/registration-status', {
+        headers: {
+          'X-Wallet-Address': account.address
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch registration status');
+      return response.json();
+    },
     enabled: !!account?.address,
   });
   
