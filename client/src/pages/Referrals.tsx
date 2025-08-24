@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { membershipLevels } from '../lib/config/membershipLevels';
 
 export default function Referrals() {
   const { walletAddress, userData } = useWallet();
@@ -85,6 +86,98 @@ export default function Referrals() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Reward Structure Information */}
+      <Card className="bg-secondary border-border">
+        <CardHeader>
+          <CardTitle className="text-honey flex items-center">
+            <i className="fas fa-coins mr-2"></i>
+            BeeHive Reward Structure
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="bg-background/50 rounded-lg p-4">
+              <h4 className="font-semibold text-honey mb-2">How Rewards Work</h4>
+              <p className="text-sm text-muted-foreground mb-3">
+                When your referrals purchase BBC Member NFTs, you earn 100% of the NFT price portion as rewards.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <h5 className="font-medium text-white mb-2">✅ Direct Referral Bonus</h5>
+                  <p className="text-muted-foreground">Instant payment when your direct referral activates any level</p>
+                </div>
+                <div>
+                  <h5 className="font-medium text-white mb-2">⏳ Level Bonus (72h Timer)</h5>
+                  <p className="text-muted-foreground">Requires same or higher level. Bronze Level 2 needs 3 direct referrals.</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* First 6 levels */}
+              <div>
+                <h5 className="font-semibold text-honey mb-3">Levels 1-6 Rewards</h5>
+                <div className="space-y-2">
+                  {membershipLevels.slice(0, 6).map((level) => (
+                    <div key={level.level} className="flex justify-between items-center p-2 bg-background/30 rounded">
+                      <span className="text-sm">
+                        <Badge variant="outline" className="mr-2">{level.titleEn}</Badge>
+                        {level.level === 1 && (
+                          <span className="text-xs text-muted-foreground">
+                            ({level.nftPriceUSDT} USDT NFT + {level.platformFeeUSDT} USDT fee)
+                          </span>
+                        )}
+                      </span>
+                      <span className="font-bold text-honey">{level.nftPriceUSDT} USDT</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Next 6 levels */}
+              <div>
+                <h5 className="font-semibold text-honey mb-3">Levels 7-12 Rewards</h5>
+                <div className="space-y-2">
+                  {membershipLevels.slice(6, 12).map((level) => (
+                    <div key={level.level} className="flex justify-between items-center p-2 bg-background/30 rounded">
+                      <span className="text-sm">
+                        <Badge variant="outline" className="mr-2">{level.titleEn}</Badge>
+                      </span>
+                      <span className="font-bold text-honey">{level.nftPriceUSDT} USDT</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {/* Remaining levels - compact display */}
+            <div>
+              <h5 className="font-semibold text-honey mb-3">Levels 13-19 (High Tier)</h5>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {membershipLevels.slice(12).map((level) => (
+                  <div key={level.level} className="text-center p-2 bg-background/30 rounded">
+                    <div className="text-xs font-medium">{level.titleEn}</div>
+                    <div className="text-sm font-bold text-honey">{(level.nftPriceUSDT / 1000).toFixed(0)}K USDT</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-honey/10 rounded-lg p-3 border border-honey/20">
+              <div className="flex items-start space-x-2">
+                <i className="fas fa-lightbulb text-honey mt-1"></i>
+                <div className="text-sm">
+                  <span className="font-medium text-honey">Key Point:</span>
+                  <span className="text-muted-foreground ml-1">
+                    Sponsors always receive 100% of the NFT price as reward, not the total price including platform fees.
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Referral Link - Mobile Optimized */}
       <Card className="bg-secondary border-border">
