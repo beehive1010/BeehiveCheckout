@@ -227,11 +227,8 @@ app.use((req, res, next) => {
       
       console.log(`📝 Recording NFT claim for ${walletAddress}: Level ${level}, TX: ${txHash}`);
       
-      // 1. Update user is_active status
-      await storage.updateUser(walletAddress, { 
-        is_active: true,
-        member_activated: true 
-      });
+      // Note: User is_active status is already set during membership activation
+      // This just records the NFT claim in database
       
       // 2. Record in member_nft_verification
       await storage.db.insert(storage.memberNFTVerification).values({

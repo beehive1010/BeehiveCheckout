@@ -386,15 +386,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Credit BCC tokens based on level (1:1 with USDT price)
+      // Set user as verified member FIRST (before any BCC rewards)
+      await storage.updateUser(req.walletAddress, {
+        is_active: true,
+        member_activated: true
+      });
+      console.log(`✅ User verified as Level ${level} member`);
+
+      // ONLY AFTER becoming verified member, give BCC rewards
       const bccReward = calculateBCCReward(level);
-      console.log(`💰 Giving ${bccReward.total} BCC for Level ${level} (all transferable)`);
+      console.log(`💰 Verified member reward: ${bccReward.total} BCC for Level ${level} (all transferable)`);
       
       const bccBalance = await storage.getBCCBalance(req.walletAddress);
       if (bccBalance) {
         await storage.updateBCCBalance(req.walletAddress, {
           transferable: bccBalance.transferable + bccReward.transferable,
           restricted: bccBalance.restricted + bccReward.restricted,
+        });
+      } else {
+        // Create new BCC balance for verified members only
+        await storage.createBCCBalance({
+          walletAddress: req.walletAddress,
+          transferable: bccReward.transferable,
+          restricted: bccReward.restricted,
         });
       }
 
