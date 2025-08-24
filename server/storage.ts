@@ -146,6 +146,7 @@ export interface IStorage {
   // Dashboard statistics
   getTotalMemberCount(): Promise<number>;
   getMemberCountByLevel(): Promise<{ level: number; count: number }[]>;
+  getDirectReferralCount(walletAddress: string): Promise<number>;
   getGlobalStatistics(): Promise<{
     totalMembers: number;
     totalEarnings: number;
@@ -636,6 +637,16 @@ export class DatabaseStorage implements IStorage {
     .orderBy(membershipState.activeLevel);
     
     return results.map(r => ({ level: r.level, count: r.count || 0 }));
+  }
+
+  async getDirectReferralCount(walletAddress: string): Promise<number> {
+    const result = await db.select({
+      count: sql<number>`count(*)`
+    })
+    .from(users)
+    .where(eq(users.referrerWallet, walletAddress.toLowerCase()));
+    
+    return result[0]?.count || 0;
   }
 
   async getGlobalStatistics(): Promise<{
