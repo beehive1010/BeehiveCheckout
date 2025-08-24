@@ -25,9 +25,10 @@ import {
   auditLogs,
   users,
   membershipState,
+  globalMatrixPosition,
   bccBalances,
   earningsWallet,
-  referralNodes,
+  rewardDistributions,
   type AdminUser,
   type AdminSession
 } from "@shared/schema";
@@ -744,39 +745,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // BeeHive API routes
+  // BeeHive API routes - NEW GLOBAL MATRIX
   app.get("/api/beehive/matrix", requireWallet, async (req: any, res) => {
     try {
-      const referralNode = await storage.getReferralNode(req.walletAddress);
-      if (!referralNode) {
-        return res.status(404).json({ error: 'Referral node not found' });
+      const matrixPosition = await storage.getGlobalMatrixPosition(req.walletAddress);
+      if (!matrixPosition) {
+        return res.status(404).json({ error: 'Matrix position not found' });
       }
 
-      // Get children details using existing database structure  
-      const childrenResult = await db.execute(sql`
-        SELECT wallet_address FROM referral_nodes 
-        WHERE sponsor_wallet = ${req.walletAddress.toLowerCase()}
-      `);
+      // Get direct referrals (people this user sponsored)
+      const directReferrals = await db.select({
+        walletAddress: globalMatrixPosition.walletAddress,
+        matrixLevel: globalMatrixPosition.matrixLevel,
+        positionIndex: globalMatrixPosition.positionIndex,
+        joinedAt: globalMatrixPosition.joinedAt
+      })
+      .from(globalMatrixPosition)
+      .where(eq(globalMatrixPosition.directSponsorWallet, req.walletAddress.toLowerCase()));
       
-      const childrenDetails = await Promise.all(
-        childrenResult.rows.map(async (row: any) => {
-          const childUser = await storage.getUser(row.wallet_address);
+      const referralDetails = await Promise.all(
+        directReferrals.map(async (referral) => {
+          const childUser = await storage.getUser(referral.walletAddress);
+          const childMembership = await storage.getMembershipState(referral.walletAddress);
           return {
-            walletAddress: row.wallet_address,
+            walletAddress: referral.walletAddress,
             username: childUser?.username,
             memberActivated: childUser?.memberActivated,
             currentLevel: childUser?.currentLevel,
+            matrixLevel: referral.matrixLevel,
+            positionIndex: referral.positionIndex,
+            activeLevel: childMembership?.activeLevel || 0,
+            joinedAt: referral.joinedAt,
           };
         })
       );
 
-      // Get BeeHive earnings data instead of old reward events
-      const earnings = await storage.getEarningsWalletByWallet(req.walletAddress);
+      // Get reward distributions instead of old earnings
+      const rewards = await db.select()
+        .from(rewardDistributions)
+        .where(eq(rewardDistributions.recipientWallet, req.walletAddress.toLowerCase()))
+        .orderBy(desc(rewardDistributions.createdAt))
+        .limit(20);
 
       res.json({
-        referralNode,
-        childrenDetails,
-        earnings,
+        matrixPosition,
+        directReferrals: referralDetails,
+        rewards,
+        totalDirectReferrals: referralDetails.length,
       });
     } catch (error) {
       console.error('Get matrix error:', error);
@@ -784,25 +799,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User stats endpoint for referral dashboard
+  // User stats endpoint for referral dashboard - NEW GLOBAL MATRIX
   app.get("/api/beehive/user-stats/:walletAddress?", requireWallet, async (req: any, res) => {
     try {
       const walletAddress = req.params.walletAddress || req.walletAddress;
       
-      const referralNode = await storage.getReferralNode(walletAddress);
-      const earnings = await storage.getEarningsWalletByWallet(walletAddress);
+      const matrixPosition = await storage.getGlobalMatrixPosition(walletAddress);
       const user = await storage.getUser(walletAddress);
+      const membership = await storage.getMembershipState(walletAddress);
       
-      // Calculate referral statistics
-      const directReferralCount = referralNode?.directReferralCount || 0;
-      const totalTeamCount = referralNode?.totalTeamCount || 0;
+      // Get direct referral count from global matrix
+      const directReferralCount = await storage.getDirectReferralCount(walletAddress);
       
-      // Calculate earnings from earnings wallet
-      const totalEarnings = earnings.reduce((sum, e) => sum + parseFloat(e.totalEarnings), 0);
-      const pendingRewards = earnings.reduce((sum, e) => sum + parseFloat(e.pendingRewards), 0);
-      const monthlyEarnings = earnings
-        .filter(e => new Date(e.lastRewardAt || 0) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
-        .reduce((sum, e) => sum + parseFloat(e.totalEarnings), 0);
+      // Get all positions in global matrix placed by this user (including spillover)
+      const allPlacements = await db.select()
+        .from(globalMatrixPosition)
+        .where(eq(globalMatrixPosition.placementSponsorWallet, walletAddress.toLowerCase()));
+      const totalTeamCount = allPlacements.length;
+      
+      // Calculate earnings from reward distributions
+      const rewards = await db.select()
+        .from(rewardDistributions)
+        .where(eq(rewardDistributions.recipientWallet, walletAddress.toLowerCase()));
+      
+      const totalEarnings = rewards
+        .filter(r => r.status === 'claimed')
+        .reduce((sum, r) => sum + parseFloat(r.rewardAmount), 0);
+      
+      const pendingRewards = rewards
+        .filter(r => r.status === 'pending' || r.status === 'claimable')
+        .reduce((sum, r) => sum + parseFloat(r.rewardAmount), 0);
+      
+      const monthlyEarnings = rewards
+        .filter(r => r.status === 'claimed' && new Date(r.claimedAt || 0) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+        .reduce((sum, r) => sum + parseFloat(r.rewardAmount), 0);
 
       res.json({
         directReferralCount,
@@ -813,6 +843,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         nextPayout: 'TBA', // Could be calculated from pending rewards
         currentLevel: user?.currentLevel || 0,
         memberActivated: user?.memberActivated || false,
+        matrixLevel: matrixPosition?.matrixLevel || 0,
+        positionIndex: matrixPosition?.positionIndex || 0,
+        levelsOwned: membership?.levelsOwned || [],
       });
     } catch (error) {
       console.error('Get user stats error:', error);
@@ -820,36 +853,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Referral tree endpoint
+  // Get user's global matrix position and direct referrals - NEW ENDPOINT
+  app.get("/api/beehive/global-matrix-position", requireWallet, async (req: any, res) => {
+    try {
+      const walletAddress = req.walletAddress;
+      
+      // Get user's matrix position
+      const position = await db.select()
+        .from(globalMatrixPosition)
+        .where(eq(globalMatrixPosition.walletAddress, walletAddress))
+        .limit(1);
+        
+      // Get user's direct referrals (users they directly sponsored)
+      const directReferrals = await db.select({
+        walletAddress: globalMatrixPosition.walletAddress,
+        matrixLevel: globalMatrixPosition.matrixLevel,
+        positionIndex: globalMatrixPosition.positionIndex,
+        joinedAt: globalMatrixPosition.joinedAt,
+        username: users.username,
+        currentLevel: users.currentLevel
+      })
+      .from(globalMatrixPosition)
+      .leftJoin(users, eq(globalMatrixPosition.walletAddress, users.walletAddress))
+      .where(eq(globalMatrixPosition.directSponsorWallet, walletAddress))
+      .orderBy(globalMatrixPosition.joinedAt);
+      
+      res.json({
+        position: position[0] || null,
+        directReferrals,
+        totalDirectReferrals: directReferrals.length
+      });
+    } catch (error) {
+      console.error('Global matrix position error:', error);
+      res.status(500).json({ error: 'Failed to get global matrix position' });
+    }
+  });
+
+  // Referral tree endpoint - NEW GLOBAL MATRIX
   app.get("/api/beehive/referral-tree", requireWallet, async (req: any, res) => {
     try {
-      const referralNode = await storage.getReferralNode(req.walletAddress);
-      if (!referralNode) {
-        return res.status(404).json({ error: 'Referral node not found' });
+      const matrixPosition = await storage.getGlobalMatrixPosition(req.walletAddress);
+      if (!matrixPosition) {
+        return res.status(404).json({ error: 'Matrix position not found' });
       }
 
-      // Get direct referrals with details
-      const directReferrals = await Promise.all(
-        [...(referralNode.leftLeg || []), ...(referralNode.middleLeg || []), ...(referralNode.rightLeg || [])]
-        .map(async (walletAddress) => {
-          const user = await storage.getUser(walletAddress);
-          const membershipState = await storage.getMembershipState(walletAddress);
-          const earnings = await storage.getEarningsWalletByWallet(walletAddress);
+      // Get all direct referrals (people sponsored by this user)
+      const directReferrals = await db.select()
+        .from(globalMatrixPosition)
+        .where(eq(globalMatrixPosition.directSponsorWallet, req.walletAddress.toLowerCase()))
+        .orderBy(globalMatrixPosition.joinedAt);
+
+      const referralDetails = await Promise.all(
+        directReferrals.map(async (referral) => {
+          const user = await storage.getUser(referral.walletAddress);
+          const membership = await storage.getMembershipState(referral.walletAddress);
+          
+          // Calculate earnings from reward distributions
+          const userRewards = await db.select()
+            .from(rewardDistributions)
+            .where(eq(rewardDistributions.recipientWallet, referral.walletAddress));
+          
+          const totalEarnings = userRewards
+            .filter(r => r.status === 'claimed')
+            .reduce((sum, r) => sum + parseFloat(r.rewardAmount), 0);
           
           return {
-            walletAddress,
+            walletAddress: referral.walletAddress,
             username: user?.username || 'Unknown',
             level: user?.currentLevel || 0,
-            joinDate: user?.createdAt || new Date().toISOString(),
-            earnings: earnings.reduce((sum, e) => sum + parseFloat(e.totalEarnings), 0),
+            matrixLevel: referral.matrixLevel,
+            positionIndex: referral.positionIndex,
+            joinDate: referral.joinedAt?.toISOString() || new Date().toISOString(),
+            earnings: totalEarnings,
             memberActivated: user?.memberActivated || false,
+            levelsOwned: membership?.levelsOwned || [],
+            activeLevel: membership?.activeLevel || 0,
           };
         })
       );
 
+      // Get matrix tree visualization data (showing layers)
+      const matrixLevels = [];
+      for (let level = 1; level <= 19; level++) {
+        const levelPositions = await db.select()
+          .from(globalMatrixPosition)
+          .where(eq(globalMatrixPosition.matrixLevel, level))
+          .limit(Math.pow(3, level)); // 3^level positions per level
+        
+        matrixLevels.push({
+          level,
+          maxPositions: Math.pow(3, level),
+          filledPositions: levelPositions.length,
+          positions: levelPositions.slice(0, 10), // Limit for performance
+        });
+      }
+
       res.json({
-        directReferrals,
-        matrixNode: referralNode,
+        userPosition: matrixPosition,
+        directReferrals: referralDetails,
+        matrixLevels: matrixLevels.slice(0, 5), // First 5 levels for display
+        totalDirectReferrals: referralDetails.length,
       });
     } catch (error) {
       console.error('Get referral tree error:', error);
@@ -1142,8 +1245,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const rewardAmount = level === 1 ? 100 : calculateRewardAmount(level);
         const eventType = level === 1 ? 'L1_direct' : 'L2plus_upgrade';
         
-        // Process referral rewards using new BeeHive system
-        await storage.processReferralRewards(req.walletAddress, level);
+        // Process referral rewards using new GLOBAL MATRIX system
+        await storage.processGlobalMatrixRewards(req.walletAddress, level);
       }
 
       res.json({ 
@@ -1889,6 +1992,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Get admin referrals error:', error);
       res.status(500).json({ error: 'Failed to get referral data' });
+    }
+  });
+
+  // Admin global matrix endpoint - NEW GLOBAL MATRIX SYSTEM
+  app.get("/api/admin/global-matrix", requireAdminAuth, async (req, res) => {
+    try {
+      const { search, level } = req.query;
+      const targetLevel = level ? parseInt(level as string) : 1;
+      
+      let query = db.select({
+        walletAddress: globalMatrixPosition.walletAddress,
+        matrixLevel: globalMatrixPosition.matrixLevel,
+        positionIndex: globalMatrixPosition.positionIndex,
+        directSponsorWallet: globalMatrixPosition.directSponsorWallet,
+        placementSponsorWallet: globalMatrixPosition.placementSponsorWallet,
+        joinedAt: globalMatrixPosition.joinedAt,
+        lastUpgradeAt: globalMatrixPosition.lastUpgradeAt,
+        username: users.username,
+        memberActivated: users.memberActivated,
+        currentLevel: users.currentLevel
+      })
+      .from(globalMatrixPosition)
+      .leftJoin(users, eq(globalMatrixPosition.walletAddress, users.walletAddress))
+      .where(eq(globalMatrixPosition.matrixLevel, targetLevel))
+      .orderBy(globalMatrixPosition.positionIndex);
+      
+      // Apply search filter if provided
+      if (search && typeof search === 'string' && search.trim().length > 0) {
+        const searchTerm = search.trim().toLowerCase();
+        query = query.where(
+          and(
+            eq(globalMatrixPosition.matrixLevel, targetLevel),
+            or(
+              sql`LOWER(${users.username}) LIKE ${`%${searchTerm}%`}`,
+              sql`LOWER(${globalMatrixPosition.walletAddress}) LIKE ${`%${searchTerm}%`}`
+            )
+          )
+        );
+      }
+      
+      const positions = await query.limit(100);
+      
+      // Get matrix level statistics
+      const matrixLevels = [];
+      for (let level = 1; level <= 5; level++) {
+        const levelCount = await db.select({ count: sql<number>`count(*)` })
+          .from(globalMatrixPosition)
+          .where(eq(globalMatrixPosition.matrixLevel, level));
+          
+        const maxPositions = Math.pow(3, level);
+        matrixLevels.push({
+          level,
+          maxPositions,
+          filledPositions: levelCount[0]?.count || 0,
+          positions: level === targetLevel ? positions : []
+        });
+      }
+      
+      res.json({
+        positions,
+        matrixLevels,
+        currentLevel: targetLevel,
+        total: positions.length
+      });
+    } catch (error) {
+      console.error('Admin global matrix error:', error);
+      res.status(500).json({ error: 'Failed to get global matrix data' });
     }
   });
 

@@ -21,84 +21,70 @@ import {
 } from 'lucide-react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 
-interface ReferralNode {
+interface GlobalMatrixPosition {
   walletAddress: string;
-  sponsorWallet: string | null;
-  placerWallet: string | null;
-  matrixPosition: number;
-  leftLeg: string[];
-  middleLeg: string[];
-  rightLeg: string[];
-  directReferralCount: number;
-  totalTeamCount: number;
-  createdAt: string;
+  matrixLevel: number;
+  positionIndex: number;
+  directSponsorWallet: string;
+  placementSponsorWallet: string;
+  joinedAt: string;
+  lastUpgradeAt?: string;
   username?: string;
   memberActivated?: boolean;
   currentLevel?: number;
+  directReferralCount?: number;
+  totalTeamCount?: number;
 }
 
-interface MatrixVisualization {
-  center: ReferralNode;
-  positions: (ReferralNode | null)[];
+interface GlobalMatrixVisualization {
+  matrixLevel: number;
+  maxPositions: number;
+  filledPositions: number;
+  positions: GlobalMatrixPosition[];
 }
 
 export default function AdminReferrals() {
   const { hasPermission } = useAdminAuth();
-  const [referrals, setReferrals] = useState<ReferralNode[]>([]);
+  const [matrixPositions, setMatrixPositions] = useState<GlobalMatrixPosition[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedMatrix, setSelectedMatrix] = useState<MatrixVisualization | null>(null);
+  const [selectedLevel, setSelectedLevel] = useState(1);
+  const [matrixVisualization, setMatrixVisualization] = useState<GlobalMatrixVisualization[]>([]);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadReferrals();
-  }, [searchTerm]);
+  }, [searchTerm, selectedLevel]);
 
   const loadReferrals = async () => {
     try {
       setIsLoading(true);
       
-      // Fetch real referral data from the API
-      const response = await fetch(`/api/admin/referrals?search=${encodeURIComponent(searchTerm)}`, {
+      // Fetch global matrix data from the API
+      const response = await fetch(`/api/admin/global-matrix?search=${encodeURIComponent(searchTerm)}`, {
         credentials: 'include'
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch referral data');
+        throw new Error('Failed to fetch global matrix data');
       }
       
       const data = await response.json();
-      setReferrals(data.referrals || []);
+      setMatrixPositions(data.positions || []);
+      setMatrixVisualization(data.matrixLevels || []);
       setIsLoading(false);
     } catch (error) {
-      console.error('Failed to load referrals:', error);
-      setReferrals([]); // Clear referrals on error
+      console.error('Failed to load global matrix:', error);
+      setMatrixPositions([]); // Clear positions on error
+      setMatrixVisualization([]);
+      setIsLoading(false);
+    }
       setIsLoading(false);
     }
   };
 
-  const generateMatrixVisualization = (centerNode: ReferralNode): MatrixVisualization => {
-    // Create 3x3 matrix positions (0-8)
-    const positions: (ReferralNode | null)[] = new Array(9).fill(null);
-    
-    // Fill positions with referrals
-    centerNode.leftLeg.forEach((wallet, index) => {
-      const node = referrals.find(r => r.walletAddress === wallet);
-      if (node && index < 3) positions[index] = node;
-    });
-    
-    centerNode.middleLeg.forEach((wallet, index) => {
-      const node = referrals.find(r => r.walletAddress === wallet);
-      if (node && index < 3) positions[index + 3] = node;
-    });
-    
-    centerNode.rightLeg.forEach((wallet, index) => {
-      const node = referrals.find(r => r.walletAddress === wallet);
-      if (node && index < 3) positions[index + 6] = node;
-    });
-
-    return { center: centerNode, positions };
-  };
+  // No longer needed - Global matrix doesn't have individual matrix visualizations
+  // Instead we show the global matrix level structure
 
   const formatWalletAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -143,86 +129,62 @@ export default function AdminReferrals() {
     setExpandedNodes(newExpanded);
   };
 
-  const renderMatrixPosition = (position: number, node: ReferralNode | null) => {
-    const positionLabels = ['L1', 'L2', 'L3', 'M1', 'M2', 'M3', 'R1', 'R2', 'R3'];
-    
+  const renderGlobalMatrixPosition = (position: GlobalMatrixPosition) => {
     return (
-      <div 
-        key={position}
-        className={`
-          p-2 border rounded-lg text-center transition-all hover:shadow-md
-          ${node ? 'bg-secondary border-honey/20 cursor-pointer' : 'bg-muted border-dashed border-muted-foreground/20'}
-        `}
-        onClick={() => node && setSelectedMatrix(generateMatrixVisualization(node))}
-      >
-        <div className="text-xs text-muted-foreground mb-1">{positionLabels[position]}</div>
-        {node ? (
-          <div className="space-y-1">
-            <div className="font-medium text-xs">{node.username || 'Unknown'}</div>
-            <div className="text-xs text-muted-foreground">{formatWalletAddress(node.walletAddress)}</div>
-            {getLevelBadge(node.currentLevel || 0)}
+      <div className="p-4 border rounded-lg bg-secondary border-honey/20">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="font-medium">{position.username || 'Unknown'}</div>
+            {getLevelBadge(position.currentLevel || 0)}
           </div>
-        ) : (
-          <div className="text-xs text-muted-foreground">Empty</div>
-        )}
+          <div className="text-sm text-muted-foreground">{formatWalletAddress(position.walletAddress)}</div>
+          <div className="text-xs text-muted-foreground">
+            Position #{position.positionIndex} • Level {position.matrixLevel}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Joined: {formatDate(position.joinedAt)}
+          </div>
+        </div>
       </div>
     );
   };
 
-  const renderReferralTree = (node: ReferralNode, depth: number = 0) => {
-    const isExpanded = expandedNodes.has(node.walletAddress);
-    const hasChildren = node.directReferralCount > 0;
-    
+  const renderGlobalMatrixList = (positions: GlobalMatrixPosition[]) => {
     return (
-      <div key={node.walletAddress} className="space-y-2">
-        <div 
-          className={`
-            flex items-center space-x-3 p-3 rounded-lg bg-secondary hover:bg-secondary/80 cursor-pointer
-            ${depth > 0 ? 'ml-6 border-l-2 border-honey/20' : ''}
-          `}
-          onClick={() => hasChildren && toggleNodeExpansion(node.walletAddress)}
-        >
-          {hasChildren ? (
-            isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />
-          ) : (
-            <div className="w-4 h-4" />
-          )}
-          
-          <div className="flex-1 flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-honey/10 rounded-full flex items-center justify-center">
-                <span className="text-honey font-semibold text-sm">
-                  {node.username?.charAt(0).toUpperCase() || 'U'}
-                </span>
-              </div>
-              <div>
-                <div className="font-medium">{node.username}</div>
-                <div className="text-sm text-muted-foreground">{formatWalletAddress(node.walletAddress)}</div>
-              </div>
+      <div className="space-y-2">
+        {positions.map((position) => (
+          <div 
+            key={position.walletAddress}
+            className="flex items-center space-x-3 p-3 rounded-lg bg-secondary hover:bg-secondary/80"
+          >
+            <div className="w-8 h-8 bg-honey/10 rounded-full flex items-center justify-center">
+              <span className="text-honey font-semibold text-sm">
+                {position.username?.charAt(0).toUpperCase() || 'U'}
+              </span>
             </div>
             
-            <div className="flex items-center space-x-2">
-              {getLevelBadge(node.currentLevel || 0)}
-              <Badge variant="outline" className="text-xs">
-                <Users className="w-3 h-3 mr-1" />
-                {node.directReferralCount}
-              </Badge>
-              <Badge variant="outline" className="text-xs">
-                <Network className="w-3 h-3 mr-1" />
-                {node.totalTeamCount}
-              </Badge>
+            <div className="flex-1 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div>
+                  <div className="font-medium">{position.username}</div>
+                  <div className="text-sm text-muted-foreground">{formatWalletAddress(position.walletAddress)}</div>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                {getLevelBadge(position.currentLevel || 0)}
+                <Badge variant="outline" className="text-xs">
+                  <Target className="w-3 h-3 mr-1" />
+                  Pos #{position.positionIndex}
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  <Network className="w-3 h-3 mr-1" />
+                  Level {position.matrixLevel}
+                </Badge>
+              </div>
             </div>
           </div>
-        </div>
-        
-        {isExpanded && (
-          <div className="space-y-2">
-            {referrals
-              .filter(r => r.sponsorWallet === node.walletAddress)
-              .map(child => renderReferralTree(child, depth + 1))
-            }
-          </div>
-        )}
+        ))}
       </div>
     );
   };
@@ -260,9 +222,9 @@ export default function AdminReferrals() {
     );
   }
 
-  const topReferrers = referrals
-    .filter(r => r.directReferralCount > 0)
-    .sort((a, b) => b.directReferralCount - a.directReferralCount)
+  const topReferrers = matrixPositions
+    .filter(r => (r.directReferralCount || 0) > 0)
+    .sort((a, b) => (b.directReferralCount || 0) - (a.directReferralCount || 0))
     .slice(0, 5);
 
   return (
@@ -284,8 +246,8 @@ export default function AdminReferrals() {
             <div className="flex items-center space-x-2">
               <Network className="h-5 w-5 text-honey" />
               <div>
-                <p className="text-sm text-muted-foreground">Total Nodes</p>
-                <p className="text-2xl font-bold">{referrals.length}</p>
+                <p className="text-sm text-muted-foreground">Total Positions</p>
+                <p className="text-2xl font-bold">{matrixPositions.length}</p>
               </div>
             </div>
           </CardContent>
@@ -310,7 +272,7 @@ export default function AdminReferrals() {
               <div>
                 <p className="text-sm text-muted-foreground">Total Referrals</p>
                 <p className="text-2xl font-bold">
-                  {referrals.reduce((sum, r) => sum + r.directReferralCount, 0)}
+                  {matrixPositions.reduce((sum, r) => sum + (r.directReferralCount || 0), 0)}
                 </p>
               </div>
             </div>
@@ -324,7 +286,7 @@ export default function AdminReferrals() {
               <div>
                 <p className="text-sm text-muted-foreground">Network Size</p>
                 <p className="text-2xl font-bold">
-                  {referrals.reduce((sum, r) => sum + r.totalTeamCount, 0)}
+                  {matrixPositions.reduce((sum, r) => sum + (r.totalTeamCount || 0), 0)}
                 </p>
               </div>
             </div>
@@ -354,119 +316,66 @@ export default function AdminReferrals() {
       {/* Main Content */}
       <Tabs defaultValue="tree" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="tree">Referral Tree</TabsTrigger>
-          <TabsTrigger value="matrix">3×3 Matrix View</TabsTrigger>
+          <TabsTrigger value="global-matrix">Global Matrix</TabsTrigger>
+          <TabsTrigger value="level-structure">Matrix Levels</TabsTrigger>
           <TabsTrigger value="top-referrers">Top Referrers</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="tree">
+        <TabsContent value="global-matrix">
           <Card>
             <CardHeader>
-              <CardTitle>Referral Tree Structure</CardTitle>
+              <CardTitle>Global Matrix Structure</CardTitle>
               <CardDescription>
-                Hierarchical view of the referral network showing sponsor relationships
+                View all users in the single global shared matrix system
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {referrals
-                  .filter(r => !r.sponsorWallet) // Root nodes
-                  .map(rootNode => renderReferralTree(rootNode))
-                }
+                {matrixPositions.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Network className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No Matrix Positions Found</h3>
+                    <p className="text-muted-foreground">No users have joined the global matrix yet.</p>
+                  </div>
+                ) : (
+                  renderGlobalMatrixList(matrixPositions)
+                )}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="matrix">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Select Matrix Center</CardTitle>
-                <CardDescription>Click on a user to view their 3×3 matrix</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {referrals.map(referral => (
-                    <div
-                      key={referral.walletAddress}
-                      className="flex items-center justify-between p-3 rounded-lg bg-secondary cursor-pointer hover:bg-secondary/80"
-                      onClick={() => setSelectedMatrix(generateMatrixVisualization(referral))}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-honey/10 rounded-full flex items-center justify-center">
-                          <span className="text-honey font-semibold text-sm">
-                            {referral.username?.charAt(0).toUpperCase() || 'U'}
-                          </span>
-                        </div>
-                        <div>
-                          <div className="font-medium">{referral.username}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {formatWalletAddress(referral.walletAddress)}
-                          </div>
-                        </div>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {selectedMatrix && (
-              <Card>
+        <TabsContent value="level-structure">
+          <div className="space-y-4">
+            {matrixVisualization.map((levelData) => (
+              <Card key={levelData.level}>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Target className="h-5 w-5" />
-                    <span>3×3 Matrix: {selectedMatrix.center.username}</span>
+                    <span>Matrix Level {levelData.level}</span>
+                    <Badge variant="outline">
+                      {levelData.filledPositions} / {levelData.maxPositions} filled
+                    </Badge>
                   </CardTitle>
                   <CardDescription>
-                    Matrix positions for {formatWalletAddress(selectedMatrix.center.walletAddress)}
+                    Global matrix level with maximum {levelData.maxPositions} positions
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {/* Center Node */}
-                    <div className="text-center">
-                      <div className="inline-flex items-center space-x-2 p-3 bg-honey/10 rounded-lg border border-honey">
-                        <div className="w-10 h-10 bg-honey rounded-full flex items-center justify-center">
-                          <span className="text-black font-bold">
-                            {selectedMatrix.center.username?.charAt(0).toUpperCase() || 'U'}
-                          </span>
-                        </div>
-                        <div className="text-left">
-                          <div className="font-bold text-honey">{selectedMatrix.center.username}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {formatWalletAddress(selectedMatrix.center.walletAddress)}
-                          </div>
-                        </div>
-                      </div>
+                  {levelData.positions && levelData.positions.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {levelData.positions.map((position) => renderGlobalMatrixPosition(position))}
                     </div>
-
-                    {/* 3x3 Matrix Grid */}
-                    <div className="grid grid-cols-3 gap-2">
-                      {selectedMatrix.positions.map((node, index) => renderMatrixPosition(index, node))}
+                  ) : (
+                    <div className="text-center py-8">
+                      <Target className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No positions at this level</h3>
+                      <p className="text-muted-foreground">This matrix level is currently empty.</p>
                     </div>
-
-                    {/* Matrix Stats */}
-                    <div className="grid grid-cols-3 gap-4 pt-4 border-t">
-                      <div className="text-center">
-                        <div className="text-sm text-muted-foreground">Left Leg</div>
-                        <div className="font-bold">{selectedMatrix.center.leftLeg.length}</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-sm text-muted-foreground">Middle Leg</div>
-                        <div className="font-bold">{selectedMatrix.center.middleLeg.length}</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-sm text-muted-foreground">Right Leg</div>
-                        <div className="font-bold">{selectedMatrix.center.rightLeg.length}</div>
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
-            )}
+            ))}
           </div>
         </TabsContent>
 
@@ -505,15 +414,15 @@ export default function AdminReferrals() {
                       {getLevelBadge(referrer.currentLevel || 0)}
                       <div className="text-center">
                         <div className="text-sm text-muted-foreground">Direct Referrals</div>
-                        <div className="font-bold text-honey">{referrer.directReferralCount}</div>
+                        <div className="font-bold text-honey">{referrer.directReferralCount || 0}</div>
                       </div>
                       <div className="text-center">
                         <div className="text-sm text-muted-foreground">Team Size</div>
-                        <div className="font-bold">{referrer.totalTeamCount}</div>
+                        <div className="font-bold">{referrer.totalTeamCount || 0}</div>
                       </div>
                       <div className="text-center">
                         <div className="text-sm text-muted-foreground">Joined</div>
-                        <div className="font-medium">{formatDate(referrer.createdAt)}</div>
+                        <div className="font-medium">{formatDate(referrer.joinedAt)}</div>
                       </div>
                     </div>
                   </div>
