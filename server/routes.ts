@@ -2798,6 +2798,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Demo NFT minting endpoint - Using thirdweb Engine API
+  app.post("/api/demo/claim-nft", requireWallet, async (req: any, res) => {
+    try {
+      const { level } = req.body;
+      const walletAddress = req.walletAddress;
+      
+      console.log(`🎯 Minting Level ${level} NFT for ${walletAddress} via thirdweb Engine`);
+      
+      // Use thirdweb Engine API to mint NFT (with fallback to simulation)
+      try {
+        const engineResponse = await fetch('https://api.thirdweb.com/v1/engine/contract/mint', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-backend-wallet-address': process.env.THIRDWEB_BACKEND_WALLET || '0x0000000000000000000000000000000000000000',
+            'x-access-token': process.env.THIRDWEB_ACCESS_TOKEN || 'demo-token',
+          },
+          body: JSON.stringify({
+            contractAddress: '0x99265477249389469929CEA07c4a337af9e12cdA', // Demo Beehive Member NFT
+            chainId: 421614, // Arbitrum Sepolia for testing
+            toAddress: walletAddress,
+            metadata: {
+              name: `Beehive Level ${level} Member`,
+              description: `Level ${level} membership NFT for the Beehive ecosystem`,
+              image: `https://example.com/nft/level-${level}.png`,
+              attributes: [
+                { trait_type: 'Level', value: level },
+                { trait_type: 'Type', value: 'Membership' },
+                { trait_type: 'Network', value: 'Demo' }
+              ]
+            }
+          })
+        });
+
+        if (engineResponse.ok) {
+          const mintResult = await engineResponse.json();
+          console.log('✅ NFT minted successfully via thirdweb Engine:', mintResult.transactionHash);
+          
+          res.json({ 
+            success: true, 
+            txHash: mintResult.transactionHash,
+            message: `Level ${level} NFT minted successfully!`,
+            realNFT: true
+          });
+          return;
+        }
+      } catch (engineError) {
+        console.log('⚠️ Engine API failed, using simulation fallback:', engineError.message);
+      }
+      
+      // Fallback to simulation
+      console.log('🎭 Simulating NFT mint for demo purposes');
+      res.json({ 
+        success: true, 
+        txHash: `demo_nft_${Date.now()}`,
+        message: `Level ${level} NFT simulated successfully!`,
+        realNFT: false
+      });
+      
+    } catch (error) {
+      console.error('NFT minting error:', error);
+      res.status(500).json({ error: 'Failed to mint NFT' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
