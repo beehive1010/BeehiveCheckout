@@ -3,7 +3,10 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
 import * as schema from "@shared/schema";
 
+// Configure Neon with minimal logging
 neonConfig.webSocketConstructor = ws;
+neonConfig.pipelineConnect = false; // Reduce connection logging
+neonConfig.fetchConnectionCache = true; // Enable caching to reduce logs
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -11,5 +14,14 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-export const db = drizzle({ client: pool, schema });
+export const pool = new Pool({ 
+  connectionString: process.env.DATABASE_URL,
+  // Reduce pool logging
+  log: false
+});
+
+export const db = drizzle({ 
+  client: pool, 
+  schema,
+  logger: false // Disable Drizzle query logging
+});
