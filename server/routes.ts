@@ -388,8 +388,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Set user as verified member FIRST (before any BCC rewards)
       await storage.updateUser(req.walletAddress, {
-        is_active: true,
-        member_activated: true
+        memberActivated: true,
+        currentLevel: level
       });
       console.log(`✅ User verified as Level ${level} member`);
 
