@@ -142,7 +142,6 @@ export interface IStorage {
 
   // BeeHive business logic operations
   processGlobalMatrixRewards(buyerWallet: string, level: number): Promise<void>;
-  findNearestActivatedUpline(walletAddress: string): Promise<string | null>;
   createRewardDistribution(distribution: InsertRewardDistribution): Promise<RewardDistribution>;
 
   // Merchant NFT operations
@@ -413,6 +412,7 @@ export class DatabaseStorage implements IStorage {
     const [state] = await db
       .insert(membershipState)
       .values({
+        ...membership,
         walletAddress: membership.walletAddress.toLowerCase(),
         levelsOwned: membership.levelsOwned || [],
         activeLevel: membership.activeLevel || 0,
@@ -530,12 +530,7 @@ export class DatabaseStorage implements IStorage {
     return order || undefined;
   }
 
-  // Simple earnings wallet operations (for compatibility)
-  async getEarningsWalletByWallet(walletAddress: string): Promise<EarningsWallet[]> {
-    return await db.select().from(earningsWallet)
-      .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()))
-      .orderBy(desc(earningsWallet.createdAt));
-  }
+  // Simple earnings wallet operations (for compatibility) - removed duplicate
 
   // Level configuration operations
   async getLevelConfig(level: number): Promise<LevelConfig | undefined> {
@@ -622,10 +617,9 @@ export class DatabaseStorage implements IStorage {
 
     // Get total earnings paid out
     const [earningsResult] = await db.select({
-      total: sql<number>`coalesce(sum(${earningsWallet.amount}), 0)`
+      total: sql<number>`coalesce(sum(${earningsWallet.totalEarnings}), 0)`
     })
-    .from(earningsWallet)
-    .where(eq(earningsWallet.status, 'paid'));
+    .from(earningsWallet);
     const totalEarnings = earningsResult?.total || 0;
 
     // Get level distribution with names
@@ -656,7 +650,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // BeeHive business logic operations - NEW GLOBAL MATRIX LOGIC
-  // Process rewards according to exact specification requirements  
+  // Process rewards according to EXACT specification: Layer-based rewards only
   async processGlobalMatrixRewards(buyerWallet: string, purchasedLevel: number): Promise<void> {
     const matrixPosition = await this.getGlobalMatrixPosition(buyerWallet);
     if (!matrixPosition) return;
@@ -665,73 +659,51 @@ export class DatabaseStorage implements IStorage {
     const levelConfig = await this.getLevelConfig(purchasedLevel);
     if (!levelConfig) return;
 
-    // 1. DIRECT SPONSOR REWARD (instant 100 USDT for all levels)
-    await this.createRewardDistribution({
-      recipientWallet: matrixPosition.directSponsorWallet,
-      sourceWallet: buyerWallet,
-      rewardType: 'direct_referral',
-      rewardAmount: '100.00', // Always 100 USDT for direct sponsor
-      level: purchasedLevel,
-      status: 'claimable', // Instant payment
-    });
-
-    // 2. LAYER-BASED REWARDS with 72-hour timer and Level 1 special case
-    const layerRecipients = await this.getMatrixLayerRecipients(buyerWallet, purchasedLevel);
+    // SPECIFICATION: "When a member in your Layer n purchases Level n NFT, a pending reward = NFT price is created for you"
+    // Find all uplines who should receive rewards when this member buys Level n NFT
     
-    for (const recipient of layerRecipients) {
+    const uplineWallets = await this.getUplineWallets(buyerWallet, purchasedLevel);
+    
+    for (const uplineWallet of uplineWallets) {
       const pendingUntil = new Date();
       pendingUntil.setHours(pendingUntil.getHours() + 72); // 72-hour countdown
       
-      // LEVEL 1 SPECIAL CASE: 3rd reward requires L2 upgrade
+      // Check qualification based on level
+      let isQualified = false;
+      const uplineMembership = await this.getMembershipState(uplineWallet);
+      
       if (purchasedLevel === 1) {
-        const recipientPosition = await this.getGlobalMatrixPosition(recipient);
-        if (recipientPosition?.positionIndex === 2) { // 3rd position (0-indexed)
-          // Check if recipient has L2 NFT
-          const membership = await this.getMembershipState(recipient);
-          const hasL2 = membership?.levelsOwned.includes(2) || false;
-          
-          if (!hasL2) {
-            // Create pending reward that requires L2 upgrade
-            await this.createRewardDistribution({
-              recipientWallet: recipient,
-              sourceWallet: buyerWallet,
-              rewardType: 'level_bonus',
-              rewardAmount: levelConfig.nftPriceUSDT.toFixed(2),
-              level: purchasedLevel,
-              status: 'pending', // Requires L2 upgrade
-              pendingUntil,
-            });
-            continue;
-          }
+        // Level 1: Must own L1, 3rd reward requires L2
+        const layer1Count = await this.getLayer1MemberCount(uplineWallet);
+        if (layer1Count <= 2) {
+          // First 2 rewards: just need L1
+          isQualified = uplineMembership?.levelsOwned.includes(1) || false;
+        } else {
+          // 3rd reward: requires L2 upgrade
+          isQualified = uplineMembership?.levelsOwned.includes(2) || false;
         }
-      }
-      
-      // STANDARD QUALIFICATION: Must own Level X NFT to receive Layer X rewards
-      const membership = await this.getMembershipState(recipient);
-      const isQualified = membership?.levelsOwned.includes(purchasedLevel) || false;
-      
-      if (isQualified) {
-        // Qualified: instant claimable reward
-        await this.createRewardDistribution({
-          recipientWallet: recipient,
-          sourceWallet: buyerWallet,
-          rewardType: 'level_bonus',
-          rewardAmount: levelConfig.nftPriceUSDT.toFixed(2),
-          level: purchasedLevel,
-          status: 'claimable',
-        });
+      } else if (purchasedLevel === 2) {
+        // Level 2: Must own L2 AND at least one Layer 1 member has L2
+        const hasL2 = uplineMembership?.levelsOwned.includes(2) || false;
+        const hasL1MemberWithL2 = await this.hasLayer1MemberWithLevel(uplineWallet, 2);
+        isQualified = hasL2 && hasL1MemberWithL2;
       } else {
-        // Not qualified: 72-hour timer to upgrade
-        await this.createRewardDistribution({
-          recipientWallet: recipient,
-          sourceWallet: buyerWallet,
-          rewardType: 'level_bonus',
-          rewardAmount: levelConfig.nftPriceUSDT.toFixed(2),
-          level: purchasedLevel,
-          status: 'pending',
-          pendingUntil,
-        });
+        // Levels 3-19: Just need to own that level or higher
+        isQualified = uplineMembership?.levelsOwned.some(level => level >= purchasedLevel) || false;
       }
+      
+      // Create reward (rewardable price only - admin fee excluded)
+      const rewardAmount = purchasedLevel === 1 ? '100.00' : levelConfig.nftPriceUSDT.toFixed(2);
+      
+      await this.createRewardDistribution({
+        recipientWallet: uplineWallet,
+        sourceWallet: buyerWallet,
+        rewardType: 'level_bonus',
+        rewardAmount,
+        level: purchasedLevel,
+        status: isQualified ? 'claimable' : 'pending',
+        pendingUntil: isQualified ? undefined : pendingUntil,
+      });
     }
   }
 
@@ -787,84 +759,52 @@ export class DatabaseStorage implements IStorage {
     }
     
     throw new Error('Global matrix is full (all 19 levels filled)');
-  },
-
-  // Get matrix layer recipients for reward distribution
-  async getMatrixLayerRecipients(buyerWallet: string, level: number): Promise<string[]> {
-    try {
-      const buyerPosition = await this.getGlobalMatrixPosition(buyerWallet);
-      if (!buyerPosition) return [];
-      
-      // Find members in the buyer's layer who should receive rewards
-      // This is a simplified approach - in a full implementation, you'd traverse the matrix structure
-      const layerMembers = await db.select()
-        .from(globalMatrixPosition)
-        .where(eq(globalMatrixPosition.matrixLevel, level))
-        .orderBy(globalMatrixPosition.joinedAt);
-      
-      // Return wallet addresses of layer members (excluding the buyer)
-      return layerMembers
-        .filter(member => member.walletAddress !== buyerWallet.toLowerCase())
-        .slice(0, 3) // Limit to 3 upline positions for Layer rewards
-        .map(member => member.walletAddress);
-    } catch (error) {
-      console.error('Error getting matrix layer recipients:', error);
-      return [];
-    }
-  },
-
-  // Helper: Find who is qualified to receive layer rewards (must own Level X NFT to get Layer X rewards)
-  async findQualifiedLayerRecipient(startWallet: string, level: number): Promise<string | null> {
-    const membership = await this.getMembershipState(startWallet);
-    if (membership && membership.levelsOwned.includes(level)) {
-      return startWallet; // This user owns the required NFT level
-    }
-    
-    // Search upline for qualified recipient
-    const matrixPosition = await this.getGlobalMatrixPosition(startWallet);
-    if (matrixPosition && matrixPosition.directSponsorWallet !== startWallet) {
-      return this.findQualifiedLayerRecipient(matrixPosition.directSponsorWallet, level);
-    }
-    
-    return null; // No qualified recipient found
   }
 
-  // Helper: Get direct referral count for a sponsor
-  async getDirectReferralCount(sponsorWallet: string): Promise<number> {
-    const directReferrals = await db.select()
+  // Helper: Get upline wallets who should receive rewards for this purchase
+  async getUplineWallets(buyerWallet: string, purchasedLevel: number): Promise<string[]> {
+    const uplines: string[] = [];
+    let currentWallet = buyerWallet;
+    
+    // Traverse up the matrix to find uplines at each layer
+    for (let layer = 1; layer <= purchasedLevel && layer <= 19; layer++) {
+      const position = await this.getGlobalMatrixPosition(currentWallet);
+      if (!position || position.directSponsorWallet === currentWallet) break;
+      
+      const uplineWallet = position.directSponsorWallet;
+      if (layer === purchasedLevel) {
+        uplines.push(uplineWallet); // This upline should get the reward
+      }
+      currentWallet = uplineWallet;
+    }
+    
+    return uplines;
+  }
+
+  // Helper: Get count of Layer 1 members for qualification checks
+  async getLayer1MemberCount(uplineWallet: string): Promise<number> {
+    const layer1Members = await db.select()
       .from(globalMatrixPosition)
-      .where(eq(globalMatrixPosition.directSponsorWallet, sponsorWallet.toLowerCase()));
-    return directReferrals.length;
+      .where(eq(globalMatrixPosition.directSponsorWallet, uplineWallet.toLowerCase()));
+    return layer1Members.length;
   }
 
-  // Helper: Find nearest activated upline who can receive rewards
-  async findNearestActivatedUpline(walletAddress: string): Promise<string | null> {
-    const position = await this.getGlobalMatrixPosition(walletAddress);
-    if (!position || position.directSponsorWallet === walletAddress) {
-      return null; // No upline or reached root
-    }
+  // Helper: Check if upline has at least one Layer 1 member with specified level
+  async hasLayer1MemberWithLevel(uplineWallet: string, requiredLevel: number): Promise<boolean> {
+    const layer1Members = await db.select()
+      .from(globalMatrixPosition)
+      .where(eq(globalMatrixPosition.directSponsorWallet, uplineWallet.toLowerCase()));
     
-    const uplineMembership = await this.getMembershipState(position.directSponsorWallet);
-    if (uplineMembership && uplineMembership.activeLevel > 0) {
-      return position.directSponsorWallet; // Found activated upline
+    for (const member of layer1Members) {
+      const membership = await this.getMembershipState(member.walletAddress);
+      if (membership?.levelsOwned.includes(requiredLevel)) {
+        return true;
+      }
     }
-    
-    // Continue searching up the chain
-    return this.findNearestActivatedUpline(position.directSponsorWallet);
+    return false;
   }
 
-  // Helper: Create reward distribution record
-  async createRewardDistribution(distribution: InsertRewardDistribution): Promise<RewardDistribution> {
-    const [reward] = await db
-      .insert(rewardDistributions)
-      .values({
-        ...distribution,
-        recipientWallet: distribution.recipientWallet.toLowerCase(),
-        sourceWallet: distribution.sourceWallet.toLowerCase(),
-      })
-      .returning();
-    return reward;
-  }
+  // Removed duplicate findNearestActivatedUpline function
 
 
   // Merchant NFT operations
@@ -1271,20 +1211,14 @@ export class DatabaseStorage implements IStorage {
   // User-specific referral statistics
   async getUserReferralStats(walletAddress: string): Promise<any> {
     try {
-      // Get user's referral node
-      const userNode = await this.getReferralNode(walletAddress);
+      // Get user's global matrix position
+      const userPosition = await this.getGlobalMatrixPosition(walletAddress);
       
-      // Direct referrals count
-      let directReferrals = 0;
-      if (userNode?.children && typeof userNode.children === 'string' && userNode.children.trim() !== '') {
-        try {
-          const parsedChildren = JSON.parse(userNode.children);
-          directReferrals = Array.isArray(parsedChildren) ? parsedChildren.length : 0;
-        } catch (jsonError) {
-          console.error('Failed to parse children JSON:', jsonError);
-          directReferrals = 0;
-        }
-      }
+      // Direct referrals count from global matrix
+      const directReferralsCount = await db.select()
+        .from(globalMatrixPosition)
+        .where(eq(globalMatrixPosition.directSponsorWallet, walletAddress.toLowerCase()));
+      const directReferrals = directReferralsCount.length;
 
       // Total team size - simplified for now
       const totalTeam = directReferrals; // Will expand to full recursive count later
@@ -1294,19 +1228,11 @@ export class DatabaseStorage implements IStorage {
       const pendingRewards = 0;
 
       // Recent direct referrals with real data
-      const directReferralsResult = await db.execute(sql`
-        SELECT u.wallet_address, u.username, u.current_level, u.created_at
-        FROM users u
-        WHERE u.referrer_wallet = ${walletAddress} AND u.member_activated = true
-        ORDER BY u.created_at DESC
-        LIMIT 10
-      `);
-
-      const directReferralsList = directReferralsResult.rows.map((row: any) => ({
-        walletAddress: row.wallet_address,
-        username: row.username,
-        level: row.current_level,
-        joinDate: row.created_at,
+      const directReferralsList = directReferralsCount.map((position) => ({
+        walletAddress: position.walletAddress,
+        username: 'User', // Will get from users table later
+        level: position.matrixLevel,
+        joinDate: position.joinedAt,
         earnings: 0 // Will be calculated from earnings table later
       }));
 
@@ -1924,62 +1850,22 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  // 3x3 Matrix referral system operations
-  async createOrUpdateReferralNode(walletAddress: string): Promise<ReferralNode> {
-    const existingNode = await this.getReferralNode(walletAddress);
-    if (existingNode) {
-      return existingNode;
-    }
+  // Legacy 3x3 Matrix system replaced by global matrix system - function removed
 
-    // Find sponsor from user's referrerWallet
-    const user = await this.getUser(walletAddress);
-    const sponsorWallet = user?.referrerWallet;
-
-    if (sponsorWallet) {
-      // Find matrix placement for new member
-      const placement = await this.findMatrixPlacement(sponsorWallet);
-      
-      return await this.createReferralNode({
-        walletAddress: walletAddress.toLowerCase(),
-        sponsorWallet: sponsorWallet.toLowerCase(),
-        placerWallet: placement.placerWallet.toLowerCase(),
-        matrixPosition: placement.position,
-        leftLeg: [],
-        middleLeg: [],
-        rightLeg: [],
-        directReferralCount: 0,
-        totalTeamCount: 0,
-      });
-    } else {
-      // Root member (no sponsor)
-      return await this.createReferralNode({
-        walletAddress: walletAddress.toLowerCase(),
-        sponsorWallet: null,
-        placerWallet: null,
-        matrixPosition: 0,
-        leftLeg: [],
-        middleLeg: [],
-        rightLeg: [],
-        directReferralCount: 0,
-        totalTeamCount: 0,
-      });
-    }
-  }
-
+  // Helper: Find nearest activated upline who can receive rewards
   async findNearestActivatedUpline(walletAddress: string): Promise<string | null> {
-    const referralNode = await this.getReferralNode(walletAddress);
-    if (!referralNode || !referralNode.sponsorWallet) {
-      return null;
+    const position = await this.getGlobalMatrixPosition(walletAddress);
+    if (!position || position.directSponsorWallet === walletAddress) {
+      return null; // No upline or reached root
     }
-
-    // Check if sponsor is activated
-    const sponsor = await this.getUser(referralNode.sponsorWallet);
-    if (sponsor?.memberActivated) {
-      return referralNode.sponsorWallet;
+    
+    const uplineMembership = await this.getMembershipState(position.directSponsorWallet);
+    if (uplineMembership && uplineMembership.activeLevel > 0) {
+      return position.directSponsorWallet; // Found activated upline
     }
-
-    // Recursively check upline
-    return await this.findNearestActivatedUpline(referralNode.sponsorWallet);
+    
+    // Continue searching up the chain
+    return this.findNearestActivatedUpline(position.directSponsorWallet);
   }
 
   // Earnings wallet operations (missing implementations)
