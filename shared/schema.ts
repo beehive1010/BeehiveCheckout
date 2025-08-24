@@ -71,6 +71,30 @@ export const referralNodes = pgTable("referral_nodes", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// 19-Layer referral tree tracking for each user
+export const referralLayers = pgTable("referral_layers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  walletAddress: varchar("wallet_address", { length: 42 }).notNull().references(() => users.walletAddress),
+  layerNumber: integer("layer_number").notNull(), // 1-19
+  memberCount: integer("member_count").default(0).notNull(),
+  members: jsonb("members").$type<string[]>().default([]).notNull(), // Array of wallet addresses in this layer
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+});
+
+// Reward notifications with countdown timers
+export const rewardNotifications = pgTable("reward_notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  recipientWallet: varchar("recipient_wallet", { length: 42 }).notNull().references(() => users.walletAddress),
+  triggerWallet: varchar("trigger_wallet", { length: 42 }).notNull(), // Who made the purchase that triggered this
+  triggerLevel: integer("trigger_level").notNull(), // Level purchased that triggered the notification
+  layerNumber: integer("layer_number").notNull(), // Which layer the trigger came from (1-19)
+  rewardAmount: integer("reward_amount").notNull(), // Potential reward amount in USDT cents
+  status: text("status").default("pending").notNull(), // pending, claimed, expired
+  expiresAt: timestamp("expires_at").notNull(), // 72 hours from creation
+  claimedAt: timestamp("claimed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Member NFT verification table
 export const memberNFTVerification = pgTable("member_nft_verification", {
   walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
@@ -282,6 +306,23 @@ export const insertReferralNodeSchema = createInsertSchema(referralNodes).pick({
   rightLeg: true,
   directReferralCount: true,
   totalTeamCount: true,
+});
+
+export const insertReferralLayerSchema = createInsertSchema(referralLayers).pick({
+  walletAddress: true,
+  layerNumber: true,
+  memberCount: true,
+  members: true,
+});
+
+export const insertRewardNotificationSchema = createInsertSchema(rewardNotifications).pick({
+  recipientWallet: true,
+  triggerWallet: true,
+  triggerLevel: true,
+  layerNumber: true,
+  rewardAmount: true,
+  status: true,
+  expiresAt: true,
 });
 
 export const insertEarningsWalletSchema = createInsertSchema(earningsWallet).pick({
@@ -506,6 +547,12 @@ export type MembershipState = typeof membershipState.$inferSelect;
 
 export type InsertReferralNode = z.infer<typeof insertReferralNodeSchema>;
 export type ReferralNode = typeof referralNodes.$inferSelect;
+
+export type InsertReferralLayer = z.infer<typeof insertReferralLayerSchema>;
+export type ReferralLayer = typeof referralLayers.$inferSelect;
+
+export type InsertRewardNotification = z.infer<typeof insertRewardNotificationSchema>;
+export type RewardNotification = typeof rewardNotifications.$inferSelect;
 
 export type InsertBCCBalance = z.infer<typeof insertBCCBalanceSchema>;
 export type BCCBalance = typeof bccBalances.$inferSelect;

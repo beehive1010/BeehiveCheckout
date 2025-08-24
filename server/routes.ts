@@ -467,6 +467,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create referral node in 3x3 matrix if not exists
       await storage.createOrUpdateReferralNode(req.walletAddress);
+      
+      // Calculate 19-layer tree for the new member
+      await storage.calculateAndStore19Layers(req.walletAddress);
+      
+      // Generate notifications for all upline members in 19 layers
+      const referrerWallet = user?.referrerWallet;
+      if (referrerWallet) {
+        // Get all upline users in the 19 layers
+        const uplineLayers = await storage.getReferralLayers(referrerWallet);
+        
+        for (const layer of uplineLayers) {
+          for (const uplineWallet of layer.members) {
+            // Create notification with 72-hour countdown
+            const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000); // 72 hours
+            
+            await storage.createRewardNotification({
+              recipientWallet: uplineWallet,
+              triggerWallet: req.walletAddress,
+              triggerLevel: 1,
+              layerNumber: layer.layerNumber,
+              rewardAmount: 10000, // 100 USDT in cents
+              status: 'pending',
+              expiresAt: expiresAt
+            });
+          }
+        }
+      }
 
       res.json({ 
         success: true, 
@@ -947,6 +974,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Get user stats error:', error);
       res.status(500).json({ error: 'Failed to get user stats' });
+    }
+  });
+
+  // Get user's 19-layer referral tree
+  app.get("/api/referrals/layers/:walletAddress?", requireWallet, async (req: any, res) => {
+    try {
+      const walletAddress = req.params.walletAddress || req.walletAddress;
+      
+      // Get all layers for the user
+      const layers = await storage.getReferralLayers(walletAddress);
+      
+      // Get pending notifications
+      const notifications = await storage.getPendingRewardNotifications(walletAddress);
+      
+      res.json({
+        layers: layers.map(layer => ({
+          layerNumber: layer.layerNumber,
+          memberCount: layer.memberCount,
+          members: layer.members,
+          lastUpdated: layer.lastUpdated
+        })),
+        notifications: notifications.map(notif => ({
+          id: notif.id,
+          triggerWallet: notif.triggerWallet,
+          triggerLevel: notif.triggerLevel,
+          layerNumber: notif.layerNumber,
+          rewardAmount: notif.rewardAmount,
+          expiresAt: notif.expiresAt,
+          timeRemaining: Math.max(0, new Date(notif.expiresAt).getTime() - Date.now()),
+          status: notif.status
+        }))
+      });
+    } catch (error) {
+      console.error('Get referral layers error:', error);
+      res.status(500).json({ error: 'Failed to get referral layers' });
+    }
+  });
+
+  // Calculate and update 19-layer tree for a user
+  app.post("/api/referrals/calculate-layers", requireWallet, async (req: any, res) => {
+    try {
+      await storage.calculateAndStore19Layers(req.walletAddress);
+      res.json({ success: true, message: '19-layer tree calculated successfully' });
+    } catch (error) {
+      console.error('Calculate layers error:', error);
+      res.status(500).json({ error: 'Failed to calculate layers' });
+    }
+  });
+
+  // Get all reward notifications for a user
+  app.get("/api/notifications/rewards", requireWallet, async (req: any, res) => {
+    try {
+      const notifications = await storage.getRewardNotifications(req.walletAddress);
+      
+      res.json({
+        notifications: notifications.map(notif => ({
+          id: notif.id,
+          triggerWallet: notif.triggerWallet,
+          triggerLevel: notif.triggerLevel,
+          layerNumber: notif.layerNumber,
+          rewardAmount: notif.rewardAmount,
+          status: notif.status,
+          expiresAt: notif.expiresAt,
+          timeRemaining: notif.status === 'pending' ? Math.max(0, new Date(notif.expiresAt).getTime() - Date.now()) : 0,
+          claimedAt: notif.claimedAt,
+          createdAt: notif.createdAt
+        }))
+      });
+    } catch (error) {
+      console.error('Get notifications error:', error);
+      res.status(500).json({ error: 'Failed to get notifications' });
     }
   });
 

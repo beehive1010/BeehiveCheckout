@@ -2,6 +2,8 @@ import {
   users,
   membershipState,
   referralNodes,
+  referralLayers,
+  rewardNotifications,
   globalMatrixPosition,
   bccBalances,
   orders,
@@ -31,6 +33,10 @@ import {
   type InsertMembershipState,
   type ReferralNode,
   type InsertReferralNode,
+  type ReferralLayer,
+  type InsertReferralLayer,
+  type RewardNotification,
+  type InsertRewardNotification,
   type GlobalMatrixPosition,
   type InsertGlobalMatrixPosition,
   type BCCBalance,
@@ -88,7 +94,7 @@ import {
   type InsertAdminSetting
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, sql, isNull, inArray, not } from "drizzle-orm";
+import { eq, and, desc, sql, isNull, inArray, not, gt, lt } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -178,6 +184,19 @@ export interface IStorage {
   getReferralNode(walletAddress: string): Promise<ReferralNode | undefined>;
   createReferralNode(referralNode: InsertReferralNode): Promise<ReferralNode>;
   updateReferralNode(walletAddress: string, updates: Partial<ReferralNode>): Promise<ReferralNode | undefined>;
+  
+  // 19-Layer referral tracking operations
+  getReferralLayers(walletAddress: string): Promise<ReferralLayer[]>;
+  getReferralLayer(walletAddress: string, layerNumber: number): Promise<ReferralLayer | undefined>;
+  createOrUpdateReferralLayer(layer: InsertReferralLayer): Promise<ReferralLayer>;
+  calculateAndStore19Layers(walletAddress: string): Promise<void>;
+  
+  // Reward notification operations
+  getRewardNotifications(walletAddress: string): Promise<RewardNotification[]>;
+  getPendingRewardNotifications(walletAddress: string): Promise<RewardNotification[]>;
+  createRewardNotification(notification: InsertRewardNotification): Promise<RewardNotification>;
+  updateRewardNotification(id: string, updates: Partial<RewardNotification>): Promise<RewardNotification | undefined>;
+  checkAndExpireNotifications(): Promise<void>;
 
   // Bridge payment operations
   createBridgePayment(bridgePayment: InsertBridgePayment): Promise<BridgePayment>;
@@ -1865,6 +1884,161 @@ export class DatabaseStorage implements IStorage {
       .where(eq(referralNodes.walletAddress, walletAddress.toLowerCase()))
       .returning();
     return updated || undefined;
+  }
+
+  // 19-Layer referral tracking operations
+  async getReferralLayers(walletAddress: string): Promise<ReferralLayer[]> {
+    return await db
+      .select()
+      .from(referralLayers)
+      .where(eq(referralLayers.walletAddress, walletAddress.toLowerCase()))
+      .orderBy(referralLayers.layerNumber);
+  }
+
+  async getReferralLayer(walletAddress: string, layerNumber: number): Promise<ReferralLayer | undefined> {
+    const [layer] = await db
+      .select()
+      .from(referralLayers)
+      .where(
+        and(
+          eq(referralLayers.walletAddress, walletAddress.toLowerCase()),
+          eq(referralLayers.layerNumber, layerNumber)
+        )
+      );
+    return layer || undefined;
+  }
+
+  async createOrUpdateReferralLayer(layer: InsertReferralLayer): Promise<ReferralLayer> {
+    const existing = await this.getReferralLayer(layer.walletAddress, layer.layerNumber);
+    
+    if (existing) {
+      const [updated] = await db
+        .update(referralLayers)
+        .set({
+          memberCount: layer.memberCount,
+          members: layer.members,
+          lastUpdated: new Date(),
+        })
+        .where(eq(referralLayers.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(referralLayers)
+        .values({
+          ...layer,
+          walletAddress: layer.walletAddress.toLowerCase(),
+        })
+        .returning();
+      return created;
+    }
+  }
+
+  async calculateAndStore19Layers(walletAddress: string): Promise<void> {
+    // Calculate all 19 layers for a user using BFS algorithm
+    const visited = new Set<string>();
+    const layers: Map<number, string[]> = new Map();
+    
+    // Initialize first layer with direct referrals
+    const node = await this.getReferralNode(walletAddress);
+    if (!node) return;
+    
+    // Use BFS to traverse the tree up to 19 layers
+    let currentLayer = [walletAddress];
+    visited.add(walletAddress.toLowerCase());
+    
+    for (let layerNum = 1; layerNum <= 19; layerNum++) {
+      const nextLayer: string[] = [];
+      
+      for (const currentWallet of currentLayer) {
+        // Get all direct referrals of current wallet
+        const directReferrals = await db
+          .select()
+          .from(referralNodes)
+          .where(eq(referralNodes.sponsorWallet, currentWallet.toLowerCase()));
+        
+        for (const referral of directReferrals) {
+          if (!visited.has(referral.walletAddress.toLowerCase())) {
+            visited.add(referral.walletAddress.toLowerCase());
+            nextLayer.push(referral.walletAddress);
+          }
+        }
+      }
+      
+      if (nextLayer.length > 0) {
+        layers.set(layerNum, nextLayer);
+      }
+      
+      currentLayer = nextLayer;
+      if (currentLayer.length === 0) break; // No more members to process
+    }
+    
+    // Store the calculated layers
+    for (const [layerNum, members] of layers.entries()) {
+      await this.createOrUpdateReferralLayer({
+        walletAddress,
+        layerNumber: layerNum,
+        memberCount: members.length,
+        members: members,
+      });
+    }
+  }
+
+  // Reward notification operations
+  async getRewardNotifications(walletAddress: string): Promise<RewardNotification[]> {
+    return await db
+      .select()
+      .from(rewardNotifications)
+      .where(eq(rewardNotifications.recipientWallet, walletAddress.toLowerCase()))
+      .orderBy(desc(rewardNotifications.createdAt));
+  }
+
+  async getPendingRewardNotifications(walletAddress: string): Promise<RewardNotification[]> {
+    return await db
+      .select()
+      .from(rewardNotifications)
+      .where(
+        and(
+          eq(rewardNotifications.recipientWallet, walletAddress.toLowerCase()),
+          eq(rewardNotifications.status, 'pending'),
+          gt(rewardNotifications.expiresAt, new Date())
+        )
+      )
+      .orderBy(rewardNotifications.expiresAt);
+  }
+
+  async createRewardNotification(notification: InsertRewardNotification): Promise<RewardNotification> {
+    const [created] = await db
+      .insert(rewardNotifications)
+      .values({
+        ...notification,
+        recipientWallet: notification.recipientWallet.toLowerCase(),
+        triggerWallet: notification.triggerWallet.toLowerCase(),
+      })
+      .returning();
+    return created;
+  }
+
+  async updateRewardNotification(id: string, updates: Partial<RewardNotification>): Promise<RewardNotification | undefined> {
+    const [updated] = await db
+      .update(rewardNotifications)
+      .set(updates)
+      .where(eq(rewardNotifications.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async checkAndExpireNotifications(): Promise<void> {
+    // Update all expired notifications
+    await db
+      .update(rewardNotifications)
+      .set({ status: 'expired' })
+      .where(
+        and(
+          eq(rewardNotifications.status, 'pending'),
+          lt(rewardNotifications.expiresAt, new Date())
+        )
+      );
   }
 
   // Admin Settings operations
