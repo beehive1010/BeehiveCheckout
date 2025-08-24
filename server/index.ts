@@ -178,6 +178,9 @@ app.use((req, res, next) => {
         const mintResult = await engineResponse.json();
         console.log('🚀 REAL NFT minted successfully via thirdweb Engine!', mintResult);
         
+        // Record NFT claim in database
+        await recordNFTClaim(walletAddress, level, mintResult.queueId || mintResult.transactionHash, true);
+        
         res.json({ 
           success: true, 
           txHash: mintResult.queueId || mintResult.transactionHash,
@@ -189,10 +192,13 @@ app.use((req, res, next) => {
         const errorData = await engineResponse.text();
         console.log('⚠️ Engine API failed:', errorData);
         
-        // Fallback to simulation
+        // Record simulated NFT claim in database
+        const simulatedTxHash = `demo_nft_fallback_${Date.now()}`;
+        await recordNFTClaim(walletAddress, level, simulatedTxHash, false);
+        
         res.json({ 
           success: true, 
-          txHash: `demo_nft_fallback_${Date.now()}`,
+          txHash: simulatedTxHash,
           message: `Level ${level} NFT simulated (Engine API unavailable)`,
           realNFT: false
         });
@@ -201,15 +207,70 @@ app.use((req, res, next) => {
     } catch (error) {
       console.error('NFT minting error:', error);
       
-      // Fallback to simulation
+      // Record simulated NFT claim in database
+      const errorTxHash = `demo_nft_error_${Date.now()}`;
+      await recordNFTClaim(walletAddress, level, errorTxHash, false);
+      
       res.json({ 
         success: true, 
-        txHash: `demo_nft_error_${Date.now()}`,
+        txHash: errorTxHash,
         message: `Level ${level} NFT simulated (error occurred)`,
         realNFT: false
       });
     }
   });
+
+  // Helper function to record NFT claims in database
+  async function recordNFTClaim(walletAddress: string, level: number, txHash: string, isRealNFT: boolean) {
+    try {
+      const { storage } = await import('./storage');
+      
+      console.log(`📝 Recording NFT claim for ${walletAddress}: Level ${level}, TX: ${txHash}`);
+      
+      // 1. Update user is_active status
+      await storage.updateUser(walletAddress, { 
+        is_active: true,
+        member_activated: true 
+      });
+      
+      // 2. Record in member_nft_verification
+      await storage.db.insert(storage.memberNFTVerification).values({
+        walletAddress,
+        nftContractAddress: '0x99265477249389469929CEA07c4a337af9e12cdA',
+        tokenId: `level-${level}-${Date.now()}`,
+        chainId: 421614,
+        verificationStatus: isRealNFT ? 'verified' : 'pending',
+        lastVerified: new Date(),
+      }).onConflictDoUpdate({
+        target: storage.memberNFTVerification.walletAddress,
+        set: {
+          verificationStatus: isRealNFT ? 'verified' : 'pending',
+          lastVerified: new Date(),
+        }
+      });
+      
+      // 3. Record in nft_purchases  
+      await storage.db.insert(storage.nftPurchases).values({
+        walletAddress,
+        nftId: `beehive-level-${level}`,
+        priceUSDT: level * 100, // Level 1 = 100 USDT
+        txHash,
+        status: isRealNFT ? 'completed' : 'simulated',
+        purchaseType: 'membership'
+      });
+      
+      // 4. Update membership_state 
+      await storage.updateMembershipState(walletAddress, {
+        activeLevel: level,
+        lastUpgradeAt: new Date()
+      });
+      
+      console.log(`✅ NFT claim recorded successfully in database`);
+      
+    } catch (error) {
+      console.error('Error recording NFT claim:', error);
+    }
+  }
 
   let server;
   try {
