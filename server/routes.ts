@@ -386,7 +386,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Process BeeHive referral rewards
-      console.log('About to process referral rewards for level', level);
+      console.log('Processing referral rewards for level', level);
       await storage.processReferralRewards(req.walletAddress, level);
 
       // Record member activation with pending time
