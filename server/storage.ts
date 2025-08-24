@@ -1,7 +1,7 @@
 import { 
   users,
   membershipState,
-  referralNodes,
+  globalMatrixPosition,
   bccBalances,
   orders,
   earningsWallet,
@@ -28,8 +28,8 @@ import {
   type InsertUser,
   type MembershipState,
   type InsertMembershipState,
-  type ReferralNode,
-  type InsertReferralNode,
+  type GlobalMatrixPosition,
+  type InsertGlobalMatrixPosition,
   type BCCBalance,
   type InsertBCCBalance,
   type Order,
@@ -97,10 +97,11 @@ export interface IStorage {
   createMembershipState(membership: InsertMembershipState): Promise<MembershipState>;
   updateMembershipState(walletAddress: string, updates: Partial<MembershipState>): Promise<MembershipState | undefined>;
 
-  // Referral operations
-  getReferralNode(walletAddress: string): Promise<ReferralNode | undefined>;
-  createReferralNode(node: InsertReferralNode): Promise<ReferralNode>;
-  updateReferralNode(walletAddress: string, updates: Partial<ReferralNode>): Promise<ReferralNode | undefined>;
+  // Global Matrix Position operations
+  getGlobalMatrixPosition(walletAddress: string): Promise<GlobalMatrixPosition | undefined>;
+  createGlobalMatrixPosition(position: InsertGlobalMatrixPosition): Promise<GlobalMatrixPosition>;
+  updateGlobalMatrixPosition(walletAddress: string, updates: Partial<GlobalMatrixPosition>): Promise<GlobalMatrixPosition | undefined>;
+  findGlobalMatrixPlacement(sponsorWallet: string, level: number): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string }>;
 
   // BCC Balance operations
   getBCCBalance(walletAddress: string): Promise<BCCBalance | undefined>;
@@ -140,9 +141,9 @@ export interface IStorage {
   }>;
 
   // BeeHive business logic operations
-  processReferralRewards(buyerWallet: string, level: number): Promise<void>;
-  findMatrixPlacement(sponsorWallet: string): Promise<{ placerWallet: string; position: number }>;
-  passUpReward(originalRecipient: string, reward: EarningsWallet): Promise<void>;
+  processGlobalMatrixRewards(buyerWallet: string, level: number): Promise<void>;
+  findNearestActivatedUpline(walletAddress: string): Promise<string | null>;
+  createRewardDistribution(distribution: InsertRewardDistribution): Promise<RewardDistribution>;
 
   // Merchant NFT operations
   getMerchantNFTs(): Promise<MerchantNFT[]>;
@@ -429,46 +430,42 @@ export class DatabaseStorage implements IStorage {
     return state || undefined;
   }
 
-  // Referral operations
-  async getReferralNode(walletAddress: string): Promise<any> {
+  // Global Matrix Position operations
+  async getGlobalMatrixPosition(walletAddress: string): Promise<GlobalMatrixPosition | undefined> {
     try {
-      // Work directly with existing database structure
-      const result = await db.execute(sql`
-        SELECT wallet_address, parent_wallet, children, created_at 
-        FROM referral_nodes 
-        WHERE wallet_address = ${walletAddress.toLowerCase()}
-      `);
-      return result.rows[0] || null;
+      const [position] = await db.select()
+        .from(globalMatrixPosition)
+        .where(eq(globalMatrixPosition.walletAddress, walletAddress.toLowerCase()));
+      return position || undefined;
     } catch (error) {
-      console.error('Get referral node error:', error);
-      return null;
+      console.error('Get global matrix position error:', error);
+      return undefined;
     }
   }
 
-  async createReferralNode(node: InsertReferralNode): Promise<ReferralNode> {
-    // Work with existing database structure (parent_wallet, children)
-    const insertData = {
-      walletAddress: node.walletAddress.toLowerCase(),
-      parentWallet: node.sponsorWallet || null,
-      children: [], // Start with empty children array for existing structure
-    };
-    const [referralNode] = await db
-      .insert(referralNodes)
-      .values(insertData)
+  async createGlobalMatrixPosition(position: InsertGlobalMatrixPosition): Promise<GlobalMatrixPosition> {
+    const [matrixPosition] = await db
+      .insert(globalMatrixPosition)
+      .values({
+        ...position,
+        walletAddress: position.walletAddress.toLowerCase(),
+        directSponsorWallet: position.directSponsorWallet.toLowerCase(),
+        placementSponsorWallet: position.placementSponsorWallet.toLowerCase(),
+      })
       .returning();
-    return referralNode;
+    return matrixPosition;
   }
 
-  async updateReferralNode(walletAddress: string, updates: Partial<ReferralNode>): Promise<ReferralNode | undefined> {
+  async updateGlobalMatrixPosition(walletAddress: string, updates: Partial<GlobalMatrixPosition>): Promise<GlobalMatrixPosition | undefined> {
     try {
-      const [node] = await db
-        .update(referralNodes)
+      const [position] = await db
+        .update(globalMatrixPosition)
         .set(updates)
-        .where(eq(referralNodes.walletAddress, walletAddress.toLowerCase()))
+        .where(eq(globalMatrixPosition.walletAddress, walletAddress.toLowerCase()))
         .returning();
-      return node || undefined;
+      return position || undefined;
     } catch (error) {
-      console.log('Working with existing referral_nodes structure for updates');
+      console.error('Update global matrix position error:', error);
       return undefined;
     }
   }
@@ -658,46 +655,44 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  // BeeHive business logic operations
-  async processReferralRewards(buyerWallet: string, level: number): Promise<void> {
+  // BeeHive business logic operations - NEW GLOBAL MATRIX LOGIC
+  async processGlobalMatrixRewards(buyerWallet: string, level: number): Promise<void> {
     const levelConfig = await this.getLevelConfig(level);
     if (!levelConfig) return;
 
-    const buyer = await this.getUser(buyerWallet);
-    if (!buyer) return;
+    const matrixPosition = await this.getGlobalMatrixPosition(buyerWallet);
+    if (!matrixPosition) return;
 
-    const referralNode = await this.getReferralNode(buyerWallet);
-    if (!referralNode || !referralNode.sponsorWallet) return;
-
-    // 1. Process instant direct referral bonus to sponsor (100% of NFT price)
+    // 1. Direct sponsor gets 100% of NFT price (instant)
     await this.createRewardDistribution({
-      recipientWallet: referralNode.sponsorWallet,
+      recipientWallet: matrixPosition.directSponsorWallet,
       sourceWallet: buyerWallet,
       rewardType: 'direct_referral',
-      rewardAmount: (levelConfig.nftPriceUSDT / 100).toFixed(2), // 100% of NFT price portion (convert cents to dollars)
+      rewardAmount: (levelConfig.nftPriceUSDT / 100).toFixed(2), // 100% of NFT price
       level: level,
       status: 'claimable', // Instant payment
     });
 
-    // 2. Process level reward with 72-hour timer  
+    // 2. Layer-based matrix reward with 72-hour timer and NFT level requirement
     const now = new Date();
     const expiryTime = new Date(now.getTime() + (72 * 60 * 60 * 1000)); // 72 hours
 
-    const sponsorMembership = await this.getMembershipState(referralNode.sponsorWallet);
+    // Find who should receive layer reward (must have Level X NFT to get Layer X rewards)
+    const layerRecipient = await this.findQualifiedLayerRecipient(matrixPosition.directSponsorWallet, level);
     
-    // Check if sponsor is qualified for level reward (must have same or higher level)
-    if (sponsorMembership && sponsorMembership.activeLevel >= level) {
-      // Check for Bronze special rule (Level 2 requires 3 direct referrals)
+    if (layerRecipient) {
+      // Special rule: Level 2 (Bronze) requires 3rd member to unlock 3rd position reward
       if (level === 2) {
-        if (referralNode.directReferralCount < 3) {
-          // Pass up the reward to nearest activated upline
-          const nearestUpline = await this.findNearestActivatedUpline(referralNode.sponsorWallet);
-          if (nearestUpline) {
+        const directReferralCount = await this.getDirectReferralCount(matrixPosition.directSponsorWallet);
+        if (directReferralCount < 3) {
+          // Pass up to nearest qualified upline
+          const upline = await this.findNearestActivatedUpline(matrixPosition.directSponsorWallet);
+          if (upline) {
             await this.createRewardDistribution({
-              recipientWallet: nearestUpline,
+              recipientWallet: upline,
               sourceWallet: buyerWallet,
-              rewardType: 'level_bonus',
-              rewardAmount: (levelConfig.nftPriceUSDT / 100).toFixed(2), // Convert cents to dollars
+              rewardType: 'matrix_layer_bonus',
+              rewardAmount: (levelConfig.nftPriceUSDT / 100).toFixed(2),
               level: level,
               status: 'pending',
               pendingUntil: expiryTime,
@@ -707,78 +702,105 @@ export class DatabaseStorage implements IStorage {
         }
       }
 
-      // Sponsor qualifies for level reward
+      // Layer recipient qualifies
       await this.createRewardDistribution({
-        recipientWallet: referralNode.sponsorWallet,
+        recipientWallet: layerRecipient,
         sourceWallet: buyerWallet,
-        rewardType: 'level_bonus',
-        rewardAmount: (levelConfig.nftPriceUSDT / 100).toFixed(2), // Convert cents to dollars
+        rewardType: 'matrix_layer_bonus',
+        rewardAmount: (levelConfig.nftPriceUSDT / 100).toFixed(2),
         level: level,
         status: 'pending',
         pendingUntil: expiryTime,
       });
-    } else {
-      // Sponsor is under-leveled, pass up the reward to nearest activated upline
-      const nearestUpline = await this.findNearestActivatedUpline(referralNode.sponsorWallet);
-      if (nearestUpline) {
-        await this.createRewardDistribution({
-          recipientWallet: nearestUpline,
-          sourceWallet: buyerWallet,
-          rewardType: 'level_bonus',
-          rewardAmount: (levelConfig.nftPriceUSDT / 100).toFixed(2), // Convert cents to dollars
-          level: level,
-          status: 'pending',
-          pendingUntil: expiryTime,
-        });
-      }
     }
   }
 
-  async findMatrixPlacement(sponsorWallet: string): Promise<{ placerWallet: string; position: number }> {
-    // Simple 3x3 matrix placement algorithm
-    // First, try to place under direct sponsor
-    const sponsorNode = await this.getReferralNode(sponsorWallet);
-    if (!sponsorNode) {
-      return { placerWallet: sponsorWallet, position: 0 };
-    }
-
-    // Calculate total children across all legs
-    const totalChildren = sponsorNode.leftLeg.length + sponsorNode.middleLeg.length + sponsorNode.rightLeg.length;
+  // NEW: Global Matrix Placement Algorithm
+  async findGlobalMatrixPlacement(sponsorWallet: string, level: number): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string }> {
+    // Calculate positions per level: Level 1 = 3, Level 2 = 9, Level 3 = 27, etc.
+    const getPositionsPerLevel = (level: number) => Math.pow(3, level);
     
-    if (totalChildren < 9) {
-      // Space available under sponsor
-      if (sponsorNode.leftLeg.length < 3) {
-        return { placerWallet: sponsorWallet, position: sponsorNode.leftLeg.length };
-      } else if (sponsorNode.middleLeg.length < 3) {
-        return { placerWallet: sponsorWallet, position: 3 + sponsorNode.middleLeg.length };
-      } else if (sponsorNode.rightLeg.length < 3) {
-        return { placerWallet: sponsorWallet, position: 6 + sponsorNode.rightLeg.length };
+    // Find next available position in the global matrix for this level
+    const existingPositions = await db.select()
+      .from(globalMatrixPosition)
+      .where(eq(globalMatrixPosition.matrixLevel, level))
+      .orderBy(globalMatrixPosition.positionIndex);
+    
+    const maxPositions = getPositionsPerLevel(level);
+    let nextPositionIndex = 0;
+    
+    // Find first available position
+    const occupiedPositions = existingPositions.map(p => p.positionIndex).sort((a, b) => a - b);
+    for (let i = 0; i < maxPositions; i++) {
+      if (!occupiedPositions.includes(i)) {
+        nextPositionIndex = i;
+        break;
       }
     }
-
-    // Sponsor's matrix is full, look for spillover placement
-    // Check children of sponsor for available spots
-    const allChildren = [...sponsorNode.leftLeg, ...sponsorNode.middleLeg, ...sponsorNode.rightLeg];
     
-    for (const childWallet of allChildren) {
-      const childNode = await this.getReferralNode(childWallet);
-      if (childNode) {
-        const childTotal = childNode.leftLeg.length + childNode.middleLeg.length + childNode.rightLeg.length;
-        if (childTotal < 9) {
-          // Found space under this child
-          if (childNode.leftLeg.length < 3) {
-            return { placerWallet: childWallet, position: childNode.leftLeg.length };
-          } else if (childNode.middleLeg.length < 3) {
-            return { placerWallet: childWallet, position: 3 + childNode.middleLeg.length };
-          } else if (childNode.rightLeg.length < 3) {
-            return { placerWallet: childWallet, position: 6 + childNode.rightLeg.length };
-          }
-        }
-      }
+    // If level is full, expand to next level
+    if (nextPositionIndex >= maxPositions) {
+      return this.findGlobalMatrixPlacement(sponsorWallet, level + 1);
     }
+    
+    return {
+      matrixLevel: level,
+      positionIndex: nextPositionIndex,
+      placementSponsorWallet: sponsorWallet, // For simplicity, sponsor places them
+    };
+  }
 
-    // If no space found, place under sponsor at position 0 (this shouldn't happen with proper matrix management)
-    return { placerWallet: sponsorWallet, position: 0 };
+  // Helper: Find who is qualified to receive layer rewards (must own Level X NFT to get Layer X rewards)
+  async findQualifiedLayerRecipient(startWallet: string, level: number): Promise<string | null> {
+    const membership = await this.getMembershipState(startWallet);
+    if (membership && membership.levelsOwned.includes(level)) {
+      return startWallet; // This user owns the required NFT level
+    }
+    
+    // Search upline for qualified recipient
+    const matrixPosition = await this.getGlobalMatrixPosition(startWallet);
+    if (matrixPosition && matrixPosition.directSponsorWallet !== startWallet) {
+      return this.findQualifiedLayerRecipient(matrixPosition.directSponsorWallet, level);
+    }
+    
+    return null; // No qualified recipient found
+  }
+
+  // Helper: Get direct referral count for a sponsor
+  async getDirectReferralCount(sponsorWallet: string): Promise<number> {
+    const directReferrals = await db.select()
+      .from(globalMatrixPosition)
+      .where(eq(globalMatrixPosition.directSponsorWallet, sponsorWallet.toLowerCase()));
+    return directReferrals.length;
+  }
+
+  // Helper: Find nearest activated upline who can receive rewards
+  async findNearestActivatedUpline(walletAddress: string): Promise<string | null> {
+    const position = await this.getGlobalMatrixPosition(walletAddress);
+    if (!position || position.directSponsorWallet === walletAddress) {
+      return null; // No upline or reached root
+    }
+    
+    const uplineMembership = await this.getMembershipState(position.directSponsorWallet);
+    if (uplineMembership && uplineMembership.activeLevel > 0) {
+      return position.directSponsorWallet; // Found activated upline
+    }
+    
+    // Continue searching up the chain
+    return this.findNearestActivatedUpline(position.directSponsorWallet);
+  }
+
+  // Helper: Create reward distribution record
+  async createRewardDistribution(distribution: InsertRewardDistribution): Promise<RewardDistribution> {
+    const [reward] = await db
+      .insert(rewardDistributions)
+      .values({
+        ...distribution,
+        recipientWallet: distribution.recipientWallet.toLowerCase(),
+        sourceWallet: distribution.sourceWallet.toLowerCase(),
+      })
+      .returning();
+    return reward;
   }
 
 

@@ -19,9 +19,9 @@ export default function Referrals() {
     enabled: !!walletAddress
   });
 
-  // Fetch user's referral tree/matrix data
-  const { data: referralTree, isLoading: isTreeLoading } = useQuery<any>({
-    queryKey: ['/api/beehive/referral-tree'],
+  // Fetch user's global matrix position data
+  const { data: globalMatrixData, isLoading: isMatrixLoading } = useQuery<any>({
+    queryKey: ['/api/beehive/global-matrix-position', walletAddress],
     enabled: !!walletAddress
   });
 
@@ -35,8 +35,9 @@ export default function Referrals() {
     nextPayout: userStats?.nextPayout || 'TBA'
   };
 
-  // Get direct referrals from tree data
-  const directReferrals = referralTree?.directReferrals || [];
+  // Get matrix position and referral data
+  const userMatrixPosition = globalMatrixData?.position || null;
+  const directReferrals = globalMatrixData?.directReferrals || [];
 
   const referralLink = `https://beehive.app/register?ref=${walletAddress}`;
 
@@ -98,18 +99,18 @@ export default function Referrals() {
         <CardContent>
           <div className="space-y-4">
             <div className="bg-background/50 rounded-lg p-4">
-              <h4 className="font-semibold text-honey mb-2">How Rewards Work</h4>
+              <h4 className="font-semibold text-honey mb-2">Global Matrix System</h4>
               <p className="text-sm text-muted-foreground mb-3">
-                When your referrals purchase BBC Member NFTs, you earn 100% of the NFT price portion as rewards.
+                BeeHive uses a single shared 19-level global matrix where all users are placed in one company-wide structure.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
-                  <h5 className="font-medium text-white mb-2">✅ Direct Referral Bonus</h5>
-                  <p className="text-muted-foreground">Instant payment when your direct referral activates any level</p>
+                  <h5 className="font-medium text-white mb-2">✅ Direct Sponsor Reward</h5>
+                  <p className="text-muted-foreground">Instant 100 USDT when your direct referral buys any Level NFT</p>
                 </div>
                 <div>
-                  <h5 className="font-medium text-white mb-2">⏳ Level Bonus (72h Timer)</h5>
-                  <p className="text-muted-foreground">Requires same or higher level. Bronze Level 2 needs 3 direct referrals.</p>
+                  <h5 className="font-medium text-white mb-2">⏳ Layer Rewards (72h Timer)</h5>
+                  <p className="text-muted-foreground">Must own Level X NFT to receive rewards from Level X members. Third member rule applies.</p>
                 </div>
               </div>
             </div>

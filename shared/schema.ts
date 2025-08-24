@@ -986,6 +986,25 @@ export const insertSystemStatusSchema = createInsertSchema(systemStatus).pick({
   errorMessage: true,
 });
 
+// Global Matrix Position Table - Single company-wide matrix structure
+export const globalMatrixPosition = pgTable("global_matrix_position", {
+  walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
+  matrixLevel: integer("matrix_level").notNull(), // 1-19 (Level 1=3 positions, Level 2=9, Level 3=27, etc.)
+  positionIndex: integer("position_index").notNull(), // 0-based position within that level
+  directSponsorWallet: varchar("direct_sponsor_wallet", { length: 42 }).notNull(), // Who invited them (gets direct rewards)
+  placementSponsorWallet: varchar("placement_sponsor_wallet", { length: 42 }).notNull(), // Where they were placed in matrix
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
+  lastUpgradeAt: timestamp("last_upgrade_at"),
+});
+
+export const insertGlobalMatrixPositionSchema = createInsertSchema(globalMatrixPosition).pick({
+  walletAddress: true,
+  matrixLevel: true,
+  positionIndex: true,
+  directSponsorWallet: true,
+  placementSponsorWallet: true,
+});
+
 
 // Admin panel types
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
@@ -1008,3 +1027,6 @@ export type RedeemCode = typeof redeemCodes.$inferSelect;
 
 export type InsertSystemStatus = z.infer<typeof insertSystemStatusSchema>;
 export type SystemStatus = typeof systemStatus.$inferSelect;
+
+export type InsertGlobalMatrixPosition = z.infer<typeof insertGlobalMatrixPositionSchema>;
+export type GlobalMatrixPosition = typeof globalMatrixPosition.$inferSelect;
