@@ -43,7 +43,6 @@ export default function Registration() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [registrationStatus, setRegistrationStatus] = useState<RegistrationStatus | null>(null);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
-  const [timeRemaining, setTimeRemaining] = useState<number>(0);
   const [showReferralForm, setShowReferralForm] = useState(false);
 
   // Check wallet registration status on component mount
@@ -80,12 +79,7 @@ export default function Registration() {
             return;
           }
           
-          // Calculate time remaining if registration expires
-          if (status.registrationExpiresAt) {
-            const expiresAt = new Date(status.registrationExpiresAt).getTime();
-            const now = Date.now();
-            setTimeRemaining(Math.max(0, expiresAt - now));
-          }
+          // Registration expiration will be shown on dashboard
         }
       } catch (error) {
         console.error('Failed to check registration status:', error);
@@ -97,31 +91,6 @@ export default function Registration() {
     checkRegistrationStatus();
   }, [walletAddress, setLocation]);
   
-  // Countdown timer effect
-  useEffect(() => {
-    if (timeRemaining <= 0) return;
-    
-    const timer = setInterval(() => {
-      setTimeRemaining(prev => {
-        const newTime = prev - 1000;
-        if (newTime <= 0) {
-          // Registration expired, refresh status
-          window.location.reload();
-          return 0;
-        }
-        return newTime;
-      });
-    }, 1000);
-    
-    return () => clearInterval(timer);
-  }, [timeRemaining]);
-  
-  const formatTimeRemaining = (ms: number): string => {
-    const hours = Math.floor(ms / (1000 * 60 * 60));
-    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((ms % (1000 * 60)) / 1000);
-    return `${hours}h ${minutes}m ${seconds}s`;
-  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -266,21 +235,6 @@ export default function Registration() {
                       Your account is registered but not yet activated. You need to upgrade to Level 1 membership.
                     </AlertDescription>
                   </Alert>
-                  
-                  {timeRemaining > 0 && (
-                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-                      <div className="flex items-center gap-2 text-yellow-400 mb-2">
-                        <Clock className="h-4 w-4" />
-                        <span className="font-semibold">Registration Expires In:</span>
-                      </div>
-                      <div className="text-2xl font-bold text-yellow-300">
-                        {formatTimeRemaining(timeRemaining)}
-                      </div>
-                      <p className="text-xs text-yellow-200 mt-2">
-                        Upgrade to Level 1 before this timer expires or your registration will be deleted.
-                      </p>
-                    </div>
-                  )}
                 </>  
               )}
               

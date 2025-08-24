@@ -11,7 +11,8 @@ import ClaimMembershipButton from '../components/membership/ClaimMembershipButto
 import { useNFTVerification } from '../hooks/useNFTVerification';
 import { useCompanyStats, useUserReferralStats } from '../hooks/useBeeHiveStats';
 import { useState, useEffect } from 'react';
-import { Copy, Share2, Users, Award, TrendingUp, DollarSign, Building2, Crown } from 'lucide-react';
+import { Copy, Share2, Users, Award, TrendingUp, DollarSign, Building2, Crown, Clock, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '../components/ui/alert';
 
 export default function Dashboard() {
   const { 
@@ -30,6 +31,61 @@ export default function Dashboard() {
   const { data: companyStats, isLoading: isLoadingCompanyStats } = useCompanyStats();
   const { data: userStats, isLoading: isLoadingUserStats } = useUserReferralStats();
   const [showReferralLink, setShowReferralLink] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState<number>(0);
+  
+  // Check registration expiration status
+  useEffect(() => {
+    const checkRegistrationStatus = async () => {
+      if (!walletAddress || isActivated) return;
+      
+      try {
+        const response = await fetch(`/api/wallet/registration-status`, {
+          headers: {
+            'X-Wallet-Address': walletAddress
+          }
+        });
+        
+        if (response.ok) {
+          const status = await response.json();
+          if (status.registrationExpiresAt) {
+            const expiresAt = new Date(status.registrationExpiresAt).getTime();
+            const now = Date.now();
+            setTimeRemaining(Math.max(0, expiresAt - now));
+          }
+        }
+      } catch (error) {
+        console.error('Failed to check registration status:', error);
+      }
+    };
+    
+    checkRegistrationStatus();
+  }, [walletAddress, isActivated]);
+  
+  // Countdown timer effect
+  useEffect(() => {
+    if (timeRemaining <= 0) return;
+    
+    const timer = setInterval(() => {
+      setTimeRemaining(prev => {
+        const newTime = prev - 1000;
+        if (newTime <= 0) {
+          // Registration expired, refresh status
+          window.location.reload();
+          return 0;
+        }
+        return newTime;
+      });
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [timeRemaining]);
+  
+  const formatTimeRemaining = (ms: number): string => {
+    const hours = Math.floor(ms / (1000 * 60 * 60));
+    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+    return `${hours}h ${minutes}m ${seconds}s`;
+  };
   
   const referralLink = `${window.location.origin}/register?ref=${walletAddress}`;
 

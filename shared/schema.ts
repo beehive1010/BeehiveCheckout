@@ -123,6 +123,7 @@ export const levelConfig = pgTable("level_config", {
   level: integer("level").primaryKey(),
   levelName: text("level_name").notNull(),
   priceUSDT: integer("price_usdt").notNull(), // Total price in USDT cents
+  nftPriceUsdt: integer("nft_price_usdt").notNull().default(0), // NFT price in USDT cents
   nftPriceUSDT: integer("nft_price_usdt").notNull(), // NFT price portion in USDT cents (what sponsor gets as reward)
   platformFeeUSDT: integer("platform_fee_usdt").notNull(), // Platform fee in USDT cents
   requiredDirectReferrals: integer("required_direct_referrals").default(1).notNull(),
@@ -1066,6 +1067,5 @@ export const insertWalletConnectionLogSchema = createInsertSchema(walletConnecti
   createdAt: true,
 });
 
-export type InsertWalletConnectionLog = z.infer<typeof insertWalletConnectionLogSchema>;
 export type InsertWalletConnectionLog = z.infer<typeof insertWalletConnectionLogSchema>;
 export type WalletConnectionLog = typeof walletConnectionLogs.$inferSelect;
