@@ -348,7 +348,7 @@ export default function Referrals() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {isTreeLoading ? (
+            {isMatrixLoading ? (
               <div className="flex justify-center py-4">
                 <div className="text-muted-foreground">Loading referrals...</div>
               </div>
