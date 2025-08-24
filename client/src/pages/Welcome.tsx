@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { useToast } from '../hooks/use-toast';
 import { useNFTVerification } from '../hooks/useNFTVerification';
 import ClaimMembershipButton from '../components/membership/ClaimMembershipButton';
+import DemoPaymentButton from '../components/membership/DemoPaymentButton';
 
 export default function Welcome() {
   const { t } = useI18n();
@@ -149,6 +150,26 @@ export default function Welcome() {
                   onError={handlePurchaseError}
                   className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-honey to-yellow-400 hover:from-yellow-400 hover:to-honey text-black transition-all duration-300 shadow-lg hover:shadow-honey/25"
                 />
+                
+                {/* Demo Payment Button - Alternative to PayEmbed */}
+                <div className="mt-6 pt-6 border-t border-honey/20">
+                  <DemoPaymentButton
+                    onSuccess={() => {
+                      toast({
+                        title: 'Demo Complete! 🎉',
+                        description: 'Demo payment processed and Level 1 NFT claimed!',
+                      });
+                      setLocation('/dashboard');
+                    }}
+                    onError={(error) => {
+                      toast({
+                        title: 'Demo Failed',
+                        description: error,
+                        variant: 'destructive',
+                      });
+                    }}
+                  />
+                </div>
                 <p className="text-sm text-muted-foreground">
                   {t('welcome.supportText')}
                 </p>

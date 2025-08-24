@@ -34,8 +34,8 @@ export default function ClaimMembershipButton({
   const [claimState, setClaimState] = useState<ClaimState>('idle');
   const [txHash, setTxHash] = useState<string>('');
   const [doubleClickGuard, setDoubleClickGuard] = useState(false);
-  // Default to test chain (Arbitrum Sepolia) for easier testing
-  const [selectedChain, setSelectedChain] = useState(paymentChains.find(chain => (chain as any).isTestnet) || paymentChains[0]);
+  // Default to first available chain
+  const [selectedChain, setSelectedChain] = useState(paymentChains[0]);
   const [showChainSelector, setShowChainSelector] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const account = useActiveAccount();
@@ -341,49 +341,8 @@ export default function ClaimMembershipButton({
       const result = await response.json();
       console.log('✅ Membership updated in database');
 
-      // Step 2: Mint BBC Membership NFT to user's wallet
-      console.log('🎨 Minting BBC Membership NFT to your wallet...');
-
-      if (!account) {
-        throw new Error('Wallet account not available for minting');
-      }
-
-      // Import mint function from thirdweb for ERC1155
-      const { mintTo } = await import('thirdweb/extensions/erc1155');
-      
-      // Get BBC membership contract (ERC1155)
-      const bbcContract = getContract({
-        client,
-        chain: selectedChain.chain, // Arbitrum Sepolia
-        address: contractAddresses.BBC_MEMBERSHIP.arbitrumSepolia as `0x${string}`,
-      });
-
-      // Calculate correct token ID: Level 1 = Token ID 1, Level 2 = Token ID 2, etc.
-      const tokenId = level; // Level 1 → Token ID 1
-
-      const mintTransaction = mintTo({
-        contract: bbcContract,
-        to: walletAddress as `0x${string}`,
-        tokenId: BigInt(tokenId),
-        amount: BigInt(1), // Mint 1 NFT
-        data: '0x', // Empty data
-      });
-
-      console.log('📤 Sending mint transaction to blockchain...');
-      const mintResult = await sendAndConfirmTransaction({
-        transaction: mintTransaction,
-        account,
-      });
-
-      console.log('🎉 NFT minted successfully!', {
-        transactionHash: mintResult.transactionHash,
-        tokenId: level,
-        recipient: walletAddress,
-      });
-
-      // Update result with NFT transaction hash
-      result.nftTxHash = mintResult.transactionHash;
-      result.nftMinted = true;
+      // Step 2: NFT minting handled automatically by backend
+      console.log('🎨 NFT minting will be handled by backend...');
       
       // Emit persistence event
       membershipEventEmitter.emit({
@@ -522,6 +481,7 @@ export default function ClaimMembershipButton({
     }
   };
 
+
   const getButtonText = () => {
     switch (claimState) {
       case 'approving':
@@ -656,119 +616,31 @@ export default function ClaimMembershipButton({
 
         {/* Payment Container */}
         <div className="border rounded-lg overflow-hidden">
-          {(selectedChain as any).isTestnet ? (
-            // 测试网络：使用简单的手动转账按钮，完全避开bridge
-            <div className="p-4 space-y-4">
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-2">测试网络支付</p>
-                <p className="text-lg font-bold text-honey">${membershipLevel.priceUSDT} 测试USDT</p>
-                <p className="text-xs text-muted-foreground">使用测试代币购买会员</p>
-              </div>
-
-              <Button
-                onClick={async () => {
-                  try {
-                    console.log('🚀 Test payment button clicked!');
-                    
-                    if (!account?.address) {
-                      console.log('❌ No wallet connected');
-                      toast({
-                        title: '请连接钱包',
-                        description: '需要连接钱包才能进行支付',
-                        variant: 'destructive',
-                      });
-                      return;
-                    }
-
-                    console.log('✅ Wallet connected:', account.address);
-                    console.log('📋 Payment details:', {
-                      chain: selectedChain.name,
-                      usdtAddress: selectedChain.usdtAddress,
-                      bridgeWallet: selectedChain.bridgeWallet,
-                      amount: membershipLevel.priceUSDT * 1000000,
-                    });
-
-                    setClaimState('paying');
-                    console.log('🔄 Set state to paying');
-                    
-                    // 创建转账交易
-                    console.log('🏗️ Creating USDT transfer contract...');
-                    const contract = getContract({
-                      client,
-                      chain: selectedChain.chain,
-                      address: selectedChain.usdtAddress as `0x${string}`,
-                    });
-
-                    console.log('💰 Creating transfer transaction...');
-                    const transaction = transfer({
-                      contract,
-                      to: selectedChain.bridgeWallet as `0x${string}`,
-                      amount: (membershipLevel.priceUSDT * 1000000).toString(),
-                    });
-
-                    console.log('📤 Sending transaction...');
-                    // 发送交易
-                    const result = await sendAndConfirmTransaction({
-                      transaction,
-                      account,
-                    });
-
-                    console.log('✅ Test payment transaction successful:', result.transactionHash);
-                    console.log('🎯 About to call handlePaymentSuccess...');
-                    
-                    // 处理支付成功
-                    await handlePaymentSuccess(result);
-                    
-                  } catch (error) {
-                    console.error('Test payment error:', error);
-                    setClaimState('error');
-                    toast({
-                      title: '支付失败',
-                      description: '测试支付过程中出现错误，请重试',
-                      variant: 'destructive',
-                    });
-                  }
-                }}
-                disabled={claimState === 'paying' || claimState === 'verifying' || claimState === 'persisting'}
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-              >
-                {claimState === 'paying' ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                    处理中...
-                  </>
-                ) : (
-                  '发送测试USDT'
-                )}
-              </Button>
-            </div>
-          ) : (
-            // 生产网络：使用PayEmbed支持bridge
-            <div className="min-h-[200px]">
-              <PayEmbed
-                client={client}
-                payOptions={{
-                  mode: "direct_payment",
-                  paymentInfo: {
-                    amount: `${membershipLevel.priceUSDT}.00`,
-                    sellerAddress: selectedChain.bridgeWallet,
-                    chain: selectedChain.chain,
-                    token: {
-                      address: selectedChain.usdtAddress,
-                      symbol: 'USDT',
-                      name: 'Tether USD',
-                    },
+          {/* Production network: Use PayEmbed with bridge support */}
+          <div className="min-h-[200px]">
+            <PayEmbed
+              client={client}
+              payOptions={{
+                mode: "direct_payment",
+                paymentInfo: {
+                  amount: `${membershipLevel.priceUSDT}.00`,
+                  sellerAddress: selectedChain.bridgeWallet,
+                  chain: selectedChain.chain,
+                  token: {
+                    address: selectedChain.usdtAddress,
+                    symbol: 'USDT',
+                    name: 'Tether USD',
                   },
-                  metadata: {
-                    name: `Beehive Level ${level} Membership`,
-                    description: `Exclusive Level ${level} membership with special privileges and rewards`,
-                  },
-                  onPurchaseSuccess: handlePaymentSuccess,
-                }}
-                theme="dark"
-              />
-            </div>
-          )}
+                },
+                metadata: {
+                  name: `Beehive Level ${level} Membership`,
+                  description: `Exclusive Level ${level} membership with special privileges and rewards`,
+                },
+                onPurchaseSuccess: handlePaymentSuccess,
+              }}
+              theme="dark"
+            />
+          </div>
         </div>
 
         {/* Cancel Button */}
