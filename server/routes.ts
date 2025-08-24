@@ -386,13 +386,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Credit BCC tokens based on level
-      const bccReward = level * 100; // Simple formula: 100 BCC per level
+      // Credit BCC tokens based on level (1:1 with USDT price)
+      const bccReward = calculateBCCReward(level);
+      console.log(`💰 Giving ${bccReward.total} BCC for Level ${level} (all transferable)`);
+      
       const bccBalance = await storage.getBCCBalance(req.walletAddress);
       if (bccBalance) {
         await storage.updateBCCBalance(req.walletAddress, {
-          transferable: bccBalance.transferable + Math.floor(bccReward * 0.6),
-          restricted: bccBalance.restricted + Math.floor(bccReward * 0.4),
+          transferable: bccBalance.transferable + bccReward.transferable,
+          restricted: bccBalance.restricted + bccReward.restricted,
         });
       }
 
@@ -2809,15 +2811,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 // Helper functions
 function calculateBCCReward(level: number): { transferable: number; restricted: number; total: number } {
-  // Base BCC reward calculation per level
-  const baseReward = level * 50; // 50 BCC per level
-  const transferable = Math.floor(baseReward * 0.3); // 30% transferable
-  const restricted = baseReward - transferable; // 70% restricted
+  // BCC reward = 1:1 with USDT price
+  // Level 1 = 100 USDT = 100 BCC (all transferable)
+  const levelPrices = {
+    1: 100, 2: 200, 3: 300, 4: 400, 5: 500,
+    6: 600, 7: 700, 8: 800, 9: 900, 10: 1000,
+    11: 1100, 12: 1200, 13: 1300, 14: 1400, 15: 1500,
+    16: 1600, 17: 1700, 18: 1800, 19: 1900
+  };
+  
+  const bccAmount = levelPrices[level as keyof typeof levelPrices] || (level * 100);
   
   return {
-    transferable,
-    restricted,
-    total: baseReward
+    transferable: bccAmount, // 100% transferable BCC
+    restricted: 0,           // No restricted portion
+    total: bccAmount
   };
 }
 
