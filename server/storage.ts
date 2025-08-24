@@ -73,6 +73,9 @@ import {
   type DappType,
   type InsertDappType,
   type PartnerChain,
+  walletConnectionLogs,
+  type WalletConnectionLog,
+  type InsertWalletConnectionLog,
   type InsertPartnerChain,
   type MemberActivation,
   type InsertMemberActivation,
@@ -82,7 +85,7 @@ import {
   type InsertAdminSetting
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, isNull, inArray, not } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -1940,6 +1943,92 @@ export class DatabaseStorage implements IStorage {
         });
       }
     }
+  }
+
+  // Wallet connection logging
+  async logWalletConnection(log: InsertWalletConnectionLog): Promise<WalletConnectionLog> {
+    const [connectionLog] = await db
+      .insert(walletConnectionLogs)
+      .values({
+        ...log,
+        walletAddress: log.walletAddress.toLowerCase(),
+        uplineWallet: log.uplineWallet?.toLowerCase(),
+      })
+      .returning();
+    return connectionLog;
+  }
+
+  // Get admin setting value
+  async getAdminSetting(settingKey: string): Promise<string | null> {
+    const setting = await db.select()
+      .from(adminSettings)
+      .where(eq(adminSettings.settingKey, settingKey))
+      .limit(1);
+    return setting[0]?.settingValue || null;
+  }
+
+  // Set admin setting
+  async setAdminSetting(settingKey: string, settingValue: string, description?: string): Promise<void> {
+    await db.insert(adminSettings)
+      .values({ settingKey, settingValue, description })
+      .onConflictDoUpdate({
+        target: adminSettings.settingKey,
+        set: { settingValue, updatedAt: sql`NOW()` }
+      });
+  }
+
+  // Update user registration tracking
+  async updateUserRegistrationTracking(walletAddress: string, data: {
+    registeredAt?: Date;
+    registrationExpiresAt?: Date;
+    registrationTimeoutHours?: number;
+    lastWalletConnectionAt?: Date;
+    walletConnectionCount?: number;
+    referralCode?: string;
+    isCompanyDirectReferral?: boolean;
+  }): Promise<void> {
+    await db.update(users)
+      .set({
+        ...data,
+        lastUpdatedAt: new Date(),
+      })
+      .where(eq(users.walletAddress, walletAddress.toLowerCase()));
+  }
+
+  // Get users whose registration has expired
+  async getExpiredRegistrations(): Promise<User[]> {
+    return await db.select()
+      .from(users)
+      .where(
+        and(
+          eq(users.memberActivated, false),
+          not(isNull(users.registrationExpiresAt)),
+          sql`${users.registrationExpiresAt} < NOW()`
+        )
+      );
+  }
+
+  // Delete expired unactivated users
+  async deleteExpiredRegistrations(): Promise<number> {
+    const expiredUsers = await this.getExpiredRegistrations();
+    
+    if (expiredUsers.length === 0) {
+      return 0;
+    }
+    
+    const walletAddresses = expiredUsers.map(u => u.walletAddress);
+    
+    // Delete from related tables first
+    await db.delete(membershipState)
+      .where(inArray(membershipState.walletAddress, walletAddresses));
+    await db.delete(bccBalances)
+      .where(inArray(bccBalances.walletAddress, walletAddresses));
+    
+    // Delete users
+    await db.delete(users)
+      .where(inArray(users.walletAddress, walletAddresses));
+    
+    return expiredUsers.length;
   }
 }
 

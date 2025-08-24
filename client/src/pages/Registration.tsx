@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWallet } from '../hooks/useWallet';
 import { useI18n } from '../contexts/I18nContext';
 import { useLocation } from 'wouter';
@@ -6,9 +6,25 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
+import { Badge } from '../components/ui/badge';
+import { Alert, AlertDescription } from '../components/ui/alert';
 import { useToast } from '../hooks/use-toast';
 import HexagonIcon from '../components/UI/HexagonIcon';
+import { Clock, AlertCircle, CheckCircle } from 'lucide-react';
 import bcrypt from 'bcryptjs';
+
+interface RegistrationStatus {
+  registered: boolean;
+  activated: boolean;
+  registrationRequired: boolean;
+  uplineWallet?: string;
+  isCompanyDirectReferral?: boolean;
+  referralCode?: string;
+  registrationExpiresAt?: string;
+  registrationTimeoutHours?: number;
+  needsReferralForm?: boolean;
+  message?: string;
+}
 
 export default function Registration() {
   const { walletAddress, register, isRegistering } = useWallet();
@@ -21,15 +37,94 @@ export default function Registration() {
     username: '',
     secondaryPassword: '',
     confirmPassword: '',
+    referralCode: '', // For manual entry when no ref link
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [registrationStatus, setRegistrationStatus] = useState<RegistrationStatus | null>(null);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(true);
+  const [timeRemaining, setTimeRemaining] = useState<number>(0);
+  const [showReferralForm, setShowReferralForm] = useState(false);
+
+  // Check wallet registration status on component mount
+  useEffect(() => {
+    const checkRegistrationStatus = async () => {
+      if (!walletAddress) return;
+      
+      try {
+        // Get URL params for referral detection
+        const urlParams = new URLSearchParams(window.location.search);
+        const ref = urlParams.get('ref');
+        const code = urlParams.get('code');
+        
+        const response = await fetch(`/api/wallet/registration-status?${new URLSearchParams({ 
+          ...(ref && { ref }), 
+          ...(code && { code }) 
+        })}`, {
+          headers: {
+            'X-Wallet-Address': walletAddress
+          }
+        });
+        
+        if (response.ok) {
+          const status = await response.json();
+          setRegistrationStatus(status);
+          
+          if (status.needsReferralForm) {
+            setShowReferralForm(true);
+          }
+          
+          // If already registered, redirect
+          if (status.registered && status.activated) {
+            setLocation('/');
+            return;
+          }
+          
+          // Calculate time remaining if registration expires
+          if (status.registrationExpiresAt) {
+            const expiresAt = new Date(status.registrationExpiresAt).getTime();
+            const now = Date.now();
+            setTimeRemaining(Math.max(0, expiresAt - now));
+          }
+        }
+      } catch (error) {
+        console.error('Failed to check registration status:', error);
+      } finally {
+        setIsCheckingStatus(false);
+      }
+    };
+    
+    checkRegistrationStatus();
+  }, [walletAddress, setLocation]);
+  
+  // Countdown timer effect
+  useEffect(() => {
+    if (timeRemaining <= 0) return;
+    
+    const timer = setInterval(() => {
+      setTimeRemaining(prev => {
+        const newTime = prev - 1000;
+        if (newTime <= 0) {
+          // Registration expired, refresh status
+          window.location.reload();
+          return 0;
+        }
+        return newTime;
+      });
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [timeRemaining]);
+  
+  const formatTimeRemaining = (ms: number): string => {
+    const hours = Math.floor(ms / (1000 * 60 * 60));
+    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+    return `${hours}h ${minutes}m ${seconds}s`;
+  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-
-    // Referral link is now optional
-    const referrerWallet = localStorage.getItem('beehive-referrer');
 
     if (!formData.email) {
       newErrors.email = t('registration.errors.emailRequired');
@@ -52,6 +147,11 @@ export default function Registration() {
     if (formData.secondaryPassword !== formData.confirmPassword) {
       newErrors.confirmPassword = t('registration.errors.passwordMismatch');
     }
+    
+    // Validate referral code if needed
+    if (showReferralForm && !registrationStatus?.uplineWallet && !formData.referralCode) {
+      newErrors.referralCode = 'Referral code is required (use 001122 for company direct referral)';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -65,8 +165,19 @@ export default function Registration() {
     }
 
     try {
-      // Get referrer from localStorage if exists
-      const referrerWallet = localStorage.getItem('beehive-referrer');
+      // Determine referrer wallet
+      let referrerWallet = registrationStatus?.uplineWallet;
+      
+      // Handle manual referral code entry
+      if (showReferralForm && formData.referralCode) {
+        if (formData.referralCode === '001122') {
+          // Company direct referral
+          referrerWallet = '0x0000000000000000000000000000000000000001';
+        } else {
+          // Try to find user by referral code (assuming it's a wallet address)
+          referrerWallet = formData.referralCode;
+        }
+      }
       
       // Hash the secondary password
       const hashedPassword = await bcrypt.hash(formData.secondaryPassword, 10);
@@ -75,13 +186,15 @@ export default function Registration() {
         email: formData.email,
         username: formData.username,
         secondaryPasswordHash: hashedPassword,
-        referrerWallet: referrerWallet || undefined,
+        referrerWallet,
         preferredLanguage: language,
+        isCompanyDirectReferral: registrationStatus?.isCompanyDirectReferral || formData.referralCode === '001122',
+        referralCode: registrationStatus?.referralCode || formData.referralCode
       }, {
         onSuccess: () => {
           toast({
-            title: t('registration.success.title'),
-            description: t('registration.success.description'),
+            title: 'Registration Successful!',
+            description: `Welcome to BeeHive! You have ${registrationStatus?.registrationTimeoutHours || 48} hours to upgrade to Level 1 membership.`,
           });
           setLocation('/welcome');
         },
@@ -113,6 +226,77 @@ export default function Registration() {
     }
   };
 
+  // Show loading state while checking registration status
+  if (isCheckingStatus) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="bg-secondary border-border p-8 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Checking wallet status...</p>
+        </Card>
+      </div>
+    );
+  }
+  
+  // Show registration status if already registered
+  if (registrationStatus?.registered) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-4">
+          <Card className="bg-secondary border-border">
+            <CardHeader>
+              <CardTitle className="text-honey flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                Wallet Already Registered
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {registrationStatus.activated ? (
+                <Alert>
+                  <CheckCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Your account is fully activated! You can proceed to the dashboard.
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <>
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Your account is registered but not yet activated. You need to upgrade to Level 1 membership.
+                    </AlertDescription>
+                  </Alert>
+                  
+                  {timeRemaining > 0 && (
+                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+                      <div className="flex items-center gap-2 text-yellow-400 mb-2">
+                        <Clock className="h-4 w-4" />
+                        <span className="font-semibold">Registration Expires In:</span>
+                      </div>
+                      <div className="text-2xl font-bold text-yellow-300">
+                        {formatTimeRemaining(timeRemaining)}
+                      </div>
+                      <p className="text-xs text-yellow-200 mt-2">
+                        Upgrade to Level 1 before this timer expires or your registration will be deleted.
+                      </p>
+                    </div>
+                  )}
+                </>  
+              )}
+              
+              <Button 
+                onClick={() => setLocation(registrationStatus.activated ? '/' : '/membership')}
+                className="w-full bg-honey text-black hover:bg-honey/90"
+              >
+                {registrationStatus.activated ? 'Go to Dashboard' : 'Upgrade to Level 1'}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   if (!walletAddress) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -135,197 +319,179 @@ export default function Registration() {
     );
   }
 
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <HexagonIcon className="mx-auto mb-4">
-            <i className="fas fa-user-plus text-honey"></i>
-          </HexagonIcon>
-          <CardTitle className="text-2xl font-bold text-honey">
-            {t('registration.title')}
-          </CardTitle>
-          <p className="text-muted-foreground">
-            {t('registration.subtitle')}
-          </p>
-        </CardHeader>
-        
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Wallet Address Display */}
-            <div>
-              <Label className="text-honey">{String(t('registration.walletAddress'))}</Label>
-              <div className="mt-1 p-3 bg-muted rounded-lg text-muted-foreground relative group">
-                {/* Mobile: Truncated display */}
-                <div className="block md:hidden">
-                  <div className="text-xs font-mono break-all">
-                    <span className="text-honey">{walletAddress?.slice(0, 6)}</span>
-                    <span className="text-muted-foreground/60">...</span>
-                    <span className="text-honey">{walletAddress?.slice(-4)}</span>
+      <div className="w-full max-w-md space-y-4">
+        {/* Registration Status Card */}
+        {registrationStatus && (
+          <Card className="bg-secondary border-border">
+            <CardContent className="p-4">
+              {registrationStatus.uplineWallet ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-green-400">
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="text-sm font-medium">Valid Referral Detected</span>
                   </div>
-                  <div className="text-xs text-muted-foreground/60 mt-1">
-                    Tap to copy full address
-                  </div>
-                </div>
-                
-                {/* Desktop: Full display */}
-                <div className="hidden md:block text-sm font-mono break-all">
-                  {walletAddress}
-                </div>
-                
-                {/* Copy button (invisible but covers the area) */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard.writeText(walletAddress || '');
-                    toast({
-                      title: 'Copied!',
-                      description: 'Wallet address copied to clipboard',
-                    });
-                  }}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  data-testid="button-copy-wallet"
-                />
-              </div>
-            </div>
-
-            {/* Email */}
-            <div>
-              <Label htmlFor="email" className="text-honey">
-                {t('registration.email')} *
-              </Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="input-honey"
-                placeholder={t('registration.emailPlaceholder')}
-                data-testid="input-email"
-              />
-              {errors.email && (
-                <p className="text-destructive text-sm mt-1">{errors.email}</p>
-              )}
-            </div>
-
-            {/* Username */}
-            <div>
-              <Label htmlFor="username" className="text-honey">
-                {t('registration.username')} *
-              </Label>
-              <Input
-                id="username"
-                name="username"
-                type="text"
-                value={formData.username}
-                onChange={handleInputChange}
-                className="input-honey"
-                placeholder={t('registration.usernamePlaceholder')}
-                data-testid="input-username"
-              />
-              {errors.username && (
-                <p className="text-destructive text-sm mt-1">{errors.username}</p>
-              )}
-            </div>
-
-            {/* Secondary Password */}
-            <div>
-              <Label htmlFor="secondaryPassword" className="text-honey">
-                {t('registration.secondaryPassword')} *
-              </Label>
-              <Input
-                id="secondaryPassword"
-                name="secondaryPassword"
-                type="password"
-                value={formData.secondaryPassword}
-                onChange={handleInputChange}
-                className="input-honey"
-                placeholder={t('registration.passwordPlaceholder')}
-                data-testid="input-password"
-              />
-              {errors.secondaryPassword && (
-                <p className="text-destructive text-sm mt-1">{errors.secondaryPassword}</p>
-              )}
-            </div>
-
-            {/* Confirm Password */}
-            <div>
-              <Label htmlFor="confirmPassword" className="text-honey">
-                {t('registration.confirmPassword')} *
-              </Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                className="input-honey"
-                placeholder={t('registration.confirmPasswordPlaceholder')}
-                data-testid="input-confirm-password"
-              />
-              {errors.confirmPassword && (
-                <p className="text-destructive text-sm mt-1">{errors.confirmPassword}</p>
-              )}
-            </div>
-
-            {/* Referrer Info - Now Mandatory */}
-            <div className="p-3 border rounded-lg">
-              <Label className="text-honey font-medium">
-                {t('registration.referrer')} <span className="text-muted-foreground text-xs">(Optional)</span>
-              </Label>
-              {localStorage.getItem('beehive-referrer') ? (
-                <div className="mt-2 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                  <div className="flex items-center text-green-600 mb-2">
-                    <i className="fas fa-check-circle mr-2"></i>
-                    <span className="text-sm font-medium">Upline Detected</span>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-1">Upline Wallet Address:</p>
-                    <p className="text-sm font-mono break-all text-honey">
-                      {localStorage.getItem('beehive-referrer')}
+                  {registrationStatus.isCompanyDirectReferral ? (
+                    <Badge className="bg-honey text-black">Company Direct Referral</Badge>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      Upline: {registrationStatus.uplineWallet.slice(0, 6)}...{registrationStatus.uplineWallet.slice(-4)}
                     </p>
-                  </div>
+                  )}
                 </div>
               ) : (
-                <div className="mt-2 p-3 bg-muted/50 border border-muted rounded-lg">
-                  <div className="flex items-center text-muted-foreground mb-2">
-                    <i className="fas fa-info-circle mr-2"></i>
-                    <span className="text-sm font-medium">No Referral Link</span>
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    {registrationStatus.message || 'No valid referral link detected'}
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        )}
+        
+        <Card className="w-full">
+          <CardHeader className="text-center">
+            <HexagonIcon className="mx-auto mb-4">
+              <i className="fas fa-user-plus text-honey"></i>
+            </HexagonIcon>
+            <CardTitle className="text-2xl font-bold text-honey">
+              {t('registration.title')}
+            </CardTitle>
+            <p className="text-muted-foreground">
+              {t('registration.subtitle')}
+            </p>
+          </CardHeader>
+          
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Wallet Address Display */}
+              <div>
+                <Label className="text-honey">{String(t('registration.walletAddress'))}</Label>
+                <div className="mt-1 p-3 bg-muted rounded-lg text-muted-foreground relative group">
+                  {/* Mobile: Truncated display */}
+                  <div className="block md:hidden">
+                    {walletAddress?.slice(0, 6)}...{walletAddress?.slice(-4)}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    You can register without a referral link. Use a referral link to connect to the matrix system.
+                  {/* Desktop: Full address */}
+                  <div className="hidden md:block">
+                    {walletAddress}
+                  </div>
+                </div>
+              </div>
+
+              {/* Email Field */}
+              <div>
+                <Label htmlFor="email" className="text-honey">
+                  {String(t('registration.email'))}
+                </Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className={`mt-1 bg-muted border-muted-foreground/20 ${errors.email ? 'border-destructive' : ''}`}
+                  placeholder="Enter your email address"
+                />
+                {errors.email && (
+                  <p className="text-sm text-destructive mt-1">{errors.email}</p>
+                )}
+              </div>
+
+              {/* Username Field */}
+              <div>
+                <Label htmlFor="username" className="text-honey">
+                  {String(t('registration.username'))}
+                </Label>
+                <Input
+                  id="username"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleInputChange}
+                  className={`mt-1 bg-muted border-muted-foreground/20 ${errors.username ? 'border-destructive' : ''}`}
+                  placeholder="Choose a username"
+                />
+                {errors.username && (
+                  <p className="text-sm text-destructive mt-1">{errors.username}</p>
+                )}
+              </div>
+
+              {/* Referral Code Field (if needed) */}
+              {showReferralForm && !registrationStatus?.uplineWallet && (
+                <div>
+                  <Label htmlFor="referralCode" className="text-honey">
+                    Referral Code
+                  </Label>
+                  <Input
+                    id="referralCode"
+                    name="referralCode"
+                    value={formData.referralCode}
+                    onChange={handleInputChange}
+                    className={`mt-1 bg-muted border-muted-foreground/20 ${errors.referralCode ? 'border-destructive' : ''}`}
+                    placeholder="Enter referral code (use 001122 for company direct)"
+                  />
+                  {errors.referralCode && (
+                    <p className="text-sm text-destructive mt-1">{errors.referralCode}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Use code "001122" for direct company referral
                   </p>
                 </div>
               )}
-            </div>
 
-            <Button
-              type="submit"
-              className="w-full btn-honey"
-              disabled={isRegistering}
-              data-testid="button-register"
-            >
-              {isRegistering ? (
-                <>
-                  <i className="fas fa-spinner fa-spin mr-2"></i>
-                  {t('registration.registering')}
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-user-plus mr-2"></i>
-                  {t('registration.register')}
-                </>
-              )}
-            </Button>
-          </form>
+              {/* Password Field */}
+              <div>
+                <Label htmlFor="secondaryPassword" className="text-honey">
+                  {String(t('registration.password'))}
+                </Label>
+                <Input
+                  id="secondaryPassword"
+                  name="secondaryPassword"
+                  type="password"
+                  value={formData.secondaryPassword}
+                  onChange={handleInputChange}
+                  className={`mt-1 bg-muted border-muted-foreground/20 ${errors.secondaryPassword ? 'border-destructive' : ''}`}
+                  placeholder="Create a password"
+                />
+                {errors.secondaryPassword && (
+                  <p className="text-sm text-destructive mt-1">{errors.secondaryPassword}</p>
+                )}
+              </div>
 
-          <div className="mt-6 text-center text-sm text-muted-foreground">
-            <p>{t('registration.agreement')}</p>
-          </div>
-        </CardContent>
-      </Card>
+              {/* Confirm Password Field */}
+              <div>
+                <Label htmlFor="confirmPassword" className="text-honey">
+                  {String(t('registration.confirmPassword'))}
+                </Label>
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  className={`mt-1 bg-muted border-muted-foreground/20 ${errors.confirmPassword ? 'border-destructive' : ''}`}
+                  placeholder="Confirm your password"
+                />
+                {errors.confirmPassword && (
+                  <p className="text-sm text-destructive mt-1">{errors.confirmPassword}</p>
+                )}
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isRegistering}
+                className="w-full bg-honey text-black hover:bg-honey/90 disabled:opacity-50"
+                data-testid="button-register"
+              >
+                {isRegistering ? 'Registering...' : String(t('registration.register'))}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
