@@ -168,7 +168,7 @@ export interface IStorage {
 
   // NFT Purchase operations
   createNFTPurchase(purchase: InsertNFTPurchase): Promise<NFTPurchase>;
-  getNFTPurchasesByWallet(walletAddress: string): Promise<NFTPurchase[]>;
+  getNFTPurchasesByWallet(walletAddress: string): Promise<(NFTPurchase & { nft: MerchantNFT })[]>;
 
   // Course operations
   getCourses(): Promise<Course[]>;
@@ -949,8 +949,18 @@ export class DatabaseStorage implements IStorage {
     return purchase;
   }
 
-  async getNFTPurchasesByWallet(walletAddress: string): Promise<NFTPurchase[]> {
-    return await db.select().from(nftPurchases).where(eq(nftPurchases.walletAddress, walletAddress.toLowerCase()));
+  async getNFTPurchasesByWallet(walletAddress: string): Promise<(NFTPurchase & { nft: MerchantNFT })[]> {
+    const purchases = await db
+      .select({
+        purchase: nftPurchases,
+        nft: merchantNFTs,
+      })
+      .from(nftPurchases)
+      .innerJoin(merchantNFTs, eq(nftPurchases.nftId, merchantNFTs.id))
+      .where(eq(nftPurchases.walletAddress, walletAddress.toLowerCase()))
+      .orderBy(desc(nftPurchases.createdAt));
+    
+    return purchases.map(row => ({ ...row.purchase, nft: row.nft }));
   }
 
   // Course operations
