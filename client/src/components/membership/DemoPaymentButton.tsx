@@ -105,13 +105,30 @@ export default function DemoPaymentButton({
       const membershipData = await membershipResponse.json();
       console.log('✅ Membership activated:', membershipData);
       
-      // Step 3: Simulate Level 1 NFT claim
+      // Step 3: Claim Level 1 NFT via thirdweb Engine
       setDemoState('claiming');
       console.log('🏆 Claiming Level 1 NFT...');
       
-      // Simulate NFT minting process
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      console.log('🎉 Level 1 NFT claimed successfully!');
+      const nftResponse = await fetch('/api/demo/claim-nft', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Wallet-Address': account.address,
+        },
+        body: JSON.stringify({ level: 1 }),
+      });
+
+      if (nftResponse.ok) {
+        const nftData = await nftResponse.json();
+        console.log('🎉 Level 1 NFT claimed successfully!', nftData);
+        if (nftData.realNFT) {
+          console.log('🚀 Real NFT minted via thirdweb Engine! TX:', nftData.txHash);
+        } else {
+          console.log('🎭 NFT claim simulated for demo purposes');
+        }
+      } else {
+        console.log('⚠️ NFT claim failed, continuing with demo...');
+      }
       
       setDemoState('success');
       
