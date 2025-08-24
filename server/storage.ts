@@ -154,6 +154,7 @@ export interface IStorage {
 
   // BeeHive business logic operations
   processGlobalMatrixRewards(buyerWallet: string, level: number): Promise<void>;
+  processReferralRewards(walletAddress: string, level: number): Promise<void>;
   createRewardDistribution(distribution: InsertRewardDistribution): Promise<RewardDistribution>;
 
   // Merchant NFT operations
@@ -837,6 +838,60 @@ export class DatabaseStorage implements IStorage {
 
   // Removed duplicate findNearestActivatedUpline function
 
+  async processReferralRewards(walletAddress: string, level: number): Promise<void> {
+    try {
+      console.log(`Processing referral rewards for ${walletAddress} at level ${level}`);
+      
+      // Get user's referral information
+      const user = await this.getUser(walletAddress);
+      if (!user || !user.referrerWallet) {
+        console.log('User has no referrer, skipping referral rewards');
+        return;
+      }
+
+      // Direct referral reward: 100 USDT to the direct referrer
+      const directRewardAmount = 100;
+      
+      // Create reward entry for direct referrer
+      await this.createRewardDistribution({
+        recipientWallet: user.referrerWallet,
+        sourceWallet: walletAddress,
+        rewardType: 'direct_referral',
+        rewardAmount: directRewardAmount.toString(),
+        level: level,
+        status: 'claimable',
+        createdAt: new Date(),
+      });
+      
+      console.log(`Created direct referral reward for ${user.referrerWallet}: ${directRewardAmount} USDT`);
+      
+      // Update BCC balance for the referrer (40% transferable, 60% restricted)
+      const referrerBCCBalance = await this.getBCCBalance(user.referrerWallet);
+      if (referrerBCCBalance) {
+        const bccReward = directRewardAmount; // 1:1 USDT to BCC for referral rewards
+        await this.updateBCCBalance(user.referrerWallet, {
+          transferable: referrerBCCBalance.transferable + Math.floor(bccReward * 0.4),
+          restricted: referrerBCCBalance.restricted + Math.floor(bccReward * 0.6),
+        });
+        
+        console.log(`Updated BCC balance for referrer ${user.referrerWallet}`);
+      } else {
+        // Create initial BCC balance if doesn't exist
+        const bccReward = directRewardAmount;
+        await this.createBCCBalance({
+          walletAddress: user.referrerWallet,
+          transferable: Math.floor(bccReward * 0.4),
+          restricted: Math.floor(bccReward * 0.6),
+        });
+        
+        console.log(`Created initial BCC balance for referrer ${user.referrerWallet}`);
+      }
+      
+    } catch (error) {
+      console.error('Error processing referral rewards:', error);
+      throw error;
+    }
+  }
 
   // Merchant NFT operations
   async getMerchantNFTs(): Promise<MerchantNFT[]> {

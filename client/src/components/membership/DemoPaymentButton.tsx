@@ -44,8 +44,44 @@ export default function DemoPaymentButton({
       // Step 1: Simulate payment processing
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Step 2: Activate membership with demo payment
+      // Step 2: Check if user is registered, register if needed
       setDemoState('verifying');
+      console.log('🔍 Checking user registration...');
+      
+      const userCheckResponse = await fetch('/api/auth/user', {
+        headers: {
+          'X-Wallet-Address': account.address,
+        },
+      });
+
+      let isUserRegistered = userCheckResponse.ok;
+      
+      if (!isUserRegistered) {
+        console.log('📝 Registering user for demo...');
+        const registerResponse = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Wallet-Address': account.address,
+          },
+          body: JSON.stringify({
+            walletAddress: account.address,
+            email: `demo-${Date.now()}@beehive.demo`,
+            username: `demo_user_${Date.now()}`,
+            secondaryPasswordHash: 'demo_hash',
+            preferredLanguage: 'en',
+            isCompanyDirectReferral: true,
+            referralCode: '001122'
+          }),
+        });
+
+        if (!registerResponse.ok) {
+          throw new Error('Failed to register user');
+        }
+        console.log('✅ User registered successfully');
+      }
+      
+      // Step 3: Activate membership with demo payment
       console.log('💰 Simulating 130 USDT payment...');
       
       const membershipResponse = await fetch('/api/membership/activate', {
@@ -62,7 +98,8 @@ export default function DemoPaymentButton({
       });
 
       if (!membershipResponse.ok) {
-        throw new Error('Failed to activate membership');
+        const errorData = await membershipResponse.json();
+        throw new Error(errorData.error || 'Failed to activate membership');
       }
 
       const membershipData = await membershipResponse.json();
