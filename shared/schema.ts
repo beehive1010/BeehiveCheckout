@@ -109,9 +109,9 @@ export const earningsWallet = pgTable("earnings_wallet", {
 export const levelConfig = pgTable("level_config", {
   level: integer("level").primaryKey(),
   levelName: text("level_name").notNull(),
-  priceUSDT: integer("price_usdt").notNull(), // Price in USDT cents
-  rewardAmount: integer("reward_amount").notNull(), // Reward amount in USDT cents
-  adminFee: integer("admin_fee").notNull(), // Admin fee in USDT cents
+  priceUSDT: integer("price_usdt").notNull(), // Total price in USDT cents
+  nftPriceUSDT: integer("nft_price_usdt").notNull(), // NFT price portion in USDT cents (what sponsor gets as reward)
+  platformFeeUSDT: integer("platform_fee_usdt").notNull(), // Platform fee in USDT cents
   requiredDirectReferrals: integer("required_direct_referrals").default(1).notNull(),
   maxMatrixCount: integer("max_matrix_count").default(9).notNull(), // 3x3 = 9 max
 });
@@ -284,8 +284,8 @@ export const insertLevelConfigSchema = createInsertSchema(levelConfig).pick({
   level: true,
   levelName: true,
   priceUSDT: true,
-  rewardAmount: true,
-  adminFee: true,
+  nftPriceUSDT: true,
+  platformFeeUSDT: true,
   requiredDirectReferrals: true,
   maxMatrixCount: true,
 });

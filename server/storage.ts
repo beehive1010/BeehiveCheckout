@@ -342,27 +342,27 @@ export class DatabaseStorage implements IStorage {
       const existingLevels = await db.select().from(levelConfig).limit(1);
       if (existingLevels.length > 0) return;
 
-      // BeeHive 19-level configuration
+      // BeeHive 19-level configuration matching your specifications
       const levels: InsertLevelConfig[] = [
-        { level: 1, levelName: "Warrior", priceUSDT: 13000, rewardAmount: 10000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
-        { level: 2, levelName: "Bronze", priceUSDT: 13000, rewardAmount: 10000, adminFee: 3000, requiredDirectReferrals: 3, maxMatrixCount: 9 },
-        { level: 3, levelName: "Silver", priceUSDT: 16000, rewardAmount: 13000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
-        { level: 4, levelName: "Gold", priceUSDT: 24000, rewardAmount: 21000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
-        { level: 5, levelName: "Platinum", priceUSDT: 40000, rewardAmount: 37000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
-        { level: 6, levelName: "Diamond", priceUSDT: 72000, rewardAmount: 69000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
-        { level: 7, levelName: "Master", priceUSDT: 136000, rewardAmount: 133000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
-        { level: 8, levelName: "Grandmaster", priceUSDT: 264000, rewardAmount: 261000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
-        { level: 9, levelName: "Elite", priceUSDT: 520000, rewardAmount: 517000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
-        { level: 10, levelName: "Supreme", priceUSDT: 1032000, rewardAmount: 1029000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
-        { level: 11, levelName: "Legendary", priceUSDT: 2056000, rewardAmount: 2053000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
-        { level: 12, levelName: "Mythical", priceUSDT: 4104000, rewardAmount: 4101000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
-        { level: 13, levelName: "Immortal", priceUSDT: 8200000, rewardAmount: 8197000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
-        { level: 14, levelName: "Celestial", priceUSDT: 16392000, rewardAmount: 16389000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
-        { level: 15, levelName: "Transcendent", priceUSDT: 32776000, rewardAmount: 32773000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
-        { level: 16, levelName: "Divine", priceUSDT: 65544000, rewardAmount: 65541000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
-        { level: 17, levelName: "Cosmic", priceUSDT: 131080000, rewardAmount: 131077000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
-        { level: 18, levelName: "Universal", priceUSDT: 262152000, rewardAmount: 262149000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
-        { level: 19, levelName: "Mythic Peak", priceUSDT: 100000000, rewardAmount: 99997000, adminFee: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 }
+        { level: 1, levelName: "Warrior", priceUSDT: 13000, nftPriceUSDT: 10000, platformFeeUSDT: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 2, levelName: "Bronze", priceUSDT: 15000, nftPriceUSDT: 15000, platformFeeUSDT: 0, requiredDirectReferrals: 3, maxMatrixCount: 9 },
+        { level: 3, levelName: "Silver", priceUSDT: 20000, nftPriceUSDT: 20000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 4, levelName: "Gold", priceUSDT: 25000, nftPriceUSDT: 25000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 5, levelName: "Elite", priceUSDT: 30000, nftPriceUSDT: 30000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 6, levelName: "Platinum", priceUSDT: 35000, nftPriceUSDT: 35000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 7, levelName: "Master", priceUSDT: 40000, nftPriceUSDT: 40000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 8, levelName: "Diamond", priceUSDT: 45000, nftPriceUSDT: 45000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 9, levelName: "Grandmaster", priceUSDT: 50000, nftPriceUSDT: 50000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 10, levelName: "Star Shine", priceUSDT: 55000, nftPriceUSDT: 55000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 11, levelName: "Epic", priceUSDT: 60000, nftPriceUSDT: 60000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 12, levelName: "Hall", priceUSDT: 65000, nftPriceUSDT: 65000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 13, levelName: "The Strongest King", priceUSDT: 70000, nftPriceUSDT: 70000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 14, levelName: "The King of Kings", priceUSDT: 75000, nftPriceUSDT: 75000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 15, levelName: "Glory King", priceUSDT: 80000, nftPriceUSDT: 80000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 16, levelName: "Legendary Overlord", priceUSDT: 85000, nftPriceUSDT: 85000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 17, levelName: "Supreme Lord", priceUSDT: 90000, nftPriceUSDT: 90000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 18, levelName: "Supreme Myth", priceUSDT: 95000, nftPriceUSDT: 95000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 19, levelName: "Mythical Peak", priceUSDT: 100000, nftPriceUSDT: 100000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 }
       ];
 
       await db.insert(levelConfig).values(levels);
@@ -669,12 +669,12 @@ export class DatabaseStorage implements IStorage {
     const referralNode = await this.getReferralNode(buyerWallet);
     if (!referralNode || !referralNode.sponsorWallet) return;
 
-    // 1. Process instant 100 USDT referral bonus to sponsor
+    // 1. Process instant direct referral bonus to sponsor (100% of NFT price)
     await this.createRewardDistribution({
       recipientWallet: referralNode.sponsorWallet,
       sourceWallet: buyerWallet,
       rewardType: 'direct_referral',
-      rewardAmount: '100.00', // 100 USDT
+      rewardAmount: (levelConfig.nftPriceUSDT / 100).toFixed(2), // 100% of NFT price portion (convert cents to dollars)
       level: level,
       status: 'claimable', // Instant payment
     });
@@ -697,7 +697,7 @@ export class DatabaseStorage implements IStorage {
               recipientWallet: nearestUpline,
               sourceWallet: buyerWallet,
               rewardType: 'level_bonus',
-              rewardAmount: (levelConfig.rewardAmount / 100).toFixed(2), // Convert cents to dollars
+              rewardAmount: (levelConfig.nftPriceUSDT / 100).toFixed(2), // Convert cents to dollars
               level: level,
               status: 'pending',
               pendingUntil: expiryTime,
@@ -712,7 +712,7 @@ export class DatabaseStorage implements IStorage {
         recipientWallet: referralNode.sponsorWallet,
         sourceWallet: buyerWallet,
         rewardType: 'level_bonus',
-        rewardAmount: (levelConfig.rewardAmount / 100).toFixed(2), // Convert cents to dollars
+        rewardAmount: (levelConfig.nftPriceUSDT / 100).toFixed(2), // Convert cents to dollars
         level: level,
         status: 'pending',
         pendingUntil: expiryTime,
@@ -725,7 +725,7 @@ export class DatabaseStorage implements IStorage {
           recipientWallet: nearestUpline,
           sourceWallet: buyerWallet,
           rewardType: 'level_bonus',
-          rewardAmount: (levelConfig.rewardAmount / 100).toFixed(2), // Convert cents to dollars
+          rewardAmount: (levelConfig.nftPriceUSDT / 100).toFixed(2), // Convert cents to dollars
           level: level,
           status: 'pending',
           pendingUntil: expiryTime,
@@ -1895,6 +1895,79 @@ export class DatabaseStorage implements IStorage {
 
     // Recursively check upline
     return await this.findNearestActivatedUpline(referralNode.sponsorWallet);
+  }
+
+  // Earnings wallet operations (missing implementations)
+  async createEarningsWalletEntry(entry: InsertEarningsWallet): Promise<EarningsWallet> {
+    const [created] = await db.insert(earningsWallet).values({
+      walletAddress: entry.walletAddress.toLowerCase(),
+      totalEarnings: entry.totalEarnings || "0",
+      referralEarnings: entry.referralEarnings || "0", 
+      levelEarnings: entry.levelEarnings || "0",
+      pendingRewards: entry.pendingRewards || "0",
+      withdrawnAmount: entry.withdrawnAmount || "0",
+      lastRewardAt: entry.lastRewardAt || null,
+    }).returning();
+    return created;
+  }
+
+  async getEarningsWalletByWallet(walletAddress: string): Promise<EarningsWallet[]> {
+    return await db.select()
+      .from(earningsWallet)
+      .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()));
+  }
+
+  async updateEarningsWalletEntry(walletAddress: string, updates: Partial<EarningsWallet>): Promise<EarningsWallet | undefined> {
+    const [updated] = await db.update(earningsWallet)
+      .set({
+        ...updates,
+        ...(updates.walletAddress && { walletAddress: updates.walletAddress.toLowerCase() }),
+      })
+      .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()))
+      .returning();
+    return updated;
+  }
+
+  async getPendingEarningsEntries(): Promise<EarningsWallet[]> {
+    return await db.select()
+      .from(earningsWallet)
+      .where(sql`${earningsWallet.pendingRewards} > 0`);
+  }
+
+  async getExpiredEarningsEntries(): Promise<EarningsWallet[]> {
+    return await db.select()
+      .from(earningsWallet)
+      .where(sql`${earningsWallet.pendingRewards} > 0 AND ${earningsWallet.lastRewardAt} < NOW() - INTERVAL '72 hours'`);
+  }
+
+  async passUpReward(originalRecipient: string, reward: EarningsWallet): Promise<void> {
+    // Find the nearest activated upline for the original recipient
+    const nearestUpline = await this.findNearestActivatedUpline(originalRecipient);
+    
+    if (nearestUpline) {
+      // Transfer the reward to the upline
+      const uplineEarnings = await db.select()
+        .from(earningsWallet)
+        .where(eq(earningsWallet.walletAddress, nearestUpline.toLowerCase()))
+        .limit(1);
+
+      if (uplineEarnings.length > 0) {
+        // Update existing upline earnings
+        await this.updateEarningsWalletEntry(nearestUpline, {
+          totalEarnings: (parseFloat(uplineEarnings[0].totalEarnings) + parseFloat(reward.totalEarnings)).toFixed(2),
+          levelEarnings: (parseFloat(uplineEarnings[0].levelEarnings) + parseFloat(reward.levelEarnings)).toFixed(2),
+          lastRewardAt: new Date(),
+        });
+      } else {
+        // Create new earnings entry for upline
+        await this.createEarningsWalletEntry({
+          walletAddress: nearestUpline,
+          totalEarnings: reward.totalEarnings,
+          levelEarnings: reward.levelEarnings,
+          lastRewardAt: new Date(),
+        });
+      }
+    }
   }
 }
 
