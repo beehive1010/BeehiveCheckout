@@ -1,3 +1,4 @@
+import React from 'react';
 import { useWeb3 } from '../contexts/Web3Context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '../lib/queryClient';
@@ -5,6 +6,36 @@ import { apiRequest } from '../lib/queryClient';
 export function useWallet() {
   const { isConnected, walletAddress } = useWeb3();
   const queryClient = useQueryClient();
+
+  // Log wallet connection when connected
+  const logWalletConnection = async (connectionType: string, additionalData?: any) => {
+    if (!walletAddress) return;
+    
+    try {
+      await fetch('/api/wallet/log-connection', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Wallet-Address': walletAddress,
+        },
+        body: JSON.stringify({
+          connectionType,
+          userAgent: navigator.userAgent,
+          referrerUrl: document.referrer,
+          ...additionalData
+        })
+      });
+    } catch (error) {
+      console.error('Failed to log wallet connection:', error);
+    }
+  };
+
+  // Log initial connection
+  React.useEffect(() => {
+    if (isConnected && walletAddress) {
+      logWalletConnection('connect');
+    }
+  }, [isConnected, walletAddress]);
 
   // Get user data including membership state
   const { data: userData, isLoading: isUserLoading } = useQuery({
@@ -35,6 +66,8 @@ export function useWallet() {
       ipfsHash?: string;
       referrerWallet?: string;
       preferredLanguage?: string;
+      isCompanyDirectReferral?: boolean;
+      referralCode?: string;
     }) => {
       const response = await apiRequest('POST', '/api/auth/register', {
         walletAddress,

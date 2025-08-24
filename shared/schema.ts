@@ -33,6 +33,19 @@ export const users = pgTable("users", {
   
   // Activation tracking
   activationAt: timestamp("activation_at"),
+  
+  // Registration countdown tracking
+  registeredAt: timestamp("registered_at"),
+  registrationExpiresAt: timestamp("registration_expires_at"),
+  registrationTimeoutHours: integer("registration_timeout_hours").default(48),
+  
+  // Connection logging
+  lastWalletConnectionAt: timestamp("last_wallet_connection_at"),
+  walletConnectionCount: integer("wallet_connection_count").default(0),
+  
+  // Referral system enhancement
+  referralCode: text("referral_code"), // Special codes like "001122"
+  isCompanyDirectReferral: boolean("is_company_direct_referral").default(false),
 });
 
 // Membership state table
@@ -1030,3 +1043,29 @@ export type SystemStatus = typeof systemStatus.$inferSelect;
 
 export type InsertGlobalMatrixPosition = z.infer<typeof insertGlobalMatrixPositionSchema>;
 export type GlobalMatrixPosition = typeof globalMatrixPosition.$inferSelect;
+
+
+// Wallet connection logs table for verification tracking
+export const walletConnectionLogs = pgTable("wallet_connection_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  walletAddress: varchar("wallet_address", { length: 42 }).notNull(),
+  connectionType: text("connection_type").notNull(), // "connect", "verify", "register"
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  referrerUrl: text("referrer_url"),
+  referralCode: text("referral_code"),
+  uplineWallet: varchar("upline_wallet", { length: 42 }),
+  connectionStatus: text("connection_status").default("success").notNull(),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Insert schemas and types for new tables
+export const insertWalletConnectionLogSchema = createInsertSchema(walletConnectionLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertWalletConnectionLog = z.infer<typeof insertWalletConnectionLogSchema>;
+export type InsertWalletConnectionLog = z.infer<typeof insertWalletConnectionLogSchema>;
+export type WalletConnectionLog = typeof walletConnectionLogs.$inferSelect;

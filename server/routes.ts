@@ -127,6 +127,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ success: true });
   });
 
+  // Wallet connection logging endpoint
+  app.post("/api/wallet/log-connection", async (req, res) => {
+    try {
+      const walletAddress = req.headers['x-wallet-address'] as string;
+      if (!walletAddress) {
+        return res.status(400).json({ error: 'Wallet address required' });
+      }
+
+      const { connectionType, userAgent, referrerUrl, referralCode, uplineWallet } = req.body;
+      
+      // Update user connection tracking if user exists
+      const existingUser = await storage.getUser(walletAddress);
+      if (existingUser) {
+        await storage.updateUserRegistrationTracking(walletAddress, {
+          lastWalletConnectionAt: new Date(),
+          walletConnectionCount: (existingUser.walletConnectionCount || 0) + 1
+        });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Wallet connection logging error:', error);
+      res.status(500).json({ error: 'Failed to log wallet connection' });
+    }
+  });
+
+  // Check wallet registration status and referral detection
+  app.get("/api/wallet/registration-status", async (req, res) => {
+    try {
+      const walletAddress = req.headers['x-wallet-address'] as string;
+      if (!walletAddress) {
+        return res.status(400).json({ error: 'Wallet address required' });
+      }
+
+      // Extract referral info from query params
+      const { ref, code } = req.query;
+      
+      // Check if wallet is already registered
+      const existingUser = await storage.getUser(walletAddress);
+      
+      let registrationRequired = false;
+      let uplineWallet = null;
+      let isCompanyDirectReferral = false;
+      let referralCode = null;
+      
+      if (!existingUser) {
+        registrationRequired = true;
+        
+        // Handle special code "001122" for company direct referral
+        if (code === '001122') {
+          isCompanyDirectReferral = true;
+          referralCode = code;
+          // Set company wallet as upline (you may need to configure this)
+          uplineWallet = '0x0000000000000000000000000000000000000001'; // Company wallet
+        } else if (ref) {
+          // Validate referrer wallet
+          const referrer = await storage.getUser(ref as string);
+          if (referrer && referrer.memberActivated) {
+            uplineWallet = ref as string;
+          }
+        }
+        
+        // If no valid referral link and no special code, require form
+        if (!uplineWallet && !isCompanyDirectReferral) {
+          return res.json({
+            registered: false,
+            registrationRequired: true,
+            needsReferralForm: true,
+            message: 'Registration form required - no valid referral link detected'
+          });
+        }
+      }
+      
+      res.json({
+        registered: !!existingUser,
+        activated: existingUser?.memberActivated || false,
+        registrationRequired,
+        uplineWallet,
+        isCompanyDirectReferral,
+        referralCode,
+        registrationExpiresAt: existingUser?.registrationExpiresAt,
+        registrationTimeoutHours: existingUser?.registrationTimeoutHours || 48
+      });
+    } catch (error) {
+      console.error('Registration status check error:', error);
+      res.status(500).json({ error: 'Failed to check registration status' });
+    }
+  });
+
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
     try {
@@ -156,9 +245,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Hash secondary password
       const hashedPassword = await bcrypt.hash(body.secondaryPasswordHash, 10);
       
+      // Get registration timeout from admin settings (default 48 hours)
+      const timeoutHours = parseInt(await storage.getAdminSetting('registration_timeout_hours') || '48');
+      const registrationExpiresAt = new Date(Date.now() + timeoutHours * 60 * 60 * 1000);
+      
       const user = await storage.createUser({
         ...body,
         secondaryPasswordHash: hashedPassword,
+        registeredAt: new Date(),
+        registrationExpiresAt,
+        registrationTimeoutHours: timeoutHours,
+        memberActivated: false // Explicitly set as inactive
       });
 
       // Initialize BCC balance
