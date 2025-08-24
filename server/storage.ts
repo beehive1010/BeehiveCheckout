@@ -412,10 +412,11 @@ export class DatabaseStorage implements IStorage {
     const [state] = await db
       .insert(membershipState)
       .values({
-        ...membership,
         walletAddress: membership.walletAddress.toLowerCase(),
         levelsOwned: membership.levelsOwned || [],
         activeLevel: membership.activeLevel || 0,
+        joinedAt: membership.joinedAt || new Date(),
+        lastUpgradeAt: membership.lastUpgradeAt || null,
       })
       .returning();
     return state;
@@ -1067,7 +1068,7 @@ export class DatabaseStorage implements IStorage {
     if (setParts.length === 0) return null;
 
     const queryStr = `UPDATE earnings_wallet SET ${setParts.join(', ')} WHERE wallet_address = $1 RETURNING *`;
-    const result = await db.execute(sql.raw(queryStr, values));
+    const result = await db.execute(sql.raw(queryStr));
     
     return result.rows[0];
   }
