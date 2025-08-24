@@ -664,7 +664,7 @@ export default function ClaimMembershipButton({
     <Button
       onClick={handleStartPurchase}
       disabled={isButtonDisabled}
-      className={`w-full h-12 sm:h-14 transition-all duration-200 relative text-sm sm:text-base lg:text-lg font-semibold ${
+      className={`w-full h-14 sm:h-16 transition-all duration-200 relative text-base sm:text-lg lg:text-xl font-semibold ${
         claimState === 'success' 
           ? 'bg-green-600 hover:bg-green-700' 
           : claimState === 'approving'
