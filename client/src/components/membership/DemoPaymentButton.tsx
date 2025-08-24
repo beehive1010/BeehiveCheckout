@@ -52,12 +52,12 @@ export default function DemoPaymentButton({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Wallet-Address': account.address,
         },
         body: JSON.stringify({
           level: 1,
-          transactionHash: `demo_payment_${Date.now()}`,
-          amount: 130,
-          demo: true // Flag to indicate this is a demo payment
+          txHash: `demo_payment_${Date.now()}`,
+          priceUSDT: 130
         }),
       });
 

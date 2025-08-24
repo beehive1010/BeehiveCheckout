@@ -615,9 +615,9 @@ export default function ClaimMembershipButton({
         </div>
 
         {/* Payment Container */}
-        <div className="border rounded-lg overflow-hidden">
+        <div className="border rounded-lg overflow-hidden bg-white">
           {/* Production network: Use PayEmbed with bridge support */}
-          <div className="min-h-[200px]">
+          <div className="min-h-[200px] bg-white">
             <PayEmbed
               client={client}
               payOptions={{
@@ -638,7 +638,7 @@ export default function ClaimMembershipButton({
                 },
                 onPurchaseSuccess: handlePaymentSuccess,
               }}
-              theme="dark"
+              theme="light"
             />
           </div>
         </div>
