@@ -744,8 +744,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // HiveWorld routes
-  app.get("/api/hiveworld/matrix", requireWallet, async (req: any, res) => {
+  // BeeHive API routes
+  app.get("/api/beehive/matrix", requireWallet, async (req: any, res) => {
     try {
       const referralNode = await storage.getReferralNode(req.walletAddress);
       if (!referralNode) {
@@ -755,7 +755,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get children details using existing database structure  
       const childrenResult = await db.execute(sql`
         SELECT wallet_address FROM referral_nodes 
-        WHERE parent_wallet = ${req.walletAddress.toLowerCase()}
+        WHERE sponsor_wallet = ${req.walletAddress.toLowerCase()}
       `);
       
       const childrenDetails = await Promise.all(
@@ -783,6 +783,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Failed to get matrix data' });
     }
   });
+
+  // User stats endpoint for referral dashboard
+  app.get("/api/beehive/user-stats/:walletAddress?", requireWallet, async (req: any, res) => {
+    try {
+      const walletAddress = req.params.walletAddress || req.walletAddress;
+      
+      const referralNode = await storage.getReferralNode(walletAddress);
+      const earnings = await storage.getEarningsWalletByWallet(walletAddress);
+      const user = await storage.getUser(walletAddress);
+      
+      // Calculate referral statistics
+      const directReferralCount = referralNode?.directReferralCount || 0;
+      const totalTeamCount = referralNode?.totalTeamCount || 0;
+      
+      // Calculate earnings from earnings wallet
+      const totalEarnings = earnings.reduce((sum, e) => sum + parseFloat(e.totalEarnings), 0);
+      const pendingRewards = earnings.reduce((sum, e) => sum + parseFloat(e.pendingRewards), 0);
+      const monthlyEarnings = earnings
+        .filter(e => new Date(e.lastRewardAt || 0) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+        .reduce((sum, e) => sum + parseFloat(e.totalEarnings), 0);
+
+      res.json({
+        directReferralCount,
+        totalTeamCount,
+        totalEarnings: totalEarnings.toFixed(2),
+        monthlyEarnings: monthlyEarnings.toFixed(2),
+        pendingCommissions: pendingRewards.toFixed(2),
+        nextPayout: 'TBA', // Could be calculated from pending rewards
+        currentLevel: user?.currentLevel || 0,
+        memberActivated: user?.memberActivated || false,
+      });
+    } catch (error) {
+      console.error('Get user stats error:', error);
+      res.status(500).json({ error: 'Failed to get user stats' });
+    }
+  });
+
+  // Referral tree endpoint
+  app.get("/api/beehive/referral-tree", requireWallet, async (req: any, res) => {
+    try {
+      const referralNode = await storage.getReferralNode(req.walletAddress);
+      if (!referralNode) {
+        return res.status(404).json({ error: 'Referral node not found' });
+      }
+
+      // Get direct referrals with details
+      const directReferrals = await Promise.all(
+        [...(referralNode.leftLeg || []), ...(referralNode.middleLeg || []), ...(referralNode.rightLeg || [])]
+        .map(async (walletAddress) => {
+          const user = await storage.getUser(walletAddress);
+          const membershipState = await storage.getMembershipState(walletAddress);
+          const earnings = await storage.getEarningsWalletByWallet(walletAddress);
+          
+          return {
+            walletAddress,
+            username: user?.username || 'Unknown',
+            level: user?.currentLevel || 0,
+            joinDate: user?.createdAt || new Date().toISOString(),
+            earnings: earnings.reduce((sum, e) => sum + parseFloat(e.totalEarnings), 0),
+            memberActivated: user?.memberActivated || false,
+          };
+        })
+      );
+
+      res.json({
+        directReferrals,
+        matrixNode: referralNode,
+      });
+    } catch (error) {
+      console.error('Get referral tree error:', error);
+      res.status(500).json({ error: 'Failed to get referral tree' });
+    }
+  });
+
 
   // Discover routes
   app.get("/api/discover/stats", async (req, res) => {
@@ -1764,6 +1838,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       email: req.adminUser.email,
       role: req.adminUser.role,
     });
+  });
+
+  // Admin endpoint to get all referral nodes
+  app.get("/api/admin/referrals", requireAdminAuth, async (req, res) => {
+    try {
+      const { search } = req.query;
+      
+      // Get all referral nodes
+      const allNodes = await db.select({
+        walletAddress: referralNodes.walletAddress,
+        sponsorWallet: referralNodes.sponsorWallet,
+        placerWallet: referralNodes.placerWallet,
+        matrixPosition: referralNodes.matrixPosition,
+        leftLeg: referralNodes.leftLeg,
+        middleLeg: referralNodes.middleLeg,
+        rightLeg: referralNodes.rightLeg,
+        directReferralCount: referralNodes.directReferralCount,
+        totalTeamCount: referralNodes.totalTeamCount,
+        createdAt: referralNodes.createdAt,
+      }).from(referralNodes);
+
+      // Get user details for each node
+      const referralsWithDetails = await Promise.all(
+        allNodes.map(async (node) => {
+          const user = await storage.getUser(node.walletAddress);
+          const earnings = await storage.getEarningsWalletByWallet(node.walletAddress);
+          
+          return {
+            ...node,
+            username: user?.username,
+            memberActivated: user?.memberActivated,
+            currentLevel: user?.currentLevel,
+            totalEarnings: earnings.reduce((sum, e) => sum + parseFloat(e.totalEarnings), 0),
+          };
+        })
+      );
+
+      // Filter by search term if provided
+      let filteredReferrals = referralsWithDetails;
+      if (search) {
+        const searchTerm = search.toString().toLowerCase();
+        filteredReferrals = referralsWithDetails.filter(referral =>
+          (referral.username?.toLowerCase().includes(searchTerm)) ||
+          referral.walletAddress.toLowerCase().includes(searchTerm)
+        );
+      }
+
+      res.json({ referrals: filteredReferrals });
+    } catch (error) {
+      console.error('Get admin referrals error:', error);
+      res.status(500).json({ error: 'Failed to get referral data' });
+    }
   });
 
   // Admin Users routes

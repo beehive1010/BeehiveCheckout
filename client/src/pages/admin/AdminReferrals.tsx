@@ -56,65 +56,23 @@ export default function AdminReferrals() {
 
   const loadReferrals = async () => {
     try {
-      // Using real referral data structure
-      const realReferrals: ReferralNode[] = [
-        {
-          walletAddress: '0x479abda60f8c62a7c3fba411ab948a8be0e616ab',
-          sponsorWallet: null,
-          placerWallet: null,
-          matrixPosition: 0,
-          leftLeg: ['0x2bc46f768384f88b3d3c53de6a69b3718026d23f'],
-          middleLeg: ['0x742d35cc6cf2723395f9de6200a2fec67b67974b'],
-          rightLeg: [],
-          directReferralCount: 2,
-          totalTeamCount: 2,
-          createdAt: '2025-08-21T02:16:36.348481Z',
-          username: 'test001',
-          memberActivated: true,
-          currentLevel: 1,
-        },
-        {
-          walletAddress: '0x2bc46f768384f88b3d3c53de6a69b3718026d23f',
-          sponsorWallet: '0x479abda60f8c62a7c3fba411ab948a8be0e616ab',
-          placerWallet: '0x479abda60f8c62a7c3fba411ab948a8be0e616ab',
-          matrixPosition: 0,
-          leftLeg: [],
-          middleLeg: [],
-          rightLeg: [],
-          directReferralCount: 0,
-          totalTeamCount: 0,
-          createdAt: '2025-08-21T06:11:08.699346Z',
-          username: 'test004',
-          memberActivated: false,
-          currentLevel: 0,
-        },
-        {
-          walletAddress: '0x742d35cc6cf2723395f9de6200a2fec67b67974b',
-          sponsorWallet: '0x479abda60f8c62a7c3fba411ab948a8be0e616ab',
-          placerWallet: '0x479abda60f8c62a7c3fba411ab948a8be0e616ab',
-          matrixPosition: 3,
-          leftLeg: [],
-          middleLeg: [],
-          rightLeg: [],
-          directReferralCount: 0,
-          totalTeamCount: 0,
-          createdAt: '2025-08-21T11:56:29.147832Z',
-          username: 'testuser',
-          memberActivated: true,
-          currentLevel: 1,
-        },
-      ];
-
-      // Filter by search term
-      const filteredReferrals = realReferrals.filter(referral =>
-        (referral.username?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
-        referral.walletAddress.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-
-      setReferrals(filteredReferrals);
+      setIsLoading(true);
+      
+      // Fetch real referral data from the API
+      const response = await fetch(`/api/admin/referrals?search=${encodeURIComponent(searchTerm)}`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch referral data');
+      }
+      
+      const data = await response.json();
+      setReferrals(data.referrals || []);
       setIsLoading(false);
     } catch (error) {
       console.error('Failed to load referrals:', error);
+      setReferrals([]); // Clear referrals on error
       setIsLoading(false);
     }
   };
