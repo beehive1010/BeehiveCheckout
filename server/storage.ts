@@ -1,6 +1,7 @@
 import { 
   users,
   membershipState,
+  referralNodes,
   globalMatrixPosition,
   bccBalances,
   orders,
@@ -28,6 +29,8 @@ import {
   type InsertUser,
   type MembershipState,
   type InsertMembershipState,
+  type ReferralNode,
+  type InsertReferralNode,
   type GlobalMatrixPosition,
   type InsertGlobalMatrixPosition,
   type BCCBalance,
