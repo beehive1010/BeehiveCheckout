@@ -4,9 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { membershipLevels } from '../lib/config/membershipLevels';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Clock, Users, TrendingUp, AlertCircle } from 'lucide-react';
 
 export default function Referrals() {
   const { walletAddress, userData } = useWallet();
@@ -24,6 +27,40 @@ export default function Referrals() {
     queryKey: ['/api/beehive/global-matrix-position', walletAddress],
     enabled: !!walletAddress
   });
+  
+  // Fetch 19-layer referral tree and notifications
+  const { data: layerData, isLoading: isLayersLoading } = useQuery<any>({
+    queryKey: ['/api/referrals/layers', walletAddress],
+    enabled: !!walletAddress,
+    refetchInterval: 60000 // Refresh every minute for countdown timers
+  });
+  
+  // Calculate countdown timers
+  const [timers, setTimers] = useState<{ [key: string]: string }>({});
+  
+  useEffect(() => {
+    if (!layerData?.notifications) return;
+    
+    const interval = setInterval(() => {
+      const newTimers: { [key: string]: string } = {};
+      
+      layerData.notifications.forEach((notif: any) => {
+        const timeRemaining = notif.timeRemaining;
+        if (timeRemaining > 0) {
+          const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+          const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+          newTimers[notif.id] = `${hours}h ${minutes}m ${seconds}s`;
+        } else {
+          newTimers[notif.id] = 'Expired';
+        }
+      });
+      
+      setTimers(newTimers);
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [layerData]);
 
   // Calculate referral statistics from real data
   const referralStats = {
@@ -345,6 +382,137 @@ export default function Referrals() {
               ))
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* 19-Layer Referral Tree and Notifications */}
+      <Card className="bg-secondary border-border">
+        <CardHeader>
+          <CardTitle className="text-honey flex items-center">
+            <Users className="mr-2 h-5 w-5" />
+            19-Layer Referral Tree & Notifications
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="layers" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="layers">19 Layers</TabsTrigger>
+              <TabsTrigger value="notifications">Reward Notifications</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="layers" className="space-y-4">
+              <div className="text-sm text-muted-foreground mb-4">
+                Your 19-layer referral tree shows all members in your network up to 19 levels deep.
+              </div>
+              
+              {isLayersLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto"></div>
+                  <p className="mt-2 text-muted-foreground">Loading layers...</p>
+                </div>
+              ) : layerData?.layers?.length > 0 ? (
+                <div className="space-y-2">
+                  {layerData.layers.map((layer: any) => (
+                    <div key={layer.layerNumber} className="bg-muted/30 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-honey/20 rounded-lg flex items-center justify-center">
+                            <span className="text-honey font-bold">{layer.layerNumber}</span>
+                          </div>
+                          <div>
+                            <h4 className="font-medium">Layer {layer.layerNumber}</h4>
+                            <p className="text-xs text-muted-foreground">
+                              Max capacity: {Math.pow(3, layer.layerNumber)} members
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-honey">{layer.memberCount}</div>
+                          <div className="text-xs text-muted-foreground">members</div>
+                        </div>
+                      </div>
+                      {layer.memberCount > 0 && (
+                        <div className="mt-2 pt-2 border-t border-border">
+                          <div className="text-xs text-muted-foreground">
+                            Fill rate: {((layer.memberCount / Math.pow(3, layer.layerNumber)) * 100).toFixed(1)}%
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-muted-foreground">No layers calculated yet</p>
+                  <Button 
+                    onClick={() => {/* Trigger calculation */}} 
+                    className="btn-honey mt-4"
+                    data-testid="button-calculate-layers"
+                  >
+                    Calculate My 19 Layers
+                  </Button>
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="notifications" className="space-y-4">
+              <div className="text-sm text-muted-foreground mb-4">
+                Upgrade notifications appear when members in your 19 layers purchase Level NFTs. You have 72 hours to upgrade to unlock rewards.
+              </div>
+              
+              {layerData?.notifications?.length > 0 ? (
+                <div className="space-y-3">
+                  {layerData.notifications.map((notif: any) => (
+                    <Alert key={notif.id} className={notif.status === 'pending' ? 'border-yellow-600' : 'border-border'}>
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">
+                              Layer {notif.layerNumber} member purchased Level {notif.triggerLevel}
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Potential reward: {notif.rewardAmount / 100} USDT
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            {notif.status === 'pending' ? (
+                              <div>
+                                <Badge variant="outline" className="border-yellow-600 text-yellow-600">
+                                  <Clock className="mr-1 h-3 w-3" />
+                                  {timers[notif.id] || 'Calculating...'}
+                                </Badge>
+                                <Button 
+                                  size="sm" 
+                                  className="btn-honey mt-2"
+                                  data-testid={`button-upgrade-${notif.id}`}
+                                >
+                                  Upgrade Now
+                                </Button>
+                              </div>
+                            ) : (
+                              <Badge variant="secondary">
+                                {notif.status === 'claimed' ? 'Claimed' : 'Expired'}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-muted-foreground">No notifications yet</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Notifications appear when your downline members make purchases
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>
