@@ -148,26 +148,26 @@ app.use((req, res, next) => {
     console.log(`🎯 Minting REAL Level ${level} NFT for wallet:`, walletAddress);
     
     try {
-      // Use thirdweb Engine API with your real credentials
-      const engineResponse = await fetch('https://api.thirdweb.com/v1/engine/contract/mint-to', {
+      // Use thirdweb Engine API with correct endpoint format
+      // Engine URL format: https://engine-{id}.thirdweb.com
+      const ENGINE_URL = 'https://engine-3123b1ac2ebdb966dd415c6e964dc335.thirdweb.com';
+      const engineResponse = await fetch(`${ENGINE_URL}/contract/421614/0x99265477249389469929CEA07c4a337af9e12cdA/erc721/mint-to`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer vt_act_EC5QOGVNEXZSZSYTJGITX3ZHZYFBCSJXMUZHL2YJPGEE3Z5IA5ZUH4TOIS3LSEGWF42J7UADWQDUA62LHJP7KCJOVGRBSL6F4`,
-          'x-client-id': '3123b1ac2ebdb966dd415c6e964dc335',
+          'x-backend-wallet-address': '0x9929CEA07c4a337af9e12cdA99265477249389469929CEA07c4a337af9e12cdA', // Your backend wallet
         },
         body: JSON.stringify({
-          contractAddress: '0x99265477249389469929CEA07c4a337af9e12cdA', // Demo Beehive Member NFT
-          chainId: 421614, // Arbitrum Sepolia
-          toAddress: walletAddress,
+          receiver: walletAddress,
           metadata: {
             name: `Beehive Level ${level} Member`,
             description: `Level ${level} membership NFT for the Beehive ecosystem. Claimed via demo system.`,
-            image: `https://example.com/nft/beehive-level-${level}.png`,
+            image: `https://ipfs.io/ipfs/QmZ3oNkP8WzK9QH6Q2f5gMxPz8vH9Qv4kYpDJkUyAXVNxJ/beehive-level-${level}.png`,
             attributes: [
               { trait_type: 'Level', value: level.toString() },
               { trait_type: 'Type', value: 'Membership' },
-              { trait_type: 'Network', value: 'Demo' },
+              { trait_type: 'Network', value: 'Arbitrum Sepolia' },
               { trait_type: 'Claimed At', value: new Date().toISOString() }
             ]
           }
