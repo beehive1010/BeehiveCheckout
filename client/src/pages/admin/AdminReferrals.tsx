@@ -79,8 +79,6 @@ export default function AdminReferrals() {
       setMatrixVisualization([]);
       setIsLoading(false);
     }
-      setIsLoading(false);
-    }
   };
 
   // No longer needed - Global matrix doesn't have individual matrix visualizations
@@ -348,11 +346,11 @@ export default function AdminReferrals() {
         <TabsContent value="level-structure">
           <div className="space-y-4">
             {matrixVisualization.map((levelData) => (
-              <Card key={levelData.level}>
+              <Card key={levelData.matrixLevel}>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Target className="h-5 w-5" />
-                    <span>Matrix Level {levelData.level}</span>
+                    <span>Matrix Level {levelData.matrixLevel}</span>
                     <Badge variant="outline">
                       {levelData.filledPositions} / {levelData.maxPositions} filled
                     </Badge>

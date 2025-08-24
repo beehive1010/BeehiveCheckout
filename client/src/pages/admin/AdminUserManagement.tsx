@@ -24,8 +24,10 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  Trash2
+  Trash2,
+  Timer
 } from 'lucide-react';
+import { Alert, AlertDescription } from '../../components/ui/alert';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { useToast } from '../../hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -42,6 +44,13 @@ interface AdminUser {
   createdAt: string;
   createdBy?: string;
   notes?: string;
+}
+
+interface UserRegistrationTimer {
+  walletAddress: string;
+  username?: string;
+  registrationExpiresAt: string;
+  timeRemaining: number;
 }
 
 interface AdminUserFormData {
@@ -131,6 +140,24 @@ export default function AdminUsers() {
     customPermissions: [],
     status: 'active',
     notes: '',
+  });
+  const [activeRegistrationTimers, setActiveRegistrationTimers] = useState<UserRegistrationTimer[]>([]);
+
+  // Fetch registration timers for users
+  const { data: registrationTimers = [] } = useQuery<UserRegistrationTimer[]>({
+    queryKey: ['/api/admin/registration-timers'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/registration-timers', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch registration timers');
+      }
+      return response.json();
+    },
+    refetchInterval: 1000, // Update every second
   });
 
   // Fetch admin users with real API
@@ -660,6 +687,57 @@ export default function AdminUsers() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Registration Countdown Timers */}
+      {registrationTimers.length > 0 && (
+        <Card className="bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-yellow-800 dark:text-yellow-200">
+              <Timer className="h-5 w-5" />
+              Active Registration Timers
+            </CardTitle>
+            <CardDescription className="text-yellow-700 dark:text-yellow-300">
+              Users with pending registration that will expire if not upgraded to Level 1
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {registrationTimers.map((timer) => {
+                const formatTimeRemaining = (ms: number): string => {
+                  if (ms <= 0) return '00:00:00';
+                  const hours = Math.floor(ms / (1000 * 60 * 60));
+                  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+                  const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+                  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                };
+                
+                return (
+                  <Alert key={timer.walletAddress} className="bg-white dark:bg-gray-800 border-yellow-300 dark:border-yellow-700">
+                    <Clock className="h-4 w-4 text-yellow-600" />
+                    <AlertDescription>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900 dark:text-gray-100">
+                            {timer.username || `${timer.walletAddress.slice(0, 6)}...${timer.walletAddress.slice(-4)}`}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            Registration expires in: <span className="font-mono font-bold text-red-600 dark:text-red-400">
+                              {formatTimeRemaining(timer.timeRemaining)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          Expires: {new Date(timer.registrationExpiresAt).toLocaleString()}
+                        </div>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
