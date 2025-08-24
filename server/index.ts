@@ -225,7 +225,7 @@ app.use((req, res, next) => {
     try {
       const { storage } = await import('./storage');
       
-      console.log(`📝 Recording NFT claim for ${walletAddress}: Level ${level}, TX: ${txHash}`);
+      console.log(`📝 Recording NFT claim for ${walletAddress}: Level ${level}`);
       
       // Note: User is_active status is already set during membership activation
       // This just records the NFT claim in database

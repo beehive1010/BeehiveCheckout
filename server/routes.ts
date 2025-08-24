@@ -2812,13 +2812,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   
-  // Log all registered routes for debugging
-  console.log('🚀 Registered API routes:');
-  app._router.stack.forEach((middleware) => {
-    if (middleware.route) {
-      console.log(`  ${Object.keys(middleware.route.methods)} ${middleware.route.path}`);
-    }
-  });
+  // Routes registered successfully (verbose logging disabled)
   
   return httpServer;
 }
