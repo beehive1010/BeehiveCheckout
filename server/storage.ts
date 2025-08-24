@@ -171,6 +171,11 @@ export interface IStorage {
   // Lesson Access operations
   getLessonAccessByCourse(walletAddress: string, courseId: string): Promise<LessonAccess[]>;
 
+  // Referral node operations
+  getReferralNode(walletAddress: string): Promise<ReferralNode | undefined>;
+  createReferralNode(referralNode: InsertReferralNode): Promise<ReferralNode>;
+  updateReferralNode(walletAddress: string, updates: Partial<ReferralNode>): Promise<ReferralNode | undefined>;
+
   // Bridge payment operations
   createBridgePayment(bridgePayment: InsertBridgePayment): Promise<BridgePayment>;
   getBridgePayment(sourceTxHash: string): Promise<BridgePayment | undefined>;
@@ -1821,6 +1826,41 @@ export class DatabaseStorage implements IStorage {
       });
     }
 
+    return updated || undefined;
+  }
+
+  // Referral node operations
+  async getReferralNode(walletAddress: string): Promise<ReferralNode | undefined> {
+    const [node] = await db
+      .select()
+      .from(referralNodes)
+      .where(eq(referralNodes.walletAddress, walletAddress.toLowerCase()));
+    return node || undefined;
+  }
+
+  async createReferralNode(referralNode: InsertReferralNode): Promise<ReferralNode> {
+    const [created] = await db
+      .insert(referralNodes)
+      .values({
+        ...referralNode,
+        walletAddress: referralNode.walletAddress.toLowerCase(),
+        sponsorWallet: referralNode.sponsorWallet?.toLowerCase() || null,
+        placerWallet: referralNode.placerWallet?.toLowerCase() || null,
+      })
+      .returning();
+    return created;
+  }
+
+  async updateReferralNode(walletAddress: string, updates: Partial<ReferralNode>): Promise<ReferralNode | undefined> {
+    const [updated] = await db
+      .update(referralNodes)
+      .set({
+        ...updates,
+        sponsorWallet: updates.sponsorWallet?.toLowerCase() || null,
+        placerWallet: updates.placerWallet?.toLowerCase() || null,
+      })
+      .where(eq(referralNodes.walletAddress, walletAddress.toLowerCase()))
+      .returning();
     return updated || undefined;
   }
 
