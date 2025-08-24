@@ -1498,23 +1498,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User referral stats API
-  app.get("/api/beehive/user-stats/:walletAddress", requireWallet, async (req: any, res) => {
-    try {
-      const walletAddress = req.params.walletAddress.toLowerCase();
-      
-      // Verify user can only access their own data
-      if (walletAddress !== req.walletAddress.toLowerCase()) {
-        return res.status(403).json({ error: 'Access denied' });
-      }
-      
-      const stats = await storage.getUserReferralStats(walletAddress);
-      res.json(stats);
-    } catch (error) {
-      console.error('User stats error:', error);
-      res.status(500).json({ error: 'Failed to get user statistics' });
-    }
-  });
+  // Removed duplicate user-stats endpoint to prevent routing conflicts
 
   // Get member's earnings wallet (private - only own data)
   app.get("/api/beehive/earnings", requireWallet, async (req: any, res) => {
