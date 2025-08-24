@@ -137,6 +137,22 @@ app.use((req, res, next) => {
     }
   });
 
+  // Simple demo NFT endpoint for testing - placed before route registration
+  app.post("/api/demo/claim-nft", (req: any, res) => {
+    const walletAddress = req.headers['x-wallet-address'];
+    if (!walletAddress) {
+      return res.status(401).json({ error: 'Wallet address required' });
+    }
+    
+    console.log('🎯 Demo NFT endpoint called! For wallet:', walletAddress);
+    res.json({ 
+      success: true, 
+      txHash: `demo_nft_${Date.now()}`,
+      message: `Level 1 NFT claimed successfully!`,
+      realNFT: false
+    });
+  });
+
   let server;
   try {
     server = await registerRoutes(app);
