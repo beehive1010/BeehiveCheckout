@@ -984,6 +984,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .filter(r => r.status === 'claimed' && new Date(r.claimedAt || 0) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
         .reduce((sum, r) => sum + parseFloat(r.rewardAmount), 0);
 
+      // Calculate downline matrix data for 19 layers
+      const layers = await storage.getReferralLayers(walletAddress);
+      const downlineMatrix = [];
+      
+      for (let i = 1; i <= 19; i++) {
+        const layer = layers.find(l => l.layerNumber === i);
+        
+        if (layer && layer.members.length > 0) {
+          // Get membership states for all members in this layer
+          const memberStates = await Promise.all(
+            layer.members.map(async (memberWallet) => {
+              const membershipState = await storage.getMembershipState(memberWallet);
+              return {
+                wallet: memberWallet,
+                level: membershipState?.activeLevel || 0,
+                levelsOwned: membershipState?.levelsOwned || []
+              };
+            })
+          );
+          
+          // Count members who have upgraded (level > 0)
+          const upgradedCount = memberStates.filter(m => m.level > 0).length;
+          
+          downlineMatrix.push({
+            level: i,
+            members: layer.members.length,
+            upgraded: upgradedCount,
+            placements: layer.members.length // Same as members for now
+          });
+        } else {
+          downlineMatrix.push({
+            level: i,
+            members: 0,
+            upgraded: 0,
+            placements: 0
+          });
+        }
+      }
+
       res.json({
         directReferralCount,
         totalTeamCount,
@@ -996,6 +1035,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         matrixLevel: matrixPosition?.matrixLevel || 0,
         positionIndex: matrixPosition?.positionIndex || 0,
         levelsOwned: membership?.levelsOwned || [],
+        downlineMatrix
       });
     } catch (error) {
       console.error('Get user stats error:', error);
