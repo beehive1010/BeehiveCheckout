@@ -364,12 +364,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid level' });
       }
 
-      // Update user activation status
-      await storage.updateUser(req.walletAddress, {
-        memberActivated: true,
-        currentLevel: level,
-      });
-
       // Create or update membership state
       let membershipState = await storage.getMembershipState(req.walletAddress);
       if (!membershipState) {
