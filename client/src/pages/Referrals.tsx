@@ -84,12 +84,12 @@ export default function Referrals() {
         // Fallback data: API被Vite覆盖，使用真实upgrade notifications
         return {
           notifications: [
-            // Layer 1 前2个升级: Level 1用户符合条件，200 USDT waiting claim (绿色✅)
+            // Layer 1 前2个升级: Level 1用户符合条件，100 USDT per upgrade waiting claim (绿色✅)
             {
               id: 'notif_earned_1',
               layerNumber: 1,
               triggerLevel: 1, // L1用户符合条件
-              rewardAmount: 20000, // 200 USDT (前2个升级，每个100×2=200×100)
+              rewardAmount: 10000, // 100 USDT per upgrade (each Level 1 NFT = $100 reward)
               triggerUsername: 'First 2 Members',
               triggerWallet: '0x1111...1111',
               status: 'waiting_claim', // 等待领取状态，显示绿色
