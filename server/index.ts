@@ -41,6 +41,7 @@ app.use((req, res, next) => {
   // Direct admin authentication routes to bypass compilation issues
   const { Pool, neonConfig } = await import('@neondatabase/serverless');
   const { drizzle } = await import('drizzle-orm/neon-serverless');
+  const { sql } = await import('drizzle-orm');
   const bcrypt = await import('bcrypt');
   const crypto = await import('crypto');
   const ws = await import('ws');
@@ -53,31 +54,31 @@ app.use((req, res, next) => {
   app.get("/api/admin/stats", async (req, res) => {
     try {
       // Get real statistics from database with safe queries
-      const usersResult = await adminDb.execute('SELECT COUNT(*) as count FROM users');
+      const usersResult = await adminDb.execute(sql`SELECT COUNT(*) as count FROM users`);
       
       // Check if tables exist before querying
-      const membershipResult = await adminDb.execute(`
+      const membershipResult = await adminDb.execute(sql`
         SELECT COUNT(*) as count FROM users WHERE member_activated = true
       `);
       
-      const nftsResult = await adminDb.execute(`
+      const nftsResult = await adminDb.execute(sql`
         SELECT COUNT(*) as count FROM merchant_nfts
       `).catch(() => ({ rows: [{ count: 0 }] }));
       
-      const blogResult = await adminDb.execute(`
+      const blogResult = await adminDb.execute(sql`
         SELECT COUNT(*) as count FROM blog_posts
       `).catch(() => ({ rows: [{ count: 0 }] }));
       
-      const coursesResult = await adminDb.execute(`
+      const coursesResult = await adminDb.execute(sql`
         SELECT COUNT(*) as count FROM courses
       `).catch(() => ({ rows: [{ count: 0 }] }));
       
-      const ordersResult = await adminDb.execute(`
+      const ordersResult = await adminDb.execute(sql`
         SELECT COUNT(*) as count FROM orders WHERE created_at > CURRENT_DATE - INTERVAL '7 days'
       `).catch(() => ({ rows: [{ count: 0 }] }));
 
       // Get pending approvals
-      const pendingResult = await adminDb.execute(`
+      const pendingResult = await adminDb.execute(sql`
         SELECT COUNT(*) as count FROM blog_posts 
         WHERE status = 'pending' OR status = 'draft'
       `).catch(() => ({ rows: [{ count: 0 }] }));
@@ -120,11 +121,11 @@ app.use((req, res, next) => {
       }
       
       // Direct SQL query
-      const result = await adminDb.execute(`
+      const result = await adminDb.execute(sql`
         SELECT id, username, email, role, password_hash, active 
         FROM admin_users 
-        WHERE username = ? AND active = true
-      `, [username]);
+        WHERE username = ${username} AND active = true
+      `);
 
       if (result.rows.length === 0) {
         return res.status(401).json({ error: 'Invalid credentials' });
@@ -143,10 +144,10 @@ app.use((req, res, next) => {
       const expiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours
 
       // Store session
-      await adminDb.execute(`
+      await adminDb.execute(sql`
         INSERT INTO admin_sessions (admin_id, session_token, expires_at, created_at)
-        VALUES (?, ?, ?, ?)
-      `, [admin.id, sessionToken, expiresAt, new Date()]);
+        VALUES (${admin.id}, ${sessionToken}, ${expiresAt}, ${new Date()})
+      `);
 
       res.json({
         sessionToken,
