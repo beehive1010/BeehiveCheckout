@@ -828,8 +828,6 @@ export class DatabaseStorage implements IStorage {
       placementSponsorWallet: originalSponsorWallet // fallback
     };
   }
-    
-  }
 
   // Helper: Get upline wallets who should receive rewards for this purchase
   async getUplineWallets(buyerWallet: string, purchasedLevel: number): Promise<string[]> {
