@@ -462,10 +462,11 @@ export class DatabaseStorage implements IStorage {
     const [state] = await db
       .insert(membershipState)
       .values({
+        ...membership,
         walletAddress: membership.walletAddress.toLowerCase(),
         levelsOwned: membership.levelsOwned || [],
         activeLevel: membership.activeLevel || 0,
-        joinedAt: new Date(),
+        joinedAt: membership.joinedAt || new Date(),
       })
       .returning();
     return state;
@@ -1737,7 +1738,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteAdminUser(id: string): Promise<boolean> {
     const result = await db.delete(adminUsers).where(eq(adminUsers.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Admin Session operations
@@ -1756,7 +1757,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteAdminSession(sessionToken: string): Promise<boolean> {
     const result = await db.delete(adminSessions).where(eq(adminSessions.sessionToken, sessionToken));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Discover Partners operations
@@ -1809,7 +1810,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDiscoverPartner(id: string): Promise<boolean> {
     const result = await db.delete(discoverPartners).where(eq(discoverPartners.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async approveDiscoverPartner(id: string, adminId: string): Promise<DiscoverPartner | undefined> {
@@ -2012,7 +2013,6 @@ export class DatabaseStorage implements IStorage {
     const [created] = await db
       .insert(referralNodes)
       .values({
-        ...referralNode,
         walletAddress: referralNode.walletAddress.toLowerCase(),
         sponsorWallet: referralNode.sponsorWallet?.toLowerCase() || null,
         placerWallet: referralNode.placerWallet?.toLowerCase() || null,
@@ -2022,6 +2022,7 @@ export class DatabaseStorage implements IStorage {
         rightLeg: referralNode.rightLeg || [],
         directReferralCount: referralNode.directReferralCount || 0,
         totalTeamCount: referralNode.totalTeamCount || 0,
+        createdAt: referralNode.createdAt || new Date(),
       })
       .returning();
     return created;
@@ -2161,7 +2162,7 @@ export class DatabaseStorage implements IStorage {
         .update(referralLayers)
         .set({
           memberCount: layer.memberCount,
-          members: layer.members,
+          members: layer.members || [],
           lastUpdated: new Date(),
         })
         .where(eq(referralLayers.id, existing.id))
@@ -2171,8 +2172,11 @@ export class DatabaseStorage implements IStorage {
       const [created] = await db
         .insert(referralLayers)
         .values({
-          ...layer,
           walletAddress: layer.walletAddress.toLowerCase(),
+          layerNumber: layer.layerNumber,
+          memberCount: layer.memberCount || 0,
+          members: layer.members || [],
+          lastUpdated: new Date(),
         })
         .returning();
       return created;
@@ -2219,7 +2223,8 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Store the calculated layers
-    for (const [layerNum, members] of layers.entries()) {
+    for (const layerEntry of Array.from(layers.entries())) {
+      const [layerNum, members] = layerEntry;
       await this.createOrUpdateReferralLayer({
         walletAddress,
         layerNumber: layerNum,
@@ -2610,7 +2615,7 @@ export class DatabaseStorage implements IStorage {
     // Create member activation record (24-hour countdown for upgrade)
     const memberActivation = await this.createMemberActivation({
       walletAddress: walletAddress.toLowerCase(),
-      activationType: 'upgrade_triggered',
+      activationType: 'upgrade_triggered' as any,
       level,
       pendingUntil: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
       isPending: true,
@@ -2731,34 +2736,13 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Member activation operations
-  async createMemberActivation(activation: any): Promise<any> {
-    const [created] = await db
-      .insert(memberActivations)
-      .values({
-        ...activation,
-        walletAddress: activation.walletAddress.toLowerCase()
-      })
-      .returning();
-    return created;
-  }
-
-  async updateMemberActivation(walletAddress: string, updates: any): Promise<any> {
-    const [updated] = await db
-      .update(memberActivations)
-      .set(updates)
-      .where(eq(memberActivations.walletAddress, walletAddress.toLowerCase()))
-      .returning();
-    return updated;
-  }
-
-  async updateRewardDistribution(id: string, updates: any): Promise<any> {
+  async updateRewardDistribution(id: string, updates: Partial<RewardDistribution>): Promise<RewardDistribution | undefined> {
     const [updated] = await db
       .update(rewardDistributions)
       .set(updates)
       .where(eq(rewardDistributions.id, id))
       .returning();
-    return updated;
+    return updated || undefined;
   }
 
   // User Activity Methods
