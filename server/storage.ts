@@ -2266,14 +2266,6 @@ export class DatabaseStorage implements IStorage {
     return connectionLog;
   }
 
-  // Get admin setting value
-  async getAdminSetting(settingKey: string): Promise<string | null> {
-    const setting = await db.select()
-      .from(adminSettings)
-      .where(eq(adminSettings.settingKey, settingKey))
-      .limit(1);
-    return setting[0]?.settingValue || null;
-  }
 
   // Set admin setting
   async setAdminSetting(settingKey: string, settingValue: string, description?: string): Promise<void> {

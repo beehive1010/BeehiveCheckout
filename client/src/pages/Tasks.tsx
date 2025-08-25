@@ -158,7 +158,10 @@ export default function Tasks() {
         {/* NFT Center Button */}
         <div className="flex justify-center my-4">
           <Button
-            onClick={() => window.location.href = '/nft-center'}
+            onClick={() => {
+              const navigate = window.location.assign || ((url: string) => { window.location.href = url; });
+              navigate('/nft-center');
+            }}
             className="bg-honey text-black hover:bg-honey/90 px-6 py-2 font-semibold"
             data-testid="button-nft-center"
           >
