@@ -1102,6 +1102,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get layer members data for Matrix Layer Management
+  app.get("/api/referrals/layer-members", requireWallet, async (req: any, res) => {
+    try {
+      const layersWithMembers = await storage.getLayerMembersData(req.walletAddress);
+      res.json({ layers: layersWithMembers });
+    } catch (error) {
+      console.error('Get layer members error:', error);
+      res.status(500).json({ error: 'Failed to get layer members data' });
+    }
+  });
+
   // Get all reward notifications for a user
   app.get("/api/notifications/rewards", requireWallet, async (req: any, res) => {
     try {
