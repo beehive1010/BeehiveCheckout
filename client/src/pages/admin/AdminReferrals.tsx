@@ -275,7 +275,7 @@ export default function AdminReferrals() {
         <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-4">
           <span>Path:</span>
           {matrixNavigationStack.map((nav, index) => (
-            <span key={index} className="flex items-center">
+            <span key={`nav-${index}-${nav.level}`} className="flex items-center">
               {index > 0 && <ArrowRight className="w-3 h-3 mx-1" />}
               <span className="text-honey">
                 {nav.level === 1 ? 'Root' : nav.parentUser?.username || 'User'}
@@ -287,7 +287,7 @@ export default function AdminReferrals() {
         {/* 1x3 Matrix Grid (horizontal layout) */}
         <div className="flex justify-center gap-4 max-w-md mx-auto">
           {matrixGrid.map((position, index) => (
-            <div key={index} className="flex flex-col items-center space-y-2">
+            <div key={`matrix-grid-${index}-${position?.walletAddress || 'empty'}`} className="flex flex-col items-center space-y-2">
               {/* Position Circle */}
               <div
                 className={`
@@ -526,7 +526,7 @@ export default function AdminReferrals() {
           <CardContent className="p-6">
             <div className="animate-pulse space-y-4">
               {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-20 bg-muted rounded"></div>
+                <div key={`skeleton-${i}`} className="h-20 bg-muted rounded"></div>
               ))}
             </div>
           </CardContent>
@@ -717,7 +717,11 @@ export default function AdminReferrals() {
                 <CardContent>
                   {levelData.positions && levelData.positions.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {levelData.positions.map((position) => renderGlobalMatrixPosition(position))}
+                      {levelData.positions.map((position) => (
+                        <div key={position.walletAddress}>
+                          {renderGlobalMatrixPosition(position)}
+                        </div>
+                      ))}
                     </div>
                   ) : (
                     <div className="text-center py-8">
