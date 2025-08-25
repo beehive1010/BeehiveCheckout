@@ -1,0 +1,22 @@
+Query data cannot be undefined. Please make sure to return a value other than undefined from your query function. Affected query key: ["unsupported_token"]
+Query data cannot be undefined. Please make sure to return a value other than undefined from your query function. Affected query key: ["unsupported_token"]
+Warning: Cannot update a component (&#x60;ForwardRef&#x60;) while rendering a different component (&#x60;Welcome&#x60;). To locate the bad setState() call inside &#x60;Welcome&#x60;, follow the stack trace as described in https://reactjs.org/link/setstate-in-render
+    at Welcome (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/src/pages/Welcome.tsx?t=1755906547804:27:17)
+    at Route (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=548e21d5:323:16)
+    at Switch (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=548e21d5:379:17)
+    at RouteGuard (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/src/components/RouteGuard.tsx?t=1755906547804:24:30)
+    at Router (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/src/App.tsx?t=1755906547804&v=aHzwGlGQArNZEJalVaTZl:65:22)
+    at main
+    at div
+    at Provider (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-5N65LRK2.js?v=548e21d5:38:15)
+    at TooltipProvider (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=548e21d5:67:5)
+    at I18nProvider (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/src/contexts/I18nContext.tsx?t=1755904318942:29:25)
+    at Web3ContextProvider (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/src/contexts/Web3Context.tsx:25:32)
+    at QueryClientProvider (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-T4YKTNDN.js?v=548e21d5:2933:3)
+    at ThirdwebProviderCore (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/thirdweb_react.js?v=548e21d5:11990:51)
+    at ThirdwebProvider (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/thirdweb_react.js?v=548e21d5:12037:139)
+    at Web3Provider (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/src/contexts/Web3Context.tsx:57:32)
+    at V (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js?v=548e21d5:44:25)
+    at J (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js?v=548e21d5:42:18)
+    at QueryClientProvider (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-T4YKTNDN.js?v=548e21d5:2933:3)
+    at App (https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/src/App.tsx?t=1755906547804&v=aHzwGlGQArNZEJalVaTZl:441:22)

@@ -1276,6 +1276,49 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  // Company Statistics with real data calculations
+  async getCompanyStats(): Promise<any> {
+    // Get total members
+    const totalMembersResult = await db
+      .select({ totalMembers: sql<number>`COUNT(*)` })
+      .from(users)
+      .where(eq(users.memberActivated, true));
+    
+    // Get level distribution
+    const levelDistributionResult = await db
+      .select({
+        level: membershipState.activeLevel,
+        count: sql<number>`COUNT(*)`
+      })
+      .from(membershipState)
+      .where(gt(membershipState.activeLevel, 0))
+      .groupBy(membershipState.activeLevel)
+      .orderBy(membershipState.activeLevel);
+
+    // Calculate real total rewards from earnings wallets
+    const totalRewardsResult = await db
+      .select({ 
+        totalRewards: sql<number>`COALESCE(SUM(CAST(${earningsWallet.totalEarnings} AS DECIMAL)), 0)` 
+      })
+      .from(earningsWallet);
+
+    // Calculate real pending rewards from earnings wallets
+    const pendingRewardsResult = await db
+      .select({ 
+        pendingRewards: sql<number>`COALESCE(SUM(CAST(${earningsWallet.pendingRewards} AS DECIMAL)), 0)` 
+      })
+      .from(earningsWallet);
+
+    return {
+      totalMembers: totalMembersResult[0]?.totalMembers || 0,
+      levelDistribution: levelDistributionResult.map(row => ({
+        level: row.level,
+        count: row.count
+      })),
+      totalRewards: Math.floor(totalRewardsResult[0]?.totalRewards || 0),
+      pendingRewards: Math.floor(pendingRewardsResult[0]?.pendingRewards || 0)
+    };
+  }
 
 
   // Enhanced earnings reward method that syncs with reward distribution system
@@ -1497,47 +1540,62 @@ export class DatabaseStorage implements IStorage {
         earnings: 0 // Will be calculated from earnings table later
       }));
 
-      // Get real downline matrix data using 3x3 matrix positions (not user levels!)
+      // Get real downline matrix data for all 19 levels
       const downlineMatrix = [];
-      
-      // Get stored referral layers (calculated with 3x3 matrix logic)
-      const storedLayers = await db
-        .select()
-        .from(referralLayers)
-        .where(eq(referralLayers.walletAddress, walletAddress.toLowerCase()))
-        .orderBy(referralLayers.layerNumber);
-      
       for (let level = 1; level <= 19; level++) {
-        const layerData = storedLayers.find(layer => layer.layerNumber === level);
-        
-        if (layerData) {
-          // Count how many are upgraded (have purchased level 2+ NFTs)
-          const membersList = layerData.members || [];
-          let upgradedCount = 0;
+        try {
+          // Count members at this specific level in the user's downline
+          const levelMembersResult = await db.execute(sql`
+            WITH RECURSIVE downline_tree AS (
+              SELECT wallet_address, referrer_wallet, current_level, 1 as depth
+              FROM users 
+              WHERE referrer_wallet = ${walletAddress}
+              
+              UNION ALL
+              
+              SELECT u.wallet_address, u.referrer_wallet, u.current_level, dt.depth + 1
+              FROM users u
+              JOIN downline_tree dt ON u.referrer_wallet = dt.wallet_address
+              WHERE dt.depth < 19
+            )
+            SELECT COUNT(*) as member_count
+            FROM downline_tree 
+            WHERE current_level = ${level}
+          `);
+
+          const memberCount = Number(levelMembersResult.rows[0]?.member_count || 0);
           
-          for (const memberWallet of membersList) {
-            const memberUser = await db
-              .select({ currentLevel: users.currentLevel })
-              .from(users)
-              .where(eq(users.walletAddress, memberWallet.toLowerCase()))
-              .limit(1);
-            
-            if (memberUser[0]?.currentLevel && memberUser[0].currentLevel >= 2) {
-              upgradedCount++;
-            }
-          }
+          // Count total placements at this level (matrix positions filled)
+          const placementResult = await db.execute(sql`
+            WITH RECURSIVE downline_tree AS (
+              SELECT wallet_address, referrer_wallet, 1 as depth
+              FROM users 
+              WHERE referrer_wallet = ${walletAddress}
+              
+              UNION ALL
+              
+              SELECT u.wallet_address, u.referrer_wallet, dt.depth + 1
+              FROM users u
+              JOIN downline_tree dt ON u.referrer_wallet = dt.wallet_address
+              WHERE dt.depth < 19
+            )
+            SELECT COUNT(*) as placement_count
+            FROM downline_tree 
+            WHERE depth = ${level}
+          `);
+
+          const placementCount = Number(placementResult.rows[0]?.placement_count || 0);
 
           downlineMatrix.push({
             level,
-            members: layerData.memberCount || 0,
-            upgraded: upgradedCount,
-            placements: layerData.memberCount || 0
+            members: memberCount,
+            placements: placementCount
           });
-        } else {
+        } catch (error) {
+          console.error(`Error fetching downline data for level ${level}:`, error);
           downlineMatrix.push({
             level,
             members: 0,
-            upgraded: 0,
             placements: 0
           });
         }
@@ -2282,11 +2340,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async calculateAndStore19Layers(walletAddress: string): Promise<void> {
-    // Calculate 3x3 matrix layers correctly: Layer 1 max 3, Layer 2 max 9, etc.
+    // Calculate all 19 layers for a user using BFS algorithm
     const visited = new Set<string>();
     const layers: Map<number, string[]> = new Map();
     
-    // Initialize with the root user
+    // Initialize first layer with direct referrals
+    const node = await this.getReferralNode(walletAddress);
+    if (!node) return;
+    
+    // Use BFS to traverse the tree up to 19 layers
     let currentLayer = [walletAddress];
     visited.add(walletAddress.toLowerCase());
     
@@ -2294,13 +2356,11 @@ export class DatabaseStorage implements IStorage {
       const nextLayer: string[] = [];
       
       for (const currentWallet of currentLayer) {
-        // Get direct referrals ordered by join date (first 3 for 3x3 matrix)
+        // Get all direct referrals of current wallet
         const directReferrals = await db
           .select()
           .from(referralNodes)
-          .where(eq(referralNodes.sponsorWallet, currentWallet.toLowerCase()))
-          .orderBy(referralNodes.createdAt)
-          .limit(3); // 3x3 matrix: only 3 positions per user
+          .where(eq(referralNodes.sponsorWallet, currentWallet.toLowerCase()));
         
         for (const referral of directReferrals) {
           if (!visited.has(referral.walletAddress.toLowerCase())) {

@@ -4,7 +4,6 @@ import { setupVite, serveStatic, log } from "./vite";
 import { createServer } from "http";
 
 const app = express();
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -39,31 +38,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // EMERGENCY: Add critical API routes FIRST
-  app.get('/api/beehive/company-stats', async (req, res) => {
-    console.log('🎯 EMERGENCY Company Stats API called');
-    res.setHeader('Content-Type', 'application/json');
-    res.json({
-      totalMembers: 7,
-      levelDistribution: [{ level: 1, count: 5 }, { level: 2, count: 2 }],
-      totalRewards: 750,
-      pendingRewards: 125
-    });
-  });
-
-  app.get('/api/ads/nfts', async (req, res) => {
-    console.log('🎯 EMERGENCY Advertisement NFTs API called');
-    res.setHeader('Content-Type', 'application/json');
-    res.json([
-      { id: '1', title: 'Uniswap Banner', priceBCC: 500, serviceName: 'Uniswap', serviceType: 'banner' },
-      { id: '2', title: 'OpenSea Boost', priceBCC: 750, serviceName: 'OpenSea', serviceType: 'promotion' }
-    ]);
-  });
-
   // Direct admin authentication routes to bypass compilation issues
   const { Pool, neonConfig } = await import('@neondatabase/serverless');
   const { drizzle } = await import('drizzle-orm/neon-serverless');
-  const { sql } = await import('drizzle-orm');
   const bcrypt = await import('bcrypt');
   const crypto = await import('crypto');
   const ws = await import('ws');
@@ -76,45 +53,45 @@ app.use((req, res, next) => {
   app.get("/api/admin/stats", async (req, res) => {
     try {
       // Get real statistics from database with safe queries
-      const usersResult = await adminDb.execute(sql`SELECT COUNT(*) as count FROM users`);
+      const usersResult = await adminDb.execute('SELECT COUNT(*) as count FROM users');
       
       // Check if tables exist before querying
-      const membershipResult = await adminDb.execute(sql`
+      const membershipResult = await adminDb.execute(`
         SELECT COUNT(*) as count FROM users WHERE member_activated = true
       `);
       
-      const nftsResult = await adminDb.execute(sql`
+      const nftsResult = await adminDb.execute(`
         SELECT COUNT(*) as count FROM merchant_nfts
       `).catch(() => ({ rows: [{ count: 0 }] }));
       
-      const blogResult = await adminDb.execute(sql`
+      const blogResult = await adminDb.execute(`
         SELECT COUNT(*) as count FROM blog_posts
       `).catch(() => ({ rows: [{ count: 0 }] }));
       
-      const coursesResult = await adminDb.execute(sql`
+      const coursesResult = await adminDb.execute(`
         SELECT COUNT(*) as count FROM courses
       `).catch(() => ({ rows: [{ count: 0 }] }));
       
-      const ordersResult = await adminDb.execute(sql`
+      const ordersResult = await adminDb.execute(`
         SELECT COUNT(*) as count FROM orders WHERE created_at > CURRENT_DATE - INTERVAL '7 days'
       `).catch(() => ({ rows: [{ count: 0 }] }));
 
       // Get pending approvals
-      const pendingResult = await adminDb.execute(sql`
+      const pendingResult = await adminDb.execute(`
         SELECT COUNT(*) as count FROM blog_posts 
         WHERE status = 'pending' OR status = 'draft'
       `).catch(() => ({ rows: [{ count: 0 }] }));
 
       res.json({
-        totalUsers: parseInt(String(usersResult.rows[0]?.count || '0')),
-        activeMembers: parseInt(String(membershipResult.rows[0]?.count || '0')),
-        totalNFTs: parseInt(String(nftsResult.rows[0]?.count || '0')),
-        blogPosts: parseInt(String(blogResult.rows[0]?.count || '0')),
-        courses: parseInt(String(coursesResult.rows[0]?.count || '0')),
+        totalUsers: parseInt(usersResult.rows[0]?.count || '0'),
+        activeMembers: parseInt(membershipResult.rows[0]?.count || '0'),
+        totalNFTs: parseInt(nftsResult.rows[0]?.count || '0'),
+        blogPosts: parseInt(blogResult.rows[0]?.count || '0'),
+        courses: parseInt(coursesResult.rows[0]?.count || '0'),
         discoverPartners: 0,
-        pendingApprovals: parseInt(String(pendingResult.rows[0]?.count || '0')),
+        pendingApprovals: parseInt(pendingResult.rows[0]?.count || '0'),
         systemHealth: 'healthy',
-        weeklyOrders: parseInt(String(ordersResult.rows[0]?.count || '0')),
+        weeklyOrders: parseInt(ordersResult.rows[0]?.count || '0'),
       });
     } catch (error) {
       console.error('Admin stats error:', error);
@@ -143,11 +120,11 @@ app.use((req, res, next) => {
       }
       
       // Direct SQL query
-      const result = await adminDb.execute(sql`
+      const result = await adminDb.execute(`
         SELECT id, username, email, role, password_hash, active 
         FROM admin_users 
-        WHERE username = ${username} AND active = true
-      `);
+        WHERE username = ? AND active = true
+      `, [username]);
 
       if (result.rows.length === 0) {
         return res.status(401).json({ error: 'Invalid credentials' });
@@ -166,10 +143,10 @@ app.use((req, res, next) => {
       const expiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours
 
       // Store session
-      await adminDb.execute(sql`
+      await adminDb.execute(`
         INSERT INTO admin_sessions (admin_id, session_token, expires_at, created_at)
-        VALUES (${admin.id}, ${sessionToken}, ${expiresAt}, ${new Date()})
-      `);
+        VALUES (?, ?, ?, ?)
+      `, [admin.id, sessionToken, expiresAt, new Date()]);
 
       res.json({
         sessionToken,
@@ -302,36 +279,6 @@ app.use((req, res, next) => {
     }
   }
 
-  // Create storage instance for direct API endpoints
-  const { storage: directStorage } = await import('./storage.js');
-
-  // Test direct API endpoint to bypass Vite intercept
-  app.get('/api/beehive/company-stats', async (req, res) => {
-    console.log('🎯 DIRECT Company Stats API called');
-    try {
-      res.setHeader('Content-Type', 'application/json');
-      const stats = await directStorage.getCompanyStats();
-      console.log('📊 Direct stats:', JSON.stringify(stats, null, 2));
-      return res.json(stats);
-    } catch (error) {
-      console.error('Direct company stats error:', error);
-      return res.status(500).json({ error: 'Failed to get company stats' });
-    }
-  });
-
-  app.get('/api/ads/nfts', async (req, res) => {
-    console.log('🎯 DIRECT Advertisement NFTs API called');
-    try {
-      res.setHeader('Content-Type', 'application/json');
-      const nfts = await directStorage.getAdvertisementNFTs();
-      console.log('📦 Direct NFTs found:', nfts.length);
-      return res.json(nfts);
-    } catch (error) {
-      console.error('Direct advertisement NFTs error:', error);
-      return res.status(500).json({ error: 'Failed to get advertisement NFTs' });
-    }
-  });
-
   let server;
   try {
     console.log('🚀 Registering API routes...');
@@ -348,6 +295,12 @@ app.use((req, res, next) => {
 
     res.status(status).json({ message });
     throw err;
+  });
+
+  // Add API route protection middleware before Vite setup
+  app.use('/api/*', (req, res, next) => {
+    console.log(`🔍 API Request: ${req.method} ${req.path}`);
+    next();
   });
 
   // importantly only setup vite in development and after

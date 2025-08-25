@@ -76,9 +76,8 @@ export default function AdvertisementNFTs() {
   const { data: myNFTs = [], isLoading: isLoadingMyNFTs } = useQuery<AdvertisementNFTClaim[]>({
     queryKey: ['/api/ads/my-nfts'],
     queryFn: async () => {
-      if (!walletAddress) throw new Error('No wallet address');
       const response = await fetch('/api/ads/my-nfts', {
-        headers: { 'X-Wallet-Address': walletAddress },
+        headers: { 'X-Wallet-Address': walletAddress! },
       });
       if (!response.ok) throw new Error('Failed to fetch user NFTs');
       return response.json();
@@ -243,14 +242,8 @@ export default function AdvertisementNFTs() {
                   </Badge>
                 </div>
                 <div className="absolute top-3 left-3">
-                  <Badge 
-                    className="bg-honey text-black cursor-pointer hover:bg-honey/90 transition-colors"
-                    onClick={() => handleServiceClick(nft)}
-                  >
-                    <span className="flex items-center gap-1">
-                      {nft.serviceName}
-                      <ArrowTopRightOnSquareIcon className="w-3 h-3" />
-                    </span>
+                  <Badge className="bg-honey text-black">
+                    {nft.serviceName}
                   </Badge>
                 </div>
               </div>
