@@ -87,7 +87,7 @@ export default function Dashboard() {
     return `${hours}h ${minutes}m ${seconds}s`;
   };
   
-  const referralLink = `${window.location.origin}/register?ref=${walletAddress}`;
+  const referralLink = `https://beehive-lifestyle.io/register?ref=${walletAddress}`;
 
   const handleActivateLevel1 = () => {
     // Mock Level 1 activation - in real implementation would integrate with payment system
