@@ -790,7 +790,7 @@ export default function Referrals() {
           <Tabs defaultValue="layers" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="layers">19 Layers</TabsTrigger>
-              <TabsTrigger value="notifications">Reward Notifications</TabsTrigger>
+              <TabsTrigger value="notifications">Pending Rewards</TabsTrigger>
             </TabsList>
             
             <TabsContent value="layers" className="space-y-4">
@@ -851,15 +851,17 @@ export default function Referrals() {
             
             <TabsContent value="notifications" className="space-y-4">
               <div className="text-sm text-muted-foreground mb-4">
-                Upgrade notifications appear when members in your 19 layers purchase Level NFTs. You have 72 hours to upgrade to unlock rewards.
+                Pending rewards that require your level upgrade to unlock. You have 72 hours from trigger to upgrade and claim these rewards.
               </div>
               
-              {/* Check if using real notifications data */}
-              {layerData?.notifications?.length > 0 ? (
+              {/* Check if using real notifications data - only show pending */}
+              {layerData?.notifications?.filter((notif: any) => notif.status === 'pending').length > 0 ? (
                 <div className="space-y-3">
-                  {layerData.notifications.map((notif: any) => (
-                    <Alert key={notif.id} className={notif.status === 'pending' ? 'border-yellow-600' : 'border-border'}>
-                      <AlertCircle className="h-4 w-4" />
+                  {layerData.notifications
+                    .filter((notif: any) => notif.status === 'pending')
+                    .map((notif: any) => (
+                    <Alert key={notif.id} className="border-yellow-600 bg-yellow-600/5">
+                      <AlertCircle className="h-4 w-4 text-yellow-600" />
                       <AlertDescription>
                         <div className="flex items-center justify-between">
                           <div>
@@ -867,29 +869,27 @@ export default function Referrals() {
                               Layer {notif.layerNumber} member purchased Level {notif.triggerLevel}
                             </p>
                             <p className="text-sm text-muted-foreground mt-1">
-                              Potential reward: ${(notif.rewardAmount / 100).toFixed(2)} USDT
+                              💰 Potential reward: ${(notif.rewardAmount / 100).toFixed(2)} USDT
+                            </p>
+                            <p className="text-xs text-yellow-600 font-medium mt-1">
+                              ⚡ Requires Level {notif.triggerLevel} upgrade to unlock
                             </p>
                           </div>
                           <div className="text-right">
-                            {notif.status === 'pending' ? (
-                              <div>
-                                <Badge variant="outline" className="border-yellow-600 text-yellow-600">
-                                  <Clock className="mr-1 h-3 w-3" />
-                                  {timers[notif.id] || 'Calculating...'}
-                                </Badge>
-                                <Button 
-                                  size="sm" 
-                                  className="btn-honey mt-2"
-                                  data-testid={`button-upgrade-${notif.id}`}
-                                >
-                                  Upgrade Now
-                                </Button>
-                              </div>
-                            ) : (
-                              <Badge variant="secondary">
-                                {notif.status === 'claimed' ? 'Claimed' : 'Expired'}
+                            <div>
+                              <Badge variant="outline" className="border-yellow-600 text-yellow-600 mb-2">
+                                <Clock className="mr-1 h-3 w-3" />
+                                {timers[notif.id] || 'Calculating...'}
                               </Badge>
-                            )}
+                              <br/>
+                              <Button 
+                                size="sm" 
+                                className="btn-honey"
+                                data-testid={`button-upgrade-${notif.id}`}
+                              >
+                                Upgrade Now
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </AlertDescription>
@@ -899,9 +899,9 @@ export default function Referrals() {
               ) : (
                 <div className="text-center py-8">
                   <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-muted-foreground">No notifications yet</p>
+                  <p className="text-muted-foreground">No pending upgrade notifications</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Notifications appear when your downline members make purchases
+                    Upgrade notifications appear when your downline members purchase NFTs that require your level upgrade to unlock rewards
                   </p>
                 </div>
               )}
