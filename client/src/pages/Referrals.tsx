@@ -58,24 +58,44 @@ export default function Referrals() {
   const totalTeamCount = userStats?.totalTeamCount || 0;
   const directReferralCount = Number(userStats?.directReferralCount) || 0;
   
-  // Create meaningful layer data
+  // Create proper 3x3 matrix layer data
   const layerData = {
-    layers: [
-      // Layer 1: Direct referrals
-      ...(directReferralCount > 0 ? [{
+    layers: (() => {
+      if (directReferralCount === 0) return [];
+      
+      const layers = [];
+      let remainingMembers = directReferralCount;
+      let layerNum = 1;
+      
+      // Layer 1: Max 3 members (direct positions)
+      const layer1Count = Math.min(3, remainingMembers);
+      layers.push({
         layerNumber: 1,
-        memberCount: directReferralCount,
+        memberCount: layer1Count,
         members: [],
         lastUpdated: new Date().toISOString()
-      }] : []),
-      // Layer 2: Indirect referrals (rest of team)
-      ...(totalTeamCount > directReferralCount ? [{
-        layerNumber: 2,
-        memberCount: totalTeamCount - directReferralCount,
-        members: [],
-        lastUpdated: new Date().toISOString()
-      }] : [])
-    ],
+      });
+      remainingMembers -= layer1Count;
+      
+      // Layer 2+: Spillover members distributed by 3^n capacity
+      layerNum = 2;
+      while (remainingMembers > 0 && layerNum <= 19) {
+        const maxCapacity = Math.pow(3, layerNum);
+        const layerCount = Math.min(maxCapacity, remainingMembers);
+        
+        layers.push({
+          layerNumber: layerNum,
+          memberCount: layerCount,
+          members: [],
+          lastUpdated: new Date().toISOString()
+        });
+        
+        remainingMembers -= layerCount;
+        layerNum++;
+      }
+      
+      return layers;
+    })(),
     notifications: directReferralCount > 0 ? [
       {
         id: 'notif-1',
