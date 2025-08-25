@@ -466,8 +466,6 @@ export class DatabaseStorage implements IStorage {
       walletAddress: membership.walletAddress.toLowerCase(),
       levelsOwned: membership.levelsOwned || [],
       activeLevel: membership.activeLevel || 0,
-      joinedAt: new Date(),
-      lastUpgradeAt: new Date(),
     };
     const [state] = await db
       .insert(membershipState)
