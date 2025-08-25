@@ -381,12 +381,12 @@ export class DatabaseStorage implements IStorage {
       const existingLevels = await db.select().from(levelConfig).limit(1);
       if (existingLevels.length > 0) return;
 
-      // BeeHive 19-level configuration with CORRECTED pricing to match frontend
-      // Level 1: $130 total ($100 NFT + $30 platform fee), Matrix count: 3  
-      // Level 2-19: Frontend pricing pattern with $50 increments, Matrix count: 3^(level-1) × 3
+      // BeeHive 19-level configuration matching frontend membershipLevels.ts exactly
+      // All prices in cents (multiply frontend $ by 100)
+      // Matrix count: 3^(level-1) × 3 pattern
       const levels: InsertLevelConfig[] = [
         { level: 1, levelName: "Warrior", priceUSDT: 13000, nftPriceUSDT: 10000, platformFeeUSDT: 3000, requiredDirectReferrals: 1, maxMatrixCount: 3 },
-        { level: 2, levelName: "Bronze", priceUSDT: 15000, nftPriceUSDT: 15000, platformFeeUSDT: 0, requiredDirectReferrals: 3, maxMatrixCount: 9 },
+        { level: 2, levelName: "Bronze", priceUSDT: 15000, nftPriceUSDT: 15000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
         { level: 3, levelName: "Silver", priceUSDT: 20000, nftPriceUSDT: 20000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 27 },
         { level: 4, levelName: "Gold", priceUSDT: 25000, nftPriceUSDT: 25000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 81 },
         { level: 5, levelName: "Elite", priceUSDT: 30000, nftPriceUSDT: 30000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 243 },
