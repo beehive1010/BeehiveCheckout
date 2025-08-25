@@ -1128,9 +1128,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user's global matrix position and direct referrals - NEW ENDPOINT
-  app.get("/api/beehive/global-matrix-position", requireWallet, async (req: any, res) => {
+  app.get("/api/beehive/global-matrix-position/:walletAddress", requireWallet, async (req: any, res) => {
     try {
-      const walletAddress = req.walletAddress;
+      const walletAddress = req.params.walletAddress || req.walletAddress;
       
       // Get user's matrix position
       const position = await db.select()
