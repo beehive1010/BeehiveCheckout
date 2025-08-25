@@ -76,8 +76,9 @@ export default function AdvertisementNFTs() {
   const { data: myNFTs = [], isLoading: isLoadingMyNFTs } = useQuery<AdvertisementNFTClaim[]>({
     queryKey: ['/api/ads/my-nfts'],
     queryFn: async () => {
+      if (!walletAddress) throw new Error('No wallet address');
       const response = await fetch('/api/ads/my-nfts', {
-        headers: { 'X-Wallet-Address': walletAddress! },
+        headers: { 'X-Wallet-Address': walletAddress },
       });
       if (!response.ok) throw new Error('Failed to fetch user NFTs');
       return response.json();

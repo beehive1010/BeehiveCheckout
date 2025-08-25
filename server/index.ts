@@ -280,6 +280,13 @@ app.use((req, res, next) => {
     }
   }
 
+  // Add API route protection middleware BEFORE registering routes
+  app.use('/api/*', (req, res, next) => {
+    console.log(`🔍 API Request: ${req.method} ${req.path}`);
+    res.setHeader('Content-Type', 'application/json');
+    next();
+  });
+
   let server;
   try {
     console.log('🚀 Registering API routes...');
@@ -296,12 +303,6 @@ app.use((req, res, next) => {
 
     res.status(status).json({ message });
     throw err;
-  });
-
-  // Add API route protection middleware before Vite setup
-  app.use('/api/*', (req, res, next) => {
-    console.log(`🔍 API Request: ${req.method} ${req.path}`);
-    next();
   });
 
   // importantly only setup vite in development and after

@@ -1144,7 +1144,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If user has pending rewards, show a relevant timer message
       if (pendingRewards > 0) {
         nextUpgradeTimer = 'Rewards available to claim';
-      } else if (user?.memberActivated && membership?.activeLevel > 0) {
+      } else if (user?.memberActivated && membership?.activeLevel && membership.activeLevel > 0) {
         nextUpgradeTimer = 'No pending rewards';
       }
 
@@ -2283,7 +2283,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Advertisement NFT endpoints
   app.get("/api/ads/nfts", async (req, res) => {
     try {
+      console.log('🎯 Advertisement NFTs API called');
+      res.setHeader('Content-Type', 'application/json');
       const nfts = await storage.getAdvertisementNFTs();
+      console.log('📦 Found NFTs:', nfts.length);
       res.json(nfts);
     } catch (error) {
       console.error('Get advertisement NFTs error:', error);
