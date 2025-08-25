@@ -1913,11 +1913,29 @@ export class DatabaseStorage implements IStorage {
 
   // Reward Distribution operations for 3x3 matrix spillover
   async createRewardDistribution(reward: InsertRewardDistribution): Promise<RewardDistribution> {
+    // Validate that both recipient and source wallets exist in users table
+    const recipientWallet = reward.recipientWallet.toLowerCase();
+    const sourceWallet = reward.sourceWallet.toLowerCase();
+    
+    // Check if recipient wallet exists
+    const recipientUser = await this.getUser(recipientWallet);
+    if (!recipientUser) {
+      console.error(`Cannot create reward distribution: recipient wallet ${recipientWallet} does not exist in users table`);
+      throw new Error(`Recipient wallet ${recipientWallet} not found`);
+    }
+    
+    // Check if source wallet exists
+    const sourceUser = await this.getUser(sourceWallet);
+    if (!sourceUser) {
+      console.error(`Cannot create reward distribution: source wallet ${sourceWallet} does not exist in users table`);
+      throw new Error(`Source wallet ${sourceWallet} not found`);
+    }
+    
     const [created] = await db
       .insert(rewardDistributions)
       .values({
-        recipientWallet: reward.recipientWallet.toLowerCase(),
-        sourceWallet: reward.sourceWallet.toLowerCase(),
+        recipientWallet,
+        sourceWallet,
         rewardType: reward.rewardType,
         rewardAmount: reward.rewardAmount.toString(),
         level: reward.level,
