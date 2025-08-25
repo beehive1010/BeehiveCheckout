@@ -478,6 +478,7 @@ export const advertisementNFTs = pgTable("advertisement_nfts", {
   imageUrl: text("image_url").notNull(),
   serviceName: text("service_name").notNull(), // DApp or service name
   serviceType: text("service_type").notNull(), // 'dapp', 'banner', 'promotion'
+  websiteUrl: text("website_url"), // URL to the advertised service/website
   priceBCC: integer("price_bcc").notNull(),
   codeTemplate: text("code_template").notNull(), // Template for generating active codes
   active: boolean("active").default(true).notNull(),

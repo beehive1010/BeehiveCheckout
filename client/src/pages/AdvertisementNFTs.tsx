@@ -9,8 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { useToast } from '../hooks/use-toast';
 import { apiRequest } from '../lib/queryClient';
-import { StarIcon, FireIcon, TagIcon, GiftIcon } from '@heroicons/react/24/outline';
+import { StarIcon, FireIcon, TagIcon, GiftIcon, ExternalLinkIcon } from '@heroicons/react/24/outline';
 import { IconWallet, IconFlame, IconCode } from '@tabler/icons-react';
+import { useLocation } from 'wouter';
 
 interface AdvertisementNFT {
   id: string;
@@ -19,6 +20,7 @@ interface AdvertisementNFT {
   imageUrl: string;
   serviceName: string;
   serviceType: 'dapp' | 'banner' | 'promotion';
+  websiteUrl?: string;
   priceBCC: number;
   totalSupply: number;
   claimedCount: number;
@@ -44,6 +46,20 @@ export default function AdvertisementNFTs() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'marketplace' | 'my-nfts'>('marketplace');
   const [selectedBucketType, setSelectedBucketType] = useState<'transferable' | 'restricted'>('transferable');
+  const [, setLocation] = useLocation();
+
+  // Handle NFT service link clicks
+  const handleServiceClick = (nft: AdvertisementNFT) => {
+    if (!nft.websiteUrl) return;
+    
+    if (nft.websiteUrl.startsWith('http')) {
+      // External link - open in new tab
+      window.open(nft.websiteUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      // Internal link - navigate within app
+      setLocation(nft.websiteUrl);
+    }
+  };
 
   // Fetch available Advertisement NFTs
   const { data: nfts = [], isLoading: isLoadingNFTs } = useQuery<AdvertisementNFT[]>({
