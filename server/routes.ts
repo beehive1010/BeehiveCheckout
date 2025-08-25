@@ -1762,6 +1762,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get reward notifications (real upgrade rewards)
+  app.get("/api/notifications/rewards", requireWallet, async (req: any, res) => {
+    try {
+      const notifications = await storage.getPendingRewardNotifications(req.walletAddress);
+      res.json({
+        notifications: notifications.map(notif => ({
+          id: notif.id,
+          layerNumber: notif.layerNumber,
+          triggerLevel: notif.triggerLevel,
+          rewardAmount: notif.rewardAmount,
+          triggerWallet: notif.triggerWallet,
+          status: notif.status,
+          expiresAt: notif.expiresAt,
+          createdAt: notif.createdAt
+        }))
+      });
+    } catch (error) {
+      console.error('Get reward notifications error:', error);
+      res.status(500).json({ error: 'Failed to get reward notifications' });
+    }
+  });
+
   // Removed duplicate user-stats endpoint to prevent routing conflicts
 
   // Get member's earnings wallet (private - only own data)

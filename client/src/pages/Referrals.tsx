@@ -81,55 +81,7 @@ export default function Referrals() {
         headers: { 'X-Wallet-Address': walletAddress }
       });
       if (!response.ok) {
-        // Fallback data: API被Vite覆盖，使用真实upgrade notifications
-        return {
-          notifications: [
-            // Layer 1 前2个升级: Level 1用户符合条件，100 USDT per upgrade waiting claim (绿色✅)
-            {
-              id: 'notif_earned_1',
-              layerNumber: 1,
-              triggerLevel: 1, // L1用户符合条件
-              rewardAmount: 10000, // 100 USDT per upgrade (each Level 1 NFT = $100 reward)
-              triggerUsername: 'First 2 Members',
-              triggerWallet: '0x1111...1111',
-              status: 'waiting_claim', // 等待领取状态，显示绿色
-              expiredAt: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString()
-            },
-            // Layer 1 第3个升级: 需要用户升级L2解锁100 USDT (红色⏰)
-            {
-              id: 'notif_pending_1',
-              layerNumber: 1,
-              triggerLevel: 2, // 需要L2解锁
-              rewardAmount: 10000, // 100 USDT (cents)
-              triggerUsername: 'Member3',
-              triggerWallet: '0x1234...7890',
-              status: 'pending',
-              expiredAt: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString()
-            },
-            // Layer 2 所有7个升级: 需要用户升级L2解锁150×7=1050 USDT (红色⏰)
-            {
-              id: 'notif_pending_2', 
-              layerNumber: 2,
-              triggerLevel: 2,
-              rewardAmount: 105000, // 1050 USDT (7×150×100)
-              triggerUsername: '7 Members',
-              triggerWallet: '0x2345...8901',
-              status: 'pending',
-              expiredAt: new Date(Date.now() + 69 * 60 * 60 * 1000).toISOString()
-            },
-            // Layer 3 所有12个升级: 需要用户升级L3解锁200×12=2400 USDT (红色⏰)
-            {
-              id: 'notif_pending_3',
-              layerNumber: 3,
-              triggerLevel: 3, // 需要L3解锁
-              rewardAmount: 240000, // 2400 USDT (12×200×100) 
-              triggerUsername: '12 Members',
-              triggerWallet: '0x3456...9012',
-              status: 'pending',
-              expiredAt: new Date(Date.now() + 71 * 60 * 60 * 1000).toISOString()
-            }
-          ]
-        };
+        throw new Error('Failed to fetch reward notifications');
       }
       return response.json();
     },
