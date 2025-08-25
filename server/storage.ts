@@ -1181,51 +1181,33 @@ export class DatabaseStorage implements IStorage {
   }
 
 
-  async createEarningsWallet(data: any): Promise<any> {
+  async createEarningsWallet(data: InsertEarningsWallet): Promise<EarningsWallet> {
     const [result] = await db
       .insert(earningsWallet)
       .values({
         walletAddress: data.walletAddress.toLowerCase(),
-        totalEarnings: data.totalEarnings?.toString() || "0",
-        referralEarnings: data.referralEarnings?.toString() || "0",
-        levelEarnings: data.levelEarnings?.toString() || "0",
-        pendingRewards: data.pendingRewards?.toString() || "0",
-        withdrawnAmount: data.withdrawnAmount?.toString() || "0",
+        totalEarnings: data.totalEarnings || "0",
+        referralEarnings: data.referralEarnings || "0",
+        levelEarnings: data.levelEarnings || "0",
+        pendingRewards: data.pendingRewards || "0",
+        withdrawnAmount: data.withdrawnAmount || "0",
         lastRewardAt: data.lastRewardAt || null
       })
       .returning();
     return result;
   }
 
-  async updateEarningsWallet(walletAddress: string, updates: any): Promise<any> {
-    const setters: any[] = [];
-
-    if (updates.totalEarnings !== undefined) {
-      setters.push(sql`total_earnings = ${updates.totalEarnings}`);
-    }
-    if (updates.referralEarnings !== undefined) {
-      setters.push(sql`referral_earnings = ${updates.referralEarnings}`);
-    }
-    if (updates.levelEarnings !== undefined) {
-      setters.push(sql`level_earnings = ${updates.levelEarnings}`);
-    }
-    if (updates.pendingRewards !== undefined) {
-      setters.push(sql`pending_rewards = ${updates.pendingRewards}`);
-    }
-    if (updates.lastRewardAt !== undefined) {
-      setters.push(sql`last_reward_at = ${updates.lastRewardAt}`);
-    }
-
-    if (setters.length === 0) return null;
-
-    const result = await db.execute(sql`
-      UPDATE earnings_wallet 
-      SET ${sql.join(setters, sql`, `)}
-      WHERE wallet_address = ${walletAddress.toLowerCase()}
-      RETURNING *
-    `);
+  async updateEarningsWallet(walletAddress: string, updates: Partial<EarningsWallet>): Promise<EarningsWallet | undefined> {
+    const [updated] = await db
+      .update(earningsWallet)
+      .set({
+        ...updates,
+        lastRewardAt: updates.lastRewardAt || new Date()
+      })
+      .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()))
+      .returning();
     
-    return result.rows[0];
+    return updated || undefined;
   }
 
   // Level Configuration Operations (duplicate removed)
@@ -1288,36 +1270,134 @@ export class DatabaseStorage implements IStorage {
   }
 
 
-  async addEarningsReward(walletAddress: string, amount: number, type: string, isPending = false): Promise<void> {
+  // Enhanced earnings reward method that syncs with reward distribution system
+  async addEarningsReward(walletAddress: string, amount: number, type: 'referral' | 'level' | 'matrix_spillover', isPending = false): Promise<void> {
+    // Get or create earnings wallet
     let earnings = await this.getEarningsWalletByWallet(walletAddress);
     
-    if (!earnings) {
-      earnings = await this.createEarningsWallet({
+    if (!earnings || earnings.length === 0) {
+      earnings = [await this.createEarningsWallet({
         walletAddress,
-        totalEarnings: 0,
-        referralEarnings: 0,
-        levelEarnings: 0,
-        pendingRewards: 0,
-        withdrawnAmount: 0,
-      });
+        totalEarnings: "0",
+        referralEarnings: "0", 
+        levelEarnings: "0",
+        pendingRewards: "0",
+        withdrawnAmount: "0",
+      })];
     }
 
-    const updates: any = {
+    const currentEarnings = earnings[0];
+    const amountStr = amount.toFixed(2);
+
+    const updates: Partial<EarningsWallet> = {
       lastRewardAt: new Date()
     };
 
     if (isPending) {
-      updates.pendingRewards = amount;
+      // Add to pending rewards
+      const currentPending = parseFloat(currentEarnings.pendingRewards);
+      updates.pendingRewards = (currentPending + amount).toFixed(2);
     } else {
-      updates.totalEarnings = amount;
+      // Add to total and category-specific earnings
+      const currentTotal = parseFloat(currentEarnings.totalEarnings);
+      updates.totalEarnings = (currentTotal + amount).toFixed(2);
+      
       if (type === 'referral') {
-        updates.referralEarnings = amount;
+        const currentReferral = parseFloat(currentEarnings.referralEarnings);
+        updates.referralEarnings = (currentReferral + amount).toFixed(2);
       } else if (type === 'level') {
-        updates.levelEarnings = amount;
+        const currentLevel = parseFloat(currentEarnings.levelEarnings);
+        updates.levelEarnings = (currentLevel + amount).toFixed(2);
       }
     }
 
     await this.updateEarningsWallet(walletAddress, updates);
+  }
+
+  // Process claimed reward - move from pending to total
+  async processClaimedReward(walletAddress: string, rewardAmount: number, rewardType: 'referral' | 'level' | 'matrix_spillover'): Promise<void> {
+    const earnings = await this.getEarningsWalletByWallet(walletAddress);
+    if (!earnings || earnings.length === 0) return;
+
+    const currentEarnings = earnings[0];
+    const currentPending = parseFloat(currentEarnings.pendingRewards);
+    const currentTotal = parseFloat(currentEarnings.totalEarnings);
+
+    const updates: Partial<EarningsWallet> = {
+      pendingRewards: Math.max(0, currentPending - rewardAmount).toFixed(2),
+      totalEarnings: (currentTotal + rewardAmount).toFixed(2),
+      lastRewardAt: new Date()
+    };
+
+    // Update category-specific earnings
+    if (rewardType === 'referral') {
+      const currentReferral = parseFloat(currentEarnings.referralEarnings);
+      updates.referralEarnings = (currentReferral + rewardAmount).toFixed(2);
+    } else if (rewardType === 'level') {
+      const currentLevel = parseFloat(currentEarnings.levelEarnings);
+      updates.levelEarnings = (currentLevel + rewardAmount).toFixed(2);
+    }
+
+    await this.updateEarningsWallet(walletAddress, updates);
+  }
+
+  // Calculate real earnings from reward distributions
+  async calculateRealEarnings(walletAddress: string): Promise<{
+    totalEarnings: number;
+    referralEarnings: number;
+    levelEarnings: number;
+    pendingRewards: number;
+  }> {
+    // Get claimed rewards
+    const claimedRewards = await db
+      .select()
+      .from(rewardDistributions)
+      .where(
+        and(
+          eq(rewardDistributions.recipientWallet, walletAddress.toLowerCase()),
+          eq(rewardDistributions.status, 'claimed')
+        )
+      );
+
+    // Get pending rewards  
+    const pendingRewards = await db
+      .select()
+      .from(rewardDistributions)
+      .where(
+        and(
+          eq(rewardDistributions.recipientWallet, walletAddress.toLowerCase()),
+          eq(rewardDistributions.status, 'claimable')
+        )
+      );
+
+    let totalEarnings = 0;
+    let referralEarnings = 0;
+    let levelEarnings = 0;
+    let totalPending = 0;
+
+    // Calculate claimed earnings by type
+    for (const reward of claimedRewards) {
+      const amount = parseFloat(reward.rewardAmount);
+      totalEarnings += amount;
+      
+      if (reward.rewardType === 'direct_referral') {
+        referralEarnings += amount;
+      } else if (reward.rewardType === 'level_bonus') {
+        levelEarnings += amount;
+      }
+    }
+
+    // Calculate pending rewards
+    for (const reward of pendingRewards) {
+      totalPending += parseFloat(reward.rewardAmount);
+    }
+
+    return {
+      totalEarnings,
+      referralEarnings,
+      levelEarnings,
+      pendingRewards: totalPending
+    };
   }
 
   // Company-wide statistics
@@ -1342,11 +1422,21 @@ export class DatabaseStorage implements IStorage {
         .groupBy(membershipState.activeLevel)
         .orderBy(membershipState.activeLevel);
 
-      // Total rewards paid out - simplified for now
-      const totalRewards = 0; // Will be calculated from actual earnings data later
+      // Calculate total rewards from earnings_wallet
+      const totalRewardsResult = await db
+        .select({
+          total: sql<number>`COALESCE(SUM(CAST(${earningsWallet.totalEarnings} AS NUMERIC)), 0)`
+        })
+        .from(earningsWallet);
+      const totalRewards = totalRewardsResult[0]?.total || 0;
 
-      // Pending rewards - simplified for now  
-      const pendingRewards = 0; // Will be calculated from actual pending data later
+      // Calculate pending rewards from earnings_wallet
+      const pendingRewardsResult = await db
+        .select({
+          total: sql<number>`COALESCE(SUM(CAST(${earningsWallet.pendingRewards} AS NUMERIC)), 0)`
+        })
+        .from(earningsWallet);
+      const pendingRewards = pendingRewardsResult[0]?.total || 0;
 
       const levelDistribution = levelDistributionResult.map((row) => ({
         level: row.activeLevel,
@@ -1385,9 +1475,10 @@ export class DatabaseStorage implements IStorage {
       // Total team size - simplified for now
       const totalTeam = directReferrals; // Will expand to full recursive count later
 
-      // User's earnings - simplified for now
-      const totalEarnings = 0;
-      const pendingRewards = 0;
+      // User's real earnings from earnings_wallet
+      const userEarnings = await this.calculateRealEarnings(walletAddress);
+      const totalEarnings = userEarnings.totalEarnings;
+      const pendingRewards = userEarnings.pendingRewards;
 
       // Recent direct referrals with real data
       const directReferralsList = directReferralsCount.map((position) => ({
@@ -2352,16 +2443,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()));
   }
 
-  async updateEarningsWalletEntry(walletAddress: string, updates: Partial<EarningsWallet>): Promise<EarningsWallet | undefined> {
-    const [updated] = await db.update(earningsWallet)
-      .set({
-        ...updates,
-        ...(updates.walletAddress && { walletAddress: updates.walletAddress.toLowerCase() }),
-      })
-      .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()))
-      .returning();
-    return updated;
-  }
 
   async getPendingEarningsEntries(): Promise<EarningsWallet[]> {
     return await db.select()
@@ -2383,33 +2464,24 @@ export class DatabaseStorage implements IStorage {
       );
   }
 
-  async passUpReward(originalRecipient: string, reward: EarningsWallet): Promise<void> {
+  async passUpReward(originalRecipient: string, rewardAmount: number, rewardType: 'referral' | 'level' | 'matrix_spillover'): Promise<void> {
     // Find the nearest activated upline for the original recipient
     const nearestUpline = await this.findNearestActivatedUpline(originalRecipient);
     
     if (nearestUpline) {
-      // Transfer the reward to the upline
-      const uplineEarnings = await db.select()
-        .from(earningsWallet)
-        .where(eq(earningsWallet.walletAddress, nearestUpline.toLowerCase()))
-        .limit(1);
-
-      if (uplineEarnings.length > 0) {
-        // Update existing upline earnings
-        await this.updateEarningsWalletEntry(nearestUpline, {
-          totalEarnings: (parseFloat(uplineEarnings[0].totalEarnings) + parseFloat(reward.totalEarnings)).toFixed(2),
-          levelEarnings: (parseFloat(uplineEarnings[0].levelEarnings) + parseFloat(reward.levelEarnings)).toFixed(2),
-          lastRewardAt: new Date(),
-        });
-      } else {
-        // Create new earnings entry for upline
-        await this.createEarningsWalletEntry({
-          walletAddress: nearestUpline,
-          totalEarnings: reward.totalEarnings,
-          levelEarnings: reward.levelEarnings,
-          lastRewardAt: new Date(),
-        });
-      }
+      // Add the reward to upline's earnings
+      await this.addEarningsReward(nearestUpline, rewardAmount, rewardType, false);
+      
+      // Also create a reward distribution record for the upline
+      await this.createRewardDistribution({
+        recipientWallet: nearestUpline,
+        sourceWallet: originalRecipient,
+        rewardType: 'matrix_spillover',
+        rewardAmount: rewardAmount.toString(),
+        level: 1, // Default level for spillover
+        status: 'claimed', // Immediately available since it's a spillover
+        claimedAt: new Date()
+      });
     }
   }
 
@@ -2700,9 +2772,15 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Claim reward across all related tables
+  // Claim reward across all related tables including earnings_wallet
   async claimRewardAcrossTables(walletAddress: string, notificationId: string): Promise<void> {
     const now = new Date();
+    
+    // Get the reward notification to get reward details
+    const notification = await this.getRewardNotification(notificationId);
+    if (!notification) return;
+    
+    const rewardAmount = notification.rewardAmount / 100; // Convert from cents
     
     // Update reward notification as claimed
     await this.updateRewardNotification(notificationId, {
@@ -2729,9 +2807,49 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
 
     if (rewardDistribution.length > 0) {
-      await this.updateRewardDistribution(rewardDistribution[0].id, {
+      const distribution = rewardDistribution[0];
+      await this.updateRewardDistribution(distribution.id, {
         status: 'claimed',
         claimedAt: now
+      });
+
+      // Update earnings wallet - move from pending to claimed
+      await this.processClaimedReward(
+        walletAddress, 
+        parseFloat(distribution.rewardAmount),
+        distribution.rewardType as 'referral' | 'level' | 'matrix_spillover'
+      );
+    }
+  }
+
+  // Enhanced sync that includes earnings wallet
+  async syncRewardSystemTables(walletAddress: string): Promise<void> {
+    // First sync notifications, activations, and distributions
+    await this.syncNotificationStatuses(walletAddress);
+    
+    // Then recalculate and sync earnings wallet with actual reward data
+    const realEarnings = await this.calculateRealEarnings(walletAddress);
+    
+    // Update earnings wallet with calculated values
+    const existingEarnings = await this.getEarningsWalletByWallet(walletAddress);
+    if (existingEarnings && existingEarnings.length > 0) {
+      await this.updateEarningsWallet(walletAddress, {
+        totalEarnings: realEarnings.totalEarnings.toFixed(2),
+        referralEarnings: realEarnings.referralEarnings.toFixed(2),
+        levelEarnings: realEarnings.levelEarnings.toFixed(2),
+        pendingRewards: realEarnings.pendingRewards.toFixed(2),
+        lastRewardAt: new Date()
+      });
+    } else {
+      // Create new earnings wallet with calculated values
+      await this.createEarningsWallet({
+        walletAddress,
+        totalEarnings: realEarnings.totalEarnings.toFixed(2),
+        referralEarnings: realEarnings.referralEarnings.toFixed(2),
+        levelEarnings: realEarnings.levelEarnings.toFixed(2),
+        pendingRewards: realEarnings.pendingRewards.toFixed(2),
+        withdrawnAmount: "0",
+        lastRewardAt: new Date()
       });
     }
   }
