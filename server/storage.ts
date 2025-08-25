@@ -2016,6 +2016,12 @@ export class DatabaseStorage implements IStorage {
         walletAddress: referralNode.walletAddress.toLowerCase(),
         sponsorWallet: referralNode.sponsorWallet?.toLowerCase() || null,
         placerWallet: referralNode.placerWallet?.toLowerCase() || null,
+        matrixPosition: referralNode.matrixPosition || 0,
+        leftLeg: referralNode.leftLeg || [],
+        middleLeg: referralNode.middleLeg || [],
+        rightLeg: referralNode.rightLeg || [],
+        directReferralCount: referralNode.directReferralCount || 0,
+        totalTeamCount: referralNode.totalTeamCount || 0,
       })
       .returning();
     return created;
@@ -2032,6 +2038,97 @@ export class DatabaseStorage implements IStorage {
       .where(eq(referralNodes.walletAddress, walletAddress.toLowerCase()))
       .returning();
     return updated || undefined;
+  }
+
+  // Sync user level with membership state and update layers
+  async syncUserLevelWithMembership(walletAddress: string): Promise<void> {
+    const membership = await this.getMembershipState(walletAddress);
+    if (!membership) return;
+
+    // Update user's current level to match membership active level
+    await this.updateUser(walletAddress, {
+      currentLevel: membership.activeLevel
+    });
+
+    // Recalculate referral layers if user has an active level
+    if (membership.activeLevel > 0) {
+      await this.calculateAndStore19Layers(walletAddress);
+    }
+  }
+
+  // Initialize referral matrix structure for a new member
+  async initializeReferralMatrix(walletAddress: string, sponsorWallet?: string): Promise<ReferralNode> {
+    let matrixPosition = 0;
+    let placerWallet = sponsorWallet;
+
+    // Find placement position in sponsor's matrix if sponsor exists
+    if (sponsorWallet) {
+      const sponsorNode = await this.getReferralNode(sponsorWallet);
+      if (sponsorNode) {
+        // Find next available position in sponsor's matrix (0-8)
+        const totalPositions = sponsorNode.leftLeg.length + sponsorNode.middleLeg.length + sponsorNode.rightLeg.length;
+        matrixPosition = totalPositions % 9;
+        
+        // Update sponsor's matrix legs
+        await this.addToSponsorMatrix(sponsorWallet, walletAddress, matrixPosition);
+        
+        // Update sponsor's direct referral count
+        await this.updateReferralNode(sponsorWallet, {
+          directReferralCount: sponsorNode.directReferralCount + 1,
+          totalTeamCount: sponsorNode.totalTeamCount + 1
+        });
+      }
+    }
+
+    // Create the referral node
+    return await this.createReferralNode({
+      walletAddress,
+      sponsorWallet: sponsorWallet || null,
+      placerWallet,
+      matrixPosition,
+      leftLeg: [],
+      middleLeg: [],
+      rightLeg: [],
+      directReferralCount: 0,
+      totalTeamCount: 0
+    });
+  }
+
+  // Add member to sponsor's matrix structure
+  async addToSponsorMatrix(sponsorWallet: string, memberWallet: string, position: number): Promise<void> {
+    const sponsorNode = await this.getReferralNode(sponsorWallet);
+    if (!sponsorNode) return;
+
+    let updatedLeg;
+    if (position <= 2) {
+      // Left leg (positions 0,1,2)
+      updatedLeg = { leftLeg: [...sponsorNode.leftLeg, memberWallet] };
+    } else if (position <= 5) {
+      // Middle leg (positions 3,4,5)
+      updatedLeg = { middleLeg: [...sponsorNode.middleLeg, memberWallet] };
+    } else {
+      // Right leg (positions 6,7,8)
+      updatedLeg = { rightLeg: [...sponsorNode.rightLeg, memberWallet] };
+    }
+
+    await this.updateReferralNode(sponsorWallet, updatedLeg);
+  }
+
+  // Update team counts up the referral chain
+  async updateTeamCountsUpline(walletAddress: string): Promise<void> {
+    const node = await this.getReferralNode(walletAddress);
+    if (!node || !node.sponsorWallet) return;
+
+    // Update sponsor's team count
+    const sponsorNode = await this.getReferralNode(node.sponsorWallet);
+    if (sponsorNode) {
+      await this.updateReferralNode(node.sponsorWallet, {
+        totalTeamCount: sponsorNode.totalTeamCount + 1
+      });
+
+      // Recursively update upline
+      await this.updateTeamCountsUpline(node.sponsorWallet);
+    }
   }
 
   // 19-Layer referral tracking operations
