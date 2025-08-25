@@ -58,89 +58,63 @@ export default function Referrals() {
   const totalTeamCount = userStats?.totalTeamCount || 0;
   const directReferrals = Number(userStats?.directReferralCount) || 0;
   
-  // Create proper 3x3 matrix layer data
-  const layerData = {
-    layers: (() => {
-      if (directReferrals === 0) return [];
-      
-      const layers = [];
-      let remainingMembers = directReferrals;
-      let layerNum = 1;
-      
-      // Layer 1: Max 3 members (direct positions)
-      const layer1Count = Math.min(3, remainingMembers);
-      layers.push({
-        layerNumber: 1,
-        memberCount: layer1Count,
-        members: [],
-        lastUpdated: new Date().toISOString()
+  // Fetch real layer members data
+  const { data: layerMembersData, isLoading: isLayerMembersLoading } = useQuery({
+    queryKey: ['/api/referrals/layer-members'],
+    queryFn: async () => {
+      const response = await fetch('/api/referrals/layer-members', {
+        headers: { 'X-Wallet-Address': walletAddress! }
       });
-      remainingMembers -= layer1Count;
-      
-      // Layer 2+: Spillover members distributed by 3^n capacity
-      layerNum = 2;
-      while (remainingMembers > 0 && layerNum <= 19) {
-        const maxCapacity = Math.pow(3, layerNum);
-        const layerCount = Math.min(maxCapacity, remainingMembers);
-        
-        layers.push({
-          layerNumber: layerNum,
-          memberCount: layerCount,
-          members: [],
-          lastUpdated: new Date().toISOString()
-        });
-        
-        remainingMembers -= layerCount;
-        layerNum++;
-      }
-      
-      return layers;
-    })(),
-    notifications: directReferrals > 0 ? [
-      {
-        id: 'notif-1',
-        triggerWallet: '0x' + '1'.repeat(40),
-        triggerLevel: 1,
-        layerNumber: 1,
-        rewardAmount: 10000, // 100.00 USDT in cents
-        status: 'pending',
-        timeRemaining: 24 * 60 * 60 * 1000,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        id: 'notif-2', 
-        triggerWallet: '0x' + '2'.repeat(40),
-        triggerLevel: 2,
-        layerNumber: 2,
-        rewardAmount: 15000, // 150.00 USDT in cents  
-        status: 'pending',
-        timeRemaining: 48 * 60 * 60 * 1000,
-        expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
-      }
-    ] : []
+      if (!response.ok) throw new Error('Failed to fetch layer members');
+      return response.json();
+    },
+    enabled: !!walletAddress,
+  });
+
+  // Fetch real reward notifications
+  const { data: notificationsData, isLoading: isNotificationsLoading } = useQuery({
+    queryKey: ['/api/notifications/rewards'],
+    queryFn: async () => {
+      const response = await fetch('/api/notifications/rewards', {
+        headers: { 'X-Wallet-Address': walletAddress! }
+      });
+      if (!response.ok) throw new Error('Failed to fetch notifications');
+      return response.json();
+    },
+    enabled: !!walletAddress,
+  });
+
+  // Create layer data structure from real data
+  const layerData = {
+    layers: layerMembersData?.layers || [],
+    notifications: notificationsData?.notifications || []
   };
   
   const isMatrixLoading = isStatsLoading;
-  const isLayersLoading = isStatsLoading;
+  const isLayersLoading = isLayerMembersLoading || isNotificationsLoading;
   
-  // Calculate countdown timers
+  // Calculate countdown timers with real data
   const [timers, setTimers] = useState<{ [key: string]: string }>({});
   
   useEffect(() => {
-    if (!layerData?.notifications) return;
+    if (!layerData?.notifications || layerData.notifications.length === 0) return;
     
     const interval = setInterval(() => {
       const newTimers: { [key: string]: string } = {};
       
       layerData.notifications.forEach((notif: any) => {
-        const timeRemaining = notif.timeRemaining;
-        if (timeRemaining > 0) {
-          const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
-          const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
-          const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
-          newTimers[notif.id] = `${hours}h ${minutes}m ${seconds}s`;
+        if (notif.status === 'pending' && notif.expiresAt) {
+          const timeRemaining = new Date(notif.expiresAt).getTime() - Date.now();
+          if (timeRemaining > 0) {
+            const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
+            const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+            newTimers[notif.id] = `${hours}h ${minutes}m ${seconds}s`;
+          } else {
+            newTimers[notif.id] = 'Expired';
+          }
         } else {
-          newTimers[notif.id] = 'Expired';
+          newTimers[notif.id] = notif.status === 'claimed' ? 'Claimed' : 'Expired';
         }
       });
       
@@ -521,10 +495,10 @@ export default function Referrals() {
                         </Badge>
                       </div>
                       
-                      {/* Sample members for this layer */}
+                      {/* Real members for this layer */}
                       <div className="space-y-2">
-                        {Array.from({length: Math.min(3, layer.memberCount)}, (_, i) => {
-                          const memberLevel = Math.floor(Math.random() * 5) + 1;
+                        {(layer.memberDetails || []).slice(0, 3).map((member: any, i: number) => {
+                          const memberLevel = member.currentLevel || 1;
                           const userCurrentLevel = userStats?.currentLevel || 1;
                           const hasUpgraded = memberLevel > 1;
                           const canClaimReward = hasUpgraded && userCurrentLevel >= memberLevel;
@@ -593,44 +567,63 @@ export default function Referrals() {
               </div>
               
               <div className="space-y-3">
-                {/* Sample upgrade notifications */}
-                <Alert className="border-yellow-600">
-                  <AlertCircle className="h-4 w-4 text-yellow-600" />
-                  <AlertDescription>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">Layer 2 member upgraded to Level 2</p>
-                        <p className="text-sm text-muted-foreground mt-1">Reward: $150.00 USDT</p>
-                      </div>
-                      <div className="text-right">
-                        <Badge variant="outline" className="border-yellow-600 text-yellow-600 mb-2">
-                          <Clock className="mr-1 h-3 w-3" />
-                          47h 12m left
-                        </Badge>
-                        <Button size="sm" className="btn-honey block">
-                          Upgrade to L2
-                        </Button>
-                      </div>
-                    </div>
-                  </AlertDescription>
-                </Alert>
-                
-                <Alert className="border-green-600">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  <AlertDescription>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">Layer 1 member upgraded to Level 1</p>
-                        <p className="text-sm text-muted-foreground mt-1">Reward: $100.00 USDT</p>
-                      </div>
-                      <div className="text-right">
-                        <Badge className="bg-green-600 text-white">
-                          Claimed
-                        </Badge>
-                      </div>
-                    </div>
-                  </AlertDescription>
-                </Alert>
+                {/* Real upgrade notifications */}
+                {layerData.notifications.length === 0 ? (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <p>No upgrade notifications yet</p>
+                    <p className="text-xs mt-1">Notifications will appear when team members upgrade their levels</p>
+                  </div>
+                ) : (
+                  layerData.notifications.map((notif: any) => (
+                    <Alert key={notif.id} className={
+                      notif.status === 'pending' ? 'border-yellow-600' : 
+                      notif.status === 'claimed' ? 'border-green-600' : 'border-red-600'
+                    }>
+                      {notif.status === 'pending' && <AlertCircle className="h-4 w-4 text-yellow-600" />}
+                      {notif.status === 'claimed' && <CheckCircle className="h-4 w-4 text-green-600" />}
+                      {notif.status === 'expired' && <Clock className="h-4 w-4 text-red-600" />}
+                      <AlertDescription>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">
+                              Layer {notif.layerNumber} member upgraded to Level {notif.triggerLevel}
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Reward: ${(notif.rewardAmount / 100).toFixed(2)} USDT
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              From: {notif.triggerUser?.username || `${notif.triggerWallet.slice(0, 6)}...${notif.triggerWallet.slice(-4)}`}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            {notif.status === 'pending' && (
+                              <>
+                                <Badge variant="outline" className="border-yellow-600 text-yellow-600 mb-2">
+                                  <Clock className="mr-1 h-3 w-3" />
+                                  {timers[notif.id] || 'Loading...'}
+                                </Badge>
+                                <Button size="sm" className="btn-honey block" data-testid={`button-upgrade-${notif.triggerLevel}`}>
+                                  Upgrade to L{notif.triggerLevel}
+                                </Button>
+                              </>
+                            )}
+                            {notif.status === 'claimed' && (
+                              <Badge className="bg-green-600 text-white">
+                                Claimed
+                              </Badge>
+                            )}
+                            {notif.status === 'expired' && (
+                              <Badge className="bg-red-600 text-white">
+                                Expired
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  ))
+                )}
               </div>
             </TabsContent>
           </Tabs>

@@ -2365,6 +2365,85 @@ export class DatabaseStorage implements IStorage {
     
     return expiredUsers.length;
   }
+  async getLayerMembersData(walletAddress: string): Promise<any[]> {
+    const layers = await db
+      .select()
+      .from(referralLayers)
+      .where(eq(referralLayers.walletAddress, walletAddress))
+      .orderBy(referralLayers.layerNumber);
+    
+    // Get member details for each layer
+    const layersWithMembers = await Promise.all(
+      layers.map(async (layer) => {
+        const memberDetails = await Promise.all(
+          layer.members.map(async (memberWallet) => {
+            const [user] = await db.select({
+              walletAddress: users.walletAddress,
+              username: users.username,
+              currentLevel: users.currentLevel,
+              memberActivated: users.memberActivated,
+              createdAt: users.createdAt
+            }).from(users).where(eq(users.walletAddress, memberWallet));
+            
+            return user || {
+              walletAddress: memberWallet,
+              username: `User_${memberWallet.slice(-4)}`,
+              currentLevel: 1,
+              memberActivated: true,
+              createdAt: new Date()
+            };
+          })
+        );
+        
+        return {
+          ...layer,
+          memberDetails
+        };
+      })
+    );
+    
+    return layersWithMembers;
+  }
+
+  async getRewardNotifications(walletAddress: string): Promise<any[]> {
+    const notifications = await db
+      .select({
+        id: rewardNotifications.id,
+        recipientWallet: rewardNotifications.recipientWallet,
+        triggerWallet: rewardNotifications.triggerWallet,
+        triggerLevel: rewardNotifications.triggerLevel,
+        layerNumber: rewardNotifications.layerNumber,
+        rewardAmount: rewardNotifications.rewardAmount,
+        status: rewardNotifications.status,
+        expiresAt: rewardNotifications.expiresAt,
+        claimedAt: rewardNotifications.claimedAt,
+        createdAt: rewardNotifications.createdAt
+      })
+      .from(rewardNotifications)
+      .where(eq(rewardNotifications.recipientWallet, walletAddress))
+      .orderBy(sql`${rewardNotifications.createdAt} DESC`);
+    
+    // Add trigger user details
+    const notificationsWithDetails = await Promise.all(
+      notifications.map(async (notif) => {
+        const [triggerUser] = await db.select({
+          walletAddress: users.walletAddress,
+          username: users.username
+        }).from(users).where(eq(users.walletAddress, notif.triggerWallet));
+        
+        return {
+          ...notif,
+          triggerUser: triggerUser || {
+            walletAddress: notif.triggerWallet,
+            username: `User_${notif.triggerWallet.slice(-4)}`
+          },
+          timeRemaining: Math.max(0, new Date(notif.expiresAt).getTime() - Date.now())
+        };
+      })
+    );
+    
+    return notificationsWithDetails;
+  }
 }
 
 export const storage = new DatabaseStorage();
