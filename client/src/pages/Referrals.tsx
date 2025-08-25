@@ -576,6 +576,9 @@ export default function Referrals() {
                             <p className="text-xs text-muted-foreground">
                               {layer.memberCount}/{Math.pow(3, layer.layerNumber)} positions filled
                             </p>
+                            <p className="text-xs text-honey">
+                              {layer.upgradedMembers || 0} upgraded to Level 2+
+                            </p>
                           </div>
                         </div>
                         <Badge variant={layer.memberCount === Math.pow(3, layer.layerNumber) ? 'default' : 'outline'}>
@@ -670,7 +673,7 @@ export default function Referrals() {
                         <div className="mt-4 pt-3 border-t border-border">
                           <div className="flex justify-between text-sm">
                             <span className="text-muted-foreground">
-                              Filled: {layer.memberCount}/{Math.pow(3, layer.layerNumber)}
+                              Filled: {layer.memberCount}/{Math.pow(3, layer.layerNumber)} | Upgraded: {layer.upgradedMembers || 0}
                             </span>
                             <span className="text-honey">
                               {((layer.memberCount / Math.pow(3, layer.layerNumber)) * 100).toFixed(1)}% Full
@@ -822,6 +825,7 @@ export default function Referrals() {
                         <div className="text-right">
                           <div className="text-2xl font-bold text-honey">{layer.memberCount}</div>
                           <div className="text-xs text-muted-foreground">members</div>
+                          <div className="text-xs text-honey">{layer.upgradedMembers || 0} upgraded</div>
                         </div>
                       </div>
                       {layer.memberCount > 0 && (
