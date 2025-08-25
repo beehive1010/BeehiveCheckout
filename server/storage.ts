@@ -464,12 +464,12 @@ export class DatabaseStorage implements IStorage {
   async createMembershipState(membership: InsertMembershipState): Promise<MembershipState> {
     const insertData = {
       walletAddress: membership.walletAddress.toLowerCase(),
-      levelsOwned: membership.levelsOwned || [],
+      levelsOwned: (membership.levelsOwned as number[]) || ([] as number[]),
       activeLevel: membership.activeLevel || 0,
     };
     const [state] = await db
       .insert(membershipState)
-      .values(insertData)
+      .values([insertData])
       .returning();
     return state;
   }
@@ -767,7 +767,7 @@ export class DatabaseStorage implements IStorage {
       }
       
       // Create reward (100% of NFT price - rewards equal NFT price)
-      const rewardAmount = (levelConfig.nftPriceUSDT / 100).toFixed(2); // Convert cents to dollars
+      const rewardAmount = levelConfig.nftPriceUSDT.toFixed(2); // levelConfig already in dollars
       
       await this.createRewardDistribution({
         recipientWallet: uplineWallet,
@@ -915,8 +915,13 @@ export class DatabaseStorage implements IStorage {
         return;
       }
 
-      // Direct referral reward: 100% of NFT price (Level 1 = $100, Level N = $50 + N×$50)
-      const directRewardAmount = level === 1 ? 100 : (50 + (level * 50));
+      // Direct referral reward: 100% of NFT price based on membershipLevels config
+      const levelConfig = await this.getLevelConfig(level);
+      if (!levelConfig) {
+        console.error(`Level config not found for level ${level}`);
+        return;
+      }
+      const directRewardAmount = levelConfig.nftPriceUSDT; // Use exact NFT price from config
       
       // Create reward entry for direct referrer
       await this.createRewardDistribution({
@@ -1891,8 +1896,8 @@ export class DatabaseStorage implements IStorage {
       websiteUrl: partner.websiteUrl,
       shortDescription: partner.shortDescription,
       longDescription: partner.longDescription,
-      tags: partner.tags || [],
-      chains: partner.chains || [],
+      tags: (partner.tags as string[]) || ([] as string[]),
+      chains: (partner.chains as string[]) || ([] as string[]),
       dappType: partner.dappType,
       featured: partner.featured || false,
       status: partner.status || 'draft',
@@ -1902,7 +1907,7 @@ export class DatabaseStorage implements IStorage {
     };
     const [createdPartner] = await db
       .insert(discoverPartners)
-      .values(insertData)
+      .values([insertData])
       .returning();
     return createdPartner;
   }
@@ -2123,15 +2128,15 @@ export class DatabaseStorage implements IStorage {
       sponsorWallet: referralNode.sponsorWallet?.toLowerCase() || null,
       placerWallet: referralNode.placerWallet?.toLowerCase() || null,
       matrixPosition: referralNode.matrixPosition || 0,
-      leftLeg: referralNode.leftLeg || [],
-      middleLeg: referralNode.middleLeg || [],
-      rightLeg: referralNode.rightLeg || [],
+      leftLeg: (referralNode.leftLeg as string[]) || ([] as string[]),
+      middleLeg: (referralNode.middleLeg as string[]) || ([] as string[]),
+      rightLeg: (referralNode.rightLeg as string[]) || ([] as string[]),
       directReferralCount: referralNode.directReferralCount || 0,
       totalTeamCount: referralNode.totalTeamCount || 0,
     };
     const [created] = await db
       .insert(referralNodes)
-      .values(insertData)
+      .values([insertData])
       .returning();
     return created;
   }
