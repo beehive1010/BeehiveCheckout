@@ -1197,35 +1197,32 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateEarningsWallet(walletAddress: string, updates: any): Promise<any> {
-    const setParts = [];
-    const values = [walletAddress.toLowerCase()];
-    let paramIndex = 2;
+    const setters: any[] = [];
 
     if (updates.totalEarnings !== undefined) {
-      setParts.push(`total_earnings = $${paramIndex++}`);
-      values.push(updates.totalEarnings);
+      setters.push(sql`total_earnings = ${updates.totalEarnings}`);
     }
     if (updates.referralEarnings !== undefined) {
-      setParts.push(`referral_earnings = $${paramIndex++}`);
-      values.push(updates.referralEarnings);
+      setters.push(sql`referral_earnings = ${updates.referralEarnings}`);
     }
     if (updates.levelEarnings !== undefined) {
-      setParts.push(`level_earnings = $${paramIndex++}`);
-      values.push(updates.levelEarnings);
+      setters.push(sql`level_earnings = ${updates.levelEarnings}`);
     }
     if (updates.pendingRewards !== undefined) {
-      setParts.push(`pending_rewards = $${paramIndex++}`);
-      values.push(updates.pendingRewards);
+      setters.push(sql`pending_rewards = ${updates.pendingRewards}`);
     }
     if (updates.lastRewardAt !== undefined) {
-      setParts.push(`last_reward_at = $${paramIndex++}`);
-      values.push(updates.lastRewardAt);
+      setters.push(sql`last_reward_at = ${updates.lastRewardAt}`);
     }
 
-    if (setParts.length === 0) return null;
+    if (setters.length === 0) return null;
 
-    const queryStr = `UPDATE earnings_wallet SET ${setParts.join(', ')} WHERE wallet_address = $1 RETURNING *`;
-    const result = await db.execute(sql.raw(queryStr));
+    const result = await db.execute(sql`
+      UPDATE earnings_wallet 
+      SET ${sql.join(setters, sql`, `)}
+      WHERE wallet_address = ${walletAddress.toLowerCase()}
+      RETURNING *
+    `);
     
     return result.rows[0];
   }
