@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, timestamp, jsonb, numeric } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp, jsonb, numeric, primaryKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -79,7 +79,20 @@ export const referralLayers = pgTable("referral_layers", {
   memberCount: integer("member_count").default(0).notNull(),
   members: jsonb("members").$type<string[]>().default([]).notNull(), // Array of wallet addresses in this layer
   lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  placementTypes: text("placement_types"), // Track placement type information
 });
+
+// Matrix layers table - tracks the matrix structure
+export const matrixLayers = pgTable("matrix_layers", {
+  walletAddress: varchar("wallet_address", { length: 42 }).notNull().references(() => users.walletAddress),
+  layer: integer("layer").notNull(),
+  members: jsonb("members").$type<string[]>().default([]),
+  memberCount: integer("member_count").default(0),
+  maxMembers: integer("max_members"),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.walletAddress, table.layer] }),
+}));
 
 // Reward notifications with countdown timers
 export const rewardNotifications = pgTable("reward_notifications", {
@@ -331,6 +344,15 @@ export const insertReferralLayerSchema = createInsertSchema(referralLayers).pick
   layerNumber: true,
   memberCount: true,
   members: true,
+  placementTypes: true,
+});
+
+export const insertMatrixLayerSchema = createInsertSchema(matrixLayers).pick({
+  walletAddress: true,
+  layer: true,
+  members: true,
+  memberCount: true,
+  maxMembers: true,
 });
 
 export const insertRewardNotificationSchema = createInsertSchema(rewardNotifications).pick({
@@ -568,6 +590,9 @@ export type ReferralNode = typeof referralNodes.$inferSelect;
 
 export type InsertReferralLayer = z.infer<typeof insertReferralLayerSchema>;
 export type ReferralLayer = typeof referralLayers.$inferSelect;
+
+export type InsertMatrixLayer = z.infer<typeof insertMatrixLayerSchema>;
+export type MatrixLayer = typeof matrixLayers.$inferSelect;
 
 export type InsertRewardNotification = z.infer<typeof insertRewardNotificationSchema>;
 export type RewardNotification = typeof rewardNotifications.$inferSelect;
