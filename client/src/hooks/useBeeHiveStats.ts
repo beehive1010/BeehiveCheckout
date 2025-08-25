@@ -30,9 +30,12 @@ interface UserReferralStats {
 
 export function useCompanyStats() {
   return useQuery<CompanyStats>({
-    queryKey: ['/api/beehive/dashboard-stats'],
+    queryKey: ['/api/beehive/company-stats'],
     queryFn: async () => {
-      const response = await fetch('/api/beehive/dashboard-stats', { credentials: 'include' });
+      const response = await fetch('/api/beehive/company-stats', { 
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      });
       if (!response.ok) {
         // Fallback to mock data if API fails
         return {
@@ -56,12 +59,15 @@ export function useUserReferralStats() {
   const { walletAddress } = useWallet();
 
   return useQuery<UserReferralStats>({
-    queryKey: ['/api/beehive/stats', walletAddress],
+    queryKey: ['/api/beehive/user-stats', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
-      const response = await fetch('/api/beehive/stats', { 
+      const response = await fetch(`/api/beehive/user-stats/${walletAddress}`, { 
         credentials: 'include',
-        headers: { 'X-Wallet-Address': walletAddress }
+        headers: { 
+          'X-Wallet-Address': walletAddress,
+          'Content-Type': 'application/json'
+        }
       });
       if (!response.ok) {
         // Return real data structure with test data

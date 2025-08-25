@@ -95,16 +95,6 @@ export default function Referrals() {
     notifications: notificationsData?.notifications || []
   };
   
-  // Debug logs
-  console.log('🔍 Layer Members Data:', layerMembersData);
-  console.log('🔍 Notifications Data:', notificationsData); 
-  console.log('🔍 Final Layer Data:', layerData);
-  console.log('🔍 Loading states:', { isLayerMembersLoading, isNotificationsLoading, isLayersLoading });
-  console.log('🔍 Wallet Address:', walletAddress);
-  console.log('🔍 Query Enabled:', !!walletAddress);
-  
-  // Clean up debug logs after verification
-  // TODO: Remove these logs once data display is confirmed working
   
   // Calculate countdown timers with real data
   const [timers, setTimers] = useState<{ [key: string]: string }>({});
