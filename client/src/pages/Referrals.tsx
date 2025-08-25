@@ -153,16 +153,15 @@ export default function Referrals() {
   // Calculate referral statistics with proper reward calculation
   const directReferralCount = Number(userStats?.directReferralCount) || 0;
   const layer1Members = Math.min(3, directReferralCount); // Layer 1 最多3个成员
-  const calculatedEarnings = layer1Members * 100; // 每个成员100 USDT
-  const calculatedCommissions = calculatedEarnings * 0.1; // 10%作为pending commissions
+  const calculatedEarnings = layer1Members * 100; // 每个成员100 USDT，100%奖励
   
   const referralStats = {
     directReferrals: directReferralCount,
     totalTeam: userStats?.totalTeamCount || 0,
     totalEarnings: calculatedEarnings,
     monthlyEarnings: calculatedEarnings,
-    pendingCommissions: calculatedCommissions,
-    nextPayout: calculatedCommissions > 0 ? 'Next Monday' : 'TBA'
+    pendingCommissions: calculatedEarnings, // 100%奖励，不是10%佣金
+    nextPayout: calculatedEarnings > 0 ? 'Next Monday' : 'TBA'
   };
 
   // Get matrix position and referral data
