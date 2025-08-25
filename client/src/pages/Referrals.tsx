@@ -127,14 +127,23 @@ export default function Referrals() {
   // Use real earnings data from database when available
   const directReferralCountForEarnings = Number(userStats?.directReferralCount) || 0;
   
+  // Calculate real unclaimed rewards from notifications
+  const unclaimedRewards = layerData.notifications
+    .filter((notif: any) => notif.status === 'pending')
+    .reduce((total: number, notif: any) => total + (notif.rewardAmount / 100), 0); // Convert from cents
+  
+  const totalClaimedRewards = layerData.notifications
+    .filter((notif: any) => notif.status === 'claimed')
+    .reduce((total: number, notif: any) => total + (notif.rewardAmount / 100), 0); // Convert from cents
+  
   // Check if user has real earnings data, otherwise use calculated display values
   const hasRealEarnings = userStats?.totalEarnings !== undefined && userStats?.totalEarnings !== null;
   const realTotalEarnings = Number(userStats?.totalEarnings || 0);
   const realPendingCommissions = Number(userStats?.pendingCommissions || 0);
   
-  // For display: show real data if available, otherwise calculate based on team size
-  const displayEarnings = hasRealEarnings ? realTotalEarnings : (Math.min(3, directReferralCountForEarnings) * 100);
-  const displayCommissions = hasRealEarnings ? realPendingCommissions : displayEarnings;
+  // Use real rewards data when available, otherwise fall back to calculation
+  const displayEarnings = totalClaimedRewards > 0 ? totalClaimedRewards : (hasRealEarnings ? realTotalEarnings : (Math.min(3, directReferralCountForEarnings) * 100));
+  const displayCommissions = unclaimedRewards > 0 ? unclaimedRewards : displayEarnings;
   
   const referralStats = {
     directReferrals: directReferralCountForEarnings,
@@ -142,7 +151,8 @@ export default function Referrals() {
     totalEarnings: displayEarnings,
     monthlyEarnings: displayEarnings,
     pendingCommissions: displayCommissions,
-    nextPayout: displayCommissions > 0 ? 'Next Monday' : 'TBA'
+    nextPayout: displayCommissions > 0 ? '72h after upgrade' : 'TBA',
+    unclaimedCount: layerData.notifications.filter((notif: any) => notif.status === 'pending').length
   };
 
   // Get matrix position and referral data
@@ -390,10 +400,17 @@ export default function Referrals() {
               <div className="text-3xl font-bold text-green-400 mb-2">
                 ${isStatsLoading ? '...' : referralStats.pendingCommissions.toFixed(2)} USDT
               </div>
-              <p className="text-muted-foreground text-sm mb-4">
-                Next payout: {isStatsLoading ? '...' : referralStats.nextPayout}
+              <p className="text-muted-foreground text-sm mb-2">
+                {referralStats.unclaimedCount > 0 ? `${referralStats.unclaimedCount} pending reward${referralStats.unclaimedCount > 1 ? 's' : ''}` : 'No pending rewards'}
               </p>
-              <Button className="btn-honey w-full" data-testid="button-claim-rewards">
+              <p className="text-muted-foreground text-xs mb-4">
+                Timer expires: {isStatsLoading ? '...' : referralStats.nextPayout}
+              </p>
+              <Button 
+                className={`w-full ${referralStats.unclaimedCount > 0 ? 'btn-honey' : 'bg-muted text-muted-foreground'}`} 
+                data-testid="button-claim-rewards"
+                disabled={referralStats.unclaimedCount === 0}
+              >
                 <i className="fas fa-dollar-sign mr-2"></i>
                 Withdraw Rewards
               </Button>
@@ -435,6 +452,12 @@ export default function Referrals() {
                 <span className="text-muted-foreground">Total Earnings</span>
                 <span className="text-green-400 font-semibold">
                   ${isStatsLoading ? '...' : referralStats.totalEarnings.toFixed(2)} USDT
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Available Rewards</span>
+                <span className="text-honey font-semibold">
+                  ${isStatsLoading ? '...' : referralStats.pendingCommissions.toFixed(2)} USDT
                 </span>
               </div>
               <Button variant="outline" className="w-full mt-4" data-testid="button-view-matrix">
