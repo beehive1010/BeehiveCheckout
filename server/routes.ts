@@ -1138,13 +1138,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Check for pending reward distributions to determine timer
+      let nextUpgradeTimer = 'No active timer';
+      
+      // If user has pending rewards, show a relevant timer message
+      if (pendingRewards > 0) {
+        nextUpgradeTimer = 'Rewards available to claim';
+      } else if (user?.memberActivated && membership?.activeLevel > 0) {
+        nextUpgradeTimer = 'No pending rewards';
+      }
+
       res.json({
         directReferralCount,
         totalTeamCount,
         totalEarnings: totalEarnings.toFixed(2),
         monthlyEarnings: monthlyEarnings.toFixed(2),
         pendingCommissions: pendingRewards.toFixed(2),
-        nextPayout: 'TBA', // Could be calculated from pending rewards
+        nextPayout: nextUpgradeTimer, // Real timer from upgrade notifications
         currentLevel: user?.currentLevel || 0,
         memberActivated: user?.memberActivated || false,
         matrixLevel: matrixPosition?.matrixLevel || 0,

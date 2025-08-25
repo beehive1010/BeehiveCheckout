@@ -152,8 +152,8 @@ export default function Referrals() {
     totalTeam: userStats?.totalTeamCount || 0,
     totalEarnings: Number(userStats?.totalEarnings || 0),
     monthlyEarnings: Number(userStats?.monthlyEarnings || 0),
-    pendingCommissions: Number(userStats?.pendingCommissions || 0),
-    nextPayout: userStats?.nextPayout || 'TBA',
+    pendingCommissions: Number(userStats?.pendingCommissions || 0), // Use real pending rewards from API
+    nextPayout: userStats?.nextPayout === 'TBA' ? 'No active timer' : userStats?.nextPayout, // Use real upgrade timer
     unclaimedCount: layerData.notifications.filter((notif: any) => notif.status === 'pending').length
   };
 
