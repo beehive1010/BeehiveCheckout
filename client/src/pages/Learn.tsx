@@ -14,12 +14,27 @@ export default function Learn() {
   // Fetch user's course progress
   const { data: userProgress = [], isLoading: isProgressLoading } = useQuery<any[]>({
     queryKey: ['/api/education/progress'],
+    queryFn: async () => {
+      if (!userData?.user?.walletAddress) throw new Error('No wallet address');
+      const response = await fetch('/api/education/progress', {
+        headers: {
+          'X-Wallet-Address': userData.user.walletAddress,
+        },
+      });
+      if (!response.ok) throw new Error('Failed to fetch progress');
+      return response.json();
+    },
     enabled: !!userData?.user?.walletAddress
   });
 
   // Fetch all available courses
   const { data: allCourses = [], isLoading: isCoursesLoading } = useQuery<any[]>({
-    queryKey: ['/api/education/courses']
+    queryKey: ['/api/education/courses'],
+    queryFn: async () => {
+      const response = await fetch('/api/education/courses');
+      if (!response.ok) throw new Error('Failed to fetch courses');
+      return response.json();
+    }
   });
 
   // Calculate progress statistics
