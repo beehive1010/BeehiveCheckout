@@ -19,18 +19,45 @@ export default function Referrals() {
   // Fetch user referral statistics
   const { data: userStats, isLoading: isStatsLoading } = useQuery<any>({
     queryKey: ['/api/beehive/user-stats', walletAddress],
+    queryFn: async () => {
+      if (!walletAddress) throw new Error('No wallet address');
+      const response = await fetch(`/api/beehive/user-stats/${walletAddress}`, { 
+        credentials: 'include',
+        headers: { 'x-wallet-address': walletAddress }
+      });
+      if (!response.ok) throw new Error('Failed to fetch user stats');
+      return response.json();
+    },
     enabled: !!walletAddress
   });
 
   // Fetch user's global matrix position data
   const { data: globalMatrixData, isLoading: isMatrixLoading } = useQuery<any>({
     queryKey: ['/api/beehive/global-matrix-position', walletAddress],
+    queryFn: async () => {
+      if (!walletAddress) throw new Error('No wallet address');
+      const response = await fetch(`/api/beehive/global-matrix-position/${walletAddress}`, { 
+        credentials: 'include',
+        headers: { 'x-wallet-address': walletAddress }
+      });
+      if (!response.ok) throw new Error('Failed to fetch global matrix position');
+      return response.json();
+    },
     enabled: !!walletAddress
   });
   
   // Fetch 19-layer referral tree and notifications
   const { data: layerData, isLoading: isLayersLoading } = useQuery<any>({
     queryKey: ['/api/referrals/layers', walletAddress],
+    queryFn: async () => {
+      if (!walletAddress) throw new Error('No wallet address');
+      const response = await fetch(`/api/referrals/layers/${walletAddress}`, { 
+        credentials: 'include',
+        headers: { 'x-wallet-address': walletAddress }
+      });
+      if (!response.ok) throw new Error('Failed to fetch referral layers');
+      return response.json();
+    },
     enabled: !!walletAddress,
     refetchInterval: 60000 // Refresh every minute for countdown timers
   });
