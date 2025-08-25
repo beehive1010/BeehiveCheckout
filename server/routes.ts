@@ -26,6 +26,7 @@ import {
   users,
   membershipState,
   globalMatrixPosition,
+  referralNodes,
   bccBalances,
   earningsWallet,
   rewardDistributions,
@@ -37,7 +38,7 @@ import { z } from "zod";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import { eq, and, desc, gte } from "drizzle-orm";
+import { eq, and, or, desc, gte } from "drizzle-orm";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // JWT secret for authentication
