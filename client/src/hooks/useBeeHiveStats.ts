@@ -9,20 +9,21 @@ interface CompanyStats {
 }
 
 interface UserReferralStats {
-  directReferrals: number;
-  totalTeam: number;
-  totalEarnings: number;
-  pendingRewards: number;
-  directReferralsList: Array<{
-    walletAddress: string;
-    username: string;
-    level: number;
-    joinDate: string;
-    earnings: number;
-  }>;
+  directReferralCount: string | number;
+  totalTeamCount: number;
+  totalEarnings: string | number;
+  monthlyEarnings: string | number;
+  pendingCommissions: string | number;
+  nextPayout: string;
+  currentLevel: number;
+  memberActivated: boolean;
+  matrixLevel: number;
+  positionIndex: number;
+  levelsOwned: number[];
   downlineMatrix: Array<{
     level: number;
     members: number;
+    upgraded: number;
     placements: number;
   }>;
 }
