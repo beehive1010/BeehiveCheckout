@@ -382,15 +382,33 @@ export default function Referrals() {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Matrix Position</span>
-                <span className="text-honey font-semibold">Active</span>
+                <span className="text-honey font-semibold">
+                  {isStatsLoading ? '...' : (userStats?.memberActivated ? 'Active' : 'Inactive')}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Spillover Bonus</span>
-                <span className="text-green-400 font-semibold">+25 USDT</span>
+                <span className="text-muted-foreground">Current Level</span>
+                <span className="text-honey font-semibold">
+                  Level {isStatsLoading ? '...' : (userStats?.currentLevel || 1)}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Matrix Level</span>
-                <span className="text-honey font-semibold">Level 2</span>
+                <span className="text-muted-foreground">Matrix Position</span>
+                <span className="text-muted-foreground">
+                  {isStatsLoading ? '...' : `${userStats?.matrixLevel || 0}.${userStats?.positionIndex || 0}`}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Team Size</span>
+                <span className="text-green-400 font-semibold">
+                  {isStatsLoading ? '...' : (userStats?.totalTeamCount || 0)} members
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Total Earnings</span>
+                <span className="text-green-400 font-semibold">
+                  ${isStatsLoading ? '...' : (Number(userStats?.totalEarnings || 0).toFixed(2))} USDT
+                </span>
               </div>
               <Button variant="outline" className="w-full mt-4" data-testid="button-view-matrix">
                 <i className="fas fa-project-diagram mr-2"></i>
