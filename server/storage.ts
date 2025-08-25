@@ -777,58 +777,58 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // NEW: Global Matrix Placement Algorithm
-  // BFS placement algorithm - places members by join time in first available slot
+  // NEW: 3×3 Global Matrix Placement Algorithm with Spillover
   async findGlobalMatrixPlacement(sponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string }> {
-    // Level 1: exactly 3 seats (fixed cap)
-    const level1Occupied = await db.select()
+    // 检查sponsor是否还有直推空位（最多3个）
+    const sponsorDirectReferrals = await db.select()
       .from(globalMatrixPosition)
-      .where(eq(globalMatrixPosition.matrixLevel, 1))
-      .orderBy(globalMatrixPosition.positionIndex);
+      .where(eq(globalMatrixPosition.directSponsorWallet, sponsorWallet.toLowerCase()));
     
-    if (level1Occupied.length < 3) {
-      // Place in Level 1 (positions 0, 1, 2)
+    if (sponsorDirectReferrals.length < 3) {
+      // Sponsor还有直推空位，直接分配给sponsor
       return {
         matrixLevel: 1,
-        positionIndex: level1Occupied.length,
-        placementSponsorWallet: sponsorWallet // Level 1 uses direct sponsor
+        positionIndex: sponsorDirectReferrals.length + 1, // position 1, 2, 3
+        placementSponsorWallet: sponsorWallet
       };
     }
     
-    // Level 2+: BFS spillover placement (3^level positions each)
-    for (let level = 2; level <= 19; level++) {
-      const maxPositionsForLevel = Math.pow(3, level); // 9, 27, 81, 243, etc.
-      
-      const existingPositions = await db.select()
+    // Sponsor满了（3个直推），需要spillover - 使用BFS找最早的有空位的成员
+    return await this.findSpilloverPlacement(sponsorWallet);
+  }
+
+  // BFS spillover placement - 找到最早加入且还有空位的成员
+  async findSpilloverPlacement(originalSponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string }> {
+    // 获取所有成员，按加入时间排序
+    const allMembers = await db.select()
+      .from(globalMatrixPosition)
+      .orderBy(globalMatrixPosition.joinedAt);
+    
+    // BFS：从最早的成员开始查找有空位的位置
+    for (const member of allMembers) {
+      const memberDirectReferrals = await db.select()
         .from(globalMatrixPosition)
-        .where(eq(globalMatrixPosition.matrixLevel, level))
-        .orderBy(globalMatrixPosition.positionIndex);
+        .where(eq(globalMatrixPosition.directSponsorWallet, member.walletAddress));
       
-      if (existingPositions.length < maxPositionsForLevel) {
-        // Found space in this level
-        const nextPositionIndex = existingPositions.length;
-        
-        // BFS: Find earliest member who can place this person (by join time)
-        let placementWallet = sponsorWallet;
-        
-        const allMembers = await db.select()
-          .from(globalMatrixPosition)
-          .orderBy(sql`joined_at`); // BFS by join time
-        
-        // Use first available member as placement sponsor (simplified BFS)
-        if (allMembers.length > 0) {
-          placementWallet = allMembers[0].walletAddress;
-        }
-        
+      if (memberDirectReferrals.length < 3) {
+        // 找到有空位的成员
         return {
-          matrixLevel: level,
-          positionIndex: nextPositionIndex,
-          placementSponsorWallet: placementWallet
+          matrixLevel: member.matrixLevel + 1, // 比placement sponsor低一层
+          positionIndex: memberDirectReferrals.length + 1,
+          placementSponsorWallet: member.walletAddress
         };
       }
     }
     
-    throw new Error('Global matrix is full (all 19 levels filled)');
+    // 如果所有现有成员都满了，创建新的层级
+    const maxLevel = Math.max(...allMembers.map(m => m.matrixLevel));
+    return {
+      matrixLevel: maxLevel + 1,
+      positionIndex: 1,
+      placementSponsorWallet: originalSponsorWallet // fallback
+    };
+  }
+    
   }
 
   // Helper: Get upline wallets who should receive rewards for this purchase
