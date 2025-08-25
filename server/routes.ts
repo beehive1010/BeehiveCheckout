@@ -1106,7 +1106,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/referrals/layer-members", requireWallet, async (req: any, res) => {
     try {
       const layersWithMembers = await storage.getLayerMembersData(req.walletAddress);
-      res.json({ layers: layersWithMembers });
+      
+      // Get upgrade notifications using direct database query
+      const notificationsResult = await db.execute(sql`
+        SELECT 
+          un.*,
+          u.username as trigger_username
+        FROM upgrade_notifications un
+        LEFT JOIN users u ON u.wallet_address = un.trigger_wallet
+        WHERE un.wallet_address = ${req.walletAddress}
+        ORDER BY un.created_at DESC
+      `);
+      
+      res.json({ 
+        layers: layersWithMembers,
+        notifications: notificationsResult.rows || []
+      });
     } catch (error) {
       console.error('Get layer members error:', error);
       res.status(500).json({ error: 'Failed to get layer members data' });
