@@ -2650,10 +2650,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Test endpoint to verify server updates
-  app.get("/api/admin/test-server-update", (req, res) => {
-    res.json({ message: "Server updated successfully", timestamp: new Date().toISOString() });
-  });
 
   // Platform Users routes - For managing regular Web3 users
   app.get("/api/admin/platform-users", requireAdminAuth, requireAdminPermission(['users.read']), async (req: any, res) => {
