@@ -84,15 +84,15 @@ export default function Referrals() {
         // Fallback data: API被Vite覆盖，使用真实upgrade notifications
         return {
           notifications: [
-            // Layer 1 前2个升级: Level 1用户已获得400 USDT (绿色✅)
+            // Layer 1 前2个升级: Level 1用户符合条件，200 USDT waiting claim (绿色✅)
             {
               id: 'notif_earned_1',
               layerNumber: 1,
               triggerLevel: 1, // L1用户符合条件
-              rewardAmount: 40000, // 400 USDT (2×200×100)
+              rewardAmount: 20000, // 200 USDT (前2个升级，每个100×2=200×100)
               triggerUsername: 'First 2 Members',
               triggerWallet: '0x1111...1111',
-              status: 'claimed',
+              status: 'waiting_claim', // 等待领取状态，显示绿色
               expiredAt: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString()
             },
             // Layer 1 第3个升级: 需要用户升级L2解锁100 USDT (红色⏰)
@@ -700,10 +700,12 @@ export default function Referrals() {
                 ) : (
                   layerData.notifications.map((notif: any) => (
                     <Alert key={notif.id} className={
-                      notif.status === 'pending' ? 'border-yellow-600' : 
+                      notif.status === 'pending' ? 'border-red-600' : 
+                      notif.status === 'waiting_claim' ? 'border-green-600' :
                       notif.status === 'claimed' ? 'border-green-600' : 'border-red-600'
                     }>
-                      {notif.status === 'pending' && <AlertCircle className="h-4 w-4 text-yellow-600" />}
+                      {notif.status === 'pending' && <Clock className="h-4 w-4 text-red-600" />}
+                      {notif.status === 'waiting_claim' && <CheckCircle className="h-4 w-4 text-green-600" />}
                       {notif.status === 'claimed' && <CheckCircle className="h-4 w-4 text-green-600" />}
                       {notif.status === 'expired' && <Clock className="h-4 w-4 text-red-600" />}
                       <AlertDescription>
@@ -727,6 +729,12 @@ export default function Referrals() {
                             </p>
                           </div>
                           <div className="text-right">
+                            {notif.status === 'waiting_claim' && (
+                              <Badge className="bg-green-600 text-white mb-2">
+                                <CheckCircle className="mr-1 h-3 w-3" />
+                                Ready to Claim
+                              </Badge>
+                            )}
                             {notif.status === 'pending' && (
                               <>
                                 {/* Check if user needs to upgrade */}
@@ -737,7 +745,7 @@ export default function Referrals() {
                                   </Badge>
                                 ) : (
                                   <>
-                                    <Badge variant="outline" className="border-yellow-600 text-yellow-600 mb-2">
+                                    <Badge variant="outline" className="border-red-600 text-red-600 mb-2">
                                       <Clock className="mr-1 h-3 w-3" />
                                       {timers[notif.id] || 'Loading...'}
                                     </Badge>
