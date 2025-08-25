@@ -265,6 +265,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createUser({
         ...body,
         secondaryPasswordHash: hashedPassword,
+        referrerWallet: body.referrerWallet, // Ensure referrer wallet is saved
         registeredAt: new Date(),
         registrationExpiresAt,
         registrationTimeoutHours: timeoutHours,
@@ -493,8 +494,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Process referral rewards (100 USDT direct referral reward)
       await storage.processReferralRewards(req.walletAddress, 1);
 
-      // Create referral node in 3x3 matrix if not exists
-      await storage.createOrUpdateReferralNode(req.walletAddress);
+      // Place member in global 3x3 matrix
+      const existingPosition = await storage.getGlobalMatrixPosition(req.walletAddress);
+      if (!existingPosition) {
+        const sponsorWallet = user?.referrerWallet || '0x0000000000000000000000000000000000000001';
+        const placement = await storage.findGlobalMatrixPlacement(sponsorWallet);
+        await storage.createGlobalMatrixPosition({
+          walletAddress: req.walletAddress,
+          matrixLevel: placement.matrixLevel,
+          positionIndex: placement.positionIndex,
+          directSponsorWallet: sponsorWallet,
+          placementSponsorWallet: placement.placementSponsorWallet,
+          joinedAt: new Date(),
+        });
+      }
       
       // Calculate 19-layer tree for the new member
       await storage.calculateAndStore19Layers(req.walletAddress);
@@ -1672,10 +1685,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           currentLevel: level,
           activationAt: new Date(),
         });
+        
+        // Place member in global 3x3 matrix when first activated
+        const existingPosition = await storage.getGlobalMatrixPosition(req.walletAddress);
+        if (!existingPosition) {
+          const sponsorWallet = user?.referrerWallet || '0x0000000000000000000000000000000000000001';
+          const placement = await storage.findGlobalMatrixPlacement(sponsorWallet);
+          await storage.createGlobalMatrixPosition({
+            walletAddress: req.walletAddress,
+            matrixLevel: placement.matrixLevel,
+            positionIndex: placement.positionIndex,
+            directSponsorWallet: sponsorWallet,
+            placementSponsorWallet: placement.placementSponsorWallet,
+            joinedAt: new Date(),
+          });
+        }
       }
 
       // Process referral rewards (instant + timed)
       await storage.processReferralRewards(req.walletAddress, level);
+      
+      // Process global matrix rewards for levels > 1
+      if (level > 1) {
+        await storage.processGlobalMatrixRewards(req.walletAddress, level);
+      }
 
       res.json({ success: true, order, message: 'Membership purchased and rewards processed' });
     } catch (error) {
