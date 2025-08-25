@@ -1276,49 +1276,6 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  // Company Statistics with real data calculations
-  async getCompanyStats(): Promise<any> {
-    // Get total members
-    const totalMembersResult = await db
-      .select({ totalMembers: sql<number>`COUNT(*)` })
-      .from(users)
-      .where(eq(users.memberActivated, true));
-    
-    // Get level distribution
-    const levelDistributionResult = await db
-      .select({
-        level: membershipState.activeLevel,
-        count: sql<number>`COUNT(*)`
-      })
-      .from(membershipState)
-      .where(gt(membershipState.activeLevel, 0))
-      .groupBy(membershipState.activeLevel)
-      .orderBy(membershipState.activeLevel);
-
-    // Calculate real total rewards from earnings wallets
-    const totalRewardsResult = await db
-      .select({ 
-        totalRewards: sql<number>`COALESCE(SUM(CAST(${earningsWallet.totalEarnings} AS DECIMAL)), 0)` 
-      })
-      .from(earningsWallet);
-
-    // Calculate real pending rewards from earnings wallets
-    const pendingRewardsResult = await db
-      .select({ 
-        pendingRewards: sql<number>`COALESCE(SUM(CAST(${earningsWallet.pendingRewards} AS DECIMAL)), 0)` 
-      })
-      .from(earningsWallet);
-
-    return {
-      totalMembers: totalMembersResult[0]?.totalMembers || 0,
-      levelDistribution: levelDistributionResult.map(row => ({
-        level: row.level,
-        count: row.count
-      })),
-      totalRewards: Math.floor(totalRewardsResult[0]?.totalRewards || 0),
-      pendingRewards: Math.floor(pendingRewardsResult[0]?.pendingRewards || 0)
-    };
-  }
 
 
   // Enhanced earnings reward method that syncs with reward distribution system
@@ -2667,7 +2624,7 @@ export class DatabaseStorage implements IStorage {
         );
         
         // Calculate upgrade statistics
-        const upgradedCount = memberDetails.filter(member => member.currentLevel > 1).length;
+        const upgradedCount = memberDetails.filter(member => member.currentLevel >= 1).length;
         const activatedCount = memberDetails.filter(member => member.memberActivated).length;
         
         return {
