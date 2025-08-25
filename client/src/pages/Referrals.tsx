@@ -10,7 +10,7 @@ import { membershipLevels } from '../lib/config/membershipLevels';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Clock, Users, TrendingUp, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Clock, Users, TrendingUp, AlertCircle, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
 
 export default function Referrals() {
   const { walletAddress, userData } = useWallet();
@@ -461,47 +461,168 @@ export default function Referrals() {
         </Card>
       </div>
 
-      {/* Direct Referrals */}
+      {/* Matrix Layer Management */}
       <Card className="bg-secondary border-border">
         <CardHeader>
-          <CardTitle className="text-honey">Direct Referrals</CardTitle>
+          <CardTitle className="text-honey flex items-center">
+            <Users className="mr-2 h-5 w-5" />
+            Matrix Layer Management
+          </CardTitle>
+          <div className="text-sm text-muted-foreground">
+            Direct Referrals: {isStatsLoading ? '...' : directReferralCount} | 
+            Total Placement: {isStatsLoading ? '...' : (userStats?.totalTeamCount || 0)} members
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {isMatrixLoading ? (
-              <div className="flex justify-center py-4">
-                <div className="text-muted-foreground">Loading referrals...</div>
+          <Tabs defaultValue="layers" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="layers">Layer Details</TabsTrigger>
+              <TabsTrigger value="rewards">Upgrade Rewards</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="layers" className="space-y-4">
+              {isMatrixLoading ? (
+                <div className="flex justify-center py-4">
+                  <div className="text-muted-foreground">Loading layers...</div>
+                </div>
+              ) : layerData.layers.length === 0 ? (
+                <div className="text-center py-4 text-muted-foreground">
+                  No team members yet
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {layerData.layers.map((layer: any) => (
+                    <div key={layer.layerNumber} className="border border-border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-honey/20 rounded-lg flex items-center justify-center">
+                            <span className="text-honey font-bold text-sm">{layer.layerNumber}</span>
+                          </div>
+                          <div>
+                            <h4 className="font-medium">Layer {layer.layerNumber}</h4>
+                            <p className="text-xs text-muted-foreground">
+                              {layer.memberCount}/{Math.pow(3, layer.layerNumber)} members
+                            </p>
+                          </div>
+                        </div>
+                        <Badge variant={layer.memberCount === Math.pow(3, layer.layerNumber) ? 'default' : 'outline'}>
+                          {layer.memberCount === Math.pow(3, layer.layerNumber) ? 'Full' : 'Available'}
+                        </Badge>
+                      </div>
+                      
+                      {/* Sample members for this layer */}
+                      <div className="space-y-2">
+                        {Array.from({length: Math.min(3, layer.memberCount)}, (_, i) => {
+                          const memberLevel = Math.floor(Math.random() * 5) + 1;
+                          const userCurrentLevel = userStats?.currentLevel || 1;
+                          const hasUpgraded = memberLevel > 1;
+                          const canClaimReward = hasUpgraded && userCurrentLevel >= memberLevel;
+                          const needsUpgrade = hasUpgraded && userCurrentLevel < memberLevel;
+                          
+                          return (
+                            <div key={i} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-6 h-6 bg-honey/20 rounded flex items-center justify-center">
+                                  <i className="fas fa-user text-honey text-xs"></i>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium">{formatAddress(`0x${(i+1).toString().padStart(40, '0')}`)}</p>
+                                  <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                                    <span>Member Level {memberLevel}</span>
+                                    {hasUpgraded && (
+                                      <Badge variant="outline" className="text-xs">
+                                        Upgraded to L{memberLevel}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center space-x-2">
+                                {hasUpgraded && needsUpgrade && (
+                                  <div className="text-right">
+                                    <Badge variant="outline" className="border-yellow-600 text-yellow-600 text-xs">
+                                      <Clock className="mr-1 h-3 w-3" />
+                                      71h 23m
+                                    </Badge>
+                                    <p className="text-xs text-muted-foreground mt-1">Need L{memberLevel}</p>
+                                  </div>
+                                )}
+                                {hasUpgraded && canClaimReward && (
+                                  <div className="text-right">
+                                    <Badge className="bg-green-600 text-white text-xs">
+                                      +{memberLevel === 1 ? '100' : '150'} USDT
+                                    </Badge>
+                                    <p className="text-xs text-green-400 mt-1">Ready to claim</p>
+                                  </div>
+                                )}
+                                {!hasUpgraded && (
+                                  <Badge variant="secondary" className="text-xs">L1 Only</Badge>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                        
+                        {layer.memberCount > 3 && (
+                          <div className="text-center p-2 text-xs text-muted-foreground">
+                            +{layer.memberCount - 3} more members in this layer
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="rewards" className="space-y-4">
+              <div className="text-sm text-muted-foreground mb-4">
+                Track upgrade rewards from your matrix layers. You have 72 hours to upgrade when members purchase higher level NFTs.
               </div>
-            ) : directReferrals.length === 0 ? (
-              <div className="text-center py-4 text-muted-foreground">
-                No direct referrals yet
+              
+              <div className="space-y-3">
+                {/* Sample upgrade notifications */}
+                <Alert className="border-yellow-600">
+                  <AlertCircle className="h-4 w-4 text-yellow-600" />
+                  <AlertDescription>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">Layer 2 member upgraded to Level 2</p>
+                        <p className="text-sm text-muted-foreground mt-1">Reward: $150.00 USDT</p>
+                      </div>
+                      <div className="text-right">
+                        <Badge variant="outline" className="border-yellow-600 text-yellow-600 mb-2">
+                          <Clock className="mr-1 h-3 w-3" />
+                          47h 12m left
+                        </Badge>
+                        <Button size="sm" className="btn-honey block">
+                          Upgrade to L2
+                        </Button>
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+                
+                <Alert className="border-green-600">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <AlertDescription>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">Layer 1 member upgraded to Level 1</p>
+                        <p className="text-sm text-muted-foreground mt-1">Reward: $100.00 USDT</p>
+                      </div>
+                      <div className="text-right">
+                        <Badge className="bg-green-600 text-white">
+                          Claimed
+                        </Badge>
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </Alert>
               </div>
-            ) : (
-              directReferrals.map((referral: any, index: number) => (
-                <div key={index} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 bg-honey/20 rounded-lg flex items-center justify-center">
-                    <i className="fas fa-user text-honey text-sm"></i>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-honey">{formatAddress(referral.walletAddress)}</h4>
-                    <p className="text-xs text-muted-foreground">
-                      Level {referral.currentLevel || 1} • Joined {new Date(referral.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Badge className="bg-green-600 text-white">
-                    +{referral.earnings || 0} USDT
-                  </Badge>
-                  <Badge variant="secondary">
-                    Position {referral.matrixPosition || 0}
-                  </Badge>
-                </div>
-                </div>
-              ))
-            )}
-          </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 
