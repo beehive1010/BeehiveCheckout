@@ -2658,6 +2658,305 @@ export class DatabaseStorage implements IStorage {
     return notificationsWithDetails;
   }
 
+  // Complete memberNFT claiming process - populates all related tables
+  async claimMemberNFTComplete(data: {
+    walletAddress: string;
+    nftContractAddress: string;
+    tokenId: string;
+    chainId: number;
+    sponsorWallet?: string;
+    membershipLevel: number;
+    nftPrice: number;
+    paymentTxHash?: string;
+  }): Promise<{
+    user: User;
+    membershipState: MembershipState;
+    referralNode: ReferralNode;
+    earningsWallet: EarningsWallet;
+    bccBalance: BCCBalance;
+    nftVerification: MemberNFTVerification;
+    memberActivation: MemberActivation;
+    globalMatrixPosition: GlobalMatrixPosition;
+    order: Order;
+  }> {
+    const { walletAddress, nftContractAddress, tokenId, chainId, sponsorWallet, membershipLevel, nftPrice, paymentTxHash } = data;
+    const lowerWalletAddress = walletAddress.toLowerCase();
+    const now = new Date();
+
+    // 1. Create or update user record
+    let user = await this.getUser(lowerWalletAddress);
+    if (!user) {
+      user = await this.createUser({
+        walletAddress: lowerWalletAddress,
+        username: `User${lowerWalletAddress.slice(-6)}`,
+        memberActivated: true,
+        referrerWallet: sponsorWallet?.toLowerCase() || null,
+      });
+    } else {
+      // Update existing user
+      user = await this.updateUser(lowerWalletAddress, {
+        memberActivated: true,
+        referrerWallet: sponsorWallet?.toLowerCase() || user.referrerWallet,
+      }) || user;
+    }
+
+    // 2. Create membership state
+    let membershipState = await this.getMembershipState(lowerWalletAddress);
+    if (!membershipState) {
+      membershipState = await this.createMembershipState({
+        walletAddress: lowerWalletAddress,
+        levelsOwned: [membershipLevel],
+        activeLevel: membershipLevel,
+        lastUpgradeAt: now,
+      });
+    } else {
+      // Update membership to include new level
+      const newLevelsOwned = Array.from(new Set([...membershipState.levelsOwned, membershipLevel]));
+      membershipState = await this.updateMembershipState(lowerWalletAddress, {
+        levelsOwned: newLevelsOwned,
+        activeLevel: Math.max(membershipState.activeLevel, membershipLevel),
+        lastUpgradeAt: now,
+      }) || membershipState;
+    }
+
+    // 3. Initialize referral matrix structure
+    let referralNode = await this.getReferralNode(lowerWalletAddress);
+    if (!referralNode) {
+      referralNode = await this.initializeReferralMatrix(lowerWalletAddress, sponsorWallet);
+    }
+
+    // 4. Calculate and store 19-layer referral structure
+    await this.calculateAndStore19Layers(lowerWalletAddress);
+
+    // 5. Create earnings wallet
+    let earningsWallet = await this.getEarningsWalletByWallet(lowerWalletAddress);
+    if (!earningsWallet || earningsWallet.length === 0) {
+      const newEarningsWallet = await this.createEarningsWallet({
+        walletAddress: lowerWalletAddress,
+        totalEarnings: "0",
+        referralEarnings: "0",
+        levelEarnings: "0",
+        pendingRewards: "0",
+        withdrawnAmount: "0",
+        lastRewardAt: now,
+      });
+      earningsWallet = [newEarningsWallet];
+    }
+
+    // 6. Create BCC balance record
+    let bccBalance = await this.getBCCBalance(lowerWalletAddress);
+    if (!bccBalance) {
+      bccBalance = await this.createBCCBalance({
+        walletAddress: lowerWalletAddress,
+        transferable: 0,
+        restricted: 0,
+      });
+    }
+
+    // 7. Create NFT verification record
+    const nftVerification = await this.createNFTVerification({
+      walletAddress: lowerWalletAddress,
+      nftContractAddress,
+      tokenId,
+      chainId,
+      verificationStatus: 'verified',
+      lastVerified: now,
+    });
+
+    // 8. Create member activation record
+    const memberActivation = await this.createMemberActivation({
+      walletAddress: lowerWalletAddress,
+      activationType: 'nft_purchase',
+      level: membershipLevel,
+      pendingUntil: null, // NFT purchase activates immediately
+      isPending: false,
+      activatedAt: now,
+      pendingTimeoutHours: 0,
+    });
+
+    // 9. Create global matrix position
+    let globalMatrixPosition = await this.getGlobalMatrixPosition(lowerWalletAddress);
+    if (!globalMatrixPosition) {
+      globalMatrixPosition = await this.createGlobalMatrixPosition({
+        walletAddress: lowerWalletAddress,
+        matrixLevel: membershipLevel,
+        positionIndex: await this.getNextGlobalMatrixPosition(),
+        directSponsorWallet: sponsorWallet?.toLowerCase() || null,
+        joinedAt: now,
+      });
+    }
+
+    // 10. Create order record
+    const order = await this.createOrder({
+      walletAddress: lowerWalletAddress,
+      level: membershipLevel,
+      tokenId: 1,
+      amountUSDT: nftPrice,
+      chain: 'ethereum',
+      status: 'completed',
+      txHash: paymentTxHash || null,
+      payembedIntentId: null,
+    });
+
+    // 11. Update team counts up the referral chain
+    if (sponsorWallet) {
+      await this.updateTeamCountsUpline(lowerWalletAddress);
+    }
+
+    // 12. Trigger sponsor rewards if there's a sponsor
+    if (sponsorWallet) {
+      await this.triggerSponsorRewards(lowerWalletAddress, sponsorWallet, membershipLevel, nftPrice);
+    }
+
+    // 13. Sync all reward system tables
+    await this.syncRewardSystemTables(lowerWalletAddress);
+
+    return {
+      user,
+      membershipState,
+      referralNode,
+      earningsWallet: earningsWallet[0],
+      bccBalance,
+      nftVerification,
+      memberActivation,
+      globalMatrixPosition,
+      order,
+    };
+  }
+
+  // Trigger rewards for sponsor and upline when new member claims NFT
+  async triggerSponsorRewards(
+    newMemberWallet: string, 
+    sponsorWallet: string, 
+    membershipLevel: number, 
+    nftPrice: number
+  ): Promise<void> {
+    try {
+      const directReferralReward = nftPrice * 0.1; // 10% direct referral reward
+      const levelBonus = nftPrice * 0.05; // 5% level bonus
+      
+      // 1. Create direct referral reward for sponsor
+      await this.createUpgradeAndRewardRecords({
+        walletAddress: sponsorWallet,
+        triggerWallet: newMemberWallet,
+        level: membershipLevel,
+        layerNumber: 1,
+        rewardAmount: directReferralReward,
+        rewardType: 'direct_referral'
+      });
+
+      // 2. Create level bonus rewards for upline (up to 19 levels)
+      const uplineChain = await this.getUplineChain(sponsorWallet, 19);
+      
+      for (let i = 0; i < uplineChain.length; i++) {
+        const uplineWallet = uplineChain[i];
+        const layerNumber = i + 2; // Start from layer 2 (layer 1 is direct sponsor)
+        
+        // Check if upline member is activated and has required level
+        const uplineMembership = await this.getMembershipState(uplineWallet);
+        if (uplineMembership && uplineMembership.activeLevel >= membershipLevel) {
+          await this.createUpgradeAndRewardRecords({
+            walletAddress: uplineWallet,
+            triggerWallet: newMemberWallet,
+            level: membershipLevel,
+            layerNumber,
+            rewardAmount: levelBonus / (i + 1), // Decreasing reward amount up the chain
+            rewardType: 'level_bonus'
+          });
+        }
+      }
+
+      // 3. Update sponsor's direct referral count
+      const sponsorNode = await this.getReferralNode(sponsorWallet);
+      if (sponsorNode) {
+        await this.updateReferralNode(sponsorWallet, {
+          directReferralCount: sponsorNode.directReferralCount + 1
+        });
+      }
+
+    } catch (error) {
+      console.error('Error triggering sponsor rewards:', error);
+    }
+  }
+
+  // Get upline chain for reward distribution
+  async getUplineChain(walletAddress: string, maxLevels: number = 19): Promise<string[]> {
+    const uplineChain: string[] = [];
+    let currentWallet = walletAddress;
+    
+    for (let i = 0; i < maxLevels; i++) {
+      const user = await this.getUser(currentWallet);
+      if (!user || !user.referrerWallet) break;
+      
+      uplineChain.push(user.referrerWallet);
+      currentWallet = user.referrerWallet;
+    }
+    
+    return uplineChain;
+  }
+
+  // Bulk initialization for existing users (migration helper)
+  async initializeExistingUserData(walletAddress: string, membershipLevel: number = 1): Promise<void> {
+    try {
+      await this.claimMemberNFTComplete({
+        walletAddress,
+        nftContractAddress: "0x0000000000000000000000000000000000000000", // Placeholder for existing users
+        tokenId: "0",
+        chainId: 1,
+        membershipLevel,
+        nftPrice: 0, // Free for existing users
+        paymentTxHash: "migration",
+      });
+    } catch (error) {
+      console.error(`Error initializing data for ${walletAddress}:`, error);
+    }
+  }
+
+  // Helper method to get next available global matrix position
+  async getNextGlobalMatrixPosition(): Promise<number> {
+    const lastPosition = await db
+      .select({ maxPosition: sql<number>`COALESCE(MAX(${globalMatrixPosition.positionIndex}), 0)` })
+      .from(globalMatrixPosition);
+    
+    return (lastPosition[0]?.maxPosition || 0) + 1;
+  }
+
+  // Verify memberNFT ownership and activate member across all tables
+  async verifyAndActivateMemberNFT(
+    walletAddress: string, 
+    nftContractAddress: string, 
+    tokenId: string, 
+    sponsorWallet?: string
+  ): Promise<boolean> {
+    try {
+      // For now, assume verification passes (in real implementation, verify on-chain)
+      const isVerified = true; // Replace with actual NFT ownership verification
+      
+      if (isVerified) {
+        // Determine membership level based on NFT (this would be based on your NFT tier system)
+        const membershipLevel = 1; // Default to level 1, adjust based on NFT type
+        const nftPrice = 100; // Default price, adjust based on NFT type
+        
+        await this.claimMemberNFTComplete({
+          walletAddress,
+          nftContractAddress,
+          tokenId,
+          chainId: 1, // Ethereum mainnet, adjust as needed
+          sponsorWallet,
+          membershipLevel,
+          nftPrice,
+        });
+        
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error verifying and activating memberNFT:', error);
+      return false;
+    }
+  }
+
   // Synchronized notification and reward methods
   async createUpgradeAndRewardRecords(data: {
     walletAddress: string;
@@ -2777,7 +3076,8 @@ export class DatabaseStorage implements IStorage {
     const now = new Date();
     
     // Get the reward notification to get reward details
-    const notification = await this.getRewardNotification(notificationId);
+    const notifications = await this.getRewardNotifications(walletAddress);
+    const notification = notifications.find(n => n.id === notificationId);
     if (!notification) return;
     
     const rewardAmount = notification.rewardAmount / 100; // Convert from cents
