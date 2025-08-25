@@ -173,7 +173,7 @@ export default function Referrals() {
 
   // Get matrix position and referral data
   const userMatrixPosition = globalMatrixData?.position || null;
-  const directReferrals = globalMatrixData?.directReferrals || [];
+  const directReferralsList = globalMatrixData?.directReferrals || [];
   
 
   const referralLink = `https://beehive-lifestyle.io/register?ref=${walletAddress}`;
