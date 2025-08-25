@@ -57,18 +57,31 @@ export default function Registration() {
         const code = urlParams.get('code'); // 推荐代码
         const referrer = urlParams.get('referrer'); // 备用推荐人字段
         
-        // 如果URL中有推荐人钱包地址，自动填入表单
-        if (ref && ref.startsWith('0x')) {
+        // 优先从localStorage获取推荐人信息（由RouteGuard保存）
+        const savedReferrer = localStorage.getItem('beehive-referrer');
+        
+        // 如果localStorage有推荐人信息，使用它
+        if (savedReferrer && savedReferrer.startsWith('0x')) {
+          setFormData(prev => ({ ...prev, referralCode: savedReferrer }));
+        }
+        // 否则检查URL参数
+        else if (ref && ref.startsWith('0x')) {
           setFormData(prev => ({ ...prev, referralCode: ref }));
         } else if (referrer && referrer.startsWith('0x')) {
           setFormData(prev => ({ ...prev, referralCode: referrer }));
         }
         
-        const response = await fetch(`/api/wallet/registration-status?${new URLSearchParams({ 
-          ...(ref && { ref }), 
-          ...(code && { code }),
-          ...(referrer && { referrer })
-        })}`, {
+        // 构建查询参数，优先使用localStorage中的推荐人
+        const queryParams: Record<string, string> = {};
+        if (savedReferrer) {
+          queryParams.ref = savedReferrer;
+        } else if (ref) {
+          queryParams.ref = ref;
+        }
+        if (code) queryParams.code = code;
+        if (referrer && !savedReferrer && !ref) queryParams.referrer = referrer;
+
+        const response = await fetch(`/api/wallet/registration-status?${new URLSearchParams(queryParams)}`, {
           headers: {
             'X-Wallet-Address': walletAddress
           }
@@ -148,8 +161,9 @@ export default function Registration() {
     }
 
     try {
-      // Determine referrer wallet
-      let referrerWallet = registrationStatus?.uplineWallet;
+      // Determine referrer wallet - 优先使用localStorage中保存的推荐人
+      const savedReferrer = localStorage.getItem('beehive-referrer');
+      let referrerWallet = savedReferrer || registrationStatus?.uplineWallet;
       
       // Handle manual referral code entry
       if (formData.referralCode) {
@@ -165,8 +179,8 @@ export default function Registration() {
         }
       }
       
-      // 如果没有推荐人且没有referralCode，默认使用公司账户
-      if (!referrerWallet && !registrationStatus?.uplineWallet) {
+      // 如果没有推荐人，默认使用公司账户
+      if (!referrerWallet) {
         referrerWallet = '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0';
       }
       
