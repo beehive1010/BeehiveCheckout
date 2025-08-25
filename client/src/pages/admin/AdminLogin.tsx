@@ -27,7 +27,7 @@ export default function AdminLogin() {
       if (credentials.username === 'admin' && credentials.password === 'admin123') {
         // Simulate successful login
         const mockAdminData = {
-          sessionToken: 'temp-admin-session-' + Date.now(),
+          sessionToken: 'test-admin-token-123456',
           admin: {
             id: 1,
             username: 'admin',

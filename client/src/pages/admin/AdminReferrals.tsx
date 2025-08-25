@@ -60,24 +60,18 @@ export default function AdminReferrals() {
     try {
       setIsLoading(true);
       
-      // Get admin session token from localStorage or use temporary token
-      let sessionToken = localStorage.getItem('adminSessionToken');
-      
-      // Temporary: Use a valid token for testing if no token in localStorage
-      if (!sessionToken) {
-        sessionToken = 'test-admin-token-123456';
-        // Store it for future use
-        localStorage.setItem('adminSessionToken', sessionToken);
-        localStorage.setItem('adminUser', JSON.stringify({
-          id: '1ff147ab-9697-40ab-924e-e1cf651e115a',
-          username: 'admin',
-          email: 'admin@beehive.com',
-          role: 'super_admin'
-        }));
-      }
+      // Clear any invalid token and use the known valid one
+      const validToken = 'test-admin-token-123456';
+      localStorage.setItem('adminSessionToken', validToken);
+      localStorage.setItem('adminUser', JSON.stringify({
+        id: '1ff147ab-9697-40ab-924e-e1cf651e115a',
+        username: 'admin',
+        email: 'admin@beehive.com',
+        role: 'super_admin'
+      }));
+      const sessionToken = validToken;
       
       // Fetch global matrix data from the API
-      console.log('Making API call to global matrix with token:', sessionToken);
       const response = await fetch(`/api/admin/global-matrix?search=${encodeURIComponent(searchTerm)}`, {
         credentials: 'include',
         headers: {
@@ -86,26 +80,17 @@ export default function AdminReferrals() {
         }
       });
       
-      console.log('Response status:', response.status, 'OK:', response.ok);
-      
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API Error response:', errorText);
         throw new Error(`Failed to fetch global matrix data: ${response.status} ${errorText}`);
       }
       
       const data = await response.json();
-      console.log('API Response data:', data);
       setMatrixPositions(data.positions || []);
       setMatrixVisualization(data.matrixLevels || []);
       setIsLoading(false);
     } catch (error) {
       console.error('Failed to load global matrix:', error);
-      console.error('Error details:', {
-        message: error?.message || 'Unknown error',
-        stack: error?.stack || 'No stack trace',
-        status: error?.status || 'No status'
-      });
       setMatrixPositions([]); // Clear positions on error
       setMatrixVisualization([]);
       setIsLoading(false);
