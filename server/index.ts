@@ -84,15 +84,15 @@ app.use((req, res, next) => {
       `).catch(() => ({ rows: [{ count: 0 }] }));
 
       res.json({
-        totalUsers: parseInt(usersResult.rows[0]?.count || '0'),
-        activeMembers: parseInt(membershipResult.rows[0]?.count || '0'),
-        totalNFTs: parseInt(nftsResult.rows[0]?.count || '0'),
-        blogPosts: parseInt(blogResult.rows[0]?.count || '0'),
-        courses: parseInt(coursesResult.rows[0]?.count || '0'),
+        totalUsers: parseInt(String(usersResult.rows[0]?.count || '0')),
+        activeMembers: parseInt(String(membershipResult.rows[0]?.count || '0')),
+        totalNFTs: parseInt(String(nftsResult.rows[0]?.count || '0')),
+        blogPosts: parseInt(String(blogResult.rows[0]?.count || '0')),
+        courses: parseInt(String(coursesResult.rows[0]?.count || '0')),
         discoverPartners: 0,
-        pendingApprovals: parseInt(pendingResult.rows[0]?.count || '0'),
+        pendingApprovals: parseInt(String(pendingResult.rows[0]?.count || '0')),
         systemHealth: 'healthy',
-        weeklyOrders: parseInt(ordersResult.rows[0]?.count || '0'),
+        weeklyOrders: parseInt(String(ordersResult.rows[0]?.count || '0')),
       });
     } catch (error) {
       console.error('Admin stats error:', error);
@@ -280,11 +280,35 @@ app.use((req, res, next) => {
     }
   }
 
-  // Add API route protection middleware BEFORE registering routes
-  app.use('/api/*', (req, res, next) => {
-    console.log(`🔍 API Request: ${req.method} ${req.path}`);
-    res.setHeader('Content-Type', 'application/json');
-    next();
+  // Create storage instance for direct API endpoints
+  const { Storage } = await import('./storage.js');
+  const directStorage = new Storage();
+
+  // Test direct API endpoint to bypass Vite intercept
+  app.get('/api/beehive/company-stats', async (req, res) => {
+    console.log('🎯 DIRECT Company Stats API called');
+    try {
+      res.setHeader('Content-Type', 'application/json');
+      const stats = await directStorage.getCompanyStats();
+      console.log('📊 Direct stats:', JSON.stringify(stats, null, 2));
+      return res.json(stats);
+    } catch (error) {
+      console.error('Direct company stats error:', error);
+      return res.status(500).json({ error: 'Failed to get company stats' });
+    }
+  });
+
+  app.get('/api/ads/nfts', async (req, res) => {
+    console.log('🎯 DIRECT Advertisement NFTs API called');
+    try {
+      res.setHeader('Content-Type', 'application/json');
+      const nfts = await directStorage.getAdvertisementNFTs();
+      console.log('📦 Direct NFTs found:', nfts.length);
+      return res.json(nfts);
+    } catch (error) {
+      console.error('Direct advertisement NFTs error:', error);
+      return res.status(500).json({ error: 'Failed to get advertisement NFTs' });
+    }
   });
 
   let server;
