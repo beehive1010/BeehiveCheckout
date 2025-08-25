@@ -1,6 +1,5 @@
 import { useWallet } from '../../hooks/useWallet';
 import { useI18n } from '../../contexts/I18nContext';
-import HexagonIcon from '../UI/HexagonIcon';
 import LanguageSwitcher from '../UI/LanguageSwitcher';
 import WalletConnect from '../UI/WalletConnect';
 import { Link } from 'wouter';
@@ -15,9 +14,11 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" data-testid="link-home">
             <div className="flex items-center space-x-2 md:space-x-3 cursor-pointer">
-              <HexagonIcon className="w-8 h-8 md:w-10 md:h-10">
-                <i className="fas fa-layer-group text-honey text-xs md:text-sm"></i>
-              </HexagonIcon>
+              <img 
+                src="/image/BCC.png" 
+                alt="BCC Logo" 
+                className="w-8 h-8 md:w-10 md:h-10 object-contain"
+              />
               <h1 className="text-lg md:text-xl font-bold text-honey">Beehive</h1>
             </div>
           </Link>

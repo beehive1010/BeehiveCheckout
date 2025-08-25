@@ -19,7 +19,6 @@ import {
   Home,
   Network,
 } from 'lucide-react';
-import HexagonIcon from '../UI/HexagonIcon';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -126,9 +125,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-border">
             <div className="flex items-center space-x-3">
-              <HexagonIcon size="sm">
-                <Shield className="text-honey text-lg" />
-              </HexagonIcon>
+              <img 
+                src="/image/BCC.png" 
+                alt="BCC Logo" 
+                className="w-8 h-8 object-contain"
+              />
               <div>
                 <h1 className="font-bold text-honey">Admin Panel</h1>
                 <p className="text-xs text-muted-foreground">Beehive v2.0</p>
