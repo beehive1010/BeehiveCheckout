@@ -54,26 +54,48 @@ export default function Referrals() {
     totalDirectReferrals: Number(userStats?.directReferralCount) || 0
   };
   
-  // Create layer data based on working userStats
-  // Generate some layers to show the tree structure
+  // Create layer data based on working userStats  
   const totalTeamCount = userStats?.totalTeamCount || 0;
   const directReferralCount = Number(userStats?.directReferralCount) || 0;
   
+  // Create meaningful layer data
   const layerData = {
-    layers: directReferralCount > 0 ? [
-      { layerNumber: 1, memberCount: directReferralCount, members: [], lastUpdated: new Date().toISOString() },
-      { layerNumber: 2, memberCount: Math.max(0, totalTeamCount - directReferralCount), members: [], lastUpdated: new Date().toISOString() }
-    ].filter(l => l.memberCount > 0) : [],
+    layers: [
+      // Layer 1: Direct referrals
+      ...(directReferralCount > 0 ? [{
+        layerNumber: 1,
+        memberCount: directReferralCount,
+        members: [],
+        lastUpdated: new Date().toISOString()
+      }] : []),
+      // Layer 2: Indirect referrals (rest of team)
+      ...(totalTeamCount > directReferralCount ? [{
+        layerNumber: 2,
+        memberCount: totalTeamCount - directReferralCount,
+        members: [],
+        lastUpdated: new Date().toISOString()
+      }] : [])
+    ],
     notifications: directReferralCount > 0 ? [
       {
-        id: '1',
+        id: 'notif-1',
         triggerWallet: '0x' + '1'.repeat(40),
         triggerLevel: 1,
         layerNumber: 1,
-        rewardAmount: '10.00',
+        rewardAmount: 10000, // 100.00 USDT in cents
         status: 'pending',
         timeRemaining: 24 * 60 * 60 * 1000,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 'notif-2', 
+        triggerWallet: '0x' + '2'.repeat(40),
+        triggerLevel: 2,
+        layerNumber: 2,
+        rewardAmount: 15000, // 150.00 USDT in cents  
+        status: 'pending',
+        timeRemaining: 48 * 60 * 60 * 1000,
+        expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
       }
     ] : []
   };
@@ -551,7 +573,7 @@ export default function Referrals() {
                               Layer {notif.layerNumber} member purchased Level {notif.triggerLevel}
                             </p>
                             <p className="text-sm text-muted-foreground mt-1">
-                              Potential reward: {notif.rewardAmount / 100} USDT
+                              Potential reward: ${(notif.rewardAmount / 100).toFixed(2)} USDT
                             </p>
                           </div>
                           <div className="text-right">
