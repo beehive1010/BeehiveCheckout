@@ -1138,23 +1138,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Check for pending reward distributions to determine timer
-      let nextUpgradeTimer = 'No active timer';
-      
-      // If user has pending rewards, show a relevant timer message
-      if (pendingRewards > 0) {
-        nextUpgradeTimer = 'Rewards available to claim';
-      } else if (user?.memberActivated && membership?.activeLevel && membership.activeLevel > 0) {
-        nextUpgradeTimer = 'No pending rewards';
-      }
-
       res.json({
         directReferralCount,
         totalTeamCount,
         totalEarnings: totalEarnings.toFixed(2),
         monthlyEarnings: monthlyEarnings.toFixed(2),
         pendingCommissions: pendingRewards.toFixed(2),
-        nextPayout: nextUpgradeTimer, // Real timer from upgrade notifications
+        nextPayout: 'TBA', // Could be calculated from pending rewards
         currentLevel: user?.currentLevel || 0,
         memberActivated: user?.memberActivated || false,
         matrixLevel: matrixPosition?.matrixLevel || 0,
@@ -2283,10 +2273,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Advertisement NFT endpoints
   app.get("/api/ads/nfts", async (req, res) => {
     try {
-      console.log('🎯 Advertisement NFTs API called');
-      res.setHeader('Content-Type', 'application/json');
       const nfts = await storage.getAdvertisementNFTs();
-      console.log('📦 Found NFTs:', nfts.length);
       res.json(nfts);
     } catch (error) {
       console.error('Get advertisement NFTs error:', error);

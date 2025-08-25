@@ -1,0 +1,21 @@
+  const levels: InsertLevelConfig[] = [
+        { level: 1, levelName: "Warrior", priceUSDT: 10000, nftPriceUSDT: 10000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 2, levelName: "Bronze", priceUSDT: 15000, nftPriceUSDT: 15000, platformFeeUSDT: 0, requiredDirectReferrals: 3, maxMatrixCount: 9 },
+        { level: 3, levelName: "Silver", priceUSDT: 20000, nftPriceUSDT: 20000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 4, levelName: "Gold", priceUSDT: 25000, nftPriceUSDT: 25000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 5, levelName: "Elite", priceUSDT: 30000, nftPriceUSDT: 30000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 6, levelName: "Platinum", priceUSDT: 35000, nftPriceUSDT: 35000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 7, levelName: "Master", priceUSDT: 40000, nftPriceUSDT: 40000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 8, levelName: "Diamond", priceUSDT: 45000, nftPriceUSDT: 45000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 9, levelName: "Grandmaster", priceUSDT: 50000, nftPriceUSDT: 50000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 10, levelName: "Star Shine", priceUSDT: 55000, nftPriceUSDT: 55000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 11, levelName: "Epic", priceUSDT: 60000, nftPriceUSDT: 60000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 12, levelName: "Hall", priceUSDT: 65000, nftPriceUSDT: 65000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 13, levelName: "The Strongest King", priceUSDT: 70000, nftPriceUSDT: 70000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 14, levelName: "The King of Kings", priceUSDT: 75000, nftPriceUSDT: 75000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 15, levelName: "Glory King", priceUSDT: 80000, nftPriceUSDT: 80000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 16, levelName: "Legendary Overlord", priceUSDT: 85000, nftPriceUSDT: 85000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 17, levelName: "Supreme Lord", priceUSDT: 90000, nftPriceUSDT: 90000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 18, levelName: "Supreme Myth", priceUSDT: 95000, nftPriceUSDT: 95000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 19, levelName: "Mythical Peak", priceUSDT: 100000, nftPriceUSDT: 100000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 }
+      ];

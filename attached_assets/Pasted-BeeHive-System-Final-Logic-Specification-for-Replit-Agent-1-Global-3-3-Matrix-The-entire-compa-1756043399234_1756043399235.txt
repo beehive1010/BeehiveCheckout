@@ -1,0 +1,122 @@
+BeeHive System – Final Logic Specification (for Replit Agent)
+1) Global 3×3 Matrix
+
+The entire company shares one pyramid matrix.
+
+Each user has 19 layers under them:
+
+Layer 1 = 3 members.
+
+Layer 2 = 9 members.
+
+Layer 3 = 27 members.
+
+… continues until Layer 19 (3^19 members).
+
+Spillover placement (BFS rule):
+
+New members, whether direct referrals or overflow from above, are always placed in the first available slot of the matrix using breadth-first search (BFS).
+
+Layer 1 always capped at 3.
+
+2) Membership & NFT Purchase
+
+Level 1 activation: Buy BBC Member NFT Level 1.
+
+Cost = 130 USDT (100 USDT counts as NFT rewardable price, +30 USDT always goes to admin).
+
+Levels 2–19: Each level has its own NFT cost (150 → 1000 USDT).
+
+Upgrade purchase rules:
+
+Members can buy NFTs sequentially upward: Level 1 → Level 2 → … → Level 19.
+
+No headcount requirement to purchase. Buying higher levels is always allowed as long as it is sequential (no skipping).
+
+3) Rewards & Conditions
+General Rule
+
+When a member in your Layer n purchases Level n NFT, a pending reward = NFT price is created for you.
+
+To collect the reward, you must:
+
+Own Level n NFT or higher.
+
+Fulfill any special condition (see below).
+
+If not claimed within 72h → reward 100% rolls up to the nearest qualified upline (who owns Level n or higher).
+
+Special Rules
+
+Level 1 (Warrior)
+
+3 × 100 USDT rewards (from your first 3 members).
+
+The 3rd reward is locked unless you upgrade to Level 2. Otherwise, after 72h it rolls up.
+
+Note: Extra 30 USDT goes to admin and is not rewardable.
+
+Level 2 (Bronze)
+
+Each of your Layer 2 members (9 seats) pays 150 USDT → creates 9 × 150 USDT rewards.
+
+To collect these rewards you must:
+
+Own Level 2 NFT or higher, AND
+
+At least one of your Layer 1 members must also have upgraded to Level 2.
+
+Levels 3–19
+
+Rewards equal to that level’s NFT cost (200–1000 USDT).
+
+No headcount requirement.
+
+As long as you own the Level n NFT (or higher), you can collect rewards from Layer n.
+
+Reward Table
+Layer	NFT Level	NFT Price / Reward (USDT)	Members at this layer	Reward condition
+1	Level 1	100 (from 130)	3	Must own L1. 3rd payout requires upgrade to L2
+2	Level 2	150	9	Must own L2. At least 1 direct (Layer1) also upgraded to L2
+3	Level 3	200	27	Must own L3 or higher (no headcount)
+4	Level 4	250	81	Must own L4 or higher
+5	Level 5	300	243	Must own L5 or higher
+6	Level 6	350	729	Must own L6 or higher
+7	Level 7	400	2,187	Must own L7 or higher
+8	Level 8	450	6,561	Must own L8 or higher
+9	Level 9	500	19,683	Must own L9 or higher
+10	Level 10	550	59,049	Must own L10 or higher
+11	Level 11	600	177,147	Must own L11 or higher
+12	Level 12	650	531,441	Must own L12 or higher
+13	Level 13	700	1,594,323	Must own L13 or higher
+14	Level 14	750	4,782,969	Must own L14 or higher
+15	Level 15	800	14,348,907	Must own L15 or higher
+16	Level 16	850	43,046,721	Must own L16 or higher
+17	Level 17	900	129,140,163	Must own L17 or higher
+18	Level 18	950	387,420,489	Must own L18 or higher
+19	Level 19	1000	1,162,261,467	Must own L19
+4) 72-Hour Countdown & Roll-Up
+
+All rewards enter a 72-hour pending state.
+
+If conditions are met → reward becomes claimable and can be withdrawn to wallet.
+
+If not → 100% of the reward is passed up to the nearest qualified upline at that level, and a new 72-hour timer starts for them.
+
+✅ Summary for Agent:
+
+Company-wide 3×3 BFS matrix (3, 9, 27 … up to 19 layers).
+
+Level purchase is always sequential, no headcount required.
+
+Rewards = NFT price at that layer.
+
+Special rules:
+
+Level 1 → 3rd reward requires L2.
+
+Level 2 → requires L2 + one direct also L2.
+
+Level 3–19 → only need to own that level or higher.
+
+72h roll-up: if not qualified in time, reward passes 100% up to nearest eligible upline.
