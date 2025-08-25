@@ -666,19 +666,36 @@ export default function Referrals() {
                               Reward: ${(notif.rewardAmount / 100).toFixed(2)} USDT
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              From: {notif.triggerUser?.username || `${notif.triggerWallet.slice(0, 6)}...${notif.triggerWallet.slice(-4)}`}
+                              From: {notif.triggerUsername || `${notif.triggerWallet.slice(0, 6)}...${notif.triggerWallet.slice(-4)}`}
+                            </p>
+                            {/* User level check info */}
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {(userStats?.currentLevel || 1) >= notif.triggerLevel ? 
+                                '✅ Your level qualifies for this reward' : 
+                                `❌ Need L${notif.triggerLevel} (You are L${userStats?.currentLevel || 1})`
+                              }
                             </p>
                           </div>
                           <div className="text-right">
                             {notif.status === 'pending' && (
                               <>
-                                <Badge variant="outline" className="border-yellow-600 text-yellow-600 mb-2">
-                                  <Clock className="mr-1 h-3 w-3" />
-                                  {timers[notif.id] || 'Loading...'}
-                                </Badge>
-                                <Button size="sm" className="btn-honey block" data-testid={`button-upgrade-${notif.triggerLevel}`}>
-                                  Upgrade to L{notif.triggerLevel}
-                                </Button>
+                                {/* Check if user needs to upgrade */}
+                                {(userStats?.currentLevel || 1) >= notif.triggerLevel ? (
+                                  <Badge className="bg-green-600 text-white mb-2">
+                                    <CheckCircle className="mr-1 h-3 w-3" />
+                                    Reward Earned
+                                  </Badge>
+                                ) : (
+                                  <>
+                                    <Badge variant="outline" className="border-yellow-600 text-yellow-600 mb-2">
+                                      <Clock className="mr-1 h-3 w-3" />
+                                      {timers[notif.id] || 'Loading...'}
+                                    </Badge>
+                                    <Button size="sm" className="btn-honey block" data-testid={`button-upgrade-${notif.triggerLevel}`}>
+                                      Upgrade to L{notif.triggerLevel}
+                                    </Button>
+                                  </>
+                                )}
                               </>
                             )}
                             {notif.status === 'claimed' && (
