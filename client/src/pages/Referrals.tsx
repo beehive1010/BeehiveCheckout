@@ -504,13 +504,13 @@ export default function Referrals() {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Total Earnings</span>
                 <span className="text-green-400 font-semibold">
-                  ${isStatsLoading ? '...' : referralStats.totalEarnings.toFixed(2)} USDT
+                  ${isStatsLoading ? '...' : (userStats?.totalEarnings || 0).toFixed(2)} USDT
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Available Rewards</span>
-                <span className="text-honey font-semibold">
-                  ${isStatsLoading ? '...' : referralStats.pendingCommissions.toFixed(2)} USDT
+                <span className="text-muted-foreground">Matrix Rewards</span>
+                <span className="text-blue-400 font-semibold">
+                  ${isStatsLoading ? '...' : (userStats?.matrixEarnings || 0).toFixed(2)} USDT
                 </span>
               </div>
               <Button variant="outline" className="w-full mt-4" data-testid="button-view-matrix">
