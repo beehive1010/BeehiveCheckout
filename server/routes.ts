@@ -1113,6 +1113,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get user recent activities
+  app.get("/api/user/activities", requireWallet, async (req: any, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 10;
+      const activities = await storage.getUserRecentActivities(req.walletAddress, limit);
+      res.json({ activities });
+    } catch (error) {
+      console.error('Get user activities error:', error);
+      res.status(500).json({ error: 'Failed to get user activities' });
+    }
+  });
+
+  // Add activity logging endpoint
+  app.post("/api/user/activity", requireWallet, async (req: any, res) => {
+    try {
+      const { activityType, title, description, amount, amountType, relatedWallet, relatedLevel, metadata } = req.body;
+      await storage.logUserActivity(
+        req.walletAddress,
+        activityType,
+        title,
+        description,
+        amount,
+        amountType,
+        relatedWallet,
+        relatedLevel,
+        metadata
+      );
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Log user activity error:', error);
+      res.status(500).json({ error: 'Failed to log activity' });
+    }
+  });
+
   // Get all reward notifications for a user
   app.get("/api/notifications/rewards", requireWallet, async (req: any, res) => {
     try {

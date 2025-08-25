@@ -142,6 +142,21 @@ export const earningsWallet = pgTable("earnings_wallet", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// User activity logs table
+export const userActivities = pgTable("user_activities", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  walletAddress: varchar("wallet_address", { length: 42 }).notNull().references(() => users.walletAddress),
+  activityType: text("activity_type").notNull(), // 'reward_received', 'nft_claimed', 'new_referral', 'level_upgrade', 'payment_received', etc.
+  title: text("title").notNull(),
+  description: text("description"),
+  amount: numeric("amount", { precision: 10, scale: 2 }), // For financial activities
+  amountType: text("amount_type"), // 'USDT', 'BCC', etc.
+  relatedWallet: varchar("related_wallet", { length: 42 }), // For referral activities
+  relatedLevel: integer("related_level"), // For level-related activities
+  metadata: jsonb("metadata"), // Additional data as needed
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Level progression configuration (19 levels from Warrior to Mythic Peak)
 export const levelConfig = pgTable("level_config", {
   level: integer("level").primaryKey(),
@@ -967,6 +982,19 @@ export const insertAdminSessionSchema = createInsertSchema(adminSessions).pick({
   userAgent: true,
   expiresAt: true,
 });
+// User activity insert schema
+export const insertUserActivitySchema = createInsertSchema(userActivities).pick({
+  walletAddress: true,
+  activityType: true,
+  title: true,
+  description: true,
+  amount: true,
+  amountType: true,
+  relatedWallet: true,
+  relatedLevel: true,
+  metadata: true,
+});
+
 export const insertAuditLogSchema = createInsertSchema(auditLogs).pick({
   adminId: true,
   action: true,
@@ -1119,3 +1147,6 @@ export const insertWalletConnectionLogSchema = createInsertSchema(walletConnecti
 
 export type InsertWalletConnectionLog = z.infer<typeof insertWalletConnectionLogSchema>;
 export type WalletConnectionLog = typeof walletConnectionLogs.$inferSelect;
+
+export type InsertUserActivity = z.infer<typeof insertUserActivitySchema>;
+export type UserActivity = typeof userActivities.$inferSelect;
