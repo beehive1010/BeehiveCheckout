@@ -4,6 +4,7 @@ import {
   referralNodes,
   referralLayers,
   rewardNotifications,
+  userActivities,
   globalMatrixPosition,
   bccBalances,
   orders,
@@ -2443,6 +2444,45 @@ export class DatabaseStorage implements IStorage {
     );
     
     return notificationsWithDetails;
+  }
+
+  // User Activity Methods
+  async logUserActivity(
+    walletAddress: string,
+    activityType: string,
+    title: string,
+    description?: string,
+    amount?: number,
+    amountType?: string,
+    relatedWallet?: string,
+    relatedLevel?: number,
+    metadata?: any
+  ): Promise<void> {
+    await db.insert(userActivities).values({
+      walletAddress: walletAddress.toLowerCase(),
+      activityType,
+      title,
+      description,
+      amount: amount?.toString(),
+      amountType,
+      relatedWallet: relatedWallet?.toLowerCase(),
+      relatedLevel,
+      metadata
+    });
+  }
+
+  async getUserRecentActivities(walletAddress: string, limit: number = 10): Promise<any[]> {
+    const activities = await db
+      .select()
+      .from(userActivities)
+      .where(eq(userActivities.walletAddress, walletAddress.toLowerCase()))
+      .orderBy(sql`${userActivities.createdAt} DESC`)
+      .limit(limit);
+    
+    return activities.map(activity => ({
+      ...activity,
+      amount: activity.amount ? parseFloat(activity.amount) : null
+    }));
   }
 }
 

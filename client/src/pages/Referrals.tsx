@@ -711,6 +711,7 @@ export default function Referrals() {
                 Upgrade notifications appear when members in your 19 layers purchase Level NFTs. You have 72 hours to upgrade to unlock rewards.
               </div>
               
+              {/* Check if using real notifications data */}
               {layerData?.notifications?.length > 0 ? (
                 <div className="space-y-3">
                   {layerData.notifications.map((notif: any) => (
@@ -765,6 +766,110 @@ export default function Referrals() {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Recent Activity */}
+      <Card className="bg-secondary border-border">
+        <CardHeader>
+          <CardTitle className="text-honey flex items-center">
+            <TrendingUp className="mr-2 h-5 w-5" />
+            Recent Activity
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <RecentActivityList walletAddress={walletAddress} />
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// Recent Activity Component
+function RecentActivityList({ walletAddress }: { walletAddress: string | null }) {
+  const { data: activitiesData, isLoading } = useQuery({
+    queryKey: ['/api/user/activities'],
+    queryFn: async () => {
+      const response = await fetch('/api/user/activities', {
+        headers: { 'X-Wallet-Address': walletAddress! }
+      });
+      if (!response.ok) throw new Error('Failed to fetch activities');
+      return response.json();
+    },
+    enabled: !!walletAddress,
+  });
+
+  const activities = activitiesData?.activities || [];
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {Array.from({length: 3}).map((_, i) => (
+          <div key={i} className="flex items-center space-x-3 p-3 bg-muted/20 rounded-lg animate-pulse">
+            <div className="w-8 h-8 bg-muted rounded-full"></div>
+            <div className="flex-1 space-y-1">
+              <div className="h-4 bg-muted rounded w-3/4"></div>
+              <div className="h-3 bg-muted rounded w-1/2"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (activities.length === 0) {
+    return (
+      <div className="text-center py-6 text-muted-foreground">
+        <TrendingUp className="h-12 w-12 mx-auto mb-2 opacity-50" />
+        <p>No recent activity</p>
+        <p className="text-xs mt-1">Your activities will appear here as you interact with the platform</p>
+      </div>
+    );
+  }
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'reward_received': return 'fas fa-coins text-green-500';
+      case 'nft_claimed': return 'fas fa-trophy text-honey';
+      case 'new_referral': return 'fas fa-users text-blue-500';
+      case 'level_upgrade': return 'fas fa-arrow-up text-purple-500';
+      case 'payment_received': return 'fas fa-dollar-sign text-green-500';
+      default: return 'fas fa-bell text-muted-foreground';
+    }
+  };
+
+  const formatTimeAgo = (date: string) => {
+    const now = new Date();
+    const activityDate = new Date(date);
+    const diffInHours = Math.floor((now.getTime() - activityDate.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInHours < 48) return 'Yesterday';
+    return `${Math.floor(diffInHours / 24)}d ago`;
+  };
+
+  return (
+    <div className="space-y-3">
+      {activities.map((activity: any) => (
+        <div key={activity.id} className="flex items-center space-x-3 p-3 bg-muted/20 rounded-lg hover:bg-muted/30 transition-colors">
+          <div className="w-8 h-8 bg-muted/50 rounded-full flex items-center justify-center flex-shrink-0">
+            <i className={getActivityIcon(activity.activityType)}></i>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate">{activity.title}</p>
+            {activity.description && (
+              <p className="text-xs text-muted-foreground truncate">{activity.description}</p>
+            )}
+            <p className="text-xs text-muted-foreground">{formatTimeAgo(activity.createdAt)}</p>
+          </div>
+          {activity.amount && (
+            <div className="text-right flex-shrink-0">
+              <p className="text-sm font-bold text-green-500">
+                +{activity.amount} {activity.amountType || 'USDT'}
+              </p>
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
