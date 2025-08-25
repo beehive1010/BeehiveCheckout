@@ -242,8 +242,14 @@ export default function AdvertisementNFTs() {
                   </Badge>
                 </div>
                 <div className="absolute top-3 left-3">
-                  <Badge className="bg-honey text-black">
-                    {nft.serviceName}
+                  <Badge 
+                    className="bg-honey text-black cursor-pointer hover:bg-honey/90 transition-colors"
+                    onClick={() => handleServiceClick(nft)}
+                  >
+                    <span className="flex items-center gap-1">
+                      {nft.serviceName}
+                      <ArrowTopRightOnSquareIcon className="w-3 h-3" />
+                    </span>
                   </Badge>
                 </div>
               </div>
