@@ -308,9 +308,11 @@ export default function Registration() {
         
         <Card className="w-full">
           <CardHeader className="text-center">
-            <HexagonIcon className="mx-auto mb-4">
-              <i className="fas fa-user-plus text-honey"></i>
-            </HexagonIcon>
+            <img 
+              src="/image/BCC.png" 
+              alt="BCC Logo" 
+              className="w-16 h-16 object-contain mx-auto mb-4"
+            />
             <CardTitle className="text-2xl font-bold text-honey">
               {t('registration.title')}
             </CardTitle>

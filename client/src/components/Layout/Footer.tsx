@@ -1,5 +1,4 @@
 import { useI18n } from '../../contexts/I18nContext';
-import HexagonIcon from '../UI/HexagonIcon';
 
 export default function Footer() {
   const { t } = useI18n();
@@ -10,9 +9,11 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <div className="flex items-center space-x-3 mb-4">
-              <HexagonIcon className="w-8 h-8">
-                <i className="fas fa-layer-group text-honey text-xs"></i>
-              </HexagonIcon>
+              <img 
+                src="/image/BCC.png" 
+                alt="BCC Logo" 
+                className="w-8 h-8 object-contain"
+              />
               <h3 className="text-honey font-bold">Beehive</h3>
             </div>
             <p className="text-muted-foreground text-sm">
