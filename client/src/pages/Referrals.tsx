@@ -60,10 +60,11 @@ export default function Referrals() {
   
   // Fetch real layer members data
   const { data: layerMembersData, isLoading: isLayerMembersLoading } = useQuery({
-    queryKey: ['/api/referrals/layer-members'],
+    queryKey: ['/api/referrals/layer-members', walletAddress],
     queryFn: async () => {
+      if (!walletAddress) throw new Error('No wallet address');
       const response = await fetch('/api/referrals/layer-members', {
-        headers: { 'X-Wallet-Address': walletAddress! }
+        headers: { 'X-Wallet-Address': walletAddress }
       });
       if (!response.ok) throw new Error('Failed to fetch layer members');
       return response.json();
@@ -73,10 +74,11 @@ export default function Referrals() {
 
   // Fetch real reward notifications
   const { data: notificationsData, isLoading: isNotificationsLoading } = useQuery({
-    queryKey: ['/api/notifications/rewards'],
+    queryKey: ['/api/notifications/rewards', walletAddress],
     queryFn: async () => {
+      if (!walletAddress) throw new Error('No wallet address');
       const response = await fetch('/api/notifications/rewards', {
-        headers: { 'X-Wallet-Address': walletAddress! }
+        headers: { 'X-Wallet-Address': walletAddress }
       });
       if (!response.ok) throw new Error('Failed to fetch notifications');
       return response.json();
