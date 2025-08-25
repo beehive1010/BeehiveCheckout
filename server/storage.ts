@@ -2414,9 +2414,17 @@ export class DatabaseStorage implements IStorage {
           })
         );
         
+        // Calculate upgrade statistics
+        const upgradedCount = memberDetails.filter(member => member.currentLevel > 1).length;
+        const activatedCount = memberDetails.filter(member => member.memberActivated).length;
+        
         return {
           ...layer,
-          memberDetails
+          memberDetails,
+          upgradedMembers: upgradedCount,
+          activatedMembers: activatedCount,
+          layerNumber: layer.layerNumber,
+          memberCount: layer.memberCount
         };
       })
     );
