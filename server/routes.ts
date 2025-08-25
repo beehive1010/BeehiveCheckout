@@ -3260,28 +3260,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 // Helper functions
 function calculateBCCReward(level: number): { transferable: number; restricted: number; total: number } {
-  // BCC reward = 1:1 with USDT price
-  // Level 1 = 100 USDT = 100 BCC (all transferable)
-  const levelPrices = {
-    1: 100, 2: 200, 3: 300, 4: 400, 5: 500,
-    6: 600, 7: 700, 8: 800, 9: 900, 10: 1000,
-    11: 1100, 12: 1200, 13: 1300, 14: 1400, 15: 1500,
-    16: 1600, 17: 1700, 18: 1800, 19: 1900
-  };
+  // Correct BCC reward structure:
+  // - New members (any level): 500 transferable + 100 restricted = 600 BCC total
+  // - Level upgrades: 50 + (level × 50) BCC (all transferable)
   
-  const bccAmount = levelPrices[level as keyof typeof levelPrices] || (level * 100);
-  
-  return {
-    transferable: bccAmount, // 100% transferable BCC
-    restricted: 0,           // No restricted portion
-    total: bccAmount
-  };
+  if (level === 1) {
+    // New member Level 1: Gets the base 600 BCC
+    return {
+      transferable: 500,
+      restricted: 100,
+      total: 600
+    };
+  } else {
+    // Level upgrade (Level 2+): Gets upgrade bonus BCC
+    const upgradeBCC = 50 + (level * 50);
+    return {
+      transferable: upgradeBCC,
+      restricted: 0,
+      total: upgradeBCC
+    };
+  }
 }
 
 function calculateRewardAmount(level: number): number {
-  // Reward amount calculation for referral system
-  if (level <= 5) return 50;
-  if (level <= 10) return 100;
-  if (level <= 15) return 200;
-  return 300;
+  // Reward amount = 100% of NFT price
+  // Level 1: $100, Level N: $50 + (N × $50)
+  if (level === 1) {
+    return 100; // Level 1 = $100 USDT
+  } else {
+    return 50 + (level * 50); // Level N = $50 + (N × $50) USDT
+  }
 }

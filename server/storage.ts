@@ -465,11 +465,11 @@ export class DatabaseStorage implements IStorage {
     const [state] = await db
       .insert(membershipState)
       .values({
-        ...membership,
         walletAddress: membership.walletAddress.toLowerCase(),
         levelsOwned: membership.levelsOwned || [],
         activeLevel: membership.activeLevel || 0,
         joinedAt: membership.joinedAt || new Date(),
+        lastUpgradeAt: membership.lastUpgradeAt || new Date(),
       })
       .returning();
     return state;
@@ -916,8 +916,8 @@ export class DatabaseStorage implements IStorage {
         return;
       }
 
-      // Direct referral reward: 100 USDT to the direct referrer
-      const directRewardAmount = 100;
+      // Direct referral reward: 100% of NFT price (Level 1 = $100, Level N = $50 + N×$50)
+      const directRewardAmount = level === 1 ? 100 : (50 + (level * 50));
       
       // Create reward entry for direct referrer
       await this.createRewardDistribution({
@@ -2116,7 +2116,7 @@ export class DatabaseStorage implements IStorage {
         rightLeg: referralNode.rightLeg || [],
         directReferralCount: referralNode.directReferralCount || 0,
         totalTeamCount: referralNode.totalTeamCount || 0,
-        createdAt: referralNode.createdAt || new Date(),
+        createdAt: new Date(),
       })
       .returning();
     return created;
@@ -2444,6 +2444,15 @@ export class DatabaseStorage implements IStorage {
     return await db.select()
       .from(earningsWallet)
       .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()));
+  }
+
+  async updateEarningsWalletEntry(id: string, updates: Partial<EarningsWallet>): Promise<EarningsWallet | undefined> {
+    const [wallet] = await db
+      .update(earningsWallet)
+      .set(updates)
+      .where(eq(earningsWallet.id, id))
+      .returning();
+    return wallet || undefined;
   }
 
 
@@ -2785,7 +2794,7 @@ export class DatabaseStorage implements IStorage {
       walletAddress: lowerWalletAddress,
       activationType: 'nft_purchase',
       level: membershipLevel,
-      pendingUntil: null, // NFT purchase activates immediately
+      pendingUntil: undefined, // NFT purchase activates immediately
       isPending: false,
       activatedAt: now,
       pendingTimeoutHours: 0,
