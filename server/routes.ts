@@ -1054,17 +1054,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(rewardDistributions)
         .where(eq(rewardDistributions.recipientWallet, walletAddress.toLowerCase()));
       
-      const totalEarnings = rewards
-        .filter(r => r.status === 'claimed')
-        .reduce((sum, r) => sum + parseFloat(r.rewardAmount), 0);
+      // Calculate total and pending earnings using proper database queries
+      const totalEarningsResult = await db.execute(sql`
+        SELECT COALESCE(SUM(CAST(reward_amount AS DECIMAL)), 0) as total_claimed
+        FROM reward_distributions 
+        WHERE recipient_wallet = ${walletAddress.toLowerCase()}
+        AND status = 'claimed'
+      `);
       
-      const pendingRewards = rewards
-        .filter(r => r.status === 'pending' || r.status === 'claimable')
-        .reduce((sum, r) => sum + parseFloat(r.rewardAmount), 0);
+      const pendingRewardsResult = await db.execute(sql`
+        SELECT COALESCE(SUM(CAST(reward_amount AS DECIMAL)), 0) as total_pending
+        FROM reward_distributions 
+        WHERE recipient_wallet = ${walletAddress.toLowerCase()}
+        AND status IN ('pending', 'claimable')
+      `);
       
-      const monthlyEarnings = rewards
-        .filter(r => r.status === 'claimed' && new Date(r.claimedAt || 0) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
-        .reduce((sum, r) => sum + parseFloat(r.rewardAmount), 0);
+      const totalEarnings = Number(totalEarningsResult.rows[0]?.total_claimed || 0) / 100; // Convert from cents
+      const pendingRewards = Number(pendingRewardsResult.rows[0]?.total_pending || 0) / 100; // Convert from cents
+      
+      // Calculate monthly earnings using proper database query
+      const monthlyEarningsResult = await db.execute(sql`
+        SELECT COALESCE(SUM(CAST(reward_amount AS DECIMAL)), 0) as monthly_total
+        FROM reward_distributions 
+        WHERE recipient_wallet = ${walletAddress.toLowerCase()}
+        AND status = 'claimed'
+        AND claimed_at >= DATE_TRUNC('month', CURRENT_DATE)
+      `);
+      
+      const monthlyEarnings = Number(monthlyEarningsResult.rows[0]?.monthly_total || 0) / 100; // Convert from cents
 
       // Calculate downline matrix data for 19 layers using global matrix data  
       const downlineMatrix = [];
