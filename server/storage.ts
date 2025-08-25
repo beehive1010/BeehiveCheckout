@@ -754,10 +754,9 @@ export class DatabaseStorage implements IStorage {
           isQualified = uplineMembership?.levelsOwned.includes(2) || false;
         }
       } else if (purchasedLevel === 2) {
-        // Level 2: Must own L2 AND at least one Layer 1 member has L2
-        const hasL2 = uplineMembership?.levelsOwned.includes(2) || false;
-        const hasL1MemberWithL2 = await this.hasLayer1MemberWithLevel(uplineWallet, 2);
-        isQualified = hasL2 && hasL1MemberWithL2;
+        // Level 2: 第二层成员升级Level 2，第二层上线获得150 USDT（NFT价格）
+        // 上线必须拥有Level 2才有资格获得奖励
+        isQualified = uplineMembership?.levelsOwned.includes(2) || false;
       } else {
         // Levels 3-19: Just need to own that level or higher
         isQualified = uplineMembership?.levelsOwned.some(level => level >= purchasedLevel) || false;
@@ -837,16 +836,28 @@ export class DatabaseStorage implements IStorage {
     const uplines: string[] = [];
     let currentWallet = buyerWallet;
     
-    // Traverse up the matrix to find uplines at each layer
-    for (let layer = 1; layer <= purchasedLevel && layer <= 19; layer++) {
-      const position = await this.getGlobalMatrixPosition(currentWallet);
-      if (!position || position.directSponsorWallet === currentWallet) break;
-      
-      const uplineWallet = position.directSponsorWallet;
-      if (layer === purchasedLevel) {
-        uplines.push(uplineWallet); // This upline should get the reward
+    // 特殊处理: Level 2购买时，奖励给第二层的上线（跳过第一层）
+    if (purchasedLevel === 2) {
+      // 找到第二层上线：先找第一层，再找第二层
+      const firstLayerPosition = await this.getGlobalMatrixPosition(currentWallet);
+      if (firstLayerPosition && firstLayerPosition.directSponsorWallet !== currentWallet) {
+        const secondLayerPosition = await this.getGlobalMatrixPosition(firstLayerPosition.directSponsorWallet);
+        if (secondLayerPosition && secondLayerPosition.directSponsorWallet !== firstLayerPosition.directSponsorWallet) {
+          uplines.push(secondLayerPosition.directSponsorWallet); // 第二层上线获得奖励
+        }
       }
-      currentWallet = uplineWallet;
+    } else {
+      // 其他级别：正常遍历找对应层级的上线
+      for (let layer = 1; layer <= purchasedLevel && layer <= 19; layer++) {
+        const position = await this.getGlobalMatrixPosition(currentWallet);
+        if (!position || position.directSponsorWallet === currentWallet) break;
+        
+        const uplineWallet = position.directSponsorWallet;
+        if (layer === purchasedLevel) {
+          uplines.push(uplineWallet); // 对应层级的上线获得奖励
+        }
+        currentWallet = uplineWallet;
+      }
     }
     
     return uplines;
