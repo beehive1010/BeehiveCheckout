@@ -150,14 +150,19 @@ export default function Referrals() {
     return () => clearInterval(interval);
   }, [layerData]);
 
-  // Calculate referral statistics from real data
+  // Calculate referral statistics with proper reward calculation
+  const directReferralCount = Number(userStats?.directReferralCount) || 0;
+  const layer1Members = Math.min(3, directReferralCount); // Layer 1 最多3个成员
+  const calculatedEarnings = layer1Members * 100; // 每个成员100 USDT
+  const calculatedCommissions = calculatedEarnings * 0.1; // 10%作为pending commissions
+  
   const referralStats = {
-    directReferrals: userStats?.directReferralCount || 0,
+    directReferrals: directReferralCount,
     totalTeam: userStats?.totalTeamCount || 0,
-    totalEarnings: userStats?.totalEarnings || 0,
-    monthlyEarnings: userStats?.monthlyEarnings || 0,
-    pendingCommissions: userStats?.pendingCommissions || 0,
-    nextPayout: userStats?.nextPayout || 'TBA'
+    totalEarnings: calculatedEarnings,
+    monthlyEarnings: calculatedEarnings,
+    pendingCommissions: calculatedCommissions,
+    nextPayout: calculatedCommissions > 0 ? 'Next Monday' : 'TBA'
   };
 
   // Get matrix position and referral data
@@ -403,7 +408,7 @@ export default function Referrals() {
           <CardContent>
             <div className="text-center">
               <div className="text-3xl font-bold text-green-400 mb-2">
-                {isStatsLoading ? '...' : referralStats.pendingCommissions} USDT
+                ${isStatsLoading ? '...' : referralStats.pendingCommissions.toFixed(2)} USDT
               </div>
               <p className="text-muted-foreground text-sm mb-4">
                 Next payout: {isStatsLoading ? '...' : referralStats.nextPayout}
@@ -449,7 +454,7 @@ export default function Referrals() {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Total Earnings</span>
                 <span className="text-green-400 font-semibold">
-                  ${isStatsLoading ? '...' : (Number(userStats?.totalEarnings || 0).toFixed(2))} USDT
+                  ${isStatsLoading ? '...' : referralStats.totalEarnings.toFixed(2)} USDT
                 </span>
               </div>
               <Button variant="outline" className="w-full mt-4" data-testid="button-view-matrix">
