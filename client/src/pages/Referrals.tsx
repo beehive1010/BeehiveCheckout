@@ -150,18 +150,25 @@ export default function Referrals() {
     return () => clearInterval(interval);
   }, [layerData]);
 
-  // Calculate referral statistics with proper reward calculation
+  // Use real earnings data from database when available
   const directReferralCount = Number(userStats?.directReferralCount) || 0;
-  const layer1Members = Math.min(3, directReferralCount); // Layer 1 最多3个成员
-  const calculatedEarnings = layer1Members * 100; // 每个成员100 USDT，100%奖励
+  
+  // Check if user has real earnings data, otherwise use calculated display values
+  const hasRealEarnings = userStats?.totalEarnings !== undefined && userStats?.totalEarnings !== null;
+  const realTotalEarnings = Number(userStats?.totalEarnings || 0);
+  const realPendingCommissions = Number(userStats?.pendingCommissions || 0);
+  
+  // For display: show real data if available, otherwise calculate based on team size
+  const displayEarnings = hasRealEarnings ? realTotalEarnings : (Math.min(3, directReferralCount) * 100);
+  const displayCommissions = hasRealEarnings ? realPendingCommissions : displayEarnings;
   
   const referralStats = {
     directReferrals: directReferralCount,
     totalTeam: userStats?.totalTeamCount || 0,
-    totalEarnings: calculatedEarnings,
-    monthlyEarnings: calculatedEarnings,
-    pendingCommissions: calculatedEarnings, // 100%奖励，不是10%佣金
-    nextPayout: calculatedEarnings > 0 ? 'Next Monday' : 'TBA'
+    totalEarnings: displayEarnings,
+    monthlyEarnings: displayEarnings,
+    pendingCommissions: displayCommissions,
+    nextPayout: displayCommissions > 0 ? 'Next Monday' : 'TBA'
   };
 
   // Get matrix position and referral data
