@@ -52,9 +52,11 @@ export function useUserReferralStats() {
         headers: { 'x-wallet-address': walletAddress }
       });
       if (!response.ok) throw new Error('Failed to fetch user stats');
-      return response.json();
+      const data = await response.json();
+      console.log('🔍 useUserReferralStats API response:', data);
+      return data;
     },
     enabled: !!walletAddress,
-    staleTime: 15000, // 15 seconds
+    staleTime: 5000, // 5 seconds - shorter for testing
   });
 }
