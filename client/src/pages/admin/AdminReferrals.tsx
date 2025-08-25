@@ -4,6 +4,7 @@ import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { 
   Network, 
   Search, 
@@ -17,7 +18,9 @@ import {
   Crown,
   ChevronDown,
   ChevronRight,
-  Wallet
+  Wallet,
+  User,
+  MapPin
 } from 'lucide-react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 
@@ -51,6 +54,8 @@ export default function AdminReferrals() {
   const [selectedLevel, setSelectedLevel] = useState(1);
   const [matrixVisualization, setMatrixVisualization] = useState<GlobalMatrixVisualization[]>([]);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  const [selectedUser, setSelectedUser] = useState<GlobalMatrixPosition | null>(null);
+  const [showUserDetails, setShowUserDetails] = useState(false);
 
   useEffect(() => {
     loadReferrals();
@@ -143,6 +148,74 @@ export default function AdminReferrals() {
     setExpandedNodes(newExpanded);
   };
 
+  const handleUserClick = (user: GlobalMatrixPosition) => {
+    setSelectedUser(user);
+    setShowUserDetails(true);
+  };
+
+  const render3x3Matrix = (positions: GlobalMatrixPosition[], level: number) => {
+    // Create a 3x3 grid based on positionIndex
+    const matrixGrid = Array(9).fill(null);
+    
+    // Fill the grid with positions
+    positions.forEach(position => {
+      if (position.positionIndex >= 1 && position.positionIndex <= 9) {
+        matrixGrid[position.positionIndex - 1] = position;
+      }
+    });
+
+    return (
+      <div className="space-y-4">
+        <div className="text-center mb-4">
+          <h4 className="text-lg font-semibold text-honey">Level {level} - 3×3 Matrix</h4>
+          <p className="text-sm text-muted-foreground">
+            {positions.length} / 9 positions filled
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-3 gap-2 max-w-md mx-auto">
+          {matrixGrid.map((position, index) => (
+            <div
+              key={index}
+              className={`
+                aspect-square border-2 border-dashed border-honey/30 rounded-lg 
+                flex flex-col items-center justify-center p-2 
+                ${position 
+                  ? 'bg-honey/10 border-solid border-honey/50 cursor-pointer hover:bg-honey/20 transition-colors' 
+                  : 'bg-muted/50'
+                }
+              `}
+              onClick={() => position && handleUserClick(position)}
+              data-testid={`matrix-position-${index + 1}`}
+            >
+              {position ? (
+                <div className="text-center">
+                  <div className="w-8 h-8 bg-honey rounded-full flex items-center justify-center mb-1">
+                    <span className="text-black font-bold text-xs">
+                      {position.username?.charAt(0).toUpperCase() || 'U'}
+                    </span>
+                  </div>
+                  <div className="text-xs font-medium text-center truncate max-w-full">
+                    {position.username || 'User'}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    #{index + 1}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <div className="w-8 h-8 border-2 border-dashed border-honey/30 rounded-full mb-1"></div>
+                  <div className="text-xs text-muted-foreground">Empty</div>
+                  <div className="text-xs text-muted-foreground">#{index + 1}</div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   const renderGlobalMatrixPosition = (position: GlobalMatrixPosition) => {
     return (
       <div className="p-4 border rounded-lg bg-secondary border-honey/20">
@@ -200,6 +273,100 @@ export default function AdminReferrals() {
           </div>
         ))}
       </div>
+    );
+  };
+
+  const renderUserDetailsModal = () => {
+    if (!selectedUser) return null;
+
+    return (
+      <Dialog open={showUserDetails} onOpenChange={setShowUserDetails}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <User className="h-5 w-5 text-honey" />
+              <span>User Details</span>
+            </DialogTitle>
+            <DialogDescription>
+              Detailed information for matrix participant
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 mt-4">
+            <div className="flex items-center justify-center">
+              <div className="w-16 h-16 bg-honey rounded-full flex items-center justify-center">
+                <span className="text-black font-bold text-xl">
+                  {selectedUser.username?.charAt(0).toUpperCase() || 'U'}
+                </span>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-center space-x-3">
+                <User className="h-4 w-4 text-honey" />
+                <div>
+                  <div className="font-medium">{selectedUser.username || 'Unknown User'}</div>
+                  <div className="text-sm text-muted-foreground">Username</div>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <Wallet className="h-4 w-4 text-honey" />
+                <div>
+                  <div className="font-mono text-sm">{formatWalletAddress(selectedUser.walletAddress)}</div>
+                  <div className="text-sm text-muted-foreground">Wallet Address</div>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <MapPin className="h-4 w-4 text-honey" />
+                <div>
+                  <div className="font-medium">Level {selectedUser.matrixLevel}, Position #{selectedUser.positionIndex}</div>
+                  <div className="text-sm text-muted-foreground">Matrix Position</div>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <Crown className="h-4 w-4 text-honey" />
+                <div>
+                  <div className="flex items-center space-x-2">
+                    {getLevelBadge(selectedUser.currentLevel || 0)}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Membership Level</div>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <Calendar className="h-4 w-4 text-honey" />
+                <div>
+                  <div className="font-medium">{formatDate(selectedUser.joinedAt)}</div>
+                  <div className="text-sm text-muted-foreground">Joined Date</div>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <Target className="h-4 w-4 text-honey" />
+                <div>
+                  <div className="font-medium">
+                    <span className={selectedUser.memberActivated ? "text-green-500" : "text-red-500"}>
+                      {selectedUser.memberActivated ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                  <div className="text-sm text-muted-foreground">Account Status</div>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <Users className="h-4 w-4 text-honey" />
+                <div>
+                  <div className="font-medium">{formatWalletAddress(selectedUser.directSponsorWallet)}</div>
+                  <div className="text-sm text-muted-foreground">Direct Sponsor</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     );
   };
 
@@ -328,12 +495,47 @@ export default function AdminReferrals() {
       </Card>
 
       {/* Main Content */}
-      <Tabs defaultValue="tree" className="space-y-6">
+      <Tabs defaultValue="matrix-view" className="space-y-6">
         <TabsList>
+          <TabsTrigger value="matrix-view">3×3 Matrix View</TabsTrigger>
           <TabsTrigger value="global-matrix">Global Matrix</TabsTrigger>
           <TabsTrigger value="level-structure">Matrix Levels</TabsTrigger>
           <TabsTrigger value="top-referrers">Top Referrers</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="matrix-view">
+          <div className="space-y-6">
+            {matrixVisualization.filter(level => level.positions.length > 0).map((levelData) => (
+              <Card key={levelData.level}>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Target className="h-5 w-5" />
+                    <span>Level {levelData.level} - Interactive Matrix</span>
+                    <Badge variant="outline">
+                      {levelData.filledPositions} / {levelData.maxPositions} filled
+                    </Badge>
+                  </CardTitle>
+                  <CardDescription>
+                    Click on any user avatar to view detailed information
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {render3x3Matrix(levelData.positions, levelData.level)}
+                </CardContent>
+              </Card>
+            ))}
+            
+            {matrixVisualization.filter(level => level.positions.length > 0).length === 0 && (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Network className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">No Matrix Data</h3>
+                  <p className="text-muted-foreground">No users have joined the matrix yet.</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
 
         <TabsContent value="global-matrix">
           <Card>
@@ -362,11 +564,11 @@ export default function AdminReferrals() {
         <TabsContent value="level-structure">
           <div className="space-y-4">
             {matrixVisualization.map((levelData) => (
-              <Card key={levelData.matrixLevel}>
+              <Card key={levelData.level}>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Target className="h-5 w-5" />
-                    <span>Matrix Level {levelData.matrixLevel}</span>
+                    <span>Matrix Level {levelData.level}</span>
                     <Badge variant="outline">
                       {levelData.filledPositions} / {levelData.maxPositions} filled
                     </Badge>
@@ -454,6 +656,9 @@ export default function AdminReferrals() {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      {/* User Details Modal */}
+      {renderUserDetailsModal()}
     </div>
   );
 }
