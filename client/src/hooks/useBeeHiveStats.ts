@@ -74,9 +74,9 @@ export function useUserReferralStats() {
         return {
           directReferralCount: 34,
           totalTeamCount: 39, // Layer 1: 3 + Layer 2: 9 + Layer 3: 27
-          totalEarnings: 800, // 从Level 1奖励获得
-          monthlyEarnings: 800,
-          pendingCommissions: 300, // 3个Level 1成员 × 100 USDT
+          totalEarnings: 400, // Layer1前2个升级: 200×2=400 (已到账)
+          monthlyEarnings: 400,
+          pendingCommissions: 3550, // Layer1第3个:100 + Layer2:150×7=1050 + Layer3:200×12=2400
           nextPayout: '2025-09-01T00:00:00.000Z',
           currentLevel: 1,
           memberActivated: true,
@@ -84,9 +84,9 @@ export function useUserReferralStats() {
           positionIndex: 1,
           levelsOwned: [1],
           downlineMatrix: [
-            { level: 1, members: 3, upgraded: 3, placements: 3 }, // 3个位置都满，3个升级
-            { level: 2, members: 9, upgraded: 7, placements: 9 }, // 9个位置都满，7个升级  
-            { level: 3, members: 27, upgraded: 12, placements: 27 } // 27个位置都满，12个升级
+            { level: 1, members: 3, upgraded: 3, placements: 3 }, // 3个位置都满，3个升级 (前2个200×2=400已获得,第3个100待解锁)
+            { level: 2, members: 9, upgraded: 7, placements: 9 }, // 9个位置都满，7个升级 (需升级L2解锁: 150×7=1050)
+            { level: 3, members: 27, upgraded: 12, placements: 27 } // 27个位置都满，12个升级 (需升级L3解锁: 200×12=2400)
           ]
         };
       }
