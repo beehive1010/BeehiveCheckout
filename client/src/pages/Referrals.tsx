@@ -146,17 +146,14 @@ export default function Referrals() {
   const realTotalEarnings = Number(userStats?.totalEarnings || 0);
   const realPendingCommissions = Number(userStats?.pendingCommissions || 0);
   
-  // Use real rewards data when available, otherwise fall back to calculation
-  const displayEarnings = totalClaimedRewards > 0 ? totalClaimedRewards : (hasRealEarnings ? realTotalEarnings : (Math.min(3, directReferralCountForEarnings) * 100));
-  const displayCommissions = unclaimedRewards > 0 ? unclaimedRewards : displayEarnings;
-  
+  // Use real data from backend API
   const referralStats = {
     directReferrals: directReferralCountForEarnings,
     totalTeam: userStats?.totalTeamCount || 0,
-    totalEarnings: displayEarnings,
-    monthlyEarnings: displayEarnings,
-    pendingCommissions: displayCommissions,
-    nextPayout: displayCommissions > 0 ? '72h after upgrade' : 'TBA',
+    totalEarnings: Number(userStats?.totalEarnings || 0),
+    monthlyEarnings: Number(userStats?.monthlyEarnings || 0),
+    pendingCommissions: Number(userStats?.pendingCommissions || 0),
+    nextPayout: userStats?.nextPayout || 'TBA',
     unclaimedCount: layerData.notifications.filter((notif: any) => notif.status === 'pending').length
   };
 
