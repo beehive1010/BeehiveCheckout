@@ -854,14 +854,22 @@ export default function Referrals() {
                 Pending rewards that require your level upgrade to unlock. You have 72 hours from trigger to upgrade and claim these rewards.
               </div>
               
-              {/* Check if using real notifications data - only show pending */}
-              {layerData?.notifications?.filter((notif: any) => notif.status === 'pending').length > 0 ? (
+              {/* Check if using real notifications data - show both pending and waiting_claim */}
+              {layerData?.notifications?.filter((notif: any) => 
+                notif.status === 'pending' || notif.status === 'waiting_claim'
+              ).length > 0 ? (
                 <div className="space-y-3">
                   {layerData.notifications
-                    .filter((notif: any) => notif.status === 'pending')
+                    .filter((notif: any) => notif.status === 'pending' || notif.status === 'waiting_claim')
                     .map((notif: any) => (
-                    <Alert key={notif.id} className="border-yellow-600 bg-yellow-600/5">
-                      <AlertCircle className="h-4 w-4 text-yellow-600" />
+                    <Alert key={notif.id} className={
+                      notif.status === 'waiting_claim' 
+                        ? "border-green-600 bg-green-600/5" 
+                        : "border-yellow-600 bg-yellow-600/5"
+                    }>
+                      <AlertCircle className={`h-4 w-4 ${
+                        notif.status === 'waiting_claim' ? 'text-green-600' : 'text-yellow-600'
+                      }`} />
                       <AlertDescription>
                         <div className="flex items-center justify-between">
                           <div>
@@ -869,25 +877,35 @@ export default function Referrals() {
                               Layer {notif.layerNumber} member purchased Level {notif.triggerLevel}
                             </p>
                             <p className="text-sm text-muted-foreground mt-1">
-                              💰 Potential reward: ${(notif.rewardAmount / 100).toFixed(2)} USDT
+                              💰 {notif.status === 'waiting_claim' ? 'Ready to claim' : 'Potential reward'}: ${(notif.rewardAmount / 100).toFixed(2)} USDT
                             </p>
-                            <p className="text-xs text-yellow-600 font-medium mt-1">
-                              ⚡ Requires Level {notif.triggerLevel} upgrade to unlock
-                            </p>
+                            {notif.status === 'waiting_claim' ? (
+                              <p className="text-xs text-green-600 font-medium mt-1">
+                                ✅ Ready to claim! You qualify for this reward
+                              </p>
+                            ) : (
+                              <p className="text-xs text-yellow-600 font-medium mt-1">
+                                ⚡ Requires Level {notif.triggerLevel} upgrade to unlock
+                              </p>
+                            )}
                           </div>
                           <div className="text-right">
                             <div>
-                              <Badge variant="outline" className="border-yellow-600 text-yellow-600 mb-2">
+                              <Badge variant="outline" className={
+                                notif.status === 'waiting_claim'
+                                  ? "border-green-600 text-green-600 mb-2"
+                                  : "border-yellow-600 text-yellow-600 mb-2"
+                              }>
                                 <Clock className="mr-1 h-3 w-3" />
                                 {timers[notif.id] || 'Calculating...'}
                               </Badge>
                               <br/>
                               <Button 
                                 size="sm" 
-                                className="btn-honey"
-                                data-testid={`button-upgrade-${notif.id}`}
+                                className={notif.status === 'waiting_claim' ? 'bg-green-600 hover:bg-green-700' : 'btn-honey'}
+                                data-testid={`button-${notif.status === 'waiting_claim' ? 'claim' : 'upgrade'}-${notif.id}`}
                               >
-                                Upgrade Now
+                                {notif.status === 'waiting_claim' ? 'Claim Now' : 'Upgrade Now'}
                               </Button>
                             </div>
                           </div>
