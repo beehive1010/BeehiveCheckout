@@ -462,15 +462,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createMembershipState(membership: InsertMembershipState): Promise<MembershipState> {
+    const insertData = {
+      walletAddress: membership.walletAddress.toLowerCase(),
+      levelsOwned: membership.levelsOwned || [],
+      activeLevel: membership.activeLevel || 0,
+      joinedAt: new Date(),
+      lastUpgradeAt: new Date(),
+    };
     const [state] = await db
       .insert(membershipState)
-      .values({
-        walletAddress: membership.walletAddress.toLowerCase(),
-        levelsOwned: membership.levelsOwned || [],
-        activeLevel: membership.activeLevel || 0,
-        joinedAt: membership.joinedAt || new Date(),
-        lastUpgradeAt: new Date(),
-      })
+      .values(insertData)
       .returning();
     return state;
   }
@@ -1777,7 +1778,7 @@ export class DatabaseStorage implements IStorage {
 
   // Admin User operations
   async getAdminUsers(filters?: { search?: string; role?: string; status?: string }): Promise<AdminUser[]> {
-    let query = db.select().from(adminUsers);
+    const baseQuery = db.select().from(adminUsers);
     
     // Apply filters
     const conditions = [];
@@ -1797,10 +1798,10 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      return await baseQuery.where(and(...conditions)).orderBy(desc(adminUsers.createdAt));
     }
     
-    return await query.orderBy(desc(adminUsers.createdAt));
+    return await baseQuery.orderBy(desc(adminUsers.createdAt));
   }
 
   async getAdminUser(id: string): Promise<AdminUser | undefined> {
@@ -1856,7 +1857,7 @@ export class DatabaseStorage implements IStorage {
 
   // Discover Partners operations
   async getDiscoverPartners(filters?: { search?: string; status?: string; type?: string }): Promise<DiscoverPartner[]> {
-    let query = db.select().from(discoverPartners);
+    const baseQuery = db.select().from(discoverPartners);
     
     const conditions = [];
     if (filters?.search) {
@@ -1874,10 +1875,10 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      return await baseQuery.where(and(...conditions)).orderBy(desc(discoverPartners.createdAt));
     }
     
-    return await query.orderBy(desc(discoverPartners.createdAt));
+    return await baseQuery.orderBy(desc(discoverPartners.createdAt));
   }
 
   async getDiscoverPartner(id: string): Promise<DiscoverPartner | undefined> {
@@ -1886,9 +1887,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createDiscoverPartner(partner: InsertDiscoverPartner): Promise<DiscoverPartner> {
+    const insertData = {
+      name: partner.name,
+      logoUrl: partner.logoUrl,
+      websiteUrl: partner.websiteUrl,
+      shortDescription: partner.shortDescription,
+      longDescription: partner.longDescription,
+      tags: partner.tags || [],
+      chains: partner.chains || [],
+      dappType: partner.dappType,
+      featured: partner.featured || false,
+      status: partner.status || 'draft',
+      submitterWallet: partner.submitterWallet,
+      redeemCodeUsed: partner.redeemCodeUsed,
+      rejectionReason: partner.rejectionReason,
+    };
     const [createdPartner] = await db
       .insert(discoverPartners)
-      .values(partner)
+      .values(insertData)
       .returning();
     return createdPartner;
   }
@@ -2104,20 +2120,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createReferralNode(referralNode: InsertReferralNode): Promise<ReferralNode> {
+    const insertData = {
+      walletAddress: referralNode.walletAddress.toLowerCase(),
+      sponsorWallet: referralNode.sponsorWallet?.toLowerCase() || null,
+      placerWallet: referralNode.placerWallet?.toLowerCase() || null,
+      matrixPosition: referralNode.matrixPosition || 0,
+      leftLeg: referralNode.leftLeg || [],
+      middleLeg: referralNode.middleLeg || [],
+      rightLeg: referralNode.rightLeg || [],
+      directReferralCount: referralNode.directReferralCount || 0,
+      totalTeamCount: referralNode.totalTeamCount || 0,
+    };
     const [created] = await db
       .insert(referralNodes)
-      .values({
-        walletAddress: referralNode.walletAddress.toLowerCase(),
-        sponsorWallet: referralNode.sponsorWallet?.toLowerCase() || null,
-        placerWallet: referralNode.placerWallet?.toLowerCase() || null,
-        matrixPosition: referralNode.matrixPosition || 0,
-        leftLeg: referralNode.leftLeg || [],
-        middleLeg: referralNode.middleLeg || [],
-        rightLeg: referralNode.rightLeg || [],
-        directReferralCount: referralNode.directReferralCount || 0,
-        totalTeamCount: referralNode.totalTeamCount || 0,
-        createdAt: new Date(),
-      })
+      .values(insertData)
       .returning();
     return created;
   }
@@ -2256,7 +2272,7 @@ export class DatabaseStorage implements IStorage {
         .update(referralLayers)
         .set({
           memberCount: layer.memberCount,
-          members: layer.members || [],
+          members: (layer.members || []) as string[],
           lastUpdated: new Date(),
         })
         .where(eq(referralLayers.id, existing.id))
@@ -2269,8 +2285,7 @@ export class DatabaseStorage implements IStorage {
           walletAddress: layer.walletAddress.toLowerCase(),
           layerNumber: layer.layerNumber,
           memberCount: layer.memberCount || 0,
-          members: layer.members || [],
-          lastUpdated: new Date(),
+          members: (layer.members || []) as string[],
         })
         .returning();
       return created;
@@ -2719,7 +2734,6 @@ export class DatabaseStorage implements IStorage {
         walletAddress: lowerWalletAddress,
         levelsOwned: [membershipLevel],
         activeLevel: membershipLevel,
-        lastUpgradeAt: now,
       });
     } else {
       // Update membership to include new level
@@ -2808,7 +2822,7 @@ export class DatabaseStorage implements IStorage {
         matrixLevel: membershipLevel,
         positionIndex: await this.getNextGlobalMatrixPosition(),
         directSponsorWallet: sponsorWallet?.toLowerCase() || '',
-        joinedAt: now,
+        placementSponsorWallet: sponsorWallet?.toLowerCase() || '',
       });
     }
 
