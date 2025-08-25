@@ -53,7 +53,6 @@ export function useUserReferralStats() {
       });
       if (!response.ok) throw new Error('Failed to fetch user stats');
       const data = await response.json();
-      console.log('🔍 useUserReferralStats API response:', data);
       return data;
     },
     enabled: !!walletAddress,
