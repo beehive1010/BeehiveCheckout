@@ -454,15 +454,15 @@ export default function Referrals() {
                 ${isStatsLoading ? '...' : Number(referralStats.pendingCommissions || 0).toFixed(2)} USDT
               </div>
               <p className="text-muted-foreground text-sm mb-2">
-                {referralStats.unclaimedCount > 0 ? `${referralStats.unclaimedCount} pending reward${referralStats.unclaimedCount > 1 ? 's' : ''}` : 'No pending rewards'}
+                {Number(referralStats.pendingCommissions || 0) > 0 ? `$${Number(referralStats.pendingCommissions || 0).toFixed(2)} available to withdraw` : 'No pending rewards'}
               </p>
               <p className="text-muted-foreground text-xs mb-4">
                 Timer expires: {isStatsLoading ? '...' : referralStats.nextPayout}
               </p>
               <Button 
-                className={`w-full ${referralStats.unclaimedCount > 0 ? 'btn-honey' : 'bg-muted text-muted-foreground'}`} 
+                className={`w-full ${Number(referralStats.pendingCommissions || 0) > 0 ? 'btn-honey' : 'bg-muted text-muted-foreground'}`} 
                 data-testid="button-claim-rewards"
-                disabled={referralStats.unclaimedCount === 0}
+                disabled={Number(referralStats.pendingCommissions || 0) === 0}
               >
                 <i className="fas fa-dollar-sign mr-2"></i>
                 Withdraw Rewards
