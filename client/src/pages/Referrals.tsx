@@ -9,12 +9,14 @@ import { useQuery } from '@tanstack/react-query';
 import { membershipLevels } from '../lib/config/membershipLevels';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Clock, Users, TrendingUp, AlertCircle } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Clock, Users, TrendingUp, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function Referrals() {
   const { walletAddress, userData } = useWallet();
   const { t } = useI18n();
   const [copySuccess, setCopySuccess] = useState(false);
+  const [isRewardStructureOpen, setIsRewardStructureOpen] = useState(true);
 
   // Fetch user referral statistics
   const { data: userStats, isLoading: isStatsLoading } = useQuery<any>({
@@ -154,14 +156,25 @@ export default function Referrals() {
 
       {/* Reward Structure Information */}
       <Card className="bg-secondary border-border">
-        <CardHeader>
-          <CardTitle className="text-honey flex items-center">
-            <i className="fas fa-coins mr-2"></i>
-            BeeHive Reward Structure
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        <Collapsible open={isRewardStructureOpen} onOpenChange={setIsRewardStructureOpen}>
+          <CardHeader>
+            <CollapsibleTrigger asChild>
+              <CardTitle className="text-honey flex items-center justify-between cursor-pointer hover:text-honey/80 transition-colors">
+                <div className="flex items-center">
+                  <i className="fas fa-coins mr-2"></i>
+                  BeeHive Reward Structure
+                </div>
+                {isRewardStructureOpen ? (
+                  <ChevronUp className="h-5 w-5" />
+                ) : (
+                  <ChevronDown className="h-5 w-5" />
+                )}
+              </CardTitle>
+            </CollapsibleTrigger>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent>
+              <div className="space-y-4">
             <div className="bg-background/50 rounded-lg p-4">
               <h4 className="font-semibold text-honey mb-2">Global Matrix System</h4>
               <p className="text-sm text-muted-foreground mb-3">
@@ -233,19 +246,21 @@ export default function Referrals() {
               </div>
             </div>
 
-            <div className="bg-honey/10 rounded-lg p-3 border border-honey/20">
-              <div className="flex items-start space-x-2">
-                <i className="fas fa-lightbulb text-honey mt-1"></i>
-                <div className="text-sm">
-                  <span className="font-medium text-honey">Key Point:</span>
-                  <span className="text-muted-foreground ml-1">
-                    Sponsors always receive 100% of the NFT price as reward, not the total price including platform fees.
-                  </span>
+                <div className="bg-honey/10 rounded-lg p-3 border border-honey/20">
+                  <div className="flex items-start space-x-2">
+                    <i className="fas fa-lightbulb text-honey mt-1"></i>
+                    <div className="text-sm">
+                      <span className="font-medium text-honey">Key Point:</span>
+                      <span className="text-muted-foreground ml-1">
+                        Sponsors always receive 100% of the NFT price as reward, not the total price including platform fees.
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </CardContent>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
       </Card>
 
       {/* Referral Link - Mobile Optimized */}
