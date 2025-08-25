@@ -86,14 +86,25 @@ export default function Referrals() {
     enabled: !!walletAddress,
   });
 
+  const isMatrixLoading = isStatsLoading;
+  const isLayersLoading = isLayerMembersLoading || isNotificationsLoading;
+
   // Create layer data structure from real data
   const layerData = {
     layers: layerMembersData?.layers || [],
     notifications: notificationsData?.notifications || []
   };
   
-  const isMatrixLoading = isStatsLoading;
-  const isLayersLoading = isLayerMembersLoading || isNotificationsLoading;
+  // Debug logs
+  console.log('🔍 Layer Members Data:', layerMembersData);
+  console.log('🔍 Notifications Data:', notificationsData); 
+  console.log('🔍 Final Layer Data:', layerData);
+  console.log('🔍 Loading states:', { isLayerMembersLoading, isNotificationsLoading, isLayersLoading });
+  console.log('🔍 Wallet Address:', walletAddress);
+  console.log('🔍 Query Enabled:', !!walletAddress);
+  
+  // Clean up debug logs after verification
+  // TODO: Remove these logs once data display is confirmed working
   
   // Calculate countdown timers with real data
   const [timers, setTimers] = useState<{ [key: string]: string }>({});
@@ -598,7 +609,7 @@ export default function Referrals() {
               
               <div className="space-y-3">
                 {/* Real upgrade notifications */}
-                {layerData.notifications.length === 0 ? (
+                {!layerData.notifications || layerData.notifications.length === 0 ? (
                   <div className="text-center py-6 text-muted-foreground">
                     <AlertCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
                     <p>No upgrade notifications yet</p>
@@ -685,7 +696,7 @@ export default function Referrals() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto"></div>
                   <p className="mt-2 text-muted-foreground">Loading layers...</p>
                 </div>
-              ) : layerData?.layers?.length > 0 ? (
+              ) : layerData?.layers && layerData.layers.length > 0 ? (
                 <div className="space-y-2">
                   {layerData.layers.map((layer: any) => (
                     <div key={layer.layerNumber} className="bg-muted/30 rounded-lg p-4">
