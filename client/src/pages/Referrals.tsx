@@ -475,18 +475,18 @@ export default function Referrals() {
                   No team members yet
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-6">
                   {layerData.layers.map((layer: any) => (
                     <div key={layer.layerNumber} className="border border-border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-honey/20 rounded-lg flex items-center justify-center">
-                            <span className="text-honey font-bold text-sm">{layer.layerNumber}</span>
+                          <div className="w-10 h-10 bg-honey/20 rounded-lg flex items-center justify-center">
+                            <span className="text-honey font-bold">{layer.layerNumber}</span>
                           </div>
                           <div>
-                            <h4 className="font-medium">Layer {layer.layerNumber}</h4>
+                            <h4 className="font-semibold">Layer {layer.layerNumber}</h4>
                             <p className="text-xs text-muted-foreground">
-                              {layer.memberCount}/{Math.pow(3, layer.layerNumber)} members
+                              {layer.memberCount}/{Math.pow(3, layer.layerNumber)} positions filled
                             </p>
                           </div>
                         </div>
@@ -495,65 +495,70 @@ export default function Referrals() {
                         </Badge>
                       </div>
                       
-                      {/* Real members for this layer */}
-                      <div className="space-y-2">
-                        {(layer.memberDetails || []).slice(0, 3).map((member: any, i: number) => {
-                          const memberLevel = member.currentLevel || 1;
-                          const userCurrentLevel = userStats?.currentLevel || 1;
-                          const hasUpgraded = memberLevel > 1;
-                          const canClaimReward = hasUpgraded && userCurrentLevel >= memberLevel;
-                          const needsUpgrade = hasUpgraded && userCurrentLevel < memberLevel;
-                          
-                          return (
-                            <div key={i} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
-                              <div className="flex items-center space-x-3">
-                                <div className="w-6 h-6 bg-honey/20 rounded flex items-center justify-center">
-                                  <i className="fas fa-user text-honey text-xs"></i>
-                                </div>
-                                <div>
-                                  <p className="text-sm font-medium">{formatAddress(`0x${(i+1).toString().padStart(40, '0')}`)}</p>
-                                  <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                                    <span>Member Level {memberLevel}</span>
-                                    {hasUpgraded && (
-                                      <Badge variant="outline" className="text-xs">
-                                        Upgraded to L{memberLevel}
-                                      </Badge>
-                                    )}
+                      {/* 3x3 Matrix Layout for this layer */}
+                      <div className="bg-muted/10 rounded-lg p-4">
+                        <div className="grid grid-cols-3 gap-3 max-w-md mx-auto">
+                          {Array.from({ length: Math.pow(3, layer.layerNumber) }).map((_, positionIndex) => {
+                            const member = (layer.memberDetails || [])[positionIndex];
+                            const memberLevel = member?.currentLevel || 1;
+                            const userCurrentLevel = userStats?.currentLevel || 1;
+                            const hasUpgraded = member && memberLevel > 1;
+                            const canClaimReward = hasUpgraded && userCurrentLevel >= memberLevel;
+                            const needsUpgrade = hasUpgraded && userCurrentLevel < memberLevel;
+                            
+                            return (
+                              <div key={positionIndex} className={`
+                                aspect-square border-2 rounded-lg p-2 text-center relative
+                                ${member ? 'border-honey bg-honey/10' : 'border-dashed border-muted-foreground/30'}
+                              `}>
+                                {member ? (
+                                  <>
+                                    <div className="absolute top-1 left-1 text-xs font-bold text-honey">
+                                      {positionIndex + 1}
+                                    </div>
+                                    <div className="flex flex-col items-center justify-center h-full">
+                                      <div className="w-6 h-6 bg-honey/30 rounded-full flex items-center justify-center mb-1">
+                                        <i className="fas fa-user text-honey text-xs"></i>
+                                      </div>
+                                      <p className="text-xs font-medium truncate w-full">
+                                        {member.username || `${member.walletAddress.slice(0, 4)}...`}
+                                      </p>
+                                      <div className="flex items-center gap-1 mt-1">
+                                        <Badge variant="outline" className="text-xs px-1 py-0">
+                                          L{memberLevel}
+                                        </Badge>
+                                        {hasUpgraded && canClaimReward && (
+                                          <div className="w-2 h-2 bg-green-500 rounded-full" title="Reward Ready"></div>
+                                        )}
+                                        {hasUpgraded && needsUpgrade && (
+                                          <div className="w-2 h-2 bg-yellow-500 rounded-full" title="Need Upgrade"></div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                                    <div className="text-xs font-bold mb-1">{positionIndex + 1}</div>
+                                    <i className="fas fa-plus text-lg opacity-50"></i>
+                                    <p className="text-xs mt-1">Empty</p>
                                   </div>
-                                </div>
+                                )}
                               </div>
-                              
-                              <div className="flex items-center space-x-2">
-                                {hasUpgraded && needsUpgrade && (
-                                  <div className="text-right">
-                                    <Badge variant="outline" className="border-yellow-600 text-yellow-600 text-xs">
-                                      <Clock className="mr-1 h-3 w-3" />
-                                      71h 23m
-                                    </Badge>
-                                    <p className="text-xs text-muted-foreground mt-1">Need L{memberLevel}</p>
-                                  </div>
-                                )}
-                                {hasUpgraded && canClaimReward && (
-                                  <div className="text-right">
-                                    <Badge className="bg-green-600 text-white text-xs">
-                                      +{memberLevel === 1 ? '100' : '150'} USDT
-                                    </Badge>
-                                    <p className="text-xs text-green-400 mt-1">Ready to claim</p>
-                                  </div>
-                                )}
-                                {!hasUpgraded && (
-                                  <Badge variant="secondary" className="text-xs">L1 Only</Badge>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
+                        </div>
                         
-                        {layer.memberCount > 3 && (
-                          <div className="text-center p-2 text-xs text-muted-foreground">
-                            +{layer.memberCount - 3} more members in this layer
+                        {/* Layer summary */}
+                        <div className="mt-4 pt-3 border-t border-border">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">
+                              Filled: {layer.memberCount}/{Math.pow(3, layer.layerNumber)}
+                            </span>
+                            <span className="text-honey">
+                              {((layer.memberCount / Math.pow(3, layer.layerNumber)) * 100).toFixed(1)}% Full
+                            </span>
                           </div>
-                        )}
+                        </div>
                       </div>
                     </div>
                   ))}
