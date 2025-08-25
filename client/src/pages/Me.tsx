@@ -102,7 +102,7 @@ export default function Me() {
           <CardContent className="p-6">
             <i className="fas fa-dollar-sign text-green-400 text-2xl mb-3"></i>
             <div className="text-2xl font-bold text-honey">
-              {isBalancesLoading ? '...' : (userBalances?.usdt?.toFixed(2) || '0.00')}
+              {isBalancesLoading ? '...' : Number(userBalances?.usdt || 0).toFixed(2)}
             </div>
             <div className="text-muted-foreground text-sm">{t('me.balances.usdt')}</div>
           </CardContent>

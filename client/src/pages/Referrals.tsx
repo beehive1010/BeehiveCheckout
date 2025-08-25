@@ -248,7 +248,7 @@ export default function Referrals() {
         <Card className="bg-secondary border-border text-center">
           <CardContent className="p-6">
             <i className="fas fa-dollar-sign text-green-400 text-2xl mb-3"></i>
-            <div className="text-2xl font-bold text-honey">{isStatsLoading ? '...' : referralStats.totalEarnings}</div>
+            <div className="text-2xl font-bold text-honey">{isStatsLoading ? '...' : Number(referralStats.totalEarnings || 0).toFixed(2)}</div>
             <div className="text-muted-foreground text-sm">{t('me.referral.totalEarnings')}</div>
           </CardContent>
         </Card>
@@ -256,7 +256,7 @@ export default function Referrals() {
         <Card className="bg-secondary border-border text-center">
           <CardContent className="p-6">
             <i className="fas fa-calendar text-purple-400 text-2xl mb-3"></i>
-            <div className="text-2xl font-bold text-honey">{isStatsLoading ? '...' : referralStats.monthlyEarnings}</div>
+            <div className="text-2xl font-bold text-honey">{isStatsLoading ? '...' : Number(referralStats.monthlyEarnings || 0).toFixed(2)}</div>
             <div className="text-muted-foreground text-sm">{t('me.referral.thisMonth')}</div>
           </CardContent>
         </Card>
@@ -451,7 +451,7 @@ export default function Referrals() {
           <CardContent>
             <div className="text-center">
               <div className="text-3xl font-bold text-green-400 mb-2">
-                ${isStatsLoading ? '...' : referralStats.pendingCommissions.toFixed(2)} USDT
+                ${isStatsLoading ? '...' : Number(referralStats.pendingCommissions || 0).toFixed(2)} USDT
               </div>
               <p className="text-muted-foreground text-sm mb-2">
                 {referralStats.unclaimedCount > 0 ? `${referralStats.unclaimedCount} pending reward${referralStats.unclaimedCount > 1 ? 's' : ''}` : 'No pending rewards'}
@@ -676,7 +676,7 @@ export default function Referrals() {
                               Filled: {layer.memberCount}/{Math.pow(3, layer.layerNumber)} | Upgraded: {layer.upgradedMembers || 0}
                             </span>
                             <span className="text-honey">
-                              {((layer.memberCount / Math.pow(3, layer.layerNumber)) * 100).toFixed(1)}% Full
+                              {Number(((layer.memberCount || 0) / Math.pow(3, layer.layerNumber || 1)) * 100).toFixed(1)}% Full
                             </span>
                           </div>
                         </div>
@@ -718,7 +718,7 @@ export default function Referrals() {
                               Layer {notif.layerNumber} member upgraded to Level {notif.triggerLevel}
                             </p>
                             <p className="text-sm text-muted-foreground mt-1">
-                              Reward: ${(notif.rewardAmount / 100).toFixed(2)} USDT
+                              Reward: ${Number(notif.rewardAmount / 100 || 0).toFixed(2)} USDT
                             </p>
                             <p className="text-xs text-muted-foreground">
                               From: {notif.triggerUsername || `${notif.triggerWallet.slice(0, 6)}...${notif.triggerWallet.slice(-4)}`}
@@ -831,7 +831,7 @@ export default function Referrals() {
                       {layer.memberCount > 0 && (
                         <div className="mt-2 pt-2 border-t border-border">
                           <div className="text-xs text-muted-foreground">
-                            Fill rate: {((layer.memberCount / Math.pow(3, layer.layerNumber)) * 100).toFixed(1)}%
+                            Fill rate: {Number(((layer.memberCount || 0) / Math.pow(3, layer.layerNumber || 1)) * 100).toFixed(1)}%
                           </div>
                         </div>
                       )}
@@ -881,7 +881,7 @@ export default function Referrals() {
                               Layer {notif.layerNumber} member purchased Level {notif.triggerLevel}
                             </p>
                             <p className="text-sm text-muted-foreground mt-1">
-                              💰 {notif.status === 'waiting_claim' ? 'Ready to claim' : 'Potential reward'}: ${(notif.rewardAmount / 100).toFixed(2)} USDT
+                              💰 {notif.status === 'waiting_claim' ? 'Ready to claim' : 'Potential reward'}: ${Number(notif.rewardAmount / 100 || 0).toFixed(2)} USDT
                             </p>
                             {notif.status === 'waiting_claim' ? (
                               <p className="text-xs text-green-600 font-medium mt-1">
