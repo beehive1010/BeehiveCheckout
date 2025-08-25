@@ -542,7 +542,7 @@ export default function Dashboard() {
                 </Button>
               </div>
               
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Button
                   onClick={() => {
                     const url = `https://twitter.com/intent/tweet?text=Join me on Beehive! ${encodeURIComponent(referralLink)}`;
@@ -550,10 +550,11 @@ export default function Dashboard() {
                   }}
                   size="sm"
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 min-w-0"
                   data-testid="button-share-twitter"
                 >
-                  <i className="fab fa-twitter mr-2"></i> {t('dashboard.social.twitter')}
+                  <i className="fab fa-twitter mr-1 sm:mr-2"></i> 
+                  <span className="truncate">{t('dashboard.social.twitter')}</span>
                 </Button>
                 <Button
                   onClick={() => {
@@ -562,10 +563,11 @@ export default function Dashboard() {
                   }}
                   size="sm"
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 min-w-0"
                   data-testid="button-share-telegram"
                 >
-                  <i className="fab fa-telegram mr-2"></i> {t('dashboard.social.telegram')}
+                  <i className="fab fa-telegram mr-1 sm:mr-2"></i> 
+                  <span className="truncate">{t('dashboard.social.telegram')}</span>
                 </Button>
                 <Button
                   onClick={() => {
@@ -574,10 +576,11 @@ export default function Dashboard() {
                   }}
                   size="sm"
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 min-w-0"
                   data-testid="button-share-whatsapp"
                 >
-                  <i className="fab fa-whatsapp mr-2"></i> {t('dashboard.social.whatsapp')}
+                  <i className="fab fa-whatsapp mr-1 sm:mr-2"></i> 
+                  <span className="truncate">{t('dashboard.social.whatsapp')}</span>
                 </Button>
               </div>
             </div>

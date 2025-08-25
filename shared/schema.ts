@@ -260,6 +260,10 @@ export const insertUserSchema = createInsertSchema(users).pick({
   preparedLevel: true,
   preparedTokenId: true,
   preparedPrice: true,
+  registeredAt: true,
+  registrationExpiresAt: true,
+  registrationTimeoutHours: true,
+  memberActivated: true,
 });
 
 // Registration wizard schemas for step-by-step updates

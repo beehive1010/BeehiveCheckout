@@ -266,8 +266,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...body,
         secondaryPasswordHash: hashedPassword,
         referrerWallet: body.referrerWallet, // Ensure referrer wallet is saved
-        registeredAt: new Date(),
-        registrationExpiresAt,
+        registrationExpiresAt: registrationExpiresAt,
         registrationTimeoutHours: timeoutHours,
         memberActivated: false // Explicitly set as inactive
       });
@@ -505,7 +504,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           positionIndex: placement.positionIndex,
           directSponsorWallet: sponsorWallet,
           placementSponsorWallet: placement.placementSponsorWallet,
-          joinedAt: new Date(),
         });
       }
       
@@ -2226,7 +2224,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const session = await verifyAdminSession(sessionToken);
       
       if (!session) {
-        return res.status(401).json({ error: 'Invalid or expired session' });
+        return res.status(401).json({ error: 'Invalid or expired session token' });
       }
       
       req.adminUser = {
@@ -2405,7 +2403,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { search, level } = req.query;
       const targetLevel = level ? parseInt(level as string) : 1;
       
-      let query = db.select({
+      let baseQuery = db.select({
         walletAddress: globalMatrixPosition.walletAddress,
         matrixLevel: globalMatrixPosition.matrixLevel,
         positionIndex: globalMatrixPosition.positionIndex,
@@ -2418,15 +2416,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currentLevel: users.currentLevel
       })
       .from(globalMatrixPosition)
-      .leftJoin(users, eq(globalMatrixPosition.walletAddress, users.walletAddress))
-      .where(eq(globalMatrixPosition.matrixLevel, targetLevel))
-      .orderBy(globalMatrixPosition.positionIndex);
+      .leftJoin(users, eq(globalMatrixPosition.walletAddress, users.walletAddress));
       
       // Apply search filter if provided
-      let finalQuery = query;
+      let finalQuery;
       if (search && typeof search === 'string' && search.trim().length > 0) {
         const searchTerm = search.trim().toLowerCase();
-        finalQuery = query.where(
+        finalQuery = baseQuery.where(
           and(
             eq(globalMatrixPosition.matrixLevel, targetLevel),
             or(
@@ -2435,9 +2431,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             )
           )
         );
+      } else {
+        finalQuery = baseQuery.where(eq(globalMatrixPosition.matrixLevel, targetLevel));
       }
       
-      const positions = await finalQuery.limit(100);
+      const positions = await finalQuery
+        .orderBy(globalMatrixPosition.positionIndex)
+        .limit(100);
       
       // Get matrix level statistics
       const matrixLevels = [];
