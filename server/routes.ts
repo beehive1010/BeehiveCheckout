@@ -174,7 +174,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ success: true });
   });
 
-  // Wallet connection logging endpoint
+  // Wallet connection logging endpoint with referral backup
   app.post("/api/wallet/log-connection", async (req, res) => {
     try {
       const walletAddress = req.headers['x-wallet-address'] as string;
@@ -183,6 +183,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { connectionType, userAgent, referrerUrl, referralCode, uplineWallet } = req.body;
+      
+      // Log referral information for backup
+      if (referralCode && referralCode.startsWith('0x')) {
+        console.log(`[REFERRAL BACKUP] Wallet ${walletAddress} connected with referrer: ${referralCode}`);
+        
+        // Store in a simple in-memory backup (could be enhanced with database storage)
+        if (!(global as any).referralBackup) {
+          (global as any).referralBackup = new Map();
+        }
+        (global as any).referralBackup.set(walletAddress.toLowerCase(), {
+          referrer: referralCode.toLowerCase(),
+          timestamp: new Date().toISOString(),
+          userAgent,
+          referrerUrl
+        });
+      }
       
       // Update user connection tracking if user exists
       const existingUser = await storage.getUser(walletAddress);
@@ -197,6 +213,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Wallet connection logging error:', error);
       res.status(500).json({ error: 'Failed to log wallet connection' });
+    }
+  });
+
+  // Get referral backup information
+  app.get("/api/wallet/referral-backup", async (req, res) => {
+    try {
+      const walletAddress = req.headers['x-wallet-address'] as string;
+      if (!walletAddress) {
+        return res.status(400).json({ error: 'Wallet address required' });
+      }
+
+      const backup = (global as any).referralBackup?.get(walletAddress.toLowerCase());
+      res.json({ 
+        referrer: backup?.referrer || null,
+        timestamp: backup?.timestamp || null
+      });
+    } catch (error) {
+      console.error('Referral backup retrieval error:', error);
+      res.status(500).json({ error: 'Failed to get referral backup' });
     }
   });
 

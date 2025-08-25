@@ -58,9 +58,29 @@ export default function Registration() {
         const referrer = urlParams.get('referrer'); // 备用推荐人字段
         
         // 优先从localStorage获取推荐人信息（由RouteGuard保存）
-        const savedReferrer = localStorage.getItem('beehive-referrer');
+        let savedReferrer = localStorage.getItem('beehive-referrer');
         
-        // 如果localStorage有推荐人信息，使用它
+        // 如果localStorage没有推荐人信息，尝试从服务端备份恢复
+        if (!savedReferrer && walletAddress) {
+          try {
+            const backupResponse = await fetch('/api/wallet/referral-backup', {
+              headers: { 'X-Wallet-Address': walletAddress }
+            });
+            if (backupResponse.ok) {
+              const backup = await backupResponse.json();
+              if (backup.referrer && typeof backup.referrer === 'string') {
+                savedReferrer = backup.referrer;
+                // 恢复到localStorage
+                localStorage.setItem('beehive-referrer', savedReferrer);
+                console.log('Referrer restored from server backup:', savedReferrer);
+              }
+            }
+          } catch (error) {
+            console.warn('Failed to restore referrer from backup:', error);
+          }
+        }
+        
+        // 如果有推荐人信息，使用它
         if (savedReferrer && savedReferrer.startsWith('0x')) {
           setFormData(prev => ({ ...prev, referralCode: savedReferrer }));
         }
