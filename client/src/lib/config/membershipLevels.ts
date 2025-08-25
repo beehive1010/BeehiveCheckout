@@ -16,9 +16,9 @@ export const membershipLevels: MembershipLevel[] = [
     level: 1,
     slug: 'warrior',
     i18nKey: 'membership.level.1',
-    priceUSDT: 130, // Total: 100 USDT (NFT) + 30 USDT (platform fee)
+    priceUSDT: 100, // Total price (100% goes to NFT/rewards)
     nftPriceUSDT: 100, // NFT price portion (sponsor reward)
-    platformFeeUSDT: 30, // Platform fee (only for Level 1)
+    platformFeeUSDT: 0, // No platform fee - 100% goes to rewards
     badgeTheme: 'bronze',
     benefitsKeys: ['membership.benefits.l1.basic', 'membership.benefits.l1.education', 'membership.benefits.l1.rewards'],
     titleEn: 'Warrior',

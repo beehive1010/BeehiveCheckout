@@ -381,11 +381,11 @@ export class DatabaseStorage implements IStorage {
       const existingLevels = await db.select().from(levelConfig).limit(1);
       if (existingLevels.length > 0) return;
 
-      // BeeHive 19-level configuration with correct pricing
-      // Level 1: 130 USDT (100 NFT + 30 admin fee)
-      // Level 2+: Each level adds 50 USDT (all goes to NFT price, no admin fee)
+      // BeeHive 19-level configuration with CORRECTED pricing
+      // Level 1: 100 USDT total (100% goes to NFT/rewards, no platform fee)
+      // Level N: 50 + (N * 50) USDT total (100% goes to NFT/rewards)
       const levels: InsertLevelConfig[] = [
-        { level: 1, levelName: "Warrior", priceUSDT: 13000, nftPriceUSDT: 10000, platformFeeUSDT: 3000, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+        { level: 1, levelName: "Warrior", priceUSDT: 10000, nftPriceUSDT: 10000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
         { level: 2, levelName: "Bronze", priceUSDT: 15000, nftPriceUSDT: 15000, platformFeeUSDT: 0, requiredDirectReferrals: 3, maxMatrixCount: 9 },
         { level: 3, levelName: "Silver", priceUSDT: 20000, nftPriceUSDT: 20000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
         { level: 4, levelName: "Gold", priceUSDT: 25000, nftPriceUSDT: 25000, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
@@ -767,8 +767,8 @@ export class DatabaseStorage implements IStorage {
         isQualified = uplineMembership?.levelsOwned.some(level => level >= purchasedLevel) || false;
       }
       
-      // Create reward (rewardable price only - admin fee excluded)
-      const rewardAmount = purchasedLevel === 1 ? '100.00' : levelConfig.nftPriceUSDT.toFixed(2);
+      // Create reward (100% of NFT price - rewards equal NFT price)
+      const rewardAmount = (levelConfig.nftPriceUSDT / 100).toFixed(2); // Convert cents to dollars
       
       await this.createRewardDistribution({
         recipientWallet: uplineWallet,
@@ -2746,14 +2746,28 @@ export class DatabaseStorage implements IStorage {
       earningsWallet = [newEarningsWallet];
     }
 
-    // 6. Create BCC balance record
+    // 6. Create BCC balance record with correct rewards
     let bccBalance = await this.getBCCBalance(lowerWalletAddress);
     if (!bccBalance) {
+      // New member: Always gets Level 1 rewards (500 transferable + 100 restricted)
       bccBalance = await this.createBCCBalance({
         walletAddress: lowerWalletAddress,
-        transferable: 0,
-        restricted: 0,
+        transferable: 500,
+        restricted: 100,
       });
+    } else {
+      // Existing member upgrading: Add upgrade bonus
+      const currentMembershipState = await this.getMembershipState(lowerWalletAddress);
+      const isNewLevel = !currentMembershipState?.levelsOwned.includes(membershipLevel);
+      
+      if (isNewLevel && membershipLevel > 1) {
+        // Calculate upgrade bonus: Level 2 = 150 BCC, Level 3 = 200 BCC, etc.
+        const upgradeBonusBCC = 50 + (membershipLevel * 50);
+        
+        bccBalance = await this.updateBCCBalance(lowerWalletAddress, {
+          transferable: bccBalance.transferable + upgradeBonusBCC,
+        }) || bccBalance;
+      }
     }
 
     // 7. Create NFT verification record
