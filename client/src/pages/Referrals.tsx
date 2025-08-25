@@ -348,7 +348,7 @@ export default function Referrals() {
                 {membershipLevels.slice(12).map((level) => (
                   <div key={level.level} className="text-center p-2 bg-background/30 rounded">
                     <div className="text-xs font-medium">{level.titleEn}</div>
-                    <div className="text-sm font-bold text-honey">{(level.nftPriceUSDT / 1000).toFixed(0)}K USDT</div>
+                    <div className="text-sm font-bold text-honey">{level.nftPriceUSDT >= 1000 ? `${(level.nftPriceUSDT / 1000).toFixed(1)}K` : level.nftPriceUSDT} USDT</div>
                   </div>
                 ))}
               </div>
@@ -530,8 +530,8 @@ export default function Referrals() {
             Matrix Layer Management
           </CardTitle>
           <div className="text-sm text-muted-foreground mb-3">
-            Direct Referrals: 34 | 
-            Your Team Placed: {isStatsLoading ? '...' : 34} | 
+            Direct Referrals: {isStatsLoading ? '...' : directReferralCountForEarnings} | 
+            Your Team Placed: {isStatsLoading ? '...' : totalTeamCount} | 
             Total Matrix: {isStatsLoading ? '...' : layerData.layers.reduce((total: number, layer: any) => total + layer.memberCount, 0)} members
           </div>
           {/* Color coding legend */}
