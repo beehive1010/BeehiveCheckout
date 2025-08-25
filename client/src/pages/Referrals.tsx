@@ -56,15 +56,15 @@ export default function Referrals() {
   
   // Create layer data based on working userStats  
   const totalTeamCount = userStats?.totalTeamCount || 0;
-  const directReferralCount = Number(userStats?.directReferralCount) || 0;
+  const directReferrals = Number(userStats?.directReferralCount) || 0;
   
   // Create proper 3x3 matrix layer data
   const layerData = {
     layers: (() => {
-      if (directReferralCount === 0) return [];
+      if (directReferrals === 0) return [];
       
       const layers = [];
-      let remainingMembers = directReferralCount;
+      let remainingMembers = directReferrals;
       let layerNum = 1;
       
       // Layer 1: Max 3 members (direct positions)
@@ -96,7 +96,7 @@ export default function Referrals() {
       
       return layers;
     })(),
-    notifications: directReferralCount > 0 ? [
+    notifications: directReferrals > 0 ? [
       {
         id: 'notif-1',
         triggerWallet: '0x' + '1'.repeat(40),
@@ -151,7 +151,7 @@ export default function Referrals() {
   }, [layerData]);
 
   // Use real earnings data from database when available
-  const directReferralCount = Number(userStats?.directReferralCount) || 0;
+  const directReferralCountForEarnings = Number(userStats?.directReferralCount) || 0;
   
   // Check if user has real earnings data, otherwise use calculated display values
   const hasRealEarnings = userStats?.totalEarnings !== undefined && userStats?.totalEarnings !== null;
@@ -159,11 +159,11 @@ export default function Referrals() {
   const realPendingCommissions = Number(userStats?.pendingCommissions || 0);
   
   // For display: show real data if available, otherwise calculate based on team size
-  const displayEarnings = hasRealEarnings ? realTotalEarnings : (Math.min(3, directReferralCount) * 100);
+  const displayEarnings = hasRealEarnings ? realTotalEarnings : (Math.min(3, directReferralCountForEarnings) * 100);
   const displayCommissions = hasRealEarnings ? realPendingCommissions : displayEarnings;
   
   const referralStats = {
-    directReferrals: directReferralCount,
+    directReferrals: directReferralCountForEarnings,
     totalTeam: userStats?.totalTeamCount || 0,
     totalEarnings: displayEarnings,
     monthlyEarnings: displayEarnings,
@@ -480,7 +480,7 @@ export default function Referrals() {
             Matrix Layer Management
           </CardTitle>
           <div className="text-sm text-muted-foreground">
-            Direct Referrals: {isStatsLoading ? '...' : directReferralCount} | 
+            Direct Referrals: {isStatsLoading ? '...' : directReferralCountForEarnings} | 
             Total Placement: {isStatsLoading ? '...' : (userStats?.totalTeamCount || 0)} members
           </div>
         </CardHeader>
