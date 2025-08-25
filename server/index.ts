@@ -254,9 +254,11 @@ app.use((req, res, next) => {
 
   let server;
   try {
+    console.log('🚀 Registering API routes...');
     server = await registerRoutes(app);
+    console.log('✅ API routes registered successfully');
   } catch (error) {
-    console.error('Routes registration failed, using minimal setup:', error);
+    console.error('❌ Routes registration failed, using minimal setup:', error);
     server = createServer(app);
   }
 
@@ -268,10 +270,17 @@ app.use((req, res, next) => {
     throw err;
   });
 
+  // Add API route protection middleware before Vite setup
+  app.use('/api/*', (req, res, next) => {
+    console.log(`🔍 API Request: ${req.method} ${req.path}`);
+    next();
+  });
+
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
+    console.log('🔧 Setting up Vite in development mode...');
     await setupVite(app, server);
   } else {
     serveStatic(app);
