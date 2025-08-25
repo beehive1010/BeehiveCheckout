@@ -84,9 +84,20 @@ export default function Referrals() {
         // Fallback data: API被Vite覆盖，使用真实upgrade notifications
         return {
           notifications: [
-            // Layer 1 第3个升级: 需要用户升级L2解锁100 USDT  
+            // Layer 1 前2个升级: Level 1用户已获得400 USDT (绿色✅)
             {
-              id: 'notif_1',
+              id: 'notif_earned_1',
+              layerNumber: 1,
+              triggerLevel: 1, // L1用户符合条件
+              rewardAmount: 40000, // 400 USDT (2×200×100)
+              triggerUsername: 'First 2 Members',
+              triggerWallet: '0x1111...1111',
+              status: 'claimed',
+              expiredAt: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString()
+            },
+            // Layer 1 第3个升级: 需要用户升级L2解锁100 USDT (红色⏰)
+            {
+              id: 'notif_pending_1',
               layerNumber: 1,
               triggerLevel: 2, // 需要L2解锁
               rewardAmount: 10000, // 100 USDT (cents)
@@ -95,9 +106,9 @@ export default function Referrals() {
               status: 'pending',
               expiredAt: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString()
             },
-            // Layer 2 所有7个升级: 需要用户升级L2解锁150×7=1050 USDT
+            // Layer 2 所有7个升级: 需要用户升级L2解锁150×7=1050 USDT (红色⏰)
             {
-              id: 'notif_2', 
+              id: 'notif_pending_2', 
               layerNumber: 2,
               triggerLevel: 2,
               rewardAmount: 105000, // 1050 USDT (7×150×100)
@@ -106,9 +117,9 @@ export default function Referrals() {
               status: 'pending',
               expiredAt: new Date(Date.now() + 69 * 60 * 60 * 1000).toISOString()
             },
-            // Layer 3 所有12个升级: 需要用户升级L3解锁200×12=2400 USDT
+            // Layer 3 所有12个升级: 需要用户升级L3解锁200×12=2400 USDT (红色⏰)
             {
-              id: 'notif_3',
+              id: 'notif_pending_3',
               layerNumber: 3,
               triggerLevel: 3, // 需要L3解锁
               rewardAmount: 240000, // 2400 USDT (12×200×100) 
