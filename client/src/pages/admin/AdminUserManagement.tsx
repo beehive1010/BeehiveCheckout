@@ -149,7 +149,7 @@ export default function AdminUsers() {
     queryFn: async () => {
       const response = await fetch('/api/admin/registration-timers', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('adminSessionToken')}`,
         },
       });
       if (!response.ok) {
@@ -171,7 +171,7 @@ export default function AdminUsers() {
       
       const response = await fetch(`/api/admin/admin-users?${params}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('adminSessionToken')}`,
         },
       });
       
@@ -200,7 +200,7 @@ export default function AdminUsers() {
         }),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('adminSessionToken')}`,
         },
       });
       if (!response.ok) {
@@ -235,7 +235,7 @@ export default function AdminUsers() {
         body: JSON.stringify(userData),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('adminSessionToken')}`,
         },
       });
       if (!response.ok) {
@@ -269,7 +269,7 @@ export default function AdminUsers() {
       const response = await fetch(`/api/admin/admin-users/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('adminSessionToken')}`,
         },
       });
       if (!response.ok) {

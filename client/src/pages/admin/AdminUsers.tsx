@@ -105,7 +105,7 @@ export default function AdminUsers() {
       
       const response = await fetch(`/api/admin/platform-users?${params}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('adminSessionToken')}`,
         },
       });
       
@@ -125,7 +125,7 @@ export default function AdminUsers() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('adminSessionToken')}`,
         },
         body: JSON.stringify(updates),
       });

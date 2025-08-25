@@ -2179,7 +2179,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin Panel Authentication Routes
-  const { authenticateAdmin, verifyAdminSession, logoutAdmin } = await import('./admin-auth.js');
+  const { authenticateAdmin, verifyAdminSession, logoutAdmin } = await import('./admin-auth');
   
   // Admin middleware definitions (now that admin functions are imported)
   requireAdminAuth = async (req: any, res: any, next: any) => {
@@ -2390,9 +2390,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       .orderBy(globalMatrixPosition.positionIndex);
       
       // Apply search filter if provided
+      let finalQuery = query;
       if (search && typeof search === 'string' && search.trim().length > 0) {
         const searchTerm = search.trim().toLowerCase();
-        query = query.where(
+        finalQuery = query.where(
           and(
             eq(globalMatrixPosition.matrixLevel, targetLevel),
             or(
@@ -2403,7 +2404,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
       }
       
-      const positions = await query.limit(100);
+      const positions = await finalQuery.limit(100);
       
       // Get matrix level statistics
       const matrixLevels = [];
@@ -2456,11 +2457,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         conditions.push(eq(adminUsers.status, status));
       }
       
-      if (conditions.length > 0) {
-        query = query.where(and(...conditions));
-      }
+      const finalQuery = conditions.length > 0 
+        ? query.where(and(...conditions))
+        : query;
       
-      const users = await query.orderBy(desc(adminUsers.createdAt));
+      const users = await finalQuery.orderBy(desc(adminUsers.createdAt));
       
       // Don't return password hashes
       const safeUsers = users.map(user => ({
@@ -2649,9 +2650,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test endpoint to verify server updates
+  app.get("/api/admin/test-server-update", (req, res) => {
+    res.json({ message: "Server updated successfully", timestamp: new Date().toISOString() });
+  });
+
   // Platform Users routes - For managing regular Web3 users
   app.get("/api/admin/platform-users", requireAdminAuth, requireAdminPermission(['users.read']), async (req: any, res) => {
     try {
+      console.log('Platform users request received');
       const { search, level, status } = req.query;
       
       // Base query with joins to get comprehensive user data
@@ -2735,11 +2742,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      if (conditions.length > 0) {
-        query = query.where(and(...conditions));
-      }
+      // Build the full query based on conditions
+      const finalQuery = conditions.length > 0 
+        ? query.where(and(...conditions))
+        : query;
       
-      const platformUsers = await query.orderBy(desc(users.createdAt));
+      const platformUsers = await finalQuery.orderBy(desc(users.createdAt));
       
       // Format the data to match the frontend interface
       const formattedUsers = platformUsers.map(user => ({
@@ -2760,9 +2768,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
       
       res.json(formattedUsers);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Get platform users error:', error);
-      res.status(500).json({ error: 'Failed to fetch platform users' });
+      console.error('Error details:', error.message, error.stack);
+      res.status(500).json({ error: 'Failed to fetch platform users', details: error.message });
     }
   });
 

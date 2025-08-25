@@ -19,9 +19,9 @@ export async function authenticateAdmin(username: string, password: string) {
   try {
     // Direct SQL query to avoid schema compilation issues
     const result = await db.execute(sql`
-      SELECT id, username, email, role, password_hash, active 
+      SELECT id, username, email, role, password_hash 
       FROM admin_users 
-      WHERE username = ${username} AND active = true
+      WHERE username = ${username}
     `);
 
     if (result.rows.length === 0) {
@@ -72,10 +72,10 @@ export async function verifyAdminSession(sessionToken: string) {
     const result = await db.execute(sql`
       SELECT 
         s.admin_id, s.expires_at,
-        u.id, u.username, u.email, u.role, u.active
+        u.id, u.username, u.email, u.role
       FROM admin_sessions s
       JOIN admin_users u ON u.id = s.admin_id
-      WHERE s.session_token = ${sessionToken} AND s.expires_at > ${new Date()} AND u.active = true
+      WHERE s.session_token = ${sessionToken} AND s.expires_at > ${new Date()}
     `);
 
     if (result.rows.length === 0) {

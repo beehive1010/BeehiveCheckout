@@ -99,7 +99,7 @@ export default function AdminDiscover() {
       
       const response = await fetch(`/api/admin/discover/partners?${params}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('adminSessionToken')}`,
         },
       });
       
@@ -118,7 +118,7 @@ export default function AdminDiscover() {
     queryFn: async () => {
       const response = await fetch('/api/admin/discover/dapp-types', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('adminSessionToken')}`,
         },
       });
       
@@ -137,7 +137,7 @@ export default function AdminDiscover() {
     queryFn: async () => {
       const response = await fetch('/api/admin/discover/chains', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('adminSessionToken')}`,
         },
       });
       
@@ -156,7 +156,7 @@ export default function AdminDiscover() {
       const response = await fetch(`/api/admin/discover/partners/${partnerId}/approve`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('adminSessionToken')}`,
         },
       });
       
@@ -181,7 +181,7 @@ export default function AdminDiscover() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('adminSessionToken')}`,
         },
         body: JSON.stringify({ reason }),
       });
@@ -207,7 +207,7 @@ export default function AdminDiscover() {
       const response = await fetch(`/api/admin/discover/partners/${partnerId}/toggle-featured`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('adminSessionToken')}`,
         },
       });
       
@@ -231,7 +231,7 @@ export default function AdminDiscover() {
       const response = await fetch(`/api/admin/discover/partners/${partnerId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
+          'Authorization': `Bearer ${localStorage.getItem('adminSessionToken')}`,
         },
       });
       

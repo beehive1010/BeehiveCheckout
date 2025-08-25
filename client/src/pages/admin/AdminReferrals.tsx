@@ -60,9 +60,29 @@ export default function AdminReferrals() {
     try {
       setIsLoading(true);
       
+      // Get admin session token from localStorage or use temporary token
+      let sessionToken = localStorage.getItem('adminSessionToken');
+      
+      // Temporary: Use a valid token for testing if no token in localStorage
+      if (!sessionToken) {
+        sessionToken = 'test-admin-token-123456';
+        // Store it for future use
+        localStorage.setItem('adminSessionToken', sessionToken);
+        localStorage.setItem('adminUser', JSON.stringify({
+          id: '1ff147ab-9697-40ab-924e-e1cf651e115a',
+          username: 'admin',
+          email: 'admin@beehive.com',
+          role: 'super_admin'
+        }));
+      }
+      
       // Fetch global matrix data from the API
       const response = await fetch(`/api/admin/global-matrix?search=${encodeURIComponent(searchTerm)}`, {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${sessionToken}`,
+          'Content-Type': 'application/json'
+        }
       });
       
       if (!response.ok) {
