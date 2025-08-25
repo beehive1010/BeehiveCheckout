@@ -155,7 +155,7 @@ export default function Tasks() {
           {t('tasks.membership.description')} • {t('tasks.advertisement.description')}
         </p>
         
-        {/* NFT Center Button */}
+        {/* NFT Center Navigation Button */}
         <div className="flex justify-center my-4">
           <Button
             onClick={() => {
