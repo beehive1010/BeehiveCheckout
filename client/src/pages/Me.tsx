@@ -161,7 +161,7 @@ export default function Me() {
           <CardContent className="p-6">
             <i className="fas fa-chart-line text-yellow-400 text-2xl mb-3"></i>
             <div className="text-2xl font-bold text-honey">
-              {isLoadingUserStats ? '...' : (userStats?.totalEarnings?.toFixed(2) || '0.00')}
+              {isLoadingUserStats ? '...' : (Number(userStats?.totalEarnings || 0).toFixed(2))}
             </div>
             <div className="text-muted-foreground text-sm">{t('me.referrals.totalEarnings') || 'Total Earnings'}</div>
           </CardContent>
@@ -171,7 +171,7 @@ export default function Me() {
           <CardContent className="p-6">
             <i className="fas fa-clock text-purple-400 text-2xl mb-3"></i>
             <div className="text-2xl font-bold text-honey">
-              {isLoadingUserStats ? '...' : (userStats?.pendingRewards?.toFixed(2) || '0.00')}
+              {isLoadingUserStats ? '...' : (Number(userStats?.pendingRewards || 0).toFixed(2))}
             </div>
             <div className="text-muted-foreground text-sm">{t('me.referrals.pendingRewards') || 'Pending Rewards'}</div>
           </CardContent>
