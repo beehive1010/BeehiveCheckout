@@ -2581,7 +2581,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const filledCount = countResult?.count || 0;
           
           // Get positions for this level (but only if there are any)
-          let levelPositions = [];
+          let levelPositions: any[] = [];
           if (filledCount > 0) {
             levelPositions = await db.select({
               walletAddress: globalMatrixPosition.walletAddress,
@@ -2607,7 +2607,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             level,
             maxPositions,
             filledPositions: filledCount,
-            positions: levelPositions || []
+            positions: levelPositions
           });
           
           console.log(`Level ${level}: ${filledCount} filled, ${levelPositions.length} positions returned`);
