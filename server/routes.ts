@@ -72,6 +72,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       realNFT: false
     });
   });
+  
+  // Check if user exists (for referral validation)
+  app.get("/api/auth/check-user-exists/:walletAddress", async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      
+      if (!walletAddress || !walletAddress.startsWith('0x')) {
+        return res.status(400).json({ error: 'Invalid wallet address format' });
+      }
+      
+      const user = await storage.getUser(walletAddress.toLowerCase());
+      
+      if (!user) {
+        return res.status(404).json({ error: 'User not found', exists: false });
+      }
+      
+      res.json({ 
+        exists: true,
+        username: user.username,
+        walletAddress: user.walletAddress
+      });
+    } catch (error) {
+      console.error('Failed to check user existence:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
 
   // Admin middleware variables - will be assigned after admin functions are imported
   let requireAdminAuth: (req: any, res: any, next: any) => Promise<void>;
