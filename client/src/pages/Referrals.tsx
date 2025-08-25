@@ -409,7 +409,7 @@ export default function Referrals() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="bg-secondary border-border">
           <CardHeader>
-            <CardTitle className="text-honey">Pending Commissions</CardTitle>
+            <CardTitle className="text-honey">Available Rewards</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-center">
@@ -419,9 +419,9 @@ export default function Referrals() {
               <p className="text-muted-foreground text-sm mb-4">
                 Next payout: {isStatsLoading ? '...' : referralStats.nextPayout}
               </p>
-              <Button className="btn-honey w-full" data-testid="button-claim-commissions">
-                <i className="fas fa-download mr-2"></i>
-                Claim Commissions
+              <Button className="btn-honey w-full" data-testid="button-claim-rewards">
+                <i className="fas fa-dollar-sign mr-2"></i>
+                Withdraw Rewards
               </Button>
             </div>
           </CardContent>
