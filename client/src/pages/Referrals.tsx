@@ -479,9 +479,20 @@ export default function Referrals() {
             <Users className="mr-2 h-5 w-5" />
             Matrix Layer Management
           </CardTitle>
-          <div className="text-sm text-muted-foreground">
-            Direct Referrals: {isStatsLoading ? '...' : directReferralCountForEarnings} | 
-            Total Placement: {isStatsLoading ? '...' : (userStats?.totalTeamCount || 0)} members
+          <div className="text-sm text-muted-foreground mb-3">
+            Direct Referrals: {isStatsLoading ? '...' : (layerData.layers.length > 0 ? layerData.layers[0].memberCount : 0)} | 
+            Total Placement: {isStatsLoading ? '...' : layerData.layers.reduce((total, layer) => total + layer.memberCount, 0)} members
+          </div>
+          {/* Color coding legend */}
+          <div className="flex gap-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-honey rounded"></div>
+              <span>Direct Referral</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-blue-400 rounded"></div>
+              <span>Spillover</span>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -532,16 +543,35 @@ export default function Referrals() {
                             const canClaimReward = hasUpgraded && userCurrentLevel >= memberLevel;
                             const needsUpgrade = hasUpgraded && userCurrentLevel < memberLevel;
                             
+                            // Get placement type for color coding
+                            const placementTypes = layer.placementTypes ? JSON.parse(layer.placementTypes) : [];
+                            const placementType = placementTypes[positionIndex] || 'unknown';
+                            
+                            // Color coding: direct = honey, spillover = blue
+                            const borderColor = member ? (
+                              placementType === 'direct' ? 'border-honey' : 
+                              placementType === 'spillover' ? 'border-blue-400' : 'border-honey'
+                            ) : 'border-dashed border-muted-foreground/30';
+                            const bgColor = member ? (
+                              placementType === 'direct' ? 'bg-honey/10' : 
+                              placementType === 'spillover' ? 'bg-blue-400/10' : 'bg-honey/10'
+                            ) : '';
+                            
                             return (
                               <div key={positionIndex} className={`
                                 aspect-square border-2 rounded-lg p-2 text-center relative
-                                ${member ? 'border-honey bg-honey/10' : 'border-dashed border-muted-foreground/30'}
+                                ${borderColor} ${bgColor}
                               `}>
                                 {member ? (
                                   <>
                                     <div className="absolute top-1 left-1 text-xs font-bold text-honey">
                                       {positionIndex + 1}
                                     </div>
+                                    {/* Placement type indicator dot */}
+                                    <div className={`absolute top-1 right-1 w-2 h-2 rounded-full ${
+                                      placementType === 'direct' ? 'bg-honey' : 
+                                      placementType === 'spillover' ? 'bg-blue-400' : 'bg-gray-400'
+                                    }`}></div>
                                     <div className="flex flex-col items-center justify-center h-full">
                                       <div className="w-6 h-6 bg-honey/30 rounded-full flex items-center justify-center mb-1">
                                         <i className="fas fa-user text-honey text-xs"></i>
