@@ -2439,19 +2439,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .orderBy(globalMatrixPosition.positionIndex)
         .limit(100);
       
-      // Get matrix level statistics
+      // Get matrix level statistics and positions for each level
       const matrixLevels = [];
       for (let level = 1; level <= 5; level++) {
+        // Get count for this level
         const levelCount = await db.select({ count: sql<number>`count(*)` })
           .from(globalMatrixPosition)
           .where(eq(globalMatrixPosition.matrixLevel, level));
+          
+        // Get positions for this level (limit to prevent too much data)
+        const levelPositions = await db.select({
+          walletAddress: globalMatrixPosition.walletAddress,
+          matrixLevel: globalMatrixPosition.matrixLevel,
+          positionIndex: globalMatrixPosition.positionIndex,
+          directSponsorWallet: globalMatrixPosition.directSponsorWallet,
+          placementSponsorWallet: globalMatrixPosition.placementSponsorWallet,
+          joinedAt: globalMatrixPosition.joinedAt,
+          lastUpgradeAt: globalMatrixPosition.lastUpgradeAt,
+          username: users.username,
+          memberActivated: users.memberActivated,
+          currentLevel: users.currentLevel
+        })
+        .from(globalMatrixPosition)
+        .leftJoin(users, eq(globalMatrixPosition.walletAddress, users.walletAddress))
+        .where(eq(globalMatrixPosition.matrixLevel, level))
+        .orderBy(globalMatrixPosition.positionIndex)
+        .limit(50); // Limit to avoid too much data
           
         const maxPositions = Math.pow(3, level);
         matrixLevels.push({
           level,
           maxPositions,
           filledPositions: levelCount[0]?.count || 0,
-          positions: level === targetLevel ? positions : []
+          positions: levelPositions
         });
       }
       
