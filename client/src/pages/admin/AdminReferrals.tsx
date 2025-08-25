@@ -56,10 +56,19 @@ export default function AdminReferrals() {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [selectedUser, setSelectedUser] = useState<GlobalMatrixPosition | null>(null);
   const [showUserDetails, setShowUserDetails] = useState(false);
+  
+  // Matrix navigation state
+  const [currentMatrixLevel, setCurrentMatrixLevel] = useState(1);
+  const [matrixNavigationStack, setMatrixNavigationStack] = useState<{level: number, parentUser?: GlobalMatrixPosition}[]>([{level: 1}]);
+  const [currentLevelUsers, setCurrentLevelUsers] = useState<GlobalMatrixPosition[]>([]);
 
   useEffect(() => {
     loadReferrals();
   }, [searchTerm, selectedLevel]);
+  
+  useEffect(() => {
+    loadCurrentLevelData();
+  }, [currentMatrixLevel, matrixNavigationStack]);
 
   const loadReferrals = async () => {
     try {
@@ -94,11 +103,47 @@ export default function AdminReferrals() {
       setMatrixPositions(data.positions || []);
       setMatrixVisualization(data.matrixLevels || []);
       setIsLoading(false);
+      
+      // Initialize current level users with Level 1 data
+      const level1Data = data.matrixLevels?.find(level => level.level === 1);
+      if (level1Data) {
+        setCurrentLevelUsers(level1Data.positions || []);
+      }
     } catch (error) {
       console.error('Failed to load global matrix:', error);
       setMatrixPositions([]); // Clear positions on error
       setMatrixVisualization([]);
       setIsLoading(false);
+    }
+  };
+
+  const loadCurrentLevelData = async () => {
+    const currentNav = matrixNavigationStack[matrixNavigationStack.length - 1];
+    
+    if (currentNav.level === 1) {
+      // Load Level 1 data (root level)
+      const level1Data = matrixVisualization.find(level => level.level === 1);
+      if (level1Data) {
+        setCurrentLevelUsers(level1Data.positions || []);
+      }
+    } else if (currentNav.parentUser) {
+      // Load downline data for specific user
+      await loadUserDownline(currentNav.parentUser);
+    }
+  };
+
+  const loadUserDownline = async (parentUser: GlobalMatrixPosition) => {
+    try {
+      // Find users where this user is their placement sponsor
+      const downlineUsers = matrixVisualization
+        .flatMap(level => level.positions)
+        .filter(pos => pos.placementSponsorWallet === parentUser.walletAddress)
+        .slice(0, 3); // Limit to 3 direct downline positions
+      
+      setCurrentLevelUsers(downlineUsers);
+    } catch (error) {
+      console.error('Failed to load user downline:', error);
+      setCurrentLevelUsers([]);
     }
   };
 
@@ -149,66 +194,142 @@ export default function AdminReferrals() {
   };
 
   const handleUserClick = (user: GlobalMatrixPosition) => {
+    // Show user details modal
     setSelectedUser(user);
     setShowUserDetails(true);
   };
 
-  const render3x3Matrix = (positions: GlobalMatrixPosition[], level: number) => {
-    // Create a 3x3 grid based on positionIndex
-    const matrixGrid = Array(9).fill(null);
+  const navigateToUserLevel = (user: GlobalMatrixPosition) => {
+    // Navigate into this user's downline
+    const newLevel = currentMatrixLevel + 1;
+    const newNavStack = [...matrixNavigationStack, { level: newLevel, parentUser: user }];
     
-    // Fill the grid with positions
-    positions.forEach(position => {
-      if (position.positionIndex >= 1 && position.positionIndex <= 9) {
-        matrixGrid[position.positionIndex - 1] = position;
+    setCurrentMatrixLevel(newLevel);
+    setMatrixNavigationStack(newNavStack);
+  };
+
+  const goBackLevel = () => {
+    if (matrixNavigationStack.length > 1) {
+      const newNavStack = matrixNavigationStack.slice(0, -1);
+      const previousLevel = newNavStack[newNavStack.length - 1];
+      
+      setCurrentMatrixLevel(previousLevel.level);
+      setMatrixNavigationStack(newNavStack);
+    }
+  };
+
+  const renderNavigational3x3Matrix = () => {
+    const currentNav = matrixNavigationStack[matrixNavigationStack.length - 1];
+    
+    // Create a 3x3 grid, but only use first 3 positions for display
+    const matrixGrid = Array(3).fill(null);
+    
+    // Fill the grid with current level users
+    currentLevelUsers.forEach((position, index) => {
+      if (index < 3) {
+        matrixGrid[index] = position;
       }
     });
 
     return (
       <div className="space-y-4">
-        <div className="text-center mb-4">
-          <h4 className="text-lg font-semibold text-honey">Level {level} - 3×3 Matrix</h4>
-          <p className="text-sm text-muted-foreground">
-            {positions.length} / 9 positions filled
-          </p>
+        {/* Navigation Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h4 className="text-lg font-semibold text-honey">
+              {currentNav.level === 1 
+                ? "Matrix Level 1 (Root)" 
+                : `${currentNav.parentUser?.username || 'User'}'s Downline`
+              }
+            </h4>
+            <p className="text-sm text-muted-foreground">
+              {currentLevelUsers.length} / 3 positions filled
+            </p>
+          </div>
+          
+          {matrixNavigationStack.length > 1 && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={goBackLevel}
+              data-testid="button-back-level"
+            >
+              <ArrowRight className="w-4 h-4 mr-1 rotate-180" />
+              Back to Level {matrixNavigationStack[matrixNavigationStack.length - 2].level}
+            </Button>
+          )}
+        </div>
+
+        {/* Navigation Breadcrumb */}
+        <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-4">
+          <span>Path:</span>
+          {matrixNavigationStack.map((nav, index) => (
+            <span key={index} className="flex items-center">
+              {index > 0 && <ArrowRight className="w-3 h-3 mx-1" />}
+              <span className="text-honey">
+                {nav.level === 1 ? 'Root' : nav.parentUser?.username || 'User'}
+              </span>
+            </span>
+          ))}
         </div>
         
-        <div className="grid grid-cols-3 gap-2 max-w-md mx-auto">
+        {/* 1x3 Matrix Grid (horizontal layout) */}
+        <div className="flex justify-center gap-4 max-w-md mx-auto">
           {matrixGrid.map((position, index) => (
-            <div
-              key={index}
-              className={`
-                aspect-square border-2 border-dashed border-honey/30 rounded-lg 
-                flex flex-col items-center justify-center p-2 
-                ${position 
-                  ? 'bg-honey/10 border-solid border-honey/50 cursor-pointer hover:bg-honey/20 transition-colors' 
-                  : 'bg-muted/50'
-                }
-              `}
-              onClick={() => position && handleUserClick(position)}
-              data-testid={`matrix-position-${index + 1}`}
-            >
-              {position ? (
-                <div className="text-center">
-                  <div className="w-8 h-8 bg-honey rounded-full flex items-center justify-center mb-1">
-                    <span className="text-black font-bold text-xs">
-                      {position.username?.charAt(0).toUpperCase() || 'U'}
-                    </span>
+            <div key={index} className="flex flex-col items-center space-y-2">
+              {/* Position Circle */}
+              <div
+                className={`
+                  w-16 h-16 border-2 rounded-full 
+                  flex flex-col items-center justify-center p-2 
+                  ${position 
+                    ? 'bg-honey/10 border-honey/50 cursor-pointer hover:bg-honey/20 transition-colors' 
+                    : 'bg-muted/50 border-dashed border-honey/30'
+                  }
+                `}
+                onClick={() => position && handleUserClick(position)}
+                data-testid={`matrix-position-${index + 1}`}
+              >
+                {position ? (
+                  <div className="text-center">
+                    <div className="w-8 h-8 bg-honey rounded-full flex items-center justify-center mb-1">
+                      <span className="text-black font-bold text-xs">
+                        {position.username?.charAt(0).toUpperCase() || 'U'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-xs font-medium text-center truncate max-w-full">
-                    {position.username || 'User'}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    #{index + 1}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <div className="w-8 h-8 border-2 border-dashed border-honey/30 rounded-full mb-1"></div>
-                  <div className="text-xs text-muted-foreground">Empty</div>
-                  <div className="text-xs text-muted-foreground">#{index + 1}</div>
-                </div>
-              )}
+                ) : (
+                  <div className="w-8 h-8 border-2 border-dashed border-honey/30 rounded-full"></div>
+                )}
+              </div>
+              
+              {/* User Info and Navigate Button */}
+              <div className="text-center space-y-1">
+                {position ? (
+                  <>
+                    <div className="text-xs font-medium">
+                      {position.username || 'User'}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Position {index + 1}
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="text-xs h-6"
+                      onClick={() => navigateToUserLevel(position)}
+                      data-testid={`button-navigate-${index + 1}`}
+                    >
+                      View Downline
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-xs text-muted-foreground">Empty</div>
+                    <div className="text-xs text-muted-foreground">Position {index + 1}</div>
+                  </>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -504,37 +625,44 @@ export default function AdminReferrals() {
         </TabsList>
 
         <TabsContent value="matrix-view">
-          <div className="space-y-6">
-            {matrixVisualization.filter(level => level.positions.length > 0).map((levelData) => (
-              <Card key={levelData.level}>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Target className="h-5 w-5" />
-                    <span>Level {levelData.level} - Interactive Matrix</span>
-                    <Badge variant="outline">
-                      {levelData.filledPositions} / {levelData.maxPositions} filled
-                    </Badge>
-                  </CardTitle>
-                  <CardDescription>
-                    Click on any user avatar to view detailed information
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {render3x3Matrix(levelData.positions, levelData.level)}
-                </CardContent>
-              </Card>
-            ))}
-            
-            {matrixVisualization.filter(level => level.positions.length > 0).length === 0 && (
-              <Card>
-                <CardContent className="p-12 text-center">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Target className="h-5 w-5" />
+                <span>Navigational 3×3 Matrix</span>
+              </CardTitle>
+              <CardDescription>
+                Navigate through matrix levels by clicking "View Downline" on any user. 
+                Click user avatars to see detailed information.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {currentLevelUsers.length > 0 ? (
+                renderNavigational3x3Matrix()
+              ) : (
+                <div className="text-center py-8">
                   <Network className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
                   <h3 className="text-xl font-semibold mb-2">No Matrix Data</h3>
-                  <p className="text-muted-foreground">No users have joined the matrix yet.</p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+                  <p className="text-muted-foreground">
+                    {currentMatrixLevel === 1 
+                      ? "No users have joined the matrix yet." 
+                      : "This user has no downline members yet."
+                    }
+                  </p>
+                  {matrixNavigationStack.length > 1 && (
+                    <Button 
+                      variant="outline" 
+                      className="mt-4"
+                      onClick={goBackLevel}
+                    >
+                      <ArrowRight className="w-4 h-4 mr-1 rotate-180" />
+                      Go Back
+                    </Button>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="global-matrix">
