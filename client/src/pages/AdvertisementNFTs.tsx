@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { useToast } from '../hooks/use-toast';
 import { apiRequest } from '../lib/queryClient';
-import { StarIcon, FireIcon, TagIcon, GiftIcon, ExternalLinkIcon } from '@heroicons/react/24/outline';
+import { StarIcon, FireIcon, TagIcon, GiftIcon } from '@heroicons/react/24/outline';
+import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 import { IconWallet, IconFlame, IconCode } from '@tabler/icons-react';
 import { useLocation } from 'wouter';
 
