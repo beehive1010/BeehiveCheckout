@@ -1,4 +1,5 @@
 import { useWallet } from '../hooks/useWallet';
+import { useUserReferralStats } from '../hooks/useBeeHiveStats';
 import { useI18n } from '../contexts/I18nContext';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -24,6 +25,7 @@ export default function Me() {
     userBalances,
     isBalancesLoading 
   } = useWallet();
+  const { data: userStats, isLoading: isLoadingUserStats } = useUserReferralStats();
   const { t, language } = useI18n();
   const [, setLocation] = useLocation();
 
@@ -129,6 +131,49 @@ export default function Me() {
               {cthBalance?.balance || 0}
             </div>
             <div className="text-muted-foreground text-sm">{t('me.balances.cth')}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Referral Statistics Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Card className="bg-secondary border-border text-center">
+          <CardContent className="p-6">
+            <i className="fas fa-users text-blue-400 text-2xl mb-3"></i>
+            <div className="text-2xl font-bold text-honey">
+              {isLoadingUserStats ? '...' : (userStats?.directReferrals || 0)}
+            </div>
+            <div className="text-muted-foreground text-sm">{t('me.referrals.directReferrals') || 'Direct Referrals'}</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-secondary border-border text-center">
+          <CardContent className="p-6">
+            <i className="fas fa-sitemap text-green-400 text-2xl mb-3"></i>
+            <div className="text-2xl font-bold text-honey">
+              {isLoadingUserStats ? '...' : (userStats?.totalTeam || 0)}
+            </div>
+            <div className="text-muted-foreground text-sm">{t('me.referrals.totalTeam') || 'Total Team'}</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-secondary border-border text-center">
+          <CardContent className="p-6">
+            <i className="fas fa-chart-line text-yellow-400 text-2xl mb-3"></i>
+            <div className="text-2xl font-bold text-honey">
+              {isLoadingUserStats ? '...' : (userStats?.totalEarnings?.toFixed(2) || '0.00')}
+            </div>
+            <div className="text-muted-foreground text-sm">{t('me.referrals.totalEarnings') || 'Total Earnings'}</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-secondary border-border text-center">
+          <CardContent className="p-6">
+            <i className="fas fa-clock text-purple-400 text-2xl mb-3"></i>
+            <div className="text-2xl font-bold text-honey">
+              {isLoadingUserStats ? '...' : (userStats?.pendingRewards?.toFixed(2) || '0.00')}
+            </div>
+            <div className="text-muted-foreground text-sm">{t('me.referrals.pendingRewards') || 'Pending Rewards'}</div>
           </CardContent>
         </Card>
       </div>
