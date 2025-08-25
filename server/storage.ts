@@ -2581,6 +2581,186 @@ export class DatabaseStorage implements IStorage {
     return notificationsWithDetails;
   }
 
+  // Synchronized notification and reward methods
+  async createUpgradeAndRewardRecords(data: {
+    walletAddress: string;
+    triggerWallet: string;
+    level: number;
+    layerNumber: number;
+    rewardAmount: number;
+    rewardType: 'direct_referral' | 'level_bonus' | 'matrix_spillover';
+  }): Promise<{
+    rewardNotification: RewardNotification;
+    memberActivation: any;
+    rewardDistribution: RewardDistribution;
+  }> {
+    const { walletAddress, triggerWallet, level, layerNumber, rewardAmount, rewardType } = data;
+    
+    // Create reward notification (72-hour countdown)
+    const rewardNotification = await this.createRewardNotification({
+      recipientWallet: walletAddress.toLowerCase(),
+      triggerWallet: triggerWallet.toLowerCase(),
+      triggerLevel: level,
+      layerNumber,
+      rewardAmount: Math.round(rewardAmount * 100), // Convert to cents
+      status: 'pending',
+      expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000), // 72 hours
+    });
+
+    // Create member activation record (24-hour countdown for upgrade)
+    const memberActivation = await this.createMemberActivation({
+      walletAddress: walletAddress.toLowerCase(),
+      activationType: 'upgrade_triggered',
+      level,
+      pendingUntil: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+      isPending: true,
+      pendingTimeoutHours: 24,
+    });
+
+    // Create reward distribution record (72-hour countdown)
+    const rewardDistribution = await this.createRewardDistribution({
+      recipientWallet: walletAddress.toLowerCase(),
+      sourceWallet: triggerWallet.toLowerCase(),
+      rewardType,
+      rewardAmount: rewardAmount.toString(),
+      level,
+      status: 'pending',
+      pendingUntil: new Date(Date.now() + 72 * 60 * 60 * 1000), // 72 hours
+    });
+
+    return {
+      rewardNotification,
+      memberActivation,
+      rewardDistribution
+    };
+  }
+
+  // Sync notification statuses across all related tables
+  async syncNotificationStatuses(walletAddress: string): Promise<void> {
+    const now = new Date();
+    
+    // Get all pending notifications that should expire
+    const expiredRewardNotifications = await db
+      .select()
+      .from(rewardNotifications)
+      .where(
+        and(
+          eq(rewardNotifications.recipientWallet, walletAddress.toLowerCase()),
+          eq(rewardNotifications.status, 'pending'),
+          lt(rewardNotifications.expiresAt, now)
+        )
+      );
+
+    const expiredMemberActivations = await db
+      .select()
+      .from(memberActivations)
+      .where(
+        and(
+          eq(memberActivations.walletAddress, walletAddress.toLowerCase()),
+          eq(memberActivations.isPending, true),
+          lt(memberActivations.pendingUntil, now)
+        )
+      );
+
+    const expiredRewardDistributions = await db
+      .select()
+      .from(rewardDistributions)
+      .where(
+        and(
+          eq(rewardDistributions.recipientWallet, walletAddress.toLowerCase()),
+          eq(rewardDistributions.status, 'pending'),
+          lt(rewardDistributions.pendingUntil, now)
+        )
+      );
+
+    // Update expired reward notifications
+    for (const notification of expiredRewardNotifications) {
+      await this.updateRewardNotification(notification.id, { status: 'expired' });
+    }
+
+    // Update expired member activations
+    for (const activation of expiredMemberActivations) {
+      await this.updateMemberActivation(activation.walletAddress, { isPending: false });
+    }
+
+    // Redistribute expired rewards
+    for (const distribution of expiredRewardDistributions) {
+      const uplineWallet = await this.findNearestActivatedUpline(walletAddress);
+      if (uplineWallet) {
+        await this.redistributeReward(distribution.id, uplineWallet);
+      } else {
+        // Mark as expired if no upline found
+        await this.updateRewardDistribution(distribution.id, { status: 'expired_redistributed' });
+      }
+    }
+  }
+
+  // Claim reward across all related tables
+  async claimRewardAcrossTables(walletAddress: string, notificationId: string): Promise<void> {
+    const now = new Date();
+    
+    // Update reward notification as claimed
+    await this.updateRewardNotification(notificationId, {
+      status: 'claimed',
+      claimedAt: now
+    });
+
+    // Update member activation as activated
+    await this.updateMemberActivation(walletAddress, {
+      isPending: false,
+      activatedAt: now
+    });
+
+    // Find corresponding reward distribution and mark as claimed
+    const rewardDistribution = await db
+      .select()
+      .from(rewardDistributions)
+      .where(
+        and(
+          eq(rewardDistributions.recipientWallet, walletAddress.toLowerCase()),
+          eq(rewardDistributions.status, 'pending')
+        )
+      )
+      .limit(1);
+
+    if (rewardDistribution.length > 0) {
+      await this.updateRewardDistribution(rewardDistribution[0].id, {
+        status: 'claimed',
+        claimedAt: now
+      });
+    }
+  }
+
+  // Member activation operations
+  async createMemberActivation(activation: any): Promise<any> {
+    const [created] = await db
+      .insert(memberActivations)
+      .values({
+        ...activation,
+        walletAddress: activation.walletAddress.toLowerCase()
+      })
+      .returning();
+    return created;
+  }
+
+  async updateMemberActivation(walletAddress: string, updates: any): Promise<any> {
+    const [updated] = await db
+      .update(memberActivations)
+      .set(updates)
+      .where(eq(memberActivations.walletAddress, walletAddress.toLowerCase()))
+      .returning();
+    return updated;
+  }
+
+  async updateRewardDistribution(id: string, updates: any): Promise<any> {
+    const [updated] = await db
+      .update(rewardDistributions)
+      .set(updates)
+      .where(eq(rewardDistributions.id, id))
+      .returning();
+    return updated;
+  }
+
   // User Activity Methods
   async logUserActivity(
     walletAddress: string,
