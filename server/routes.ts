@@ -2569,16 +2569,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get matrix level statistics and positions for each level
       const matrixLevels = [];
       
+      // Calculate overall upgrade statistics
+      const [upgradeStats] = await db.select({
+        totalUpgraded: sql<number>`COUNT(CASE WHEN ${users.currentLevel} > 1 THEN 1 END)`,
+        totalActivated: sql<number>`COUNT(CASE WHEN ${users.memberActivated} = true THEN 1 END)`,
+        totalUsers: sql<number>`COUNT(*)`
+      })
+      .from(globalMatrixPosition)
+      .leftJoin(users, eq(globalMatrixPosition.walletAddress, users.walletAddress));
+      
       // Process levels sequentially to avoid race conditions
       const levels = [1, 2, 3, 4, 5];
       for (const level of levels) {
         try {
-          // Get count for this level
-          const [countResult] = await db.select({ count: sql<number>`count(*)` })
+          // Get count for this level with upgrade statistics
+          const [countResult] = await db.select({ 
+            count: sql<number>`count(*)`,
+            upgradedCount: sql<number>`COUNT(CASE WHEN ${users.currentLevel} > 1 THEN 1 END)`,
+            activatedCount: sql<number>`COUNT(CASE WHEN ${users.memberActivated} = true THEN 1 END)`
+          })
             .from(globalMatrixPosition)
+            .leftJoin(users, eq(globalMatrixPosition.walletAddress, users.walletAddress))
             .where(eq(globalMatrixPosition.matrixLevel, level));
           
           const filledCount = countResult?.count || 0;
+          const upgradedCount = countResult?.upgradedCount || 0;
+          const activatedCount = countResult?.activatedCount || 0;
           
           // Get positions for this level (but only if there are any)
           let levelPositions: any[] = [];
@@ -2607,6 +2623,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             level,
             maxPositions,
             filledPositions: filledCount,
+            upgradedPositions: upgradedCount,
+            activatedPositions: activatedCount,
             positions: levelPositions
           });
           
@@ -2628,7 +2646,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         positions,
         matrixLevels,
         currentLevel: targetLevel,
-        total: positions.length
+        total: positions.length,
+        upgradeStats: {
+          totalUpgraded: upgradeStats?.totalUpgraded || 0,
+          totalActivated: upgradeStats?.totalActivated || 0,
+          totalUsers: upgradeStats?.totalUsers || 0
+        }
       });
     } catch (error) {
       console.error('Admin global matrix error:', error);

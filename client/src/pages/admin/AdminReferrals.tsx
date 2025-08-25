@@ -43,7 +43,15 @@ interface GlobalMatrixVisualization {
   matrixLevel: number;
   maxPositions: number;
   filledPositions: number;
+  upgradedPositions?: number;
+  activatedPositions?: number;
   positions: GlobalMatrixPosition[];
+}
+
+interface UpgradeStats {
+  totalUpgraded: number;
+  totalActivated: number;
+  totalUsers: number;
 }
 
 export default function AdminReferrals() {
@@ -53,6 +61,7 @@ export default function AdminReferrals() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLevel, setSelectedLevel] = useState(1);
   const [matrixVisualization, setMatrixVisualization] = useState<GlobalMatrixVisualization[]>([]);
+  const [upgradeStats, setUpgradeStats] = useState<UpgradeStats>({ totalUpgraded: 0, totalActivated: 0, totalUsers: 0 });
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [selectedUser, setSelectedUser] = useState<GlobalMatrixPosition | null>(null);
   const [showUserDetails, setShowUserDetails] = useState(false);
@@ -102,6 +111,7 @@ export default function AdminReferrals() {
       const data = await response.json();
       setMatrixPositions(data.positions || []);
       setMatrixVisualization(data.matrixLevels || []);
+      setUpgradeStats(data.upgradeStats || { totalUpgraded: 0, totalActivated: 0, totalUsers: 0 });
       setIsLoading(false);
       
       // Initialize current level users with Level 1 data
@@ -113,6 +123,7 @@ export default function AdminReferrals() {
       console.error('Failed to load global matrix:', error);
       setMatrixPositions([]); // Clear positions on error
       setMatrixVisualization([]);
+      setUpgradeStats({ totalUpgraded: 0, totalActivated: 0, totalUsers: 0 });
       setIsLoading(false);
     }
   };
@@ -572,10 +583,9 @@ export default function AdminReferrals() {
             <div className="flex items-center space-x-2">
               <TrendingUp className="h-5 w-5 text-honey" />
               <div>
-                <p className="text-sm text-muted-foreground">Total Referrals</p>
-                <p className="text-2xl font-bold">
-                  {matrixPositions.reduce((sum, r) => sum + (r.directReferralCount || 0), 0)}
-                </p>
+                <p className="text-sm text-muted-foreground">Upgraded Members</p>
+                <p className="text-2xl font-bold">{upgradeStats.totalUpgraded}</p>
+                <p className="text-xs text-muted-foreground">Level 2+ members</p>
               </div>
             </div>
           </CardContent>
@@ -586,10 +596,9 @@ export default function AdminReferrals() {
             <div className="flex items-center space-x-2">
               <Award className="h-5 w-5 text-honey" />
               <div>
-                <p className="text-sm text-muted-foreground">Network Size</p>
-                <p className="text-2xl font-bold">
-                  {matrixPositions.reduce((sum, r) => sum + (r.totalTeamCount || 0), 0)}
-                </p>
+                <p className="text-sm text-muted-foreground">Activated Members</p>
+                <p className="text-2xl font-bold">{upgradeStats.totalActivated}</p>
+                <p className="text-xs text-muted-foreground">Active users</p>
               </div>
             </div>
           </CardContent>
