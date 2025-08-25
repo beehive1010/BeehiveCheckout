@@ -1731,14 +1731,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ORDER BY current_level
         `);
         
+        // Calculate real total rewards from earnings wallets
+        const totalRewardsResult = await db.execute(sql`
+          SELECT COALESCE(SUM(CAST(total_earnings AS DECIMAL)), 0) as total
+          FROM earnings_wallet
+        `);
+        
+        // Calculate real pending rewards from earnings wallets
+        const pendingRewardsResult = await db.execute(sql`
+          SELECT COALESCE(SUM(CAST(pending_rewards AS DECIMAL)), 0) as total
+          FROM earnings_wallet
+        `);
+        
         stats = {
           totalMembers: Number(totalMembersResult.rows[0]?.total || 0),
           levelDistribution: levelDistributionResult.rows.map(row => ({
             level: row.level,
             count: Number(row.count)
           })),
-          totalRewards: 125000,
-          pendingRewards: 25000
+          totalRewards: Math.floor(Number(totalRewardsResult.rows[0]?.total || 0)),
+          pendingRewards: Math.floor(Number(pendingRewardsResult.rows[0]?.total || 0))
         };
         console.log('✅ Fallback stats:', stats);
       }
