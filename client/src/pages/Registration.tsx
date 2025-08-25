@@ -53,12 +53,21 @@ export default function Registration() {
       try {
         // Get URL params for referral detection
         const urlParams = new URLSearchParams(window.location.search);
-        const ref = urlParams.get('ref');
-        const code = urlParams.get('code');
+        const ref = urlParams.get('ref'); // 推荐人钱包地址
+        const code = urlParams.get('code'); // 推荐代码
+        const referrer = urlParams.get('referrer'); // 备用推荐人字段
+        
+        // 如果URL中有推荐人钱包地址，自动填入表单
+        if (ref && ref.startsWith('0x')) {
+          setFormData(prev => ({ ...prev, referralCode: ref }));
+        } else if (referrer && referrer.startsWith('0x')) {
+          setFormData(prev => ({ ...prev, referralCode: referrer }));
+        }
         
         const response = await fetch(`/api/wallet/registration-status?${new URLSearchParams({ 
           ...(ref && { ref }), 
-          ...(code && { code }) 
+          ...(code && { code }),
+          ...(referrer && { referrer })
         })}`, {
           headers: {
             'X-Wallet-Address': walletAddress
@@ -117,9 +126,9 @@ export default function Registration() {
       newErrors.confirmPassword = t('registration.errors.passwordMismatch');
     }
     
-    // Validate referral code if needed
-    if (showReferralForm && !registrationStatus?.uplineWallet && !formData.referralCode) {
-      newErrors.referralCode = 'Referral code is required (use 001122 for company direct referral)';
+    // Validate referral code format if provided
+    if (formData.referralCode && formData.referralCode !== '001122' && !formData.referralCode.startsWith('0x')) {
+      newErrors.referralCode = 'Please enter a valid wallet address starting with 0x';
     }
 
     setErrors(newErrors);
@@ -138,14 +147,22 @@ export default function Registration() {
       let referrerWallet = registrationStatus?.uplineWallet;
       
       // Handle manual referral code entry
-      if (showReferralForm && formData.referralCode) {
+      if (formData.referralCode) {
         if (formData.referralCode === '001122') {
-          // Company direct referral
+          // Company direct referral - 滑落到最高级账户
           referrerWallet = '0x0000000000000000000000000000000000000001';
+        } else if (formData.referralCode.startsWith('0x')) {
+          // 直接使用推荐人钱包地址
+          referrerWallet = formData.referralCode.toLowerCase();
         } else {
-          // Try to find user by referral code (assuming it's a wallet address)
+          // 其他情况转为钱包地址格式
           referrerWallet = formData.referralCode;
         }
+      }
+      
+      // 如果没有推荐人且没有referralCode，默认使用公司账户
+      if (!referrerWallet && !registrationStatus?.uplineWallet) {
+        referrerWallet = '0x0000000000000000000000000000000000000001';
       }
       
       // Hash the secondary password
@@ -375,11 +392,11 @@ export default function Registration() {
                 )}
               </div>
 
-              {/* Referral Code Field (if needed) */}
-              {showReferralForm && !registrationStatus?.uplineWallet && (
+              {/* Referral Code Field (always show for manual entry) */}
+              {!registrationStatus?.uplineWallet && (
                 <div>
                   <Label htmlFor="referralCode" className="text-honey">
-                    Referral Code
+                    Referrer Wallet Address (Optional)
                   </Label>
                   <Input
                     id="referralCode"
@@ -387,13 +404,13 @@ export default function Registration() {
                     value={formData.referralCode}
                     onChange={handleInputChange}
                     className={`mt-1 bg-muted border-muted-foreground/20 ${errors.referralCode ? 'border-destructive' : ''}`}
-                    placeholder="Enter referral code (use 001122 for company direct)"
+                    placeholder="Enter referrer's wallet address (0x...)"
                   />
                   {errors.referralCode && (
                     <p className="text-sm text-destructive mt-1">{errors.referralCode}</p>
                   )}
                   <p className="text-xs text-muted-foreground mt-1">
-                    Use code "001122" for direct company referral
+                    Enter the wallet address of your referrer. If empty, you'll be placed under company structure.
                   </p>
                 </div>
               )}
