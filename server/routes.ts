@@ -1083,50 +1083,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const monthlyEarnings = Number(monthlyEarningsResult.rows[0]?.monthly_total || 0) / 100; // Convert from cents
 
-      // Calculate downline matrix data for 19 layers using global matrix data  
+      // FIXED: Get actual downline matrix data from referral layers
+      const layersData = await storage.getReferralLayers(walletAddress);
+      console.log('DEBUG: getReferralLayers returned:', layersData.map(l => ({ layer: l.layerNumber, count: l.memberCount })));
+      
       const downlineMatrix = [];
       
-      // Simplified approach: directly calculate each layer
+      // Process each level from 1 to 19
       for (let layerLevel = 1; layerLevel <= 19; layerLevel++) {
-        // For now, use simple level-based calculation
-        // Layer 1: direct referrals of walletAddress
-        // Layer 2: direct referrals of Layer 1 members
-        // etc.
+        const layerData = layersData.find(layer => layer.layerNumber === layerLevel);
         
-        let layerMembers: string[] = [];
-        
-        if (layerLevel === 1) {
-          // Get direct referrals from global matrix
-          const directReferrals = await db.select()
-            .from(globalMatrixPosition)
-            .where(eq(globalMatrixPosition.placementSponsorWallet, walletAddress.toLowerCase()));
-          layerMembers = directReferrals.map(r => r.walletAddress);
-        } else {
-          // For now, set deeper layers to 0 (can be enhanced later)
-          layerMembers = [];
-        }
-        
-        if (layerMembers.length > 0) {
-          // Get membership states for all members in this layer
-          const memberStates = await Promise.all(
-            layerMembers.map(async (memberWallet) => {
-              const membershipState = await storage.getMembershipState(memberWallet);
-              return {
-                wallet: memberWallet,
-                level: membershipState?.activeLevel || 0,
-                levelsOwned: membershipState?.levelsOwned || []
-              };
+        if (layerData && layerData.memberCount > 0) {
+          // Get member details for this layer to count upgrades
+          const memberDetails = await Promise.all(
+            layerData.members.map(async (memberWallet) => {
+              const user = await db.select({
+                currentLevel: users.currentLevel,
+                memberActivated: users.memberActivated
+              }).from(users).where(eq(users.walletAddress, memberWallet));
+              
+              return user[0] || { currentLevel: 0, memberActivated: false };
             })
           );
           
-          // Count members who have upgraded (level > 0)
-          const upgradedCount = memberStates.filter(m => m.level > 0).length;
+          const upgradedCount = memberDetails.filter(member => member.currentLevel >= 1).length;
           
           downlineMatrix.push({
             level: layerLevel,
-            members: layerMembers.length,
+            members: layerData.memberCount,
             upgraded: upgradedCount,
-            placements: layerMembers.length
+            placements: layerData.memberCount
           });
         } else {
           downlineMatrix.push({
