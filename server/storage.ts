@@ -732,13 +732,25 @@ export class DatabaseStorage implements IStorage {
       const uplineMembership = await this.getMembershipState(uplineWallet);
       
       if (purchasedLevel === 1) {
-        // Level 1: Must own L1, 3rd reward requires L2
-        const layer1Count = await this.getLayer1MemberCount(uplineWallet);
-        if (layer1Count <= 2) {
-          // First 2 rewards: just need L1
+        // Level 1: 每个奖励100 USDT，第三个需要升级Level2才能拿
+        // 计算这是第几个Level 1奖励（基于已获得的奖励数量）
+        const existingLevel1Rewards = await db.select()
+          .from(rewardDistributions)
+          .where(
+            and(
+              eq(rewardDistributions.recipientWallet, uplineWallet),
+              eq(rewardDistributions.level, 1),
+              eq(rewardDistributions.rewardType, 'level_bonus')
+            )
+          );
+          
+        const rewardSequenceNumber = existingLevel1Rewards.length + 1;
+        
+        if (rewardSequenceNumber <= 2) {
+          // 前2个奖励：只需要拥有L1就可以拿
           isQualified = uplineMembership?.levelsOwned.includes(1) || false;
         } else {
-          // 3rd reward: requires L2 upgrade
+          // 第3个及以后的奖励：需要升级到Level 2才能拿，不然72小时roll up
           isQualified = uplineMembership?.levelsOwned.includes(2) || false;
         }
       } else if (purchasedLevel === 2) {
@@ -840,12 +852,26 @@ export class DatabaseStorage implements IStorage {
     return uplines;
   }
 
-  // Helper: Get count of Layer 1 members for qualification checks
+  // Helper: Get count of Layer 1 members for qualification checks  
   async getLayer1MemberCount(uplineWallet: string): Promise<number> {
     const layer1Members = await db.select()
       .from(globalMatrixPosition)
       .where(eq(globalMatrixPosition.directSponsorWallet, uplineWallet.toLowerCase()));
     return layer1Members.length;
+  }
+
+  // Helper: Get Level 1 reward count for qualification checking
+  async getLevel1RewardCount(uplineWallet: string): Promise<number> {
+    const level1Rewards = await db.select()
+      .from(rewardDistributions)
+      .where(
+        and(
+          eq(rewardDistributions.recipientWallet, uplineWallet.toLowerCase()),
+          eq(rewardDistributions.level, 1),
+          eq(rewardDistributions.rewardType, 'level_bonus')
+        )
+      );
+    return level1Rewards.length;
   }
 
   // Helper: Check if upline has at least one Layer 1 member with specified level
