@@ -76,7 +76,7 @@ export default function Referrals() {
   const userMatrixPosition = globalMatrixData?.position || null;
   const directReferrals = globalMatrixData?.directReferrals || [];
 
-  const referralLink = `https://beehive.app/register?ref=${walletAddress}`;
+  const referralLink = `https://beehive-lifestyle.io/register?ref=${walletAddress}`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(referralLink);
