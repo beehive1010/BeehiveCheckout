@@ -155,7 +155,7 @@ export default function Registration() {
       if (formData.referralCode) {
         if (formData.referralCode === '001122') {
           // Company direct referral - 滑落到最高级账户
-          referrerWallet = '0x0000000000000000000000000000000000000001';
+          referrerWallet = '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0';
         } else if (formData.referralCode.startsWith('0x')) {
           // 直接使用推荐人钱包地址
           referrerWallet = formData.referralCode.toLowerCase();
@@ -167,7 +167,7 @@ export default function Registration() {
       
       // 如果没有推荐人且没有referralCode，默认使用公司账户
       if (!referrerWallet && !registrationStatus?.uplineWallet) {
-        referrerWallet = '0x0000000000000000000000000000000000000001';
+        referrerWallet = '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0';
       }
       
       // Hash the secondary password

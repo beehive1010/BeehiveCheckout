@@ -227,7 +227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isCompanyDirectReferral = true;
           referralCode = code;
           // Set company wallet as upline (you may need to configure this)
-          uplineWallet = '0x0000000000000000000000000000000000000001'; // Company wallet
+          uplineWallet = '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0'; // Company wallet
         } else if (ref) {
           // Validate referrer wallet
           const referrer = await storage.getUser(ref as string);
@@ -530,7 +530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Place member in global 3x3 matrix
       const existingPosition = await storage.getGlobalMatrixPosition(req.walletAddress);
       if (!existingPosition) {
-        const sponsorWallet = user?.referrerWallet || '0x0000000000000000000000000000000000000001';
+        const sponsorWallet = user?.referrerWallet || '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0';
         const placement = await storage.findGlobalMatrixPlacement(sponsorWallet);
         await storage.createGlobalMatrixPosition({
           walletAddress: req.walletAddress,
@@ -1814,7 +1814,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Place member in global 3x3 matrix when first activated
         const existingPosition = await storage.getGlobalMatrixPosition(req.walletAddress);
         if (!existingPosition) {
-          const sponsorWallet = user?.referrerWallet || '0x0000000000000000000000000000000000000001';
+          const sponsorWallet = user?.referrerWallet || '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0';
           const placement = await storage.findGlobalMatrixPlacement(sponsorWallet);
           await storage.createGlobalMatrixPosition({
             walletAddress: req.walletAddress,
