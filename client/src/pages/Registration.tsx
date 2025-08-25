@@ -130,6 +130,11 @@ export default function Registration() {
     if (formData.referralCode && formData.referralCode !== '001122' && !formData.referralCode.startsWith('0x')) {
       newErrors.referralCode = 'Please enter a valid wallet address starting with 0x';
     }
+    
+    // Prevent self-referral
+    if (formData.referralCode && formData.referralCode.toLowerCase() === walletAddress?.toLowerCase()) {
+      newErrors.referralCode = 'You cannot refer yourself';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -202,13 +207,28 @@ export default function Registration() {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+    
+    // Validate referral code in real-time
+    if (name === 'referralCode' && value && value !== '001122' && value.startsWith('0x')) {
+      try {
+        const response = await fetch(`/api/auth/check-user-exists/${value}`, {
+          headers: { 'X-Wallet-Address': walletAddress || '' }
+        });
+        
+        if (!response.ok) {
+          setErrors(prev => ({ ...prev, referralCode: 'This wallet address is not registered yet' }));
+        }
+      } catch (error) {
+        console.error('Failed to validate referrer:', error);
+      }
     }
   };
 
@@ -409,9 +429,6 @@ export default function Registration() {
                   {errors.referralCode && (
                     <p className="text-sm text-destructive mt-1">{errors.referralCode}</p>
                   )}
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Enter the wallet address of your referrer. If empty, you'll be placed under company structure.
-                  </p>
                 </div>
               )}
 
