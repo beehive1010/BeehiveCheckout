@@ -767,23 +767,23 @@ export default function Dashboard() {
             </h3>
             <div className="space-y-3">
               {/* Real Direct Referrals List */}
-              {!isLoadingUserStats && userStats?.directReferralsList && userStats.directReferralsList.length > 0 ? (
-                userStats.directReferralsList.slice(0, 5).map((referral, index) => (
-                  <div key={referral.walletAddress} className="bg-muted/30 rounded-lg p-3">
+              {!isLoadingUserStats && userStats?.downlineMatrix && userStats.downlineMatrix.length > 0 && userStats.downlineMatrix.some(layer => layer.members > 0) ? (
+                userStats.downlineMatrix.filter(layer => layer.members > 0).slice(0, 5).map((layer: any, index: number) => (
+                  <div key={layer.level} className="bg-muted/30 rounded-lg p-3">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-muted-foreground text-sm">
-                        {referral.username || formatAddress(referral.walletAddress)}
+                        Layer {layer.level}
                       </span>
                       <Badge className="bg-honey text-black">
-                        Level {referral.level}
+                        {layer.members} Members
                       </Badge>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground text-xs">
-                        {t('dashboard.uplineNetwork.earnings')}: {referral.earnings} USDT
+                        Upgraded: {layer.upgraded}
                       </span>
                       <span className="text-green-400 text-xs">
-                        {new Date(referral.joinDate).toLocaleDateString()}
+                        Placements: {layer.placements}
                       </span>
                     </div>
                   </div>
