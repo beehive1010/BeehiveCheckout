@@ -1181,19 +1181,19 @@ export class DatabaseStorage implements IStorage {
 
 
   async createEarningsWallet(data: any): Promise<any> {
-    const result = await db.execute(sql`
-      INSERT INTO earnings_wallet (
-        wallet_address, total_earnings, referral_earnings, level_earnings, 
-        pending_rewards, withdrawn_amount, last_reward_at
-      ) VALUES (
-        ${data.walletAddress.toLowerCase()}, ${data.totalEarnings || 0}, 
-        ${data.referralEarnings || 0}, ${data.levelEarnings || 0},
-        ${data.pendingRewards || 0}, ${data.withdrawnAmount || 0}, 
-        ${data.lastRewardAt || null}
-      ) 
-      RETURNING *
-    `);
-    return result.rows[0];
+    const [result] = await db
+      .insert(earningsWallet)
+      .values({
+        walletAddress: data.walletAddress.toLowerCase(),
+        totalEarnings: data.totalEarnings?.toString() || "0",
+        referralEarnings: data.referralEarnings?.toString() || "0",
+        levelEarnings: data.levelEarnings?.toString() || "0",
+        pendingRewards: data.pendingRewards?.toString() || "0",
+        withdrawnAmount: data.withdrawnAmount?.toString() || "0",
+        lastRewardAt: data.lastRewardAt || null
+      })
+      .returning();
+    return result;
   }
 
   async updateEarningsWallet(walletAddress: string, updates: any): Promise<any> {
@@ -1231,53 +1231,56 @@ export class DatabaseStorage implements IStorage {
 
   // NFT Verification Operations (using custom table structure)
   async createNFTVerificationCustom(data: any): Promise<any> {
-    const result = await db.execute(sql`
-      INSERT INTO member_nft_verification (
-        wallet_address, nft_contract_address, token_id, chain_id, 
-        verification_status, last_verified
-      ) VALUES (
-        ${data.walletAddress.toLowerCase()}, ${data.nftContractAddress}, 
-        ${data.tokenId}, ${data.chainId}, ${data.verificationStatus}, 
-        ${data.lastVerified}
-      ) 
-      RETURNING *
-    `);
-    return result.rows[0];
+    const [result] = await db
+      .insert(memberNFTVerification)
+      .values({
+        walletAddress: data.walletAddress.toLowerCase(),
+        nftContractAddress: data.nftContractAddress,
+        tokenId: data.tokenId,
+        chainId: data.chainId,
+        verificationStatus: data.verificationStatus,
+        lastVerified: data.lastVerified
+      })
+      .returning();
+    return result;
   }
 
   async getNFTVerificationCustom(walletAddress: string): Promise<any[]> {
-    const result = await db.execute(sql`
-      SELECT * FROM member_nft_verification 
-      WHERE wallet_address = ${walletAddress.toLowerCase()}
-      ORDER BY created_at DESC
-    `);
-    return result.rows;
+    const result = await db
+      .select()
+      .from(memberNFTVerification)
+      .where(eq(memberNFTVerification.walletAddress, walletAddress.toLowerCase()))
+      .orderBy(desc(memberNFTVerification.createdAt));
+    return result;
   }
 
   // Global Statistics (updated to work with current structure)
   async getGlobalStatisticsCustom(): Promise<any> {
-    const totalMembersResult = await db.execute(sql`
-      SELECT COUNT(*) as total_members FROM users WHERE member_activated = true
-    `);
+    const totalMembersResult = await db
+      .select({ totalMembers: sql<number>`COUNT(*)` })
+      .from(users)
+      .where(eq(users.memberActivated, true));
     
-    const levelDistributionResult = await db.execute(sql`
-      SELECT active_level, COUNT(*) as count 
-      FROM membership_state 
-      WHERE active_level > 0 
-      GROUP BY active_level 
-      ORDER BY active_level
-    `);
+    const levelDistributionResult = await db
+      .select({
+        activeLevel: membershipState.activeLevel,
+        count: sql<number>`COUNT(*)`
+      })
+      .from(membershipState)
+      .where(gt(membershipState.activeLevel, 0))
+      .groupBy(membershipState.activeLevel)
+      .orderBy(membershipState.activeLevel);
 
     const levelConfigs = await this.getAllLevelConfigs();
 
     return {
-      totalMembers: parseInt(totalMembersResult.rows[0]?.total_members || '0'),
-      levelDistribution: levelDistributionResult.rows.map(row => {
-        const config = levelConfigs.find(cfg => cfg.level === parseInt(row.active_level as string));
+      totalMembers: totalMembersResult[0]?.totalMembers || 0,
+      levelDistribution: levelDistributionResult.map(row => {
+        const config = levelConfigs.find(cfg => cfg.level === row.activeLevel);
         return {
-          level: parseInt(row.active_level as string),
-          levelName: config?.levelName || `Level ${row.active_level}`,
-          count: parseInt(row.count as string)
+          level: row.activeLevel,
+          levelName: config?.levelName || `Level ${row.activeLevel}`,
+          count: row.count
         };
       })
     };
@@ -1320,20 +1323,23 @@ export class DatabaseStorage implements IStorage {
   async getCompanyStats(): Promise<any> {
     try {
       // Total members (activated users)
-      const totalMembersResult = await db.execute(sql`
-        SELECT COUNT(*) as total FROM users WHERE member_activated = true
-      `);
-      const totalMembers = Number(totalMembersResult.rows[0]?.total || 0);
+      const totalMembersResult = await db
+        .select({ total: sql<number>`COUNT(*)` })
+        .from(users)
+        .where(eq(users.memberActivated, true));
+      const totalMembers = totalMembersResult[0]?.total || 0;
 
       // Members by level
-      const levelDistributionResult = await db.execute(sql`
-        SELECT m.active_level, COUNT(*) as count 
-        FROM membership_state m 
-        INNER JOIN users u ON m.wallet_address = u.wallet_address 
-        WHERE u.member_activated = true
-        GROUP BY m.active_level 
-        ORDER BY m.active_level
-      `);
+      const levelDistributionResult = await db
+        .select({
+          activeLevel: membershipState.activeLevel,
+          count: sql<number>`COUNT(*)`
+        })
+        .from(membershipState)
+        .innerJoin(users, eq(membershipState.walletAddress, users.walletAddress))
+        .where(eq(users.memberActivated, true))
+        .groupBy(membershipState.activeLevel)
+        .orderBy(membershipState.activeLevel);
 
       // Total rewards paid out - simplified for now
       const totalRewards = 0; // Will be calculated from actual earnings data later
@@ -1341,9 +1347,9 @@ export class DatabaseStorage implements IStorage {
       // Pending rewards - simplified for now  
       const pendingRewards = 0; // Will be calculated from actual pending data later
 
-      const levelDistribution = levelDistributionResult.rows.map((row: any) => ({
-        level: Number(row.active_level),
-        count: Number(row.count)
+      const levelDistribution = levelDistributionResult.map((row) => ({
+        level: row.activeLevel,
+        count: row.count
       }));
 
       return {
@@ -2265,13 +2271,21 @@ export class DatabaseStorage implements IStorage {
   async getPendingEarningsEntries(): Promise<EarningsWallet[]> {
     return await db.select()
       .from(earningsWallet)
-      .where(sql`${earningsWallet.pendingRewards} > 0`);
+      .where(gt(sql`CAST(${earningsWallet.pendingRewards} AS NUMERIC)`, sql`0`));
   }
 
   async getExpiredEarningsEntries(): Promise<EarningsWallet[]> {
+    const expiredDate = new Date();
+    expiredDate.setHours(expiredDate.getHours() - 72);
+    
     return await db.select()
       .from(earningsWallet)
-      .where(sql`${earningsWallet.pendingRewards} > 0 AND ${earningsWallet.lastRewardAt} < NOW() - INTERVAL '72 hours'`);
+      .where(
+        and(
+          gt(sql`CAST(${earningsWallet.pendingRewards} AS NUMERIC)`, sql`0`),
+          lt(earningsWallet.lastRewardAt, expiredDate)
+        )
+      );
   }
 
   async passUpReward(originalRecipient: string, reward: EarningsWallet): Promise<void> {
@@ -2324,7 +2338,7 @@ export class DatabaseStorage implements IStorage {
       .values({ settingKey, settingValue, description })
       .onConflictDoUpdate({
         target: adminSettings.settingKey,
-        set: { settingValue, updatedAt: sql`NOW()` }
+        set: { settingValue, updatedAt: new Date() }
       });
   }
 
@@ -2354,7 +2368,7 @@ export class DatabaseStorage implements IStorage {
         and(
           eq(users.memberActivated, false),
           not(isNull(users.registrationExpiresAt)),
-          sql`${users.registrationExpiresAt} < NOW()`
+          lt(users.registrationExpiresAt, new Date())
         )
       );
   }
@@ -2445,7 +2459,7 @@ export class DatabaseStorage implements IStorage {
       })
       .from(rewardNotifications)
       .where(eq(rewardNotifications.recipientWallet, walletAddress))
-      .orderBy(sql`${rewardNotifications.createdAt} DESC`);
+      .orderBy(desc(rewardNotifications.createdAt));
     
     // Add trigger user details
     const notificationsWithDetails = await Promise.all(
@@ -2499,7 +2513,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(userActivities)
       .where(eq(userActivities.walletAddress, walletAddress.toLowerCase()))
-      .orderBy(sql`${userActivities.createdAt} DESC`)
+      .orderBy(desc(userActivities.createdAt))
       .limit(limit);
     
     return activities.map(activity => ({
