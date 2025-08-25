@@ -15,13 +15,32 @@ export function RouteGuard({ children }: RouteGuardProps) {
   const { hasLevel1NFT, isLoading: isNFTLoading } = useNFTVerification();
   const { isRegistered, isUserLoading } = useWallet();
 
-  // Store referral link if present in URL
+  // Store referral link if present in URL + backup to server log
   useEffect(() => {
     const referrer = parseReferralFromUrl();
     if (referrer) {
+      // Save to localStorage (primary storage)
       localStorage.setItem('beehive-referrer', referrer);
+      console.log('Referrer saved to localStorage:', referrer);
+      
+      // Also backup to server log (secondary storage)
+      fetch('/api/wallet/log-connection', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Wallet-Address': account?.address || 'unknown'
+        },
+        body: JSON.stringify({
+          connectionType: 'referral_link_visit',
+          referralCode: referrer,
+          userAgent: navigator.userAgent,
+          referrerUrl: window.location.href
+        })
+      }).catch(error => {
+        console.warn('Failed to backup referral to server:', error);
+      });
     }
-  }, []);
+  }, [account?.address]);
 
   // Route guarding logic
   useEffect(() => {
