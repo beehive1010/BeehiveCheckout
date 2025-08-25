@@ -2132,14 +2132,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Reward notification operations
-  async getRewardNotifications(walletAddress: string): Promise<RewardNotification[]> {
-    return await db
-      .select()
-      .from(rewardNotifications)
-      .where(eq(rewardNotifications.recipientWallet, walletAddress.toLowerCase()))
-      .orderBy(desc(rewardNotifications.createdAt));
-  }
+  // Reward notification operations (removed duplicate - keeping enhanced version below)
 
   async getPendingRewardNotifications(walletAddress: string): Promise<RewardNotification[]> {
     return await db
@@ -2443,7 +2436,15 @@ export class DatabaseStorage implements IStorage {
     return layersWithMembers;
   }
 
-  async getRewardNotifications(walletAddress: string): Promise<any[]> {
+  async getRewardNotifications(walletAddress: string): Promise<RewardNotification[]> {
+    return await db
+      .select()
+      .from(rewardNotifications)
+      .where(eq(rewardNotifications.recipientWallet, walletAddress.toLowerCase()))
+      .orderBy(desc(rewardNotifications.createdAt));
+  }
+
+  async getRewardNotificationsWithDetails(walletAddress: string): Promise<any[]> {
     const notifications = await db
       .select({
         id: rewardNotifications.id,
@@ -2458,7 +2459,7 @@ export class DatabaseStorage implements IStorage {
         createdAt: rewardNotifications.createdAt
       })
       .from(rewardNotifications)
-      .where(eq(rewardNotifications.recipientWallet, walletAddress))
+      .where(eq(rewardNotifications.recipientWallet, walletAddress.toLowerCase()))
       .orderBy(desc(rewardNotifications.createdAt));
     
     // Add trigger user details
