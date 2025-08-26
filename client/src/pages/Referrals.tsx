@@ -60,7 +60,7 @@ export default function Referrals() {
   const totalTeamCount = userStats?.totalTeamCount || 0;
   const directReferrals = Number(userStats?.directReferralCount) || 0;
   
-  // Fetch real layer members data
+  // Fetch real layer members data with real-time updates
   const { data: layerMembersData, isLoading: isLayerMembersLoading } = useQuery({
     queryKey: ['/api/referrals/layer-members', walletAddress],
     queryFn: async () => {
@@ -72,9 +72,12 @@ export default function Referrals() {
       return response.json();
     },
     enabled: !!walletAddress,
+    staleTime: 2000, // 2 seconds
+    refetchInterval: 4000, // Real-time polling every 4 seconds for downline updates
+    refetchIntervalInBackground: true,
   });
 
-  // Fetch real reward notifications
+  // Fetch real reward notifications with real-time updates
   const { data: notificationsData, isLoading: isNotificationsLoading } = useQuery({
     queryKey: ['/api/notifications/rewards', walletAddress],
     queryFn: async () => {
@@ -88,6 +91,9 @@ export default function Referrals() {
       return response.json();
     },
     enabled: !!walletAddress,
+    staleTime: 1000, // 1 second for fastest notification updates
+    refetchInterval: 3000, // Real-time polling every 3 seconds for new notifications
+    refetchIntervalInBackground: true,
   });
 
   const isMatrixLoading = isStatsLoading;
