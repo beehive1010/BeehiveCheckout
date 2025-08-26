@@ -347,25 +347,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         restricted: 0,
       });
 
-      // Create referral structure using existing database schema
+      // Initialize referral matrix structure properly
       if (body.referrerWallet) {
-        // Use direct SQL to work with existing schema
-        await db.execute(sql`
-          INSERT INTO referral_nodes (wallet_address, parent_wallet, children)
-          VALUES (${user.walletAddress.toLowerCase()}, ${body.referrerWallet.toLowerCase()}, '[]'::jsonb)
-        `);
-        
-        // Update parent's children array
-        await db.execute(sql`
-          UPDATE referral_nodes 
-          SET children = jsonb_insert(children, '{999}', ${JSON.stringify(user.walletAddress.toLowerCase())}::jsonb)
-          WHERE wallet_address = ${body.referrerWallet.toLowerCase()}
-        `);
+        console.log(`Initializing referral matrix for ${user.walletAddress} under sponsor ${body.referrerWallet}`);
+        await storage.initializeReferralMatrix(user.walletAddress, body.referrerWallet);
+        console.log('✅ Referral matrix initialized successfully');
       } else {
-        await db.execute(sql`
-          INSERT INTO referral_nodes (wallet_address, parent_wallet, children)
-          VALUES (${user.walletAddress.toLowerCase()}, null, '[]'::jsonb)
-        `);
+        // Create root node for users without referrers
+        await storage.createReferralNode({
+          walletAddress: user.walletAddress,
+          sponsorWallet: null,
+          placerWallet: null,
+          matrixPosition: 0,
+          leftLeg: [],
+          middleLeg: [],
+          rightLeg: [],
+          directReferralCount: 0,
+          totalTeamCount: 0
+        });
       }
 
       res.json({ user });
@@ -481,6 +480,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Processing referral rewards for level', level);
       await storage.processReferralRewards(req.walletAddress, level);
 
+      // CRITICAL: Update matrix layers after member activation
+      console.log('🔄 Starting matrix layer recalculation for:', req.walletAddress);
+      try {
+        await storage.calculateAndStore19Layers(req.walletAddress);
+        console.log('✅ Matrix layers updated successfully');
+      } catch (error) {
+        console.error('❌ Matrix layer calculation failed:', error);
+      }
+
       // Record member activation with pending time
       await storage.createMemberActivation({
         walletAddress: req.walletAddress,
@@ -494,6 +502,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Activation error:', error);
       res.status(500).json({ error: 'Activation failed' });
+    }
+  });
+
+  // DEBUG: Test matrix layer calculation directly
+  app.post("/api/debug/test-layers", requireWallet, async (req: any, res) => {
+    try {
+      console.log('🧪 DEBUG: Testing layer calculation for:', req.walletAddress);
+      
+      // Check if function exists
+      if (typeof storage.calculateAndStore19Layers !== 'function') {
+        console.error('❌ calculateAndStore19Layers function does not exist!');
+        return res.status(500).json({ error: 'Function not found' });
+      }
+      
+      console.log('✅ Function exists, calling it...');
+      await storage.calculateAndStore19Layers(req.walletAddress);
+      console.log('🎉 Layer calculation completed successfully');
+      
+      res.json({ success: true, message: 'Layer calculation completed' });
+    } catch (error) {
+      console.error('💥 Layer calculation error:', error);
+      res.status(500).json({ error: error.message });
     }
   });
 

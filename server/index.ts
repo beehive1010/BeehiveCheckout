@@ -83,15 +83,15 @@ app.use((req, res, next) => {
       `).catch(() => ({ rows: [{ count: 0 }] }));
 
       res.json({
-        totalUsers: parseInt(usersResult.rows[0]?.count || '0'),
-        activeMembers: parseInt(membershipResult.rows[0]?.count || '0'),
-        totalNFTs: parseInt(nftsResult.rows[0]?.count || '0'),
-        blogPosts: parseInt(blogResult.rows[0]?.count || '0'),
-        courses: parseInt(coursesResult.rows[0]?.count || '0'),
+        totalUsers: parseInt(usersResult.rows[0]?.count?.toString() || '0'),
+        activeMembers: parseInt(membershipResult.rows[0]?.count?.toString() || '0'),
+        totalNFTs: parseInt(nftsResult.rows[0]?.count?.toString() || '0'),
+        blogPosts: parseInt(blogResult.rows[0]?.count?.toString() || '0'),
+        courses: parseInt(coursesResult.rows[0]?.count?.toString() || '0'),
         discoverPartners: 0,
-        pendingApprovals: parseInt(pendingResult.rows[0]?.count || '0'),
+        pendingApprovals: parseInt(pendingResult.rows[0]?.count?.toString() || '0'),
         systemHealth: 'healthy',
-        weeklyOrders: parseInt(ordersResult.rows[0]?.count || '0'),
+        weeklyOrders: parseInt(ordersResult.rows[0]?.count?.toString() || '0'),
       });
     } catch (error) {
       console.error('Admin stats error:', error);
@@ -123,8 +123,8 @@ app.use((req, res, next) => {
       const result = await adminDb.execute(`
         SELECT id, username, email, role, password_hash, active 
         FROM admin_users 
-        WHERE username = ? AND active = true
-      `, [username]);
+        WHERE username = '${username}' AND active = true
+      `);
 
       if (result.rows.length === 0) {
         return res.status(401).json({ error: 'Invalid credentials' });
@@ -145,8 +145,8 @@ app.use((req, res, next) => {
       // Store session
       await adminDb.execute(`
         INSERT INTO admin_sessions (admin_id, session_token, expires_at, created_at)
-        VALUES (?, ?, ?, ?)
-      `, [admin.id, sessionToken, expiresAt, new Date()]);
+        VALUES ('${admin.id}', '${sessionToken}', '${expiresAt.toISOString()}', '${new Date().toISOString()}')
+      `);
 
       res.json({
         sessionToken,
