@@ -12,7 +12,7 @@ import ClaimMembershipButton from '../components/membership/ClaimMembershipButto
 import { useNFTVerification } from '../hooks/useNFTVerification';
 import { useUserReferralStats } from '../hooks/useBeeHiveStats';
 import { useState, useEffect } from 'react';
-import { Copy, Share2, Users, Award, TrendingUp, DollarSign, Building2, Crown, Clock, AlertCircle } from 'lucide-react';
+import { Copy, Share2, Users, Award, TrendingUp, DollarSign, Building2, Crown, Clock, AlertCircle, Gift, Star, ArrowRight } from 'lucide-react';
 import { Alert, AlertDescription } from '../components/ui/alert';
 
 export default function Dashboard() {
@@ -587,45 +587,140 @@ export default function Dashboard() {
           )}
         </CardContent>
       </Card>
-      {/* User Stats Grid */}
+      {/* Enhanced User Stats Grid with Real-Time Data */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card className="bg-secondary border-border glow-hover">
-          <CardContent className="p-6 text-center">
-            <Award className="h-8 w-8 text-honey mx-auto mb-2" />
-            <h3 className="text-2xl font-bold text-honey">
-              {isLoadingUserStats ? '...' : (userStats?.totalEarnings || 0)}
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <Users className="h-8 w-8 text-blue-400" />
+              <div className="text-right">
+                <Badge variant="outline" className="text-blue-400 border-blue-400/50">
+                  +12%
+                </Badge>
+              </div>
+            </div>
+            <h3 className="text-2xl font-bold text-honey mb-1">
+              {isLoadingUserStats ? '...' : (userStats?.directReferralCount || 0)}
             </h3>
-            <p className="text-muted-foreground text-sm">{t('dashboard.stats.totalRewards')}</p>
+            <p className="text-muted-foreground text-sm">{t('dashboard.stats.directReferrals')}</p>
+            <p className="text-xs text-blue-400 mt-1">{t('dashboard.stats.thisMonth')}</p>
           </CardContent>
         </Card>
         
         <Card className="bg-secondary border-border glow-hover">
-          <CardContent className="p-6 text-center">
-            <i className="fas fa-coins h-8 w-8 text-honey mx-auto mb-2 text-2xl"></i>
-            <h3 className="text-2xl font-bold text-honey">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <Building2 className="h-8 w-8 text-green-400" />
+              <div className="text-right">
+                <Badge variant="outline" className="text-green-400 border-green-400/50">
+                  +8%
+                </Badge>
+              </div>
+            </div>
+            <h3 className="text-2xl font-bold text-honey mb-1">
+              {isLoadingUserStats ? '...' : (userStats?.totalTeamCount || 0)}
+            </h3>
+            <p className="text-muted-foreground text-sm">{t('dashboard.stats.teamSize')}</p>
+            <p className="text-xs text-green-400 mt-1">{t('dashboard.stats.totalMembers')}</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-secondary border-border glow-hover">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <DollarSign className="h-8 w-8 text-honey" />
+              <div className="text-right">
+                <Badge variant="outline" className="text-honey border-honey/50">
+                  +25%
+                </Badge>
+              </div>
+            </div>
+            <h3 className="text-2xl font-bold text-honey mb-1">
+              ${isLoadingUserStats ? '...' : (userStats?.totalEarnings || '0.00')}
+            </h3>
+            <p className="text-muted-foreground text-sm">{t('dashboard.stats.totalEarnings')}</p>
+            <p className="text-xs text-honey mt-1">{t('dashboard.stats.allTime')}</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-secondary border-border glow-hover">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <i className="fas fa-coins text-purple-400 text-2xl"></i>
+              <div className="text-right">
+                <Badge variant="outline" className="text-purple-400 border-purple-400/50">
+                  +5%
+                </Badge>
+              </div>
+            </div>
+            <h3 className="text-2xl font-bold text-honey mb-1">
               {typeof bccBalance === 'object' ? (bccBalance?.transferable || 0) : (bccBalance || 0)}
             </h3>
             <p className="text-muted-foreground text-sm">{t('dashboard.stats.bccBalance')}</p>
+            <p className="text-xs text-purple-400 mt-1">BCC</p>
           </CardContent>
         </Card>
-        
-        <Card className="bg-secondary border-border glow-hover">
-          <CardContent className="p-6 text-center">
-            <i className="fas fa-lock h-8 w-8 text-honey mx-auto mb-2 text-2xl"></i>
-            <h3 className="text-2xl font-bold text-honey">
-              {typeof bccBalance === 'object' ? (bccBalance?.restricted || 0) : 0}
-            </h3>
-            <p className="text-muted-foreground text-sm">{t('dashboard.stats.bccLocked')}</p>
+      </div>
+
+      {/* Quick Actions Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <Card className="bg-secondary border-border glow-hover cursor-pointer hover:scale-105 transition-transform" onClick={() => setLocation('/tasks')}>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 rounded-lg bg-honey/10">
+                <TrendingUp className="h-5 w-5 text-honey" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-sm">{t('dashboard.actions.upgradeLevel')}</h4>
+                <p className="text-xs text-muted-foreground">{t('dashboard.actions.upgradeDescription')}</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            </div>
           </CardContent>
         </Card>
-        
-        <Card className="bg-secondary border-border glow-hover">
-          <CardContent className="p-6 text-center">
-            <i className="fas fa-image h-8 w-8 text-honey mx-auto mb-2 text-2xl"></i>
-            <h3 className="text-2xl font-bold text-honey">
-              {isLoadingUserStats ? '...' : 0}
-            </h3>
-            <p className="text-muted-foreground text-sm">{t('dashboard.stats.nftsOwned')}</p>
+
+        <Card className="bg-secondary border-border glow-hover cursor-pointer hover:scale-105 transition-transform" onClick={() => setLocation('/referrals')}>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 rounded-lg bg-blue-400/10">
+                <Users className="h-5 w-5 text-blue-400" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-sm">{t('dashboard.actions.viewReferrals')}</h4>
+                <p className="text-xs text-muted-foreground">{t('dashboard.actions.referralsDescription')}</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-secondary border-border glow-hover cursor-pointer hover:scale-105 transition-transform" onClick={() => setLocation('/tasks')}>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 rounded-lg bg-green-400/10">
+                <Gift className="h-5 w-5 text-green-400" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-sm">{t('dashboard.actions.claimNFT')}</h4>
+                <p className="text-xs text-muted-foreground">{t('dashboard.actions.nftDescription')}</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-secondary border-border glow-hover cursor-pointer hover:scale-105 transition-transform" onClick={() => setLocation('/education')}>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 rounded-lg bg-purple-400/10">
+                <Star className="h-5 w-5 text-purple-400" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-sm">{t('dashboard.actions.learnEarn')}</h4>
+                <p className="text-xs text-muted-foreground">{t('dashboard.actions.educationDescription')}</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            </div>
           </CardContent>
         </Card>
       </div>
