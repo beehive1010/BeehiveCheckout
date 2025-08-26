@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Bell, BellRing, Coins, TrendingUp, Users, Star } from 'lucide-react';
 import { useWallet } from '@/hooks/useWallet';
+import { useI18n } from '@/contexts/I18nContext';
 import { apiRequest } from '@/lib/queryClient';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -56,6 +57,7 @@ const getNotificationBadgeColor = (type: string) => {
 
 export function Notifications() {
   const { walletAddress } = useWallet();
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const [showAll, setShowAll] = useState(false);
 
@@ -79,7 +81,11 @@ export function Notifications() {
 
   const markAsReadMutation = useMutation({
     mutationFn: async (notificationId: string) => {
-      return apiRequest(`/api/notifications/${notificationId}/read`, { method: 'POST' });
+      const response = await fetch(`/api/notifications/${notificationId}/read`, {
+        method: 'POST',
+        headers: { 'X-Wallet-Address': walletAddress! }
+      });
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
@@ -88,7 +94,11 @@ export function Notifications() {
 
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/notifications/read-all', { method: 'POST' });
+      const response = await fetch('/api/notifications/read-all', {
+        method: 'POST',
+        headers: { 'X-Wallet-Address': walletAddress! }
+      });
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
@@ -104,7 +114,7 @@ export function Notifications() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
-            Notifications
+            {t('notifications.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -131,7 +141,7 @@ export function Notifications() {
             ) : (
               <Bell className="h-5 w-5" />
             )}
-            Notifications
+            {t('notifications.title')}
             {unreadCount > 0 && (
               <Badge className="bg-honey text-black ml-2">
                 {unreadCount}
@@ -145,7 +155,7 @@ export function Notifications() {
               onClick={() => markAllAsReadMutation.mutate()}
               disabled={markAllAsReadMutation.isPending}
             >
-              Mark all read
+              {t('notifications.markAllRead')}
             </Button>
           )}
         </div>
@@ -154,9 +164,9 @@ export function Notifications() {
         {notifications.length === 0 ? (
           <div className="text-center py-8">
             <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">No notifications yet</p>
+            <p className="text-muted-foreground">{t('notifications.empty.title')}</p>
             <p className="text-xs text-muted-foreground mt-1">
-              You'll receive notifications for BCC rewards, upgrades, and referrals
+              {t('notifications.empty.description')}
             </p>
           </div>
         ) : (
@@ -214,7 +224,7 @@ export function Notifications() {
                 onClick={() => setShowAll(!showAll)}
                 className="w-full"
               >
-                {showAll ? 'Show less' : `Show all ${notifications.length} notifications`}
+                {showAll ? t('notifications.showLess') : t('notifications.showAll', { count: notifications.length })}
               </Button>
             )}
           </div>

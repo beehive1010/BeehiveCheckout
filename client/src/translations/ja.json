@@ -288,7 +288,23 @@
     },
     "registrationExpiry": {
       "warning": "登録がまもなく期限切れになります！続行するにはメンバーシップを有効にしてください："
+    },
+    "layer": {
+      "name": "レイヤー",
+      "members": "メンバー",
+      "upgraded": "アップグレード済み",
+      "placements": "配置"
     }
+  },
+  "notifications": {
+    "title": "通知",
+    "markAllRead": "すべて既読にする",
+    "empty": {
+      "title": "通知はまだありません",
+      "description": "BCC報酬、アップグレード、紹介の通知を受け取ります"
+    },
+    "showLess": "表示を減らす",
+    "showAll": "{{count}}件の通知をすべて表示"
   },
   "tasks": {
     "title": "タスクセンター",

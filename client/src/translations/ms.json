@@ -338,7 +338,23 @@
     },
     "registrationExpiry": {
       "warning": "Pendaftaran akan tamat tempoh tidak lama lagi! Aktifkan keahlian untuk teruskan:"
+    },
+    "layer": {
+      "name": "Lapisan",
+      "members": "ahli",
+      "upgraded": "dinaik taraf",
+      "placements": "penempatan"
     }
+  },
+  "notifications": {
+    "title": "Pemberitahuan",
+    "markAllRead": "Tandakan semua sebagai dibaca",
+    "empty": {
+      "title": "Tiada pemberitahuan lagi",
+      "description": "Anda akan menerima pemberitahuan untuk ganjaran BCC, naik taraf, dan rujukan"
+    },
+    "showLess": "Tunjuk kurang",
+    "showAll": "Tunjuk semua {{count}} pemberitahuan"
   },
   "tasks": {
     "title": "Pasar NFT Pedagang",
