@@ -304,8 +304,40 @@
       "shareMessage": "Kongsikan pautan rujukan anda untuk mengembangkan rangkaian"
     },
     "downlineMatrix": {
-      "title": "Matriks Downline",
+      "title": "Matriks Downline", 
       "placement": "Penempatan"
+    },
+    "stats": {
+      "directReferrals": "Rujukan Langsung",
+      "teamSize": "Saiz Pasukan",
+      "totalEarnings": "Jumlah Pendapatan",
+      "bccBalance": "Baki BCC",
+      "thisMonth": "Bulan Ini",
+      "totalMembers": "Jumlah Ahli",
+      "allTime": "Sepanjang Masa"
+    },
+    "actions": {
+      "upgradeLevel": "Naik Taraf Tahap",
+      "upgradeDescription": "Beli tahap keahlian seterusnya",
+      "viewReferrals": "Lihat Rujukan",
+      "referralsDescription": "Urus rangkaian rujukan anda",
+      "claimNFT": "Tuntut NFT", 
+      "nftDescription": "Tuntut NFT pedagang dengan BCC",
+      "learnEarn": "Belajar & Peroleh",
+      "educationDescription": "Akses kursus premium"
+    },
+    "nftRequired": {
+      "level1Membership": "Keahlian Tahap 1",
+      "bumblebeeNFT": "Bumblebee NFT",
+      "levelOne": "Tahap 1",
+      "benefits": "Faedah",
+      "accessTasks": "Akses Tugas & Pasar",
+      "referralRewards": "Ganjaran Rujukan",
+      "nftClaiming": "Tuntutan NFT",
+      "premiumContent": "Kandungan Premium"
+    },
+    "registrationExpiry": {
+      "warning": "Pendaftaran akan tamat tempoh tidak lama lagi! Aktifkan keahlian untuk teruskan:"
     }
   },
   "tasks": {

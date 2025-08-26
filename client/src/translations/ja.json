@@ -252,6 +252,42 @@
       "directReferrals": "直接紹介",
       "totalTeam": "総チーム",
       "monthlyEarnings": "月間収益"
+    },
+    "downlineMatrix": {
+      "title": "下位マトリックス",
+      "placement": "配置"
+    },
+    "stats": {
+      "directReferrals": "直接紹介",
+      "teamSize": "チームサイズ",
+      "totalEarnings": "総収益",
+      "bccBalance": "BCC残高",
+      "thisMonth": "今月",
+      "totalMembers": "総メンバー数",
+      "allTime": "全期間"
+    },
+    "actions": {
+      "upgradeLevel": "レベルアップ",
+      "upgradeDescription": "次のメンバーシップレベルを購入",
+      "viewReferrals": "紹介状況を見る",
+      "referralsDescription": "紹介ネットワークを管理",
+      "claimNFT": "NFT請求",
+      "nftDescription": "BCCでマーチャントNFTを請求",
+      "learnEarn": "学習＆獲得",
+      "educationDescription": "プレミアムコースにアクセス"
+    },
+    "nftRequired": {
+      "level1Membership": "レベル1メンバーシップ",
+      "bumblebeeNFT": "Bumblebee NFT",
+      "levelOne": "レベル1",
+      "benefits": "特典",
+      "accessTasks": "タスク＆マーケットアクセス",
+      "referralRewards": "紹介報酬",
+      "nftClaiming": "NFT請求",
+      "premiumContent": "プレミアムコンテンツ"
+    },
+    "registrationExpiry": {
+      "warning": "登録がまもなく期限切れになります！続行するにはメンバーシップを有効にしてください："
     }
   },
   "tasks": {
