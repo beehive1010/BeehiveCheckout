@@ -52,6 +52,17 @@ export default function NFTCenter() {
   // Fetch user's Advertisement NFT claims
   const { data: myNFTs = [], isLoading: isLoadingMyNFTs } = useQuery<AdvertisementNFTClaim[]>({
     queryKey: ['/api/ads/my-nfts'],
+    queryFn: async () => {
+      if (!walletAddress) throw new Error('No wallet address');
+      const response = await fetch(`/api/ads/my-nfts?t=${Date.now()}`, {
+        headers: {
+          'X-Wallet-Address': walletAddress,
+          'Cache-Control': 'no-cache'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch my NFTs');
+      return response.json();
+    },
     enabled: !!walletAddress,
   });
 

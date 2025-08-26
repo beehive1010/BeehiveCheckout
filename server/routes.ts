@@ -2337,6 +2337,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/ads/my-nfts", requireWallet, async (req: any, res) => {
     try {
+      // Disable caching for real-time updates
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+      
       const claims = await storage.getUserAdvertisementNFTClaims(req.walletAddress);
       res.json(claims);
     } catch (error) {
