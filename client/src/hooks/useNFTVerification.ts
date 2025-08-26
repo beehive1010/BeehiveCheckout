@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 export function useNFTVerification() {
   const account = useActiveAccount();
   
-  // Check activation status from database instead of NFT ownership
+  // Check activation status from database with real-time updates
   const { data: registrationStatus, isLoading } = useQuery({
     queryKey: ['/api/wallet/registration-status'],
     queryFn: async () => {
@@ -18,6 +18,9 @@ export function useNFTVerification() {
       return response.json();
     },
     enabled: !!account?.address,
+    staleTime: 2000, // 2 seconds
+    refetchInterval: 6000, // Real-time polling every 6 seconds for activation status
+    refetchIntervalInBackground: true,
   });
   
   // Use database activation status instead of NFT verification

@@ -44,6 +44,8 @@ export function useUserReferralStats() {
       return data;
     },
     enabled: !!walletAddress,
-    staleTime: 5000, // 5 seconds - shorter for testing
+    staleTime: 2000, // 2 seconds for faster updates
+    refetchInterval: 3000, // Real-time polling every 3 seconds
+    refetchIntervalInBackground: true, // Continue polling when tab is in background
   });
 }

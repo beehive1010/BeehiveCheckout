@@ -37,7 +37,7 @@ export function useWallet() {
     }
   }, [isConnected, walletAddress]);
 
-  // Get user data including membership state
+  // Get user data including membership state with real-time updates
   const { data: userData, isLoading: isUserLoading } = useQuery({
     queryKey: ['/api/auth/user'],
     enabled: !!walletAddress,
@@ -55,6 +55,9 @@ export function useWallet() {
       }
       return response.json();
     },
+    staleTime: 2000, // 2 seconds
+    refetchInterval: 5000, // Refetch every 5 seconds for real-time member status
+    refetchIntervalInBackground: true,
   });
 
   // Register new user
