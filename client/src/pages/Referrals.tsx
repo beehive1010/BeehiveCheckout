@@ -242,7 +242,7 @@ export default function Referrals() {
               <CardTitle className="text-honey flex items-center justify-between cursor-pointer hover:text-honey/80 transition-colors">
                 <div className="flex items-center">
                   <i className="fas fa-coins mr-2"></i>
-                  BeeHive Reward Structure
+                  {t('referrals.rewardStructure.title')}
                 </div>
                 {isRewardStructureOpen ? (
                   <ChevronUp className="h-5 w-5" />
@@ -256,21 +256,21 @@ export default function Referrals() {
             <CardContent>
               <div className="space-y-4">
             <div className="bg-background/50 rounded-lg p-4">
-              <h4 className="font-semibold text-honey mb-2">Global Matrix System</h4>
+              <h4 className="font-semibold text-honey mb-2">{t('referrals.rewardStructure.globalMatrix')}</h4>
               <p className="text-sm text-muted-foreground mb-3">
                 BeeHive uses a single shared 19-level global matrix where all users are placed in one company-wide structure.
               </p>
               <div className="grid grid-cols-1 gap-4 text-sm">
                 <div>
-                  <h5 className="font-medium text-white mb-2">⏳ Layer-Based Rewards Only (72h Timer)</h5>
+                  <h5 className="font-medium text-white mb-2">⏳ {t('referrals.rewardStructure.layerBased')}</h5>
                   <p className="text-muted-foreground">When a member in your Layer n purchases Level n NFT, you receive the NFT price as reward. Must own Level X NFT to receive Layer X rewards.</p>
                 </div>
                 <div className="mt-2 p-3 bg-yellow-600/10 border border-yellow-600/20 rounded">
-                  <h6 className="font-medium text-yellow-400 text-xs mb-1">SPECIAL RULES:</h6>
+                  <h6 className="font-medium text-yellow-400 text-xs mb-1">{t('referrals.rewardStructure.specialRules')}</h6>
                   <ul className="text-xs text-muted-foreground space-y-1">
-                    <li>• Level 1: 3rd reward requires Level 2 upgrade</li>
-                    <li>• Level 2: Must own L2 + at least one Layer 1 member with L2</li>
-                    <li>• Level 3-19: Just need to own that level or higher</li>
+                    <li>• {t('referrals.rewardStructure.rule1')}</li>
+                    <li>• {t('referrals.rewardStructure.rule2')}</li>
+                    <li>• {t('referrals.rewardStructure.rule3')}</li>
                   </ul>
                 </div>
               </div>
@@ -346,7 +346,7 @@ export default function Referrals() {
       {/* Referral Link - Mobile Optimized */}
       <Card className="bg-secondary border-border">
         <CardHeader>
-          <CardTitle className="text-honey">Your Referral Link</CardTitle>
+          <CardTitle className="text-honey">{t('referrals.referralLink.title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
