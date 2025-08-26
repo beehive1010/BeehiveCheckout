@@ -1737,61 +1737,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Company Stats API  
-  app.get("/api/beehive/company-stats", async (req, res) => {
-    try {
-      console.log('🔍 Company stats API called');
-      
-      // Get stats directly from database with fallback
-      let stats;
-      try {
-        stats = await storage.getCompanyStats();
-        console.log('✅ Company stats from storage:', stats);
-      } catch (storageError) {
-        console.error('❌ Storage error, using fallback:', storageError);
-        // Fallback to direct DB queries
-        const totalMembersResult = await db.execute(sql`
-          SELECT COUNT(*) as total FROM users WHERE member_activated = true
-        `);
-        
-        const levelDistributionResult = await db.execute(sql`
-          SELECT current_level as level, COUNT(*) as count 
-          FROM users 
-          WHERE member_activated = true AND current_level IS NOT NULL
-          GROUP BY current_level 
-          ORDER BY current_level
-        `);
-        
-        // Calculate real total rewards from earnings wallets
-        const totalRewardsResult = await db.execute(sql`
-          SELECT COALESCE(SUM(CAST(total_earnings AS DECIMAL)), 0) as total
-          FROM earnings_wallet
-        `);
-        
-        // Calculate real pending rewards from earnings wallets
-        const pendingRewardsResult = await db.execute(sql`
-          SELECT COALESCE(SUM(CAST(pending_rewards AS DECIMAL)), 0) as total
-          FROM earnings_wallet
-        `);
-        
-        stats = {
-          totalMembers: Number(totalMembersResult.rows[0]?.total || 0),
-          levelDistribution: levelDistributionResult.rows.map(row => ({
-            level: row.level,
-            count: Number(row.count)
-          })),
-          totalRewards: Math.floor(Number(totalRewardsResult.rows[0]?.total || 0)),
-          pendingRewards: Math.floor(Number(pendingRewardsResult.rows[0]?.total || 0))
-        };
-        console.log('✅ Fallback stats:', stats);
-      }
-      
-      res.status(200).json(stats);
-    } catch (error) {
-      console.error('❌ Company stats error:', error);
-      res.status(500).json({ error: 'Failed to get company statistics', details: error.message });
-    }
-  });
 
   // Get reward notifications (real upgrade rewards)
   app.get("/api/notifications/rewards", requireWallet, async (req: any, res) => {
