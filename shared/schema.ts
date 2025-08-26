@@ -598,6 +598,34 @@ export type MatrixLayer = typeof matrixLayers.$inferSelect;
 export type InsertRewardNotification = z.infer<typeof insertRewardNotificationSchema>;
 export type RewardNotification = typeof rewardNotifications.$inferSelect;
 
+// User inbox notifications for BCC, upgrades, and other activities
+export const userNotifications = pgTable("user_notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  walletAddress: varchar("wallet_address", { length: 42 }).notNull(),
+  title: varchar("title").notNull(),
+  message: text("message").notNull(),
+  type: varchar("type").notNull(), // 'bcc_reward', 'level_upgrade', 'referral_joined', 'matrix_placement', 'earnings'
+  relatedWallet: varchar("related_wallet", { length: 42 }), // wallet of person who triggered the notification
+  amount: varchar("amount"), // BCC amount, earnings amount, etc.
+  metadata: jsonb("metadata"), // additional data like level, layer, etc.
+  isRead: boolean("is_read").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertUserNotificationSchema = createInsertSchema(userNotifications).pick({
+  walletAddress: true,
+  title: true,
+  message: true,
+  type: true,
+  relatedWallet: true,
+  amount: true,
+  metadata: true,
+  isRead: true,
+});
+
+export type InsertUserNotification = z.infer<typeof insertUserNotificationSchema>;
+export type UserNotification = typeof userNotifications.$inferSelect;
+
 export type InsertBCCBalance = z.infer<typeof insertBCCBalanceSchema>;
 export type BCCBalance = typeof bccBalances.$inferSelect;
 

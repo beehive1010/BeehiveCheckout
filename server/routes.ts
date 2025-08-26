@@ -618,13 +618,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pendingTimeoutHours: parseInt(pendingTimeHours),
       });
 
-      // Credit initial BCC tokens for Level 1
+      // Credit initial BCC tokens for Level 1 (500 BCC total: 400 transferable + 100 locked)
       const bccBalance = await storage.getBCCBalance(req.walletAddress);
       if (!bccBalance) {
         await storage.createBCCBalance({
           walletAddress: req.walletAddress,
-          transferable: 60, // 60% of 100 BCC
-          restricted: 40,   // 40% of 100 BCC
+          transferable: 400, // 400 transferable BCC
+          restricted: 100,   // 100 locked BCC
         });
       }
 
@@ -1130,14 +1130,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(walletAddress);
       const membership = await storage.getMembershipState(walletAddress);
       
-      // Get direct referral count from global matrix
-      const directReferralCount = await storage.getDirectReferralCount(walletAddress);
+      // Get direct referral count from referral nodes (actual downline members)
+      const directReferralResult = await db.select()
+        .from(referralNodes)
+        .where(eq(referralNodes.sponsorWallet, walletAddress.toLowerCase()));
+      const directReferralCount = directReferralResult.length;
       
-      // Get all positions in global matrix placed by this user (including spillover)
-      const allPlacements = await db.select()
-        .from(globalMatrixPosition)
-        .where(eq(globalMatrixPosition.placementSponsorWallet, walletAddress.toLowerCase()));
-      const totalTeamCount = allPlacements.length;
+      console.log('📊 Direct referrals for', walletAddress, ':', directReferralCount);
+      
+      // Get total team count from referral layers (all downline members across all layers)
+      const allTeamMembers = new Set<string>();
+      const userLayers = await storage.getReferralLayers(walletAddress);
+      userLayers.forEach(layer => {
+        layer.members.forEach(member => allTeamMembers.add(member.toLowerCase()));
+      });
+      const totalTeamCount = allTeamMembers.size;
+      
+      console.log('📊 Total team count for', walletAddress, ':', totalTeamCount);
       
       // Calculate earnings from reward distributions
       const rewards = await db.select()
@@ -1174,7 +1183,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const monthlyEarnings = Number(monthlyEarningsResult.rows[0]?.monthly_total || 0); // Already in dollars
 
       // Get actual downline matrix data from referral layers
+      console.log('🔄 Getting referral layers for:', walletAddress);
       const layersData = await storage.getReferralLayers(walletAddress);
+      console.log('📊 Found layers data:', layersData.map(l => `Layer ${l.layerNumber}: ${l.memberCount} members`));
+      
       const downlineMatrix = [];
       
       // Process each level from 1 to 19
@@ -1194,7 +1206,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             })
           );
           
-          const upgradedCount = memberDetails.filter(member => member.currentLevel >= 1).length;
+          const upgradedCount = memberDetails.filter(member => member.memberActivated && member.currentLevel >= 1).length;
+          
+          console.log(`Layer ${layerLevel}: ${layerData.memberCount} members, ${upgradedCount} upgraded`);
           
           downlineMatrix.push({
             level: layerLevel,
@@ -1211,6 +1225,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       }
+      
+      console.log('📈 Final downlineMatrix:', downlineMatrix.filter(l => l.members > 0));
 
       res.json({
         directReferralCount,
@@ -3359,21 +3375,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Routes registered successfully (verbose logging disabled)
   
+  // User notifications endpoints
+  app.get("/api/notifications", requireWallet, async (req: any, res) => {
+    try {
+      const notifications = await storage.getUserNotifications(req.walletAddress);
+      res.json(notifications);
+    } catch (error) {
+      console.error('Get notifications error:', error);
+      res.status(500).json({ error: 'Failed to get notifications' });
+    }
+  });
+  
+  app.post("/api/notifications/:id/read", requireWallet, async (req: any, res) => {
+    try {
+      const notification = await storage.markNotificationAsRead(req.params.id, req.walletAddress);
+      if (!notification) {
+        return res.status(404).json({ error: 'Notification not found' });
+      }
+      res.json(notification);
+    } catch (error) {
+      console.error('Mark notification read error:', error);
+      res.status(500).json({ error: 'Failed to mark notification as read' });
+    }
+  });
+  
+  app.post("/api/notifications/read-all", requireWallet, async (req: any, res) => {
+    try {
+      await storage.markAllNotificationsAsRead(req.walletAddress);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Mark all notifications read error:', error);
+      res.status(500).json({ error: 'Failed to mark all notifications as read' });
+    }
+  });
+
   return httpServer;
 }
 
 // Helper functions
 function calculateBCCReward(level: number): { transferable: number; restricted: number; total: number } {
   // Correct BCC reward structure:
-  // - New members (any level): 500 transferable + 100 restricted = 600 BCC total
+  // - New members Level 1: 400 transferable + 100 restricted = 500 BCC total
   // - Level upgrades: 50 + (level × 50) BCC (all transferable)
   
   if (level === 1) {
-    // New member Level 1: Gets the base 600 BCC
+    // New member Level 1: Gets the base 500 BCC
     return {
-      transferable: 500,
+      transferable: 400,
       restricted: 100,
-      total: 600
+      total: 500
     };
   } else {
     // Level upgrade (Level 2+): Gets upgrade bonus BCC

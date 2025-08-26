@@ -41,6 +41,9 @@ import {
   type InsertMatrixLayer,
   type RewardNotification,
   type InsertRewardNotification,
+  userNotifications,
+  type UserNotification,
+  type InsertUserNotification,
   type GlobalMatrixPosition,
   type InsertGlobalMatrixPosition,
   type BCCBalance,
@@ -248,6 +251,13 @@ export interface IStorage {
   createAdminSession(session: InsertAdminSession): Promise<AdminSession>;
   getAdminSession(sessionToken: string): Promise<AdminSession | undefined>;
   deleteAdminSession(sessionToken: string): Promise<boolean>;
+  
+  // User notifications methods
+  getUserNotifications(walletAddress: string): Promise<UserNotification[]>;
+  createUserNotification(notification: InsertUserNotification): Promise<UserNotification>;
+  markNotificationAsRead(notificationId: string, walletAddress: string): Promise<UserNotification | undefined>;
+  markAllNotificationsAsRead(walletAddress: string): Promise<void>;
+  getUnreadNotificationCount(walletAddress: string): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {

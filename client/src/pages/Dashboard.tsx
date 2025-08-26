@@ -6,6 +6,7 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import HexagonIcon from '../components/UI/HexagonIcon';
+import { Notifications } from '../components/Notifications';
 import { useToast } from '../hooks/use-toast';
 import ClaimMembershipButton from '../components/membership/ClaimMembershipButton';
 import { useNFTVerification } from '../hooks/useNFTVerification';
@@ -703,8 +704,8 @@ export default function Dashboard() {
         <Card className="bg-secondary border-border glow-hover">
           <CardContent className="p-4 md:p-6">
             <h3 className="text-lg font-semibold text-honey mb-4 flex items-center gap-2">
-              <i className="fas fa-arrow-up text-honey"></i>
-              {t('dashboard.uplineNetwork.title')}
+              <i className="fas fa-arrow-down text-honey"></i>
+              {t('dashboard.downlineNetwork.title')}
             </h3>
             <div className="space-y-3">
               {/* Real Direct Referrals List */}
@@ -743,6 +744,11 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Notifications Section */}
+      <div className="mb-8">
+        <Notifications />
       </div>
     </div>
   );
