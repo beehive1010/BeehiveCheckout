@@ -3233,6 +3233,65 @@ export class DatabaseStorage implements IStorage {
       amount: activity.amount ? parseFloat(activity.amount) : null
     }));
   }
+  // User notifications methods
+  async getUserNotifications(walletAddress: string): Promise<UserNotification[]> {
+    return await db
+      .select()
+      .from(userNotifications)
+      .where(eq(userNotifications.walletAddress, walletAddress.toLowerCase()))
+      .orderBy(desc(userNotifications.createdAt));
+  }
+
+  async createUserNotification(notification: InsertUserNotification): Promise<UserNotification> {
+    const [created] = await db
+      .insert(userNotifications)
+      .values({
+        ...notification,
+        walletAddress: notification.walletAddress.toLowerCase(),
+        relatedWallet: notification.relatedWallet?.toLowerCase() || null,
+      })
+      .returning();
+    return created;
+  }
+
+  async markNotificationAsRead(notificationId: string, walletAddress: string): Promise<UserNotification | undefined> {
+    const [updated] = await db
+      .update(userNotifications)
+      .set({ isRead: true })
+      .where(
+        and(
+          eq(userNotifications.id, notificationId),
+          eq(userNotifications.walletAddress, walletAddress.toLowerCase())
+        )
+      )
+      .returning();
+    return updated || undefined;
+  }
+
+  async markAllNotificationsAsRead(walletAddress: string): Promise<void> {
+    await db
+      .update(userNotifications)
+      .set({ isRead: true })
+      .where(
+        and(
+          eq(userNotifications.walletAddress, walletAddress.toLowerCase()),
+          eq(userNotifications.isRead, false)
+        )
+      );
+  }
+
+  async getUnreadNotificationCount(walletAddress: string): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(userNotifications)
+      .where(
+        and(
+          eq(userNotifications.walletAddress, walletAddress.toLowerCase()),
+          eq(userNotifications.isRead, false)
+        )
+      );
+    return result[0]?.count || 0;
+  }
 }
 
 export const storage = new DatabaseStorage();
