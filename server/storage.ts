@@ -2577,18 +2577,31 @@ export class DatabaseStorage implements IStorage {
               createdAt: users.createdAt
             }).from(users).where(eq(users.walletAddress, memberWallet));
             
-            return user || {
+            // Also get levels owned for upgrade verification
+            const [membershipData] = await db.select({
+              levelsOwned: membershipState.levelsOwned
+            }).from(membershipState).where(eq(membershipState.walletAddress, memberWallet));
+            
+            return user ? {
+              ...user,
+              levelsOwned: membershipData?.levelsOwned || [1]
+            } : {
               walletAddress: memberWallet,
               username: `User_${memberWallet.slice(-4)}`,
               currentLevel: 1,
               memberActivated: true,
-              createdAt: new Date()
+              createdAt: new Date(),
+              levelsOwned: [1]
             };
           })
         );
         
-        // Calculate upgrade statistics
-        const upgradedCount = memberDetails.filter(member => member.currentLevel >= 1).length;
+        // Calculate upgrade statistics - for Layer 2, only count members who own Level 2
+        const requiredLevelForLayer = layer.layerNumber; // Layer 2 requires Level 2, etc.
+        const upgradedCount = memberDetails.filter(member => {
+          const levelsOwned = member.levelsOwned || [1];
+          return levelsOwned.includes(requiredLevelForLayer);
+        }).length;
         const activatedCount = memberDetails.filter(member => member.memberActivated).length;
         
         return {
