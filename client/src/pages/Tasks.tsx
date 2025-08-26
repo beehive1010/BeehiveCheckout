@@ -320,7 +320,7 @@ export default function Tasks() {
                             ? 'text-honey' 
                             : 'text-muted-foreground'
                         }`}>
-                          ${level.priceUSDT}
+                          ${(level.priceUSDT / 100).toFixed(2)}
                         </p>
                         <p className="text-xs text-muted-foreground">{t('tasks.membership.usdt')}</p>
                       </div>
