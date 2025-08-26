@@ -9,7 +9,7 @@ import HexagonIcon from '../components/UI/HexagonIcon';
 import { useToast } from '../hooks/use-toast';
 import ClaimMembershipButton from '../components/membership/ClaimMembershipButton';
 import { useNFTVerification } from '../hooks/useNFTVerification';
-import { useCompanyStats, useUserReferralStats } from '../hooks/useBeeHiveStats';
+import { useUserReferralStats } from '../hooks/useBeeHiveStats';
 import { useState, useEffect } from 'react';
 import { Copy, Share2, Users, Award, TrendingUp, DollarSign, Building2, Crown, Clock, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '../components/ui/alert';
@@ -28,7 +28,6 @@ export default function Dashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { hasLevel1NFT, isLoading: isCheckingNFT } = useNFTVerification();
-  const { data: companyStats, isLoading: isLoadingCompanyStats } = useCompanyStats();
   const { data: userStats, isLoading: isLoadingUserStats } = useUserReferralStats();
   const [showReferralLink, setShowReferralLink] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
@@ -629,65 +628,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-      {/* Company-Wide Statistics */}
-      <Card className="bg-secondary border-border glow-hover mb-8">
-        <CardHeader>
-          <CardTitle className="text-honey flex items-center gap-2">
-            <Building2 className="h-6 w-6" />
-            {t('dashboard.globalStats.title')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-honey mb-2">
-                {isLoadingCompanyStats ? '...' : companyStats?.totalMembers || 0}
-              </div>
-              <p className="text-muted-foreground text-sm">{t('dashboard.globalStats.totalMembers')}</p>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-400 mb-2">
-                {isLoadingCompanyStats ? '...' : Math.floor(companyStats?.totalRewards || 0)}
-              </div>
-              <p className="text-muted-foreground text-sm">{t('dashboard.globalStats.totalRewardsPaid')}</p>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-400 mb-2">
-                {isLoadingCompanyStats ? '...' : Math.floor(companyStats?.pendingRewards || 0)}
-              </div>
-              <p className="text-muted-foreground text-sm">{t('dashboard.globalStats.pendingRewards')}</p>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-purple-400 mb-2">
-                {isLoadingCompanyStats ? '...' : 
-                  companyStats?.levelDistribution?.length ? 
-                    Math.max(...companyStats.levelDistribution.map(l => l.level)) : 0
-                }
-              </div>
-              <p className="text-muted-foreground text-sm">{t('dashboard.globalStats.highestLevel')}</p>
-            </div>
-          </div>
-          
-          {/* Level Distribution */}
-          {!isLoadingCompanyStats && companyStats?.levelDistribution && (
-            <div className="mt-6">
-              <h4 className="text-lg font-semibold text-honey mb-4 flex items-center gap-2">
-                <Crown className="h-5 w-5" />
-                {t('dashboard.globalStats.membersByLevel')}
-              </h4>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 max-h-60 overflow-y-auto">
-                {companyStats.levelDistribution.map((levelData) => (
-                  <div key={levelData.level} className="bg-muted/30 rounded-lg p-3 text-center">
-                    <div className="text-sm font-medium text-honey">{t('dashboard.levelText', { level: levelData.level })}</div>
-                    <div className="text-2xl font-bold text-honey">{levelData.count}</div>
-                    <div className="text-xs text-muted-foreground">{t('dashboard.globalStats.members')}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
       {/* Matrix & Network Stats - Mobile Optimized */}
       <div className="grid grid-cols-1 gap-4 mb-8">
         <Card className="bg-secondary border-border glow-hover">

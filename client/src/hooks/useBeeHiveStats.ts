@@ -2,13 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useWallet } from './useWallet';
 import { membershipLevels } from '../lib/config/membershipLevels';
 
-interface CompanyStats {
-  totalMembers: number;
-  levelDistribution: Array<{ level: number; count: number }>;
-  totalRewards: number;
-  pendingRewards: number;
-}
-
 interface UserReferralStats {
   directReferralCount: string | number;
   totalTeamCount: number;
@@ -29,22 +22,6 @@ interface UserReferralStats {
   }>;
 }
 
-export function useCompanyStats() {
-  return useQuery<CompanyStats>({
-    queryKey: ['/api/beehive/company-stats'],
-    queryFn: async () => {
-      const response = await fetch('/api/beehive/company-stats', { 
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to fetch company stats: ${response.status} ${response.statusText}`);
-      }
-      return response.json();
-    },
-    staleTime: 30000, // 30 seconds
-  });
-}
 
 export function useUserReferralStats() {
   const { walletAddress } = useWallet();

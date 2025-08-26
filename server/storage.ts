@@ -154,11 +154,6 @@ export interface IStorage {
   getTotalMemberCount(): Promise<number>;
   getMemberCountByLevel(): Promise<{ level: number; count: number }[]>;
   getDirectReferralCount(walletAddress: string): Promise<number>;
-  getGlobalStatistics(): Promise<{
-    totalMembers: number;
-    totalEarnings: number;
-    levelDistribution: { level: number; levelName: string; count: number }[];
-  }>;
 
   // BeeHive business logic operations
   processGlobalMatrixRewards(buyerWallet: string, level: number): Promise<void>;
@@ -670,47 +665,6 @@ export class DatabaseStorage implements IStorage {
     return result[0]?.count || 0;
   }
 
-  async getGlobalStatistics(): Promise<{
-    totalMembers: number;
-    totalEarnings: number;
-    levelDistribution: { level: number; levelName: string; count: number }[];
-  }> {
-    // Get total members
-    const totalMembers = await this.getTotalMemberCount();
-
-    // Get total earnings paid out
-    const [earningsResult] = await db.select({
-      total: sql<number>`coalesce(sum(${earningsWallet.totalEarnings}), 0)`
-    })
-    .from(earningsWallet);
-    const totalEarnings = earningsResult?.total || 0;
-
-    // Get level distribution with names
-    const levelCounts = await db.select({
-      level: membershipState.activeLevel,
-      count: sql<number>`count(*)`
-    })
-    .from(membershipState)
-    .where(sql`${membershipState.activeLevel} > 0`)
-    .groupBy(membershipState.activeLevel)
-    .orderBy(membershipState.activeLevel);
-
-    const levelConfigs = await this.getAllLevelConfigs();
-    const levelDistribution = levelCounts.map(lc => {
-      const config = levelConfigs.find(cfg => cfg.level === lc.level);
-      return {
-        level: lc.level,
-        levelName: config?.levelName || `Level ${lc.level}`,
-        count: lc.count || 0
-      };
-    });
-
-    return {
-      totalMembers,
-      totalEarnings,
-      levelDistribution
-    };
-  }
 
   // BeeHive business logic operations - NEW GLOBAL MATRIX LOGIC
   // Process rewards according to EXACT specification: Layer-based rewards only
@@ -1244,37 +1198,6 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  // Global Statistics (updated to work with current structure)
-  async getGlobalStatisticsCustom(): Promise<any> {
-    const totalMembersResult = await db
-      .select({ totalMembers: sql<number>`COUNT(*)` })
-      .from(users)
-      .where(eq(users.memberActivated, true));
-    
-    const levelDistributionResult = await db
-      .select({
-        activeLevel: membershipState.activeLevel,
-        count: sql<number>`COUNT(*)`
-      })
-      .from(membershipState)
-      .where(gt(membershipState.activeLevel, 0))
-      .groupBy(membershipState.activeLevel)
-      .orderBy(membershipState.activeLevel);
-
-    const levelConfigs = await this.getAllLevelConfigs();
-
-    return {
-      totalMembers: totalMembersResult[0]?.totalMembers || 0,
-      levelDistribution: levelDistributionResult.map(row => {
-        const config = levelConfigs.find(cfg => cfg.level === row.activeLevel);
-        return {
-          level: row.activeLevel,
-          levelName: config?.levelName || `Level ${row.activeLevel}`,
-          count: row.count
-        };
-      })
-    };
-  }
 
 
 
