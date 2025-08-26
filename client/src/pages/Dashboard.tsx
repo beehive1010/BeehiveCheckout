@@ -656,10 +656,11 @@ export default function Dashboard() {
                 ))
               ) : (
                 userStats?.downlineMatrix?.map((levelData) => {
-                  const formatNumber = (num: number) => {
-                    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-                    if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
-                    return num.toString();
+                  const formatNumber = (num: number | undefined) => {
+                    const safeNum = Number(num) || 0;
+                    if (safeNum >= 1000000) return `${(safeNum / 1000000).toFixed(1)}M`;
+                    if (safeNum >= 1000) return `${(safeNum / 1000).toFixed(0)}K`;
+                    return safeNum.toString();
                   };
                   
                   return (
@@ -667,12 +668,12 @@ export default function Dashboard() {
                       <span className="text-muted-foreground text-sm md:text-base">Layer {levelData.level}</span>
                       <div className="text-right flex items-center gap-3">
                         <div className="flex flex-col items-end">
-                          <span className="text-honey font-semibold text-xs md:text-sm">{formatNumber(levelData.members)}</span>
+                          <span className="text-honey font-semibold text-xs md:text-sm">{formatNumber(levelData?.members)}</span>
                           <span className="text-muted-foreground text-[10px]">members</span>
                         </div>
                         <div className="text-muted-foreground text-xs">•</div>
                         <div className="flex flex-col items-end">
-                          <span className="text-green-400 font-semibold text-xs md:text-sm">{formatNumber(levelData.upgraded)}</span>
+                          <span className="text-green-400 font-semibold text-xs md:text-sm">{formatNumber(levelData?.upgraded)}</span>
                           <span className="text-muted-foreground text-[10px]">upgraded</span>
                         </div>
                       </div>
