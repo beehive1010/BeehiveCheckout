@@ -283,6 +283,38 @@
     "downlineMatrix": {
       "title": "เมทริกซ์ดาวน์ไลน์",
       "placement": "ตำแหน่ง"
+    },
+    "stats": {
+      "directReferrals": "การแนะนำโดยตรง",
+      "teamSize": "ขนาดทีม",
+      "totalEarnings": "รายได้รวม",
+      "bccBalance": "ยอดคงเหลือ BCC",
+      "thisMonth": "เดือนนี้",
+      "totalMembers": "สมาชิกทั้งหมด",
+      "allTime": "ตลอดเวลา"
+    },
+    "actions": {
+      "upgradeLevel": "อัปเกรดระดับ",
+      "upgradeDescription": "ซื้อระดับสมาชิกถัดไป",
+      "viewReferrals": "ดูการแนะนำ",
+      "referralsDescription": "จัดการเครือข่ายการแนะนำของคุณ",
+      "claimNFT": "รับ NFT",
+      "nftDescription": "รับ NFT พ่อค้าด้วย BCC",
+      "learnEarn": "เรียนและหารายได้",
+      "educationDescription": "เข้าถึงหลักสูตรพรีเมียม"
+    },
+    "nftRequired": {
+      "level1Membership": "สมาชิกระดับ 1",
+      "bumblebeeNFT": "Bumblebee NFT",
+      "levelOne": "ระดับ 1",
+      "benefits": "ผลประโยชน์",
+      "accessTasks": "เข้าถึงงานและตลาด",
+      "referralRewards": "รางวัลการแนะนำ",
+      "nftClaiming": "การรับ NFT",
+      "premiumContent": "เนื้อหาพรีเมียม"
+    },
+    "registrationExpiry": {
+      "warning": "การลงทะเบียนจะหมดอายุเร็วๆ นี้! เปิดใช้งานสมาชิกเพื่อดำเนินการต่อ:"
     }
   },
   "tasks": {

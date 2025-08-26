@@ -71,8 +71,10 @@ export default function Registration() {
               if (backup.referrer && typeof backup.referrer === 'string') {
                 savedReferrer = backup.referrer;
                 // 恢复到localStorage
-                localStorage.setItem('beehive-referrer', savedReferrer);
-                console.log('Referrer restored from server backup:', savedReferrer);
+                if (savedReferrer) {
+                  localStorage.setItem('beehive-referrer', savedReferrer);
+                  console.log('Referrer restored from server backup:', savedReferrer);
+                }
               }
             }
           } catch (error) {

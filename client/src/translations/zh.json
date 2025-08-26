@@ -245,6 +245,42 @@
       "directReferrals": "直接推荐",
       "totalTeam": "总团队",
       "monthlyEarnings": "月收益"
+    },
+    "downlineMatrix": {
+      "title": "下线矩阵",
+      "placement": "布局"
+    },
+    "stats": {
+      "directReferrals": "直推人数",
+      "teamSize": "团队规模",
+      "totalEarnings": "总收益",
+      "bccBalance": "BCC余额",
+      "thisMonth": "本月",
+      "totalMembers": "总成员数",
+      "allTime": "历史总计"
+    },
+    "actions": {
+      "upgradeLevel": "升级等级",
+      "upgradeDescription": "购买下一个会员等级",
+      "viewReferrals": "查看推荐",
+      "referralsDescription": "管理您的推荐网络",
+      "claimNFT": "领取NFT",
+      "nftDescription": "使用BCC领取商户NFT",
+      "learnEarn": "学习赚取",
+      "educationDescription": "访问优质课程"
+    },
+    "nftRequired": {
+      "level1Membership": "一级会员",
+      "bumblebeeNFT": "大黄蜂NFT",
+      "levelOne": "等级1",
+      "benefits": "福利",
+      "accessTasks": "访问任务和市场",
+      "referralRewards": "推荐奖励",
+      "nftClaiming": "NFT领取",
+      "premiumContent": "优质内容"
+    },
+    "registrationExpiry": {
+      "warning": "注册即将到期！激活会员资格以继续："
     }
   },
   "tasks": {

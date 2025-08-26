@@ -312,6 +312,38 @@
     "downlineMatrix": {
       "title": "다운라인 매트릭스",
       "placement": "배치"
+    },
+    "stats": {
+      "directReferrals": "직접 추천",
+      "teamSize": "팀 규모",
+      "totalEarnings": "총 수익",
+      "bccBalance": "BCC 잔액",
+      "thisMonth": "이번 달",
+      "totalMembers": "총 회원 수",
+      "allTime": "전체 기간"
+    },
+    "actions": {
+      "upgradeLevel": "레벨 업그레이드",
+      "upgradeDescription": "다음 멤버십 레벨 구매",
+      "viewReferrals": "추천 현황 보기",
+      "referralsDescription": "추천 네트워크 관리",
+      "claimNFT": "NFT 클레임",
+      "nftDescription": "BCC로 판매자 NFT 클레임",
+      "learnEarn": "학습 & 수익",
+      "educationDescription": "프리미엄 코스 액세스"
+    },
+    "nftRequired": {
+      "level1Membership": "레벨 1 멤버십",
+      "bumblebeeNFT": "Bumblebee NFT",
+      "levelOne": "레벨 1",
+      "benefits": "혜택",
+      "accessTasks": "작업 & 마켓 액세스",
+      "referralRewards": "추천 보상",
+      "nftClaiming": "NFT 클레임",
+      "premiumContent": "프리미엄 컨텐츠"
+    },
+    "registrationExpiry": {
+      "warning": "등록이 곧 만료됩니다! 계속하려면 멤버십을 활성화하세요:"
     }
   },
   "tasks": {
