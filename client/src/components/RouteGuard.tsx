@@ -50,7 +50,9 @@ export function RouteGuard({ children }: RouteGuardProps) {
     const isPublicRoute = location === '/' || 
                          location === '/landing' || 
                          location.startsWith('/blog/') ||
-                         location === '/hiveworld';
+                         location === '/hiveworld' ||
+                         location === '/nft-center' ||
+                         location === '/ads';
 
     // If no wallet connected
     if (!account?.address) {
