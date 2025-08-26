@@ -296,11 +296,11 @@ export default function Referrals() {
                         <Badge variant="outline" className="mr-2">{level.titleEn}</Badge>
                         {level.level === 1 && (
                           <span className="text-xs text-muted-foreground">
-                            ({level.nftPriceUSDT} USDT NFT + {level.platformFeeUSDT} USDT fee)
+                            ({(level.nftPriceUSDT / 100).toFixed(0)} USDT NFT + {(level.platformFeeUSDT / 100).toFixed(0)} USDT fee)
                           </span>
                         )}
                       </span>
-                      <span className="font-bold text-honey">{level.nftPriceUSDT} USDT</span>
+                      <span className="font-bold text-honey">{(level.nftPriceUSDT / 100).toFixed(0)} USDT</span>
                     </div>
                   ))}
                 </div>
@@ -315,7 +315,7 @@ export default function Referrals() {
                       <span className="text-sm">
                         <Badge variant="outline" className="mr-2">{level.titleEn}</Badge>
                       </span>
-                      <span className="font-bold text-honey">{level.nftPriceUSDT} USDT</span>
+                      <span className="font-bold text-honey">{(level.nftPriceUSDT / 100).toFixed(0)} USDT</span>
                     </div>
                   ))}
                 </div>
@@ -329,7 +329,7 @@ export default function Referrals() {
                 {membershipLevels.slice(12).map((level) => (
                   <div key={level.level} className="text-center p-2 bg-background/30 rounded">
                     <div className="text-xs font-medium">{level.titleEn}</div>
-                    <div className="text-sm font-bold text-honey">{level.nftPriceUSDT >= 1000 ? `${(level.nftPriceUSDT / 1000).toFixed(1)}K` : level.nftPriceUSDT} USDT</div>
+                    <div className="text-sm font-bold text-honey">{level.nftPriceUSDT >= 100000 ? `${(level.nftPriceUSDT / 100000).toFixed(1)}K` : (level.nftPriceUSDT / 100).toFixed(0)} USDT</div>
                   </div>
                 ))}
               </div>
