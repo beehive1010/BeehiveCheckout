@@ -118,6 +118,8 @@ export default function Referrals() {
           } else {
             newTimers[notif.id] = 'Expired';
           }
+        } else if (notif.status === 'claimable') {
+          newTimers[notif.id] = 'Ready to Claim';
         } else {
           newTimers[notif.id] = notif.status === 'claimed' ? 'Claimed' : 'Expired';
         }
@@ -132,9 +134,9 @@ export default function Referrals() {
   // Use real earnings data from database when available
   const directReferralCountForEarnings = Number(userStats?.directReferralCount) || 0;
   
-  // Calculate real unclaimed rewards from notifications
+  // Calculate real unclaimed rewards from notifications (pending + claimable)
   const unclaimedRewards = layerData.notifications
-    .filter((notif: any) => notif.status === 'pending')
+    .filter((notif: any) => notif.status === 'pending' || notif.status === 'claimable')
     .reduce((total: number, notif: any) => total + (notif.rewardAmount / 100), 0); // Convert from cents
   
   const totalClaimedRewards = layerData.notifications
@@ -154,7 +156,7 @@ export default function Referrals() {
     monthlyEarnings: Number(userStats?.monthlyEarnings || 0),
     pendingCommissions: Number(userStats?.pendingCommissions || 0),
     nextPayout: userStats?.nextPayout || 'TBA',
-    unclaimedCount: layerData.notifications.filter((notif: any) => notif.status === 'pending').length
+    unclaimedCount: layerData.notifications.filter((notif: any) => notif.status === 'pending' || notif.status === 'claimable').length
   };
 
   // Get matrix position and referral data
