@@ -16,9 +16,9 @@ export const membershipLevels: MembershipLevel[] = [
     level: 1,
     slug: 'warrior',
     i18nKey: 'membership.level.1',
-    priceUSDT: 130, // Total price ($100 NFT + $30 platform fee)
-    nftPriceUSDT: 100, // NFT price portion (sponsor reward)
-    platformFeeUSDT: 30, // Platform fee for Level 1
+    priceUSDT: 13000, // Total price ($130.00 in cents)
+    nftPriceUSDT: 10000, // NFT price portion ($100.00 in cents)
+    platformFeeUSDT: 3000, // Platform fee ($30.00 in cents)
     badgeTheme: 'bronze',
     benefitsKeys: ['membership.benefits.l1.basic', 'membership.benefits.l1.education', 'membership.benefits.l1.rewards'],
     titleEn: 'Warrior',
@@ -28,8 +28,8 @@ export const membershipLevels: MembershipLevel[] = [
     level: 2,
     slug: 'bronze',
     i18nKey: 'membership.level.2',
-    priceUSDT: 150, // Total price
-    nftPriceUSDT: 150, // NFT price portion (sponsor reward)
+    priceUSDT: 15000, // Total price ($150.00 in cents)
+    nftPriceUSDT: 15000, // NFT price portion ($150.00 in cents)
     platformFeeUSDT: 0, // No platform fee for Level 2+
     badgeTheme: 'bronze-plus',
     benefitsKeys: ['membership.benefits.l2.enhanced', 'membership.benefits.l2.bonus', 'membership.benefits.l2.network'],
@@ -40,8 +40,8 @@ export const membershipLevels: MembershipLevel[] = [
     level: 3,
     slug: 'silver',
     i18nKey: 'membership.level.3',
-    priceUSDT: 200,
-    nftPriceUSDT: 200,
+    priceUSDT: 20000, // Total price ($200.00 in cents)
+    nftPriceUSDT: 20000, // NFT price portion ($200.00 in cents)
     platformFeeUSDT: 0,
     badgeTheme: 'silver',
     benefitsKeys: ['membership.benefits.l3.advanced', 'membership.benefits.l3.exclusive', 'membership.benefits.l3.priority'],
@@ -52,8 +52,8 @@ export const membershipLevels: MembershipLevel[] = [
     level: 4,
     slug: 'gold',
     i18nKey: 'membership.level.4',
-    priceUSDT: 250,
-    nftPriceUSDT: 250,
+    priceUSDT: 25000, // Total price ($250.00 in cents)
+    nftPriceUSDT: 25000, // NFT price portion ($250.00 in cents)
     platformFeeUSDT: 0,
     badgeTheme: 'gold',
     benefitsKeys: ['membership.benefits.l4.premium', 'membership.benefits.l4.mentorship', 'membership.benefits.l4.tools'],
@@ -64,8 +64,8 @@ export const membershipLevels: MembershipLevel[] = [
     level: 5,
     slug: 'elite',
     i18nKey: 'membership.level.5',
-    priceUSDT: 300,
-    nftPriceUSDT: 300,
+    priceUSDT: 30000, // Total price ($300.00 in cents)
+    nftPriceUSDT: 30000, // NFT price portion ($300.00 in cents)
     platformFeeUSDT: 0,
     badgeTheme: 'gold-plus',
     benefitsKeys: ['membership.benefits.l5.elite', 'membership.benefits.l5.leadership', 'membership.benefits.l5.insights'],
@@ -76,8 +76,8 @@ export const membershipLevels: MembershipLevel[] = [
     level: 6,
     slug: 'platinum',
     i18nKey: 'membership.level.6',
-    priceUSDT: 350,
-    nftPriceUSDT: 350,
+    priceUSDT: 35000, // Total price ($350.00 in cents)
+    nftPriceUSDT: 35000, // NFT price portion ($350.00 in cents)
     platformFeeUSDT: 0,
     badgeTheme: 'platinum',
     benefitsKeys: ['membership.benefits.l6.mastery', 'membership.benefits.l6.networking', 'membership.benefits.l6.rewards'],
@@ -88,8 +88,8 @@ export const membershipLevels: MembershipLevel[] = [
     level: 7,
     slug: 'master',
     i18nKey: 'membership.level.7',
-    priceUSDT: 400,
-    nftPriceUSDT: 400,
+    priceUSDT: 40000, // Total price ($400.00 in cents)
+    nftPriceUSDT: 40000, // NFT price portion ($400.00 in cents),
     platformFeeUSDT: 0,
     badgeTheme: 'platinum-plus',
     benefitsKeys: ['membership.benefits.l7.expert', 'membership.benefits.l7.community', 'membership.benefits.l7.alpha'],
@@ -100,8 +100,8 @@ export const membershipLevels: MembershipLevel[] = [
     level: 8,
     slug: 'diamond',
     i18nKey: 'membership.level.8',
-    priceUSDT: 450,
-    nftPriceUSDT: 450,
+    priceUSDT: 45000, // Total price ($450.00 in cents)
+    nftPriceUSDT: 45000, // NFT price portion ($450.00 in cents)
     platformFeeUSDT: 0,
     badgeTheme: 'diamond',
     benefitsKeys: ['membership.benefits.l8.legendary', 'membership.benefits.l8.influence', 'membership.benefits.l8.opportunities'],
@@ -112,8 +112,8 @@ export const membershipLevels: MembershipLevel[] = [
     level: 9,
     slug: 'grandmaster',
     i18nKey: 'membership.level.9',
-    priceUSDT: 500,
-    nftPriceUSDT: 500,
+    priceUSDT: 50000, // Total price ($500.00 in cents)
+    nftPriceUSDT: 50000, // NFT price portion ($500.00 in cents)
     platformFeeUSDT: 0,
     badgeTheme: 'diamond-plus',
     benefitsKeys: ['membership.benefits.l9.mastery', 'membership.benefits.l9.inner_circle', 'membership.benefits.l9.exclusive'],
@@ -124,8 +124,8 @@ export const membershipLevels: MembershipLevel[] = [
     level: 10,
     slug: 'star-shine',
     i18nKey: 'membership.level.10',
-    priceUSDT: 550,
-    nftPriceUSDT: 550,
+    priceUSDT: 55000, // Total price ($550.00 in cents)
+    nftPriceUSDT: 55000, // NFT price portion ($550.00 in cents)
     platformFeeUSDT: 0,
     badgeTheme: 'cosmic',
     benefitsKeys: ['membership.benefits.l10.grandmaster', 'membership.benefits.l10.authority', 'membership.benefits.l10.legacy'],
@@ -136,8 +136,8 @@ export const membershipLevels: MembershipLevel[] = [
     level: 11,
     slug: 'epic',
     i18nKey: 'membership.level.11',
-    priceUSDT: 600,
-    nftPriceUSDT: 600,
+    priceUSDT: 60000, // Total price ($600.00 in cents)
+    nftPriceUSDT: 60000, // NFT price portion ($600.00 in cents)
     platformFeeUSDT: 0,
     badgeTheme: 'cosmic-plus',
     benefitsKeys: ['membership.benefits.l11.wisdom', 'membership.benefits.l11.cosmic', 'membership.benefits.l11.transcendent'],
@@ -148,8 +148,8 @@ export const membershipLevels: MembershipLevel[] = [
     level: 12,
     slug: 'hall',
     i18nKey: 'membership.level.12',
-    priceUSDT: 650,
-    nftPriceUSDT: 650,
+    priceUSDT: 65000, // Total price ($650.00 in cents)
+    nftPriceUSDT: 65000, // NFT price portion ($650.00 in cents)
     platformFeeUSDT: 0,
     badgeTheme: 'ethereal',
     benefitsKeys: ['membership.benefits.l12.oracle', 'membership.benefits.l12.foresight', 'membership.benefits.l12.divine'],
@@ -160,8 +160,8 @@ export const membershipLevels: MembershipLevel[] = [
     level: 13,
     slug: 'strongest-king',
     i18nKey: 'membership.level.13',
-    priceUSDT: 700,
-    nftPriceUSDT: 700,
+    priceUSDT: 70000, // Total price ($700.00 in cents)
+    nftPriceUSDT: 70000, // NFT price portion ($700.00 in cents)
     platformFeeUSDT: 0,
     badgeTheme: 'ethereal-plus',
     benefitsKeys: ['membership.benefits.l13.immortal', 'membership.benefits.l13.eternal', 'membership.benefits.l13.infinite'],
@@ -172,8 +172,8 @@ export const membershipLevels: MembershipLevel[] = [
     level: 14,
     slug: 'king-of-kings',
     i18nKey: 'membership.level.14',
-    priceUSDT: 750,
-    nftPriceUSDT: 750,
+    priceUSDT: 75000, // Total price ($750.00 in cents)
+    nftPriceUSDT: 75000, // NFT price portion ($750.00 in cents)
     platformFeeUSDT: 0,
     badgeTheme: 'divine',
     benefitsKeys: ['membership.benefits.l14.celestial', 'membership.benefits.l14.heavenly', 'membership.benefits.l14.ascended'],
@@ -184,8 +184,8 @@ export const membershipLevels: MembershipLevel[] = [
     level: 15,
     slug: 'glory-king',
     i18nKey: 'membership.level.15',
-    priceUSDT: 800,
-    nftPriceUSDT: 800,
+    priceUSDT: 80000, // Total price ($800.00 in cents)
+    nftPriceUSDT: 80000, // NFT price portion ($800.00 in cents)
     platformFeeUSDT: 0,
     badgeTheme: 'divine-plus',
     benefitsKeys: ['membership.benefits.l15.divine', 'membership.benefits.l15.godlike', 'membership.benefits.l15.ultimate'],
@@ -196,8 +196,8 @@ export const membershipLevels: MembershipLevel[] = [
     level: 16,
     slug: 'legendary-overlord',
     i18nKey: 'membership.level.16',
-    priceUSDT: 850,
-    nftPriceUSDT: 850,
+    priceUSDT: 85000, // Total price ($850.00 in cents)
+    nftPriceUSDT: 85000, // NFT price portion ($850.00 in cents)
     platformFeeUSDT: 0,
     badgeTheme: 'transcendent',
     benefitsKeys: ['membership.benefits.l16.supreme', 'membership.benefits.l16.omnipotent', 'membership.benefits.l16.sovereign'],
@@ -208,8 +208,8 @@ export const membershipLevels: MembershipLevel[] = [
     level: 17,
     slug: 'supreme-lord',
     i18nKey: 'membership.level.17',
-    priceUSDT: 900,
-    nftPriceUSDT: 900,
+    priceUSDT: 90000, // Total price ($900.00 in cents)
+    nftPriceUSDT: 90000, // NFT price portion ($900.00 in cents)
     platformFeeUSDT: 0,
     badgeTheme: 'transcendent-plus',
     benefitsKeys: ['membership.benefits.l17.transcendent', 'membership.benefits.l17.beyond', 'membership.benefits.l17.unlimited'],
@@ -220,8 +220,8 @@ export const membershipLevels: MembershipLevel[] = [
     level: 18,
     slug: 'supreme-myth',
     i18nKey: 'membership.level.18',
-    priceUSDT: 950,
-    nftPriceUSDT: 950,
+    priceUSDT: 95000, // Total price ($950.00 in cents)
+    nftPriceUSDT: 95000, // NFT price portion ($950.00 in cents)
     platformFeeUSDT: 0,
     badgeTheme: 'mythical',
     benefitsKeys: ['membership.benefits.l18.absolute', 'membership.benefits.l18.perfection', 'membership.benefits.l18.apex'],
@@ -232,8 +232,8 @@ export const membershipLevels: MembershipLevel[] = [
     level: 19,
     slug: 'mythical-peak',
     i18nKey: 'membership.level.19',
-    priceUSDT: 1000,
-    nftPriceUSDT: 1000,
+    priceUSDT: 100000, // Total price ($1000.00 in cents)
+    nftPriceUSDT: 100000, // NFT price portion ($1000.00 in cents)
     platformFeeUSDT: 0,
     badgeTheme: 'mythical-peak',
     benefitsKeys: ['membership.benefits.l19.mythical', 'membership.benefits.l19.peak', 'membership.benefits.l19.legendary'],
