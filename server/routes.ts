@@ -1099,8 +1099,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         AND status IN ('pending', 'claimable')
       `);
       
-      const totalEarnings = Number(totalEarningsResult.rows[0]?.total_claimed || 0) / 100; // Convert from cents
-      const pendingRewards = Number(pendingRewardsResult.rows[0]?.total_pending || 0) / 100; // Convert from cents
+      const totalEarnings = Number(totalEarningsResult.rows[0]?.total_claimed || 0); // Already in dollars
+      const pendingRewards = Number(pendingRewardsResult.rows[0]?.total_pending || 0); // Already in dollars
       
       // Calculate monthly earnings using proper database query
       const monthlyEarningsResult = await db.execute(sql`
@@ -1111,7 +1111,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         AND claimed_at >= DATE_TRUNC('month', CURRENT_DATE)
       `);
       
-      const monthlyEarnings = Number(monthlyEarningsResult.rows[0]?.monthly_total || 0) / 100; // Convert from cents
+      const monthlyEarnings = Number(monthlyEarningsResult.rows[0]?.monthly_total || 0); // Already in dollars
 
       // Get actual downline matrix data from referral layers
       const layersData = await storage.getReferralLayers(walletAddress);
