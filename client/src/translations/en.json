@@ -292,6 +292,38 @@
     "downlineMatrix": {
       "title": "Downline Matrix",
       "placement": "Placement"
+    },
+    "stats": {
+      "directReferrals": "Direct Referrals",
+      "teamSize": "Team Size",
+      "totalEarnings": "Total Earnings",
+      "bccBalance": "BCC Balance",
+      "thisMonth": "This Month",
+      "totalMembers": "Total Members", 
+      "allTime": "All Time"
+    },
+    "actions": {
+      "upgradeLevel": "Upgrade Level",
+      "upgradeDescription": "Purchase next membership level",
+      "viewReferrals": "View Referrals",
+      "referralsDescription": "Manage your referral network",
+      "claimNFT": "Claim NFT",
+      "nftDescription": "Claim merchant NFTs with BCC",
+      "learnEarn": "Learn & Earn",
+      "educationDescription": "Access premium courses"
+    },
+    "nftRequired": {
+      "level1Membership": "Level 1 Membership",
+      "bumblebeeNFT": "Bumblebee NFT",
+      "levelOne": "Level 1",
+      "benefits": "Benefits",
+      "accessTasks": "Access Tasks & Marketplace",
+      "referralRewards": "Referral Rewards",
+      "nftClaiming": "NFT Claiming",
+      "premiumContent": "Premium Content"
+    },
+    "registrationExpiry": {
+      "warning": "Registration expires soon! Activate membership to continue:"
     }
   },
   "tasks": {
