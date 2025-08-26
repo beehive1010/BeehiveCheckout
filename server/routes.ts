@@ -504,6 +504,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         await storage.calculateAndStore19Layers(req.walletAddress);
         console.log('✅ Matrix layers updated successfully');
+        
+        // Also update layers for the user's sponsor to reflect new member in their downline
+        const user = await storage.getUser(req.walletAddress);
+        if (user?.referrerWallet) {
+          console.log('🔄 Updating sponsor layers:', user.referrerWallet);
+          await storage.calculateAndStore19Layers(user.referrerWallet);
+          console.log('✅ Sponsor layers updated');
+        }
       } catch (error) {
         console.error('❌ Matrix layer calculation failed:', error);
       }
@@ -539,7 +547,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.calculateAndStore19Layers(req.walletAddress);
       console.log('🎉 Layer calculation completed successfully');
       
-      res.json({ success: true, message: 'Layer calculation completed' });
+      // Also get and return current layers
+      const layers = await storage.getReferralLayers(req.walletAddress);
+      console.log('📊 Current layers after calculation:', layers.map(l => `Layer ${l.layerNumber}: ${l.memberCount} members`));
+      
+      res.json({ 
+        success: true, 
+        message: 'Layer calculation completed',
+        layers: layers.map(l => ({
+          layer: l.layerNumber,
+          members: l.memberCount,
+          memberWallets: l.members
+        }))
+      });
     } catch (error) {
       console.error('💥 Layer calculation error:', error);
       res.status(500).json({ error: error.message });
@@ -625,11 +645,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Calculate 19-layer tree for the new member
+      // Calculate 19-layer tree for the new member and their sponsor  
+      console.log('🔄 Calculating 19 layers for new member:', req.walletAddress);
       await storage.calculateAndStore19Layers(req.walletAddress);
+      console.log('✅ New member layers calculated');
+      
+      // Also calculate for sponsor to reflect new member in their downline
+      if (referrerWallet) {
+        console.log('🔄 Updating sponsor downline layers:', referrerWallet);
+        await storage.calculateAndStore19Layers(referrerWallet);
+        console.log('✅ Sponsor downline layers updated');
+      }
       
       // Generate notifications for all upline members in 19 layers
-      const referrerWallet = user?.referrerWallet;
+      // referrerWallet already defined above
       if (referrerWallet) {
         // Get all upline users in the 19 layers
         const uplineLayers = await storage.getReferralLayers(referrerWallet);
@@ -1241,8 +1270,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Calculate and update 19-layer tree for a user
   app.post("/api/referrals/calculate-layers", requireWallet, async (req: any, res) => {
     try {
+      console.log('🔄 Manual layer calculation triggered for:', req.walletAddress);
       await storage.calculateAndStore19Layers(req.walletAddress);
-      res.json({ success: true, message: '19-layer tree calculated successfully' });
+      console.log('✅ Manual layer calculation completed');
+      
+      // Also get current layers to return updated data
+      const layers = await storage.getReferralLayers(req.walletAddress);
+      console.log('📊 Current layers:', layers.map(l => `Layer ${l.layerNumber}: ${l.memberCount} members`));
+      
+      res.json({ 
+        success: true, 
+        message: '19-layer tree calculated successfully',
+        layers: layers.length
+      });
     } catch (error) {
       console.error('Calculate layers error:', error);
       res.status(500).json({ error: 'Failed to calculate layers' });
@@ -2267,6 +2307,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Advertisement NFT endpoints - Explicit route handling
   app.get("/api/ads/nfts", (req, res, next) => {
     console.log('🔍 NFT endpoint hit directly!');
+    
+    // Disable caching for real-time updates
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
     storage.getAdvertisementNFTs()
       .then(nfts => {
         console.log('✅ Found NFTs:', nfts?.length || 0);
