@@ -238,6 +238,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Check wallet registration status and referral detection
   app.get("/api/wallet/registration-status", async (req, res) => {
     try {
+      // Disable caching for real-time updates
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+      
       const walletAddress = req.headers['x-wallet-address'] as string;
       if (!walletAddress) {
         return res.status(400).json({ error: 'Wallet address required' });
@@ -376,6 +383,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/auth/user", requireWallet, async (req: any, res) => {
     try {
+      // Disable caching for real-time updates
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+      
       const user = await storage.getUser(req.walletAddress);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
@@ -1069,6 +1083,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User stats endpoint for referral dashboard - NEW GLOBAL MATRIX
   app.get("/api/beehive/user-stats/:walletAddress?", requireWallet, async (req: any, res) => {
     try {
+      // Disable caching for real-time updates
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+      
       const walletAddress = req.params.walletAddress || req.walletAddress;
       
       const matrixPosition = await storage.getGlobalMatrixPosition(walletAddress);
@@ -1226,6 +1247,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get layer members data for Matrix Layer Management
   app.get("/api/referrals/layer-members", requireWallet, async (req: any, res) => {
     try {
+      // Disable caching for real-time updates
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+      
       const layersWithMembers = await storage.getLayerMembersData(req.walletAddress);
       
       // Get upgrade notifications using direct database query
@@ -1286,6 +1314,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all reward notifications for a user
   app.get("/api/notifications/rewards", requireWallet, async (req: any, res) => {
     try {
+      // Disable caching for real-time updates
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+      
       const notifications = await storage.getRewardNotifications(req.walletAddress);
       
       res.json({

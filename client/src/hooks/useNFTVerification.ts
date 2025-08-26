@@ -9,9 +9,10 @@ export function useNFTVerification() {
     queryKey: ['/api/wallet/registration-status'],
     queryFn: async () => {
       if (!account?.address) return null;
-      const response = await fetch('/api/wallet/registration-status', {
+      const response = await fetch(`/api/wallet/registration-status?t=${Date.now()}`, {
         headers: {
-          'X-Wallet-Address': account.address
+          'X-Wallet-Address': account.address,
+          'Cache-Control': 'no-cache'
         }
       });
       if (!response.ok) throw new Error('Failed to fetch registration status');

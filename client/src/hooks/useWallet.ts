@@ -42,9 +42,10 @@ export function useWallet() {
     queryKey: ['/api/auth/user'],
     enabled: !!walletAddress,
     queryFn: async () => {
-      const response = await fetch('/api/auth/user', {
+      const response = await fetch(`/api/auth/user?t=${Date.now()}`, {
         headers: {
           'X-Wallet-Address': walletAddress!,
+          'Cache-Control': 'no-cache'
         },
       });
       if (!response.ok) {

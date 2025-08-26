@@ -30,11 +30,12 @@ export function useUserReferralStats() {
     queryKey: ['/api/beehive/user-stats', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
-      const response = await fetch(`/api/beehive/user-stats/${walletAddress}`, { 
+      const response = await fetch(`/api/beehive/user-stats/${walletAddress}?t=${Date.now()}`, { 
         credentials: 'include',
         headers: { 
           'X-Wallet-Address': walletAddress,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
         }
       });
       if (!response.ok) {
