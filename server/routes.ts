@@ -359,6 +359,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Initializing referral matrix for ${user.walletAddress} under sponsor ${body.referrerWallet}`);
         await storage.initializeReferralMatrix(user.walletAddress, body.referrerWallet);
         console.log('✅ Referral matrix initialized successfully');
+        
+        // Calculate 19 layers for both the new user and their sponsor
+        console.log('🔄 Calculating 19 layers for sponsor upline...');
+        await storage.calculateAndStore19Layers(body.referrerWallet);
+        console.log('✅ Sponsor 19 layers updated');
       } else {
         // Create root node for users without referrers
         await storage.createReferralNode({
