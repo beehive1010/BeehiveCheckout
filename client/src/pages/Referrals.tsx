@@ -35,28 +35,7 @@ export default function Referrals() {
     enabled: !!walletAddress
   });
 
-  // Use existing working userStats instead of separate API calls
-  // Create mock data based on working userStats for display
-  const globalMatrixData = {
-    position: { 
-      walletAddress, 
-      matrixLevel: userStats?.matrixLevel || 1,
-      positionIndex: userStats?.positionIndex || 0 
-    },
-    directReferrals: Array.from({length: Number(userStats?.directReferralCount) || 0}, (_, i) => ({
-      walletAddress: `0x${(i+1).toString().padStart(40, '0')}`,
-      matrixLevel: Math.floor(Math.random() * 3) + 1,
-      positionIndex: i + 1,
-      joinedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
-      username: `User${i+1}`,
-      currentLevel: Math.floor(Math.random() * 5) + 1,
-      earnings: Math.floor(Math.random() * 100) + 10,
-      createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString()
-    })),
-    totalDirectReferrals: Number(userStats?.directReferralCount) || 0
-  };
-  
-  // Create layer data based on working userStats  
+  // Use 19-layer system data only
   const totalTeamCount = userStats?.totalTeamCount || 0;
   const directReferrals = Number(userStats?.directReferralCount) || 0;
   
@@ -173,9 +152,9 @@ export default function Referrals() {
     unclaimedCount: layerData.notifications.filter((notif: any) => notif.status === 'pending' || notif.status === 'claimable').length
   };
 
-  // Get matrix position and referral data
-  const userMatrixPosition = globalMatrixData?.position || null;
-  const directReferralsList = globalMatrixData?.directReferrals || [];
+  // Use only 19-layer system data
+  const userMatrixPosition = null;
+  const directReferralsList = [];
   
 
   const referralLink = `https://beehive-lifestyle.io/register?ref=${walletAddress}`;
