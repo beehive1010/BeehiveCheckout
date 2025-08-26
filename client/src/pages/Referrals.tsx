@@ -65,8 +65,11 @@ export default function Referrals() {
     queryKey: ['/api/referrals/layer-members', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
-      const response = await fetch('/api/referrals/layer-members', {
-        headers: { 'X-Wallet-Address': walletAddress }
+      const response = await fetch(`/api/referrals/layer-members?t=${Date.now()}`, {
+        headers: { 
+          'X-Wallet-Address': walletAddress,
+          'Cache-Control': 'no-cache'
+        }
       });
       if (!response.ok) throw new Error('Failed to fetch layer members');
       return response.json();
@@ -82,8 +85,11 @@ export default function Referrals() {
     queryKey: ['/api/notifications/rewards', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
-      const response = await fetch('/api/notifications/rewards', {
-        headers: { 'X-Wallet-Address': walletAddress }
+      const response = await fetch(`/api/notifications/rewards?t=${Date.now()}`, {
+        headers: { 
+          'X-Wallet-Address': walletAddress,
+          'Cache-Control': 'no-cache'
+        }
       });
       if (!response.ok) {
         throw new Error('Failed to fetch reward notifications');
