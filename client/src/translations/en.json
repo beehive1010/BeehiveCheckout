@@ -324,7 +324,23 @@
     },
     "registrationExpiry": {
       "warning": "Registration expires soon! Activate membership to continue:"
+    },
+    "layer": {
+      "name": "Layer",
+      "members": "members",
+      "upgraded": "upgraded",
+      "placements": "placements"
     }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "empty": {
+      "title": "No notifications yet",
+      "description": "You'll receive notifications for BCC rewards, upgrades, and referrals"
+    },
+    "showLess": "Show less",
+    "showAll": "Show all {{count}} notifications"
   },
   "tasks": {
     "title": "Tasks & Marketplace",

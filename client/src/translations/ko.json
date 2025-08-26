@@ -344,7 +344,23 @@
     },
     "registrationExpiry": {
       "warning": "등록이 곧 만료됩니다! 계속하려면 멤버십을 활성화하세요:"
+    },
+    "layer": {
+      "name": "레이어",
+      "members": "회원",
+      "upgraded": "업그레이드됨",
+      "placements": "배치"
     }
+  },
+  "notifications": {
+    "title": "알림",
+    "markAllRead": "모두 읽음으로 표시",
+    "empty": {
+      "title": "알림이 아직 없습니다",
+      "description": "BCC 보상, 업그레이드 및 추천에 대한 알림을 받으실 수 있습니다"
+    },
+    "showLess": "더 적게 보기",
+    "showAll": "모든 {{count}}개 알림 보기"
   },
   "tasks": {
     "title": "판매자 NFT 마켓플레이스",

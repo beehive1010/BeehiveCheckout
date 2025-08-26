@@ -736,16 +736,16 @@ export default function Dashboard() {
               {isLoadingUserStats ? (
                 Array.from({length: 19}, (_, i) => (
                   <div key={i + 1} className="flex justify-between items-center py-1.5 px-2 md:py-2 border-b border-border/50 last:border-b-0">
-                    <span className="text-muted-foreground text-sm md:text-base">Layer {i + 1}</span>
+                    <span className="text-muted-foreground text-sm md:text-base">{t('dashboard.layer.name')} {i + 1}</span>
                     <div className="text-right flex items-center gap-3">
                       <div className="flex flex-col items-end">
                         <span className="text-honey font-semibold text-xs md:text-sm">...</span>
-                        <span className="text-muted-foreground text-[10px]">members</span>
+                        <span className="text-muted-foreground text-[10px]">{t('dashboard.layer.members')}</span>
                       </div>
                       <div className="text-muted-foreground text-xs">•</div>
                       <div className="flex flex-col items-end">
                         <span className="text-green-400 font-semibold text-xs md:text-sm">...</span>
-                        <span className="text-muted-foreground text-[10px]">upgraded</span>
+                        <span className="text-muted-foreground text-[10px]">{t('dashboard.layer.upgraded')}</span>
                       </div>
                     </div>
                   </div>
@@ -761,32 +761,32 @@ export default function Dashboard() {
                   
                   return (
                     <div key={levelData.level} className="flex justify-between items-center py-1.5 px-2 md:py-2 border-b border-border/50 last:border-b-0 hover:bg-muted/20 rounded-sm">
-                      <span className="text-muted-foreground text-sm md:text-base">Layer {levelData.level}</span>
+                      <span className="text-muted-foreground text-sm md:text-base">{t('dashboard.layer.name')} {levelData.level}</span>
                       <div className="text-right flex items-center gap-3">
                         <div className="flex flex-col items-end">
                           <span className="text-honey font-semibold text-xs md:text-sm">{formatNumber(levelData?.members)}</span>
-                          <span className="text-muted-foreground text-[10px]">members</span>
+                          <span className="text-muted-foreground text-[10px]">{t('dashboard.layer.members')}</span>
                         </div>
                         <div className="text-muted-foreground text-xs">•</div>
                         <div className="flex flex-col items-end">
                           <span className="text-green-400 font-semibold text-xs md:text-sm">{formatNumber(levelData?.upgraded)}</span>
-                          <span className="text-muted-foreground text-[10px]">upgraded</span>
+                          <span className="text-muted-foreground text-[10px]">{t('dashboard.layer.upgraded')}</span>
                         </div>
                       </div>
                     </div>
                   );
                 }) || Array.from({length: 19}, (_, i) => (
                   <div key={i + 1} className="flex justify-between items-center py-1.5 px-2 md:py-2 border-b border-border/50 last:border-b-0">
-                    <span className="text-muted-foreground text-sm md:text-base">Layer {i + 1}</span>
+                    <span className="text-muted-foreground text-sm md:text-base">{t('dashboard.layer.name')} {i + 1}</span>
                     <div className="text-right flex items-center gap-3">
                       <div className="flex flex-col items-end">
                         <span className="text-honey font-semibold text-xs md:text-sm">0</span>
-                        <span className="text-muted-foreground text-[10px]">members</span>
+                        <span className="text-muted-foreground text-[10px]">{t('dashboard.layer.members')}</span>
                       </div>
                       <div className="text-muted-foreground text-xs">•</div>
                       <div className="flex flex-col items-end">
                         <span className="text-green-400 font-semibold text-xs md:text-sm">0</span>
-                        <span className="text-muted-foreground text-[10px]">upgraded</span>
+                        <span className="text-muted-foreground text-[10px]">{t('dashboard.layer.upgraded')}</span>
                       </div>
                     </div>
                   </div>
@@ -809,18 +809,18 @@ export default function Dashboard() {
                   <div key={layer.level} className="bg-muted/30 rounded-lg p-3">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-muted-foreground text-sm">
-                        Layer {layer.level}
+                        {t('dashboard.layer.name')} {layer.level}
                       </span>
                       <Badge className="bg-honey text-black">
-                        {layer.members} Members
+                        {layer.members} {t('dashboard.layer.members')}
                       </Badge>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground text-xs">
-                        Upgraded: {layer.upgraded}
+                        {t('dashboard.layer.upgraded')}: {layer.upgraded}
                       </span>
                       <span className="text-green-400 text-xs">
-                        Placements: {layer.placements}
+                        {t('dashboard.layer.placements')}: {layer.placements}
                       </span>
                     </div>
                   </div>
