@@ -681,17 +681,21 @@ export class DatabaseStorage implements IStorage {
     
     const uplineWallets = await this.getUplineWallets(buyerWallet, purchasedLevel);
     
-    for (const uplineWallet of uplineWallets) {
+    for (const { wallet: uplineWallet, layer } of uplineWallets) {
       const pendingUntil = new Date();
       pendingUntil.setHours(pendingUntil.getHours() + 72); // 72-hour countdown
       
-      // Check qualification based on level
+      // Check qualification based on level purchased and upline's level ownership
       let isQualified = false;
       const uplineMembership = await this.getMembershipState(uplineWallet);
       
+      // SPECIFICATION: Member gets rewards only by each Layer upgrade to same level and member >= this level
+      // Layer 1: 3 members × $100 = $300 max (3rd reward requires Level 2)
+      // Layer 2: 9 members × $150 = $1350 max
+      
       if (purchasedLevel === 1) {
-        // Level 1: 每个奖励100 USDT，第三个需要升级Level2才能拿
-        // 计算这是第几个Level 1奖励（基于已获得的奖励数量）
+        // Layer 1 members buying Level 1: $100 each
+        // Count existing Level 1 rewards for this upline
         const existingLevel1Rewards = await db.select()
           .from(rewardDistributions)
           .where(
@@ -705,23 +709,30 @@ export class DatabaseStorage implements IStorage {
         const rewardSequenceNumber = existingLevel1Rewards.length + 1;
         
         if (rewardSequenceNumber <= 2) {
-          // 前2个奖励：只需要拥有L1就可以拿
+          // First 2 rewards: Need Level 1
           isQualified = uplineMembership?.levelsOwned.includes(1) || false;
         } else {
-          // 第3个及以后的奖励：需要升级到Level 2才能拿，不然72小时roll up
+          // 3rd+ rewards: Need Level 2
           isQualified = uplineMembership?.levelsOwned.includes(2) || false;
         }
-      } else if (purchasedLevel === 2) {
-        // Level 2: 第二层成员升级Level 2，第二层上线获得150 USDT（NFT价格）
-        // 上线必须拥有Level 2才有资格获得奖励
-        isQualified = uplineMembership?.levelsOwned.includes(2) || false;
       } else {
-        // Levels 3-19: Just need to own that level or higher
+        // Level 2+: Upline must own the same level or higher
         isQualified = uplineMembership?.levelsOwned.some(level => level >= purchasedLevel) || false;
       }
       
-      // Create reward (100% of NFT price - rewards equal NFT price)
-      const rewardAmount = levelConfig.nftPriceUSDT.toFixed(2); // levelConfig already in dollars
+      // Determine reward amount based on purchased level
+      // Level 1 = $100, Level 2 = $150, Level 3 = $200, etc.
+      let rewardAmount: string;
+      if (purchasedLevel === 1) {
+        rewardAmount = "100.00"; // $100 USDT
+      } else if (purchasedLevel === 2) {
+        rewardAmount = "150.00"; // $150 USDT
+      } else {
+        // Level 3+ = Base price + $50 increments
+        const basePrice = 150; // Level 2 price
+        const incrementalPrice = basePrice + ((purchasedLevel - 2) * 50);
+        rewardAmount = incrementalPrice.toFixed(2);
+      }
       
       await this.createRewardDistribution({
         recipientWallet: uplineWallet,
@@ -788,32 +799,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Helper: Get upline wallets who should receive rewards for this purchase
-  async getUplineWallets(buyerWallet: string, purchasedLevel: number): Promise<string[]> {
-    const uplines: string[] = [];
+  async getUplineWallets(buyerWallet: string, purchasedLevel: number): Promise<Array<{wallet: string, layer: number}>> {
+    const uplines: Array<{wallet: string, layer: number}> = [];
     let currentWallet = buyerWallet;
     
-    // 特殊处理: Level 2购买时，奖励给第二层的上线（跳过第一层）
-    if (purchasedLevel === 2) {
-      // 找到第二层上线：先找第一层，再找第二层
-      const firstLayerPosition = await this.getGlobalMatrixPosition(currentWallet);
-      if (firstLayerPosition && firstLayerPosition.directSponsorWallet !== currentWallet) {
-        const secondLayerPosition = await this.getGlobalMatrixPosition(firstLayerPosition.directSponsorWallet);
-        if (secondLayerPosition && secondLayerPosition.directSponsorWallet !== firstLayerPosition.directSponsorWallet) {
-          uplines.push(secondLayerPosition.directSponsorWallet); // 第二层上线获得奖励
-        }
-      }
-    } else {
-      // 其他级别：正常遍历找对应层级的上线
-      for (let layer = 1; layer <= purchasedLevel && layer <= 19; layer++) {
-        const position = await this.getGlobalMatrixPosition(currentWallet);
-        if (!position || position.directSponsorWallet === currentWallet) break;
-        
-        const uplineWallet = position.directSponsorWallet;
-        if (layer === purchasedLevel) {
-          uplines.push(uplineWallet); // 对应层级的上线获得奖励
-        }
-        currentWallet = uplineWallet;
-      }
+    // Walk up the tree to find uplines in each layer
+    for (let layer = 1; layer <= 19; layer++) {
+      const position = await this.getGlobalMatrixPosition(currentWallet);
+      if (!position || position.directSponsorWallet === currentWallet) break;
+      
+      const uplineWallet = position.directSponsorWallet;
+      
+      // SPECIFICATION: When member buys Level N, all uplines in all layers get rewards
+      // But qualification depends on their level ownership
+      uplines.push({ wallet: uplineWallet, layer });
+      
+      currentWallet = uplineWallet;
     }
     
     return uplines;
@@ -875,7 +876,7 @@ export class DatabaseStorage implements IStorage {
         console.error(`Level config not found for level ${level}`);
         return;
       }
-      const directRewardAmount = levelConfig.nftPriceUSDT; // Use exact NFT price from config
+      const directRewardAmount = Number(levelConfig.nftPriceUSDT) || 0; // Ensure it's a number
       
       // Create reward entry for direct referrer
       await this.createRewardDistribution({
