@@ -150,13 +150,13 @@ export default function Referrals() {
   const realTotalEarnings = Number(userStats?.totalEarnings || 0);
   const realPendingCommissions = Number(userStats?.pendingCommissions || 0);
   
-  // Use real data from backend API
+  // Use real data from backend API (backend returns values already converted to dollars)
   const referralStats = {
     directReferrals: directReferralCountForEarnings,
     totalTeam: userStats?.totalTeamCount || 0,
-    totalEarnings: Number(userStats?.totalEarnings || 0),
-    monthlyEarnings: Number(userStats?.monthlyEarnings || 0),
-    pendingCommissions: Number(userStats?.pendingCommissions || 0),
+    totalEarnings: parseFloat(userStats?.totalEarnings || '0'),
+    monthlyEarnings: parseFloat(userStats?.monthlyEarnings || '0'),
+    pendingCommissions: parseFloat(userStats?.pendingCommissions || '0'),
     nextPayout: userStats?.nextPayout || 'TBA',
     unclaimedCount: layerData.notifications.filter((notif: any) => notif.status === 'pending' || notif.status === 'claimable').length
   };
@@ -432,18 +432,18 @@ export default function Referrals() {
           <CardContent>
             <div className="text-center">
               <div className="text-3xl font-bold text-green-400 mb-2">
-                ${isStatsLoading ? '...' : Number(referralStats.pendingCommissions || 0).toFixed(2)} USDT
+                ${isStatsLoading ? '...' : referralStats.pendingCommissions.toFixed(2)} USDT
               </div>
               <p className="text-muted-foreground text-sm mb-2">
-                {Number(referralStats.pendingCommissions || 0) > 0 ? `$${Number(referralStats.pendingCommissions || 0).toFixed(2)} available to withdraw` : 'No pending rewards'}
+                {referralStats.pendingCommissions > 0 ? `$${referralStats.pendingCommissions.toFixed(2)} available to withdraw` : 'No pending rewards'}
               </p>
               <p className="text-muted-foreground text-xs mb-4">
                 Timer expires: {isStatsLoading ? '...' : referralStats.nextPayout}
               </p>
               <Button 
-                className={`w-full ${Number(referralStats.pendingCommissions || 0) > 0 ? 'btn-honey' : 'bg-muted text-muted-foreground'}`} 
+                className={`w-full ${referralStats.pendingCommissions > 0 ? 'btn-honey' : 'bg-muted text-muted-foreground'}`} 
                 data-testid="button-claim-rewards"
-                disabled={Number(referralStats.pendingCommissions || 0) === 0}
+                disabled={referralStats.pendingCommissions === 0}
               >
                 <i className="fas fa-dollar-sign mr-2"></i>
                 Withdraw Rewards
