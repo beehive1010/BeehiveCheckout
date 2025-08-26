@@ -1083,10 +1083,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const monthlyEarnings = Number(monthlyEarningsResult.rows[0]?.monthly_total || 0) / 100; // Convert from cents
 
-      // FIXED: Get actual downline matrix data from referral layers
+      // Get actual downline matrix data from referral layers
       const layersData = await storage.getReferralLayers(walletAddress);
-      console.log('DEBUG: getReferralLayers returned:', layersData.map(l => ({ layer: l.layerNumber, count: l.memberCount })));
-      
       const downlineMatrix = [];
       
       // Process each level from 1 to 19
