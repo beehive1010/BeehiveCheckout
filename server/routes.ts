@@ -1715,16 +1715,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // BeeHive System API Routes
   
-  // Get global dashboard statistics (visible to all members)
-  app.get("/api/beehive/dashboard-stats", async (req, res) => {
-    try {
-      const stats = await storage.getGlobalStatisticsCustom();
-      res.json(stats);
-    } catch (error) {
-      console.error('Get dashboard stats error:', error);
-      res.status(500).json({ error: 'Failed to get dashboard statistics' });
-    }
-  });
 
   // Get level configuration
   app.get("/api/beehive/level-configs", async (req, res) => {
@@ -2229,15 +2219,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Advertisement NFT endpoints
-  app.get("/api/ads/nfts", async (req, res) => {
-    try {
-      const nfts = await storage.getAdvertisementNFTs();
-      res.json(nfts);
-    } catch (error) {
-      console.error('Get advertisement NFTs error:', error);
-      res.status(500).json({ error: 'Failed to get advertisement NFTs' });
-    }
+  // Advertisement NFT endpoints - Explicit route handling
+  app.get("/api/ads/nfts", (req, res, next) => {
+    console.log('🔍 NFT endpoint hit directly!');
+    storage.getAdvertisementNFTs()
+      .then(nfts => {
+        console.log('✅ Found NFTs:', nfts?.length || 0);
+        res.setHeader('Content-Type', 'application/json');
+        res.json(nfts || []);
+      })
+      .catch(error => {
+        console.error('Get advertisement NFTs error:', error);
+        res.status(500).json({ error: 'Failed to get advertisement NFTs' });
+      });
   });
 
   app.post("/api/ads/claim", requireWallet, async (req: any, res) => {

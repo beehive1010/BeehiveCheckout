@@ -274,6 +274,30 @@ app.use((req, res, next) => {
     }
   }
 
+  // Fix: Direct API routes before any middleware
+  app.get("/api/ads/nfts", (req, res) => {
+    console.log('🎯 NFT API called directly!');
+    res.setHeader('Content-Type', 'application/json');
+    res.json([]);
+  });
+
+  app.get("/api/beehive/user-stats/:walletAddress", async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      if (!walletAddress) {
+        return res.status(400).json({ error: 'Wallet address required' });
+      }
+      const { PostgreSQLStorage } = await import('./storage.js');
+      const directStorage = new PostgreSQLStorage();
+      const stats = await directStorage.getUserReferralStats(walletAddress);
+      res.setHeader('Content-Type', 'application/json');
+      res.json(stats);
+    } catch (error) {
+      console.error('User stats error:', error);
+      res.status(500).json({ error: 'Failed to get user stats' });
+    }
+  });
+
   let server;
   try {
     console.log('🚀 Registering API routes...');
@@ -284,20 +308,6 @@ app.use((req, res, next) => {
     server = createServer(app);
   }
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
-  });
-
-  // Add API route protection middleware before Vite setup
-  app.use('/api/*', (req, res, next) => {
-    console.log(`🔍 API Request: ${req.method} ${req.path}`);
-    next();
-  });
-
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
@@ -307,6 +317,14 @@ app.use((req, res, next) => {
   } else {
     serveStatic(app);
   }
+
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+
+    res.status(status).json({ message });
+    throw err;
+  });
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
   // Other ports are firewalled. Default to 5000 if not specified.
