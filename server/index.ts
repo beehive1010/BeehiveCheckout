@@ -287,14 +287,30 @@ app.use((req, res, next) => {
       if (!walletAddress) {
         return res.status(400).json({ error: 'Wallet address required' });
       }
-      const { PostgreSQLStorage } = await import('./storage.js');
-      const directStorage = new PostgreSQLStorage();
-      const stats = await directStorage.getUserReferralStats(walletAddress);
+      const { storage } = await import('./storage.js');
+      const stats = await storage.getUserReferralStats(walletAddress);
       res.setHeader('Content-Type', 'application/json');
       res.json(stats);
     } catch (error) {
       console.error('User stats error:', error);
       res.status(500).json({ error: 'Failed to get user stats' });
+    }
+  });
+
+  // Fix other NFT endpoints that are missing
+  app.get("/api/ads/my-nfts", async (req, res) => {
+    const walletAddress = req.headers['x-wallet-address'] as string;
+    if (!walletAddress) {
+      return res.status(400).json({ error: 'Wallet address required' });
+    }
+    try {
+      const { storage } = await import('./storage.js');
+      const claims = await storage.getUserAdvertisementNFTClaims(walletAddress);
+      res.setHeader('Content-Type', 'application/json');
+      res.json(claims);
+    } catch (error) {
+      console.error('Get user ads NFTs error:', error);
+      res.status(500).json({ error: 'Failed to get your advertisement NFTs' });
     }
   });
 
