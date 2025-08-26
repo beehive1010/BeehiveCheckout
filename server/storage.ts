@@ -1660,6 +1660,47 @@ export class DatabaseStorage implements IStorage {
     }> = [];
 
     try {
+      // Add reward distributions as activities
+      const userRewardDistributions = await db.select()
+        .from(rewardDistributions)
+        .where(eq(rewardDistributions.recipientWallet, walletAddress.toLowerCase()))
+        .orderBy(desc(rewardDistributions.createdAt))
+        .limit(limit);
+      
+      userRewardDistributions.forEach((reward: any) => {
+        activities.push({
+          id: reward.id,
+          type: 'reward',
+          description: reward.rewardType === 'direct_referral' ? 'Direct referral bonus earned' : `Level ${reward.level} bonus reward`,
+          amount: `+${Number(reward.rewardAmount).toFixed(2)} USDT`,
+          timestamp: reward.createdAt,
+          status: reward.status
+        });
+      });
+
+      // Add BCC balance creation as activity
+      const bccBalance = await this.getBCCBalance(walletAddress);
+      if (bccBalance && bccBalance.transferable > 0) {
+        activities.push({
+          id: `bcc-credit-${walletAddress}`,
+          type: 'membership',
+          description: 'BCC tokens credited to account',
+          amount: `+${bccBalance.transferable} BCC`,
+          timestamp: bccBalance.lastUpdated
+        });
+      }
+
+      // Add membership activation as activity
+      const membershipState = await this.getMembershipState(walletAddress);
+      if (membershipState && membershipState.activeLevel > 0) {
+        activities.push({
+          id: `membership-${walletAddress}`,
+          type: 'membership',
+          description: `Level ${membershipState.activeLevel} membership activated`,
+          amount: undefined,
+          timestamp: membershipState.lastUpgradeAt || membershipState.joinedAt || new Date()
+        });
+      }
       // Get earnings summary (working with existing database structure)
       const earningsSummary = await db.select({
         walletAddress: earningsWallet.walletAddress,
