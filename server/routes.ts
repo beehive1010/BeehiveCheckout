@@ -617,7 +617,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         for (const layer of uplineLayers) {
           for (const uplineWallet of layer.members) {
-            // Create notification with 72-hour countdown
+            // Check if upline already qualifies for this reward
+            const uplineMembership = await storage.getMembershipState(uplineWallet);
+            
+            // For Level 1 purchases: upline needs Level 1 for first rewards, Level 2 for 3rd+ rewards
+            // Since this is activation, treat as first reward so Level 1 qualifies
+            const isQualified = uplineMembership?.levelsOwned.includes(1) || false;
             const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000); // 72 hours
             
             await storage.createRewardNotification({
@@ -626,8 +631,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               triggerLevel: 1,
               layerNumber: layer.layerNumber,
               rewardAmount: 10000, // 100 USDT in cents
-              status: 'pending',
-              expiresAt: expiresAt
+              status: isQualified ? 'waiting_claim' : 'pending',
+              expiresAt: isQualified ? undefined : expiresAt
             });
           }
         }
