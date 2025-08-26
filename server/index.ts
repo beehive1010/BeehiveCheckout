@@ -254,17 +254,12 @@ app.use((req, res, next) => {
       
       console.log(`📝 Recording NFT claim for ${walletAddress}: Level ${level}`);
       
-      // Note: User is_active status is already set during membership activation
-      // This just records the NFT claim in database
+      // Note: Membership NFTs are different from merchant NFTs
+      // We don't record membership NFT claims in nft_purchases table
+      // That table is for merchant NFTs purchased with BCC tokens
       
-      // Record in nft_purchases (simplified without direct DB access)
-      await storage.recordNFTPurchase({
-        walletAddress: walletAddress.toLowerCase(),
-        nftId: `beehive-level-${level}`,
-        amountBCC: level === 1 ? 100 : level * 50 + 50, // Level 1 = 100 BCC, then +50 per level
-        txHash: txHash,
-        bucketUsed: 'transferable' // Since we give 100% transferable BCC
-      });
+      // Instead, we could update the user's membership state if needed
+      // For now, just log the successful claim
       
       // Update membership_state 
       await storage.updateMembershipState(walletAddress, {
