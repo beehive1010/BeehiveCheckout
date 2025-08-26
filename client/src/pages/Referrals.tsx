@@ -423,18 +423,15 @@ export default function Referrals() {
           <CardContent>
             <div className="text-center">
               <div className="text-3xl font-bold text-green-400 mb-2">
-                ${isStatsLoading ? '...' : referralStats.pendingCommissions.toFixed(2)} USDT
+                ${isStatsLoading ? '...' : referralStats.totalEarnings.toFixed(2)} USDT
               </div>
-              <p className="text-muted-foreground text-sm mb-2">
-                {referralStats.pendingCommissions > 0 ? `$${referralStats.pendingCommissions.toFixed(2)} available to withdraw` : 'No pending rewards'}
-              </p>
-              <p className="text-muted-foreground text-xs mb-4">
-                Timer expires: {isStatsLoading ? '...' : referralStats.nextPayout}
+              <p className="text-muted-foreground text-sm mb-4">
+                {referralStats.totalEarnings > 0 ? `$${referralStats.totalEarnings.toFixed(2)} available to withdraw` : 'No pending rewards'}
               </p>
               <Button 
-                className={`w-full ${referralStats.pendingCommissions > 0 ? 'btn-honey' : 'bg-muted text-muted-foreground'}`} 
+                className={`w-full ${referralStats.totalEarnings > 0 ? 'btn-honey' : 'bg-muted text-muted-foreground'}`} 
                 data-testid="button-claim-rewards"
-                disabled={referralStats.pendingCommissions === 0}
+                disabled={referralStats.totalEarnings === 0}
               >
                 <i className="fas fa-dollar-sign mr-2"></i>
                 Withdraw Rewards
@@ -450,9 +447,9 @@ export default function Referrals() {
           <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Matrix Position</span>
-                <span className="text-honey font-semibold">
-                  {isStatsLoading ? '...' : (userStats?.memberActivated ? 'Active' : 'Inactive')}
+                <span className="text-muted-foreground">Status</span>
+                <span className="text-green-400 font-semibold">
+                  {isStatsLoading ? '...' : 'Active'}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -462,27 +459,15 @@ export default function Referrals() {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Matrix Position</span>
-                <span className="text-muted-foreground">
-                  {isStatsLoading ? '...' : `${userStats?.matrixLevel || 0}.${userStats?.positionIndex || 0}`}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Team Size</span>
-                <span className="text-green-400 font-semibold">
-                  {isStatsLoading ? '...' : (userStats?.totalTeamCount || 0)} members
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Total Earnings</span>
-                <span className="text-green-400 font-semibold">
-                  ${isStatsLoading ? '...' : Number(userStats?.totalEarnings || 0).toFixed(2)} USDT
-                </span>
-              </div>
-              <div className="flex justify-between">
                 <span className="text-muted-foreground">Matrix Rewards</span>
                 <span className="text-blue-400 font-semibold">
-                  ${isStatsLoading ? '...' : Number(userStats?.matrixEarnings || 0).toFixed(2)} USDT
+                  ${isStatsLoading ? '...' : referralStats.totalEarnings.toFixed(2)} USDT
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Pending Rewards</span>
+                <span className="text-yellow-400 font-semibold">
+                  ${isStatsLoading ? '...' : referralStats.pendingCommissions.toFixed(2)} USDT
                 </span>
               </div>
               <Button variant="outline" className="w-full mt-4" data-testid="button-view-matrix">
@@ -960,169 +945,6 @@ export default function Referrals() {
         </CardContent>
       </Card>
 
-      {/* 19-Layer Referral Tree and Notifications */}
-      <Card className="bg-secondary border-border">
-        <CardHeader>
-          <CardTitle className="text-honey flex items-center">
-            <Users className="mr-2 h-5 w-5" />
-            19-Layer Referral Tree & Notifications
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="layers" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="layers">19 Layers</TabsTrigger>
-              <TabsTrigger value="notifications">Pending Rewards</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="layers" className="space-y-4">
-              <div className="text-sm text-muted-foreground mb-4">
-                Your 19-layer referral tree shows all members in your network up to 19 levels deep.
-              </div>
-              
-              {isLayersLoading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto"></div>
-                  <p className="mt-2 text-muted-foreground">Loading layers...</p>
-                </div>
-              ) : layerData?.layers && layerData.layers.length > 0 ? (
-                <div className="space-y-2">
-                  {layerData.layers.map((layer: any) => (
-                    <div key={layer.layerNumber} className="bg-muted/30 rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-honey/20 rounded-lg flex items-center justify-center">
-                            <span className="text-honey font-bold">{layer.layerNumber}</span>
-                          </div>
-                          <div>
-                            <h4 className="font-medium">Layer {layer.layerNumber}</h4>
-                            <p className="text-xs text-muted-foreground">
-                              Max capacity: {Math.pow(3, layer.layerNumber)} members
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold text-honey">{layer.memberCount}</div>
-                          <div className="text-xs text-muted-foreground">members</div>
-                          <div className="text-xs text-honey">{layer.upgradedMembers || 0} upgraded</div>
-                        </div>
-                      </div>
-                      {layer.memberCount > 0 && (
-                        <div className="mt-2 pt-2 border-t border-border">
-                          <div className="text-xs text-muted-foreground">
-                            Fill rate: {Number(((layer.memberCount || 0) / Math.pow(3, layer.layerNumber || 1)) * 100).toFixed(1)}%
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Users className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-muted-foreground">No layers calculated yet</p>
-                  <Button 
-                    onClick={() => {/* Trigger calculation */}} 
-                    className="btn-honey mt-4"
-                    data-testid="button-calculate-layers"
-                  >
-                    Calculate My 19 Layers
-                  </Button>
-                </div>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="notifications" className="space-y-4">
-              <div className="text-sm text-muted-foreground mb-4">
-                Pending rewards that require your level upgrade to unlock. You have 72 hours from trigger to upgrade and claim these rewards.
-              </div>
-              
-              {/* Check if using real notifications data - show both pending and waiting_claim */}
-              {layerData?.notifications?.filter((notif: any) => 
-                notif.status === 'pending' || notif.status === 'waiting_claim'
-              ).length > 0 ? (
-                <div className="space-y-3">
-                  {layerData.notifications
-                    .filter((notif: any) => notif.status === 'pending' || notif.status === 'waiting_claim')
-                    .map((notif: any) => (
-                    <Alert key={notif.id} className={
-                      notif.status === 'waiting_claim' 
-                        ? "border-green-600 bg-green-600/5" 
-                        : "border-yellow-600 bg-yellow-600/5"
-                    }>
-                      <AlertCircle className={`h-4 w-4 ${
-                        notif.status === 'waiting_claim' ? 'text-green-600' : 'text-yellow-600'
-                      }`} />
-                      <AlertDescription>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">
-                              Layer {notif.layerNumber} member purchased Level {notif.triggerLevel}
-                            </p>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              💰 {notif.status === 'waiting_claim' ? 'Ready to claim' : 'Potential reward'}: ${Number(notif.rewardAmount / 100 || 0).toFixed(2)} USDT
-                            </p>
-                            {notif.status === 'waiting_claim' ? (
-                              <p className="text-xs text-green-600 font-medium mt-1">
-                                ✅ Ready to claim! You qualify for this reward
-                              </p>
-                            ) : (
-                              <p className="text-xs text-yellow-600 font-medium mt-1">
-                                ⚡ Requires Level {notif.triggerLevel} upgrade to unlock
-                              </p>
-                            )}
-                          </div>
-                          <div className="text-right">
-                            <div>
-                              <Badge variant="outline" className={
-                                notif.status === 'waiting_claim'
-                                  ? "border-green-600 text-green-600 mb-2"
-                                  : "border-yellow-600 text-yellow-600 mb-2"
-                              }>
-                                <Clock className="mr-1 h-3 w-3" />
-                                {timers[notif.id] || 'Calculating...'}
-                              </Badge>
-                              <br/>
-                              <Button 
-                                size="sm" 
-                                className={notif.status === 'waiting_claim' ? 'bg-green-600 hover:bg-green-700' : 'btn-honey'}
-                                data-testid={`button-${notif.status === 'waiting_claim' ? 'claim' : 'upgrade'}-${notif.id}`}
-                              >
-                                {notif.status === 'waiting_claim' ? 'Claim Now' : 'Upgrade Now'}
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      </AlertDescription>
-                    </Alert>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-muted-foreground">No pending upgrade notifications</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Upgrade notifications appear when your downline members purchase NFTs that require your level upgrade to unlock rewards
-                  </p>
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-
-      {/* Recent Activity */}
-      <Card className="bg-secondary border-border">
-        <CardHeader>
-          <CardTitle className="text-honey flex items-center">
-            <TrendingUp className="mr-2 h-5 w-5" />
-            Recent Activity
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <RecentActivityList walletAddress={walletAddress} />
-        </CardContent>
-      </Card>
     </div>
   );
 }
