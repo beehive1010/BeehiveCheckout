@@ -758,9 +758,14 @@ export default function Referrals() {
                             const member = (selectedLayer.memberDetails || [])[positionIndex];
                             const memberLevel = member?.currentLevel || 1;
                             const userCurrentLevel = userStats?.currentLevel || 1;
-                            const hasUpgraded = member && memberLevel > 1;
-                            const canClaimReward = hasUpgraded && userCurrentLevel >= memberLevel;
-                            const needsUpgrade = hasUpgraded && userCurrentLevel < memberLevel;
+                            
+                            // Fix: For Layer 2, only show upgraded if member actually owns Level 2
+                            const memberLevelsOwned = member?.levelsOwned || [];
+                            const requiredLevelForLayer = selectedLayer.layerNumber; // Layer 2 requires Level 2, etc.
+                            const hasUpgraded = member && memberLevelsOwned.includes(requiredLevelForLayer);
+                            
+                            const canClaimReward = hasUpgraded && userCurrentLevel >= requiredLevelForLayer;
+                            const needsUpgrade = hasUpgraded && userCurrentLevel < requiredLevelForLayer;
                             
                             // Get placement type for color coding
                             const placementTypes = selectedLayer.placementTypes ? JSON.parse(selectedLayer.placementTypes) : [];
