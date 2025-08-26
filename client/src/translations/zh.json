@@ -246,6 +246,9 @@
       "totalTeam": "总团队",
       "monthlyEarnings": "月收益"
     },
+    "downlineNetwork": {
+      "title": "您的下级网络"
+    },
     "downlineMatrix": {
       "title": "下线矩阵",
       "placement": "布局"
@@ -298,6 +301,32 @@
     },
     "showLess": "显示更少",
     "showAll": "显示全部 {{count}} 条通知"
+  },
+  "referrals": {
+    "rewardStructure": {
+      "title": "蜂巢奖励结构",
+      "globalMatrix": "全球矩阵系统",
+      "layerBased": "基于层级的奖励（72小时计时器）",
+      "specialRules": "特殊规则：",
+      "rule1": "第1级：第3个奖励需要升级到第2级",
+      "rule2": "第2级：必须拥有L2 + 至少一个第1层成员拥有L2",
+      "rule3": "第3-19级：只需拥有该级别或更高级别"
+    },
+    "referralLink": {
+      "title": "您的推荐链接"
+    }
+  },
+  "me": {
+    "title": "用户中心",
+    "profile": {
+      "levelMember": "第{{level}}级会员",
+      "defaultEmail": "member@beehive.app"
+    },
+    "tabs": {
+      "learn": "学习",
+      "referrals": "推荐",
+      "settings": "设置"
+    }
   },
   "tasks": {
     "title": "任务中心",

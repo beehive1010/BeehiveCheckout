@@ -289,6 +289,9 @@
       "noReferrals": "No referral data available",
       "shareMessage": "Share your referral link to grow your network"
     },
+    "downlineNetwork": {
+      "title": "Your Downline Network"
+    },
     "downlineMatrix": {
       "title": "Downline Matrix",
       "placement": "Placement"
@@ -341,6 +344,32 @@
     },
     "showLess": "Show less",
     "showAll": "Show all {{count}} notifications"
+  },
+  "referrals": {
+    "rewardStructure": {
+      "title": "BeeHive Reward Structure",
+      "globalMatrix": "Global Matrix System",
+      "layerBased": "Layer-Based Rewards Only (72h Timer)",
+      "specialRules": "SPECIAL RULES:",
+      "rule1": "Level 1: 3rd reward requires Level 2 upgrade",
+      "rule2": "Level 2: Must own L2 + at least one Layer 1 member with L2",
+      "rule3": "Level 3-19: Just need to own that level or higher"
+    },
+    "referralLink": {
+      "title": "Your Referral Link"
+    }
+  },
+  "me": {
+    "title": "User Center",
+    "profile": {
+      "levelMember": "Level {{level}} Member",
+      "defaultEmail": "member@beehive.app"
+    },
+    "tabs": {
+      "learn": "Learn",
+      "referrals": "Referrals",
+      "settings": "Settings"
+    }
   },
   "tasks": {
     "title": "Tasks & Marketplace",

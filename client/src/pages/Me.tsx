@@ -44,7 +44,7 @@ export default function Me() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h2 className="text-2xl font-bold text-honey mb-6">
-        User Center
+        {t('me.title')}
       </h2>
       
       {/* Profile Card */}
@@ -67,14 +67,14 @@ export default function Me() {
                 {userData?.user?.username || 'Member'}
               </h3>
               <p className="text-muted-foreground text-sm mb-2">
-                {userData?.user?.email || 'member@beehive.app'}
+                {userData?.user?.email || t('me.profile.defaultEmail')}
               </p>
               <p className="text-muted-foreground text-sm font-mono mb-4">
                 {walletAddress ? formatAddress(walletAddress) : ''}
               </p>
               <div className="flex flex-wrap gap-2">
                 <Badge className="bg-honey text-black font-semibold">
-                  Level {currentLevel} Member
+                  {t('me.profile.levelMember', { level: currentLevel })}
                 </Badge>
                 <Badge variant="secondary" className="bg-green-600 text-white">
                   {t('me.status.active')}
@@ -199,7 +199,7 @@ export default function Me() {
             data-testid="tab-learn"
           >
             <AcademicCapIcon className="w-5 h-5" />
-            <span className="font-semibold">Learn</span>
+            <span className="font-semibold">{t('me.tabs.learn')}</span>
           </TabsTrigger>
           <TabsTrigger 
             value="referrals" 
@@ -207,7 +207,7 @@ export default function Me() {
             data-testid="tab-referrals"
           >
             <UsersIcon className="w-5 h-5" />
-            <span className="font-semibold">Referrals</span>
+            <span className="font-semibold">{t('me.tabs.referrals')}</span>
           </TabsTrigger>
           <TabsTrigger 
             value="settings" 
@@ -215,7 +215,7 @@ export default function Me() {
             data-testid="tab-settings"
           >
             <Cog6ToothIcon className="w-5 h-5" />
-            <span className="font-semibold">Settings</span>
+            <span className="font-semibold">{t('me.tabs.settings')}</span>
           </TabsTrigger>
         </TabsList>
         
