@@ -10,13 +10,15 @@ import { membershipLevels } from '../lib/config/membershipLevels';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Clock, Users, TrendingUp, AlertCircle, ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
+import { Clock, Users, TrendingUp, AlertCircle, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
 
 export default function Referrals() {
   const { walletAddress, userData } = useWallet();
   const { t } = useI18n();
   const [copySuccess, setCopySuccess] = useState(false);
   const [isRewardStructureOpen, setIsRewardStructureOpen] = useState(true);
+  const [selectedLayerIndex, setSelectedLayerIndex] = useState<number | null>(null);
+  const [layerNavigationMode, setLayerNavigationMode] = useState<'overview' | 'detail'>('overview');
 
   // Fetch user referral statistics
   const { data: userStats, isLoading: isStatsLoading } = useQuery<any>({
@@ -175,6 +177,34 @@ export default function Referrals() {
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
+
+  // Layer navigation functions
+  const goToLayerDetail = (layerIndex: number) => {
+    setSelectedLayerIndex(layerIndex);
+    setLayerNavigationMode('detail');
+  };
+
+  const goBackToOverview = () => {
+    setSelectedLayerIndex(null);
+    setLayerNavigationMode('overview');
+  };
+
+  const goToNextLayer = () => {
+    if (selectedLayerIndex !== null && selectedLayerIndex < layerData.layers.length - 1) {
+      setSelectedLayerIndex(selectedLayerIndex + 1);
+    }
+  };
+
+  const goToPreviousLayer = () => {
+    if (selectedLayerIndex !== null && selectedLayerIndex > 0) {
+      setSelectedLayerIndex(selectedLayerIndex - 1);
+    }
+  };
+
+  // Get current selected layer data
+  const selectedLayer = selectedLayerIndex !== null ? layerData.layers[selectedLayerIndex] : null;
+  const canGoNext = selectedLayerIndex !== null && selectedLayerIndex < layerData.layers.length - 1;
+  const canGoPrevious = selectedLayerIndex !== null && selectedLayerIndex > 0;
 
   return (
     <div className="space-y-6">
@@ -513,17 +543,24 @@ export default function Referrals() {
                 <div className="text-center py-4 text-muted-foreground">
                   No team members yet
                 </div>
-              ) : (
+              ) : layerNavigationMode === 'overview' ? (
                 <div className="space-y-6">
-                  {layerData.layers.map((layer: any) => (
-                    <div key={layer.layerNumber} className="border border-border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-4">
+                  {layerData.layers.map((layer: any, layerIndex: number) => (
+                    <div key={layer.layerNumber} className="border border-border rounded-lg p-4 hover:border-honey/50 transition-colors">
+                      <div 
+                        className="flex items-center justify-between mb-4 cursor-pointer group"
+                        onClick={() => goToLayerDetail(layerIndex)}
+                        data-testid={`layer-${layer.layerNumber}-header`}
+                      >
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-honey/20 rounded-lg flex items-center justify-center">
+                          <div className="w-10 h-10 bg-honey/20 rounded-lg flex items-center justify-center group-hover:bg-honey/30 transition-colors">
                             <span className="text-honey font-bold">{layer.layerNumber}</span>
                           </div>
                           <div>
-                            <h4 className="font-semibold">Layer {layer.layerNumber}</h4>
+                            <h4 className="font-semibold group-hover:text-honey transition-colors">
+                              Layer {layer.layerNumber}
+                              <i className="fas fa-external-link-alt ml-2 text-xs opacity-50 group-hover:opacity-100"></i>
+                            </h4>
                             <p className="text-xs text-muted-foreground">
                               {layer.memberCount}/{Math.pow(3, layer.layerNumber)} positions filled
                             </p>
@@ -532,9 +569,12 @@ export default function Referrals() {
                             </p>
                           </div>
                         </div>
-                        <Badge variant={layer.memberCount === Math.pow(3, layer.layerNumber) ? 'default' : 'outline'}>
-                          {layer.memberCount === Math.pow(3, layer.layerNumber) ? 'Full' : 'Available'}
-                        </Badge>
+                        <div className="flex items-center space-x-2">
+                          <Badge variant={layer.memberCount === Math.pow(3, layer.layerNumber) ? 'default' : 'outline'}>
+                            {layer.memberCount === Math.pow(3, layer.layerNumber) ? 'Full' : 'Available'}
+                          </Badge>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-honey transition-colors" />
+                        </div>
                       </div>
                       
                       {/* 3x3 Matrix Layout for this layer */}
@@ -635,6 +675,198 @@ export default function Referrals() {
                     </div>
                   ))}
                 </div>
+              ) : (
+                // Detail view for a specific layer
+                selectedLayer && (
+                  <div className="space-y-4">
+                    {/* Navigation header */}
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center space-x-3">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={goBackToOverview}
+                          className="flex items-center"
+                          data-testid="button-back-to-overview"
+                        >
+                          <ChevronLeft className="h-4 w-4 mr-1" />
+                          Back to Overview
+                        </Button>
+                        <div className="w-10 h-10 bg-honey/20 rounded-lg flex items-center justify-center">
+                          <span className="text-honey font-bold">{selectedLayer.layerNumber}</span>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold">Layer {selectedLayer.layerNumber} Details</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {selectedLayer.memberCount}/{Math.pow(3, selectedLayer.layerNumber)} positions filled
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Layer navigation buttons */}
+                      <div className="flex items-center space-x-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={goToPreviousLayer}
+                          disabled={!canGoPrevious}
+                          data-testid="button-previous-layer"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <span className="text-sm text-muted-foreground px-2">
+                          {(selectedLayerIndex || 0) + 1} of {layerData.layers.length}
+                        </span>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={goToNextLayer}
+                          disabled={!canGoNext}
+                          data-testid="button-next-layer"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Layer details */}
+                    <div className="border border-border rounded-lg p-6">
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="grid grid-cols-3 gap-4 text-center">
+                          <div>
+                            <div className="text-2xl font-bold text-honey">{selectedLayer.memberCount}</div>
+                            <div className="text-xs text-muted-foreground">Members</div>
+                          </div>
+                          <div>
+                            <div className="text-2xl font-bold text-green-400">{selectedLayer.upgradedMembers || 0}</div>
+                            <div className="text-xs text-muted-foreground">Upgraded</div>
+                          </div>
+                          <div>
+                            <div className="text-2xl font-bold text-blue-400">{Math.pow(3, selectedLayer.layerNumber) - selectedLayer.memberCount}</div>
+                            <div className="text-xs text-muted-foreground">Available</div>
+                          </div>
+                        </div>
+                        <Badge variant={selectedLayer.memberCount === Math.pow(3, selectedLayer.layerNumber) ? 'default' : 'outline'} className="text-sm">
+                          {selectedLayer.memberCount === Math.pow(3, selectedLayer.layerNumber) ? 'Full Layer' : 'Spaces Available'}
+                        </Badge>
+                      </div>
+                      
+                      {/* Enhanced 3x3 Matrix Layout */}
+                      <div className="bg-muted/10 rounded-lg p-6">
+                        <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto">
+                          {Array.from({ length: Math.pow(3, selectedLayer.layerNumber) }).map((_, positionIndex) => {
+                            const member = (selectedLayer.memberDetails || [])[positionIndex];
+                            const memberLevel = member?.currentLevel || 1;
+                            const userCurrentLevel = userStats?.currentLevel || 1;
+                            const hasUpgraded = member && memberLevel > 1;
+                            const canClaimReward = hasUpgraded && userCurrentLevel >= memberLevel;
+                            const needsUpgrade = hasUpgraded && userCurrentLevel < memberLevel;
+                            
+                            // Get placement type for color coding
+                            const placementTypes = selectedLayer.placementTypes ? JSON.parse(selectedLayer.placementTypes) : [];
+                            const placementType = placementTypes[positionIndex] || 'unknown';
+                            
+                            // Parse spillover info for upper spillovers
+                            const isUpperSpillover = placementType.startsWith('upper-spillover');
+                            const spilloverInfo = isUpperSpillover ? placementType.split(':') : null;
+                            const spilloverUpline = spilloverInfo ? spilloverInfo[1] : null;
+                            const spilloverPosition = spilloverInfo ? spilloverInfo[2] : null;
+                            
+                            // Color coding: own people (direct + spillover) = honey, upper spillover = blue
+                            const isOwnPerson = placementType === 'own-direct' || placementType === 'own-spillover';
+                            const borderColor = member ? (
+                              isOwnPerson ? 'border-honey' : 'border-blue-400'
+                            ) : 'border-dashed border-muted-foreground/30';
+                            const bgColor = member ? (
+                              isOwnPerson ? 'bg-honey/10' : 'bg-blue-400/10'
+                            ) : '';
+                            
+                            return (
+                              <div key={positionIndex} className={`
+                                aspect-square border-2 rounded-lg p-3 text-center relative hover:scale-105 transition-transform
+                                ${borderColor} ${bgColor}
+                              `}>
+                                {member ? (
+                                  <>
+                                    <div className="absolute top-2 left-2 text-sm font-bold text-honey">
+                                      {positionIndex + 1}
+                                    </div>
+                                    {/* Placement type indicator dot */}
+                                    <div className={`absolute top-2 right-2 w-3 h-3 rounded-full ${
+                                      isOwnPerson ? 'bg-honey' : 'bg-blue-400'
+                                    }`}></div>
+                                    
+                                    {/* Spillover info for upper spillovers */}
+                                    {isUpperSpillover && spilloverUpline && spilloverPosition && (
+                                      <div className="absolute bottom-0 left-0 right-0 text-xs text-blue-300 bg-black/50 px-1 rounded-b">
+                                        {spilloverUpline}#{spilloverPosition}
+                                      </div>
+                                    )}
+                                    <div className="flex flex-col items-center justify-center h-full">
+                                      <div className="w-8 h-8 bg-honey/30 rounded-full flex items-center justify-center mb-2">
+                                        <i className="fas fa-user text-honey"></i>
+                                      </div>
+                                      <p className="text-sm font-medium truncate w-full mb-1">
+                                        {member.username || `${member.walletAddress.slice(0, 6)}...`}
+                                      </p>
+                                      <div className="flex items-center gap-1">
+                                        <Badge variant="outline" className="text-xs px-2 py-1">
+                                          L{memberLevel}
+                                        </Badge>
+                                        {hasUpgraded && canClaimReward && (
+                                          <div className="w-2 h-2 bg-green-500 rounded-full" title="Reward Ready"></div>
+                                        )}
+                                        {hasUpgraded && needsUpgrade && (
+                                          <div className="w-2 h-2 bg-yellow-500 rounded-full" title="Need Upgrade"></div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                                    <div className="text-sm font-bold mb-2">{positionIndex + 1}</div>
+                                    <i className="fas fa-plus text-2xl opacity-50"></i>
+                                    <p className="text-xs mt-2">Empty</p>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        
+                        {/* Enhanced layer summary */}
+                        <div className="mt-6 pt-4 border-t border-border">
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Filled Positions:</span>
+                                <span className="font-medium">{selectedLayer.memberCount}/{Math.pow(3, selectedLayer.layerNumber)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Upgraded Members:</span>
+                                <span className="font-medium text-honey">{selectedLayer.upgradedMembers || 0}</span>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Completion Rate:</span>
+                                <span className="font-medium text-green-400">
+                                  {Number(((selectedLayer.memberCount || 0) / Math.pow(3, selectedLayer.layerNumber || 1)) * 100).toFixed(1)}%
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Last Updated:</span>
+                                <span className="font-medium text-xs">
+                                  {new Date(selectedLayer.lastUpdated).toLocaleDateString()}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
               )}
             </TabsContent>
             
