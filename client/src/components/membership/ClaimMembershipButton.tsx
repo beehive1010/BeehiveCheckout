@@ -544,7 +544,7 @@ export default function ClaimMembershipButton({
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-honey">${membershipLevel.priceUSDT}</p>
+                      <p className="text-sm font-bold text-honey">${(membershipLevel.priceUSDT / 100).toFixed(0)}</p>
                       <p className="text-xs text-muted-foreground">
                         {(chain as any).isTestnet ? '测试USDT' : 'USDT'}
                       </p>
@@ -593,7 +593,7 @@ export default function ClaimMembershipButton({
               </div>
             </div>
             <div className="text-right">
-              <p className="text-lg font-bold text-honey">${membershipLevel.priceUSDT}</p>
+              <p className="text-lg font-bold text-honey">${(membershipLevel.priceUSDT / 100).toFixed(0)}</p>
               <p className="text-xs text-muted-foreground">Level {level} Membership</p>
             </div>
           </div>
@@ -608,7 +608,7 @@ export default function ClaimMembershipButton({
               payOptions={{
                 mode: "direct_payment",
                 paymentInfo: {
-                  amount: `${membershipLevel.priceUSDT}.00`,
+                  amount: `${(membershipLevel.priceUSDT / 100).toFixed(2)}`,
                   sellerAddress: selectedChain.bridgeWallet,
                   chain: selectedChain.chain,
                   token: {
