@@ -245,7 +245,7 @@ export default function ClaimMembershipButton({
             sourceChain: selectedChain.name.toLowerCase().replace(' ', '-'), // e.g., 'arbitrum-sepolia'
             targetChain: 'alpha-centauri',
             bridgeWallet: selectedChain.bridgeWallet,
-            usdtAmount: membershipLevel.priceUSDT * 100, // Convert to cents
+            usdtAmount: membershipLevel.priceUSDT, // Already in cents
           }),
         });
 
@@ -284,7 +284,7 @@ export default function ClaimMembershipButton({
           sourceChain: selectedChain.name.toLowerCase().replace(' ', '-'),
           targetChain: 'alpha-centauri',
           bridgeWallet: selectedChain.bridgeWallet,
-          usdtAmount: membershipLevel.priceUSDT * 100, // Convert to cents
+          usdtAmount: membershipLevel.priceUSDT, // Already in cents
           priceUSDT: membershipLevel.priceUSDT,
         }),
       });
