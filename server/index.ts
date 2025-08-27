@@ -425,7 +425,7 @@ app.use((req, res, next) => {
           u.current_level,
           u.created_at
         FROM users u
-        WHERE u.wallet_address = $1
+        WHERE u.wallet_address = '${walletAddress}'
       `;
       
       const userResult = await adminDb.execute(userQuery).catch(() => ({ rows: [] }));
@@ -453,41 +453,43 @@ app.use((req, res, next) => {
       const directReferralsQuery = `
         SELECT COUNT(*) as count 
         FROM referral_nodes rn
-        WHERE rn.sponsor_wallet = $1
+        WHERE rn.sponsor_wallet = '${walletAddress}'
       `;
       const directReferralsResult = await adminDb.execute(directReferralsQuery).catch(() => ({ rows: [{ count: 0 }] }));
 
-      // Get total team count from referral layers
+      // Get total team count from referral layers using jsonb_array_elements_text
       const totalTeamQuery = `
-        SELECT COUNT(DISTINCT member_wallet) as count
-        FROM referral_layers rl
-        WHERE rl.sponsor_wallet = $1
+        SELECT 
+          COUNT(DISTINCT members.member) as count
+        FROM referral_layers rl, 
+             jsonb_array_elements_text(rl.members) AS members(member)
+        WHERE rl.wallet_address = '${walletAddress}'
       `;
       const totalTeamResult = await adminDb.execute(totalTeamQuery).catch(() => ({ rows: [{ count: 0 }] }));
 
-      // Get total earnings from rewards
+      // Get total earnings from reward_distributions 
       const totalEarningsQuery = `
-        SELECT COALESCE(SUM(amount), 0) as total
-        FROM rewards r
-        WHERE r.recipient_wallet = $1 AND r.status = 'completed'
+        SELECT COALESCE(SUM(reward_amount), 0) as total
+        FROM reward_distributions rd
+        WHERE rd.recipient_wallet = '${walletAddress}' AND rd.status = 'completed'
       `;
       const totalEarningsResult = await adminDb.execute(totalEarningsQuery).catch(() => ({ rows: [{ total: 0 }] }));
 
       // Get monthly earnings (last 30 days)
       const monthlyEarningsQuery = `
-        SELECT COALESCE(SUM(amount), 0) as total
-        FROM rewards r
-        WHERE r.recipient_wallet = $1 
-        AND r.status = 'completed'
-        AND r.created_at >= CURRENT_DATE - INTERVAL '30 days'
+        SELECT COALESCE(SUM(reward_amount), 0) as total
+        FROM reward_distributions rd
+        WHERE rd.recipient_wallet = '${walletAddress}' 
+        AND rd.status = 'completed'
+        AND rd.created_at >= CURRENT_DATE - INTERVAL '30 days'
       `;
       const monthlyEarningsResult = await adminDb.execute(monthlyEarningsQuery).catch(() => ({ rows: [{ total: 0 }] }));
 
       // Get pending commissions
       const pendingCommissionsQuery = `
-        SELECT COALESCE(SUM(amount), 0) as total
-        FROM rewards r
-        WHERE r.recipient_wallet = $1 AND r.status = 'pending'
+        SELECT COALESCE(SUM(reward_amount), 0) as total
+        FROM reward_distributions rd
+        WHERE rd.recipient_wallet = '${walletAddress}' AND rd.status = 'pending'
       `;
       const pendingCommissionsResult = await adminDb.execute(pendingCommissionsQuery).catch(() => ({ rows: [{ total: 0 }] }));
 
@@ -495,7 +497,7 @@ app.use((req, res, next) => {
       const matrixPositionQuery = `
         SELECT matrix_level, position_index
         FROM global_matrix_position gmp
-        WHERE gmp.wallet_address = $1
+        WHERE gmp.wallet_address = '${walletAddress}'
         ORDER BY matrix_level DESC
         LIMIT 1
       `;
@@ -505,23 +507,21 @@ app.use((req, res, next) => {
       const levelsOwnedQuery = `
         SELECT DISTINCT level
         FROM orders o
-        WHERE o.buyer_wallet = $1 AND o.status = 'completed'
+        WHERE o.buyer_wallet = '${walletAddress}' AND o.status = 'completed'
         ORDER BY level
       `;
       const levelsOwnedResult = await adminDb.execute(levelsOwnedQuery).catch(() => ({ rows: [] }));
 
-      // Get downline matrix (layers 1-19)
+      // Get downline matrix using actual referral_layers structure
       const downlineMatrixQuery = `
         SELECT 
           rl.layer_number as level,
-          COUNT(DISTINCT rl.member_wallet) as members,
-          COUNT(DISTINCT CASE WHEN u.member_activated = true THEN rl.member_wallet END) as upgraded,
-          COUNT(DISTINCT gmp.wallet_address) as placements
+          rl.member_count as members,
+          (SELECT COUNT(*) FROM jsonb_array_elements_text(rl.members) AS m(member)
+           JOIN users u ON u.wallet_address = m.member WHERE u.member_activated = true) as upgraded,
+          rl.member_count as placements
         FROM referral_layers rl
-        LEFT JOIN users u ON rl.member_wallet = u.wallet_address
-        LEFT JOIN global_matrix_position gmp ON rl.member_wallet = gmp.wallet_address
-        WHERE rl.sponsor_wallet = $1
-        GROUP BY rl.layer_number
+        WHERE rl.wallet_address = '${walletAddress}'
         ORDER BY rl.layer_number
       `;
       const downlineMatrixResult = await adminDb.execute(downlineMatrixQuery).catch(() => ({ rows: [] }));
