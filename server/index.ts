@@ -293,6 +293,120 @@ app.use((req, res, next) => {
     }
   });
 
+  // Global matrix data for admin referrals page
+  app.get("/api/admin/global-matrix", async (req, res) => {
+    try {
+      const { search = '' } = req.query;
+      
+      // Get all global matrix positions with user data
+      const globalMatrixQuery = `
+        SELECT 
+          gmp.wallet_address,
+          gmp.matrix_level,
+          gmp.position_index,
+          gmp.direct_sponsor_wallet,
+          gmp.placement_sponsor_wallet,
+          gmp.joined_at,
+          gmp.last_upgrade_at,
+          u.username,
+          u.member_activated,
+          u.current_level,
+          COALESCE(rn_direct.referral_count, 0) as direct_referral_count,
+          COALESCE(rn_team.team_count, 0) as total_team_count
+        FROM global_matrix_position gmp
+        LEFT JOIN users u ON gmp.wallet_address = u.wallet_address
+        LEFT JOIN (
+          SELECT sponsor_wallet, COUNT(*) as referral_count 
+          FROM referral_nodes 
+          GROUP BY sponsor_wallet
+        ) rn_direct ON gmp.wallet_address = rn_direct.sponsor_wallet
+        LEFT JOIN (
+          SELECT 
+            sponsor_wallet, 
+            COUNT(DISTINCT member_wallet) as team_count
+          FROM referral_layers rl
+          GROUP BY sponsor_wallet
+        ) rn_team ON gmp.wallet_address = rn_team.sponsor_wallet
+        ${search ? `WHERE (u.username ILIKE '%${search}%' OR gmp.wallet_address ILIKE '%${search}%')` : ''}
+        ORDER BY gmp.matrix_level, gmp.position_index
+      `;
+
+      const positions = await adminDb.execute(globalMatrixQuery).catch(() => ({ rows: [] }));
+
+      // Get matrix level statistics
+      const matrixLevelsQuery = `
+        SELECT 
+          matrix_level,
+          COUNT(*) as filled_positions,
+          COUNT(*) FILTER (WHERE u.member_activated = true) as activated_positions
+        FROM global_matrix_position gmp
+        LEFT JOIN users u ON gmp.wallet_address = u.wallet_address
+        GROUP BY matrix_level
+        ORDER BY matrix_level
+      `;
+
+      const matrixLevels = await adminDb.execute(matrixLevelsQuery).catch(() => ({ rows: [] }));
+
+      // Get upgrade statistics
+      const upgradeStatsQuery = `
+        SELECT 
+          COUNT(DISTINCT u.wallet_address) as total_users,
+          COUNT(DISTINCT CASE WHEN u.member_activated = true THEN u.wallet_address END) as total_activated,
+          COUNT(DISTINCT CASE WHEN u.current_level > 1 THEN u.wallet_address END) as total_upgraded
+        FROM users u
+      `;
+
+      const upgradeStatsResult = await adminDb.execute(upgradeStatsQuery).catch(() => ({ rows: [{ total_users: 0, total_activated: 0, total_upgraded: 0 }] }));
+
+      // Format the response
+      const formattedPositions = positions.rows.map((row: any) => ({
+        walletAddress: row.wallet_address,
+        matrixLevel: row.matrix_level,
+        positionIndex: row.position_index,
+        directSponsorWallet: row.direct_sponsor_wallet,
+        placementSponsorWallet: row.placement_sponsor_wallet,
+        joinedAt: row.joined_at,
+        lastUpgradeAt: row.last_upgrade_at,
+        username: row.username || `User${row.wallet_address?.slice(-6)}`,
+        memberActivated: row.member_activated,
+        currentLevel: row.current_level,
+        directReferralCount: parseInt(row.direct_referral_count || '0'),
+        totalTeamCount: parseInt(row.total_team_count || '0')
+      }));
+
+      const formattedMatrixLevels = matrixLevels.rows.map((row: any) => ({
+        level: row.matrix_level,
+        maxPositions: Math.pow(3, row.matrix_level), // 3^level positions per level
+        filledPositions: parseInt(row.filled_positions || '0'),
+        activatedPositions: parseInt(row.activated_positions || '0'),
+        positions: formattedPositions.filter((p: any) => p.matrixLevel === row.matrix_level)
+      }));
+
+      const upgradeStats = upgradeStatsResult.rows[0] || {};
+
+      res.json({
+        positions: formattedPositions,
+        matrixLevels: formattedMatrixLevels,
+        upgradeStats: {
+          totalUsers: parseInt(upgradeStats.total_users?.toString() || '0'),
+          totalActivated: parseInt(upgradeStats.total_activated?.toString() || '0'),
+          totalUpgraded: parseInt(upgradeStats.total_upgraded?.toString() || '0')
+        },
+        lastUpdated: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('Global matrix data error:', error);
+      res.json({
+        positions: [],
+        matrixLevels: [],
+        upgradeStats: { totalUsers: 0, totalActivated: 0, totalUpgraded: 0 },
+        lastUpdated: new Date().toISOString(),
+        error: 'Failed to fetch global matrix data'
+      });
+    }
+  });
+
   // Admin login route - directly in index.ts
   app.post("/api/admin/auth/login", async (req, res) => {
     try {
