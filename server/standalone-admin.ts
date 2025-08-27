@@ -1,19 +1,9 @@
-// Standalone admin authentication server to bypass compilation issues
+// Standalone admin authentication server using shared database connection
 import express from 'express';
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
+import { db } from './db';
+import { sql } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import ws from 'ws';
-
-neonConfig.webSocketConstructor = ws;
-
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL must be set');
-}
-
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const db = drizzle({ client: pool });
 
 export function setupAdminRoutes(app: express.Application) {
   // Admin login
@@ -25,12 +15,12 @@ export function setupAdminRoutes(app: express.Application) {
         return res.status(400).json({ error: 'Username and password required' });
       }
       
-      // Direct SQL query to avoid schema compilation issues
-      const result = await db.execute(`
+      // Direct SQL query to avoid schema compilation issues  
+      const result = await db.execute(sql`
         SELECT id, username, email, role, password_hash, active 
         FROM admin_users 
-        WHERE username = $1 AND active = true
-      `, [username]);
+        WHERE username = ${username} AND active = true
+      `);
 
       if (result.rows.length === 0) {
         return res.status(401).json({ error: 'Invalid credentials' });
@@ -48,16 +38,19 @@ export function setupAdminRoutes(app: express.Application) {
       const sessionToken = crypto.randomBytes(32).toString('hex');
       const expiresAt = new Date(Date.now() + 12 * 60 * 60 * 1000); // 12 hours
 
-      // Store session
-      await db.execute(`
-        INSERT INTO admin_sessions (admin_id, session_token, expires_at, created_at)
-        VALUES ($1, $2, $3, $4)
-      `, [admin.id, sessionToken, expiresAt, new Date()]);
+      // Use transaction for atomic operations
+      await db.transaction(async (tx) => {
+        // Store session
+        await tx.execute(sql`
+          INSERT INTO admin_sessions (admin_id, session_token, expires_at, created_at)
+          VALUES (${admin.id}, ${sessionToken}, ${expiresAt}, ${new Date()})
+        `);
 
-      // Update last login
-      await db.execute(`
-        UPDATE admin_users SET last_login_at = $1 WHERE id = $2
-      `, [new Date(), admin.id]);
+        // Update last login
+        await tx.execute(sql`
+          UPDATE admin_users SET last_login_at = ${new Date()} WHERE id = ${admin.id}
+        `);
+      });
 
       res.json({
         sessionToken,
@@ -81,9 +74,9 @@ export function setupAdminRoutes(app: express.Application) {
       const sessionToken = req.headers.authorization?.replace('Bearer ', '');
       
       if (sessionToken) {
-        await db.execute(`
-          DELETE FROM admin_sessions WHERE session_token = $1
-        `, [sessionToken]);
+        await db.execute(sql`
+          DELETE FROM admin_sessions WHERE session_token = ${sessionToken}
+        `);
       }
       
       res.json({ success: true });
@@ -102,14 +95,14 @@ export function setupAdminRoutes(app: express.Application) {
         return res.status(401).json({ error: 'Admin authentication required' });
       }
       
-      const result = await db.execute(`
+      const result = await db.execute(sql`
         SELECT 
           s.admin_id, s.expires_at,
           u.id, u.username, u.email, u.role, u.active
         FROM admin_sessions s
         JOIN admin_users u ON u.id = s.admin_id
-        WHERE s.session_token = $1 AND s.expires_at > $2 AND u.active = true
-      `, [sessionToken, new Date()]);
+        WHERE s.session_token = ${sessionToken} AND s.expires_at > ${new Date()} AND u.active = true
+      `);
 
       if (result.rows.length === 0) {
         return res.status(401).json({ error: 'Invalid or expired session' });

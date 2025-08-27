@@ -546,12 +546,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateBCCBalance(walletAddress: string, updates: Partial<BCCBalance>): Promise<BCCBalance | undefined> {
-    const [balance] = await db
-      .update(bccBalances)
-      .set({ ...updates, lastUpdated: new Date() })
-      .where(eq(bccBalances.walletAddress, walletAddress.toLowerCase()))
-      .returning();
-    return balance || undefined;
+    // Use transaction to prevent race conditions on concurrent balance updates
+    return await db.transaction(async (tx) => {
+      const [balance] = await tx
+        .update(bccBalances)
+        .set({ ...updates, lastUpdated: new Date() })
+        .where(eq(bccBalances.walletAddress, walletAddress.toLowerCase()))
+        .returning();
+      return balance || undefined;
+    });
   }
 
   // Order operations
@@ -1214,73 +1217,95 @@ export class DatabaseStorage implements IStorage {
 
   // Enhanced earnings reward method that syncs with reward distribution system
   async addEarningsReward(walletAddress: string, amount: number, type: 'referral' | 'level' | 'matrix_spillover', isPending = false): Promise<void> {
-    // Get or create earnings wallet
-    let earnings = await this.getEarningsWalletByWallet(walletAddress);
-    
-    if (!earnings || earnings.length === 0) {
-      earnings = [await this.createEarningsWallet({
-        walletAddress,
-        totalEarnings: "0",
-        referralEarnings: "0", 
-        levelEarnings: "0",
-        pendingRewards: "0",
-        withdrawnAmount: "0",
-      })];
-    }
-
-    const currentEarnings = earnings[0];
-    const amountStr = amount.toFixed(2);
-
-    const updates: Partial<EarningsWallet> = {
-      lastRewardAt: new Date()
-    };
-
-    if (isPending) {
-      // Add to pending rewards
-      const currentPending = parseFloat(currentEarnings.pendingRewards);
-      updates.pendingRewards = (currentPending + amount).toFixed(2);
-    } else {
-      // Add to total and category-specific earnings
-      const currentTotal = parseFloat(currentEarnings.totalEarnings);
-      updates.totalEarnings = (currentTotal + amount).toFixed(2);
+    // Use transaction to prevent race conditions on concurrent balance updates
+    await db.transaction(async (tx) => {
+      // Get or create earnings wallet within transaction
+      let earnings = await tx.select()
+        .from(earningsWallet)
+        .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()));
       
-      if (type === 'referral') {
-        const currentReferral = parseFloat(currentEarnings.referralEarnings);
-        updates.referralEarnings = (currentReferral + amount).toFixed(2);
-      } else if (type === 'level') {
-        const currentLevel = parseFloat(currentEarnings.levelEarnings);
-        updates.levelEarnings = (currentLevel + amount).toFixed(2);
+      if (earnings.length === 0) {
+        // Create new earnings wallet
+        const [newEarnings] = await tx
+          .insert(earningsWallet)
+          .values({
+            walletAddress: walletAddress.toLowerCase(),
+            totalEarnings: "0",
+            referralEarnings: "0", 
+            levelEarnings: "0",
+            pendingRewards: "0",
+            withdrawnAmount: "0",
+          })
+          .returning();
+        earnings = [newEarnings];
       }
-    }
 
-    await this.updateEarningsWallet(walletAddress, updates);
+      const currentEarnings = earnings[0];
+      const updates: Partial<EarningsWallet> = {
+        lastRewardAt: new Date()
+      };
+
+      if (isPending) {
+        // Add to pending rewards
+        const currentPending = parseFloat(currentEarnings.pendingRewards);
+        updates.pendingRewards = (currentPending + amount).toFixed(2);
+      } else {
+        // Add to total and category-specific earnings
+        const currentTotal = parseFloat(currentEarnings.totalEarnings);
+        updates.totalEarnings = (currentTotal + amount).toFixed(2);
+        
+        if (type === 'referral') {
+          const currentReferral = parseFloat(currentEarnings.referralEarnings);
+          updates.referralEarnings = (currentReferral + amount).toFixed(2);
+        } else if (type === 'level') {
+          const currentLevel = parseFloat(currentEarnings.levelEarnings);
+          updates.levelEarnings = (currentLevel + amount).toFixed(2);
+        }
+      }
+
+      // Update within the same transaction
+      await tx
+        .update(earningsWallet)
+        .set(updates)
+        .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()));
+    });
   }
 
   // Process claimed reward - move from pending to total
   async processClaimedReward(walletAddress: string, rewardAmount: number, rewardType: 'referral' | 'level' | 'matrix_spillover'): Promise<void> {
-    const earnings = await this.getEarningsWalletByWallet(walletAddress);
-    if (!earnings || earnings.length === 0) return;
+    // Use transaction to prevent race conditions on concurrent balance updates
+    await db.transaction(async (tx) => {
+      const earnings = await tx.select()
+        .from(earningsWallet)
+        .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()));
+        
+      if (earnings.length === 0) return;
 
-    const currentEarnings = earnings[0];
-    const currentPending = parseFloat(currentEarnings.pendingRewards);
-    const currentTotal = parseFloat(currentEarnings.totalEarnings);
+      const currentEarnings = earnings[0];
+      const currentPending = parseFloat(currentEarnings.pendingRewards);
+      const currentTotal = parseFloat(currentEarnings.totalEarnings);
 
-    const updates: Partial<EarningsWallet> = {
-      pendingRewards: Math.max(0, currentPending - rewardAmount).toFixed(2),
-      totalEarnings: (currentTotal + rewardAmount).toFixed(2),
-      lastRewardAt: new Date()
-    };
+      const updates: Partial<EarningsWallet> = {
+        pendingRewards: Math.max(0, currentPending - rewardAmount).toFixed(2),
+        totalEarnings: (currentTotal + rewardAmount).toFixed(2),
+        lastRewardAt: new Date()
+      };
 
-    // Update category-specific earnings
-    if (rewardType === 'referral') {
-      const currentReferral = parseFloat(currentEarnings.referralEarnings);
-      updates.referralEarnings = (currentReferral + rewardAmount).toFixed(2);
-    } else if (rewardType === 'level') {
-      const currentLevel = parseFloat(currentEarnings.levelEarnings);
-      updates.levelEarnings = (currentLevel + rewardAmount).toFixed(2);
-    }
+      // Update category-specific earnings
+      if (rewardType === 'referral') {
+        const currentReferral = parseFloat(currentEarnings.referralEarnings);
+        updates.referralEarnings = (currentReferral + rewardAmount).toFixed(2);
+      } else if (rewardType === 'level') {
+        const currentLevel = parseFloat(currentEarnings.levelEarnings);
+        updates.levelEarnings = (currentLevel + rewardAmount).toFixed(2);
+      }
 
-    await this.updateEarningsWallet(walletAddress, updates);
+      // Update within the same transaction
+      await tx
+        .update(earningsWallet)
+        .set(updates)
+        .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()));
+    });
   }
 
   // Calculate real earnings from reward distributions
@@ -2702,6 +2727,9 @@ export class DatabaseStorage implements IStorage {
     const lowerWalletAddress = walletAddress.toLowerCase();
     const now = new Date();
 
+    // Use transaction to ensure all operations are atomic and prevent race conditions
+    return await db.transaction(async (tx) => {
+
     // 1. Create or update user record
     let user = await this.getUser(lowerWalletAddress);
     if (!user) {
@@ -2843,17 +2871,18 @@ export class DatabaseStorage implements IStorage {
     // 13. Sync all reward system tables
     await this.syncRewardSystemTables(lowerWalletAddress);
 
-    return {
-      user,
-      membershipState,
-      referralNode,
-      earningsWallet: earningsWallet[0],
-      bccBalance,
-      nftVerification,
-      memberActivation,
-      globalMatrixPosition,
-      order,
-    };
+      return {
+        user,
+        membershipState,
+        referralNode,
+        earningsWallet: earningsWallet[0],
+        bccBalance,
+        nftVerification,
+        memberActivation,
+        globalMatrixPosition,
+        order,
+      };
+    });
   }
 
   // Trigger rewards for sponsor and upline when new member claims NFT
