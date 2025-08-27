@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { UsersIcon, ShareIcon, TrophyIcon } from '@heroicons/react/24/outline';
+import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
+import IndividualMatrixView from '../components/matrix/IndividualMatrixView';
 
 function Referrals() {
   const { userData, walletAddress } = useWallet();
@@ -135,11 +137,27 @@ function Referrals() {
         </Card>
       )}
 
-      {/* Downline Matrix Display */}
+      {/* Claimable Rewards Section */}
+      {walletAddress && (
+        <ClaimableRewardsCard walletAddress={walletAddress} />
+      )}
+
+      {/* Individual 3x3 Matrix View (L1-L19) */}
+      {walletAddress && userData && (
+        <IndividualMatrixView 
+          walletAddress={walletAddress} 
+          rootUser={{ 
+            username: userData.username || 'User', 
+            currentLevel: userData.currentLevel || 0 
+          }} 
+        />
+      )}
+
+      {/* Downline Matrix Display - Legacy View */}
       {userStats?.downlineMatrix && userStats.downlineMatrix.length > 0 && (
         <Card className="bg-secondary border-border">
           <CardHeader>
-            <CardTitle className="text-honey">Your Downline Matrix</CardTitle>
+            <CardTitle className="text-honey">Your Downline Summary</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-3">
