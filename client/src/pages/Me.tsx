@@ -64,7 +64,7 @@ export default function Me() {
             
             <div className="flex-1">
               <h3 className="text-xl font-bold text-honey mb-2">
-                {userData?.user?.username || 'Member'}
+                {userData?.user?.username || t('me.profile.member')}
               </h3>
               <p className="text-muted-foreground text-sm mb-2">
                 {userData?.user?.email || t('me.profile.defaultEmail')}

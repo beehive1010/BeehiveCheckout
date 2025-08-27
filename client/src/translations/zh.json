@@ -314,12 +314,68 @@
     },
     "referralLink": {
       "title": "您的推荐链接"
+    },
+    "availableRewards": {
+      "title": "可用奖励",
+      "withdraw": "提取奖励"
+    },
+    "matrixPerformance": {
+      "title": "矩阵表现",
+      "status": "状态",
+      "active": "活跃",
+      "currentLevel": "当前级别",
+      "level": "级别",
+      "matrixRewards": "矩阵奖励",
+      "pendingRewards": "待处理奖励",
+      "viewMatrix": "查看3x3矩阵"
+    },
+    "matrixManagement": {
+      "title": "矩阵层级管理",
+      "directReferrals": "直接推荐",
+      "yourTeamPlaced": "您的团队安置",
+      "totalMatrix": "总矩阵",
+      "members": "成员",
+      "yourTeam": "您的团队（直接+溢出）",
+      "upperSpillover": "上级溢出",
+      "layerDetails": "层级详情",
+      "upgradeRewards": "升级奖励",
+      "loadingLayers": "加载层级中...",
+      "noMembers": "暂无团队成员"
+    },
+    "layerView": {
+      "layer": "层级",
+      "positionsFilled": "位置已填充",
+      "upgradedToLevel": "已升级至2+级",
+      "full": "满员",
+      "available": "可用",
+      "backToOverview": "返回概览",
+      "details": "详情",
+      "members": "成员",
+      "upgraded": "已升级",
+      "filledPositions": "已填充位置：",
+      "upgradedMembers": "已升级成员：",
+      "completionRate": "完成率：",
+      "lastUpdated": "最后更新："
+    },
+    "notifications": {
+      "memberUpgraded": "层级{{layer}}成员升级至{{level}}级",
+      "reward": "奖励",
+      "from": "来自",
+      "member": "成员",
+      "noRecentActivity": "暂无近期活动",
+      "activitiesAppear": "您与平台交互时，活动记录将显示在这里",
+      "noNotifications": "暂无升级通知",
+      "notificationsAppear": "当团队成员升级时，通知将显示在这里"
+    },
+    "upgradeRewards": {
+      "description": "跟踪您矩阵层的升级奖励。当成员购买更高级别的NFT时，您有72小时的时间升级。"
     }
   },
   "me": {
     "title": "用户中心",
     "profile": {
       "levelMember": "第{{level}}级会员",
+      "member": "会员",
       "defaultEmail": "member@beehive.app"
     },
     "tabs": {
