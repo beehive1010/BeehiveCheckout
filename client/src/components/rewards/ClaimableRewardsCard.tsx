@@ -35,6 +35,17 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
     queryKey: ['/api/rewards/claimable'],
     enabled: !!walletAddress,
     refetchInterval: 30000, // Refresh every 30 seconds
+    queryFn: async () => {
+      const response = await fetch('/api/rewards/claimable', {
+        headers: {
+          'X-Wallet-Address': walletAddress!,
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch claimable rewards');
+      }
+      return response.json();
+    },
   });
 
   // Claim single reward mutation
