@@ -407,6 +407,186 @@ app.use((req, res, next) => {
     }
   });
 
+  // User referral stats endpoint for individual wallet addresses
+  app.get("/api/beehive/user-stats/:walletAddress", async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      
+      if (!walletAddress) {
+        return res.status(400).json({ error: 'Wallet address is required' });
+      }
+
+      // Get user basic info
+      const userQuery = `
+        SELECT 
+          u.wallet_address,
+          u.username,
+          u.member_activated,
+          u.current_level,
+          u.created_at
+        FROM users u
+        WHERE u.wallet_address = $1
+      `;
+      
+      const userResult = await adminDb.execute(userQuery).catch(() => ({ rows: [] }));
+      const user = userResult.rows[0];
+
+      if (!user) {
+        // Return default values for non-existent user
+        return res.json({
+          directReferralCount: 0,
+          totalTeamCount: 0,
+          totalEarnings: 0,
+          monthlyEarnings: 0,
+          pendingCommissions: 0,
+          nextPayout: null,
+          currentLevel: 0,
+          memberActivated: false,
+          matrixLevel: 0,
+          positionIndex: 0,
+          levelsOwned: [],
+          downlineMatrix: []
+        });
+      }
+
+      // Get direct referral count
+      const directReferralsQuery = `
+        SELECT COUNT(*) as count 
+        FROM referral_nodes rn
+        WHERE rn.sponsor_wallet = $1
+      `;
+      const directReferralsResult = await adminDb.execute(directReferralsQuery).catch(() => ({ rows: [{ count: 0 }] }));
+
+      // Get total team count from referral layers
+      const totalTeamQuery = `
+        SELECT COUNT(DISTINCT member_wallet) as count
+        FROM referral_layers rl
+        WHERE rl.sponsor_wallet = $1
+      `;
+      const totalTeamResult = await adminDb.execute(totalTeamQuery).catch(() => ({ rows: [{ count: 0 }] }));
+
+      // Get total earnings from rewards
+      const totalEarningsQuery = `
+        SELECT COALESCE(SUM(amount), 0) as total
+        FROM rewards r
+        WHERE r.recipient_wallet = $1 AND r.status = 'completed'
+      `;
+      const totalEarningsResult = await adminDb.execute(totalEarningsQuery).catch(() => ({ rows: [{ total: 0 }] }));
+
+      // Get monthly earnings (last 30 days)
+      const monthlyEarningsQuery = `
+        SELECT COALESCE(SUM(amount), 0) as total
+        FROM rewards r
+        WHERE r.recipient_wallet = $1 
+        AND r.status = 'completed'
+        AND r.created_at >= CURRENT_DATE - INTERVAL '30 days'
+      `;
+      const monthlyEarningsResult = await adminDb.execute(monthlyEarningsQuery).catch(() => ({ rows: [{ total: 0 }] }));
+
+      // Get pending commissions
+      const pendingCommissionsQuery = `
+        SELECT COALESCE(SUM(amount), 0) as total
+        FROM rewards r
+        WHERE r.recipient_wallet = $1 AND r.status = 'pending'
+      `;
+      const pendingCommissionsResult = await adminDb.execute(pendingCommissionsQuery).catch(() => ({ rows: [{ total: 0 }] }));
+
+      // Get matrix position
+      const matrixPositionQuery = `
+        SELECT matrix_level, position_index
+        FROM global_matrix_position gmp
+        WHERE gmp.wallet_address = $1
+        ORDER BY matrix_level DESC
+        LIMIT 1
+      `;
+      const matrixPositionResult = await adminDb.execute(matrixPositionQuery).catch(() => ({ rows: [] }));
+
+      // Get owned levels from orders
+      const levelsOwnedQuery = `
+        SELECT DISTINCT level
+        FROM orders o
+        WHERE o.buyer_wallet = $1 AND o.status = 'completed'
+        ORDER BY level
+      `;
+      const levelsOwnedResult = await adminDb.execute(levelsOwnedQuery).catch(() => ({ rows: [] }));
+
+      // Get downline matrix (layers 1-19)
+      const downlineMatrixQuery = `
+        SELECT 
+          rl.layer_number as level,
+          COUNT(DISTINCT rl.member_wallet) as members,
+          COUNT(DISTINCT CASE WHEN u.member_activated = true THEN rl.member_wallet END) as upgraded,
+          COUNT(DISTINCT gmp.wallet_address) as placements
+        FROM referral_layers rl
+        LEFT JOIN users u ON rl.member_wallet = u.wallet_address
+        LEFT JOIN global_matrix_position gmp ON rl.member_wallet = gmp.wallet_address
+        WHERE rl.sponsor_wallet = $1
+        GROUP BY rl.layer_number
+        ORDER BY rl.layer_number
+      `;
+      const downlineMatrixResult = await adminDb.execute(downlineMatrixQuery).catch(() => ({ rows: [] }));
+
+      // Format response
+      const directReferralCount = parseInt(String(directReferralsResult.rows[0]?.count || 0));
+      const totalTeamCount = parseInt(String(totalTeamResult.rows[0]?.count || 0));
+      const totalEarnings = parseFloat(String(totalEarningsResult.rows[0]?.total || 0));
+      const monthlyEarnings = parseFloat(String(monthlyEarningsResult.rows[0]?.total || 0));
+      const pendingCommissions = parseFloat(String(pendingCommissionsResult.rows[0]?.total || 0));
+      
+      const matrixPosition = matrixPositionResult.rows[0];
+      const matrixLevel = matrixPosition ? parseInt(String(matrixPosition.matrix_level || 0)) : 0;
+      const positionIndex = matrixPosition ? parseInt(String(matrixPosition.position_index || 0)) : 0;
+
+      const levelsOwned = levelsOwnedResult.rows.map((row: any) => parseInt(String(row.level || 0)));
+
+      const downlineMatrix = downlineMatrixResult.rows.map((row: any) => ({
+        level: parseInt(String(row.level || 0)),
+        members: parseInt(String(row.members || 0)),
+        upgraded: parseInt(String(row.upgraded || 0)),
+        placements: parseInt(String(row.placements || 0))
+      }));
+
+      // Calculate next payout (mock for now - 1st of next month)
+      const nextMonth = new Date();
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+      nextMonth.setDate(1);
+
+      res.json({
+        directReferralCount,
+        totalTeamCount,
+        totalEarnings,
+        monthlyEarnings,
+        pendingCommissions,
+        nextPayout: nextMonth.toISOString(),
+        currentLevel: parseInt(String(user.current_level || 0)),
+        memberActivated: user.member_activated || false,
+        matrixLevel,
+        positionIndex,
+        levelsOwned,
+        downlineMatrix,
+        lastUpdated: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('User stats error:', error);
+      res.status(500).json({
+        error: 'Failed to fetch user statistics',
+        directReferralCount: 0,
+        totalTeamCount: 0,
+        totalEarnings: 0,
+        monthlyEarnings: 0,
+        pendingCommissions: 0,
+        nextPayout: null,
+        currentLevel: 0,
+        memberActivated: false,
+        matrixLevel: 0,
+        positionIndex: 0,
+        levelsOwned: [],
+        downlineMatrix: []
+      });
+    }
+  });
+
   // Admin login route - directly in index.ts
   app.post("/api/admin/auth/login", async (req, res) => {
     try {
