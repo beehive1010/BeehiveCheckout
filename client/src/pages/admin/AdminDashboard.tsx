@@ -10,7 +10,10 @@ import {
   TrendingUp,
   Activity,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  Database,
+  Network,
+  DollarSign
 } from 'lucide-react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 
@@ -266,34 +269,6 @@ export default function AdminDashboard() {
       icon: Globe,
       description: 'Approved Discover partners',
       permission: 'discover.read',
-    },
-    {
-      title: 'Database Connections',
-      value: stats.activeConnections.toString(),
-      icon: Database,
-      description: 'Active database connections',
-      permission: 'system.read',
-    },
-    {
-      title: 'Total Referrals',
-      value: stats.totalReferrals.toLocaleString(),
-      icon: Users,
-      description: 'Total referral network size',
-      permission: 'referrals.read',
-    },
-    {
-      title: 'Matrix Positions',
-      value: stats.matrixPositions.toLocaleString(),
-      icon: Network,
-      description: 'Active matrix positions',
-      permission: 'referrals.read',
-    },
-    {
-      title: 'Earnings Distributed',
-      value: `$${stats.totalEarningsDistributed.toFixed(2)}`,
-      icon: DollarSign,
-      description: 'Total earnings paid out',
-      permission: 'finance.read',
     },
   ];
 
