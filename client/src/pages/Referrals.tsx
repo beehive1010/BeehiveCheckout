@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { UsersIcon, ShareIcon, TrophyIcon } from '@heroicons/react/24/outline';
 
-export default function Referrals() {
+function Referrals() {
   const { userData, walletAddress } = useWallet();
   const { data: userStats, isLoading: isLoadingUserStats } = useUserReferralStats();
   const { t } = useI18n();
@@ -108,3 +108,5 @@ export default function Referrals() {
     </div>
   );
 }
+
+export default Referrals;
