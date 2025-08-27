@@ -40,6 +40,7 @@ interface GlobalMatrixPosition {
 }
 
 interface GlobalMatrixVisualization {
+  level: number;
   matrixLevel: number;
   maxPositions: number;
   filledPositions: number;
@@ -115,7 +116,7 @@ export default function AdminReferrals() {
       setIsLoading(false);
       
       // Initialize current level users with Level 1 data
-      const level1Data = data.matrixLevels?.find(level => level.level === 1);
+      const level1Data = data.matrixLevels?.find((level: any) => level.level === 1);
       if (level1Data) {
         setCurrentLevelUsers(level1Data.positions || []);
       }

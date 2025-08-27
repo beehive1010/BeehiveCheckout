@@ -366,7 +366,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {quickStats
           .filter(stat => !stat.permission || hasPermission(stat.permission))
           .map((stat) => (
@@ -386,6 +386,112 @@ export default function AdminDashboard() {
           </Card>
         ))}
       </div>
+
+      {/* Database and Referral Analytics */}
+      {(databaseStats || referralStats) && (
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Database Performance */}
+          {databaseStats && hasPermission('system.read') && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Database className="h-5 w-5" />
+                  <span>Database Performance</span>
+                </CardTitle>
+                <CardDescription>
+                  Real-time database metrics and connections
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <div className="text-2xl font-bold text-honey">{databaseStats.connections.active_connections}</div>
+                      <div className="text-muted-foreground">Active Connections</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold">{databaseStats.connections.total_connections}</div>
+                      <div className="text-muted-foreground">Total Connections</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold">{databaseStats.databaseSize}</div>
+                      <div className="text-muted-foreground">Database Size</div>
+                    </div>
+                  </div>
+                  {databaseStats.tableSizes.length > 0 && (
+                    <div>
+                      <h4 className="font-medium mb-2">Largest Tables</h4>
+                      <div className="space-y-1">
+                        {databaseStats.tableSizes.slice(0, 3).map((table) => (
+                          <div key={table.tablename} className="flex justify-between text-sm">
+                            <span>{table.tablename}</span>
+                            <span className="text-muted-foreground">{table.size}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Referral Analytics */}
+          {referralStats && hasPermission('referrals.read') && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Network className="h-5 w-5" />
+                  <span>Referral Analytics</span>
+                </CardTitle>
+                <CardDescription>
+                  Matrix distribution and top performers
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <div className="text-2xl font-bold text-honey">{referralStats.averageReferralDepth.toFixed(1)}</div>
+                      <div className="text-muted-foreground">Avg Matrix Depth</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold">{referralStats.matrixLevelDistribution.reduce((sum, level) => sum + level.count, 0)}</div>
+                      <div className="text-muted-foreground">Matrix Positions</div>
+                    </div>
+                  </div>
+                  {referralStats.topReferrers.length > 0 && (
+                    <div>
+                      <h4 className="font-medium mb-2">Top Referrers</h4>
+                      <div className="space-y-1">
+                        {referralStats.topReferrers.slice(0, 3).map((referrer, idx) => (
+                          <div key={referrer.wallet_address} className="flex justify-between text-sm">
+                            <span>#{idx + 1} {referrer.username}</span>
+                            <span className="text-honey">{referrer.direct_referrals} referrals</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {referralStats.rewardStats.length > 0 && (
+                    <div>
+                      <h4 className="font-medium mb-2">Reward Distribution</h4>
+                      <div className="space-y-1">
+                        {referralStats.rewardStats.map((reward) => (
+                          <div key={reward.status} className="flex justify-between text-sm">
+                            <span className="capitalize">{reward.status}</span>
+                            <span>${reward.total_amount.toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* System Status */}

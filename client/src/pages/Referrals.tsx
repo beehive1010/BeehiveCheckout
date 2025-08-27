@@ -50,7 +50,7 @@ function Referrals() {
       </Card>
 
       {/* Referral Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="bg-secondary border-border text-center">
           <CardContent className="p-6">
             <UsersIcon className="w-8 h-8 text-blue-400 mx-auto mb-3" />
@@ -79,14 +79,91 @@ function Referrals() {
           <CardContent className="p-6">
             <TrophyIcon className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
             <div className="text-2xl font-bold text-honey">
-              {isLoadingUserStats ? '...' : (Number(userStats?.totalEarnings || 0).toFixed(2))}
+              ${isLoadingUserStats ? '...' : (Number(userStats?.totalEarnings || 0).toFixed(2))}
             </div>
             <div className="text-muted-foreground text-sm">
               {t('referrals.totalEarnings') || 'Total Earnings'}
             </div>
           </CardContent>
         </Card>
+
+        <Card className="bg-secondary border-border text-center">
+          <CardContent className="p-6">
+            <i className="fas fa-layer-group text-purple-400 text-2xl mb-3"></i>
+            <div className="text-2xl font-bold text-honey">
+              {isLoadingUserStats ? '...' : (userStats?.matrixLevel || 0)}
+            </div>
+            <div className="text-muted-foreground text-sm">
+              Matrix Level
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Matrix Position Info */}
+      {userStats && userStats.matrixLevel > 0 && (
+        <Card className="bg-secondary border-border">
+          <CardHeader>
+            <CardTitle className="text-honey">Matrix Position Details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div>
+                <div className="text-lg font-bold text-honey">{userStats.currentLevel}</div>
+                <div className="text-muted-foreground">Membership Level</div>
+              </div>
+              <div>
+                <div className="text-lg font-bold">{userStats.positionIndex}</div>
+                <div className="text-muted-foreground">Position Index</div>
+              </div>
+              <div>
+                <div className="text-lg font-bold">${Number(userStats.monthlyEarnings || 0).toFixed(2)}</div>
+                <div className="text-muted-foreground">Monthly Earnings</div>
+              </div>
+              <div>
+                <div className="text-lg font-bold">${Number(userStats.pendingCommissions || 0).toFixed(2)}</div>
+                <div className="text-muted-foreground">Pending Rewards</div>
+              </div>
+            </div>
+            {userStats.nextPayout && (
+              <div className="mt-4 p-3 bg-background rounded-lg">
+                <div className="text-sm text-muted-foreground">Next Payout</div>
+                <div className="font-medium">{new Date(userStats.nextPayout).toLocaleDateString()}</div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Downline Matrix Display */}
+      {userStats?.downlineMatrix && userStats.downlineMatrix.length > 0 && (
+        <Card className="bg-secondary border-border">
+          <CardHeader>
+            <CardTitle className="text-honey">Your Downline Matrix</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3">
+              {userStats.downlineMatrix.map((level) => (
+                <div key={level.level} className="flex justify-between items-center p-3 bg-background rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-10 h-10 bg-honey/10 rounded-full flex items-center justify-center">
+                      <span className="text-honey font-bold text-sm">L{level.level}</span>
+                    </div>
+                    <div>
+                      <div className="font-medium">Level {level.level}</div>
+                      <div className="text-sm text-muted-foreground">{level.members} members</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-honey">{level.upgraded} upgraded</div>
+                    <div className="text-xs text-muted-foreground">{level.placements} placements</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Referral History */}
       <Card className="bg-secondary border-border">
