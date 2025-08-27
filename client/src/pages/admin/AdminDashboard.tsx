@@ -23,6 +23,62 @@ interface DashboardStats {
   discoverPartners: number;
   pendingApprovals: number;
   systemHealth: 'healthy' | 'degraded' | 'down';
+  weeklyOrders: number;
+  // Database metrics
+  activeConnections: number;
+  // Referral metrics
+  totalReferrals: number;
+  matrixPositions: number;
+  recentActivities: number;
+  totalEarningsDistributed: number;
+}
+
+interface DatabaseStats {
+  connections: {
+    total_connections: number;
+    active_connections: number;
+    idle_connections: number;
+  };
+  databaseSize: string;
+  tableSizes: Array<{
+    tablename: string;
+    size: string;
+    size_bytes: number;
+  }>;
+  slowQueries: Array<{
+    query: string;
+    calls: number;
+    mean_exec_time: number;
+    total_exec_time: number;
+  }>;
+  lastUpdated: string;
+}
+
+interface ReferralStats {
+  matrixLevelDistribution: Array<{
+    matrix_level: number;
+    count: number;
+  }>;
+  topReferrers: Array<{
+    username: string;
+    wallet_address: string;
+    direct_referrals: number;
+  }>;
+  membershipDistribution: Array<{
+    active_level: number;
+    count: number;
+  }>;
+  recentReferrals: Array<{
+    date: string;
+    new_referrals: number;
+  }>;
+  rewardStats: Array<{
+    status: string;
+    count: number;
+    total_amount: number;
+  }>;
+  averageReferralDepth: number;
+  lastUpdated: string;
 }
 
 export default function AdminDashboard() {
@@ -36,11 +92,21 @@ export default function AdminDashboard() {
     discoverPartners: 0,
     pendingApprovals: 0,
     systemHealth: 'healthy',
+    weeklyOrders: 0,
+    activeConnections: 0,
+    totalReferrals: 0,
+    matrixPositions: 0,
+    recentActivities: 0,
+    totalEarningsDistributed: 0,
   });
+  const [databaseStats, setDatabaseStats] = useState<DatabaseStats | null>(null);
+  const [referralStats, setReferralStats] = useState<ReferralStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadDashboardStats();
+    loadDatabaseStats();
+    loadReferralStats();
   }, []);
 
   const loadDashboardStats = async () => {
@@ -81,6 +147,12 @@ export default function AdminDashboard() {
         discoverPartners: data.discoverPartners || 0,
         pendingApprovals: data.pendingApprovals || 0,
         systemHealth: data.systemHealth || 'healthy',
+        weeklyOrders: data.weeklyOrders || 0,
+        activeConnections: data.activeConnections || 0,
+        totalReferrals: data.totalReferrals || 0,
+        matrixPositions: data.matrixPositions || 0,
+        recentActivities: data.recentActivities || 0,
+        totalEarningsDistributed: data.totalEarningsDistributed || 0,
       });
       setIsLoading(false);
     } catch (error) {
@@ -95,8 +167,60 @@ export default function AdminDashboard() {
         discoverPartners: 0,
         pendingApprovals: 0,
         systemHealth: 'degraded',
+        weeklyOrders: 0,
+        activeConnections: 0,
+        totalReferrals: 0,
+        matrixPositions: 0,
+        recentActivities: 0,
+        totalEarningsDistributed: 0,
       });
       setIsLoading(false);
+    }
+  };
+
+  const loadDatabaseStats = async () => {
+    try {
+      const validToken = 'test-admin-token-123456';
+      const response = await fetch('/api/admin/database-stats', {
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${validToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch database stats: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setDatabaseStats(data);
+    } catch (error) {
+      console.error('Failed to load database stats:', error);
+      setDatabaseStats(null);
+    }
+  };
+
+  const loadReferralStats = async () => {
+    try {
+      const validToken = 'test-admin-token-123456';
+      const response = await fetch('/api/admin/referral-stats', {
+        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${validToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch referral stats: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setReferralStats(data);
+    } catch (error) {
+      console.error('Failed to load referral stats:', error);
+      setReferralStats(null);
     }
   };
 
@@ -142,6 +266,34 @@ export default function AdminDashboard() {
       icon: Globe,
       description: 'Approved Discover partners',
       permission: 'discover.read',
+    },
+    {
+      title: 'Database Connections',
+      value: stats.activeConnections.toString(),
+      icon: Database,
+      description: 'Active database connections',
+      permission: 'system.read',
+    },
+    {
+      title: 'Total Referrals',
+      value: stats.totalReferrals.toLocaleString(),
+      icon: Users,
+      description: 'Total referral network size',
+      permission: 'referrals.read',
+    },
+    {
+      title: 'Matrix Positions',
+      value: stats.matrixPositions.toLocaleString(),
+      icon: Network,
+      description: 'Active matrix positions',
+      permission: 'referrals.read',
+    },
+    {
+      title: 'Earnings Distributed',
+      value: `$${stats.totalEarningsDistributed.toFixed(2)}`,
+      icon: DollarSign,
+      description: 'Total earnings paid out',
+      permission: 'finance.read',
     },
   ];
 
