@@ -1305,6 +1305,301 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // CLAIMABLE REWARDS API ENDPOINTS
+  
+  // Get user's claimable and pending rewards
+  app.get("/api/rewards/claimable", requireWallet, async (req: any, res) => {
+    try {
+      const walletAddress = req.walletAddress.toLowerCase();
+      
+      // Get claimable rewards
+      const claimableRewards = await db.select()
+        .from(rewardDistributions)
+        .where(and(
+          eq(rewardDistributions.recipientWallet, walletAddress),
+          eq(rewardDistributions.status, 'claimable')
+        ))
+        .orderBy(desc(rewardDistributions.createdAt));
+      
+      // Get pending rewards (with countdown)
+      const pendingRewards = await db.select()
+        .from(rewardDistributions)
+        .where(and(
+          eq(rewardDistributions.recipientWallet, walletAddress),
+          eq(rewardDistributions.status, 'pending')
+        ))
+        .orderBy(desc(rewardDistributions.createdAt));
+      
+      // Calculate totals
+      const totalClaimable = claimableRewards.reduce((sum, reward) => {
+        return sum + parseFloat(reward.rewardAmount.toString());
+      }, 0);
+      
+      const totalPending = pendingRewards.reduce((sum, reward) => {
+        return sum + parseFloat(reward.rewardAmount.toString());
+      }, 0);
+      
+      res.json({
+        claimableRewards: claimableRewards.map(reward => ({
+          id: reward.id,
+          rewardAmount: Math.round(parseFloat(reward.rewardAmount.toString()) * 100), // Convert to cents
+          rewardType: reward.rewardType,
+          sourceWallet: reward.sourceWallet,
+          level: reward.level,
+          status: reward.status,
+          expiresAt: reward.expiresAt,
+          createdAt: reward.createdAt
+        })),
+        pendingRewards: pendingRewards.map(reward => ({
+          id: reward.id,
+          rewardAmount: Math.round(parseFloat(reward.rewardAmount.toString()) * 100), // Convert to cents
+          rewardType: reward.rewardType,
+          sourceWallet: reward.sourceWallet,
+          level: reward.level,
+          status: reward.status,
+          expiresAt: reward.expiresAt || reward.pendingUntil,
+          createdAt: reward.createdAt
+        })),
+        totalClaimable: Math.round(totalClaimable * 100), // Convert to cents
+        totalPending: Math.round(totalPending * 100)
+      });
+    } catch (error) {
+      console.error('Get claimable rewards error:', error);
+      res.status(500).json({ error: 'Failed to fetch claimable rewards' });
+    }
+  });
+  
+  // Claim a single reward
+  app.post("/api/rewards/claim/:rewardId", requireWallet, async (req: any, res) => {
+    try {
+      const walletAddress = req.walletAddress.toLowerCase();
+      const { rewardId } = req.params;
+      
+      // Get the reward and verify ownership
+      const [reward] = await db.select()
+        .from(rewardDistributions)
+        .where(and(
+          eq(rewardDistributions.id, rewardId),
+          eq(rewardDistributions.recipientWallet, walletAddress),
+          eq(rewardDistributions.status, 'claimable')
+        ));
+      
+      if (!reward) {
+        return res.status(404).json({ error: 'Reward not found or not claimable' });
+      }
+      
+      // Mark reward as claimed
+      await db.update(rewardDistributions)
+        .set({
+          status: 'claimed',
+          claimedAt: new Date()
+        })
+        .where(eq(rewardDistributions.id, rewardId));
+      
+      // Update earnings wallet
+      const rewardAmount = parseFloat(reward.rewardAmount.toString());
+      await storage.updateEarningsWallet(walletAddress, {
+        totalEarnings: sql`${earningsWallet.totalEarnings} + ${rewardAmount}`,
+        referralEarnings: reward.rewardType === 'direct_referral' 
+          ? sql`${earningsWallet.referralEarnings} + ${rewardAmount}`
+          : earningsWallet.referralEarnings,
+        levelEarnings: reward.rewardType !== 'direct_referral'
+          ? sql`${earningsWallet.levelEarnings} + ${rewardAmount}`
+          : earningsWallet.levelEarnings,
+        pendingRewards: sql`${earningsWallet.pendingRewards} - ${rewardAmount}`,
+        lastRewardAt: new Date()
+      });
+      
+      // Log the activity
+      await storage.createUserActivity({
+        walletAddress,
+        activityType: 'reward_claimed',
+        title: 'Reward Claimed',
+        description: `Claimed ${reward.rewardType} reward of $${rewardAmount.toFixed(2)} USDT`,
+        amount: rewardAmount.toString(),
+        amountType: 'USDT',
+        relatedWallet: reward.sourceWallet,
+        relatedLevel: reward.level
+      });
+      
+      res.json({
+        success: true,
+        amount: Math.round(rewardAmount * 100), // Convert to cents for frontend
+        rewardType: reward.rewardType,
+        message: `Successfully claimed $${rewardAmount.toFixed(2)} USDT`
+      });
+    } catch (error) {
+      console.error('Claim reward error:', error);
+      res.status(500).json({ error: 'Failed to claim reward' });
+    }
+  });
+  
+  // Claim all claimable rewards
+  app.post("/api/rewards/claim-all", requireWallet, async (req: any, res) => {
+    try {
+      const walletAddress = req.walletAddress.toLowerCase();
+      
+      // Get all claimable rewards
+      const claimableRewards = await db.select()
+        .from(rewardDistributions)
+        .where(and(
+          eq(rewardDistributions.recipientWallet, walletAddress),
+          eq(rewardDistributions.status, 'claimable')
+        ));
+      
+      if (claimableRewards.length === 0) {
+        return res.status(404).json({ error: 'No claimable rewards found' });
+      }
+      
+      // Calculate total amount
+      const totalAmount = claimableRewards.reduce((sum, reward) => {
+        return sum + parseFloat(reward.rewardAmount.toString());
+      }, 0);
+      
+      // Mark all as claimed
+      const rewardIds = claimableRewards.map(r => r.id);
+      await db.update(rewardDistributions)
+        .set({
+          status: 'claimed',
+          claimedAt: new Date()
+        })
+        .where(inArray(rewardDistributions.id, rewardIds));
+      
+      // Update earnings wallet with bulk amounts
+      const referralAmount = claimableRewards
+        .filter(r => r.rewardType === 'direct_referral')
+        .reduce((sum, r) => sum + parseFloat(r.rewardAmount.toString()), 0);
+      
+      const levelAmount = claimableRewards
+        .filter(r => r.rewardType !== 'direct_referral')
+        .reduce((sum, r) => sum + parseFloat(r.rewardAmount.toString()), 0);
+      
+      await storage.updateEarningsWallet(walletAddress, {
+        totalEarnings: sql`${earningsWallet.totalEarnings} + ${totalAmount}`,
+        referralEarnings: referralAmount > 0 
+          ? sql`${earningsWallet.referralEarnings} + ${referralAmount}`
+          : earningsWallet.referralEarnings,
+        levelEarnings: levelAmount > 0
+          ? sql`${earningsWallet.levelEarnings} + ${levelAmount}`
+          : earningsWallet.levelEarnings,
+        pendingRewards: sql`${earningsWallet.pendingRewards} - ${totalAmount}`,
+        lastRewardAt: new Date()
+      });
+      
+      // Log the activity
+      await storage.createUserActivity({
+        walletAddress,
+        activityType: 'rewards_bulk_claimed',
+        title: 'Bulk Rewards Claimed',
+        description: `Claimed ${claimableRewards.length} rewards totaling $${totalAmount.toFixed(2)} USDT`,
+        amount: totalAmount.toString(),
+        amountType: 'USDT',
+        metadata: {
+          rewardCount: claimableRewards.length,
+          rewardTypes: [...new Set(claimableRewards.map(r => r.rewardType))]
+        }
+      });
+      
+      res.json({
+        success: true,
+        totalAmount: Math.round(totalAmount * 100), // Convert to cents
+        rewardCount: claimableRewards.length,
+        message: `Successfully claimed ${claimableRewards.length} rewards totaling $${totalAmount.toFixed(2)} USDT`
+      });
+    } catch (error) {
+      console.error('Claim all rewards error:', error);
+      res.status(500).json({ error: 'Failed to claim all rewards' });
+    }
+  });
+
+  // Individual user's 3x3 matrix view (L1-L19) - NEW ENDPOINT
+  app.get("/api/matrix/individual/:walletAddress?", requireWallet, async (req: any, res) => {
+    try {
+      const targetWallet = (req.params.walletAddress || req.walletAddress).toLowerCase();
+      
+      // Get user's referral layers (L1-L19)
+      const referralLayers = await storage.getReferralLayers(targetWallet);
+      
+      if (!referralLayers || referralLayers.length === 0) {
+        return res.json({
+          layers: [],
+          totalMembers: 0,
+          totalLevels: 0
+        });
+      }
+      
+      // Process each layer and organize into Left/Middle/Right legs
+      const processedLayers = await Promise.all(
+        referralLayers.map(async (layer) => {
+          // Get member details for this layer
+          const memberDetails = await Promise.all(
+            layer.members.map(async (memberWallet) => {
+              const user = await storage.getUser(memberWallet);
+              
+              // Determine placement based on referral tree position
+              // For now, use simple round-robin: L/M/R cycling
+              const memberIndex = layer.members.indexOf(memberWallet);
+              let placement: 'left' | 'middle' | 'right';
+              
+              // Layer 1: Direct placements (max 3)
+              if (layer.layerNumber === 1) {
+                placement = memberIndex === 0 ? 'left' : memberIndex === 1 ? 'middle' : 'right';
+              } else {
+                // Layer 2+: Fill left leg first, then middle, then right
+                const membersPerLeg = Math.pow(3, layer.layerNumber - 1);
+                if (memberIndex < membersPerLeg) {
+                  placement = 'left';
+                } else if (memberIndex < membersPerLeg * 2) {
+                  placement = 'middle';
+                } else {
+                  placement = 'right';
+                }
+              }
+              
+              return {
+                walletAddress: memberWallet,
+                username: user?.username || 'Unknown User',
+                currentLevel: user?.currentLevel || 0,
+                memberActivated: user?.memberActivated || false,
+                placement,
+                joinedAt: user?.createdAt?.toISOString() || new Date().toISOString()
+              };
+            })
+          );
+          
+          // Organize members by leg
+          const leftLeg = memberDetails.filter(m => m.placement === 'left');
+          const middleLeg = memberDetails.filter(m => m.placement === 'middle');
+          const rightLeg = memberDetails.filter(m => m.placement === 'right');
+          
+          return {
+            layerNumber: layer.layerNumber,
+            maxMembers: Math.pow(3, layer.layerNumber), // 3^n pattern
+            members: memberDetails,
+            leftLeg,
+            middleLeg,
+            rightLeg
+          };
+        })
+      );
+      
+      // Calculate totals
+      const totalMembers = referralLayers.reduce((sum, layer) => sum + layer.memberCount, 0);
+      const totalLevels = referralLayers.length;
+      
+      console.log(`🔥 Individual matrix for ${targetWallet}: ${totalMembers} members across ${totalLevels} levels`);
+      
+      res.json({
+        layers: processedLayers,
+        totalMembers,
+        totalLevels
+      });
+    } catch (error) {
+      console.error('Individual matrix error:', error);
+      res.status(500).json({ error: 'Failed to get individual matrix' });
+    }
+  });
+
   // Get layer members data for Matrix Layer Management
   app.get("/api/referrals/layer-members", requireWallet, async (req: any, res) => {
     try {
