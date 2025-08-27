@@ -49,7 +49,7 @@ export default function USDTWithdrawal() {
   const [withdrawalRequest, setWithdrawalRequest] = useState<WithdrawalRequest | null>(null);
   const [step, setStep] = useState<'form' | 'confirm' | 'signing' | 'processing' | 'success'>('form');
 
-  // Get user USDT balance
+  // Get user USDT balance from earnings wallet
   const { data: balance, isLoading: balanceLoading } = useQuery<USDTBalance>({
     queryKey: ['/api/usdt/balance'],
     enabled: !!account?.address,
@@ -60,7 +60,7 @@ export default function USDTWithdrawal() {
         },
       });
       if (!response.ok) {
-        throw new Error('Failed to fetch USDT balance');
+        throw new Error('Failed to fetch claimable rewards balance');
       }
       return response.json();
     },
@@ -218,12 +218,12 @@ export default function USDTWithdrawal() {
       <CardHeader>
         <CardTitle className="text-xl font-bold text-honey flex items-center gap-2">
           <DollarSign className="h-6 w-6" />
-          USDT Withdrawal
+          Claimable Rewards Withdrawal
         </CardTitle>
         <div className="flex items-center justify-between">
-          <p className="text-muted-foreground">Withdraw USDT to any supported blockchain</p>
+          <p className="text-muted-foreground">Withdraw your claimable rewards to any supported blockchain</p>
           <div className="text-right">
-            <p className="text-sm text-muted-foreground">Available Balance</p>
+            <p className="text-sm text-muted-foreground">Claimable Rewards</p>
             <p className="text-lg font-semibold text-honey">
               ${balance?.balanceUSD || '0.00'} USDT
             </p>
@@ -241,6 +241,7 @@ export default function USDTWithdrawal() {
                 type="number"
                 step="0.01"
                 min="0"
+                max={balance?.balanceUSD || "0"}
                 placeholder="0.00"
                 value={withdrawalAmount}
                 onChange={(e) => setWithdrawalAmount(e.target.value)}
@@ -248,7 +249,7 @@ export default function USDTWithdrawal() {
                 data-testid="input-withdrawal-amount"
               />
               <p className="text-xs text-muted-foreground">
-                Available: ${balance?.balanceUSD || '0.00'} USDT
+                Claimable: ${balance?.balanceUSD || '0.00'} USDT
               </p>
             </div>
 

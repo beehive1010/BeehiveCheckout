@@ -3737,14 +3737,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     bsc,
   };
 
-  // Get user USDT balance
+  // Get user USDT balance from earnings wallet
   app.get("/api/usdt/balance", requireWallet, async (req: any, res) => {
     try {
-      const balance = await storage.getUSDTBalance(req.walletAddress);
+      const earningsWallet = await storage.getEarningsWallet(req.walletAddress);
+      const pendingRewards = earningsWallet?.pendingRewards || "0";
+      const balanceUSD = parseFloat(pendingRewards);
+      
       res.json({
-        balance: balance?.balance || 0,
-        balanceUSD: ((balance?.balance || 0) / 100).toFixed(2), // Convert cents to dollars
-        lastUpdated: balance?.lastUpdated,
+        balance: Math.round(balanceUSD * 100), // Convert to cents for consistency
+        balanceUSD: balanceUSD.toFixed(2),
+        lastUpdated: earningsWallet?.lastRewardAt,
       });
     } catch (error) {
       console.error('Get USDT balance error:', error);
@@ -3770,9 +3773,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid recipient address' });
       }
 
-      // Check user balance
-      const userBalance = await storage.getUSDTBalance(req.walletAddress);
-      if (!userBalance || userBalance.balance < amount) {
+      // Check user balance in earnings wallet
+      const earningsWallet = await storage.getEarningsWallet(req.walletAddress);
+      if (!earningsWallet) {
+        return res.status(400).json({ error: 'Earnings wallet not found' });
+      }
+      
+      const pendingRewards = parseFloat(earningsWallet.pendingRewards || "0");
+      const balanceInCents = Math.round(pendingRewards * 100);
+      
+      if (balanceInCents < amount) {
         return res.status(400).json({ error: 'Insufficient balance' });
       }
 
@@ -3804,9 +3814,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Missing required fields' });
       }
 
-      // Verify user still has sufficient balance
-      const userBalance = await storage.getUSDTBalance(req.walletAddress);
-      if (!userBalance || userBalance.balance < amount) {
+      // Verify user still has sufficient balance in earnings wallet
+      const earningsWallet = await storage.getEarningsWallet(req.walletAddress);
+      if (!earningsWallet) {
+        return res.status(400).json({ error: 'Earnings wallet not found' });
+      }
+      
+      const pendingRewards = parseFloat(earningsWallet.pendingRewards || "0");
+      const balanceInCents = Math.round(pendingRewards * 100);
+      
+      if (balanceInCents < amount) {
         return res.status(400).json({ error: 'Insufficient balance' });
       }
 
@@ -3837,9 +3854,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         account: serverWallet,
       });
 
-      // Update user balance (deduct withdrawn amount)
-      await storage.updateUSDTBalance(req.walletAddress, {
-        balance: userBalance.balance - amount,
+      // Update earnings wallet (deduct withdrawn amount and add to withdrawn total)
+      const newPendingRewards = (pendingRewards - (amount / 100)).toFixed(2);
+      const newWithdrawnAmount = (parseFloat(earningsWallet.withdrawnAmount || "0") + (amount / 100)).toFixed(2);
+      
+      await storage.updateEarningsWallet(req.walletAddress, {
+        pendingRewards: newPendingRewards,
+        withdrawnAmount: newWithdrawnAmount,
       });
 
       // Log withdrawal activity
