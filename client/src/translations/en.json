@@ -357,12 +357,68 @@
     },
     "referralLink": {
       "title": "Your Referral Link"
+    },
+    "availableRewards": {
+      "title": "Available Rewards",
+      "withdraw": "Withdraw Rewards"
+    },
+    "matrixPerformance": {
+      "title": "Matrix Performance",
+      "status": "Status",
+      "active": "Active",
+      "currentLevel": "Current Level",
+      "level": "Level",
+      "matrixRewards": "Matrix Rewards",
+      "pendingRewards": "Pending Rewards",
+      "viewMatrix": "View 3x3 Matrix"
+    },
+    "matrixManagement": {
+      "title": "Matrix Layer Management",
+      "directReferrals": "Direct Referrals",
+      "yourTeamPlaced": "Your Team Placed",
+      "totalMatrix": "Total Matrix",
+      "members": "members",
+      "yourTeam": "Your Team (Direct + Spillover)",
+      "upperSpillover": "Upper Spillover",
+      "layerDetails": "Layer Details",
+      "upgradeRewards": "Upgrade Rewards",
+      "loadingLayers": "Loading layers...",
+      "noMembers": "No team members yet"
+    },
+    "layerView": {
+      "layer": "Layer",
+      "positionsFilled": "positions filled",
+      "upgradedToLevel": "upgraded to Level 2+",
+      "full": "Full",
+      "available": "Available",
+      "backToOverview": "Back to Overview",
+      "details": "Details",
+      "members": "Members",
+      "upgraded": "Upgraded",
+      "filledPositions": "Filled Positions:",
+      "upgradedMembers": "Upgraded Members:",
+      "completionRate": "Completion Rate:",
+      "lastUpdated": "Last Updated:"
+    },
+    "notifications": {
+      "memberUpgraded": "Layer {{layer}} member upgraded to Level {{level}}",
+      "reward": "Reward",
+      "from": "From",
+      "member": "member",
+      "noRecentActivity": "No recent activity",
+      "activitiesAppear": "Your activities will appear here as you interact with the platform",
+      "noNotifications": "No upgrade notifications yet",
+      "notificationsAppear": "Notifications will appear when team members upgrade their levels"
+    },
+    "upgradeRewards": {
+      "description": "Track upgrade rewards from your matrix layers. You have 72 hours to upgrade when members purchase higher level NFTs."
     }
   },
   "me": {
     "title": "User Center",
     "profile": {
       "levelMember": "Level {{level}} Member",
+      "member": "Member",
       "defaultEmail": "member@beehive.app"
     },
     "tabs": {
