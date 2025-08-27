@@ -811,16 +811,17 @@ export const memberActivations = pgTable("member_activations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Reward Distribution Tracking - For 72hr countdown system  
+// Reward Distribution Tracking - Matches production database
 export const rewardDistributions = pgTable("reward_distributions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   recipientWallet: varchar("recipient_wallet", { length: 42 }).notNull().references(() => users.walletAddress),
-  sourceWallet: varchar("source_wallet", { length: 42 }).notNull().references(() => users.walletAddress), // Who triggered the reward
+  sourceWallet: varchar("source_wallet", { length: 42 }).notNull(), // Who triggered the reward (no FK constraint to match production)
   rewardType: text("reward_type").notNull(), // 'direct_referral', 'level_bonus', 'matrix_spillover'
   rewardAmount: numeric("reward_amount", { precision: 10, scale: 2 }).notNull(),
-  level: integer("level").notNull(), // Level that triggered reward
-  status: text("status").default("pending").notNull(), // 'pending', 'claimable', 'claimed', 'expired_redistributed'
-  pendingUntil: timestamp("pending_until"), // 72hr countdown
+  level: integer("level"), // Level that triggered reward (nullable to match production)
+  status: text("status").default("pending").notNull(), // 'pending', 'claimable', 'claimed', 'expired'
+  expiresAt: timestamp("expires_at"), // When reward expires if not claimed
+  pendingUntil: timestamp("pending_until"), // Timer for pending rewards
   claimedAt: timestamp("claimed_at"),
   redistributedTo: varchar("redistributed_to", { length: 42 }), // If expired, who got it
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -1135,19 +1136,23 @@ export const insertSystemStatusSchema = createInsertSchema(systemStatus).pick({
 // Global Matrix Position Table - Single company-wide matrix structure
 export const globalMatrixPosition = pgTable("global_matrix_position", {
   walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
+  sponsorWallet: varchar("sponsor_wallet", { length: 42 }), // Original sponsor (production column)
+  directSponsorWallet: varchar("direct_sponsor_wallet", { length: 42 }).notNull(), // Who invited them (gets direct rewards)
   matrixLevel: integer("matrix_level").notNull(), // 1-19 (Level 1=3 positions, Level 2=9, Level 3=27, etc.)
   positionIndex: integer("position_index").notNull(), // 0-based position within that level
-  directSponsorWallet: varchar("direct_sponsor_wallet", { length: 42 }).notNull(), // Who invited them (gets direct rewards)
   placementSponsorWallet: varchar("placement_sponsor_wallet", { length: 42 }).notNull(), // Where they were placed in matrix
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
   joinedAt: timestamp("joined_at").defaultNow().notNull(),
   lastUpgradeAt: timestamp("last_upgrade_at"),
 });
 
 export const insertGlobalMatrixPositionSchema = createInsertSchema(globalMatrixPosition).pick({
   walletAddress: true,
+  sponsorWallet: true,
+  directSponsorWallet: true,
   matrixLevel: true,
   positionIndex: true,
-  directSponsorWallet: true,
   placementSponsorWallet: true,
 });
 
@@ -1198,6 +1203,7 @@ export const insertWalletConnectionLogSchema = createInsertSchema(walletConnecti
   id: true,
   createdAt: true,
 });
+
 
 export type InsertWalletConnectionLog = z.infer<typeof insertWalletConnectionLogSchema>;
 export type WalletConnectionLog = typeof walletConnectionLogs.$inferSelect;
