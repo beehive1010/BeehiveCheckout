@@ -12,6 +12,7 @@ import Settings from './Settings';
 import { AcademicCapIcon, UsersIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { IconActivity } from '@tabler/icons-react';
 import { useLocation } from 'wouter';
+import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
 
 export default function Me() {
   const { 
@@ -96,18 +97,15 @@ export default function Me() {
         </CardContent>
       </Card>
 
+      {/* Claimable Rewards Section */}
+      {walletAddress && (
+        <div className="mb-6">
+          <ClaimableRewardsCard walletAddress={walletAddress} />
+        </div>
+      )}
+
       {/* Balance Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-secondary border-border text-center">
-          <CardContent className="p-6">
-            <i className="fas fa-dollar-sign text-green-400 text-2xl mb-3"></i>
-            <div className="text-2xl font-bold text-honey">
-              {isBalancesLoading ? '...' : Number(userBalances?.usdt || 0).toFixed(2)}
-            </div>
-            <div className="text-muted-foreground text-sm">{t('me.balances.usdt')}</div>
-          </CardContent>
-        </Card>
-        
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card className="bg-secondary border-border text-center">
           <CardContent className="p-6">
             <i className="fas fa-coins text-honey text-2xl mb-3"></i>
