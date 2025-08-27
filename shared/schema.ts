@@ -119,6 +119,13 @@ export const memberNFTVerification = pgTable("member_nft_verification", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// USDT balances table
+export const usdtBalances = pgTable("usdt_balances", {
+  walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
+  balance: integer("balance").default(0).notNull(), // USDT balance in cents (e.g., $100 = 10000 cents)
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+});
+
 // BCC balances table
 export const bccBalances = pgTable("bcc_balances", {
   walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
@@ -394,6 +401,11 @@ export const insertMemberNFTVerificationSchema = createInsertSchema(memberNFTVer
   lastVerified: true,
 });
 
+export const insertUSDTBalanceSchema = createInsertSchema(usdtBalances).pick({
+  walletAddress: true,
+  balance: true,
+});
+
 export const insertBCCBalanceSchema = createInsertSchema(bccBalances).pick({
   walletAddress: true,
   transferable: true,
@@ -625,6 +637,9 @@ export const insertUserNotificationSchema = createInsertSchema(userNotifications
 
 export type InsertUserNotification = z.infer<typeof insertUserNotificationSchema>;
 export type UserNotification = typeof userNotifications.$inferSelect;
+
+export type InsertUSDTBalance = z.infer<typeof insertUSDTBalanceSchema>;
+export type USDTBalance = typeof usdtBalances.$inferSelect;
 
 export type InsertBCCBalance = z.infer<typeof insertBCCBalanceSchema>;
 export type BCCBalance = typeof bccBalances.$inferSelect;

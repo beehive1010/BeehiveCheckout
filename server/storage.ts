@@ -7,6 +7,7 @@ import {
   rewardNotifications,
   userActivities,
   globalMatrixPosition,
+  usdtBalances,
   bccBalances,
   orders,
   earningsWallet,
@@ -46,6 +47,8 @@ import {
   type InsertUserNotification,
   type GlobalMatrixPosition,
   type InsertGlobalMatrixPosition,
+  type USDTBalance,
+  type InsertUSDTBalance,
   type BCCBalance,
   type InsertBCCBalance,
   type Order,
@@ -124,6 +127,11 @@ export interface IStorage {
   createGlobalMatrixPosition(position: InsertGlobalMatrixPosition): Promise<GlobalMatrixPosition>;
   updateGlobalMatrixPosition(walletAddress: string, updates: Partial<GlobalMatrixPosition>): Promise<GlobalMatrixPosition | undefined>;
   findGlobalMatrixPlacement(sponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string }>;
+
+  // USDT balance operations
+  getUSDTBalance(walletAddress: string): Promise<USDTBalance | undefined>;
+  createUSDTBalance(balance: InsertUSDTBalance): Promise<USDTBalance>;
+  updateUSDTBalance(walletAddress: string, balance: Partial<USDTBalance>): Promise<USDTBalance | undefined>;
 
   // BCC Balance operations
   getBCCBalance(walletAddress: string): Promise<BCCBalance | undefined>;
@@ -529,6 +537,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   // BCC Balance operations
+  // USDT Balance operations
+  async getUSDTBalance(walletAddress: string): Promise<USDTBalance | undefined> {
+    const [balance] = await db.select().from(usdtBalances).where(eq(usdtBalances.walletAddress, walletAddress.toLowerCase()));
+    return balance || undefined;
+  }
+
+  async createUSDTBalance(balance: InsertUSDTBalance): Promise<USDTBalance> {
+    const [usdtBalance] = await db
+      .insert(usdtBalances)
+      .values({
+        ...balance,
+        walletAddress: balance.walletAddress.toLowerCase(),
+      })
+      .returning();
+    return usdtBalance;
+  }
+
+  async updateUSDTBalance(walletAddress: string, updates: Partial<USDTBalance>): Promise<USDTBalance | undefined> {
+    // Use transaction to prevent race conditions on concurrent balance updates
+    return await db.transaction(async (tx) => {
+      const [balance] = await tx
+        .update(usdtBalances)
+        .set({ ...updates, lastUpdated: new Date() })
+        .where(eq(usdtBalances.walletAddress, walletAddress.toLowerCase()))
+        .returning();
+      return balance || undefined;
+    });
+  }
+
   async getBCCBalance(walletAddress: string): Promise<BCCBalance | undefined> {
     const [balance] = await db.select().from(bccBalances).where(eq(bccBalances.walletAddress, walletAddress.toLowerCase()));
     return balance || undefined;

@@ -10,9 +10,11 @@ import Learn from './Learn';
 import Referrals from './Referrals';
 import Settings from './Settings';
 import { AcademicCapIcon, UsersIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
+import { DollarSign } from 'lucide-react';
 import { IconActivity } from '@tabler/icons-react';
 import { useLocation } from 'wouter';
 import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
+import USDTWithdrawal from '../components/withdrawal/USDTWithdrawal';
 
 export default function Me() {
   const { 
@@ -190,7 +192,7 @@ export default function Me() {
 
       {/* Tab Navigation */}
       <Tabs defaultValue="learn" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-secondary/50 border border-honey/20 rounded-xl p-1 mb-6 backdrop-blur-sm">
+        <TabsList className="grid w-full grid-cols-4 bg-secondary/50 border border-honey/20 rounded-xl p-1 mb-6 backdrop-blur-sm">
           <TabsTrigger 
             value="learn" 
             className="relative flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 data-[state=active]:bg-honey data-[state=active]:text-black data-[state=active]:shadow-lg data-[state=active]:shadow-honey/25 text-honey hover:bg-honey/10 hover:text-honey"
@@ -208,6 +210,14 @@ export default function Me() {
             <span className="font-semibold">{t('me.tabs.referrals')}</span>
           </TabsTrigger>
           <TabsTrigger 
+            value="withdrawal" 
+            className="relative flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 data-[state=active]:bg-honey data-[state=active]:text-black data-[state=active]:shadow-lg data-[state=active]:shadow-honey/25 text-honey hover:bg-honey/10 hover:text-honey"
+            data-testid="tab-withdrawal"
+          >
+            <DollarSign className="w-5 h-5" />
+            <span className="font-semibold">Withdraw</span>
+          </TabsTrigger>
+          <TabsTrigger 
             value="settings" 
             className="relative flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 data-[state=active]:bg-honey data-[state=active]:text-black data-[state=active]:shadow-lg data-[state=active]:shadow-honey/25 text-honey hover:bg-honey/10 hover:text-honey"
             data-testid="tab-settings"
@@ -223,6 +233,10 @@ export default function Me() {
         
         <TabsContent value="referrals" className="mt-0">
           <Referrals />
+        </TabsContent>
+        
+        <TabsContent value="withdrawal" className="mt-0">
+          <USDTWithdrawal />
         </TabsContent>
         
         <TabsContent value="settings" className="mt-0">
