@@ -32,7 +32,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
 
   // Fetch claimable rewards
   const { data: rewardsData, isLoading } = useQuery<ClaimableRewardsResponse>({
-    queryKey: ['/api/rewards/claimable', walletAddress],
+    queryKey: ['/api/rewards/claimable'],
     enabled: !!walletAddress,
     refetchInterval: 30000, // Refresh every 30 seconds
   });

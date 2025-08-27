@@ -37,7 +37,7 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
   
   // Fetch individual user's L1-L19 matrix data
   const { data: matrixData, isLoading } = useQuery<IndividualMatrixData>({
-    queryKey: ['/api/matrix/individual', walletAddress],
+    queryKey: ['/api/matrix/individual'],
     enabled: !!walletAddress,
     refetchInterval: 30000,
   });
