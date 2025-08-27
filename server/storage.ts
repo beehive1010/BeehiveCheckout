@@ -2727,9 +2727,6 @@ export class DatabaseStorage implements IStorage {
     const lowerWalletAddress = walletAddress.toLowerCase();
     const now = new Date();
 
-    // Use transaction to ensure all operations are atomic and prevent race conditions
-    return await db.transaction(async (tx) => {
-
     // 1. Create or update user record
     let user = await this.getUser(lowerWalletAddress);
     if (!user) {
@@ -2871,18 +2868,17 @@ export class DatabaseStorage implements IStorage {
     // 13. Sync all reward system tables
     await this.syncRewardSystemTables(lowerWalletAddress);
 
-      return {
-        user,
-        membershipState,
-        referralNode,
-        earningsWallet: earningsWallet[0],
-        bccBalance,
-        nftVerification,
-        memberActivation,
-        globalMatrixPosition,
-        order,
-      };
-    });
+    return {
+      user,
+      membershipState,
+      referralNode,
+      earningsWallet: earningsWallet[0],
+      bccBalance,
+      nftVerification,
+      memberActivation,
+      globalMatrixPosition,
+      order,
+    };
   }
 
   // Trigger rewards for sponsor and upline when new member claims NFT
