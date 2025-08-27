@@ -7,6 +7,7 @@ import {
   insertUserSchema,
   insertMembershipStateSchema,
   insertReferralNodeSchema,
+  insertUSDTBalanceSchema,
   insertBCCBalanceSchema,
   insertOrderSchema,
   insertEarningsWalletSchema,
@@ -27,6 +28,7 @@ import {
   membershipState,
   globalMatrixPosition,
   referralNodes,
+  usdtBalances,
   bccBalances,
   earningsWallet,
   rewardDistributions,
@@ -39,6 +41,10 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { eq, and, or, desc, gte } from "drizzle-orm";
+import { createThirdwebClient, getContract } from "thirdweb";
+import { privateKeyToAccount } from "thirdweb/wallets";
+import { ethereum, polygon, arbitrum, optimism, bsc } from "thirdweb/chains";
+import { transfer } from "thirdweb/extensions/erc20";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // JWT secret for authentication
@@ -3703,6 +3709,186 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Failed to mark all notifications as read' });
     }
   });
+
+  // Thirdweb server wallet configuration
+  const thirdwebClient = createThirdwebClient({
+    secretKey: process.env.THIRDWEB_SECRET_KEY || 'your-secret-key',
+  });
+  
+  const serverWallet = privateKeyToAccount({
+    client: thirdwebClient,
+    privateKey: process.env.SERVER_WALLET_PRIVATE_KEY || '0x...', // Your server wallet private key
+  });
+
+  // USDT contract addresses for each chain
+  const USDT_CONTRACTS = {
+    ethereum: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+    polygon: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+    arbitrum: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+    optimism: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
+    bsc: '0x55d398326f99059fF775485246999027B3197955',
+  };
+
+  const CHAIN_MAP = {
+    ethereum,
+    polygon,
+    arbitrum,
+    optimism,
+    bsc,
+  };
+
+  // Get user USDT balance
+  app.get("/api/usdt/balance", requireWallet, async (req: any, res) => {
+    try {
+      const balance = await storage.getUSDTBalance(req.walletAddress);
+      res.json({
+        balance: balance?.balance || 0,
+        balanceUSD: ((balance?.balance || 0) / 100).toFixed(2), // Convert cents to dollars
+        lastUpdated: balance?.lastUpdated,
+      });
+    } catch (error) {
+      console.error('Get USDT balance error:', error);
+      res.status(500).json({ error: 'Failed to get USDT balance' });
+    }
+  });
+
+  // Initiate USDT withdrawal
+  app.post("/api/usdt/withdraw", requireWallet, async (req: any, res) => {
+    try {
+      const { amount, chain, recipientAddress } = req.body;
+      
+      // Validate input
+      if (!amount || amount <= 0) {
+        return res.status(400).json({ error: 'Invalid withdrawal amount' });
+      }
+      
+      if (!chain || !CHAIN_MAP[chain as keyof typeof CHAIN_MAP]) {
+        return res.status(400).json({ error: 'Unsupported chain' });
+      }
+      
+      if (!recipientAddress || !/^0x[a-fA-F0-9]{40}$/.test(recipientAddress)) {
+        return res.status(400).json({ error: 'Invalid recipient address' });
+      }
+
+      // Check user balance
+      const userBalance = await storage.getUSDTBalance(req.walletAddress);
+      if (!userBalance || userBalance.balance < amount) {
+        return res.status(400).json({ error: 'Insufficient balance' });
+      }
+
+      // Create withdrawal record
+      const withdrawalId = crypto.randomUUID();
+      
+      res.json({
+        withdrawalId,
+        amount,
+        amountUSD: (amount / 100).toFixed(2),
+        chain,
+        recipientAddress,
+        status: 'pending_signature',
+        message: \`Withdraw \${(amount / 100).toFixed(2)} USDT to \${chain}\`,
+      });
+      
+    } catch (error) {
+      console.error('Initiate withdrawal error:', error);
+      res.status(500).json({ error: 'Failed to initiate withdrawal' });
+    }
+  });
+
+  // Confirm USDT withdrawal with signature
+  app.post("/api/usdt/withdraw/confirm", requireWallet, async (req: any, res) => {
+    try {
+      const { withdrawalId, signature, amount, chain, recipientAddress } = req.body;
+      
+      if (!withdrawalId || !signature || !amount || !chain || !recipientAddress) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+
+      // Verify user still has sufficient balance
+      const userBalance = await storage.getUSDTBalance(req.walletAddress);
+      if (!userBalance || userBalance.balance < amount) {
+        return res.status(400).json({ error: 'Insufficient balance' });
+      }
+
+      // Get chain and contract
+      const targetChain = CHAIN_MAP[chain as keyof typeof CHAIN_MAP];
+      const usdtContractAddress = USDT_CONTRACTS[chain as keyof typeof USDT_CONTRACTS];
+      
+      if (!targetChain || !usdtContractAddress) {
+        return res.status(400).json({ error: 'Unsupported chain' });
+      }
+
+      // Create USDT contract instance
+      const usdtContract = getContract({
+        client: thirdwebClient,
+        address: usdtContractAddress,
+        chain: targetChain,
+      });
+
+      // Execute withdrawal transaction
+      const transaction = transfer({
+        contract: usdtContract,
+        to: recipientAddress,
+        amount: amount.toString(), // Amount in wei/smallest unit
+      });
+
+      // Send transaction with server wallet
+      const result = await transaction({
+        account: serverWallet,
+      });
+
+      // Update user balance (deduct withdrawn amount)
+      await storage.updateUSDTBalance(req.walletAddress, {
+        balance: userBalance.balance - amount,
+      });
+
+      // Log withdrawal activity
+      await storage.createUserActivity({
+        walletAddress: req.walletAddress,
+        activityType: 'usdt_withdrawal',
+        title: 'USDT Withdrawal',
+        description: \`Withdrawn \${(amount / 100).toFixed(2)} USDT to \${chain}\`,
+        amount: (amount / 100).toFixed(2),
+        amountType: 'USDT',
+        metadata: {
+          txHash: result.transactionHash,
+          chain,
+          recipientAddress,
+          withdrawalId,
+        },
+      });
+
+      res.json({
+        success: true,
+        txHash: result.transactionHash,
+        amount: (amount / 100).toFixed(2),
+        chain,
+        recipientAddress,
+        explorerUrl: getExplorerUrl(chain, result.transactionHash),
+      });
+
+    } catch (error) {
+      console.error('Confirm withdrawal error:', error);
+      res.status(500).json({ 
+        error: 'Withdrawal failed',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
+
+  // Helper function to get blockchain explorer URL
+  function getExplorerUrl(chain: string, txHash: string): string {
+    const explorers = {
+      ethereum: 'https://etherscan.io',
+      polygon: 'https://polygonscan.com',
+      arbitrum: 'https://arbiscan.io',
+      optimism: 'https://optimistic.etherscan.io',
+      bsc: 'https://bscscan.com',
+    };
+    
+    const explorer = explorers[chain as keyof typeof explorers];
+    return explorer ? \`\${explorer}/tx/\${txHash}\` : '';
+  }
 
   return httpServer;
 }
