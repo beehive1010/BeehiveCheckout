@@ -3796,7 +3796,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         chain,
         recipientAddress,
         status: 'pending_signature',
-        message: \`Withdraw \${(amount / 100).toFixed(2)} USDT to \${chain}\`,
+        message: `Withdraw ${(amount / 100).toFixed(2)} USDT to ${chain}`,
       });
       
     } catch (error) {
@@ -3868,7 +3868,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         walletAddress: req.walletAddress,
         activityType: 'usdt_withdrawal',
         title: 'USDT Withdrawal',
-        description: \`Withdrawn \${(amount / 100).toFixed(2)} USDT to \${chain}\`,
+        description: `Withdrawn ${(amount / 100).toFixed(2)} USDT to ${chain}`,
         amount: (amount / 100).toFixed(2),
         amountType: 'USDT',
         metadata: {
@@ -3908,7 +3908,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     };
     
     const explorer = explorers[chain as keyof typeof explorers];
-    return explorer ? \`\${explorer}/tx/\${txHash}\` : '';
+    return explorer ? `${explorer}/tx/${txHash}` : '';
   }
 
   return httpServer;
