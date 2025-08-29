@@ -1,8 +1,8 @@
 import { ConnectButton } from 'thirdweb/react';
-import { client, supportedChains, wallets, authConfig } from '../../../lib/web3';
-import HexagonIcon from '../../../components/UI/HexagonIcon';
+import { client, supportedChains, wallets, authConfig } from '../lib/web3';
+import HexagonIcon from './UI/HexagonIcon';
 import { StatsBar } from './StatsBar';
-import styles from '../styles/landing.module.css';
+import styles from '../features/landing/styles/landing.module.css';
 
 interface HeroSectionProps {
   title: string;

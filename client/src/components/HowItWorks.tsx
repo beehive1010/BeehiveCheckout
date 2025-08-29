@@ -1,5 +1,5 @@
-import { useI18n } from '../../../contexts/I18nContext';
-import styles from '../styles/landing.module.css';
+import { useI18n } from '../contexts/I18nContext';
+import styles from '../features/landing/styles/landing.module.css';
 
 export function HowItWorks() {
   const { t } = useI18n();
