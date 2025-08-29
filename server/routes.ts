@@ -32,6 +32,7 @@ import {
   bccBalances,
   earningsWallet,
   rewardDistributions,
+  userRewards,
   advertisementNFTs,
   type AdminUser,
   type AdminSession
@@ -41,10 +42,9 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { eq, and, or, desc, gte } from "drizzle-orm";
-import { createThirdwebClient, getContract } from "thirdweb";
+import { createThirdwebClient, getContract, prepareContractCall, sendTransaction } from "thirdweb";
 import { privateKeyToAccount } from "thirdweb/wallets";
-import { ethereum, polygon, arbitrum, optimism, bsc } from "thirdweb/chains";
-import { transfer } from "thirdweb/extensions/erc20";
+import { ethereum, polygon, arbitrum, optimism } from "thirdweb/chains";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // JWT secret for authentication
@@ -1319,23 +1319,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const walletAddress = req.walletAddress.toLowerCase();
       
-      // Get claimable rewards
+      // Get confirmed (claimable) rewards from user_rewards table
       const claimableRewards = await db.select()
-        .from(rewardDistributions)
+        .from(userRewards)
         .where(and(
-          eq(rewardDistributions.recipientWallet, walletAddress),
-          eq(rewardDistributions.status, 'claimable')
+          eq(userRewards.recipientWallet, walletAddress),
+          eq(userRewards.status, 'confirmed')
         ))
-        .orderBy(desc(rewardDistributions.createdAt));
+        .orderBy(desc(userRewards.createdAt));
       
       // Get pending rewards (with countdown)
       const pendingRewards = await db.select()
-        .from(rewardDistributions)
+        .from(userRewards)
         .where(and(
-          eq(rewardDistributions.recipientWallet, walletAddress),
-          eq(rewardDistributions.status, 'pending')
+          eq(userRewards.recipientWallet, walletAddress),
+          eq(userRewards.status, 'pending')
         ))
-        .orderBy(desc(rewardDistributions.createdAt));
+        .orderBy(desc(userRewards.createdAt));
       
       // Calculate totals
       const totalClaimable = claimableRewards.reduce((sum, reward) => {
@@ -1350,22 +1350,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         claimableRewards: claimableRewards.map(reward => ({
           id: reward.id,
           rewardAmount: Math.round(parseFloat(reward.rewardAmount.toString()) * 100), // Convert to cents
-          rewardType: reward.rewardType,
+          triggerLevel: reward.triggerLevel,
+          payoutLayer: reward.payoutLayer,
+          matrixPosition: reward.matrixPosition,
           sourceWallet: reward.sourceWallet,
-          level: reward.level,
           status: reward.status,
           expiresAt: reward.expiresAt,
-          createdAt: reward.createdAt
+          createdAt: reward.createdAt,
+          metadata: reward.metadata
         })),
         pendingRewards: pendingRewards.map(reward => ({
           id: reward.id,
           rewardAmount: Math.round(parseFloat(reward.rewardAmount.toString()) * 100), // Convert to cents
-          rewardType: reward.rewardType,
+          triggerLevel: reward.triggerLevel,
+          payoutLayer: reward.payoutLayer,
+          matrixPosition: reward.matrixPosition,
           sourceWallet: reward.sourceWallet,
-          level: reward.level,
           status: reward.status,
-          expiresAt: reward.expiresAt || reward.pendingUntil,
-          createdAt: reward.createdAt
+          requiresLevel: reward.requiresLevel,
+          unlockCondition: reward.unlockCondition,
+          expiresAt: reward.expiresAt,
+          createdAt: reward.createdAt,
+          metadata: reward.metadata
         })),
         totalClaimable: Math.round(totalClaimable * 100), // Convert to cents
         totalPending: Math.round(totalPending * 100)
@@ -1516,6 +1522,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Claim all rewards error:', error);
       res.status(500).json({ error: 'Failed to claim all rewards' });
+    }
+  });
+
+  // NEW: Claim rewards with thirdweb server wallet and chain confirmation
+  app.post("/api/rewards/claim-with-transfer/:rewardId", requireWallet, async (req: any, res) => {
+    try {
+      const walletAddress = req.walletAddress.toLowerCase();
+      const { rewardId } = req.params;
+      const { targetChain, gasConfirmed } = req.body;
+      
+      if (!gasConfirmed) {
+        return res.status(400).json({ error: 'Gas fee confirmation required' });
+      }
+
+      // Get the reward and verify ownership
+      const [reward] = await db.select()
+        .from(userRewards)
+        .where(and(
+          eq(userRewards.id, rewardId),
+          eq(userRewards.recipientWallet, walletAddress),
+          eq(userRewards.status, 'confirmed')
+        ));
+      
+      if (!reward) {
+        return res.status(404).json({ error: 'Reward not found or not claimable' });
+      }
+
+      // Initialize thirdweb client and server wallet
+      const client = createThirdwebClient({
+        clientId: process.env.THIRDWEB_CLIENT_ID!,
+      });
+      
+      const serverWallet = privateKeyToAccount({
+        client,
+        privateKey: process.env.THIRDWEB_SERVER_WALLET_PRIVATE_KEY!,
+      });
+
+      // Chain configuration
+      const chainMap = {
+        'ethereum': ethereum,
+        'polygon': polygon,
+        'arbitrum': arbitrum,
+        'optimism': optimism
+      };
+
+      const selectedChain = chainMap[targetChain as keyof typeof chainMap];
+      if (!selectedChain) {
+        return res.status(400).json({ error: 'Unsupported chain' });
+      }
+
+      // USDT contract addresses for different chains
+      const usdtContracts = {
+        'ethereum': '0xA0b86a33E6Dfa6F6e95c4b73E936f5e1e7Ad1e5b', // Replace with actual USDT contract
+        'polygon': '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+        'arbitrum': '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+        'optimism': '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58'
+      };
+
+      const usdtContract = getContract({
+        client,
+        chain: selectedChain,
+        address: usdtContracts[targetChain as keyof typeof usdtContracts],
+      });
+
+      // Convert reward amount to USDT wei (6 decimals for USDT)
+      const rewardAmount = parseFloat(reward.rewardAmount.toString());
+      const amountInWei = BigInt(Math.round(rewardAmount * 1000000)); // 6 decimals for USDT
+
+      // Prepare transfer transaction
+      const transferTx = prepareContractCall({
+        contract: usdtContract,
+        method: "transfer",
+        params: [walletAddress, amountInWei]
+      });
+
+      // Send transaction from server wallet
+      const transactionResult = await sendTransaction({
+        transaction: transferTx,
+        account: serverWallet,
+      });
+
+      // Mark reward as claimed
+      await db.update(userRewards)
+        .set({
+          status: 'claimed',
+          confirmedAt: new Date(),
+          notes: `Claimed via ${targetChain} transfer - TX: ${transactionResult.transactionHash}`
+        })
+        .where(eq(userRewards.id, rewardId));
+
+      // Create user activity log
+      await storage.createUserActivity({
+        walletAddress,
+        activityType: 'reward_claimed',
+        title: 'Reward Claimed',
+        description: `Claimed $${rewardAmount.toFixed(2)} USDT via ${targetChain} transfer`,
+        amount: rewardAmount.toString(),
+        amountType: 'USDT',
+        relatedWallet: reward.sourceWallet,
+        relatedLevel: reward.triggerLevel
+      });
+
+      res.json({
+        success: true,
+        amount: Math.round(rewardAmount * 100), // Convert to cents for frontend
+        chain: targetChain,
+        transactionHash: transactionResult.transactionHash,
+        message: `Successfully claimed $${rewardAmount.toFixed(2)} USDT on ${targetChain}`
+      });
+    } catch (error) {
+      console.error('Claim with transfer error:', error);
+      res.status(500).json({ error: 'Failed to claim reward with transfer' });
+    }
+  });
+
+  // Get supported chains for claiming
+  app.get("/api/rewards/supported-chains", requireWallet, async (req: any, res) => {
+    try {
+      const supportedChains = [
+        { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', icon: '⟠' },
+        { id: 'polygon', name: 'Polygon', symbol: 'MATIC', icon: '🔺' },
+        { id: 'arbitrum', name: 'Arbitrum', symbol: 'ETH', icon: '🔵' },
+        { id: 'optimism', name: 'Optimism', symbol: 'ETH', icon: '🔴' }
+      ];
+
+      res.json({ supportedChains });
+    } catch (error) {
+      console.error('Get supported chains error:', error);
+      res.status(500).json({ error: 'Failed to get supported chains' });
     }
   });
 
