@@ -1,8 +1,8 @@
 import { ConnectButton } from 'thirdweb/react';
-import { Card, CardContent } from '../../../components/ui/card';
-import { client, supportedChains, wallets, authConfig } from '../../../lib/web3';
-import { useI18n } from '../../../contexts/I18nContext';
-import styles from '../styles/landing.module.css';
+import { Card, CardContent } from './ui/card';
+import { client, supportedChains, wallets, authConfig } from '../lib/web3';
+import { useI18n } from '../contexts/I18nContext';
+import styles from '../features/landing/styles/landing.module.css';
 
 export function CTASection() {
   const { t } = useI18n();

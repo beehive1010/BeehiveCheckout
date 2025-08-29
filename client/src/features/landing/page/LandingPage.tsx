@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import { useI18n } from '../../../contexts/I18nContext';
-import { BackgroundElements } from '../components/BackgroundElements';
-import { HeroSection } from '../components/HeroSection';
-import { FeaturesGrid } from '../components/FeaturesGrid';
-import { HowItWorks } from '../components/HowItWorks';
-import { CTASection } from '../components/CTASection';
+import { BackgroundElements } from '../../../components/BackgroundElements';
+import { HeroSection } from '../../../components/HeroSection';
+import { FeaturesGrid } from '../../../components/FeaturesGrid';
+import { HowItWorks } from '../../../components/HowItWorks';
+import { CTASection } from '../../../components/CTASection';
 import { referralService } from '../services/referral.client';
 import styles from '../styles/landing.module.css';
 
