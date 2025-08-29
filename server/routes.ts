@@ -1102,11 +1102,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
       );
 
-      // Get reward distributions instead of old earnings
+      // Get user rewards instead of old earnings
       const rewards = await db.select()
-        .from(rewardDistributions)
-        .where(eq(rewardDistributions.recipientWallet, req.walletAddress.toLowerCase()))
-        .orderBy(desc(rewardDistributions.createdAt))
+        .from(userRewards)
+        .where(eq(userRewards.recipientWallet, req.walletAddress.toLowerCase()))
+        .orderBy(desc(userRewards.createdAt))
         .limit(20);
 
       res.json({
@@ -1155,24 +1155,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('📊 Total team count for', walletAddress, ':', totalTeamCount);
       
-      // Calculate earnings from reward distributions
+      // Calculate earnings from userRewards table
       const rewards = await db.select()
-        .from(rewardDistributions)
-        .where(eq(rewardDistributions.recipientWallet, walletAddress.toLowerCase()));
+        .from(userRewards)
+        .where(eq(userRewards.recipientWallet, walletAddress.toLowerCase()));
       
       // Calculate total and pending earnings using proper database queries
       const totalEarningsResult = await db.execute(sql`
         SELECT COALESCE(SUM(CAST(reward_amount AS DECIMAL)), 0) as total_claimed
-        FROM reward_distributions 
+        FROM user_rewards 
         WHERE recipient_wallet = ${walletAddress.toLowerCase()}
         AND status = 'claimed'
       `);
       
       const pendingRewardsResult = await db.execute(sql`
         SELECT COALESCE(SUM(CAST(reward_amount AS DECIMAL)), 0) as total_pending
-        FROM reward_distributions 
+        FROM user_rewards 
         WHERE recipient_wallet = ${walletAddress.toLowerCase()}
-        AND status IN ('pending', 'claimable')
+        AND status IN ('pending', 'confirmed')
       `);
       
       const totalEarnings = Number(totalEarningsResult.rows[0]?.total_claimed || 0); // Already in dollars
@@ -1181,10 +1181,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate monthly earnings using proper database query
       const monthlyEarningsResult = await db.execute(sql`
         SELECT COALESCE(SUM(CAST(reward_amount AS DECIMAL)), 0) as monthly_total
-        FROM reward_distributions 
+        FROM user_rewards 
         WHERE recipient_wallet = ${walletAddress.toLowerCase()}
         AND status = 'claimed'
-        AND claimed_at >= DATE_TRUNC('month', CURRENT_DATE)
+        AND confirmed_at >= DATE_TRUNC('month', CURRENT_DATE)
       `);
       
       const monthlyEarnings = Number(monthlyEarningsResult.rows[0]?.monthly_total || 0); // Already in dollars
@@ -1390,11 +1390,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get the reward and verify ownership
       const [reward] = await db.select()
-        .from(rewardDistributions)
+        .from(userRewards)
         .where(and(
-          eq(rewardDistributions.id, rewardId),
-          eq(rewardDistributions.recipientWallet, walletAddress),
-          eq(rewardDistributions.status, 'claimable')
+          eq(userRewards.id, rewardId),
+          eq(userRewards.recipientWallet, walletAddress),
+          eq(userRewards.status, 'confirmed')
         ));
       
       if (!reward) {
@@ -1402,23 +1402,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Mark reward as claimed
-      await db.update(rewardDistributions)
+      await db.update(userRewards)
         .set({
           status: 'claimed',
-          claimedAt: new Date()
+          confirmedAt: new Date()
         })
-        .where(eq(rewardDistributions.id, rewardId));
+        .where(eq(userRewards.id, rewardId));
       
       // Update earnings wallet
       const rewardAmount = parseFloat(reward.rewardAmount.toString());
       await storage.updateEarningsWallet(walletAddress, {
         totalEarnings: sql`${earningsWallet.totalEarnings} + ${rewardAmount}`,
-        referralEarnings: reward.rewardType === 'direct_referral' 
-          ? sql`${earningsWallet.referralEarnings} + ${rewardAmount}`
-          : earningsWallet.referralEarnings,
-        levelEarnings: reward.rewardType !== 'direct_referral'
-          ? sql`${earningsWallet.levelEarnings} + ${rewardAmount}`
-          : earningsWallet.levelEarnings,
+        referralEarnings: sql`${earningsWallet.referralEarnings} + ${rewardAmount}`, // All matrix rewards count as referral earnings
         pendingRewards: sql`${earningsWallet.pendingRewards} - ${rewardAmount}`,
         lastRewardAt: new Date()
       });
@@ -1428,17 +1423,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         walletAddress,
         activityType: 'reward_claimed',
         title: 'Reward Claimed',
-        description: `Claimed ${reward.rewardType} reward of $${rewardAmount.toFixed(2)} USDT`,
+        description: `Claimed L${reward.triggerLevel}→L${reward.payoutLayer} matrix reward of $${rewardAmount.toFixed(2)} USDT`,
         amount: rewardAmount.toString(),
         amountType: 'USDT',
         relatedWallet: reward.sourceWallet,
-        relatedLevel: reward.level
+        relatedLevel: reward.triggerLevel
       });
       
       res.json({
         success: true,
         amount: Math.round(rewardAmount * 100), // Convert to cents for frontend
-        rewardType: reward.rewardType,
+        triggerLevel: reward.triggerLevel,
+        payoutLayer: reward.payoutLayer,
+        matrixPosition: reward.matrixPosition,
         message: `Successfully claimed $${rewardAmount.toFixed(2)} USDT`
       });
     } catch (error) {
@@ -1454,10 +1451,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get all claimable rewards
       const claimableRewards = await db.select()
-        .from(rewardDistributions)
+        .from(userRewards)
         .where(and(
-          eq(rewardDistributions.recipientWallet, walletAddress),
-          eq(rewardDistributions.status, 'claimable')
+          eq(userRewards.recipientWallet, walletAddress),
+          eq(userRewards.status, 'confirmed')
         ));
       
       if (claimableRewards.length === 0) {
@@ -1471,30 +1468,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Mark all as claimed
       const rewardIds = claimableRewards.map(r => r.id);
-      await db.update(rewardDistributions)
+      await db.update(userRewards)
         .set({
           status: 'claimed',
-          claimedAt: new Date()
+          confirmedAt: new Date()
         })
-        .where(inArray(rewardDistributions.id, rewardIds));
+        .where(inArray(userRewards.id, rewardIds));
       
       // Update earnings wallet with bulk amounts
-      const referralAmount = claimableRewards
-        .filter(r => r.rewardType === 'direct_referral')
-        .reduce((sum, r) => sum + parseFloat(r.rewardAmount.toString()), 0);
-      
-      const levelAmount = claimableRewards
-        .filter(r => r.rewardType !== 'direct_referral')
-        .reduce((sum, r) => sum + parseFloat(r.rewardAmount.toString()), 0);
-      
       await storage.updateEarningsWallet(walletAddress, {
         totalEarnings: sql`${earningsWallet.totalEarnings} + ${totalAmount}`,
-        referralEarnings: referralAmount > 0 
-          ? sql`${earningsWallet.referralEarnings} + ${referralAmount}`
-          : earningsWallet.referralEarnings,
-        levelEarnings: levelAmount > 0
-          ? sql`${earningsWallet.levelEarnings} + ${levelAmount}`
-          : earningsWallet.levelEarnings,
+        referralEarnings: sql`${earningsWallet.referralEarnings} + ${totalAmount}`, // All matrix rewards count as referral earnings
         pendingRewards: sql`${earningsWallet.pendingRewards} - ${totalAmount}`,
         lastRewardAt: new Date()
       });
@@ -1509,7 +1493,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         amountType: 'USDT',
         metadata: {
           rewardCount: claimableRewards.length,
-          rewardTypes: [...new Set(claimableRewards.map(r => r.rewardType))]
+          matrixPositions: [...new Set(claimableRewards.map(r => r.matrixPosition))]
         }
       });
       
@@ -1896,12 +1880,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const user = await storage.getUser(referral.walletAddress);
           const membership = await storage.getMembershipState(referral.walletAddress);
           
-          // Calculate earnings from reward distributions
-          const userRewards = await db.select()
-            .from(rewardDistributions)
-            .where(eq(rewardDistributions.recipientWallet, referral.walletAddress));
+          // Calculate earnings from user rewards
+          const userRewardsData = await db.select()
+            .from(userRewards)
+            .where(eq(userRewards.recipientWallet, referral.walletAddress));
           
-          const totalEarnings = userRewards
+          const totalEarnings = userRewardsData
             .filter(r => r.status === 'claimed')
             .reduce((sum, r) => sum + parseFloat(r.rewardAmount), 0);
           
