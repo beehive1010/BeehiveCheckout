@@ -739,84 +739,19 @@ export class DatabaseStorage implements IStorage {
   }
 
 
-  // BeeHive business logic operations - NEW GLOBAL MATRIX LOGIC
-  // Process rewards according to EXACT specification: Layer-based rewards only
+  // DEPRECATED: Old matrix logic replaced by Global 1×3 Matrix system
+  // This function is disabled to prevent conflicts with the new processNFTClaimRewards
   async processGlobalMatrixRewards(buyerWallet: string, purchasedLevel: number): Promise<void> {
-    const matrixPosition = await this.getGlobalMatrixPosition(buyerWallet);
-    if (!matrixPosition) return;
-
-    // Get level config for pricing
-    const levelConfig = await this.getLevelConfig(purchasedLevel);
-    if (!levelConfig) return;
-
-    // SPECIFICATION: "When a member in your Layer n purchases Level n NFT, a pending reward = NFT price is created for you"
-    // Find all uplines who should receive rewards when this member buys Level n NFT
+    console.log(`DEPRECATED: processGlobalMatrixRewards called for ${buyerWallet} level ${purchasedLevel}`);
+    console.log(`Using new Global 1×3 Matrix system instead via processNFTClaimRewards`);
     
-    const uplineWallets = await this.getUplineWallets(buyerWallet, purchasedLevel);
-    
-    for (const { wallet: uplineWallet, layer } of uplineWallets) {
-      const pendingUntil = new Date();
-      pendingUntil.setHours(pendingUntil.getHours() + 72); // 72-hour countdown
-      
-      // Check qualification based on level purchased and upline's level ownership
-      let isQualified = false;
-      const uplineMembership = await this.getMembershipState(uplineWallet);
-      
-      // SPECIFICATION: Member gets rewards only by each Layer upgrade to same level and member >= this level
-      // Layer 1: 3 members × $100 = $300 max (3rd reward requires Level 2)
-      // Layer 2: 9 members × $150 = $1350 max
-      
-      if (purchasedLevel === 1) {
-        // Layer 1 members buying Level 1: $100 each
-        // Count existing Level 1 rewards for this upline
-        const existingLevel1Rewards = await db.select()
-          .from(rewardDistributions)
-          .where(
-            and(
-              eq(rewardDistributions.recipientWallet, uplineWallet),
-              eq(rewardDistributions.level, 1),
-              eq(rewardDistributions.rewardType, 'level_bonus')
-            )
-          );
-          
-        const rewardSequenceNumber = existingLevel1Rewards.length + 1;
-        
-        if (rewardSequenceNumber <= 2) {
-          // First 2 rewards: Need Level 1
-          isQualified = uplineMembership?.levelsOwned.includes(1) || false;
-        } else {
-          // 3rd+ rewards: Need Level 2
-          isQualified = uplineMembership?.levelsOwned.includes(2) || false;
-        }
-      } else {
-        // Level 2+: Upline must own the same level or higher
-        isQualified = uplineMembership?.levelsOwned.some(level => level >= purchasedLevel) || false;
-      }
-      
-      // Determine reward amount based on purchased level
-      // Level 1 = $100, Level 2 = $150, Level 3 = $200, etc.
-      let rewardAmount: string;
-      if (purchasedLevel === 1) {
-        rewardAmount = "100.00"; // $100 USDT
-      } else if (purchasedLevel === 2) {
-        rewardAmount = "150.00"; // $150 USDT
-      } else {
-        // Level 3+ = Base price + $50 increments
-        const basePrice = 150; // Level 2 price
-        const incrementalPrice = basePrice + ((purchasedLevel - 2) * 50);
-        rewardAmount = incrementalPrice.toFixed(2);
-      }
-      
-      await this.createRewardDistribution({
-        recipientWallet: uplineWallet,
-        sourceWallet: buyerWallet,
-        rewardType: 'level_bonus',
-        rewardAmount,
-        level: purchasedLevel,
-        status: isQualified ? 'claimable' : 'pending',
-        pendingUntil: isQualified ? undefined : pendingUntil,
-      });
-    }
+    // Redirect to the new Global 1×3 Matrix system
+    await this.processNFTClaimRewards(
+      buyerWallet, 
+      purchasedLevel, 
+      `level_${purchasedLevel}_purchase`, 
+      `redirect_${Date.now()}`
+    );
   }
 
   // NEW: 3×3 Global Matrix Placement Algorithm with Spillover
@@ -2920,7 +2855,7 @@ export class DatabaseStorage implements IStorage {
       await this.updateTeamCountsUpline(lowerWalletAddress);
     }
 
-    // 12. Trigger sponsor rewards if there's a sponsor
+    // 12. Trigger Global 1×3 Matrix rewards if there's a sponsor
     if (sponsorWallet) {
       await this.triggerSponsorRewards(lowerWalletAddress, sponsorWallet, membershipLevel, nftPrice);
     }
@@ -2941,7 +2876,7 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  // Trigger rewards for sponsor and upline when new member claims NFT
+  // Trigger Global 1×3 Matrix rewards when new member claims NFT
   async triggerSponsorRewards(
     newMemberWallet: string, 
     sponsorWallet: string, 
@@ -2949,41 +2884,17 @@ export class DatabaseStorage implements IStorage {
     nftPrice: number
   ): Promise<void> {
     try {
-      const directReferralReward = nftPrice * 0.1; // 10% direct referral reward
-      const levelBonus = nftPrice * 0.05; // 5% level bonus
+      console.log(`Triggering Global 1×3 Matrix rewards for ${newMemberWallet} at level ${membershipLevel}`);
       
-      // 1. Create direct referral reward for sponsor
-      await this.createUpgradeAndRewardRecords({
-        walletAddress: sponsorWallet,
-        triggerWallet: newMemberWallet,
-        level: membershipLevel,
-        layerNumber: 1,
-        rewardAmount: directReferralReward,
-        rewardType: 'direct_referral'
-      });
+      // Use the new Global 1×3 Matrix reward distribution system
+      await this.processNFTClaimRewards(
+        newMemberWallet, 
+        membershipLevel, 
+        `member_nft_${membershipLevel}`, 
+        `trigger_${Date.now()}`
+      );
 
-      // 2. Create level bonus rewards for upline (up to 19 levels)
-      const uplineChain = await this.getUplineChain(sponsorWallet, 19);
-      
-      for (let i = 0; i < uplineChain.length; i++) {
-        const uplineWallet = uplineChain[i];
-        const layerNumber = i + 2; // Start from layer 2 (layer 1 is direct sponsor)
-        
-        // Check if upline member is activated and has required level
-        const uplineMembership = await this.getMembershipState(uplineWallet);
-        if (uplineMembership && uplineMembership.activeLevel >= membershipLevel) {
-          await this.createUpgradeAndRewardRecords({
-            walletAddress: uplineWallet,
-            triggerWallet: newMemberWallet,
-            level: membershipLevel,
-            layerNumber,
-            rewardAmount: levelBonus / (i + 1), // Decreasing reward amount up the chain
-            rewardType: 'level_bonus'
-          });
-        }
-      }
-
-      // 3. Update sponsor's direct referral count
+      // Update sponsor's direct referral count
       const sponsorNode = await this.getReferralNode(sponsorWallet);
       if (sponsorNode) {
         await this.updateReferralNode(sponsorWallet, {
@@ -2991,8 +2902,9 @@ export class DatabaseStorage implements IStorage {
         });
       }
 
+      console.log(`Global 1×3 Matrix rewards processed successfully for level ${membershipLevel}`);
     } catch (error) {
-      console.error('Error triggering sponsor rewards:', error);
+      console.error('Error triggering Global 1×3 Matrix rewards:', error);
     }
   }
 
@@ -3074,7 +2986,8 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Synchronized notification and reward methods
+  // DEPRECATED: Old reward record creation replaced by Global 1×3 Matrix system
+  // This function is disabled to prevent conflicts with the new userRewards table
   async createUpgradeAndRewardRecords(data: {
     walletAddress: string;
     triggerWallet: string;
@@ -3087,44 +3000,14 @@ export class DatabaseStorage implements IStorage {
     memberActivation: any;
     rewardDistribution: RewardDistribution;
   }> {
-    const { walletAddress, triggerWallet, level, layerNumber, rewardAmount, rewardType } = data;
+    console.log(`DEPRECATED: createUpgradeAndRewardRecords called for ${data.walletAddress} level ${data.level}`);
+    console.log(`New Global 1×3 Matrix system handles rewards via userRewards table`);
     
-    // Create reward notification (72-hour countdown)
-    const rewardNotification = await this.createRewardNotification({
-      recipientWallet: walletAddress.toLowerCase(),
-      triggerWallet: triggerWallet.toLowerCase(),
-      triggerLevel: level,
-      layerNumber,
-      rewardAmount: Math.round(rewardAmount * 100), // Convert to cents
-      status: 'pending',
-      expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000), // 72 hours
-    });
-
-    // Create member activation record (24-hour countdown for upgrade)
-    const memberActivation = await this.createMemberActivation({
-      walletAddress: walletAddress.toLowerCase(),
-      activationType: 'upgrade_triggered' as any,
-      level,
-      pendingUntil: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-      isPending: true,
-      pendingTimeoutHours: 24,
-    });
-
-    // Create reward distribution record (72-hour countdown)
-    const rewardDistribution = await this.createRewardDistribution({
-      recipientWallet: walletAddress.toLowerCase(),
-      sourceWallet: triggerWallet.toLowerCase(),
-      rewardType,
-      rewardAmount: rewardAmount.toString(),
-      level,
-      status: 'pending',
-      pendingUntil: new Date(Date.now() + 72 * 60 * 60 * 1000), // 72 hours
-    });
-
+    // Return empty objects to prevent breaking existing code
     return {
-      rewardNotification,
-      memberActivation,
-      rewardDistribution
+      rewardNotification: {} as RewardNotification,
+      memberActivation: {} as any,
+      rewardDistribution: {} as RewardDistribution
     };
   }
 
