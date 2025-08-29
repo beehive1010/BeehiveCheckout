@@ -1220,7 +1220,8 @@ export const globalMatrixPosition = pgTable("global_matrix_position", {
   sponsorWallet: varchar("sponsor_wallet", { length: 42 }), // Original sponsor (production column)
   directSponsorWallet: varchar("direct_sponsor_wallet", { length: 42 }).notNull(), // Who invited them (gets direct rewards)
   matrixLevel: integer("matrix_level").notNull(), // 1-19 (Level 1=3 positions, Level 2=9, Level 3=27, etc.)
-  positionIndex: integer("position_index").notNull(), // 0-based position within that level
+  positionIndex: integer("position_index").notNull(), // 1, 2, 3 for L, M, R respectively
+  matrixPosition: varchar("matrix_position", { length: 1 }).notNull(), // 'L', 'M', 'R' - Left, Middle, Right in 1×3 matrix
   placementSponsorWallet: varchar("placement_sponsor_wallet", { length: 42 }).notNull(), // Where they were placed in matrix
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -1234,6 +1235,7 @@ export const insertGlobalMatrixPositionSchema = createInsertSchema(globalMatrixP
   directSponsorWallet: true,
   matrixLevel: true,
   positionIndex: true,
+  matrixPosition: true,
   placementSponsorWallet: true,
 });
 
