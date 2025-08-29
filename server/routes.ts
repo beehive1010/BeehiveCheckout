@@ -646,6 +646,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           walletAddress: req.walletAddress,
           matrixLevel: placement.matrixLevel,
           positionIndex: placement.positionIndex,
+          matrixPosition: placement.matrixPosition,
           directSponsorWallet: sponsorWallet,
           placementSponsorWallet: placement.placementSponsorWallet,
         });
@@ -2273,6 +2274,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             walletAddress: req.walletAddress,
             matrixLevel: placement.matrixLevel,
             positionIndex: placement.positionIndex,
+            matrixPosition: placement.matrixPosition,
             directSponsorWallet: sponsorWallet,
             placementSponsorWallet: placement.placementSponsorWallet,
             joinedAt: new Date(),

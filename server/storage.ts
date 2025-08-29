@@ -132,7 +132,7 @@ export interface IStorage {
   getGlobalMatrixPosition(walletAddress: string): Promise<GlobalMatrixPosition | undefined>;
   createGlobalMatrixPosition(position: InsertGlobalMatrixPosition): Promise<GlobalMatrixPosition>;
   updateGlobalMatrixPosition(walletAddress: string, updates: Partial<GlobalMatrixPosition>): Promise<GlobalMatrixPosition | undefined>;
-  findGlobalMatrixPlacement(sponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string }>;
+  findGlobalMatrixPlacement(sponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string; matrixPosition: 'L' | 'M' | 'R' }>;
 
   // USDT balance operations
   getUSDTBalance(walletAddress: string): Promise<USDTBalance | undefined>;
@@ -540,6 +540,7 @@ export class DatabaseStorage implements IStorage {
         walletAddress: position.walletAddress.toLowerCase(),
         directSponsorWallet: position.directSponsorWallet.toLowerCase(),
         placementSponsorWallet: position.placementSponsorWallet.toLowerCase(),
+        matrixPosition: position.matrixPosition || 'L', // Default to L if not specified
       })
       .returning();
     return matrixPosition;
@@ -754,55 +755,89 @@ export class DatabaseStorage implements IStorage {
     );
   }
 
-  // NEW: 3×3 Global Matrix Placement Algorithm with Spillover
-  async findGlobalMatrixPlacement(sponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string }> {
-    // 检查sponsor是否还有直推空位（最多3个）
+  // 1×3 Global Matrix Placement Algorithm with L→M→R order and Spillover
+  async findGlobalMatrixPlacement(sponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string; matrixPosition: 'L' | 'M' | 'R' }> {
+    // Check sponsor's current direct referrals and their L→M→R positions
     const sponsorDirectReferrals = await db.select()
       .from(globalMatrixPosition)
-      .where(eq(globalMatrixPosition.directSponsorWallet, sponsorWallet.toLowerCase()));
+      .where(eq(globalMatrixPosition.directSponsorWallet, sponsorWallet.toLowerCase()))
+      .orderBy(globalMatrixPosition.joinedAt); // Ensure we get them in order they joined
     
-    if (sponsorDirectReferrals.length < 3) {
-      // Sponsor还有直推空位，直接分配给sponsor
-      return {
-        matrixLevel: 1,
-        positionIndex: sponsorDirectReferrals.length + 1, // position 1, 2, 3
-        placementSponsorWallet: sponsorWallet
-      };
+    // Determine next available L→M→R position
+    const usedPositions = sponsorDirectReferrals.map(ref => ref.matrixPosition);
+    let nextPosition: 'L' | 'M' | 'R';
+    let positionIndex: number;
+    
+    if (!usedPositions.includes('L')) {
+      nextPosition = 'L';
+      positionIndex = 1;
+    } else if (!usedPositions.includes('M')) {
+      nextPosition = 'M';
+      positionIndex = 2;
+    } else if (!usedPositions.includes('R')) {
+      nextPosition = 'R';
+      positionIndex = 3;
+    } else {
+      // All L,M,R positions are full - need spillover
+      return await this.findSpilloverPlacement(sponsorWallet);
     }
     
-    // Sponsor满了（3个直推），需要spillover - 使用BFS找最早的有空位的成员
-    return await this.findSpilloverPlacement(sponsorWallet);
+    return {
+      matrixLevel: 1,
+      positionIndex,
+      placementSponsorWallet: sponsorWallet,
+      matrixPosition: nextPosition
+    };
   }
 
-  // BFS spillover placement - 找到最早加入且还有空位的成员
-  async findSpilloverPlacement(originalSponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string }> {
-    // 获取所有成员，按加入时间排序
+  // BFS spillover placement - Find earliest member with available L→M→R slots
+  async findSpilloverPlacement(originalSponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string; matrixPosition: 'L' | 'M' | 'R' }> {
+    // Get all members, ordered by join time (earliest first for spillover)
     const allMembers = await db.select()
       .from(globalMatrixPosition)
       .orderBy(globalMatrixPosition.joinedAt);
     
-    // BFS：从最早的成员开始查找有空位的位置
+    // BFS: Check each member starting from earliest for available L→M→R positions
     for (const member of allMembers) {
       const memberDirectReferrals = await db.select()
         .from(globalMatrixPosition)
-        .where(eq(globalMatrixPosition.directSponsorWallet, member.walletAddress));
+        .where(eq(globalMatrixPosition.directSponsorWallet, member.walletAddress))
+        .orderBy(globalMatrixPosition.joinedAt);
       
-      if (memberDirectReferrals.length < 3) {
-        // 找到有空位的成员
+      // Check which L→M→R positions are available
+      const usedPositions = memberDirectReferrals.map(ref => ref.matrixPosition);
+      let nextPosition: 'L' | 'M' | 'R' | null = null;
+      let positionIndex: number = 0;
+      
+      if (!usedPositions.includes('L')) {
+        nextPosition = 'L';
+        positionIndex = 1;
+      } else if (!usedPositions.includes('M')) {
+        nextPosition = 'M';
+        positionIndex = 2;
+      } else if (!usedPositions.includes('R')) {
+        nextPosition = 'R';
+        positionIndex = 3;
+      }
+      
+      if (nextPosition) {
+        // Found available position in this member's matrix
         return {
-          matrixLevel: member.matrixLevel + 1, // 比placement sponsor低一层
-          positionIndex: memberDirectReferrals.length + 1,
-          placementSponsorWallet: member.walletAddress
+          matrixLevel: member.matrixLevel + 1,
+          positionIndex,
+          placementSponsorWallet: member.walletAddress,
+          matrixPosition: nextPosition
         };
       }
     }
     
-    // 如果所有现有成员都满了，创建新的层级
+    // If all existing members are full, place under the original sponsor as new level
     const maxLevel = Math.max(...allMembers.map(m => m.matrixLevel));
     return {
       matrixLevel: maxLevel + 1,
       positionIndex: 1,
-      placementSponsorWallet: originalSponsorWallet // fallback
+      placementSponsorWallet: originalSponsorWallet,
+      matrixPosition: 'L' // Start new level with L position
     };
   }
 
@@ -2826,15 +2861,27 @@ export class DatabaseStorage implements IStorage {
       pendingTimeoutHours: 0,
     });
 
-    // 9. Create global matrix position
+    // 9. Create global matrix position using proper 1×3 placement
     let globalMatrixPosition = await this.getGlobalMatrixPosition(lowerWalletAddress);
-    if (!globalMatrixPosition) {
+    if (!globalMatrixPosition && sponsorWallet) {
+      const placement = await this.findGlobalMatrixPlacement(sponsorWallet);
       globalMatrixPosition = await this.createGlobalMatrixPosition({
         walletAddress: lowerWalletAddress,
-        matrixLevel: membershipLevel,
-        positionIndex: await this.getNextGlobalMatrixPosition(),
-        directSponsorWallet: sponsorWallet?.toLowerCase() || '',
-        placementSponsorWallet: sponsorWallet?.toLowerCase() || '',
+        matrixLevel: placement.matrixLevel,
+        positionIndex: placement.positionIndex,
+        matrixPosition: placement.matrixPosition,
+        directSponsorWallet: sponsorWallet.toLowerCase(),
+        placementSponsorWallet: placement.placementSponsorWallet,
+      });
+    } else if (!globalMatrixPosition) {
+      // Root member (no sponsor)
+      globalMatrixPosition = await this.createGlobalMatrixPosition({
+        walletAddress: lowerWalletAddress,
+        matrixLevel: 1,
+        positionIndex: 1,
+        matrixPosition: 'L',
+        directSponsorWallet: lowerWalletAddress,
+        placementSponsorWallet: lowerWalletAddress,
       });
     }
 
