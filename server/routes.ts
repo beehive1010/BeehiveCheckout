@@ -3911,6 +3911,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return explorer ? `${explorer}/tx/${txHash}` : '';
   }
 
+  // Test NFT Claim Reward Distribution (simplified for testing)
+  app.post("/api/test-nft-claim-rewards", async (req, res) => {
+    try {
+      const { sourceWallet, triggerLevel, nftId, claimTx } = req.body;
+
+      if (!sourceWallet || !triggerLevel || triggerLevel < 1 || triggerLevel > 19) {
+        return res.status(400).json({ error: 'Invalid parameters' });
+      }
+
+      console.log(`Testing NFT claim rewards for ${sourceWallet} at level ${triggerLevel}`);
+      
+      await storage.processNFTClaimRewards(sourceWallet, triggerLevel, nftId, claimTx);
+      
+      res.json({ 
+        success: true, 
+        message: `Test NFT claim rewards processed for level ${triggerLevel}`,
+        data: {
+          sourceWallet,
+          triggerLevel,
+          nftPrice: triggerLevel === 1 ? 100 : 100 + (triggerLevel - 1) * 50,
+          rewardAmount: triggerLevel === 1 ? 100 : 100 + (triggerLevel - 1) * 50,
+          platformRevenue: triggerLevel === 1 ? 30 : 0
+        }
+      });
+    } catch (error) {
+      console.error('Test NFT claim rewards error:', error);
+      res.status(500).json({ error: 'Failed to process test NFT claim rewards' });
+    }
+  });
+
   // NFT Claim Reward Distribution
   app.post("/api/nft-claim-rewards", requireAuth, async (req, res) => {
     try {
@@ -3981,7 +4011,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await storage.processPendingUserRewards();
       res.json({ 
         success: true, 
-        message: `Processed ${result.processed} rewards: ${result.confirmed} confirmed, ${result.expired} expired`,
+        message: `Processed ${result.processed} rewards: ${result.confirmed} confirmed, ${result.expired} expired, ${result.reallocated} reallocated`,
         result 
       });
     } catch (error) {

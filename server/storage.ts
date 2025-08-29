@@ -110,7 +110,7 @@ import {
   type InsertAdminSetting
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, sql, isNull, inArray, not, gt, lt } from "drizzle-orm";
+import { eq, and, desc, sql, isNull, inArray, not, gt, lt, gte, lte, isNotNull } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -3475,62 +3475,71 @@ export class DatabaseStorage implements IStorage {
       );
   }
 
-  // NFT Claim Reward Distribution - Main Logic
+  // NFT Claim Reward Distribution - Main Logic (Global 1×3 Matrix)
   async processNFTClaimRewards(sourceWallet: string, triggerLevel: number, nftId?: string, claimTx?: string): Promise<void> {
     console.log(`Processing NFT claim rewards for ${sourceWallet} at level ${triggerLevel}`);
     
     try {
-      // Get level configuration for reward amount calculations
+      // Get level configuration for validation
       const levelConfig = await this.getLevelConfig(triggerLevel);
       if (!levelConfig) {
         throw new Error(`Level config not found for level ${triggerLevel}`);
       }
 
-      // Get uplines in layer N (target layer = triggerLevel)
-      const uplines = await this.getUplinesInLayer(sourceWallet, triggerLevel);
-      console.log(`Found ${uplines.length} uplines in layer ${triggerLevel}`);
-
-      // Process rewards for each upline
-      for (let i = 0; i < uplines.length && i < Math.pow(3, triggerLevel); i++) {
-        const upline = uplines[i];
-        const matrixPosition = this.getMatrixPosition(i); // L, M, or R
-        
-        // Check if upline meets level requirements
-        if (!await this.checkLevelRequirement(upline.wallet, triggerLevel)) {
-          console.log(`Upline ${upline.wallet} does not meet level ${triggerLevel} requirement`);
-          continue;
+      // Find the Nth ancestor (exactly N steps up)
+      const targetUpline = await this.getNthAncestor(sourceWallet, triggerLevel);
+      
+      if (!targetUpline) {
+        console.log(`No ancestor found at depth ${triggerLevel} for ${sourceWallet}`);
+        // Still process platform revenue for L1
+        if (triggerLevel === 1) {
+          await this.createPlatformRevenue({
+            sourceType: 'nft_claim',
+            sourceWallet,
+            level: triggerLevel,
+            amount: '30',
+            description: `Platform fee from Level ${triggerLevel} NFT claim`,
+            metadata: { nftId, claimTx }
+          });
         }
-
-        // Determine reward amount and conditions based on level
-        const { rewardAmount, isPending, expiresAt, unlockCondition } = this.calculateRewardParameters(triggerLevel, i);
-        
-        // Create user reward record
-        await this.createUserReward({
-          recipientWallet: upline.wallet,
-          sourceWallet,
-          triggerLevel,
-          payoutLayer: triggerLevel,
-          matrixPosition,
-          rewardAmount,
-          status: isPending ? 'pending' : 'confirmed',
-          requiresLevel: triggerLevel,
-          unlockCondition: isPending ? unlockCondition : undefined,
-          expiresAt: isPending ? expiresAt : undefined,
-          metadata: {
-            nftId,
-            claimTx,
-            originalPrice: levelConfig.nftPriceUSDT,
-            layerCalculation: `Layer ${triggerLevel}, position ${i + 1}`
-          }
-        });
-
-        // Update user's earnings wallet for confirmed rewards
-        if (!isPending) {
-          await this.updateEarningsForConfirmedReward(upline.wallet, rewardAmount);
-        }
+        return;
       }
 
-      // Handle platform revenue for L1 only
+      console.log(`Found target upline ${targetUpline} at depth ${triggerLevel}`);
+
+      // Check if target upline is eligible (has membership_level >= N)
+      const uplineEligible = await this.checkLevelRequirement(targetUpline, triggerLevel);
+      
+      // Calculate reward parameters based on eligibility
+      const { rewardAmount, isPending, expiresAt, unlockCondition } = this.calculateRewardParameters(triggerLevel, uplineEligible);
+      
+      // Create user reward record
+      await this.createUserReward({
+        recipientWallet: targetUpline,
+        sourceWallet,
+        triggerLevel,
+        payoutLayer: triggerLevel,
+        matrixPosition: `depth_${triggerLevel}`,
+        rewardAmount,
+        status: isPending ? 'pending' : 'confirmed',
+        requiresLevel: triggerLevel,
+        unlockCondition: isPending ? unlockCondition : undefined,
+        expiresAt: isPending ? expiresAt : undefined,
+        metadata: {
+          nftId,
+          claimTx,
+          originalPrice: triggerLevel === 1 ? 100 : 100 + (triggerLevel - 1) * 50,
+          ancestorDepth: triggerLevel,
+          eligible: uplineEligible
+        }
+      });
+
+      // Update user's earnings wallet for confirmed rewards
+      if (!isPending) {
+        await this.updateEarningsForConfirmedReward(targetUpline, rewardAmount);
+      }
+
+      // Handle platform revenue for L1 only (+30 USDT)
       if (triggerLevel === 1) {
         await this.createPlatformRevenue({
           sourceType: 'nft_claim',
@@ -3543,9 +3552,7 @@ export class DatabaseStorage implements IStorage {
       }
 
       // Unlock any pending rewards that now meet conditions
-      if (triggerLevel >= 2) {
-        await this.unlockPendingRewards(`upgrade_to_level_${triggerLevel}`, sourceWallet);
-      }
+      await this.unlockPendingRewards(`upgrade_to_level_${triggerLevel}`, sourceWallet);
 
       console.log(`NFT claim rewards processed successfully for level ${triggerLevel}`);
     } catch (error) {
@@ -3554,32 +3561,52 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Helper methods for NFT claim reward processing
-  private async getUplinesInLayer(sourceWallet: string, layerNumber: number): Promise<Array<{wallet: string}>> {
-    const uplines: Array<{wallet: string}> = [];
+  // Find the Nth ancestor (exactly N steps up in the referral tree)
+  private async getNthAncestor(sourceWallet: string, depth: number): Promise<string | null> {
     let currentWallet = sourceWallet;
     
-    // Walk up the referral tree to find uplines
-    for (let layer = 1; layer <= layerNumber; layer++) {
+    // Walk up exactly N steps
+    for (let step = 1; step <= depth; step++) {
       const user = await this.getUser(currentWallet);
       if (!user?.referrerWallet || user.referrerWallet === currentWallet) {
-        break;
-      }
-      
-      if (layer === layerNumber) {
-        // This is the target layer - collect all uplines at this level
-        uplines.push({ wallet: user.referrerWallet });
-        
-        // Get matrix siblings (other uplines in same layer) - simplified for now
-        // In a full 1x3 matrix, we would get L, M, R positions
-        // For now, just get the direct upline
-        break;
+        return null; // No ancestor at this depth
       }
       
       currentWallet = user.referrerWallet;
     }
     
-    return uplines;
+    return currentWallet;
+  }
+
+  // Find qualified ancestor by searching upward
+  private async findQualifiedAncestor(sourceWallet: string, requiredLevel: number, startDepth: number = 1): Promise<string | null> {
+    let currentWallet = sourceWallet;
+    
+    // Skip to start depth first
+    for (let step = 1; step < startDepth; step++) {
+      const user = await this.getUser(currentWallet);
+      if (!user?.referrerWallet || user.referrerWallet === currentWallet) {
+        return null;
+      }
+      currentWallet = user.referrerWallet;
+    }
+    
+    // Then search upward for qualified ancestor
+    for (let depth = startDepth; depth <= 19; depth++) {
+      const user = await this.getUser(currentWallet);
+      if (!user?.referrerWallet || user.referrerWallet === currentWallet) {
+        break;
+      }
+      
+      currentWallet = user.referrerWallet;
+      
+      // Check if this ancestor is qualified
+      if (await this.checkLevelRequirement(currentWallet, requiredLevel)) {
+        return currentWallet;
+      }
+    }
+    
+    return null; // No qualified ancestor found
   }
 
   private getMatrixPosition(index: number): string {
@@ -3592,13 +3619,17 @@ export class DatabaseStorage implements IStorage {
     return membership?.levelsOwned.includes(requiredLevel) || false;
   }
 
-  private calculateRewardParameters(triggerLevel: number, positionIndex: number): {
+  private calculateRewardParameters(triggerLevel: number, uplineEligible: boolean): {
     rewardAmount: string;
     isPending: boolean;
     expiresAt?: Date;
     unlockCondition?: string;
   } {
-    let rewardAmount: string;
+    // NFT Price progression: Level 1 = 100 USDT, Level N = 100 + (N-1)*50 USDT
+    // Reward = NFT Price × 100%
+    const nftPrice = triggerLevel === 1 ? 100 : 100 + (triggerLevel - 1) * 50;
+    const rewardAmount = nftPrice.toString();
+    
     let isPending = false;
     let expiresAt: Date | undefined;
     let unlockCondition: string | undefined;
@@ -3606,33 +3637,11 @@ export class DatabaseStorage implements IStorage {
     const now = new Date();
     const expires72h = new Date(now.getTime() + (72 * 60 * 60 * 1000));
 
-    switch (triggerLevel) {
-      case 1:
-        rewardAmount = '100';
-        // 3rd payee (position 2) is pending
-        if (positionIndex === 2) {
-          isPending = true;
-          expiresAt = expires72h;
-          unlockCondition = 'upgrade_to_level_2';
-        }
-        break;
-      case 2:
-        rewardAmount = '150';
-        // No pending for L2
-        break;
-      case 3:
-        rewardAmount = '200';
-        isPending = true;
-        expiresAt = expires72h;
-        unlockCondition = 'upgrade_to_level_3';
-        break;
-      default:
-        // L4-L19
-        rewardAmount = '100';
-        isPending = true;
-        expiresAt = expires72h;
-        unlockCondition = `upgrade_to_level_${triggerLevel}`;
-        break;
+    // If upline doesn't meet level requirement, make it pending
+    if (!uplineEligible) {
+      isPending = true;
+      expiresAt = expires72h;
+      unlockCondition = `upgrade_to_level_${triggerLevel}`;
     }
 
     return { rewardAmount, isPending, expiresAt, unlockCondition };
@@ -3670,12 +3679,13 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Cron job method for processing expired/confirmed rewards
-  async processPendingUserRewards(): Promise<{ processed: number; expired: number; confirmed: number }> {
+  // Cron job method for processing expired/confirmed rewards with spillover reallocation
+  async processPendingUserRewards(): Promise<{ processed: number; expired: number; confirmed: number; reallocated: number }> {
     const now = new Date();
     let processed = 0;
     let expired = 0;
     let confirmed = 0;
+    let reallocated = 0;
 
     try {
       // Get all pending rewards that are ready to be processed
@@ -3713,22 +3723,72 @@ export class DatabaseStorage implements IStorage {
           
           console.log(`Confirmed reward ${reward.id} for ${reward.recipientWallet}`);
         } else {
-          // Expire the reward
+          // Expired - implement spillover reallocation
           await this.updateUserRewardStatus(
             reward.id,
             'expired',
             undefined,
             now,
-            'Unlock condition not met in time - expired'
+            'Original recipient not qualified - searching for spillover'
           );
-          expired++;
           
-          console.log(`Expired reward ${reward.id} for ${reward.recipientWallet}`);
+          // Find qualified ancestor for reallocation
+          const qualifiedAncestor = await this.findQualifiedAncestor(
+            reward.sourceWallet, 
+            reward.requiresLevel || reward.triggerLevel,
+            reward.triggerLevel + 1 // Start searching from the next level up
+          );
+          
+          if (qualifiedAncestor) {
+            // Create new reward for qualified ancestor
+            await this.createUserReward({
+              recipientWallet: qualifiedAncestor,
+              sourceWallet: reward.sourceWallet,
+              triggerLevel: reward.triggerLevel,
+              payoutLayer: reward.payoutLayer,
+              matrixPosition: `spillover_${reward.matrixPosition}`,
+              rewardAmount: reward.rewardAmount,
+              status: 'confirmed',
+              requiresLevel: reward.requiresLevel,
+              unlockCondition: undefined,
+              expiresAt: undefined,
+              metadata: {
+                ...(reward.metadata as object || {}),
+                spilloverFrom: reward.recipientWallet,
+                originalRewardId: reward.id,
+                reallocatedAt: now.toISOString()
+              }
+            });
+
+            // Update earnings wallet for spillover recipient
+            await this.updateEarningsForConfirmedReward(qualifiedAncestor, reward.rewardAmount);
+            reallocated++;
+            
+            console.log(`Reallocated reward ${reward.id} from ${reward.recipientWallet} to ${qualifiedAncestor}`);
+          } else {
+            // No qualified ancestor found - goes to platform revenue
+            await this.createPlatformRevenue({
+              sourceType: 'spillover_fallback',
+              sourceWallet: reward.sourceWallet,
+              level: reward.triggerLevel,
+              amount: reward.rewardAmount,
+              description: `Fallback revenue from expired Level ${reward.triggerLevel} reward`,
+              metadata: {
+                originalRewardId: reward.id,
+                originalRecipient: reward.recipientWallet,
+                reason: 'No qualified ancestor found for spillover'
+              }
+            });
+            
+            console.log(`Reward ${reward.id} sent to platform revenue - no qualified ancestors`);
+          }
+          
+          expired++;
         }
       }
 
-      console.log(`Processed ${processed} rewards: ${confirmed} confirmed, ${expired} expired`);
-      return { processed, expired, confirmed };
+      console.log(`Processed ${processed} rewards: ${confirmed} confirmed, ${expired} expired, ${reallocated} reallocated`);
+      return { processed, expired, confirmed, reallocated };
     } catch (error) {
       console.error('Error processing pending user rewards:', error);
       throw error;
