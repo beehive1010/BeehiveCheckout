@@ -3,19 +3,26 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Gift, DollarSign, CheckCircle } from 'lucide-react';
+import { Clock, Gift, DollarSign, CheckCircle, ExternalLink, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface ClaimableReward {
   id: string;
   rewardAmount: number;
-  rewardType: string;
+  triggerLevel: number;
+  payoutLayer: number;
+  matrixPosition: string;
   sourceWallet: string;
-  level: number;
-  status: 'claimable' | 'pending';
+  status: 'confirmed' | 'pending';
+  requiresLevel?: number;
+  unlockCondition?: string;
   expiresAt?: string;
   createdAt: string;
+  metadata?: any;
 }
 
 interface ClaimableRewardsResponse {
@@ -25,10 +32,24 @@ interface ClaimableRewardsResponse {
   totalPending: number;
 }
 
+interface SupportedChain {
+  id: string;
+  name: string;
+  symbol: string;
+  icon: string;
+}
+
+interface SupportedChainsResponse {
+  supportedChains: SupportedChain[];
+}
+
 export default function ClaimableRewardsCard({ walletAddress }: { walletAddress: string }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [claimingRewards, setClaimingRewards] = useState<string[]>([]);
+  const [selectedChain, setSelectedChain] = useState<string>('');
+  const [gasConfirmed, setGasConfirmed] = useState(false);
+  const [claimingRewardId, setClaimingRewardId] = useState<string | null>(null);
 
   // Fetch claimable rewards
   const { data: rewardsData, isLoading } = useQuery<ClaimableRewardsResponse>({
@@ -48,31 +69,53 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
     },
   });
 
-  // Claim single reward mutation
-  const claimRewardMutation = useMutation({
-    mutationFn: async (rewardId: string) => {
-      return await apiRequest(`/api/rewards/claim/${rewardId}`, 'POST');
+  // Fetch supported chains
+  const { data: chainsData } = useQuery<SupportedChainsResponse>({
+    queryKey: ['/api/rewards/supported-chains'],
+    enabled: !!walletAddress,
+  });
+
+  // Claim reward with transfer mutation
+  const claimWithTransferMutation = useMutation({
+    mutationFn: async ({ rewardId, targetChain, gasConfirmed }: { rewardId: string; targetChain: string; gasConfirmed: boolean }) => {
+      return await apiRequest(`/api/rewards/claim-with-transfer/${rewardId}`, 'POST', {
+        targetChain,
+        gasConfirmed
+      });
     },
-    onMutate: (rewardId) => {
+    onMutate: ({ rewardId }) => {
       setClaimingRewards(prev => [...prev, rewardId]);
     },
-    onSuccess: (data: any, rewardId) => {
+    onSuccess: (data: any, { rewardId }) => {
       toast({
         title: "Reward Claimed Successfully!",
-        description: `You claimed $${(data.amount / 100).toFixed(2)} USDT`,
+        description: `You claimed $${(data.amount / 100).toFixed(2)} USDT on ${data.chain}`,
         variant: 'default',
+        action: data.transactionHash ? (
+          <a 
+            href={`https://etherscan.io/tx/${data.transactionHash}`} 
+            target=\"_blank\" 
+            rel=\"noopener noreferrer\"
+            className=\"flex items-center gap-1 text-sm underline\"
+          >
+            View TX <ExternalLink className=\"h-3 w-3\" />
+          </a>
+        ) : undefined,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/rewards/claimable'] });
       queryClient.invalidateQueries({ queryKey: ['/api/beehive/user-stats'] });
+      setClaimingRewardId(null);
+      setSelectedChain('');
+      setGasConfirmed(false);
     },
-    onError: (error: any, rewardId) => {
+    onError: (error: any, { rewardId }) => {
       toast({
         title: "Claim Failed",
         description: error.message || "Failed to claim reward. Please try again.",
         variant: 'destructive',
       });
     },
-    onSettled: (data, error, rewardId) => {
+    onSettled: (data, error, { rewardId }) => {
       setClaimingRewards(prev => prev.filter(id => id !== rewardId));
     },
   });
@@ -100,17 +143,31 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
     },
   });
 
-  const formatRewardType = (type: string) => {
-    switch (type) {
-      case 'direct_referral':
-        return 'Direct Referral';
-      case 'level_bonus':
-        return 'Level Bonus';
-      case 'matrix_spillover':
-        return 'Matrix Spillover';
-      default:
-        return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  const formatMatrixPosition = (matrixPosition: string) => {
+    if (matrixPosition?.startsWith('depth_')) {
+      const depth = matrixPosition.replace('depth_', '');
+      return `Level ${depth} Matrix`;
     }
+    if (matrixPosition?.startsWith('spillover_')) {
+      return 'Spillover Reward';
+    }
+    return matrixPosition || 'Matrix Reward';
+  };
+
+  const handleClaimReward = (rewardId: string) => {
+    setClaimingRewardId(rewardId);
+    setSelectedChain('');
+    setGasConfirmed(false);
+  };
+
+  const handleConfirmClaim = () => {
+    if (!claimingRewardId || !selectedChain || !gasConfirmed) return;
+    
+    claimWithTransferMutation.mutate({
+      rewardId: claimingRewardId,
+      targetChain: selectedChain,
+      gasConfirmed: gasConfirmed
+    });
   };
 
   const getTimeRemaining = (expiresAt: string) => {
@@ -209,19 +266,89 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
                   <div>
                     <div className="font-medium">${(reward.rewardAmount / 100).toFixed(2)} USDT</div>
                     <div className="text-sm text-muted-foreground">
-                      {formatRewardType(reward.rewardType)} • Level {reward.level}
+                      {formatMatrixPosition(reward.matrixPosition)} • L{reward.triggerLevel} → L{reward.payoutLayer}
                     </div>
                   </div>
                 </div>
-                <Button
-                  size="sm"
-                  onClick={() => claimRewardMutation.mutate(reward.id)}
-                  disabled={claimingRewards.includes(reward.id)}
-                  className="bg-honey text-black hover:bg-honey/90"
-                  data-testid={`claim-reward-${reward.id}`}
-                >
-                  {claimingRewards.includes(reward.id) ? 'Claiming...' : 'Claim'}
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      size="sm"
+                      onClick={() => handleClaimReward(reward.id)}
+                      disabled={claimingRewards.includes(reward.id)}
+                      className="bg-honey text-black hover:bg-honey/90"
+                      data-testid={`claim-reward-${reward.id}`}
+                    >
+                      {claimingRewards.includes(reward.id) ? 'Claiming...' : 'Claim'}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <DollarSign className="h-5 w-5 text-honey" />
+                        Claim ${(reward.rewardAmount / 100).toFixed(2)} USDT
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="bg-muted p-3 rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-2">Reward Details:</p>
+                        <p className="font-medium">{formatMatrixPosition(reward.matrixPosition)}</p>
+                        <p className="text-sm">From Level {reward.triggerLevel} to Layer {reward.payoutLayer}</p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Select Blockchain:</label>
+                        <Select value={selectedChain} onValueChange={setSelectedChain}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose chain for withdrawal" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {chainsData?.supportedChains?.map((chain) => (
+                              <SelectItem key={chain.id} value={chain.id}>
+                                <div className="flex items-center gap-2">
+                                  <span>{chain.icon}</span>
+                                  <span>{chain.name}</span>
+                                  <Badge variant="outline" className="text-xs">
+                                    {chain.symbol}
+                                  </Badge>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="flex items-center space-x-2 p-3 bg-orange-500/10 rounded-lg">
+                        <AlertTriangle className="h-4 w-4 text-orange-500" />
+                        <div className="text-sm">
+                          <p className="font-medium text-orange-500">Gas Fee Required</p>
+                          <p className="text-muted-foreground">
+                            You will pay network gas fees for this withdrawal
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="gas-confirm"
+                          checked={gasConfirmed}
+                          onCheckedChange={setGasConfirmed}
+                        />
+                        <label htmlFor="gas-confirm" className="text-sm">
+                          I understand and agree to pay gas fees for this withdrawal
+                        </label>
+                      </div>
+
+                      <Button
+                        className="w-full bg-honey text-black hover:bg-honey/90"
+                        onClick={handleConfirmClaim}
+                        disabled={!selectedChain || !gasConfirmed || claimWithTransferMutation.isPending}
+                      >
+                        {claimWithTransferMutation.isPending ? 'Processing...' : 'Confirm Claim'}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             ))}
           </div>
@@ -243,7 +370,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
                   <div>
                     <div className="font-medium">${(reward.rewardAmount / 100).toFixed(2)} USDT</div>
                     <div className="text-sm text-muted-foreground">
-                      {formatRewardType(reward.rewardType)} • Level {reward.level}
+                      {formatMatrixPosition(reward.matrixPosition)} • L{reward.triggerLevel} → L{reward.payoutLayer}
                     </div>
                   </div>
                 </div>
