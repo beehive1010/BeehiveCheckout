@@ -29,6 +29,8 @@ import {
   partnerChains,
   memberActivations,
   rewardDistributions,
+  platformRevenue,
+  userRewards,
   adminSettings,
   type User, 
   type InsertUser,
@@ -100,6 +102,10 @@ import {
   type InsertMemberActivation,
   type RewardDistribution,
   type InsertRewardDistribution,
+  type PlatformRevenue,
+  type InsertPlatformRevenue,
+  type UserReward,
+  type InsertUserReward,
   type AdminSetting,
   type InsertAdminSetting
 } from "@shared/schema";
@@ -266,6 +272,23 @@ export interface IStorage {
   markNotificationAsRead(notificationId: string, walletAddress: string): Promise<UserNotification | undefined>;
   markAllNotificationsAsRead(walletAddress: string): Promise<void>;
   getUnreadNotificationCount(walletAddress: string): Promise<number>;
+
+  // Platform Revenue methods
+  createPlatformRevenue(data: InsertPlatformRevenue): Promise<PlatformRevenue>;
+  getPlatformRevenueByDate(startDate: Date, endDate: Date): Promise<PlatformRevenue[]>;
+  getPlatformRevenueBySourceWallet(sourceWallet: string): Promise<PlatformRevenue[]>;
+
+  // User Rewards methods  
+  createUserReward(data: InsertUserReward): Promise<UserReward>;
+  getUserRewardsByRecipient(recipientWallet: string): Promise<UserReward[]>;
+  getUserRewardsBySource(sourceWallet: string): Promise<UserReward[]>;
+  getPendingUserRewards(): Promise<UserReward[]>;
+  updateUserRewardStatus(id: string, status: string, confirmedAt?: Date, expiredAt?: Date, notes?: string): Promise<void>;
+  getUserRewardsExpiredBefore(date: Date): Promise<UserReward[]>;
+  unlockPendingRewards(unlockCondition: string, sourceWallet: string): Promise<void>;
+
+  // NFT claim reward distribution
+  processNFTClaimRewards(sourceWallet: string, triggerLevel: number, nftId?: string, claimTx?: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3353,6 +3376,381 @@ export class DatabaseStorage implements IStorage {
         )
       );
     return result[0]?.count || 0;
+  }
+
+  // Platform Revenue Methods
+  async createPlatformRevenue(data: InsertPlatformRevenue): Promise<PlatformRevenue> {
+    const [result] = await db.insert(platformRevenue).values({
+      ...data,
+      sourceWallet: data.sourceWallet.toLowerCase()
+    }).returning();
+    return result;
+  }
+
+  async getPlatformRevenueByDate(startDate: Date, endDate: Date): Promise<PlatformRevenue[]> {
+    return await db.select()
+      .from(platformRevenue)
+      .where(
+        and(
+          gte(platformRevenue.createdAt, startDate),
+          lte(platformRevenue.createdAt, endDate)
+        )
+      )
+      .orderBy(desc(platformRevenue.createdAt));
+  }
+
+  async getPlatformRevenueBySourceWallet(sourceWallet: string): Promise<PlatformRevenue[]> {
+    return await db.select()
+      .from(platformRevenue)
+      .where(eq(platformRevenue.sourceWallet, sourceWallet.toLowerCase()))
+      .orderBy(desc(platformRevenue.createdAt));
+  }
+
+  // User Rewards Methods
+  async createUserReward(data: InsertUserReward): Promise<UserReward> {
+    const [result] = await db.insert(userRewards).values({
+      ...data,
+      recipientWallet: data.recipientWallet.toLowerCase(),
+      sourceWallet: data.sourceWallet.toLowerCase()
+    }).returning();
+    return result;
+  }
+
+  async getUserRewardsByRecipient(recipientWallet: string): Promise<UserReward[]> {
+    return await db.select()
+      .from(userRewards)
+      .where(eq(userRewards.recipientWallet, recipientWallet.toLowerCase()))
+      .orderBy(desc(userRewards.createdAt));
+  }
+
+  async getUserRewardsBySource(sourceWallet: string): Promise<UserReward[]> {
+    return await db.select()
+      .from(userRewards)
+      .where(eq(userRewards.sourceWallet, sourceWallet.toLowerCase()))
+      .orderBy(desc(userRewards.createdAt));
+  }
+
+  async getPendingUserRewards(): Promise<UserReward[]> {
+    return await db.select()
+      .from(userRewards)
+      .where(eq(userRewards.status, 'pending'))
+      .orderBy(desc(userRewards.createdAt));
+  }
+
+  async updateUserRewardStatus(id: string, status: string, confirmedAt?: Date, expiredAt?: Date, notes?: string): Promise<void> {
+    const updates: Partial<UserReward> = { status };
+    if (confirmedAt) updates.confirmedAt = confirmedAt;
+    if (expiredAt) updates.expiredAt = expiredAt;
+    if (notes) updates.notes = notes;
+
+    await db.update(userRewards)
+      .set(updates)
+      .where(eq(userRewards.id, id));
+  }
+
+  async getUserRewardsExpiredBefore(date: Date): Promise<UserReward[]> {
+    return await db.select()
+      .from(userRewards)
+      .where(
+        and(
+          eq(userRewards.status, 'pending'),
+          lte(userRewards.expiresAt, date)
+        )
+      );
+  }
+
+  async unlockPendingRewards(unlockCondition: string, sourceWallet: string): Promise<void> {
+    await db.update(userRewards)
+      .set({
+        status: 'confirmed',
+        confirmedAt: new Date(),
+        notes: 'Unlock condition met'
+      })
+      .where(
+        and(
+          eq(userRewards.status, 'pending'),
+          eq(userRewards.unlockCondition, unlockCondition),
+          eq(userRewards.sourceWallet, sourceWallet.toLowerCase())
+        )
+      );
+  }
+
+  // NFT Claim Reward Distribution - Main Logic
+  async processNFTClaimRewards(sourceWallet: string, triggerLevel: number, nftId?: string, claimTx?: string): Promise<void> {
+    console.log(`Processing NFT claim rewards for ${sourceWallet} at level ${triggerLevel}`);
+    
+    try {
+      // Get level configuration for reward amount calculations
+      const levelConfig = await this.getLevelConfig(triggerLevel);
+      if (!levelConfig) {
+        throw new Error(`Level config not found for level ${triggerLevel}`);
+      }
+
+      // Get uplines in layer N (target layer = triggerLevel)
+      const uplines = await this.getUplinesInLayer(sourceWallet, triggerLevel);
+      console.log(`Found ${uplines.length} uplines in layer ${triggerLevel}`);
+
+      // Process rewards for each upline
+      for (let i = 0; i < uplines.length && i < Math.pow(3, triggerLevel); i++) {
+        const upline = uplines[i];
+        const matrixPosition = this.getMatrixPosition(i); // L, M, or R
+        
+        // Check if upline meets level requirements
+        if (!await this.checkLevelRequirement(upline.wallet, triggerLevel)) {
+          console.log(`Upline ${upline.wallet} does not meet level ${triggerLevel} requirement`);
+          continue;
+        }
+
+        // Determine reward amount and conditions based on level
+        const { rewardAmount, isPending, expiresAt, unlockCondition } = this.calculateRewardParameters(triggerLevel, i);
+        
+        // Create user reward record
+        await this.createUserReward({
+          recipientWallet: upline.wallet,
+          sourceWallet,
+          triggerLevel,
+          payoutLayer: triggerLevel,
+          matrixPosition,
+          rewardAmount,
+          status: isPending ? 'pending' : 'confirmed',
+          requiresLevel: triggerLevel,
+          unlockCondition: isPending ? unlockCondition : undefined,
+          expiresAt: isPending ? expiresAt : undefined,
+          metadata: {
+            nftId,
+            claimTx,
+            originalPrice: levelConfig.nftPriceUSDT,
+            layerCalculation: `Layer ${triggerLevel}, position ${i + 1}`
+          }
+        });
+
+        // Update user's earnings wallet for confirmed rewards
+        if (!isPending) {
+          await this.updateEarningsForConfirmedReward(upline.wallet, rewardAmount);
+        }
+      }
+
+      // Handle platform revenue for L1 only
+      if (triggerLevel === 1) {
+        await this.createPlatformRevenue({
+          sourceType: 'nft_claim',
+          sourceWallet,
+          level: triggerLevel,
+          amount: '30',
+          description: `Platform fee from Level ${triggerLevel} NFT claim`,
+          metadata: { nftId, claimTx }
+        });
+      }
+
+      // Unlock any pending rewards that now meet conditions
+      if (triggerLevel >= 2) {
+        await this.unlockPendingRewards(`upgrade_to_level_${triggerLevel}`, sourceWallet);
+      }
+
+      console.log(`NFT claim rewards processed successfully for level ${triggerLevel}`);
+    } catch (error) {
+      console.error(`Error processing NFT claim rewards:`, error);
+      throw error;
+    }
+  }
+
+  // Helper methods for NFT claim reward processing
+  private async getUplinesInLayer(sourceWallet: string, layerNumber: number): Promise<Array<{wallet: string}>> {
+    const uplines: Array<{wallet: string}> = [];
+    let currentWallet = sourceWallet;
+    
+    // Walk up the referral tree to find uplines
+    for (let layer = 1; layer <= layerNumber; layer++) {
+      const user = await this.getUser(currentWallet);
+      if (!user?.referrerWallet || user.referrerWallet === currentWallet) {
+        break;
+      }
+      
+      if (layer === layerNumber) {
+        // This is the target layer - collect all uplines at this level
+        uplines.push({ wallet: user.referrerWallet });
+        
+        // Get matrix siblings (other uplines in same layer) - simplified for now
+        // In a full 1x3 matrix, we would get L, M, R positions
+        // For now, just get the direct upline
+        break;
+      }
+      
+      currentWallet = user.referrerWallet;
+    }
+    
+    return uplines;
+  }
+
+  private getMatrixPosition(index: number): string {
+    const positions = ['L', 'M', 'R'];
+    return positions[index % 3] || `${index + 1}`;
+  }
+
+  private async checkLevelRequirement(walletAddress: string, requiredLevel: number): Promise<boolean> {
+    const membership = await this.getMembershipState(walletAddress);
+    return membership?.levelsOwned.includes(requiredLevel) || false;
+  }
+
+  private calculateRewardParameters(triggerLevel: number, positionIndex: number): {
+    rewardAmount: string;
+    isPending: boolean;
+    expiresAt?: Date;
+    unlockCondition?: string;
+  } {
+    let rewardAmount: string;
+    let isPending = false;
+    let expiresAt: Date | undefined;
+    let unlockCondition: string | undefined;
+
+    const now = new Date();
+    const expires72h = new Date(now.getTime() + (72 * 60 * 60 * 1000));
+
+    switch (triggerLevel) {
+      case 1:
+        rewardAmount = '100';
+        // 3rd payee (position 2) is pending
+        if (positionIndex === 2) {
+          isPending = true;
+          expiresAt = expires72h;
+          unlockCondition = 'upgrade_to_level_2';
+        }
+        break;
+      case 2:
+        rewardAmount = '150';
+        // No pending for L2
+        break;
+      case 3:
+        rewardAmount = '200';
+        isPending = true;
+        expiresAt = expires72h;
+        unlockCondition = 'upgrade_to_level_3';
+        break;
+      default:
+        // L4-L19
+        rewardAmount = '100';
+        isPending = true;
+        expiresAt = expires72h;
+        unlockCondition = `upgrade_to_level_${triggerLevel}`;
+        break;
+    }
+
+    return { rewardAmount, isPending, expiresAt, unlockCondition };
+  }
+
+  private async updateEarningsForConfirmedReward(walletAddress: string, rewardAmount: string): Promise<void> {
+    const amount = parseFloat(rewardAmount);
+    
+    // Get or create earnings wallet entry
+    let earningsResults = await db.select()
+      .from(earningsWallet)
+      .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()))
+      .limit(1);
+
+    if (earningsResults.length === 0) {
+      // Create new earnings wallet entry
+      await this.createEarningsWalletEntry({
+        walletAddress,
+        totalEarnings: rewardAmount,
+        pendingRewards: rewardAmount,
+        referralEarnings: '0',
+        levelEarnings: '0',
+        withdrawnAmount: '0'
+      });
+    } else {
+      // Update existing entry
+      const current = earningsResults[0];
+      await db.update(earningsWallet)
+        .set({
+          totalEarnings: (parseFloat(current.totalEarnings) + amount).toString(),
+          pendingRewards: (parseFloat(current.pendingRewards) + amount).toString(),
+          lastRewardAt: new Date()
+        })
+        .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()));
+    }
+  }
+
+  // Cron job method for processing expired/confirmed rewards
+  async processPendingUserRewards(): Promise<{ processed: number; expired: number; confirmed: number }> {
+    const now = new Date();
+    let processed = 0;
+    let expired = 0;
+    let confirmed = 0;
+
+    try {
+      // Get all pending rewards that are ready to be processed
+      const pendingRewards = await db.select()
+        .from(userRewards)
+        .where(
+          and(
+            eq(userRewards.status, 'pending'),
+            isNotNull(userRewards.expiresAt),
+            lte(userRewards.expiresAt, now)
+          )
+        );
+
+      console.log(`Processing ${pendingRewards.length} expired pending rewards`);
+
+      for (const reward of pendingRewards) {
+        processed++;
+
+        // Check if unlock condition has been met
+        const conditionMet = await this.checkUnlockCondition(reward);
+
+        if (conditionMet) {
+          // Confirm the reward
+          await this.updateUserRewardStatus(
+            reward.id,
+            'confirmed',
+            now,
+            undefined,
+            'Unlock condition met - confirmed'
+          );
+
+          // Update earnings wallet
+          await this.updateEarningsForConfirmedReward(reward.recipientWallet, reward.rewardAmount);
+          confirmed++;
+          
+          console.log(`Confirmed reward ${reward.id} for ${reward.recipientWallet}`);
+        } else {
+          // Expire the reward
+          await this.updateUserRewardStatus(
+            reward.id,
+            'expired',
+            undefined,
+            now,
+            'Unlock condition not met in time - expired'
+          );
+          expired++;
+          
+          console.log(`Expired reward ${reward.id} for ${reward.recipientWallet}`);
+        }
+      }
+
+      console.log(`Processed ${processed} rewards: ${confirmed} confirmed, ${expired} expired`);
+      return { processed, expired, confirmed };
+    } catch (error) {
+      console.error('Error processing pending user rewards:', error);
+      throw error;
+    }
+  }
+
+  private async checkUnlockCondition(reward: UserReward): Promise<boolean> {
+    if (!reward.unlockCondition || !reward.sourceWallet) {
+      return false;
+    }
+
+    // Parse unlock condition like "upgrade_to_level_2"
+    const match = reward.unlockCondition.match(/upgrade_to_level_(\d+)/);
+    if (!match) {
+      return false;
+    }
+
+    const requiredLevel = parseInt(match[1], 10);
+    
+    // Check if the source wallet has reached the required level
+    const membership = await this.getMembershipState(reward.sourceWallet);
+    return membership?.levelsOwned.includes(requiredLevel) || false;
   }
 }
 

@@ -3911,6 +3911,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return explorer ? `${explorer}/tx/${txHash}` : '';
   }
 
+  // NFT Claim Reward Distribution
+  app.post("/api/nft-claim-rewards", requireAuth, async (req, res) => {
+    try {
+      const { triggerLevel, nftId, claimTx } = req.body;
+      const walletAddress = req.walletAddress!;
+
+      if (!triggerLevel || triggerLevel < 1 || triggerLevel > 19) {
+        return res.status(400).json({ error: 'Invalid trigger level' });
+      }
+
+      console.log(`Processing NFT claim rewards for ${walletAddress} at level ${triggerLevel}`);
+      
+      await storage.processNFTClaimRewards(walletAddress, triggerLevel, nftId, claimTx);
+      
+      res.json({ 
+        success: true, 
+        message: `NFT claim rewards processed for level ${triggerLevel}` 
+      });
+    } catch (error) {
+      console.error('NFT claim rewards error:', error);
+      res.status(500).json({ error: 'Failed to process NFT claim rewards' });
+    }
+  });
+
+  // Get user rewards (for testing/viewing)
+  app.get("/api/user-rewards", requireAuth, async (req, res) => {
+    try {
+      const walletAddress = req.walletAddress!;
+      const rewards = await storage.getUserRewardsByRecipient(walletAddress);
+      res.json({ rewards });
+    } catch (error) {
+      console.error('Get user rewards error:', error);
+      res.status(500).json({ error: 'Failed to get user rewards' });
+    }
+  });
+
+  // Get platform revenue (admin only)
+  app.get("/api/admin/platform-revenue", requireAdminAuth, async (req, res) => {
+    try {
+      const { startDate, endDate, sourceWallet } = req.query;
+      
+      let revenue: any[] = [];
+      
+      if (sourceWallet) {
+        revenue = await storage.getPlatformRevenueBySourceWallet(sourceWallet as string);
+      } else if (startDate && endDate) {
+        revenue = await storage.getPlatformRevenueByDate(
+          new Date(startDate as string),
+          new Date(endDate as string)
+        );
+      } else {
+        // Default: last 30 days
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        revenue = await storage.getPlatformRevenueByDate(thirtyDaysAgo, new Date());
+      }
+      
+      res.json({ revenue });
+    } catch (error) {
+      console.error('Get platform revenue error:', error);
+      res.status(500).json({ error: 'Failed to get platform revenue' });
+    }
+  });
+
+  // Process pending rewards (cron job endpoint)
+  app.post("/api/admin/process-pending-rewards", requireAdminAuth, async (req, res) => {
+    try {
+      const result = await storage.processPendingUserRewards();
+      res.json({ 
+        success: true, 
+        message: `Processed ${result.processed} rewards: ${result.confirmed} confirmed, ${result.expired} expired`,
+        result 
+      });
+    } catch (error) {
+      console.error('Process pending rewards error:', error);
+      res.status(500).json({ error: 'Failed to process pending rewards' });
+    }
+  });
+
   return httpServer;
 }
 

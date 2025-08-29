@@ -850,6 +850,39 @@ export const adminSettings = pgTable("admin_settings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Platform Revenue Tracking
+export const platformRevenue = pgTable("platform_revenue", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sourceType: text("source_type").notNull(), // 'nft_claim', 'membership_upgrade', 'platform_fee'
+  sourceWallet: varchar("source_wallet", { length: 42 }).notNull(), // User who triggered the revenue
+  level: integer("level"), // Level that generated the revenue
+  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").default("USDT").notNull(),
+  description: text("description"),
+  metadata: jsonb("metadata"), // Store NFT ID, transaction details, etc.
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// User Rewards - Enhanced reward_distributions for NFT claim payouts
+export const userRewards = pgTable("user_rewards", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  recipientWallet: varchar("recipient_wallet", { length: 42 }).notNull().references(() => users.walletAddress),
+  sourceWallet: varchar("source_wallet", { length: 42 }).notNull(), // Who claimed NFT/triggered reward
+  triggerLevel: integer("trigger_level").notNull(), // Level N that was claimed
+  payoutLayer: integer("payout_layer").notNull(), // Which layer this payout belongs to (1-19)
+  matrixPosition: text("matrix_position"), // L, M, R position in layer
+  rewardAmount: numeric("reward_amount", { precision: 10, scale: 2 }).notNull(),
+  status: text("status").default("pending").notNull(), // 'pending', 'confirmed', 'expired'
+  requiresLevel: integer("requires_level"), // Required upline level for confirmation
+  unlockCondition: text("unlock_condition"), // 'upgrade_to_level_X' for pending rewards
+  expiresAt: timestamp("expires_at"), // 72h from creation for pending rewards
+  confirmedAt: timestamp("confirmed_at"),
+  expiredAt: timestamp("expired_at"),
+  notes: text("notes"),
+  metadata: jsonb("metadata"), // Store NFT ID, claim tx, original price, etc.
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const insertMemberActivationSchema = createInsertSchema(memberActivations).pick({
   walletAddress: true,
   activationType: true,
@@ -878,11 +911,44 @@ export const insertAdminSettingSchema = createInsertSchema(adminSettings).pick({
   description: true,
 });
 
+export const insertPlatformRevenueSchema = createInsertSchema(platformRevenue).pick({
+  sourceType: true,
+  sourceWallet: true,
+  level: true,
+  amount: true,
+  currency: true,
+  description: true,
+  metadata: true,
+});
+
+export const insertUserRewardSchema = createInsertSchema(userRewards).pick({
+  recipientWallet: true,
+  sourceWallet: true,
+  triggerLevel: true,
+  payoutLayer: true,
+  matrixPosition: true,
+  rewardAmount: true,
+  status: true,
+  requiresLevel: true,
+  unlockCondition: true,
+  expiresAt: true,
+  confirmedAt: true,
+  expiredAt: true,
+  notes: true,
+  metadata: true,
+});
+
 export type InsertMemberActivation = z.infer<typeof insertMemberActivationSchema>;
 export type MemberActivation = typeof memberActivations.$inferSelect;
 
 export type InsertRewardDistribution = z.infer<typeof insertRewardDistributionSchema>;
 export type RewardDistribution = typeof rewardDistributions.$inferSelect;
+
+export type InsertPlatformRevenue = z.infer<typeof insertPlatformRevenueSchema>;
+export type PlatformRevenue = typeof platformRevenue.$inferSelect;
+
+export type InsertUserReward = z.infer<typeof insertUserRewardSchema>;
+export type UserReward = typeof userRewards.$inferSelect;
 
 export type InsertAdminSetting = z.infer<typeof insertAdminSettingSchema>;
 export type AdminSetting = typeof adminSettings.$inferSelect;
