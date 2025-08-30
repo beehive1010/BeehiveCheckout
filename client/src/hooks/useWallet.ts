@@ -37,11 +37,12 @@ export function useWallet() {
     }
   }, [isConnected, walletAddress]);
 
-  // Get user data including membership state with real-time updates
-  const { data: userData, isLoading: isUserLoading } = useQuery({
+  // Check user registration status after wallet connection
+  const userQuery = useQuery({
     queryKey: ['/api/auth/user'],
     enabled: !!walletAddress,
     queryFn: async () => {
+      console.log('🔍 Checking if wallet is registered:', walletAddress);
       const response = await fetch(`/api/auth/user?t=${Date.now()}`, {
         headers: {
           'X-Wallet-Address': walletAddress!,
@@ -50,16 +51,26 @@ export function useWallet() {
       });
       if (!response.ok) {
         if (response.status === 404) {
+          console.log('👤 New user - wallet not registered');
           return null; // User not registered
         }
         throw new Error('Failed to fetch user data');
       }
-      return response.json();
+      const user = await response.json();
+      console.log('✅ Existing user found:', user.username || user.walletAddress);
+      return user;
     },
     staleTime: 2000, // 2 seconds
-    refetchInterval: 5000, // Refetch every 5 seconds for real-time member status
+    refetchInterval: (data) => data ? 5000 : false, // Only refetch for existing users
     refetchIntervalInBackground: true,
   });
+  
+  const { data: userData, isLoading: isUserLoading, error: userError } = userQuery;
+  
+  // Determine user status for UX
+  const isCheckingRegistration = isConnected && isUserLoading;
+  const isRegisteredUser = isConnected && !isUserLoading && userData !== null;
+  const isNewUser = isConnected && !isUserLoading && userData === null;
 
   // Register new user
   const registerMutation = useMutation({
@@ -152,9 +163,14 @@ export function useWallet() {
     isConnected,
     walletAddress,
     
-    // User state
+    // User registration status (enhanced)
     userData,
     isUserLoading,
+    isCheckingRegistration,  // NEW: Checking if wallet is registered
+    isRegisteredUser,        // NEW: Wallet is registered
+    isNewUser,              // NEW: Wallet not registered, needs signup
+    
+    // Legacy compatibility
     isRegistered,
     isActivated,
     currentLevel,

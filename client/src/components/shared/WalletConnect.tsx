@@ -4,11 +4,50 @@ import { useI18n } from '../../contexts/I18nContext';
 import { client, supportedChains, wallets, alphaCentauri } from '../../lib/web3';
 
 export default function WalletConnect() {
-  const { isConnected, walletAddress } = useWallet();
+  const { 
+    isConnected, 
+    walletAddress, 
+    isCheckingRegistration, 
+    isRegisteredUser, 
+    isNewUser,
+    userData 
+  } = useWallet();
   const { t } = useI18n();
 
+  // Show registration status after wallet connection
+  const getConnectionStatus = () => {
+    if (!isConnected) return null;
+    
+    if (isCheckingRegistration) {
+      return (
+        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+          <div className="animate-spin h-4 w-4 border-2 border-honey border-t-transparent rounded-full"></div>
+          <span>Checking registration...</span>
+        </div>
+      );
+    }
+    
+    if (isNewUser) {
+      return (
+        <div className="text-sm text-amber-400">
+          👋 New wallet - Ready to register!
+        </div>
+      );
+    }
+    
+    if (isRegisteredUser) {
+      return (
+        <div className="text-sm text-green-400">
+          ✅ Welcome back, {userData?.user?.username || 'Beehive Member'}!
+        </div>
+      );
+    }
+    
+    return null;
+  };
+
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex flex-col items-end space-y-2">
       <ConnectButton
         client={client}
         chains={supportedChains}
@@ -32,6 +71,7 @@ export default function WalletConnect() {
         }}
         data-testid="button-connect-wallet"
       />
+      {getConnectionStatus()}
     </div>
   );
 }
