@@ -38,7 +38,6 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
       console.log('🔗 Wallet connected via useActiveWallet:', {
         address: account.address,
         walletId: wallet?.id,
-        walletType: wallet?.type,
         chainId: activeChain?.id
       });
     } else {
