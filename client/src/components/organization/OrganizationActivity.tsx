@@ -211,7 +211,7 @@ export function OrganizationActivity({
   // 弹出式消息组件样式
   if (isPopup) {
     return (
-      <div className={`fixed top-4 right-4 max-w-md w-full bg-secondary border border-honey/30 rounded-lg shadow-lg z-50 ${className}`}>
+      <div className={`fixed bottom-4 right-4 max-w-md w-full bg-secondary border border-honey/30 rounded-lg shadow-lg z-50 ${className}`}>
         {/* 头部 */}
         <div className="flex items-center justify-between p-4 border-b border-border">
           <div className="flex items-center gap-2">
