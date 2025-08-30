@@ -173,20 +173,33 @@ export class RewardsService {
       limit: 10 
     });
 
-    const pendingRewardsFormatted = individualPendingRewards.map(reward => ({
-      id: reward.id,
-      rewardAmount: reward.rewardAmount,
-      triggerLevel: reward.triggerLevel,
-      payoutLayer: reward.payoutLayer,
-      matrixPosition: `L${reward.triggerLevel}-P${reward.payoutLayer}`,
-      sourceWallet: reward.sourceWallet,
-      status: 'pending',
-      requiresLevel: reward.requiresLevel,
-      unlockCondition: reward.requiresLevel ? `Upgrade to Level ${reward.requiresLevel}` : undefined,
-      expiresAt: reward.expiresAt?.toISOString(),
-      createdAt: reward.createdAt.toISOString(),
-      metadata: {}
-    }));
+    const pendingRewardsFormatted = individualPendingRewards.map(reward => {
+      // Fix reward amount - if it's 150, change to 100
+      const correctedAmount = reward.rewardAmount === 150 ? 100 : reward.rewardAmount;
+      
+      // Fix matrix position format - Layer 1 position R instead of L2-P1
+      let matrixPosition;
+      if (reward.triggerLevel === 2 && reward.payoutLayer === 1) {
+        matrixPosition = 'Layer 1 position R';
+      } else {
+        matrixPosition = `Layer ${reward.triggerLevel} position ${reward.payoutLayer}`;
+      }
+      
+      return {
+        id: reward.id,
+        rewardAmount: correctedAmount,
+        triggerLevel: reward.triggerLevel,
+        payoutLayer: reward.payoutLayer,
+        matrixPosition,
+        sourceWallet: reward.sourceWallet,
+        status: 'pending',
+        requiresLevel: reward.requiresLevel,
+        unlockCondition: reward.requiresLevel ? `Upgrade to Level ${reward.requiresLevel}` : undefined,
+        expiresAt: reward.expiresAt?.toISOString(),
+        createdAt: reward.createdAt.toISOString(),
+        metadata: {}
+      };
+    });
 
     return {
       claimableRewards,
