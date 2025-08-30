@@ -25,6 +25,7 @@ import Tasks from "@/pages/Tasks";
 
 // Import proper Header component
 import Header from "@/components/shared/Header";
+import { useWallet } from "@/hooks/useWallet";
 
 // Temporary components for features not yet refactored
 const CourseDetails = () => <div>Course Details - Coming Soon</div>;
@@ -61,6 +62,38 @@ const AdminRouteGuard = ({ children, requiredPermission, requiredRoles }: {
 const Navigation = () => <nav className="fixed bottom-0 w-full h-16 bg-secondary border-t border-border md:hidden"></nav>;
 const Footer = () => <footer className="bg-secondary border-t border-border py-8"></footer>;
 const RouteGuard = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
+
+// Smart routing component that routes based on user status
+function SmartHomePage() {
+  const { 
+    isConnected, 
+    isCheckingRegistration,
+    isNewUser, 
+    needsNFTClaim, 
+    isFullyActivated 
+  } = useWallet();
+
+  // Show landing page while checking user status or if not connected
+  if (!isConnected || isCheckingRegistration) {
+    return <LandingPage />;
+  }
+
+  // Route based on enhanced user status
+  if (isNewUser) {
+    return <Registration />;
+  }
+  
+  if (needsNFTClaim) {
+    return <Welcome />;
+  }
+  
+  if (isFullyActivated) {
+    return <DashboardPage />;
+  }
+
+  // Fallback to landing page
+  return <LandingPage />;
+}
 
 function Router() {
   const [location] = useLocation();
@@ -174,8 +207,8 @@ function Router() {
   return (
     <RouteGuard>
       <Switch>
-        {/* Public routes */}
-        <Route path="/" component={LandingPage} />
+        {/* Smart home route - automatically routes based on user status */}
+        <Route path="/" component={SmartHomePage} />
         <Route path="/register" component={Registration} />
         <Route path="/welcome" component={Welcome} />
         

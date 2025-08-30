@@ -61,7 +61,7 @@ export function useWallet() {
       return userStatus;
     },
     staleTime: 2000, // 2 seconds
-    refetchInterval: (data) => data?.isRegistered ? 5000 : false, // Only refetch for registered users
+    refetchInterval: (query) => query.state.data?.isRegistered ? 5000 : false, // Only refetch for registered users
     refetchIntervalInBackground: true,
   });
   
