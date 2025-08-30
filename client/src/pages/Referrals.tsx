@@ -22,7 +22,7 @@ export default function Referrals() {
   };
 
   return (
-    <div className={`${styles.referralsContainer} space-y-6`}>
+    <div className={`${styles.referralsContainer} space-y-4 sm:space-y-6`}>
       {/* Referral Link Section */}
       <Card className="bg-secondary border-border">
         <CardHeader>
@@ -32,16 +32,16 @@ export default function Referrals() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <input
               type="text"
               value={referralLink}
               readOnly
-              className="flex-1 px-3 py-2 bg-muted border border-border rounded-md text-sm"
+              className="flex-1 px-3 py-2 bg-muted border border-border rounded-md text-xs sm:text-sm min-w-0"
             />
             <Button
               onClick={copyReferralLink}
-              className="bg-honey text-secondary hover:bg-honey/90"
+              className="bg-honey text-secondary hover:bg-honey/90 w-full sm:w-auto px-4 py-2"
             >
               {t('referrals.copy') || 'Copy'}
             </Button>
@@ -53,11 +53,11 @@ export default function Referrals() {
       </Card>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <Card className="bg-secondary border-border">
-          <CardContent className="p-6 text-center">
-            <UsersIcon className="w-8 h-8 text-honey mx-auto mb-2" />
-            <div className="text-2xl font-bold text-honey">
+          <CardContent className="p-4 sm:p-6 text-center">
+            <UsersIcon className="w-6 h-6 sm:w-8 sm:h-8 text-honey mx-auto mb-2" />
+            <div className="text-xl sm:text-2xl font-bold text-honey">
               {userStats?.totalReferrals || userStats?.totalTeamCount || 0}
             </div>
             <p className="text-sm text-muted-foreground">
@@ -67,9 +67,9 @@ export default function Referrals() {
         </Card>
 
         <Card className="bg-secondary border-border">
-          <CardContent className="p-6 text-center">
-            <TrophyIcon className="w-8 h-8 text-honey mx-auto mb-2" />
-            <div className="text-2xl font-bold text-honey">
+          <CardContent className="p-4 sm:p-6 text-center">
+            <TrophyIcon className="w-6 h-6 sm:w-8 sm:h-8 text-honey mx-auto mb-2" />
+            <div className="text-xl sm:text-2xl font-bold text-honey">
               {userStats?.totalEarnings || 0} BCC
             </div>
             <p className="text-sm text-muted-foreground">
@@ -79,11 +79,11 @@ export default function Referrals() {
         </Card>
 
         <Card className="bg-secondary border-border">
-          <CardContent className="p-6 text-center">
-            <Badge className="w-8 h-8 bg-honey text-secondary mx-auto mb-2 flex items-center justify-center">
+          <CardContent className="p-4 sm:p-6 text-center">
+            <Badge className="w-6 h-6 sm:w-8 sm:h-8 bg-honey text-secondary mx-auto mb-2 flex items-center justify-center text-xs sm:text-sm">
               {userStats?.matrixLevel || 1}
             </Badge>
-            <div className="text-2xl font-bold text-honey">
+            <div className="text-xl sm:text-2xl font-bold text-honey">
               Level {userStats?.matrixLevel || 1}
             </div>
             <p className="text-sm text-muted-foreground">
@@ -123,16 +123,16 @@ export default function Referrals() {
           ) : userStats?.recentReferrals && userStats.recentReferrals.length > 0 ? (
             <div className="space-y-3">
               {userStats.recentReferrals.map((referral: any, index: number) => (
-                <div key={index} className="flex justify-between items-center py-2 border-b border-border/50 last:border-b-0">
-                  <div>
-                    <p className="font-medium">
+                <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 border-b border-border/50 last:border-b-0 gap-2 sm:gap-0">
+                  <div className="flex-1">
+                    <p className="font-medium text-sm break-all">
                       {referral.walletAddress?.slice(0, 6)}...{referral.walletAddress?.slice(-4)}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {new Date(referral.joinedAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <Badge variant={referral.activated ? 'default' : 'secondary'}>
+                  <Badge variant={referral.activated ? 'default' : 'secondary'} className="self-start sm:self-center">
                     {referral.activated ? t('referrals.activated') || 'Activated' : t('referrals.pending') || 'Pending'}
                   </Badge>
                 </div>

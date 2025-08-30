@@ -573,7 +573,7 @@ export default function Dashboard() {
       {/* Referral Link Section */}
       <Card className="bg-secondary border-border mb-8">
         <CardHeader>
-          <CardTitle className="text-honey">{t('dashboard.referralLink') || 'Your Referral Link'}</CardTitle>
+          <CardTitle className="text-honey">{t('dashboard.referralLink.title') || 'Your Referral Link'}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-2">
