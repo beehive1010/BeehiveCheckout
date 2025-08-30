@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar } from '@/components/ui/avatar';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Users, UserPlus, ArrowRight, ArrowDown, Mail, Clock, MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import { useLocation } from 'wouter';
@@ -197,6 +197,9 @@ export function OrganizationActivity({
                       <Users className="w-5 h-5" />
                       {t('referrals.organization.title')}
                     </DialogTitle>
+                    <DialogDescription>
+                      {t('referrals.organization.noActivityDesc')}
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-3 overflow-y-auto max-h-[60vh] pr-2">
                     {isLoadingAll ? (
@@ -235,20 +238,21 @@ export function OrganizationActivity({
                               </div>
                               
                               <p className="text-sm text-foreground mb-2">
-                                {activity.message}
+                                {activity.actorUsername || formatAddress(activity.actorWallet)}
                               </p>
                               
                               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <span>
-                                  {activity.actorUsername || formatAddress(activity.actorWallet)}
-                                </span>
-                                {activity.targetWallet && (
-                                  <>
-                                    <ArrowRight className="w-3 h-3" />
-                                    <span>
-                                      {activity.targetUsername || formatAddress(activity.targetWallet)}
-                                    </span>
-                                  </>
+                                <Clock className="w-3 h-3" />
+                                <span>{formatDate(activity.createdAt)}</span>
+                                {activity.metadata.level && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Level {activity.metadata.level}
+                                  </Badge>
+                                )}
+                                {activity.metadata.position && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    {activity.metadata.position}
+                                  </Badge>
                                 )}
                               </div>
                             </div>
