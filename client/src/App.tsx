@@ -23,6 +23,9 @@ import Registration from "@/pages/Registration";
 import Welcome from "@/pages/Welcome";
 import Tasks from "@/pages/Tasks";
 
+// Import proper Header component
+import Header from "@/components/shared/Header";
+
 // Temporary components for features not yet refactored
 const CourseDetails = () => <div>Course Details - Coming Soon</div>;
 const BlogPost = () => <div>Blog Post - Coming Soon</div>;
@@ -55,7 +58,6 @@ const AdminRouteGuard = ({ children, requiredPermission, requiredRoles }: {
 }) => <div>{children}</div>;
 
 // Layout components (temporary)
-const Header = () => <header className="h-16 bg-secondary border-b border-border flex items-center px-4"><h1 className="text-honey font-bold">BeeHive</h1></header>;
 const Navigation = () => <nav className="fixed bottom-0 w-full h-16 bg-secondary border-t border-border md:hidden"></nav>;
 const Footer = () => <footer className="bg-secondary border-t border-border py-8"></footer>;
 const RouteGuard = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
