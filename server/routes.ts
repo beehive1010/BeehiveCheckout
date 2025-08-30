@@ -562,7 +562,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('💥 Layer calculation error:', error);
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Layer calculation failed' });
     }
   });
 
@@ -631,10 +631,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Process referral rewards (100 USDT direct referral reward)
       await storage.processReferralRewards(req.walletAddress, 1);
 
+      // Define sponsor wallet for later use
+      const sponsorWallet = user?.referrerWallet || '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0';
+
       // Place member in global 3x3 matrix
       const existingPosition = await storage.getGlobalMatrixPosition(req.walletAddress);
       if (!existingPosition) {
-        const sponsorWallet = user?.referrerWallet || '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0';
         const placement = await storage.findGlobalMatrixPlacement(sponsorWallet);
         await storage.createGlobalMatrixPosition({
           walletAddress: req.walletAddress,
@@ -651,17 +653,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('✅ New member layers calculated');
       
       // Also calculate for sponsor to reflect new member in their downline
-      if (referrerWallet) {
-        console.log('🔄 Updating sponsor downline layers:', referrerWallet);
-        await storage.calculateAndStore19Layers(referrerWallet);
+      if (sponsorWallet && sponsorWallet !== '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0') {
+        console.log('🔄 Updating sponsor downline layers:', sponsorWallet);
+        await storage.calculateAndStore19Layers(sponsorWallet);
         console.log('✅ Sponsor downline layers updated');
       }
       
       // Generate notifications for all upline members in 19 layers
-      // referrerWallet already defined above
-      if (referrerWallet) {
+      // sponsorWallet already defined above
+      if (sponsorWallet && sponsorWallet !== '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0') {
         // Get all upline users in the 19 layers
-        const uplineLayers = await storage.getReferralLayers(referrerWallet);
+        const uplineLayers = await storage.getReferralLayers(sponsorWallet);
         
         for (const layer of uplineLayers) {
           for (const uplineWallet of layer.members) {
@@ -671,7 +673,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // For Level 1 purchases: upline needs Level 1 for first rewards, Level 2 for 3rd+ rewards
             // Since this is activation, treat as first reward so Level 1 qualifies
             const isQualified = uplineMembership?.levelsOwned.includes(1) || false;
-            const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000); // 72 hours
+            // Set expiration: far future for qualified users, 72 hours for pending
+            const expiresAt = isQualified 
+              ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year for qualified
+              : new Date(Date.now() + 72 * 60 * 60 * 1000); // 72 hours for pending
             
             await storage.createRewardNotification({
               recipientWallet: uplineWallet,
@@ -680,7 +685,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               layerNumber: layer.layerNumber,
               rewardAmount: 10000, // 100 USDT in cents
               status: isQualified ? 'waiting_claim' : 'pending',
-              expiresAt: isQualified ? undefined : expiresAt
+              expiresAt
             });
           }
         }
