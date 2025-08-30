@@ -24,9 +24,18 @@ export default function MembershipLevelList({
   const levelsOwned = userData?.membershipState?.levelsOwned || [];
 
   const getCardStatus = (level: number) => {
-    if (levelsOwned.includes(level)) return 'owned';
-    if (level <= currentLevel) return 'owned';
-    if (currentLevel > 0 && level < currentLevel) return 'lower';
+    // Check if user owns this level
+    if (levelsOwned.includes(level) || level === currentLevel) return 'owned';
+    
+    // Next level after current level is available for purchase
+    if (level === currentLevel + 1) return 'available';
+    
+    // All levels beyond next level are locked
+    if (level > currentLevel + 1) return 'locked';
+    
+    // Levels below current level (shouldn't happen but just in case)
+    if (level < currentLevel) return 'lower';
+    
     return 'available';
   };
 
@@ -93,6 +102,8 @@ export default function MembershipLevelList({
                 relative transition-all duration-300 cursor-pointer transform hover:scale-105
                 ${status === 'owned' 
                   ? 'bg-green-500/10 border-green-500/30 opacity-75' 
+                  : status === 'locked'
+                  ? 'bg-gray-500/10 border-gray-500/30 opacity-50'
                   : status === 'lower'
                   ? 'bg-muted/50 border-border opacity-60'
                   : isSelected
@@ -107,6 +118,16 @@ export default function MembershipLevelList({
               {status === 'owned' && (
                 <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
                   {String(t('membership.levels.owned'))}
+                </div>
+              )}
+              {status === 'locked' && (
+                <div className="absolute top-2 right-2 bg-gray-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                  {String(t('membership.levels.locked'))}
+                </div>
+              )}
+              {status === 'available' && !isSelected && (
+                <div className="absolute top-2 right-2 bg-honey text-black text-xs px-2 py-1 rounded-full font-medium">
+                  {String(t('membership.levels.available'))}
                 </div>
               )}
               
