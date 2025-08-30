@@ -3803,13 +3803,11 @@ async function activateUserInMatrix(walletAddress: string, levelConfig: any) {
       )
     `);
     
-    // 5. Create layer-based reward for root (CORRECTED: root gets paid when their downline activates)
-    await createLayerReward(rootWallet, walletAddress, 1, nextPosition.layer, nextPosition.position);
-    
-    // 6. CRITICAL CORRECTION: Also create upline reward (the activating user's parent gets paid)
+    // 5. GOLDEN RULE: Level N upgrade pays N-th ancestor
+    // For Level 1: Pay the direct parent (1st ancestor)
     if (parentWallet && parentWallet !== walletAddress) {
-      console.log(`💰 Creating upline reward: ${walletAddress} activates → ${parentWallet} gets paid`);
-      await createUplineReward(parentWallet, walletAddress, 1);
+      console.log(`💰 Level 1 activation: ${walletAddress} → ${parentWallet} gets $100`);
+      await createLayerReward(parentWallet, walletAddress, 1, 1, nextPosition.position);
     }
     
     console.log(`✅ User ${walletAddress} activated in global position ${nextPosition.global} (Layer ${nextPosition.layer}, Position ${nextPosition.position})`);
@@ -3947,44 +3945,8 @@ async function createLayerReward(rootWallet: string, triggerWallet: string, trig
   console.log(`💰 Layer reward created: ${triggerWallet} (L${triggerLevel}) → ${rootWallet} (Layer ${triggerLayer}, Pos ${triggerPosition}) = $${rewardAmount/100} ${finalQualified ? '✅' : '⏳'} (expires in ${timeoutHours}h)`);
 }
 
-async function createUplineReward(uplineWallet: string, triggerWallet: string, triggerLevel: number) {
-  // CORRECTED: When someone activates, their direct upline gets paid
-  // This is separate from layer rewards - it's the "direct activation reward"
-  
-  // Skip self-rewards
-  if (uplineWallet === triggerWallet) {
-    return;
-  }
-  
-  // Level-based upline reward amounts: L1=$100, L2=$150, L3=$200, etc.
-  const rewardAmount = triggerLevel === 1 ? 10000 : (10000 + (triggerLevel - 1) * 5000);
-  
-  // Check if upline has required level to receive this reward
-  const uplineLevelResult = await db.execute(sql`
-    SELECT MAX(level) as max_level FROM membership_nfts_v2 
-    WHERE wallet_address = ${uplineWallet} AND status = 'active'
-  `);
-  
-  const uplineLevel = uplineLevelResult.rows[0];
-  const isQualified = (uplineLevel?.max_level || 0) >= triggerLevel;
-  const timeoutHours = 72;
-  
-  // Create upline reward record
-  await db.execute(sql`
-    INSERT INTO layer_rewards_v2 (
-      id, root_wallet, trigger_wallet, trigger_level, trigger_layer, trigger_position,
-      reward_amount_usdt, required_level, qualified, status, special_rule, created_at,
-      expires_at
-    ) VALUES (
-      ${crypto.randomUUID()}, ${uplineWallet}, ${triggerWallet}, ${triggerLevel}, 
-      0, -1, ${rewardAmount}, ${triggerLevel}, 
-      ${isQualified}, 'pending', 'upline_activation_reward', NOW(),
-      NOW() + INTERVAL '${timeoutHours} hours'
-    )
-  `);
-  
-  console.log(`💰 Upline reward created: ${triggerWallet} (L${triggerLevel}) activates → ${uplineWallet} gets $${rewardAmount/100} ${isQualified ? '✅' : '⏳'} (expires in ${timeoutHours}h)`);
-}
+// REMOVED: createUplineReward function - this was incorrect double-rewarding
+// The GOLDEN RULE is: Level N upgrade pays N-th ancestor only
 
 // Helper functions
 function calculateBCCReward(level: number): { transferable: number; restricted: number; total: number } {
