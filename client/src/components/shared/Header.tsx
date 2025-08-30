@@ -1,8 +1,8 @@
-import { useWallet } from '../../hooks/useWallet';
 import { useI18n } from '../../contexts/I18nContext';
 import LanguageSwitcher from './LanguageSwitcher';
-import WalletConnect from './WalletConnect';
 import { Link } from 'wouter';
+import { ConnectButton } from 'thirdweb/react';
+import { client, supportedChains, wallets, authConfig } from '../../lib/web3';
 
 export default function Header() {
   const { t } = useI18n();
@@ -30,7 +30,27 @@ export default function Header() {
           <div className="flex items-center space-x-2 md:space-x-4">
             <LanguageSwitcher />
             <div className="w-px h-6 bg-border"></div>
-            <WalletConnect />
+            <ConnectButton
+              client={client}
+              chains={supportedChains}
+              wallets={wallets}
+              theme="dark"
+              auth={authConfig}
+              connectModal={{ 
+                showThirdwebBranding: false, 
+                size: "wide",
+                title: "Connect to Beehive",
+                titleIcon: "🐝",
+              }}
+              connectButton={{
+                label: "Connect Wallet",
+                className: "btn-honey text-sm px-4 py-2 font-medium hover:scale-105 transition-all duration-300"
+              }}
+              detailsButton={{
+                className: "btn-honey text-sm px-4 py-2 font-medium hover:scale-105 transition-all duration-300"
+              }}
+              data-testid="button-connect-wallet"
+            />
           </div>
         </div>
       </div>
