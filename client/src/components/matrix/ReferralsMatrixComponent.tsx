@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, Users, Share2, UserPlus, Crown, Home } from 'lucide-react';
+import { useI18n } from '@/contexts/I18nContext';
 
 interface NavigationPath {
   level: number;
@@ -37,6 +38,7 @@ interface MatrixLevel {
 }
 
 export default function ReferralsMatrixComponent({ walletAddress }: { walletAddress: string }) {
+  const { t } = useI18n();
   const [navigationPath, setNavigationPath] = useState<NavigationPath[]>([]);
   const [viewingLevel, setViewingLevel] = useState(1);
   
@@ -60,7 +62,7 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto mb-4"></div>
-        <p className="text-muted-foreground">加载矩阵数据中...</p>
+        <p className="text-muted-foreground">{t('referrals.matrix.loading')}</p>
       </div>
     );
   }
@@ -71,8 +73,8 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
           <Users className="w-8 h-8 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-semibold mb-2">暂无矩阵成员</h3>
-        <p className="text-muted-foreground">开始推荐新成员来建立您的矩阵网络</p>
+        <h3 className="text-lg font-semibold mb-2">{t('referrals.matrix.noMembers')}</h3>
+        <p className="text-muted-foreground">{t('referrals.matrix.noMembersDesc')}</p>
       </div>
     );
   }
@@ -178,8 +180,8 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
           <Users className="w-8 h-8 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-semibold mb-2">暂无矩阵成员</h3>
-        <p className="text-muted-foreground">开始推荐新成员来建立您的矩阵网络</p>
+        <h3 className="text-lg font-semibold mb-2">{t('referrals.matrix.noMembers')}</h3>
+        <p className="text-muted-foreground">{t('referrals.matrix.noMembersDesc')}</p>
       </div>
     );
   }
@@ -193,7 +195,7 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
             <div className="text-2xl font-bold text-honey mb-1">
               {userStats.directReferrals || 0}
             </div>
-            <p className="text-sm text-muted-foreground">直推成员</p>
+            <p className="text-sm text-muted-foreground">{t('referrals.matrix.stats.direct')}</p>
           </CardContent>
         </Card>
         
@@ -202,7 +204,7 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
             <div className="text-2xl font-bold text-honey mb-1">
               {userStats.totalTeam || 0}
             </div>
-            <p className="text-sm text-muted-foreground">团队总数</p>
+            <p className="text-sm text-muted-foreground">{t('referrals.matrix.stats.total')}</p>
           </CardContent>
         </Card>
         
@@ -211,7 +213,7 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
             <div className="text-2xl font-bold text-honey mb-1">
               {layersWithMembers.length}
             </div>
-            <p className="text-sm text-muted-foreground">活跃层级</p>
+            <p className="text-sm text-muted-foreground">{t('referrals.matrix.stats.activeLayers')}</p>
           </CardContent>
         </Card>
       </div>
@@ -229,7 +231,7 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
                 data-testid="breadcrumb-home"
               >
                 <Home className="w-4 h-4 mr-1" />
-                根节点
+                {t('referrals.matrix.navigation.root')}
               </Button>
               
               {navigationPath.map((path, index) => (
@@ -242,13 +244,13 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
                     className="text-honey hover:text-honey/80"
                     data-testid={`breadcrumb-${index}`}
                   >
-                    第{path.level}层 - {path.position}位
+                    {t('referrals.matrix.layerPosition', { level: path.level, position: path.position })}
                   </Button>
                 </React.Fragment>
               ))}
               
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              <span className="text-muted-foreground">第{viewingLevel}层详情</span>
+              <span className="text-muted-foreground">{t('referrals.matrix.layerDetails', { level: viewingLevel })}</span>
             </div>
           </CardContent>
         </Card>
@@ -260,10 +262,10 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
           <div className="flex items-center justify-between">
             <CardTitle className="text-honey flex items-center gap-2">
               <Users className="w-5 h-5" />
-              第{viewingLevel}层 - 3×3强制矩阵结构
+              {t('referrals.matrix.layer', { level: viewingLevel })} - {t('referrals.matrix.title')}
               {navigationPath.length > 0 && (
                 <Badge variant="outline" className="ml-2">
-                  路径: {navigationPath.map(p => p.position).join(' → ')}
+                  {t('referrals.matrix.pathIndicator', { path: navigationPath.map(p => p.position).join(' → ') })}
                 </Badge>
               )}
             </CardTitle>
@@ -277,7 +279,7 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
                 data-testid="back-to-root-button"
               >
                 <Home className="w-4 h-4 mr-2" />
-                返回根节点
+                {t('referrals.matrix.navigation.backToRoot')}
               </Button>
             )}
           </div>
@@ -291,13 +293,13 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
                   <div className="text-lg font-semibold text-green-400">
                     {currentMatrix.totalMembers}
                   </div>
-                  <div className="text-sm text-muted-foreground">总成员数</div>
+                  <div className="text-sm text-muted-foreground">{t('referrals.matrix.stats.totalMembers')}</div>
                 </div>
                 <div className="p-3 rounded bg-blue-400/10 border border-blue-400/20">
                   <div className="text-lg font-semibold text-blue-400">
                     {currentMatrix.totalPlacements}
                   </div>
-                  <div className="text-sm text-muted-foreground">新安置数</div>
+                  <div className="text-sm text-muted-foreground">{t('referrals.matrix.stats.newPlacements')}</div>
                 </div>
               </div>
 
@@ -325,14 +327,14 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
                     
                     <div className="text-center">
                       <Badge variant="outline" className="text-sm font-medium mb-2">
-                        {position.name}位
+                        {t(`referrals.matrix.position.${position.name}`)}
                       </Badge>
                       <div className="text-xs text-muted-foreground space-y-1">
-                        <div>已填充: {position.filled}/3</div>
+                        <div>{t('referrals.matrix.position.filled')}: {position.filled}/3</div>
                         {position.filled > 0 && (
                           <>
-                            <div className="text-green-400">直推: {position.direct}</div>
-                            <div className="text-blue-400">滑落: {position.spillover}</div>
+                            <div className="text-green-400">{t('referrals.matrix.position.direct')}: {position.direct}</div>
+                            <div className="text-blue-400">{t('referrals.matrix.position.spillover')}: {position.spillover}</div>
                           </>
                         )}
                       </div>
@@ -344,7 +346,7 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
                           onClick={() => handlePositionClick(viewingLevel, position.name)}
                           data-testid={`explore-${position.name}-${viewingLevel}`}
                         >
-                          查看下级 →
+                          {t('referrals.matrix.navigation.viewSubLevel')}
                         </Button>
                       )}
                     </div>
@@ -354,13 +356,13 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
 
               {/* Filling Rules Explanation */}
               <div className="text-xs text-muted-foreground bg-muted/50 p-4 rounded">
-                <div className="font-medium mb-2">3×3强制矩阵填充规则：</div>
+                <div className="font-medium mb-2">{t('referrals.matrix.rules.title')}</div>
                 <div className="space-y-1">
-                  <div>• 每个位置最多容纳3个直接下级</div>
-                  <div>• 滑落优先填充L位，再填充M位，最后填充R位</div>
-                  <div>• 绿色 = 直接推荐的成员，蓝色 = 从上线滑落的成员</div>
-                  <div>• 点击有成员的位置可以查看其下级矩阵结构</div>
-                  <div>• 最深可查看到第19层</div>
+                  <div>{t('referrals.matrix.rules.rule1')}</div>
+                  <div>{t('referrals.matrix.rules.rule2')}</div>
+                  <div>{t('referrals.matrix.rules.rule3')}</div>
+                  <div>{t('referrals.matrix.rules.rule4')}</div>
+                  <div>{t('referrals.matrix.rules.rule5')}</div>
                 </div>
               </div>
             </div>
@@ -369,8 +371,8 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
                 <Users className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">第{viewingLevel}层暂无成员</h3>
-              <p className="text-muted-foreground">此层级尚未有成员加入</p>
+              <h3 className="text-lg font-semibold mb-2">{t('referrals.matrix.noMembersAtLevel', { level: viewingLevel })}</h3>
+              <p className="text-muted-foreground">{t('referrals.matrix.noMembersAtLevelDesc')}</p>
             </div>
           )}
         </CardContent>
