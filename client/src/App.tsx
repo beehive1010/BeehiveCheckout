@@ -17,6 +17,7 @@ import Me from "@/pages/Me";
 import NFTCenter from "@/pages/NFTCenter";
 import Referrals from "@/pages/Referrals";
 import Discover from "@/pages/Discover";
+import Inbox from "@/pages/Inbox";
 
 // Additional pages  
 import Registration from "@/pages/Registration";
@@ -220,6 +221,7 @@ function Router() {
         <Route path="/discover" component={Discover} />
         <Route path="/referrals" component={Referrals} />
         <Route path="/me" component={Me} />
+        <Route path="/inbox" component={Inbox} />
         <Route path="/ads" component={AdvertisementNFTs} />
         <Route path="/nft-center" component={NFTCenter} />
         <Route path="/admin-nft-manager" component={AdminNFTManager} />
