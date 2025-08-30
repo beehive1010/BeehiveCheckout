@@ -63,9 +63,28 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
           const members = (layer.members || []).map((member: any, index: number) => {
             // If member is a string (wallet address), create a member object
             if (typeof member === 'string') {
-              // 3x3 matrix fills left to right: first fills Left, then Middle, then Right
-              const placement: 'left' | 'middle' | 'right' = 
-                index === 0 ? 'left' : index === 1 ? 'middle' : 'right';
+              // Calculate placement based on matrix position
+              // Layer 1: positions 0,1,2 map directly to left,middle,right
+              // Layer 2: positions 0-2 under left, 3-5 under middle, 6-8 under right
+              // Layer 3: positions 0-8 under left, 9-17 under middle, 18-26 under right
+              let placement: 'left' | 'middle' | 'right';
+              
+              if (layerIndex === 0) {
+                // Layer 1: direct mapping
+                placement = index === 0 ? 'left' : index === 1 ? 'middle' : 'right';
+              } else {
+                // Layer 2+: calculate based on parent position
+                const layerSize = Math.pow(3, layerIndex);
+                const sectionSize = layerSize / 3;
+                
+                if (index < sectionSize) {
+                  placement = 'left';
+                } else if (index < sectionSize * 2) {
+                  placement = 'middle';
+                } else {
+                  placement = 'right';
+                }
+              }
               
               // Placement type logic for 3x3 forced matrix:
               // - direct_referral: I sponsored them (any layer)
