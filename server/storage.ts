@@ -4,12 +4,9 @@ import {
   referralNodes,
   referralLayers,
   matrixLayers,
-  matrixPositions,
-  memberMatrixLayers,
   rewardNotifications,
   userActivities,
   globalMatrixPosition,
-  usdtBalances,
   bccBalances,
   orders,
   earningsWallet,
@@ -31,8 +28,6 @@ import {
   partnerChains,
   memberActivations,
   rewardDistributions,
-  platformRevenue,
-  userRewards,
   adminSettings,
   type User, 
   type InsertUser,
@@ -44,10 +39,6 @@ import {
   type InsertReferralLayer,
   type MatrixLayer,
   type InsertMatrixLayer,
-  type MatrixPosition,
-  type InsertMatrixPosition,
-  type MemberMatrixLayer,
-  type InsertMemberMatrixLayer,
   type RewardNotification,
   type InsertRewardNotification,
   userNotifications,
@@ -55,8 +46,6 @@ import {
   type InsertUserNotification,
   type GlobalMatrixPosition,
   type InsertGlobalMatrixPosition,
-  type USDTBalance,
-  type InsertUSDTBalance,
   type BCCBalance,
   type InsertBCCBalance,
   type Order,
@@ -108,15 +97,11 @@ import {
   type InsertMemberActivation,
   type RewardDistribution,
   type InsertRewardDistribution,
-  type PlatformRevenue,
-  type InsertPlatformRevenue,
-  type UserReward,
-  type InsertUserReward,
   type AdminSetting,
   type InsertAdminSetting
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, sql, isNull, inArray, not, gt, lt, gte, lte, isNotNull } from "drizzle-orm";
+import { eq, and, desc, sql, isNull, inArray, not, gt, lt } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -138,12 +123,7 @@ export interface IStorage {
   getGlobalMatrixPosition(walletAddress: string): Promise<GlobalMatrixPosition | undefined>;
   createGlobalMatrixPosition(position: InsertGlobalMatrixPosition): Promise<GlobalMatrixPosition>;
   updateGlobalMatrixPosition(walletAddress: string, updates: Partial<GlobalMatrixPosition>): Promise<GlobalMatrixPosition | undefined>;
-  findGlobalMatrixPlacement(sponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string; matrixPosition: 'L' | 'M' | 'R' }>;
-
-  // USDT balance operations
-  getUSDTBalance(walletAddress: string): Promise<USDTBalance | undefined>;
-  createUSDTBalance(balance: InsertUSDTBalance): Promise<USDTBalance>;
-  updateUSDTBalance(walletAddress: string, balance: Partial<USDTBalance>): Promise<USDTBalance | undefined>;
+  findGlobalMatrixPlacement(sponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string }>;
 
   // BCC Balance operations
   getBCCBalance(walletAddress: string): Promise<BCCBalance | undefined>;
@@ -278,23 +258,6 @@ export interface IStorage {
   markNotificationAsRead(notificationId: string, walletAddress: string): Promise<UserNotification | undefined>;
   markAllNotificationsAsRead(walletAddress: string): Promise<void>;
   getUnreadNotificationCount(walletAddress: string): Promise<number>;
-
-  // Platform Revenue methods
-  createPlatformRevenue(data: InsertPlatformRevenue): Promise<PlatformRevenue>;
-  getPlatformRevenueByDate(startDate: Date, endDate: Date): Promise<PlatformRevenue[]>;
-  getPlatformRevenueBySourceWallet(sourceWallet: string): Promise<PlatformRevenue[]>;
-
-  // User Rewards methods  
-  createUserReward(data: InsertUserReward): Promise<UserReward>;
-  getUserRewardsByRecipient(recipientWallet: string): Promise<UserReward[]>;
-  getUserRewardsBySource(sourceWallet: string): Promise<UserReward[]>;
-  getPendingUserRewards(): Promise<UserReward[]>;
-  updateUserRewardStatus(id: string, status: string, confirmedAt?: Date, expiredAt?: Date, notes?: string): Promise<void>;
-  getUserRewardsExpiredBefore(date: Date): Promise<UserReward[]>;
-  unlockPendingRewards(unlockCondition: string, sourceWallet: string): Promise<void>;
-
-  // NFT claim reward distribution
-  processNFTClaimRewards(sourceWallet: string, triggerLevel: number, nftId?: string, claimTx?: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -546,7 +509,6 @@ export class DatabaseStorage implements IStorage {
         walletAddress: position.walletAddress.toLowerCase(),
         directSponsorWallet: position.directSponsorWallet.toLowerCase(),
         placementSponsorWallet: position.placementSponsorWallet.toLowerCase(),
-        matrixPosition: position.matrixPosition || 'L', // Default to L if not specified
       })
       .returning();
     return matrixPosition;
@@ -567,35 +529,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   // BCC Balance operations
-  // USDT Balance operations
-  async getUSDTBalance(walletAddress: string): Promise<USDTBalance | undefined> {
-    const [balance] = await db.select().from(usdtBalances).where(eq(usdtBalances.walletAddress, walletAddress.toLowerCase()));
-    return balance || undefined;
-  }
-
-  async createUSDTBalance(balance: InsertUSDTBalance): Promise<USDTBalance> {
-    const [usdtBalance] = await db
-      .insert(usdtBalances)
-      .values({
-        ...balance,
-        walletAddress: balance.walletAddress.toLowerCase(),
-      })
-      .returning();
-    return usdtBalance;
-  }
-
-  async updateUSDTBalance(walletAddress: string, updates: Partial<USDTBalance>): Promise<USDTBalance | undefined> {
-    // Use transaction to prevent race conditions on concurrent balance updates
-    return await db.transaction(async (tx) => {
-      const [balance] = await tx
-        .update(usdtBalances)
-        .set({ ...updates, lastUpdated: new Date() })
-        .where(eq(usdtBalances.walletAddress, walletAddress.toLowerCase()))
-        .returning();
-      return balance || undefined;
-    });
-  }
-
   async getBCCBalance(walletAddress: string): Promise<BCCBalance | undefined> {
     const [balance] = await db.select().from(bccBalances).where(eq(bccBalances.walletAddress, walletAddress.toLowerCase()));
     return balance || undefined;
@@ -613,15 +546,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateBCCBalance(walletAddress: string, updates: Partial<BCCBalance>): Promise<BCCBalance | undefined> {
-    // Use transaction to prevent race conditions on concurrent balance updates
-    return await db.transaction(async (tx) => {
-      const [balance] = await tx
-        .update(bccBalances)
-        .set({ ...updates, lastUpdated: new Date() })
-        .where(eq(bccBalances.walletAddress, walletAddress.toLowerCase()))
-        .returning();
-      return balance || undefined;
-    });
+    const [balance] = await db
+      .update(bccBalances)
+      .set({ ...updates, lastUpdated: new Date() })
+      .where(eq(bccBalances.walletAddress, walletAddress.toLowerCase()))
+      .returning();
+    return balance || undefined;
   }
 
   // Order operations
@@ -746,104 +676,135 @@ export class DatabaseStorage implements IStorage {
   }
 
 
-  // DEPRECATED: Old matrix logic replaced by Global 1×3 Matrix system
-  // This function is disabled to prevent conflicts with the new processNFTClaimRewards
+  // BeeHive business logic operations - NEW GLOBAL MATRIX LOGIC
+  // Process rewards according to EXACT specification: Layer-based rewards only
   async processGlobalMatrixRewards(buyerWallet: string, purchasedLevel: number): Promise<void> {
-    console.log(`DEPRECATED: processGlobalMatrixRewards called for ${buyerWallet} level ${purchasedLevel}`);
-    console.log(`Using new Global 1×3 Matrix system instead via processNFTClaimRewards`);
+    const matrixPosition = await this.getGlobalMatrixPosition(buyerWallet);
+    if (!matrixPosition) return;
+
+    // Get level config for pricing
+    const levelConfig = await this.getLevelConfig(purchasedLevel);
+    if (!levelConfig) return;
+
+    // SPECIFICATION: "When a member in your Layer n purchases Level n NFT, a pending reward = NFT price is created for you"
+    // Find all uplines who should receive rewards when this member buys Level n NFT
     
-    // Redirect to the new Global 1×3 Matrix system
-    await this.processNFTClaimRewards(
-      buyerWallet, 
-      purchasedLevel, 
-      `level_${purchasedLevel}_purchase`, 
-      `redirect_${Date.now()}`
-    );
+    const uplineWallets = await this.getUplineWallets(buyerWallet, purchasedLevel);
+    
+    for (const { wallet: uplineWallet, layer } of uplineWallets) {
+      const pendingUntil = new Date();
+      pendingUntil.setHours(pendingUntil.getHours() + 72); // 72-hour countdown
+      
+      // Check qualification based on level purchased and upline's level ownership
+      let isQualified = false;
+      const uplineMembership = await this.getMembershipState(uplineWallet);
+      
+      // SPECIFICATION: Member gets rewards only by each Layer upgrade to same level and member >= this level
+      // Layer 1: 3 members × $100 = $300 max (3rd reward requires Level 2)
+      // Layer 2: 9 members × $150 = $1350 max
+      
+      if (purchasedLevel === 1) {
+        // Layer 1 members buying Level 1: $100 each
+        // Count existing Level 1 rewards for this upline
+        const existingLevel1Rewards = await db.select()
+          .from(rewardDistributions)
+          .where(
+            and(
+              eq(rewardDistributions.recipientWallet, uplineWallet),
+              eq(rewardDistributions.level, 1),
+              eq(rewardDistributions.rewardType, 'level_bonus')
+            )
+          );
+          
+        const rewardSequenceNumber = existingLevel1Rewards.length + 1;
+        
+        if (rewardSequenceNumber <= 2) {
+          // First 2 rewards: Need Level 1
+          isQualified = uplineMembership?.levelsOwned.includes(1) || false;
+        } else {
+          // 3rd+ rewards: Need Level 2
+          isQualified = uplineMembership?.levelsOwned.includes(2) || false;
+        }
+      } else {
+        // Level 2+: Upline must own the same level or higher
+        isQualified = uplineMembership?.levelsOwned.some(level => level >= purchasedLevel) || false;
+      }
+      
+      // Determine reward amount based on purchased level
+      // Level 1 = $100, Level 2 = $150, Level 3 = $200, etc.
+      let rewardAmount: string;
+      if (purchasedLevel === 1) {
+        rewardAmount = "100.00"; // $100 USDT
+      } else if (purchasedLevel === 2) {
+        rewardAmount = "150.00"; // $150 USDT
+      } else {
+        // Level 3+ = Base price + $50 increments
+        const basePrice = 150; // Level 2 price
+        const incrementalPrice = basePrice + ((purchasedLevel - 2) * 50);
+        rewardAmount = incrementalPrice.toFixed(2);
+      }
+      
+      await this.createRewardDistribution({
+        recipientWallet: uplineWallet,
+        sourceWallet: buyerWallet,
+        rewardType: 'level_bonus',
+        rewardAmount,
+        level: purchasedLevel,
+        status: isQualified ? 'claimable' : 'pending',
+        pendingUntil: isQualified ? undefined : pendingUntil,
+      });
+    }
   }
 
-  // 1×3 Global Matrix Placement Algorithm with L→M→R order and Spillover
-  async findGlobalMatrixPlacement(sponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string; matrixPosition: 'L' | 'M' | 'R' }> {
-    // Check sponsor's current direct referrals and their L→M→R positions
+  // NEW: 3×3 Global Matrix Placement Algorithm with Spillover
+  async findGlobalMatrixPlacement(sponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string }> {
+    // 检查sponsor是否还有直推空位（最多3个）
     const sponsorDirectReferrals = await db.select()
       .from(globalMatrixPosition)
-      .where(eq(globalMatrixPosition.directSponsorWallet, sponsorWallet.toLowerCase()))
-      .orderBy(globalMatrixPosition.joinedAt); // Ensure we get them in order they joined
+      .where(eq(globalMatrixPosition.directSponsorWallet, sponsorWallet.toLowerCase()));
     
-    // Determine next available L→M→R position
-    const usedPositions = sponsorDirectReferrals.map(ref => ref.matrixPosition);
-    let nextPosition: 'L' | 'M' | 'R';
-    let positionIndex: number;
-    
-    if (!usedPositions.includes('L')) {
-      nextPosition = 'L';
-      positionIndex = 1;
-    } else if (!usedPositions.includes('M')) {
-      nextPosition = 'M';
-      positionIndex = 2;
-    } else if (!usedPositions.includes('R')) {
-      nextPosition = 'R';
-      positionIndex = 3;
-    } else {
-      // All L,M,R positions are full - need spillover
-      return await this.findSpilloverPlacement(sponsorWallet);
+    if (sponsorDirectReferrals.length < 3) {
+      // Sponsor还有直推空位，直接分配给sponsor
+      return {
+        matrixLevel: 1,
+        positionIndex: sponsorDirectReferrals.length + 1, // position 1, 2, 3
+        placementSponsorWallet: sponsorWallet
+      };
     }
     
-    return {
-      matrixLevel: 1,
-      positionIndex,
-      placementSponsorWallet: sponsorWallet,
-      matrixPosition: nextPosition
-    };
+    // Sponsor满了（3个直推），需要spillover - 使用BFS找最早的有空位的成员
+    return await this.findSpilloverPlacement(sponsorWallet);
   }
 
-  // BFS spillover placement - Find earliest member with available L→M→R slots
-  async findSpilloverPlacement(originalSponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string; matrixPosition: 'L' | 'M' | 'R' }> {
-    // Get all members, ordered by join time (earliest first for spillover)
+  // BFS spillover placement - 找到最早加入且还有空位的成员
+  async findSpilloverPlacement(originalSponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string }> {
+    // 获取所有成员，按加入时间排序
     const allMembers = await db.select()
       .from(globalMatrixPosition)
       .orderBy(globalMatrixPosition.joinedAt);
     
-    // BFS: Check each member starting from earliest for available L→M→R positions
+    // BFS：从最早的成员开始查找有空位的位置
     for (const member of allMembers) {
       const memberDirectReferrals = await db.select()
         .from(globalMatrixPosition)
-        .where(eq(globalMatrixPosition.directSponsorWallet, member.walletAddress))
-        .orderBy(globalMatrixPosition.joinedAt);
+        .where(eq(globalMatrixPosition.directSponsorWallet, member.walletAddress));
       
-      // Check which L→M→R positions are available
-      const usedPositions = memberDirectReferrals.map(ref => ref.matrixPosition);
-      let nextPosition: 'L' | 'M' | 'R' | null = null;
-      let positionIndex: number = 0;
-      
-      if (!usedPositions.includes('L')) {
-        nextPosition = 'L';
-        positionIndex = 1;
-      } else if (!usedPositions.includes('M')) {
-        nextPosition = 'M';
-        positionIndex = 2;
-      } else if (!usedPositions.includes('R')) {
-        nextPosition = 'R';
-        positionIndex = 3;
-      }
-      
-      if (nextPosition) {
-        // Found available position in this member's matrix
+      if (memberDirectReferrals.length < 3) {
+        // 找到有空位的成员
         return {
-          matrixLevel: member.matrixLevel + 1,
-          positionIndex,
-          placementSponsorWallet: member.walletAddress,
-          matrixPosition: nextPosition
+          matrixLevel: member.matrixLevel + 1, // 比placement sponsor低一层
+          positionIndex: memberDirectReferrals.length + 1,
+          placementSponsorWallet: member.walletAddress
         };
       }
     }
     
-    // If all existing members are full, place under the original sponsor as new level
+    // 如果所有现有成员都满了，创建新的层级
     const maxLevel = Math.max(...allMembers.map(m => m.matrixLevel));
     return {
       matrixLevel: maxLevel + 1,
       positionIndex: 1,
-      placementSponsorWallet: originalSponsorWallet,
-      matrixPosition: 'L' // Start new level with L position
+      placementSponsorWallet: originalSponsorWallet // fallback
     };
   }
 
@@ -1253,95 +1214,73 @@ export class DatabaseStorage implements IStorage {
 
   // Enhanced earnings reward method that syncs with reward distribution system
   async addEarningsReward(walletAddress: string, amount: number, type: 'referral' | 'level' | 'matrix_spillover', isPending = false): Promise<void> {
-    // Use transaction to prevent race conditions on concurrent balance updates
-    await db.transaction(async (tx) => {
-      // Get or create earnings wallet within transaction
-      let earnings = await tx.select()
-        .from(earningsWallet)
-        .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()));
+    // Get or create earnings wallet
+    let earnings = await this.getEarningsWalletByWallet(walletAddress);
+    
+    if (!earnings || earnings.length === 0) {
+      earnings = [await this.createEarningsWallet({
+        walletAddress,
+        totalEarnings: "0",
+        referralEarnings: "0", 
+        levelEarnings: "0",
+        pendingRewards: "0",
+        withdrawnAmount: "0",
+      })];
+    }
+
+    const currentEarnings = earnings[0];
+    const amountStr = amount.toFixed(2);
+
+    const updates: Partial<EarningsWallet> = {
+      lastRewardAt: new Date()
+    };
+
+    if (isPending) {
+      // Add to pending rewards
+      const currentPending = parseFloat(currentEarnings.pendingRewards);
+      updates.pendingRewards = (currentPending + amount).toFixed(2);
+    } else {
+      // Add to total and category-specific earnings
+      const currentTotal = parseFloat(currentEarnings.totalEarnings);
+      updates.totalEarnings = (currentTotal + amount).toFixed(2);
       
-      if (earnings.length === 0) {
-        // Create new earnings wallet
-        const [newEarnings] = await tx
-          .insert(earningsWallet)
-          .values({
-            walletAddress: walletAddress.toLowerCase(),
-            totalEarnings: "0",
-            referralEarnings: "0", 
-            levelEarnings: "0",
-            pendingRewards: "0",
-            withdrawnAmount: "0",
-          })
-          .returning();
-        earnings = [newEarnings];
+      if (type === 'referral') {
+        const currentReferral = parseFloat(currentEarnings.referralEarnings);
+        updates.referralEarnings = (currentReferral + amount).toFixed(2);
+      } else if (type === 'level') {
+        const currentLevel = parseFloat(currentEarnings.levelEarnings);
+        updates.levelEarnings = (currentLevel + amount).toFixed(2);
       }
+    }
 
-      const currentEarnings = earnings[0];
-      const updates: Partial<EarningsWallet> = {
-        lastRewardAt: new Date()
-      };
-
-      if (isPending) {
-        // Add to pending rewards
-        const currentPending = parseFloat(currentEarnings.pendingRewards);
-        updates.pendingRewards = (currentPending + amount).toFixed(2);
-      } else {
-        // Add to total and category-specific earnings
-        const currentTotal = parseFloat(currentEarnings.totalEarnings);
-        updates.totalEarnings = (currentTotal + amount).toFixed(2);
-        
-        if (type === 'referral') {
-          const currentReferral = parseFloat(currentEarnings.referralEarnings);
-          updates.referralEarnings = (currentReferral + amount).toFixed(2);
-        } else if (type === 'level') {
-          const currentLevel = parseFloat(currentEarnings.levelEarnings);
-          updates.levelEarnings = (currentLevel + amount).toFixed(2);
-        }
-      }
-
-      // Update within the same transaction
-      await tx
-        .update(earningsWallet)
-        .set(updates)
-        .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()));
-    });
+    await this.updateEarningsWallet(walletAddress, updates);
   }
 
   // Process claimed reward - move from pending to total
   async processClaimedReward(walletAddress: string, rewardAmount: number, rewardType: 'referral' | 'level' | 'matrix_spillover'): Promise<void> {
-    // Use transaction to prevent race conditions on concurrent balance updates
-    await db.transaction(async (tx) => {
-      const earnings = await tx.select()
-        .from(earningsWallet)
-        .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()));
-        
-      if (earnings.length === 0) return;
+    const earnings = await this.getEarningsWalletByWallet(walletAddress);
+    if (!earnings || earnings.length === 0) return;
 
-      const currentEarnings = earnings[0];
-      const currentPending = parseFloat(currentEarnings.pendingRewards);
-      const currentTotal = parseFloat(currentEarnings.totalEarnings);
+    const currentEarnings = earnings[0];
+    const currentPending = parseFloat(currentEarnings.pendingRewards);
+    const currentTotal = parseFloat(currentEarnings.totalEarnings);
 
-      const updates: Partial<EarningsWallet> = {
-        pendingRewards: Math.max(0, currentPending - rewardAmount).toFixed(2),
-        totalEarnings: (currentTotal + rewardAmount).toFixed(2),
-        lastRewardAt: new Date()
-      };
+    const updates: Partial<EarningsWallet> = {
+      pendingRewards: Math.max(0, currentPending - rewardAmount).toFixed(2),
+      totalEarnings: (currentTotal + rewardAmount).toFixed(2),
+      lastRewardAt: new Date()
+    };
 
-      // Update category-specific earnings
-      if (rewardType === 'referral') {
-        const currentReferral = parseFloat(currentEarnings.referralEarnings);
-        updates.referralEarnings = (currentReferral + rewardAmount).toFixed(2);
-      } else if (rewardType === 'level') {
-        const currentLevel = parseFloat(currentEarnings.levelEarnings);
-        updates.levelEarnings = (currentLevel + rewardAmount).toFixed(2);
-      }
+    // Update category-specific earnings
+    if (rewardType === 'referral') {
+      const currentReferral = parseFloat(currentEarnings.referralEarnings);
+      updates.referralEarnings = (currentReferral + rewardAmount).toFixed(2);
+    } else if (rewardType === 'level') {
+      const currentLevel = parseFloat(currentEarnings.levelEarnings);
+      updates.levelEarnings = (currentLevel + rewardAmount).toFixed(2);
+    }
 
-      // Update within the same transaction
-      await tx
-        .update(earningsWallet)
-        .set(updates)
-        .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()));
-    });
+    await this.updateEarningsWallet(walletAddress, updates);
   }
 
   // Calculate real earnings from reward distributions
@@ -1463,80 +1402,94 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // User-specific referral statistics - USING VIEWS
+  // User-specific referral statistics
   async getUserReferralStats(walletAddress: string): Promise<any> {
     try {
-      const lowerWallet = walletAddress.toLowerCase();
+      // Get user's global matrix position
+      const userPosition = await this.getGlobalMatrixPosition(walletAddress);
       
-      // Get direct referrals from view where this user placed members directly
-      const directReferralsResult = await db.execute(sql`
-        SELECT member_wallet, layer, placement_type, placed_by
-        FROM user_matrix_positions 
-        WHERE root_wallet = ${lowerWallet} 
-          AND placement_type = 'direct'
-      `);
-      
-      const directReferrals = directReferralsResult.rows.length;
+      // Direct referrals count from global matrix
+      const directReferralsCount = await db.select()
+        .from(globalMatrixPosition)
+        .where(eq(globalMatrixPosition.directSponsorWallet, walletAddress.toLowerCase()));
+      const directReferrals = directReferralsCount.length;
 
-      // Get total team size from all members in this user's matrix view
-      const totalTeamResult = await db.execute(sql`
-        SELECT COUNT(*) as total_count
-        FROM user_matrix_positions 
-        WHERE root_wallet = ${lowerWallet}
-      `);
-      
-      const totalTeam = Number(totalTeamResult.rows[0]?.total_count || 0);
+      // Total team size - simplified for now
+      const totalTeam = directReferrals; // Will expand to full recursive count later
 
       // User's real earnings from earnings_wallet
       const userEarnings = await this.calculateRealEarnings(walletAddress);
       const totalEarnings = userEarnings.totalEarnings;
       const pendingRewards = userEarnings.pendingRewards;
 
-      // Get direct referrals list with user details
-      const directReferralsList = [];
-      for (const row of directReferralsResult.rows.slice(0, 10)) { // Limit to 10 for performance
-        const memberWallet = row.member_wallet as string;
-        const user = await db.select()
-          .from(users)
-          .where(eq(users.walletAddress, memberWallet))
-          .limit(1);
-        
-        if (user.length > 0) {
-          directReferralsList.push({
-            walletAddress: memberWallet,
-            username: user[0].username || `User${memberWallet.slice(-4)}`,
-            level: user[0].currentLevel || 1,
-            joinDate: user[0].createdAt,
-            earnings: 0 // TODO: Calculate from earnings
+      // Recent direct referrals with real data
+      const directReferralsList = directReferralsCount.map((position) => ({
+        walletAddress: position.walletAddress,
+        username: 'User', // Will get from users table later
+        level: position.matrixLevel,
+        joinDate: position.joinedAt,
+        earnings: 0 // Will be calculated from earnings table later
+      }));
+
+      // Get real downline matrix data for all 19 levels
+      const downlineMatrix = [];
+      for (let level = 1; level <= 19; level++) {
+        try {
+          // Count members at this specific level in the user's downline
+          const levelMembersResult = await db.execute(sql`
+            WITH RECURSIVE downline_tree AS (
+              SELECT wallet_address, referrer_wallet, current_level, 1 as depth
+              FROM users 
+              WHERE referrer_wallet = ${walletAddress}
+              
+              UNION ALL
+              
+              SELECT u.wallet_address, u.referrer_wallet, u.current_level, dt.depth + 1
+              FROM users u
+              JOIN downline_tree dt ON u.referrer_wallet = dt.wallet_address
+              WHERE dt.depth < 19
+            )
+            SELECT COUNT(*) as member_count
+            FROM downline_tree 
+            WHERE current_level = ${level}
+          `);
+
+          const memberCount = Number(levelMembersResult.rows[0]?.member_count || 0);
+          
+          // Count total placements at this level (matrix positions filled)
+          const placementResult = await db.execute(sql`
+            WITH RECURSIVE downline_tree AS (
+              SELECT wallet_address, referrer_wallet, 1 as depth
+              FROM users 
+              WHERE referrer_wallet = ${walletAddress}
+              
+              UNION ALL
+              
+              SELECT u.wallet_address, u.referrer_wallet, dt.depth + 1
+              FROM users u
+              JOIN downline_tree dt ON u.referrer_wallet = dt.wallet_address
+              WHERE dt.depth < 19
+            )
+            SELECT COUNT(*) as placement_count
+            FROM downline_tree 
+            WHERE depth = ${level}
+          `);
+
+          const placementCount = Number(placementResult.rows[0]?.placement_count || 0);
+
+          downlineMatrix.push({
+            level,
+            members: memberCount,
+            placements: placementCount
+          });
+        } catch (error) {
+          console.error(`Error fetching downline data for level ${level}:`, error);
+          downlineMatrix.push({
+            level,
+            members: 0,
+            placements: 0
           });
         }
-      }
-
-      // Get downline matrix data for all 19 layers from matrix layer stats view
-      const downlineMatrix = [];
-      const layerStatsResult = await db.execute(sql`
-        SELECT layer, total_members, direct_placements, spillover_placements
-        FROM user_matrix_layer_stats 
-        WHERE root_wallet = ${lowerWallet}
-        ORDER BY layer
-      `);
-
-      // Fill all 19 levels
-      const layerStatsMap = new Map();
-      for (const row of layerStatsResult.rows) {
-        layerStatsMap.set(Number(row.layer), {
-          members: Number(row.total_members),
-          placements: Number(row.direct_placements) + Number(row.spillover_placements)
-        });
-      }
-
-      for (let level = 1; level <= 19; level++) {
-        const layerData = layerStatsMap.get(level) || { members: 0, placements: 0 };
-        downlineMatrix.push({
-          level,
-          members: layerData.members,
-          placements: layerData.placements
-        });
       }
 
       return {
@@ -2853,27 +2806,15 @@ export class DatabaseStorage implements IStorage {
       pendingTimeoutHours: 0,
     });
 
-    // 9. Create global matrix position using proper 1×3 placement
+    // 9. Create global matrix position
     let globalMatrixPosition = await this.getGlobalMatrixPosition(lowerWalletAddress);
-    if (!globalMatrixPosition && sponsorWallet) {
-      const placement = await this.findGlobalMatrixPlacement(sponsorWallet);
+    if (!globalMatrixPosition) {
       globalMatrixPosition = await this.createGlobalMatrixPosition({
         walletAddress: lowerWalletAddress,
-        matrixLevel: placement.matrixLevel,
-        positionIndex: placement.positionIndex,
-        matrixPosition: placement.matrixPosition,
-        directSponsorWallet: sponsorWallet.toLowerCase(),
-        placementSponsorWallet: placement.placementSponsorWallet,
-      });
-    } else if (!globalMatrixPosition) {
-      // Root member (no sponsor)
-      globalMatrixPosition = await this.createGlobalMatrixPosition({
-        walletAddress: lowerWalletAddress,
-        matrixLevel: 1,
-        positionIndex: 1,
-        matrixPosition: 'L',
-        directSponsorWallet: lowerWalletAddress,
-        placementSponsorWallet: lowerWalletAddress,
+        matrixLevel: membershipLevel,
+        positionIndex: await this.getNextGlobalMatrixPosition(),
+        directSponsorWallet: sponsorWallet?.toLowerCase() || '',
+        placementSponsorWallet: sponsorWallet?.toLowerCase() || '',
       });
     }
 
@@ -2894,7 +2835,7 @@ export class DatabaseStorage implements IStorage {
       await this.updateTeamCountsUpline(lowerWalletAddress);
     }
 
-    // 12. Trigger Global 1×3 Matrix rewards if there's a sponsor
+    // 12. Trigger sponsor rewards if there's a sponsor
     if (sponsorWallet) {
       await this.triggerSponsorRewards(lowerWalletAddress, sponsorWallet, membershipLevel, nftPrice);
     }
@@ -2915,7 +2856,7 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  // Trigger Global 1×3 Matrix rewards when new member claims NFT
+  // Trigger rewards for sponsor and upline when new member claims NFT
   async triggerSponsorRewards(
     newMemberWallet: string, 
     sponsorWallet: string, 
@@ -2923,17 +2864,41 @@ export class DatabaseStorage implements IStorage {
     nftPrice: number
   ): Promise<void> {
     try {
-      console.log(`Triggering Global 1×3 Matrix rewards for ${newMemberWallet} at level ${membershipLevel}`);
+      const directReferralReward = nftPrice * 0.1; // 10% direct referral reward
+      const levelBonus = nftPrice * 0.05; // 5% level bonus
       
-      // Use the new Global 1×3 Matrix reward distribution system
-      await this.processNFTClaimRewards(
-        newMemberWallet, 
-        membershipLevel, 
-        `member_nft_${membershipLevel}`, 
-        `trigger_${Date.now()}`
-      );
+      // 1. Create direct referral reward for sponsor
+      await this.createUpgradeAndRewardRecords({
+        walletAddress: sponsorWallet,
+        triggerWallet: newMemberWallet,
+        level: membershipLevel,
+        layerNumber: 1,
+        rewardAmount: directReferralReward,
+        rewardType: 'direct_referral'
+      });
 
-      // Update sponsor's direct referral count
+      // 2. Create level bonus rewards for upline (up to 19 levels)
+      const uplineChain = await this.getUplineChain(sponsorWallet, 19);
+      
+      for (let i = 0; i < uplineChain.length; i++) {
+        const uplineWallet = uplineChain[i];
+        const layerNumber = i + 2; // Start from layer 2 (layer 1 is direct sponsor)
+        
+        // Check if upline member is activated and has required level
+        const uplineMembership = await this.getMembershipState(uplineWallet);
+        if (uplineMembership && uplineMembership.activeLevel >= membershipLevel) {
+          await this.createUpgradeAndRewardRecords({
+            walletAddress: uplineWallet,
+            triggerWallet: newMemberWallet,
+            level: membershipLevel,
+            layerNumber,
+            rewardAmount: levelBonus / (i + 1), // Decreasing reward amount up the chain
+            rewardType: 'level_bonus'
+          });
+        }
+      }
+
+      // 3. Update sponsor's direct referral count
       const sponsorNode = await this.getReferralNode(sponsorWallet);
       if (sponsorNode) {
         await this.updateReferralNode(sponsorWallet, {
@@ -2941,9 +2906,8 @@ export class DatabaseStorage implements IStorage {
         });
       }
 
-      console.log(`Global 1×3 Matrix rewards processed successfully for level ${membershipLevel}`);
     } catch (error) {
-      console.error('Error triggering Global 1×3 Matrix rewards:', error);
+      console.error('Error triggering sponsor rewards:', error);
     }
   }
 
@@ -3025,8 +2989,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // DEPRECATED: Old reward record creation replaced by Global 1×3 Matrix system
-  // This function is disabled to prevent conflicts with the new userRewards table
+  // Synchronized notification and reward methods
   async createUpgradeAndRewardRecords(data: {
     walletAddress: string;
     triggerWallet: string;
@@ -3039,14 +3002,44 @@ export class DatabaseStorage implements IStorage {
     memberActivation: any;
     rewardDistribution: RewardDistribution;
   }> {
-    console.log(`DEPRECATED: createUpgradeAndRewardRecords called for ${data.walletAddress} level ${data.level}`);
-    console.log(`New Global 1×3 Matrix system handles rewards via userRewards table`);
+    const { walletAddress, triggerWallet, level, layerNumber, rewardAmount, rewardType } = data;
     
-    // Return empty objects to prevent breaking existing code
+    // Create reward notification (72-hour countdown)
+    const rewardNotification = await this.createRewardNotification({
+      recipientWallet: walletAddress.toLowerCase(),
+      triggerWallet: triggerWallet.toLowerCase(),
+      triggerLevel: level,
+      layerNumber,
+      rewardAmount: Math.round(rewardAmount * 100), // Convert to cents
+      status: 'pending',
+      expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000), // 72 hours
+    });
+
+    // Create member activation record (24-hour countdown for upgrade)
+    const memberActivation = await this.createMemberActivation({
+      walletAddress: walletAddress.toLowerCase(),
+      activationType: 'upgrade_triggered' as any,
+      level,
+      pendingUntil: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+      isPending: true,
+      pendingTimeoutHours: 24,
+    });
+
+    // Create reward distribution record (72-hour countdown)
+    const rewardDistribution = await this.createRewardDistribution({
+      recipientWallet: walletAddress.toLowerCase(),
+      sourceWallet: triggerWallet.toLowerCase(),
+      rewardType,
+      rewardAmount: rewardAmount.toString(),
+      level,
+      status: 'pending',
+      pendingUntil: new Date(Date.now() + 72 * 60 * 60 * 1000), // 72 hours
+    });
+
     return {
-      rewardNotification: {} as RewardNotification,
-      memberActivation: {} as any,
-      rewardDistribution: {} as RewardDistribution
+      rewardNotification,
+      memberActivation,
+      rewardDistribution
     };
   }
 
@@ -3298,441 +3291,6 @@ export class DatabaseStorage implements IStorage {
         )
       );
     return result[0]?.count || 0;
-  }
-
-  // Platform Revenue Methods
-  async createPlatformRevenue(data: InsertPlatformRevenue): Promise<PlatformRevenue> {
-    const [result] = await db.insert(platformRevenue).values({
-      ...data,
-      sourceWallet: data.sourceWallet.toLowerCase()
-    }).returning();
-    return result;
-  }
-
-  async getPlatformRevenueByDate(startDate: Date, endDate: Date): Promise<PlatformRevenue[]> {
-    return await db.select()
-      .from(platformRevenue)
-      .where(
-        and(
-          gte(platformRevenue.createdAt, startDate),
-          lte(platformRevenue.createdAt, endDate)
-        )
-      )
-      .orderBy(desc(platformRevenue.createdAt));
-  }
-
-  async getPlatformRevenueBySourceWallet(sourceWallet: string): Promise<PlatformRevenue[]> {
-    return await db.select()
-      .from(platformRevenue)
-      .where(eq(platformRevenue.sourceWallet, sourceWallet.toLowerCase()))
-      .orderBy(desc(platformRevenue.createdAt));
-  }
-
-  // User Rewards Methods
-  async createUserReward(data: InsertUserReward): Promise<UserReward> {
-    const [result] = await db.insert(userRewards).values({
-      ...data,
-      recipientWallet: data.recipientWallet.toLowerCase(),
-      sourceWallet: data.sourceWallet.toLowerCase()
-    }).returning();
-    return result;
-  }
-
-  async getUserRewardsByRecipient(recipientWallet: string): Promise<UserReward[]> {
-    return await db.select()
-      .from(userRewards)
-      .where(eq(userRewards.recipientWallet, recipientWallet.toLowerCase()))
-      .orderBy(desc(userRewards.createdAt));
-  }
-
-  async getUserRewardsBySource(sourceWallet: string): Promise<UserReward[]> {
-    return await db.select()
-      .from(userRewards)
-      .where(eq(userRewards.sourceWallet, sourceWallet.toLowerCase()))
-      .orderBy(desc(userRewards.createdAt));
-  }
-
-  async getPendingUserRewards(): Promise<UserReward[]> {
-    return await db.select()
-      .from(userRewards)
-      .where(eq(userRewards.status, 'pending'))
-      .orderBy(desc(userRewards.createdAt));
-  }
-
-  async updateUserRewardStatus(id: string, status: string, confirmedAt?: Date, expiredAt?: Date, notes?: string): Promise<void> {
-    const updates: Partial<UserReward> = { status };
-    if (confirmedAt) updates.confirmedAt = confirmedAt;
-    if (expiredAt) updates.expiredAt = expiredAt;
-    if (notes) updates.notes = notes;
-
-    await db.update(userRewards)
-      .set(updates)
-      .where(eq(userRewards.id, id));
-  }
-
-  async getUserRewardsExpiredBefore(date: Date): Promise<UserReward[]> {
-    return await db.select()
-      .from(userRewards)
-      .where(
-        and(
-          eq(userRewards.status, 'pending'),
-          lte(userRewards.expiresAt, date)
-        )
-      );
-  }
-
-  async unlockPendingRewards(unlockCondition: string, sourceWallet: string): Promise<void> {
-    await db.update(userRewards)
-      .set({
-        status: 'confirmed',
-        confirmedAt: new Date(),
-        notes: 'Unlock condition met'
-      })
-      .where(
-        and(
-          eq(userRewards.status, 'pending'),
-          eq(userRewards.unlockCondition, unlockCondition),
-          eq(userRewards.sourceWallet, sourceWallet.toLowerCase())
-        )
-      );
-  }
-
-  // NFT Claim Reward Distribution - Main Logic (Global 1×3 Matrix)
-  async processNFTClaimRewards(sourceWallet: string, triggerLevel: number, nftId?: string, claimTx?: string): Promise<void> {
-    console.log(`Processing NFT claim rewards for ${sourceWallet} at level ${triggerLevel}`);
-    
-    try {
-      // Get level configuration for validation
-      const levelConfig = await this.getLevelConfig(triggerLevel);
-      if (!levelConfig) {
-        throw new Error(`Level config not found for level ${triggerLevel}`);
-      }
-
-      // Find the Nth ancestor (exactly N steps up)
-      const targetUpline = await this.getNthAncestor(sourceWallet, triggerLevel);
-      
-      if (!targetUpline) {
-        console.log(`No ancestor found at depth ${triggerLevel} for ${sourceWallet}`);
-        // Still process platform revenue for L1
-        if (triggerLevel === 1) {
-          await this.createPlatformRevenue({
-            sourceType: 'nft_claim',
-            sourceWallet,
-            level: triggerLevel,
-            amount: '30',
-            description: `Platform fee from Level ${triggerLevel} NFT claim`,
-            metadata: { nftId, claimTx }
-          });
-        }
-        return;
-      }
-
-      console.log(`Found target upline ${targetUpline} at depth ${triggerLevel}`);
-
-      // Check if target upline is eligible (has membership_level >= N)
-      const uplineEligible = await this.checkLevelRequirement(targetUpline, triggerLevel);
-      
-      // Calculate reward parameters based on eligibility
-      const { rewardAmount, isPending, expiresAt, unlockCondition } = this.calculateRewardParameters(triggerLevel, uplineEligible);
-      
-      // Create user reward record
-      await this.createUserReward({
-        recipientWallet: targetUpline,
-        sourceWallet,
-        triggerLevel,
-        payoutLayer: triggerLevel,
-        matrixPosition: `depth_${triggerLevel}`,
-        rewardAmount,
-        status: isPending ? 'pending' : 'confirmed',
-        requiresLevel: triggerLevel,
-        unlockCondition: isPending ? unlockCondition : undefined,
-        expiresAt: isPending ? expiresAt : undefined,
-        metadata: {
-          nftId,
-          claimTx,
-          originalPrice: triggerLevel === 1 ? 100 : 100 + (triggerLevel - 1) * 50,
-          ancestorDepth: triggerLevel,
-          eligible: uplineEligible
-        }
-      });
-
-      // Update user's earnings wallet for confirmed rewards
-      if (!isPending) {
-        await this.updateEarningsForConfirmedReward(targetUpline, rewardAmount);
-      }
-
-      // Handle platform revenue for L1 only (+30 USDT)
-      if (triggerLevel === 1) {
-        await this.createPlatformRevenue({
-          sourceType: 'nft_claim',
-          sourceWallet,
-          level: triggerLevel,
-          amount: '30',
-          description: `Platform fee from Level ${triggerLevel} NFT claim`,
-          metadata: { nftId, claimTx }
-        });
-      }
-
-      // Unlock any pending rewards that now meet conditions
-      await this.unlockPendingRewards(`upgrade_to_level_${triggerLevel}`, sourceWallet);
-
-      console.log(`NFT claim rewards processed successfully for level ${triggerLevel}`);
-    } catch (error) {
-      console.error(`Error processing NFT claim rewards:`, error);
-      throw error;
-    }
-  }
-
-  // Find the Nth ancestor (exactly N steps up in the referral tree)
-  private async getNthAncestor(sourceWallet: string, depth: number): Promise<string | null> {
-    let currentWallet = sourceWallet;
-    
-    // Walk up exactly N steps
-    for (let step = 1; step <= depth; step++) {
-      const user = await this.getUser(currentWallet);
-      if (!user?.referrerWallet || user.referrerWallet === currentWallet) {
-        return null; // No ancestor at this depth
-      }
-      
-      currentWallet = user.referrerWallet;
-    }
-    
-    return currentWallet;
-  }
-
-  // Find qualified ancestor by searching upward
-  private async findQualifiedAncestor(sourceWallet: string, requiredLevel: number, startDepth: number = 1): Promise<string | null> {
-    let currentWallet = sourceWallet;
-    
-    // Skip to start depth first
-    for (let step = 1; step < startDepth; step++) {
-      const user = await this.getUser(currentWallet);
-      if (!user?.referrerWallet || user.referrerWallet === currentWallet) {
-        return null;
-      }
-      currentWallet = user.referrerWallet;
-    }
-    
-    // Then search upward for qualified ancestor
-    for (let depth = startDepth; depth <= 19; depth++) {
-      const user = await this.getUser(currentWallet);
-      if (!user?.referrerWallet || user.referrerWallet === currentWallet) {
-        break;
-      }
-      
-      currentWallet = user.referrerWallet;
-      
-      // Check if this ancestor is qualified
-      if (await this.checkLevelRequirement(currentWallet, requiredLevel)) {
-        return currentWallet;
-      }
-    }
-    
-    return null; // No qualified ancestor found
-  }
-
-  private getMatrixPosition(index: number): string {
-    const positions = ['L', 'M', 'R'];
-    return positions[index % 3] || `${index + 1}`;
-  }
-
-  private async checkLevelRequirement(walletAddress: string, requiredLevel: number): Promise<boolean> {
-    const membership = await this.getMembershipState(walletAddress);
-    return membership?.levelsOwned.includes(requiredLevel) || false;
-  }
-
-  private calculateRewardParameters(triggerLevel: number, uplineEligible: boolean): {
-    rewardAmount: string;
-    isPending: boolean;
-    expiresAt?: Date;
-    unlockCondition?: string;
-  } {
-    // NFT Price progression: Level 1 = 100 USDT, Level N = 100 + (N-1)*50 USDT
-    // Reward = NFT Price × 100%
-    const nftPrice = triggerLevel === 1 ? 100 : 100 + (triggerLevel - 1) * 50;
-    const rewardAmount = nftPrice.toString();
-    
-    let isPending = false;
-    let expiresAt: Date | undefined;
-    let unlockCondition: string | undefined;
-
-    const now = new Date();
-    const expires72h = new Date(now.getTime() + (72 * 60 * 60 * 1000));
-
-    // If upline doesn't meet level requirement, make it pending
-    if (!uplineEligible) {
-      isPending = true;
-      expiresAt = expires72h;
-      unlockCondition = `upgrade_to_level_${triggerLevel}`;
-    }
-
-    return { rewardAmount, isPending, expiresAt, unlockCondition };
-  }
-
-  private async updateEarningsForConfirmedReward(walletAddress: string, rewardAmount: string): Promise<void> {
-    const amount = parseFloat(rewardAmount);
-    
-    // Get or create earnings wallet entry
-    let earningsResults = await db.select()
-      .from(earningsWallet)
-      .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()))
-      .limit(1);
-
-    if (earningsResults.length === 0) {
-      // Create new earnings wallet entry
-      await this.createEarningsWalletEntry({
-        walletAddress,
-        totalEarnings: rewardAmount,
-        pendingRewards: rewardAmount,
-        referralEarnings: '0',
-        levelEarnings: '0',
-        withdrawnAmount: '0'
-      });
-    } else {
-      // Update existing entry
-      const current = earningsResults[0];
-      await db.update(earningsWallet)
-        .set({
-          totalEarnings: (parseFloat(current.totalEarnings) + amount).toString(),
-          pendingRewards: (parseFloat(current.pendingRewards) + amount).toString(),
-          lastRewardAt: new Date()
-        })
-        .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()));
-    }
-  }
-
-  // Cron job method for processing expired/confirmed rewards with spillover reallocation
-  async processPendingUserRewards(): Promise<{ processed: number; expired: number; confirmed: number; reallocated: number }> {
-    const now = new Date();
-    let processed = 0;
-    let expired = 0;
-    let confirmed = 0;
-    let reallocated = 0;
-
-    try {
-      // Get all pending rewards that are ready to be processed
-      const pendingRewards = await db.select()
-        .from(userRewards)
-        .where(
-          and(
-            eq(userRewards.status, 'pending'),
-            isNotNull(userRewards.expiresAt),
-            lte(userRewards.expiresAt, now)
-          )
-        );
-
-      console.log(`Processing ${pendingRewards.length} expired pending rewards`);
-
-      for (const reward of pendingRewards) {
-        processed++;
-
-        // Check if unlock condition has been met
-        const conditionMet = await this.checkUnlockCondition(reward);
-
-        if (conditionMet) {
-          // Confirm the reward
-          await this.updateUserRewardStatus(
-            reward.id,
-            'confirmed',
-            now,
-            undefined,
-            'Unlock condition met - confirmed'
-          );
-
-          // Update earnings wallet
-          await this.updateEarningsForConfirmedReward(reward.recipientWallet, reward.rewardAmount);
-          confirmed++;
-          
-          console.log(`Confirmed reward ${reward.id} for ${reward.recipientWallet}`);
-        } else {
-          // Expired - implement spillover reallocation
-          await this.updateUserRewardStatus(
-            reward.id,
-            'expired',
-            undefined,
-            now,
-            'Original recipient not qualified - searching for spillover'
-          );
-          
-          // Find qualified ancestor for reallocation
-          const qualifiedAncestor = await this.findQualifiedAncestor(
-            reward.sourceWallet, 
-            reward.requiresLevel || reward.triggerLevel,
-            reward.triggerLevel + 1 // Start searching from the next level up
-          );
-          
-          if (qualifiedAncestor) {
-            // Create new reward for qualified ancestor
-            await this.createUserReward({
-              recipientWallet: qualifiedAncestor,
-              sourceWallet: reward.sourceWallet,
-              triggerLevel: reward.triggerLevel,
-              payoutLayer: reward.payoutLayer,
-              matrixPosition: `spillover_${reward.matrixPosition}`,
-              rewardAmount: reward.rewardAmount,
-              status: 'confirmed',
-              requiresLevel: reward.requiresLevel,
-              unlockCondition: undefined,
-              expiresAt: undefined,
-              metadata: {
-                ...(reward.metadata as object || {}),
-                spilloverFrom: reward.recipientWallet,
-                originalRewardId: reward.id,
-                reallocatedAt: now.toISOString()
-              }
-            });
-
-            // Update earnings wallet for spillover recipient
-            await this.updateEarningsForConfirmedReward(qualifiedAncestor, reward.rewardAmount);
-            reallocated++;
-            
-            console.log(`Reallocated reward ${reward.id} from ${reward.recipientWallet} to ${qualifiedAncestor}`);
-          } else {
-            // No qualified ancestor found - goes to platform revenue
-            await this.createPlatformRevenue({
-              sourceType: 'spillover_fallback',
-              sourceWallet: reward.sourceWallet,
-              level: reward.triggerLevel,
-              amount: reward.rewardAmount,
-              description: `Fallback revenue from expired Level ${reward.triggerLevel} reward`,
-              metadata: {
-                originalRewardId: reward.id,
-                originalRecipient: reward.recipientWallet,
-                reason: 'No qualified ancestor found for spillover'
-              }
-            });
-            
-            console.log(`Reward ${reward.id} sent to platform revenue - no qualified ancestors`);
-          }
-          
-          expired++;
-        }
-      }
-
-      console.log(`Processed ${processed} rewards: ${confirmed} confirmed, ${expired} expired, ${reallocated} reallocated`);
-      return { processed, expired, confirmed, reallocated };
-    } catch (error) {
-      console.error('Error processing pending user rewards:', error);
-      throw error;
-    }
-  }
-
-  private async checkUnlockCondition(reward: UserReward): Promise<boolean> {
-    if (!reward.unlockCondition || !reward.sourceWallet) {
-      return false;
-    }
-
-    // Parse unlock condition like "upgrade_to_level_2"
-    const match = reward.unlockCondition.match(/upgrade_to_level_(\d+)/);
-    if (!match) {
-      return false;
-    }
-
-    const requiredLevel = parseInt(match[1], 10);
-    
-    // Check if the source wallet has reached the required level
-    const membership = await this.getMembershipState(reward.sourceWallet);
-    return membership?.levelsOwned.includes(requiredLevel) || false;
   }
 }
 

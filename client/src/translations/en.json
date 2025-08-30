@@ -1,15 +1,13 @@
 {
   "nav": {
     "dashboard": "Dashboard",
-    "referrals": "Referrals",
     "tasks": "Tasks",
     "marketplace": "Marketplace",
     "education": "Education",
     "discover": "Discover",
     "hiveworld": "HiveWorld",
     "me": "Me",
-    "home": "Home",
-    "back": "Back"
+    "home": "Home"
   },
   "common": {
     "cancel": "Cancel",
@@ -412,74 +410,8 @@
       "noNotifications": "No upgrade notifications yet",
       "notificationsAppear": "Notifications will appear when team members upgrade their levels"
     },
-    "organization": {
-      "title": "Organization Activity",
-      "viewMore": "View More ({{count}} items)",
-      "noActivity": "No Activity",
-      "noActivityDesc": "Notifications will appear here when your team has new activity",
-      "details": "Details",
-      "activityDetails": "Activity Details",
-      "user": "User",
-      "activity": "Activity",
-      "time": "Time",
-      "wallet": "Wallet Address",
-      "backToList": "Back to List",
-      "activities": {
-        "direct_referral": "Direct Referral",
-        "placement": "Matrix Placement",
-        "upgrade": "Level Upgrade",
-        "joined": "joined your team",
-        "placed": "placed {{member}} in matrix Level {{level}} {{position}} position",
-        "upgraded": "upgraded to Level {{level}}",
-        "timeAgo": {
-          "hours": "{{count}} hours ago",
-          "days": "{{count}} days ago",
-          "minutes": "{{count}} minutes ago"
-        }
-      }
-    },
     "upgradeRewards": {
       "description": "Track upgrade rewards from your matrix layers. You have 72 hours to upgrade when members purchase higher level NFTs."
-    },
-    "matrix": {
-      "title": "3×3 Matrix Structure", 
-      "loading": "Loading matrix data...",
-      "noMembers": "No Matrix Members",
-      "noMembersDesc": "Start referring new members to build your matrix network",
-      "noMembersAtLevel": "No members at Level {{level}}",
-      "noMembersAtLevelDesc": "This level has no members yet",
-      "layer": "Level {{level}}",
-      "layerDetails": "Level {{level}} Details",
-      "layerPosition": "Level {{level}} - {{position}} Position", 
-      "pathIndicator": "Path: {{path}}",
-      "navigation": {
-        "root": "Root",
-        "backToRoot": "Back to Root",
-        "viewSubLevel": "View Sub-level →"
-      },
-      "stats": {
-        "direct": "Direct Referrals",
-        "total": "Total Team",
-        "activeLayers": "Active Layers", 
-        "totalMembers": "Total Members",
-        "newPlacements": "New Placements"
-      },
-      "position": {
-        "L": "L Position",
-        "M": "M Position",
-        "R": "R Position", 
-        "filled": "Filled",
-        "direct": "Direct",
-        "spillover": "Spillover"
-      },
-      "rules": {
-        "title": "3×3 Forced Matrix Filling Rules:",
-        "rule1": "• Each position holds max 3 direct downlines",
-        "rule2": "• Spillover fills L position first, then M, then R",
-        "rule3": "• Green = Direct referrals, Blue = Spillover from upline",
-        "rule4": "• Click positions with members to view their sub-matrix",
-        "rule5": "• Can explore down to Level 19"
-      }
     }
   },
   "me": {
@@ -911,9 +843,7 @@
     }
   },
   "me": {
-    "title": "Profile",
-    "rewards": "Rewards",
-    "referrals": "Referrals",
+    "title": "Profile & Settings",
     "editProfile": "Edit Profile",
     "status": {
       "active": "Active",
@@ -1391,17 +1321,6 @@
     "enrolled": "Enrolled"
   },
   "membership": {
-    "levels": {
-      "title": "Membership Levels",
-      "subtitle": "Choose your membership level to unlock more features and rewards",
-      "currentLevel": "Current Level",
-      "owned": "Owned",
-      "available": "Available",
-      "locked": "Locked",
-      "selected": "Selected",
-      "priceUSDT": "USDT Price",
-      "benefits": "Exclusive Benefits"
-    },
     "purchase": {
       "button": "Unlock Membership - 130 USDT",
       "connectWallet": "Connect Wallet to Purchase",

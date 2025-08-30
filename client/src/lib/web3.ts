@@ -1,7 +1,7 @@
 import { createThirdwebClient, getContract } from 'thirdweb';
-import { ethereum, polygon, arbitrum, optimism, arbitrumSepolia, bsc, base } from 'thirdweb/chains';
+import { ethereum, polygon, arbitrum, optimism, arbitrumSepolia, bsc } from 'thirdweb/chains';
 import { defineChain } from 'thirdweb/chains';
-import { inAppWallet, createWallet, walletConnect } from 'thirdweb/wallets';
+import { inAppWallet, createWallet } from 'thirdweb/wallets';
 
 // Initialize Thirdweb client
 export const client = createThirdwebClient({
@@ -27,51 +27,26 @@ export const alphaCentauri = defineChain({
   ],
 });
 
-// Supported chains - matching user selection: Base, Arbitrum One, OP Mainnet, BSC, Polygon
-export const supportedChains = [ethereum, polygon, arbitrum, arbitrumSepolia, optimism, bsc, base, alphaCentauri];
+// Supported chains
+export const supportedChains = [ethereum, polygon, arbitrum, arbitrumSepolia, optimism, bsc, alphaCentauri];
 
-// Safe chain getter with fallback
-export function getChainById(chainId: number | string | undefined) {
-  if (!chainId) return ethereum; // Return default chain
-  
-  const id = typeof chainId === 'string' ? parseInt(chainId) : chainId;
-  if (isNaN(id)) return ethereum; // Return default chain
-  
-  const foundChain = supportedChains.find(chain => chain?.id === id);
-  return foundChain || ethereum; // Always return a valid chain
-}
-
-// Enhanced chain validation
-export function validateChain(chain: any) {
-  if (!chain) return false;
-  if (typeof chain.id === 'undefined') return false;
-  if (!chain.name) return false;
-  return true;
-}
-
-// Enhanced wallet configuration with social login options and WalletConnect
+// Enhanced wallet configuration with social login options
 export const wallets = [
   inAppWallet({
     auth: {
       options: [
         "google",
-        "discord", 
+        "discord",
         "telegram",
-        "farcaster",
+        "farcaster", 
         "email",
         "x",
         "passkey",
         "phone",
         "apple",
-        "wallet", // Enables external wallet connections
       ],
     },
-    metadata: {
-      name: "Beehive Wallet",
-      icon: "🐝",
-    },
   }),
-  walletConnect(),
   createWallet("io.metamask"),
   createWallet("com.coinbase.wallet"),
   createWallet("me.rainbow"),
@@ -79,8 +54,119 @@ export const wallets = [
   createWallet("io.zerion.wallet"),
 ];
 
-// Simple wallet connection - no complex authentication needed
-// Just use thirdweb's built-in wallet connection
+// Authentication hooks for backend integration
+export const authConfig = {
+  async doLogin(params: any) {
+    // Call backend to verify the signed payload
+    try {
+      // Extract data from Thirdweb's parameter structure
+      const address = params.payload?.address || params.address;
+      const message = params.payload?.message || params.message;
+      const signature = params.signature;
+      
+      // Validate required fields
+      if (!address || !signature || !message) {
+        console.error('Authentication failed: Missing required fields');
+        throw new Error('Missing required authentication fields');
+      }
+      
+      const response = await fetch('/api/auth/verify-signature', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          address: address,
+          signature: signature,
+          message: message,
+        }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Authentication successful:', data);
+        // Store auth token or session info
+        localStorage.setItem('beehive-auth-token', data.token);
+      } else {
+        const errorData = await response.json();
+        console.error('Authentication failed:', errorData);
+        throw new Error(errorData.error || 'Authentication failed');
+      }
+    } catch (error) {
+      console.error('Login verification failed:', error);
+      throw error; // Re-throw to ensure Thirdweb handles the error
+    }
+  },
+  
+  async doLogout() {
+    // Call backend to logout the user
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('beehive-auth-token')}`,
+        },
+      });
+      
+      // Clear local auth data
+      localStorage.removeItem('beehive-auth-token');
+      localStorage.removeItem('beehive-user');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  },
+  
+  async getLoginPayload(params: any) {
+    // Call backend and return the payload for signing
+    try {
+      if (!params.address) {
+        throw new Error('Wallet address is required');
+      }
+      
+      const response = await fetch('/api/auth/login-payload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          address: params.address,
+        }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        return data.payload;
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to get login payload:', errorData);
+        throw new Error(errorData.error || 'Failed to get login payload');
+      }
+    } catch (error) {
+      console.error('Failed to get login payload:', error);
+      throw error;
+    }
+  },
+  
+  async isLoggedIn() {
+    // Check if user is logged in by validating token
+    try {
+      const token = localStorage.getItem('beehive-auth-token');
+      if (!token) return false;
+      
+      const response = await fetch('/api/auth/verify-token', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      return response.ok;
+    } catch (error) {
+      console.error('Token verification failed:', error);
+      return false;
+    }
+  },
+};
 
 // Contract addresses (these would be set after deployment)
 export const contractAddresses = {
@@ -102,7 +188,6 @@ export const contractAddresses = {
     arbitrumSepolia: '0x4470734620414168Aa1673A30849DB25E5886E2A', // Test USDT
     optimism: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
     bsc: '0x55d398326f99059fF775485246999027B3197955', // BSC USDT
-    base: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // Base USDC (native stablecoin)
     alphaCentauri: '0x1234567890123456789012345678901234567893',
   },
   // Test wallet addresses for receiving USDT payments (testing without bridge)
@@ -113,7 +198,6 @@ export const contractAddresses = {
     arbitrumSepolia: '0x6366573ff5f6b07BE1E96b024C8862F5502d13E3', // Test wallet for direct USDT payments
     optimism: import.meta.env.VITE_BRIDGE_WALLET_OP || '0x1234567890123456789012345678901234567897',
     bsc: import.meta.env.VITE_BRIDGE_WALLET_BSC || '0x1234567890123456789012345678901234567899',
-    base: import.meta.env.VITE_BRIDGE_WALLET_BASE || '0x1234567890123456789012345678901234567898',
   },
 };
 
@@ -123,7 +207,6 @@ export const paymentChains = [
     chain: ethereum, 
     name: 'Ethereum', 
     symbol: 'ETH',
-    id: ethereum?.id || 1,
     usdtAddress: contractAddresses.USDT.ethereum,
     bridgeWallet: contractAddresses.BRIDGE_WALLETS.ethereum,
     icon: 'fab fa-ethereum',
@@ -133,7 +216,6 @@ export const paymentChains = [
     chain: polygon, 
     name: 'Polygon', 
     symbol: 'MATIC',
-    id: polygon?.id || 137,
     usdtAddress: contractAddresses.USDT.polygon,
     bridgeWallet: contractAddresses.BRIDGE_WALLETS.polygon,
     icon: 'fas fa-hexagon',
@@ -143,7 +225,6 @@ export const paymentChains = [
     chain: arbitrum, 
     name: 'Arbitrum', 
     symbol: 'ARB',
-    id: arbitrum?.id || 42161,
     usdtAddress: contractAddresses.USDT.arbitrum,
     bridgeWallet: contractAddresses.BRIDGE_WALLETS.arbitrum,
     icon: 'fas fa-circle',
@@ -153,7 +234,6 @@ export const paymentChains = [
     chain: optimism, 
     name: 'Optimism', 
     symbol: 'OP',
-    id: optimism?.id || 10,
     usdtAddress: contractAddresses.USDT.optimism,
     bridgeWallet: contractAddresses.BRIDGE_WALLETS.optimism,
     icon: 'fas fa-circle',
@@ -163,21 +243,10 @@ export const paymentChains = [
     chain: bsc, 
     name: 'BSC', 
     symbol: 'BNB',
-    id: bsc?.id || 56,
     usdtAddress: contractAddresses.USDT.bsc,
     bridgeWallet: contractAddresses.BRIDGE_WALLETS.bsc,
     icon: 'fas fa-coins',
     color: 'text-yellow-400'
-  },
-  { 
-    chain: base, 
-    name: 'Base', 
-    symbol: 'ETH',
-    id: base?.id || 8453,
-    usdtAddress: contractAddresses.USDT.base,
-    bridgeWallet: contractAddresses.BRIDGE_WALLETS.base,
-    icon: 'fas fa-cube',
-    color: 'text-blue-500'
   },
 ];
 
@@ -404,62 +473,10 @@ export const paymentUtils = {
 };
 
 // Error handling utilities
-// Get USDT contract for specific chain
-export function getUSDTContract(chainId: number) {
-  const chain = getChainById(chainId);
-  const chainKey = Object.keys(contractAddresses.USDT).find(key => {
-    const chainMap = { ethereum: 1, polygon: 137, arbitrum: 42161, optimism: 10, bsc: 56, base: 8453, alphaCentauri: 141941, arbitrumSepolia: 421614 };
-    return chainMap[key as keyof typeof chainMap] === chainId;
-  });
-  
-  if (!chainKey || !contractAddresses.USDT[chainKey as keyof typeof contractAddresses.USDT]) {
-    throw new Error(`USDT not supported on chain ${chainId}`);
-  }
-  
-  return getContract({
-    client,
-    chain,
-    address: contractAddresses.USDT[chainKey as keyof typeof contractAddresses.USDT],
-  });
-}
-
-// Get blockchain explorer URL for transaction  
-export function getExplorerUrl(chainId: number, txHash: string): string {
-  const explorers = {
-    1: 'https://etherscan.io/tx/',
-    137: 'https://polygonscan.com/tx/', 
-    42161: 'https://arbiscan.io/tx/',
-    10: 'https://optimistic.etherscan.io/tx/',
-    56: 'https://bscscan.com/tx/',
-    8453: 'https://basescan.org/tx/',
-    421614: 'https://sepolia.arbiscan.io/tx/', // Arbitrum Sepolia
-    141941: 'https://explorer.alpha-centauri.io/tx/',
-  };
-  
-  return `${explorers[chainId as keyof typeof explorers] || explorers[1]}${txHash}`;
-}
-
-// USDT decimal places for different chains
-export function getUSDTDecimals(chainId: number): number {
-  // Most USDT contracts use 6 decimals, except some that use 18
-  const decimalsMap = {
-    1: 6, // Ethereum USDT
-    137: 6, // Polygon USDT  
-    42161: 6, // Arbitrum USDT
-    10: 6, // Optimism USDT
-    56: 18, // BSC USDT 
-    8453: 6, // Base USDC
-    421614: 6, // Arbitrum Sepolia test USDT
-    141941: 18, // Alpha Centauri USDT
-  };
-  
-  return decimalsMap[chainId as keyof typeof decimalsMap] || 6;
-}
-
 export const web3ErrorHandler = (error: any): string => {
   if (error?.message) {
     // Handle common Web3 errors
-    if (error.message.includes('User denied') || error.message.includes('user rejected')) {
+    if (error.message.includes('User denied')) {
       return 'Transaction was rejected by user';
     }
     if (error.message.includes('insufficient funds')) {
@@ -467,9 +484,6 @@ export const web3ErrorHandler = (error: any): string => {
     }
     if (error.message.includes('gas')) {
       return 'Transaction failed due to gas issues';
-    }
-    if (error.message.includes('replacement fee too low')) {
-      return 'Transaction fee too low, please try again';
     }
     return error.message;
   }

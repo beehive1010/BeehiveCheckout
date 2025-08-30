@@ -64,12 +64,6 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
       
       let result = value || key;
       
-      // Ensure we always return a string, never an object
-      if (typeof result === 'object') {
-        console.warn('Translation returned object instead of string for key:', key, result);
-        return key; // Fallback to key if object found
-      }
-      
       // Handle interpolation
       if (interpolations && typeof result === 'string') {
         for (const [placeholder, replacement] of Object.entries(interpolations)) {
@@ -79,7 +73,7 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
       
-      return String(result);
+      return result;
     } catch (error) {
       console.error('Translation error:', error, key);
       return key;
@@ -103,20 +97,7 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
 const useI18n = () => {
   const context = useContext(I18nContext);
   if (context === undefined) {
-    // Provide a safe fallback instead of throwing error immediately
-    // This prevents crashes during hot reloading or timing issues
-    console.warn('useI18n hook called outside I18nProvider, using fallback');
-    return {
-      language: 'en' as Language,
-      setLanguage: () => {
-        console.warn('setLanguage called outside I18nProvider context');
-      },
-      t: (key: string, interpolations?: Record<string, string | number>): string => {
-        console.warn(`Translation fallback used for key: ${key}`);
-        return key; // Return the key as fallback
-      },
-      languages: [{ code: 'en' as Language, name: 'English' }],
-    };
+    throw new Error('useI18n must be used within an I18nProvider');
   }
   return context;
 };

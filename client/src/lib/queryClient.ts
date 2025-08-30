@@ -42,8 +42,6 @@ export async function apiRequest(
   if (addressToUse) {
     headers["X-Wallet-Address"] = addressToUse;
   }
-  
-  // No JWT authentication - simplified wallet-only approach
 
   const res = await fetch(url, {
     method,
@@ -69,8 +67,6 @@ export const getQueryFn: <T>(options: {
     if (walletAddress) {
       headers["X-Wallet-Address"] = walletAddress;
     }
-    
-    // No JWT authentication - simplified wallet-only approach
     
     const res = await fetch(queryKey.join("/") as string, {
       headers,

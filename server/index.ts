@@ -1,5 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./src/index";
+import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { createServer } from "http";
 
@@ -49,56 +49,38 @@ app.use((req, res, next) => {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
   const adminDb = drizzle({ client: pool });
 
-  // Enhanced admin stats endpoint with database and referral metrics
+  // Admin stats endpoint
   app.get("/api/admin/stats", async (req, res) => {
     try {
-      // Basic platform statistics
+      // Get real statistics from database with safe queries
       const usersResult = await adminDb.execute('SELECT COUNT(*) as count FROM users');
+      
+      // Check if tables exist before querying
       const membershipResult = await adminDb.execute(`
         SELECT COUNT(*) as count FROM users WHERE member_activated = true
       `);
+      
       const nftsResult = await adminDb.execute(`
         SELECT COUNT(*) as count FROM merchant_nfts
       `).catch(() => ({ rows: [{ count: 0 }] }));
+      
       const blogResult = await adminDb.execute(`
         SELECT COUNT(*) as count FROM blog_posts
       `).catch(() => ({ rows: [{ count: 0 }] }));
+      
       const coursesResult = await adminDb.execute(`
         SELECT COUNT(*) as count FROM courses
       `).catch(() => ({ rows: [{ count: 0 }] }));
+      
       const ordersResult = await adminDb.execute(`
         SELECT COUNT(*) as count FROM orders WHERE created_at > CURRENT_DATE - INTERVAL '7 days'
       `).catch(() => ({ rows: [{ count: 0 }] }));
+
+      // Get pending approvals
       const pendingResult = await adminDb.execute(`
         SELECT COUNT(*) as count FROM blog_posts 
         WHERE status = 'pending' OR status = 'draft'
       `).catch(() => ({ rows: [{ count: 0 }] }));
-
-      // Database performance metrics
-      const connectionsResult = await adminDb.execute(`
-        SELECT count(*) as active_connections FROM pg_stat_activity WHERE state = 'active'
-      `).catch(() => ({ rows: [{ active_connections: 0 }] }));
-
-      // Referral system metrics
-      const totalReferralsResult = await adminDb.execute(`
-        SELECT COUNT(*) as count FROM referral_nodes
-      `).catch(() => ({ rows: [{ count: 0 }] }));
-      
-      const matrixPositionsResult = await adminDb.execute(`
-        SELECT COUNT(*) as count FROM global_matrix_position
-      `).catch(() => ({ rows: [{ count: 0 }] }));
-
-      // Recent activities
-      const recentActivitiesResult = await adminDb.execute(`
-        SELECT COUNT(*) as count FROM user_activities 
-        WHERE created_at > CURRENT_DATE - INTERVAL '24 hours'
-      `).catch(() => ({ rows: [{ count: 0 }] }));
-
-      // Total earnings distributed
-      const totalEarningsResult = await adminDb.execute(`
-        SELECT COALESCE(SUM(CAST(reward_amount AS DECIMAL)), 0) as total_earnings
-        FROM reward_distributions WHERE status = 'claimed'
-      `).catch(() => ({ rows: [{ total_earnings: 0 }] }));
 
       res.json({
         totalUsers: parseInt(usersResult.rows[0]?.count?.toString() || '0'),
@@ -110,16 +92,10 @@ app.use((req, res, next) => {
         pendingApprovals: parseInt(pendingResult.rows[0]?.count?.toString() || '0'),
         systemHealth: 'healthy',
         weeklyOrders: parseInt(ordersResult.rows[0]?.count?.toString() || '0'),
-        // Database metrics
-        activeConnections: parseInt(connectionsResult.rows[0]?.active_connections?.toString() || '0'),
-        // Referral metrics
-        totalReferrals: parseInt(totalReferralsResult.rows[0]?.count?.toString() || '0'),
-        matrixPositions: parseInt(matrixPositionsResult.rows[0]?.count?.toString() || '0'),
-        recentActivities: parseInt(recentActivitiesResult.rows[0]?.count?.toString() || '0'),
-        totalEarningsDistributed: parseFloat(totalEarningsResult.rows[0]?.total_earnings?.toString() || '0'),
       });
     } catch (error) {
       console.error('Admin stats error:', error);
+      // Return fallback data instead of error
       res.json({
         totalUsers: 0,
         activeMembers: 0,
@@ -130,284 +106,9 @@ app.use((req, res, next) => {
         pendingApprovals: 0,
         systemHealth: 'degraded',
         weeklyOrders: 0,
-        activeConnections: 0,
-        totalReferrals: 0,
-        matrixPositions: 0,
-        recentActivities: 0,
-        totalEarningsDistributed: 0,
       });
     }
   });
-
-  // Database performance and health metrics endpoint
-  app.get("/api/admin/database-stats", async (req, res) => {
-    try {
-      // Connection pool statistics
-      const connectionsResult = await adminDb.execute(`
-        SELECT 
-          count(*) as total_connections,
-          count(*) FILTER (WHERE state = 'active') as active_connections,
-          count(*) FILTER (WHERE state = 'idle') as idle_connections
-        FROM pg_stat_activity
-      `).catch(() => ({ rows: [{ total_connections: 0, active_connections: 0, idle_connections: 0 }] }));
-
-      // Database size information
-      const dbSizeResult = await adminDb.execute(`
-        SELECT pg_size_pretty(pg_database_size(current_database())) as database_size
-      `).catch(() => ({ rows: [{ database_size: '0 MB' }] }));
-
-      // Table sizes
-      const tableSizesResult = await adminDb.execute(`
-        SELECT 
-          schemaname,
-          tablename,
-          pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size,
-          pg_total_relation_size(schemaname||'.'||tablename) as size_bytes
-        FROM pg_tables 
-        WHERE schemaname = 'public'
-        ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC
-        LIMIT 10
-      `).catch(() => ({ rows: [] }));
-
-      // Query performance (recent slow queries)
-      const slowQueriesResult = await adminDb.execute(`
-        SELECT 
-          query,
-          calls,
-          mean_exec_time,
-          total_exec_time
-        FROM pg_stat_statements 
-        WHERE calls > 10
-        ORDER BY mean_exec_time DESC 
-        LIMIT 5
-      `).catch(() => ({ rows: [] }));
-
-      res.json({
-        connections: connectionsResult.rows[0] || { total_connections: 0, active_connections: 0, idle_connections: 0 },
-        databaseSize: dbSizeResult.rows[0]?.database_size || '0 MB',
-        tableSizes: tableSizesResult.rows || [],
-        slowQueries: slowQueriesResult.rows || [],
-        lastUpdated: new Date().toISOString(),
-      });
-    } catch (error) {
-      console.error('Database stats error:', error);
-      res.json({
-        connections: { total_connections: 0, active_connections: 0, idle_connections: 0 },
-        databaseSize: '0 MB',
-        tableSizes: [],
-        slowQueries: [],
-        lastUpdated: new Date().toISOString(),
-        error: 'Failed to fetch database statistics'
-      });
-    }
-  });
-
-  // Global referral system analytics endpoint
-  app.get("/api/admin/referral-stats", async (req, res) => {
-    try {
-      // Matrix level distribution
-      const matrixLevelDistribution = await adminDb.execute(`
-        SELECT 
-          matrix_level,
-          COUNT(*) as count
-        FROM global_matrix_position 
-        GROUP BY matrix_level 
-        ORDER BY matrix_level
-      `).catch(() => ({ rows: [] }));
-
-      // Top referrers by team size
-      const topReferrers = await adminDb.execute(`
-        SELECT 
-          u.username,
-          u.wallet_address,
-          COUNT(rn.member_wallet) as direct_referrals
-        FROM users u
-        LEFT JOIN referral_nodes rn ON u.wallet_address = rn.sponsor_wallet
-        WHERE u.member_activated = true
-        GROUP BY u.wallet_address, u.username
-        HAVING COUNT(rn.member_wallet) > 0
-        ORDER BY direct_referrals DESC
-        LIMIT 10
-      `).catch(() => ({ rows: [] }));
-
-      // Membership level distribution
-      const membershipDistribution = await adminDb.execute(`
-        SELECT 
-          active_level,
-          COUNT(*) as count
-        FROM membership_state 
-        WHERE active_level > 0
-        GROUP BY active_level 
-        ORDER BY active_level
-      `).catch(() => ({ rows: [] }));
-
-      // Recent referral activities (last 7 days)
-      const recentReferrals = await adminDb.execute(`
-        SELECT 
-          DATE(rn.created_at) as date,
-          COUNT(*) as new_referrals
-        FROM referral_nodes rn
-        WHERE rn.created_at > CURRENT_DATE - INTERVAL '7 days'
-        GROUP BY DATE(rn.created_at)
-        ORDER BY date DESC
-      `).catch(() => ({ rows: [] }));
-
-      // Reward distribution statistics
-      const rewardStats = await adminDb.execute(`
-        SELECT 
-          status,
-          COUNT(*) as count,
-          COALESCE(SUM(CAST(reward_amount AS DECIMAL)), 0) as total_amount
-        FROM reward_distributions 
-        GROUP BY status
-      `).catch(() => ({ rows: [] }));
-
-      // Average referral depth
-      const avgDepthResult = await adminDb.execute(`
-        SELECT AVG(matrix_level) as avg_depth
-        FROM global_matrix_position
-        WHERE matrix_level > 1
-      `).catch(() => ({ rows: [{ avg_depth: 0 }] }));
-
-      res.json({
-        matrixLevelDistribution: matrixLevelDistribution.rows || [],
-        topReferrers: topReferrers.rows || [],
-        membershipDistribution: membershipDistribution.rows || [],
-        recentReferrals: recentReferrals.rows || [],
-        rewardStats: rewardStats.rows || [],
-        averageReferralDepth: parseFloat(avgDepthResult.rows[0]?.avg_depth?.toString() || '0'),
-        lastUpdated: new Date().toISOString(),
-      });
-    } catch (error) {
-      console.error('Referral stats error:', error);
-      res.json({
-        matrixLevelDistribution: [],
-        topReferrers: [],
-        membershipDistribution: [],
-        recentReferrals: [],
-        rewardStats: [],
-        averageReferralDepth: 0,
-        lastUpdated: new Date().toISOString(),
-        error: 'Failed to fetch referral statistics'
-      });
-    }
-  });
-
-  // Global matrix data for admin referrals page
-  app.get("/api/admin/global-matrix", async (req, res) => {
-    try {
-      const { search = '' } = req.query;
-      
-      // Get all global matrix positions with user data
-      const globalMatrixQuery = `
-        SELECT 
-          gmp.wallet_address,
-          gmp.matrix_level,
-          gmp.position_index,
-          gmp.direct_sponsor_wallet,
-          gmp.placement_sponsor_wallet,
-          gmp.joined_at,
-          gmp.last_upgrade_at,
-          u.username,
-          u.member_activated,
-          u.current_level,
-          COALESCE(rn_direct.referral_count, 0) as direct_referral_count,
-          COALESCE(rn_team.team_count, 0) as total_team_count
-        FROM global_matrix_position gmp
-        LEFT JOIN users u ON gmp.wallet_address = u.wallet_address
-        LEFT JOIN (
-          SELECT sponsor_wallet, COUNT(*) as referral_count 
-          FROM referral_nodes 
-          GROUP BY sponsor_wallet
-        ) rn_direct ON gmp.wallet_address = rn_direct.sponsor_wallet
-        LEFT JOIN (
-          SELECT 
-            sponsor_wallet, 
-            COUNT(DISTINCT member_wallet) as team_count
-          FROM referral_layers rl
-          GROUP BY sponsor_wallet
-        ) rn_team ON gmp.wallet_address = rn_team.sponsor_wallet
-        ${search ? `WHERE (u.username ILIKE '%${search}%' OR gmp.wallet_address ILIKE '%${search}%')` : ''}
-        ORDER BY gmp.matrix_level, gmp.position_index
-      `;
-
-      const positions = await adminDb.execute(globalMatrixQuery).catch(() => ({ rows: [] }));
-
-      // Get matrix level statistics
-      const matrixLevelsQuery = `
-        SELECT 
-          matrix_level,
-          COUNT(*) as filled_positions,
-          COUNT(*) FILTER (WHERE u.member_activated = true) as activated_positions
-        FROM global_matrix_position gmp
-        LEFT JOIN users u ON gmp.wallet_address = u.wallet_address
-        GROUP BY matrix_level
-        ORDER BY matrix_level
-      `;
-
-      const matrixLevels = await adminDb.execute(matrixLevelsQuery).catch(() => ({ rows: [] }));
-
-      // Get upgrade statistics
-      const upgradeStatsQuery = `
-        SELECT 
-          COUNT(DISTINCT u.wallet_address) as total_users,
-          COUNT(DISTINCT CASE WHEN u.member_activated = true THEN u.wallet_address END) as total_activated,
-          COUNT(DISTINCT CASE WHEN u.current_level > 1 THEN u.wallet_address END) as total_upgraded
-        FROM users u
-      `;
-
-      const upgradeStatsResult = await adminDb.execute(upgradeStatsQuery).catch(() => ({ rows: [{ total_users: 0, total_activated: 0, total_upgraded: 0 }] }));
-
-      // Format the response
-      const formattedPositions = positions.rows.map((row: any) => ({
-        walletAddress: row.wallet_address,
-        matrixLevel: row.matrix_level,
-        positionIndex: row.position_index,
-        directSponsorWallet: row.direct_sponsor_wallet,
-        placementSponsorWallet: row.placement_sponsor_wallet,
-        joinedAt: row.joined_at,
-        lastUpgradeAt: row.last_upgrade_at,
-        username: row.username || `User${row.wallet_address?.slice(-6)}`,
-        memberActivated: row.member_activated,
-        currentLevel: row.current_level,
-        directReferralCount: parseInt(row.direct_referral_count || '0'),
-        totalTeamCount: parseInt(row.total_team_count || '0')
-      }));
-
-      const formattedMatrixLevels = matrixLevels.rows.map((row: any) => ({
-        level: row.matrix_level,
-        maxPositions: Math.pow(3, row.matrix_level), // 3^level positions per level
-        filledPositions: parseInt(row.filled_positions || '0'),
-        activatedPositions: parseInt(row.activated_positions || '0'),
-        positions: formattedPositions.filter((p: any) => p.matrixLevel === row.matrix_level)
-      }));
-
-      const upgradeStats = upgradeStatsResult.rows[0] || {};
-
-      res.json({
-        positions: formattedPositions,
-        matrixLevels: formattedMatrixLevels,
-        upgradeStats: {
-          totalUsers: parseInt(upgradeStats.total_users?.toString() || '0'),
-          totalActivated: parseInt(upgradeStats.total_activated?.toString() || '0'),
-          totalUpgraded: parseInt(upgradeStats.total_upgraded?.toString() || '0')
-        },
-        lastUpdated: new Date().toISOString()
-      });
-
-    } catch (error) {
-      console.error('Global matrix data error:', error);
-      res.json({
-        positions: [],
-        matrixLevels: [],
-        upgradeStats: { totalUsers: 0, totalActivated: 0, totalUpgraded: 0 },
-        lastUpdated: new Date().toISOString(),
-        error: 'Failed to fetch global matrix data'
-      });
-    }
-  });
-
-  // REMOVED: Duplicate user stats endpoint - using the one in server/routes.ts instead
 
   // Admin login route - directly in index.ts
   app.post("/api/admin/auth/login", async (req, res) => {
@@ -650,15 +351,7 @@ app.use((req, res, next) => {
     port,
     host: "0.0.0.0",
     reusePort: true,
-  }, async () => {
+  }, () => {
     log(`serving on port ${port}`);
-    
-    // Start rewards cron job
-    try {
-      const { default: RewardsCronService } = await import('./src/cron/rewards-cron');
-      RewardsCronService.startCronJob();
-    } catch (error) {
-      console.error('Failed to start rewards cron:', error);
-    }
   });
 })();

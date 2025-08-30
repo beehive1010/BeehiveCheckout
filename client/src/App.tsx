@@ -8,94 +8,48 @@ import { I18nProvider } from "./contexts/I18nContext";
 import { ThemeProvider } from "next-themes";
 import { Toaster as HotToaster } from "react-hot-toast";
 
-// Refactored pages with clean architecture
-import LandingPage from "@/pages/LandingPage";
-import DashboardPage from "@/pages/DashboardPage";
-import Education from "@/pages/Education";
-import HiveWorld from "@/pages/HiveWorld";
-import Me from "@/pages/Me";
-import NFTCenter from "@/pages/NFTCenter";
-import Referrals from "@/pages/Referrals";
-import Discover from "@/pages/Discover";
-import Inbox from "@/pages/Inbox";
-
-// Additional pages  
+// Pages
+import Landing from "@/pages/Landing";
 import Registration from "@/pages/Registration";
 import Welcome from "@/pages/Welcome";
+import Dashboard from "@/pages/Dashboard";
 import Tasks from "@/pages/Tasks";
+import Education from "@/pages/Education";
+import CourseDetails from "@/pages/CourseDetails";
+import Discover from "@/pages/Discover";
+import HiveWorld from "@/pages/HiveWorld";
+import BlogPost from "@/pages/BlogPost";
+import Me from "@/pages/Me";
+import AdvertisementNFTs from "@/pages/AdvertisementNFTs";
+import NFTCenter from "@/pages/NFTCenter";
+import AdminNFTManager from "@/pages/AdminNFTManager";
+import TokenPurchase from "@/components/tokens/TokenPurchase";
+import NotFound from "@/pages/not-found";
 
-// Import proper Header component
-import Header from "@/components/shared/Header";
-import TabBar from "@/components/shared/TabBar";
-import { useWallet } from "@/hooks/useWallet";
+// Admin Panel
+import AdminLogin from "@/pages/admin/AdminLogin";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminUserManagement from "@/pages/admin/AdminUserManagement";
+import AdminReferrals from "@/pages/admin/AdminReferrals";
+import AdminNFTs from "@/pages/admin/AdminNFTs";
+import AdminContracts from "@/pages/admin/AdminContracts";
+import AdminContractDetail from "@/pages/admin/AdminContractDetail";
+import AdminContractDeploy from "@/pages/admin/AdminContractDeploy";
+import AdminCourses from "@/pages/admin/AdminCourses";
+import AdminBlog from "@/pages/admin/AdminBlog";
+import AdminSystem from "@/pages/admin/AdminSystem";
+import AdminDiscover from "@/pages/admin/AdminDiscover";
+import Courses from "@/pages/Courses";
+import DiscoverPartners from "@/pages/DiscoverPartners";
+import { AdminLayout } from "@/components/admin/AdminLayout";
+import { AdminRouteGuard } from "@/components/admin/AdminRouteGuard";
 
-// Temporary components for features not yet refactored
-const CourseDetails = () => <div>Course Details - Coming Soon</div>;
-const BlogPost = () => <div>Blog Post - Coming Soon</div>;
-const AdvertisementNFTs = () => <div>Advertisement NFTs - Coming Soon</div>;
-const AdminNFTManager = () => <div>Admin NFT Manager - Coming Soon</div>;
-const TokenPurchase = () => <div>Token Purchase - Coming Soon</div>;
-const NotFound = () => <div className="text-center py-12"><h1 className="text-honey text-2xl">Page Not Found</h1></div>;
-
-// Temporary admin components (to be refactored)
-const AdminLogin = () => <div>Admin Login - Coming Soon</div>;
-const AdminDashboard = () => <div>Admin Dashboard - Coming Soon</div>;
-const AdminUsers = () => <div>Admin Users - Coming Soon</div>;
-const AdminUserManagement = () => <div>Admin User Management - Coming Soon</div>;
-const AdminReferrals = () => <div>Admin Referrals - Coming Soon</div>;
-const AdminNFTs = () => <div>Admin NFTs - Coming Soon</div>;
-const AdminContracts = () => <div>Admin Contracts - Coming Soon</div>;
-const AdminContractDetail = () => <div>Admin Contract Detail - Coming Soon</div>;
-const AdminContractDeploy = () => <div>Admin Contract Deploy - Coming Soon</div>;
-const AdminCourses = () => <div>Admin Courses - Coming Soon</div>;
-const AdminBlog = () => <div>Admin Blog - Coming Soon</div>;
-const AdminSystem = () => <div>Admin System - Coming Soon</div>;
-const AdminDiscover = () => <div>Admin Discover - Coming Soon</div>;
-const Courses = () => <div>Courses - Coming Soon</div>;
-const DiscoverPartners = () => <div>Discover Partners - Coming Soon</div>;
-const AdminLayout = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
-const AdminRouteGuard = ({ children, requiredPermission, requiredRoles }: { 
-  children: React.ReactNode;
-  requiredPermission?: string;
-  requiredRoles?: string[];
-}) => <div>{children}</div>;
-
-// Layout components (temporary)
-const Navigation = () => <nav className="fixed bottom-0 w-full h-16 bg-secondary border-t border-border md:hidden"></nav>;
-const Footer = () => <footer className="bg-secondary border-t border-border py-8"></footer>;
-const RouteGuard = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
-
-// Smart routing component that routes based on user status
-function SmartHomePage() {
-  const { 
-    isConnected, 
-    isCheckingRegistration,
-    isNewUser, 
-    needsNFTClaim, 
-    isFullyActivated 
-  } = useWallet();
-
-  // Show landing page while checking user status or if not connected
-  if (!isConnected || isCheckingRegistration) {
-    return <LandingPage />;
-  }
-
-  // Route based on enhanced user status
-  if (isNewUser) {
-    return <Registration />;
-  }
-  
-  if (needsNFTClaim) {
-    return <Welcome />;
-  }
-  
-  if (isFullyActivated) {
-    return <DashboardPage />;
-  }
-
-  // Fallback to landing page
-  return <LandingPage />;
-}
+// Layout components
+import Header from "@/components/Layout/Header";
+import Navigation from "@/components/Layout/Navigation";
+import Footer from "@/components/Layout/Footer";
+import { RouteGuard } from "@/components/RouteGuard";
 
 function Router() {
   const [location] = useLocation();
@@ -209,20 +163,20 @@ function Router() {
   return (
     <RouteGuard>
       <Switch>
-        {/* Smart home route - automatically routes based on user status */}
-        <Route path="/" component={SmartHomePage} />
+        {/* Public routes */}
+        <Route path="/" component={Landing} />
         <Route path="/register" component={Registration} />
         <Route path="/welcome" component={Welcome} />
         
         {/* Main app routes - Protected with wallet connection and Level 1 NFT requirement */}
-        <Route path="/dashboard" component={DashboardPage} />
+        <Route path="/dashboard" component={Dashboard} />
         <Route path="/tasks" component={Tasks} />
         <Route path="/education" component={Education} />
         <Route path="/education/:courseId" component={CourseDetails} />
         <Route path="/discover" component={Discover} />
-        <Route path="/referrals" component={Referrals} />
+        <Route path="/courses" component={Courses} />
+        <Route path="/discover-partners" component={DiscoverPartners} />
         <Route path="/me" component={Me} />
-        <Route path="/inbox" component={Inbox} />
         <Route path="/ads" component={AdvertisementNFTs} />
         <Route path="/nft-center" component={NFTCenter} />
         <Route path="/admin-nft-manager" component={AdminNFTManager} />
@@ -261,7 +215,7 @@ function App() {
             <TooltipProvider>
               <div className="min-h-screen bg-background text-foreground">
                 {!isAdminPage && <Header />}
-                {!isAdminPage && <TabBar />}
+                {!isAdminPage && <Navigation />}
                 <main className={isAdminPage ? "min-h-screen" : "min-h-[calc(100vh-theme(spacing.32))] pb-16 md:pb-0"}>
                   <Router />
                 </main>
