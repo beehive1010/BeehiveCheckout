@@ -73,15 +73,24 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
   const { data: chainsData } = useQuery<SupportedChainsResponse>({
     queryKey: ['/api/rewards/supported-chains'],
     enabled: !!walletAddress,
+    queryFn: async () => {
+      const response = await fetch('/api/rewards/supported-chains', {
+        headers: {
+          'X-Wallet-Address': walletAddress!,
+        },
+      });
+      if (!response.ok) throw new Error('Failed to fetch supported chains');
+      return response.json();
+    },
   });
 
   // Claim reward with transfer mutation
   const claimWithTransferMutation = useMutation({
     mutationFn: async ({ rewardId, targetChain, gasConfirmed }: { rewardId: string; targetChain: string; gasConfirmed: boolean }) => {
-      return await apiRequest(`/api/rewards/claim-with-transfer/${rewardId}`, 'POST', {
+      return await apiRequest('POST', `/api/rewards/claim-with-transfer/${rewardId}`, {
         targetChain,
         gasConfirmed
-      });
+      }, walletAddress);
     },
     onMutate: ({ rewardId }) => {
       setClaimingRewards(prev => [...prev, rewardId]);
