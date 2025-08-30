@@ -13,6 +13,7 @@ import { useLocation } from 'wouter';
 import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
 import { PendingRewardsSection } from '@/components/rewards/PendingRewardsSection';
 import { OrganizationActivity } from '@/components/organization/OrganizationActivity';
+import ReferralsMatrixComponent from '@/components/matrix/ReferralsMatrixComponent';
 import styles from '../styles/me/me.module.css';
 
 export default function Me() {
@@ -115,11 +116,14 @@ export default function Me() {
 
         <TabsContent value="referrals" className="space-y-6">
           {walletAddress && (
-            <OrganizationActivity 
-              walletAddress={walletAddress} 
-              maxItems={5}
-              className=""
-            />
+            <>
+              <ReferralsMatrixComponent walletAddress={walletAddress} />
+              <OrganizationActivity 
+                walletAddress={walletAddress} 
+                maxItems={5}
+                className=""
+              />
+            </>
           )}
         </TabsContent>
       </Tabs>
