@@ -1,9 +1,9 @@
 import type { Express } from "express";
-import { rewardsService } from '../services';
+import { rewardsService } from '../services/rewards.service';
 
 export function registerRewardsRoutes(app: Express, requireWallet: any) {
   
-  // Get pending rewards
+  // Get pending rewards with countdown timers
   app.get("/api/rewards/pending", requireWallet, async (req: any, res) => {
     try {
       const pendingRewards = await rewardsService.getPendingRewards(req.walletAddress);
@@ -14,125 +14,64 @@ export function registerRewardsRoutes(app: Express, requireWallet: any) {
     }
   });
 
+  // Get user reward summary (both pending and claimable)
+  app.get("/api/rewards/summary", requireWallet, async (req: any, res) => {
+    try {
+      const summary = await rewardsService.getUserRewardSummary(req.walletAddress);
+      res.json(summary);
+    } catch (error) {
+      console.error('Get reward summary error:', error);
+      res.status(500).json({ error: 'Failed to get reward summary' });
+    }
+  });
+
   // Get claimable rewards  
   app.get("/api/rewards/claimable", requireWallet, async (req: any, res) => {
     try {
-      const claimableRewards = await rewardsService.getClaimableRewards(req.walletAddress);
-      res.json(claimableRewards);
+      const summary = await rewardsService.getUserRewardSummary(req.walletAddress);
+      res.json(summary.claimableRewards);
     } catch (error) {
       console.error('Get claimable rewards error:', error);
       res.status(500).json({ error: 'Failed to get claimable rewards' });
     }
   });
 
-  // Automated claim with Thirdweb Engine
+  // Claim specific rewards
   app.post("/api/rewards/claim", requireWallet, async (req: any, res) => {
     try {
-      const { rewardId, recipientAddress } = req.body;
+      const { rewardIds } = req.body;
       
-      if (!rewardId || !recipientAddress) {
+      if (!rewardIds || !Array.isArray(rewardIds)) {
         return res.status(400).json({ 
-          error: 'Missing rewardId or recipientAddress' 
+          error: 'Missing rewardIds array' 
         });
       }
 
-      const result = await rewardsService.claimRewardWithEngine(
-        rewardId, 
-        req.walletAddress, 
-        recipientAddress
-      );
+      const totalClaimed = await rewardsService.claimRewards(req.walletAddress, rewardIds);
       
+      res.json({ 
+        success: true,
+        totalClaimed,
+        message: `Successfully claimed ${totalClaimed} USDT in rewards`
+      });
+    } catch (error) {
+      console.error('Claim rewards error:', error);
+      res.status(500).json({ 
+        error: 'Failed to claim rewards',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Manual cron trigger for admin testing
+  app.post("/api/rewards/cron/trigger", requireWallet, async (req: any, res) => {
+    try {
+      const { default: RewardsCronService } = await import('../cron/rewards-cron');
+      const result = await RewardsCronService.manualTrigger();
       res.json(result);
     } catch (error) {
-      console.error('Automated claim error:', error);
-      res.status(500).json({ 
-        error: 'Failed to claim reward',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
-
-  // Claim specific reward (legacy)
-  app.post("/api/rewards/claim/:rewardId", requireWallet, async (req: any, res) => {
-    try {
-      const { rewardId } = req.params;
-      const result = await rewardsService.claimReward(rewardId, req.walletAddress);
-      res.json(result);
-    } catch (error) {
-      console.error('Claim reward error:', error);
-      res.status(500).json({ 
-        error: 'Failed to claim reward',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
-
-  // Claim all confirmed rewards
-  app.post("/api/rewards/claim-all", requireWallet, async (req: any, res) => {
-    try {
-      const result = await rewardsService.claimAllRewards(req.walletAddress);
-      res.json(result);
-    } catch (error) {
-      console.error('Claim all rewards error:', error);
-      res.status(500).json({ 
-        error: 'Failed to claim all rewards',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
-
-  // Claim reward with blockchain transfer
-  app.post("/api/rewards/claim-with-transfer/:rewardId", requireWallet, async (req: any, res) => {
-    try {
-      const { rewardId } = req.params;
-      const { chainId, toAddress } = req.body;
-      
-      // Get reward details first
-      const claimableRewards = await rewardsService.getClaimableRewards(req.walletAddress);
-      const reward = claimableRewards.find(r => r.id === rewardId);
-      
-      if (!reward) {
-        return res.status(404).json({ error: 'Reward not found or not claimable' });
-      }
-
-      // In real implementation, would execute blockchain transfer
-      console.log(`Would transfer ${reward.amount} ${reward.tokenType} to ${toAddress} on chain ${chainId}`);
-      
-      // Claim the reward
-      const result = await rewardsService.claimReward(rewardId, req.walletAddress);
-      
-      res.json({
-        ...result,
-        transfer: {
-          amount: reward.amount,
-          tokenType: reward.tokenType,
-          toAddress,
-          chainId
-        }
-      });
-    } catch (error) {
-      console.error('Claim with transfer error:', error);
-      res.status(500).json({ 
-        error: 'Failed to claim reward with transfer',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
-
-  // Get supported chains for transfers
-  app.get("/api/rewards/supported-chains", requireWallet, async (req: any, res) => {
-    try {
-      const supportedChains = [
-        { id: 1, name: 'Ethereum', symbol: 'ETH' },
-        { id: 137, name: 'Polygon', symbol: 'MATIC' },
-        { id: 42161, name: 'Arbitrum', symbol: 'ETH' },
-        { id: 10, name: 'Optimism', symbol: 'ETH' }
-      ];
-      
-      res.json(supportedChains);
-    } catch (error) {
-      console.error('Get supported chains error:', error);
-      res.status(500).json({ error: 'Failed to get supported chains' });
+      console.error('Manual cron trigger error:', error);
+      res.status(500).json({ error: 'Failed to trigger cron job' });
     }
   });
 
@@ -150,61 +89,57 @@ export function registerRewardsRoutes(app: Express, requireWallet: any) {
         });
       }
 
-      // Process upgrade rewards according to Layer 1-19 specifications
       const createdRewards = await rewardsService.processLevelUpgradeRewards({
         memberWallet,
         triggerLevel,
-        upgradeAmount: upgradeAmount || 0
+        upgradeAmount: upgradeAmount || 100 // Default test amount
       });
 
-      // Return detailed test results
-      res.json({
+      console.log(`🎯 Test completed: Created ${createdRewards.length} rewards`);
+      
+      res.json({ 
         success: true,
-        message: `L${triggerLevel} upgrade processed successfully`,
-        testResults: {
-          triggerLevel,
-          expectedRewardAmount: 50 + (triggerLevel * 50), // 100, 150, 200, ..., 1000
-          createdRewards: createdRewards.length,
-          rewardDetails: createdRewards.map(r => ({
-            id: r.id,
-            beneficiaryWallet: r.beneficiaryWallet,
-            amount: r.amount,
-            tokenType: r.tokenType,
-            status: r.status,
-            payoutLayer: r.payoutLayer,
-            triggerLevel: r.triggerLevel,
-            notes: r.notes
-          })),
-          specification: {
-            rule: `Level ${triggerLevel} upgrade → ${triggerLevel}th ancestor gets ${50 + (triggerLevel * 50)} USDT`,
-            eligibility: `Upline must have membership_level >= ${triggerLevel}`,
-            pending: 'If not eligible, 72h pending with expiration/reallocation',
-            platformRevenue: triggerLevel === 1 ? '+30 USDT for Level 1 only' : 'No platform fee for L2-L19'
-          }
-        }
+        rewards: createdRewards.map(r => ({
+          id: r.id,
+          recipientWallet: r.recipientWallet,
+          amount: r.rewardAmount,
+          status: r.status,
+          expiresAt: r.expiresAt
+        }))
       });
+      
     } catch (error) {
       console.error('Test upgrade error:', error);
       res.status(500).json({ 
-        error: 'Test upgrade failed',
+        error: 'Test failed',
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
 
-  // Process spillover rewards (cron job endpoint)
-  app.post("/api/rewards/process-spillover", async (req, res) => {
+  // Process member upgrade (for when user actually upgrades)
+  app.post("/api/rewards/process-upgrade", requireWallet, async (req: any, res) => {
     try {
-      const result = await rewardsService.processPendingRewards();
-      res.json({
+      const { newLevel } = req.body;
+      
+      if (!newLevel || newLevel < 1 || newLevel > 19) {
+        return res.status(400).json({ 
+          error: 'Invalid newLevel. Must be 1-19' 
+        });
+      }
+
+      const confirmedRewards = await rewardsService.processMemberUpgrade(req.walletAddress, newLevel);
+      
+      res.json({ 
         success: true,
-        message: 'Spillover processing completed',
-        result
+        confirmedRewards: confirmedRewards.length,
+        message: `Confirmed ${confirmedRewards.length} pending rewards`
       });
+      
     } catch (error) {
-      console.error('Process spillover error:', error);
+      console.error('Process upgrade error:', error);
       res.status(500).json({ 
-        error: 'Failed to process spillover',
+        error: 'Failed to process upgrade',
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
