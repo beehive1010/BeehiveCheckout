@@ -1,4 +1,4 @@
-import { useI18n } from '../../../contexts/I18nContext';
+import { useI18n } from '../../contexts/I18nContext';
 import styles from '../../styles/landing/landing.module.css';
 
 export function StatsBar() {

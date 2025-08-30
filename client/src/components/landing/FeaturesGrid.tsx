@@ -1,6 +1,6 @@
-import { Card, CardContent } from '../../../components/ui/card';
+import { Card, CardContent } from '../ui/card';
 import HexagonIcon from '../shared/HexagonIcon';
-import { useI18n } from '../../../contexts/I18nContext';
+import { useI18n } from '../../contexts/I18nContext';
 import styles from '../../styles/landing/landing.module.css';
 
 export function FeaturesGrid() {

@@ -5,7 +5,7 @@ import { useWallet } from '../../hooks/useWallet';
 import { membershipLevels } from '../../lib/config/membershipLevels';
 import MembershipBadge from './MembershipBadge';
 import ClaimMembershipButton from './ClaimMembershipButton';
-import MobileDivider from '../UI/MobileDivider';
+import MobileDivider from '../shared/MobileDivider';
 
 interface MembershipLevelListProps {
   onPurchaseSuccess?: () => void;

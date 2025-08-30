@@ -1,122 +1,133 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useWallet } from '../hooks/useWallet';
 import { useI18n } from '../contexts/I18nContext';
-import { useNFTVerification } from '../hooks/useNFTVerification';
-import { useUserReferralStats } from '../hooks/useBeeHiveStats';
-import { NFTRequiredScreen } from '../components/nfts/NFTRequiredScreen';
-import { LoadingScreen } from '../components/shared/LoadingScreen';
-import { ActivationScreen } from '../components/membership/ActivationScreen';
-import { MembershipStatusCard } from '../components/membership/MembershipStatusCard';
-import { ReferralLinkCard } from '../components/referrals/ReferralLinkCard';
-import { UserStatsGrid } from '../components/dashboard/UserStatsGrid';
-import { QuickActionsGrid } from '../components/dashboard/QuickActionsGrid';
-import { MatrixNetworkStats } from '../components/matrix/MatrixNetworkStats';
-import { Notifications } from '../components/shared/Notifications';
-import { dashboardService } from '../api/dashboard/dashboard.client';
-import styles from '../styles/dashboard/dashboard.module.css';
+
+interface DashboardData {
+  stats: {
+    totalEarnings: number;
+    referralCount: number;
+    matrixLevel: number;
+    bccBalance: {
+      transferable: number;
+      restricted: number;
+    };
+    membershipLevel: number;
+    isActivated: boolean;
+  };
+}
 
 export default function DashboardPage() {
-  const { 
-    userData, 
-    isActivated, 
-    currentLevel, 
-    bccBalance, 
-    walletAddress,
-    activateMembership,
-    isActivating
-  } = useWallet();
+  const { walletAddress, isConnected } = useWallet();
   const { t } = useI18n();
-  const { hasLevel1NFT, isLoading: isCheckingNFT } = useNFTVerification();
-  const { data: userStats, isLoading: isLoadingUserStats } = useUserReferralStats();
-  const [timeRemaining, setTimeRemaining] = useState<number>(0);
-  
-  // Check registration expiration status
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    const checkRegistrationStatus = async () => {
-      if (!walletAddress || isActivated) return;
-      
-      const status = await dashboardService.checkRegistrationStatus(walletAddress);
-      if (status?.registrationExpiresAt) {
-        const expiresAt = new Date(status.registrationExpiresAt).getTime();
-        const now = Date.now();
-        setTimeRemaining(Math.max(0, expiresAt - now));
-      }
-    };
-    
-    checkRegistrationStatus();
-  }, [walletAddress, isActivated]);
-  
-  // Countdown timer effect
-  useEffect(() => {
-    if (timeRemaining <= 0) return;
-    
-    const timer = setInterval(() => {
-      setTimeRemaining(prev => {
-        const newTime = prev - 1000;
-        if (newTime <= 0) {
-          window.location.reload();
-          return 0;
+    if (isConnected && walletAddress) {
+      // TODO: Implement dashboard data fetching
+      setDashboardData({
+        stats: {
+          totalEarnings: 0,
+          referralCount: 0,
+          matrixLevel: 1,
+          bccBalance: {
+            transferable: 0,
+            restricted: 0
+          },
+          membershipLevel: 0,
+          isActivated: false
         }
-        return newTime;
       });
-    }, 1000);
-    
-    return () => clearInterval(timer);
-  }, [timeRemaining]);
+      setLoading(false);
+    }
+  }, [isConnected, walletAddress]);
 
-  // Show loading screen while checking NFT
-  if (isCheckingNFT) {
-    return <LoadingScreen />;
-  }
-
-  // Show NFT required screen if user doesn't have Level 1 NFT
-  if (!hasLevel1NFT) {
-    return <NFTRequiredScreen />;
-  }
-
-  // Show activation screen if not activated
-  if (!isActivated) {
+  if (loading) {
     return (
-      <ActivationScreen
-        timeRemaining={timeRemaining}
-        onActivate={activateMembership}
-        isActivating={isActivating}
-      />
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-honey mx-auto mb-4"></div>
+          <p className="text-muted-foreground">{t('common.loading')}</p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className={styles.dashboardContainer}>
-      <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
+      <div className="space-y-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-honey mb-2">
-            {t('dashboard.welcome')}
+            {t('dashboard.title')}
           </h1>
           <p className="text-muted-foreground">
             {t('dashboard.subtitle')}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-2">
-            <MembershipStatusCard 
-              currentLevel={currentLevel}
-              bccBalance={bccBalance}
-              isLoading={isLoadingUserStats}
-            />
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-secondary rounded-lg p-6 border border-border">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">
+              {t('dashboard.stats.totalEarnings')}
+            </h3>
+            <p className="text-2xl font-bold text-honey">
+              ${dashboardData?.stats.totalEarnings || 0}
+            </p>
           </div>
-          <div>
-            <ReferralLinkCard walletAddress={walletAddress} />
+
+          <div className="bg-secondary rounded-lg p-6 border border-border">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">
+              {t('dashboard.stats.referrals')}
+            </h3>
+            <p className="text-2xl font-bold text-honey">
+              {dashboardData?.stats.referralCount || 0}
+            </p>
+          </div>
+
+          <div className="bg-secondary rounded-lg p-6 border border-border">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">
+              {t('dashboard.stats.matrixLevel')}
+            </h3>
+            <p className="text-2xl font-bold text-honey">
+              {dashboardData?.stats.matrixLevel || 1}
+            </p>
+          </div>
+
+          <div className="bg-secondary rounded-lg p-6 border border-border">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">
+              {t('dashboard.stats.membershipLevel')}
+            </h3>
+            <p className="text-2xl font-bold text-honey">
+              Level {dashboardData?.stats.membershipLevel || 0}
+            </p>
           </div>
         </div>
 
-        <UserStatsGrid stats={userStats} isLoading={isLoadingUserStats} />
-        
-        <QuickActionsGrid />
-        
-        <MatrixNetworkStats />
-        
-        <Notifications />
+        {/* BCC Balance */}
+        <div className="bg-secondary rounded-lg p-6 border border-border">
+          <h2 className="text-xl font-semibold text-honey mb-4">
+            {t('dashboard.bccBalance.title')}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                {t('dashboard.bccBalance.transferable')}
+              </h3>
+              <p className="text-xl font-bold">
+                {dashboardData?.stats.bccBalance.transferable || 0} BCC
+              </p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                {t('dashboard.bccBalance.restricted')}
+              </h3>
+              <p className="text-xl font-bold">
+                {dashboardData?.stats.bccBalance.restricted || 0} BCC
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

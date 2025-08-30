@@ -1,4 +1,4 @@
-import { useI18n } from '../../../contexts/I18nContext';
+import { useI18n } from '../../contexts/I18nContext';
 
 export default function Footer() {
   const { t } = useI18n();
