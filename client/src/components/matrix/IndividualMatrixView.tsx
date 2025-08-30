@@ -53,18 +53,30 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
       const data = await response.json();
       
       // Transform dashboard matrix data to IndividualMatrixData format
+      console.log('🔗 Raw API response:', data);
+      
       const transformedData: IndividualMatrixData = {
-        layers: data.downlineLayers?.map((layer: any) => ({
-          layerNumber: layer.layer,
-          maxMembers: layer.maxCapacity || Math.pow(3, layer.layer),
-          members: layer.members || [],
-          leftLeg: layer.members?.filter((m: any) => m.placement === 'left') || [],
-          middleLeg: layer.members?.filter((m: any) => m.placement === 'middle') || [],
-          rightLeg: layer.members?.filter((m: any) => m.placement === 'right') || [],
-        })) || [],
+        layers: data.downlineLayers?.map((layer: any) => {
+          console.log(`📊 Layer ${layer.layer}:`, {
+            totalMembers: layer.totalMembers,
+            members: layer.members,
+            membersLength: layer.members?.length
+          });
+          
+          return {
+            layerNumber: layer.layer,
+            maxMembers: layer.maxCapacity || Math.pow(3, layer.layer),
+            members: layer.members || [],
+            leftLeg: layer.members?.filter((m: any) => m.placement === 'left') || [],
+            middleLeg: layer.members?.filter((m: any) => m.placement === 'middle') || [],
+            rightLeg: layer.members?.filter((m: any) => m.placement === 'right') || [],
+          };
+        }) || [],
         totalMembers: data.totalDownline || 0,
         totalLevels: data.downlineLayers?.length || 0,
       };
+      
+      console.log('✅ Transformed data:', transformedData);
       
       return transformedData;
     },
