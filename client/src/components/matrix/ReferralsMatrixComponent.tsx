@@ -56,6 +56,7 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
       if (!response.ok) throw new Error('Failed to fetch referrals matrix data');
       const data = await response.json();
       
+      
       // Transform for referrals-focused view
       const transformedData: ReferralsMatrixData = {
         layers: data.downlineLayers?.map((layer: any, layerIndex: number) => {
@@ -220,15 +221,19 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
     return (
       <div 
         key={`${legType}-${positionIndex}`}
-        className={`
-          relative w-16 h-16 rounded-full border-2 flex flex-col items-center justify-center
-          ${isEmpty 
-            ? 'border-dashed border-honey/30 bg-muted/50' 
-            : 'border-honey/50 bg-honey/10 hover:bg-honey/20 cursor-pointer transition-colors'
-          }
-        `}
+        className="flex flex-col items-center"
         data-testid={`referral-position-${legType}-${positionIndex}`}
       >
+        <div
+          className={`
+            relative w-16 h-16 rounded-full border-2 flex flex-col items-center justify-center
+            ${isEmpty 
+              ? 'border-dashed border-honey/30 bg-muted/50' 
+              : 'border-honey/50 bg-honey/10 hover:bg-honey/20 cursor-pointer transition-colors'
+            }
+          `}
+          title={member ? `${member.username} (${member.walletAddress.slice(0, 6)}...${member.walletAddress.slice(-4)})` : 'Empty position'}
+        >
         {member ? (
           <>
             {/* Member Avatar with placement type styling */}
@@ -293,6 +298,18 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
         ) : (
           <div className="w-10 h-10 border-2 border-dashed border-honey/30 rounded-full flex items-center justify-center">
             <Users className="h-4 w-4 text-honey/30" />
+          </div>
+        )}
+        </div>
+        {/* Username display below avatar */}
+        {member && (
+          <div className="mt-1 text-center">
+            <p className="text-xs font-medium text-foreground truncate max-w-[80px]">
+              {member.username}
+            </p>
+            <p className="text-[10px] text-muted-foreground">
+              {member.walletAddress.slice(0, 4)}...{member.walletAddress.slice(-3)}
+            </p>
           </div>
         )}
       </div>
