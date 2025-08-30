@@ -137,10 +137,48 @@ export default function Welcome() {
 
       setDemoClaimState('success');
       
-      // Simulate successful claim
-      setTimeout(() => {
-        handlePurchaseSuccess();
-      }, 1000);
+      // Actually update the backend database
+      try {
+        console.log('🔄 Updating user membership in database...');
+        
+        const claimResponse = await fetch('/api/auth/claim-nft', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Wallet-Address': account.address,
+          },
+          body: JSON.stringify({
+            level: 1,
+            transactionHash: result.transactionHash,
+            mintTxHash: result.mintResult.mintTxHash
+          }),
+        });
+
+        if (!claimResponse.ok) {
+          throw new Error('Failed to update membership status');
+        }
+
+        const claimResult = await claimResponse.json();
+        console.log('✅ Database updated:', claimResult);
+
+        toast({
+          title: "Membership Activated! 🎉",
+          description: `Level 1 activated! You received ${claimResult.rewards?.bccTransferable || 500} BCC + ${claimResult.rewards?.bccLocked || 100} BCC locked`,
+        });
+
+        // Redirect to dashboard after successful backend update
+        setTimeout(() => {
+          handlePurchaseSuccess();
+        }, 1500);
+
+      } catch (dbError: any) {
+        console.error('❌ Database update failed:', dbError);
+        toast({
+          title: "NFT Claimed but Activation Pending",
+          description: "Your NFT was minted successfully, but there was an issue activating your membership. Please contact support.",
+          variant: "destructive",
+        });
+      }
 
     } catch (error: any) {
       console.error('Demo claim error:', error);

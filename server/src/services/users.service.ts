@@ -14,6 +14,13 @@ export interface CreateUserEnhancedRequest {
   referrerWallet?: string;
 }
 
+export interface ActivateUserMembershipRequest {
+  walletAddress: string;
+  membershipLevel: number;
+  transactionHash?: string;
+  mintTxHash?: string;
+}
+
 export interface UserProfile {
   user: User;
   membershipLevel: number;
@@ -164,6 +171,29 @@ export class UsersService {
     };
 
     return await usersRepo.set(newUser);
+  }
+
+  /**
+   * Activate user membership after NFT claim
+   */
+  async activateUserMembership(request: ActivateUserMembershipRequest): Promise<User> {
+    const { walletAddress, membershipLevel, transactionHash, mintTxHash } = request;
+    
+    // Get existing user
+    const existingUser = await usersRepo.getByWallet(walletAddress);
+    if (!existingUser) {
+      throw new Error('User not found');
+    }
+
+    // Update user with membership activation
+    const updatedUser: User = {
+      ...existingUser,
+      membershipLevel,
+      isActivated: true,
+      updatedAt: new Date().toISOString()
+    };
+
+    return await usersRepo.set(updatedUser);
   }
 
   /**

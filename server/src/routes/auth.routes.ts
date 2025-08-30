@@ -156,6 +156,52 @@ export function registerAuthRoutes(app: Express, requireWallet: any) {
     }
   });
 
+  // NFT Claim and Membership Activation endpoint
+  app.post("/api/auth/claim-nft", requireWallet, async (req, res) => {
+    try {
+      const walletAddress = req.headers['x-wallet-address'] as string;
+      const { level, transactionHash, mintTxHash } = req.body;
+      
+      console.log('🎫 NFT Claim request:', { walletAddress, level, transactionHash });
+      
+      if (!level || level !== 1) {
+        return res.status(400).json({ error: 'Only Level 1 NFT claims supported' });
+      }
+
+      // Get user profile
+      const userProfile = await usersService.getUserProfile(walletAddress);
+      if (!userProfile) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Update user membership status
+      const updatedUser = await usersService.activateUserMembership({
+        walletAddress,
+        membershipLevel: 1,
+        transactionHash,
+        mintTxHash
+      });
+
+      console.log('🎉 NFT claimed and user activated:', updatedUser.walletAddress);
+
+      res.json({
+        success: true,
+        user: updatedUser,
+        message: 'Level 1 NFT claimed successfully',
+        rewards: {
+          bccTransferable: 500,
+          bccLocked: 100
+        }
+      });
+    } catch (error) {
+      console.error('NFT claim error:', error);
+      res.status(500).json({ 
+        error: 'Failed to claim NFT',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Enhanced user registration endpoint with referrer validation
   app.post("/api/auth/register", async (req, res) => {
     try {
