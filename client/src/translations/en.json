@@ -8,7 +8,13 @@
     "discover": "Discover",
     "hiveworld": "HiveWorld",
     "me": "Me",
-    "home": "Home"
+    "home": "Home",
+    "back": "Back"
+  },
+  "me": {
+    "title": "Profile",
+    "rewards": "Rewards",
+    "referrals": "Referrals"
   },
   "common": {
     "cancel": "Cancel",
