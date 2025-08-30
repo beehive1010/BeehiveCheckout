@@ -60,83 +60,20 @@ export const users = pgTable("users", {
   isCompanyDirectReferral: boolean("is_company_direct_referral").default(false),
 });
 
-// Membership state table
-export const membershipState = pgTable("membership_state", {
-  walletAddress: varchar("wallet_address", { length: 42 })
-    .primaryKey()
-    .references(() => users.walletAddress),
-  levelsOwned: jsonb("levels_owned").$type<number[]>().default([]).notNull(),
-  activeLevel: integer("active_level").default(0).notNull(),
-  joinedAt: timestamp("joined_at"),
-  lastUpgradeAt: timestamp("last_upgrade_at"),
-});
+// V1 DEPRECATED - Use membership_nfts_v2 instead
+// membershipState table kept for backward compatibility only
 
-// Referral nodes table - Enhanced for 3x3 matrix system
-export const referralNodes = pgTable("referral_nodes", {
-  walletAddress: varchar("wallet_address", { length: 42 })
-    .primaryKey()
-    .references(() => users.walletAddress),
-  sponsorWallet: varchar("sponsor_wallet", { length: 42 }), // Direct sponsor (upline)
-  placerWallet: varchar("placer_wallet", { length: 42 }), // Who placed this member (for spillover)
-  matrixPosition: integer("matrix_position").default(0).notNull(), // 0-8 position in 3x3 matrix
-  leftLeg: jsonb("left_leg").$type<string[]>().default([]).notNull(), // Left leg positions 0,1,2
-  middleLeg: jsonb("middle_leg").$type<string[]>().default([]).notNull(), // Middle leg positions 3,4,5
-  rightLeg: jsonb("right_leg").$type<string[]>().default([]).notNull(), // Right leg positions 6,7,8
-  directReferralCount: integer("direct_referral_count").default(0).notNull(),
-  totalTeamCount: integer("total_team_count").default(0).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+// V1 DEPRECATED - Use matrix_tree_v2 instead
+// referralNodes table kept for backward compatibility only
 
-// 19-Layer referral tree tracking for each user
-export const referralLayers = pgTable("referral_layers", {
-  id: varchar("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  walletAddress: varchar("wallet_address", { length: 42 })
-    .notNull()
-    .references(() => users.walletAddress),
-  layerNumber: integer("layer_number").notNull(), // 1-19
-  memberCount: integer("member_count").default(0).notNull(),
-  members: jsonb("members").$type<string[]>().default([]).notNull(), // Array of wallet addresses in this layer
-  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
-  placementTypes: text("placement_types"), // Track placement type information
-});
+// V1 DEPRECATED - Use matrix_tree_v2 with layer tracking instead
+// referralLayers table kept for backward compatibility only
 
-// Matrix layers table - tracks the matrix structure
-export const matrixLayers = pgTable(
-  "matrix_layers",
-  {
-    walletAddress: varchar("wallet_address", { length: 42 })
-      .notNull()
-      .references(() => users.walletAddress),
-    layer: integer("layer").notNull(),
-    members: jsonb("members").$type<string[]>().default([]),
-    memberCount: integer("member_count").default(0),
-    maxMembers: integer("max_members"),
-    createdAt: timestamp("created_at").defaultNow(),
-  },
-  (table) => ({
-    pk: primaryKey({ columns: [table.walletAddress, table.layer] }),
-  }),
-);
+// V1 DEPRECATED - Use matrix_tree_v2 instead
+// matrixLayers table kept for backward compatibility only
 
-// Reward notifications with countdown timers
-export const rewardNotifications = pgTable("reward_notifications", {
-  id: varchar("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  recipientWallet: varchar("recipient_wallet", { length: 42 })
-    .notNull()
-    .references(() => users.walletAddress),
-  triggerWallet: varchar("trigger_wallet", { length: 42 }).notNull(), // Who made the purchase that triggered this
-  triggerLevel: integer("trigger_level").notNull(), // Level purchased that triggered the notification
-  layerNumber: integer("layer_number").notNull(), // Which layer the trigger came from (1-19)
-  rewardAmount: integer("reward_amount").notNull(), // Potential reward amount in USDT cents
-  status: text("status").default("pending").notNull(), // pending, claimed, expired
-  expiresAt: timestamp("expires_at").notNull(), // 72 hours from creation
-  claimedAt: timestamp("claimed_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+// V1 DEPRECATED - Use layer_rewards_v2 instead
+// rewardNotifications table kept for backward compatibility only
 
 // Member NFT verification table
 export const memberNFTVerification = pgTable("member_nft_verification", {
@@ -407,55 +344,15 @@ export const preparationStepSchema = createInsertSchema(users).pick({
   registrationStatus: true,
 });
 
-export const insertMembershipStateSchema = createInsertSchema(
-  membershipState,
-).pick({
-  walletAddress: true,
-  levelsOwned: true,
-  activeLevel: true,
-});
+// V1 DEPRECATED - insertMembershipStateSchema
 
-export const insertReferralNodeSchema = createInsertSchema(referralNodes).pick({
-  walletAddress: true,
-  sponsorWallet: true,
-  placerWallet: true,
-  matrixPosition: true,
-  leftLeg: true,
-  middleLeg: true,
-  rightLeg: true,
-  directReferralCount: true,
-  totalTeamCount: true,
-});
+// V1 DEPRECATED - insertReferralNodeSchema
 
-export const insertReferralLayerSchema = createInsertSchema(
-  referralLayers,
-).pick({
-  walletAddress: true,
-  layerNumber: true,
-  memberCount: true,
-  members: true,
-  placementTypes: true,
-});
+// V1 DEPRECATED - insertReferralLayerSchema
 
-export const insertMatrixLayerSchema = createInsertSchema(matrixLayers).pick({
-  walletAddress: true,
-  layer: true,
-  members: true,
-  memberCount: true,
-  maxMembers: true,
-});
+// V1 DEPRECATED - insertMatrixLayerSchema
 
-export const insertRewardNotificationSchema = createInsertSchema(
-  rewardNotifications,
-).pick({
-  recipientWallet: true,
-  triggerWallet: true,
-  triggerLevel: true,
-  layerNumber: true,
-  rewardAmount: true,
-  status: true,
-  expiresAt: true,
-});
+// V1 DEPRECATED - insertRewardNotificationSchema
 
 export const insertEarningsWalletSchema = createInsertSchema(
   earningsWallet,
@@ -640,20 +537,8 @@ export const insertAdvertisementNFTClaimSchema = createInsertSchema(
   status: true,
 });
 
-// Member activation status table
-export const memberActivationStatus = pgTable("member_activation_status", {
-  walletAddress: varchar("wallet_address", { length: 42 })
-    .primaryKey()
-    .references(() => users.walletAddress),
-  isActivated: boolean("is_activated").default(false).notNull(),
-  activationLevel: integer("activation_level").default(0).notNull(),
-  activatedAt: timestamp("activated_at"),
-  pendingUntil: timestamp("pending_until"), // 24-72 hour countdown for upgrades
-  upgradeTimerActive: boolean("upgrade_timer_active").default(false).notNull(),
-  lastUpgradeAttempt: timestamp("last_upgrade_attempt"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+// V1 DEPRECATED - Use membership_nfts_v2 with status field instead
+// memberActivationStatus table kept for backward compatibility only
 
 // NFT claim records table
 export const nftClaimRecords = pgTable("nft_claim_records", {
@@ -678,42 +563,22 @@ export const nftClaimRecords = pgTable("nft_claim_records", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Member levels table
-export const memberLevels = pgTable("member_levels", {
-  walletAddress: varchar("wallet_address", { length: 42 })
-    .primaryKey()
-    .references(() => users.walletAddress),
-  currentLevel: integer("current_level").default(0).notNull(),
-  maxLevelAchieved: integer("max_level_achieved").default(0).notNull(),
-  levelsOwned: jsonb("levels_owned").$type<number[]>().default([]).notNull(),
-  nftTokenIds: jsonb("nft_token_ids").$type<number[]>().default([]).notNull(), // Token IDs owned
-  totalNFTsOwned: integer("total_nfts_owned").default(0).notNull(),
-  firstActivationAt: timestamp("first_activation_at"),
-  lastLevelUpgradeAt: timestamp("last_level_upgrade_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+// V1 DEPRECATED - Use membership_nfts_v2 to track levels
+// memberLevels table kept for backward compatibility only
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
-export type InsertMembershipState = z.infer<typeof insertMembershipStateSchema>;
-export type MembershipState = typeof membershipState.$inferSelect;
+// V1 DEPRECATED - MembershipState types
 
-export type InsertReferralNode = z.infer<typeof insertReferralNodeSchema>;
-export type ReferralNode = typeof referralNodes.$inferSelect;
+// V1 DEPRECATED - ReferralNode types
 
-export type InsertReferralLayer = z.infer<typeof insertReferralLayerSchema>;
-export type ReferralLayer = typeof referralLayers.$inferSelect;
+// V1 DEPRECATED - ReferralLayer types
 
-export type InsertMatrixLayer = z.infer<typeof insertMatrixLayerSchema>;
-export type MatrixLayer = typeof matrixLayers.$inferSelect;
+// V1 DEPRECATED - MatrixLayer types
 
-export type InsertRewardNotification = z.infer<
-  typeof insertRewardNotificationSchema
->;
-export type RewardNotification = typeof rewardNotifications.$inferSelect;
+// V1 DEPRECATED - RewardNotification types
 
 // User inbox notifications for BCC, upgrades, and other activities
 export const userNotifications = pgTable("user_notifications", {
@@ -798,15 +663,7 @@ export type InsertAdvertisementNFTClaim = z.infer<
 export type AdvertisementNFTClaim = typeof advertisementNFTClaims.$inferSelect;
 
 // New table insert schemas
-export const insertMemberActivationStatusSchema = createInsertSchema(
-  memberActivationStatus,
-).pick({
-  walletAddress: true,
-  isActivated: true,
-  activationLevel: true,
-  pendingUntil: true,
-  upgradeTimerActive: true,
-});
+// V1 DEPRECATED - insertMemberActivationStatusSchema
 
 export const insertNFTClaimRecordSchema = createInsertSchema(
   nftClaimRecords,
@@ -823,26 +680,15 @@ export const insertNFTClaimRecordSchema = createInsertSchema(
   status: true,
 });
 
-export const insertMemberLevelSchema = createInsertSchema(memberLevels).pick({
-  walletAddress: true,
-  currentLevel: true,
-  maxLevelAchieved: true,
-  levelsOwned: true,
-  nftTokenIds: true,
-  totalNFTsOwned: true,
-});
+// V1 DEPRECATED - insertMemberLevelSchema
 
 // New types
-export type InsertMemberActivationStatus = z.infer<
-  typeof insertMemberActivationStatusSchema
->;
-export type MemberActivationStatus = typeof memberActivationStatus.$inferSelect;
+// V1 DEPRECATED - MemberActivationStatus types
 
 export type InsertNFTClaimRecord = z.infer<typeof insertNFTClaimRecordSchema>;
 export type NFTClaimRecord = typeof nftClaimRecords.$inferSelect;
 
-export type InsertMemberLevel = z.infer<typeof insertMemberLevelSchema>;
-export type MemberLevel = typeof memberLevels.$inferSelect;
+// V1 DEPRECATED - MemberLevel types
 
 export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
 export type AdminUser = typeof adminUsers.$inferSelect;
@@ -946,40 +792,11 @@ export type TokenPurchase = typeof tokenPurchases.$inferSelect;
 export type InsertCTHBalance = z.infer<typeof insertCTHBalanceSchema>;
 export type CTHBalance = typeof cthBalances.$inferSelect;
 
-// Member Activation Tracking - For pending time system
-export const memberActivations = pgTable("member_activations", {
-  walletAddress: varchar("wallet_address", { length: 42 })
-    .primaryKey()
-    .references(() => users.walletAddress),
-  activationType: text("activation_type").notNull(), // 'nft_purchase', 'admin_activated'
-  level: integer("level").notNull(), // Level activated/upgraded to
-  pendingUntil: timestamp("pending_until"), // 24hr countdown for upgrades
-  isPending: boolean("is_pending").default(true).notNull(),
-  activatedAt: timestamp("activated_at"),
-  pendingTimeoutHours: integer("pending_timeout_hours").default(24).notNull(), // Admin configurable
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+// V1 DEPRECATED - Use membership_nfts_v2 with status and activated_at fields
+// memberActivations table kept for backward compatibility only
 
-// Reward Distribution Tracking - For 72hr countdown system
-export const rewardDistributions = pgTable("reward_distributions", {
-  id: varchar("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  recipientWallet: varchar("recipient_wallet", { length: 42 })
-    .notNull()
-    .references(() => users.walletAddress),
-  sourceWallet: varchar("source_wallet", { length: 42 })
-    .notNull()
-    .references(() => users.walletAddress), // Who triggered the reward
-  rewardType: text("reward_type").notNull(), // 'direct_referral', 'level_bonus', 'matrix_spillover'
-  rewardAmount: numeric("reward_amount", { precision: 10, scale: 2 }).notNull(),
-  level: integer("level").notNull(), // Level that triggered reward
-  status: text("status").default("pending").notNull(), // 'pending', 'claimable', 'claimed', 'expired_redistributed'
-  pendingUntil: timestamp("pending_until"), // 72hr countdown
-  claimedAt: timestamp("claimed_at"),
-  redistributedTo: varchar("redistributed_to", { length: 42 }), // If expired, who got it
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+// V1 DEPRECATED - Use layer_rewards_v2 instead
+// rewardDistributions table kept for backward compatibility only
 
 // Admin Settings for controlling pending times
 export const adminSettings = pgTable("admin_settings", {
@@ -989,31 +806,9 @@ export const adminSettings = pgTable("admin_settings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const insertMemberActivationSchema = createInsertSchema(
-  memberActivations,
-).pick({
-  walletAddress: true,
-  activationType: true,
-  level: true,
-  pendingUntil: true,
-  isPending: true,
-  activatedAt: true,
-  pendingTimeoutHours: true,
-});
+// V1 DEPRECATED - insertMemberActivationSchema
 
-export const insertRewardDistributionSchema = createInsertSchema(
-  rewardDistributions,
-).pick({
-  recipientWallet: true,
-  sourceWallet: true,
-  rewardType: true,
-  rewardAmount: true,
-  level: true,
-  status: true,
-  pendingUntil: true,
-  claimedAt: true,
-  redistributedTo: true,
-});
+// V1 DEPRECATED - insertRewardDistributionSchema
 
 export const insertAdminSettingSchema = createInsertSchema(adminSettings).pick({
   settingKey: true,
@@ -1021,15 +816,9 @@ export const insertAdminSettingSchema = createInsertSchema(adminSettings).pick({
   description: true,
 });
 
-export type InsertMemberActivation = z.infer<
-  typeof insertMemberActivationSchema
->;
-export type MemberActivation = typeof memberActivations.$inferSelect;
+// V1 DEPRECATED - MemberActivation types
 
-export type InsertRewardDistribution = z.infer<
-  typeof insertRewardDistributionSchema
->;
-export type RewardDistribution = typeof rewardDistributions.$inferSelect;
+// V1 DEPRECATED - RewardDistribution types
 
 export type InsertAdminSetting = z.infer<typeof insertAdminSettingSchema>;
 export type AdminSetting = typeof adminSettings.$inferSelect;
@@ -1325,32 +1114,10 @@ export const insertSystemStatusSchema = createInsertSchema(systemStatus).pick({
   errorMessage: true,
 });
 
-// Global Matrix Position Table - Single company-wide matrix structure
-export const globalMatrixPosition = pgTable("global_matrix_position", {
-  walletAddress: varchar("wallet_address", { length: 42 })
-    .primaryKey()
-    .references(() => users.walletAddress),
-  matrixLevel: integer("matrix_level").notNull(), // 1-19 (Level 1=3 positions, Level 2=9, Level 3=27, etc.)
-  positionIndex: integer("position_index").notNull(), // 0-based position within that level
-  directSponsorWallet: varchar("direct_sponsor_wallet", {
-    length: 42,
-  }).notNull(), // Who invited them (gets direct rewards)
-  placementSponsorWallet: varchar("placement_sponsor_wallet", {
-    length: 42,
-  }).notNull(), // Where they were placed in matrix
-  joinedAt: timestamp("joined_at").defaultNow().notNull(),
-  lastUpgradeAt: timestamp("last_upgrade_at"),
-});
+// V1 DEPRECATED - Use global_matrix_positions_v2 instead
+// globalMatrixPosition table kept for backward compatibility only
 
-export const insertGlobalMatrixPositionSchema = createInsertSchema(
-  globalMatrixPosition,
-).pick({
-  walletAddress: true,
-  matrixLevel: true,
-  positionIndex: true,
-  directSponsorWallet: true,
-  placementSponsorWallet: true,
-});
+// V1 DEPRECATED - insertGlobalMatrixPositionSchema
 
 // Admin panel types
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
@@ -1374,10 +1141,7 @@ export type RedeemCode = typeof redeemCodes.$inferSelect;
 export type InsertSystemStatus = z.infer<typeof insertSystemStatusSchema>;
 export type SystemStatus = typeof systemStatus.$inferSelect;
 
-export type InsertGlobalMatrixPosition = z.infer<
-  typeof insertGlobalMatrixPositionSchema
->;
-export type GlobalMatrixPosition = typeof globalMatrixPosition.$inferSelect;
+// V1 DEPRECATED - GlobalMatrixPosition types
 
 // Wallet connection logs table for verification tracking
 export const walletConnectionLogs = pgTable("wallet_connection_logs", {
