@@ -106,7 +106,7 @@ export function registerDashboardRoutes(app: Express) {
         directChildren: referralNode?.directReferralCount || 0,
         totalDownline: referralLayers.reduce((total: number, layer: any) => total + layer.memberCount, 0),
         downlineLayers: await Promise.all(referralLayers.map(async (layer: any) => {
-          // Get full member details with placement info
+          // Get full member details with placement info and placement type
           const memberDetails = await Promise.all((layer.members || []).map(async (memberWallet: string, index: number) => {
             const user = await storage.getUser(memberWallet);
             const memberNode = await storage.getReferralNode(memberWallet);
@@ -118,12 +118,32 @@ export function registerDashboardRoutes(app: Express) {
             else if (positionInLayer === 1) placement = 'middle';
             else placement = 'right';
             
+            // Determine placement type based on sponsor and placer relationships
+            let placementType: 'direct_referral' | 'upline_placement' | 'self_placement';
+            const currentUserWallet = walletAddress.toLowerCase();
+            const memberSponsor = memberNode?.sponsorWallet?.toLowerCase();
+            const memberPlacer = memberNode?.placerWallet?.toLowerCase();
+            
+            if (memberSponsor === currentUserWallet) {
+              // 自己推荐的
+              placementType = 'direct_referral';
+            } else if (memberPlacer === currentUserWallet) {
+              // 自己安置下去的
+              placementType = 'self_placement';
+            } else {
+              // 上线安置的
+              placementType = 'upline_placement';
+            }
+            
             return {
               walletAddress: memberWallet,
               username: user?.username || `User${memberWallet.slice(-4)}`,
               currentLevel: user?.membershipLevel || 1,
               memberActivated: user?.isActivated || false,
               placement,
+              placementType,
+              sponsorWallet: memberNode?.sponsorWallet,
+              placerWallet: memberNode?.placerWallet,
               joinedAt: user?.createdAt || new Date().toISOString()
             };
           }));
