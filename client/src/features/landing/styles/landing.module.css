@@ -55,7 +55,7 @@
 }
 
 .heroSection {
-  text-center;
+  text-align: center;
   margin-bottom: 5rem;
 }
 
@@ -176,7 +176,7 @@
 }
 
 .stepContainer {
-  text-center;
+  text-align: center;
   position: relative;
 }
 
@@ -203,7 +203,7 @@
 }
 
 .ctaSection {
-  text-center;
+  text-align: center;
   position: relative;
 }
 
