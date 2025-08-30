@@ -1,6 +1,6 @@
 import { ConnectButton } from 'thirdweb/react';
-import { client, supportedChains, wallets, authConfig } from '../../../lib/web3';
-import HexagonIcon from '../../shared/components/HexagonIcon';
+import { client, supportedChains, wallets, authConfig } from '../../lib/web3';
+import HexagonIcon from '../shared/HexagonIcon';
 import { StatsBar } from './StatsBar';
 import styles from '../../styles/landing/landing.module.css';
 
