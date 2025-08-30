@@ -24,8 +24,12 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
       setWalletAddress(account.address);
       // Store wallet address and chain for API client access
       sessionStorage.setItem('wallet-address', account.address);
-      if (activeChain?.id) {
+      // Safe chain ID handling with validation
+      if (activeChain?.id !== undefined && activeChain.id !== null) {
         sessionStorage.setItem('active-chain-id', activeChain.id.toString());
+      } else {
+        // Remove invalid chain data
+        sessionStorage.removeItem('active-chain-id');
       }
     } else {
       setIsConnected(false);

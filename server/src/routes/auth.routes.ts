@@ -81,17 +81,34 @@ export function registerAuthRoutes(app: Express, requireWallet: any) {
   // Verify JWT token
   app.get("/api/auth/verify-token", async (req, res) => {
     try {
-      const token = req.headers.authorization?.replace('Bearer ', '');
+      const authHeader = req.headers.authorization;
+      let token = authHeader?.replace('Bearer ', '');
       
+      // Also check query params and x-auth-token header as fallbacks
       if (!token) {
+        token = req.query.token as string || req.headers['x-auth-token'] as string;
+      }
+      
+      if (!token || token === 'undefined' || token === 'null') {
         return res.status(401).json({ error: 'No token provided' });
+      }
+      
+      // Additional validation for token format
+      if (!token.includes('.') || token.split('.').length !== 3) {
+        return res.status(401).json({ error: 'Malformed token' });
       }
       
       const decoded = jwt.verify(token, JWT_SECRET) as any;
       res.json({ valid: true, address: decoded.address });
     } catch (error) {
       console.error('Token verification error:', error);
-      res.status(401).json({ error: 'Invalid token' });
+      if (error.name === 'JsonWebTokenError') {
+        res.status(401).json({ error: 'Malformed token' });
+      } else if (error.name === 'TokenExpiredError') {
+        res.status(401).json({ error: 'Token expired' });
+      } else {
+        res.status(401).json({ error: 'Invalid token' });
+      }
     }
   });
 

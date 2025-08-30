@@ -30,6 +30,24 @@ export const alphaCentauri = defineChain({
 // Supported chains - matching user selection: Base, Arbitrum One, OP Mainnet, BSC, Polygon
 export const supportedChains = [ethereum, polygon, arbitrum, arbitrumSepolia, optimism, bsc, base, alphaCentauri];
 
+// Safe chain getter with fallback
+export function getChainById(chainId: number | string | undefined) {
+  if (!chainId) return undefined;
+  
+  const id = typeof chainId === 'string' ? parseInt(chainId) : chainId;
+  if (isNaN(id)) return undefined;
+  
+  return supportedChains.find(chain => chain.id === id);
+}
+
+// Enhanced chain validation
+export function validateChain(chain: any) {
+  if (!chain) return false;
+  if (typeof chain.id === 'undefined') return false;
+  if (!chain.name) return false;
+  return true;
+}
+
 // Enhanced wallet configuration with social login options and WalletConnect
 export const wallets = [
   inAppWallet({
