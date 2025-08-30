@@ -36,9 +36,9 @@ export const wallets = [
     auth: {
       options: [
         "google",
-        "discord",
+        "discord", 
         "telegram",
-        "farcaster", 
+        "farcaster",
         "email",
         "x",
         "passkey",
@@ -46,6 +46,10 @@ export const wallets = [
         "apple",
         "wallet", // Enables external wallet connections
       ],
+    },
+    metadata: {
+      name: "Beehive Wallet",
+      icon: "🐝",
     },
   }),
   walletConnect(),
