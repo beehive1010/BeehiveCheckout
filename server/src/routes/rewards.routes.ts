@@ -25,7 +25,34 @@ export function registerRewardsRoutes(app: Express, requireWallet: any) {
     }
   });
 
-  // Claim specific reward
+  // Automated claim with Thirdweb Engine
+  app.post("/api/rewards/claim", requireWallet, async (req: any, res) => {
+    try {
+      const { rewardId, recipientAddress } = req.body;
+      
+      if (!rewardId || !recipientAddress) {
+        return res.status(400).json({ 
+          error: 'Missing rewardId or recipientAddress' 
+        });
+      }
+
+      const result = await rewardsService.claimRewardWithEngine(
+        rewardId, 
+        req.walletAddress, 
+        recipientAddress
+      );
+      
+      res.json(result);
+    } catch (error) {
+      console.error('Automated claim error:', error);
+      res.status(500).json({ 
+        error: 'Failed to claim reward',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Claim specific reward (legacy)
   app.post("/api/rewards/claim/:rewardId", requireWallet, async (req: any, res) => {
     try {
       const { rewardId } = req.params;
