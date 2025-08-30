@@ -196,15 +196,17 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
       <CardContent className="space-y-6">
         
         {/* Layer Navigation */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setCurrentViewLayer(Math.max(1, currentViewLayer - 1))}
             disabled={currentViewLayer <= 1}
+            className="w-full sm:w-auto"
           >
             <ChevronLeft className="h-4 w-4" />
-            Previous Layer
+            <span className="hidden sm:inline">Previous Layer</span>
+            <span className="sm:hidden">Prev</span>
           </Button>
           
           <div className="text-center">
@@ -220,19 +222,21 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
             size="sm"
             onClick={() => setCurrentViewLayer(Math.min(19, currentViewLayer + 1))}
             disabled={currentViewLayer >= 19}
+            className="w-full sm:w-auto"
           >
-            Next Layer
+            <span className="hidden sm:inline">Next Layer</span>
+            <span className="sm:hidden">Next</span>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
 
         {/* Matrix Visualization for Current Layer */}
         {currentLayer && (
-          <div className="bg-background rounded-lg p-6">
+          <div className="bg-background rounded-lg p-3 sm:p-6">
             
             {/* Layer 1: Simple 3-position layout */}
             {currentViewLayer === 1 && (
-              <div className="flex justify-center space-x-8">
+              <div className="flex justify-center space-x-2 sm:space-x-4 md:space-x-8">
                 {renderLegSection(currentLayer.leftLeg.slice(0, 1), 'Left', 1)}
                 {renderLegSection(currentLayer.middleLeg.slice(0, 1), 'Middle', 1)}
                 {renderLegSection(currentLayer.rightLeg.slice(0, 1), 'Right', 1)}
@@ -241,7 +245,7 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
             
             {/* Layer 2+: 3×3 grid per leg */}
             {currentViewLayer > 1 && (
-              <div className="flex justify-center space-x-12">
+              <div className="flex justify-center space-x-2 sm:space-x-6 md:space-x-12">
                 {renderLegSection(currentLayer.leftLeg, 'Left', getMembersPerLeg(currentViewLayer))}
                 {renderLegSection(currentLayer.middleLeg, 'Middle', getMembersPerLeg(currentViewLayer))}
                 {renderLegSection(currentLayer.rightLeg, 'Right', getMembersPerLeg(currentViewLayer))}
@@ -251,24 +255,24 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
         )}
 
         {/* Layer Summary Stats */}
-        <div className="grid grid-cols-3 gap-4 text-center text-sm">
-          <div className="bg-background rounded-lg p-3">
-            <div className="text-xl font-bold text-green-400">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center text-sm">
+          <div className="bg-background rounded-lg p-2 sm:p-3">
+            <div className="text-lg sm:text-xl font-bold text-green-400">
               {currentLayer?.leftLeg.length || 0}
             </div>
-            <div className="text-muted-foreground">Left Leg</div>
+            <div className="text-muted-foreground text-xs sm:text-sm">Left Leg</div>
           </div>
-          <div className="bg-background rounded-lg p-3">
-            <div className="text-xl font-bold text-blue-400">
+          <div className="bg-background rounded-lg p-2 sm:p-3">
+            <div className="text-lg sm:text-xl font-bold text-blue-400">
               {currentLayer?.middleLeg.length || 0}
             </div>
-            <div className="text-muted-foreground">Middle Leg</div>
+            <div className="text-muted-foreground text-xs sm:text-sm">Middle Leg</div>
           </div>
-          <div className="bg-background rounded-lg p-3">
-            <div className="text-xl font-bold text-purple-400">
+          <div className="bg-background rounded-lg p-2 sm:p-3">
+            <div className="text-lg sm:text-xl font-bold text-purple-400">
               {currentLayer?.rightLeg.length || 0}
             </div>
-            <div className="text-muted-foreground">Right Leg</div>
+            <div className="text-muted-foreground text-xs sm:text-sm">Right Leg</div>
           </div>
         </div>
 
@@ -278,7 +282,7 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
             <Eye className="h-4 w-4" />
             <span>Layer Overview (L1-L19)</span>
           </h4>
-          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-10 gap-2">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-10 gap-1 sm:gap-2">
             {Array.from({ length: 19 }, (_, i) => {
               const layerNum = i + 1;
               const layerData = matrixData.layers.find(l => l.layerNumber === layerNum);
@@ -291,7 +295,7 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
                   key={layerNum}
                   onClick={() => setCurrentViewLayer(layerNum)}
                   className={`
-                    relative p-2 rounded-md text-xs transition-colors
+                    relative p-1 sm:p-2 rounded-md text-xs transition-colors
                     ${currentViewLayer === layerNum 
                       ? 'bg-honey text-black font-bold' 
                       : memberCount > 0 
@@ -301,8 +305,8 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
                   `}
                   data-testid={`layer-selector-${layerNum}`}
                 >
-                  <div>L{layerNum}</div>
-                  <div className="text-xs">{memberCount}/{maxMembers}</div>
+                  <div className="text-xs sm:text-sm">L{layerNum}</div>
+                  <div className="text-xs hidden sm:block">{memberCount}/{maxMembers}</div>
                   {fillPercentage > 0 && (
                     <div 
                       className="absolute bottom-0 left-0 bg-honey/40 h-1 rounded-b-md"
