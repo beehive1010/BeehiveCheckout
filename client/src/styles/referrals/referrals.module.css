@@ -1,6 +1,18 @@
 .referralsContainer {
   min-height: 100vh;
-  padding: 2rem;
+  padding: 1rem;
+}
+
+@media (min-width: 640px) {
+  .referralsContainer {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .referralsContainer {
+    padding: 2rem;
+  }
 }
 
 .referralLinkCard {
