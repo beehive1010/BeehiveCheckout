@@ -23,9 +23,28 @@ interface ClaimableReward {
   metadata?: any;
 }
 
-interface ClaimableRewardsResponse {
-  claimableRewards: ClaimableReward[];
-  pendingRewards: ClaimableReward[];
+interface RewardSummary {
+  claimableRewards: Array<{
+    id: string;
+    amount: number;
+    tokenType: 'USDT';
+    triggerLevel: number;
+    memberWallet: string;
+    createdAt: string;
+  }>;
+  pendingRewards: Array<{
+    id: string;
+    amount: number;
+    tokenType: 'USDT';
+    requiresLevel: number;
+    unlockCondition: string;
+    expiresAt: Date;
+    hoursLeft: number;
+    recipientWallet: string;
+    sourceWallet: string;
+    triggerLevel: number;
+    createdAt: string;
+  }>;
   totalClaimable: number;
   totalPending: number;
 }
@@ -45,13 +64,13 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
   // Use Web3 context for wallet connection
   const { isConnected } = useWeb3();
 
-  // Fetch claimable rewards
-  const { data: rewardsData, isLoading } = useQuery<ClaimableRewardsResponse>({
-    queryKey: ['/api/rewards/claimable'],
+  // Fetch claimable rewards using the same endpoint as summary for consistency
+  const { data: rewardsData, isLoading } = useQuery<RewardSummary>({
+    queryKey: ['/api/rewards/summary', walletAddress],
     enabled: !!walletAddress,
     refetchInterval: 30000, // Refresh every 30 seconds
     queryFn: async () => {
-      const response = await fetch('/api/rewards/claimable', {
+      const response = await fetch('/api/rewards/summary', {
         headers: {
           'X-Wallet-Address': walletAddress!,
         },
@@ -91,7 +110,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
       });
       
       // Refresh rewards data
-      queryClient.invalidateQueries({ queryKey: ['/api/rewards/claimable'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/rewards/summary', walletAddress] });
     },
     onError: (error: Error, rewardId) => {
       toast({
@@ -215,18 +234,14 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <Badge variant="outline" className="bg-honey/10 text-honey border-honey/30">
-                        ${reward.rewardAmount} USDT
-                      </Badge>
-                      <Badge variant="secondary">
-                        Layer {reward.payoutLayer}
+                        ${reward.amount} USDT
                       </Badge>
                       <Badge variant="outline">
                         Level {reward.triggerLevel}
                       </Badge>
                     </div>
                     <div className="text-sm text-muted-foreground space-y-1">
-                      <div>Position: {reward.matrixPosition}</div>
-                      <div>From: {reward.sourceWallet.slice(0, 8)}...{reward.sourceWallet.slice(-6)}</div>
+                      <div>Trigger Level: {reward.triggerLevel}</div>
                       <div>Created: {formatDate(reward.createdAt)}</div>
                     </div>
                   </div>
@@ -243,7 +258,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
                     ) : (
                       <>
                         <CheckCircle className="w-4 h-4 mr-2" />
-                        Claim ${reward.rewardAmount}
+                        Claim ${reward.amount}
                       </>
                     )}
                   </Button>
