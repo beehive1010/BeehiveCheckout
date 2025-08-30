@@ -11,6 +11,7 @@ import { registerReferralsRoutes } from "./routes/referrals.routes";
 import { registerEducationRoutes } from "./routes/education.routes";
 import { registerTasksRoutes } from "./routes/tasks.routes";
 import { registerAdminRoutes } from "./routes/admin.routes";
+import { registerDashboardRoutes } from "./routes/dashboard.routes";
 import healthRoutes from "./routes/health.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -48,6 +49,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerEducationRoutes(app, requireWallet);
   registerTasksRoutes(app, requireWallet);
   registerAdminRoutes(app, requireWallet);
+  registerDashboardRoutes(app);
 
   console.log('✅ All route modules registered successfully');
 

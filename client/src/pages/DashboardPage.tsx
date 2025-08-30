@@ -29,16 +29,77 @@ const ClaimMembershipButton = ({ level, onSuccess, onError, className }: any) =>
   );
 };
 
-// Mock dependencies for comprehensive features
+// Real database hooks for member data
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '../lib/queryClient';
+
 const useNFTVerification = () => ({ hasLevel1NFT: false, isLoading: false });
 const useCompanyStats = () => ({ data: null, isLoading: false });
-const useUserReferralStats = () => ({ data: null, isLoading: false });
-const useDashboardData = (walletAddress?: string) => ({ 
-  data: null, 
-  isLoading: false, 
-  error: null 
-});
-const useUserMatrix = (walletAddress?: string) => ({ data: null, isLoading: false });
+
+// Real dashboard data hook
+const useDashboardData = (walletAddress?: string) => {
+  return useQuery({
+    queryKey: ['/api/dashboard/data', walletAddress],
+    enabled: !!walletAddress,
+    queryFn: async () => {
+      const response = await fetch('/api/dashboard/data', {
+        headers: {
+          'X-Wallet-Address': walletAddress!,
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch dashboard data');
+      }
+      return response.json();
+    },
+    staleTime: 30000, // 30 seconds
+    refetchInterval: 60000, // Refetch every minute
+  });
+};
+
+// Real user matrix hook
+const useUserMatrix = (walletAddress?: string) => {
+  return useQuery({
+    queryKey: ['/api/dashboard/matrix', walletAddress],
+    enabled: !!walletAddress,
+    queryFn: async () => {
+      const response = await fetch('/api/dashboard/matrix', {
+        headers: {
+          'X-Wallet-Address': walletAddress!,
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch matrix data');
+      }
+      return response.json();
+    },
+    staleTime: 30000, // 30 seconds
+    refetchInterval: 60000, // Refetch every minute
+  });
+};
+
+// Real referral stats hook
+const useUserReferralStats = () => {
+  const { walletAddress } = useWallet();
+  return useQuery({
+    queryKey: ['/api/dashboard/referrals', walletAddress],
+    enabled: !!walletAddress,
+    queryFn: async () => {
+      const response = await fetch('/api/dashboard/referrals', {
+        headers: {
+          'X-Wallet-Address': walletAddress!,
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch referral stats');
+      }
+      return response.json();
+    },
+    staleTime: 30000, // 30 seconds
+    refetchInterval: 60000, // Refetch every minute
+  });
+};
+
 const useRefreshDashboard = () => ({ refreshAll: (address: string) => {} });
 const formatAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`;
 
@@ -58,24 +119,30 @@ export default function Dashboard() {
   const { data: userStats, isLoading: isLoadingUserStats } = useUserReferralStats();
   const [showReferralLink, setShowReferralLink] = useState(false);
 
-  // Fetch comprehensive dashboard data using proper database schema
+  // Fetch comprehensive dashboard data using real database
   const { data: dashboardData, isLoading: isLoadingDashboard, error: dashboardError } = useDashboardData(walletAddress || undefined);
-  
-  // Matrix visualization completely disabled for debugging
-  const matrixVisualizationData: any[] = [];
-  const isLoadingMatrix = false;
   
   // Fetch user's personal matrix data (layers 1-19)
   const { data: userMatrixData, isLoading: isLoadingUserMatrix } = useUserMatrix(walletAddress || undefined);
   
+  // Matrix visualization data from real database
+  const matrixVisualizationData: any[] = userMatrixData?.downlineLayers || [];
+  const isLoadingMatrix = isLoadingUserMatrix;
+  
   // Hook for refreshing data
   const { refreshAll } = useRefreshDashboard();
   
-  // Extract data from dashboard hook results
+  // Extract real data from dashboard hook results
   const userMatrixStats = dashboardData?.matrixStats || { directChildren: 0, totalDownline: 0, layer: 0, position: null };
   const nftStats = dashboardData?.nftStats || { ownedLevels: [], highestLevel: 0, totalNFTs: 0 };
   const rewardStats = dashboardData?.rewardStats || { totalEarned: 0, pendingAmount: 0, claimedAmount: 0 };
   const referralStats = dashboardData?.referralStats || { directReferrals: 0, totalTeam: 0 };
+  
+  // Real BCC balances from database
+  const realBCCBalance = {
+    transferable: dashboardData?.userBalances?.bccTransferable || 0,
+    restricted: dashboardData?.userBalances?.bccRestricted || 0
+  };
   
   // Handle loading and error states
   const isLoading = isLoadingDashboard || isCheckingNFT;
@@ -460,7 +527,7 @@ export default function Dashboard() {
                       {t('dashboard.bccBalance') || 'BCC Balance'}
                     </p>
                     <p className="text-honey font-bold text-base">
-                      {bccBalance?.transferable || 500}
+                      {realBCCBalance.transferable}
                     </p>
                   </div>
                 </div>
@@ -470,7 +537,7 @@ export default function Dashboard() {
                       {t('dashboard.bccLocked') || 'BCC Locked'}
                     </p>
                     <p className="text-honey font-bold text-base">
-                      {bccBalance?.restricted || 100}
+                      {realBCCBalance.restricted}
                     </p>
                   </div>
                 </div>

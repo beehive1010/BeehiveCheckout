@@ -16,9 +16,11 @@ export function useWallet() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Wallet-Address': walletAddress,
         },
         body: JSON.stringify({
+          walletAddress, // Fix: Include walletAddress in body as expected by backend
+          chainId: 1, // Default chain
+          timestamp: new Date().toISOString(),
           connectionType,
           userAgent: navigator.userAgent,
           referrerUrl: document.referrer,
