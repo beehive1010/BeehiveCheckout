@@ -211,12 +211,12 @@ export function OrganizationActivity({
   // 弹出式消息组件样式
   if (isPopup) {
     return (
-      <div className={`max-w-md w-full bg-secondary border border-honey/30 rounded-lg shadow-lg ${className}`}>
+      <div className={`max-w-md w-full mx-auto bg-secondary border border-honey/30 rounded-lg shadow-lg ${className}`}>
         {/* 头部 */}
-        <div className="flex items-center justify-between p-4 border-b border-border">
+        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-honey" />
-            <span className="text-sm font-medium text-honey">{t('referrals.organization.title')}</span>
+            <span className="text-xs sm:text-sm font-medium text-honey">{t('referrals.organization.title')}</span>
             {unreadCount > 0 && (
               <Badge variant="destructive" className="text-xs">
                 {unreadCount}
@@ -262,15 +262,15 @@ export function OrganizationActivity({
         </div>
 
         {/* 消息列表 */}
-        <div className="max-h-80 overflow-y-auto">
+        <div className="max-h-60 sm:max-h-80 overflow-y-auto">
           {recentActivities.length > 0 ? (
-            <div className="p-2">
+            <div className="p-2 sm:p-3">
               {recentActivities.map((activity) => {
                 const isUnread = !activity.isRead && !readItems.has(activity.id);
                 return (
                   <div
                     key={activity.id}
-                    className={`p-3 mb-2 rounded-lg border cursor-pointer transition-all ${
+                    className={`p-2 sm:p-3 mb-2 rounded-lg border cursor-pointer transition-all ${
                       isUnread 
                         ? 'bg-honey/5 border-honey/30 hover:bg-honey/10' 
                         : 'bg-muted/30 border-transparent hover:bg-muted/50'
@@ -278,20 +278,20 @@ export function OrganizationActivity({
                     onClick={() => markAsRead(activity.id)}
                     data-testid={`activity-item-${activity.id}`}
                   >
-                    <div className="flex items-start space-x-3">
+                    <div className="flex items-start space-x-2 sm:space-x-3">
                       <div className="flex-shrink-0 mt-1">
                         {getActivityIcon(activity.activityType)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm font-medium text-foreground">
+                        <div className="flex items-center gap-1 sm:gap-2 mb-1">
+                          <span className="text-xs sm:text-sm font-medium text-foreground truncate">
                             {activity.actorUsername || formatAddress(activity.actorWallet)}
                           </span>
                           {isUnread && (
                             <div className="w-2 h-2 bg-honey rounded-full"></div>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground break-words">
                           {getActivityTypeLabel(activity.activityType)} · {formatDate(activity.createdAt)}
                         </p>
                       </div>
