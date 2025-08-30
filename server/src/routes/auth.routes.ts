@@ -100,11 +100,11 @@ export function registerAuthRoutes(app: Express, requireWallet: any) {
       
       const decoded = jwt.verify(token, JWT_SECRET) as any;
       res.json({ valid: true, address: decoded.address });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Token verification error:', error);
-      if (error.name === 'JsonWebTokenError') {
+      if (error?.name === 'JsonWebTokenError') {
         res.status(401).json({ error: 'Malformed token' });
-      } else if (error.name === 'TokenExpiredError') {
+      } else if (error?.name === 'TokenExpiredError') {
         res.status(401).json({ error: 'Token expired' });
       } else {
         res.status(401).json({ error: 'Invalid token' });
