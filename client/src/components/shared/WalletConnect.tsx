@@ -1,9 +1,7 @@
 import { ConnectButton } from 'thirdweb/react';
 import { useWallet } from '../../hooks/useWallet';
 import { useI18n } from '../../contexts/I18nContext';
-import { client, supportedChains, wallets, authConfig, alphaCentauri } from '../../lib/web3';
-
-// Fixed: Removed Badge component - no level display needed
+import { client, supportedChains, wallets, alphaCentauri } from '../../lib/web3';
 
 export default function WalletConnect() {
   const { isConnected, walletAddress } = useWallet();
@@ -16,7 +14,6 @@ export default function WalletConnect() {
         chains={supportedChains}
         wallets={wallets}
         theme="dark"
-        auth={authConfig}
         connectModal={{ 
           showThirdwebBranding: false, 
           size: "compact",
