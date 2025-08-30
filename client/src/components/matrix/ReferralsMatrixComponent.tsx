@@ -63,8 +63,9 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
           const members = (layer.members || []).map((member: any, index: number) => {
             // If member is a string (wallet address), create a member object
             if (typeof member === 'string') {
+              // 3x3 matrix fills left to right: first fills Left, then Middle, then Right
               const placement: 'left' | 'middle' | 'right' = 
-                index % 3 === 0 ? 'left' : index % 3 === 1 ? 'middle' : 'right';
+                index === 0 ? 'left' : index === 1 ? 'middle' : 'right';
               
               // Placement type logic for 3x3 forced matrix:
               // - direct_referral: I sponsored them (any layer)
@@ -77,19 +78,22 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
                 'upline_placement'; // Rest are upline spillover
               
               // Calculate actual team size for this member in 3x3 matrix
-              // Each position can have max 3 direct children in next layer
+              // Each position (L, M, R) can have up to 3 children in next layer
               let calculatedTeamSize = 0;
-              const memberPositionInLayer = index;
               
-              // Calculate descendants in each subsequent layer
+              // For layer 1, each position manages specific positions in layer 2:
+              // Left (index 0) -> manages positions 0,1,2 in layer 2
+              // Middle (index 1) -> manages positions 3,4,5 in layer 2  
+              // Right (index 2) -> manages positions 6,7,8 in layer 2
               for (let futureLayerIndex = layerIndex + 1; futureLayerIndex < data.downlineLayers.length; futureLayerIndex++) {
                 const futureLayer = data.downlineLayers[futureLayerIndex];
                 if (!futureLayer.members || futureLayer.members.length === 0) break;
                 
-                // In 3x3 matrix: each member has 3 positions below them
+                // Calculate which positions this member manages in the future layer
                 const layerDiff = futureLayerIndex - layerIndex;
-                const startPos = memberPositionInLayer * Math.pow(3, layerDiff);
-                const endPos = startPos + Math.pow(3, layerDiff);
+                const branchingFactor = Math.pow(3, layerDiff - 1);
+                const startPos = index * 3 * branchingFactor;
+                const endPos = startPos + 3 * branchingFactor;
                 
                 // Count members in this member's subtree
                 let membersInSubtree = 0;
