@@ -3,9 +3,13 @@ import { ReplitDBAdapter } from '../adapters/replit-db.adapter';
 export interface User {
   walletAddress: string;
   username?: string;
+  email?: string;
+  secondaryPasswordHash?: string;
   displayName?: string;
   membershipLevel: number;
+  currentLevel?: number; // Alias for membershipLevel
   isActivated: boolean;
+  memberActivated?: boolean; // Alias for isActivated
   referrerWallet?: string;
   registrationExpiresAt?: string;
   createdAt: string;
@@ -24,6 +28,21 @@ export class UsersRepository {
   }
 
   /**
+   * Get user by username
+   */
+  async getByUsername(username: string): Promise<User | null> {
+    if (!username) return null;
+    
+    // Search through username index
+    const indexKey = `idx:users:username:${username.toLowerCase()}`;
+    const walletAddress = await this.db.get<string>(indexKey);
+    
+    if (!walletAddress) return null;
+    
+    return await this.getByWallet(walletAddress);
+  }
+
+  /**
    * Create or update user
    */
   async set(user: User): Promise<User> {
@@ -39,6 +58,12 @@ export class UsersRepository {
     };
 
     await this.db.set(key, userData);
+    
+    // Update username index if username exists
+    if (userData.username) {
+      const usernameIndexKey = `idx:users:username:${userData.username.toLowerCase()}`;
+      await this.db.set(usernameIndexKey, wallet);
+    }
     
     // Update membership level index
     const levelIndexKey = `idx:users:level:${userData.membershipLevel}`;
