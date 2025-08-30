@@ -1,5 +1,5 @@
 import { createThirdwebClient, getContract } from 'thirdweb';
-import { ethereum, polygon, arbitrum, optimism, arbitrumSepolia, bsc } from 'thirdweb/chains';
+import { ethereum, polygon, arbitrum, optimism, arbitrumSepolia, bsc, base } from 'thirdweb/chains';
 import { defineChain } from 'thirdweb/chains';
 import { inAppWallet, createWallet, walletConnect } from 'thirdweb/wallets';
 
@@ -27,8 +27,8 @@ export const alphaCentauri = defineChain({
   ],
 });
 
-// Supported chains
-export const supportedChains = [ethereum, polygon, arbitrum, arbitrumSepolia, optimism, bsc, alphaCentauri];
+// Supported chains - matching user selection: Base, Arbitrum One, OP Mainnet, BSC, Polygon
+export const supportedChains = [ethereum, polygon, arbitrum, arbitrumSepolia, optimism, bsc, base, alphaCentauri];
 
 // Enhanced wallet configuration with social login options and WalletConnect
 export const wallets = [
@@ -194,6 +194,7 @@ export const contractAddresses = {
     arbitrumSepolia: '0x4470734620414168Aa1673A30849DB25E5886E2A', // Test USDT
     optimism: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
     bsc: '0x55d398326f99059fF775485246999027B3197955', // BSC USDT
+    base: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // Base USDC (native stablecoin)
     alphaCentauri: '0x1234567890123456789012345678901234567893',
   },
   // Test wallet addresses for receiving USDT payments (testing without bridge)
@@ -204,6 +205,7 @@ export const contractAddresses = {
     arbitrumSepolia: '0x6366573ff5f6b07BE1E96b024C8862F5502d13E3', // Test wallet for direct USDT payments
     optimism: import.meta.env.VITE_BRIDGE_WALLET_OP || '0x1234567890123456789012345678901234567897',
     bsc: import.meta.env.VITE_BRIDGE_WALLET_BSC || '0x1234567890123456789012345678901234567899',
+    base: import.meta.env.VITE_BRIDGE_WALLET_BASE || '0x1234567890123456789012345678901234567898',
   },
 };
 
@@ -258,6 +260,16 @@ export const paymentChains = [
     bridgeWallet: contractAddresses.BRIDGE_WALLETS.bsc,
     icon: 'fas fa-coins',
     color: 'text-yellow-400'
+  },
+  { 
+    chain: base, 
+    name: 'Base', 
+    symbol: 'ETH',
+    id: base?.id || 8453,
+    usdtAddress: contractAddresses.USDT.base,
+    bridgeWallet: contractAddresses.BRIDGE_WALLETS.base,
+    icon: 'fas fa-cube',
+    color: 'text-blue-500'
   },
 ];
 
