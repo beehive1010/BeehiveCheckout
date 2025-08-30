@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { organizationActivity } from '../../shared/schema';
-import { db } from '../db';
+import { organizationActivity } from '@shared/schema';
+import { db } from '../../db';
 import { desc, eq } from 'drizzle-orm';
 
 export function registerOrganizationRoutes(app: any, requireWallet: any) {
@@ -80,4 +80,3 @@ export async function createOrganizationActivity(data: {
   }
 }
 
-export default router;
