@@ -6,6 +6,14 @@ export interface CreateUserRequest {
   referrerWallet?: string;
 }
 
+export interface CreateUserEnhancedRequest {
+  walletAddress: string;
+  username: string;
+  email?: string;
+  secondaryPasswordHash?: string;
+  referrerWallet?: string;
+}
+
 export interface UserProfile {
   user: User;
   membershipLevel: number;
@@ -107,6 +115,55 @@ export class UsersService {
       membershipLevel: user.membershipLevel || user.currentLevel,
       isActivated: user.memberActivated
     };
+  }
+
+  /**
+   * Create a new user with enhanced data and validation
+   */
+  async createUserEnhanced(request: CreateUserEnhancedRequest): Promise<User> {
+    const { walletAddress, username, email, secondaryPasswordHash, referrerWallet } = request;
+    
+    // Validate wallet address format
+    if (!walletAddress || !walletAddress.startsWith('0x')) {
+      throw new Error('Invalid wallet address format');
+    }
+
+    // Check if user already exists
+    const existingUser = await usersRepo.getByWallet(walletAddress);
+    if (existingUser) {
+      throw new Error('User already registered');
+    }
+
+    // Check if username is taken
+    if (username) {
+      const existingUsername = await usersRepo.getByUsername(username);
+      if (existingUsername) {
+        throw new Error('Username already taken');
+      }
+    }
+
+    // Validate referrer exists if provided
+    if (referrerWallet) {
+      const referrer = await usersRepo.getByWallet(referrerWallet);
+      if (!referrer) {
+        throw new Error('Referrer wallet not found');
+      }
+    }
+
+    // Create new user with enhanced data
+    const newUser: User = {
+      walletAddress: walletAddress.toLowerCase(),
+      username: username,
+      email: email || null,
+      secondaryPasswordHash: secondaryPasswordHash || null, // Should be hashed on frontend
+      membershipLevel: 0,
+      isActivated: false,
+      referrerWallet: referrerWallet?.toLowerCase(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    return await usersRepo.set(newUser);
   }
 
   /**

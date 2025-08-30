@@ -74,23 +74,17 @@ export function useWallet() {
   const isFullyActivated = isConnected && !isUserLoading && userStatus?.userFlow === 'dashboard';
   const isRegisteredUser = isConnected && !isUserLoading && userStatus?.isRegistered;
 
-  // Register new user
+  // Enhanced user registration with referrer validation
   const registerMutation = useMutation({
     mutationFn: async (registrationData: {
-      email: string;
+      walletAddress: string;
       username: string;
-      secondaryPasswordHash: string;
-      ipfsHash?: string;
+      email?: string;
+      secondaryPasswordHash?: string;
       referrerWallet?: string;
-      preferredLanguage?: string;
-      isCompanyDirectReferral?: boolean;
-      referralCode?: string;
     }) => {
-      const response = await apiRequest('POST', '/api/auth/register', {
-        walletAddress,
-        ...registrationData,
-      });
-      return response.json();
+      const response = await apiRequest('POST', '/api/auth/register', registrationData);
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
