@@ -1,4 +1,4 @@
-import { httpClient } from '../../lib/http';
+import { httpClient } from '../../../lib/http';
 
 export interface ReferralStats {
   totalReferrals: number;

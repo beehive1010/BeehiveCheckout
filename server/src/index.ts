@@ -11,6 +11,7 @@ import { registerReferralsRoutes } from "./routes/referrals.routes";
 import { registerEducationRoutes } from "./routes/education.routes";
 import { registerTasksRoutes } from "./routes/tasks.routes";
 import { registerAdminRoutes } from "./routes/admin.routes";
+import healthRoutes from "./routes/health.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // JWT secret for authentication
@@ -33,6 +34,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     req.walletAddress = walletAddress.toLowerCase();
     next();
   };
+
+  // Health routes (no auth required)
+  app.use('/api', healthRoutes);
 
   // Register all feature routes
   registerAuthRoutes(app, requireWallet);

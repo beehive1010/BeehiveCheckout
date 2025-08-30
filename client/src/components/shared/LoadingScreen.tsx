@@ -1,5 +1,5 @@
-import { Card, CardContent } from './ui/card';
-import { useI18n } from '../contexts/I18nContext';
+import { Card, CardContent } from '../ui/card';
+import { useI18n } from '../../contexts/I18nContext';
 
 export function LoadingScreen() {
   const { t } = useI18n();

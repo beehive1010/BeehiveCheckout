@@ -1,4 +1,4 @@
-import { httpClient } from '../../lib/http';
+import { httpClient } from '../../../lib/http';
 
 export interface DashboardStats {
   totalEarnings: number;
