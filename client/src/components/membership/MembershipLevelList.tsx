@@ -156,7 +156,7 @@ export default function MembershipLevelList({
                 {/* Price */}
                 <div className="text-center">
                   <div className="text-2xl font-bold text-honey">
-                    ${level.priceUSDT}
+                    ${(level.priceUSDT / 100).toFixed(0)}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {String(t('membership.levels.priceUSDT'))}
