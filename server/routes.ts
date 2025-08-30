@@ -3803,8 +3803,14 @@ async function activateUserInMatrix(walletAddress: string, levelConfig: any) {
       )
     `);
     
-    // 5. Create layer-based reward for root
+    // 5. Create layer-based reward for root (CORRECTED: root gets paid when their downline activates)
     await createLayerReward(rootWallet, walletAddress, 1, nextPosition.layer, nextPosition.position);
+    
+    // 6. CRITICAL CORRECTION: Also create upline reward (the activating user's parent gets paid)
+    if (parentWallet && parentWallet !== walletAddress) {
+      console.log(`💰 Creating upline reward: ${walletAddress} activates → ${parentWallet} gets paid`);
+      await createUplineReward(parentWallet, walletAddress, 1);
+    }
     
     console.log(`✅ User ${walletAddress} activated in global position ${nextPosition.global} (Layer ${nextPosition.layer}, Position ${nextPosition.position})`);
   } catch (error) {
@@ -3898,9 +3904,10 @@ async function createLayerReward(rootWallet: string, triggerWallet: string, trig
     return;
   }
   
-  // Get reward amount: Level 1 = 100 USDT per slot, Level N = Level N NFT price
-  const rewardAmount = triggerLevel === 1 ? 10000 : (5000 + (triggerLevel * 5000)); // 100 USDT for L1, L2=150, L3=200, etc.
-  const requiredLevel = triggerLayer; // Root needs Level = Layer to qualify
+  // CORRECTED: Get reward amount based on trigger level (what level the trigger user bought)
+  // Level 1 = $100, Level 2 = $150, Level 3 = $200, etc.
+  const rewardAmount = triggerLevel === 1 ? 10000 : (10000 + (triggerLevel - 1) * 5000);
+  const requiredLevel = triggerLevel; // Root needs to have >= trigger level to qualify
   
   // Check if root has required level
   const rootLevelResult = await db.execute(sql`
@@ -3920,19 +3927,63 @@ async function createLayerReward(rootWallet: string, triggerWallet: string, trig
     finalQualified = (rootLevel?.max_level || 0) >= 2; // Requires Level 2, not Level 1
   }
   
-  // Create layer reward
+  // Add 72-hour timeout for pending rewards (admin configurable)
+  const timeoutHours = 72; // Could be pulled from admin_config_v2 table
+  
+  // Create layer reward with timeout
   await db.execute(sql`
     INSERT INTO layer_rewards_v2 (
       id, root_wallet, trigger_wallet, trigger_level, trigger_layer, trigger_position,
-      reward_amount_usdt, required_level, qualified, status, special_rule, created_at
+      reward_amount_usdt, required_level, qualified, status, special_rule, created_at,
+      expires_at
     ) VALUES (
       ${crypto.randomUUID()}, ${rootWallet}, ${triggerWallet}, ${triggerLevel}, 
       ${triggerLayer}, ${triggerPosition}, ${rewardAmount}, ${requiredLevel}, 
-      ${finalQualified}, 'pending', ${specialRule}, NOW()
+      ${finalQualified}, 'pending', ${specialRule}, NOW(),
+      NOW() + INTERVAL '${timeoutHours} hours'
     )
   `);
   
-  console.log(`💰 Layer reward created: ${triggerWallet} (L${triggerLevel}) → ${rootWallet} (Layer ${triggerLayer}, Pos ${triggerPosition}) = $${rewardAmount/100} ${finalQualified ? '✅' : '⏳'}`);
+  console.log(`💰 Layer reward created: ${triggerWallet} (L${triggerLevel}) → ${rootWallet} (Layer ${triggerLayer}, Pos ${triggerPosition}) = $${rewardAmount/100} ${finalQualified ? '✅' : '⏳'} (expires in ${timeoutHours}h)`);
+}
+
+async function createUplineReward(uplineWallet: string, triggerWallet: string, triggerLevel: number) {
+  // CORRECTED: When someone activates, their direct upline gets paid
+  // This is separate from layer rewards - it's the "direct activation reward"
+  
+  // Skip self-rewards
+  if (uplineWallet === triggerWallet) {
+    return;
+  }
+  
+  // Level-based upline reward amounts: L1=$100, L2=$150, L3=$200, etc.
+  const rewardAmount = triggerLevel === 1 ? 10000 : (10000 + (triggerLevel - 1) * 5000);
+  
+  // Check if upline has required level to receive this reward
+  const uplineLevelResult = await db.execute(sql`
+    SELECT MAX(level) as max_level FROM membership_nfts_v2 
+    WHERE wallet_address = ${uplineWallet} AND status = 'active'
+  `);
+  
+  const uplineLevel = uplineLevelResult.rows[0];
+  const isQualified = (uplineLevel?.max_level || 0) >= triggerLevel;
+  const timeoutHours = 72;
+  
+  // Create upline reward record
+  await db.execute(sql`
+    INSERT INTO layer_rewards_v2 (
+      id, root_wallet, trigger_wallet, trigger_level, trigger_layer, trigger_position,
+      reward_amount_usdt, required_level, qualified, status, special_rule, created_at,
+      expires_at
+    ) VALUES (
+      ${crypto.randomUUID()}, ${uplineWallet}, ${triggerWallet}, ${triggerLevel}, 
+      0, -1, ${rewardAmount}, ${triggerLevel}, 
+      ${isQualified}, 'pending', 'upline_activation_reward', NOW(),
+      NOW() + INTERVAL '${timeoutHours} hours'
+    )
+  `);
+  
+  console.log(`💰 Upline reward created: ${triggerWallet} (L${triggerLevel}) activates → ${uplineWallet} gets $${rewardAmount/100} ${isQualified ? '✅' : '⏳'} (expires in ${timeoutHours}h)`);
 }
 
 // Helper functions
