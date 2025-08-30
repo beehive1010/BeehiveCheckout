@@ -71,6 +71,18 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
               const placementType: 'direct_referral' | 'upline_placement' | 'self_placement' = 
                 layerIndex === 0 ? 'direct_referral' : 'upline_placement';
               
+              // Calculate actual team size for this member
+              // Count all members in layers below this member's position
+              let calculatedTeamSize = 0;
+              for (let futureLayerIndex = layerIndex + 1; futureLayerIndex < data.downlineLayers.length; futureLayerIndex++) {
+                const futureLayer = data.downlineLayers[futureLayerIndex];
+                // In a 3x3 matrix, each member can have up to 3^(layer difference) descendants
+                const layerDiff = futureLayerIndex - layerIndex;
+                const possibleDescendants = Math.pow(3, layerDiff);
+                // For simplicity, estimate based on position and layer capacity
+                calculatedTeamSize += Math.min(futureLayer.members?.length || 0, possibleDescendants);
+              }
+              
               return {
                 walletAddress: member,
                 username: `User${member.slice(-4)}`,
@@ -81,15 +93,23 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
                 sponsorWallet: layerIndex === 0 ? walletAddress : '',
                 placerWallet: walletAddress,
                 joinedAt: new Date().toISOString(),
-                teamSize: Math.max(0, Math.floor(Math.random() * 10)),
-                directReferrals: Math.max(0, Math.floor(Math.random() * 3)),
+                teamSize: calculatedTeamSize,
+                directReferrals: layerIndex === 0 ? 1 : 0, // Only Layer 1 members have direct referrals from root
               };
             }
-            // If member is already an object, use it with some enhancements
+            // If member is already an object, calculate team size
+            let calculatedTeamSize = 0;
+            for (let futureLayerIndex = layerIndex + 1; futureLayerIndex < data.downlineLayers.length; futureLayerIndex++) {
+              const futureLayer = data.downlineLayers[futureLayerIndex];
+              const layerDiff = futureLayerIndex - layerIndex;
+              const possibleDescendants = Math.pow(3, layerDiff);
+              calculatedTeamSize += Math.min(futureLayer.members?.length || 0, possibleDescendants);
+            }
+            
             return {
               ...member,
-              teamSize: member.teamSize || Math.max(0, Math.floor(Math.random() * 10)),
-              directReferrals: member.directReferrals || Math.max(0, Math.floor(Math.random() * 3)),
+              teamSize: member.teamSize || calculatedTeamSize,
+              directReferrals: member.directReferrals || 0,
             };
           });
 
