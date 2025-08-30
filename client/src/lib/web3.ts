@@ -110,8 +110,12 @@ export const authConfig = {
       if (response.ok) {
         const data = await response.json();
         console.log('Authentication successful:', data);
-        // Store auth token or session info
-        localStorage.setItem('beehive-auth-token', data.token);
+        // Store auth token or session info (with validation)
+        if (data.token && typeof data.token === 'string' && data.token.trim() !== '') {
+          localStorage.setItem('beehive-auth-token', data.token);
+        } else {
+          console.warn('Invalid token received from server');
+        }
       } else {
         const errorData = await response.json();
         console.error('Authentication failed:', errorData);
@@ -176,7 +180,11 @@ export const authConfig = {
     // Check if user is logged in by validating token
     try {
       const token = localStorage.getItem('beehive-auth-token');
-      if (!token) return false;
+      if (!token || token === 'undefined' || token === 'null' || token.trim() === '') {
+        // Clean up invalid tokens
+        localStorage.removeItem('beehive-auth-token');
+        return false;
+      }
       
       const response = await fetch('/api/auth/verify-token', {
         method: 'GET',
@@ -185,9 +193,17 @@ export const authConfig = {
         },
       });
       
+      if (!response.ok) {
+        // Clean up invalid tokens
+        localStorage.removeItem('beehive-auth-token');
+        return false;
+      }
+      
       return response.ok;
     } catch (error) {
       console.error('Token verification failed:', error);
+      // Clean up invalid tokens on error
+      localStorage.removeItem('beehive-auth-token');
       return false;
     }
   },

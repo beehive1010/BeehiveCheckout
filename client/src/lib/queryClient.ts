@@ -43,9 +43,9 @@ export async function apiRequest(
     headers["X-Wallet-Address"] = addressToUse;
   }
   
-  // Include JWT token if available
+  // Include JWT token if available (with validation)
   const authToken = localStorage.getItem('beehive-auth-token');
-  if (authToken) {
+  if (authToken && authToken !== 'undefined' && authToken !== 'null' && authToken.trim() !== '') {
     headers["Authorization"] = `Bearer ${authToken}`;
   }
 
@@ -74,9 +74,9 @@ export const getQueryFn: <T>(options: {
       headers["X-Wallet-Address"] = walletAddress;
     }
     
-    // Include JWT token if available
+    // Include JWT token if available (with validation)
     const authToken = localStorage.getItem('beehive-auth-token');
-    if (authToken) {
+    if (authToken && authToken !== 'undefined' && authToken !== 'null' && authToken.trim() !== '') {
       headers["Authorization"] = `Bearer ${authToken}`;
     }
     
