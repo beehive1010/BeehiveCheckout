@@ -29,19 +29,19 @@ export class ReferralsPostgreSQLRepository {
     
     while (depth <= 19) {
       const [node] = await db
-        .select({ parentWallet: referralNodes.parentWallet })
+        .select({ sponsorWallet: referralNodes.sponsorWallet })
         .from(referralNodes)
         .where(eq(referralNodes.walletAddress, currentWallet));
         
-      if (!node?.parentWallet) break;
+      if (!node?.sponsorWallet) break;
       
       chain.push({
-        upline: node.parentWallet,
+        upline: node.sponsorWallet,
         depth: depth,
         slot: 'middle' // Simplified for now
       });
       
-      currentWallet = node.parentWallet;
+      currentWallet = node.sponsorWallet;
       depth++;
     }
     
@@ -57,7 +57,7 @@ export class ReferralsPostgreSQLRepository {
     const directReferrals = await db
       .select({ walletAddress: referralNodes.walletAddress })
       .from(referralNodes)
-      .where(eq(referralNodes.parentWallet, wallet));
+      .where(eq(referralNodes.sponsorWallet, wallet));
       
     return directReferrals.map(r => r.walletAddress);
   }
@@ -128,7 +128,7 @@ export class ReferralsPostgreSQLRepository {
         totalTeamCount: referralNodes.totalTeamCount
       })
       .from(referralNodes)
-      .where(eq(referralNodes.parentWallet, wallet.toLowerCase()));
+      .where(eq(referralNodes.sponsorWallet, wallet.toLowerCase()));
     
     // Use the stored counts from referral_nodes if available
     if (directCountResult) {
@@ -140,7 +140,9 @@ export class ReferralsPostgreSQLRepository {
     if (stats.totalCount === 0) {
       const allReferrals = await this.getAllReferrals(wallet);
       
-      for (const [depth, referrals] of allReferrals) {
+      // Convert Map to array for iteration
+      const entries = Array.from(allReferrals.entries());
+      for (const [depth, referrals] of entries) {
         const count = referrals.length;
         stats.byDepth[depth] = count;
         stats.totalCount += count;
@@ -157,6 +159,30 @@ export class ReferralsPostgreSQLRepository {
     }
     
     return stats;
+  }
+
+  /**
+   * Set referral chain (stub implementation for compatibility)
+   */
+  async setChain(childWallet: string, chain: ReferralChainNode[]): Promise<void> {
+    // For now, just ensure the user exists in referral_nodes
+    // The actual chain is built dynamically from sponsor relationships
+    console.log(`Setting chain for ${childWallet} with ${chain.length} nodes`);
+  }
+
+  /**
+   * Find next available slot (stub implementation)
+   */
+  async findNextAvailableSlot(referrerWallet: string): Promise<{ slot: 'left' | 'middle' | 'right' } | null> {
+    // Simplified: always return middle slot for now
+    return { slot: 'middle' };
+  }
+
+  /**
+   * Remove referral (stub implementation)
+   */
+  async removeReferral(childWallet: string): Promise<void> {
+    console.log(`Remove referral called for ${childWallet} - not implemented`);
   }
 
   /**

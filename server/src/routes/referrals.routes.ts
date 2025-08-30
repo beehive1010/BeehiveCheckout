@@ -92,6 +92,20 @@ export function registerReferralsRoutes(app: Express, requireWallet: any) {
     }
   });
 
+  // Get referral stats (frontend endpoint)
+  app.get("/api/referrals/stats", requireWallet, async (req: any, res) => {
+    try {
+      const referralStats = await referralsService.getReferralStats(req.walletAddress);
+      
+      console.log(`📊 Referrals stats for ${req.walletAddress}:`, referralStats);
+      
+      res.json(referralStats);
+    } catch (error) {
+      console.error('Get referral stats error:', error);
+      res.status(500).json({ error: 'Failed to get referral stats' });
+    }
+  });
+
   // Calculate layers for testing
   app.post("/api/referrals/calculate-layers", requireWallet, async (req: any, res) => {
     try {
