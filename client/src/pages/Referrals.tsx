@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { UsersIcon, ShareIcon, TrophyIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
-import IndividualMatrixView from '../components/matrix/IndividualMatrixView';
+import ReferralsMatrixComponent from '../components/matrix/ReferralsMatrixComponent';
 import { Link } from 'wouter';
 import styles from '../styles/referrals/referrals.module.css';
 
@@ -122,7 +122,7 @@ export default function Referrals() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <IndividualMatrixView walletAddress={walletAddress || ''} />
+          <ReferralsMatrixComponent walletAddress={walletAddress || ''} />
         </CardContent>
       </Card>
 

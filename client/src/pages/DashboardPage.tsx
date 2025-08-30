@@ -8,6 +8,7 @@ import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { useToast } from '../hooks/use-toast';
 import { Copy, Share2, Users, Award, TrendingUp, DollarSign, Building2, Crown } from 'lucide-react';
+import RewardMatrixComponent from '../components/matrix/RewardMatrixComponent';
 
 // Mock components and hooks for comprehensive dashboard
 const HexagonIcon = ({ size, children }: { size: string; children: React.ReactNode }) => (
@@ -662,6 +663,9 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Reward Matrix Component */}
+      {walletAddress && <RewardMatrixComponent walletAddress={walletAddress} />}
 
       {/* Recent Activities */}
       <Card className="bg-secondary border-border">
