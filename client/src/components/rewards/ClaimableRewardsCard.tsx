@@ -1,16 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Gift, DollarSign, CheckCircle, ExternalLink, AlertTriangle } from 'lucide-react';
+import { Clock, Gift, DollarSign, CheckCircle, ExternalLink, AlertTriangle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useActiveWalletChain } from 'thirdweb/react';
-import { getChainById } from '@/lib/web3';
+import { useSendTransaction, useWalletBalance, useReadContract } from 'thirdweb/react';
+import { toWei } from 'thirdweb';
+import { transfer } from 'thirdweb/extensions/erc20';
+import { getChainById, getUSDTContract, getExplorerUrl, getUSDTDecimals, web3ErrorHandler, client } from '@/lib/web3';
+import { useWeb3 } from '@/contexts/Web3Context';
 
 interface ClaimableReward {
   id: string;
@@ -52,17 +55,47 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
   const [selectedChain, setSelectedChain] = useState<string>('');
   const [gasConfirmed, setGasConfirmed] = useState(false);
   const [claimingRewardId, setClaimingRewardId] = useState<string | null>(null);
+  const [estimatedGas, setEstimatedGas] = useState<string>('');
+  const [isEstimatingGas, setIsEstimatingGas] = useState(false);
   
-  // Get active chain from wallet
-  const activeChain = useActiveWalletChain();
+  // Use Web3 context for wallet connection
+  const { wallet, activeChain, isConnected } = useWeb3();
   const currentChain = getChainById(activeChain?.id);
   
   // Auto-use active chain for claims
-  React.useEffect(() => {
+  useEffect(() => {
     if (activeChain?.id) {
       setSelectedChain(activeChain.id.toString());
     }
   }, [activeChain?.id]);
+  
+  // Get wallet ETH balance for gas fees
+  const { data: ethBalance } = useWalletBalance({
+    address: walletAddress,
+    chain: currentChain,
+    client,
+  });
+  
+  // Get USDT contract for current chain
+  const usdtContract = currentChain ? (() => {
+    try {
+      return getUSDTContract(currentChain.id);
+    } catch {
+      return null;
+    }
+  })() : null;
+  
+  // Get USDT balance on current chain
+  const usdtBalanceQuery = useReadContract({
+    contract: usdtContract!,
+    method: "function balanceOf(address) view returns (uint256)",
+    params: [walletAddress],
+  });
+  
+  const usdtBalance = usdtContract && walletAddress ? usdtBalanceQuery.data : undefined;
+  
+  // Transaction hook for USDT transfers
+  const { mutate: sendTransaction, isPending: isTransactionPending } = useSendTransaction();
 
   // Fetch claimable rewards
   const { data: rewardsData, isLoading } = useQuery<ClaimableRewardsResponse>({
@@ -97,30 +130,89 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
     },
   });
 
-  // Claim reward with transfer mutation
+  // Helper function to convert wei to readable format
+  const fromWei = (value: bigint, decimals: number): string => {
+    const divisor = BigInt(10 ** decimals);
+    const quotient = value / divisor;
+    const remainder = value % divisor;
+    return `${quotient}.${remainder.toString().padStart(decimals, '0').slice(0, 6)}`;
+  };
+  
+  // Estimate gas fees for USDT transfer
+  const estimateGasFees = async (reward: ClaimableReward) => {
+    if (!wallet || !currentChain || !usdtContract) return;
+    
+    setIsEstimatingGas(true);
+    try {
+      // In a real implementation, you'd estimate gas here
+      // For now, showing typical gas fees
+      const gasLimit = 65000; // Typical for USDT transfer
+      const gasPrice = 20; // 20 Gwei
+      const gasCostWei = BigInt(gasLimit * gasPrice * 1e9);
+      const gasCostEth = fromWei(gasCostWei, 18);
+      
+      setEstimatedGas(`~${parseFloat(gasCostEth).toFixed(6)} ETH`);
+    } catch (error) {
+      console.error('Gas estimation failed:', error);
+      setEstimatedGas('Gas estimation unavailable');
+    } finally {
+      setIsEstimatingGas(false);
+    }
+  };
+  
+  // Direct blockchain claim mutation
   const claimWithTransferMutation = useMutation({
-    mutationFn: async ({ rewardId, targetChain, gasConfirmed }: { rewardId: string; targetChain: string; gasConfirmed: boolean }) => {
-      return await apiRequest('POST', `/api/rewards/claim-with-transfer/${rewardId}`, {
-        targetChain,
-        gasConfirmed
-      }, walletAddress);
+    mutationFn: async ({ reward }: { reward: ClaimableReward }) => {
+      if (!wallet || !currentChain || !usdtContract) {
+        throw new Error('Wallet not connected or USDT not supported on this chain');
+      }
+      
+      // First, mark reward as claimed in backend
+      const claimResponse = await apiRequest('POST', `/api/rewards/claim/${reward.id}`, {}, walletAddress);
+      
+      // Then execute USDT transfer
+      const decimals = getUSDTDecimals(currentChain.id);
+      const amount = BigInt(reward.rewardAmount) * BigInt(10 ** decimals);
+      
+      const transaction = transfer({
+        contract: usdtContract,
+        to: walletAddress,
+        amount: amount.toString(),
+      });
+      
+      return new Promise((resolve, reject) => {
+        sendTransaction(transaction, {
+          onSuccess: (result) => {
+            resolve({
+              ...claimResponse,
+              transactionHash: result.transactionHash,
+              amount: reward.rewardAmount,
+              chainId: currentChain.id,
+              chainName: currentChain.name
+            });
+          },
+          onError: (error) => {
+            reject(new Error(web3ErrorHandler(error)));
+          }
+        });
+      });
     },
-    onMutate: ({ rewardId }) => {
-      setClaimingRewards(prev => [...prev, rewardId]);
+    onMutate: ({ reward }) => {
+      setClaimingRewards(prev => [...prev, reward.id]);
     },
-    onSuccess: (data: any, { rewardId }) => {
+    onSuccess: (data: any, { reward }) => {
       toast({
         title: "Reward Claimed Successfully!",
-        description: `You claimed $${(data.amount / 100).toFixed(2)} USDT on ${data.chain}`,
+        description: `You received ${reward.rewardAmount} USDT on ${data.chainName}`,
         variant: 'default',
         action: data.transactionHash ? (
           <a 
-            href={`https://etherscan.io/tx/${data.transactionHash}`} 
+            href={getExplorerUrl(data.chainId, data.transactionHash)} 
             target="_blank" 
             rel="noopener noreferrer"
             className="flex items-center gap-1 text-sm underline"
           >
-            View TX <ExternalLink className="h-3 w-3" />
+            View Transaction <ExternalLink className="h-3 w-3" />
           </a>
         ) : undefined,
       });
@@ -129,29 +221,78 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
       setClaimingRewardId(null);
       setSelectedChain('');
       setGasConfirmed(false);
+      setEstimatedGas('');
     },
-    onError: (error: any, { rewardId }) => {
+    onError: (error: any, { reward }) => {
       toast({
         title: "Claim Failed",
         description: error.message || "Failed to claim reward. Please try again.",
         variant: 'destructive',
       });
     },
-    onSettled: (data, error, { rewardId }) => {
-      setClaimingRewards(prev => prev.filter(id => id !== rewardId));
+    onSettled: (data, error, { reward }) => {
+      setClaimingRewards(prev => prev.filter(id => id !== reward.id));
     },
   });
 
-  // Claim all rewards mutation
+  // Bulk claim all rewards mutation  
   const claimAllMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('/api/rewards/claim-all', 'POST');
+      if (!wallet || !currentChain || !usdtContract) {
+        throw new Error('Wallet not connected or USDT not supported on this chain');
+      }
+      
+      // Get all claimable rewards and sum amounts
+      if (!rewardsData?.claimableRewards?.length) {
+        throw new Error('No rewards available to claim');
+      }
+      
+      const totalAmount = rewardsData.claimableRewards.reduce((sum, r) => sum + r.rewardAmount, 0);
+      const decimals = getUSDTDecimals(currentChain.id);
+      const amount = BigInt(totalAmount) * BigInt(10 ** decimals);
+      
+      // First, mark all rewards as claimed in backend
+      const claimResponse = await apiRequest('POST', '/api/rewards/claim-all', {}, walletAddress);
+      
+      // Then execute bulk USDT transfer
+      const transaction = transfer({
+        contract: usdtContract,
+        to: walletAddress,
+        amount: amount.toString(),
+      });
+      
+      return new Promise((resolve, reject) => {
+        sendTransaction(transaction, {
+          onSuccess: (result) => {
+            resolve({
+              ...claimResponse,
+              transactionHash: result.transactionHash,
+              totalAmount,
+              chainId: currentChain.id,
+              chainName: currentChain.name
+            });
+          },
+          onError: (error) => {
+            reject(new Error(web3ErrorHandler(error)));
+          }
+        });
+      });
     },
     onSuccess: (data: any) => {
       toast({
         title: "All Rewards Claimed!",
-        description: `Successfully claimed $${(data.totalAmount / 100).toFixed(2)} USDT`,
+        description: `Successfully received ${data.totalAmount} USDT on ${data.chainName}`,
         variant: 'default',
+        action: data.transactionHash ? (
+          <a 
+            href={getExplorerUrl(data.chainId, data.transactionHash)} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-sm underline"
+          >
+            View Transaction <ExternalLink className="h-3 w-3" />
+          </a>
+        ) : undefined,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/rewards/claimable'] });
       queryClient.invalidateQueries({ queryKey: ['/api/beehive/user-stats'] });
@@ -176,20 +317,23 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
     return matrixPosition || 'Matrix Reward';
   };
 
-  const handleClaimReward = (rewardId: string) => {
-    setClaimingRewardId(rewardId);
+  const handleClaimReward = (reward: ClaimableReward) => {
+    setClaimingRewardId(reward.id);
     setSelectedChain('');
     setGasConfirmed(false);
+    setEstimatedGas('');
+    
+    // Auto-estimate gas fees
+    estimateGasFees(reward);
   };
 
   const handleConfirmClaim = () => {
-    if (!claimingRewardId || !selectedChain || !gasConfirmed) return;
+    if (!claimingRewardId || !gasConfirmed) return;
     
-    claimWithTransferMutation.mutate({
-      rewardId: claimingRewardId,
-      targetChain: selectedChain,
-      gasConfirmed: gasConfirmed
-    });
+    const reward = claimableRewards.find(r => r.id === claimingRewardId);
+    if (!reward) return;
+    
+    claimWithTransferMutation.mutate({ reward });
   };
 
   const getTimeRemaining = (expiresAt: string) => {
@@ -263,10 +407,15 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
             <Button
               size="sm"
               onClick={() => claimAllMutation.mutate()}
-              disabled={claimAllMutation.isPending}
+              disabled={claimAllMutation.isPending || !isConnected || !usdtContract}
               className="bg-honey text-black hover:bg-honey/90"
+              data-testid="claim-all-button"
             >
-              Claim All ${(totalClaimable / 100).toFixed(2)}
+              {claimAllMutation.isPending ? (
+                <><Loader2 className="h-4 w-4 animate-spin mr-1" />Claiming...</>
+              ) : (
+                `Claim All ${totalClaimable} USDT`
+              )}
             </Button>
           )}
         </CardTitle>
@@ -286,7 +435,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
                     <DollarSign className="h-5 w-5 text-honey" />
                   </div>
                   <div>
-                    <div className="font-medium">${(reward.rewardAmount / 100).toFixed(2)} USDT</div>
+                    <div className="font-medium">{reward.rewardAmount} USDT</div>
                     <div className="text-sm text-muted-foreground">
                       {formatMatrixPosition(reward.matrixPosition)} • L{reward.triggerLevel} → L{reward.payoutLayer}
                     </div>
@@ -296,19 +445,23 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
                   <DialogTrigger asChild>
                     <Button
                       size="sm"
-                      onClick={() => handleClaimReward(reward.id)}
-                      disabled={claimingRewards.includes(reward.id)}
+                      onClick={() => handleClaimReward(reward)}
+                      disabled={claimingRewards.includes(reward.id) || !isConnected || !usdtContract}
                       className="bg-honey text-black hover:bg-honey/90"
                       data-testid={`claim-reward-${reward.id}`}
                     >
-                      {claimingRewards.includes(reward.id) ? 'Claiming...' : 'Claim'}
+                      {claimingRewards.includes(reward.id) ? (
+                        <><Loader2 className="h-4 w-4 animate-spin mr-1" />Claiming...</>
+                      ) : (
+                        'Claim'
+                      )}
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                       <DialogTitle className="flex items-center gap-2">
                         <DollarSign className="h-5 w-5 text-honey" />
-                        Claim ${(reward.rewardAmount / 100).toFixed(2)} USDT
+                        Claim {reward.rewardAmount} USDT
                       </DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
@@ -320,7 +473,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
                       
                       <div className="space-y-2">
                         <label className="text-sm font-medium">Withdrawal Blockchain:</label>
-                        {currentChain && (
+                        {currentChain && usdtContract ? (
                           <div className="p-3 bg-muted rounded-lg">
                             <div className="flex items-center gap-2">
                               <span className="w-3 h-3 bg-green-500 rounded-full"></span>
@@ -330,8 +483,20 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
                               </Badge>
                             </div>
                             <p className="text-sm text-muted-foreground mt-1">
-                              USDT will be sent to your wallet on this network
+                              USDT will be transferred to: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
                             </p>
+                            {usdtBalance && typeof usdtBalance === 'bigint' && usdtBalance > BigInt(0) ? (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Current balance: {fromWei(usdtBalance, getUSDTDecimals(currentChain.id))} USDT
+                              </p>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <div className="p-3 bg-red-500/10 rounded-lg">
+                            <div className="flex items-center gap-2">
+                              <AlertTriangle className="h-4 w-4 text-red-500" />
+                              <span className="text-red-500 text-sm">USDT not supported on this chain</span>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -341,8 +506,22 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
                         <div className="text-sm">
                           <p className="font-medium text-orange-500">Gas Fee Required</p>
                           <p className="text-muted-foreground">
-                            You will pay network gas fees for this withdrawal
+                            {isEstimatingGas ? (
+                              <span className="flex items-center gap-1">
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                                Estimating gas...
+                              </span>
+                            ) : estimatedGas ? (
+                              `Estimated: ${estimatedGas}`
+                            ) : (
+                              'You will pay network gas fees for this transaction'
+                            )}
                           </p>
+                          {ethBalance && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Available for gas: {parseFloat(ethBalance.displayValue).toFixed(6)} {ethBalance.symbol}
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -353,16 +532,21 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
                           onCheckedChange={(checked) => setGasConfirmed(checked === true)}
                         />
                         <label htmlFor="gas-confirm" className="text-sm">
-                          I understand and agree to pay gas fees for this withdrawal
+                          I understand and agree to pay gas fees for this transaction
                         </label>
                       </div>
 
                       <Button
                         className="w-full bg-honey text-black hover:bg-honey/90"
                         onClick={handleConfirmClaim}
-                        disabled={!selectedChain || !gasConfirmed || claimWithTransferMutation.isPending}
+                        disabled={!gasConfirmed || !usdtContract || claimWithTransferMutation.isPending || isTransactionPending}
+                        data-testid="confirm-claim-button"
                       >
-                        {claimWithTransferMutation.isPending ? 'Processing...' : 'Confirm Claim'}
+                        {claimWithTransferMutation.isPending || isTransactionPending ? (
+                          <><Loader2 className="h-4 w-4 animate-spin mr-2" />Processing Transaction...</>
+                        ) : (
+                          'Confirm Claim'
+                        )}
                       </Button>
                     </div>
                   </DialogContent>
@@ -386,7 +570,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
                     <Clock className="h-5 w-5 text-orange-400" />
                   </div>
                   <div>
-                    <div className="font-medium">${(reward.rewardAmount / 100).toFixed(2)} USDT</div>
+                    <div className="font-medium">{reward.rewardAmount} USDT</div>
                     <div className="text-sm text-muted-foreground">
                       {formatMatrixPosition(reward.matrixPosition)} • L{reward.triggerLevel} → L{reward.payoutLayer}
                     </div>
