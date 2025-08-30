@@ -1,0 +1,106 @@
+:27:44 AM [express] GET /api/dashboard/matrix 304 in 550ms :: {"userPosition":{"layer":0,"position"…
+🔍 API Route Hit: GET /api/rewards/claimable
+10:27:45 AM [express] GET /api/rewards/claimable 200 in 154ms :: {"claimableRewards":[{"id":"earnings…
+✅ Sending real referral stats: {
+  directReferrals: 0,
+  totalTeam: 0,
+  totalEarnings: 0,
+  pendingRewards: 0,
+  directReferralsList: [],
+  downlineMatrix: [
+    { level: 1, members: 0, placements: 0 },
+    { level: 2, members: 0, placements: 0 },
+    { level: 3, members: 0, placements: 0 },
+    { level: 4, members: 0, placements: 0 },
+    { level: 5, members: 0, placements: 0 },
+    { level: 6, members: 0, placements: 0 },
+    { level: 7, members: 0, placements: 0 },
+    { level: 8, members: 0, placements: 0 },
+    { level: 9, members: 0, placements: 0 },
+    { level: 10, members: 0, placements: 0 },
+    { level: 11, members: 0, placements: 0 },
+    { level: 12, members: 0, placements: 0 },
+    { level: 13, members: 0, placements: 0 },
+    { level: 14, members: 0, placements: 0 },
+    { level: 15, members: 0, placements: 0 },
+    { level: 16, members: 0, placements: 0 },
+    { level: 17, members: 0, placements: 0 },
+    { level: 18, members: 0, placements: 0 },
+    { level: 19, members: 0, placements: 0 }
+  ]
+}
+10:27:46 AM [express] GET /api/dashboard/referrals 304 in 2993ms :: {"directReferrals":0,"totalTeam":…
+✅ Sending real dashboard data: {
+  matrixStats: { directChildren: 7, totalDownline: 0, layer: 0, position: null },
+  nftStats: { ownedLevels: [ 1 ], highestLevel: 1, totalNFTs: 1 },
+  rewardStats: { totalEarned: 0, pendingAmount: 0, claimedAmount: 0 },
+  referralStats: { directReferrals: 0, totalTeam: 0 },
+  recentActivity: [
+    {
+      id: 'bcc-credit-0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0',
+      type: 'membership',
+      description: 'BCC tokens credited to account',
+      amount: '+500 BCC',
+      timestamp: 2025-08-30T07:29:58.150Z
+    },
+    {
+      id: 'membership-0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0',
+      type: 'membership',
+      description: 'Level 1 membership activated',
+      amount: undefined,
+      timestamp: 2025-08-25T17:53:25.384Z
+    },
+    {
+      id: 'earnings-0x380fd6a57fc2df6f10b8920002e4acc7d57d61c0',
+      type: 'reward',
+      description: 'Total platform earnings',
+      amount: '450.00 USDT',
+      timestamp: 2025-08-25T17:53:25.384Z
+    }
+  ],
+  userBalances: { bccTransferable: 500, bccRestricted: 100, cth: 0 }
+}
+10:27:47 AM [express] GET /api/dashboard/data 304 in 3747ms :: {"matrixStats":{"directChildren":7,"to…
+🔍 API Route Hit: GET /api/auth/user?t=1756549668825
+🔍 Getting user status for: 0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0
+🔍 Checking user status for: 0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0
+[DB] GET users:0x380fd6a57fc2df6f10b8920002e4acc7d57d61c0 
+[DB] GET users:0x380fd6a57fc2df6f10b8920002e4acc7d57d61c0 -> SUCCESS (0ms) 
+📁 ReplitDB lookup result: FOUND
+📊 User status from service: {
+  isRegistered: true,
+  hasNFT: true,
+  userFlow: 'dashboard',
+  user: {
+    walletAddress: '0x380fd6a57fc2df6f10b8920002e4acc7d57d61c0',
+    username: 'admin123',
+    isActivated: true,
+    membershipLevel: 1,
+    registeredAt: '2025-08-25T17:53:25.384Z',
+    referrerWallet: '',
+    createdAt: '2025-08-25T17:53:25.384Z',
+    updatedAt: '2025-08-30T10:27:43.699Z'
+  },
+  membershipLevel: 1,
+  isActivated: true
+}
+✅ Sending enhanced response: {
+  user: {
+    walletAddress: '0x380fd6a57fc2df6f10b8920002e4acc7d57d61c0',
+    username: 'admin123',
+    isActivated: true,
+    membershipLevel: 1,
+    registeredAt: '2025-08-25T17:53:25.384Z',
+    referrerWallet: '',
+    createdAt: '2025-08-25T17:53:25.384Z',
+    updatedAt: '2025-08-30T10:27:43.699Z'
+  },
+  isRegistered: true,
+  hasNFT: true,
+  isActivated: true,
+  membershipLevel: 1,
+  userFlow: 'dashboard',
+  membershipState: { activeLevel: 1 },
+  bccBalance: { transferable: 500, restricted: 100 },
+  currentLevel: 1
+}
