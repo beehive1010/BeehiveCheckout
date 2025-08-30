@@ -94,11 +94,11 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
         action: data.transactionHash ? (
           <a 
             href={`https://etherscan.io/tx/${data.transactionHash}`} 
-            target=\"_blank\" 
-            rel=\"noopener noreferrer\"
-            className=\"flex items-center gap-1 text-sm underline\"
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-sm underline"
           >
-            View TX <ExternalLink className=\"h-3 w-3\" />
+            View TX <ExternalLink className="h-3 w-3" />
           </a>
         ) : undefined,
       });
