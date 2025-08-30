@@ -123,7 +123,8 @@ export default function Me() {
               <ReferralsMatrixComponent walletAddress={walletAddress} />
               <OrganizationActivity 
                 walletAddress={walletAddress} 
-                maxItems={5}
+                maxItems={3}
+                isPopup={true}
                 className=""
               />
             </>
