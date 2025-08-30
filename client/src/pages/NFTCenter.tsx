@@ -1,32 +1,26 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useWallet } from '../hooks/useWallet';
 import { useI18n } from '../contexts/I18nContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
-import { useToast } from '../hooks/use-toast';
-import { prepareContractCall, sendTransaction, getContract } from 'thirdweb';
-import { useActiveAccount } from 'thirdweb/react';
-import { polygon } from 'thirdweb/chains';
-import { client } from '../lib/web3';
-import { StarIcon, FireIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
-import { IconCode, IconWallet, IconFlame } from '@tabler/icons-react';
-import { useLocation } from 'wouter';
-import styles from '../styles/nfts/nfts.module.css';
+import { Button } from '../components/ui/button';
+import { useWallet } from '../hooks/useWallet';
+import { Crown, Zap, Target, ExternalLink, Eye } from 'lucide-react';
 
-interface AdvertisementNFT {
+interface OwnedNFT {
   id: string;
-  title: string;
+  name: string;
   description: string;
+  type: 'membership' | 'advertisement' | 'task';
+  level?: number;
   imageUrl: string;
-  serviceName: string;
-  serviceType: 'dapp' | 'banner' | 'promotion';
-  priceBCC: number;
-  totalSupply: number;
-  claimedCount: number;
-  createdAt: string;
+  contractAddress: string;
+  tokenId: string;
+  claimedAt: string;
+  status: 'active' | 'expired' | 'transferred';
+  metadata: {
+    rarity?: 'common' | 'rare' | 'epic' | 'legendary';
+    benefits?: string[];
+    expiry?: string;
+  };
 }
 
 export default function NFTCenter() {
