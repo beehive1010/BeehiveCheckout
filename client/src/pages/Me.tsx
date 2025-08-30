@@ -11,6 +11,7 @@ import { DollarSign } from 'lucide-react';
 import { IconActivity } from '@tabler/icons-react';
 import { useLocation } from 'wouter';
 import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
+import { PendingRewardsSection } from '../components/rewards/PendingRewardsSection';
 import styles from '../styles/me/me.module.css';
 
 export default function Me() {
@@ -52,7 +53,9 @@ export default function Me() {
         <CardContent className="p-6">
           <div className="flex items-center space-x-4 mb-6">
             <div className="relative">
-              <HexagonIcon className="w-16 h-16 text-honey" />
+              <HexagonIcon className="w-16 h-16 text-honey">
+                <span className="text-2xl font-bold">L{currentLevel}</span>
+              </HexagonIcon>
               <Badge className="absolute -top-2 -right-2 bg-honey text-secondary">
                 L{currentLevel}
               </Badge>
@@ -106,6 +109,14 @@ export default function Me() {
 
         <TabsContent value="rewards" className="space-y-6">
           <ClaimableRewardsCard walletAddress={walletAddress || ''} />
+          
+          {/* Pending Rewards Section */}
+          {walletAddress && currentLevel && (
+            <PendingRewardsSection 
+              walletAddress={walletAddress} 
+              currentUserLevel={currentLevel}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="activity" className="space-y-6">
@@ -120,7 +131,7 @@ export default function Me() {
                 </div>
               ) : userActivity && userActivity.length > 0 ? (
                 <div className="space-y-3">
-                  {userActivity.slice(0, 10).map((activity, index) => (
+                  {userActivity.slice(0, 10).map((activity: any, index: number) => (
                     <div key={index} className="flex justify-between items-center py-2 border-b border-border/50 last:border-b-0">
                       <div>
                         <p className="text-sm font-medium">{activity.description}</p>
