@@ -220,6 +220,27 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
             </div>
           </div>
           
+          {/* Claim All Button */}
+          {claimableRewards.length > 0 && (
+            <Button 
+              onClick={handleClaimAll}
+              disabled={isClaimingAll || claimableRewards.length === 0}
+              className="w-full bg-honey hover:bg-honey/90 text-black font-semibold"
+              data-testid="claim-all-button"
+            >
+              {isClaimingAll ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  Claiming All...
+                </>
+              ) : (
+                <>
+                  <Gift className="w-4 h-4 mr-2" />
+                  Claim All ${totalClaimable.toFixed(2)} USDT
+                </>
+              )}
+            </Button>
+          )}
         </CardContent>
       </Card>
 
