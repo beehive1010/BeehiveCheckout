@@ -71,6 +71,26 @@ export const referralNodes = pgTable("referral_nodes", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Organization activity feed for referral notifications
+export const organizationActivity = pgTable("organization_activity", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationWallet: varchar("organization_wallet", { length: 42 }).notNull(), // Who this activity is for
+  activityType: text("activity_type").notNull(), // "direct_referral", "placement", "downline_referral", "spillover"
+  actorWallet: varchar("actor_wallet", { length: 42 }).notNull(), // Who performed the action
+  actorUsername: text("actor_username"),
+  targetWallet: varchar("target_wallet", { length: 42 }), // Who was affected (for placements)
+  targetUsername: text("target_username"),
+  message: text("message").notNull(), // Human readable message
+  metadata: jsonb("metadata").$type<{
+    level?: number;
+    position?: string;
+    amount?: number;
+    referralCode?: string;
+  }>().default({}).notNull(),
+  isRead: boolean("is_read").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // 19-Layer referral tree tracking for each user
 export const referralLayers = pgTable("referral_layers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
