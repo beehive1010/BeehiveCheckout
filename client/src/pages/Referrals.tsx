@@ -58,7 +58,7 @@ export default function Referrals() {
           <CardContent className="p-6 text-center">
             <UsersIcon className="w-8 h-8 text-honey mx-auto mb-2" />
             <div className="text-2xl font-bold text-honey">
-              {userStats?.totalReferrals || 0}
+              {userStats?.totalReferrals || userStats?.totalTeamCount || 0}
             </div>
             <p className="text-sm text-muted-foreground">
               {t('referrals.totalReferrals') || 'Total Referrals'}
@@ -94,7 +94,7 @@ export default function Referrals() {
       </div>
 
       {/* Claimable Rewards */}
-      <ClaimableRewardsCard />
+      {walletAddress && <ClaimableRewardsCard walletAddress={walletAddress} />}
 
       {/* Matrix View */}
       <Card className="bg-secondary border-border">
