@@ -257,15 +257,30 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
       {/* Matrix Visualization */}
       <Card className="bg-secondary border-border">
         <CardHeader>
-          <CardTitle className="text-honey flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            第{viewingLevel}层 - 3×3强制矩阵结构
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-honey flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              第{viewingLevel}层 - 3×3强制矩阵结构
+              {navigationPath.length > 0 && (
+                <Badge variant="outline" className="ml-2">
+                  路径: {navigationPath.map(p => p.position).join(' → ')}
+                </Badge>
+              )}
+            </CardTitle>
+            
             {navigationPath.length > 0 && (
-              <Badge variant="outline" className="ml-2">
-                路径: {navigationPath.map(p => p.position).join(' → ')}
-              </Badge>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleBreadcrumbClick(-1)}
+                className="text-honey border-honey hover:bg-honey/10"
+                data-testid="back-to-root-button"
+              >
+                <Home className="w-4 h-4 mr-2" />
+                返回根节点
+              </Button>
             )}
-          </CardTitle>
+          </div>
         </CardHeader>
         <CardContent>
           {currentMatrix ? (
