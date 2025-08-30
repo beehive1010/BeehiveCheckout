@@ -434,7 +434,7 @@
       "description": "Track upgrade rewards from your matrix layers. You have 72 hours to upgrade when members purchase higher level NFTs."
     },
     "matrix": {
-      "title": "3×3 Forced Matrix Structure", 
+      "title": "3×3 Matrix Structure", 
       "loading": "Loading matrix data...",
       "noMembers": "No Matrix Members",
       "noMembersDesc": "Start referring new members to build your matrix network",
