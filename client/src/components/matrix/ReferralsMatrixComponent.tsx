@@ -41,6 +41,7 @@ interface ReferralsMatrixData {
 
 export default function ReferralsMatrixComponent({ walletAddress }: { walletAddress: string }) {
   const [currentViewLayer, setCurrentViewLayer] = useState(1);
+  const [layer3Page, setLayer3Page] = useState(0); // For paginating layer 3+
   
   // Fetch referrals-focused matrix data
   const { data: referralsMatrixData, isLoading } = useQuery<ReferralsMatrixData>({
@@ -400,7 +401,10 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentViewLayer(Math.max(1, currentViewLayer - 1))}
+            onClick={() => {
+              setCurrentViewLayer(Math.max(1, currentViewLayer - 1));
+              setLayer3Page(0); // Reset page when changing layers
+            }}
             disabled={currentViewLayer <= 1}
             className="border-honey/20 hover:bg-honey/10"
           >
@@ -415,7 +419,10 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentViewLayer(Math.min(referralsMatrixData.totalLevels, currentViewLayer + 1))}
+            onClick={() => {
+              setCurrentViewLayer(Math.min(referralsMatrixData.totalLevels, currentViewLayer + 1));
+              setLayer3Page(0); // Reset page when changing layers
+            }}
             disabled={currentViewLayer >= referralsMatrixData.totalLevels}
             className="border-honey/20 hover:bg-honey/10"
           >
@@ -426,13 +433,70 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
 
         {/* Matrix Visualization */}
         {currentLayer && (
-          <div className="flex justify-center">
-            <div className="flex space-x-8">
-              {renderReferralLegSection(currentLayer.leftLeg, "Left", getMembersPerLeg(currentViewLayer))}
-              {renderReferralLegSection(currentLayer.middleLeg, "Middle", getMembersPerLeg(currentViewLayer))}
-              {renderReferralLegSection(currentLayer.rightLeg, "Right", getMembersPerLeg(currentViewLayer))}
+          <>
+            {/* Pagination for Layer 3+ */}
+            {currentViewLayer >= 3 && (
+              <div className="flex items-center justify-center space-x-4 mb-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLayer3Page(Math.max(0, layer3Page - 1))}
+                  disabled={layer3Page === 0}
+                  className="border-honey/20 hover:bg-honey/10"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  前一组
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  第 {layer3Page + 1} 组 / 共 {Math.ceil(currentLayer.members.length / 9)} 组
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setLayer3Page(Math.min(Math.ceil(currentLayer.members.length / 9) - 1, layer3Page + 1))}
+                  disabled={layer3Page >= Math.ceil(currentLayer.members.length / 9) - 1}
+                  className="border-honey/20 hover:bg-honey/10"
+                >
+                  下一组
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+            
+            {/* Matrix Display */}
+            <div className="flex justify-center">
+              {currentViewLayer < 3 ? (
+                // Layer 1 and 2: Show normally
+                <div className="flex space-x-8">
+                  {renderReferralLegSection(currentLayer.leftLeg, "Left", getMembersPerLeg(currentViewLayer))}
+                  {renderReferralLegSection(currentLayer.middleLeg, "Middle", getMembersPerLeg(currentViewLayer))}
+                  {renderReferralLegSection(currentLayer.rightLeg, "Right", getMembersPerLeg(currentViewLayer))}
+                </div>
+              ) : (
+                // Layer 3+: Show 9 members at a time (paginated)
+                <div className="flex space-x-8">
+                  {(() => {
+                    const startIndex = layer3Page * 9;
+                    const endIndex = Math.min(startIndex + 9, currentLayer.members.length);
+                    const pageMembers = currentLayer.members.slice(startIndex, endIndex);
+                    
+                    // Divide into 3 groups (left, middle, right)
+                    const leftMembers = pageMembers.slice(0, 3);
+                    const middleMembers = pageMembers.slice(3, 6);
+                    const rightMembers = pageMembers.slice(6, 9);
+                    
+                    return (
+                      <>
+                        {renderReferralLegSection(leftMembers, "Left", 3)}
+                        {renderReferralLegSection(middleMembers, "Middle", 3)}
+                        {renderReferralLegSection(rightMembers, "Right", 3)}
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
             </div>
-          </div>
+          </>
         )}
 
         {/* Layer Stats */}
