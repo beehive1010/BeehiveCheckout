@@ -1,5 +1,5 @@
-import { useWallet } from '../../../hooks/useWallet';
-import { useI18n } from '../../../contexts/I18nContext';
+import { useWallet } from '../../hooks/useWallet';
+import { useI18n } from '../../contexts/I18nContext';
 import { useLocation } from 'wouter';
 import { Link } from 'wouter';
 import TabBar from './TabBar';

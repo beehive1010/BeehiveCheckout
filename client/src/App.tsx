@@ -48,7 +48,11 @@ const AdminDiscover = () => <div>Admin Discover - Coming Soon</div>;
 const Courses = () => <div>Courses - Coming Soon</div>;
 const DiscoverPartners = () => <div>Discover Partners - Coming Soon</div>;
 const AdminLayout = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
-const AdminRouteGuard = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
+const AdminRouteGuard = ({ children, requiredPermission, requiredRoles }: { 
+  children: React.ReactNode;
+  requiredPermission?: string;
+  requiredRoles?: string[];
+}) => <div>{children}</div>;
 
 // Layout components (temporary)
 const Header = () => <header className="h-16 bg-secondary border-b border-border flex items-center px-4"><h1 className="text-honey font-bold">BeeHive</h1></header>;

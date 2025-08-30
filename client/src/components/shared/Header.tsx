@@ -1,5 +1,5 @@
-import { useWallet } from '../../../hooks/useWallet';
-import { useI18n } from '../../../contexts/I18nContext';
+import { useWallet } from '../../hooks/useWallet';
+import { useI18n } from '../../contexts/I18nContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import WalletConnect from './WalletConnect';
 import { Link } from 'wouter';

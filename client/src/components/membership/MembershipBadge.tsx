@@ -1,5 +1,5 @@
 import { getMembershipLevel } from '../../lib/config/membershipLevels';
-import HexagonIcon from '../UI/HexagonIcon';
+import HexagonIcon from '../shared/HexagonIcon';
 
 interface MembershipBadgeProps {
   level: number;
