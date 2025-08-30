@@ -42,28 +42,15 @@ export function useWallet() {
     queryKey: ['/api/auth/user'],
     enabled: !!walletAddress,
     queryFn: async () => {
-      const headers: Record<string, string> = {
-        'X-Wallet-Address': walletAddress!,
-        'Cache-Control': 'no-cache'
-      };
-      
-      // Include JWT token if available
-      const authToken = localStorage.getItem('beehive-auth-token');
-      if (authToken && authToken !== 'undefined' && authToken !== 'null') {
-        headers['Authorization'] = `Bearer ${authToken}`;
-      }
-      
       const response = await fetch(`/api/auth/user?t=${Date.now()}`, {
-        headers,
+        headers: {
+          'X-Wallet-Address': walletAddress!,
+          'Cache-Control': 'no-cache'
+        },
       });
       if (!response.ok) {
         if (response.status === 404) {
           return null; // User not registered
-        }
-        if (response.status === 401) {
-          // Clear invalid token
-          localStorage.removeItem('beehive-auth-token');
-          return null; // Not authenticated
         }
         throw new Error('Failed to fetch user data');
       }

@@ -43,11 +43,7 @@ export async function apiRequest(
     headers["X-Wallet-Address"] = addressToUse;
   }
   
-  // Include JWT token if available (with validation)
-  const authToken = localStorage.getItem('beehive-auth-token');
-  if (authToken && authToken !== 'undefined' && authToken !== 'null' && authToken.trim() !== '') {
-    headers["Authorization"] = `Bearer ${authToken}`;
-  }
+  // No JWT authentication - simplified wallet-only approach
 
   const res = await fetch(url, {
     method,
@@ -74,11 +70,7 @@ export const getQueryFn: <T>(options: {
       headers["X-Wallet-Address"] = walletAddress;
     }
     
-    // Include JWT token if available (with validation)
-    const authToken = localStorage.getItem('beehive-auth-token');
-    if (authToken && authToken !== 'undefined' && authToken !== 'null' && authToken.trim() !== '') {
-      headers["Authorization"] = `Bearer ${authToken}`;
-    }
+    // No JWT authentication - simplified wallet-only approach
     
     const res = await fetch(queryKey.join("/") as string, {
       headers,
