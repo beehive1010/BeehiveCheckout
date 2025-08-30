@@ -1442,10 +1442,7 @@ export const membershipNFTsV2 = pgTable("membership_nfts_v2", {
   purchasedAt: timestamp("purchased_at").defaultNow().notNull(),
   activatedAt: timestamp("activated_at"), // When member was activated into matrix
   status: text("status").default("active").notNull(), // active, pending, expired
-}, (table) => ({
-  // Unique constraint: one NFT per level per wallet
-  uniqueLevelPerWallet: primaryKey({ columns: [table.walletAddress, table.level] }),
-}));
+});
 
 // V2: Matrix Tree Structure - Each member's 19-layer downline tree
 export const matrixTreeV2 = pgTable("matrix_tree_v2", {
@@ -1457,10 +1454,7 @@ export const matrixTreeV2 = pgTable("matrix_tree_v2", {
   parentWallet: varchar("parent_wallet", { length: 42 }), // Direct parent in this tree
   joinedTreeAt: timestamp("joined_tree_at").defaultNow().notNull(),
   lastUpdated: timestamp("last_updated").defaultNow().notNull(),
-}, (table) => ({
-  // Unique constraint: one position per member per tree layer
-  uniquePosition: primaryKey({ columns: [table.rootWallet, table.layer, table.memberWallet] }),
-}));
+});
 
 // V2: Layer-Based Rewards - Rewards triggered by layer position upgrades
 export const layerRewardsV2 = pgTable("layer_rewards_v2", {
