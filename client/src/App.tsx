@@ -8,11 +8,13 @@ import { I18nProvider } from "./contexts/I18nContext";
 import { ThemeProvider } from "next-themes";
 import { Toaster as HotToaster } from "react-hot-toast";
 
-// Pages
-import Landing from "@/pages/Landing";
+// Feature-based pages
+import LandingPage from "@/features/landing/page/LandingPage";
+import DashboardPage from "@/features/dashboard/page/DashboardPage";
+
+// Pages (to be refactored)
 import Registration from "@/pages/Registration";
 import Welcome from "@/pages/Welcome";
-import Dashboard from "@/pages/Dashboard";
 import Tasks from "@/pages/Tasks";
 import Education from "@/pages/Education";
 import CourseDetails from "@/pages/CourseDetails";
@@ -164,12 +166,12 @@ function Router() {
     <RouteGuard>
       <Switch>
         {/* Public routes */}
-        <Route path="/" component={Landing} />
+        <Route path="/" component={LandingPage} />
         <Route path="/register" component={Registration} />
         <Route path="/welcome" component={Welcome} />
         
         {/* Main app routes - Protected with wallet connection and Level 1 NFT requirement */}
-        <Route path="/dashboard" component={Dashboard} />
+        <Route path="/dashboard" component={DashboardPage} />
         <Route path="/tasks" component={Tasks} />
         <Route path="/education" component={Education} />
         <Route path="/education/:courseId" component={CourseDetails} />

@@ -5,6 +5,12 @@ import { createServer, type Server } from "http";
 import { registerAuthRoutes } from "./routes/auth.routes";
 import { registerWalletRoutes } from "./routes/wallet.routes";
 import { registerUsersRoutes } from "./routes/users.routes";
+import { registerMembershipRoutes } from "./routes/membership.routes";
+import { registerRewardsRoutes } from "./routes/rewards.routes";
+import { registerReferralsRoutes } from "./routes/referrals.routes";
+import { registerEducationRoutes } from "./routes/education.routes";
+import { registerTasksRoutes } from "./routes/tasks.routes";
+import { registerAdminRoutes } from "./routes/admin.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // JWT secret for authentication
@@ -28,18 +34,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   };
 
-  // Register feature routes
+  // Register all feature routes
   registerAuthRoutes(app, requireWallet);
   registerWalletRoutes(app);
   registerUsersRoutes(app, requireWallet);
+  registerMembershipRoutes(app, requireWallet);
+  registerRewardsRoutes(app, requireWallet);
+  registerReferralsRoutes(app, requireWallet);
+  registerEducationRoutes(app, requireWallet);
+  registerTasksRoutes(app, requireWallet);
+  registerAdminRoutes(app, requireWallet);
 
-  // TODO: Register remaining route modules
-  // registerMembershipRoutes(app, requireWallet);
-  // registerRewardsRoutes(app, requireWallet);
-  // registerReferralsRoutes(app, requireWallet);
-  // registerEducationRoutes(app, requireWallet);
-  // registerTasksRoutes(app, requireWallet);
-  // registerAdminRoutes(app, requireWallet);
+  console.log('✅ All route modules registered successfully');
 
   // Create and return HTTP server
   const server = createServer(app);
