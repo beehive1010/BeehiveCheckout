@@ -1,0 +1,136 @@
+Matrix Membership & Reward System (Detailed Specification)
+1. Matrix Structure (Global 1×3)
+
+Each member is the root of their own 1×3 sub-tree.
+
+Downlines are filled in strict order: Left → Middle → Right (L → M → R).
+
+Each layer d can hold 3^d members:
+
+Layer 1 = 3 members
+
+Layer 2 = 9 members
+
+Layer 3 = 27 members
+
+… Layer 19 = 3^19 members
+
+Placement logic:
+
+New members are inserted globally according to activation order (only active members can enter the matrix).
+
+Members always fill the first available slot at the lowest depth possible.
+
+Placement flows Left first → Middle → Right, ensuring Layer 1 is filled before Layer 2, and so on.
+
+This global spillover system means downlines can come from direct referrals or spillover from higher uplines.
+
+2. Membership Levels & Upgrades
+
+NFT Membership Levels progress as follows:
+
+Level 1 = 100 USDT
+
+Each higher level adds +50 USDT
+
+Level 19 = 1000 USDT
+
+Reward value = 100% of NFT price (unless overridden by admin settings).
+
+Upgrade rules:
+
+Members must upgrade sequentially.
+
+Must own Level N before purchasing Level N+1.
+
+Membership upgrades are not tied to team size — purely based on purchasing the NFT.
+
+Activation requirement: Only members who purchase Level 1 become part of the global matrix system.
+
+3. Reward Triggering (Layer-Based Logic)
+
+Rewards are triggered by the upgrading member’s position in the root’s matrix:
+
+When a downline in Layer N upgrades to Level N, the root receives the corresponding reward.
+
+Example:
+
+A downline in Layer 1 upgrades to Level 1 → Root gets 100 USDT.
+
+A downline in Layer 2 upgrades to Level 2 → Root gets 150 USDT.
+
+… A downline in Layer 19 upgrades to Level 19 → Root gets 1000 USDT.
+
+Special case (Layer 1):
+
+The 3rd reward (Right position) only unlocks if the root has upgraded to Level 2.
+
+General case (Layers 2–19):
+
+The root must hold Level N NFT to qualify for Layer N rewards.
+
+4. Eligibility & Pending Rewards
+
+To receive a reward, the upline/root must have membership_level ≥ N.
+
+If qualified → reward is confirmed immediately.
+
+If not qualified → reward is created as pending with a 72-hour countdown (configurable).
+
+If the upline upgrades to the required level within 72h → reward becomes confirmed.
+
+If not → reward expires and is reallocated upward.
+
+5. Spillover / Reallocation
+
+If a pending reward expires (after 72h), the system searches upward through the referral/matrix chain.
+
+The first ancestor with membership_level ≥ N receives the reward.
+
+If no one qualifies all the way up → the reward is redirected to the platform account (or other fallback defined by admin).
+
+6. Special Platform Revenue
+
+Only Level 1 upgrades generate +30 USDT platform revenue, recorded in platform_revenue.
+
+Levels 2–19 → default 0 platform fee (can be overridden by admin config).
+
+7. Full Summary (How It Works Together)
+
+Matrix placement: Members enter the 1×3 global matrix when they activate Level 1 NFT. Placement fills strictly from top down, Left → Middle → Right, ensuring global spillover.
+
+Upgrade-driven rewards:
+
+Rewards are not tied to recruitment count, but to NFT level purchases.
+
+Each level corresponds to a specific layer: Layer N → Level N → 100% NFT price reward.
+
+Eligibility rules:
+
+Root must hold the corresponding NFT level to earn rewards from that layer.
+
+Exception: Layer 1 Right slot requires the root to upgrade to Level 2.
+
+Pending & countdown:
+
+Unqualified uplines get pending rewards for 72h.
+
+They must upgrade in time to claim, otherwise reward flows upward.
+
+Reallocation: Expired rewards search up the tree until a qualified ancestor is found. If none, platform account collects.
+
+Platform revenue: Only Level 1 upgrades trigger a fixed +30 USDT fee to the platform.
+
+👉 In plain words:
+
+Matrix = placement system (who goes where).
+
+Rewards = triggered by upgrades within your own 19 layers.
+
+Eligibility = you must hold the right NFT level.
+
+Pending = 72h grace.
+
+Reallocation = unclaimed rewards move up.
+
+Platform cut = only on Level 1.
