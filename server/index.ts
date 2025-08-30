@@ -650,7 +650,15 @@ app.use((req, res, next) => {
     port,
     host: "0.0.0.0",
     reusePort: true,
-  }, () => {
+  }, async () => {
     log(`serving on port ${port}`);
+    
+    // Start rewards cron job
+    try {
+      const { default: RewardsCronService } = await import('./src/cron/rewards-cron');
+      RewardsCronService.startCronJob();
+    } catch (error) {
+      console.error('Failed to start rewards cron:', error);
+    }
   });
 })();
