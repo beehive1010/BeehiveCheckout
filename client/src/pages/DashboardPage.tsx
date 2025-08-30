@@ -173,38 +173,6 @@ export default function Dashboard() {
     }
   };
 
-  // Use real activity data if available, otherwise show meaningful placeholder data
-  const recentActivities = dashboardData?.recentActivity && dashboardData.recentActivity.length > 0 
-    ? dashboardData.recentActivity.map((activity: any) => ({
-        icon: 'fas fa-gift',
-        type: activity.description,
-        description: activity.type,
-        amount: activity.amount,
-        color: 'text-green-400'
-      }))
-    : [
-    {
-      icon: 'fas fa-gift',
-      type: t('dashboard.activity.rewardReceived') || 'Reward Received',
-      description: t('dashboard.activity.fromReferralUpgrade') || 'Level 1 membership activated',
-      amount: '+500 BCC',
-      color: 'text-green-400'
-    },
-    {
-      icon: 'fas fa-shopping-cart',
-      type: t('dashboard.activity.nftClaimed') || 'NFT Claimed',
-      description: t('dashboard.activity.merchantNft') || 'Merchant NFT purchased',
-      amount: t('dashboard.activity.bccDeduction', { amount: 50 }) || '-50 BCC',
-      color: 'text-muted-foreground'
-    },
-    {
-      icon: 'fas fa-user-plus',
-      type: t('dashboard.activity.newReferral') || 'New Referral',
-      description: t('dashboard.activity.userJoined') || 'New user joined your team',
-      amount: t('dashboard.activity.activeStatus') || 'Active',
-      color: 'text-green-400'
-    }
-  ];
 
   // Show error state if dashboard data failed to load
   if (dashboardError) {
@@ -396,12 +364,6 @@ export default function Dashboard() {
               <div>
                 <h3 className="text-lg sm:text-xl font-semibold text-honey mb-4 sm:mb-6 text-center">What You'll Unlock:</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
-                    <div className="w-8 h-8 rounded-full bg-honey/20 flex items-center justify-center flex-shrink-0">
-                      <TrendingUp className="text-honey text-sm" />
-                    </div>
-                    <span className="text-sm font-medium">Web3 Learning Courses</span>
-                  </div>
                   <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
                     <div className="w-8 h-8 rounded-full bg-honey/20 flex items-center justify-center flex-shrink-0">
                       <DollarSign className="text-honey text-sm" />
@@ -667,32 +629,6 @@ export default function Dashboard() {
       {/* Reward Matrix Component */}
       {walletAddress && <RewardMatrixComponent walletAddress={walletAddress} />}
 
-      {/* Recent Activities */}
-      <Card className="bg-secondary border-border">
-        <CardHeader>
-          <CardTitle className="text-honey">{t('dashboard.recentActivities') || 'Recent Activities'}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {recentActivities.map((activity: any, index: number) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-honey/20 flex items-center justify-center">
-                    <TrendingUp className="h-4 w-4 text-honey" />
-                  </div>
-                  <div>
-                    <p className="font-medium">{activity.type}</p>
-                    <p className="text-sm text-muted-foreground">{activity.description}</p>
-                  </div>
-                </div>
-                <span className={`font-medium ${activity.color}`}>
-                  {activity.amount}
-                </span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
