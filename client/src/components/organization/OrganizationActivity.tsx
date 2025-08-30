@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar } from '@/components/ui/avatar';
-import { Users, UserPlus, ArrowRight, Mail, Clock } from 'lucide-react';
+import { Users, UserPlus, ArrowRight, ArrowDown, Mail, Clock } from 'lucide-react';
 import { useState } from 'react';
 import { useLocation } from 'wouter';
 
@@ -87,9 +87,24 @@ export function OrganizationActivity({
       case 'downline_referral':
         return <Users className="w-4 h-4 text-purple-400" />;
       case 'spillover':
-        return <ArrowRight className="w-4 h-4 text-orange-400" />;
+        return <ArrowDown className="w-4 h-4 text-orange-400" />;
       default:
         return <Users className="w-4 h-4 text-gray-400" />;
+    }
+  };
+
+  const getActivityTypeLabel = (type: string) => {
+    switch (type) {
+      case 'direct_referral':
+        return '我直推的';
+      case 'placement':
+        return '我直推然后安置下去的';
+      case 'downline_referral':
+        return '我下级团队的推荐';
+      case 'spillover':
+        return '我上线安置下来的';
+      default:
+        return '其他活动';
     }
   };
 
@@ -174,6 +189,11 @@ export function OrganizationActivity({
                   </div>
                   
                   <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant="secondary" className="text-xs">
+                        {getActivityTypeLabel(activity.activityType)}
+                      </Badge>
+                    </div>
                     <p className="text-sm text-gray-200">{activity.message}</p>
                     
                     <div className="flex items-center justify-between mt-2">
