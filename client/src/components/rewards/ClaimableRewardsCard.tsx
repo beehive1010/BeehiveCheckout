@@ -332,7 +332,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
                         <Checkbox
                           id="gas-confirm"
                           checked={gasConfirmed}
-                          onCheckedChange={setGasConfirmed}
+                          onCheckedChange={(checked) => setGasConfirmed(checked === true)}
                         />
                         <label htmlFor="gas-confirm" className="text-sm">
                           I understand and agree to pay gas fees for this withdrawal
