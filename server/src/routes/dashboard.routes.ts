@@ -1,5 +1,7 @@
 import { Express } from 'express';
 import { storage } from '../../storage';
+import { db } from '../../db';
+import { sql } from 'drizzle-orm';
 
 /**
  * Dashboard Routes - Real member data from database
@@ -93,65 +95,35 @@ export function registerDashboardRoutes(app: Express) {
       
       console.log('🔗 Fetching matrix data for:', walletAddress);
 
-      // Get real referral layers (1-19)
-      const referralLayers = await storage.getReferralLayers(walletAddress);
-      const referralNode = await storage.getReferralNode(walletAddress);
-
+      // Get matrix data from our new view system
+      const userStats = await storage.getUserReferralStats(walletAddress);
+      
       // Transform into matrix visualization format with placement data
       const matrixData = {
         userPosition: {
           layer: 0, // Root user
-          position: referralNode?.matrixPosition || 0
+          position: 0
         },
-        directChildren: referralNode?.directReferralCount || 0,
-        totalDownline: referralLayers.reduce((total: number, layer: any) => total + layer.memberCount, 0),
-        downlineLayers: await Promise.all(referralLayers.map(async (layer: any) => {
-          // Get full member details with placement info and placement type
-          const memberDetails = await Promise.all((layer.members || []).map(async (memberWallet: string, index: number) => {
-            const user = await storage.getUser(memberWallet);
-            const memberNode = await storage.getReferralNode(memberWallet);
-            
-            // Calculate placement based on position in layer
-            let placement: 'left' | 'middle' | 'right';
-            const positionInLayer = index % 3;
-            if (positionInLayer === 0) placement = 'left';
-            else if (positionInLayer === 1) placement = 'middle';
-            else placement = 'right';
-            
-            // Determine placement type based on sponsor and placer relationships
-            let placementType: 'direct_referral' | 'upline_placement' | 'self_placement';
-            const currentUserWallet = walletAddress.toLowerCase();
-            const memberSponsor = memberNode?.sponsorWallet?.toLowerCase();
-            const memberPlacer = memberNode?.placerWallet?.toLowerCase();
-            
-            if (memberSponsor === currentUserWallet) {
-              // 自己推荐的
-              placementType = 'direct_referral';
-            } else if (memberPlacer === currentUserWallet) {
-              // 自己安置下去的
-              placementType = 'self_placement';
-            } else {
-              // 上线安置的
-              placementType = 'upline_placement';
-            }
-            
+        directChildren: userStats?.directReferrals || 0,
+        totalDownline: userStats?.totalTeam || 0,
+        downlineLayers: await Promise.all((userStats?.downlineMatrix || []).map(async (layer: any) => {
+          // Only process layers that have members (filter out empty layers)
+          if (layer.members === 0) {
             return {
-              walletAddress: memberWallet,
-              username: user?.username || `User${memberWallet.slice(-4)}`,
-              currentLevel: user?.currentLevel || 1,
-              memberActivated: (user?.currentLevel || 0) >= 1,
-              placement,
-              placementType,
-              sponsorWallet: memberNode?.sponsorWallet,
-              placerWallet: memberNode?.placerWallet,
-              joinedAt: user?.createdAt || new Date().toISOString()
+              layer: layer.level,
+              totalMembers: 0,
+              maxCapacity: Math.pow(3, layer.level),
+              members: []
             };
-          }));
+          }
+
+          // For now, return simplified layer data since we have the basic structure
+          const memberDetails = [];
           
           return {
-            layer: layer.layerNumber,
-            totalMembers: layer.memberCount,
-            maxCapacity: Math.pow(3, layer.layerNumber), // 3^n for each layer
+            layer: layer.level,
+            totalMembers: layer.members,
+            maxCapacity: Math.pow(3, layer.level),
             members: memberDetails
           };
         }))
