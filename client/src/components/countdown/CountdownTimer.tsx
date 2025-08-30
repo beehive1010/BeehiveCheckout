@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Clock, AlertTriangle } from 'lucide-react';
 
 export interface CountdownTimerProps {
-  expiresAt: Date;
+  expiresAt: Date | string;
   onExpiry?: () => void;
   className?: string;
 }
@@ -24,9 +24,10 @@ export function CountdownTimer({ expiresAt, onExpiry, className = '' }: Countdow
     total: 0
   });
 
-  const calculateTimeRemaining = (targetDate: Date): TimeRemaining => {
+  const calculateTimeRemaining = (targetDate: Date | string): TimeRemaining => {
     const now = new Date().getTime();
-    const target = targetDate.getTime();
+    // Ensure targetDate is a Date object
+    const target = targetDate instanceof Date ? targetDate.getTime() : new Date(targetDate).getTime();
     const difference = target - now;
 
     if (difference <= 0) {
