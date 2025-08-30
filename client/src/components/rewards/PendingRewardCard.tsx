@@ -38,7 +38,7 @@ export function PendingRewardCard({
   const isCritical = reward.hoursLeft <= 6;
 
   const handleUpgradeClick = () => {
-    setLocation('/membership');
+    setLocation('/tasks');
   };
 
   const handleExpiry = () => {
