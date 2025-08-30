@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Users, UserPlus, ArrowRight, ArrowDown, Mail, Clock, MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import { useLocation } from 'wouter';
+import { useI18n } from '@/contexts/I18nContext';
 
 interface OrganizationActivityItem {
   id: string;
@@ -39,6 +40,7 @@ export function OrganizationActivity({
   showHeader = true,
   className = '' 
 }: OrganizationActivityProps) {
+  const { t } = useI18n();
   const [, setLocation] = useLocation();
   const [showAllDialog, setShowAllDialog] = useState(false);
   
@@ -89,11 +91,11 @@ export function OrganizationActivity({
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
     
     if (diffInHours < 1) {
-      return '刚刚';
+      return t('referrals.organization.activities.timeAgo.minutes', { count: Math.max(1, Math.floor(diffInHours * 60)) });
     } else if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)}小时前`;
+      return t('referrals.organization.activities.timeAgo.hours', { count: Math.floor(diffInHours) });
     } else {
-      return `${Math.floor(diffInHours / 24)}天前`;
+      return t('referrals.organization.activities.timeAgo.days', { count: Math.floor(diffInHours / 24) });
     }
   };
 
@@ -115,15 +117,15 @@ export function OrganizationActivity({
   const getActivityTypeLabel = (type: string) => {
     switch (type) {
       case 'direct_referral':
-        return '我直推的';
+        return t('referrals.organization.activities.direct_referral');
       case 'placement':
-        return '我直推然后安置下去的';
+        return t('referrals.organization.activities.placement');
       case 'downline_referral':
-        return '我下级团队的推荐';
+        return t('referrals.organization.activities.upgrade');
       case 'spillover':
-        return '我上线安置下来的';
+        return t('referrals.organization.activities.upgrade');
       default:
-        return '其他活动';
+        return t('referrals.organization.activities.upgrade');
     }
   };
 
@@ -169,12 +171,12 @@ export function OrganizationActivity({
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold text-honey flex items-center gap-2">
               <Users className="w-5 h-5" />
-              组织动态
+              {t('referrals.organization.title')}
             </CardTitle>
             <div className="flex items-center gap-2">
               {unreadCount > 0 && (
                 <Badge variant="destructive" className="text-xs">
-                  {unreadCount} 未读
+                  {unreadCount}
                 </Badge>
               )}
               <Dialog open={showAllDialog} onOpenChange={setShowAllDialog}>
@@ -186,14 +188,14 @@ export function OrganizationActivity({
                     data-testid="button-view-all"
                   >
                     <MoreHorizontal className="w-3 h-3 mr-1" />
-                    查看更多
+                    {t('referrals.organization.viewMore', { count: 0 }).split(' (')[0]}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
                   <DialogHeader>
                     <DialogTitle className="text-honey flex items-center gap-2">
                       <Users className="w-5 h-5" />
-                      全部组织动态
+                      {t('referrals.organization.title')}
                     </DialogTitle>
                   </DialogHeader>
                   <div className="space-y-3 overflow-y-auto max-h-[60vh] pr-2">
@@ -255,7 +257,7 @@ export function OrganizationActivity({
                       ))
                     ) : (
                       <div className="text-center text-muted-foreground py-8">
-                        暂无组织动态记录
+                        {t('referrals.organization.noActivity')}
                       </div>
                     )}
                   </div>
@@ -287,7 +289,7 @@ export function OrganizationActivity({
                         {getActivityTypeLabel(activity.activityType)}
                       </Badge>
                     </div>
-                    <p className="text-sm text-gray-200">{activity.message}</p>
+                    <p className="text-sm text-foreground">{activity.actorUsername || formatAddress(activity.actorWallet)}</p>
                     
                     <div className="flex items-center justify-between mt-2">
                       <div className="flex items-center space-x-2 text-xs text-muted-foreground">
@@ -318,11 +320,11 @@ export function OrganizationActivity({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setLocation('/inbox')}
+                onClick={() => setShowAllDialog(true)}
                 className="w-full text-honey hover:text-honey/80"
                 data-testid="button-view-more"
               >
-                查看更多 ({activityData.length - maxItems} 条)
+                {t('referrals.organization.viewMore', { count: activityData.length - maxItems })}
               </Button>
             )}
           </>
@@ -330,10 +332,10 @@ export function OrganizationActivity({
           <div className="text-center py-8">
             <Users className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
             <p className="text-muted-foreground text-sm">
-              referrals.noReferrals
+              {t('referrals.organization.noActivity')}
             </p>
             <p className="text-xs text-muted-foreground mt-2">
-              当您的团队有新活动时，这里会显示通知
+              {t('referrals.organization.noActivityDesc')}
             </p>
           </div>
         )}

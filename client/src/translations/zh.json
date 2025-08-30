@@ -368,6 +368,25 @@
       "noNotifications": "暂无升级通知",
       "notificationsAppear": "当团队成员升级时，通知将显示在这里"
     },
+    "organization": {
+      "title": "组织动态",
+      "viewMore": "查看更多 ({{count}} 条)",
+      "noActivity": "暂无动态",
+      "noActivityDesc": "当您的团队有新活动时，这里会显示通知",
+      "activities": {
+        "direct_referral": "直推加入",
+        "placement": "矩阵安置", 
+        "upgrade": "等级升级",
+        "joined": "加入了您的团队",
+        "placed": "在矩阵第{{level}}层{{position}}位置放置了{{member}}",
+        "upgraded": "升级到Level {{level}}",
+        "timeAgo": {
+          "hours": "{{count}}小时前",
+          "days": "{{count}}天前",
+          "minutes": "{{count}}分钟前"
+        }
+      }
+    },
     "upgradeRewards": {
       "description": "跟踪您矩阵层的升级奖励。当成员购买更高级别的NFT时，您有72小时的时间升级。"
     }
