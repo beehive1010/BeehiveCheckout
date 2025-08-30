@@ -57,12 +57,12 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
   const activeChain = useActiveWalletChain();
   const currentChain = getChainById(activeChain?.id);
   
-  // Set default selected chain to current active chain
+  // Auto-use active chain for claims
   React.useEffect(() => {
-    if (activeChain?.id && !selectedChain) {
+    if (activeChain?.id) {
       setSelectedChain(activeChain.id.toString());
     }
-  }, [activeChain?.id, selectedChain]);
+  }, [activeChain?.id]);
 
   // Fetch claimable rewards
   const { data: rewardsData, isLoading } = useQuery<ClaimableRewardsResponse>({
@@ -319,36 +319,21 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
                       </div>
                       
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Select Blockchain:</label>
+                        <label className="text-sm font-medium">Withdrawal Blockchain:</label>
                         {currentChain && (
-                          <div className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
-                            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                            Currently connected to {currentChain.name}
+                          <div className="p-3 bg-muted rounded-lg">
+                            <div className="flex items-center gap-2">
+                              <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                              <span className="font-medium">{currentChain.name}</span>
+                              <Badge variant="outline" className="text-xs">
+                                Connected
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              USDT will be sent to your wallet on this network
+                            </p>
                           </div>
                         )}
-                        <Select value={selectedChain} onValueChange={setSelectedChain}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose chain for withdrawal" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {chainsData?.supportedChains?.map((chain) => (
-                              <SelectItem key={chain.id || chain.name} value={chain.id || chain.name}>
-                                <div className="flex items-center gap-2">
-                                  <span>{chain.icon}</span>
-                                  <span>{chain.name}</span>
-                                  <Badge variant="outline" className="text-xs">
-                                    {chain.symbol}
-                                  </Badge>
-                                  {activeChain?.id.toString() === (chain.id || chain.name) && (
-                                    <Badge variant="default" className="text-xs bg-green-500">
-                                      Active
-                                    </Badge>
-                                  )}
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
                       </div>
 
                       <div className="flex items-center space-x-2 p-3 bg-orange-500/10 rounded-lg">
