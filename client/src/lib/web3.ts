@@ -1,7 +1,7 @@
 import { createThirdwebClient, getContract } from 'thirdweb';
 import { ethereum, polygon, arbitrum, optimism, arbitrumSepolia, bsc } from 'thirdweb/chains';
 import { defineChain } from 'thirdweb/chains';
-import { inAppWallet, createWallet } from 'thirdweb/wallets';
+import { inAppWallet, createWallet, walletConnect } from 'thirdweb/wallets';
 
 // Initialize Thirdweb client
 export const client = createThirdwebClient({
@@ -30,7 +30,7 @@ export const alphaCentauri = defineChain({
 // Supported chains
 export const supportedChains = [ethereum, polygon, arbitrum, arbitrumSepolia, optimism, bsc, alphaCentauri];
 
-// Enhanced wallet configuration with social login options
+// Enhanced wallet configuration with social login options and WalletConnect
 export const wallets = [
   inAppWallet({
     auth: {
@@ -44,9 +44,11 @@ export const wallets = [
         "passkey",
         "phone",
         "apple",
+        "wallet", // Enables external wallet connections
       ],
     },
   }),
+  walletConnect(),
   createWallet("io.metamask"),
   createWallet("com.coinbase.wallet"),
   createWallet("me.rainbow"),
