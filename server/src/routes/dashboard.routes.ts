@@ -89,7 +89,7 @@ export function registerDashboardRoutes(app: Express) {
   // Get user matrix data - 19 layer referral structure
   app.get("/api/dashboard/matrix", requireWallet, async (req: any, res) => {
     try {
-      const walletAddress = req.headers['x-wallet-address'] as string;
+      const walletAddress = (req.headers['x-wallet-address'] as string).toLowerCase();
       
       console.log('🔗 Fetching matrix data for:', walletAddress);
 
@@ -157,7 +157,12 @@ export function registerDashboardRoutes(app: Express) {
         }))
       };
 
-      console.log('✅ Sending real matrix data:', matrixData);
+      console.log('✅ Sending real matrix data with members:');
+      console.log('- Total downline:', matrixData.totalDownline);
+      console.log('- Layers count:', matrixData.downlineLayers.length);
+      matrixData.downlineLayers.forEach((layer: any, index: number) => {
+        console.log(`- Layer ${layer.layer}: ${layer.totalMembers} members, details:`, layer.members);
+      });
       res.json(matrixData);
     } catch (error) {
       console.error('Matrix data error:', error);
