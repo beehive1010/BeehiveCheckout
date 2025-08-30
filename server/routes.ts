@@ -42,10 +42,10 @@ import { z } from "zod";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import { eq, and, or, desc, gte } from "drizzle-orm";
+import { eq, and, or, desc, gte, inArray } from "drizzle-orm";
 import { createThirdwebClient, getContract, prepareContractCall, sendTransaction } from "thirdweb";
 import { privateKeyToAccount } from "thirdweb/wallets";
-import { ethereum, polygon, arbitrum, optimism } from "thirdweb/chains";
+import { ethereum, polygon, arbitrum, optimism, bsc } from "thirdweb/chains";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // JWT secret for authentication
@@ -592,6 +592,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('✅ New member layers calculated');
       
       // Also calculate for sponsor to reflect new member in their downline
+      const referrerWallet = user?.referrerWallet;
       if (referrerWallet) {
         console.log('🔄 Updating sponsor downline layers:', referrerWallet);
         await storage.calculateAndStore19Layers(referrerWallet);
@@ -599,7 +600,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Generate notifications for all upline members in 19 layers
-      // referrerWallet already defined above
       if (referrerWallet) {
         // Get all upline users in the 19 layers
         const uplineLayers = await storage.getReferralLayers(referrerWallet);
@@ -621,7 +621,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               layerNumber: layer.layerNumber,
               rewardAmount: 10000, // 100 USDT in cents
               status: isQualified ? 'waiting_claim' : 'pending',
-              expiresAt: isQualified ? undefined : expiresAt
+              expiresAt: isQualified ? new Date(Date.now() + 24 * 60 * 60 * 1000) : expiresAt
             });
           }
         }
