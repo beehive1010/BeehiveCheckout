@@ -45,38 +45,38 @@ export default function Me() {
   };
 
   return (
-    <div className={`${styles.meContainer} container mx-auto px-4 py-8`}>
-      <h2 className="text-2xl font-bold text-honey mb-6">
+    <div className={`${styles.meContainer} container mx-auto px-4 py-4 sm:py-8`}>
+      <h2 className="text-xl sm:text-2xl font-bold text-honey mb-4 sm:mb-6">
         {t('me.title')}
       </h2>
       
       {/* Profile Card */}
-      <Card className="bg-secondary border-border mb-6">
-        <CardContent className="p-6">
-          <div className="flex items-center space-x-4 mb-6">
+      <Card className="bg-secondary border-border mb-4 sm:mb-6">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex items-center space-x-3 sm:space-x-4 mb-4 sm:mb-6">
             <div className="relative">
-              <HexagonIcon className="w-16 h-16 text-honey">
-                <span className="text-2xl font-bold">L{currentLevel}</span>
+              <HexagonIcon className="w-12 h-12 sm:w-16 sm:h-16 text-honey">
+                <span className="text-lg sm:text-2xl font-bold">L{currentLevel}</span>
               </HexagonIcon>
               <Badge className="absolute -top-2 -right-2 bg-honey text-secondary">
                 L{currentLevel}
               </Badge>
             </div>
             <div className="flex-1">
-              <h3 className="text-xl font-semibold text-honey">
+              <h3 className="text-lg sm:text-xl font-semibold text-honey">
                 {userData?.username || formatAddress(walletAddress || '')}
               </h3>
               <p className="text-muted-foreground text-sm">
                 {formatAddress(walletAddress || '')}
               </p>
-              <div className="flex items-center space-x-4 mt-2">
-                <div className="text-sm">
+              <div className="flex items-center space-x-2 sm:space-x-4 mt-2">
+                <div className="text-xs sm:text-sm">
                   <span className="text-muted-foreground">BCC:</span>
                   <span className="font-medium text-honey ml-1">
                     {bccBalance?.transferable || 0}
                   </span>
                 </div>
-                <div className="text-sm">
+                <div className="text-xs sm:text-sm">
                   <span className="text-muted-foreground">Locked:</span>
                   <span className="font-medium text-honey ml-1">
                     {bccBalance?.restricted || 0}
@@ -90,13 +90,13 @@ export default function Me() {
 
       {/* Tabs */}
       <Tabs defaultValue="rewards" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 bg-secondary">
-          <TabsTrigger value="rewards" className="flex items-center gap-2">
-            <DollarSign className="w-4 h-4" />
+        <TabsList className="grid w-full grid-cols-2 bg-secondary h-auto">
+          <TabsTrigger value="rewards" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-3">
+            <DollarSign className="w-3 h-3 sm:w-4 sm:h-4" />
             {t('me.rewards') || 'Rewards'}
           </TabsTrigger>
-          <TabsTrigger value="referrals" className="flex items-center gap-2">
-            <UsersIcon className="w-4 h-4" />
+          <TabsTrigger value="referrals" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-3">
+            <UsersIcon className="w-3 h-3 sm:w-4 sm:h-4" />
             {t('me.referrals') || 'Referrals'}
           </TabsTrigger>
         </TabsList>
@@ -117,7 +117,7 @@ export default function Me() {
         </TabsContent>
 
 
-        <TabsContent value="referrals" className="space-y-6">
+        <TabsContent value="referrals" className="space-y-4 sm:space-y-6">
           {walletAddress && (
             <>
               <ReferralsMatrixComponent walletAddress={walletAddress} />
