@@ -109,6 +109,62 @@ export function registerRewardsRoutes(app: Express, requireWallet: any) {
     }
   });
 
+  // TEST ENDPOINT: Test Level N upgrade reward distribution
+  app.post("/api/rewards/test-upgrade", requireWallet, async (req: any, res) => {
+    try {
+      const { memberWallet, triggerLevel, upgradeAmount } = req.body;
+      
+      console.log(`🧪 Testing L${triggerLevel} upgrade for ${memberWallet}`);
+      
+      // Validate input
+      if (!memberWallet || !triggerLevel || triggerLevel < 1 || triggerLevel > 19) {
+        return res.status(400).json({ 
+          error: 'Invalid input. triggerLevel must be 1-19' 
+        });
+      }
+
+      // Process upgrade rewards according to Layer 1-19 specifications
+      const createdRewards = await rewardsService.processLevelUpgradeRewards({
+        memberWallet,
+        triggerLevel,
+        upgradeAmount: upgradeAmount || 0
+      });
+
+      // Return detailed test results
+      res.json({
+        success: true,
+        message: `L${triggerLevel} upgrade processed successfully`,
+        testResults: {
+          triggerLevel,
+          expectedRewardAmount: 50 + (triggerLevel * 50), // 100, 150, 200, ..., 1000
+          createdRewards: createdRewards.length,
+          rewardDetails: createdRewards.map(r => ({
+            id: r.id,
+            beneficiaryWallet: r.beneficiaryWallet,
+            amount: r.amount,
+            tokenType: r.tokenType,
+            status: r.status,
+            payoutLayer: r.payoutLayer,
+            triggerLevel: r.triggerLevel,
+            notes: r.notes
+          })),
+          specification: {
+            rule: `Level ${triggerLevel} upgrade → ${triggerLevel}th ancestor gets ${50 + (triggerLevel * 50)} USDT`,
+            eligibility: `Upline must have membership_level >= ${triggerLevel}`,
+            pending: 'If not eligible, 72h pending with expiration/reallocation',
+            platformRevenue: triggerLevel === 1 ? '+30 USDT for Level 1 only' : 'No platform fee for L2-L19'
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Test upgrade error:', error);
+      res.status(500).json({ 
+        error: 'Test upgrade failed',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Process spillover rewards (cron job endpoint)
   app.post("/api/rewards/process-spillover", async (req, res) => {
     try {

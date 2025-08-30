@@ -13,6 +13,8 @@ export interface UserReward {
   confirmedAt?: string;
   claimedAt?: string;
   txHash?: string;
+  unlockCondition?: string;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
 }
