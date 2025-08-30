@@ -156,27 +156,23 @@ export function registerAuthRoutes(app: Express, requireWallet: any) {
     }
   });
 
-  // Get authenticated user data
+  // Enhanced user status endpoint - checks registration AND NFT ownership
   app.get("/api/auth/user", requireWallet, async (req: any, res) => {
     try {
-      const userProfile = await usersService.getUserProfile(req.walletAddress);
+      const walletAddress = req.headers['x-wallet-address'] as string;
       
-      if (!userProfile) {
+      if (!walletAddress) {
+        return res.status(400).json({ error: 'Wallet address required' });
+      }
+
+      // Get comprehensive user status including NFT verification
+      const userStatus = await usersService.getUserStatusWithNFT(walletAddress);
+      
+      if (!userStatus.isRegistered) {
         return res.status(404).json({ error: 'User not found' });
       }
 
-      res.json({
-        user: userProfile.user,
-        membershipState: {
-          activeLevel: userProfile.membershipLevel
-        },
-        bccBalance: {
-          transferable: 0, // Would be fetched from balance service
-          restricted: 0
-        },
-        isActivated: userProfile.isActivated,
-        currentLevel: userProfile.membershipLevel
-      });
+      res.json(userStatus);
     } catch (error) {
       console.error('Get user error:', error);
       res.status(500).json({ error: 'Failed to get user data' });

@@ -37,12 +37,12 @@ export function useWallet() {
     }
   }, [isConnected, walletAddress]);
 
-  // Check user registration status after wallet connection
+  // Enhanced user status check - registration AND NFT ownership
   const userQuery = useQuery({
     queryKey: ['/api/auth/user'],
     enabled: !!walletAddress,
     queryFn: async () => {
-      console.log('🔍 Checking if wallet is registered:', walletAddress);
+      console.log('🔍 Checking wallet status (registration + NFT):', walletAddress);
       const response = await fetch(`/api/auth/user?t=${Date.now()}`, {
         headers: {
           'X-Wallet-Address': walletAddress!,
@@ -51,26 +51,28 @@ export function useWallet() {
       });
       if (!response.ok) {
         if (response.status === 404) {
-          console.log('👤 New user - wallet not registered');
-          return null; // User not registered
+          console.log('👤 New user - needs registration');
+          return { isRegistered: false, hasNFT: false, userFlow: 'registration' };
         }
         throw new Error('Failed to fetch user data');
       }
-      const user = await response.json();
-      console.log('✅ Existing user found:', user.username || user.walletAddress);
-      return user;
+      const userStatus = await response.json();
+      console.log('📊 User status:', userStatus.userFlow, userStatus);
+      return userStatus;
     },
     staleTime: 2000, // 2 seconds
-    refetchInterval: (data) => data ? 5000 : false, // Only refetch for existing users
+    refetchInterval: (data) => data?.isRegistered ? 5000 : false, // Only refetch for registered users
     refetchIntervalInBackground: true,
   });
   
-  const { data: userData, isLoading: isUserLoading, error: userError } = userQuery;
+  const { data: userStatus, isLoading: isUserLoading, error: userError } = userQuery;
   
-  // Determine user status for UX
+  // Enhanced user state management
   const isCheckingRegistration = isConnected && isUserLoading;
-  const isRegisteredUser = isConnected && !isUserLoading && userData !== null;
-  const isNewUser = isConnected && !isUserLoading && userData === null;
+  const isNewUser = isConnected && !isUserLoading && userStatus?.userFlow === 'registration';
+  const needsNFTClaim = isConnected && !isUserLoading && userStatus?.userFlow === 'claim_nft';
+  const isFullyActivated = isConnected && !isUserLoading && userStatus?.userFlow === 'dashboard';
+  const isRegisteredUser = isConnected && !isUserLoading && userStatus?.isRegistered;
 
   // Register new user
   const registerMutation = useMutation({
@@ -116,13 +118,16 @@ export function useWallet() {
     },
   });
 
-  const isRegistered = !!userData?.user;
-  const isActivated = userData?.user?.memberActivated;
-  const currentLevel = userData?.user?.currentLevel || 0;
-  const membershipState = userData?.membershipState;
-  const bccBalance = userData?.bccBalance;
-  const cthBalance = userData?.cthBalance;
-  const referralNode = userData?.referralNode;
+  // Extract user data from enhanced response
+  const userData = userStatus?.user;
+  const isRegistered = userStatus?.isRegistered ?? false;
+  const hasNFT = userStatus?.hasNFT ?? false;
+  const isActivated = userStatus?.isActivated ?? false;
+  const currentLevel = userStatus?.membershipLevel || userData?.currentLevel || 0;
+  const membershipState = { activeLevel: currentLevel, levelsOwned: currentLevel > 0 ? [currentLevel] : [] };
+  const bccBalance = { transferable: 0, restricted: 0 }; // Would be fetched separately
+  const cthBalance = 0;
+  const referralNode = null; // Would be fetched separately
 
   // Get user activity
   const { data: userActivity, isLoading: isActivityLoading } = useQuery({
@@ -163,12 +168,16 @@ export function useWallet() {
     isConnected,
     walletAddress,
     
-    // User registration status (enhanced)
+    // Enhanced user status (registration + NFT)
     userData,
+    userStatus,
     isUserLoading,
-    isCheckingRegistration,  // NEW: Checking if wallet is registered
-    isRegisteredUser,        // NEW: Wallet is registered
-    isNewUser,              // NEW: Wallet not registered, needs signup
+    isCheckingRegistration,  // 🔍 Checking registration + NFT status
+    isNewUser,              // 👤 Not registered, needs signup  
+    needsNFTClaim,          // 🎫 Registered but needs Level 1 NFT
+    isFullyActivated,       // ✅ Has NFT, ready for dashboard
+    isRegisteredUser,       // Registered (legacy compatibility)
+    hasNFT,                 // Has Level 1 NFT
     
     // Legacy compatibility
     isRegistered,
