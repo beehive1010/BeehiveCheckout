@@ -2,7 +2,7 @@ import { ConnectButton } from 'thirdweb/react';
 import { Card, CardContent } from '../../../components/ui/card';
 import { client, supportedChains, wallets, authConfig } from '../../../lib/web3';
 import { useI18n } from '../../../contexts/I18nContext';
-import styles from '../styles/landing.module.css';
+import styles from '../../styles/landing/landing.module.css';
 
 export function CTASection() {
   const { t } = useI18n();

@@ -1,4 +1,4 @@
-import styles from '../styles/landing.module.css';
+import styles from '../../styles/landing/landing.module.css';
 
 export function BackgroundElements() {
   return (
