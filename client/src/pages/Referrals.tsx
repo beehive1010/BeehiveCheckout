@@ -4,9 +4,10 @@ import { useI18n } from '../contexts/I18nContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { UsersIcon, ShareIcon, TrophyIcon } from '@heroicons/react/24/outline';
+import { UsersIcon, ShareIcon, TrophyIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
 import IndividualMatrixView from '../components/matrix/IndividualMatrixView';
+import { Link } from 'wouter';
 import styles from '../styles/referrals/referrals.module.css';
 
 export default function Referrals() {
@@ -23,6 +24,23 @@ export default function Referrals() {
 
   return (
     <div className={`${styles.referralsContainer} space-y-4 sm:space-y-6`}>
+      {/* Header with Back Button */}
+      <div className="flex items-center gap-3 mb-2">
+        <Link href="/dashboard">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex items-center gap-2 hover:bg-honey/10 border-honey/20"
+            data-testid="button-back-to-dashboard"
+          >
+            <ArrowLeftIcon className="w-4 h-4" />
+            <span className="hidden sm:inline">{t('nav.back') || 'Back'}</span>
+            <span className="sm:hidden">{t('nav.dashboard') || 'Dashboard'}</span>
+          </Button>
+        </Link>
+        <h1 className="text-xl sm:text-2xl font-bold text-honey">{t('nav.referrals') || 'Referrals'}</h1>
+      </div>
+
       {/* Referral Link Section */}
       <Card className="bg-secondary border-border">
         <CardHeader>
