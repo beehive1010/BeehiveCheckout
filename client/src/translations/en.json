@@ -11,11 +11,6 @@
     "home": "Home",
     "back": "Back"
   },
-  "me": {
-    "title": "Profile",
-    "rewards": "Rewards",
-    "referrals": "Referrals"
-  },
   "common": {
     "cancel": "Cancel",
     "confirm": "Confirm",
@@ -909,7 +904,9 @@
     }
   },
   "me": {
-    "title": "Profile & Settings",
+    "title": "Profile",
+    "rewards": "Rewards",
+    "referrals": "Referrals",
     "editProfile": "Edit Profile",
     "status": {
       "active": "Active",
