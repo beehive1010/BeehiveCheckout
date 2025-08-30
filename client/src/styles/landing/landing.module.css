@@ -101,6 +101,16 @@
   font-weight: 300;
 }
 
+/* Slow bounce animation for logo */
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 3s ease-in-out infinite;
+}
+
 @media (min-width: 768px) {
   .heroSubtitle {
     font-size: 1.875rem;
