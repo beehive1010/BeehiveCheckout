@@ -304,7 +304,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
                           </SelectTrigger>
                           <SelectContent>
                             {chainsData?.supportedChains?.map((chain) => (
-                              <SelectItem key={chain.id} value={chain.id}>
+                              <SelectItem key={chain.id || chain.name} value={chain.id || chain.name}>
                                 <div className="flex items-center gap-2">
                                   <span>{chain.icon}</span>
                                   <span>{chain.name}</span>

@@ -200,7 +200,7 @@ export default function USDTWithdrawal() {
     setRecipientAddress('');
   };
 
-  const selectedChainInfo = SUPPORTED_CHAINS.find(chain => chain.id === selectedChain);
+  const selectedChainInfo = SUPPORTED_CHAINS.find(chain => chain.id === selectedChain) || SUPPORTED_CHAINS[0];
 
   if (balanceLoading) {
     return (
@@ -261,7 +261,7 @@ export default function USDTWithdrawal() {
                 </SelectTrigger>
                 <SelectContent>
                   {SUPPORTED_CHAINS.map(chain => (
-                    <SelectItem key={chain.id} value={chain.id}>
+                    <SelectItem key={chain.id || chain.name} value={chain.id || chain.name}>
                       <div className="flex items-center gap-3">
                         <span className="text-lg">{chain.icon}</span>
                         <div>
