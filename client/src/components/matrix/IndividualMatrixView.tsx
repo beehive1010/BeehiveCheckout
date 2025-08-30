@@ -37,17 +37,33 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
   
   // Fetch individual user's L1-L19 matrix data
   const { data: matrixData, isLoading } = useQuery<IndividualMatrixData>({
-    queryKey: ['/api/matrix/individual'],
+    queryKey: ['/api/dashboard/matrix', walletAddress],
     enabled: !!walletAddress,
     refetchInterval: 30000,
     queryFn: async () => {
-      const response = await fetch('/api/matrix/individual', {
+      const response = await fetch('/api/dashboard/matrix', {
         headers: {
           'X-Wallet-Address': walletAddress!,
         },
       });
       if (!response.ok) throw new Error('Failed to fetch matrix data');
-      return response.json();
+      const data = await response.json();
+      
+      // Transform dashboard matrix data to IndividualMatrixData format
+      const transformedData: IndividualMatrixData = {
+        layers: data.downlineLayers?.map((layer: any) => ({
+          layerNumber: layer.layer,
+          maxMembers: layer.maxCapacity || Math.pow(3, layer.layer),
+          members: layer.members || [],
+          leftLeg: layer.members?.filter((m: any) => m.placement === 'left') || [],
+          middleLeg: layer.members?.filter((m: any) => m.placement === 'middle') || [],
+          rightLeg: layer.members?.filter((m: any) => m.placement === 'right') || [],
+        })) || [],
+        totalMembers: data.totalDownline || 0,
+        totalLevels: data.downlineLayers?.length || 0,
+      };
+      
+      return transformedData;
     },
   });
 
@@ -74,7 +90,7 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
     );
   }
 
-  if (!matrixData || matrixData.layers.length === 0) {
+  if (!matrixData || !matrixData.layers || matrixData.layers.length === 0) {
     return (
       <Card className="bg-secondary border-border">
         <CardHeader>
