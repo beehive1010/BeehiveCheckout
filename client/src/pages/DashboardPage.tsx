@@ -231,8 +231,8 @@ export default function Dashboard() {
     );
   }
 
-  // Show NFT verification requirement if user doesn't have Level 1 NFT
-  if (!hasLevel1NFT && !hasLevel1NFTFromDB && !isLoading) {
+  // Show NFT verification requirement if user doesn't have Level 1 NFT - but prioritize activated users
+  if (!hasLevel1NFT && !hasLevel1NFTFromDB && !isLoading && !isActivated) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-md">
@@ -670,7 +670,7 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {recentActivities.map((activity, index) => (
+            {recentActivities.map((activity: any, index: number) => (
               <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-honey/20 flex items-center justify-center">
