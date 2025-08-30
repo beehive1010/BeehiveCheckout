@@ -1,5 +1,5 @@
 import { Card, CardContent } from '../../../components/ui/card';
-import HexagonIcon from '../../shared/components/HexagonIcon';
+import HexagonIcon from '../shared/HexagonIcon';
 import { useI18n } from '../../../contexts/I18nContext';
 import styles from '../styles/landing.module.css';
 
