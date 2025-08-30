@@ -1391,6 +1391,17 @@
     "enrolled": "Enrolled"
   },
   "membership": {
+    "levels": {
+      "title": "Membership Levels",
+      "subtitle": "Choose your membership level to unlock more features and rewards",
+      "currentLevel": "Current Level",
+      "owned": "Owned",
+      "available": "Available",
+      "locked": "Locked",
+      "selected": "Selected",
+      "priceUSDT": "USDT Price",
+      "benefits": "Exclusive Benefits"
+    },
     "purchase": {
       "button": "Unlock Membership - 130 USDT",
       "connectWallet": "Connect Wallet to Purchase",

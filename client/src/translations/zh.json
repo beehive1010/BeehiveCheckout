@@ -1026,6 +1026,17 @@
     "enrolled": "已注册"
   },
   "membership": {
+    "levels": {
+      "title": "会员级别",
+      "subtitle": "选择您的会员级别以解锁更多功能和奖励",
+      "currentLevel": "当前级别",
+      "owned": "已拥有",
+      "available": "可购买",
+      "locked": "锁定",
+      "selected": "已选择",
+      "priceUSDT": "USDT价格",
+      "benefits": "专属权益"
+    },
     "purchase": {
       "button": "会员解锁价格 - 130 USDT",
       "connectWallet": "连接钱包进行购买",
