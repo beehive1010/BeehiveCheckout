@@ -78,8 +78,28 @@ export function OrganizationActivity({
   });
 
   const activityData = activities as OrganizationActivityItem[] || [];
-  const recentActivities = activityData.slice(0, maxItems);
-  const unreadCount = activityData.filter(item => !item.isRead).length;
+  
+  // 去重逻辑：基于用户钱包地址 + 活动类型 + 时间范围去重
+  const deduplicatedActivities = activityData.reduce((acc, current) => {
+    const timeWindow = 60 * 60 * 1000; // 1小时时间窗口
+    const currentTime = new Date(current.createdAt).getTime();
+    
+    // 检查是否有相似的活动（同一用户，同一类型，1小时内）
+    const isDuplicate = acc.some(existing => 
+      existing.actorWallet === current.actorWallet &&
+      existing.activityType === current.activityType &&
+      Math.abs(new Date(existing.createdAt).getTime() - currentTime) < timeWindow
+    );
+    
+    if (!isDuplicate) {
+      acc.push(current);
+    }
+    
+    return acc;
+  }, [] as OrganizationActivityItem[]);
+  
+  const recentActivities = deduplicatedActivities.slice(0, maxItems);
+  const unreadCount = deduplicatedActivities.filter(item => !item.isRead).length;
 
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -188,7 +208,7 @@ export function OrganizationActivity({
                     data-testid="button-view-all"
                   >
                     <MoreHorizontal className="w-3 h-3 mr-1" />
-                    {t('referrals.organization.viewMore', { count: 0 }).split(' (')[0]}
+                    {t('referrals.organization.viewMore', { count: Math.max(0, deduplicatedActivities.length - maxItems) })}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
