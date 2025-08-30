@@ -389,6 +389,46 @@
     },
     "upgradeRewards": {
       "description": "跟踪您矩阵层的升级奖励。当成员购买更高级别的NFT时，您有72小时的时间升级。"
+    },
+    "matrix": {
+      "title": "3×3强制矩阵结构",
+      "loading": "加载矩阵数据中...",
+      "noMembers": "暂无矩阵成员",
+      "noMembersDesc": "开始推荐新成员来建立您的矩阵网络",
+      "noMembersAtLevel": "第{{level}}层暂无成员",
+      "noMembersAtLevelDesc": "此层级尚未有成员加入",
+      "layer": "第{{level}}层",
+      "layerDetails": "第{{level}}层详情",
+      "layerPosition": "第{{level}}层 - {{position}}位",
+      "pathIndicator": "路径: {{path}}",
+      "navigation": {
+        "root": "根节点",
+        "backToRoot": "返回根节点",
+        "viewSubLevel": "查看下级 →"
+      },
+      "stats": {
+        "direct": "直推成员",
+        "total": "团队总数", 
+        "activeLayers": "活跃层级",
+        "totalMembers": "总成员数",
+        "newPlacements": "新安置数"
+      },
+      "position": {
+        "L": "L位",
+        "M": "M位", 
+        "R": "R位",
+        "filled": "已填充",
+        "direct": "直推",
+        "spillover": "滑落"
+      },
+      "rules": {
+        "title": "3×3强制矩阵填充规则：",
+        "rule1": "• 每个位置最多容纳3个直接下级",
+        "rule2": "• 滑落优先填充L位，再填充M位，最后填充R位",
+        "rule3": "• 绿色 = 直接推荐的成员，蓝色 = 从上线滑落的成员",
+        "rule4": "• 点击有成员的位置可以查看其下级矩阵结构",
+        "rule5": "• 最深可查看到第19层"
+      }
     }
   },
   "me": {
