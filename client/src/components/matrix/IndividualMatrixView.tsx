@@ -40,6 +40,15 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
     queryKey: ['/api/matrix/individual'],
     enabled: !!walletAddress,
     refetchInterval: 30000,
+    queryFn: async () => {
+      const response = await fetch('/api/matrix/individual', {
+        headers: {
+          'X-Wallet-Address': walletAddress!,
+        },
+      });
+      if (!response.ok) throw new Error('Failed to fetch matrix data');
+      return response.json();
+    },
   });
 
   if (isLoading) {
