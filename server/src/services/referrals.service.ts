@@ -1,4 +1,8 @@
-import { referralsRepo, usersRepo, type ReferralChainNode } from '../repositories';
+import { usersRepo, type ReferralChainNode } from '../repositories';
+import { ReferralsPostgreSQLRepository, type ReferralStats as PgReferralStats } from '../repositories/referrals-pg.repository';
+
+// Use PostgreSQL-based referrals repository instead of ReplitDB
+const referralsRepo = new ReferralsPostgreSQLRepository();
 
 export interface ReferralStats {
   directReferralCount: number;
@@ -105,8 +109,13 @@ export class ReferralsService {
   async getReferralStats(walletAddress: string): Promise<ReferralStats> {
     const wallet = walletAddress.toLowerCase();
     
-    // Get basic referral counts
-    const stats = await referralsRepo.getReferralStats(wallet);
+    // Get basic referral counts from PostgreSQL
+    const pgStats = await referralsRepo.getReferralStats(wallet);
+    const stats = {
+      directCount: pgStats.directCount,
+      totalCount: pgStats.totalCount,
+      byDepth: pgStats.byDepth
+    };
     
     // Build downline matrix view (levels 1-19)
     const downlineMatrix: Array<{
