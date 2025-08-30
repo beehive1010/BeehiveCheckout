@@ -8,14 +8,31 @@ import { useToast } from '../hooks/use-toast';
 import { useLocation } from 'wouter';
 import { useWallet } from '../hooks/useWallet';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { apiRequest } from '../lib/queryClient';
+import { apiRequest, queryClient } from '../lib/queryClient';
 import { Check, AlertCircle, User, Mail, Key, Users } from 'lucide-react';
 
 export default function Registration() {
   const { t } = useI18n();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  const { walletAddress, registerMutation } = useWallet();
+  const { walletAddress } = useWallet();
+  
+  // Create our own register mutation since useWallet might not have it
+  const registerMutation = useMutation({
+    mutationFn: async (registrationData: {
+      walletAddress: string;
+      username: string;
+      email?: string;
+      secondaryPasswordHash?: string;
+      referrerWallet?: string;
+    }) => {
+      return await apiRequest('POST', '/api/auth/register', registrationData);
+    },
+    onSuccess: () => {
+      // Invalidate user queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+    },
+  });
   
   // Form state
   const [formData, setFormData] = useState({
@@ -244,7 +261,7 @@ export default function Registration() {
 
             <Button
               type="submit"
-              disabled={registerMutation.isPending || (referrerWallet && !referrerValidation)}
+              disabled={registerMutation.isPending || (!!referrerWallet && !referrerValidation)}
               className="w-full bg-honey text-secondary hover:bg-honey/90"
               data-testid="button-register"
             >

@@ -10,13 +10,13 @@ import { useToast } from '../hooks/use-toast';
 import { Loader2, Crown, Shield, Zap, Users } from 'lucide-react';
 
 // Mock dependencies for now - these would need to be implemented
-const client = {}; // Would be your thirdweb client
+const client = { clientId: "mock", secretKey: undefined } as any; // Mock thirdweb client
 const getAdminWalletAddress = () => "0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0"; // Mock admin address
 const contractAddresses = {
   BBC_MEMBERSHIP: { alphaCentauri: "0x0000000000000000000000000000000000000000" },
   USDT: { arbitrumSepolia: "0x0000000000000000000000000000000000000000" }
 };
-const MemberNFTAbi = []; // Would be your NFT ABI
+const MemberNFTAbi: any[] = []; // Mock NFT ABI
 const transactionRateLimiter = { waitForAvailableSlot: async () => {} };
 const retryWithBackoff = async (fn: any) => await fn();
 
