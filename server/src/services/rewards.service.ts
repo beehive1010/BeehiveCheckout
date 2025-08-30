@@ -152,6 +152,138 @@ export class RewardsService {
   /**
    * Claim a specific reward
    */
+  /**
+   * Claim reward with automated Thirdweb Engine USDT transfer
+   */
+  async claimRewardWithEngine(
+    rewardId: string, 
+    claimerWallet: string, 
+    recipientAddress: string
+  ): Promise<{
+    success: boolean, 
+    transactionHash?: string, 
+    explorerUrl?: string, 
+    message: string
+  }> {
+    const reward = await rewardsRepo.getById(rewardId);
+    
+    if (!reward) {
+      throw new Error('Reward not found');
+    }
+
+    if (reward.beneficiaryWallet !== claimerWallet.toLowerCase()) {
+      throw new Error('Not authorized to claim this reward');
+    }
+
+    if (reward.status !== 'confirmed') {
+      throw new Error('Reward is not confirmed and claimable');
+    }
+
+    try {
+      // Execute USDT transfer using Thirdweb Engine
+      const transferResult = await this.executeUSDTTransfer({
+        amount: reward.rewardAmount,
+        recipientAddress,
+        rewardId
+      });
+
+      // Mark as claimed with real transaction hash
+      await rewardsRepo.setStatus(rewardId, 'claimed');
+      await rewardsRepo.markSettled([rewardId], transferResult.transactionHash);
+
+      return {
+        success: true,
+        transactionHash: transferResult.transactionHash,
+        explorerUrl: transferResult.explorerUrl,
+        message: `${reward.rewardAmount} USDT transferred successfully to your wallet`
+      };
+    } catch (error) {
+      console.error('Thirdweb Engine transfer failed:', error);
+      throw new Error(`Transfer failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Execute USDT transfer using Thirdweb Engine
+   */
+  private async executeUSDTTransfer({
+    amount,
+    recipientAddress,
+    rewardId
+  }: {
+    amount: number;
+    recipientAddress: string;
+    rewardId: string;
+  }): Promise<{
+    transactionHash: string;
+    explorerUrl?: string;
+  }> {
+    const engineUrl = process.env.THIRDWEB_ENGINE_URL;
+    const accessToken = process.env.THIRDWEB_ENGINE_ACCESS_TOKEN;
+    const serverWallet = process.env.THIRDWEB_SERVER_WALLET_ADDRESS;
+    
+    if (!engineUrl || !accessToken || !serverWallet) {
+      throw new Error('Thirdweb Engine configuration missing');
+    }
+
+    // Use Polygon for USDT transfers (chain ID 137)
+    const chainId = 137;
+    const usdtContractAddress = '0xc2132D05D31c914a87C6611C10748AEb04B58e8F'; // USDT on Polygon
+    
+    // Convert amount to wei (USDT has 6 decimals)
+    const amountWei = (amount * 1000000).toString(); // 6 decimals for USDT
+
+    const transferPayload = {
+      contractAddress: usdtContractAddress,
+      toAddress: recipientAddress,
+      amount: amountWei,
+      fromAddress: serverWallet
+    };
+
+    console.log(`🚀 Executing USDT transfer via Thirdweb Engine:`, {
+      amount: `${amount} USDT`,
+      recipient: recipientAddress,
+      rewardId
+    });
+
+    const response = await fetch(`${engineUrl}/contract/${chainId}/${usdtContractAddress}/erc20/transfer`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+        'x-backend-wallet-address': serverWallet
+      },
+      body: JSON.stringify(transferPayload)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error('Thirdweb Engine error:', errorData);
+      throw new Error(`Engine transfer failed: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    const transactionHash = result.result?.transactionHash || result.queueId;
+    
+    if (!transactionHash) {
+      throw new Error('No transaction hash returned from Engine');
+    }
+
+    // Generate Polygon explorer URL
+    const explorerUrl = `https://polygonscan.com/tx/${transactionHash}`;
+
+    console.log(`✅ USDT transfer completed:`, {
+      transactionHash,
+      explorerUrl,
+      amount: `${amount} USDT`
+    });
+
+    return {
+      transactionHash,
+      explorerUrl
+    };
+  }
+
   async claimReward(rewardId: string, claimerWallet: string): Promise<{success: boolean, txHash?: string}> {
     const reward = await rewardsRepo.getById(rewardId);
     
