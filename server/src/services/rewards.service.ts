@@ -1,5 +1,9 @@
-import { rewardsRepo, usersRepo, referralsRepo, type UserReward } from '../repositories';
+import { usersRepo, referralsRepo, type UserReward } from '../repositories';
+import { RewardsPostgreSQLRepository } from '../repositories/rewards-pg.repository';
 import crypto from 'crypto';
+
+// Use PostgreSQL-based rewards repository instead of ReplitDB
+const rewardsRepo = new RewardsPostgreSQLRepository();
 
 export interface ClaimableReward {
   id: string;
@@ -59,14 +63,13 @@ export class RewardsService {
         if (uplineUser.membershipLevel >= triggerLevel) {
           console.log(`✅ Upline qualified (L${uplineUser.membershipLevel} >= L${triggerLevel})`);
           
-          // Create confirmed reward
+          // Create confirmed reward in PostgreSQL
           const confirmedReward = await rewardsRepo.create({
-            beneficiaryWallet: uplineWallet,
-            memberWallet: member,
+            recipientWallet: uplineWallet,
+            sourceWallet: member,
             triggerLevel,
             payoutLayer: targetUpline.depth,
-            amount: rewardAmount,
-            tokenType: 'USDT',
+            rewardAmount: rewardAmount,
             status: 'confirmed',
             notes: `L${triggerLevel} upgrade reward from ${member}`
           });
@@ -74,17 +77,16 @@ export class RewardsService {
         } else {
           console.log(`⏳ Upline pending (L${uplineUser.membershipLevel} < L${triggerLevel})`);
           
-          // Create pending reward with 72h expiration
+          // Create pending reward with 72h expiration in PostgreSQL
           const pendingReward = await rewardsRepo.create({
-            beneficiaryWallet: uplineWallet,
-            memberWallet: member,
+            recipientWallet: uplineWallet,
+            sourceWallet: member,
             triggerLevel,
             payoutLayer: targetUpline.depth,
-            amount: rewardAmount,
-            tokenType: 'USDT',
+            rewardAmount: rewardAmount,
             status: 'pending',
             expiresAt: this.calculateExpirationDate(72), // 72 hours to upgrade
-            unlockCondition: `upgrade_to_level_${triggerLevel}`,
+            requiresLevel: triggerLevel,
             notes: `Pending L${triggerLevel} reward - requires upline L${triggerLevel} upgrade`
           });
           createdRewards.push(pendingReward);
