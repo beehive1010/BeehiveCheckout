@@ -2,7 +2,7 @@ import { useI18n } from '../../contexts/I18nContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import { Link } from 'wouter';
 import { ConnectButton } from 'thirdweb/react';
-import { client, supportedChains, wallets, authConfig } from '../../lib/web3';
+import { client, supportedChains, wallets } from '../../lib/web3';
 
 export default function Header() {
   const { t } = useI18n();
@@ -35,7 +35,6 @@ export default function Header() {
               chains={supportedChains}
               wallets={wallets}
               theme="dark"
-              auth={authConfig}
               connectModal={{ 
                 showThirdwebBranding: false, 
                 size: "wide",
