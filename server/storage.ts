@@ -4,6 +4,8 @@ import {
   referralNodes,
   referralLayers,
   matrixLayers,
+  matrixPositions,
+  memberMatrixLayers,
   rewardNotifications,
   userActivities,
   globalMatrixPosition,
@@ -42,6 +44,10 @@ import {
   type InsertReferralLayer,
   type MatrixLayer,
   type InsertMatrixLayer,
+  type MatrixPosition,
+  type InsertMatrixPosition,
+  type MemberMatrixLayer,
+  type InsertMemberMatrixLayer,
   type RewardNotification,
   type InsertRewardNotification,
   userNotifications,
@@ -1457,85 +1463,78 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // User-specific referral statistics
+  // User-specific referral statistics - NEW MATRIX STRUCTURE
   async getUserReferralStats(walletAddress: string): Promise<any> {
     try {
-      // Get user's global matrix position
-      const userPosition = await this.getGlobalMatrixPosition(walletAddress);
+      const lowerWallet = walletAddress.toLowerCase();
       
-      // Direct referrals count from global matrix
-      const directReferralsCount = await db.select()
-        .from(globalMatrixPosition)
-        .where(eq(globalMatrixPosition.directSponsorWallet, walletAddress.toLowerCase()));
-      const directReferrals = directReferralsCount.length;
+      // Get direct referrals from matrix_positions where this user placed members directly
+      const directReferralsResult = await db.select()
+        .from(matrixPositions)
+        .where(eq(matrixPositions.rootWallet, lowerWallet))
+        .where(eq(matrixPositions.placementType, 'direct'))
+        .where(eq(matrixPositions.isActive, true));
+      
+      const directReferrals = directReferralsResult.length;
 
-      // Total team size - simplified for now
-      const totalTeam = directReferrals; // Will expand to full recursive count later
+      // Get total team size from all members in this user's matrix
+      const totalTeamResult = await db.select()
+        .from(matrixPositions)
+        .where(eq(matrixPositions.rootWallet, lowerWallet))
+        .where(eq(matrixPositions.isActive, true));
+      
+      const totalTeam = totalTeamResult.length;
 
       // User's real earnings from earnings_wallet
       const userEarnings = await this.calculateRealEarnings(walletAddress);
       const totalEarnings = userEarnings.totalEarnings;
       const pendingRewards = userEarnings.pendingRewards;
 
-      // Recent direct referrals with real data
-      const directReferralsList = directReferralsCount.map((position) => ({
-        walletAddress: position.walletAddress,
-        username: 'User', // Will get from users table later
-        level: position.matrixLevel,
-        joinDate: position.joinedAt,
-        earnings: 0 // Will be calculated from earnings table later
-      }));
+      // Get direct referrals list with user details
+      const directReferralsList = [];
+      for (const pos of directReferralsResult.slice(0, 10)) { // Limit to 10 for performance
+        const user = await db.select()
+          .from(users)
+          .where(eq(users.walletAddress, pos.memberWallet))
+          .limit(1);
+        
+        if (user.length > 0) {
+          directReferralsList.push({
+            walletAddress: pos.memberWallet,
+            username: user[0].username || `User${pos.memberWallet.slice(-4)}`,
+            level: user[0].currentLevel || 1,
+            joinDate: pos.placedAt,
+            earnings: 0 // TODO: Calculate from earnings
+          });
+        }
+      }
 
-      // Get real downline matrix data for all 19 levels
+      // Get downline matrix data for all 19 layers from member_matrix_layers
       const downlineMatrix = [];
       for (let level = 1; level <= 19; level++) {
         try {
-          // Count members at this specific level in the user's downline
-          const levelMembersResult = await db.execute(sql`
-            WITH RECURSIVE downline_tree AS (
-              SELECT wallet_address, referrer_wallet, current_level, 1 as depth
-              FROM users 
-              WHERE referrer_wallet = ${walletAddress}
-              
-              UNION ALL
-              
-              SELECT u.wallet_address, u.referrer_wallet, u.current_level, dt.depth + 1
-              FROM users u
-              JOIN downline_tree dt ON u.referrer_wallet = dt.wallet_address
-              WHERE dt.depth < 19
-            )
-            SELECT COUNT(*) as member_count
-            FROM downline_tree 
-            WHERE current_level = ${level}
-          `);
-
-          const memberCount = Number(levelMembersResult.rows[0]?.member_count || 0);
+          // Get this user's matrix layer
+          const layerResult = await db.select()
+            .from(memberMatrixLayers)
+            .where(eq(memberMatrixLayers.rootWallet, lowerWallet))
+            .where(eq(memberMatrixLayers.layer, level))
+            .limit(1);
           
-          // Count total placements at this level (matrix positions filled)
-          const placementResult = await db.execute(sql`
-            WITH RECURSIVE downline_tree AS (
-              SELECT wallet_address, referrer_wallet, 1 as depth
-              FROM users 
-              WHERE referrer_wallet = ${walletAddress}
-              
-              UNION ALL
-              
-              SELECT u.wallet_address, u.referrer_wallet, dt.depth + 1
-              FROM users u
-              JOIN downline_tree dt ON u.referrer_wallet = dt.wallet_address
-              WHERE dt.depth < 19
-            )
-            SELECT COUNT(*) as placement_count
-            FROM downline_tree 
-            WHERE depth = ${level}
-          `);
-
-          const placementCount = Number(placementResult.rows[0]?.placement_count || 0);
+          const members = layerResult.length > 0 ? layerResult[0].totalMembers : 0;
+          
+          // Count placements at this layer (L, M, R positions)
+          const placementsResult = await db.select()
+            .from(matrixPositions)
+            .where(eq(matrixPositions.rootWallet, lowerWallet))
+            .where(eq(matrixPositions.layer, level))
+            .where(eq(matrixPositions.isActive, true));
+          
+          const placements = placementsResult.length;
 
           downlineMatrix.push({
             level,
-            members: memberCount,
-            placements: placementCount
+            members,
+            placements
           });
         } catch (error) {
           console.error(`Error fetching downline data for level ${level}:`, error);
