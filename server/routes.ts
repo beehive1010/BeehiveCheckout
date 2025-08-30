@@ -3424,7 +3424,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { walletAddress } = req.params;
       
-      const [matrixPosition] = await db.execute(sql`
+      const matrixPositionResult = await db.execute(sql`
         SELECT 
           global_position,
           layer as matrix_layer,
@@ -3440,7 +3440,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         WHERE wallet_address = ${walletAddress.toLowerCase()}
       `);
       
-      const [layerStats] = await db.execute(sql`
+      const layerStatsResult = await db.execute(sql`
         SELECT 
           COUNT(*) as total_layer_positions,
           COUNT(DISTINCT root_wallet) as direct_referrals,
@@ -3448,6 +3448,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM matrix_tree_v2 
         WHERE member_wallet = ${walletAddress.toLowerCase()}
       `);
+      
+      const matrixPosition = matrixPositionResult.rows[0] || {};
+      const layerStats = layerStatsResult.rows[0] || {};
       
       res.json({
         ...matrixPosition,
@@ -3463,13 +3466,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { walletAddress } = req.params;
       
-      const layers = await db.execute(sql`
+      const layersResult = await db.execute(sql`
         SELECT * FROM member_layer_view
         WHERE member_wallet = ${walletAddress.toLowerCase()}
         ORDER BY layer, position
       `);
       
-      res.json(layers);
+      res.json(layersResult.rows);
     } catch (error) {
       console.error('V2 Matrix layers error:', error);
       res.status(500).json({ error: 'Failed to fetch matrix layers' });
@@ -3480,13 +3483,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { rootWallet } = req.params;
       
-      const memberLayers = await db.execute(sql`
+      const memberLayersResult = await db.execute(sql`
         SELECT * FROM member_layer_view
         WHERE root_wallet = ${rootWallet.toLowerCase()}
         ORDER BY layer, position
       `);
       
-      res.json(memberLayers);
+      res.json(memberLayersResult.rows);
     } catch (error) {
       console.error('V2 Member layers error:', error);
       res.status(500).json({ error: 'Failed to fetch member layers' });
@@ -3498,13 +3501,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { walletAddress } = req.params;
       
-      const pendingRewards = await db.execute(sql`
+      const pendingRewardsResult = await db.execute(sql`
         SELECT * FROM pending_rewards_view
         WHERE current_recipient_wallet = ${walletAddress.toLowerCase()}
         ORDER BY expires_at ASC
       `);
       
-      res.json(pendingRewards);
+      res.json(pendingRewardsResult.rows);
     } catch (error) {
       console.error('V2 Pending rewards error:', error);
       res.status(500).json({ error: 'Failed to fetch pending rewards' });
@@ -3515,13 +3518,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { walletAddress } = req.params;
       
-      const claimableRewards = await db.execute(sql`
+      const claimableRewardsResult = await db.execute(sql`
         SELECT * FROM claimable_rewards_view
         WHERE root_wallet = ${walletAddress.toLowerCase()}
         ORDER BY created_at ASC
       `);
       
-      res.json(claimableRewards);
+      res.json(claimableRewardsResult.rows);
     } catch (error) {
       console.error('V2 Claimable rewards error:', error);
       res.status(500).json({ error: 'Failed to fetch claimable rewards' });
@@ -3532,12 +3535,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { walletAddress } = req.params;
       
-      const [summary] = await db.execute(sql`
+      const summaryResult = await db.execute(sql`
         SELECT * FROM reward_summary_view
         WHERE wallet_address = ${walletAddress.toLowerCase()}
       `);
       
-      res.json(summary || {
+      res.json(summaryResult.rows[0] || {
         wallet_address: walletAddress.toLowerCase(),
         username: null,
         member_activated: false,
@@ -3567,13 +3570,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const walletAddress = req.walletAddress;
       
       // Check if reward exists and is claimable
-      const [reward] = await db.execute(sql`
+      const rewardResult = await db.execute(sql`
         SELECT * FROM claimable_rewards_view
         WHERE reward_id = ${rewardId} 
           AND root_wallet = ${walletAddress}
           AND has_required_nft = true
       `);
       
+      const reward = rewardResult.rows[0];
       if (!reward) {
         return res.status(404).json({ error: 'Reward not found or not claimable' });
       }
@@ -3614,13 +3618,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { walletAddress } = req.params;
       
-      const nfts = await db.execute(sql`
+      const nftsResult = await db.execute(sql`
         SELECT * FROM membership_nfts_v2
         WHERE wallet_address = ${walletAddress.toLowerCase()}
         ORDER BY level ASC
       `);
       
-      res.json(nfts);
+      res.json(nftsResult.rows);
     } catch (error) {
       console.error('V2 Membership NFTs error:', error);
       res.status(500).json({ error: 'Failed to fetch membership NFTs' });
@@ -3631,7 +3635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { walletAddress } = req.params;
       
-      const [stats] = await db.execute(sql`
+      const statsResult = await db.execute(sql`
         SELECT 
           u.wallet_address,
           u.username,
@@ -3648,7 +3652,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         GROUP BY u.wallet_address, u.username, u.member_activated
       `);
       
-      res.json(stats || {
+      res.json(statsResult.rows[0] || {
         wallet_address: walletAddress.toLowerCase(),
         username: null,
         member_activated: false,
@@ -3667,7 +3671,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/v2/membership/pricing", async (req, res) => {
     try {
-      const pricing = await db.execute(sql`
+      const pricingResult = await db.execute(sql`
         SELECT 
           level,
           level_name,
@@ -3681,7 +3685,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY level ASC
       `);
       
-      res.json(pricing);
+      res.json(pricingResult.rows);
     } catch (error) {
       console.error('V2 Membership pricing error:', error);
       res.status(500).json({ error: 'Failed to fetch membership pricing' });
@@ -3694,20 +3698,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const walletAddress = req.walletAddress;
       
       // Get level configuration
-      const [levelConfig] = await db.execute(sql`
+      const levelConfigResult = await db.execute(sql`
         SELECT * FROM level_config WHERE level = ${level}
       `);
       
+      const levelConfig = levelConfigResult.rows[0];
       if (!levelConfig) {
         return res.status(400).json({ error: 'Invalid level' });
       }
       
       // Check if user already owns this level
-      const [existing] = await db.execute(sql`
+      const existingResult = await db.execute(sql`
         SELECT id FROM membership_nfts_v2 
         WHERE wallet_address = ${walletAddress} AND level = ${level}
       `);
       
+      const existing = existingResult.rows[0];
       if (existing) {
         return res.status(400).json({ error: 'Level already owned' });
       }
@@ -3724,9 +3730,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         )
       `);
       
-      // TODO: Implement matrix placement logic
-      // TODO: Implement reward distribution logic
-      // TODO: Create platform revenue record for Level 1
+      // Implement matrix placement logic (Level 1 activation only)
+      if (level === 1) {
+        await activateUserInMatrix(walletAddress, levelConfig);
+      }
+      
+      // Create platform revenue record for Level 1 only
+      if (level === 1) {
+        await db.execute(sql`
+          INSERT INTO platform_revenue_v2 (
+            id, trigger_wallet, trigger_level, revenue_amount_usdt, 
+            revenue_type, nft_price_usdt, created_at, status
+          ) VALUES (
+            ${crypto.randomUUID()}, ${walletAddress}, 1, 3000, 
+            'level_1_fixed_fee', ${levelConfig.price_usdt}, NOW(), 'pending'
+          )
+        `);
+      }
       
       res.json({ 
         success: true, 
@@ -3742,6 +3762,177 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   return httpServer;
+}
+
+// ====================================
+// V2 MATRIX PLACEMENT & REWARD LOGIC
+// Global 1×3 Spillover System
+// ====================================
+
+async function activateUserInMatrix(walletAddress: string, levelConfig: any) {
+  try {
+    // 1. Find next available global position (Left → Middle → Right → Next Layer)
+    const nextPosition = await findNextGlobalPosition();
+    
+    // 2. Determine root wallet and parent for this position
+    const { rootWallet, parentWallet, directSponsor, placementSponsor } = await calculatePlacement(nextPosition, walletAddress);
+    
+    // 3. Place user in global matrix
+    await db.execute(sql`
+      INSERT INTO global_matrix_positions_v2 (
+        id, wallet_address, global_position, layer, position_in_layer,
+        parent_wallet, root_wallet, direct_sponsor_wallet, placement_sponsor_wallet,
+        activated_at, last_active_at
+      ) VALUES (
+        ${crypto.randomUUID()}, ${walletAddress}, ${nextPosition.global}, 
+        ${nextPosition.layer}, ${nextPosition.position},
+        ${parentWallet}, ${rootWallet}, ${directSponsor}, ${placementSponsor},
+        NOW(), NOW()
+      )
+    `);
+    
+    // 4. Add to root's matrix tree
+    await db.execute(sql`
+      INSERT INTO matrix_tree_v2 (
+        id, root_wallet, layer, member_wallet, position, parent_wallet, 
+        joined_tree_at, last_updated
+      ) VALUES (
+        ${crypto.randomUUID()}, ${rootWallet}, ${nextPosition.layer}, 
+        ${walletAddress}, ${nextPosition.position}, ${parentWallet},
+        NOW(), NOW()
+      )
+    `);
+    
+    // 5. Create layer-based reward for root
+    await createLayerReward(rootWallet, walletAddress, 1, nextPosition.layer, nextPosition.position);
+    
+    console.log(`✅ User ${walletAddress} activated in global position ${nextPosition.global} (Layer ${nextPosition.layer}, Position ${nextPosition.position})`);
+  } catch (error) {
+    console.error('Matrix activation error:', error);
+    throw error;
+  }
+}
+
+async function findNextGlobalPosition() {
+  // Find the next available position following strict Left → Middle → Right → Next Layer
+  const maxPositionResult = await db.execute(sql`
+    SELECT COALESCE(MAX(global_position), -1) as max_global_position
+    FROM global_matrix_positions_v2
+  `);
+  
+  const maxPosition = maxPositionResult.rows[0];
+  const nextGlobalPosition = (maxPosition?.max_global_position || -1) + 1;
+  
+  // Calculate layer and position from global position
+  // Layer 1: positions 0,1,2 (3 positions)
+  // Layer 2: positions 3,4,5,6,7,8,9,10,11 (9 positions)  
+  // Layer N: 3^N positions
+  
+  let layer = 1;
+  let layerStartPosition = 0;
+  let layerSize = 3;
+  
+  while (nextGlobalPosition >= layerStartPosition + layerSize) {
+    layerStartPosition += layerSize;
+    layer++;
+    layerSize = Math.pow(3, layer);
+  }
+  
+  const positionInLayer = nextGlobalPosition - layerStartPosition;
+  
+  return {
+    global: nextGlobalPosition,
+    layer: layer,
+    position: positionInLayer
+  };
+}
+
+async function calculatePlacement(position: any, newUserWallet: string) {
+  // For global spillover placement
+  if (position.layer === 1) {
+    // Layer 1: First user is root of their own tree
+    if (position.global === 0) {
+      return {
+        rootWallet: newUserWallet,
+        parentWallet: null,
+        directSponsor: newUserWallet, // Self-sponsored (first user)
+        placementSponsor: newUserWallet // Self-placed (first user)
+      };
+    } else {
+      // Subsequent Layer 1 users go under the first user (position 0)
+      const rootUserResult = await db.execute(sql`
+        SELECT wallet_address FROM global_matrix_positions_v2 
+        WHERE global_position = 0
+      `);
+      
+      const rootUser = rootUserResult.rows[0];
+      return {
+        rootWallet: rootUser?.wallet_address || newUserWallet,
+        parentWallet: rootUser?.wallet_address || null,
+        directSponsor: rootUser?.wallet_address || newUserWallet, // For demo, root sponsors all
+        placementSponsor: rootUser?.wallet_address || newUserWallet
+      };
+    }
+  } else {
+    // Layer 2+: Find parent based on 1×3 tree structure
+    const parentGlobalPosition = Math.floor((position.global - Math.pow(3, position.layer-1)) / 3);
+    
+    const parentUserResult = await db.execute(sql`
+      SELECT wallet_address, root_wallet FROM global_matrix_positions_v2 
+      WHERE global_position = ${parentGlobalPosition}
+    `);
+    
+    const parentUser = parentUserResult.rows[0];
+    return {
+      rootWallet: parentUser?.root_wallet || newUserWallet,
+      parentWallet: parentUser?.wallet_address || null,
+      directSponsor: parentUser?.root_wallet || newUserWallet, // Root sponsors spillover
+      placementSponsor: parentUser?.wallet_address || newUserWallet
+    };
+  }
+}
+
+async function createLayerReward(rootWallet: string, triggerWallet: string, triggerLevel: number, triggerLayer: number, triggerPosition: number) {
+  // Skip self-rewards (root can't reward themselves)
+  if (rootWallet === triggerWallet) {
+    return;
+  }
+  
+  // Get reward amount: Level 1 = 100 USDT per slot, Level N = Level N NFT price
+  const rewardAmount = triggerLevel === 1 ? 10000 : (5000 + (triggerLevel * 5000)); // 100 USDT for L1, L2=150, L3=200, etc.
+  const requiredLevel = triggerLayer; // Root needs Level = Layer to qualify
+  
+  // Check if root has required level
+  const rootLevelResult = await db.execute(sql`
+    SELECT MAX(level) as max_level FROM membership_nfts_v2 
+    WHERE wallet_address = ${rootWallet} AND status = 'active'
+  `);
+  
+  const rootLevel = rootLevelResult.rows[0];
+  const isQualified = (rootLevel?.max_level || 0) >= requiredLevel;
+  
+  // Special rule: Layer 1 Right position requires Level 2
+  let specialRule = null;
+  let finalQualified = isQualified;
+  
+  if (triggerLayer === 1 && triggerPosition === 2) { // Layer 1 Right
+    specialRule = 'layer_1_right_needs_level_2';
+    finalQualified = (rootLevel?.max_level || 0) >= 2; // Requires Level 2, not Level 1
+  }
+  
+  // Create layer reward
+  await db.execute(sql`
+    INSERT INTO layer_rewards_v2 (
+      id, root_wallet, trigger_wallet, trigger_level, trigger_layer, trigger_position,
+      reward_amount_usdt, required_level, qualified, status, special_rule, created_at
+    ) VALUES (
+      ${crypto.randomUUID()}, ${rootWallet}, ${triggerWallet}, ${triggerLevel}, 
+      ${triggerLayer}, ${triggerPosition}, ${rewardAmount}, ${requiredLevel}, 
+      ${finalQualified}, 'pending', ${specialRule}, NOW()
+    )
+  `);
+  
+  console.log(`💰 Layer reward created: ${triggerWallet} (L${triggerLevel}) → ${rootWallet} (Layer ${triggerLayer}, Pos ${triggerPosition}) = $${rewardAmount/100} ${finalQualified ? '✅' : '⏳'}`);
 }
 
 // Helper functions
