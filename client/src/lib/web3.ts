@@ -404,10 +404,62 @@ export const paymentUtils = {
 };
 
 // Error handling utilities
+// Get USDT contract for specific chain
+export function getUSDTContract(chainId: number) {
+  const chain = getChainById(chainId);
+  const chainKey = Object.keys(contractAddresses.USDT).find(key => {
+    const chainMap = { ethereum: 1, polygon: 137, arbitrum: 42161, optimism: 10, bsc: 56, base: 8453, alphaCentauri: 141941, arbitrumSepolia: 421614 };
+    return chainMap[key as keyof typeof chainMap] === chainId;
+  });
+  
+  if (!chainKey || !contractAddresses.USDT[chainKey as keyof typeof contractAddresses.USDT]) {
+    throw new Error(`USDT not supported on chain ${chainId}`);
+  }
+  
+  return getContract({
+    client,
+    chain,
+    address: contractAddresses.USDT[chainKey as keyof typeof contractAddresses.USDT],
+  });
+}
+
+// Get blockchain explorer URL for transaction  
+export function getExplorerUrl(chainId: number, txHash: string): string {
+  const explorers = {
+    1: 'https://etherscan.io/tx/',
+    137: 'https://polygonscan.com/tx/', 
+    42161: 'https://arbiscan.io/tx/',
+    10: 'https://optimistic.etherscan.io/tx/',
+    56: 'https://bscscan.com/tx/',
+    8453: 'https://basescan.org/tx/',
+    421614: 'https://sepolia.arbiscan.io/tx/', // Arbitrum Sepolia
+    141941: 'https://explorer.alpha-centauri.io/tx/',
+  };
+  
+  return `${explorers[chainId as keyof typeof explorers] || explorers[1]}${txHash}`;
+}
+
+// USDT decimal places for different chains
+export function getUSDTDecimals(chainId: number): number {
+  // Most USDT contracts use 6 decimals, except some that use 18
+  const decimalsMap = {
+    1: 6, // Ethereum USDT
+    137: 6, // Polygon USDT  
+    42161: 6, // Arbitrum USDT
+    10: 6, // Optimism USDT
+    56: 18, // BSC USDT 
+    8453: 6, // Base USDC
+    421614: 6, // Arbitrum Sepolia test USDT
+    141941: 18, // Alpha Centauri USDT
+  };
+  
+  return decimalsMap[chainId as keyof typeof decimalsMap] || 6;
+}
+
 export const web3ErrorHandler = (error: any): string => {
   if (error?.message) {
     // Handle common Web3 errors
-    if (error.message.includes('User denied')) {
+    if (error.message.includes('User denied') || error.message.includes('user rejected')) {
       return 'Transaction was rejected by user';
     }
     if (error.message.includes('insufficient funds')) {
@@ -415,6 +467,9 @@ export const web3ErrorHandler = (error: any): string => {
     }
     if (error.message.includes('gas')) {
       return 'Transaction failed due to gas issues';
+    }
+    if (error.message.includes('replacement fee too low')) {
+      return 'Transaction fee too low, please try again';
     }
     return error.message;
   }
