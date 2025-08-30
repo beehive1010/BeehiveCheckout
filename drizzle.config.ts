@@ -1,14 +1,7 @@
 import { defineConfig } from "drizzle-kit";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL, ensure the database is provisioned");
-}
-
 export default defineConfig({
-  out: "./migrations",
-  schema: "./shared/schema.ts",
+  out: "./supabase/migrations",   // 输出目录
+  schema: "./shared/schema.ts",   // 你的 schema 文件路径
   dialect: "postgresql",
-  dbCredentials: {
-    url: process.env.DATABASE_URL,
-  },
 });
