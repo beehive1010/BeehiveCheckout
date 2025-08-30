@@ -98,8 +98,45 @@ export class UsersService {
     membershipLevel?: number;
     isActivated?: boolean;
   }> {
-    // Check if user is registered
-    const user = await usersRepo.getByWallet(walletAddress);
+    console.log(`🔍 Checking user status for: ${walletAddress}`);
+    
+    // Check if user is registered in ReplitDB
+    let user = await usersRepo.getByWallet(walletAddress);
+    console.log(`📁 ReplitDB lookup result:`, user ? 'FOUND' : 'NOT_FOUND');
+    
+    // If not in ReplitDB, check PostgreSQL and sync if needed
+    if (!user) {
+      console.log(`🔄 Checking PostgreSQL database...`);
+      try {
+        // Import to avoid circular dependency 
+        const { storage } = await import('../../storage');
+        const pgUser = await storage.getUser(walletAddress.toLowerCase());
+        
+        if (pgUser && pgUser.memberActivated) {
+          console.log(`✅ Found activated user in PostgreSQL, syncing to auth system...`);
+          
+          // Create ReplitDB user from PostgreSQL data
+          const syncedUser = {
+            walletAddress: pgUser.walletAddress,
+            username: pgUser.username || '',
+            isActivated: pgUser.memberActivated,
+            membershipLevel: pgUser.currentLevel || 1,
+            registeredAt: pgUser.registeredAt?.toISOString() || pgUser.createdAt?.toISOString() || new Date().toISOString(),
+            referrerWallet: pgUser.referrerWallet || '',
+            createdAt: pgUser.createdAt?.toISOString() || new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          
+          await usersRepo.set(syncedUser);
+          user = syncedUser;
+          console.log(`🔄 User data synced successfully!`);
+        } else {
+          console.log(`❌ User not found in PostgreSQL or not activated`);
+        }
+      } catch (error) {
+        console.error(`🚨 PostgreSQL sync failed:`, error);
+      }
+    }
     
     if (!user) {
       return {
