@@ -195,9 +195,9 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
               <div className="text-2xl font-bold text-honey">{claimableRewards.length}</div>
               <div className="text-sm text-muted-foreground">Ready to Claim</div>
             </div>
-            <div className="text-center p-3 bg-orange-500/5 rounded-lg">
-              <div className="text-2xl font-bold text-orange-400">{pendingRewards.length}</div>
-              <div className="text-sm text-muted-foreground">Pending</div>
+            <div className="text-center p-3 bg-green-500/5 rounded-lg">
+              <div className="text-2xl font-bold text-green-400">${totalClaimable.toFixed(2)}</div>
+              <div className="text-sm text-muted-foreground">Total Value</div>
             </div>
           </div>
           
@@ -254,51 +254,9 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
         </div>
       )}
 
-      {/* Pending Rewards */}
-      {pendingRewards.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-orange-400">Pending Rewards</h3>
-          {pendingRewards.map((reward) => (
-            <Card key={reward.id} className="bg-secondary border-border opacity-60">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/30">
-                        ${reward.rewardAmount} USDT
-                      </Badge>
-                      <Badge variant="secondary">
-                        Layer {reward.payoutLayer}
-                      </Badge>
-                    </div>
-                    <div className="text-sm text-muted-foreground space-y-1">
-                      <div>Position: {reward.matrixPosition}</div>
-                      <div>
-                        {reward.unlockCondition && (
-                          <span className="text-orange-400">Requires: {reward.unlockCondition}</span>
-                        )}
-                      </div>
-                      {reward.expiresAt && (
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          Expires: {formatDate(reward.expiresAt)}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <Button variant="outline" disabled>
-                    <Clock className="w-4 h-4 mr-2" />
-                    Pending
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
 
       {/* No Rewards Message */}
-      {claimableRewards.length === 0 && pendingRewards.length === 0 && (
+      {claimableRewards.length === 0 && (
         <Card className="bg-secondary border-border">
           <CardContent className="p-6 text-center">
             <Gift className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
