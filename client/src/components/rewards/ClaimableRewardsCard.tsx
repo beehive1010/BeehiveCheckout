@@ -9,6 +9,8 @@ import { apiRequest } from '@/lib/queryClient';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useActiveWalletChain } from 'thirdweb/react';
+import { getChainById } from '@/lib/web3';
 
 interface ClaimableReward {
   id: string;
@@ -50,6 +52,17 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
   const [selectedChain, setSelectedChain] = useState<string>('');
   const [gasConfirmed, setGasConfirmed] = useState(false);
   const [claimingRewardId, setClaimingRewardId] = useState<string | null>(null);
+  
+  // Get active chain from wallet
+  const activeChain = useActiveWalletChain();
+  const currentChain = getChainById(activeChain?.id);
+  
+  // Set default selected chain to current active chain
+  React.useEffect(() => {
+    if (activeChain?.id && !selectedChain) {
+      setSelectedChain(activeChain.id.toString());
+    }
+  }, [activeChain?.id, selectedChain]);
 
   // Fetch claimable rewards
   const { data: rewardsData, isLoading } = useQuery<ClaimableRewardsResponse>({
@@ -307,6 +320,12 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
                       
                       <div className="space-y-2">
                         <label className="text-sm font-medium">Select Blockchain:</label>
+                        {currentChain && (
+                          <div className="text-xs text-muted-foreground flex items-center gap-1 mb-1">
+                            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                            Currently connected to {currentChain.name}
+                          </div>
+                        )}
                         <Select value={selectedChain} onValueChange={setSelectedChain}>
                           <SelectTrigger>
                             <SelectValue placeholder="Choose chain for withdrawal" />
@@ -320,6 +339,11 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
                                   <Badge variant="outline" className="text-xs">
                                     {chain.symbol}
                                   </Badge>
+                                  {activeChain?.id.toString() === (chain.id || chain.name) && (
+                                    <Badge variant="default" className="text-xs bg-green-500">
+                                      Active
+                                    </Badge>
+                                  )}
                                 </div>
                               </SelectItem>
                             ))}
