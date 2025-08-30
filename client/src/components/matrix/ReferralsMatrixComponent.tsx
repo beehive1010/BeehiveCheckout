@@ -342,7 +342,7 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
                         <Button
                           variant="outline"
                           size="sm"
-                          className="mt-2 text-xs text-honey border-honey hover:bg-honey/10"
+                          className="mt-2 text-xs sm:text-sm px-2 py-1 h-auto text-honey border-honey hover:bg-honey/10 whitespace-nowrap"
                           onClick={() => handlePositionClick(viewingLevel, position.name)}
                           data-testid={`explore-${position.name}-${viewingLevel}`}
                         >
