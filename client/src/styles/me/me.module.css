@@ -1,0 +1,24 @@
+.meContainer {
+  min-height: 100vh;
+}
+
+.profileCard {
+  background: linear-gradient(135deg, var(--secondary) 0%, var(--muted) 100%);
+  border: 1px solid var(--border);
+}
+
+.statCard {
+  transition: transform 0.2s ease-in-out;
+}
+
+.statCard:hover {
+  transform: translateY(-2px);
+}
+
+.activityItem {
+  transition: background-color 0.2s ease-in-out;
+}
+
+.activityItem:hover {
+  background-color: var(--muted);
+}

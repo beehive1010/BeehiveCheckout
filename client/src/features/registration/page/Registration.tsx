@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
-import { useWallet } from '../hooks/useWallet';
-import { useI18n } from '../contexts/I18nContext';
+import { useWallet } from '../../../hooks/useWallet';
+import { useI18n } from '../../../contexts/I18nContext';
 import { useLocation } from 'wouter';
-import { Button } from '../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import { Badge } from '../components/ui/badge';
-import { Alert, AlertDescription } from '../components/ui/alert';
-import { useToast } from '../hooks/use-toast';
-import HexagonIcon from '../components/UI/HexagonIcon';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Input } from '../../../components/ui/input';
+import { Label } from '../../../components/ui/label';
+import { Badge } from '../../../components/ui/badge';
+import { Alert, AlertDescription } from '../../../components/ui/alert';
+import { useToast } from '../../../hooks/use-toast';
+import HexagonIcon from '../../shared/components/HexagonIcon';
 import { Clock, AlertCircle, CheckCircle } from 'lucide-react';
 import bcrypt from 'bcryptjs';
 

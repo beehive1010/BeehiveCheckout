@@ -1,12 +1,12 @@
-import { useWallet } from '../hooks/useWallet';
-import { useUserReferralStats } from '../hooks/useBeeHiveStats';
-import { useI18n } from '../contexts/I18nContext';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
+import { useWallet } from '../../../hooks/useWallet';
+import { useUserReferralStats } from '../../../hooks/useBeeHiveStats';
+import { useI18n } from '../../../contexts/I18nContext';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Button } from '../../../components/ui/button';
+import { Badge } from '../../../components/ui/badge';
 import { UsersIcon, ShareIcon, TrophyIcon } from '@heroicons/react/24/outline';
-import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
-import IndividualMatrixView from '../components/matrix/IndividualMatrixView';
+import ClaimableRewardsCard from '../../rewards/components/ClaimableRewardsCard';
+import IndividualMatrixView from '../../matrix/components/IndividualMatrixView';
 
 function Referrals() {
   const { userData, walletAddress } = useWallet();

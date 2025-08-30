@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
-import { Label } from '../../components/ui/label';
-import { useToast } from '../../hooks/use-toast';
+import { Button } from '../../../components/ui/button';
+import { Input } from '../../../components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Label } from '../../../components/ui/label';
+import { useToast } from '../../../hooks/use-toast';
 import { motion } from 'framer-motion';
-import HexagonIcon from '../../components/UI/HexagonIcon';
+import HexagonIcon from '../../shared/components/HexagonIcon';
 import { Shield, Lock, User } from 'lucide-react';
 
 export default function AdminLogin() {

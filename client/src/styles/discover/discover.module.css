@@ -1,0 +1,39 @@
+.discoverContainer {
+  min-height: 100vh;
+}
+
+.partnerCard {
+  transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.partnerCard:hover {
+  transform: translateY(-2px);
+  border-color: var(--honey);
+}
+
+.partnerLogo {
+  transition: transform 0.2s ease-in-out;
+}
+
+.partnerCard:hover .partnerLogo {
+  transform: scale(1.05);
+}
+
+.searchContainer {
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.categoryTabs {
+  background: var(--secondary);
+  border: 1px solid var(--border);
+}
+
+.visitButton {
+  transition: all 0.2s ease-in-out;
+}
+
+.visitButton:hover {
+  transform: translateY(-1px);
+}

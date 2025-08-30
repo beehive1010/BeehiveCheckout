@@ -1,10 +1,10 @@
-import { useI18n } from '../contexts/I18nContext';
-import { Card, CardContent } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
+import { useI18n } from '../../../contexts/I18nContext';
+import { Card, CardContent } from '../../../components/ui/card';
+import { Button } from '../../../components/ui/button';
+import { Badge } from '../../../components/ui/badge';
 import { useLocation, useRoute } from 'wouter';
 import { ArrowLeft, Calendar, User, Eye, Share2, Twitter, Facebook, Linkedin } from 'lucide-react';
-import { useToast } from '../hooks/use-toast';
+import { useToast } from '../../../hooks/use-toast';
 
 // Mock blog data - same as in HiveWorld
 const mockBlogs = [

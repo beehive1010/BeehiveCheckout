@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { useI18n } from '../contexts/I18nContext';
-import { Card, CardContent } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
+import { useI18n } from '../../../contexts/I18nContext';
+import { Card, CardContent } from '../../../components/ui/card';
+import { Button } from '../../../components/ui/button';
+import { Input } from '../../../components/ui/input';
 import { useLocation } from 'wouter';
 
 interface DApp {

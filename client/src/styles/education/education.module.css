@@ -1,0 +1,27 @@
+.educationContainer {
+  min-height: 100vh;
+}
+
+.courseCard {
+  transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.courseCard:hover {
+  transform: translateY(-2px);
+  border-color: var(--honey);
+}
+
+.progressBar {
+  background: linear-gradient(90deg, var(--honey) 0%, var(--honey-dark) 100%);
+}
+
+.searchContainer {
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.filterSelect {
+  background: var(--secondary);
+  border: 1px solid var(--border);
+}

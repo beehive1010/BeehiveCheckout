@@ -8,50 +8,51 @@ import { I18nProvider } from "./contexts/I18nContext";
 import { ThemeProvider } from "next-themes";
 import { Toaster as HotToaster } from "react-hot-toast";
 
-// Feature-based pages
-import LandingPage from "@/features/landing/page/LandingPage";
-import DashboardPage from "@/features/dashboard/page/DashboardPage";
-
-// Pages (to be refactored)
-import Registration from "@/pages/Registration";
-import Welcome from "@/pages/Welcome";
-import Tasks from "@/pages/Tasks";
+// Refactored pages with clean architecture
+import LandingPage from "@/pages/LandingPage";
+import DashboardPage from "@/pages/DashboardPage";
 import Education from "@/pages/Education";
-import CourseDetails from "@/pages/CourseDetails";
-import Discover from "@/pages/Discover";
 import HiveWorld from "@/pages/HiveWorld";
-import BlogPost from "@/pages/BlogPost";
 import Me from "@/pages/Me";
-import AdvertisementNFTs from "@/pages/AdvertisementNFTs";
 import NFTCenter from "@/pages/NFTCenter";
-import AdminNFTManager from "@/pages/AdminNFTManager";
-import TokenPurchase from "@/components/tokens/TokenPurchase";
-import NotFound from "@/pages/not-found";
+import Referrals from "@/pages/Referrals";
+import Discover from "@/pages/Discover";
+
+// Legacy feature-based pages (to be refactored)
+import Registration from "@/features/registration/page/Registration";
+import Welcome from "@/features/welcome/page/Welcome";
+import Tasks from "@/features/tasks/page/Tasks";
+import CourseDetails from "@/features/education/page/CourseDetails";
+import BlogPost from "@/features/blog/page/BlogPost";
+import AdvertisementNFTs from "@/features/nft/page/AdvertisementNFTs";
+import AdminNFTManager from "@/features/admin/page/AdminNFTManager";
+import TokenPurchase from "@/features/tokens/components/TokenPurchase";
+import NotFound from "@/features/shared/page/not-found";
 
 // Admin Panel
-import AdminLogin from "@/pages/admin/AdminLogin";
-import AdminDashboard from "@/pages/admin/AdminDashboard";
-import AdminUsers from "./pages/admin/AdminUsers";
-import AdminUserManagement from "@/pages/admin/AdminUserManagement";
-import AdminReferrals from "@/pages/admin/AdminReferrals";
-import AdminNFTs from "@/pages/admin/AdminNFTs";
-import AdminContracts from "@/pages/admin/AdminContracts";
-import AdminContractDetail from "@/pages/admin/AdminContractDetail";
-import AdminContractDeploy from "@/pages/admin/AdminContractDeploy";
-import AdminCourses from "@/pages/admin/AdminCourses";
-import AdminBlog from "@/pages/admin/AdminBlog";
-import AdminSystem from "@/pages/admin/AdminSystem";
-import AdminDiscover from "@/pages/admin/AdminDiscover";
-import Courses from "@/pages/Courses";
-import DiscoverPartners from "@/pages/DiscoverPartners";
-import { AdminLayout } from "@/components/admin/AdminLayout";
-import { AdminRouteGuard } from "@/components/admin/AdminRouteGuard";
+import AdminLogin from "@/features/admin/page/AdminLogin";
+import AdminDashboard from "@/features/admin/page/AdminDashboard";
+import AdminUsers from "@/features/admin/page/AdminUsers";
+import AdminUserManagement from "@/features/admin/page/AdminUserManagement";
+import AdminReferrals from "@/features/admin/page/AdminReferrals";
+import AdminNFTs from "@/features/admin/page/AdminNFTs";
+import AdminContracts from "@/features/admin/page/AdminContracts";
+import AdminContractDetail from "@/features/admin/page/AdminContractDetail";
+import AdminContractDeploy from "@/features/admin/page/AdminContractDeploy";
+import AdminCourses from "@/features/admin/page/AdminCourses";
+import AdminBlog from "@/features/admin/page/AdminBlog";
+import AdminSystem from "@/features/admin/page/AdminSystem";
+import AdminDiscover from "@/features/admin/page/AdminDiscover";
+import Courses from "@/features/education/page/Courses";
+import DiscoverPartners from "@/features/discover/page/DiscoverPartners";
+import { AdminLayout } from "@/features/admin/components/AdminLayout";
+import { AdminRouteGuard } from "@/features/admin/components/AdminRouteGuard";
 
 // Layout components
-import Header from "@/components/Layout/Header";
-import Navigation from "@/components/Layout/Navigation";
-import Footer from "@/components/Layout/Footer";
-import { RouteGuard } from "@/components/RouteGuard";
+import Header from "@/features/shared/components/Header";
+import Navigation from "@/features/shared/components/Navigation";
+import Footer from "@/features/shared/components/Footer";
+import { RouteGuard } from "@/features/shared/components/RouteGuard";
 
 function Router() {
   const [location] = useLocation();
@@ -176,8 +177,7 @@ function Router() {
         <Route path="/education" component={Education} />
         <Route path="/education/:courseId" component={CourseDetails} />
         <Route path="/discover" component={Discover} />
-        <Route path="/courses" component={Courses} />
-        <Route path="/discover-partners" component={DiscoverPartners} />
+        <Route path="/referrals" component={Referrals} />
         <Route path="/me" component={Me} />
         <Route path="/ads" component={AdvertisementNFTs} />
         <Route path="/nft-center" component={NFTCenter} />

@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useI18n } from '../contexts/I18nContext';
+import { useI18n } from '../../../contexts/I18nContext';
 import { useLocation } from 'wouter';
 import { useActiveAccount } from 'thirdweb/react';
-import { Button } from '../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { useToast } from '../hooks/use-toast';
-import { useNFTVerification } from '../hooks/useNFTVerification';
-import ClaimMembershipButton from '../components/membership/ClaimMembershipButton';
-import DemoPaymentButton from '../components/membership/DemoPaymentButton';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import { useToast } from '../../../hooks/use-toast';
+import { useNFTVerification } from '../../../hooks/useNFTVerification';
+import ClaimMembershipButton from '../../membership/components/ClaimMembershipButton';
+import DemoPaymentButton from '../../membership/components/DemoPaymentButton';
 
 export default function Welcome() {
   const { t } = useI18n();
