@@ -60,83 +60,20 @@ export const users = pgTable("users", {
   isCompanyDirectReferral: boolean("is_company_direct_referral").default(false),
 });
 
-// Membership state table
-export const membershipState = pgTable("membership_state", {
-  walletAddress: varchar("wallet_address", { length: 42 })
-    .primaryKey()
-    .references(() => users.walletAddress),
-  levelsOwned: jsonb("levels_owned").$type<number[]>().default([]).notNull(),
-  activeLevel: integer("active_level").default(0).notNull(),
-  joinedAt: timestamp("joined_at"),
-  lastUpgradeAt: timestamp("last_upgrade_at"),
-});
+// V1 DEPRECATED - Use membership_nfts_v2 instead
+// membershipState table kept for backward compatibility only
 
-// Referral nodes table - Enhanced for 3x3 matrix system
-export const referralNodes = pgTable("referral_nodes", {
-  walletAddress: varchar("wallet_address", { length: 42 })
-    .primaryKey()
-    .references(() => users.walletAddress),
-  sponsorWallet: varchar("sponsor_wallet", { length: 42 }), // Direct sponsor (upline)
-  placerWallet: varchar("placer_wallet", { length: 42 }), // Who placed this member (for spillover)
-  matrixPosition: integer("matrix_position").default(0).notNull(), // 0-8 position in 3x3 matrix
-  leftLeg: jsonb("left_leg").$type<string[]>().default([]).notNull(), // Left leg positions 0,1,2
-  middleLeg: jsonb("middle_leg").$type<string[]>().default([]).notNull(), // Middle leg positions 3,4,5
-  rightLeg: jsonb("right_leg").$type<string[]>().default([]).notNull(), // Right leg positions 6,7,8
-  directReferralCount: integer("direct_referral_count").default(0).notNull(),
-  totalTeamCount: integer("total_team_count").default(0).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+// V1 DEPRECATED - Use matrix_tree_v2 instead
+// referralNodes table kept for backward compatibility only
 
-// 19-Layer referral tree tracking for each user
-export const referralLayers = pgTable("referral_layers", {
-  id: varchar("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  walletAddress: varchar("wallet_address", { length: 42 })
-    .notNull()
-    .references(() => users.walletAddress),
-  layerNumber: integer("layer_number").notNull(), // 1-19
-  memberCount: integer("member_count").default(0).notNull(),
-  members: jsonb("members").$type<string[]>().default([]).notNull(), // Array of wallet addresses in this layer
-  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
-  placementTypes: text("placement_types"), // Track placement type information
-});
+// V1 DEPRECATED - Use matrix_tree_v2 with layer tracking instead
+// referralLayers table kept for backward compatibility only
 
-// Matrix layers table - tracks the matrix structure
-export const matrixLayers = pgTable(
-  "matrix_layers",
-  {
-    walletAddress: varchar("wallet_address", { length: 42 })
-      .notNull()
-      .references(() => users.walletAddress),
-    layer: integer("layer").notNull(),
-    members: jsonb("members").$type<string[]>().default([]),
-    memberCount: integer("member_count").default(0),
-    maxMembers: integer("max_members"),
-    createdAt: timestamp("created_at").defaultNow(),
-  },
-  (table) => ({
-    pk: primaryKey({ columns: [table.walletAddress, table.layer] }),
-  }),
-);
+// V1 DEPRECATED - Use matrix_tree_v2 instead
+// matrixLayers table kept for backward compatibility only
 
-// Reward notifications with countdown timers
-export const rewardNotifications = pgTable("reward_notifications", {
-  id: varchar("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  recipientWallet: varchar("recipient_wallet", { length: 42 })
-    .notNull()
-    .references(() => users.walletAddress),
-  triggerWallet: varchar("trigger_wallet", { length: 42 }).notNull(), // Who made the purchase that triggered this
-  triggerLevel: integer("trigger_level").notNull(), // Level purchased that triggered the notification
-  layerNumber: integer("layer_number").notNull(), // Which layer the trigger came from (1-19)
-  rewardAmount: integer("reward_amount").notNull(), // Potential reward amount in USDT cents
-  status: text("status").default("pending").notNull(), // pending, claimed, expired
-  expiresAt: timestamp("expires_at").notNull(), // 72 hours from creation
-  claimedAt: timestamp("claimed_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+// V1 DEPRECATED - Use layer_rewards_v2 instead
+// rewardNotifications table kept for backward compatibility only
 
 // Member NFT verification table
 export const memberNFTVerification = pgTable("member_nft_verification", {
@@ -640,20 +577,8 @@ export const insertAdvertisementNFTClaimSchema = createInsertSchema(
   status: true,
 });
 
-// Member activation status table
-export const memberActivationStatus = pgTable("member_activation_status", {
-  walletAddress: varchar("wallet_address", { length: 42 })
-    .primaryKey()
-    .references(() => users.walletAddress),
-  isActivated: boolean("is_activated").default(false).notNull(),
-  activationLevel: integer("activation_level").default(0).notNull(),
-  activatedAt: timestamp("activated_at"),
-  pendingUntil: timestamp("pending_until"), // 24-72 hour countdown for upgrades
-  upgradeTimerActive: boolean("upgrade_timer_active").default(false).notNull(),
-  lastUpgradeAttempt: timestamp("last_upgrade_attempt"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+// V1 DEPRECATED - Use membership_nfts_v2 with status field instead
+// memberActivationStatus table kept for backward compatibility only
 
 // NFT claim records table
 export const nftClaimRecords = pgTable("nft_claim_records", {
@@ -678,21 +603,8 @@ export const nftClaimRecords = pgTable("nft_claim_records", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Member levels table
-export const memberLevels = pgTable("member_levels", {
-  walletAddress: varchar("wallet_address", { length: 42 })
-    .primaryKey()
-    .references(() => users.walletAddress),
-  currentLevel: integer("current_level").default(0).notNull(),
-  maxLevelAchieved: integer("max_level_achieved").default(0).notNull(),
-  levelsOwned: jsonb("levels_owned").$type<number[]>().default([]).notNull(),
-  nftTokenIds: jsonb("nft_token_ids").$type<number[]>().default([]).notNull(), // Token IDs owned
-  totalNFTsOwned: integer("total_nfts_owned").default(0).notNull(),
-  firstActivationAt: timestamp("first_activation_at"),
-  lastLevelUpgradeAt: timestamp("last_level_upgrade_at"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+// V1 DEPRECATED - Use membership_nfts_v2 to track levels
+// memberLevels table kept for backward compatibility only
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -946,40 +858,11 @@ export type TokenPurchase = typeof tokenPurchases.$inferSelect;
 export type InsertCTHBalance = z.infer<typeof insertCTHBalanceSchema>;
 export type CTHBalance = typeof cthBalances.$inferSelect;
 
-// Member Activation Tracking - For pending time system
-export const memberActivations = pgTable("member_activations", {
-  walletAddress: varchar("wallet_address", { length: 42 })
-    .primaryKey()
-    .references(() => users.walletAddress),
-  activationType: text("activation_type").notNull(), // 'nft_purchase', 'admin_activated'
-  level: integer("level").notNull(), // Level activated/upgraded to
-  pendingUntil: timestamp("pending_until"), // 24hr countdown for upgrades
-  isPending: boolean("is_pending").default(true).notNull(),
-  activatedAt: timestamp("activated_at"),
-  pendingTimeoutHours: integer("pending_timeout_hours").default(24).notNull(), // Admin configurable
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+// V1 DEPRECATED - Use membership_nfts_v2 with status and activated_at fields
+// memberActivations table kept for backward compatibility only
 
-// Reward Distribution Tracking - For 72hr countdown system
-export const rewardDistributions = pgTable("reward_distributions", {
-  id: varchar("id")
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  recipientWallet: varchar("recipient_wallet", { length: 42 })
-    .notNull()
-    .references(() => users.walletAddress),
-  sourceWallet: varchar("source_wallet", { length: 42 })
-    .notNull()
-    .references(() => users.walletAddress), // Who triggered the reward
-  rewardType: text("reward_type").notNull(), // 'direct_referral', 'level_bonus', 'matrix_spillover'
-  rewardAmount: numeric("reward_amount", { precision: 10, scale: 2 }).notNull(),
-  level: integer("level").notNull(), // Level that triggered reward
-  status: text("status").default("pending").notNull(), // 'pending', 'claimable', 'claimed', 'expired_redistributed'
-  pendingUntil: timestamp("pending_until"), // 72hr countdown
-  claimedAt: timestamp("claimed_at"),
-  redistributedTo: varchar("redistributed_to", { length: 42 }), // If expired, who got it
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+// V1 DEPRECATED - Use layer_rewards_v2 instead
+// rewardDistributions table kept for backward compatibility only
 
 // Admin Settings for controlling pending times
 export const adminSettings = pgTable("admin_settings", {
@@ -1325,22 +1208,8 @@ export const insertSystemStatusSchema = createInsertSchema(systemStatus).pick({
   errorMessage: true,
 });
 
-// Global Matrix Position Table - Single company-wide matrix structure
-export const globalMatrixPosition = pgTable("global_matrix_position", {
-  walletAddress: varchar("wallet_address", { length: 42 })
-    .primaryKey()
-    .references(() => users.walletAddress),
-  matrixLevel: integer("matrix_level").notNull(), // 1-19 (Level 1=3 positions, Level 2=9, Level 3=27, etc.)
-  positionIndex: integer("position_index").notNull(), // 0-based position within that level
-  directSponsorWallet: varchar("direct_sponsor_wallet", {
-    length: 42,
-  }).notNull(), // Who invited them (gets direct rewards)
-  placementSponsorWallet: varchar("placement_sponsor_wallet", {
-    length: 42,
-  }).notNull(), // Where they were placed in matrix
-  joinedAt: timestamp("joined_at").defaultNow().notNull(),
-  lastUpgradeAt: timestamp("last_upgrade_at"),
-});
+// V1 DEPRECATED - Use global_matrix_positions_v2 instead
+// globalMatrixPosition table kept for backward compatibility only
 
 export const insertGlobalMatrixPositionSchema = createInsertSchema(
   globalMatrixPosition,
