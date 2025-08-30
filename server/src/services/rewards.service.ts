@@ -1,6 +1,6 @@
 import { usersRepo, referralsRepo, type UserReward } from '../repositories';
 import { RewardsPostgreSQLRepository } from '../repositories/rewards-pg.repository';
-import { db } from '../db';
+import { db } from '../../db';
 import { sql } from 'drizzle-orm';
 import crypto from 'crypto';
 
@@ -127,9 +127,10 @@ export class RewardsService {
     const wallet = walletAddress.toLowerCase();
     
     // Get earnings wallet balance
-    const [earningsWallet] = await db.execute(sql`
+    const result = await db.execute(sql`
       SELECT * FROM earnings_wallet WHERE wallet_address = ${wallet}
     `);
+    const earningsWallet = result.rows[0];
     
     if (!earningsWallet) {
       return {
@@ -230,9 +231,10 @@ export class RewardsService {
     // For earnings wallet balance, rewardId will be 'earnings-wallet-balance'
     if (rewardId === 'earnings-wallet-balance') {
       // Get current earnings wallet
-      const [earningsWallet] = await db.execute(sql`
+      const result = await db.execute(sql`
         SELECT * FROM earnings_wallet WHERE wallet_address = ${wallet}
       `);
+      const earningsWallet = result.rows[0];
       
       if (!earningsWallet) {
         throw new Error('Earnings wallet not found');
@@ -299,7 +301,6 @@ export class RewardsService {
 
         // Mark as claimed with real transaction hash
         await rewardsRepo.setStatus(rewardId, 'claimed');
-        await rewardsRepo.markSettled([rewardId], transferResult.transactionHash);
 
         return {
           success: true,
