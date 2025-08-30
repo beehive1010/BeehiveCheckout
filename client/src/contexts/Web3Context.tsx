@@ -1,14 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { createThirdwebClient } from 'thirdweb';
-import { ThirdwebProvider, useActiveAccount } from 'thirdweb/react';
-
-const client = createThirdwebClient({
-  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || "3123b1ac2ebdb966dd415c6e964dc335"
-});
+import { ThirdwebProvider, useActiveAccount, useActiveWalletChain } from 'thirdweb/react';
+import { client, supportedChains } from '../lib/web3';
 
 interface Web3ContextType {
   client: any;
   account: any;
+  activeChain: any;
   isConnected: boolean;
   walletAddress: string | null;
 }
@@ -17,6 +14,7 @@ const Web3Context = createContext<Web3ContextType | undefined>(undefined);
 
 function Web3ContextProvider({ children }: { children: React.ReactNode }) {
   const account = useActiveAccount();
+  const activeChain = useActiveWalletChain();
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
@@ -24,19 +22,24 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     if (account?.address) {
       setIsConnected(true);
       setWalletAddress(account.address);
-      // Store wallet address for API client access
+      // Store wallet address and chain for API client access
       sessionStorage.setItem('wallet-address', account.address);
+      if (activeChain) {
+        sessionStorage.setItem('active-chain-id', activeChain.id.toString());
+      }
     } else {
       setIsConnected(false);
       setWalletAddress(null);
-      // Remove wallet address when disconnected
+      // Remove wallet data when disconnected
       sessionStorage.removeItem('wallet-address');
+      sessionStorage.removeItem('active-chain-id');
     }
-  }, [account]);
+  }, [account, activeChain]);
 
   const value = {
     client,
     account,
+    activeChain,
     isConnected,
     walletAddress,
   };
