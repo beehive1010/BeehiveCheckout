@@ -11,6 +11,9 @@ interface MatrixMember {
   currentLevel: number;
   memberActivated: boolean;
   placement: 'left' | 'middle' | 'right';
+  placementType: 'direct_referral' | 'upline_placement' | 'self_placement';
+  sponsorWallet?: string;
+  placerWallet?: string;
   joinedAt: string;
 }
 
@@ -129,11 +132,34 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
       >
         {member ? (
           <>
-            {/* Member Avatar */}
-            <div className="w-10 h-10 bg-honey rounded-full flex items-center justify-center mb-1">
+            {/* Member Avatar with placement type styling */}
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-1 ${
+              member.placementType === 'direct_referral' 
+                ? 'bg-honey border-2 border-green-400' // 自己推荐的 - 金色+绿边框
+                : member.placementType === 'self_placement'
+                ? 'bg-honey border-2 border-blue-400' // 自己安置的 - 金色+蓝边框
+                : 'bg-honey border-2 border-purple-400' // 上线安置的 - 金色+紫边框
+            }`}>
               <span className="text-black font-bold text-xs">
                 {member.username?.charAt(0).toUpperCase() || 'U'}
               </span>
+            </div>
+            
+            {/* Placement Type Indicator */}
+            <div className="absolute -top-1 -left-1">
+              <div className={`w-3 h-3 rounded-full ${
+                member.placementType === 'direct_referral' 
+                  ? 'bg-green-400' // 绿色 - 自己推荐
+                  : member.placementType === 'self_placement'
+                  ? 'bg-blue-400' // 蓝色 - 自己安置
+                  : 'bg-purple-400' // 紫色 - 上线安置
+              }`} title={`${
+                member.placementType === 'direct_referral' 
+                  ? '自己推荐的'
+                  : member.placementType === 'self_placement'
+                  ? '自己安置的'
+                  : '上线安置的'
+              }`}></div>
             </div>
             
             {/* Level Badge */}
@@ -194,6 +220,25 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        
+        {/* Placement Type Legend */}
+        <div className="bg-muted/30 rounded-lg p-3">
+          <div className="text-sm font-medium text-honey mb-2">安置类型说明</div>
+          <div className="flex flex-wrap gap-4 text-xs">
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+              <span className="text-muted-foreground">自己推荐的</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
+              <span className="text-muted-foreground">自己安置的</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-purple-400 rounded-full"></div>
+              <span className="text-muted-foreground">上线安置的</span>
+            </div>
+          </div>
+        </div>
         
         {/* Layer Navigation */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0">
