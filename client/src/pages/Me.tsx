@@ -11,7 +11,7 @@ import { DollarSign } from 'lucide-react';
 import { IconActivity } from '@tabler/icons-react';
 import { useLocation } from 'wouter';
 import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
-import { PendingRewardsSection } from '../components/rewards/PendingRewardsSection';
+import { PendingRewardsSection } from '@/components/rewards/PendingRewardsSection';
 import styles from '../styles/me/me.module.css';
 
 export default function Me() {
