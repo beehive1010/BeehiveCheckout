@@ -97,7 +97,7 @@ export function registerDashboardRoutes(app: Express) {
       const referralLayers = await storage.getReferralLayers(walletAddress);
       const referralNode = await storage.getReferralNode(walletAddress);
 
-      // Transform into matrix visualization format
+      // Transform into matrix visualization format with placement data
       const matrixData = {
         userPosition: {
           layer: 0, // Root user
@@ -105,11 +105,35 @@ export function registerDashboardRoutes(app: Express) {
         },
         directChildren: referralNode?.directReferralCount || 0,
         totalDownline: referralLayers.reduce((total: number, layer: any) => total + layer.memberCount, 0),
-        downlineLayers: referralLayers.map((layer: any) => ({
-          layer: layer.layerNumber,
-          totalMembers: layer.memberCount,
-          maxCapacity: Math.pow(3, layer.layerNumber), // 3^n for each layer
-          members: layer.members || []
+        downlineLayers: await Promise.all(referralLayers.map(async (layer: any) => {
+          // Get full member details with placement info
+          const memberDetails = await Promise.all((layer.members || []).map(async (memberWallet: string, index: number) => {
+            const user = await storage.getUser(memberWallet);
+            const memberNode = await storage.getReferralNode(memberWallet);
+            
+            // Calculate placement based on position in layer
+            let placement: 'left' | 'middle' | 'right';
+            const positionInLayer = index % 3;
+            if (positionInLayer === 0) placement = 'left';
+            else if (positionInLayer === 1) placement = 'middle';
+            else placement = 'right';
+            
+            return {
+              walletAddress: memberWallet,
+              username: user?.username || `User${memberWallet.slice(-4)}`,
+              currentLevel: user?.membershipLevel || 1,
+              memberActivated: user?.isActivated || false,
+              placement,
+              joinedAt: user?.createdAt || new Date().toISOString()
+            };
+          }));
+          
+          return {
+            layer: layer.layerNumber,
+            totalMembers: layer.memberCount,
+            maxCapacity: Math.pow(3, layer.layerNumber), // 3^n for each layer
+            members: memberDetails
+          };
         }))
       };
 
