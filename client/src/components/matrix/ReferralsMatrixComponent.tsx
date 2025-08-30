@@ -66,21 +66,37 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
               const placement: 'left' | 'middle' | 'right' = 
                 index % 3 === 0 ? 'left' : index % 3 === 1 ? 'middle' : 'right';
               
-              // For Layer 1, assume all are direct referrals based on database data
-              // For Layer 2+, assume they are spillover from upline
+              // Placement type logic for 3x3 forced matrix:
+              // - direct_referral: I sponsored them (any layer)
+              // - self_placement: I placed them but didn't sponsor (spillover from my other directs)
+              // - upline_placement: Placed by upline spillover
+              // Since we don't have sponsor/placer data for string members, estimate based on layer
               const placementType: 'direct_referral' | 'upline_placement' | 'self_placement' = 
-                layerIndex === 0 ? 'direct_referral' : 'upline_placement';
+                layerIndex === 0 ? 'direct_referral' : // First 3 in layer 1 are usually direct
+                layerIndex === 1 && index < 3 ? 'self_placement' : // Some in layer 2 could be our spillover
+                'upline_placement'; // Rest are upline spillover
               
-              // Calculate actual team size for this member
-              // Count all members in layers below this member's position
+              // Calculate actual team size for this member in 3x3 matrix
+              // Each position can have max 3 direct children in next layer
               let calculatedTeamSize = 0;
+              const memberPositionInLayer = index;
+              
+              // Calculate descendants in each subsequent layer
               for (let futureLayerIndex = layerIndex + 1; futureLayerIndex < data.downlineLayers.length; futureLayerIndex++) {
                 const futureLayer = data.downlineLayers[futureLayerIndex];
-                // In a 3x3 matrix, each member can have up to 3^(layer difference) descendants
+                if (!futureLayer.members || futureLayer.members.length === 0) break;
+                
+                // In 3x3 matrix: each member has 3 positions below them
                 const layerDiff = futureLayerIndex - layerIndex;
-                const possibleDescendants = Math.pow(3, layerDiff);
-                // For simplicity, estimate based on position and layer capacity
-                calculatedTeamSize += Math.min(futureLayer.members?.length || 0, possibleDescendants);
+                const startPos = memberPositionInLayer * Math.pow(3, layerDiff);
+                const endPos = startPos + Math.pow(3, layerDiff);
+                
+                // Count members in this member's subtree
+                let membersInSubtree = 0;
+                for (let i = startPos; i < endPos && i < futureLayer.members.length; i++) {
+                  membersInSubtree++;
+                }
+                calculatedTeamSize += membersInSubtree;
               }
               
               return {
@@ -94,7 +110,7 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
                 placerWallet: walletAddress,
                 joinedAt: new Date().toISOString(),
                 teamSize: calculatedTeamSize,
-                directReferrals: layerIndex === 0 ? 1 : 0, // Only Layer 1 members have direct referrals from root
+                directReferrals: 0, // Will be calculated based on actual sponsorship
               };
             }
             // If member is already an object, calculate team size
