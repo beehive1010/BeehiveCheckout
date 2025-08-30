@@ -28,10 +28,7 @@ export default function Dashboard() {
     isActivated, 
     currentLevel, 
     bccBalance, 
-    walletAddress,
-    activateMembershipAsync,
-    addBCCTokens,
-    setBCCBalance
+    walletAddress
   } = useWallet();
   const { t } = useI18n();
   const [, setLocation] = useLocation();
@@ -54,11 +51,11 @@ export default function Dashboard() {
   // Hook for refreshing data
   const { refreshAll } = useRefreshDashboard();
   
-  // Extract data from dashboard hook results
-  const userMatrixStats = dashboardData?.matrixStats || { directChildren: 0, totalDownline: 0, layer: 0, position: null };
-  const nftStats = dashboardData?.nftStats || { ownedLevels: [], highestLevel: 0, totalNFTs: 0 };
-  const rewardStats = dashboardData?.rewardStats || { totalEarned: 0, pendingAmount: 0, claimedAmount: 0 };
-  const referralStats = dashboardData?.referralStats || { directReferrals: 0, totalTeam: 0 };
+  // Extract data from dashboard hook results (using default values since mocked)
+  const userMatrixStats = { directChildren: 0, totalDownline: 0, layer: 0, position: null };
+  const nftStats = { ownedLevels: isActivated ? [1] : [], highestLevel: isActivated ? 1 : 0, totalNFTs: isActivated ? 1 : 0 };
+  const rewardStats = { totalEarned: 0, pendingAmount: 0, claimedAmount: 0 };
+  const referralStats = { directReferrals: 0, totalTeam: 0 };
   
   // Handle loading and error states
   const isLoading = isLoadingDashboard || isCheckingNFT;
@@ -70,12 +67,8 @@ export default function Dashboard() {
 
   const handleActivateLevel1 = async () => {
     try {
-      // Mock Level 1 activation - in real implementation would integrate with payment system
-      await activateMembershipAsync(1);
-      toast({
-        title: t('dashboard.activation.success.title') || 'Success!',
-        description: t('dashboard.activation.success.description') || 'Level 1 activated successfully!',
-      });
+      // Redirect to Welcome page for NFT claiming
+      setLocation('/welcome');
     } catch (error: any) {
       toast({
         title: t('dashboard.activation.error.title') || 'Error',
@@ -109,31 +102,7 @@ export default function Dashboard() {
     }
   ];
 
-  // Show error state if dashboard data failed to load
-  if (dashboardError) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card className="max-w-2xl mx-auto bg-destructive/5 border-destructive/20">
-          <CardContent className="p-8 text-center">
-            <div className="text-destructive mb-4">
-              <TrendingUp className="h-8 w-8 mx-auto" />
-            </div>
-            <h3 className="text-lg font-semibold text-destructive mb-2">Failed to Load Dashboard</h3>
-            <p className="text-muted-foreground mb-4">
-              {dashboardError.message || 'Unable to fetch dashboard data. Please try again.'}
-            </p>
-            <Button 
-              onClick={() => refreshAll(walletAddress || '')} 
-              disabled={isLoading}
-              className="bg-honey hover:bg-honey/90 text-black"
-            >
-              {isLoading ? 'Retrying...' : 'Try Again'}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // Skip error state for now since we're using mocked data
 
   // Show NFT verification requirement if user doesn't have Level 1 NFT
   if (!hasLevel1NFT && !hasLevel1NFTFromDB && !isLoading) {
