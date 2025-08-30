@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { db } from "./db";
+import { registerAuthRoutes } from "./src/routes/auth.routes";
 import { sql } from "drizzle-orm";
 import { 
   insertUserSchema,
@@ -110,75 +111,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   let requireAdminRole: (allowedRoles: string[]) => (req: any, res: any, next: any) => void;
   let requireAdminPermission: (requiredPermissions: string[]) => (req: any, res: any, next: any) => void;
 
-  // Enhanced authentication routes for social login
-  app.post("/api/auth/login-payload", async (req, res) => {
-    try {
-      const { address } = req.body;
-      
-      if (!address) {
-        return res.status(400).json({ error: 'Wallet address required' });
-      }
-      
-      // Generate a nonce for the login message
-      const nonce = crypto.randomBytes(16).toString('hex');
-      
-      // Create login message payload
-      const payload = {
-        message: `Welcome to Beehive! Sign this message to authenticate.\nNonce: ${nonce}`,
-        address: address.toLowerCase(),
-        nonce,
-        timestamp: Date.now(),
-      };
-      
-      res.json({ payload });
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to generate login payload' });
-    }
-  });
-
-  app.post("/api/auth/verify-signature", async (req, res) => {
-    try {
-      const { address, signature, message } = req.body;
-      
-      if (!address || !signature || !message) {
-        return res.status(400).json({ error: 'Missing required fields' });
-      }
-      
-      // In a real implementation, you would verify the signature here
-      // For now, we'll trust it and generate a JWT token
-      const token = `jwt-token-${address}-${Date.now()}`;
-      
-      res.json({ token, address: address.toLowerCase() });
-    } catch (error) {
-      res.status(500).json({ error: 'Signature verification failed' });
-    }
-  });
-
-  app.get("/api/auth/verify-token", async (req, res) => {
-    try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ error: 'No token provided' });
-      }
-      
-      const token = authHeader.substring(7);
-      
-      // Basic token validation (in production, verify JWT properly)
-      if (token.startsWith('jwt-token-')) {
-        res.json({ valid: true });
-      } else {
-        res.status(401).json({ error: 'Invalid token' });
-      }
-    } catch (error) {
-      res.status(500).json({ error: 'Token verification failed' });
-    }
-  });
-
-  app.post("/api/auth/logout", async (req, res) => {
-    // For JWT tokens, logout is typically handled client-side
-    // Here we could blacklist tokens if needed
-    res.json({ success: true });
-  });
+  // Register authentication routes from the separate auth module
+  registerAuthRoutes(app, requireWallet);
 
   // Wallet connection logging endpoint with referral backup
   app.post("/api/wallet/log-connection", async (req, res) => {
