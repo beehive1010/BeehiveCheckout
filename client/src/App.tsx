@@ -26,6 +26,7 @@ import Tasks from "@/pages/Tasks";
 
 // Import proper Header component
 import Header from "@/components/shared/Header";
+import TabBar from "@/components/shared/TabBar";
 import { useWallet } from "@/hooks/useWallet";
 
 // Temporary components for features not yet refactored
@@ -260,7 +261,7 @@ function App() {
             <TooltipProvider>
               <div className="min-h-screen bg-background text-foreground">
                 {!isAdminPage && <Header />}
-                {!isAdminPage && <Navigation />}
+                {!isAdminPage && <TabBar />}
                 <main className={isAdminPage ? "min-h-screen" : "min-h-[calc(100vh-theme(spacing.32))] pb-16 md:pb-0"}>
                   <Router />
                 </main>
