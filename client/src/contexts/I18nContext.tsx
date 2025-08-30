@@ -64,6 +64,12 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
       
       let result = value || key;
       
+      // Ensure we always return a string, never an object
+      if (typeof result === 'object') {
+        console.warn('Translation returned object instead of string for key:', key, result);
+        return key; // Fallback to key if object found
+      }
+      
       // Handle interpolation
       if (interpolations && typeof result === 'string') {
         for (const [placeholder, replacement] of Object.entries(interpolations)) {
@@ -73,7 +79,7 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
       
-      return result;
+      return String(result);
     } catch (error) {
       console.error('Translation error:', error, key);
       return key;
