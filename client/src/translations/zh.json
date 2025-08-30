@@ -374,6 +374,13 @@
       "viewMore": "查看更多 ({{count}} 条)",
       "noActivity": "暂无动态",
       "noActivityDesc": "当您的团队有新活动时，这里会显示通知",
+      "details": "详情",
+      "activityDetails": "活动详情",
+      "user": "用户",
+      "activity": "活动",
+      "time": "时间",
+      "wallet": "钱包地址",
+      "backToList": "返回列表",
       "activities": {
         "direct_referral": "直推加入",
         "placement": "矩阵安置", 

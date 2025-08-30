@@ -49,6 +49,7 @@ export function OrganizationActivity({
   const [showAllDialog, setShowAllDialog] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [readItems, setReadItems] = useState<Set<string>>(new Set());
+  const [selectedActivity, setSelectedActivity] = useState<OrganizationActivityItem | null>(null);
   
   const { data: activities, isLoading, refetch } = useQuery({
     queryKey: ['/api/organization/activity', walletAddress],
@@ -123,6 +124,12 @@ export function OrganizationActivity({
   // 切换展开状态
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
+  };
+
+  // 处理点击活动项 - 显示详情
+  const handleActivityClick = (activity: OrganizationActivityItem) => {
+    markAsRead(activity.id);
+    setSelectedActivity(activity);
   };
 
   const formatAddress = (address: string) => {
@@ -275,7 +282,7 @@ export function OrganizationActivity({
                         ? 'bg-honey/5 border-honey/30 hover:bg-honey/10' 
                         : 'bg-muted/30 border-transparent hover:bg-muted/50'
                     }`}
-                    onClick={() => markAsRead(activity.id)}
+                    onClick={() => handleActivityClick(activity)}
                     data-testid={`activity-item-${activity.id}`}
                   >
                     <div className="flex items-start space-x-2 sm:space-x-3">
@@ -320,6 +327,74 @@ export function OrganizationActivity({
             >
               {t('referrals.organization.viewMore', { count: deduplicatedActivities.length - maxItems })}
             </Button>
+          </div>
+        )}
+
+        {/* 详情视图 */}
+        {selectedActivity && (
+          <div className="absolute inset-0 bg-secondary border border-honey/30 rounded-lg z-10">
+            <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border">
+              <div className="flex items-center gap-2">
+                {getActivityIcon(selectedActivity.activityType)}
+                <span className="text-xs sm:text-sm font-medium text-honey">
+                  {t('referrals.organization.details')}
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedActivity(null)}
+                className="h-6 w-6 p-0 text-gray-400 hover:text-gray-300"
+                data-testid="close-details"
+              >
+                <X className="w-3 h-3" />
+              </Button>
+            </div>
+            
+            <div className="p-3 sm:p-4 space-y-4">
+              <div>
+                <h4 className="text-sm font-medium text-honey mb-2">
+                  {t('referrals.organization.activityDetails')}
+                </h4>
+                <div className="space-y-2 text-xs text-muted-foreground">
+                  <div className="flex justify-between">
+                    <span>{t('referrals.organization.user')}:</span>
+                    <span className="text-foreground">
+                      {selectedActivity.actorUsername || formatAddress(selectedActivity.actorWallet)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>{t('referrals.organization.activity')}:</span>
+                    <span className="text-foreground">
+                      {getActivityTypeLabel(selectedActivity.activityType)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>{t('referrals.organization.time')}:</span>
+                    <span className="text-foreground">
+                      {formatDate(selectedActivity.createdAt)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>{t('referrals.organization.wallet')}:</span>
+                    <span className="text-foreground font-mono">
+                      {formatAddress(selectedActivity.actorWallet)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="pt-2 border-t border-border">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedActivity(null)}
+                  className="w-full text-xs"
+                >
+                  {t('referrals.organization.backToList')}
+                </Button>
+              </div>
+            </div>
           </div>
         )}
       </div>
