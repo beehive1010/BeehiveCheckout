@@ -1,20 +1,20 @@
-import { useWallet } from '../hooks/useWallet';
-import { useUserReferralStats } from '../hooks/useBeeHiveStats';
-import { useI18n } from '../contexts/I18nContext';
-import { Card, CardContent } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import HexagonIcon from '../components/UI/HexagonIcon';
-import Learn from './Learn';
-import Referrals from './Referrals';
-import Settings from './Settings';
+import { useWallet } from '../../../hooks/useWallet';
+import { useUserReferralStats } from '../../../hooks/useBeeHiveStats';
+import { useI18n } from '../../../contexts/I18nContext';
+import { Card, CardContent } from '../../../components/ui/card';
+import { Button } from '../../../components/ui/button';
+import { Badge } from '../../../components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/tabs';
+import HexagonIcon from '../../shared/components/HexagonIcon';
+import Learn from '../../education/page/Learn';
+import Referrals from '../../referrals/page/Referrals';
+import Settings from '../../settings/page/Settings';
 import { AcademicCapIcon, UsersIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { DollarSign } from 'lucide-react';
 import { IconActivity } from '@tabler/icons-react';
 import { useLocation } from 'wouter';
-import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
-import USDTWithdrawal from '../components/withdrawal/USDTWithdrawal';
+import ClaimableRewardsCard from '../../rewards/components/ClaimableRewardsCard';
+import USDTWithdrawal from '../../withdrawal/components/USDTWithdrawal';
 
 export default function Me() {
   const { 

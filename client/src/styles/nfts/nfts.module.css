@@ -1,0 +1,34 @@
+.nftContainer {
+  min-height: 100vh;
+}
+
+.nftCard {
+  transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out;
+}
+
+.nftCard:hover {
+  transform: translateY(-2px);
+  border-color: var(--honey);
+}
+
+.nftImage {
+  transition: transform 0.3s ease-in-out;
+}
+
+.nftCard:hover .nftImage {
+  transform: scale(1.05);
+}
+
+.claimButton {
+  background: linear-gradient(135deg, var(--honey) 0%, var(--honey-dark) 100%);
+  transition: all 0.2s ease-in-out;
+}
+
+.claimButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.serviceTypeIcon {
+  color: var(--honey);
+}

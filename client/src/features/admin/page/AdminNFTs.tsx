@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Textarea } from '../../components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
-import { Label } from '../../components/ui/label';
-import { Switch } from '../../components/ui/switch';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Button } from '../../../components/ui/button';
+import { Input } from '../../../components/ui/input';
+import { Textarea } from '../../../components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../../../components/ui/dialog';
+import { Label } from '../../../components/ui/label';
+import { Switch } from '../../../components/ui/switch';
 import { 
   Image, 
   Search, 
@@ -26,8 +26,8 @@ import {
   TrendingUp,
   Package
 } from 'lucide-react';
-import { useAdminAuth } from '../../hooks/useAdminAuth';
-import { useToast } from '../../hooks/use-toast';
+import { useAdminAuth } from '../../../hooks/useAdminAuth';
+import { useToast } from '../../../hooks/use-toast';
 
 interface MerchantNFT {
   id: string;

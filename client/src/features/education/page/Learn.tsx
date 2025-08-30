@@ -1,5 +1,5 @@
-import { useWallet } from '../hooks/useWallet';
-import { useI18n } from '../contexts/I18nContext';
+import { useWallet } from '../../../hooks/useWallet';
+import { useI18n } from '../../../contexts/I18nContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

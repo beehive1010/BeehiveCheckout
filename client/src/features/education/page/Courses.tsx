@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { useWallet } from '../hooks/useWallet';
-import { useI18n } from '../contexts/I18nContext';
+import { useWallet } from '../../../hooks/useWallet';
+import { useI18n } from '../../../contexts/I18nContext';
 import { useLocation } from 'wouter';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Progress } from '../components/ui/progress';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Button } from '../../../components/ui/button';
+import { Input } from '../../../components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
+import { Progress } from '../../../components/ui/progress';
 import { 
   Search, 
   Play, 

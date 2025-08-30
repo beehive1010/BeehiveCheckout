@@ -1,17 +1,17 @@
-import { useWallet } from '../hooks/useWallet';
-import { useI18n } from '../contexts/I18nContext';
+import { useWallet } from '../../../hooks/useWallet';
+import { useI18n } from '../../../contexts/I18nContext';
 import { useLocation } from 'wouter';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
-import { Input } from '../components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { useToast } from '../hooks/use-toast';
-import HexagonIcon from '../components/UI/HexagonIcon';
-import UserProfile from '../components/UI/UserProfile';
+import { Card, CardContent, CardHeader } from '../../../components/ui/card';
+import { Button } from '../../../components/ui/button';
+import { Badge } from '../../../components/ui/badge';
+import { Input } from '../../../components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
+import { useToast } from '../../../hooks/use-toast';
+import HexagonIcon from '../../shared/components/HexagonIcon';
+import UserProfile from '../../shared/components/UserProfile';
 import { useState, useMemo } from 'react';
-import { Progress } from '../components/ui/progress';
+import { Progress } from '../../../components/ui/progress';
 
 interface Course {
   id: string;
