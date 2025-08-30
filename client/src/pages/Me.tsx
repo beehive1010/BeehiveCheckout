@@ -12,6 +12,7 @@ import { IconActivity } from '@tabler/icons-react';
 import { useLocation } from 'wouter';
 import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
 import { PendingRewardsSection } from '@/components/rewards/PendingRewardsSection';
+import { OrganizationActivity } from '@/components/organization/OrganizationActivity';
 import styles from '../styles/me/me.module.css';
 
 export default function Me() {
@@ -88,18 +89,10 @@ export default function Me() {
 
       {/* Tabs */}
       <Tabs defaultValue="rewards" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 bg-secondary">
+        <TabsList className="grid w-full grid-cols-2 bg-secondary">
           <TabsTrigger value="rewards" className="flex items-center gap-2">
             <DollarSign className="w-4 h-4" />
             {t('me.rewards') || 'Rewards'}
-          </TabsTrigger>
-          <TabsTrigger value="activity" className="flex items-center gap-2">
-            <IconActivity className="w-4 h-4" />
-            {t('me.activity') || 'Activity'}
-          </TabsTrigger>
-          <TabsTrigger value="learn" className="flex items-center gap-2">
-            <AcademicCapIcon className="w-4 h-4" />
-            {t('me.learn') || 'Learn'}
           </TabsTrigger>
           <TabsTrigger value="referrals" className="flex items-center gap-2">
             <UsersIcon className="w-4 h-4" />
@@ -119,63 +112,15 @@ export default function Me() {
           )}
         </TabsContent>
 
-        <TabsContent value="activity" className="space-y-6">
-          <Card className="bg-secondary border-border">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-semibold text-honey mb-4">
-                {t('me.recentActivity') || 'Recent Activity'}
-              </h3>
-              {isActivityLoading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto"></div>
-                </div>
-              ) : userActivity && userActivity.length > 0 ? (
-                <div className="space-y-3">
-                  {userActivity.slice(0, 10).map((activity: any, index: number) => (
-                    <div key={index} className="flex justify-between items-center py-2 border-b border-border/50 last:border-b-0">
-                      <div>
-                        <p className="text-sm font-medium">{activity.description}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatDate(activity.timestamp)}
-                        </p>
-                      </div>
-                      <Badge variant={activity.type === 'reward' ? 'default' : 'secondary'}>
-                        {activity.type}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted-foreground text-center py-8">
-                  {t('me.noActivity') || 'No recent activity'}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
 
-        <TabsContent value="learn">
-          <div className="text-center py-8">
-            <Button 
-              onClick={() => setLocation('/education')}
-              className="bg-honey text-secondary hover:bg-honey/90"
-            >
-              <AcademicCapIcon className="w-4 h-4 mr-2" />
-              {t('me.goToEducation') || 'Go to Education'}
-            </Button>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="referrals">
-          <div className="text-center py-8">
-            <Button 
-              onClick={() => setLocation('/referrals')}
-              className="bg-honey text-secondary hover:bg-honey/90"
-            >
-              <UsersIcon className="w-4 h-4 mr-2" />
-              {t('me.goToReferrals') || 'Go to Referrals'}
-            </Button>
-          </div>
+        <TabsContent value="referrals" className="space-y-6">
+          {walletAddress && (
+            <OrganizationActivity 
+              walletAddress={walletAddress} 
+              maxItems={5}
+              className=""
+            />
+          )}
         </TabsContent>
       </Tabs>
     </div>
