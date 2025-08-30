@@ -103,7 +103,14 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
 const useI18n = () => {
   const context = useContext(I18nContext);
   if (context === undefined) {
-    throw new Error('useI18n must be used within an I18nProvider');
+    // Provide a safe fallback instead of throwing error immediately
+    console.warn('useI18n hook called outside I18nProvider, using fallback');
+    return {
+      language: 'en' as Language,
+      setLanguage: () => {},
+      t: (key: string) => key, // Return the key as fallback
+      languages: [{ code: 'en' as Language, name: 'English' }],
+    };
   }
   return context;
 };
