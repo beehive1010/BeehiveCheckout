@@ -8,7 +8,13 @@
     "discover": "发现",
     "hiveworld": "蜂巢世界",
     "me": "我",
-    "home": "主页"
+    "home": "主页",
+    "back": "返回"
+  },
+  "me": {
+    "title": "个人中心",
+    "rewards": "奖励",
+    "referrals": "推荐"
   },
   "common": {
     "cancel": "取消",
