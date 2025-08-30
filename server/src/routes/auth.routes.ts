@@ -264,14 +264,43 @@ export function registerAuthRoutes(app: Express, requireWallet: any) {
         return res.status(400).json({ error: 'Wallet address required' });
       }
 
+      console.log('🔍 Getting user status for:', walletAddress);
+
       // Get comprehensive user status including NFT verification
       const userStatus = await usersService.getUserStatusWithNFT(walletAddress);
       
+      console.log('📊 User status from service:', userStatus);
+      
       if (!userStatus.isRegistered) {
-        return res.status(404).json({ error: 'User not found' });
+        console.log('🚪 User not registered');
+        return res.status(404).json({ 
+          error: 'User not found',
+          isRegistered: false,
+          hasNFT: false,
+          userFlow: 'registration'
+        });
       }
 
-      res.json(userStatus);
+      // Create enhanced response with all needed fields
+      const enhancedResponse = {
+        user: userStatus.user,
+        isRegistered: userStatus.isRegistered,
+        hasNFT: userStatus.hasNFT,
+        isActivated: userStatus.isActivated,
+        membershipLevel: userStatus.membershipLevel || 0,
+        userFlow: userStatus.userFlow, // 🔑 Critical routing field
+        membershipState: {
+          activeLevel: userStatus.membershipLevel || 0
+        },
+        bccBalance: {
+          transferable: userStatus.isActivated ? 500 : 0,
+          restricted: userStatus.isActivated ? 100 : 0
+        },
+        currentLevel: userStatus.membershipLevel || 0
+      };
+
+      console.log('✅ Sending enhanced response:', enhancedResponse);
+      res.json(enhancedResponse);
     } catch (error) {
       console.error('Get user error:', error);
       res.status(500).json({ error: 'Failed to get user data' });

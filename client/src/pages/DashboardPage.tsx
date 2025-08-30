@@ -16,15 +16,18 @@ const HexagonIcon = ({ size, children }: { size: string; children: React.ReactNo
   </div>
 );
 
-const ClaimMembershipButton = ({ level, onSuccess, onError, className }: any) => (
-  <Button 
-    onClick={() => setLocation('/welcome')} 
-    className={className}
-    data-testid="button-claim-membership"
-  >
-    Claim Level {level} NFT (130 USDT)
-  </Button>
-);
+const ClaimMembershipButton = ({ level, onSuccess, onError, className }: any) => {
+  const [, setLocation] = useLocation();
+  return (
+    <Button 
+      onClick={() => setLocation('/welcome')} 
+      className={className}
+      data-testid="button-claim-membership"
+    >
+      Claim Level {level} NFT (130 USDT)
+    </Button>
+  );
+};
 
 // Mock dependencies for comprehensive features
 const useNFTVerification = () => ({ hasLevel1NFT: false, isLoading: false });
@@ -45,10 +48,7 @@ export default function Dashboard() {
     isActivated, 
     currentLevel, 
     bccBalance, 
-    walletAddress,
-    activateMembershipAsync,
-    addBCCTokens,
-    setBCCBalance
+    walletAddress
   } = useWallet();
   const { t } = useI18n();
   const [, setLocation] = useLocation();
@@ -88,7 +88,6 @@ export default function Dashboard() {
   const handleActivateLevel1 = async () => {
     try {
       // Mock Level 1 activation - in real implementation would integrate with payment system
-      await activateMembershipAsync(1);
       toast({
         title: t('dashboard.activation.success.title') || 'Success!',
         description: t('dashboard.activation.success.description') || 'Level 1 activated successfully!',
@@ -137,7 +136,7 @@ export default function Dashboard() {
             </div>
             <h3 className="text-lg font-semibold text-destructive mb-2">Failed to Load Dashboard</h3>
             <p className="text-muted-foreground mb-4">
-              {dashboardError.message || 'Unable to fetch dashboard data. Please try again.'}
+              Unable to fetch dashboard data. Please try again.
             </p>
             <Button 
               onClick={() => refreshAll(walletAddress || '')} 
