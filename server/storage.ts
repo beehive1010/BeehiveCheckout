@@ -1,51 +1,54 @@
 import { 
+  // Core tables
   users,
-  membershipState,
-  referralNodes,
-  referralLayers,
-  matrixLayers,
-  rewardNotifications,
   userActivities,
-  globalMatrixPosition,
+  userNotifications,
   bccBalances,
   orders,
   earningsWallet,
   levelConfig,
   memberNFTVerification,
+  
+  // V2 Matrix tables
+  globalMatrixPositionsV2,
+  membershipNFTsV2,
+  matrixTreeV2,
+  layerRewardsV2,
+  pendingRewardsV2,
+  platformRevenueV2,
+  rewardDistributionsV2,
+  
+  // NFT and marketplace
   merchantNFTs,
   nftPurchases,
+  advertisementNFTs,
+  advertisementNFTClaims,
+  
+  // Education
   courses,
   courseLessons,
   courseAccess,
   lessonAccess,
-  bridgePayments,
-  advertisementNFTs,
-  advertisementNFTClaims,
+  
+  // Admin
   adminUsers,
   adminSessions,
+  adminSettings,
   discoverPartners,
   dappTypes,
   partnerChains,
-  memberActivations,
-  rewardDistributions,
-  adminSettings,
+  
+  // Bridge and tokens
+  bridgePayments,
+  tokenPurchases,
+  cthBalances,
+  walletConnectionLogs,
+  
+  // Types - Core
   type User, 
   type InsertUser,
-  type MembershipState,
-  type InsertMembershipState,
-  type ReferralNode,
-  type InsertReferralNode,
-  type ReferralLayer,
-  type InsertReferralLayer,
-  type MatrixLayer,
-  type InsertMatrixLayer,
-  type RewardNotification,
-  type InsertRewardNotification,
-  userNotifications,
   type UserNotification,
   type InsertUserNotification,
-  type GlobalMatrixPosition,
-  type InsertGlobalMatrixPosition,
   type BCCBalance,
   type InsertBCCBalance,
   type Order,
@@ -56,10 +59,34 @@ import {
   type InsertLevelConfig,
   type MemberNFTVerification,
   type InsertMemberNFTVerification,
+  
+  // Types - V2 Matrix
+  type GlobalMatrixPositionV2,
+  type InsertGlobalMatrixPositionV2,
+  type MembershipNFTV2,
+  type InsertMembershipNFTV2,
+  type MatrixTreeV2,
+  type InsertMatrixTreeV2,
+  type LayerRewardV2,
+  type InsertLayerRewardV2,
+  type PendingRewardV2,
+  type InsertPendingRewardV2,
+  type PlatformRevenueV2,
+  type InsertPlatformRevenueV2,
+  type RewardDistributionV2,
+  type InsertRewardDistributionV2,
+  
+  // Types - NFT and marketplace
   type MerchantNFT,
   type InsertMerchantNFT,
   type NFTPurchase,
   type InsertNFTPurchase,
+  type AdvertisementNFT,
+  type InsertAdvertisementNFT,
+  type AdvertisementNFTClaim,
+  type InsertAdvertisementNFTClaim,
+  
+  // Types - Education
   type Course,
   type InsertCourse,
   type CourseLesson,
@@ -68,61 +95,68 @@ import {
   type InsertCourseAccess,
   type LessonAccess,
   type InsertLessonAccess,
-  type BridgePayment,
-  type InsertBridgePayment,
-  type AdvertisementNFT,
-  type InsertAdvertisementNFT,
-  type AdvertisementNFTClaim,
-  type InsertAdvertisementNFTClaim,
+  
+  // Types - Admin
   type AdminUser,
   type InsertAdminUser,
   type AdminSession,
   type InsertAdminSession,
-  tokenPurchases,
-  cthBalances,
-  type TokenPurchase,
-  type InsertTokenPurchase,
-  type CTHBalance,
-  type InsertCTHBalance,
+  type AdminSetting,
+  type InsertAdminSetting,
   type DiscoverPartner,
   type InsertDiscoverPartner,
   type DappType,
   type InsertDappType,
   type PartnerChain,
-  walletConnectionLogs,
-  type WalletConnectionLog,
-  type InsertWalletConnectionLog,
   type InsertPartnerChain,
-  type MemberActivation,
-  type InsertMemberActivation,
-  type RewardDistribution,
-  type InsertRewardDistribution,
-  type AdminSetting,
-  type InsertAdminSetting
+  
+  // Types - Bridge and tokens
+  type BridgePayment,
+  type InsertBridgePayment,
+  type TokenPurchase,
+  type InsertTokenPurchase,
+  type CTHBalance,
+  type InsertCTHBalance,
+  type WalletConnectionLog,
+  type InsertWalletConnectionLog
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql, isNull, inArray, not, gt, lt } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
-  // NFT operations
-  recordNFTPurchase(purchase: InsertNFTPurchase): Promise<NFTPurchase>;
-  
   // User operations
   getUser(walletAddress: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(walletAddress: string, updates: Partial<User>): Promise<User | undefined>;
 
-  // Membership operations
-  getMembershipState(walletAddress: string): Promise<MembershipState | undefined>;
-  createMembershipState(membership: InsertMembershipState): Promise<MembershipState>;
-  updateMembershipState(walletAddress: string, updates: Partial<MembershipState>): Promise<MembershipState | undefined>;
-
-  // Global Matrix Position operations
-  getGlobalMatrixPosition(walletAddress: string): Promise<GlobalMatrixPosition | undefined>;
-  createGlobalMatrixPosition(position: InsertGlobalMatrixPosition): Promise<GlobalMatrixPosition>;
-  updateGlobalMatrixPosition(walletAddress: string, updates: Partial<GlobalMatrixPosition>): Promise<GlobalMatrixPosition | undefined>;
+  // V2 Matrix Position operations
+  getGlobalMatrixPositionV2(walletAddress: string): Promise<GlobalMatrixPositionV2 | undefined>;
+  createGlobalMatrixPositionV2(position: InsertGlobalMatrixPositionV2): Promise<GlobalMatrixPositionV2>;
+  updateGlobalMatrixPositionV2(walletAddress: string, updates: Partial<GlobalMatrixPositionV2>): Promise<GlobalMatrixPositionV2 | undefined>;
+  
+  // V2 Membership NFT operations
+  getMembershipNFTV2(walletAddress: string, level?: number): Promise<MembershipNFTV2 | undefined>;
+  getMembershipNFTsV2(walletAddress: string): Promise<MembershipNFTV2[]>;
+  createMembershipNFTV2(nft: InsertMembershipNFTV2): Promise<MembershipNFTV2>;
+  updateMembershipNFTV2(id: string, updates: Partial<MembershipNFTV2>): Promise<MembershipNFTV2 | undefined>;
+  
+  // V2 Matrix Tree operations
+  getMatrixTreeV2(rootWallet: string, layer?: number): Promise<MatrixTreeV2[]>;
+  createMatrixTreeNodeV2(node: InsertMatrixTreeV2): Promise<MatrixTreeV2>;
+  
+  // V2 Layer Rewards operations
+  getLayerRewardsV2(rootWallet: string): Promise<LayerRewardV2[]>;
+  createLayerRewardV2(reward: InsertLayerRewardV2): Promise<LayerRewardV2>;
+  updateLayerRewardV2(id: string, updates: Partial<LayerRewardV2>): Promise<LayerRewardV2 | undefined>;
+  
+  // V2 Platform Revenue operations
+  createPlatformRevenueV2(revenue: InsertPlatformRevenueV2): Promise<PlatformRevenueV2>;
+  getPlatformRevenueV2(): Promise<PlatformRevenueV2[]>;
+  
+  // NFT operations
+  recordNFTPurchase(purchase: InsertNFTPurchase): Promise<NFTPurchase>;
   findGlobalMatrixPlacement(sponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string }>;
 
   // BCC Balance operations
@@ -161,7 +195,7 @@ export interface IStorage {
   // BeeHive business logic operations
   processGlobalMatrixRewards(buyerWallet: string, level: number): Promise<void>;
   processReferralRewards(walletAddress: string, level: number): Promise<void>;
-  createRewardDistribution(distribution: InsertRewardDistribution): Promise<RewardDistribution>;
+  createRewardDistributionV2(distribution: InsertRewardDistributionV2): Promise<RewardDistributionV2>;
 
   // Merchant NFT operations
   getMerchantNFTs(): Promise<MerchantNFT[]>;
@@ -187,23 +221,11 @@ export interface IStorage {
   // Lesson Access operations
   getLessonAccessByCourse(walletAddress: string, courseId: string): Promise<LessonAccess[]>;
 
-  // Referral node operations
-  getReferralNode(walletAddress: string): Promise<ReferralNode | undefined>;
-  createReferralNode(referralNode: InsertReferralNode): Promise<ReferralNode>;
-  updateReferralNode(walletAddress: string, updates: Partial<ReferralNode>): Promise<ReferralNode | undefined>;
-  
-  // 19-Layer referral tracking operations
-  getReferralLayers(walletAddress: string): Promise<ReferralLayer[]>;
-  getReferralLayer(walletAddress: string, layerNumber: number): Promise<ReferralLayer | undefined>;
-  createOrUpdateReferralLayer(layer: InsertReferralLayer): Promise<ReferralLayer>;
-  calculateAndStore19Layers(walletAddress: string): Promise<void>;
-  
-  // Reward notification operations
-  getRewardNotifications(walletAddress: string): Promise<RewardNotification[]>;
-  getPendingRewardNotifications(walletAddress: string): Promise<RewardNotification[]>;
-  createRewardNotification(notification: InsertRewardNotification): Promise<RewardNotification>;
-  updateRewardNotification(id: string, updates: Partial<RewardNotification>): Promise<RewardNotification | undefined>;
-  checkAndExpireNotifications(): Promise<void>;
+  // V2 Pending Rewards operations
+  getPendingRewardsV2(walletAddress: string): Promise<PendingRewardV2[]>;
+  createPendingRewardV2(reward: InsertPendingRewardV2): Promise<PendingRewardV2>;
+  updatePendingRewardV2(id: string, updates: Partial<PendingRewardV2>): Promise<PendingRewardV2 | undefined>;
+  checkAndExpirePendingRewardsV2(): Promise<void>;
 
   // Bridge payment operations
   createBridgePayment(bridgePayment: InsertBridgePayment): Promise<BridgePayment>;

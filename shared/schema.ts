@@ -344,55 +344,15 @@ export const preparationStepSchema = createInsertSchema(users).pick({
   registrationStatus: true,
 });
 
-export const insertMembershipStateSchema = createInsertSchema(
-  membershipState,
-).pick({
-  walletAddress: true,
-  levelsOwned: true,
-  activeLevel: true,
-});
+// V1 DEPRECATED - insertMembershipStateSchema
 
-export const insertReferralNodeSchema = createInsertSchema(referralNodes).pick({
-  walletAddress: true,
-  sponsorWallet: true,
-  placerWallet: true,
-  matrixPosition: true,
-  leftLeg: true,
-  middleLeg: true,
-  rightLeg: true,
-  directReferralCount: true,
-  totalTeamCount: true,
-});
+// V1 DEPRECATED - insertReferralNodeSchema
 
-export const insertReferralLayerSchema = createInsertSchema(
-  referralLayers,
-).pick({
-  walletAddress: true,
-  layerNumber: true,
-  memberCount: true,
-  members: true,
-  placementTypes: true,
-});
+// V1 DEPRECATED - insertReferralLayerSchema
 
-export const insertMatrixLayerSchema = createInsertSchema(matrixLayers).pick({
-  walletAddress: true,
-  layer: true,
-  members: true,
-  memberCount: true,
-  maxMembers: true,
-});
+// V1 DEPRECATED - insertMatrixLayerSchema
 
-export const insertRewardNotificationSchema = createInsertSchema(
-  rewardNotifications,
-).pick({
-  recipientWallet: true,
-  triggerWallet: true,
-  triggerLevel: true,
-  layerNumber: true,
-  rewardAmount: true,
-  status: true,
-  expiresAt: true,
-});
+// V1 DEPRECATED - insertRewardNotificationSchema
 
 export const insertEarningsWalletSchema = createInsertSchema(
   earningsWallet,
@@ -610,22 +570,15 @@ export const nftClaimRecords = pgTable("nft_claim_records", {
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
-export type InsertMembershipState = z.infer<typeof insertMembershipStateSchema>;
-export type MembershipState = typeof membershipState.$inferSelect;
+// V1 DEPRECATED - MembershipState types
 
-export type InsertReferralNode = z.infer<typeof insertReferralNodeSchema>;
-export type ReferralNode = typeof referralNodes.$inferSelect;
+// V1 DEPRECATED - ReferralNode types
 
-export type InsertReferralLayer = z.infer<typeof insertReferralLayerSchema>;
-export type ReferralLayer = typeof referralLayers.$inferSelect;
+// V1 DEPRECATED - ReferralLayer types
 
-export type InsertMatrixLayer = z.infer<typeof insertMatrixLayerSchema>;
-export type MatrixLayer = typeof matrixLayers.$inferSelect;
+// V1 DEPRECATED - MatrixLayer types
 
-export type InsertRewardNotification = z.infer<
-  typeof insertRewardNotificationSchema
->;
-export type RewardNotification = typeof rewardNotifications.$inferSelect;
+// V1 DEPRECATED - RewardNotification types
 
 // User inbox notifications for BCC, upgrades, and other activities
 export const userNotifications = pgTable("user_notifications", {
@@ -710,15 +663,7 @@ export type InsertAdvertisementNFTClaim = z.infer<
 export type AdvertisementNFTClaim = typeof advertisementNFTClaims.$inferSelect;
 
 // New table insert schemas
-export const insertMemberActivationStatusSchema = createInsertSchema(
-  memberActivationStatus,
-).pick({
-  walletAddress: true,
-  isActivated: true,
-  activationLevel: true,
-  pendingUntil: true,
-  upgradeTimerActive: true,
-});
+// V1 DEPRECATED - insertMemberActivationStatusSchema
 
 export const insertNFTClaimRecordSchema = createInsertSchema(
   nftClaimRecords,
@@ -735,26 +680,15 @@ export const insertNFTClaimRecordSchema = createInsertSchema(
   status: true,
 });
 
-export const insertMemberLevelSchema = createInsertSchema(memberLevels).pick({
-  walletAddress: true,
-  currentLevel: true,
-  maxLevelAchieved: true,
-  levelsOwned: true,
-  nftTokenIds: true,
-  totalNFTsOwned: true,
-});
+// V1 DEPRECATED - insertMemberLevelSchema
 
 // New types
-export type InsertMemberActivationStatus = z.infer<
-  typeof insertMemberActivationStatusSchema
->;
-export type MemberActivationStatus = typeof memberActivationStatus.$inferSelect;
+// V1 DEPRECATED - MemberActivationStatus types
 
 export type InsertNFTClaimRecord = z.infer<typeof insertNFTClaimRecordSchema>;
 export type NFTClaimRecord = typeof nftClaimRecords.$inferSelect;
 
-export type InsertMemberLevel = z.infer<typeof insertMemberLevelSchema>;
-export type MemberLevel = typeof memberLevels.$inferSelect;
+// V1 DEPRECATED - MemberLevel types
 
 export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
 export type AdminUser = typeof adminUsers.$inferSelect;
@@ -872,31 +806,9 @@ export const adminSettings = pgTable("admin_settings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const insertMemberActivationSchema = createInsertSchema(
-  memberActivations,
-).pick({
-  walletAddress: true,
-  activationType: true,
-  level: true,
-  pendingUntil: true,
-  isPending: true,
-  activatedAt: true,
-  pendingTimeoutHours: true,
-});
+// V1 DEPRECATED - insertMemberActivationSchema
 
-export const insertRewardDistributionSchema = createInsertSchema(
-  rewardDistributions,
-).pick({
-  recipientWallet: true,
-  sourceWallet: true,
-  rewardType: true,
-  rewardAmount: true,
-  level: true,
-  status: true,
-  pendingUntil: true,
-  claimedAt: true,
-  redistributedTo: true,
-});
+// V1 DEPRECATED - insertRewardDistributionSchema
 
 export const insertAdminSettingSchema = createInsertSchema(adminSettings).pick({
   settingKey: true,
@@ -904,15 +816,9 @@ export const insertAdminSettingSchema = createInsertSchema(adminSettings).pick({
   description: true,
 });
 
-export type InsertMemberActivation = z.infer<
-  typeof insertMemberActivationSchema
->;
-export type MemberActivation = typeof memberActivations.$inferSelect;
+// V1 DEPRECATED - MemberActivation types
 
-export type InsertRewardDistribution = z.infer<
-  typeof insertRewardDistributionSchema
->;
-export type RewardDistribution = typeof rewardDistributions.$inferSelect;
+// V1 DEPRECATED - RewardDistribution types
 
 export type InsertAdminSetting = z.infer<typeof insertAdminSettingSchema>;
 export type AdminSetting = typeof adminSettings.$inferSelect;
@@ -1211,15 +1117,7 @@ export const insertSystemStatusSchema = createInsertSchema(systemStatus).pick({
 // V1 DEPRECATED - Use global_matrix_positions_v2 instead
 // globalMatrixPosition table kept for backward compatibility only
 
-export const insertGlobalMatrixPositionSchema = createInsertSchema(
-  globalMatrixPosition,
-).pick({
-  walletAddress: true,
-  matrixLevel: true,
-  positionIndex: true,
-  directSponsorWallet: true,
-  placementSponsorWallet: true,
-});
+// V1 DEPRECATED - insertGlobalMatrixPositionSchema
 
 // Admin panel types
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
@@ -1243,10 +1141,7 @@ export type RedeemCode = typeof redeemCodes.$inferSelect;
 export type InsertSystemStatus = z.infer<typeof insertSystemStatusSchema>;
 export type SystemStatus = typeof systemStatus.$inferSelect;
 
-export type InsertGlobalMatrixPosition = z.infer<
-  typeof insertGlobalMatrixPositionSchema
->;
-export type GlobalMatrixPosition = typeof globalMatrixPosition.$inferSelect;
+// V1 DEPRECATED - GlobalMatrixPosition types
 
 // Wallet connection logs table for verification tracking
 export const walletConnectionLogs = pgTable("wallet_connection_logs", {
