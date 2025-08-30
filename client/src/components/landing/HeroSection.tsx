@@ -1,5 +1,3 @@
-import { ConnectButton } from 'thirdweb/react';
-import { client, supportedChains, wallets, authConfig } from '../../lib/web3';
 import { StatsBar } from './StatsBar';
 import styles from '../../styles/landing/landing.module.css';
 
@@ -62,27 +60,18 @@ export function HeroSection({ title, subtitle, getStartedText }: HeroSectionProp
         {/* Enhanced CTA Button */}
         <div className="relative inline-block">
           <div className="absolute inset-0 bg-gradient-to-r from-honey to-yellow-400 rounded-full blur-xl opacity-30 animate-pulse"></div>
-          <ConnectButton
-            client={client}
-            chains={supportedChains}
-            wallets={wallets}
-            theme="dark"
-            auth={authConfig}
-            connectModal={{ 
-              showThirdwebBranding: false, 
-              size: "wide",
-              title: "Connect to Beehive",
-              titleIcon: "🐝",
-            }}
-            connectButton={{
-              label: `🚀 ${getStartedText}`,
-              className: "relative btn-honey text-xl px-12 py-5 font-semibold transform hover:scale-105 transition-all duration-300 shadow-2xl hover:shadow-honey/25 border-2 border-honey/30 backdrop-blur-sm"
-            }}
-            detailsButton={{
-              className: "relative btn-honey text-xl px-12 py-5 font-semibold transform hover:scale-105 transition-all duration-300 shadow-2xl hover:shadow-honey/25 border-2 border-honey/30 backdrop-blur-sm"
+          <button
+            className="relative btn-honey text-xl px-12 py-5 font-semibold transform hover:scale-105 transition-all duration-300 shadow-2xl hover:shadow-honey/25 border-2 border-honey/30 backdrop-blur-sm"
+            onClick={() => {
+              // Scroll to features or show more content
+              document.querySelector('.features-section')?.scrollIntoView({ 
+                behavior: 'smooth' 
+              });
             }}
             data-testid="button-get-started"
-          />
+          >
+            🚀 {getStartedText}
+          </button>
         </div>
 
         {/* Feature Highlights */}

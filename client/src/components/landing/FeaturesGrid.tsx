@@ -46,7 +46,7 @@ export function FeaturesGrid() {
   ];
 
   return (
-    <div className="mb-24">
+    <div className="features-section mb-24">
       <div className="text-center mb-16">
         <h2 className="text-4xl font-bold text-honey mb-4">{t('landing.platformFeatures.title')}</h2>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
