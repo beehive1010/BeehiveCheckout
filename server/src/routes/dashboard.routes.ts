@@ -172,4 +172,46 @@ export function registerDashboardRoutes(app: Express) {
       res.status(500).json({ error: 'Failed to fetch user balances' });
     }
   });
+
+  // Initialize user data - creates missing BCC balance and other records
+  app.post("/api/dashboard/initialize", requireWallet, async (req: any, res) => {
+    try {
+      const walletAddress = req.headers['x-wallet-address'] as string;
+      
+      console.log('🔧 Initializing user data for:', walletAddress);
+
+      // Create BCC balance record with preserved amounts (500 + 100 locked)
+      await storage.createBCCBalance({
+        walletAddress: walletAddress.toLowerCase(),
+        transferable: 500,
+        restricted: 100,
+        lastUpdated: new Date()
+      });
+
+      // Create membership state record
+      await storage.createMembershipState({
+        walletAddress: walletAddress.toLowerCase(),
+        activeLevel: 1,
+        levelsOwned: [1],
+        joinedAt: new Date(),
+        lastUpgradeAt: new Date()
+      });
+
+      // Create earnings wallet record
+      await storage.createEarningsWallet({
+        walletAddress: walletAddress.toLowerCase(),
+        totalEarnings: 0,
+        referralEarnings: 0,
+        levelEarnings: 0,
+        lastRewardAt: null,
+        createdAt: new Date()
+      });
+
+      console.log('✅ User data initialized successfully');
+      res.json({ success: true, message: 'User data initialized' });
+    } catch (error) {
+      console.error('Data initialization error:', error);
+      res.status(500).json({ error: 'Failed to initialize user data' });
+    }
+  });
 }
