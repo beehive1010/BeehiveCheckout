@@ -15,7 +15,9 @@ if (!process.env.DATABASE_URL) {
 }
 
 export const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL
+  connectionString: process.env.DATABASE_URL,
+  // Reduce pool logging
+  log: false
 });
 
 export const db = drizzle({ 

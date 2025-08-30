@@ -1,56 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useI18n } from '../contexts/I18nContext';
 import { useLocation } from 'wouter';
 import { useActiveAccount } from 'thirdweb/react';
-import { getContract, prepareContractCall, sendTransaction } from 'thirdweb';
-import { arbitrum, arbitrumSepolia } from 'thirdweb/chains';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { useToast } from '../hooks/use-toast';
-import { Loader2, Crown, Shield, Zap, Users } from 'lucide-react';
-
-// Mock dependencies for now - these would need to be implemented
-const client = { clientId: "mock", secretKey: undefined } as any; // Mock thirdweb client
-const getAdminWalletAddress = () => "0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0"; // Mock admin address
-const contractAddresses = {
-  BBC_MEMBERSHIP: { alphaCentauri: "0x0000000000000000000000000000000000000000" },
-  USDT: { arbitrumSepolia: "0x0000000000000000000000000000000000000000" }
-};
-const MemberNFTAbi: any[] = []; // Mock NFT ABI
-const transactionRateLimiter = { waitForAvailableSlot: async () => {} };
-const retryWithBackoff = async (fn: any) => await fn();
+import { useNFTVerification } from '../hooks/useNFTVerification';
+import ClaimMembershipButton from '../components/membership/ClaimMembershipButton';
+import DemoPaymentButton from '../components/membership/DemoPaymentButton';
 
 export default function Welcome() {
   const { t } = useI18n();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const account = useActiveAccount();
-  const [demoClaimState, setDemoClaimState] = useState<'idle' | 'claiming' | 'success' | 'error'>('idle');
-  const [hasLevel1NFT, setHasLevel1NFT] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Mock NFT verification
-  useEffect(() => {
-    const checkNFT = async () => {
-      setIsLoading(true);
-      // Mock check - in real implementation this would verify NFT ownership
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setHasLevel1NFT(false); // For demo, assume user doesn't have NFT
-      setIsLoading(false);
-    };
-    
-    if (account?.address) {
-      checkNFT();
-    }
-  }, [account?.address]);
-
-  // Demo NFT contract on Arbitrum
-  const demoContract = getContract({
-    client,
-    address: contractAddresses.BBC_MEMBERSHIP.alphaCentauri,
-    chain: arbitrumSepolia,
-    abi: MemberNFTAbi,
-  });
+  const { hasLevel1NFT, isLoading } = useNFTVerification();
 
   // Handle redirects in useEffect to avoid setState during render
   useEffect(() => {
@@ -72,8 +36,8 @@ export default function Welcome() {
 
   const handlePurchaseSuccess = () => {
     toast({
-      title: t('welcome.success.title') || 'Success!',
-      description: t('welcome.success.description') || 'Level 1 NFT claimed successfully!',
+      title: t('welcome.success.title'),
+      description: t('welcome.success.description'),
     });
     
     // Small delay to allow NFT ownership to update
@@ -85,106 +49,10 @@ export default function Welcome() {
   const handlePurchaseError = (error: string) => {
     console.error('Purchase error:', error);
     toast({
-      title: t('welcome.error.title') || 'Error',
-      description: error || t('welcome.error.description') || 'Failed to claim NFT',
+      title: t('welcome.error.title'),
+      description: error || t('welcome.error.description'),
       variant: "destructive",
     });
-  };
-
-  const handleDemoClaim = async () => {
-    if (!account?.address) {
-      toast({
-        title: "Wallet Required",
-        description: "Please connect your wallet first",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      setDemoClaimState('claiming');
-      
-      toast({
-        title: "Demo Purchase Started",
-        description: "Processing payment...",
-      });
-
-      // Simulate the complex claiming process
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      const result = {
-        transactionHash: "0x1234567890123456789012345678901234567890",
-        mintResult: {
-          success: true,
-          message: 'Level 1 Membership NFT minted successfully',
-          nftLevel: 1,
-          userWallet: account.address,
-          mintTxHash: "0x0987654321098765432109876543210987654321"
-        }
-      };
-
-      console.log('Demo claim result:', result);
-      
-      const successMessage = result.mintResult?.success 
-        ? `Payment & NFT minting successful! Payment TX: ${result.transactionHash.slice(0, 10)}... | Mint TX: ${result.mintResult.mintTxHash.slice(0, 10)}...`
-        : `Payment successful! TX: ${result.transactionHash.slice(0, 10)}... | NFT minting failed`;
-
-      toast({
-        title: result.mintResult?.success ? "Purchase Complete! 🎉" : "Payment Complete! ⚠️",
-        description: successMessage,
-        variant: result.mintResult?.success ? "default" : "destructive",
-      });
-
-      setDemoClaimState('success');
-      
-      // Actually update the backend database
-      try {
-        console.log('🔄 Updating user membership in database...');
-        
-        const claimResponse = await fetch('/api/auth/claim-nft', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Wallet-Address': account.address,
-          },
-          body: JSON.stringify({
-            level: 1,
-            transactionHash: result.transactionHash,
-            mintTxHash: result.mintResult.mintTxHash
-          }),
-        });
-
-        if (!claimResponse.ok) {
-          throw new Error('Failed to update membership status');
-        }
-
-        const claimResult = await claimResponse.json();
-        console.log('✅ Database updated:', claimResult);
-
-        toast({
-          title: "Membership Activated! 🎉",
-          description: `Level 1 activated! You received ${claimResult.rewards?.bccTransferable || 500} BCC + ${claimResult.rewards?.bccLocked || 100} BCC locked`,
-        });
-
-        // Redirect to dashboard after successful backend update
-        setTimeout(() => {
-          handlePurchaseSuccess();
-        }, 1500);
-
-      } catch (dbError: any) {
-        console.error('❌ Database update failed:', dbError);
-        toast({
-          title: "NFT Claimed but Activation Pending",
-          description: "Your NFT was minted successfully, but there was an issue activating your membership. Please contact support.",
-          variant: "destructive",
-        });
-      }
-
-    } catch (error: any) {
-      console.error('Demo claim error:', error);
-      handlePurchaseError(error.message || 'Failed to claim demo NFT');
-      setDemoClaimState('error');
-    }
   };
 
   return (
@@ -195,6 +63,7 @@ export default function Welcome() {
         <div className="absolute inset-0 opacity-5">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNGRkI4MDAiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yIDItNCA0LTRoMTZjMiAwIDQgMiA0IDR2MTZjMCAyLTIgNC00IDRIMzZWMzR6Ii8+PC9nPjwvZz48L3N2Zz4=')] bg-repeat"></div>
         </div>
+
       </div>
 
       {/* Membership Section */}
@@ -203,94 +72,120 @@ export default function Welcome() {
           <Card className="bg-secondary border-honey/30 shadow-2xl backdrop-blur">
             <CardHeader className="text-center pb-6">
               <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-honey/20 to-honey/10 flex items-center justify-center">
-                <Crown className="text-honey text-3xl" />
+                <i className="fas fa-crown text-honey text-3xl"></i>
               </div>
               <CardTitle className="text-2xl md:text-3xl font-bold text-honey mb-3">
-                {t('welcome.title') || 'Welcome to Beehive!'}
+                {t('welcome.title')}
               </CardTitle>
               <p className="text-muted-foreground text-lg mb-4">
-                {t('welcome.subtitle') || 'Claim your Level 1 Membership NFT to begin your journey'}
+                {t('welcome.subtitle')}
               </p>
+              
             </CardHeader>
             
             <CardContent className="space-y-8">
               {/* NFT Info Card */}
-              <div className="bg-gradient-to-r from-honey/5 to-honey/10 rounded-xl p-6 border border-honey/20">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-12 h-12 rounded-lg bg-honey/20 flex items-center justify-center">
-                    <Shield className="w-6 h-6 text-honey" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg text-honey">Level 1 Membership NFT</h3>
-                    <p className="text-sm text-muted-foreground">Your gateway to the Beehive ecosystem</p>
+              <div className="bg-gradient-to-r from-honey/5 via-honey/10 to-honey/5 rounded-xl p-6 border border-honey/20">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 rounded-lg bg-honey/20 flex items-center justify-center">
+                      <i className="fas fa-layer-group text-honey text-xl"></i>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-honey">{t('welcome.nft.title')}</h3>
+                      <p className="text-sm text-muted-foreground">{t('welcome.nft.description')}</p>
+                    </div>
                   </div>
                 </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-honey font-medium">{t('welcome.nft.tokenId')}</span>
+                  <span className="text-muted-foreground">One-time purchase</span>
+                </div>
+              </div>
+
+              {/* Referral Rewards */}
+              <div className="bg-honey/5 rounded-lg p-4 border border-honey/20 text-center">
+                <p className="text-sm font-medium text-honey">
+                  🎁 {t('welcome.referral.rewards')}
+                </p>
+              </div>
+
+              {/* Benefits Grid */}
+              <div>
+                <h3 className="text-xl font-semibold text-honey mb-6 text-center">What You'll Unlock:</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
+                    <div className="w-8 h-8 rounded-full bg-honey/20 flex items-center justify-center">
+                      <i className="fas fa-tasks text-honey text-sm"></i>
+                    </div>
+                    <span className="text-sm font-medium">{t('welcome.benefits.tasks')}</span>
+                  </div>
+                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
+                    <div className="w-8 h-8 rounded-full bg-honey/20 flex items-center justify-center">
+                      <i className="fas fa-compass text-honey text-sm"></i>
+                    </div>
+                    <span className="text-sm font-medium">{t('welcome.benefits.discover')}</span>
+                  </div>
+                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
+                    <div className="w-8 h-8 rounded-full bg-honey/20 flex items-center justify-center">
+                      <i className="fas fa-sitemap text-honey text-sm"></i>
+                    </div>
+                    <span className="text-sm font-medium">{t('welcome.benefits.hiveworld')}</span>
+                  </div>
+                  <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
+                    <div className="w-8 h-8 rounded-full bg-honey/20 flex items-center justify-center">
+                      <i className="fas fa-shopping-cart text-honey text-sm"></i>
+                    </div>
+                    <span className="text-sm font-medium">NFT Marketplace</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Purchase Button */}
+              <div className="text-center space-y-4">
+                <ClaimMembershipButton
+                  walletAddress={account?.address || ""}
+                  level={1}
+                  onSuccess={handlePurchaseSuccess}
+                  onError={handlePurchaseError}
+                  className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-honey to-yellow-400 hover:from-yellow-400 hover:to-honey text-black transition-all duration-300 shadow-lg hover:shadow-honey/25"
+                />
                 
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="text-center p-3 bg-background/50 rounded-lg">
-                    <Zap className="w-5 h-5 text-honey mx-auto mb-1" />
-                    <p className="text-xs font-medium">500 BCC</p>
-                    <p className="text-xs text-muted-foreground">Transferable</p>
-                  </div>
-                  <div className="text-center p-3 bg-background/50 rounded-lg">
-                    <Users className="w-5 h-5 text-honey mx-auto mb-1" />
-                    <p className="text-xs font-medium">100 BCC</p>
-                    <p className="text-xs text-muted-foreground">Locked Rewards</p>
-                  </div>
+                {/* Demo Payment Button - Alternative to PayEmbed */}
+                <div className="mt-6 pt-6 border-t border-honey/20">
+                  <DemoPaymentButton
+                    onSuccess={() => {
+                      toast({
+                        title: 'Demo Complete! 🎉',
+                        description: 'Demo payment processed and Level 1 NFT claimed!',
+                      });
+                      setLocation('/dashboard');
+                    }}
+                    onError={(error) => {
+                      toast({
+                        title: 'Demo Failed',
+                        description: error,
+                        variant: 'destructive',
+                      });
+                    }}
+                  />
                 </div>
-
-                <div className="space-y-3 text-sm text-muted-foreground">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-honey"></div>
-                    <span>Access to educational content</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-honey"></div>
-                    <span>Referral system participation</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-honey"></div>
-                    <span>BCC reward distributions</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Claim Button */}
-              <div className="text-center">
-                {isLoading ? (
-                  <Button disabled className="w-full h-14 text-lg">
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Checking NFT Status...
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={handleDemoClaim}
-                    disabled={demoClaimState === 'claiming'}
-                    className="w-full h-14 text-lg bg-honey text-secondary hover:bg-honey/90 font-semibold"
-                    data-testid="button-claim-nft"
-                  >
-                    {demoClaimState === 'claiming' ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Claiming NFT...
-                      </>
-                    ) : demoClaimState === 'success' ? (
-                      'NFT Claimed Successfully! 🎉'
-                    ) : (
-                      'Claim Level 1 NFT (130 USDT)'
-                    )}
-                  </Button>
-                )}
-              </div>
-
-              {/* Help Text */}
-              <div className="text-center text-sm text-muted-foreground">
-                <p>Connected: {account?.address?.slice(0, 8)}...{account?.address?.slice(-6)}</p>
-                <p className="mt-2">Need help? Contact our support team.</p>
+                <p className="text-sm text-muted-foreground">
+                  {t('welcome.supportText')}
+                </p>
               </div>
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Bottom Wave */}
+      <div className="relative">
+        <svg className="absolute bottom-0 left-0 w-full h-24 fill-muted/20" viewBox="0 0 1200 120" preserveAspectRatio="none">
+          <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25"></path>
+          <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5"></path>
+          <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"></path>
+        </svg>
       </div>
     </div>
   );
