@@ -30,7 +30,7 @@ export default function WalletConnect() {
         detailsButton={{
           className: "wallet-connected px-6 py-2 rounded-lg font-semibold transition-all duration-200 glow-hover",
           displayBalanceToken: {
-            [alphaCentauri.id]: "CTH", // Show CTH balance
+            [alphaCentauri?.id || 141941]: "CTH", // Show CTH balance with fallback
           }
         }}
         data-testid="button-connect-wallet"

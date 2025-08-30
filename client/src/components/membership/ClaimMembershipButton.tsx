@@ -34,8 +34,8 @@ export default function ClaimMembershipButton({
   const [claimState, setClaimState] = useState<ClaimState>('idle');
   const [txHash, setTxHash] = useState<string>('');
   const [doubleClickGuard, setDoubleClickGuard] = useState(false);
-  // Default to first available chain
-  const [selectedChain, setSelectedChain] = useState(paymentChains[0]);
+  // Default to first available chain with safety check
+  const [selectedChain, setSelectedChain] = useState(paymentChains[0] || null);
   const [showChainSelector, setShowChainSelector] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const account = useActiveAccount();
@@ -182,7 +182,7 @@ export default function ClaimMembershipButton({
       });
 
       // Check if this is test chain (Arbitrum Sepolia) - skip bridge verification
-      const isTestChain = selectedChain.name === 'Arbitrum Sepolia';
+      const isTestChain = selectedChain?.name === 'Arbitrum Sepolia';
       
       if (isTestChain) {
         // For test chain, directly persist membership without bridge verification
@@ -242,9 +242,9 @@ export default function ClaimMembershipButton({
             paymentTxHash: transactionHash,
             level,
             tokenId: levelToTokenId(level).toString(),
-            sourceChain: selectedChain.name.toLowerCase().replace(' ', '-'), // e.g., 'arbitrum-sepolia'
+            sourceChain: selectedChain?.name?.toLowerCase().replace(' ', '-') || 'arbitrum-sepolia', // e.g., 'arbitrum-sepolia'
             targetChain: 'alpha-centauri',
-            bridgeWallet: selectedChain.bridgeWallet,
+            bridgeWallet: selectedChain?.bridgeWallet || paymentChains[0]?.bridgeWallet,
             usdtAmount: membershipLevel.priceUSDT, // Already in cents
           }),
         });
@@ -281,9 +281,9 @@ export default function ClaimMembershipButton({
           level,
           tokenId: levelToTokenId(level).toString(),
           paymentTxHash: transactionHash,
-          sourceChain: selectedChain.name.toLowerCase().replace(' ', '-'),
+          sourceChain: selectedChain?.name?.toLowerCase().replace(' ', '-') || 'arbitrum-sepolia',
           targetChain: 'alpha-centauri',
-          bridgeWallet: selectedChain.bridgeWallet,
+          bridgeWallet: selectedChain?.bridgeWallet || paymentChains[0]?.bridgeWallet,
           usdtAmount: membershipLevel.priceUSDT, // Already in cents
           priceUSDT: membershipLevel.priceUSDT,
         }),
@@ -392,7 +392,7 @@ export default function ClaimMembershipButton({
   };
 
   const handleChainSelected = async (chain: typeof paymentChains[0]) => {
-    if (!account) return;
+    if (!account || !chain) return;
     
     setSelectedChain(chain);
     setShowChainSelector(false);
@@ -588,7 +588,7 @@ export default function ClaimMembershipButton({
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {(selectedChain as any).isTestnet ? '测试USDT支付' : 'USDT Payment'}
+                  {(selectedChain as any)?.isTestnet ? '测试USDT支付' : 'USDT Payment'}
                 </p>
               </div>
             </div>
@@ -609,10 +609,10 @@ export default function ClaimMembershipButton({
                 mode: "direct_payment",
                 paymentInfo: {
                   amount: `${(membershipLevel.priceUSDT / 100).toFixed(2)}`,
-                  sellerAddress: selectedChain.bridgeWallet,
-                  chain: selectedChain.chain,
+                  sellerAddress: selectedChain?.bridgeWallet || paymentChains[0]?.bridgeWallet,
+                  chain: selectedChain?.chain || paymentChains[0]?.chain,
                   token: {
-                    address: selectedChain.usdtAddress,
+                    address: selectedChain?.usdtAddress || paymentChains[0]?.usdtAddress,
                     symbol: 'USDT',
                     name: 'Tether USD',
                   },

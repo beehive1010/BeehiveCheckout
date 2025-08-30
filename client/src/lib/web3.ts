@@ -32,12 +32,13 @@ export const supportedChains = [ethereum, polygon, arbitrum, arbitrumSepolia, op
 
 // Safe chain getter with fallback
 export function getChainById(chainId: number | string | undefined) {
-  if (!chainId) return undefined;
+  if (!chainId) return ethereum; // Return default chain
   
   const id = typeof chainId === 'string' ? parseInt(chainId) : chainId;
-  if (isNaN(id)) return undefined;
+  if (isNaN(id)) return ethereum; // Return default chain
   
-  return supportedChains.find(chain => chain.id === id);
+  const foundChain = supportedChains.find(chain => chain?.id === id);
+  return foundChain || ethereum; // Always return a valid chain
 }
 
 // Enhanced chain validation
