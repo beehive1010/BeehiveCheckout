@@ -1,17 +1,7 @@
 import type { Express } from "express";
-import { storage } from "../../storage";
-import { db } from "../../db";
-import { sql } from "drizzle-orm";
-import { 
-  insertUserSchema,
-  users,
-  type AdminUser,
-  type AdminSession
-} from "@shared/schema";
-import { z } from "zod";
+import { usersService } from '../services';
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import { eq } from "drizzle-orm";
 
 export function registerAuthRoutes(app: Express, requireWallet: any) {
   const JWT_SECRET = process.env.JWT_SECRET || 'beehive-secret-key';
@@ -25,16 +15,16 @@ export function registerAuthRoutes(app: Express, requireWallet: any) {
         return res.status(400).json({ error: 'Invalid wallet address format' });
       }
       
-      const user = await storage.getUser(walletAddress.toLowerCase());
+      const result = await usersService.checkUserExists(walletAddress.toLowerCase());
       
-      if (!user) {
+      if (!result.exists) {
         return res.status(404).json({ error: 'User not found', exists: false });
       }
       
       res.json({ 
         exists: true,
-        username: user.username,
-        walletAddress: user.walletAddress
+        username: result.user?.username,
+        walletAddress: result.user?.walletAddress
       });
     } catch (error) {
       console.error('Failed to check user existence:', error);
@@ -121,30 +111,19 @@ export function registerAuthRoutes(app: Express, requireWallet: any) {
     try {
       console.log('🔄 Registration request received:', req.body);
       
-      const validation = insertUserSchema.safeParse(req.body);
-      if (!validation.success) {
-        console.log('❌ Validation failed:', validation.error.errors);
-        return res.status(400).json({ 
-          error: 'Invalid input data',
-          details: validation.error.errors
-        });
+      const { walletAddress, username, referrerWallet } = req.body;
+      
+      if (!walletAddress || !walletAddress.startsWith('0x')) {
+        return res.status(400).json({ error: 'Invalid wallet address format' });
       }
 
-      const userData = validation.data;
-      console.log('✅ Validated user data:', userData);
+      // Create user through service
+      const newUser = await usersService.createUser({
+        walletAddress,
+        username,
+        referrerWallet
+      });
 
-      // Check if user already exists
-      const existingUser = await storage.getUser(userData.walletAddress.toLowerCase());
-      if (existingUser) {
-        console.log('👤 User already exists:', existingUser.walletAddress);
-        return res.status(200).json({ 
-          user: existingUser,
-          message: 'User already registered'
-        });
-      }
-
-      // Create new user
-      const newUser = await storage.createUser(userData);
       console.log('🎉 User created successfully:', newUser.walletAddress);
 
       res.status(201).json({
@@ -163,22 +142,23 @@ export function registerAuthRoutes(app: Express, requireWallet: any) {
   // Get authenticated user data
   app.get("/api/auth/user", requireWallet, async (req: any, res) => {
     try {
-      const user = await storage.getUser(req.walletAddress);
+      const userProfile = await usersService.getUserProfile(req.walletAddress);
       
-      if (!user) {
+      if (!userProfile) {
         return res.status(404).json({ error: 'User not found' });
       }
 
-      // Get user membership and balance data
-      const membershipState = await storage.getMembershipState(req.walletAddress);
-      const bccBalance = await storage.getBCCBalance(req.walletAddress);
-
       res.json({
-        user,
-        membershipState,
-        bccBalance,
-        isActivated: membershipState?.activeLevel > 0 || false,
-        currentLevel: membershipState?.activeLevel || 0
+        user: userProfile.user,
+        membershipState: {
+          activeLevel: userProfile.membershipLevel
+        },
+        bccBalance: {
+          transferable: 0, // Would be fetched from balance service
+          restricted: 0
+        },
+        isActivated: userProfile.isActivated,
+        currentLevel: userProfile.membershipLevel
       });
     } catch (error) {
       console.error('Get user error:', error);

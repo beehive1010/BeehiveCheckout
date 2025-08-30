@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { storage } from "../../storage";
+import { usersService } from '../services';
 
 export function registerWalletRoutes(app: Express) {
   // Log wallet connection
@@ -37,8 +37,8 @@ export function registerWalletRoutes(app: Express) {
         return res.status(400).json({ error: 'Wallet address required in headers' });
       }
 
-      // Get stored referral data for backup
-      const referralData = await storage.getReferralBackup?.(walletAddress.toLowerCase());
+      // Get stored referral data for backup (mock for now)
+      const referralData = null; // Would implement referral backup service
       
       res.json({
         success: true,
@@ -60,27 +60,21 @@ export function registerWalletRoutes(app: Express) {
         return res.status(400).json({ error: 'Wallet address required in headers' });
       }
 
-      const user = await storage.getUser(walletAddress.toLowerCase());
+      const registrationStatus = await usersService.getRegistrationStatus(walletAddress.toLowerCase());
       
-      if (!user) {
+      if (!registrationStatus.isRegistered) {
         return res.status(404).json({ 
           error: 'User not found',
           isRegistered: false 
         });
       }
 
-      // Check if user has an expiration time set
-      const registrationExpiresAt = user.registrationExpiresAt;
-      const now = new Date();
-      const isExpired = registrationExpiresAt && new Date(registrationExpiresAt) < now;
-
       res.json({
-        isRegistered: true,
-        walletAddress: user.walletAddress,
-        registrationExpiresAt,
-        isExpired: isExpired || false,
-        timeRemaining: registrationExpiresAt ? 
-          Math.max(0, new Date(registrationExpiresAt).getTime() - now.getTime()) : null
+        isRegistered: registrationStatus.isRegistered,
+        walletAddress: walletAddress.toLowerCase(),
+        registrationExpiresAt: registrationStatus.expiresAt,
+        isExpired: registrationStatus.isExpired,
+        timeRemaining: registrationStatus.timeRemaining
       });
     } catch (error) {
       console.error('Registration status error:', error);

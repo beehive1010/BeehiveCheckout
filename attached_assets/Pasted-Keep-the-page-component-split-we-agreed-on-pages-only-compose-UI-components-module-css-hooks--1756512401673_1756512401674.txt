@@ -1,0 +1,194 @@
+Keep the page/component split we agreed on (pages only compose UI; components + *.module.css; hooks call services).
+
+Server: split routes by feature, and move all business logic into services.
+
+DB layer: implement a Repository (DAL) with a Replit-DB adapter. All server services must use this DAL (no direct DB calls in routes or services). This makes debugging DB issues straightforward and keeps us migration-ready.
+
+Replit DB constraints & how to design around them
+
+Replit DB is key–value, no SQL, no joins, no transactions. So:
+
+1) Namespaced keys (flat collections)
+
+Use predictable keys; values are JSON. Examples:
+
+users:{wallet} → { wallet, displayName, membership_level, ... }
+
+referral_nodes:{child_wallet} → { child_wallet, chain: [{upline, depth, slot}] }
+
+user_rewards:{id} → reward row JSON
+
+platform_revenue:{id} → revenue row JSON
+
+nft_membership_levels:{level} → { level, nft_price_usdt, reward_override? }
+
+admin_settings:{key} → raw JSON { value }
+
+payouts:{id} → payout row JSON
+
+2) Secondary indexes (manual lists/sets)
+
+Create index keys that store arrays of IDs for fast lookups:
+
+idx:user_rewards:beneficiary:{wallet} → [rewardId,...]
+
+idx:user_rewards:member:{wallet} → [rewardId,...]
+
+idx:user_rewards:status:pending → [rewardId,...]
+
+idx:referrals:upline:{wallet}:depth:{d} → [childWallet,...] (optional)
+
+idx:platform_revenue:level:{N} → [revenueId,...]
+
+idx:nft_membership_levels:all → [1,2,...,19]
+
+Rule: Every write updates its relevant indexes; every state change (e.g., pending→confirmed) moves the ID between status indexes.
+
+3) “Transaction” discipline (no real tx)
+
+Emulate atomicity in the service layer:
+
+Read → check business rules → write main record → update indexes → append audit log key (e.g., audit:{date}:{uuid}) for traceability.
+
+If a step fails, log to audit:* and surface error; do not leave partially updated indexes.
+
+4) Pagination & cursors
+
+Indexes store arrays; implement simple pagination via ?offset=&limit= or a string cursor that encodes the next index position.
+
+5) Debuggability
+
+Wrap the Replit DB client:
+
+Add request/response logging with key name, operation, and elapsed time.
+
+On errors, include the key(s) touched and the index names updated.
+
+Expose a GET /debug/db/keys?prefix=... (admin-only) to dump key lists for quick triage.
+
+What to build in the DAL (Repository) layer
+
+Create one repository per domain. Each repo only knows key formats & index maintenance.
+
+UsersRepo
+
+getByWallet(wallet)
+
+set(user) (upsert)
+
+getMembershipLevel(wallet)
+
+ReferralRepo
+
+getChain(childWallet) // returns ordered [{upline, depth, slot}]
+
+setChain(childWallet, chain)
+
+RewardsRepo
+
+create(reward) → writes user_rewards:{id}, updates:
+
+idx:user_rewards:beneficiary:{wallet}
+
+idx:user_rewards:member:{wallet}
+
+idx:user_rewards:status:{status}
+
+setStatus(id, newStatus) → moves ID across status indexes
+
+listByBeneficiary(wallet, {status?, limit, cursor})
+
+listPendingBefore(timestamp, {limit})
+
+markSettled(ids[], txHash)
+
+RevenueRepo
+
+add(entry) → writes platform_revenue:{id}, updates idx:platform_revenue:level:{N}
+
+LevelsRepo
+
+get(level); listAll() via idx:nft_membership_levels:all
+
+SettingsRepo
+
+get(key); set(key, value)
+
+PayoutsRepo
+
+record(payout); optional index by user idx:payouts:user:{wallet}
+
+Server structure (routes/services/repositories)
+
+routes/ (one file per feature): thin HTTP handlers only.
+
+services/: all business logic (reward matrix, pending 72h, upward reallocation, claim payouts).
+
+repositories/: the Replit-DB adapter described above.
+
+index.ts: bootstraps env, logger, CORS, mounts routes.
+
+Example flow to debug easily:
+Page → Hook → Client service → /rewards/claim → rewards.service → RewardsRepo + PayoutsRepo → Thirdweb → OK
+
+If a DB error happens, you’ll see:
+
+Which repo method
+
+Which key(s)/indexes were touched
+
+The audit trail key with payload
+
+Frontend (client & admin) discipline
+
+Pages: render only; import feature components and *.module.css.
+
+Components: pure UI; no DB or route calls.
+
+Hooks: trigger logic and orchestrate API calls; surface status (idle/loading/success/error).
+
+Client services: call server routes per feature (e.g., rewards.client.ts, referrals.client.ts).
+
+UserCentre specifics (as aligned):
+
+Show profile, balances, rewards (claimable + pending).
+
+Claim button → hook → POST /rewards/claim.
+
+After success: refetch GET /users/me/centre.
+
+Triggers & jobs
+
+Put unlock logic and upward reallocation in services (server).
+
+A cron/worker (or a simple timed task endpoint) calls:
+
+listPendingBefore(now) → for each:
+
+if member reached required level → setStatus('confirmed')
+
+else → expire + reallocate upward (find next qualified ancestor via ReferralRepo + UsersRepo), then create(reward) for that ancestor.
+
+Acceptance checklist for the refactor
+
+✅ Pages contain no business logic—only components & styles.
+
+✅ Hooks call client services; services call server routes.
+
+✅ Routes are thin and call services only.
+
+✅ Services use repositories only (no direct DB calls).
+
+✅ Repositories hide all Replit-DB key/index details.
+
+✅ All writes update corresponding secondary indexes.
+
+✅ Basic admin debug endpoints (key listing by prefix) exist.
+
+✅ Audit entries are written for multi-step operations.
+
+Migration-ready note
+
+Keep the DAL interface stable. Later, we can add a Postgres/Supabase adapter with the same repo method names. Swapping adapters should not change services, routes, or frontend.
+
+Use this brief as the single source of truth for reorganizing the repo around Replit DB while keeping it clean, testable, and easy to debug.
