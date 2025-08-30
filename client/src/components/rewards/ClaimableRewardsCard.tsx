@@ -60,6 +60,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [claimingRewards, setClaimingRewards] = useState<string[]>([]);
+  const [isClaimingAll, setIsClaimingAll] = useState(false);
   
   // Use Web3 context for wallet connection
   const { isConnected } = useWeb3();
@@ -149,9 +150,20 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
       return;
     }
 
+    setIsClaimingAll(true);
+    let claimedCount = 0;
+    const totalRewards = rewardsData.claimableRewards.length;
+
     rewardsData.claimableRewards.forEach(reward => {
       if (!claimingRewards.includes(reward.id)) {
-        claimRewardMutation.mutate(reward.id);
+        claimRewardMutation.mutate(reward.id, {
+          onSettled: () => {
+            claimedCount++;
+            if (claimedCount === totalRewards) {
+              setIsClaimingAll(false);
+            }
+          }
+        });
       }
     });
   };
