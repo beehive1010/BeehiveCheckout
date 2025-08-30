@@ -1463,27 +1463,29 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // User-specific referral statistics - NEW MATRIX STRUCTURE
+  // User-specific referral statistics - USING VIEWS
   async getUserReferralStats(walletAddress: string): Promise<any> {
     try {
       const lowerWallet = walletAddress.toLowerCase();
       
-      // Get direct referrals from matrix_positions where this user placed members directly
-      const directReferralsResult = await db.select()
-        .from(matrixPositions)
-        .where(eq(matrixPositions.rootWallet, lowerWallet))
-        .where(eq(matrixPositions.placementType, 'direct'))
-        .where(eq(matrixPositions.isActive, true));
+      // Get direct referrals from view where this user placed members directly
+      const directReferralsResult = await db.execute(sql`
+        SELECT member_wallet, layer, placement_type, placed_by
+        FROM user_matrix_positions 
+        WHERE root_wallet = ${lowerWallet} 
+          AND placement_type = 'direct'
+      `);
       
-      const directReferrals = directReferralsResult.length;
+      const directReferrals = directReferralsResult.rows.length;
 
-      // Get total team size from all members in this user's matrix
-      const totalTeamResult = await db.select()
-        .from(matrixPositions)
-        .where(eq(matrixPositions.rootWallet, lowerWallet))
-        .where(eq(matrixPositions.isActive, true));
+      // Get total team size from all members in this user's matrix view
+      const totalTeamResult = await db.execute(sql`
+        SELECT COUNT(*) as total_count
+        FROM user_matrix_positions 
+        WHERE root_wallet = ${lowerWallet}
+      `);
       
-      const totalTeam = totalTeamResult.length;
+      const totalTeam = Number(totalTeamResult.rows[0]?.total_count || 0);
 
       // User's real earnings from earnings_wallet
       const userEarnings = await this.calculateRealEarnings(walletAddress);
@@ -1492,58 +1494,49 @@ export class DatabaseStorage implements IStorage {
 
       // Get direct referrals list with user details
       const directReferralsList = [];
-      for (const pos of directReferralsResult.slice(0, 10)) { // Limit to 10 for performance
+      for (const row of directReferralsResult.rows.slice(0, 10)) { // Limit to 10 for performance
+        const memberWallet = row.member_wallet as string;
         const user = await db.select()
           .from(users)
-          .where(eq(users.walletAddress, pos.memberWallet))
+          .where(eq(users.walletAddress, memberWallet))
           .limit(1);
         
         if (user.length > 0) {
           directReferralsList.push({
-            walletAddress: pos.memberWallet,
-            username: user[0].username || `User${pos.memberWallet.slice(-4)}`,
+            walletAddress: memberWallet,
+            username: user[0].username || `User${memberWallet.slice(-4)}`,
             level: user[0].currentLevel || 1,
-            joinDate: pos.placedAt,
+            joinDate: user[0].createdAt,
             earnings: 0 // TODO: Calculate from earnings
           });
         }
       }
 
-      // Get downline matrix data for all 19 layers from member_matrix_layers
+      // Get downline matrix data for all 19 layers from matrix layer stats view
       const downlineMatrix = [];
-      for (let level = 1; level <= 19; level++) {
-        try {
-          // Get this user's matrix layer
-          const layerResult = await db.select()
-            .from(memberMatrixLayers)
-            .where(eq(memberMatrixLayers.rootWallet, lowerWallet))
-            .where(eq(memberMatrixLayers.layer, level))
-            .limit(1);
-          
-          const members = layerResult.length > 0 ? layerResult[0].totalMembers : 0;
-          
-          // Count placements at this layer (L, M, R positions)
-          const placementsResult = await db.select()
-            .from(matrixPositions)
-            .where(eq(matrixPositions.rootWallet, lowerWallet))
-            .where(eq(matrixPositions.layer, level))
-            .where(eq(matrixPositions.isActive, true));
-          
-          const placements = placementsResult.length;
+      const layerStatsResult = await db.execute(sql`
+        SELECT layer, total_members, direct_placements, spillover_placements
+        FROM user_matrix_layer_stats 
+        WHERE root_wallet = ${lowerWallet}
+        ORDER BY layer
+      `);
 
-          downlineMatrix.push({
-            level,
-            members,
-            placements
-          });
-        } catch (error) {
-          console.error(`Error fetching downline data for level ${level}:`, error);
-          downlineMatrix.push({
-            level,
-            members: 0,
-            placements: 0
-          });
-        }
+      // Fill all 19 levels
+      const layerStatsMap = new Map();
+      for (const row of layerStatsResult.rows) {
+        layerStatsMap.set(Number(row.layer), {
+          members: Number(row.total_members),
+          placements: Number(row.direct_placements) + Number(row.spillover_placements)
+        });
+      }
+
+      for (let level = 1; level <= 19; level++) {
+        const layerData = layerStatsMap.get(level) || { members: 0, placements: 0 };
+        downlineMatrix.push({
+          level,
+          members: layerData.members,
+          placements: layerData.placements
+        });
       }
 
       return {
