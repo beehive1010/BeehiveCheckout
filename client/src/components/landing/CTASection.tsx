@@ -1,6 +1,6 @@
 import { ConnectButton } from 'thirdweb/react';
 import { Card, CardContent } from '../ui/card';
-import { client, supportedChains, wallets, authConfig } from '../../lib/web3';
+import { client, supportedChains, wallets } from '../../lib/web3';
 import { useI18n } from '../../contexts/I18nContext';
 import styles from '../../styles/landing/landing.module.css';
 
@@ -46,7 +46,6 @@ export function CTASection() {
               chains={supportedChains}
               wallets={wallets}
               theme="dark"
-              auth={authConfig}
               connectModal={{ 
                 showThirdwebBranding: false, 
                 size: "wide",
