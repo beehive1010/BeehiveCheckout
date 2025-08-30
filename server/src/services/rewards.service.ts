@@ -1,5 +1,7 @@
 import { usersRepo, referralsRepo, type UserReward } from '../repositories';
 import { RewardsPostgreSQLRepository } from '../repositories/rewards-pg.repository';
+import { db } from '../db';
+import { sql } from 'drizzle-orm';
 import crypto from 'crypto';
 
 // Use PostgreSQL-based rewards repository instead of ReplitDB
@@ -114,25 +116,83 @@ export class RewardsService {
   }
 
   /**
-   * Get claimable rewards for a user
+   * Get claimable rewards from earnings wallet (aggregated balance)
    */
-  async getClaimableRewards(walletAddress: string): Promise<ClaimableReward[]> {
+  async getClaimableRewards(walletAddress: string): Promise<{
+    claimableRewards: any[];
+    pendingRewards: any[];
+    totalClaimable: number;
+    totalPending: number;
+  }> {
     const wallet = walletAddress.toLowerCase();
     
-    const { rewards } = await rewardsRepo.listByBeneficiary(wallet, { 
+    // Get earnings wallet balance
+    const [earningsWallet] = await db.execute(sql`
+      SELECT * FROM earnings_wallet WHERE wallet_address = ${wallet}
+    `);
+    
+    if (!earningsWallet) {
+      return {
+        claimableRewards: [],
+        pendingRewards: [],
+        totalClaimable: 0,
+        totalPending: 0
+      };
+    }
+
+    const earnings = earningsWallet as any;
+    const totalEarnings = parseFloat(earnings.total_earnings || '0');
+    const pendingRewards = parseFloat(earnings.pending_rewards || '0');
+    const withdrawnAmount = parseFloat(earnings.withdrawn_amount || '0');
+    
+    // Available to claim = total earnings - pending - already withdrawn
+    const availableBalance = totalEarnings - pendingRewards - withdrawnAmount;
+    
+    // Create a single claimable reward representing the available balance
+    const claimableRewards = availableBalance > 0 ? [{
+      id: 'earnings-wallet-balance',
+      rewardAmount: availableBalance,
+      triggerLevel: 0,
+      payoutLayer: 0,
+      matrixPosition: 'Earnings Wallet',
+      sourceWallet: 'Multiple Sources',
       status: 'confirmed',
-      limit: 100 
+      createdAt: earnings.last_reward_at || earnings.created_at,
+      metadata: {
+        type: 'aggregated_balance',
+        totalEarnings,
+        pendingRewards,
+        withdrawnAmount
+      }
+    }] : [];
+
+    // Get individual pending rewards for display
+    const { rewards: individualPendingRewards } = await rewardsRepo.listByBeneficiary(wallet, { 
+      status: 'pending',
+      limit: 10 
     });
 
-    return rewards.map(reward => ({
+    const pendingRewardsFormatted = individualPendingRewards.map(reward => ({
       id: reward.id,
-      amount: reward.amount,
-      tokenType: reward.tokenType,
+      rewardAmount: reward.rewardAmount,
       triggerLevel: reward.triggerLevel,
-      memberWallet: reward.memberWallet,
-      createdAt: reward.createdAt,
-      expiresAt: reward.expiresAt
+      payoutLayer: reward.payoutLayer,
+      matrixPosition: `L${reward.triggerLevel}-P${reward.payoutLayer}`,
+      sourceWallet: reward.sourceWallet,
+      status: 'pending',
+      requiresLevel: reward.requiresLevel,
+      unlockCondition: reward.requiresLevel ? `Upgrade to Level ${reward.requiresLevel}` : undefined,
+      expiresAt: reward.expiresAt?.toISOString(),
+      createdAt: reward.createdAt.toISOString(),
+      metadata: {}
     }));
+
+    return {
+      claimableRewards,
+      pendingRewards: pendingRewardsFormatted,
+      totalClaimable: availableBalance,
+      totalPending: pendingRewards
+    };
   }
 
   /**
@@ -153,7 +213,7 @@ export class RewardsService {
    * Claim a specific reward
    */
   /**
-   * Claim reward with automated Thirdweb Engine USDT transfer
+   * Claim rewards using earnings wallet balance with Thirdweb Engine
    */
   async claimRewardWithEngine(
     rewardId: string, 
@@ -165,41 +225,92 @@ export class RewardsService {
     explorerUrl?: string, 
     message: string
   }> {
-    const reward = await rewardsRepo.getById(rewardId);
+    const wallet = claimerWallet.toLowerCase();
     
-    if (!reward) {
-      throw new Error('Reward not found');
-    }
+    // For earnings wallet balance, rewardId will be 'earnings-wallet-balance'
+    if (rewardId === 'earnings-wallet-balance') {
+      // Get current earnings wallet
+      const [earningsWallet] = await db.execute(sql`
+        SELECT * FROM earnings_wallet WHERE wallet_address = ${wallet}
+      `);
+      
+      if (!earningsWallet) {
+        throw new Error('Earnings wallet not found');
+      }
 
-    if (reward.beneficiaryWallet !== claimerWallet.toLowerCase()) {
-      throw new Error('Not authorized to claim this reward');
-    }
+      const earnings = earningsWallet as any;
+      const totalEarnings = parseFloat(earnings.total_earnings || '0');
+      const pendingRewards = parseFloat(earnings.pending_rewards || '0');
+      const withdrawnAmount = parseFloat(earnings.withdrawn_amount || '0');
+      const availableBalance = totalEarnings - pendingRewards - withdrawnAmount;
 
-    if (reward.status !== 'confirmed') {
-      throw new Error('Reward is not confirmed and claimable');
-    }
+      if (availableBalance <= 0) {
+        throw new Error('No balance available to claim');
+      }
 
-    try {
-      // Execute USDT transfer using Thirdweb Engine
-      const transferResult = await this.executeUSDTTransfer({
-        amount: reward.rewardAmount,
-        recipientAddress,
-        rewardId
-      });
+      try {
+        // Execute USDT transfer using Thirdweb Engine
+        const transferResult = await this.executeUSDTTransfer({
+          amount: availableBalance,
+          recipientAddress,
+          rewardId: 'earnings-wallet-claim'
+        });
 
-      // Mark as claimed with real transaction hash
-      await rewardsRepo.setStatus(rewardId, 'claimed');
-      await rewardsRepo.markSettled([rewardId], transferResult.transactionHash);
+        // Update earnings wallet - mark as withdrawn
+        await db.execute(sql`
+          UPDATE earnings_wallet 
+          SET withdrawn_amount = withdrawn_amount + ${availableBalance}
+          WHERE wallet_address = ${wallet}
+        `);
 
-      return {
-        success: true,
-        transactionHash: transferResult.transactionHash,
-        explorerUrl: transferResult.explorerUrl,
-        message: `${reward.rewardAmount} USDT transferred successfully to your wallet`
-      };
-    } catch (error) {
-      console.error('Thirdweb Engine transfer failed:', error);
-      throw new Error(`Transfer failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        return {
+          success: true,
+          transactionHash: transferResult.transactionHash,
+          explorerUrl: transferResult.explorerUrl,
+          message: `${availableBalance} USDT transferred successfully from your earnings wallet`
+        };
+      } catch (error) {
+        console.error('Earnings wallet claim failed:', error);
+        throw new Error(`Transfer failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    } else {
+      // Legacy individual reward claiming
+      const reward = await rewardsRepo.getById(rewardId);
+      
+      if (!reward) {
+        throw new Error('Reward not found');
+      }
+
+      if (reward.recipientWallet !== claimerWallet.toLowerCase()) {
+        throw new Error('Not authorized to claim this reward');
+      }
+
+      if (reward.status !== 'confirmed') {
+        throw new Error('Reward is not confirmed and claimable');
+      }
+
+      try {
+        // Execute USDT transfer using Thirdweb Engine
+        const transferResult = await this.executeUSDTTransfer({
+          amount: reward.rewardAmount,
+          recipientAddress,
+          rewardId
+        });
+
+        // Mark as claimed with real transaction hash
+        await rewardsRepo.setStatus(rewardId, 'claimed');
+        await rewardsRepo.markSettled([rewardId], transferResult.transactionHash);
+
+        return {
+          success: true,
+          transactionHash: transferResult.transactionHash,
+          explorerUrl: transferResult.explorerUrl,
+          message: `${reward.rewardAmount} USDT transferred successfully to your wallet`
+        };
+      } catch (error) {
+        console.error('Thirdweb Engine transfer failed:', error);
+        throw new Error(`Transfer failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
     }
   }
 
@@ -291,7 +402,7 @@ export class RewardsService {
       throw new Error('Reward not found');
     }
 
-    if (reward.beneficiaryWallet !== claimerWallet.toLowerCase()) {
+    if (reward.recipientWallet !== claimerWallet.toLowerCase()) {
       throw new Error('Not authorized to claim this reward');
     }
 
