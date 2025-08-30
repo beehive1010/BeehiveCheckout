@@ -411,6 +411,25 @@
       "noNotifications": "No upgrade notifications yet",
       "notificationsAppear": "Notifications will appear when team members upgrade their levels"
     },
+    "organization": {
+      "title": "Organization Activity",
+      "viewMore": "View More ({{count}} items)",
+      "noActivity": "No Activity",
+      "noActivityDesc": "Notifications will appear here when your team has new activity",
+      "activities": {
+        "direct_referral": "Direct Referral",
+        "placement": "Matrix Placement",
+        "upgrade": "Level Upgrade",
+        "joined": "joined your team",
+        "placed": "placed {{member}} in matrix Level {{level}} {{position}} position",
+        "upgraded": "upgraded to Level {{level}}",
+        "timeAgo": {
+          "hours": "{{count}} hours ago",
+          "days": "{{count}} days ago",
+          "minutes": "{{count}} minutes ago"
+        }
+      }
+    },
     "upgradeRewards": {
       "description": "Track upgrade rewards from your matrix layers. You have 72 hours to upgrade when members purchase higher level NFTs."
     }
