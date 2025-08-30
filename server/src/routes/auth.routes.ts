@@ -123,21 +123,74 @@ export function registerAuthRoutes(app: Express, requireWallet: any) {
     }
   });
 
-  // User registration endpoint
+  // Validate referrer endpoint
+  app.get("/api/auth/validate-referrer", requireWallet, async (req, res) => {
+    try {
+      const referrerAddress = req.query.address as string;
+      const currentWallet = req.headers['x-wallet-address'] as string;
+      
+      if (!referrerAddress || !referrerAddress.startsWith('0x')) {
+        return res.status(400).json({ error: 'Invalid referrer address format' });
+      }
+
+      // Check for self-referral
+      if (referrerAddress.toLowerCase() === currentWallet.toLowerCase()) {
+        return res.status(400).json({ error: 'Cannot refer yourself' });
+      }
+
+      // Check if referrer exists
+      const referrerProfile = await usersService.getUserProfile(referrerAddress);
+      
+      if (!referrerProfile) {
+        return res.status(404).json({ error: 'Referrer not found' });
+      }
+
+      res.json({
+        isValid: true,
+        username: referrerProfile.user.username,
+        walletAddress: referrerProfile.user.walletAddress
+      });
+    } catch (error) {
+      console.error('Referrer validation error:', error);
+      res.status(500).json({ error: 'Failed to validate referrer' });
+    }
+  });
+
+  // Enhanced user registration endpoint with referrer validation
   app.post("/api/auth/register", async (req, res) => {
     try {
       console.log('🔄 Registration request received:', req.body);
       
-      const { walletAddress, username, referrerWallet } = req.body;
+      const { walletAddress, username, email, secondaryPasswordHash, referrerWallet } = req.body;
       
       if (!walletAddress || !walletAddress.startsWith('0x')) {
         return res.status(400).json({ error: 'Invalid wallet address format' });
       }
 
-      // Create user through service
-      const newUser = await usersService.createUser({
+      if (!username || username.length < 3) {
+        return res.status(400).json({ error: 'Username must be at least 3 characters' });
+      }
+
+      // Validate referrer if provided
+      if (referrerWallet) {
+        // Check for self-referral
+        if (referrerWallet.toLowerCase() === walletAddress.toLowerCase()) {
+          return res.status(400).json({ error: 'Cannot refer yourself' });
+        }
+
+        // Check if referrer exists
+        const referrer = await usersService.getUserProfile(referrerWallet);
+        if (!referrer) {
+          return res.status(400).json({ error: 'Referrer not found - they must be registered first' });
+        }
+      }
+
+      // Create user through service with enhanced data
+      const newUser = await usersService.createUserEnhanced({
         walletAddress,
         username,
+        email,
+        secondaryPasswordHash,
         referrerWallet
       });
 
