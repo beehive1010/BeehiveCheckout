@@ -73,6 +73,43 @@ export class UsersService {
   }
 
   /**
+   * Get comprehensive user status including NFT verification for routing decisions
+   */
+  async getUserStatusWithNFT(walletAddress: string): Promise<{
+    isRegistered: boolean;
+    hasNFT: boolean;
+    userFlow: 'registration' | 'claim_nft' | 'dashboard';
+    user?: User;
+    membershipLevel?: number;
+    isActivated?: boolean;
+  }> {
+    // Check if user is registered
+    const user = await usersRepo.getByWallet(walletAddress);
+    
+    if (!user) {
+      return {
+        isRegistered: false,
+        hasNFT: false,
+        userFlow: 'registration'
+      };
+    }
+
+    // User is registered - now check if they have Level 1 NFT
+    // For now, we'll check memberActivated status as a proxy for NFT ownership
+    // In production, you'd query the memberNFTVerification table or blockchain directly
+    const hasNFT = user.memberActivated && user.currentLevel >= 1;
+    
+    return {
+      isRegistered: true,
+      hasNFT,
+      userFlow: hasNFT ? 'dashboard' : 'claim_nft',
+      user,
+      membershipLevel: user.membershipLevel || user.currentLevel,
+      isActivated: user.memberActivated
+    };
+  }
+
+  /**
    * Check if user exists
    */
   async checkUserExists(walletAddress: string): Promise<{exists: boolean, user?: User}> {

@@ -8,13 +8,15 @@ export default function WalletConnect() {
     isConnected, 
     walletAddress, 
     isCheckingRegistration, 
-    isRegisteredUser, 
     isNewUser,
-    userData 
+    needsNFTClaim,
+    isFullyActivated,
+    userData,
+    userStatus
   } = useWallet();
   const { t } = useI18n();
 
-  // Show registration status after wallet connection
+  // Enhanced status display - shows complete user journey
   const getConnectionStatus = () => {
     if (!isConnected) return null;
     
@@ -22,7 +24,7 @@ export default function WalletConnect() {
       return (
         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
           <div className="animate-spin h-4 w-4 border-2 border-honey border-t-transparent rounded-full"></div>
-          <span>Checking registration...</span>
+          <span>Checking status...</span>
         </div>
       );
     }
@@ -35,10 +37,18 @@ export default function WalletConnect() {
       );
     }
     
-    if (isRegisteredUser) {
+    if (needsNFTClaim) {
+      return (
+        <div className="text-sm text-blue-400">
+          🎫 Welcome! Claim your Level 1 NFT
+        </div>
+      );
+    }
+    
+    if (isFullyActivated) {
       return (
         <div className="text-sm text-green-400">
-          ✅ Welcome back, {userData?.user?.username || 'Beehive Member'}!
+          ✅ Welcome back, {userData?.username || 'Beehive Member'}!
         </div>
       );
     }
