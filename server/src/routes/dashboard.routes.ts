@@ -138,8 +138,8 @@ export function registerDashboardRoutes(app: Express) {
             return {
               walletAddress: memberWallet,
               username: user?.username || `User${memberWallet.slice(-4)}`,
-              currentLevel: user?.membershipLevel || 1,
-              memberActivated: user?.isActivated || false,
+              currentLevel: user?.currentLevel || 1,
+              memberActivated: (user?.currentLevel || 0) >= 1,
               placement,
               placementType,
               sponsorWallet: memberNode?.sponsorWallet,
@@ -233,27 +233,25 @@ export function registerDashboardRoutes(app: Express) {
       await storage.createBCCBalance({
         walletAddress: walletAddress.toLowerCase(),
         transferable: 500,
-        restricted: 100,
-        lastUpdated: new Date()
+        restricted: 100
       });
 
       // Create membership state record
       await storage.createMembershipState({
         walletAddress: walletAddress.toLowerCase(),
         activeLevel: 1,
-        levelsOwned: [1],
-        joinedAt: new Date(),
-        lastUpgradeAt: new Date()
+        levelsOwned: [1]
       });
 
       // Create earnings wallet record
-      await storage.createEarningsWallet({
+      await storage.createEarningsWalletEntry({
         walletAddress: walletAddress.toLowerCase(),
-        totalEarnings: 0,
-        referralEarnings: 0,
-        levelEarnings: 0,
-        lastRewardAt: null,
-        createdAt: new Date()
+        totalEarnings: "0",
+        referralEarnings: "0",
+        levelEarnings: "0",
+        pendingRewards: "0",
+        withdrawnAmount: "0",
+        lastRewardAt: null
       });
 
       console.log('✅ User data initialized successfully');
