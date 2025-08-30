@@ -104,11 +104,17 @@ const useI18n = () => {
   const context = useContext(I18nContext);
   if (context === undefined) {
     // Provide a safe fallback instead of throwing error immediately
+    // This prevents crashes during hot reloading or timing issues
     console.warn('useI18n hook called outside I18nProvider, using fallback');
     return {
       language: 'en' as Language,
-      setLanguage: () => {},
-      t: (key: string) => key, // Return the key as fallback
+      setLanguage: () => {
+        console.warn('setLanguage called outside I18nProvider context');
+      },
+      t: (key: string, interpolations?: Record<string, string | number>): string => {
+        console.warn(`Translation fallback used for key: ${key}`);
+        return key; // Return the key as fallback
+      },
       languages: [{ code: 'en' as Language, name: 'English' }],
     };
   }
