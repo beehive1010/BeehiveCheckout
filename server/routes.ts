@@ -3414,6 +3414,333 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ====================================
+  // V2 MATRIX SYSTEM API ROUTES 
+  // 1×3 Matrix with Layer-Based Rewards
+  // ====================================
+
+  // V2 Matrix Routes
+  app.get("/api/v2/matrix/stats/:walletAddress", async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      
+      const [matrixPosition] = await db.execute(sql`
+        SELECT 
+          global_position,
+          layer as matrix_layer,
+          position_in_layer,
+          CASE 
+            WHEN position_in_layer = 0 THEN 'Left'
+            WHEN position_in_layer = 1 THEN 'Middle'
+            WHEN position_in_layer = 2 THEN 'Right'
+            ELSE 'Position ' || position_in_layer
+          END as matrix_position_name,
+          activated_at
+        FROM global_matrix_positions_v2 
+        WHERE wallet_address = ${walletAddress.toLowerCase()}
+      `);
+      
+      const [layerStats] = await db.execute(sql`
+        SELECT 
+          COUNT(*) as total_layer_positions,
+          COUNT(DISTINCT root_wallet) as direct_referrals,
+          SUM(CASE WHEN layer <= 3 THEN 1 ELSE 0 END) as team_size
+        FROM matrix_tree_v2 
+        WHERE member_wallet = ${walletAddress.toLowerCase()}
+      `);
+      
+      res.json({
+        ...matrixPosition,
+        ...layerStats
+      });
+    } catch (error) {
+      console.error('V2 Matrix stats error:', error);
+      res.status(500).json({ error: 'Failed to fetch matrix stats' });
+    }
+  });
+
+  app.get("/api/v2/matrix/layers/:walletAddress", async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      
+      const layers = await db.execute(sql`
+        SELECT * FROM member_layer_view
+        WHERE member_wallet = ${walletAddress.toLowerCase()}
+        ORDER BY layer, position
+      `);
+      
+      res.json(layers);
+    } catch (error) {
+      console.error('V2 Matrix layers error:', error);
+      res.status(500).json({ error: 'Failed to fetch matrix layers' });
+    }
+  });
+
+  app.get("/api/v2/matrix/member-layers/:rootWallet", async (req, res) => {
+    try {
+      const { rootWallet } = req.params;
+      
+      const memberLayers = await db.execute(sql`
+        SELECT * FROM member_layer_view
+        WHERE root_wallet = ${rootWallet.toLowerCase()}
+        ORDER BY layer, position
+      `);
+      
+      res.json(memberLayers);
+    } catch (error) {
+      console.error('V2 Member layers error:', error);
+      res.status(500).json({ error: 'Failed to fetch member layers' });
+    }
+  });
+
+  // V2 Rewards Routes
+  app.get("/api/v2/rewards/pending/:walletAddress", async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      
+      const pendingRewards = await db.execute(sql`
+        SELECT * FROM pending_rewards_view
+        WHERE current_recipient_wallet = ${walletAddress.toLowerCase()}
+        ORDER BY expires_at ASC
+      `);
+      
+      res.json(pendingRewards);
+    } catch (error) {
+      console.error('V2 Pending rewards error:', error);
+      res.status(500).json({ error: 'Failed to fetch pending rewards' });
+    }
+  });
+
+  app.get("/api/v2/rewards/claimable/:walletAddress", async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      
+      const claimableRewards = await db.execute(sql`
+        SELECT * FROM claimable_rewards_view
+        WHERE root_wallet = ${walletAddress.toLowerCase()}
+        ORDER BY created_at ASC
+      `);
+      
+      res.json(claimableRewards);
+    } catch (error) {
+      console.error('V2 Claimable rewards error:', error);
+      res.status(500).json({ error: 'Failed to fetch claimable rewards' });
+    }
+  });
+
+  app.get("/api/v2/rewards/summary/:walletAddress", async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      
+      const [summary] = await db.execute(sql`
+        SELECT * FROM reward_summary_view
+        WHERE wallet_address = ${walletAddress.toLowerCase()}
+      `);
+      
+      res.json(summary || {
+        wallet_address: walletAddress.toLowerCase(),
+        username: null,
+        member_activated: false,
+        current_level: 0,
+        owned_nft_levels: [],
+        pending_rewards_count: 0,
+        claimable_rewards_count: 0,
+        expired_rewards_count: 0,
+        pending_rewards_usd: 0,
+        claimable_rewards_usd: 0,
+        total_earned_usd: 0,
+        active_layer_positions: 0,
+        global_position: null,
+        matrix_layer: null,
+        position_in_layer: null,
+        matrix_position_name: null
+      });
+    } catch (error) {
+      console.error('V2 Reward summary error:', error);
+      res.status(500).json({ error: 'Failed to fetch reward summary' });
+    }
+  });
+
+  app.post("/api/v2/rewards/claim/:rewardId", requireWallet, async (req: any, res) => {
+    try {
+      const { rewardId } = req.params;
+      const walletAddress = req.walletAddress;
+      
+      // Check if reward exists and is claimable
+      const [reward] = await db.execute(sql`
+        SELECT * FROM claimable_rewards_view
+        WHERE reward_id = ${rewardId} 
+          AND root_wallet = ${walletAddress}
+          AND has_required_nft = true
+      `);
+      
+      if (!reward) {
+        return res.status(404).json({ error: 'Reward not found or not claimable' });
+      }
+      
+      // Update reward status to claimed
+      await db.execute(sql`
+        UPDATE layer_rewards_v2 
+        SET status = 'confirmed', confirmed_at = NOW()
+        WHERE id = ${rewardId}
+      `);
+      
+      // Create distribution record
+      await db.execute(sql`
+        INSERT INTO reward_distributions_v2 (
+          recipient_wallet, reward_type, amount_usdt, source_reward_id,
+          trigger_wallet, trigger_level, trigger_layer, distribution_method,
+          status, completed_at
+        ) VALUES (
+          ${walletAddress}, 'layer_reward', ${reward.reward_amount_usdt}, ${rewardId},
+          ${reward.trigger_wallet}, ${reward.trigger_level}, ${reward.trigger_layer}, 'direct',
+          'completed', NOW()
+        )
+      `);
+      
+      res.json({ 
+        success: true, 
+        message: 'Reward claimed successfully',
+        amount: reward.reward_amount_usdt / 100 // Convert cents to dollars
+      });
+    } catch (error) {
+      console.error('V2 Claim reward error:', error);
+      res.status(500).json({ error: 'Failed to claim reward' });
+    }
+  });
+
+  // V2 Membership Routes
+  app.get("/api/v2/membership/nfts/:walletAddress", async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      
+      const nfts = await db.execute(sql`
+        SELECT * FROM membership_nfts_v2
+        WHERE wallet_address = ${walletAddress.toLowerCase()}
+        ORDER BY level ASC
+      `);
+      
+      res.json(nfts);
+    } catch (error) {
+      console.error('V2 Membership NFTs error:', error);
+      res.status(500).json({ error: 'Failed to fetch membership NFTs' });
+    }
+  });
+
+  app.get("/api/v2/membership/stats/:walletAddress", async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      
+      const [stats] = await db.execute(sql`
+        SELECT 
+          u.wallet_address,
+          u.username,
+          u.member_activated,
+          COALESCE(MAX(mn.level), 0) as current_highest_level,
+          COALESCE(array_agg(mn.level ORDER BY mn.level) FILTER (WHERE mn.level IS NOT NULL), ARRAY[]::INTEGER[]) as owned_levels,
+          COUNT(mn.id) as total_nfts_owned,
+          COALESCE(SUM(mn.price_paid_usdt), 0) as total_spent_usdt,
+          MIN(mn.purchased_at) as member_since,
+          MAX(mn.purchased_at) as last_purchase_at
+        FROM users u
+        LEFT JOIN membership_nfts_v2 mn ON u.wallet_address = mn.wallet_address AND mn.status = 'active'
+        WHERE u.wallet_address = ${walletAddress.toLowerCase()}
+        GROUP BY u.wallet_address, u.username, u.member_activated
+      `);
+      
+      res.json(stats || {
+        wallet_address: walletAddress.toLowerCase(),
+        username: null,
+        member_activated: false,
+        current_highest_level: 0,
+        owned_levels: [],
+        total_nfts_owned: 0,
+        total_spent_usdt: 0,
+        member_since: null,
+        last_purchase_at: null
+      });
+    } catch (error) {
+      console.error('V2 Membership stats error:', error);
+      res.status(500).json({ error: 'Failed to fetch membership stats' });
+    }
+  });
+
+  app.get("/api/v2/membership/pricing", async (req, res) => {
+    try {
+      const pricing = await db.execute(sql`
+        SELECT 
+          level,
+          level_name,
+          price_usdt,
+          nft_price_usdt as reward_amount_usdt,
+          platform_fee_usdt,
+          CONCAT('Level ', level, ' - ', level_name) as description,
+          true as is_available,
+          CASE WHEN level > 1 THEN true ELSE false END as requires_previous_level
+        FROM level_config
+        ORDER BY level ASC
+      `);
+      
+      res.json(pricing);
+    } catch (error) {
+      console.error('V2 Membership pricing error:', error);
+      res.status(500).json({ error: 'Failed to fetch membership pricing' });
+    }
+  });
+
+  app.post("/api/v2/membership/purchase", requireWallet, async (req: any, res) => {
+    try {
+      const { level, txHash, chainId } = req.body;
+      const walletAddress = req.walletAddress;
+      
+      // Get level configuration
+      const [levelConfig] = await db.execute(sql`
+        SELECT * FROM level_config WHERE level = ${level}
+      `);
+      
+      if (!levelConfig) {
+        return res.status(400).json({ error: 'Invalid level' });
+      }
+      
+      // Check if user already owns this level
+      const [existing] = await db.execute(sql`
+        SELECT id FROM membership_nfts_v2 
+        WHERE wallet_address = ${walletAddress} AND level = ${level}
+      `);
+      
+      if (existing) {
+        return res.status(400).json({ error: 'Level already owned' });
+      }
+      
+      // Create NFT record
+      const nftId = crypto.randomUUID();
+      await db.execute(sql`
+        INSERT INTO membership_nfts_v2 (
+          id, wallet_address, level, level_name, price_paid_usdt,
+          nft_token_id, tx_hash, purchased_at, activated_at, status
+        ) VALUES (
+          ${nftId}, ${walletAddress}, ${level}, ${levelConfig.level_name}, 
+          ${levelConfig.price_usdt}, ${level}, ${txHash}, NOW(), NOW(), 'active'
+        )
+      `);
+      
+      // TODO: Implement matrix placement logic
+      // TODO: Implement reward distribution logic
+      // TODO: Create platform revenue record for Level 1
+      
+      res.json({ 
+        success: true, 
+        message: 'Level purchased successfully',
+        nftId,
+        level,
+        levelName: levelConfig.level_name
+      });
+    } catch (error) {
+      console.error('V2 Purchase error:', error);
+      res.status(500).json({ error: 'Failed to purchase level' });
+    }
+  });
+
   return httpServer;
 }
 
