@@ -247,16 +247,8 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
     
     return (
       <div className="flex flex-col items-center space-y-2">
-        <div className="text-xs font-medium text-honey flex flex-col items-center space-y-1">
+        <div className="text-xs font-medium text-honey">
           <span>{legName}</span>
-          <div className="flex space-x-1">
-            <Badge variant="outline" className="text-xs border-green-400 text-green-400">
-              直推: {legDirectCount}
-            </Badge>
-            <Badge variant="outline" className="text-xs border-blue-400 text-blue-400">
-              团队: {legTeamSize}
-            </Badge>
-          </div>
         </div>
         <div className="flex flex-col space-y-2">
           {positions.map((member, index) => renderReferralMemberPosition(member, index, legName.toLowerCase()))}
@@ -340,18 +332,8 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
             上一层
           </Button>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center">
             <span className="text-sm text-muted-foreground">Layer {currentViewLayer}</span>
-            {currentLayer && (
-              <div className="flex space-x-1">
-                <Badge variant="outline" className="border-green-400 text-green-400">
-                  直推: {currentLayer.directReferralCount}
-                </Badge>
-                <Badge variant="outline" className="border-purple-400 text-purple-400">
-                  安置: {currentLayer.spilloverCount}
-                </Badge>
-              </div>
-            )}
           </div>
           
           <Button
