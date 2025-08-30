@@ -58,20 +58,52 @@ export default function ReferralsMatrixComponent({ walletAddress }: { walletAddr
       
       // Transform for referrals-focused view
       const transformedData: ReferralsMatrixData = {
-        layers: data.downlineLayers?.map((layer: any) => ({
-          layerNumber: layer.layer,
-          maxMembers: layer.maxCapacity || Math.pow(3, layer.layer),
-          members: (layer.members || []).map((member: any, index: number) => ({
-            ...member,
-            teamSize: Math.max(0, Math.floor(Math.random() * 10)), // Mock team size
-            directReferrals: Math.max(0, Math.floor(Math.random() * 3)), // Mock direct referrals
-          })),
-          directReferralCount: (layer.members || []).filter((m: any) => m.placementType === 'direct_referral').length,
-          spilloverCount: (layer.members || []).filter((m: any) => m.placementType !== 'direct_referral').length,
-          leftLeg: (layer.members || []).filter((m: any) => m.placement === 'left'),
-          middleLeg: (layer.members || []).filter((m: any) => m.placement === 'middle'),
-          rightLeg: (layer.members || []).filter((m: any) => m.placement === 'right'),
-        })) || [],
+        layers: data.downlineLayers?.map((layer: any, layerIndex: number) => {
+          // Convert string array to member objects if needed
+          const members = (layer.members || []).map((member: any, index: number) => {
+            // If member is a string (wallet address), create a member object
+            if (typeof member === 'string') {
+              const placement: 'left' | 'middle' | 'right' = 
+                index % 3 === 0 ? 'left' : index % 3 === 1 ? 'middle' : 'right';
+              
+              // For Layer 1, assume all are direct referrals based on database data
+              // For Layer 2+, assume they are spillover from upline
+              const placementType: 'direct_referral' | 'upline_placement' | 'self_placement' = 
+                layerIndex === 0 ? 'direct_referral' : 'upline_placement';
+              
+              return {
+                walletAddress: member,
+                username: `User${member.slice(-4)}`,
+                currentLevel: 1,
+                memberActivated: true,
+                placement,
+                placementType,
+                sponsorWallet: layerIndex === 0 ? walletAddress : '',
+                placerWallet: walletAddress,
+                joinedAt: new Date().toISOString(),
+                teamSize: Math.max(0, Math.floor(Math.random() * 10)),
+                directReferrals: Math.max(0, Math.floor(Math.random() * 3)),
+              };
+            }
+            // If member is already an object, use it with some enhancements
+            return {
+              ...member,
+              teamSize: member.teamSize || Math.max(0, Math.floor(Math.random() * 10)),
+              directReferrals: member.directReferrals || Math.max(0, Math.floor(Math.random() * 3)),
+            };
+          });
+
+          return {
+            layerNumber: layer.layer,
+            maxMembers: layer.maxCapacity || Math.pow(3, layer.layer),
+            members,
+            directReferralCount: members.filter((m: any) => m.placementType === 'direct_referral').length,
+            spilloverCount: members.filter((m: any) => m.placementType !== 'direct_referral').length,
+            leftLeg: members.filter((m: any) => m.placement === 'left'),
+            middleLeg: members.filter((m: any) => m.placement === 'middle'),
+            rightLeg: members.filter((m: any) => m.placement === 'right'),
+          };
+        }) || [],
         totalMembers: data.totalDownline || 0,
         totalLevels: data.downlineLayers?.length || 0,
         directReferralCount: data.directChildren || 0,
