@@ -102,7 +102,12 @@ export default function Me() {
         </TabsList>
 
         <TabsContent value="rewards" className="space-y-6">
-          {/* Only keep PendingRewardsSection as it has direct database connection */}
+          {/* ClaimableRewardsCard for withdraw functionality and rewards stats */}
+          {walletAddress && (
+            <ClaimableRewardsCard walletAddress={walletAddress} />
+          )}
+          
+          {/* PendingRewardsSection for pending rewards with timer */}
           {walletAddress && currentLevel && (
             <PendingRewardsSection 
               walletAddress={walletAddress} 
