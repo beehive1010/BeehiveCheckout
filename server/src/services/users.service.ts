@@ -112,15 +112,15 @@ export class UsersService {
     // User is registered - now check if they have Level 1 NFT
     // For now, we'll check memberActivated status as a proxy for NFT ownership
     // In production, you'd query the memberNFTVerification table or blockchain directly
-    const hasNFT = user.memberActivated && user.currentLevel >= 1;
+    const hasNFT = user.isActivated && user.membershipLevel >= 1;
     
     return {
       isRegistered: true,
       hasNFT,
       userFlow: hasNFT ? 'dashboard' : 'claim_nft',
       user,
-      membershipLevel: user.membershipLevel || user.currentLevel,
-      isActivated: user.memberActivated
+      membershipLevel: user.membershipLevel,
+      isActivated: user.isActivated
     };
   }
 
@@ -161,8 +161,8 @@ export class UsersService {
     const newUser: User = {
       walletAddress: walletAddress.toLowerCase(),
       username: username,
-      email: email || null,
-      secondaryPasswordHash: secondaryPasswordHash || null, // Should be hashed on frontend
+      email: email || undefined,
+      secondaryPasswordHash: secondaryPasswordHash || undefined, // Should be hashed on frontend
       membershipLevel: 0,
       isActivated: false,
       referrerWallet: referrerWallet?.toLowerCase(),
