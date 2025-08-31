@@ -76,7 +76,9 @@ export default function DemoPaymentButton({
         });
 
         if (!registerResponse.ok) {
-          throw new Error('Failed to register user');
+          const registerError = await registerResponse.text();
+          console.error('❌ Registration failed:', registerError);
+          throw new Error(`Failed to register user: ${registerError}`);
         }
         console.log('✅ User registered successfully');
       }
@@ -98,7 +100,13 @@ export default function DemoPaymentButton({
       });
 
       if (!membershipResponse.ok) {
-        const errorData = await membershipResponse.json();
+        let errorData;
+        try {
+          errorData = await membershipResponse.json();
+        } catch {
+          errorData = { error: await membershipResponse.text() };
+        }
+        console.error('❌ Membership activation failed:', errorData);
         throw new Error(errorData.error || 'Failed to activate membership');
       }
 
