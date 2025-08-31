@@ -495,25 +495,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Process BeeHive referral rewards
-      console.log('Processing referral rewards for level', level);
-      await storage.processReferralRewards(req.walletAddress, level);
-
-      // CRITICAL: Update matrix layers after member activation
-      console.log('🔄 Starting matrix layer recalculation for:', req.walletAddress);
+      // V2 Matrix Placement & Rewards
+      console.log('🔄 V2: Activating user in global matrix for level', level);
       try {
-        await storage.calculateAndStore19Layers(req.walletAddress);
-        console.log('✅ Matrix layers updated successfully');
+        // Create level configuration object for V2 system
+        const levelConfig = {
+          level: level,
+          level_name: `Level ${level}`,
+          price_usdt: level === 1 ? 10000 : (5000 + (level * 5000)) // $100 for L1, scaling for others
+        };
         
-        // Also update layers for the user's sponsor to reflect new member in their downline
-        const user = await storage.getUser(req.walletAddress);
-        if (user?.referrerWallet) {
-          console.log('🔄 Updating sponsor layers:', user.referrerWallet);
-          await storage.calculateAndStore19Layers(user.referrerWallet);
-          console.log('✅ Sponsor layers updated');
-        }
+        await activateUserInMatrix(req.walletAddress, levelConfig);
+        console.log('✅ V2: User activated in global matrix successfully');
       } catch (error) {
-        console.error('❌ Matrix layer calculation failed:', error);
+        console.error('❌ V2: Matrix activation failed:', error);
+        // Don't throw error to prevent blocking user activation
       }
 
       // Record member activation with pending time
@@ -618,78 +614,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pendingTimeoutHours: parseInt(pendingTimeHours),
       });
 
-      // Credit initial BCC tokens for Level 1 (500 BCC total: 400 transferable + 100 locked)
+      // Credit initial BCC tokens for Level 1 (600 BCC total: 100 transferable + 500 locked)
+      const bccReward = calculateBCCReward(1);
       const bccBalance = await storage.getBCCBalance(req.walletAddress);
       if (!bccBalance) {
         await storage.createBCCBalance({
           walletAddress: req.walletAddress,
-          transferable: 400, // 400 transferable BCC
-          restricted: 100,   // 100 locked BCC
+          transferable: bccReward.transferable, // 100 transferable BCC
+          restricted: bccReward.restricted,     // 500 locked BCC
         });
       }
 
-      // Process referral rewards (100 USDT direct referral reward)
-      await storage.processReferralRewards(req.walletAddress, 1);
-
-      // Define sponsor wallet for later use
-      const sponsorWallet = user?.referrerWallet || '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0';
-
-      // Place member in global 3x3 matrix
-      const existingPosition = await storage.getGlobalMatrixPosition(req.walletAddress);
-      if (!existingPosition) {
-        const placement = await storage.findGlobalMatrixPlacement(sponsorWallet);
-        await storage.createGlobalMatrixPosition({
-          walletAddress: req.walletAddress,
-          matrixLevel: placement.matrixLevel,
-          positionIndex: placement.positionIndex,
-          directSponsorWallet: sponsorWallet,
-          placementSponsorWallet: placement.placementSponsorWallet,
-        });
-      }
-      
-      // Calculate 19-layer tree for the new member and their sponsor  
-      console.log('🔄 Calculating 19 layers for new member:', req.walletAddress);
-      await storage.calculateAndStore19Layers(req.walletAddress);
-      console.log('✅ New member layers calculated');
-      
-      // Also calculate for sponsor to reflect new member in their downline
-      if (sponsorWallet && sponsorWallet !== '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0') {
-        console.log('🔄 Updating sponsor downline layers:', sponsorWallet);
-        await storage.calculateAndStore19Layers(sponsorWallet);
-        console.log('✅ Sponsor downline layers updated');
-      }
-      
-      // Generate notifications for all upline members in 19 layers
-      // sponsorWallet already defined above
-      if (sponsorWallet && sponsorWallet !== '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0') {
-        // Get all upline users in the 19 layers
-        const uplineLayers = await storage.getReferralLayers(sponsorWallet);
+      // V2 Matrix Placement & Rewards for NFT activation  
+      console.log('🔄 V2: Activating user in global matrix via NFT claim');
+      try {
+        // Create level configuration object for V2 system
+        const levelConfig = {
+          level: 1,
+          level_name: 'Warrior',
+          price_usdt: 10000 // $100 for Level 1
+        };
         
-        for (const layer of uplineLayers) {
-          for (const uplineWallet of layer.members) {
-            // Check if upline already qualifies for this reward
-            const uplineMembership = await storage.getMembershipState(uplineWallet);
-            
-            // For Level 1 purchases: upline needs Level 1 for first rewards, Level 2 for 3rd+ rewards
-            // Since this is activation, treat as first reward so Level 1 qualifies
-            const isQualified = uplineMembership?.levelsOwned.includes(1) || false;
-            // Set expiration: far future for qualified users, 72 hours for pending
-            const expiresAt = isQualified 
-              ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year for qualified
-              : new Date(Date.now() + 72 * 60 * 60 * 1000); // 72 hours for pending
-            
-            await storage.createRewardNotification({
-              recipientWallet: uplineWallet,
-              triggerWallet: req.walletAddress,
-              triggerLevel: 1,
-              layerNumber: layer.layerNumber,
-              rewardAmount: 10000, // 100 USDT in cents
-              status: isQualified ? 'waiting_claim' : 'pending',
-              expiresAt
-            });
-          }
-        }
+        await activateUserInMatrix(req.walletAddress, levelConfig);
+        console.log('✅ V2: User activated in global matrix via NFT successfully');
+      } catch (error) {
+        console.error('❌ V2: NFT matrix activation failed:', error);
+        // Don't throw error to prevent blocking user activation
       }
+      
+      // V2 system automatically handles layer rewards through activateUserInMatrix
+      console.log('✅ V2 system will automatically process upline rewards based on matrix placement');
 
       res.json({ 
         success: true, 
