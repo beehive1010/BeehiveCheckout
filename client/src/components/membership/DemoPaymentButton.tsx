@@ -48,6 +48,7 @@ export default function DemoPaymentButton({
       setDemoState('verifying');
       console.log('🔍 Checking user registration...');
       
+      // Check if user is already registered
       const userCheckResponse = await fetch('/api/auth/user', {
         headers: {
           'X-Wallet-Address': account.address,
@@ -55,6 +56,20 @@ export default function DemoPaymentButton({
       });
 
       let isUserRegistered = userCheckResponse.ok;
+      
+      if (!isUserRegistered) {
+        // Check registration status to see if user exists but had API error
+        const regStatusResponse = await fetch('/api/wallet/registration-status', {
+          headers: {
+            'X-Wallet-Address': account.address,
+          },
+        });
+        
+        if (regStatusResponse.ok) {
+          const regStatus = await regStatusResponse.json();
+          isUserRegistered = regStatus.registered;
+        }
+      }
       
       if (!isUserRegistered) {
         console.log('📝 Registering user for demo...');
@@ -81,6 +96,8 @@ export default function DemoPaymentButton({
           throw new Error(`Failed to register user: ${registerError}`);
         }
         console.log('✅ User registered successfully');
+      } else {
+        console.log('✅ User already registered, proceeding to membership activation');
       }
       
       // Step 3: Activate membership with demo payment

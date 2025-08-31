@@ -390,7 +390,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const bccBalance = await storage.getBCCBalance(req.walletAddress);
       const cthBalance = await storage.getCTHBalance(req.walletAddress);
-      const membershipNFTsV2 = await storage.getMembershipNFTV2ByWallet(req.walletAddress);
+      const membershipNFTsV2 = await storage.getMembershipNFTsV2(req.walletAddress);
       const globalMatrixPosition = await storage.getGlobalMatrixPositionV2(req.walletAddress);
 
       res.json({
@@ -542,7 +542,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get V2 matrix position
       const position = await storage.getGlobalMatrixPositionV2(req.walletAddress);
-      const membershipNFTs = await storage.getMembershipNFTV2ByWallet(req.walletAddress);
+      const membershipNFTs = await storage.getMembershipNFTsV2(req.walletAddress);
       const layerRewards = await storage.getLayerRewardsV2ByWallet(req.walletAddress);
       
       res.json({ 
@@ -1047,7 +1047,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const referralDetails = await Promise.all(
         directReferrals.map(async (referral) => {
-          const membershipNFTs = await storage.getMembershipNFTV2ByWallet(referral.walletAddress);
+          const membershipNFTs = await storage.getMembershipNFTsV2(referral.walletAddress);
           const highestLevel = membershipNFTs.reduce((max, nft) => Math.max(max, nft.level), 0);
           
           return {
@@ -1353,7 +1353,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const referralDetails = await Promise.all(
         directReferrals.map(async (referral) => {
-          const membershipNFTs = await storage.getMembershipNFTV2ByWallet(referral.walletAddress);
+          const membershipNFTs = await storage.getMembershipNFTsV2(referral.walletAddress);
           const layerRewards = await storage.getLayerRewardsV2ByWallet(referral.walletAddress);
           
           const totalEarnings = layerRewards

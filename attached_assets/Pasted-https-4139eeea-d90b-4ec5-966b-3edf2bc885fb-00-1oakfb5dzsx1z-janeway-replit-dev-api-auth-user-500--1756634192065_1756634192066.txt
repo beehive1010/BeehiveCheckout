@@ -1,0 +1,1115 @@
+https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/api/auth/user 500 (Internal Server Error)
+window.fetch @ Network.js:219
+apply @ injected.js:253
+handleDemoPayment @ DemoPaymentButton.tsx:51
+await in handleDemoPayment
+callCallback2 @ chunk-SKRUXVEK.js?v=8ea3072f:3674
+invokeGuardedCallbackDev @ chunk-SKRUXVEK.js?v=8ea3072f:3699
+invokeGuardedCallback @ chunk-SKRUXVEK.js?v=8ea3072f:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-SKRUXVEK.js?v=8ea3072f:3736
+executeDispatch @ chunk-SKRUXVEK.js?v=8ea3072f:7014
+processDispatchQueueItemsInOrder @ chunk-SKRUXVEK.js?v=8ea3072f:7034
+processDispatchQueue @ chunk-SKRUXVEK.js?v=8ea3072f:7043
+dispatchEventsForPlugins @ chunk-SKRUXVEK.js?v=8ea3072f:7051
+(anonymous) @ chunk-SKRUXVEK.js?v=8ea3072f:7174
+batchedUpdates$1 @ chunk-SKRUXVEK.js?v=8ea3072f:18913
+batchedUpdates @ chunk-SKRUXVEK.js?v=8ea3072f:3579
+dispatchEventForPluginEventSystem @ chunk-SKRUXVEK.js?v=8ea3072f:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-SKRUXVEK.js?v=8ea3072f:5478
+dispatchEvent @ chunk-SKRUXVEK.js?v=8ea3072f:5472
+dispatchDiscreteEvent @ chunk-SKRUXVEK.js?v=8ea3072f:5449Understand this error
+injected.js:253  POST https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/api/auth/register 400 (Bad Request)
+window.fetch @ Network.js:219
+apply @ injected.js:253
+handleDemoPayment @ DemoPaymentButton.tsx:61
+await in handleDemoPayment
+callCallback2 @ chunk-SKRUXVEK.js?v=8ea3072f:3674
+invokeGuardedCallbackDev @ chunk-SKRUXVEK.js?v=8ea3072f:3699
+invokeGuardedCallback @ chunk-SKRUXVEK.js?v=8ea3072f:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-SKRUXVEK.js?v=8ea3072f:3736
+executeDispatch @ chunk-SKRUXVEK.js?v=8ea3072f:7014
+processDispatchQueueItemsInOrder @ chunk-SKRUXVEK.js?v=8ea3072f:7034
+processDispatchQueue @ chunk-SKRUXVEK.js?v=8ea3072f:7043
+dispatchEventsForPlugins @ chunk-SKRUXVEK.js?v=8ea3072f:7051
+(anonymous) @ chunk-SKRUXVEK.js?v=8ea3072f:7174
+batchedUpdates$1 @ chunk-SKRUXVEK.js?v=8ea3072f:18913
+batchedUpdates @ chunk-SKRUXVEK.js?v=8ea3072f:3579
+dispatchEventForPluginEventSystem @ chunk-SKRUXVEK.js?v=8ea3072f:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-SKRUXVEK.js?v=8ea3072f:5478
+dispatchEvent @ chunk-SKRUXVEK.js?v=8ea3072f:5472
+dispatchDiscreteEvent @ chunk-SKRUXVEK.js?v=8ea3072f:5449Understand this error
+Console.js:61 ❌ Registration failed: {"error":"User already registered with this wallet address"}
+Mt.forEach.n.<computed> @ Console.js:61
+handleDemoPayment @ DemoPaymentButton.tsx:80
+await in handleDemoPayment
+callCallback2 @ chunk-SKRUXVEK.js?v=8ea3072f:3674
+invokeGuardedCallbackDev @ chunk-SKRUXVEK.js?v=8ea3072f:3699
+invokeGuardedCallback @ chunk-SKRUXVEK.js?v=8ea3072f:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-SKRUXVEK.js?v=8ea3072f:3736
+executeDispatch @ chunk-SKRUXVEK.js?v=8ea3072f:7014
+processDispatchQueueItemsInOrder @ chunk-SKRUXVEK.js?v=8ea3072f:7034
+processDispatchQueue @ chunk-SKRUXVEK.js?v=8ea3072f:7043
+dispatchEventsForPlugins @ chunk-SKRUXVEK.js?v=8ea3072f:7051
+(anonymous) @ chunk-SKRUXVEK.js?v=8ea3072f:7174
+batchedUpdates$1 @ chunk-SKRUXVEK.js?v=8ea3072f:18913
+batchedUpdates @ chunk-SKRUXVEK.js?v=8ea3072f:3579
+dispatchEventForPluginEventSystem @ chunk-SKRUXVEK.js?v=8ea3072f:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-SKRUXVEK.js?v=8ea3072f:5478
+dispatchEvent @ chunk-SKRUXVEK.js?v=8ea3072f:5472
+dispatchDiscreteEvent @ chunk-SKRUXVEK.js?v=8ea3072f:5449Understand this error
+Console.js:61 Demo payment error: Error: Failed to register user: {"error":"User already registered with this wallet address"}
+    at handleDemoPayment (DemoPaymentButton.tsx:81:17)
+Mt.forEach.n.<computed> @ Console.js:61
+handleDemoPayment @ DemoPaymentButton.tsx:164
+await in handleDemoPayment
+callCallback2 @ chunk-SKRUXVEK.js?v=8ea3072f:3674
+invokeGuardedCallbackDev @ chunk-SKRUXVEK.js?v=8ea3072f:3699
+invokeGuardedCallback @ chunk-SKRUXVEK.js?v=8ea3072f:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-SKRUXVEK.js?v=8ea3072f:3736
+executeDispatch @ chunk-SKRUXVEK.js?v=8ea3072f:7014
+processDispatchQueueItemsInOrder @ chunk-SKRUXVEK.js?v=8ea3072f:7034
+processDispatchQueue @ chunk-SKRUXVEK.js?v=8ea3072f:7043
+dispatchEventsForPlugins @ chunk-SKRUXVEK.js?v=8ea3072f:7051
+(anonymous) @ chunk-SKRUXVEK.js?v=8ea3072f:7174
+batchedUpdates$1 @ chunk-SKRUXVEK.js?v=8ea3072f:18913
+batchedUpdates @ chunk-SKRUXVEK.js?v=8ea3072f:3579
+dispatchEventForPluginEventSystem @ chunk-SKRUXVEK.js?v=8ea3072f:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-SKRUXVEK.js?v=8ea3072f:5478
+dispatchEvent @ chunk-SKRUXVEK.js?v=8ea3072f:5472
+dispatchDiscreteEvent @ chunk-SKRUXVEK.js?v=8ea3072f:5449Understand this error
+injected.js:253  GET https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/api/auth/user?t=1756634161216 500 (Internal Server Error)
+window.fetch @ Network.js:219
+apply @ injected.js:253
+apiRequest @ queryClient.ts:59
+queryFn @ useWallet.ts:50
+fetchFn @ chunk-B2Y6DXIZ.js?v=8ea3072f:881
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:513
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:2313
+setInterval
+updateRefetchInterval_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2311
+updateTimers_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2318
+onQueryUpdate @ chunk-B2Y6DXIZ.js?v=8ea3072f:2274
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1042
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1041
+batch @ chunk-B2Y6DXIZ.js?v=8ea3072f:603
+dispatch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:1040
+onError @ chunk-B2Y6DXIZ.js?v=8ea3072f:904
+reject @ chunk-B2Y6DXIZ.js?v=8ea3072f:484
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:527
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:2313
+setInterval
+updateRefetchInterval_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2311
+updateTimers_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2318
+onQueryUpdate @ chunk-B2Y6DXIZ.js?v=8ea3072f:2274
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1042
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1041
+batch @ chunk-B2Y6DXIZ.js?v=8ea3072f:603
+dispatch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:1040
+onError @ chunk-B2Y6DXIZ.js?v=8ea3072f:904
+reject @ chunk-B2Y6DXIZ.js?v=8ea3072f:484
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:527
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+onSubscribe @ chunk-B2Y6DXIZ.js?v=8ea3072f:1983
+subscribe @ chunk-B2Y6DXIZ.js?v=8ea3072f:24
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:3146
+subscribeToStore @ chunk-SKRUXVEK.js?v=8ea3072f:11984
+commitHookEffectListMount @ chunk-SKRUXVEK.js?v=8ea3072f:16915
+commitPassiveMountOnFiber @ chunk-SKRUXVEK.js?v=8ea3072f:18156
+commitPassiveMountEffects_complete @ chunk-SKRUXVEK.js?v=8ea3072f:18129
+commitPassiveMountEffects_begin @ chunk-SKRUXVEK.js?v=8ea3072f:18119
+commitPassiveMountEffects @ chunk-SKRUXVEK.js?v=8ea3072f:18109
+flushPassiveEffectsImpl @ chunk-SKRUXVEK.js?v=8ea3072f:19490
+flushPassiveEffects @ chunk-SKRUXVEK.js?v=8ea3072f:19447
+commitRootImpl @ chunk-SKRUXVEK.js?v=8ea3072f:19416
+commitRoot @ chunk-SKRUXVEK.js?v=8ea3072f:19277
+performSyncWorkOnRoot @ chunk-SKRUXVEK.js?v=8ea3072f:18895
+flushSyncCallbacks @ chunk-SKRUXVEK.js?v=8ea3072f:9119
+flushSync @ chunk-SKRUXVEK.js?v=8ea3072f:18959
+scheduleRefresh @ chunk-SKRUXVEK.js?v=8ea3072f:20004
+(anonymous) @ @react-refresh:267
+performReactRefresh @ @react-refresh:256
+(anonymous) @ @react-refresh:677
+setTimeout
+(anonymous) @ @react-refresh:666
+validateRefreshBoundaryAndEnqueueUpdate @ @react-refresh:728
+(anonymous) @ TabBar.tsx:23
+(anonymous) @ client:34
+(anonymous) @ client:218
+(anonymous) @ client:193
+queueUpdate @ client:193
+await in queueUpdate
+(anonymous) @ client:642
+handleMessage @ client:640
+(anonymous) @ client:550Understand this error
+injected.js:253  GET https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/api/auth/user?t=1756634162480 500 (Internal Server Error)
+window.fetch @ Network.js:219
+apply @ injected.js:253
+apiRequest @ queryClient.ts:59
+queryFn @ useWallet.ts:50
+fetchFn @ chunk-B2Y6DXIZ.js?v=8ea3072f:881
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:513
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:2313
+setInterval
+updateRefetchInterval_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2311
+updateTimers_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2318
+onQueryUpdate @ chunk-B2Y6DXIZ.js?v=8ea3072f:2274
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1042
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1041
+batch @ chunk-B2Y6DXIZ.js?v=8ea3072f:603
+dispatch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:1040
+onError @ chunk-B2Y6DXIZ.js?v=8ea3072f:904
+reject @ chunk-B2Y6DXIZ.js?v=8ea3072f:484
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:527
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:2313
+setInterval
+updateRefetchInterval_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2311
+updateTimers_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2318
+onQueryUpdate @ chunk-B2Y6DXIZ.js?v=8ea3072f:2274
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1042
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1041
+batch @ chunk-B2Y6DXIZ.js?v=8ea3072f:603
+dispatch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:1040
+onError @ chunk-B2Y6DXIZ.js?v=8ea3072f:904
+reject @ chunk-B2Y6DXIZ.js?v=8ea3072f:484
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:527
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+onSubscribe @ chunk-B2Y6DXIZ.js?v=8ea3072f:1983
+subscribe @ chunk-B2Y6DXIZ.js?v=8ea3072f:24
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:3146
+subscribeToStore @ chunk-SKRUXVEK.js?v=8ea3072f:11984
+commitHookEffectListMount @ chunk-SKRUXVEK.js?v=8ea3072f:16915
+commitPassiveMountOnFiber @ chunk-SKRUXVEK.js?v=8ea3072f:18156
+commitPassiveMountEffects_complete @ chunk-SKRUXVEK.js?v=8ea3072f:18129
+commitPassiveMountEffects_begin @ chunk-SKRUXVEK.js?v=8ea3072f:18119
+commitPassiveMountEffects @ chunk-SKRUXVEK.js?v=8ea3072f:18109
+flushPassiveEffectsImpl @ chunk-SKRUXVEK.js?v=8ea3072f:19490
+flushPassiveEffects @ chunk-SKRUXVEK.js?v=8ea3072f:19447
+commitRootImpl @ chunk-SKRUXVEK.js?v=8ea3072f:19416
+commitRoot @ chunk-SKRUXVEK.js?v=8ea3072f:19277
+performSyncWorkOnRoot @ chunk-SKRUXVEK.js?v=8ea3072f:18895
+flushSyncCallbacks @ chunk-SKRUXVEK.js?v=8ea3072f:9119
+flushSync @ chunk-SKRUXVEK.js?v=8ea3072f:18959
+scheduleRefresh @ chunk-SKRUXVEK.js?v=8ea3072f:20004
+(anonymous) @ @react-refresh:267
+performReactRefresh @ @react-refresh:256
+(anonymous) @ @react-refresh:677
+setTimeout
+(anonymous) @ @react-refresh:666
+validateRefreshBoundaryAndEnqueueUpdate @ @react-refresh:728
+(anonymous) @ TabBar.tsx:23
+(anonymous) @ client:34
+(anonymous) @ client:218
+(anonymous) @ client:193
+queueUpdate @ client:193
+await in queueUpdate
+(anonymous) @ client:642
+handleMessage @ client:640
+(anonymous) @ client:550Understand this error
+injected.js:253  GET https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/api/auth/user?t=1756634164728 500 (Internal Server Error)
+window.fetch @ Network.js:219
+apply @ injected.js:253
+apiRequest @ queryClient.ts:59
+queryFn @ useWallet.ts:50
+fetchFn @ chunk-B2Y6DXIZ.js?v=8ea3072f:881
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:513
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:2313
+setInterval
+updateRefetchInterval_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2311
+updateTimers_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2318
+onQueryUpdate @ chunk-B2Y6DXIZ.js?v=8ea3072f:2274
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1042
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1041
+batch @ chunk-B2Y6DXIZ.js?v=8ea3072f:603
+dispatch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:1040
+onError @ chunk-B2Y6DXIZ.js?v=8ea3072f:904
+reject @ chunk-B2Y6DXIZ.js?v=8ea3072f:484
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:527
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:2313
+setInterval
+updateRefetchInterval_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2311
+updateTimers_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2318
+onQueryUpdate @ chunk-B2Y6DXIZ.js?v=8ea3072f:2274
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1042
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1041
+batch @ chunk-B2Y6DXIZ.js?v=8ea3072f:603
+dispatch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:1040
+onError @ chunk-B2Y6DXIZ.js?v=8ea3072f:904
+reject @ chunk-B2Y6DXIZ.js?v=8ea3072f:484
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:527
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+onSubscribe @ chunk-B2Y6DXIZ.js?v=8ea3072f:1983
+subscribe @ chunk-B2Y6DXIZ.js?v=8ea3072f:24
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:3146
+subscribeToStore @ chunk-SKRUXVEK.js?v=8ea3072f:11984
+commitHookEffectListMount @ chunk-SKRUXVEK.js?v=8ea3072f:16915
+commitPassiveMountOnFiber @ chunk-SKRUXVEK.js?v=8ea3072f:18156
+commitPassiveMountEffects_complete @ chunk-SKRUXVEK.js?v=8ea3072f:18129
+commitPassiveMountEffects_begin @ chunk-SKRUXVEK.js?v=8ea3072f:18119
+commitPassiveMountEffects @ chunk-SKRUXVEK.js?v=8ea3072f:18109
+flushPassiveEffectsImpl @ chunk-SKRUXVEK.js?v=8ea3072f:19490
+flushPassiveEffects @ chunk-SKRUXVEK.js?v=8ea3072f:19447
+commitRootImpl @ chunk-SKRUXVEK.js?v=8ea3072f:19416
+commitRoot @ chunk-SKRUXVEK.js?v=8ea3072f:19277
+performSyncWorkOnRoot @ chunk-SKRUXVEK.js?v=8ea3072f:18895
+flushSyncCallbacks @ chunk-SKRUXVEK.js?v=8ea3072f:9119
+flushSync @ chunk-SKRUXVEK.js?v=8ea3072f:18959
+scheduleRefresh @ chunk-SKRUXVEK.js?v=8ea3072f:20004
+(anonymous) @ @react-refresh:267
+performReactRefresh @ @react-refresh:256
+(anonymous) @ @react-refresh:677
+setTimeout
+(anonymous) @ @react-refresh:666
+validateRefreshBoundaryAndEnqueueUpdate @ @react-refresh:728
+(anonymous) @ TabBar.tsx:23
+(anonymous) @ client:34
+(anonymous) @ client:218
+(anonymous) @ client:193
+queueUpdate @ client:193
+await in queueUpdate
+(anonymous) @ client:642
+handleMessage @ client:640
+(anonymous) @ client:550Understand this error
+injected.js:253  GET https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/api/auth/user?t=1756634169019 500 (Internal Server Error)
+window.fetch @ Network.js:219
+apply @ injected.js:253
+apiRequest @ queryClient.ts:59
+queryFn @ useWallet.ts:50
+fetchFn @ chunk-B2Y6DXIZ.js?v=8ea3072f:881
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:513
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:2313
+setInterval
+updateRefetchInterval_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2311
+updateTimers_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2318
+onQueryUpdate @ chunk-B2Y6DXIZ.js?v=8ea3072f:2274
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1042
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1041
+batch @ chunk-B2Y6DXIZ.js?v=8ea3072f:603
+dispatch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:1040
+onError @ chunk-B2Y6DXIZ.js?v=8ea3072f:904
+reject @ chunk-B2Y6DXIZ.js?v=8ea3072f:484
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:527
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:2313
+setInterval
+updateRefetchInterval_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2311
+updateTimers_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2318
+onQueryUpdate @ chunk-B2Y6DXIZ.js?v=8ea3072f:2274
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1042
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1041
+batch @ chunk-B2Y6DXIZ.js?v=8ea3072f:603
+dispatch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:1040
+onError @ chunk-B2Y6DXIZ.js?v=8ea3072f:904
+reject @ chunk-B2Y6DXIZ.js?v=8ea3072f:484
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:527
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+onSubscribe @ chunk-B2Y6DXIZ.js?v=8ea3072f:1983
+subscribe @ chunk-B2Y6DXIZ.js?v=8ea3072f:24
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:3146
+subscribeToStore @ chunk-SKRUXVEK.js?v=8ea3072f:11984
+commitHookEffectListMount @ chunk-SKRUXVEK.js?v=8ea3072f:16915
+commitPassiveMountOnFiber @ chunk-SKRUXVEK.js?v=8ea3072f:18156
+commitPassiveMountEffects_complete @ chunk-SKRUXVEK.js?v=8ea3072f:18129
+commitPassiveMountEffects_begin @ chunk-SKRUXVEK.js?v=8ea3072f:18119
+commitPassiveMountEffects @ chunk-SKRUXVEK.js?v=8ea3072f:18109
+flushPassiveEffectsImpl @ chunk-SKRUXVEK.js?v=8ea3072f:19490
+flushPassiveEffects @ chunk-SKRUXVEK.js?v=8ea3072f:19447
+commitRootImpl @ chunk-SKRUXVEK.js?v=8ea3072f:19416
+commitRoot @ chunk-SKRUXVEK.js?v=8ea3072f:19277
+performSyncWorkOnRoot @ chunk-SKRUXVEK.js?v=8ea3072f:18895
+flushSyncCallbacks @ chunk-SKRUXVEK.js?v=8ea3072f:9119
+flushSync @ chunk-SKRUXVEK.js?v=8ea3072f:18959
+scheduleRefresh @ chunk-SKRUXVEK.js?v=8ea3072f:20004
+(anonymous) @ @react-refresh:267
+performReactRefresh @ @react-refresh:256
+(anonymous) @ @react-refresh:677
+setTimeout
+(anonymous) @ @react-refresh:666
+validateRefreshBoundaryAndEnqueueUpdate @ @react-refresh:728
+(anonymous) @ TabBar.tsx:23
+(anonymous) @ client:34
+(anonymous) @ client:218
+(anonymous) @ client:193
+queueUpdate @ client:193
+await in queueUpdate
+(anonymous) @ client:642
+handleMessage @ client:640
+(anonymous) @ client:550Understand this error
+injected.js:253  GET https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/api/auth/user?t=1756634174277 500 (Internal Server Error)
+window.fetch @ Network.js:219
+apply @ injected.js:253
+apiRequest @ queryClient.ts:59
+queryFn @ useWallet.ts:50
+fetchFn @ chunk-B2Y6DXIZ.js?v=8ea3072f:881
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:513
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:2313
+setInterval
+updateRefetchInterval_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2311
+updateTimers_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2318
+onQueryUpdate @ chunk-B2Y6DXIZ.js?v=8ea3072f:2274
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1042
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1041
+batch @ chunk-B2Y6DXIZ.js?v=8ea3072f:603
+dispatch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:1040
+onError @ chunk-B2Y6DXIZ.js?v=8ea3072f:904
+reject @ chunk-B2Y6DXIZ.js?v=8ea3072f:484
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:527
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:2313
+setInterval
+updateRefetchInterval_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2311
+updateTimers_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2318
+onQueryUpdate @ chunk-B2Y6DXIZ.js?v=8ea3072f:2274
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1042
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1041
+batch @ chunk-B2Y6DXIZ.js?v=8ea3072f:603
+dispatch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:1040
+onError @ chunk-B2Y6DXIZ.js?v=8ea3072f:904
+reject @ chunk-B2Y6DXIZ.js?v=8ea3072f:484
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:527
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:2313
+setInterval
+updateRefetchInterval_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2311
+updateTimers_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2318
+onQueryUpdate @ chunk-B2Y6DXIZ.js?v=8ea3072f:2274
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1042
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1041
+batch @ chunk-B2Y6DXIZ.js?v=8ea3072f:603
+dispatch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:1040
+onError @ chunk-B2Y6DXIZ.js?v=8ea3072f:904
+reject @ chunk-B2Y6DXIZ.js?v=8ea3072f:484
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:527
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+onSubscribe @ chunk-B2Y6DXIZ.js?v=8ea3072f:1983
+subscribe @ chunk-B2Y6DXIZ.js?v=8ea3072f:24
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:3146
+subscribeToStore @ chunk-SKRUXVEK.js?v=8ea3072f:11984
+commitHookEffectListMount @ chunk-SKRUXVEK.js?v=8ea3072f:16915
+commitPassiveMountOnFiber @ chunk-SKRUXVEK.js?v=8ea3072f:18156
+commitPassiveMountEffects_complete @ chunk-SKRUXVEK.js?v=8ea3072f:18129
+commitPassiveMountEffects_begin @ chunk-SKRUXVEK.js?v=8ea3072f:18119
+commitPassiveMountEffects @ chunk-SKRUXVEK.js?v=8ea3072f:18109
+flushPassiveEffectsImpl @ chunk-SKRUXVEK.js?v=8ea3072f:19490
+flushPassiveEffects @ chunk-SKRUXVEK.js?v=8ea3072f:19447
+commitRootImpl @ chunk-SKRUXVEK.js?v=8ea3072f:19416
+commitRoot @ chunk-SKRUXVEK.js?v=8ea3072f:19277
+performSyncWorkOnRoot @ chunk-SKRUXVEK.js?v=8ea3072f:18895
+flushSyncCallbacks @ chunk-SKRUXVEK.js?v=8ea3072f:9119
+flushSync @ chunk-SKRUXVEK.js?v=8ea3072f:18959
+scheduleRefresh @ chunk-SKRUXVEK.js?v=8ea3072f:20004
+(anonymous) @ @react-refresh:267
+performReactRefresh @ @react-refresh:256
+(anonymous) @ @react-refresh:677
+setTimeout
+(anonymous) @ @react-refresh:666
+validateRefreshBoundaryAndEnqueueUpdate @ @react-refresh:728
+(anonymous) @ TabBar.tsx:23
+(anonymous) @ client:34
+(anonymous) @ client:218
+(anonymous) @ client:193
+queueUpdate @ client:193
+await in queueUpdate
+(anonymous) @ client:642
+handleMessage @ client:640
+(anonymous) @ client:550Understand this error
+injected.js:253  GET https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/api/auth/user?t=1756634175551 500 (Internal Server Error)
+window.fetch @ Network.js:219
+apply @ injected.js:253
+apiRequest @ queryClient.ts:59
+queryFn @ useWallet.ts:50
+fetchFn @ chunk-B2Y6DXIZ.js?v=8ea3072f:881
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:513
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:2313
+setInterval
+updateRefetchInterval_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2311
+updateTimers_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2318
+onQueryUpdate @ chunk-B2Y6DXIZ.js?v=8ea3072f:2274
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1042
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1041
+batch @ chunk-B2Y6DXIZ.js?v=8ea3072f:603
+dispatch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:1040
+onError @ chunk-B2Y6DXIZ.js?v=8ea3072f:904
+reject @ chunk-B2Y6DXIZ.js?v=8ea3072f:484
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:527
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:2313
+setInterval
+updateRefetchInterval_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2311
+updateTimers_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2318
+onQueryUpdate @ chunk-B2Y6DXIZ.js?v=8ea3072f:2274
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1042
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1041
+batch @ chunk-B2Y6DXIZ.js?v=8ea3072f:603
+dispatch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:1040
+onError @ chunk-B2Y6DXIZ.js?v=8ea3072f:904
+reject @ chunk-B2Y6DXIZ.js?v=8ea3072f:484
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:527
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:2313
+setInterval
+updateRefetchInterval_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2311
+updateTimers_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2318
+onQueryUpdate @ chunk-B2Y6DXIZ.js?v=8ea3072f:2274
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1042
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1041
+batch @ chunk-B2Y6DXIZ.js?v=8ea3072f:603
+dispatch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:1040
+onError @ chunk-B2Y6DXIZ.js?v=8ea3072f:904
+reject @ chunk-B2Y6DXIZ.js?v=8ea3072f:484
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:527
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+onSubscribe @ chunk-B2Y6DXIZ.js?v=8ea3072f:1983
+subscribe @ chunk-B2Y6DXIZ.js?v=8ea3072f:24
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:3146
+subscribeToStore @ chunk-SKRUXVEK.js?v=8ea3072f:11984
+commitHookEffectListMount @ chunk-SKRUXVEK.js?v=8ea3072f:16915
+commitPassiveMountOnFiber @ chunk-SKRUXVEK.js?v=8ea3072f:18156
+commitPassiveMountEffects_complete @ chunk-SKRUXVEK.js?v=8ea3072f:18129
+commitPassiveMountEffects_begin @ chunk-SKRUXVEK.js?v=8ea3072f:18119
+commitPassiveMountEffects @ chunk-SKRUXVEK.js?v=8ea3072f:18109
+flushPassiveEffectsImpl @ chunk-SKRUXVEK.js?v=8ea3072f:19490
+flushPassiveEffects @ chunk-SKRUXVEK.js?v=8ea3072f:19447
+commitRootImpl @ chunk-SKRUXVEK.js?v=8ea3072f:19416
+commitRoot @ chunk-SKRUXVEK.js?v=8ea3072f:19277
+performSyncWorkOnRoot @ chunk-SKRUXVEK.js?v=8ea3072f:18895
+flushSyncCallbacks @ chunk-SKRUXVEK.js?v=8ea3072f:9119
+flushSync @ chunk-SKRUXVEK.js?v=8ea3072f:18959
+scheduleRefresh @ chunk-SKRUXVEK.js?v=8ea3072f:20004
+(anonymous) @ @react-refresh:267
+performReactRefresh @ @react-refresh:256
+(anonymous) @ @react-refresh:677
+setTimeout
+(anonymous) @ @react-refresh:666
+validateRefreshBoundaryAndEnqueueUpdate @ @react-refresh:728
+(anonymous) @ TabBar.tsx:23
+(anonymous) @ client:34
+(anonymous) @ client:218
+(anonymous) @ client:193
+queueUpdate @ client:193
+await in queueUpdate
+(anonymous) @ client:642
+handleMessage @ client:640
+(anonymous) @ client:550Understand this error
+injected.js:253  GET https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/api/auth/user?t=1756634177801 500 (Internal Server Error)
+window.fetch @ Network.js:219
+apply @ injected.js:253
+apiRequest @ queryClient.ts:59
+queryFn @ useWallet.ts:50
+fetchFn @ chunk-B2Y6DXIZ.js?v=8ea3072f:881
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:513
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:2313
+setInterval
+updateRefetchInterval_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2311
+updateTimers_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2318
+onQueryUpdate @ chunk-B2Y6DXIZ.js?v=8ea3072f:2274
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1042
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1041
+batch @ chunk-B2Y6DXIZ.js?v=8ea3072f:603
+dispatch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:1040
+onError @ chunk-B2Y6DXIZ.js?v=8ea3072f:904
+reject @ chunk-B2Y6DXIZ.js?v=8ea3072f:484
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:527
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:2313
+setInterval
+updateRefetchInterval_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2311
+updateTimers_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2318
+onQueryUpdate @ chunk-B2Y6DXIZ.js?v=8ea3072f:2274
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1042
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1041
+batch @ chunk-B2Y6DXIZ.js?v=8ea3072f:603
+dispatch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:1040
+onError @ chunk-B2Y6DXIZ.js?v=8ea3072f:904
+reject @ chunk-B2Y6DXIZ.js?v=8ea3072f:484
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:527
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:2313
+setInterval
+updateRefetchInterval_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2311
+updateTimers_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2318
+onQueryUpdate @ chunk-B2Y6DXIZ.js?v=8ea3072f:2274
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1042
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1041
+batch @ chunk-B2Y6DXIZ.js?v=8ea3072f:603
+dispatch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:1040
+onError @ chunk-B2Y6DXIZ.js?v=8ea3072f:904
+reject @ chunk-B2Y6DXIZ.js?v=8ea3072f:484
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:527
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+onSubscribe @ chunk-B2Y6DXIZ.js?v=8ea3072f:1983
+subscribe @ chunk-B2Y6DXIZ.js?v=8ea3072f:24
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:3146
+subscribeToStore @ chunk-SKRUXVEK.js?v=8ea3072f:11984
+commitHookEffectListMount @ chunk-SKRUXVEK.js?v=8ea3072f:16915
+commitPassiveMountOnFiber @ chunk-SKRUXVEK.js?v=8ea3072f:18156
+commitPassiveMountEffects_complete @ chunk-SKRUXVEK.js?v=8ea3072f:18129
+commitPassiveMountEffects_begin @ chunk-SKRUXVEK.js?v=8ea3072f:18119
+commitPassiveMountEffects @ chunk-SKRUXVEK.js?v=8ea3072f:18109
+flushPassiveEffectsImpl @ chunk-SKRUXVEK.js?v=8ea3072f:19490
+flushPassiveEffects @ chunk-SKRUXVEK.js?v=8ea3072f:19447
+commitRootImpl @ chunk-SKRUXVEK.js?v=8ea3072f:19416
+commitRoot @ chunk-SKRUXVEK.js?v=8ea3072f:19277
+performSyncWorkOnRoot @ chunk-SKRUXVEK.js?v=8ea3072f:18895
+flushSyncCallbacks @ chunk-SKRUXVEK.js?v=8ea3072f:9119
+flushSync @ chunk-SKRUXVEK.js?v=8ea3072f:18959
+scheduleRefresh @ chunk-SKRUXVEK.js?v=8ea3072f:20004
+(anonymous) @ @react-refresh:267
+performReactRefresh @ @react-refresh:256
+(anonymous) @ @react-refresh:677
+setTimeout
+(anonymous) @ @react-refresh:666
+validateRefreshBoundaryAndEnqueueUpdate @ @react-refresh:728
+(anonymous) @ TabBar.tsx:23
+(anonymous) @ client:34
+(anonymous) @ client:218
+(anonymous) @ client:193
+queueUpdate @ client:193
+await in queueUpdate
+(anonymous) @ client:642
+handleMessage @ client:640
+(anonymous) @ client:550Understand this error
+injected.js:253  GET https://4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev/api/auth/user?t=1756634182049 500 (Internal Server Error)
+window.fetch @ Network.js:219
+apply @ injected.js:253
+apiRequest @ queryClient.ts:59
+queryFn @ useWallet.ts:50
+fetchFn @ chunk-B2Y6DXIZ.js?v=8ea3072f:881
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:513
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:2313
+setInterval
+updateRefetchInterval_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2311
+updateTimers_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2318
+onQueryUpdate @ chunk-B2Y6DXIZ.js?v=8ea3072f:2274
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1042
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1041
+batch @ chunk-B2Y6DXIZ.js?v=8ea3072f:603
+dispatch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:1040
+onError @ chunk-B2Y6DXIZ.js?v=8ea3072f:904
+reject @ chunk-B2Y6DXIZ.js?v=8ea3072f:484
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:527
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:2313
+setInterval
+updateRefetchInterval_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2311
+updateTimers_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2318
+onQueryUpdate @ chunk-B2Y6DXIZ.js?v=8ea3072f:2274
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1042
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1041
+batch @ chunk-B2Y6DXIZ.js?v=8ea3072f:603
+dispatch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:1040
+onError @ chunk-B2Y6DXIZ.js?v=8ea3072f:904
+reject @ chunk-B2Y6DXIZ.js?v=8ea3072f:484
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:527
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:2313
+setInterval
+updateRefetchInterval_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2311
+updateTimers_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2318
+onQueryUpdate @ chunk-B2Y6DXIZ.js?v=8ea3072f:2274
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1042
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:1041
+batch @ chunk-B2Y6DXIZ.js?v=8ea3072f:603
+dispatch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:1040
+onError @ chunk-B2Y6DXIZ.js?v=8ea3072f:904
+reject @ chunk-B2Y6DXIZ.js?v=8ea3072f:484
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:527
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:538
+Promise.then
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:534
+Promise.catch
+run @ chunk-B2Y6DXIZ.js?v=8ea3072f:517
+start @ chunk-B2Y6DXIZ.js?v=8ea3072f:555
+fetch @ chunk-B2Y6DXIZ.js?v=8ea3072f:969
+executeFetch_fn @ chunk-B2Y6DXIZ.js?v=8ea3072f:2279
+onSubscribe @ chunk-B2Y6DXIZ.js?v=8ea3072f:1983
+subscribe @ chunk-B2Y6DXIZ.js?v=8ea3072f:24
+(anonymous) @ chunk-B2Y6DXIZ.js?v=8ea3072f:3146
+subscribeToStore @ chunk-SKRUXVEK.js?v=8ea3072f:11984
+commitHookEffectListMount @ chunk-SKRUXVEK.js?v=8ea3072f:16915
+commitPassiveMountOnFiber @ chunk-SKRUXVEK.js?v=8ea3072f:18156
+commitPassiveMountEffects_complete @ chunk-SKRUXVEK.js?v=8ea3072f:18129
+commitPassiveMountEffects_begin @ chunk-SKRUXVEK.js?v=8ea3072f:18119
+commitPassiveMountEffects @ chunk-SKRUXVEK.js?v=8ea3072f:18109
+flushPassiveEffectsImpl @ chunk-SKRUXVEK.js?v=8ea3072f:19490
+flushPassiveEffects @ chunk-SKRUXVEK.js?v=8ea3072f:19447
+commitRootImpl @ chunk-SKRUXVEK.js?v=8ea3072f:19416
+commitRoot @ chunk-SKRUXVEK.js?v=8ea3072f:19277
+performSyncWorkOnRoot @ chunk-SKRUXVEK.js?v=8ea3072f:18895
+flushSyncCallbacks @ chunk-SKRUXVEK.js?v=8ea3072f:9119
+flushSync @ chunk-SKRUXVEK.js?v=8ea3072f:18959
+scheduleRefresh @ chunk-SKRUXVEK.js?v=8ea3072f:20004
+(anonymous) @ @react-refresh:267
+performReactRefresh @ @react-refresh:256
+(anonymous) @ @react-refresh:677
+setTimeout
+(anonymous) @ @react-refresh:666
+validateRefreshBoundaryAndEnqueueUpdate @ @react-refresh:728
+(anonymous) @ TabBar.tsx:23
+(anonymous) @ client:34
+(anonymous) @ client:218
+(anonymous) @ client:193
+queueUpdate @ client:193
+await in queueUpdate
+(anonymous) @ client:642
+handleMessage @ client:640
+(anonymous) @ client:550Understand this error
