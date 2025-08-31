@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
@@ -145,29 +145,30 @@ export default function AdminUsers() {
     },
   });
 
-  // Get level name and color
-  const getLevelInfo = (level: number) => {
-    const levelInfo = MEMBERSHIP_LEVELS.find(l => l.level === level);
-    return {
-      name: levelInfo?.name || 'Unactivated',
-      color: level === 0 ? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300' :
-             level <= 3 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-             level <= 6 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
-             level <= 9 ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
-             level <= 12 ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
-             level <= 15 ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
-             'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-    };
-  };
+  // Get level name and color - memoized to improve performance
+  const getLevelInfo = useMemo(() => 
+    (level: number) => {
+      const levelInfo = MEMBERSHIP_LEVELS.find(l => l.level === level);
+      return {
+        name: levelInfo?.name || 'Unactivated',
+        color: level === 0 ? 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300' :
+               level <= 3 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+               level <= 6 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+               level <= 9 ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+               level <= 12 ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' :
+               level <= 15 ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
+               'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+      };
+    }, []);
 
-  // Calculate statistics
-  const stats = {
+  // Calculate statistics - memoized to prevent infinite re-renders
+  const stats = useMemo(() => ({
     total: platformUsers.length,
     activated: platformUsers.filter((u: PlatformUser) => u.memberActivated).length,
     unactivated: platformUsers.filter((u: PlatformUser) => !u.memberActivated).length,
     totalBCC: platformUsers.reduce((sum: number, u: PlatformUser) => sum + u.transferableBCC + u.restrictedBCC, 0),
     totalEarnings: platformUsers.reduce((sum: number, u: PlatformUser) => sum + u.totalEarnings, 0),
-  };
+  }), [platformUsers]);
 
   // Access check
   if (!hasPermission('users.read')) {
