@@ -24,34 +24,46 @@ export default function LanguageSwitcher() {
     return languages.find(lang => lang.code === language);
   }, [languages, language]);
 
+  const triggerContent = useMemo(() => (
+    <div className="flex items-center space-x-2">
+      <span className="text-lg">{getLanguageFlag(language)}</span>
+      <span className="text-sm font-medium">{currentLanguage?.name}</span>
+    </div>
+  ), [language, currentLanguage, getLanguageFlag]);
+
+  const selectItems = useMemo(() => 
+    languages.map((lang) => (
+      <SelectItem 
+        key={lang.code} 
+        value={lang.code}
+        className="text-foreground hover:bg-muted cursor-pointer"
+        data-testid={`option-language-${lang.code}`}
+      >
+        <div className="flex items-center space-x-2">
+          <span className="text-lg">{getLanguageFlag(lang.code)}</span>
+          <span>{lang.name}</span>
+        </div>
+      </SelectItem>
+    )), [languages, getLanguageFlag]
+  );
+
+  const handleLanguageChange = useCallback((newLanguage: string) => {
+    setLanguage(newLanguage);
+  }, [setLanguage]);
+
   return (
     <div className="relative">
       {/* Desktop Version */}
       <div className="hidden sm:block">
-        <Select value={language} onValueChange={setLanguage}>
+        <Select value={language} onValueChange={handleLanguageChange}>
           <SelectTrigger 
             className="w-auto min-w-[120px] bg-secondary text-foreground border-border hover:bg-muted transition-colors" 
             data-testid="select-language"
           >
-            <div className="flex items-center space-x-2">
-              <span className="text-lg">{getLanguageFlag(language)}</span>
-              <span className="text-sm font-medium">{currentLanguage?.name}</span>
-            </div>
+            {triggerContent}
           </SelectTrigger>
           <SelectContent className="bg-secondary border-border">
-            {languages.map((lang) => (
-              <SelectItem 
-                key={lang.code} 
-                value={lang.code}
-                className="text-foreground hover:bg-muted cursor-pointer"
-                data-testid={`option-language-${lang.code}`}
-              >
-                <div className="flex items-center space-x-2">
-                  <span className="text-lg">{getLanguageFlag(lang.code)}</span>
-                  <span>{lang.name}</span>
-                </div>
-              </SelectItem>
-            ))}
+            {selectItems}
           </SelectContent>
         </Select>
       </div>

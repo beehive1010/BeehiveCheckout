@@ -64,30 +64,8 @@ export function RouteGuard({ children }: RouteGuardProps) {
       return;
     }
 
-    // Wallet is connected - check NFT status first
-    if (hasLevel1NFT) {
-      // User has Member NFT - skip registration/welcome, go to dashboard
-      if (location === '/' || location === '/landing' || location === '/register' || location === '/welcome') {
-        setLocation('/dashboard');
-      }
-      return; // Allow access to all protected routes
-    } 
-    
-    // No Member NFT - check registration status
-    if (isRegistered) {
-      // User is registered but no Member NFT - redirect to welcome to claim NFT
-      if (location === '/' || location === '/landing' || location === '/register') {
-        setLocation('/welcome');
-        return;
-      }
-      
-      // Allow welcome flow and public routes
-      if (location === '/welcome' || location.startsWith('/blog/') || location === '/hiveworld') return;
-      
-      // For protected routes, redirect to welcome to claim NFT
-      setLocation('/welcome');
-      return;
-    } else {
+    // Wallet is connected - check registration status FIRST
+    if (!isRegistered) {
       // User has wallet but not registered - guide through registration flow
       if (location === '/' || location === '/landing') {
         // Connected wallet on landing page - start registration flow
@@ -100,6 +78,28 @@ export function RouteGuard({ children }: RouteGuardProps) {
       
       // For protected routes, redirect to registration
       setLocation('/register');
+      return;
+    }
+    
+    // User is registered - now check NFT/activation status
+    if (hasLevel1NFT) {
+      // User has Member NFT - allow full access, go to dashboard
+      if (location === '/' || location === '/landing' || location === '/register' || location === '/welcome') {
+        setLocation('/dashboard');
+      }
+      return; // Allow access to all protected routes
+    } else {
+      // User is registered but no Member NFT - redirect to welcome to claim NFT
+      if (location === '/' || location === '/landing' || location === '/register') {
+        setLocation('/welcome');
+        return;
+      }
+      
+      // Allow welcome flow and public routes
+      if (location === '/welcome' || location.startsWith('/blog/') || location === '/hiveworld') return;
+      
+      // For protected routes, redirect to welcome to claim NFT
+      setLocation('/welcome');
       return;
     }
   }, [account?.address, hasLevel1NFT, isRegistered, isNFTLoading, isUserLoading, location]);
