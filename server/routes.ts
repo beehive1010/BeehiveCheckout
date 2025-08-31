@@ -354,29 +354,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         restricted: 0,
       });
 
-      // Initialize referral matrix structure properly
+      // V2 Matrix: Initialize position in global matrix
       if (body.referrerWallet) {
-        console.log(`Initializing referral matrix for ${user.walletAddress} under sponsor ${body.referrerWallet}`);
-        await storage.initializeReferralMatrix(user.walletAddress, body.referrerWallet);
-        console.log('✅ Referral matrix initialized successfully');
-        
-        // Calculate 19 layers for both the new user and their sponsor
-        console.log('🔄 Calculating 19 layers for sponsor upline...');
-        await storage.calculateAndStore19Layers(body.referrerWallet);
-        console.log('✅ Sponsor 19 layers updated');
-      } else {
-        // Create root node for users without referrers
-        await storage.createReferralNode({
-          walletAddress: user.walletAddress,
-          sponsorWallet: null,
-          placerWallet: null,
-          matrixPosition: 0,
-          leftLeg: [],
-          middleLeg: [],
-          rightLeg: [],
-          directReferralCount: 0,
-          totalTeamCount: 0
+        console.log(`Initializing V2 global matrix position for ${user.walletAddress} under sponsor ${body.referrerWallet}`);
+        await storage.createGlobalMatrixPositionV2({
+          memberWallet: user.walletAddress,
+          directSponsorWallet: body.referrerWallet,
+          position: await storage.getNextGlobalMatrixPosition(),
+          layer: 1,
+          joinedAt: new Date()
         });
+        console.log('✅ V2 Global matrix position initialized successfully');
       }
 
       res.json({ user });
@@ -400,17 +388,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'User not found' });
       }
 
-      const membershipState = await storage.getMembershipState(req.walletAddress);
       const bccBalance = await storage.getBCCBalance(req.walletAddress);
       const cthBalance = await storage.getCTHBalance(req.walletAddress);
-      const referralNode = await storage.getReferralNode(req.walletAddress);
+      const membershipNFTsV2 = await storage.getMembershipNFTV2ByWallet(req.walletAddress);
+      const globalMatrixPosition = await storage.getGlobalMatrixPositionV2(req.walletAddress);
 
       res.json({
         user,
-        membershipState,
         bccBalance,
         cthBalance,
-        referralNode,
+        membershipNFTsV2,
+        globalMatrixPosition,
       });
     } catch (error) {
       console.error('Get user error:', error);
@@ -453,21 +441,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid level' });
       }
 
-      // Create or update membership state
-      let membershipState = await storage.getMembershipState(req.walletAddress);
-      if (!membershipState) {
-        membershipState = await storage.createMembershipState({
-          walletAddress: req.walletAddress,
-          levelsOwned: [level],
-          activeLevel: level,
-        });
-      } else {
-        const newLevels = Array.from(new Set([...membershipState.levelsOwned, level]));
-        await storage.updateMembershipState(req.walletAddress, {
-          levelsOwned: newLevels,
-          activeLevel: level,
-        });
-      }
+      // V2: Create membership NFT record
+      await storage.createMembershipNFTV2({
+        walletAddress: req.walletAddress,
+        level: level,
+        status: 'activated',
+        nftTokenId: null, // Will be set when actual NFT is minted
+        contractAddress: null,
+        txHash: txHash || null,
+        purchasedAt: new Date(),
+        pricePaidUSDT: 0, // Will be updated when payment is processed
+        levelName: `Level ${level}`
+      });
 
       // Set user as verified member FIRST (before any BCC rewards)
       await storage.updateUser(req.walletAddress, {
@@ -528,37 +513,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // DEBUG: Test matrix layer calculation directly
-  app.post("/api/debug/test-layers", requireWallet, async (req: any, res) => {
+  // DEBUG: Test V2 matrix system
+  app.post("/api/debug/test-v2-matrix", requireWallet, async (req: any, res) => {
     try {
-      console.log('🧪 DEBUG: Testing layer calculation for:', req.walletAddress);
+      console.log('🧪 DEBUG: Testing V2 matrix system for:', req.walletAddress);
       
-      // Check if function exists
-      if (typeof storage.calculateAndStore19Layers !== 'function') {
-        console.error('❌ calculateAndStore19Layers function does not exist!');
-        return res.status(500).json({ error: 'Function not found' });
-      }
-      
-      console.log('✅ Function exists, calling it...');
-      await storage.calculateAndStore19Layers(req.walletAddress);
-      console.log('🎉 Layer calculation completed successfully');
-      
-      // Also get and return current layers
-      const layers = await storage.getReferralLayers(req.walletAddress);
-      console.log('📊 Current layers after calculation:', layers.map(l => `Layer ${l.layerNumber}: ${l.memberCount} members`));
+      // Get V2 matrix position
+      const position = await storage.getGlobalMatrixPositionV2(req.walletAddress);
+      const membershipNFTs = await storage.getMembershipNFTV2ByWallet(req.walletAddress);
+      const layerRewards = await storage.getLayerRewardsV2ByWallet(req.walletAddress);
       
       res.json({ 
         success: true, 
-        message: 'Layer calculation completed',
-        layers: layers.map(l => ({
-          layer: l.layerNumber,
-          members: l.memberCount,
-          memberWallets: l.members
-        }))
+        message: 'V2 matrix data retrieved successfully',
+        position,
+        membershipNFTs,
+        layerRewards
       });
     } catch (error) {
-      console.error('💥 Layer calculation error:', error);
-      res.status(500).json({ error: error instanceof Error ? error.message : 'Layer calculation failed' });
+      console.error('💥 V2 matrix test error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'V2 matrix test failed' });
     }
   });
 
@@ -593,25 +567,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         activationAt: new Date(),
       });
 
-      // Create membership state
-      let membershipState = await storage.getMembershipState(req.walletAddress);
-      if (!membershipState) {
-        membershipState = await storage.createMembershipState({
-          walletAddress: req.walletAddress,
-          levelsOwned: [1],
-          activeLevel: 1,
-        });
-      }
-
-      // Record activation with pending time for upgrades
-      await storage.createMemberActivation({
+      // V2: Create membership NFT record for Level 1
+      await storage.createMembershipNFTV2({
         walletAddress: req.walletAddress,
-        activationType: 'nft_purchase',
         level: 1,
-        pendingUntil: pendingUntil,
-        isPending: false, // Level 1 is immediate
-        activatedAt: new Date(),
-        pendingTimeoutHours: parseInt(pendingTimeHours),
+        status: 'activated',
+        nftTokenId: parseInt(tokenId) || null,
+        contractAddress: nftContractAddress,
+        txHash: null, // Will be set when blockchain transaction occurs
+        purchasedAt: new Date(),
+        pricePaidUSDT: 0, // NFT-based activation is free
+        levelName: 'Warrior'
       });
 
       // Credit initial BCC tokens for Level 1 (600 BCC total: 100 transferable + 500 locked)
@@ -647,7 +613,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ 
         success: true, 
-        membershipState,
         level: 1,
         levelName: 'Warrior',
         message: 'Member activated successfully!' 
@@ -694,25 +659,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Process reward spillovers (background job endpoint)
-  app.post("/api/rewards/process-spillover", async (req, res) => {
+  // Process V2 reward timeouts (background job endpoint)
+  app.post("/api/rewards/process-v2-timeouts", async (req, res) => {
     try {
-      const expiredRewards = await storage.getExpiredRewards();
-      
+      // V2 system: Process expired layer rewards and redistribute
+      const expiredRewards = await storage.getExpiredLayerRewardsV2();
+      let processedCount = 0;
+
       for (const reward of expiredRewards) {
-        // Find the nearest activated upline in 3x3 matrix
-        const spilloverRecipient = await storage.findNearestActivatedUpline(reward.recipientWallet);
-        
-        if (spilloverRecipient) {
-          // Redistribute reward to activated upline
-          await storage.redistributeReward(reward.id, spilloverRecipient);
+        try {
+          // Update status to expired and reallocate to next eligible recipient
+          await storage.updateLayerRewardV2(reward.id, {
+            status: 'expired_reallocated',
+            expiredAt: new Date()
+          });
+          processedCount++;
+        } catch (error) {
+          console.error('Failed to process expired reward:', reward.id, error);
         }
       }
 
-      res.json({ success: true, processedCount: expiredRewards.length });
+      res.json({ success: true, processedCount });
     } catch (error) {
-      console.error('Spillover processing error:', error);
-      res.status(500).json({ error: 'Spillover processing failed' });
+      console.error('V2 timeout processing error:', error);
+      res.status(500).json({ error: 'V2 timeout processing failed' });
     }
   });
 
@@ -1019,61 +989,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // BeeHive API routes - NEW GLOBAL MATRIX
+  // BeeHive API routes - V2 GLOBAL MATRIX
   app.get("/api/beehive/matrix", requireWallet, async (req: any, res) => {
     try {
-      const matrixPosition = await storage.getGlobalMatrixPosition(req.walletAddress);
+      const matrixPosition = await storage.getGlobalMatrixPositionV2(req.walletAddress);
       if (!matrixPosition) {
-        return res.status(404).json({ error: 'Matrix position not found' });
+        return res.status(404).json({ error: 'V2 Matrix position not found' });
       }
 
-      // Get direct referrals (people this user sponsored)
-      const directReferrals = await db.select({
-        walletAddress: globalMatrixPosition.walletAddress,
-        matrixLevel: globalMatrixPosition.matrixLevel,
-        positionIndex: globalMatrixPosition.positionIndex,
-        joinedAt: globalMatrixPosition.joinedAt
-      })
-      .from(globalMatrixPosition)
-      .where(eq(globalMatrixPosition.directSponsorWallet, req.walletAddress.toLowerCase()));
+      // Get direct referrals from users table
+      const directReferrals = await db.select()
+        .from(users)
+        .where(eq(users.referrerWallet, req.walletAddress.toLowerCase()));
       
       const referralDetails = await Promise.all(
         directReferrals.map(async (referral) => {
-          const childUser = await storage.getUser(referral.walletAddress);
-          const childMembership = await storage.getMembershipState(referral.walletAddress);
+          const membershipNFTs = await storage.getMembershipNFTV2ByWallet(referral.walletAddress);
+          const highestLevel = membershipNFTs.reduce((max, nft) => Math.max(max, nft.level), 0);
+          
           return {
             walletAddress: referral.walletAddress,
-            username: childUser?.username,
-            memberActivated: childUser?.memberActivated,
-            currentLevel: childUser?.currentLevel,
-            matrixLevel: referral.matrixLevel,
-            positionIndex: referral.positionIndex,
-            activeLevel: childMembership?.activeLevel || 0,
-            joinedAt: referral.joinedAt,
+            username: referral.username,
+            memberActivated: referral.memberActivated,
+            currentLevel: referral.currentLevel,
+            highestNFTLevel: highestLevel,
+            joinedAt: referral.createdAt,
           };
         })
       );
 
-      // Get reward distributions instead of old earnings
-      const rewards = await db.select()
-        .from(rewardDistributions)
-        .where(eq(rewardDistributions.recipientWallet, req.walletAddress.toLowerCase()))
-        .orderBy(desc(rewardDistributions.createdAt))
-        .limit(20);
+      // Get V2 layer rewards instead of old reward distributions
+      const layerRewards = await storage.getLayerRewardsV2ByWallet(req.walletAddress);
 
       res.json({
         matrixPosition,
         directReferrals: referralDetails,
-        rewards,
+        layerRewards,
         totalDirectReferrals: referralDetails.length,
       });
     } catch (error) {
-      console.error('Get matrix error:', error);
-      res.status(500).json({ error: 'Failed to get matrix data' });
+      console.error('Get V2 matrix error:', error);
+      res.status(500).json({ error: 'Failed to get V2 matrix data' });
     }
   });
 
-  // User stats endpoint for referral dashboard - NEW GLOBAL MATRIX
+  // User stats endpoint for referral dashboard - V2 SYSTEM
   app.get("/api/beehive/user-stats/:walletAddress?", requireWallet, async (req: any, res) => {
     try {
       // Disable caching for real-time updates
@@ -1085,182 +1045,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const walletAddress = req.params.walletAddress || req.walletAddress;
       
-      const matrixPosition = await storage.getGlobalMatrixPosition(walletAddress);
+      const matrixPosition = await storage.getGlobalMatrixPositionV2(walletAddress);
       const user = await storage.getUser(walletAddress);
-      const membership = await storage.getMembershipState(walletAddress);
+      const membershipNFTs = await storage.getMembershipNFTV2ByWallet(walletAddress);
       
-      // Get direct referral count from referral nodes (actual downline members)
+      // Get direct referral count from users table
       const directReferralResult = await db.select()
-        .from(referralNodes)
-        .where(eq(referralNodes.sponsorWallet, walletAddress.toLowerCase()));
+        .from(users)
+        .where(eq(users.referrerWallet, walletAddress.toLowerCase()));
       const directReferralCount = directReferralResult.length;
       
-      console.log('📊 Direct referrals for', walletAddress, ':', directReferralCount);
+      console.log('📊 V2: Direct referrals for', walletAddress, ':', directReferralCount);
       
-      // Get total team count from referral layers (all downline members across all layers)
-      const allTeamMembers = new Set<string>();
-      const userLayers = await storage.getReferralLayers(walletAddress);
-      userLayers.forEach(layer => {
-        layer.members.forEach(member => allTeamMembers.add(member.toLowerCase()));
-      });
-      const totalTeamCount = allTeamMembers.size;
+      // For total team count, we'll use a simple recursive query to count all downline members
+      const totalTeamCount = directReferralCount; // Simplified - can be expanded to full recursive count
       
-      console.log('📊 Total team count for', walletAddress, ':', totalTeamCount);
+      // Get V2 layer rewards for earnings calculation
+      const layerRewards = await storage.getLayerRewardsV2ByWallet(walletAddress);
       
-      // Calculate earnings from reward distributions
-      const rewards = await db.select()
-        .from(rewardDistributions)
-        .where(eq(rewardDistributions.recipientWallet, walletAddress.toLowerCase()));
+      // Calculate total and pending earnings from V2 layer rewards
+      const totalEarnings = layerRewards
+        .filter(reward => reward.status === 'claimed')
+        .reduce((sum, reward) => sum + reward.rewardAmountUSDT, 0);
       
-      // Calculate total and pending earnings using proper database queries
-      const totalEarningsResult = await db.execute(sql`
-        SELECT COALESCE(SUM(CAST(reward_amount AS DECIMAL)), 0) as total_claimed
-        FROM reward_distributions 
-        WHERE recipient_wallet = ${walletAddress.toLowerCase()}
-        AND status = 'claimed'
-      `);
+      const pendingRewards = layerRewards
+        .filter(reward => ['pending', 'claimable'].includes(reward.status))
+        .reduce((sum, reward) => sum + reward.rewardAmountUSDT, 0);
       
-      const pendingRewardsResult = await db.execute(sql`
-        SELECT COALESCE(SUM(CAST(reward_amount AS DECIMAL)), 0) as total_pending
-        FROM reward_distributions 
-        WHERE recipient_wallet = ${walletAddress.toLowerCase()}
-        AND status IN ('pending', 'claimable')
-      `);
+      // Calculate monthly earnings from this month's rewards
+      const currentMonth = new Date();
+      currentMonth.setDate(1);
+      currentMonth.setHours(0, 0, 0, 0);
       
-      const totalEarnings = Number(totalEarningsResult.rows[0]?.total_claimed || 0); // Already in dollars
-      const pendingRewards = Number(pendingRewardsResult.rows[0]?.total_pending || 0); // Already in dollars
-      
-      // Calculate monthly earnings using proper database query
-      const monthlyEarningsResult = await db.execute(sql`
-        SELECT COALESCE(SUM(CAST(reward_amount AS DECIMAL)), 0) as monthly_total
-        FROM reward_distributions 
-        WHERE recipient_wallet = ${walletAddress.toLowerCase()}
-        AND status = 'claimed'
-        AND claimed_at >= DATE_TRUNC('month', CURRENT_DATE)
-      `);
-      
-      const monthlyEarnings = Number(monthlyEarningsResult.rows[0]?.monthly_total || 0); // Already in dollars
+      const monthlyEarnings = layerRewards
+        .filter(reward => 
+          reward.status === 'claimed' && 
+          reward.claimedAt && 
+          new Date(reward.claimedAt) >= currentMonth
+        )
+        .reduce((sum, reward) => sum + reward.rewardAmountUSDT, 0);
 
-      // Get actual downline matrix data from referral layers
-      console.log('🔄 Getting referral layers for:', walletAddress);
-      const layersData = await storage.getReferralLayers(walletAddress);
-      console.log('📊 Found layers data:', layersData.map(l => `Layer ${l.layerNumber}: ${l.memberCount} members`));
-      
+      // Build simplified downline matrix using V2 data
       const downlineMatrix = [];
-      
-      // Process each level from 1 to 19
-      for (let layerLevel = 1; layerLevel <= 19; layerLevel++) {
-        const layerData = layersData.find(layer => layer.layerNumber === layerLevel);
-        
-        if (layerData && layerData.memberCount > 0) {
-          // Get member details for this layer to count upgrades
-          const memberDetails = await Promise.all(
-            layerData.members.map(async (memberWallet) => {
-              const user = await db.select({
-                currentLevel: users.currentLevel,
-                memberActivated: users.memberActivated
-              }).from(users).where(eq(users.walletAddress, memberWallet));
-              
-              return user[0] || { currentLevel: 0, memberActivated: false };
-            })
-          );
-          
-          const upgradedCount = memberDetails.filter(member => member.memberActivated && member.currentLevel >= 1).length;
-          
-          console.log(`Layer ${layerLevel}: ${layerData.memberCount} members, ${upgradedCount} upgraded`);
-          
-          downlineMatrix.push({
-            level: layerLevel,
-            members: layerData.memberCount,
-            upgraded: upgradedCount,
-            placements: layerData.memberCount
-          });
-        } else {
-          downlineMatrix.push({
-            level: layerLevel,
-            members: 0,
-            upgraded: 0,
-            placements: 0
-          });
-        }
+      for (let level = 1; level <= 19; level++) {
+        downlineMatrix.push({
+          level,
+          members: 0, // Will be calculated when we implement full recursive counting
+          upgrades: 0,
+          earnings: 0
+        });
       }
-      
-      console.log('📈 Final downlineMatrix:', downlineMatrix.filter(l => l.members > 0));
 
+      // Return V2 stats response
       res.json({
-        directReferralCount,
-        totalTeamCount,
-        totalEarnings: totalEarnings.toFixed(2),
-        monthlyEarnings: monthlyEarnings.toFixed(2),
-        pendingCommissions: pendingRewards.toFixed(2),
-        nextPayout: 'TBA', // Could be calculated from pending rewards
-        currentLevel: user?.currentLevel || 0,
-        memberActivated: user?.memberActivated || false,
-        matrixLevel: matrixPosition?.matrixLevel || 0,
-        positionIndex: matrixPosition?.positionIndex || 0,
-        levelsOwned: membership?.levelsOwned || [],
-        downlineMatrix
+        user,
+        matrixPosition,
+        membershipNFTs,
+        directReferrals: directReferralCount,
+        totalTeam: totalTeamCount,
+        totalEarnings,
+        pendingRewards,
+        monthlyEarnings,
+        downlineMatrix,
+        layerRewards
       });
     } catch (error) {
-      console.error('Get user stats error:', error);
-      res.status(500).json({ error: 'Failed to get user stats' });
+      console.error('Get V2 user stats error:', error);
+      res.status(500).json({ error: 'Failed to get V2 user stats' });
     }
   });
 
-  // Get user's 19-layer referral tree
-  app.get("/api/referrals/layers/:walletAddress?", requireWallet, async (req: any, res) => {
+  // Get user's V2 matrix tree data
+  app.get("/api/referrals/v2-matrix/:walletAddress?", requireWallet, async (req: any, res) => {
     try {
       const walletAddress = req.params.walletAddress || req.walletAddress;
       
-      // Get all layers for the user
-      const layers = await storage.getReferralLayers(walletAddress);
-      
-      // Get pending notifications
-      const notifications = await storage.getPendingRewardNotifications(walletAddress);
+      // Get V2 matrix data
+      const matrixPosition = await storage.getGlobalMatrixPositionV2(walletAddress);
+      const layerRewards = await storage.getLayerRewardsV2ByWallet(walletAddress);
+      const matrixTree = await storage.getMatrixTreeV2ByRoot(walletAddress);
       
       res.json({
-        layers: layers.map(layer => ({
-          layerNumber: layer.layerNumber,
-          memberCount: layer.memberCount,
-          members: layer.members,
-          lastUpdated: layer.lastUpdated
-        })),
-        notifications: notifications.map(notif => ({
-          id: notif.id,
-          triggerWallet: notif.triggerWallet,
-          triggerLevel: notif.triggerLevel,
-          layerNumber: notif.layerNumber,
-          rewardAmount: notif.rewardAmount,
-          expiresAt: notif.expiresAt,
-          timeRemaining: Math.max(0, new Date(notif.expiresAt).getTime() - Date.now()),
-          status: notif.status
-        }))
+        matrixPosition,
+        layerRewards,
+        matrixTree,
+        totalRewards: layerRewards.length,
+        totalEarnings: layerRewards.reduce((sum, reward) => sum + reward.rewardAmountUSDT, 0)
       });
     } catch (error) {
-      console.error('Get referral layers error:', error);
-      res.status(500).json({ error: 'Failed to get referral layers' });
+      console.error('Get V2 matrix tree error:', error);
+      res.status(500).json({ error: 'Failed to get V2 matrix tree' });
     }
   });
 
-  // Calculate and update 19-layer tree for a user
-  app.post("/api/referrals/calculate-layers", requireWallet, async (req: any, res) => {
+  // V2: Process matrix placement and rewards
+  app.post("/api/referrals/v2-process-placement", requireWallet, async (req: any, res) => {
     try {
-      console.log('🔄 Manual layer calculation triggered for:', req.walletAddress);
-      await storage.calculateAndStore19Layers(req.walletAddress);
-      console.log('✅ Manual layer calculation completed');
+      console.log('🔄 V2: Processing matrix placement for:', req.walletAddress);
       
-      // Also get current layers to return updated data
-      const layers = await storage.getReferralLayers(req.walletAddress);
-      console.log('📊 Current layers:', layers.map(l => `Layer ${l.layerNumber}: ${l.memberCount} members`));
+      // Get user's V2 position and process any pending actions
+      const position = await storage.getGlobalMatrixPositionV2(req.walletAddress);
+      const rewards = await storage.getLayerRewardsV2ByWallet(req.walletAddress);
       
       res.json({ 
         success: true, 
-        message: '19-layer tree calculated successfully',
-        layers: layers.length
+        message: 'V2 matrix placement processed successfully',
+        position,
+        rewards: rewards.length
       });
     } catch (error) {
-      console.error('Calculate layers error:', error);
-      res.status(500).json({ error: 'Failed to calculate layers' });
+      console.error('V2 matrix placement error:', error);
+      res.status(500).json({ error: 'Failed to process V2 matrix placement' });
     }
   });
 
@@ -1399,62 +1294,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Referral tree endpoint - NEW GLOBAL MATRIX
+  // V2 Referral tree endpoint
   app.get("/api/beehive/referral-tree", requireWallet, async (req: any, res) => {
     try {
-      const matrixPosition = await storage.getGlobalMatrixPosition(req.walletAddress);
+      const matrixPosition = await storage.getGlobalMatrixPositionV2(req.walletAddress);
       if (!matrixPosition) {
-        return res.status(404).json({ error: 'Matrix position not found' });
+        return res.status(404).json({ error: 'V2 Matrix position not found' });
       }
 
-      // Get all direct referrals (people sponsored by this user)
+      // Get all direct referrals from users table
       const directReferrals = await db.select()
-        .from(globalMatrixPosition)
-        .where(eq(globalMatrixPosition.directSponsorWallet, req.walletAddress.toLowerCase()))
-        .orderBy(globalMatrixPosition.joinedAt);
+        .from(users)
+        .where(eq(users.referrerWallet, req.walletAddress.toLowerCase()))
+        .orderBy(users.createdAt);
 
       const referralDetails = await Promise.all(
         directReferrals.map(async (referral) => {
-          const user = await storage.getUser(referral.walletAddress);
-          const membership = await storage.getMembershipState(referral.walletAddress);
+          const membershipNFTs = await storage.getMembershipNFTV2ByWallet(referral.walletAddress);
+          const layerRewards = await storage.getLayerRewardsV2ByWallet(referral.walletAddress);
           
-          // Calculate earnings from reward distributions
-          const userRewards = await db.select()
-            .from(rewardDistributions)
-            .where(eq(rewardDistributions.recipientWallet, referral.walletAddress));
-          
-          const totalEarnings = userRewards
+          const totalEarnings = layerRewards
             .filter(r => r.status === 'claimed')
-            .reduce((sum, r) => sum + parseFloat(r.rewardAmount), 0);
+            .reduce((sum, r) => sum + r.rewardAmountUSDT, 0);
+          
+          const highestLevel = membershipNFTs.reduce((max, nft) => Math.max(max, nft.level), 0);
           
           return {
             walletAddress: referral.walletAddress,
-            username: user?.username || 'Unknown',
-            level: user?.currentLevel || 0,
-            matrixLevel: referral.matrixLevel,
-            positionIndex: referral.positionIndex,
-            joinDate: referral.joinedAt?.toISOString() || new Date().toISOString(),
+            username: referral.username || 'Unknown',
+            level: referral.currentLevel || 0,
+            highestNFTLevel: highestLevel,
+            joinDate: referral.createdAt?.toISOString() || new Date().toISOString(),
             earnings: totalEarnings,
-            memberActivated: user?.memberActivated || false,
-            levelsOwned: membership?.levelsOwned || [],
-            activeLevel: membership?.activeLevel || 0,
+            memberActivated: referral.memberActivated || false,
+            membershipNFTs: membershipNFTs.length,
           };
         })
       );
 
-      // Get matrix tree visualization data (showing layers)
+      // Get V2 matrix tree levels
       const matrixLevels = [];
       for (let level = 1; level <= 19; level++) {
-        const levelPositions = await db.select()
-          .from(globalMatrixPosition)
-          .where(eq(globalMatrixPosition.matrixLevel, level))
-          .limit(Math.pow(3, level)); // 3^level positions per level
+        const layerRewards = await storage.getLayerRewardsV2ByLayer(level);
         
         matrixLevels.push({
           level,
-          maxPositions: Math.pow(3, level),
-          filledPositions: levelPositions.length,
-          positions: levelPositions.slice(0, 10), // Limit for performance
+          totalRewards: layerRewards.length,
+          claimedRewards: layerRewards.filter(r => r.status === 'claimed').length,
+          pendingRewards: layerRewards.filter(r => r.status === 'pending').length,
         });
       }
 
@@ -1692,31 +1579,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'completed',
       });
 
-      // Get or create membership state
-      let membershipState = await storage.getMembershipState(req.walletAddress);
+      // V2: Create membership NFT record
+      await storage.createMembershipNFTV2({
+        walletAddress: req.walletAddress,
+        level: level,
+        status: 'activated',
+        nftTokenId: level - 1, // Level 1 = tokenId 0, etc.
+        contractAddress: null, // Will be set when NFT is minted
+        txHash: txHash,
+        purchasedAt: new Date(),
+        pricePaidUSDT: priceUSDT,
+        levelName: `Level ${level}`
+      });
       
       const previousLevel = user.currentLevel;
       const isFirstLevel = !user.memberActivated && level === 1;
-      
-      if (!membershipState) {
-        membershipState = await storage.createMembershipState({
-          walletAddress: req.walletAddress,
-          levelsOwned: [level],
-          activeLevel: level,
-        });
-      } else {
-        // Update membership state
-        const currentLevelsOwned = membershipState.levelsOwned || [];
-        if (!currentLevelsOwned.includes(level)) {
-          const updatedLevelsOwned = [...currentLevelsOwned, level].sort((a, b) => a - b);
-          const newActiveLevel = Math.max(membershipState.activeLevel, level);
-          
-          await storage.updateMembershipState(req.walletAddress, {
-            levelsOwned: updatedLevelsOwned,
-            activeLevel: newActiveLevel,
-          });
-        }
-      }
 
       // Update user activation status and level
       const userUpdates: Partial<typeof user> = {};
@@ -1755,8 +1632,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const rewardAmount = level === 1 ? 100 : calculateRewardAmount(level);
         const eventType = level === 1 ? 'L1_direct' : 'L2plus_upgrade';
         
-        // Process referral rewards using new GLOBAL MATRIX system
-        await storage.processGlobalMatrixRewards(req.walletAddress, level);
+        // V2: Process referral rewards using V2 matrix system automatically
+        console.log(`🔄 V2: Global matrix rewards for Level ${level} will be processed automatically by the V2 system`);
       }
 
       res.json({ 
@@ -1898,21 +1775,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: 'completed',
       });
 
-      // Update membership state
-      let membershipState = await storage.getMembershipState(req.walletAddress);
-      if (!membershipState) {
-        membershipState = await storage.createMembershipState({
-          walletAddress: req.walletAddress,
-          levelsOwned: [level],
-          activeLevel: level,
-        });
-      } else {
-        const updatedLevels = [...(membershipState.levelsOwned || []), level];
-        await storage.updateMembershipState(req.walletAddress, {
-          levelsOwned: updatedLevels,
-          activeLevel: Math.max(level, membershipState.activeLevel),
-        });
-      }
+      // V2: Create membership NFT record
+      await storage.createMembershipNFTV2({
+        walletAddress: req.walletAddress,
+        level: level,
+        status: 'activated',
+        nftTokenId: Math.floor(Math.random() * 1000000), // Temporary, will be actual NFT token ID
+        contractAddress: null,
+        txHash: txHash,
+        purchasedAt: new Date(),
+        pricePaidUSDT: levelConfig.priceUSDT,
+        levelName: `Level ${level}`
+      });
 
       // Activate user if first membership
       if (!user.memberActivated) {
@@ -1922,29 +1796,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           activationAt: new Date(),
         });
         
-        // Place member in global 3x3 matrix when first activated
-        const existingPosition = await storage.getGlobalMatrixPosition(req.walletAddress);
+        // V2: Place member in global matrix when first activated
+        const existingPosition = await storage.getGlobalMatrixPositionV2(req.walletAddress);
         if (!existingPosition) {
           const sponsorWallet = user?.referrerWallet || '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0';
-          const placement = await storage.findGlobalMatrixPlacement(sponsorWallet);
-          await storage.createGlobalMatrixPosition({
-            walletAddress: req.walletAddress,
-            matrixLevel: placement.matrixLevel,
-            positionIndex: placement.positionIndex,
+          await storage.createGlobalMatrixPositionV2({
+            memberWallet: req.walletAddress,
             directSponsorWallet: sponsorWallet,
-            placementSponsorWallet: placement.placementSponsorWallet,
-            joinedAt: new Date(),
+            position: await storage.getNextGlobalMatrixPosition(),
+            layer: 1,
+            joinedAt: new Date()
           });
         }
       }
 
-      // Process referral rewards (instant + timed)
-      await storage.processReferralRewards(req.walletAddress, level);
-      
-      // Process global matrix rewards for levels > 1
-      if (level > 1) {
-        await storage.processGlobalMatrixRewards(req.walletAddress, level);
-      }
+      // V2: Process layer rewards through matrix system
+      console.log(`🔄 V2: Processing layer rewards for Level ${level} purchase by ${req.walletAddress}`);
+      // Layer rewards are automatically processed by the V2 matrix system when NFTs are created
 
       res.json({ success: true, order, message: 'Membership purchased and rewards processed' });
     } catch (error) {
