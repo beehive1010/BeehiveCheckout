@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { translations } from '../lib/i18n';
 
 type Language = 'en' | 'zh' | 'th' | 'ms' | 'ko' | 'ja';
@@ -37,12 +37,12 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  const setLanguage = (lang: Language) => {
+  const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem('beehive-language', lang);
-  };
+  }, []);
 
-  const t = (key: string, interpolations?: Record<string, string | number>): string => {
+  const t = useCallback((key: string, interpolations?: Record<string, string | number>): string => {
     try {
       const keys = key.split('.');
       let value: any = translations[language];
@@ -78,17 +78,17 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
       console.error('Translation error:', error, key);
       return key;
     }
-  };
+  }, [language]);
 
-  const value = {
+  const contextValue = useMemo(() => ({
     language,
     setLanguage,
     t,
     languages: languageOptions,
-  };
+  }), [language, setLanguage, t]);
 
   return (
-    <I18nContext.Provider value={value}>
+    <I18nContext.Provider value={contextValue}>
       {children}
     </I18nContext.Provider>
   );
