@@ -1,26 +1,28 @@
 import { useI18n } from '../../contexts/I18nContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Button } from '../ui/button';
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+
+// Move flags outside component to prevent recreation
+const FLAGS = {
+  'en': '🇺🇸',
+  'zh': '🇨🇳', 
+  'th': '🇹🇭',
+  'ms': '🇲🇾',
+  'ko': '🇰🇷'
+} as const;
 
 export default function LanguageSwitcher() {
   const { language, setLanguage, languages } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
 
-  const getLanguageFlag = (code: string) => {
-    const flags = {
-      'en': '🇺🇸',
-      'zh': '🇨🇳', 
-      'th': '🇹🇭',
-      'ms': '🇲🇾',
-      'ko': '🇰🇷'
-    };
-    return flags[code as keyof typeof flags] || '🌐';
-  };
+  const getLanguageFlag = useCallback((code: string) => {
+    return FLAGS[code as keyof typeof FLAGS] || '🌐';
+  }, []);
 
-  const getCurrentLanguage = () => {
+  const currentLanguage = useMemo(() => {
     return languages.find(lang => lang.code === language);
-  };
+  }, [languages, language]);
 
   return (
     <div className="relative">
@@ -33,7 +35,7 @@ export default function LanguageSwitcher() {
           >
             <div className="flex items-center space-x-2">
               <span className="text-lg">{getLanguageFlag(language)}</span>
-              <span className="text-sm font-medium">{getCurrentLanguage()?.name}</span>
+              <span className="text-sm font-medium">{currentLanguage?.name}</span>
             </div>
           </SelectTrigger>
           <SelectContent className="bg-secondary border-border">
