@@ -1174,6 +1174,89 @@ export type InsertWalletConnectionLog = z.infer<
 export type WalletConnectionLog = typeof walletConnectionLogs.$inferSelect;
 
 // =============================================================================
+// V1 TABLES - DEPRECATED (Kept for backwards compatibility)
+// =============================================================================
+
+// V1: Membership state table
+export const membershipState = pgTable("membership_state", {
+  walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
+  levelsOwned: jsonb("levels_owned").$type<number[]>().default([]).notNull(),
+  activeLevel: integer("active_level").default(0).notNull(),
+  joinedAt: timestamp("joined_at"),
+  lastUpgradeAt: timestamp("last_upgrade_at"),
+});
+
+// V1: Referral nodes table
+export const referralNodes = pgTable("referral_nodes", {
+  walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
+  sponsorWallet: varchar("sponsor_wallet", { length: 42 }),
+  placerWallet: varchar("placer_wallet", { length: 42 }),
+  matrixPosition: integer("matrix_position").default(0).notNull(),
+  leftLeg: jsonb("left_leg").$type<string[]>().default([]).notNull(),
+  middleLeg: jsonb("middle_leg").$type<string[]>().default([]).notNull(),
+  rightLeg: jsonb("right_leg").$type<string[]>().default([]).notNull(),
+  directReferralCount: integer("direct_referral_count").default(0).notNull(),
+  totalTeamCount: integer("total_team_count").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// V1: Global Matrix Position
+export const globalMatrixPosition = pgTable("global_matrix_position", {
+  walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
+  matrixLevel: integer("matrix_level").notNull(),
+  positionIndex: integer("position_index").notNull(),
+  directSponsorWallet: varchar("direct_sponsor_wallet", { length: 42 }).notNull(),
+  placementSponsorWallet: varchar("placement_sponsor_wallet", { length: 42 }).notNull(),
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
+  lastUpgradeAt: timestamp("last_upgrade_at"),
+});
+
+// V1: Reward distributions
+export const rewardDistributions = pgTable("reward_distributions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  recipientWallet: varchar("recipient_wallet", { length: 42 }).notNull().references(() => users.walletAddress),
+  sourceWallet: varchar("source_wallet", { length: 42 }).notNull().references(() => users.walletAddress),
+  rewardType: text("reward_type").notNull(),
+  rewardAmount: numeric("reward_amount", { precision: 10, scale: 2 }).notNull(),
+  level: integer("level").notNull(),
+  status: text("status").default("pending").notNull(),
+  pendingUntil: timestamp("pending_until"),
+  claimedAt: timestamp("claimed_at"),
+  redistributedTo: varchar("redistributed_to", { length: 42 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// V1: Insert schemas
+export const insertMembershipStateSchema = createInsertSchema(membershipState).omit({
+  joinedAt: true,
+  lastUpgradeAt: true,
+});
+
+export const insertReferralNodeSchema = createInsertSchema(referralNodes).omit({
+  createdAt: true,
+});
+
+export const insertGlobalMatrixPositionSchema = createInsertSchema(globalMatrixPosition).omit({
+  joinedAt: true,
+  lastUpgradeAt: true,
+});
+
+export const insertRewardDistributionSchema = createInsertSchema(rewardDistributions).omit({
+  id: true,
+  createdAt: true,
+});
+
+// V1: Types
+export type MembershipState = typeof membershipState.$inferSelect;
+export type InsertMembershipState = z.infer<typeof insertMembershipStateSchema>;
+export type ReferralNode = typeof referralNodes.$inferSelect;
+export type InsertReferralNode = z.infer<typeof insertReferralNodeSchema>;
+export type GlobalMatrixPosition = typeof globalMatrixPosition.$inferSelect;
+export type InsertGlobalMatrixPosition = z.infer<typeof insertGlobalMatrixPositionSchema>;
+export type RewardDistribution = typeof rewardDistributions.$inferSelect;
+export type InsertRewardDistribution = z.infer<typeof insertRewardDistributionSchema>;
+
+// =============================================================================
 // V2 MATRIX MEMBERSHIP & REWARD SYSTEM TABLES
 // Based on 1×3 Matrix Structure with Layer-Based Rewards
 // =============================================================================
