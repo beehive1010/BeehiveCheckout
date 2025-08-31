@@ -2,30 +2,14 @@ import React from 'react';
 import { useWeb3 } from '../contexts/Web3Context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '../lib/queryClient';
+import { useNFTVerification } from './useNFTVerification';
 
 export function useWallet() {
   const { isConnected, walletAddress } = useWeb3();
   const queryClient = useQueryClient();
-
-  // Check registration status first to avoid 404s on user data endpoint
-  const { data: registrationStatus } = useQuery({
-    queryKey: ['/api/wallet/registration-status'],
-    queryFn: async () => {
-      if (!walletAddress) return null;
-      const response = await fetch(`/api/wallet/registration-status?t=${Date.now()}`, {
-        headers: {
-          'X-Wallet-Address': walletAddress,
-          'Cache-Control': 'no-cache'
-        }
-      });
-      if (!response.ok) throw new Error('Failed to fetch registration status');
-      return response.json();
-    },
-    enabled: !!walletAddress,
-    staleTime: 2000, // 2 seconds
-    refetchInterval: 6000, // Check registration status every 6 seconds
-    refetchIntervalInBackground: true,
-  });
+  
+  // Use existing registration status from NFT verification hook to avoid duplicate queries
+  const { registrationStatus } = useNFTVerification();
 
   // Log wallet connection when connected
   const logWalletConnection = async (connectionType: string, additionalData?: any) => {

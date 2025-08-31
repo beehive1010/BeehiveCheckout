@@ -39,5 +39,7 @@ export function useNFTVerification() {
     // Alpha Centauri chain data (displayed to user)
     alphaLevel1Balance,
     isCheckingAlpha,
+    // Expose raw registration status for other hooks
+    registrationStatus,
   };
 }
