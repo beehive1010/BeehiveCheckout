@@ -102,7 +102,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
       setLocation('/register');
       return;
     }
-  }, [account?.address, hasLevel1NFT, isRegistered, isNFTLoading, isUserLoading, location, setLocation]);
+  }, [account?.address, hasLevel1NFT, isRegistered, isNFTLoading, isUserLoading, location]);
 
   // Show loading while checking user data and NFT ownership
   if ((isNFTLoading || isUserLoading) && account?.address) {

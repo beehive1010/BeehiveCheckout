@@ -94,7 +94,7 @@ function Referrals() {
           <CardContent className="p-6">
             <TrophyIcon className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
             <div className="text-2xl font-bold text-honey">
-              ${isLoadingRewards ? '...' : (rewardSummary?.totalEarnedUsd?.toFixed(2) || '0.00')}
+              ${isLoadingRewards ? '...' : (Number.isFinite(rewardSummary?.totalEarnedUsd) ? rewardSummary.totalEarnedUsd.toFixed(2) : '0.00')}
             </div>
             <div className="text-muted-foreground text-sm">
               {t('rewards.totalEarned') || 'Total Earned'}
@@ -189,7 +189,7 @@ function Referrals() {
                           ></div>
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          {fillPercentage.toFixed(1)}% filled
+                          {Number.isFinite(fillPercentage) ? fillPercentage.toFixed(1) : '0.0'}% filled
                         </span>
                       </div>
                     </div>

@@ -133,7 +133,7 @@ export default function Registration() {
     };
     
     checkRegistrationStatus();
-  }, [walletAddress, setLocation]);
+  }, [walletAddress]);
   
 
   const validateForm = () => {
