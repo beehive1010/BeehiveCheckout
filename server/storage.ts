@@ -9,6 +9,12 @@ import {
   levelConfig,
   memberNFTVerification,
   
+  // V1 tables (for backwards compatibility)
+  membershipState,
+  referralNodes,
+  globalMatrixPosition,
+  rewardDistributions,
+  
   // V2 Matrix tables
   globalMatrixPositionsV2,
   membershipNFTsV2,
@@ -3620,6 +3626,103 @@ export class MemStorage implements IStorage {
         }
       });
     }
+  }
+
+  // V1 Membership operations (for backwards compatibility)
+  async getMembershipState(walletAddress: string): Promise<MembershipState | undefined> {
+    return this.membershipStates.get(walletAddress.toLowerCase());
+  }
+
+  async createMembershipState(membership: InsertMembershipState): Promise<MembershipState> {
+    const newState: MembershipState = {
+      walletAddress: membership.walletAddress.toLowerCase(),
+      levelsOwned: membership.levelsOwned || [],
+      activeLevel: membership.activeLevel || 0,
+      joinedAt: membership.joinedAt || new Date(),
+      lastUpgradeAt: membership.lastUpgradeAt,
+    } as MembershipState;
+    this.membershipStates.set(newState.walletAddress, newState);
+    return newState;
+  }
+
+  async updateMembershipState(walletAddress: string, updates: Partial<MembershipState>): Promise<MembershipState | undefined> {
+    const state = this.membershipStates.get(walletAddress.toLowerCase());
+    if (!state) return undefined;
+    const updated = { ...state, ...updates, lastUpgradeAt: new Date() };
+    this.membershipStates.set(walletAddress.toLowerCase(), updated);
+    return updated;
+  }
+
+  // V1 Global Matrix Position operations
+  async getGlobalMatrixPosition(walletAddress: string): Promise<GlobalMatrixPosition | undefined> {
+    return this.globalMatrixPositions.get(walletAddress.toLowerCase());
+  }
+
+  async createGlobalMatrixPosition(position: InsertGlobalMatrixPosition): Promise<GlobalMatrixPosition> {
+    const newPosition: GlobalMatrixPosition = {
+      walletAddress: position.walletAddress.toLowerCase(),
+      matrixLevel: position.matrixLevel,
+      positionIndex: position.positionIndex,
+      directSponsorWallet: position.directSponsorWallet.toLowerCase(),
+      placementSponsorWallet: position.placementSponsorWallet.toLowerCase(),
+      joinedAt: new Date(),
+      lastUpgradeAt: position.lastUpgradeAt,
+    } as GlobalMatrixPosition;
+    this.globalMatrixPositions.set(newPosition.walletAddress, newPosition);
+    return newPosition;
+  }
+
+  async updateGlobalMatrixPosition(walletAddress: string, updates: Partial<GlobalMatrixPosition>): Promise<GlobalMatrixPosition | undefined> {
+    const position = this.globalMatrixPositions.get(walletAddress.toLowerCase());
+    if (!position) return undefined;
+    const updated = { ...position, ...updates, lastUpgradeAt: new Date() };
+    this.globalMatrixPositions.set(walletAddress.toLowerCase(), updated);
+    return updated;
+  }
+
+  // V1 Referral Node operations
+  async getReferralNode(walletAddress: string): Promise<ReferralNode | undefined> {
+    return this.referralNodes.get(walletAddress.toLowerCase());
+  }
+
+  async createReferralNode(referralNode: InsertReferralNode): Promise<ReferralNode> {
+    const newNode: ReferralNode = {
+      walletAddress: referralNode.walletAddress.toLowerCase(),
+      sponsorWallet: referralNode.sponsorWallet?.toLowerCase(),
+      placerWallet: referralNode.placerWallet?.toLowerCase(),
+      matrixPosition: referralNode.matrixPosition || 0,
+      leftLeg: referralNode.leftLeg || [],
+      middleLeg: referralNode.middleLeg || [],
+      rightLeg: referralNode.rightLeg || [],
+      directReferralCount: referralNode.directReferralCount || 0,
+      totalTeamCount: referralNode.totalTeamCount || 0,
+      createdAt: new Date(),
+    } as ReferralNode;
+    this.referralNodes.set(newNode.walletAddress, newNode);
+    return newNode;
+  }
+
+  async updateReferralNode(walletAddress: string, updates: Partial<ReferralNode>): Promise<ReferralNode | undefined> {
+    const node = this.referralNodes.get(walletAddress.toLowerCase());
+    if (!node) return undefined;
+    const updated = { ...node, ...updates };
+    this.referralNodes.set(walletAddress.toLowerCase(), updated);
+    return updated;
+  }
+
+  // User referral statistics
+  async getUserReferralStats(walletAddress: string): Promise<any> {
+    const directReferrals = Array.from(this.globalMatrixPositions.values())
+      .filter(p => p.directSponsorWallet === walletAddress.toLowerCase()).length;
+    
+    const teamMembers = Array.from(this.globalMatrixPositions.values())
+      .filter(p => p.placementSponsorWallet === walletAddress.toLowerCase()).length;
+    
+    return {
+      directReferrals,
+      teamMembers,
+      totalReferrals: directReferrals + teamMembers,
+    };
   }
 
   // Implement remaining required methods with basic in-memory logic
