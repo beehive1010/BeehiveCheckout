@@ -103,7 +103,7 @@ export default function Registration() {
         if (code) queryParams.code = code;
         if (referrer && !savedReferrer && !ref) queryParams.referrer = referrer;
 
-        const response = await fetch(`/api/auth/registration-status?${new URLSearchParams(queryParams)}`, {
+        const response = await fetch(`/api/wallet/registration-status?${new URLSearchParams(queryParams)}`, {
           headers: {
             'X-Wallet-Address': walletAddress
           }
