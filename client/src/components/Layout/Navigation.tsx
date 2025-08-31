@@ -22,9 +22,19 @@ const navItems: NavItem[] = [
 ];
 
 export default function Navigation() {
-  const { isActivated } = useWallet();
   const { t } = useI18n();
   const [location] = useLocation();
+  
+  // Use try-catch to safely get wallet state
+  let isActivated = false;
+  try {
+    const walletState = useWallet();
+    isActivated = walletState.isActivated || false;
+  } catch (error) {
+    // If wallet hook fails, don't show navigation
+    console.warn('Navigation: useWallet failed, hiding navigation');
+    return null;
+  }
 
   // Only show navigation for activated members
   if (!isActivated) {

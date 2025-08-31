@@ -1,4 +1,4 @@
-import { useWallet } from '../../hooks/useWallet';
+// Removed unused useWallet import
 import { useI18n } from '../../contexts/I18nContext';
 import LanguageSwitcher from '../UI/LanguageSwitcher';
 import WalletConnect from '../UI/WalletConnect';

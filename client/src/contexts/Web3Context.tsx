@@ -61,7 +61,7 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
 export function useWeb3() {
   const context = useContext(Web3Context);
   if (context === undefined) {
-    // Return default values instead of throwing error to prevent crashes
+    // Return default values instead of throwing error to prevent crashes  
     console.warn('useWeb3 called outside Web3Provider, returning defaults');
     return {
       client,
