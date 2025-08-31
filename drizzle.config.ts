@@ -1,7 +1,12 @@
 import { defineConfig } from "drizzle-kit";
 
 export default defineConfig({
-  out: "./supabase/migrations",   // 输出目录
-  schema: "./shared/schema.ts",   // 你的 schema 文件路径
+  out: "./supabase/migrations",
+  schema: "./shared/schema.ts",
   dialect: "postgresql",
+  dbCredentials: {
+    url: process.env.DATABASE_URL!,
+  },
+  verbose: true,
+  strict: true,
 });
