@@ -1627,13 +1627,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Create reward event for referral system
-      if (user.referrerWallet) {
-        const rewardAmount = level === 1 ? 100 : calculateRewardAmount(level);
-        const eventType = level === 1 ? 'L1_direct' : 'L2plus_upgrade';
-        
-        // V2: Process referral rewards using V2 matrix system automatically
-        console.log(`🔄 V2: Global matrix rewards for Level ${level} will be processed automatically by the V2 system`);
+      // V2: Activate user in matrix for first-time activation or process upgrades
+      if (isFirstLevel) {
+        // First time activation - place in V2 matrix
+        console.log(`🔄 V2: First-time activation for ${req.walletAddress} at Level ${level}`);
+        try {
+          const levelConfig = {
+            level: level,
+            level_name: `Level ${level}`,
+            price_usdt: priceUSDT * 100 // Convert to cents
+          };
+          
+          await activateUserInMatrix(req.walletAddress, levelConfig);
+          console.log('✅ V2: User activated in global matrix successfully');
+        } catch (error) {
+          console.error('❌ V2: Matrix activation failed:', error);
+          // Don't throw error to prevent blocking user activation
+        }
+      } else if (level > previousLevel) {
+        // Level upgrade - process V2 upgrade rewards
+        console.log(`🔄 V2: Processing Level ${level} upgrade for ${req.walletAddress}`);
+        try {
+          const levelConfig = {
+            level: level,
+            level_name: `Level ${level}`,
+            price_usdt: priceUSDT * 100 // Convert to cents
+          };
+          
+          // For upgrades, we need to process level-specific rewards
+          // This would trigger rewards to N-th ancestor according to GOLDEN RULE
+          await processLevelUpgradeRewards(req.walletAddress, level);
+          console.log('✅ V2: Level upgrade rewards processed successfully');
+        } catch (error) {
+          console.error('❌ V2: Level upgrade rewards failed:', error);
+        }
       }
 
       res.json({ 
@@ -3769,6 +3796,51 @@ async function createLayerReward(rootWallet: string, triggerWallet: string, trig
 
 // REMOVED: createUplineReward function - this was incorrect double-rewarding
 // The GOLDEN RULE is: Level N upgrade pays N-th ancestor only
+
+// V2: Process level upgrade rewards (GOLDEN RULE: Level N pays N-th ancestor)
+async function processLevelUpgradeRewards(walletAddress: string, level: number) {
+  try {
+    // Get user's matrix position
+    const userPosition = await db.execute(sql`
+      SELECT * FROM global_matrix_positions_v2 
+      WHERE wallet_address = ${walletAddress}
+    `);
+    
+    if (!userPosition.rows[0]) {
+      console.log(`❌ No matrix position found for ${walletAddress}, cannot process upgrade rewards`);
+      return;
+    }
+    
+    const position = userPosition.rows[0];
+    
+    // Find N-th ancestor (where N = level)
+    let currentParent = position.parent_wallet;
+    let ancestorLevel = 1;
+    
+    while (currentParent && ancestorLevel < level) {
+      const parentResult = await db.execute(sql`
+        SELECT parent_wallet FROM global_matrix_positions_v2 
+        WHERE wallet_address = ${currentParent}
+      `);
+      
+      if (!parentResult.rows[0]) break;
+      
+      currentParent = parentResult.rows[0].parent_wallet;
+      ancestorLevel++;
+    }
+    
+    // If we found the N-th ancestor, create reward
+    if (currentParent && ancestorLevel === level) {
+      console.log(`💰 Level ${level} upgrade: ${walletAddress} → ${currentParent} (${level}-th ancestor)`);
+      await createLayerReward(currentParent, walletAddress, level, level, position.position_in_layer);
+    } else {
+      console.log(`ℹ️  No ${level}-th ancestor found for ${walletAddress}, no upgrade reward created`);
+    }
+  } catch (error) {
+    console.error('Error processing level upgrade rewards:', error);
+    throw error;
+  }
+}
 
 // Helper functions
 function calculateBCCReward(level: number): { transferable: number; restricted: number; total: number } {
