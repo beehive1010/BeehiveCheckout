@@ -3316,4 +3316,818 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+// MemStorage: In-memory storage for local development
+export class MemStorage implements IStorage {
+  private users = new Map<string, User>();
+  private membershipStates = new Map<string, MembershipState>();
+  private referralNodes = new Map<string, ReferralNode>();
+  private globalMatrixPositions = new Map<string, GlobalMatrixPosition>();
+  private globalMatrixPositionsV2Map = new Map<string, GlobalMatrixPositionV2>();
+  private membershipNFTsV2Map = new Map<string, MembershipNFTV2[]>();
+  private matrixTreeV2Map = new Map<string, MatrixTreeV2[]>();
+  private layerRewardsV2Map = new Map<string, LayerRewardV2[]>();
+  private pendingRewardsV2Map = new Map<string, PendingRewardV2[]>();
+  private platformRevenueV2List: PlatformRevenueV2[] = [];
+  private rewardDistributions = new Map<string, RewardDistribution[]>();
+  private bccBalances = new Map<string, BCCBalance>();
+  private orders = new Map<string, Order>();
+  private earningsWallet = new Map<string, EarningsWallet[]>();
+  private levelConfigs = new Map<number, LevelConfig>();
+  private memberNFTVerifications = new Map<string, MemberNFTVerification>();
+  private merchantNFTs: MerchantNFT[] = [];
+  private nftPurchases: NFTPurchase[] = [];
+  private courses: Course[] = [];
+  private courseAccess = new Map<string, CourseAccess[]>();
+  private lessonAccess = new Map<string, LessonAccess[]>();
+  private bridgePayments = new Map<string, BridgePayment>();
+  private tokenPurchases = new Map<string, TokenPurchase[]>();
+  private cthBalances = new Map<string, CTHBalance>();
+  private adminUsers = new Map<string, AdminUser>();
+  private adminSessions = new Map<string, AdminSession>();
+  private userNotifications = new Map<string, UserNotification[]>();
+
+  constructor() {
+    this.initializeSeedData();
+  }
+
+  private initializeSeedData() {
+    // Initialize level configs
+    this.initializeLevelConfig();
+    
+    // Initialize sample merchant NFTs
+    const sampleNFTs: MerchantNFT[] = [
+      {
+        id: "nft1",
+        title: "Digital Art Collection #001",
+        description: "Exclusive geometric art piece with rare attributes",
+        imageUrl: "https://images.unsplash.com/photo-1634973357973-f2ed2657db3c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+        priceBCC: 150,
+        active: true,
+        createdAt: new Date(),
+      },
+      {
+        id: "nft2", 
+        title: "Legendary Weapon",
+        description: "Rare gaming asset with special abilities",
+        imageUrl: "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
+        priceBCC: 300,
+        active: true,
+        createdAt: new Date(),
+      },
+    ];
+    this.merchantNFTs = sampleNFTs;
+
+    // Initialize sample courses
+    const sampleCourses: Course[] = [
+      {
+        id: "course1",
+        title: "Blockchain Basics",
+        description: "Learn the fundamentals of blockchain technology",
+        requiredLevel: 1,
+        priceBCC: 0,
+        isFree: true,
+        duration: "4 hours",
+        isActive: true,
+        createdAt: new Date(),
+      },
+      {
+        id: "course2",
+        title: "DeFi Strategies", 
+        description: "Advanced DeFi strategies",
+        requiredLevel: 2,
+        priceBCC: 50,
+        isFree: false,
+        duration: "4 hours",
+        isActive: true,
+        createdAt: new Date(),
+      },
+    ];
+    this.courses = sampleCourses;
+  }
+
+  private initializeLevelConfig() {
+    const levels = [
+      { level: 1, levelName: "Warrior", priceUSDT: 130, nftPriceUSDT: 100, platformFeeUSDT: 30, requiredDirectReferrals: 1, maxMatrixCount: 3 },
+      { level: 2, levelName: "Bronze", priceUSDT: 150, nftPriceUSDT: 150, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
+      { level: 3, levelName: "Silver", priceUSDT: 200, nftPriceUSDT: 200, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 27 },
+    ];
+    
+    levels.forEach(config => {
+      this.levelConfigs.set(config.level, config as LevelConfig);
+    });
+  }
+
+  // User operations
+  async getUser(walletAddress: string): Promise<User | undefined> {
+    return this.users.get(walletAddress.toLowerCase());
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(u => u.username === username);
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const newUser: User = {
+      ...user,
+      walletAddress: user.walletAddress.toLowerCase(),
+      memberActivated: user.memberActivated || false,
+      currentLevel: user.currentLevel || 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as User;
+    this.users.set(newUser.walletAddress, newUser);
+    return newUser;
+  }
+
+  async updateUser(walletAddress: string, updates: Partial<User>): Promise<User | undefined> {
+    const user = this.users.get(walletAddress.toLowerCase());
+    if (!user) return undefined;
+    const updated = { ...user, ...updates, updatedAt: new Date() };
+    this.users.set(walletAddress.toLowerCase(), updated);
+    return updated;
+  }
+
+  // V2 Matrix operations
+  async getGlobalMatrixPositionV2(walletAddress: string): Promise<GlobalMatrixPositionV2 | undefined> {
+    return this.globalMatrixPositionsV2Map.get(walletAddress.toLowerCase());
+  }
+
+  async createGlobalMatrixPositionV2(position: InsertGlobalMatrixPositionV2): Promise<GlobalMatrixPositionV2> {
+    const newPosition: GlobalMatrixPositionV2 = {
+      id: `pos_${Date.now()}`,
+      ...position,
+      walletAddress: position.walletAddress.toLowerCase(),
+      activatedAt: new Date(),
+      lastActiveAt: new Date(),
+    } as GlobalMatrixPositionV2;
+    this.globalMatrixPositionsV2Map.set(newPosition.walletAddress, newPosition);
+    return newPosition;
+  }
+
+  async updateGlobalMatrixPositionV2(walletAddress: string, updates: Partial<GlobalMatrixPositionV2>): Promise<GlobalMatrixPositionV2 | undefined> {
+    const position = this.globalMatrixPositionsV2Map.get(walletAddress.toLowerCase());
+    if (!position) return undefined;
+    const updated = { ...position, ...updates, lastActiveAt: new Date() };
+    this.globalMatrixPositionsV2Map.set(walletAddress.toLowerCase(), updated);
+    return updated;
+  }
+
+  // V2 Membership NFT operations
+  async getMembershipNFTV2(walletAddress: string, level?: number): Promise<MembershipNFTV2 | undefined> {
+    const nfts = this.membershipNFTsV2Map.get(walletAddress.toLowerCase()) || [];
+    return level ? nfts.find(n => n.level === level) : nfts[0];
+  }
+
+  async getMembershipNFTsV2(walletAddress: string): Promise<MembershipNFTV2[]> {
+    return this.membershipNFTsV2Map.get(walletAddress.toLowerCase()) || [];
+  }
+
+  async createMembershipNFTV2(nft: InsertMembershipNFTV2): Promise<MembershipNFTV2> {
+    const newNFT: MembershipNFTV2 = {
+      id: `nft_${Date.now()}`,
+      ...nft,
+      walletAddress: nft.walletAddress.toLowerCase(),
+      purchasedAt: new Date(),
+      status: nft.status || 'pending',
+    } as MembershipNFTV2;
+    
+    const existing = this.membershipNFTsV2Map.get(newNFT.walletAddress) || [];
+    existing.push(newNFT);
+    this.membershipNFTsV2Map.set(newNFT.walletAddress, existing);
+    return newNFT;
+  }
+
+  async updateMembershipNFTV2(id: string, updates: Partial<MembershipNFTV2>): Promise<MembershipNFTV2 | undefined> {
+    for (const [wallet, nfts] of this.membershipNFTsV2Map.entries()) {
+      const index = nfts.findIndex(n => n.id === id);
+      if (index >= 0) {
+        nfts[index] = { ...nfts[index], ...updates };
+        return nfts[index];
+      }
+    }
+    return undefined;
+  }
+
+  // V2 Matrix Tree operations
+  async getMatrixTreeV2(rootWallet: string, layer?: number): Promise<MatrixTreeV2[]> {
+    const trees = this.matrixTreeV2Map.get(rootWallet.toLowerCase()) || [];
+    return layer !== undefined ? trees.filter(t => t.layer === layer) : trees;
+  }
+
+  async createMatrixTreeNodeV2(node: InsertMatrixTreeV2): Promise<MatrixTreeV2> {
+    const newNode: MatrixTreeV2 = {
+      id: `tree_${Date.now()}`,
+      ...node,
+      rootWallet: node.rootWallet.toLowerCase(),
+      memberWallet: node.memberWallet.toLowerCase(),
+      parentWallet: node.parentWallet?.toLowerCase(),
+      addedAt: new Date(),
+    } as MatrixTreeV2;
+    
+    const existing = this.matrixTreeV2Map.get(newNode.rootWallet) || [];
+    existing.push(newNode);
+    this.matrixTreeV2Map.set(newNode.rootWallet, existing);
+    return newNode;
+  }
+
+  // V2 Layer Rewards operations
+  async getLayerRewardsV2(rootWallet: string): Promise<LayerRewardV2[]> {
+    return this.layerRewardsV2Map.get(rootWallet.toLowerCase()) || [];
+  }
+
+  async createLayerRewardV2(reward: InsertLayerRewardV2): Promise<LayerRewardV2> {
+    const newReward: LayerRewardV2 = {
+      id: `reward_${Date.now()}`,
+      ...reward,
+      rootWallet: reward.rootWallet.toLowerCase(),
+      triggerWallet: reward.triggerWallet.toLowerCase(),
+      createdAt: new Date(),
+      status: reward.status || 'pending',
+    } as LayerRewardV2;
+    
+    const existing = this.layerRewardsV2Map.get(newReward.rootWallet) || [];
+    existing.push(newReward);
+    this.layerRewardsV2Map.set(newReward.rootWallet, existing);
+    return newReward;
+  }
+
+  async updateLayerRewardV2(id: string, updates: Partial<LayerRewardV2>): Promise<LayerRewardV2 | undefined> {
+    for (const [wallet, rewards] of this.layerRewardsV2Map.entries()) {
+      const index = rewards.findIndex(r => r.id === id);
+      if (index >= 0) {
+        rewards[index] = { ...rewards[index], ...updates };
+        return rewards[index];
+      }
+    }
+    return undefined;
+  }
+
+  // V2 Platform Revenue operations
+  async createPlatformRevenueV2(revenue: InsertPlatformRevenueV2): Promise<PlatformRevenueV2> {
+    const newRevenue: PlatformRevenueV2 = {
+      id: `rev_${Date.now()}`,
+      ...revenue,
+      triggerWallet: revenue.triggerWallet.toLowerCase(),
+      createdAt: new Date(),
+      status: revenue.status || 'pending',
+    } as PlatformRevenueV2;
+    
+    this.platformRevenueV2List.push(newRevenue);
+    return newRevenue;
+  }
+
+  async getPlatformRevenueV2(): Promise<PlatformRevenueV2[]> {
+    return this.platformRevenueV2List;
+  }
+
+  // V2 Pending Rewards operations
+  async getPendingRewardsV2(walletAddress: string): Promise<PendingRewardV2[]> {
+    return this.pendingRewardsV2Map.get(walletAddress.toLowerCase()) || [];
+  }
+
+  async createPendingRewardV2(reward: InsertPendingRewardV2): Promise<PendingRewardV2> {
+    const newReward: PendingRewardV2 = {
+      id: `pending_${Date.now()}`,
+      ...reward,
+      recipientWallet: reward.recipientWallet.toLowerCase(),
+      createdAt: new Date(),
+      status: reward.status || 'pending',
+    } as PendingRewardV2;
+    
+    const existing = this.pendingRewardsV2Map.get(newReward.recipientWallet) || [];
+    existing.push(newReward);
+    this.pendingRewardsV2Map.set(newReward.recipientWallet, existing);
+    return newReward;
+  }
+
+  async updatePendingRewardV2(id: string, updates: Partial<PendingRewardV2>): Promise<PendingRewardV2 | undefined> {
+    for (const [wallet, rewards] of this.pendingRewardsV2Map.entries()) {
+      const index = rewards.findIndex(r => r.id === id);
+      if (index >= 0) {
+        rewards[index] = { ...rewards[index], ...updates };
+        return rewards[index];
+      }
+    }
+    return undefined;
+  }
+
+  async checkAndExpirePendingRewardsV2(): Promise<void> {
+    const now = new Date();
+    for (const [wallet, rewards] of this.pendingRewardsV2Map.entries()) {
+      rewards.forEach(reward => {
+        if (reward.expiresAt && reward.expiresAt < now && reward.status === 'pending') {
+          reward.status = 'expired';
+        }
+      });
+    }
+  }
+
+  // Implement remaining required methods with basic in-memory logic
+  async recordNFTPurchase(purchase: InsertNFTPurchase): Promise<NFTPurchase> {
+    const newPurchase: NFTPurchase = {
+      id: `purchase_${Date.now()}`,
+      ...purchase,
+      walletAddress: purchase.walletAddress.toLowerCase(),
+      purchasedAt: new Date(),
+    } as NFTPurchase;
+    this.nftPurchases.push(newPurchase);
+    return newPurchase;
+  }
+
+  async findGlobalMatrixPlacement(sponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string }> {
+    return { matrixLevel: 1, positionIndex: 0, placementSponsorWallet: sponsorWallet };
+  }
+
+  async getBCCBalance(walletAddress: string): Promise<BCCBalance | undefined> {
+    return this.bccBalances.get(walletAddress.toLowerCase());
+  }
+
+  async createBCCBalance(balance: InsertBCCBalance): Promise<BCCBalance> {
+    const newBalance: BCCBalance = {
+      ...balance,
+      walletAddress: balance.walletAddress.toLowerCase(),
+      transferable: balance.transferable || 0,
+      restricted: balance.restricted || 0,
+      lastUpdated: new Date(),
+    } as BCCBalance;
+    this.bccBalances.set(newBalance.walletAddress, newBalance);
+    return newBalance;
+  }
+
+  async updateBCCBalance(walletAddress: string, updates: Partial<BCCBalance>): Promise<BCCBalance | undefined> {
+    const balance = this.bccBalances.get(walletAddress.toLowerCase());
+    if (!balance) return undefined;
+    const updated = { ...balance, ...updates, lastUpdated: new Date() };
+    this.bccBalances.set(walletAddress.toLowerCase(), updated);
+    return updated;
+  }
+
+  // Add stubs for remaining methods to satisfy interface
+  async createOrder(order: InsertOrder): Promise<Order> {
+    const newOrder: Order = {
+      id: `order_${Date.now()}`,
+      ...order,
+      walletAddress: order.walletAddress.toLowerCase(),
+      createdAt: new Date(),
+      status: order.status || 'pending',
+    } as Order;
+    this.orders.set(newOrder.id, newOrder);
+    return newOrder;
+  }
+
+  async getOrder(id: string): Promise<Order | undefined> {
+    return this.orders.get(id);
+  }
+
+  async getOrdersByWallet(walletAddress: string): Promise<Order[]> {
+    return Array.from(this.orders.values()).filter(o => o.walletAddress === walletAddress.toLowerCase());
+  }
+
+  async updateOrder(id: string, updates: Partial<Order>): Promise<Order | undefined> {
+    const order = this.orders.get(id);
+    if (!order) return undefined;
+    const updated = { ...order, ...updates };
+    this.orders.set(id, updated);
+    return updated;
+  }
+
+  async createEarningsWalletEntry(entry: InsertEarningsWallet): Promise<EarningsWallet> {
+    const newEntry: EarningsWallet = {
+      id: `earn_${Date.now()}`,
+      ...entry,
+      walletAddress: entry.walletAddress.toLowerCase(),
+      createdAt: new Date(),
+      status: entry.status || 'pending',
+    } as EarningsWallet;
+    
+    const existing = this.earningsWallet.get(newEntry.walletAddress) || [];
+    existing.push(newEntry);
+    this.earningsWallet.set(newEntry.walletAddress, existing);
+    return newEntry;
+  }
+
+  async getEarningsWalletByWallet(walletAddress: string): Promise<EarningsWallet[]> {
+    return this.earningsWallet.get(walletAddress.toLowerCase()) || [];
+  }
+
+  async updateEarningsWalletEntry(id: string, updates: Partial<EarningsWallet>): Promise<EarningsWallet | undefined> {
+    for (const [wallet, entries] of this.earningsWallet.entries()) {
+      const index = entries.findIndex(e => e.id === id);
+      if (index >= 0) {
+        entries[index] = { ...entries[index], ...updates };
+        return entries[index];
+      }
+    }
+    return undefined;
+  }
+
+  async getPendingEarningsEntries(): Promise<EarningsWallet[]> {
+    const result: EarningsWallet[] = [];
+    for (const entries of this.earningsWallet.values()) {
+      result.push(...entries.filter(e => e.status === 'pending'));
+    }
+    return result;
+  }
+
+  async getExpiredEarningsEntries(): Promise<EarningsWallet[]> {
+    const result: EarningsWallet[] = [];
+    const now = new Date();
+    for (const entries of this.earningsWallet.values()) {
+      result.push(...entries.filter(e => e.expiresAt && e.expiresAt < now));
+    }
+    return result;
+  }
+
+  async getLevelConfig(level: number): Promise<LevelConfig | undefined> {
+    return this.levelConfigs.get(level);
+  }
+
+  async getAllLevelConfigs(): Promise<LevelConfig[]> {
+    return Array.from(this.levelConfigs.values()).sort((a, b) => a.level - b.level);
+  }
+
+  async createOrUpdateLevelConfig(config: InsertLevelConfig): Promise<LevelConfig> {
+    const levelConfig = config as LevelConfig;
+    this.levelConfigs.set(levelConfig.level, levelConfig);
+    return levelConfig;
+  }
+
+  async getMemberNFTVerification(walletAddress: string): Promise<MemberNFTVerification | undefined> {
+    return this.memberNFTVerifications.get(walletAddress.toLowerCase());
+  }
+
+  async createNFTVerification(verification: InsertMemberNFTVerification): Promise<MemberNFTVerification> {
+    const newVerification: MemberNFTVerification = {
+      ...verification,
+      walletAddress: verification.walletAddress.toLowerCase(),
+      createdAt: new Date(),
+    } as MemberNFTVerification;
+    this.memberNFTVerifications.set(newVerification.walletAddress, newVerification);
+    return newVerification;
+  }
+
+  async updateNFTVerification(walletAddress: string, updates: Partial<MemberNFTVerification>): Promise<MemberNFTVerification | undefined> {
+    const verification = this.memberNFTVerifications.get(walletAddress.toLowerCase());
+    if (!verification) return undefined;
+    const updated = { ...verification, ...updates };
+    this.memberNFTVerifications.set(walletAddress.toLowerCase(), updated);
+    return updated;
+  }
+
+  async getTotalMemberCount(): Promise<number> {
+    return this.users.size;
+  }
+
+  async getMemberCountByLevel(): Promise<{ level: number; count: number }[]> {
+    const counts = new Map<number, number>();
+    for (const user of this.users.values()) {
+      const level = user.currentLevel || 0;
+      counts.set(level, (counts.get(level) || 0) + 1);
+    }
+    return Array.from(counts.entries()).map(([level, count]) => ({ level, count }));
+  }
+
+  async getDirectReferralCount(walletAddress: string): Promise<number> {
+    return Array.from(this.referralNodes.values()).filter(n => n.sponsorWallet === walletAddress.toLowerCase()).length;
+  }
+
+  async processGlobalMatrixRewards(buyerWallet: string, level: number): Promise<void> {
+    // Stub implementation
+  }
+
+  async processReferralRewards(walletAddress: string, level: number): Promise<void> {
+    // Stub implementation
+  }
+
+  async createRewardDistributionV2(distribution: InsertRewardDistributionV2): Promise<RewardDistributionV2> {
+    const newDistribution: RewardDistributionV2 = {
+      id: `dist_${Date.now()}`,
+      ...distribution,
+      recipientWallet: distribution.recipientWallet.toLowerCase(),
+      triggerWallet: distribution.triggerWallet.toLowerCase(),
+      createdAt: new Date(),
+      status: distribution.status || 'pending',
+    } as RewardDistributionV2;
+    return newDistribution;
+  }
+
+  async getMerchantNFTs(): Promise<MerchantNFT[]> {
+    return this.merchantNFTs;
+  }
+
+  async getMerchantNFT(id: string): Promise<MerchantNFT | undefined> {
+    return this.merchantNFTs.find(n => n.id === id);
+  }
+
+  async createMerchantNFT(nft: InsertMerchantNFT): Promise<MerchantNFT> {
+    const newNFT: MerchantNFT = {
+      id: `merchant_${Date.now()}`,
+      ...nft,
+      active: nft.active ?? true,
+      createdAt: new Date(),
+    } as MerchantNFT;
+    this.merchantNFTs.push(newNFT);
+    return newNFT;
+  }
+
+  async createNFTPurchase(purchase: InsertNFTPurchase): Promise<NFTPurchase> {
+    return this.recordNFTPurchase(purchase);
+  }
+
+  async getNFTPurchasesByWallet(walletAddress: string): Promise<(NFTPurchase & { nft: MerchantNFT })[]> {
+    const purchases = this.nftPurchases.filter(p => p.walletAddress === walletAddress.toLowerCase());
+    return purchases.map(p => {
+      const nft = this.merchantNFTs.find(n => n.id === p.nftId);
+      return { ...p, nft: nft! };
+    }).filter(p => p.nft);
+  }
+
+  async getCourses(): Promise<Course[]> {
+    return this.courses;
+  }
+
+  async getCourse(id: string): Promise<Course | undefined> {
+    return this.courses.find(c => c.id === id);
+  }
+
+  async createCourse(course: InsertCourse): Promise<Course> {
+    const newCourse: Course = {
+      id: `course_${Date.now()}`,
+      ...course,
+      isActive: course.isActive ?? true,
+      createdAt: new Date(),
+    } as Course;
+    this.courses.push(newCourse);
+    return newCourse;
+  }
+
+  async getCourseLessons(courseId: string): Promise<CourseLesson[]> {
+    return [];
+  }
+
+  async getCourseAccess(walletAddress: string, courseId: string): Promise<CourseAccess | undefined> {
+    const accesses = this.courseAccess.get(walletAddress.toLowerCase()) || [];
+    return accesses.find(a => a.courseId === courseId);
+  }
+
+  async getCourseAccessByWallet(walletAddress: string): Promise<CourseAccess[]> {
+    return this.courseAccess.get(walletAddress.toLowerCase()) || [];
+  }
+
+  async createCourseAccess(access: InsertCourseAccess): Promise<CourseAccess> {
+    const newAccess: CourseAccess = {
+      id: `access_${Date.now()}`,
+      ...access,
+      walletAddress: access.walletAddress.toLowerCase(),
+      grantedAt: new Date(),
+    } as CourseAccess;
+    
+    const existing = this.courseAccess.get(newAccess.walletAddress) || [];
+    existing.push(newAccess);
+    this.courseAccess.set(newAccess.walletAddress, existing);
+    return newAccess;
+  }
+
+  async updateCourseAccess(walletAddress: string, courseId: string, updates: Partial<CourseAccess>): Promise<CourseAccess | undefined> {
+    const accesses = this.courseAccess.get(walletAddress.toLowerCase()) || [];
+    const index = accesses.findIndex(a => a.courseId === courseId);
+    if (index >= 0) {
+      accesses[index] = { ...accesses[index], ...updates };
+      return accesses[index];
+    }
+    return undefined;
+  }
+
+  async getLessonAccessByCourse(walletAddress: string, courseId: string): Promise<LessonAccess[]> {
+    const accesses = this.lessonAccess.get(walletAddress.toLowerCase()) || [];
+    return accesses.filter(a => a.courseId === courseId);
+  }
+
+  async createBridgePayment(bridgePayment: InsertBridgePayment): Promise<BridgePayment> {
+    const newPayment: BridgePayment = {
+      id: `bridge_${Date.now()}`,
+      ...bridgePayment,
+      walletAddress: bridgePayment.walletAddress.toLowerCase(),
+      createdAt: new Date(),
+      status: bridgePayment.status || 'pending',
+    } as BridgePayment;
+    this.bridgePayments.set(newPayment.id, newPayment);
+    return newPayment;
+  }
+
+  async getBridgePayment(sourceTxHash: string): Promise<BridgePayment | undefined> {
+    return Array.from(this.bridgePayments.values()).find(p => p.sourceTxHash === sourceTxHash);
+  }
+
+  async getBridgePaymentsByWallet(walletAddress: string): Promise<BridgePayment[]> {
+    return Array.from(this.bridgePayments.values()).filter(p => p.walletAddress === walletAddress.toLowerCase());
+  }
+
+  async updateBridgePayment(id: string, updates: Partial<BridgePayment>): Promise<BridgePayment | undefined> {
+    const payment = this.bridgePayments.get(id);
+    if (!payment) return undefined;
+    const updated = { ...payment, ...updates };
+    this.bridgePayments.set(id, updated);
+    return updated;
+  }
+
+  async getPendingBridgePayments(): Promise<BridgePayment[]> {
+    return Array.from(this.bridgePayments.values()).filter(p => p.status === 'pending');
+  }
+
+  async createTokenPurchase(purchase: InsertTokenPurchase): Promise<TokenPurchase> {
+    const newPurchase: TokenPurchase = {
+      id: `token_${Date.now()}`,
+      ...purchase,
+      walletAddress: purchase.walletAddress.toLowerCase(),
+      createdAt: new Date(),
+      status: purchase.status || 'pending',
+    } as TokenPurchase;
+    
+    const existing = this.tokenPurchases.get(newPurchase.walletAddress) || [];
+    existing.push(newPurchase);
+    this.tokenPurchases.set(newPurchase.walletAddress, existing);
+    return newPurchase;
+  }
+
+  async getTokenPurchase(id: string): Promise<TokenPurchase | undefined> {
+    for (const purchases of this.tokenPurchases.values()) {
+      const purchase = purchases.find(p => p.id === id);
+      if (purchase) return purchase;
+    }
+    return undefined;
+  }
+
+  async getTokenPurchasesByWallet(walletAddress: string): Promise<TokenPurchase[]> {
+    return this.tokenPurchases.get(walletAddress.toLowerCase()) || [];
+  }
+
+  async updateTokenPurchase(id: string, updates: Partial<TokenPurchase>): Promise<TokenPurchase | undefined> {
+    for (const [wallet, purchases] of this.tokenPurchases.entries()) {
+      const index = purchases.findIndex(p => p.id === id);
+      if (index >= 0) {
+        purchases[index] = { ...purchases[index], ...updates };
+        return purchases[index];
+      }
+    }
+    return undefined;
+  }
+
+  async getCTHBalance(walletAddress: string): Promise<CTHBalance | undefined> {
+    return this.cthBalances.get(walletAddress.toLowerCase());
+  }
+
+  async createCTHBalance(balance: InsertCTHBalance): Promise<CTHBalance> {
+    const newBalance: CTHBalance = {
+      ...balance,
+      walletAddress: balance.walletAddress.toLowerCase(),
+      balance: balance.balance || 0,
+      lastUpdated: new Date(),
+    } as CTHBalance;
+    this.cthBalances.set(newBalance.walletAddress, newBalance);
+    return newBalance;
+  }
+
+  async updateCTHBalance(walletAddress: string, updates: Partial<CTHBalance>): Promise<CTHBalance | undefined> {
+    const balance = this.cthBalances.get(walletAddress.toLowerCase());
+    if (!balance) return undefined;
+    const updated = { ...balance, ...updates, lastUpdated: new Date() };
+    this.cthBalances.set(walletAddress.toLowerCase(), updated);
+    return updated;
+  }
+
+  async getUserActivity(walletAddress: string, limit?: number): Promise<Array<{
+    id: string;
+    type: 'reward' | 'purchase' | 'nft_purchase' | 'token_purchase' | 'membership';
+    description: string;
+    amount?: string;
+    timestamp: Date;
+    status?: string;
+  }>> {
+    return [];
+  }
+
+  async getUserBalances(walletAddress: string): Promise<{
+    usdt?: number;
+    bccTransferable: number;
+    bccRestricted: number;
+    cth: number;
+  }> {
+    const bcc = this.bccBalances.get(walletAddress.toLowerCase());
+    const cth = this.cthBalances.get(walletAddress.toLowerCase());
+    return {
+      bccTransferable: bcc?.transferable || 0,
+      bccRestricted: bcc?.restricted || 0,
+      cth: cth?.balance || 0,
+    };
+  }
+
+  async getAdminUsers(filters?: { search?: string; role?: string; status?: string }): Promise<AdminUser[]> {
+    let users = Array.from(this.adminUsers.values());
+    if (filters?.search) {
+      const search = filters.search.toLowerCase();
+      users = users.filter(u => u.username.toLowerCase().includes(search));
+    }
+    if (filters?.role) {
+      users = users.filter(u => u.role === filters.role);
+    }
+    if (filters?.status) {
+      users = users.filter(u => u.status === filters.status);
+    }
+    return users;
+  }
+
+  async getAdminUser(id: string): Promise<AdminUser | undefined> {
+    return this.adminUsers.get(id);
+  }
+
+  async getAdminUserByUsername(username: string): Promise<AdminUser | undefined> {
+    return Array.from(this.adminUsers.values()).find(u => u.username === username);
+  }
+
+  async createAdminUser(adminUser: InsertAdminUser): Promise<AdminUser> {
+    const newAdmin: AdminUser = {
+      id: `admin_${Date.now()}`,
+      ...adminUser,
+      status: adminUser.status || 'active',
+      createdAt: new Date(),
+      lastLogin: null,
+    } as AdminUser;
+    this.adminUsers.set(newAdmin.id, newAdmin);
+    return newAdmin;
+  }
+
+  async updateAdminUser(id: string, updates: Partial<AdminUser>): Promise<AdminUser | undefined> {
+    const admin = this.adminUsers.get(id);
+    if (!admin) return undefined;
+    const updated = { ...admin, ...updates };
+    this.adminUsers.set(id, updated);
+    return updated;
+  }
+
+  async deleteAdminUser(id: string): Promise<boolean> {
+    return this.adminUsers.delete(id);
+  }
+
+  async createAdminSession(session: InsertAdminSession): Promise<AdminSession> {
+    const newSession: AdminSession = {
+      ...session,
+      sessionToken: session.sessionToken,
+      createdAt: new Date(),
+      expiresAt: session.expiresAt || new Date(Date.now() + 24 * 60 * 60 * 1000),
+    } as AdminSession;
+    this.adminSessions.set(newSession.sessionToken, newSession);
+    return newSession;
+  }
+
+  async getAdminSession(sessionToken: string): Promise<AdminSession | undefined> {
+    return this.adminSessions.get(sessionToken);
+  }
+
+  async deleteAdminSession(sessionToken: string): Promise<boolean> {
+    return this.adminSessions.delete(sessionToken);
+  }
+
+  async getUserNotifications(walletAddress: string): Promise<UserNotification[]> {
+    return this.userNotifications.get(walletAddress.toLowerCase()) || [];
+  }
+
+  async createUserNotification(notification: InsertUserNotification): Promise<UserNotification> {
+    const newNotification: UserNotification = {
+      id: `notif_${Date.now()}`,
+      ...notification,
+      walletAddress: notification.walletAddress.toLowerCase(),
+      isRead: notification.isRead || false,
+      createdAt: new Date(),
+    } as UserNotification;
+    
+    const existing = this.userNotifications.get(newNotification.walletAddress) || [];
+    existing.push(newNotification);
+    this.userNotifications.set(newNotification.walletAddress, existing);
+    return newNotification;
+  }
+
+  async markNotificationAsRead(notificationId: string, walletAddress: string): Promise<UserNotification | undefined> {
+    const notifications = this.userNotifications.get(walletAddress.toLowerCase()) || [];
+    const notif = notifications.find(n => n.id === notificationId);
+    if (notif) {
+      notif.isRead = true;
+      return notif;
+    }
+    return undefined;
+  }
+
+  async markAllNotificationsAsRead(walletAddress: string): Promise<void> {
+    const notifications = this.userNotifications.get(walletAddress.toLowerCase()) || [];
+    notifications.forEach(n => n.isRead = true);
+  }
+
+  async getUnreadNotificationCount(walletAddress: string): Promise<number> {
+    const notifications = this.userNotifications.get(walletAddress.toLowerCase()) || [];
+    return notifications.filter(n => !n.isRead).length;
+  }
+}
+
+// Use MemStorage for local development, DatabaseStorage for production
+export const storage = new MemStorage();
+// export const storage = new DatabaseStorage();
