@@ -3951,15 +3951,15 @@ async function createLayerReward(rootWallet: string, triggerWallet: string, trig
 // Helper functions
 function calculateBCCReward(level: number): { transferable: number; restricted: number; total: number } {
   // Correct BCC reward structure:
-  // - New members Level 1: 400 transferable + 100 restricted = 500 BCC total
+  // - New members Level 1: 100 transferable + 500 restricted = 600 BCC total
   // - Level upgrades: 50 + (level × 50) BCC (all transferable)
   
   if (level === 1) {
-    // New member Level 1: Gets the base 500 BCC
+    // New member Level 1: Gets 500 locked + 100 transferable = 600 BCC total
     return {
-      transferable: 400,
-      restricted: 100,
-      total: 500
+      transferable: 100,
+      restricted: 500,
+      total: 600
     };
   } else {
     // Level upgrade (Level 2+): Gets upgrade bonus BCC
