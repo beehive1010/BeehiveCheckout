@@ -3340,8 +3340,13 @@ export class MemStorage implements IStorage {
   private earningsWallet = new Map<string, EarningsWallet[]>();
   private levelConfigs = new Map<number, LevelConfig>();
   private memberNFTVerifications = new Map<string, MemberNFTVerification>();
-  private merchantNFTs: MerchantNFT[] = [];
-  private nftPurchases: NFTPurchase[] = [];
+  private adminSettings = new Map<string, string>();
+  private memberActivations = new Map<string, any>();
+  private pendingRewards = new Map<string, any>();
+  private userActivities = new Map<string, UserActivity[]>();
+  private notifications = new Map<string, UserNotification[]>();
+  private nftPurchases = new Map<string, NFTPurchase>();
+  private merchantNFTs = new Map<string, MerchantNFT>();
   private courses: Course[] = [];
   private courseAccess = new Map<string, CourseAccess[]>();
   private lessonAccess = new Map<string, LessonAccess[]>();
@@ -3722,6 +3727,149 @@ export class MemStorage implements IStorage {
       directReferrals,
       teamMembers,
       totalReferrals: directReferrals + teamMembers,
+    };
+  }
+
+  // Admin settings operations
+  async getAdminSetting(key: string): Promise<string | undefined> {
+    return this.adminSettings.get(key);
+  }
+
+  async updateAdminSetting(key: string, value: string): Promise<void> {
+    this.adminSettings.set(key, value);
+  }
+
+  // Referral matrix initialization
+  async initializeReferralMatrix(walletAddress: string, sponsorWallet: string): Promise<void> {
+    // Basic matrix initialization for in-memory storage
+    const position = await this.createGlobalMatrixPosition({
+      walletAddress,
+      matrixLevel: 1,
+      positionIndex: this.globalMatrixPositions.size + 1,
+      directSponsorWallet: sponsorWallet,
+      placementSponsorWallet: sponsorWallet,
+    });
+    
+    // Also create referral node
+    await this.createReferralNode({
+      walletAddress,
+      sponsorWallet,
+      placerWallet: sponsorWallet,
+      matrixPosition: position.positionIndex,
+      leftLeg: [],
+      middleLeg: [],
+      rightLeg: [],
+      directReferralCount: 0,
+      totalTeamCount: 0,
+    });
+  }
+
+  // Layer calculation (simplified for in-memory)
+  async calculateAndStore19Layers(walletAddress: string): Promise<void> {
+    // For in-memory storage, just store basic layer info
+    console.log(`Calculating layers for ${walletAddress} (in-memory mode)`);
+  }
+
+  // Member activation operations
+  async createMemberActivation(activation: any): Promise<any> {
+    const newActivation = {
+      id: `activation_${Date.now()}`,
+      ...activation,
+      createdAt: new Date(),
+    };
+    this.memberActivations.set(activation.walletAddress.toLowerCase(), newActivation);
+    return newActivation;
+  }
+
+  async getMemberActivation(walletAddress: string): Promise<any> {
+    return this.memberActivations.get(walletAddress.toLowerCase());
+  }
+
+  // Referral layers (simplified)
+  async getReferralLayers(walletAddress: string): Promise<any[]> {
+    // Return basic layer structure for in-memory mode
+    return [];
+  }
+
+  // Reward operations
+  async getPendingRewards(walletAddress: string): Promise<any[]> {
+    return Array.from(this.pendingRewards.values())
+      .filter(r => r.recipientWallet === walletAddress.toLowerCase());
+  }
+
+  async getExpiredRewards(): Promise<any[]> {
+    const now = new Date();
+    return Array.from(this.pendingRewards.values())
+      .filter(r => r.expiresAt && new Date(r.expiresAt) < now);
+  }
+
+  async findNearestActivatedUpline(walletAddress: string): Promise<string | null> {
+    const position = this.globalMatrixPositions.get(walletAddress.toLowerCase());
+    if (!position) return null;
+    
+    const membership = this.membershipStates.get(position.directSponsorWallet);
+    if (membership && membership.activeLevel > 0) {
+      return position.directSponsorWallet;
+    }
+    
+    return null;
+  }
+
+  async redistributeReward(rewardId: string, newRecipient: string): Promise<void> {
+    const reward = this.pendingRewards.get(rewardId);
+    if (reward) {
+      reward.recipientWallet = newRecipient.toLowerCase();
+      this.pendingRewards.set(rewardId, reward);
+    }
+  }
+
+  // Notification operations
+  async createRewardNotification(notification: any): Promise<any> {
+    return this.createUserNotification(notification);
+  }
+
+  async getRewardNotifications(walletAddress: string): Promise<any[]> {
+    return this.getUserNotifications(walletAddress);
+  }
+
+  async getPendingRewardNotifications(walletAddress: string): Promise<any[]> {
+    return this.getUserNotifications(walletAddress);
+  }
+
+  // User tracking
+  async updateUserRegistrationTracking(walletAddress: string, data: any): Promise<void> {
+    const user = this.users.get(walletAddress.toLowerCase());
+    if (user) {
+      Object.assign(user, data);
+      this.users.set(walletAddress.toLowerCase(), user);
+    }
+  }
+
+  // Activity operations
+  async getUserRecentActivities(walletAddress: string, limit: number = 10): Promise<any[]> {
+    return this.getUserActivity(walletAddress, limit);
+  }
+
+  async logUserActivity(activity: any): Promise<void> {
+    const newActivity = {
+      id: `activity_${Date.now()}`,
+      ...activity,
+      timestamp: new Date(),
+    };
+    
+    if (!this.userActivities.has(activity.walletAddress.toLowerCase())) {
+      this.userActivities.set(activity.walletAddress.toLowerCase(), []);
+    }
+    
+    this.userActivities.get(activity.walletAddress.toLowerCase())?.push(newActivity);
+  }
+
+  // Layer members data
+  async getLayerMembersData(walletAddress: string): Promise<any> {
+    return {
+      layers: [],
+      totalMembers: 0,
+      activatedMembers: 0,
     };
   }
 
