@@ -96,7 +96,7 @@ export default function AdminUsers() {
 
   // Fetch platform users
   const { data: platformUsers = [], isLoading, refetch } = useQuery({
-    queryKey: ['/api/admin/platform-users', { search: searchTerm, level: levelFilter, status: statusFilter }],
+    queryKey: ['/api/admin/platform-users', searchTerm, levelFilter, statusFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);

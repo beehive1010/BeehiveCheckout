@@ -162,7 +162,7 @@ export default function AdminUsers() {
 
   // Fetch admin users with real API
   const { data: adminUsers = [], isLoading, refetch } = useQuery({
-    queryKey: ['/api/admin/admin-users', { search: searchTerm, role: roleFilter, status: statusFilter }],
+    queryKey: ['/api/admin/admin-users', searchTerm, roleFilter, statusFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
