@@ -441,6 +441,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid level' });
       }
 
+      // Get or create user for manual activation
+      let user = await storage.getUser(req.walletAddress);
+      if (!user) {
+        console.log(`🔧 Creating user record for manual activation: ${req.walletAddress}`);
+        
+        // Auto-create user for manual activation
+        user = await storage.createUser({
+          walletAddress: req.walletAddress,
+          username: `User_${req.walletAddress.slice(2, 10)}`,
+          email: null, // Optional for manual activation
+          secondaryPasswordHash: null, // Optional for manual activation
+          memberActivated: false,
+          currentLevel: 0,
+          preferredLanguage: 'en',
+          referrerWallet: null, // Could be enhanced to detect referrer
+          registrationStatus: 'completed', // Skip registration steps for manual activation
+          joinedAt: new Date()
+        });
+        
+        console.log(`✅ User record created for manual activation: ${req.walletAddress}`);
+      }
+
       // V2: Create membership NFT record
       await storage.createMembershipNFTV2({
         walletAddress: req.walletAddress,
@@ -550,8 +572,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid NFT contract' });
       }
 
+      // Get or create user for NFT activation
+      let user = await storage.getUser(req.walletAddress);
+      if (!user) {
+        console.log(`🔧 Creating user record for NFT activation: ${req.walletAddress}`);
+        
+        // Auto-create user for NFT activation
+        user = await storage.createUser({
+          walletAddress: req.walletAddress,
+          username: `User_${req.walletAddress.slice(2, 10)}`,
+          email: null, // Optional for NFT activation
+          secondaryPasswordHash: null, // Optional for NFT activation
+          memberActivated: false,
+          currentLevel: 0,
+          preferredLanguage: 'en',
+          referrerWallet: null, // Could be enhanced to detect referrer
+          registrationStatus: 'completed', // Skip registration steps for NFT activation
+          joinedAt: new Date()
+        });
+        
+        console.log(`✅ User record created for NFT activation: ${req.walletAddress}`);
+      }
+      
       // Check if user is already activated
-      const user = await storage.getUser(req.walletAddress);
       if (user?.memberActivated) {
         return res.json({ success: true, message: 'User already activated' });
       }
@@ -1552,10 +1595,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Level, transaction hash, and price required' });
       }
 
-      // Get user data
-      const user = await storage.getUser(req.walletAddress);
+      // Get user data - create user if not exists (for direct membership purchase)
+      let user = await storage.getUser(req.walletAddress);
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        console.log(`🔧 Creating user record for direct membership purchase: ${req.walletAddress}`);
+        
+        // Auto-create user for direct membership purchase
+        user = await storage.createUser({
+          walletAddress: req.walletAddress,
+          username: `User_${req.walletAddress.slice(2, 10)}`,
+          email: null, // Optional for direct purchase
+          secondaryPasswordHash: null, // Optional for direct purchase
+          memberActivated: false,
+          currentLevel: 0,
+          preferredLanguage: 'en',
+          referrerWallet: null, // Could be enhanced to detect referrer
+          registrationStatus: 'completed', // Skip registration steps for direct purchase
+          joinedAt: new Date()
+        });
+        
+        console.log(`✅ User record created for ${req.walletAddress}`);
       }
 
       // Check for duplicate order
