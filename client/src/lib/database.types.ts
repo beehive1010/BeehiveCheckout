@@ -983,51 +983,45 @@ export type Database = {
       }
       matrix_tree_v2: {
         Row: {
+          created_at: string
           id: string
-          joined_tree_at: string
-          last_updated: string
+          is_active: boolean
           layer: number
-          member_wallet: string
           parent_wallet: string | null
-          position: number
+          placed_at: string
+          position: string
+          position_index: number
           root_wallet: string
+          updated_at: string
+          wallet_address: string
         }
         Insert: {
+          created_at?: string
           id?: string
-          joined_tree_at?: string
-          last_updated?: string
+          is_active?: boolean
           layer: number
-          member_wallet: string
           parent_wallet?: string | null
-          position: number
+          placed_at?: string
+          position: string
+          position_index: number
           root_wallet: string
+          updated_at?: string
+          wallet_address: string
         }
         Update: {
+          created_at?: string
           id?: string
-          joined_tree_at?: string
-          last_updated?: string
+          is_active?: boolean
           layer?: number
-          member_wallet?: string
           parent_wallet?: string | null
-          position?: number
+          placed_at?: string
+          position?: string
+          position_index?: number
           root_wallet?: string
+          updated_at?: string
+          wallet_address?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "matrix_tree_v2_member_wallet_users_wallet_address_fk"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "matrix_tree_v2_root_wallet_users_wallet_address_fk"
-            columns: ["root_wallet"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["wallet_address"]
-          },
-        ]
+        Relationships: []
       }
       member_nft_verification: {
         Row: {

@@ -39,21 +39,10 @@ export function useWallet() {
 
   // Get user data including membership state with real-time updates
   const { data: userData, isLoading: isUserLoading } = useQuery({
-    queryKey: ['/api/auth/user'],
+    queryKey: ['/functions/v1/get-user'],
     enabled: !!walletAddress,
     queryFn: async () => {
-      const response = await fetch(`/api/auth/user?t=${Date.now()}`, {
-        headers: {
-          'X-Wallet-Address': walletAddress!,
-          'Cache-Control': 'no-cache'
-        },
-      });
-      if (!response.ok) {
-        if (response.status === 404) {
-          return null; // User not registered
-        }
-        throw new Error('Failed to fetch user data');
-      }
+      const response = await apiRequest('GET', `/functions/v1/get-user?t=${Date.now()}`, undefined, walletAddress);
       return response.json();
     },
     staleTime: 2000, // 2 seconds
@@ -73,35 +62,25 @@ export function useWallet() {
       isCompanyDirectReferral?: boolean;
       referralCode?: string;
     }) => {
-      const response = await apiRequest('POST', '/api/auth/register', {
+      const response = await apiRequest('POST', '/functions/v1/register-user', {
         walletAddress,
         ...registrationData,
       });
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      queryClient.invalidateQueries({ queryKey: ['/functions/v1/get-user'] });
     },
   });
 
   // Activate membership
   const activateMembershipMutation = useMutation({
     mutationFn: async (data: { level: number; txHash?: string }) => {
-      const response = await fetch('/api/membership/activate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Wallet-Address': walletAddress!,
-        },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to activate membership');
-      }
+      const response = await apiRequest('POST', '/functions/v1/activate-membership', data, walletAddress);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      queryClient.invalidateQueries({ queryKey: ['/functions/v1/get-user'] });
     },
   });
 

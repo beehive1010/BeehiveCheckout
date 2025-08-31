@@ -43,11 +43,24 @@ export async function apiRequest(
     headers["X-Wallet-Address"] = addressToUse;
   }
 
-  const res = await fetch(url, {
+  // Check if this is an edge function call
+  const isEdgeFunction = url.includes('/functions/v1/');
+  const baseUrl = isEdgeFunction ? 
+    import.meta.env.VITE_SUPABASE_URL : 
+    window.location.origin;
+
+  // Add authorization for edge functions
+  if (isEdgeFunction) {
+    headers["Authorization"] = `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`;
+  }
+
+  const fullUrl = isEdgeFunction ? url : `${baseUrl}${url}`;
+
+  const res = await fetch(fullUrl, {
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
+    credentials: isEdgeFunction ? "omit" : "include",
   });
 
   await throwIfResNotOk(res);

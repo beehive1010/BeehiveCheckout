@@ -103,9 +103,10 @@ export default function Registration() {
         if (code) queryParams.code = code;
         if (referrer && !savedReferrer && !ref) queryParams.referrer = referrer;
 
-        const response = await fetch(`/api/wallet/registration-status?${new URLSearchParams(queryParams)}`, {
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/registration-status?${new URLSearchParams(queryParams)}`, {
           headers: {
-            'X-Wallet-Address': walletAddress
+            'X-Wallet-Address': walletAddress,
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
           }
         });
         
@@ -255,8 +256,11 @@ export default function Registration() {
     // Validate referral code in real-time
     if (name === 'referralCode' && value && value !== '001122' && value.startsWith('0x')) {
       try {
-        const response = await fetch(`/api/auth/check-user-exists/${value}`, {
-          headers: { 'X-Wallet-Address': walletAddress || '' }
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-wallet`, {
+          headers: { 
+            'X-Wallet-Address': value,
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+          }
         });
         
         if (!response.ok) {
