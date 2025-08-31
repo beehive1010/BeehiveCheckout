@@ -7,6 +7,26 @@ export function useWallet() {
   const { isConnected, walletAddress } = useWeb3();
   const queryClient = useQueryClient();
 
+  // Check registration status first to avoid 404s on user data endpoint
+  const { data: registrationStatus } = useQuery({
+    queryKey: ['/api/wallet/registration-status'],
+    queryFn: async () => {
+      if (!walletAddress) return null;
+      const response = await fetch(`/api/wallet/registration-status?t=${Date.now()}`, {
+        headers: {
+          'X-Wallet-Address': walletAddress,
+          'Cache-Control': 'no-cache'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch registration status');
+      return response.json();
+    },
+    enabled: !!walletAddress,
+    staleTime: 2000, // 2 seconds
+    refetchInterval: 6000, // Check registration status every 6 seconds
+    refetchIntervalInBackground: true,
+  });
+
   // Log wallet connection when connected
   const logWalletConnection = async (connectionType: string, additionalData?: any) => {
     if (!walletAddress) return;
@@ -38,11 +58,12 @@ export function useWallet() {
   }, [isConnected, walletAddress]);
 
   // Get user data including membership state with real-time updates
+  // Only fetch user data if user is registered to avoid 404 errors
   const { data: userData, isLoading: isUserLoading } = useQuery({
     queryKey: ['/api/auth/user'],
-    enabled: !!walletAddress,
+    enabled: !!walletAddress && !!registrationStatus?.registered,
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/auth/user?t=${Date.now()}`, undefined, walletAddress);
+      const response = await apiRequest('GET', `/api/auth/user?t=${Date.now()}`, undefined, walletAddress || undefined);
       return response.json();
     },
     staleTime: 2000, // 2 seconds
@@ -76,7 +97,7 @@ export function useWallet() {
   // Activate membership
   const activateMembershipMutation = useMutation({
     mutationFn: async (data: { level: number; txHash?: string }) => {
-      const response = await apiRequest('POST', '/api/membership/activate', data, walletAddress);
+      const response = await apiRequest('POST', '/api/membership/activate', data, walletAddress || undefined);
       return response.json();
     },
     onSuccess: () => {
@@ -84,7 +105,7 @@ export function useWallet() {
     },
   });
 
-  const isRegistered = !!userData?.user;
+  const isRegistered = !!registrationStatus?.registered;
   const isActivated = userData?.user?.memberActivated;
   const currentLevel = userData?.user?.currentLevel || 0;
   const membershipState = userData?.membershipState;
