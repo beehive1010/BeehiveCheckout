@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { createThirdwebClient } from 'thirdweb';
 import { ThirdwebProvider, useActiveAccount } from 'thirdweb/react';
 
@@ -34,12 +34,12 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     }
   }, [account]);
 
-  const value = {
+  const value = useMemo(() => ({
     client,
     account,
     isConnected,
     walletAddress,
-  };
+  }), [account, isConnected, walletAddress]);
 
   return (
     <Web3Context.Provider value={value}>
@@ -61,7 +61,14 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
 export function useWeb3() {
   const context = useContext(Web3Context);
   if (context === undefined) {
-    throw new Error('useWeb3 must be used within a Web3Provider');
+    // Return default values instead of throwing error to prevent crashes
+    console.warn('useWeb3 called outside Web3Provider, returning defaults');
+    return {
+      client,
+      account: null,
+      isConnected: false,
+      walletAddress: null,
+    };
   }
   return context;
 }

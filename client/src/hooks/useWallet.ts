@@ -12,7 +12,7 @@ export function useWallet() {
   const { registrationStatus } = useNFTVerification();
 
   // Log wallet connection when connected
-  const logWalletConnection = async (connectionType: string, additionalData?: any) => {
+  const logWalletConnection = React.useCallback(async (connectionType: string, additionalData?: any) => {
     if (!walletAddress) return;
     
     try {
@@ -32,14 +32,14 @@ export function useWallet() {
     } catch (error) {
       console.error('Failed to log wallet connection:', error);
     }
-  };
+  }, [walletAddress]);
 
   // Log initial connection
   React.useEffect(() => {
     if (isConnected && walletAddress) {
       logWalletConnection('connect');
     }
-  }, [isConnected, walletAddress]);
+  }, [isConnected, walletAddress, logWalletConnection]);
 
   // Get user data including membership state with real-time updates
   // Only fetch user data if user is registered to avoid 404 errors
