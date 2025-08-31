@@ -39,10 +39,10 @@ export function useWallet() {
 
   // Get user data including membership state with real-time updates
   const { data: userData, isLoading: isUserLoading } = useQuery({
-    queryKey: ['/functions/v1/get-user'],
+    queryKey: ['/api/auth/user'],
     enabled: !!walletAddress,
     queryFn: async () => {
-      const response = await apiRequest('GET', `/functions/v1/get-user?t=${Date.now()}`, undefined, walletAddress);
+      const response = await apiRequest('GET', `/api/auth/user?t=${Date.now()}`, undefined, walletAddress);
       return response.json();
     },
     staleTime: 2000, // 2 seconds
@@ -62,25 +62,25 @@ export function useWallet() {
       isCompanyDirectReferral?: boolean;
       referralCode?: string;
     }) => {
-      const response = await apiRequest('POST', '/functions/v1/register-user', {
+      const response = await apiRequest('POST', '/api/auth/register', {
         walletAddress,
         ...registrationData,
       });
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/functions/v1/get-user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     },
   });
 
   // Activate membership
   const activateMembershipMutation = useMutation({
     mutationFn: async (data: { level: number; txHash?: string }) => {
-      const response = await apiRequest('POST', '/functions/v1/activate-membership', data, walletAddress);
+      const response = await apiRequest('POST', '/api/membership/activate', data, walletAddress);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/functions/v1/get-user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     },
   });
 

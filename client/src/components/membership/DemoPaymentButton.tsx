@@ -48,10 +48,9 @@ export default function DemoPaymentButton({
       setDemoState('verifying');
       console.log('🔍 Checking user registration...');
       
-      const userCheckResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-user`, {
+      const userCheckResponse = await fetch('/api/auth/user', {
         headers: {
           'X-Wallet-Address': account.address,
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
         },
       });
 
@@ -59,12 +58,11 @@ export default function DemoPaymentButton({
       
       if (!isUserRegistered) {
         console.log('📝 Registering user for demo...');
-        const registerResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/register-user`, {
+        const registerResponse = await fetch('/api/auth/register', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'X-Wallet-Address': account.address,
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
           },
           body: JSON.stringify({
             walletAddress: account.address,
@@ -86,17 +84,16 @@ export default function DemoPaymentButton({
       // Step 3: Activate membership with demo payment
       console.log('💰 Simulating 130 USDT payment...');
       
-      const membershipResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/activate-membership`, {
+      const membershipResponse = await fetch('/api/membership/activate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-Wallet-Address': account.address,
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
         },
         body: JSON.stringify({
           level: 1,
           txHash: `demo_payment_${Date.now()}`,
-          paymentMethod: 'demo'
+          priceUSDT: 130
         }),
       });
 
