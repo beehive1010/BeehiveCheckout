@@ -543,7 +543,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get V2 matrix position
       const position = await storage.getGlobalMatrixPositionV2(req.walletAddress);
       const membershipNFTs = await storage.getMembershipNFTsV2(req.walletAddress);
-      const layerRewards = await storage.getLayerRewardsV2ByWallet(req.walletAddress);
+      const layerRewards = await storage.getLayerRewardsV2(req.walletAddress);
       
       res.json({ 
         success: true, 
@@ -706,7 +706,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/rewards/process-v2-timeouts", async (req, res) => {
     try {
       // V2 system: Process expired layer rewards and redistribute
-      const expiredRewards = await storage.getExpiredLayerRewardsV2();
+      const expiredRewards = await storage.getLayerRewardsV2('expired');
       let processedCount = 0;
 
       for (const reward of expiredRewards) {
@@ -1062,7 +1062,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       // Get V2 layer rewards instead of old reward distributions
-      const layerRewards = await storage.getLayerRewardsV2ByWallet(req.walletAddress);
+      const layerRewards = await storage.getLayerRewardsV2(req.walletAddress);
 
       res.json({
         matrixPosition,

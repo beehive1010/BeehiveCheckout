@@ -255,18 +255,23 @@ export default function Registration() {
     // Validate referral code in real-time
     if (name === 'referralCode' && value && value !== '001122' && value.startsWith('0x')) {
       try {
-        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-wallet`, {
+        const response = await fetch('/api/wallet/registration-status', {
           headers: { 
-            'X-Wallet-Address': value,
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+            'X-Wallet-Address': value
           }
         });
         
-        if (!response.ok) {
+        if (response.ok) {
+          const result = await response.json();
+          if (!result.registered) {
+            setErrors(prev => ({ ...prev, referralCode: 'This wallet address is not registered yet' }));
+          }
+        } else {
           setErrors(prev => ({ ...prev, referralCode: 'This wallet address is not registered yet' }));
         }
       } catch (error) {
         console.error('Failed to validate referrer:', error);
+        // Don't show error to user for network issues, just log it
       }
     }
   };
