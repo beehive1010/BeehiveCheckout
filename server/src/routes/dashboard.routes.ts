@@ -127,7 +127,7 @@ export function registerDashboardRoutes(app: Express) {
       console.log('📋 Fetching activity for:', walletAddress);
 
       // For new database, return empty activity
-      const activities = [];
+      const activities: any[] = [];
       
       console.log('✅ Sending activity for new user:', activities.length, 'items');
       res.json({ activity: activities });

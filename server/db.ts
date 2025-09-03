@@ -12,9 +12,9 @@ if (!process.env.DATABASE_URL) {
 
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false, // For Supabase compatibility
-  }
+  ssl: process.env.DATABASE_URL?.includes('supabase') ? {
+    rejectUnauthorized: false,
+  } : false,
 });
 
 export const db = drizzle({ 
