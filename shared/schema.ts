@@ -387,10 +387,9 @@ export const insertLevelConfigSchema = createInsertSchema(levelConfig).pick({
   level: true,
   levelName: true,
   priceUSDT: true,
-  nftPriceUSDT: true,
-  platformFeeUSDT: true,
-  requiredDirectReferrals: true,
-  maxMatrixCount: true,
+  rewardUSDT: true,
+  activationFeeUSDT: true,
+  bccUnlockAmount: true,
 });
 
 export const insertMemberNFTVerificationSchema = createInsertSchema(memberNFTVerification).pick({
@@ -804,8 +803,8 @@ export const insertMemberLevelSchema = createInsertSchema(memberLevels).pick({
 export type InsertNFTClaimRecord = z.infer<typeof insertNFTClaimRecordSchema>;
 export type NFTClaimRecord = typeof nftClaimRecords.$inferSelect;
 
-export type InsertMemberLevel = z.infer<typeof insertMemberLevelSchema>;
-export type MemberLevel = typeof memberLevels.$inferSelect;
+// export type InsertMemberLevel = z.infer<typeof insertMemberLevelSchema>; // Removed
+// export type MemberLevel = typeof memberLevels.$inferSelect; // Removed
 
 export type InsertAdminUser = z.infer<typeof insertAdminUserSchema>;
 export type AdminUser = typeof adminUsers.$inferSelect;
