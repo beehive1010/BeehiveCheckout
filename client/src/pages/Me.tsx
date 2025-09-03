@@ -148,7 +148,7 @@ export default function Me() {
                   </div>
                   <div className="text-center p-4 bg-background rounded-lg">
                     <div className="text-2xl font-bold text-green-400 mb-1">
-                      {userStats.directReferrals || 0}
+                      {Array.isArray(userStats.recentReferrals) ? userStats.recentReferrals.length : (userStats.recentReferrals || 0)}
                     </div>
                     <p className="text-sm text-muted-foreground">
                       {t('me.directReferrals') || 'Direct Referrals'}
@@ -156,15 +156,15 @@ export default function Me() {
                   </div>
                   <div className="text-center p-4 bg-background rounded-lg">
                     <div className="text-2xl font-bold text-blue-400 mb-1">
-                      {userStats.indirectReferrals || 0}
+                      {userStats.totalReferrals || 0}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {t('me.indirectReferrals') || 'Indirect Referrals'}
+                      {t('me.indirectReferrals') || 'Team Referrals'}
                     </p>
                   </div>
                   <div className="text-center p-4 bg-background rounded-lg">
                     <div className="text-2xl font-bold text-purple-400 mb-1">
-                      {userStats.totalEarnings?.toFixed(2) || '0.00'}
+                      {typeof userStats.totalEarnings === 'number' ? userStats.totalEarnings.toFixed(2) : (userStats.totalEarnings || '0.00')}
                     </div>
                     <p className="text-sm text-muted-foreground">
                       {t('me.totalEarnings') || 'Total Earnings'}

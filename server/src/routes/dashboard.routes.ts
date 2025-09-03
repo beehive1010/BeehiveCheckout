@@ -195,9 +195,17 @@ export function registerDashboardRoutes(app: Express) {
         totalDownline: memberMatrixData?.totalMembers || 0,
         downlineMatrix: Array.from({ length: 19 }, (_, i) => ({
           level: i + 1,
-          totalMembers: 0, // Always 0 for new users - no mock data
+          totalMembers: memberMatrixData?.layerData?.[i]?.memberCount || 0,
           maxCapacity: Math.pow(3, i + 1), // 3^n for each layer
-          members: [] // Always empty for new users - no mock data
+          members: memberMatrixData?.layerData?.[i]?.positions ? 
+            Object.entries(memberMatrixData.layerData[i].positions).map(([position, data]: [string, any]) => ({
+              walletAddress: data.wallet,
+              username: data.wallet.slice(0, 8) + '...',
+              currentLevel: 1,
+              memberActivated: true,
+              placement: position.toLowerCase(),
+              joinedAt: data.placedAt
+            })) : []
         })),
         
         // NEW: memberMatrixView efficient data structure
