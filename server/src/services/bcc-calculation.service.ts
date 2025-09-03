@@ -6,7 +6,7 @@ import {
   type User 
 } from "@shared/schema";
 import { db } from "../../db";
-import { eq, sum } from "drizzle-orm";
+import { eq, sum, sql } from "drizzle-orm";
 
 export class BCCCalculationService {
   

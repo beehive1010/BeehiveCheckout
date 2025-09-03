@@ -84,7 +84,7 @@ export function useBalance() {
     queryKey: ['/api/balance/user', walletAddress],
     enabled: !!walletAddress && isConnected,
     queryFn: async (): Promise<UserBalanceData> => {
-      const response = await fetch('/api/balance/user', {
+      const response = await fetch('/api/dashboard/balances', {
         headers: {
           'X-Wallet-Address': walletAddress!,
         },
@@ -92,7 +92,20 @@ export function useBalance() {
       if (!response.ok) {
         throw new Error('Failed to fetch balance data');
       }
-      return response.json();
+      const data = await response.json();
+      
+      // Transform to match UserBalanceData interface
+      return {
+        bccTransferable: data.bccTransferable || 0,
+        bccRestricted: data.bccRestricted || 0,
+        bccLocked: data.bccRestricted || 0,
+        totalUsdtEarned: data.usdt || 0,
+        availableUsdtRewards: data.usdt || 0,
+        totalUsdtWithdrawn: 0,
+        activationTier: null,
+        activationOrder: null,
+        globalPool: null
+      };
     },
     staleTime: 30000, // 30 seconds
   });
@@ -184,19 +197,12 @@ export function useBalance() {
     };
   };
 
-  // Calculate BCC unlock amount for specific level and user's activation tier
+  // Calculate BCC unlock amount for specific level (now using server-side calculation)
   const getBccUnlockAmountForLevel = (level: number): number => {
-    if (!balanceData?.activationTier || level < 1 || level > 19) return 0;
-    
-    const baseAmount = BCC_LEVEL_UNLOCK_AMOUNTS[level as keyof typeof BCC_LEVEL_UNLOCK_AMOUNTS];
-    const tierConfig = Object.values(BCC_STAKING_TIERS).find(
-      tier => tier.id === balanceData.activationTier
-    );
-    
-    if (!tierConfig) return 0;
-    
-    // Apply tier multiplier (1.0, 0.5, 0.25, 0.125)
-    return Math.floor(baseAmount * tierConfig.multiplier);
+    // New BCC calculation: Level 1 = 100, Level 2 = 150, ... Level 19 = 1000
+    // Formula: Level 1 = 100, 每升一级增加50 BCC
+    if (level < 1 || level > 19) return 0;
+    return 50 + (level * 50);
   };
   
   // Calculate total BCC that would be locked for user's tier
