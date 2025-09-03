@@ -1,8 +1,5 @@
 import { Express } from 'express';
 import { storage } from '../../storage';
-import { db } from '../../db';
-import { users, membershipState, bccBalances } from '@shared/schema';
-import { eq } from 'drizzle-orm';
 
 /**
  * Dashboard Routes - Real member data from database
@@ -23,10 +20,10 @@ export function registerDashboardRoutes(app: Express) {
       
       console.log('📊 Fetching dashboard data for:', walletAddress);
 
-      // Get user data from Supabase
-      const [user] = await db.select().from(users).where(eq(users.walletAddress, walletAddress.toLowerCase()));
-      const [membership] = await db.select().from(membershipState).where(eq(membershipState.walletAddress, walletAddress.toLowerCase()));
-      const [bccBalance] = await db.select().from(bccBalances).where(eq(bccBalances.walletAddress, walletAddress.toLowerCase()));
+      // Get user data from storage (ReplitDB)
+      const user = await storage.getUser(walletAddress);
+      const membership = await storage.getMembershipState(walletAddress);
+      const bccBalance = await storage.getBCCBalance(walletAddress);
       
       const dashboardData = {
         matrixStats: {
@@ -57,7 +54,7 @@ export function registerDashboardRoutes(app: Express) {
         }
       };
 
-      console.log('✅ Sending REAL dashboard data from Supabase:', dashboardData);
+      console.log('✅ Sending REAL dashboard data from storage:', dashboardData);
       res.json(dashboardData);
     } catch (error) {
       console.error('Dashboard data error:', error);
@@ -144,17 +141,18 @@ export function registerDashboardRoutes(app: Express) {
       
       console.log('💰 Fetching balances for:', walletAddress);
 
-      // Get real balances from Supabase
-      const [bccBalance] = await db.select().from(bccBalances).where(eq(bccBalances.walletAddress, walletAddress.toLowerCase()));
+      // Get real balances from storage (ReplitDB)
+      const bccBalance = await storage.getBCCBalance(walletAddress);
+      const usdtBalance = await storage.getUSDTBalance(walletAddress);
       
       const balances = {
         bccTransferable: bccBalance?.transferable || 0,
         bccRestricted: bccBalance?.restricted || 0,
         cth: 0,
-        usdt: 0
+        usdt: usdtBalance?.balance || 0
       };
       
-      console.log('✅ Sending REAL balances from Supabase:', balances);
+      console.log('✅ Sending REAL balances from storage:', balances);
       res.json(balances);
     } catch (error) {
       console.error('Balances fetch error:', error);

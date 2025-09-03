@@ -1,0 +1,451 @@
+
+📊 User status from service: { isRegistered: false, hasNFT: false, userFlow: 'registration' }
+🚪 User not registered
+12:06:32 PM [express] GET /api/auth/user 404 in 1566ms :: {"error":"User not found","isRegistered":fa…
+🔍 API Route Hit: POST /api/auth/register
+🔄 Registration request received: {
+  walletAddress: '0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab',
+  username: 'test004',
+  email: 'test004@gmail.com',
+  secondaryPasswordHash: '12345678'
+}
+[DB] GET users:0x479abda60f8c62a7c3fba411ab948a8be0e616ab 
+[DB] GET users:0x479abda60f8c62a7c3fba411ab948a8be0e616ab -> NOT_FOUND (0ms) 
+[DB] GET idx:users:username:test004 
+[DB] GET idx:users:username:test004 -> NOT_FOUND (0ms) 
+[DB] SET users:0x479abda60f8c62a7c3fba411ab948a8be0e616ab 
+[DB] SET users:0x479abda60f8c62a7c3fba411ab948a8be0e616ab -> SUCCESS (0ms) 
+[DB] SET idx:users:username:test004 
+[DB] SET idx:users:username:test004 -> SUCCESS (0ms) 
+[DB] GET idx:users:level:0 
+[DB] GET idx:users:level:0 -> NOT_FOUND (0ms) 
+[DB] SET idx:users:level:0 
+[DB] SET idx:users:level:0 -> SUCCESS (0ms) 
+[DB] Added 0x479abda60f8c62a7c3fba411ab948a8be0e616ab to index idx:users:level:0 
+[DB] GET idx:users:activated:false 
+[DB] GET idx:users:activated:false -> NOT_FOUND (0ms) 
+[DB] SET idx:users:activated:false 
+[DB] SET idx:users:activated:false -> SUCCESS (0ms) 
+[DB] Added 0x479abda60f8c62a7c3fba411ab948a8be0e616ab to index idx:users:activated:false 
+[DB] SET audit:2025-09-03T12:06:56.889Z:939bc378-c23e-4160-94f0-987cbf702177 
+[DB] SET audit:2025-09-03T12:06:56.889Z:939bc378-c23e-4160-94f0-987cbf702177 -> SUCCESS (0ms) 
+[DB] AUDIT user_upsert {
+  operation: 'user_upsert',
+  timestamp: '2025-09-03T12:06:56.889Z',
+  data: {
+    wallet: '0x479abda60f8c62a7c3fba411ab948a8be0e616ab',
+    membershipLevel: 0
+  },
+  id: '939bc378-c23e-4160-94f0-987cbf702177'
+}
+🎉 User created successfully: 0x479abda60f8c62a7c3fba411ab948a8be0e616ab
+12:06:56 PM [express] POST /api/auth/register 201 in 4ms :: {"user":{"walletAddress":"0x479abda60f8c6…
+🔍 API Route Hit: POST /api/auth/claim-nft
+🎫 NFT Claim request: {
+  walletAddress: '0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab',
+  level: 1,
+  transactionHash: 'fake_tx_1756901222209'
+}
+[DB] GET users:0x479abda60f8c62a7c3fba411ab948a8be0e616ab 
+[DB] GET users:0x479abda60f8c62a7c3fba411ab948a8be0e616ab -> SUCCESS (0ms) 
+[DB] GET users:0x479abda60f8c62a7c3fba411ab948a8be0e616ab 
+[DB] GET users:0x479abda60f8c62a7c3fba411ab948a8be0e616ab -> SUCCESS (0ms) 
+[DB] SET users:0x479abda60f8c62a7c3fba411ab948a8be0e616ab 
+[DB] SET users:0x479abda60f8c62a7c3fba411ab948a8be0e616ab -> SUCCESS (0ms) 
+[DB] SET idx:users:username:test004 
+[DB] SET idx:users:username:test004 -> SUCCESS (0ms) 
+[DB] GET idx:users:level:1 
+[DB] GET idx:users:level:1 -> NOT_FOUND (0ms) 
+[DB] SET idx:users:level:1 
+[DB] SET idx:users:level:1 -> SUCCESS (0ms) 
+[DB] Added 0x479abda60f8c62a7c3fba411ab948a8be0e616ab to index idx:users:level:1 
+[DB] GET idx:users:activated:true 
+[DB] GET idx:users:activated:true -> NOT_FOUND (0ms) 
+[DB] SET idx:users:activated:true 
+[DB] SET idx:users:activated:true -> SUCCESS (0ms) 
+[DB] Added 0x479abda60f8c62a7c3fba411ab948a8be0e616ab to index idx:users:activated:true 
+[DB] SET audit:2025-09-03T12:07:02.396Z:40f6b25b-06a9-4432-968e-2d17f420d724 
+[DB] SET audit:2025-09-03T12:07:02.396Z:40f6b25b-06a9-4432-968e-2d17f420d724 -> SUCCESS (0ms) 
+[DB] AUDIT user_upsert {
+  operation: 'user_upsert',
+  timestamp: '2025-09-03T12:07:02.396Z',
+  data: {
+    wallet: '0x479abda60f8c62a7c3fba411ab948a8be0e616ab',
+    membershipLevel: 1
+  },
+  id: '40f6b25b-06a9-4432-968e-2d17f420d724'
+}
+🎉 NFT claimed and user activated: 0x479abda60f8c62a7c3fba411ab948a8be0e616ab
+12:07:02 PM [express] POST /api/auth/claim-nft 200 in 2ms :: {"success":true,"user":{"walletAddress":…
+🔍 API Route Hit: POST /api/wallet/log-connection
+🔗 Wallet connected: 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab on chain 1
+12:07:06 PM [express] POST /api/wallet/log-connection 200 in 1ms :: {"success":true,"message":"Connec…
+🔍 API Route Hit: GET /api/auth/user?t=1756901225986
+🔍 Getting user status for: 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab
+🔍 Checking user status for: 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab
+[DB] GET users:0x479abda60f8c62a7c3fba411ab948a8be0e616ab 
+[DB] GET users:0x479abda60f8c62a7c3fba411ab948a8be0e616ab -> SUCCESS (0ms) 
+📁 ReplitDB lookup result: FOUND
+📊 User status from service: {
+  isRegistered: true,
+  hasNFT: true,
+  userFlow: 'dashboard',
+  user: {
+    walletAddress: '0x479abda60f8c62a7c3fba411ab948a8be0e616ab',
+    username: 'test004',
+    email: 'test004@gmail.com',
+    secondaryPasswordHash: '12345678',
+    membershipLevel: 1,
+    isActivated: true,
+    createdAt: '2025-09-03T12:06:56.886Z',
+    updatedAt: '2025-09-03T12:07:02.396Z'
+  },
+  membershipLevel: 1,
+  isActivated: true
+}
+✅ Sending enhanced response: {
+  user: {
+    walletAddress: '0x479abda60f8c62a7c3fba411ab948a8be0e616ab',
+    username: 'test004',
+    email: 'test004@gmail.com',
+    secondaryPasswordHash: '12345678',
+    membershipLevel: 1,
+    isActivated: true,
+    createdAt: '2025-09-03T12:06:56.886Z',
+    updatedAt: '2025-09-03T12:07:02.396Z'
+  },
+  isRegistered: true,
+  hasNFT: true,
+  isActivated: true,
+  membershipLevel: 1,
+  userFlow: 'dashboard',
+  membershipState: { activeLevel: 1 },
+  bccBalance: { transferable: 500, restricted: 100 },
+  currentLevel: 1
+}
+12:07:06 PM [express] GET /api/auth/user 200 in 7ms :: {"user":{"walletAddress":"0x479abda60f8c62a7c3…
+🔍 API Route Hit: POST /api/wallet/log-connection
+🔗 Wallet connected: 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab on chain 1
+12:07:06 PM [express] POST /api/wallet/log-connection 200 in 1ms :: {"success":true,"message":"Connec…
+🔍 API Route Hit: GET /api/dashboard/referrals
+👥 Fetching referral stats for: 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab
+✅ Sending referral stats for new user: { directReferrals: 0, totalTeam: 0, activeDirect: 0, activeTeam: 0 }
+12:07:06 PM [express] GET /api/dashboard/referrals 304 in 3ms :: {"directReferrals":0,"totalTeam":0,"…
+🔍 API Route Hit: GET /api/dashboard/data
+📊 Fetching dashboard data for: 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab
+🔍 API Route Hit: GET /api/dashboard/matrix
+🔗 Fetching matrix data for: 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab
+✅ Sending matrix data for new user: {
+  userPosition: { layer: 0, position: 0 },
+  directChildren: 0,
+  totalDownline: 0,
+  downlineLayers: [
+    { layer: 1, totalMembers: 0, maxCapacity: 3, members: [] },
+    { layer: 2, totalMembers: 0, maxCapacity: 9, members: [] },
+    { layer: 3, totalMembers: 0, maxCapacity: 27, members: [] },
+    { layer: 4, totalMembers: 0, maxCapacity: 81, members: [] },
+    { layer: 5, totalMembers: 0, maxCapacity: 243, members: [] },
+    { layer: 6, totalMembers: 0, maxCapacity: 729, members: [] },
+    { layer: 7, totalMembers: 0, maxCapacity: 2187, members: [] },
+    { layer: 8, totalMembers: 0, maxCapacity: 6561, members: [] },
+    { layer: 9, totalMembers: 0, maxCapacity: 19683, members: [] },
+    { layer: 10, totalMembers: 0, maxCapacity: 59049, members: [] },
+    { layer: 11, totalMembers: 0, maxCapacity: 177147, members: [] },
+    { layer: 12, totalMembers: 0, maxCapacity: 531441, members: [] },
+    { layer: 13, totalMembers: 0, maxCapacity: 1594323, members: [] },
+    { layer: 14, totalMembers: 0, maxCapacity: 4782969, members: [] },
+    { layer: 15, totalMembers: 0, maxCapacity: 14348907, members: [] },
+    { layer: 16, totalMembers: 0, maxCapacity: 43046721, members: [] },
+    { layer: 17, totalMembers: 0, maxCapacity: 129140163, members: [] },
+    { layer: 18, totalMembers: 0, maxCapacity: 387420489, members: [] },
+    {
+      layer: 19,
+      totalMembers: 0,
+      maxCapacity: 1162261467,
+      members: []
+    }
+  ]
+}
+12:07:06 PM [express] GET /api/dashboard/matrix 304 in 2ms :: {"userPosition":{"layer":0,"position":0…
+🔍 API Route Hit: GET /api/user/activity?limit=10
+12:07:06 PM [express] GET /api/user/activity 200 in 1ms :: [{"id":1,"type":"level_upgrade","descripti…
+🔍 API Route Hit: GET /api/user/balances
+12:07:06 PM [express] GET /api/user/balances 304 in 0ms :: {"bcc":{"transferable":0,"restricted":0},"…
+Dashboard data error: error: password authentication failed for user "postgres"
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/node_modules/src/node-postgres/session.ts:104:19)
+    at async <anonymous> (/home/runner/workspace/server/src/routes/dashboard.routes.ts:27:22) {
+  length: 104,
+  severity: 'FATAL',
+  code: '28P01',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'auth.c',
+  line: '321',
+  routine: 'auth_failed'
+}
+12:07:07 PM [express] GET /api/dashboard/data 500 in 1592ms :: {"error":"Failed to fetch dashboard da…
+🔍 API Route Hit: GET /api/dashboard/data
+📊 Fetching dashboard data for: 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab
+Dashboard data error: error: password authentication failed for user "postgres"
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/node_modules/src/node-postgres/session.ts:104:19)
+    at async <anonymous> (/home/runner/workspace/server/src/routes/dashboard.routes.ts:27:22) {
+  length: 104,
+  severity: 'FATAL',
+  code: '28P01',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'auth.c',
+  line: '321',
+  routine: 'auth_failed'
+}
+12:07:10 PM [express] GET /api/dashboard/data 500 in 1587ms :: {"error":"Failed to fetch dashboard da…
+🔍 API Route Hit: GET /api/auth/user?t=1756901231247
+🔍 Getting user status for: 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab
+🔍 Checking user status for: 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab
+[DB] GET users:0x479abda60f8c62a7c3fba411ab948a8be0e616ab 
+[DB] GET users:0x479abda60f8c62a7c3fba411ab948a8be0e616ab -> SUCCESS (0ms) 
+📁 ReplitDB lookup result: FOUND
+📊 User status from service: {
+  isRegistered: true,
+  hasNFT: true,
+  userFlow: 'dashboard',
+  user: {
+    walletAddress: '0x479abda60f8c62a7c3fba411ab948a8be0e616ab',
+    username: 'test004',
+    email: 'test004@gmail.com',
+    secondaryPasswordHash: '12345678',
+    membershipLevel: 1,
+    isActivated: true,
+    createdAt: '2025-09-03T12:06:56.886Z',
+    updatedAt: '2025-09-03T12:07:02.396Z'
+  },
+  membershipLevel: 1,
+  isActivated: true
+}
+✅ Sending enhanced response: {
+  user: {
+    walletAddress: '0x479abda60f8c62a7c3fba411ab948a8be0e616ab',
+    username: 'test004',
+    email: 'test004@gmail.com',
+    secondaryPasswordHash: '12345678',
+    membershipLevel: 1,
+    isActivated: true,
+    createdAt: '2025-09-03T12:06:56.886Z',
+    updatedAt: '2025-09-03T12:07:02.396Z'
+  },
+  isRegistered: true,
+  hasNFT: true,
+  isActivated: true,
+  membershipLevel: 1,
+  userFlow: 'dashboard',
+  membershipState: { activeLevel: 1 },
+  bccBalance: { transferable: 500, restricted: 100 },
+  currentLevel: 1
+}
+12:07:11 PM [express] GET /api/auth/user 200 in 2ms :: {"user":{"walletAddress":"0x479abda60f8c62a7c3…
+🔍 API Route Hit: GET /api/dashboard/data
+📊 Fetching dashboard data for: 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab
+Dashboard data error: error: password authentication failed for user "postgres"
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/node_modules/src/node-postgres/session.ts:104:19)
+    at async <anonymous> (/home/runner/workspace/server/src/routes/dashboard.routes.ts:27:22) {
+  length: 104,
+  severity: 'FATAL',
+  code: '28P01',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'auth.c',
+  line: '321',
+  routine: 'auth_failed'
+}
+12:07:14 PM [express] GET /api/dashboard/data 500 in 1577ms :: {"error":"Failed to fetch dashboard da…
+🔍 API Route Hit: GET /api/auth/user?t=1756901236486
+🔍 Getting user status for: 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab
+🔍 Checking user status for: 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab
+[DB] GET users:0x479abda60f8c62a7c3fba411ab948a8be0e616ab 
+[DB] GET users:0x479abda60f8c62a7c3fba411ab948a8be0e616ab -> SUCCESS (0ms) 
+📁 ReplitDB lookup result: FOUND
+📊 User status from service: {
+  isRegistered: true,
+  hasNFT: true,
+  userFlow: 'dashboard',
+  user: {
+    walletAddress: '0x479abda60f8c62a7c3fba411ab948a8be0e616ab',
+    username: 'test004',
+    email: 'test004@gmail.com',
+    secondaryPasswordHash: '12345678',
+    membershipLevel: 1,
+    isActivated: true,
+    createdAt: '2025-09-03T12:06:56.886Z',
+    updatedAt: '2025-09-03T12:07:02.396Z'
+  },
+  membershipLevel: 1,
+  isActivated: true
+}
+✅ Sending enhanced response: {
+  user: {
+    walletAddress: '0x479abda60f8c62a7c3fba411ab948a8be0e616ab',
+    username: 'test004',
+    email: 'test004@gmail.com',
+    secondaryPasswordHash: '12345678',
+    membershipLevel: 1,
+    isActivated: true,
+    createdAt: '2025-09-03T12:06:56.886Z',
+    updatedAt: '2025-09-03T12:07:02.396Z'
+  },
+  isRegistered: true,
+  hasNFT: true,
+  isActivated: true,
+  membershipLevel: 1,
+  userFlow: 'dashboard',
+  membershipState: { activeLevel: 1 },
+  bccBalance: { transferable: 500, restricted: 100 },
+  currentLevel: 1
+}
+12:07:16 PM [express] GET /api/auth/user 200 in 1ms :: {"user":{"walletAddress":"0x479abda60f8c62a7c3…
+🔍 API Route Hit: GET /api/dashboard/data
+📊 Fetching dashboard data for: 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab
+Dashboard data error: error: password authentication failed for user "postgres"
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async <anonymous> (/home/runner/workspace/node_modules/src/node-postgres/session.ts:104:19)
+    at async <anonymous> (/home/runner/workspace/server/src/routes/dashboard.routes.ts:27:22) {
+  length: 104,
+  severity: 'FATAL',
+  code: '28P01',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'auth.c',
+  line: '321',
+  routine: 'auth_failed'
+}
+12:07:20 PM [express] GET /api/dashboard/data 500 in 1542ms :: {"error":"Failed to fetch dashboard da…
+🔍 API Route Hit: GET /api/auth/user?t=1756901241731
+🔍 Getting user status for: 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab
+🔍 Checking user status for: 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab
+[DB] GET users:0x479abda60f8c62a7c3fba411ab948a8be0e616ab 
+[DB] GET users:0x479abda60f8c62a7c3fba411ab948a8be0e616ab -> SUCCESS (0ms) 
+📁 ReplitDB lookup result: FOUND
+📊 User status from service: {
+  isRegistered: true,
+  hasNFT: true,
+  userFlow: 'dashboard',
+  user: {
+    walletAddress: '0x479abda60f8c62a7c3fba411ab948a8be0e616ab',
+    username: 'test004',
+    email: 'test004@gmail.com',
+    secondaryPasswordHash: '12345678',
+    membershipLevel: 1,
+    isActivated: true,
+    createdAt: '2025-09-03T12:06:56.886Z',
+    updatedAt: '2025-09-03T12:07:02.396Z'
+  },
+  membershipLevel: 1,
+  isActivated: true
+}
+✅ Sending enhanced response: {
+  user: {
+    walletAddress: '0x479abda60f8c62a7c3fba411ab948a8be0e616ab',
+    username: 'test004',
+    email: 'test004@gmail.com',
+    secondaryPasswordHash: '12345678',
+    membershipLevel: 1,
+    isActivated: true,
+    createdAt: '2025-09-03T12:06:56.886Z',
+    updatedAt: '2025-09-03T12:07:02.396Z'
+  },
+  isRegistered: true,
+  hasNFT: true,
+  isActivated: true,
+  membershipLevel: 1,
+  userFlow: 'dashboard',
+  membershipState: { activeLevel: 1 },
+  bccBalance: { transferable: 500, restricted: 100 },
+  currentLevel: 1
+}
+12:07:21 PM [express] GET /api/auth/user 200 in 1ms :: {"user":{"walletAddress":"0x479abda60f8c62a7c3…
+🔍 API Route Hit: GET /api/auth/user?t=1756901246986
+🔍 Getting user status for: 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab
+🔍 Checking user status for: 0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab
+[DB] GET users:0x479abda60f8c62a7c3fba411ab948a8be0e616ab 
+[DB] GET users:0x479abda60f8c62a7c3fba411ab948a8be0e616ab -> SUCCESS (0ms) 
+📁 ReplitDB lookup result: FOUND
+📊 User status from service: {
+  isRegistered: true,
+  hasNFT: true,
+  userFlow: 'dashboard',
+  user: {
+    walletAddress: '0x479abda60f8c62a7c3fba411ab948a8be0e616ab',
+    username: 'test004',
+    email: 'test004@gmail.com',
+    secondaryPasswordHash: '12345678',
+    membershipLevel: 1,
+    isActivated: true,
+    createdAt: '2025-09-03T12:06:56.886Z',
+    updatedAt: '2025-09-03T12:07:02.396Z'
+  },
+  membershipLevel: 1,
+  isActivated: true
+}
+✅ Sending enhanced response: {
+  user: {
+    walletAddress: '0x479abda60f8c62a7c3fba411ab948a8be0e616ab',
+    username: 'test004',
+    email: 'test004@gmail.com',
+    secondaryPasswordHash: '12345678',
+    membershipLevel: 1,
+    isActivated: true,
+    createdAt: '2025-09-03T12:06:56.886Z',
+    updatedAt: '2025-09-03T12:07:02.396Z'
+  },
+  isRegistered: true,
+  hasNFT: true,
+  isActivated: true,
+  membershipLevel: 1,
+  userFlow: 'dashboard',
+  membershipState: { activeLevel: 1 },
+  bccBalance: { transferable: 500, restricted: 100 },
+  currentLevel: 1
+}
+12:07:27 PM [express] GET /api/auth/user 200 in 1ms :: {"user":{"walletAddress":"
