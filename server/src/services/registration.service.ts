@@ -1,6 +1,6 @@
 import { db } from '../../db';
 import { users, membershipState, earningsWallet, platformRevenue } from '@shared/schema';
-import { globalMatrixService } from './global-matrix.service';
+import { simpleGlobalMatrixService } from './simple-global-matrix.service';
 import { rewardDistributionService } from './reward-distribution.service';
 import { eq } from 'drizzle-orm';
 
