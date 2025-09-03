@@ -184,20 +184,20 @@ export function registerDashboardRoutes(app: Express) {
         memberMatrixData = null;
       }
 
-      // Enhanced response with memberMatrixView data
+      // Enhanced response with memberMatrixView data and sample data for demonstration
       const matrixResponse = {
         // Traditional format for compatibility
         userPosition: {
           layer: 0, // Root user
           position: 0
         },
-        directChildren: 0,
+        directChildren: memberMatrixData?.totalMembers || 0,
         totalDownline: memberMatrixData?.totalMembers || 0,
         downlineMatrix: Array.from({ length: 19 }, (_, i) => ({
           level: i + 1,
-          totalMembers: 0,
+          totalMembers: 0, // Always 0 for new users - no mock data
           maxCapacity: Math.pow(3, i + 1), // 3^n for each layer
-          members: []
+          members: [] // Always empty for new users - no mock data
         })),
         
         // NEW: memberMatrixView efficient data structure
@@ -231,16 +231,19 @@ export function registerDashboardRoutes(app: Express) {
       
       console.log('👥 Fetching referral stats for:', walletAddress);
 
-      // For new users, return default stats
-      const defaultReferralStats = {
-        directReferrals: 0,
-        totalTeam: 0,
-        activeDirect: 0,
-        activeTeam: 0
+      // Get real referral stats from database
+      const referralStats = await getReferralStats(walletAddress);
+      
+      // Enhanced stats with additional fields
+      const enhancedStats = {
+        directReferrals: referralStats.directReferrals,
+        totalTeam: referralStats.totalTeam,
+        activeDirect: referralStats.directReferrals, // Assume all are active for now
+        activeTeam: referralStats.totalTeam // Assume all are active for now
       };
       
-      console.log('✅ Sending referral stats for new user:', defaultReferralStats);
-      res.json(defaultReferralStats);
+      console.log('✅ Sending referral stats:', enhancedStats);
+      res.json(enhancedStats);
     } catch (error) {
       console.error('Referral stats error:', error);
       res.status(500).json({ error: 'Failed to fetch referral stats' });

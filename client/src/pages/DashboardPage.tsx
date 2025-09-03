@@ -147,6 +147,9 @@ export default function Dashboard() {
   // Fetch comprehensive dashboard data using real database
   const { data: dashboardData, isLoading: isLoadingDashboard, error: dashboardError } = useDashboardData(walletAddress || undefined);
   
+  // Debug: Log dashboard data to console
+  console.log('📊 Dashboard Data Received:', dashboardData);
+  
   // Fetch user's personal matrix data (layers 1-19)
   const { data: userMatrixData, isLoading: isLoadingUserMatrix } = useUserMatrix(walletAddress || undefined);
   
@@ -166,6 +169,9 @@ export default function Dashboard() {
   };
   const rewardStats = dashboardData?.rewardStats || { totalEarned: 0, pendingAmount: 0, claimedAmount: 0 };
   const referralStats = dashboardData?.referralStats || { directReferrals: 0, totalTeam: 0 };
+  
+  // Debug: Log extracted stats to console
+  console.log('📊 Extracted Stats:', { rewardStats, referralStats, userMatrixStats });
   
   // Real BCC balances - use from auth data if dashboard data not available
   const realBCCBalance = {
