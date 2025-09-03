@@ -120,11 +120,13 @@ export default function Discover() {
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center space-x-3">
-                          <img
-                            src={partner.logo}
-                            alt={partner.name}
-                            className="w-12 h-12 rounded-lg object-cover"
-                          />
+                          {partner.logoUrl && (
+                            <img
+                              src={partner.logoUrl}
+                              alt={partner.name}
+                              className="w-12 h-12 rounded-lg object-cover"
+                            />
+                          )}
                           <div>
                             <CardTitle className="text-honey text-lg flex items-center gap-2">
                               {partner.name}
@@ -132,12 +134,12 @@ export default function Discover() {
                                 <CheckCircle className="w-4 h-4 text-green-500" />
                               )}
                             </CardTitle>
-                            <p className="text-sm text-muted-foreground">{partner.category}</p>
+                            <p className="text-sm text-muted-foreground">{partner.dappType}</p>
                           </div>
                         </div>
                         <Badge variant="outline" className="flex items-center gap-1">
-                          {getPartnerTypeIcon(partner.partnerType)}
-                          {partner.partnerType}
+                          {getPartnerTypeIcon(partner.dappType)}
+                          {partner.dappType}
                         </Badge>
                       </div>
                     </CardHeader>

@@ -1508,6 +1508,9 @@ export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertDiscoverPartner = z.infer<typeof insertDiscoverPartnerSchema>;
 export type DiscoverPartner = typeof discoverPartners.$inferSelect;
 
+export type InsertServiceRequest = z.infer<typeof insertServiceRequestSchema>;
+export type ServiceRequest = typeof serviceRequests.$inferSelect;
+
 export type InsertAdSlot = z.infer<typeof insertAdSlotSchema>;
 export type AdSlot = typeof adSlots.$inferSelect;
 
