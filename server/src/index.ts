@@ -18,6 +18,7 @@ import { registerStatsRoutes } from "./routes/stats.routes";
 import { registerMatrixRoutes } from "./routes/matrix.routes";
 import { registerConfigRoutes } from "./routes/config.routes";
 import { registerBlogRoutes } from "./routes/blog.routes";
+import { serviceRequestsRouter } from "./routes/service-requests.routes";
 import healthRoutes from "./routes/health.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -62,6 +63,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerMatrixRoutes(app);
   registerConfigRoutes(app);
   registerBlogRoutes(app);
+
+  // Register service requests routes
+  app.use('/api/service-requests', serviceRequestsRouter);
 
   console.log('✅ All route modules registered successfully');
 
