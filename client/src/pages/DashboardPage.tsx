@@ -225,41 +225,17 @@ export default function Dashboard() {
     }
   };
 
-  // Use real activity data if available, otherwise show meaningful placeholder data
-  const recentActivities = dashboardData?.recentActivity && dashboardData.recentActivity.length > 0 
-    ? dashboardData.recentActivity.map((activity: any) => {
-        const display = getActivityDisplay(activity.type);
-        return {
-          icon: display.icon,
-          type: activity.title || activity.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-          description: activity.description,
-          amount: activity.amount ? `${activity.amount} ${activity.amountType || ''}` : '',
-          color: display.color
-        };
-      })
-    : [
-    {
-      icon: 'gift',
-      type: t('dashboard.activity.rewardReceived') || 'Reward Received',
-      description: t('dashboard.activity.fromReferralUpgrade') || 'Level 1 membership activated',
-      amount: '+500 BCC',
-      color: 'text-green-400'
-    },
-    {
-      icon: 'shopping-cart',
-      type: t('dashboard.activity.nftClaimed') || 'NFT Claimed',
-      description: t('dashboard.activity.merchantNft') || 'Merchant NFT purchased',
-      amount: t('dashboard.activity.bccDeduction', { amount: 50 }) || '-50 BCC',
-      color: 'text-muted-foreground'
-    },
-    {
-      icon: 'users',
-      type: t('dashboard.activity.newReferral') || 'New Referral',
-      description: t('dashboard.activity.userJoined') || 'New user joined your team',
-      amount: t('dashboard.activity.activeStatus') || 'Active',
-      color: 'text-green-400'
-    }
-  ];
+  // Use real activity data, fetch from API
+  const recentActivities = dashboardData?.recentActivity?.map((activity: any) => {
+    const display = getActivityDisplay(activity.type);
+    return {
+      icon: display.icon,
+      type: activity.title || activity.type.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
+      description: activity.description,
+      amount: activity.amount ? `${activity.amount} ${activity.amountType || ''}` : '',
+      color: display.color
+    };
+  }) || [];
 
   // Show error state if dashboard data failed to load
   if (dashboardError) {
@@ -660,60 +636,94 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* Mobile-Optimized Stats - 3 Sections */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8">
+        {/* Referrals Section */}
         <Card className="bg-secondary border-border">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Earnings</p>
-                <p className="text-2xl font-bold text-honey">
-                  ${rewardStats.totalEarned || 0}
-                </p>
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-honey" />
+              <CardTitle className="text-honey text-sm font-semibold">Referrals</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3 pt-0">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-honey">{referralStats.directReferrals || 0}</p>
+                <p className="text-xs text-muted-foreground">Direct</p>
               </div>
-              <DollarSign className="h-8 w-8 text-honey" />
+              <div className="text-center">
+                <p className="text-2xl font-bold text-honey">{referralStats.totalTeam || 0}</p>
+                <p className="text-xs text-muted-foreground">Total Team</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border/30">
+              <div className="text-center">
+                <p className="text-lg font-bold text-honey">{referralStats.maxDepth || 0}</p>
+                <p className="text-xs text-muted-foreground">Max Depth</p>
+              </div>
+              <div className="text-center">
+                <p className="text-lg font-bold text-honey">{referralStats.pendingPlacements || 0}</p>
+                <p className="text-xs text-muted-foreground">Pending</p>
+              </div>
             </div>
           </CardContent>
         </Card>
 
+        {/* Rewards Section */}
         <Card className="bg-secondary border-border">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Direct Referrals</p>
-                <p className="text-2xl font-bold text-honey">
-                  {referralStats.directReferrals || 0}
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-honey" />
+              <CardTitle className="text-honey text-sm font-semibold">Rewards (USDT)</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3 pt-0">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-honey">
+                ${rewardStats.totalEarned?.toFixed(2) || '0.00'}
+              </p>
+              <p className="text-xs text-muted-foreground">Total Earned</p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border/30">
+              <div className="text-center">
+                <p className="text-lg font-bold text-green-400">
+                  ${rewardStats.withdrawn?.toFixed(2) || '0.00'}
                 </p>
+                <p className="text-xs text-muted-foreground">Withdrawn</p>
               </div>
-              <Users className="h-8 w-8 text-honey" />
+              <div className="text-center">
+                <p className="text-lg font-bold text-yellow-400">
+                  ${rewardStats.pending?.toFixed(2) || '0.00'}
+                </p>
+                <p className="text-xs text-muted-foreground">Pending</p>
+              </div>
             </div>
           </CardContent>
         </Card>
 
+        {/* NFTs & Courses Section */}
         <Card className="bg-secondary border-border">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Team Size</p>
-                <p className="text-2xl font-bold text-honey">
-                  {referralStats.totalTeam || 0}
-                </p>
-              </div>
-              <Building2 className="h-8 w-8 text-honey" />
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Award className="h-5 w-5 text-honey" />
+              <CardTitle className="text-honey text-sm font-semibold">Collections</CardTitle>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-secondary border-border">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">NFTs Owned</p>
-                <p className="text-2xl font-bold text-honey">
-                  {nftStats.totalNFTs || 1}
-                </p>
+          </CardHeader>
+          <CardContent className="space-y-3 pt-0">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-honey">{nftStats.membershipNFTs || 0}</p>
+                <p className="text-xs text-muted-foreground">Membership</p>
               </div>
-              <Award className="h-8 w-8 text-honey" />
+              <div className="text-center">
+                <p className="text-2xl font-bold text-honey">{nftStats.advertisementNFTs || 0}</p>
+                <p className="text-xs text-muted-foreground">Ads NFTs</p>
+              </div>
+            </div>
+            <div className="text-center pt-2 border-t border-border/30">
+              <p className="text-lg font-bold text-honey">{nftStats.coursesCompleted || 0}</p>
+              <p className="text-xs text-muted-foreground">Courses</p>
             </div>
           </CardContent>
         </Card>
@@ -725,27 +735,39 @@ export default function Dashboard() {
           <CardTitle className="text-honey">{t('dashboard.recentActivities') || 'Recent Activities'}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {recentActivities.map((activity: any, index: number) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-honey/20 flex items-center justify-center">
-                    <ActivityIcon 
-                      iconName={activity.icon} 
-                      className={`h-4 w-4 ${activity.color}`} 
-                    />
+          {recentActivities.length > 0 ? (
+            <div className="space-y-4">
+              {recentActivities.map((activity: any, index: number) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-honey/20 flex items-center justify-center">
+                      <ActivityIcon 
+                        iconName={activity.icon} 
+                        className={`h-4 w-4 ${activity.color}`} 
+                      />
+                    </div>
+                    <div>
+                      <p className="font-medium">{activity.type}</p>
+                      <p className="text-sm text-muted-foreground">{activity.description}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium">{activity.type}</p>
-                    <p className="text-sm text-muted-foreground">{activity.description}</p>
-                  </div>
+                  <span className={`font-medium ${activity.color}`}>
+                    {activity.amount}
+                  </span>
                 </div>
-                <span className={`font-medium ${activity.color}`}>
-                  {activity.amount}
-                </span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground mb-2">
+                {t('dashboard.noActivities') || 'No recent activities'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {t('dashboard.activitiesWillAppear') || 'Your activities will appear here as you interact with the platform'}
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
