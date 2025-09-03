@@ -189,7 +189,7 @@ export class NotificationsService {
     }
 
     // Import SendGrid service
-    const { sendEmail } = await import('../../sendgrid');
+    const { sendEmail } = await import('../../../sendgrid');
 
     if (!process.env.SENDGRID_API_KEY) {
       throw new Error('SendGrid API key not configured');
