@@ -144,11 +144,14 @@ export const rewardNotifications = pgTable("reward_notifications", {
 // Member NFT verification table
 export const memberNFTVerification = pgTable("member_nft_verification", {
   walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
-  nftContractAddress: varchar("nft_contract_address", { length: 42 }).notNull(),
-  tokenId: varchar("token_id").notNull(),
-  chainId: integer("chain_id").notNull(),
+  memberLevel: integer("member_level").notNull(), // 1-19 会员等级
+  tokenId: integer("token_id").notNull(), // 1-19 根据会员等级匹配token id
+  nftContractAddress: varchar("nft_contract_address", { length: 42 }).notNull(), // ERC5115合约地址
+  chain: text("chain").notNull(), // 链名称 (ethereum, polygon, arbitrum, etc.)
+  networkType: text("network_type").notNull(), // 'testnet', 'mainnet', 'demo'
   verificationStatus: text("verification_status").default("pending").notNull(), // 'pending', 'verified', 'failed'
   lastVerified: timestamp("last_verified"),
+  verifiedAt: timestamp("verified_at"), // 验证成功时间
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -460,11 +463,14 @@ export const insertLevelConfigSchema = createInsertSchema(levelConfig).pick({
 
 export const insertMemberNFTVerificationSchema = createInsertSchema(memberNFTVerification).pick({
   walletAddress: true,
-  nftContractAddress: true,
+  memberLevel: true,
   tokenId: true,
-  chainId: true,
+  nftContractAddress: true,
+  chain: true,
+  networkType: true,
   verificationStatus: true,
   lastVerified: true,
+  verifiedAt: true,
 });
 
 // Member activation order moved to users table
