@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Gift, DollarSign, CheckCircle, ExternalLink, Loader2 } from 'lucide-react';
+import { Clock, Gift, DollarSign, CheckCircle, ExternalLink, Loader2, ArrowUpLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useWeb3 } from '@/contexts/Web3Context';
@@ -41,6 +41,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [claimingRewards, setClaimingRewards] = useState<string[]>([]);
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
   
   // Use Web3 context for wallet connection
   const { isConnected } = useWeb3();
@@ -104,6 +105,60 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
       setClaimingRewards(prev => prev.filter(id => id !== rewardId));
     },
   });
+
+  // Withdraw mutation for withdrawing claimed rewards to wallet
+  const withdrawMutation = useMutation({
+    mutationFn: async (amount: number): Promise<ClaimResponse> => {
+      return await apiRequest('/api/rewards/withdraw', 'POST', {
+        amount,
+        recipientAddress: walletAddress,
+      });
+    },
+    onMutate: () => {
+      setIsWithdrawing(true);
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Withdrawal Successful",
+        description: data.message || `Successfully initiated withdrawal to your wallet.`,
+        variant: "default",
+      });
+      // Refresh rewards data
+      queryClient.invalidateQueries({ queryKey: ['/api/rewards/claimable'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Withdrawal Failed",
+        description: error.message || "Failed to withdraw rewards. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setIsWithdrawing(false);
+    },
+  });
+
+  const handleWithdraw = () => {
+    if (!isConnected) {
+      toast({
+        title: "Wallet Not Connected",
+        description: "Please connect your wallet to withdraw rewards.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!totalClaimable || totalClaimable <= 0) {
+      toast({
+        title: "No Balance Available",
+        description: "You need to have claimed rewards to withdraw.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    withdrawMutation.mutate(totalClaimable);
+  };
 
   const handleClaimReward = (reward: ClaimableReward) => {
     if (!isConnected) {
@@ -184,9 +239,33 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
               <Gift className="w-5 h-5" />
               Claimable Rewards
             </span>
-            <Badge variant="outline" className="bg-honey/10 text-honey border-honey/30">
-              ${totalClaimable.toFixed(2)} USDT
-            </Badge>
+            <div className="flex items-center gap-3">
+              <Badge variant="outline" className="bg-honey/10 text-honey border-honey/30">
+                ${totalClaimable.toFixed(2)} USDT
+              </Badge>
+              {totalClaimable > 0 && (
+                <Button
+                  onClick={handleWithdraw}
+                  disabled={isWithdrawing}
+                  variant="outline"
+                  size="sm"
+                  className="border-honey text-honey hover:bg-honey hover:text-secondary"
+                  data-testid="button-withdraw-rewards"
+                >
+                  {isWithdrawing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Withdrawing...
+                    </>
+                  ) : (
+                    <>
+                      <ArrowUpLeft className="w-4 h-4 mr-2" />
+                      Withdraw
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
