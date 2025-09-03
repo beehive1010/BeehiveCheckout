@@ -1,7 +1,10 @@
 import { 
   userActivities,
+  users,
+  members,
   type UserActivity,
-  type InsertUserActivity
+  type InsertUserActivity,
+  type User
 } from "@shared/schema";
 import { db } from "../../db";
 import { eq, desc, sql } from "drizzle-orm";
@@ -43,17 +46,71 @@ export class StorageService {
     return newActivity;
   }
 
-  // Placeholder methods to maintain compatibility - these can be implemented as needed
-  async getUser(walletAddress: string) {
-    throw new Error('StorageService.getUser not implemented - use userService directly');
+  // User operations
+  async getUser(walletAddress: string): Promise<any | null> {
+    try {
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.walletAddress, walletAddress.toLowerCase()))
+        .limit(1);
+      
+      if (!user) {
+        return null;
+      }
+
+      // Also get member data if exists
+      const [memberData] = await db
+        .select()
+        .from(members)
+        .where(eq(members.walletAddress, walletAddress.toLowerCase()))
+        .limit(1);
+
+      // Combine user and member data for backward compatibility
+      return {
+        ...user,
+        memberActivated: memberData?.isActivated || false,
+        // Keep currentLevel from users table as primary source
+        currentLevel: user.currentLevel || 0
+      };
+    } catch (error) {
+      console.error('Error getting user:', error);
+      return null;
+    }
   }
   
-  async createUser(userData: any) {
-    throw new Error('StorageService.createUser not implemented - use userService directly');
+  async createUser(userData: any): Promise<User> {
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        walletAddress: userData.walletAddress.toLowerCase(),
+        username: userData.username,
+        email: userData.email,
+        referrerWallet: userData.referrerWallet?.toLowerCase(),
+        currentLevel: userData.currentLevel || 0,
+        isUpgraded: false,
+        upgradeTimerEnabled: false
+      })
+      .returning();
+    return newUser;
   }
   
   async updateUser(walletAddress: string, updates: any) {
-    throw new Error('StorageService.updateUser not implemented - use userService directly');
+    const [updatedUser] = await db
+      .update(users)
+      .set(updates)
+      .where(eq(users.walletAddress, walletAddress.toLowerCase()))
+      .returning();
+    return updatedUser;
+  }
+
+  async getUserByUsername(username: string): Promise<User | null> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username))
+      .limit(1);
+    return user || null;
   }
 }
 
