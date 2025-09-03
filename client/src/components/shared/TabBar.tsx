@@ -13,11 +13,11 @@ interface TabItem {
 }
 
 const tabItems: TabItem[] = [
-  { key: 'referrals', path: '/referrals', icon: 'fas fa-users', labelKey: 'nav.referrals' },
   { key: 'tasks', path: '/tasks', icon: 'fas fa-tasks', labelKey: 'nav.tasks' },
-  { key: 'home', path: '/dashboard', icon: '', labelKey: 'nav.home' }, // Special home tab with logo
   { key: 'education', path: '/education', icon: 'fas fa-graduation-cap', labelKey: 'nav.education' },
+  { key: 'home', path: '/dashboard', icon: '', labelKey: 'nav.home' }, // Special home tab with logo
   { key: 'discover', path: '/discover', icon: 'fas fa-compass', labelKey: 'nav.discover' },
+  { key: 'hiveworld', path: '/hiveworld', icon: 'fas fa-sitemap', labelKey: 'nav.hiveworld' },
 ];
 
 export default function TabBar() {

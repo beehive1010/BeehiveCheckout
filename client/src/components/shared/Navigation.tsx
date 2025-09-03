@@ -12,13 +12,12 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { key: 'dashboard', path: '/dashboard', icon: 'fas fa-home', labelKey: 'nav.dashboard' },
-  { key: 'referrals', path: '/referrals', icon: 'fas fa-users', labelKey: 'nav.referrals' },
   { key: 'tasks', path: '/tasks', icon: 'fas fa-tasks', labelKey: 'nav.tasks' },
   { key: 'education', path: '/education', icon: 'fas fa-graduation-cap', labelKey: 'nav.education' },
+  { key: 'dashboard', path: '/dashboard', icon: 'fas fa-home', labelKey: 'nav.dashboard' },
   { key: 'discover', path: '/discover', icon: 'fas fa-compass', labelKey: 'nav.discover' },
-  { key: 'ads', path: '/ads', icon: 'fas fa-bullhorn', labelKey: 'nav.ads' },
   { key: 'hiveworld', path: '/hiveworld', icon: 'fas fa-sitemap', labelKey: 'nav.hiveworld' },
+  { key: 'referrals', path: '/referrals', icon: 'fas fa-users', labelKey: 'nav.referrals' },
   { key: 'me', path: '/me', icon: 'fas fa-user', labelKey: 'nav.me' },
 ];
 
