@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, Users, Trophy, Eye } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Users, Trophy, Eye, ArrowLeft } from 'lucide-react';
 
 interface MatrixMember {
   walletAddress: string;
@@ -34,6 +34,11 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
   rootUser?: { username: string; currentLevel: number };
 }) {
   const [currentViewLayer, setCurrentViewLayer] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [drillDownMember, setDrillDownMember] = useState<MatrixMember | null>(null);
+  const [viewMode, setViewMode] = useState<'layer' | 'member'>('layer');
+  
+  const MEMBERS_PER_PAGE = 9; // Maximum 9 circles per page
   
   // Fetch individual user's L1-L19 matrix data
   const { data: matrixData, isLoading } = useQuery<IndividualMatrixData>({
@@ -205,6 +210,7 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
             : 'border-honey/50 bg-honey/10 hover:bg-honey/20 cursor-pointer transition-colors'
           }
         `}
+        onClick={() => member && handleMemberClick(member)}
         data-testid={`matrix-position-${legType}-${positionIndex}`}
       >
         {member ? (
@@ -229,12 +235,28 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
                 L{member.currentLevel || 0}
               </Badge>
             </div>
+            
+            {/* Click indicator */}
+            <div className="absolute -top-1 -left-1">
+              <Eye className="w-3 h-3 text-honey/60" />
+            </div>
           </>
         ) : (
           <div className="w-8 h-8 border-2 border-dashed border-honey/30 rounded-full"></div>
         )}
       </div>
     );
+  };
+
+  const handleMemberClick = (member: MatrixMember) => {
+    setDrillDownMember(member);
+    setViewMode('member');
+  };
+
+  const handleBackToLayer = () => {
+    setViewMode('layer');
+    setDrillDownMember(null);
+    setCurrentPage(1);
   };
 
   const renderLegSection = (legMembers: MatrixMember[], legName: string, maxPositions: number) => {
@@ -252,6 +274,142 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
 
   const getMaxMembersForLayer = (layer: number) => Math.pow(3, layer);
   const getMembersPerLeg = (layer: number) => Math.pow(3, layer - 1);
+
+  // Paginated members display
+  const getPaginatedMembers = (members: MatrixMember[], page: number) => {
+    const startIndex = (page - 1) * MEMBERS_PER_PAGE;
+    const endIndex = startIndex + MEMBERS_PER_PAGE;
+    return members.slice(startIndex, endIndex);
+  };
+
+  const getTotalPages = (totalMembers: number) => {
+    return Math.ceil(totalMembers / MEMBERS_PER_PAGE);
+  };
+
+  const renderPaginatedMembers = (members: MatrixMember[], currentPage: number) => {
+    const paginatedMembers = getPaginatedMembers(members, currentPage);
+    const totalPages = getTotalPages(members.length);
+
+    return (
+      <div className="space-y-4">
+        {/* Members Grid (max 9 per page) */}
+        <div className="grid grid-cols-3 gap-4 justify-items-center">
+          {paginatedMembers.map((member, index) => renderMatrixPosition(member, index, 'paginated'))}
+        </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage <= 1}
+              className="flex items-center gap-2"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Previous
+            </Button>
+            
+            <div className="flex items-center space-x-1">
+              <span className="text-sm text-muted-foreground">
+                Page {currentPage} of {totalPages} • {members.length} members
+              </span>
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage >= totalPages}
+              className="flex items-center gap-2"
+            >
+              Next
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderMemberDetailView = () => {
+    if (!drillDownMember) return null;
+
+    return (
+      <div className="space-y-6">
+        {/* Back Button */}
+        <Button
+          variant="outline"
+          onClick={handleBackToLayer}
+          className="flex items-center gap-2 text-honey border-honey hover:bg-honey hover:text-secondary"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Layer {currentViewLayer}
+        </Button>
+
+        {/* Member Detail Card */}
+        <Card className="bg-background border-honey/20">
+          <CardHeader>
+            <CardTitle className="text-honey flex items-center gap-3">
+              <div className="w-12 h-12 bg-honey rounded-full flex items-center justify-center">
+                <span className="text-black font-bold">
+                  {drillDownMember.username?.charAt(0).toUpperCase() || 'U'}
+                </span>
+              </div>
+              <div>
+                <div>{drillDownMember.username}</div>
+                <div className="text-sm text-muted-foreground font-normal">
+                  {drillDownMember.walletAddress}
+                </div>
+              </div>
+              <Badge className="bg-honey text-black">
+                Level {drillDownMember.currentLevel}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="text-sm">
+                  <span className="text-muted-foreground">Status:</span>
+                  <span className={`ml-2 ${drillDownMember.memberActivated ? 'text-green-400' : 'text-red-400'}`}>
+                    {drillDownMember.memberActivated ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+                <div className="text-sm">
+                  <span className="text-muted-foreground">Placement:</span>
+                  <span className="ml-2 capitalize">{drillDownMember.placement}</span>
+                </div>
+                <div className="text-sm">
+                  <span className="text-muted-foreground">Joined:</span>
+                  <span className="ml-2">
+                    {new Date(drillDownMember.joinedAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
+  if (viewMode === 'member') {
+    return (
+      <Card className="bg-secondary border-border">
+        <CardHeader>
+          <CardTitle className="text-honey flex items-center space-x-2">
+            <Trophy className="h-5 w-5" />
+            <span>Member Details</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {renderMemberDetailView()}
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="bg-secondary border-border">
@@ -280,7 +438,10 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentViewLayer(Math.max(1, currentViewLayer - 1))}
+            onClick={() => {
+              setCurrentViewLayer(Math.max(1, currentViewLayer - 1));
+              setCurrentPage(1); // Reset page when changing layers
+            }}
             disabled={currentViewLayer <= 1}
             className="w-full sm:w-auto"
           >
@@ -300,7 +461,10 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentViewLayer(Math.min(19, currentViewLayer + 1))}
+            onClick={() => {
+              setCurrentViewLayer(Math.min(19, currentViewLayer + 1));
+              setCurrentPage(1); // Reset page when changing layers
+            }}
             disabled={currentViewLayer >= 19}
             className="w-full sm:w-auto"
           >
@@ -310,25 +474,22 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
           </Button>
         </div>
 
-        {/* Matrix Visualization for Current Layer */}
+        {/* Matrix Visualization for Current Layer - Paginated Display */}
         {currentLayer && (
           <div className="bg-background rounded-lg p-3 sm:p-6">
-            
-            {/* Layer 1: Simple 3-position layout */}
-            {currentViewLayer === 1 && (
-              <div className="flex justify-center space-x-2 sm:space-x-4 md:space-x-8">
-                {renderLegSection(currentLayer.leftLeg.slice(0, 1), 'Left', 1)}
-                {renderLegSection(currentLayer.middleLeg.slice(0, 1), 'Middle', 1)}
-                {renderLegSection(currentLayer.rightLeg.slice(0, 1), 'Right', 1)}
-              </div>
-            )}
-            
-            {/* Layer 2+: 3×3 grid per leg */}
-            {currentViewLayer > 1 && (
-              <div className="flex justify-center space-x-2 sm:space-x-6 md:space-x-12">
-                {renderLegSection(currentLayer.leftLeg, 'Left', getMembersPerLeg(currentViewLayer))}
-                {renderLegSection(currentLayer.middleLeg, 'Middle', getMembersPerLeg(currentViewLayer))}
-                {renderLegSection(currentLayer.rightLeg, 'Right', getMembersPerLeg(currentViewLayer))}
+            {currentLayer.members.length > 0 ? (
+              renderPaginatedMembers(currentLayer.members, currentPage)
+            ) : (
+              <div className="text-center py-12">
+                <div className="w-20 h-20 rounded-full border-2 border-dashed border-honey/30 mx-auto mb-4 flex items-center justify-center">
+                  <Users className="w-8 h-8 text-honey/30" />
+                </div>
+                <p className="text-muted-foreground mb-2">
+                  No members in Layer {currentViewLayer} yet
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Capacity: {getMaxMembersForLayer(currentViewLayer)} members • Max 9 per page
+                </p>
               </div>
             )}
           </div>
@@ -373,7 +534,10 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
               return (
                 <button
                   key={layerNum}
-                  onClick={() => setCurrentViewLayer(layerNum)}
+                  onClick={() => {
+                    setCurrentViewLayer(layerNum);
+                    setCurrentPage(1); // Reset page when clicking layer
+                  }}
                   className={`
                     relative p-1 sm:p-2 rounded-md text-xs transition-colors
                     ${currentViewLayer === layerNum 
