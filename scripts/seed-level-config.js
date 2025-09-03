@@ -19,40 +19,40 @@ const seedLevelConfig = async () => {
       return;
     }
 
-    // 19 levels of membership configuration
+    // 19 levels of membership configuration - using snake_case for database
     const levelConfigurations = [
       // Level 1-5: Entry levels
-      { level: 1, levelName: 'Warrior', priceUSDT: 13000, rewardUSDT: 10000, activationFeeUSDT: 3000, baseBccUnlockAmount: 500 },
-      { level: 2, levelName: 'Bronze', priceUSDT: 28000, rewardUSDT: 22000, activationFeeUSDT: 6000, baseBccUnlockAmount: 1000 },
-      { level: 3, levelName: 'Silver', priceUSDT: 58000, rewardUSDT: 46000, activationFeeUSDT: 12000, baseBccUnlockAmount: 1500 },
-      { level: 4, levelName: 'Gold', priceUSDT: 118000, rewardUSDT: 94000, activationFeeUSDT: 24000, baseBccUnlockAmount: 2000 },
-      { level: 5, levelName: 'Platinum', priceUSDT: 238000, rewardUSDT: 190000, activationFeeUSDT: 48000, baseBccUnlockAmount: 2500 },
+      { level: 1, level_name: 'Warrior', price_usdt: 13000, reward_usdt: 10000, activation_fee_usdt: 3000, base_bcc_unlock_amount: 500 },
+      { level: 2, level_name: 'Bronze', price_usdt: 28000, reward_usdt: 22000, activation_fee_usdt: 6000, base_bcc_unlock_amount: 1000 },
+      { level: 3, level_name: 'Silver', price_usdt: 58000, reward_usdt: 46000, activation_fee_usdt: 12000, base_bcc_unlock_amount: 1500 },
+      { level: 4, level_name: 'Gold', price_usdt: 118000, reward_usdt: 94000, activation_fee_usdt: 24000, base_bcc_unlock_amount: 2000 },
+      { level: 5, level_name: 'Platinum', price_usdt: 238000, reward_usdt: 190000, activation_fee_usdt: 48000, base_bcc_unlock_amount: 2500 },
       
       // Level 6-10: Advanced levels
-      { level: 6, levelName: 'Diamond', priceUSDT: 478000, rewardUSDT: 382000, activationFeeUSDT: 96000, baseBccUnlockAmount: 3000 },
-      { level: 7, levelName: 'Master', priceUSDT: 958000, rewardUSDT: 766000, activationFeeUSDT: 192000, baseBccUnlockAmount: 3500 },
-      { level: 8, levelName: 'Grandmaster', priceUSDT: 1918000, rewardUSDT: 1534000, activationFeeUSDT: 384000, baseBccUnlockAmount: 4000 },
-      { level: 9, levelName: 'Legend', priceUSDT: 3838000, rewardUSDT: 3070000, activationFeeUSDT: 768000, baseBccUnlockAmount: 4500 },
-      { level: 10, levelName: 'Mythic', priceUSDT: 7678000, rewardUSDT: 6142000, activationFeeUSDT: 1536000, baseBccUnlockAmount: 5000 },
+      { level: 6, level_name: 'Diamond', price_usdt: 478000, reward_usdt: 382000, activation_fee_usdt: 96000, base_bcc_unlock_amount: 3000 },
+      { level: 7, level_name: 'Master', price_usdt: 958000, reward_usdt: 766000, activation_fee_usdt: 192000, base_bcc_unlock_amount: 3500 },
+      { level: 8, level_name: 'Grandmaster', price_usdt: 1918000, reward_usdt: 1534000, activation_fee_usdt: 384000, base_bcc_unlock_amount: 4000 },
+      { level: 9, level_name: 'Legend', price_usdt: 3838000, reward_usdt: 3070000, activation_fee_usdt: 768000, base_bcc_unlock_amount: 4500 },
+      { level: 10, level_name: 'Mythic', price_usdt: 7678000, reward_usdt: 6142000, activation_fee_usdt: 1536000, base_bcc_unlock_amount: 5000 },
       
       // Level 11-15: Elite levels
-      { level: 11, levelName: 'Ascendant', priceUSDT: 15358000, rewardUSDT: 12286000, activationFeeUSDT: 3072000, baseBccUnlockAmount: 6000 },
-      { level: 12, levelName: 'Transcendent', priceUSDT: 30718000, rewardUSDT: 24574000, activationFeeUSDT: 6144000, baseBccUnlockAmount: 7000 },
-      { level: 13, levelName: 'Omniscient', priceUSDT: 61438000, rewardUSDT: 49150000, activationFeeUSDT: 12288000, baseBccUnlockAmount: 8000 },
-      { level: 14, levelName: 'Supreme', priceUSDT: 122878000, rewardUSDT: 98302000, activationFeeUSDT: 24576000, baseBccUnlockAmount: 9000 },
-      { level: 15, levelName: 'Cosmic', priceUSDT: 245758000, rewardUSDT: 196606000, activationFeeUSDT: 49152000, baseBccUnlockAmount: 10000 },
+      { level: 11, level_name: 'Ascendant', price_usdt: 15358000, reward_usdt: 12286000, activation_fee_usdt: 3072000, base_bcc_unlock_amount: 6000 },
+      { level: 12, level_name: 'Transcendent', price_usdt: 30718000, reward_usdt: 24574000, activation_fee_usdt: 6144000, base_bcc_unlock_amount: 7000 },
+      { level: 13, level_name: 'Omniscient', price_usdt: 61438000, reward_usdt: 49150000, activation_fee_usdt: 12288000, base_bcc_unlock_amount: 8000 },
+      { level: 14, level_name: 'Supreme', price_usdt: 122878000, reward_usdt: 98302000, activation_fee_usdt: 24576000, base_bcc_unlock_amount: 9000 },
+      { level: 15, level_name: 'Cosmic', price_usdt: 245758000, reward_usdt: 196606000, activation_fee_usdt: 49152000, base_bcc_unlock_amount: 10000 },
       
       // Level 16-19: Ultimate levels  
-      { level: 16, levelName: 'Eternal', priceUSDT: 491518000, rewardUSDT: 393214000, activationFeeUSDT: 98304000, baseBccUnlockAmount: 12000 },
-      { level: 17, levelName: 'Infinite', priceUSDT: 983038000, rewardUSDT: 786430000, activationFeeUSDT: 196608000, baseBccUnlockAmount: 14000 },
-      { level: 18, levelName: 'Ultimate', priceUSDT: 1966078000, rewardUSDT: 1572862000, activationFeeUSDT: 393216000, baseBccUnlockAmount: 16000 },
-      { level: 19, levelName: 'Apex', priceUSDT: 3932158000, rewardUSDT: 3145726000, activationFeeUSDT: 786432000, baseBccUnlockAmount: 20000 },
+      { level: 16, level_name: 'Eternal', price_usdt: 491518000, reward_usdt: 393214000, activation_fee_usdt: 98304000, base_bcc_unlock_amount: 12000 },
+      { level: 17, level_name: 'Infinite', price_usdt: 983038000, reward_usdt: 786430000, activation_fee_usdt: 196608000, base_bcc_unlock_amount: 14000 },
+      { level: 18, level_name: 'Ultimate', price_usdt: 1966078000, reward_usdt: 1572862000, activation_fee_usdt: 393216000, base_bcc_unlock_amount: 16000 },
+      { level: 19, level_name: 'Apex', price_usdt: 3932158000, reward_usdt: 3145726000, activation_fee_usdt: 786432000, base_bcc_unlock_amount: 20000 },
     ];
 
     // Insert level configurations
     for (const config of levelConfigurations) {
       await db.insert(levelConfig).values(config);
-      console.log(`✅ Added Level ${config.level}: ${config.levelName} - $${(config.priceUSDT / 100).toFixed(2)}`);
+      console.log(`✅ Added Level ${config.level}: ${config.level_name} - $${(config.price_usdt / 100).toFixed(2)}`);
     }
 
     console.log('🎉 Successfully seeded level configuration!');

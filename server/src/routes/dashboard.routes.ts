@@ -51,11 +51,20 @@ export function registerDashboardRoutes(app: Express) {
           totalTeam: 0
         },
         recentActivity: recentActivities,
-        userBalances: {
-          bccTransferable: 500,  // Use known balance from logs
-          bccRestricted: 100,    // Use known balance from logs
-          cth: 0
-        }
+        userBalances: await (async () => {
+          try {
+            const { bccCalculationService } = await import('../services/bcc-calculation.service');
+            const bccData = await bccCalculationService.calculateBCCBalances(walletAddress);
+            return {
+              bccTransferable: bccData.transferable,
+              bccRestricted: bccData.restricted,
+              cth: 0
+            };
+          } catch (error) {
+            console.error('BCC calculation error, using defaults:', error.message);
+            return { bccTransferable: 0, bccRestricted: 0, cth: 0 };
+          }
+        })()
       };
 
       console.log('✅ Sending dashboard data:', dashboardData);
@@ -74,11 +83,18 @@ export function registerDashboardRoutes(app: Express) {
       console.log('🔗 Fetching matrix data for:', walletAddress);
 
       // Try to get memberMatrixView data first (high-performance view)
-      const [memberMatrixData] = await db
-        .select()
-        .from(memberMatrixView)
-        .where(eq(memberMatrixView.rootWallet, walletAddress.toLowerCase()))
-        .limit(1);
+      let memberMatrixData = null;
+      try {
+        [memberMatrixData] = await db
+          .select()
+          .from(memberMatrixView)
+          .where(eq(memberMatrixView.rootWallet, walletAddress.toLowerCase()))
+          .limit(1);
+      } catch (error) {
+        console.error('memberMatrixView table not found, using fallback data:', error.message);
+        // Fallback: No matrix data available yet
+        memberMatrixData = null;
+      }
 
       // Enhanced response with memberMatrixView data
       const matrixResponse = {
