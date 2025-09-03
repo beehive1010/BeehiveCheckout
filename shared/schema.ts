@@ -608,22 +608,23 @@ export type InsertMatrixLayerSummary = z.infer<typeof insertMatrixLayerSummarySc
 export type MatrixLayerSummary = typeof matrixLayerSummary.$inferSelect;
 
 // Matrix placement helper view - for finding available positions quickly
-export const availablePositions = pgTable("available_positions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  rootWallet: varchar("root_wallet", { length: 42 }).notNull().references(() => users.walletAddress),
-  layer: integer("layer").notNull(),
-  availablePositions: jsonb("available_positions").$type<{
-    L: boolean;
-    M: boolean;
-    R: boolean;
-  }>().notNull(),
-  parentWallet: varchar("parent_wallet", { length: 42 }), // Which member this position is under
-  isFirstAvailable: boolean("is_first_available").default(false).notNull(), // Mark the next position to fill
-  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
-}, (table) => ({
-  rootLayerIdx: index("available_positions_root_layer_idx").on(table.rootWallet, table.layer),
-  firstAvailableIdx: index("available_positions_first_idx").on(table.rootWallet, table.isFirstAvailable),
-}));
+// TEMPORARILY COMMENTED FOR MIGRATION
+// export const availablePositions = pgTable("available_positions", {
+//   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+//   rootWallet: varchar("root_wallet", { length: 42 }).notNull().references(() => users.walletAddress),
+//   layer: integer("layer").notNull(),
+//   availablePositions: jsonb("available_positions").$type<{
+//     L: boolean;
+//     M: boolean;
+//     R: boolean;
+//   }>().notNull(),
+//   parentWallet: varchar("parent_wallet", { length: 42 }), // Which member this position is under
+//   isFirstAvailable: boolean("is_first_available").default(false).notNull(), // Mark the next position to fill
+//   lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+// }, (table) => ({
+//   rootLayerIdx: index("available_positions_root_layer_idx").on(table.rootWallet, table.layer),
+//   firstAvailableIdx: index("available_positions_first_idx").on(table.rootWallet, table.isFirstAvailable),
+// }));
 
 export type InsertRewardNotification = z.infer<typeof insertRewardNotificationSchema>;
 export type RewardNotification = typeof rewardNotifications.$inferSelect;
@@ -1314,7 +1315,7 @@ export type InsertBCCUnlockHistory = z.infer<typeof insertBCCUnlockHistorySchema
 export type BCCUnlockHistory = typeof bccUnlockHistory.$inferSelect;
 
 export type MemberMatrixView = typeof memberMatrixView.$inferSelect;
-export type AvailablePositions = typeof availablePositions.$inferSelect;
+// export type AvailablePositions = typeof availablePositions.$inferSelect; // TEMPORARILY COMMENTED
 
 
 // Admin panel types

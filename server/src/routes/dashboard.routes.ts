@@ -20,10 +20,10 @@ export function registerDashboardRoutes(app: Express) {
       
       console.log('📊 Fetching dashboard data for:', walletAddress);
 
-      // Get user data from storage (ReplitDB)
+      // Get user data from new services
       const user = await storage.getUser(walletAddress);
-      const membership = await storage.getMembershipState(walletAddress);
-      const bccBalance = await storage.getBCCBalance(walletAddress);
+      const member = await storage.getMember(walletAddress);
+      const wallet = await storage.getUserWallet(walletAddress);
       
       const dashboardData = {
         matrixStats: {
@@ -33,9 +33,9 @@ export function registerDashboardRoutes(app: Express) {
           position: 0
         },
         nftStats: {
-          ownedLevels: membership?.levelsOwned || [user?.currentLevel || 0],
-          highestLevel: membership?.activeLevel || user?.currentLevel || 0,
-          totalNFTs: membership?.levelsOwned?.length || (user?.memberActivated ? 1 : 0)
+          ownedLevels: member?.levelsOwned || [user?.currentLevel || 0],
+          highestLevel: member?.currentLevel || user?.currentLevel || 0,
+          totalNFTs: member?.levelsOwned?.length || (member?.isActivated ? 1 : 0)
         },
         rewardStats: {
           totalEarned: 0,
@@ -48,8 +48,8 @@ export function registerDashboardRoutes(app: Express) {
         },
         recentActivity: [],
         userBalances: {
-          bccTransferable: bccBalance?.transferable || 0,
-          bccRestricted: bccBalance?.restricted || 0,
+          bccTransferable: wallet?.bccBalance || 0,
+          bccRestricted: wallet?.bccLocked || 0,
           cth: 0
         }
       };
@@ -141,15 +141,14 @@ export function registerDashboardRoutes(app: Express) {
       
       console.log('💰 Fetching balances for:', walletAddress);
 
-      // Get real balances from storage (ReplitDB)
-      const bccBalance = await storage.getBCCBalance(walletAddress);
-      const usdtBalance = await storage.getUSDTBalance(walletAddress);
+      // Get real balances from new wallet service
+      const wallet = await storage.getUserWallet(walletAddress);
       
       const balances = {
-        bccTransferable: bccBalance?.transferable || 0,
-        bccRestricted: bccBalance?.restricted || 0,
+        bccTransferable: wallet?.bccBalance || 0,
+        bccRestricted: wallet?.bccLocked || 0,
         cth: 0,
-        usdt: usdtBalance?.balance || 0
+        usdt: wallet?.availableUSDT || 0
       };
       
       console.log('✅ Sending REAL balances from storage:', balances);
