@@ -2,18 +2,17 @@ import { useWallet } from '../hooks/useWallet';
 import { useUserReferralStats } from '../hooks/useBeeHiveStats';
 import { useI18n } from '../contexts/I18nContext';
 import { useQuery } from '@tanstack/react-query';
+import IndividualMatrixView from '../components/matrix/IndividualMatrixView';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Progress } from '../components/ui/progress';
 import HexagonIcon from '../components/shared/HexagonIcon';
 import UserProfileCard from '../components/shared/UserProfileCard';
 import { UsersIcon, Edit, User } from 'lucide-react';
 import { DollarSign } from 'lucide-react';
 import { useLocation } from 'wouter';
 import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
-import styles from '../styles/me/me.module.css';
 
 export default function Me() {
   const { 
@@ -21,35 +20,11 @@ export default function Me() {
     walletAddress, 
     currentLevel, 
     bccBalance, 
-    cthBalance, 
-    userActivity, 
-    isActivityLoading,
     userBalances,
     isBalancesLoading 
   } = useWallet();
-  const { data: userStats, isLoading: isLoadingUserStats } = useUserReferralStats();
   
-  // 使用dashboard matrix API来获取19层矩阵数据
-  const { data: dashboardData, isLoading: isMatrixLoading } = useQuery({
-    queryKey: ['/api/dashboard/matrix', walletAddress],
-    queryFn: async () => {
-      if (!walletAddress) throw new Error('No wallet address');
-      const response = await fetch(`/api/dashboard/matrix?t=${Date.now()}`, {
-        headers: {
-          'X-Wallet-Address': walletAddress,
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache'
-        }
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to fetch matrix data: ${response.status} ${response.statusText}`);
-      }
-      return response.json();
-    },
-    enabled: !!walletAddress,
-    staleTime: 5000,
-    refetchInterval: 30000,
-  });
+  const { data: userStats, isLoading: isLoadingUserStats } = useUserReferralStats();
   const { t, language } = useI18n();
   const [, setLocation] = useLocation();
 
@@ -66,7 +41,7 @@ export default function Me() {
   };
 
   return (
-    <div className={`${styles.meContainer} container mx-auto px-4 py-8`}>
+    <div className="container mx-auto px-4 py-8">
       {/* Header with UserProfile */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8">
         <div className="flex-1">
@@ -161,115 +136,59 @@ export default function Me() {
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto"></div>
                 </div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-honey">
-                      {userStats?.directReferralCount || 0}
+              ) : userStats ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="text-center p-4 bg-background rounded-lg">
+                    <div className="text-2xl font-bold text-honey mb-1">
+                      {userStats.totalReferrals || 0}
                     </div>
-                    <p className="text-sm text-muted-foreground">Direct Referrals</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t('me.totalReferrals') || 'Total Referrals'}
+                    </p>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-honey">
-                      {userStats?.totalTeamCount || 0}
+                  <div className="text-center p-4 bg-background rounded-lg">
+                    <div className="text-2xl font-bold text-green-400 mb-1">
+                      {userStats.directReferrals || 0}
                     </div>
-                    <p className="text-sm text-muted-foreground">Total Team</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t('me.directReferrals') || 'Direct Referrals'}
+                    </p>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-honey">
-                      ${userStats?.totalEarnings || 0}
+                  <div className="text-center p-4 bg-background rounded-lg">
+                    <div className="text-2xl font-bold text-blue-400 mb-1">
+                      {userStats.indirectReferrals || 0}
                     </div>
-                    <p className="text-sm text-muted-foreground">Total Earnings</p>
+                    <p className="text-sm text-muted-foreground">
+                      {t('me.indirectReferrals') || 'Indirect Referrals'}
+                    </p>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-honey">
-                      {userStats?.matrixLevel || 0}
+                  <div className="text-center p-4 bg-background rounded-lg">
+                    <div className="text-2xl font-bold text-purple-400 mb-1">
+                      {userStats.totalEarnings?.toFixed(2) || '0.00'}
                     </div>
-                    <p className="text-sm text-muted-foreground">Matrix Level</p>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Matrix Layers Overview */}
-          <Card className="bg-secondary border-border">
-            <CardHeader>
-              <CardTitle className="text-honey">
-                Matrix Tree (Layers 1-19)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isMatrixLoading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto"></div>
-                </div>
-              ) : dashboardData?.downlineMatrix ? (
-                <div className="space-y-4">
-                  {/* Summary */}
-                  <div className="grid grid-cols-3 gap-4 mb-6">
-                    <div className="text-center">
-                      <div className="text-xl font-bold text-honey">
-                        {dashboardData.downlineMatrix.reduce((sum: number, level: any) => sum + level.members, 0)}
-                      </div>
-                      <p className="text-sm text-muted-foreground">Total Members</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xl font-bold text-honey">
-                        {dashboardData.downlineMatrix.findLastIndex((level: any) => level.members > 0) + 1 || 0}
-                      </div>
-                      <p className="text-sm text-muted-foreground">Active Layers</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-xl font-bold text-honey">
-                        {currentLevel}
-                      </div>
-                      <p className="text-sm text-muted-foreground">Your Level</p>
-                    </div>
-                  </div>
-
-                  {/* Layer Details - 完整显示19层 */}
-                  <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {dashboardData.downlineMatrix.map((level: any) => {
-                      const maxCapacity = Math.pow(3, level.level);
-                      return (
-                        <div key={level.level} className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
-                          <div className="flex items-center space-x-3">
-                            <Badge variant="outline" className="text-honey border-honey">
-                              L{level.level}
-                            </Badge>
-                            <div>
-                              <p className="text-sm font-medium">
-                                {level.members} / {maxCapacity.toLocaleString()} positions
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                Members: {level.members} | Upgraded: {level.upgraded}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <Progress 
-                              value={level.members > 0 ? (level.members / maxCapacity) * 100 : 0} 
-                              className="w-20 h-2 mb-1"
-                            />
-                            <p className="text-xs text-muted-foreground">
-                              {level.members > 0 ? ((level.members / maxCapacity) * 100).toFixed(1) : '0.0'}%
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    })}
+                    <p className="text-sm text-muted-foreground">
+                      {t('me.totalEarnings') || 'Total Earnings'}
+                    </p>
                   </div>
                 </div>
               ) : (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">
-                    No matrix data available. Activate membership to start building your referral tree.
+                    {t('me.noReferralData') || 'No referral data available'}
                   </p>
                 </div>
               )}
             </CardContent>
           </Card>
+
+          {/* Enhanced Matrix Visualization with 19 Layers */}
+          <IndividualMatrixView 
+            walletAddress={walletAddress || ''} 
+            rootUser={{
+              username: userData?.username || 'User',
+              currentLevel: currentLevel || 1
+            }}
+          />
         </TabsContent>
       </Tabs>
     </div>

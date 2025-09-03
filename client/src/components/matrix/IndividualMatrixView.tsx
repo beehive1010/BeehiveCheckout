@@ -49,18 +49,27 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
       if (!response.ok) throw new Error('Failed to fetch matrix data');
       const data = await response.json();
       
-      // Transform dashboard matrix data to IndividualMatrixData format
+      // Transform and initialize full 19-layer matrix data
+      const allLayers: MatrixLayer[] = [];
+      
+      // Initialize all 19 layers with empty structure
+      for (let layerNum = 1; layerNum <= 19; layerNum++) {
+        const apiLayerData = data.downlineMatrix?.find((layer: any) => layer.level === layerNum);
+        
+        allLayers.push({
+          layerNumber: layerNum,
+          maxMembers: Math.pow(3, layerNum),
+          members: apiLayerData?.members || [],
+          leftLeg: apiLayerData?.members?.filter((m: any) => m.placement === 'left') || [],
+          middleLeg: apiLayerData?.members?.filter((m: any) => m.placement === 'middle') || [],
+          rightLeg: apiLayerData?.members?.filter((m: any) => m.placement === 'right') || [],
+        });
+      }
+      
       const transformedData: IndividualMatrixData = {
-        layers: data.downlineLayers?.map((layer: any) => ({
-          layerNumber: layer.layer,
-          maxMembers: layer.maxCapacity || Math.pow(3, layer.layer),
-          members: layer.members || [],
-          leftLeg: layer.members?.filter((m: any) => m.placement === 'left') || [],
-          middleLeg: layer.members?.filter((m: any) => m.placement === 'middle') || [],
-          rightLeg: layer.members?.filter((m: any) => m.placement === 'right') || [],
-        })) || [],
-        totalMembers: data.totalDownline || 0,
-        totalLevels: data.downlineLayers?.length || 0,
+        layers: allLayers,
+        totalMembers: data.downlineMatrix?.reduce((sum: number, layer: any) => sum + (layer.members || 0), 0) || 0,
+        totalLevels: 19, // Always show all 19 levels
       };
       
       return transformedData;
