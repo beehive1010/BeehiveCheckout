@@ -1,11 +1,21 @@
 import { useI18n } from '../../contexts/I18nContext';
 import LanguageSwitcher from './LanguageSwitcher';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { ConnectButton } from 'thirdweb/react';
 import { client, supportedChains, wallets } from '../../lib/web3';
+import { useWallet } from '../../hooks/useWallet';
+import { User, Bell } from 'lucide-react';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
 
 export default function Header() {
   const { t } = useI18n();
+  const { isConnected, walletAddress, currentLevel, isActivated } = useWallet();
+  const [, setLocation] = useLocation();
+
+  const formatAddress = (address: string) => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -23,13 +33,34 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* Mobile Divider */}
-          <div className="md:hidden h-6 w-px bg-border mx-3"></div>
-
-          {/* Language Switcher & Wallet */}
+          {/* Right Side Content */}
           <div className="flex items-center space-x-2 md:space-x-4">
+            {/* User Profile Quick Access (Mobile Only when connected) */}
+            {isConnected && isActivated && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setLocation('/me')}
+                className="md:hidden flex items-center gap-2 px-3 py-2 bg-honey/10 hover:bg-honey/20 border border-honey/20 rounded-lg"
+                data-testid="button-mobile-user-center"
+              >
+                <User className="w-4 h-4 text-honey" />
+                <div className="flex items-center gap-1">
+                  <span className="text-xs font-mono text-honey">
+                    {formatAddress(walletAddress || '')}
+                  </span>
+                  <Badge variant="secondary" className="text-xs bg-honey/20 text-honey border-honey/30 px-1">
+                    L{currentLevel || 1}
+                  </Badge>
+                </div>
+              </Button>
+            )}
+
+            {/* Language Switcher */}
             <LanguageSwitcher />
             <div className="w-px h-6 bg-border"></div>
+            
+            {/* Wallet Connection */}
             <ConnectButton
               client={client}
               chains={supportedChains}
