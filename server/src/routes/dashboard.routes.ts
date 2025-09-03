@@ -1,5 +1,8 @@
 import { Express } from 'express';
 import { storage } from '../../storage';
+import { db } from '../../db';
+import { users, membershipState, bccBalances } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 /**
  * Dashboard Routes - Real member data from database
@@ -20,7 +23,11 @@ export function registerDashboardRoutes(app: Express) {
       
       console.log('📊 Fetching dashboard data for:', walletAddress);
 
-      // For new users, return default dashboard data
+      // Get user data from Supabase
+      const [user] = await db.select().from(users).where(eq(users.walletAddress, walletAddress.toLowerCase()));
+      const [membership] = await db.select().from(membershipState).where(eq(membershipState.walletAddress, walletAddress.toLowerCase()));
+      const [bccBalance] = await db.select().from(bccBalances).where(eq(bccBalances.walletAddress, walletAddress.toLowerCase()));
+      
       const dashboardData = {
         matrixStats: {
           directChildren: 0,
@@ -29,9 +36,9 @@ export function registerDashboardRoutes(app: Express) {
           position: 0
         },
         nftStats: {
-          ownedLevels: [1],
-          highestLevel: 1,
-          totalNFTs: 1
+          ownedLevels: membership?.levelsOwned || [user?.currentLevel || 0],
+          highestLevel: membership?.activeLevel || user?.currentLevel || 0,
+          totalNFTs: membership?.levelsOwned?.length || (user?.memberActivated ? 1 : 0)
         },
         rewardStats: {
           totalEarned: 0,
@@ -44,13 +51,13 @@ export function registerDashboardRoutes(app: Express) {
         },
         recentActivity: [],
         userBalances: {
-          bccTransferable: 500,
-          bccRestricted: 100,
+          bccTransferable: bccBalance?.transferable || 0,
+          bccRestricted: bccBalance?.restricted || 0,
           cth: 0
         }
       };
 
-      console.log('✅ Sending dashboard data for new user:', dashboardData);
+      console.log('✅ Sending REAL dashboard data from Supabase:', dashboardData);
       res.json(dashboardData);
     } catch (error) {
       console.error('Dashboard data error:', error);
@@ -137,15 +144,17 @@ export function registerDashboardRoutes(app: Express) {
       
       console.log('💰 Fetching balances for:', walletAddress);
 
-      // For new database, return default balances
+      // Get real balances from Supabase
+      const [bccBalance] = await db.select().from(bccBalances).where(eq(bccBalances.walletAddress, walletAddress.toLowerCase()));
+      
       const balances = {
-        bccTransferable: 500,
-        bccRestricted: 100,
+        bccTransferable: bccBalance?.transferable || 0,
+        bccRestricted: bccBalance?.restricted || 0,
         cth: 0,
         usdt: 0
       };
       
-      console.log('✅ Sending balances for new user:', balances);
+      console.log('✅ Sending REAL balances from Supabase:', balances);
       res.json(balances);
     } catch (error) {
       console.error('Balances fetch error:', error);
