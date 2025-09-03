@@ -2,6 +2,7 @@ import {
   userActivities,
   users,
   members,
+  cthBalances,
   type UserActivity,
   type InsertUserActivity,
   type User
@@ -141,6 +142,38 @@ export class StorageService {
           updatedAt: new Date()
         })
         .where(eq(members.walletAddress, walletAddress.toLowerCase()));
+    }
+  }
+
+  async getMember(walletAddress: string) {
+    try {
+      const [member] = await db
+        .select()
+        .from(members)
+        .where(eq(members.walletAddress, walletAddress.toLowerCase()))
+        .limit(1);
+      return member || null;
+    } catch (error) {
+      console.error('Error getting member:', error);
+      return null;
+    }
+  }
+
+  async getUserWallet(walletAddress: string) {
+    try {
+      const [wallet] = await db
+        .select()
+        .from(cthBalances)
+        .where(eq(cthBalances.walletAddress, walletAddress.toLowerCase()))
+        .limit(1);
+      return wallet ? {
+        bccBalance: wallet.balance,
+        bccLocked: 0, // Not implemented yet
+        availableUSDT: 0 // Not implemented yet
+      } : null;
+    } catch (error) {
+      console.error('Error getting user wallet:', error);
+      return null;
     }
   }
 }
