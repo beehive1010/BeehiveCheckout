@@ -17,8 +17,10 @@ export class StorageService {
   async getUserActivity(walletAddress: string, limit: number = 50): Promise<Array<{
     id: string;
     type: 'reward' | 'purchase' | 'merchant_nft_claim' | 'token_purchase' | 'membership';
+    title?: string;
     description: string;
     amount?: string;
+    amountType?: string;
     timestamp: Date;
     status?: string;
   }>> {
@@ -32,8 +34,10 @@ export class StorageService {
     return activities.map(activity => ({
       id: activity.id,
       type: activity.activityType as any,
+      title: activity.title,
       description: activity.description || activity.title,
       amount: activity.amount?.toString(),
+      amountType: activity.amountType,
       timestamp: activity.createdAt,
       status: 'completed'
     }));

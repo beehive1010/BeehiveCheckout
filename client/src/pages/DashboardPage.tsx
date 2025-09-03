@@ -7,7 +7,7 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { useToast } from '../hooks/use-toast';
-import { Copy, Share2, Users, Award, TrendingUp, DollarSign, Building2, Crown } from 'lucide-react';
+import { Copy, Share2, Users, Award, TrendingUp, DollarSign, Building2, Crown, Gift, ShoppingCart, Activity, Coins } from 'lucide-react';
 
 // Mock components and hooks for comprehensive dashboard
 const HexagonIcon = ({ size, children }: { size: string; children: React.ReactNode }) => (
@@ -15,6 +15,31 @@ const HexagonIcon = ({ size, children }: { size: string; children: React.ReactNo
     {children}
   </div>
 );
+
+// Dynamic icon component for activity types
+const ActivityIcon = ({ iconName, className }: { iconName: string; className?: string }) => {
+  const iconProps = { className: className || "h-4 w-4" };
+  
+  switch (iconName) {
+    case 'gift':
+      return <Gift {...iconProps} />;
+    case 'award':
+      return <Award {...iconProps} />;
+    case 'users':
+      return <Users {...iconProps} />;
+    case 'trending-up':
+      return <TrendingUp {...iconProps} />;
+    case 'dollar-sign':
+      return <DollarSign {...iconProps} />;
+    case 'shopping-cart':
+      return <ShoppingCart {...iconProps} />;
+    case 'coins':
+      return <Coins {...iconProps} />;
+    case 'activity':
+    default:
+      return <Activity {...iconProps} />;
+  }
+};
 
 const ClaimMembershipButton = ({ level, onSuccess, onError, className }: any) => {
   const [, setLocation] = useLocation();
@@ -172,32 +197,57 @@ export default function Dashboard() {
     }
   };
 
+  // Helper function to get activity icon and color based on type
+  const getActivityDisplay = (activityType: string) => {
+    switch (activityType) {
+      case 'reward_received':
+        return { icon: 'gift', color: 'text-green-400' };
+      case 'nft_claimed':
+        return { icon: 'award', color: 'text-honey' };
+      case 'new_referral':
+        return { icon: 'users', color: 'text-blue-400' };
+      case 'level_upgrade':
+        return { icon: 'trending-up', color: 'text-purple-400' };
+      case 'payment_received':
+        return { icon: 'dollar-sign', color: 'text-green-500' };
+      case 'merchant_nft_claim':
+        return { icon: 'shopping-cart', color: 'text-orange-400' };
+      case 'token_purchase':
+        return { icon: 'coins', color: 'text-yellow-400' };
+      default:
+        return { icon: 'activity', color: 'text-muted-foreground' };
+    }
+  };
+
   // Use real activity data if available, otherwise show meaningful placeholder data
   const recentActivities = dashboardData?.recentActivity && dashboardData.recentActivity.length > 0 
-    ? dashboardData.recentActivity.map((activity: any) => ({
-        icon: 'fas fa-gift',
-        type: activity.description,
-        description: activity.type,
-        amount: activity.amount,
-        color: 'text-green-400'
-      }))
+    ? dashboardData.recentActivity.map((activity: any) => {
+        const display = getActivityDisplay(activity.type);
+        return {
+          icon: display.icon,
+          type: activity.title || activity.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+          description: activity.description,
+          amount: activity.amount ? `${activity.amount} ${activity.amountType || ''}` : '',
+          color: display.color
+        };
+      })
     : [
     {
-      icon: 'fas fa-gift',
+      icon: 'gift',
       type: t('dashboard.activity.rewardReceived') || 'Reward Received',
       description: t('dashboard.activity.fromReferralUpgrade') || 'Level 1 membership activated',
       amount: '+500 BCC',
       color: 'text-green-400'
     },
     {
-      icon: 'fas fa-shopping-cart',
+      icon: 'shopping-cart',
       type: t('dashboard.activity.nftClaimed') || 'NFT Claimed',
       description: t('dashboard.activity.merchantNft') || 'Merchant NFT purchased',
       amount: t('dashboard.activity.bccDeduction', { amount: 50 }) || '-50 BCC',
       color: 'text-muted-foreground'
     },
     {
-      icon: 'fas fa-user-plus',
+      icon: 'users',
       type: t('dashboard.activity.newReferral') || 'New Referral',
       description: t('dashboard.activity.userJoined') || 'New user joined your team',
       amount: t('dashboard.activity.activeStatus') || 'Active',
@@ -674,7 +724,10 @@ export default function Dashboard() {
               <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-honey/20 flex items-center justify-center">
-                    <TrendingUp className="h-4 w-4 text-honey" />
+                    <ActivityIcon 
+                      iconName={activity.icon} 
+                      className={`h-4 w-4 ${activity.color}`} 
+                    />
                   </div>
                   <div>
                     <p className="font-medium">{activity.type}</p>

@@ -26,6 +26,9 @@ export function registerDashboardRoutes(app: Express) {
       // Get user data
       const user = await storage.getUser(walletAddress);
       
+      // Get recent activities from database
+      const recentActivities = await storage.getUserActivity(walletAddress, 5);
+      
       const dashboardData = {
         matrixStats: {
           directChildren: 0,
@@ -47,7 +50,7 @@ export function registerDashboardRoutes(app: Express) {
           directReferrals: 0,
           totalTeam: 0
         },
-        recentActivity: [],
+        recentActivity: recentActivities,
         userBalances: {
           bccTransferable: 500,  // Use known balance from logs
           bccRestricted: 100,    // Use known balance from logs
@@ -168,14 +171,21 @@ export function registerDashboardRoutes(app: Express) {
       // Get real balances from new wallet service
       const wallet = await storage.getUserWallet(walletAddress);
       
+      // Import the BCC calculation service
+      const { bccCalculationService } = await import('../services/bcc-calculation.service');
+      
+      // Calculate correct BCC balances
+      const bccData = await bccCalculationService.calculateBCCBalances(walletAddress);
+      
       const balances = {
-        bccTransferable: wallet?.bccBalance || 0,
-        bccRestricted: wallet?.bccLocked || 0,
+        bccTransferable: bccData.transferable,
+        bccRestricted: bccData.restricted,
         cth: 0,
-        usdt: wallet?.availableUSDT || 0
+        usdt: wallet?.availableUSDT || 0,
+        bccDetails: bccData.details // 额外信息用于调试
       };
       
-      console.log('✅ Sending REAL balances from storage:', balances);
+      console.log('✅ Sending REAL BCC balances (calculated):', balances);
       res.json(balances);
     } catch (error) {
       console.error('Balances fetch error:', error);
