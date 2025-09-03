@@ -83,46 +83,48 @@ export default function Me() {
       {/* Profile Card */}
       <Card className="bg-secondary border-border mb-6">
         <CardContent className="p-6">
-          <div className="flex items-center space-x-4 mb-6">
-            <div className="relative">
-              <HexagonIcon className="w-16 h-16 text-honey">
-                <User className="w-8 h-8" />
-              </HexagonIcon>
-              <Badge className="absolute -top-2 -right-2 bg-honey text-secondary">
-                L{currentLevel}
-              </Badge>
-            </div>
-            <div className="flex-1">
-              <h3 className="text-xl font-semibold text-honey">
-                {userData?.username || formatAddress(walletAddress || '')}
-              </h3>
-              <p className="text-muted-foreground text-sm">
-                {formatAddress(walletAddress || '')}
-              </p>
-              <div className="flex items-center space-x-4 mt-2">
-                <div className="text-sm">
-                  <span className="text-muted-foreground">BCC:</span>
-                  <span className="font-medium text-honey ml-1">
-                    {bccBalance?.transferable || 0}
-                  </span>
-                </div>
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Locked:</span>
-                  <span className="font-medium text-honey ml-1">
-                    {bccBalance?.restricted || 0}
-                  </span>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+            <div className="flex items-center space-x-4 flex-1">
+              <div className="relative">
+                <HexagonIcon className="w-16 h-16 text-honey">
+                  <User className="w-8 h-8" />
+                </HexagonIcon>
+                <Badge className="absolute -top-2 -right-2 bg-honey text-secondary">
+                  L{currentLevel}
+                </Badge>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-xl font-semibold text-honey truncate">
+                  {userData?.username || formatAddress(walletAddress || '')}
+                </h3>
+                <p className="text-muted-foreground text-sm">
+                  {formatAddress(walletAddress || '')}
+                </p>
+                <div className="flex items-center space-x-4 mt-2">
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">BCC:</span>
+                    <span className="font-medium text-honey ml-1">
+                      {bccBalance?.transferable || 0}
+                    </span>
+                  </div>
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">Locked:</span>
+                    <span className="font-medium text-honey ml-1">
+                      {bccBalance?.restricted || 0}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-            <div className="ml-4">
+            <div className="flex-shrink-0">
               <Button 
                 onClick={() => setLocation('/me/profile-settings')}
                 variant="outline" 
                 size="sm"
-                className="border-honey text-honey hover:bg-honey hover:text-secondary"
+                className="border-honey text-honey hover:bg-honey hover:text-secondary w-full sm:w-auto"
               >
                 <Edit className="w-4 h-4 mr-2" />
-                Edit Profile
+                <span className="sm:inline">Edit Profile</span>
               </Button>
             </div>
           </div>
