@@ -8,12 +8,35 @@ import {
 import { db } from "../../db";
 import { eq, sum, sql } from "drizzle-orm";
 
+/**
+ * 正确的BCC锁仓计算服务
+ * 
+ * 核心逻辑：
+ * 1. 总锁仓量 = 100+150+200+...+1000 = 10,450 BCC
+ * 2. 新会员初始 = +500 BCC (transferable)
+ * 3. 激活顺序 = 1~9999个激活会员，根据激活顺序解锁锁仓量
+ * 4. BCC余额 = 初始500 + 解锁部分，锁仓 = 总锁仓量 - 已解锁
+ */
 export class BCCCalculationService {
   
   /**
-   * 根据Level计算BCC释放数量
+   * 总锁仓量：100+150+200+...+1000 = 10,450 BCC
+   */
+  private readonly TOTAL_LOCKUP_AMOUNT = 10450;
+  
+  /**
+   * 新会员初始BCC数量
+   */
+  private readonly INITIAL_MEMBER_BCC = 500;
+  
+  /**
+   * 最大激活会员数量
+   */
+  private readonly MAX_ACTIVATIONS = 9999;
+
+  /**
+   * 根据Level计算BCC释放数量（用于参考）
    * Level 1 = 100 BCC, Level 2 = 150 BCC, Level 3 = 200 BCC ... Level 19 = 1000 BCC
-   * 公式: Level 1 = 100, 每升一级增加50 BCC
    */
   private calculateBCCReleaseByLevel(level: number): number {
     if (level < 1 || level > 19) return 0;
@@ -23,7 +46,7 @@ export class BCCCalculationService {
   }
 
   /**
-   * 计算用户总的NFT购买花费 (USDT cents)
+   * 计算用户总的NFT购买花费 (USDT cents) - 保持现有逻辑
    */
   private async calculateTotalNFTSpending(walletAddress: string): Promise<number> {
     try {
@@ -35,19 +58,46 @@ export class BCCCalculationService {
         .where(eq(orders.walletAddress, walletAddress.toLowerCase()));
 
       return result[0]?.totalSpent || 0;
-    } catch (error) {
-      console.error('Orders table not found, returning 0 USDT spent:', error.message);
-      // 如果表不存在，返回0（新用户还没有购买记录）
+    } catch (error: any) {
+      console.error('Orders table not found, returning 0 USDT spent:', error?.message);
       return 0;
     }
   }
 
   /**
-   * 计算用户已经解锁的BCC总量
+   * 根据激活顺序计算用户解锁的BCC数量
+   * 激活顺序：1~9999个激活会员
+   * 
+   * TODO: 实际应该根据用户激活时间/顺序计算解锁比例
+   * 这里暂时使用简化逻辑，等数据库schema完善后实现
+   */
+  private async calculateUnlockedBCCByActivationOrder(walletAddress: string): Promise<number> {
+    try {
+      // TODO: 实际应该查询用户激活时间/顺序
+      // 这里暂时假设为早期激活会员，返回小部分解锁
+      
+      // 简化版本：根据用户等级估算激活顺序
+      const user = await this.getUserLevel(walletAddress);
+      const currentLevel = user?.currentLevel || 1;
+      
+      // 假设激活顺序与等级相关（简化逻辑）
+      const estimatedActivationOrder = Math.min(currentLevel * 100, this.MAX_ACTIVATIONS);
+      
+      // 计算解锁比例
+      const unlockRatio = estimatedActivationOrder / this.MAX_ACTIVATIONS;
+      
+      return Math.floor(this.TOTAL_LOCKUP_AMOUNT * unlockRatio);
+    } catch (error: any) {
+      console.error('Unable to calculate unlock ratio, returning 0:', error?.message);
+      return 0;
+    }
+  }
+
+  /**
+   * 计算用户已经解锁的BCC总量（从历史记录）
    */
   private async calculateTotalUnlockedBCC(walletAddress: string): Promise<number> {
     try {
-      // 检查表是否存在，如果不存在则返回0
       const result = await db
         .select({ 
           totalUnlocked: sum(bccUnlockHistory.unlockAmount).mapWith(Number)
@@ -56,191 +106,116 @@ export class BCCCalculationService {
         .where(eq(bccUnlockHistory.walletAddress, walletAddress.toLowerCase()));
 
       return result[0]?.totalUnlocked || 0;
-    } catch (error) {
-      console.error('BCC unlock history table not found, returning 0:', error.message);
-      // 如果表不存在，返回0（新用户还没有解锁历史）
+    } catch (error: any) {
+      console.error('BCC unlock history table not found, returning 0:', error?.message);
       return 0;
     }
   }
 
   /**
-   * 根据用户当前等级计算应释放的BCC (第一阶段)
+   * 根据用户当前等级计算BCC余额（修正版）
    */
   async calculateReleasableBCC(walletAddress: string, currentLevel: number): Promise<{
-    totalSpent: number;
-    shouldRelease: number;
-    alreadyUnlocked: number;
-    availableToRelease: number;
+    initialBCC: number;
+    totalLockup: number;
+    unlockedBCC: number;
+    restrictedBCC: number;
   }> {
-    // 1. 计算用户总花费
-    const totalSpent = await this.calculateTotalNFTSpending(walletAddress);
+    // 1. 初始BCC (新会员获得)
+    const initialBCC = this.INITIAL_MEMBER_BCC;
     
-    // 2. 计算应该释放的BCC (根据当前等级)
-    let shouldRelease = 0;
-    for (let level = 1; level <= currentLevel; level++) {
-      shouldRelease += this.calculateBCCReleaseByLevel(level);
-    }
+    // 2. 总锁仓量
+    const totalLockup = this.TOTAL_LOCKUP_AMOUNT;
     
-    // 3. 计算已经解锁的BCC
-    const alreadyUnlocked = await this.calculateTotalUnlockedBCC(walletAddress);
+    // 3. 根据激活顺序计算已解锁的BCC
+    const unlockedBCC = await this.calculateUnlockedBCCByActivationOrder(walletAddress);
     
-    // 4. 计算可用于释放的BCC
-    const availableToRelease = Math.max(0, shouldRelease - alreadyUnlocked);
+    // 4. 剩余锁仓的BCC
+    const restrictedBCC = Math.max(0, totalLockup - unlockedBCC);
     
     return {
-      totalSpent,
-      shouldRelease,
-      alreadyUnlocked,
-      availableToRelease
+      initialBCC,
+      totalLockup,
+      unlockedBCC,
+      restrictedBCC
     };
   }
 
   /**
-   * 计算用户的BCC余额状态
+   * 获取用户等级信息
+   */
+  private async getUserLevel(walletAddress: string): Promise<{ currentLevel: number } | null> {
+    try {
+      const [user] = await db
+        .select({ currentLevel: users.currentLevel })
+        .from(users)
+        .where(eq(users.walletAddress, walletAddress.toLowerCase()));
+      
+      return user ? { currentLevel: user.currentLevel || 1 } : null;
+    } catch (error: any) {
+      console.error('Error fetching user level:', error?.message);
+      return { currentLevel: 1 };
+    }
+  }
+
+  /**
+   * 主要BCC计算接口 - 计算用户的BCC余额（修正版）
    */
   async calculateBCCBalances(walletAddress: string): Promise<{
     transferable: number;
     restricted: number;
-    total: number;
-    details: {
-      currentLevel: number;
-      totalSpent: number;
-      totalReleasable: number;
-      alreadyUnlocked: number;
-      pendingRelease: number;
-    }
+    totalAvailable: number;
+    calculationBreakdown: {
+      initialBCC: number;
+      totalLockup: number;
+      unlockedBCC: number;
+      userLevel: number;
+    };
   }> {
     try {
-      // 获取用户信息
-      const [user] = await db
-        .select()
-        .from(users)
-        .where(eq(users.walletAddress, walletAddress.toLowerCase()));
-
-      if (!user) {
-        return {
-          transferable: 0,
-          restricted: 0,
-          total: 0,
-          details: {
-            currentLevel: 0,
-            totalSpent: 0,
-            totalReleasable: 0,
-            alreadyUnlocked: 0,
-            pendingRelease: 0
-          }
-        };
-      }
-
-      // 计算释放数据
-      const releaseData = await this.calculateReleasableBCC(walletAddress, user.currentLevel);
+      // 获取用户当前等级
+      const user = await this.getUserLevel(walletAddress);
+      const currentLevel = user?.currentLevel || 1;
       
-      // 获取当前钱包余额
-      const [wallet] = await db
-        .select()
-        .from(userWallet)
-        .where(eq(userWallet.walletAddress, walletAddress.toLowerCase()));
-
-      // 计算实际余额
-      // transferable = 当前可转账余额 + 待释放的BCC
-      // restricted = 已释放但仍锁定的BCC (可用于购买课程等)
-      const transferable = (wallet?.bccBalance || 0) + releaseData.availableToRelease;
-      const restricted = wallet?.bccLocked || 0;
-
+      // 计算BCC余额
+      const releasableBCC = await this.calculateReleasableBCC(walletAddress, currentLevel);
+      
+      // 计算余额：transferable = 初始BCC + 解锁的BCC, restricted = 剩余锁仓的BCC
+      const transferable = releasableBCC.initialBCC + releasableBCC.unlockedBCC;
+      const restricted = releasableBCC.restrictedBCC;
+      const totalAvailable = transferable + restricted;
+      
+      console.log(`💰 BCC计算结果 [${walletAddress}]: transferable=${transferable}, restricted=${restricted}, level=${currentLevel}`);
+      
       return {
         transferable,
-        restricted,
-        total: transferable + restricted,
-        details: {
-          currentLevel: user.currentLevel,
-          totalSpent: releaseData.totalSpent / 100, // 转换为美元
-          totalReleasable: releaseData.shouldRelease,
-          alreadyUnlocked: releaseData.alreadyUnlocked,
-          pendingRelease: releaseData.availableToRelease
+        restricted, 
+        totalAvailable,
+        calculationBreakdown: {
+          initialBCC: releasableBCC.initialBCC,
+          totalLockup: releasableBCC.totalLockup,
+          unlockedBCC: releasableBCC.unlockedBCC,
+          userLevel: currentLevel
         }
       };
-    } catch (error) {
-      console.error('Error calculating BCC balances:', error);
-      return {
-        transferable: 0,
-        restricted: 0,
-        total: 0,
-        details: {
-          currentLevel: 0,
-          totalSpent: 0,
-          totalReleasable: 0,
-          alreadyUnlocked: 0,
-          pendingRelease: 0
-        }
-      };
-    }
-  }
-
-  /**
-   * 执行BCC释放 (当用户升级时调用)
-   */
-  async releaseBCC(walletAddress: string, level: number, tier: string = 'full'): Promise<{
-    success: boolean;
-    unlocked: number;
-    newBalance: number;
-  }> {
-    try {
-      // 计算该等级应释放的BCC
-      const releaseAmount = this.calculateBCCReleaseByLevel(level);
+    } catch (error: any) {
+      console.error('BCC calculation failed:', error?.message);
       
-      if (releaseAmount <= 0) {
-        return { success: false, unlocked: 0, newBalance: 0 };
-      }
-
-      // 记录解锁历史
-      await db.insert(bccUnlockHistory).values({
-        walletAddress: walletAddress.toLowerCase(),
-        unlockLevel: level,
-        unlockAmount: releaseAmount,
-        unlockTier: tier,
-        unlockedAt: new Date()
-      });
-
-      // 更新用户钱包余额
-      const [updatedWallet] = await db
-        .update(userWallet)
-        .set({ 
-          bccBalance: sql`${userWallet.bccBalance} + ${releaseAmount}`,
-          lastUpdated: new Date()
-        })
-        .where(eq(userWallet.walletAddress, walletAddress.toLowerCase()))
-        .returning();
-
-      console.log(`🔓 BCC Released: ${releaseAmount} BCC for Level ${level} → ${walletAddress}`);
-
+      // 返回安全的默认值
       return {
-        success: true,
-        unlocked: releaseAmount,
-        newBalance: updatedWallet?.bccBalance || 0
+        transferable: this.INITIAL_MEMBER_BCC, // 默认500 BCC
+        restricted: this.TOTAL_LOCKUP_AMOUNT,  // 全部锁仓
+        totalAvailable: this.INITIAL_MEMBER_BCC + this.TOTAL_LOCKUP_AMOUNT,
+        calculationBreakdown: {
+          initialBCC: this.INITIAL_MEMBER_BCC,
+          totalLockup: this.TOTAL_LOCKUP_AMOUNT,
+          unlockedBCC: 0,
+          userLevel: 1
+        }
       };
-    } catch (error) {
-      console.error('Error releasing BCC:', error);
-      return { success: false, unlocked: 0, newBalance: 0 };
     }
-  }
-
-  /**
-   * 获取BCC释放规则信息 (用于前端显示)
-   */
-  getBCCReleaseRules(): Array<{ level: number; bccAmount: number; name: string }> {
-    const levels = [
-      'Warrior', 'Bronze', 'Silver', 'Gold', 'Elite', 
-      'Platinum', 'Master', 'Diamond', 'Grandmaster', 'Star Shine',
-      'Epic', 'Hall', 'Strongest King', 'King of Kings', 'Glory King',
-      'Legendary Overlord', 'Supreme Lord', 'Supreme Myth', 'Mythical Peak'
-    ];
-
-    return Array.from({ length: 19 }, (_, i) => ({
-      level: i + 1,
-      bccAmount: this.calculateBCCReleaseByLevel(i + 1),
-      name: levels[i] || `Level ${i + 1}`
-    }));
   }
 }
 
+// 导出单例服务
 export const bccCalculationService = new BCCCalculationService();
