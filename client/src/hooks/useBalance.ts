@@ -2,12 +2,38 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useWeb3 } from '../contexts/Web3Context';
 import { apiRequest } from '../lib/queryClient';
 
-// BCC Staking Tier Configuration
+// BCC Level-based unlock amounts (base amounts for Phase 1)
+export const BCC_LEVEL_UNLOCK_AMOUNTS = {
+  1: 100,   // Level 1: 100 BCC (130 USDT paid but 100 BCC unlocked)
+  2: 150,   // Level 2: 150 BCC (150 USDT paid, 150 BCC unlocked)
+  3: 200,   // Level 3: 200 BCC
+  4: 250,   // Level 4: 250 BCC
+  5: 300,   // Level 5: 300 BCC
+  6: 350,   // Level 6: 350 BCC
+  7: 400,   // Level 7: 400 BCC
+  8: 450,   // Level 8: 450 BCC
+  9: 500,   // Level 9: 500 BCC
+  10: 550,  // Level 10: 550 BCC
+  11: 600,  // Level 11: 600 BCC
+  12: 650,  // Level 12: 650 BCC
+  13: 700,  // Level 13: 700 BCC
+  14: 750,  // Level 14: 750 BCC
+  15: 800,  // Level 15: 800 BCC
+  16: 850,  // Level 16: 850 BCC
+  17: 900,  // Level 17: 900 BCC
+  18: 950,  // Level 18: 950 BCC
+  19: 1000, // Level 19: 1000 BCC
+} as const;
+
+// Total locked BCC pool for Phase 1: 100+150+200+...+1000 = 10,450 BCC
+export const TOTAL_BCC_LOCKED_PHASE_1 = Object.values(BCC_LEVEL_UNLOCK_AMOUNTS).reduce((sum, amount) => sum + amount, 0);
+
+// BCC Staking Tier Configuration with halving mechanism
 export const BCC_STAKING_TIERS = {
-  PHASE_1: { id: 1, maxMembers: 9999, unlockAmount: 100, lockDeduction: 100 },
-  PHASE_2: { id: 2, maxMembers: 9999, unlockAmount: 50, lockDeduction: 50 },
-  PHASE_3: { id: 3, maxMembers: 19999, unlockAmount: 25, lockDeduction: 25 },
-  PHASE_4: { id: 4, maxMembers: Infinity, unlockAmount: 12, lockDeduction: 12 },
+  PHASE_1: { id: 1, maxMembers: 9999, multiplier: 1.0 },    // Full amounts
+  PHASE_2: { id: 2, maxMembers: 9999, multiplier: 0.5 },   // Half amounts
+  PHASE_3: { id: 3, maxMembers: 19999, multiplier: 0.25 }, // Quarter amounts
+  PHASE_4: { id: 4, maxMembers: Infinity, multiplier: 0.125 }, // Eighth amounts
 } as const;
 
 export interface UserBalanceData {
@@ -138,20 +164,48 @@ export function useBalance() {
     const { totalMembersActivated } = balanceData.globalPool;
     
     if (totalMembersActivated <= 9999) return BCC_STAKING_TIERS.PHASE_1;
-    if (totalMembersActivated <= 19999) return BCC_STAKING_TIERS.PHASE_2;
-    if (totalMembersActivated <= 39999) return BCC_STAKING_TIERS.PHASE_3;
+    if (totalMembersActivated <= 19998) return BCC_STAKING_TIERS.PHASE_2; // 9999 + 9999
+    if (totalMembersActivated <= 39997) return BCC_STAKING_TIERS.PHASE_3; // 19998 + 19999
     return BCC_STAKING_TIERS.PHASE_4;
   };
-
-  // Calculate BCC unlock amount for user's activation tier
-  const getBccUnlockAmount = (): number => {
-    if (!balanceData?.activationTier) return 0;
+  
+  // Get tier info with BCC amounts
+  const getTierInfo = () => {
+    const currentTier = getCurrentStakingTier();
+    const totalLocked = getTotalBccLockedForTier(currentTier.id);
     
+    return {
+      phase: currentTier.id,
+      multiplier: currentTier.multiplier,
+      totalLockedInPhase: totalLocked,
+      nextPhaseAt: currentTier.id === 1 ? 10000 : 
+                   currentTier.id === 2 ? 19999 : 
+                   currentTier.id === 3 ? 39998 : null,
+    };
+  };
+
+  // Calculate BCC unlock amount for specific level and user's activation tier
+  const getBccUnlockAmountForLevel = (level: number): number => {
+    if (!balanceData?.activationTier || level < 1 || level > 19) return 0;
+    
+    const baseAmount = BCC_LEVEL_UNLOCK_AMOUNTS[level as keyof typeof BCC_LEVEL_UNLOCK_AMOUNTS];
     const tierConfig = Object.values(BCC_STAKING_TIERS).find(
       tier => tier.id === balanceData.activationTier
     );
     
-    return tierConfig?.unlockAmount || 0;
+    if (!tierConfig) return 0;
+    
+    // Apply tier multiplier (1.0, 0.5, 0.25, 0.125)
+    return Math.floor(baseAmount * tierConfig.multiplier);
+  };
+  
+  // Calculate total BCC that would be locked for user's tier
+  const getTotalBccLockedForTier = (tierId: number): number => {
+    const tierConfig = Object.values(BCC_STAKING_TIERS).find(tier => tier.id === tierId);
+    if (!tierConfig) return 0;
+    
+    // Apply tier multiplier to total locked amount
+    return Math.floor(TOTAL_BCC_LOCKED_PHASE_1 * tierConfig.multiplier);
   };
 
   // Calculate total BCC balance
@@ -208,7 +262,9 @@ export function useBalance() {
     
     // Utility functions
     getCurrentStakingTier,
-    getBccUnlockAmount,
+    getBccUnlockAmountForLevel,
+    getTotalBccLockedForTier,
+    getTierInfo,
     getTotalBccBalance,
     canWithdrawUsdt,
     formatUsdtAmount,
@@ -216,5 +272,7 @@ export function useBalance() {
     
     // Constants
     BCC_STAKING_TIERS,
+    BCC_LEVEL_UNLOCK_AMOUNTS,
+    TOTAL_BCC_LOCKED_PHASE_1,
   };
 }

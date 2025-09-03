@@ -175,7 +175,7 @@ export const levelConfig = pgTable("level_config", {
   priceUSDT: integer("price_usdt").notNull(), // Total price in USDT cents
   rewardUSDT: integer("reward_usdt").notNull(), // 100% reward to referrer (cents)
   activationFeeUSDT: integer("activation_fee_usdt").notNull(), // Platform activation fee (cents)
-  bccUnlockAmount: integer("bcc_unlock_amount").notNull(), // BCC unlocked when upgrading to this level
+  baseBccUnlockAmount: integer("base_bcc_unlock_amount").notNull(), // Base BCC unlocked when claiming this level NFT (tier 1)
 });
 
 // 19-layer matrix view for each root member - shows complete matrix structure
@@ -389,7 +389,7 @@ export const insertLevelConfigSchema = createInsertSchema(levelConfig).pick({
   priceUSDT: true,
   rewardUSDT: true,
   activationFeeUSDT: true,
-  bccUnlockAmount: true,
+  baseBccUnlockAmount: true,
 });
 
 export const insertMemberNFTVerificationSchema = createInsertSchema(memberNFTVerification).pick({
@@ -521,8 +521,8 @@ export const bccStakingTiers = pgTable("bcc_staking_tiers", {
   tierName: text("tier_name").notNull(), // 'phase_1', 'phase_2', 'phase_3', 'phase_4'
   maxActivations: integer("max_activations").notNull(), // Max members in this tier (9999, 19999, etc.)
   currentActivations: integer("current_activations").default(0).notNull(), // Current members activated
-  bccUnlockPerLevel: integer("bcc_unlock_per_level").notNull(), // BCC unlocked per level upgrade
-  bccLockDeduction: integer("bcc_lock_deduction").notNull(), // BCC deducted from total locked pool
+  unlockMultiplier: numeric("unlock_multiplier", { precision: 5, scale: 4 }).default('1.0000').notNull(), // BCC unlock multiplier (1.0, 0.5, 0.25, 0.125)
+  totalLockMultiplier: numeric("total_lock_multiplier", { precision: 5, scale: 4 }).default('1.0000').notNull(), // Total pool lock multiplier
   phase: text("phase").notNull(), // 'active', 'completed', 'upcoming'
   startedAt: timestamp("started_at"),
   completedAt: timestamp("completed_at"),
@@ -627,8 +627,8 @@ export const insertBccStakingTierSchema = createInsertSchema(bccStakingTiers).pi
   tierName: true,
   maxActivations: true,
   currentActivations: true,
-  bccUnlockPerLevel: true,
-  bccLockDeduction: true,
+  unlockMultiplier: true,
+  totalLockMultiplier: true,
   phase: true,
   startedAt: true,
   completedAt: true,
