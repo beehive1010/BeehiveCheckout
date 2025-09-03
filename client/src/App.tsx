@@ -17,7 +17,6 @@ import Me from "@/pages/Me";
 import NFTCenter from "@/pages/NFTCenter";
 import Referrals from "@/pages/Referrals";
 import Discover from "@/pages/Discover";
-import Inbox from "@/pages/Inbox";
 
 // Additional pages  
 import Registration from "@/pages/Registration";
@@ -26,7 +25,6 @@ import Tasks from "@/pages/Tasks";
 
 // Import proper Header component
 import Header from "@/components/shared/Header";
-import TabBar from "@/components/shared/TabBar";
 import { useWallet } from "@/hooks/useWallet";
 
 // Temporary components for features not yet refactored
@@ -222,7 +220,6 @@ function Router() {
         <Route path="/discover" component={Discover} />
         <Route path="/referrals" component={Referrals} />
         <Route path="/me" component={Me} />
-        <Route path="/inbox" component={Inbox} />
         <Route path="/ads" component={AdvertisementNFTs} />
         <Route path="/nft-center" component={NFTCenter} />
         <Route path="/admin-nft-manager" component={AdminNFTManager} />
@@ -261,7 +258,7 @@ function App() {
             <TooltipProvider>
               <div className="min-h-screen bg-background text-foreground">
                 {!isAdminPage && <Header />}
-                {!isAdminPage && <TabBar />}
+                {!isAdminPage && <Navigation />}
                 <main className={isAdminPage ? "min-h-screen" : "min-h-[calc(100vh-theme(spacing.32))] pb-16 md:pb-0"}>
                   <Router />
                 </main>

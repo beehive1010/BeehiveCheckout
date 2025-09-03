@@ -1,7 +1,5 @@
 import { Express } from 'express';
 import { storage } from '../../storage';
-import { db } from '../../db';
-import { sql } from 'drizzle-orm';
 
 /**
  * Dashboard Routes - Real member data from database
@@ -91,50 +89,31 @@ export function registerDashboardRoutes(app: Express) {
   // Get user matrix data - 19 layer referral structure
   app.get("/api/dashboard/matrix", requireWallet, async (req: any, res) => {
     try {
-      const walletAddress = (req.headers['x-wallet-address'] as string).toLowerCase();
+      const walletAddress = req.headers['x-wallet-address'] as string;
       
       console.log('🔗 Fetching matrix data for:', walletAddress);
 
-      // Get matrix data from our new view system
-      const userStats = await storage.getUserReferralStats(walletAddress);
-      
-      // Transform into matrix visualization format with placement data
+      // Get real referral layers (1-19)
+      const referralLayers = await storage.getReferralLayers(walletAddress);
+      const referralNode = await storage.getReferralNode(walletAddress);
+
+      // Transform into matrix visualization format
       const matrixData = {
         userPosition: {
           layer: 0, // Root user
-          position: 0
+          position: referralNode?.matrixPosition || 0
         },
-        directChildren: userStats?.directReferrals || 0,
-        totalDownline: userStats?.totalTeam || 0,
-        downlineLayers: await Promise.all((userStats?.downlineMatrix || []).map(async (layer: any) => {
-          // Only process layers that have members (filter out empty layers)
-          if (layer.members === 0) {
-            return {
-              layer: layer.level,
-              totalMembers: 0,
-              maxCapacity: Math.pow(3, layer.level),
-              members: []
-            };
-          }
-
-          // For now, return simplified layer data since we have the basic structure
-          const memberDetails = [];
-          
-          return {
-            layer: layer.level,
-            totalMembers: layer.members,
-            maxCapacity: Math.pow(3, layer.level),
-            members: memberDetails
-          };
+        directChildren: referralNode?.directReferralCount || 0,
+        totalDownline: referralLayers.reduce((total: number, layer: any) => total + layer.memberCount, 0),
+        downlineLayers: referralLayers.map((layer: any) => ({
+          layer: layer.layerNumber,
+          totalMembers: layer.memberCount,
+          maxCapacity: Math.pow(3, layer.layerNumber), // 3^n for each layer
+          members: layer.members || []
         }))
       };
 
-      console.log('✅ Sending real matrix data with members:');
-      console.log('- Total downline:', matrixData.totalDownline);
-      console.log('- Layers count:', matrixData.downlineLayers.length);
-      matrixData.downlineLayers.forEach((layer: any, index: number) => {
-        console.log(`- Layer ${layer.layer}: ${layer.totalMembers} members, details:`, layer.members);
-      });
+      console.log('✅ Sending real matrix data:', matrixData);
       res.json(matrixData);
     } catch (error) {
       console.error('Matrix data error:', error);
@@ -205,25 +184,27 @@ export function registerDashboardRoutes(app: Express) {
       await storage.createBCCBalance({
         walletAddress: walletAddress.toLowerCase(),
         transferable: 500,
-        restricted: 100
+        restricted: 100,
+        lastUpdated: new Date()
       });
 
       // Create membership state record
       await storage.createMembershipState({
         walletAddress: walletAddress.toLowerCase(),
         activeLevel: 1,
-        levelsOwned: [1]
+        levelsOwned: [1],
+        joinedAt: new Date(),
+        lastUpgradeAt: new Date()
       });
 
       // Create earnings wallet record
-      await storage.createEarningsWalletEntry({
+      await storage.createEarningsWallet({
         walletAddress: walletAddress.toLowerCase(),
-        totalEarnings: "0",
-        referralEarnings: "0",
-        levelEarnings: "0",
-        pendingRewards: "0",
-        withdrawnAmount: "0",
-        lastRewardAt: null
+        totalEarnings: 0,
+        referralEarnings: 0,
+        levelEarnings: 0,
+        lastRewardAt: null,
+        createdAt: new Date()
       });
 
       console.log('✅ User data initialized successfully');

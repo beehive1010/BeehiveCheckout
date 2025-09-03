@@ -23,28 +23,9 @@ interface ClaimableReward {
   metadata?: any;
 }
 
-interface RewardSummary {
-  claimableRewards: Array<{
-    id: string;
-    amount: number;
-    tokenType: 'USDT';
-    triggerLevel: number;
-    memberWallet: string;
-    createdAt: string;
-  }>;
-  pendingRewards: Array<{
-    id: string;
-    amount: number;
-    tokenType: 'USDT';
-    requiresLevel: number;
-    unlockCondition: string;
-    expiresAt: Date;
-    hoursLeft: number;
-    recipientWallet: string;
-    sourceWallet: string;
-    triggerLevel: number;
-    createdAt: string;
-  }>;
+interface ClaimableRewardsResponse {
+  claimableRewards: ClaimableReward[];
+  pendingRewards: ClaimableReward[];
   totalClaimable: number;
   totalPending: number;
 }
@@ -60,18 +41,17 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [claimingRewards, setClaimingRewards] = useState<string[]>([]);
-  const [isClaimingAll, setIsClaimingAll] = useState(false);
   
   // Use Web3 context for wallet connection
   const { isConnected } = useWeb3();
 
-  // Fetch claimable rewards using the same endpoint as summary for consistency
-  const { data: rewardsData, isLoading } = useQuery<RewardSummary>({
-    queryKey: ['/api/rewards/summary', walletAddress],
+  // Fetch claimable rewards
+  const { data: rewardsData, isLoading } = useQuery<ClaimableRewardsResponse>({
+    queryKey: ['/api/rewards/claimable'],
     enabled: !!walletAddress,
     refetchInterval: 30000, // Refresh every 30 seconds
     queryFn: async () => {
-      const response = await fetch('/api/rewards/summary', {
+      const response = await fetch('/api/rewards/claimable', {
         headers: {
           'X-Wallet-Address': walletAddress!,
         },
@@ -111,7 +91,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
       });
       
       // Refresh rewards data
-      queryClient.invalidateQueries({ queryKey: ['/api/rewards/summary', walletAddress] });
+      queryClient.invalidateQueries({ queryKey: ['/api/rewards/claimable'] });
     },
     onError: (error: Error, rewardId) => {
       toast({
@@ -150,20 +130,9 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
       return;
     }
 
-    setIsClaimingAll(true);
-    let claimedCount = 0;
-    const totalRewards = rewardsData.claimableRewards.length;
-
     rewardsData.claimableRewards.forEach(reward => {
       if (!claimingRewards.includes(reward.id)) {
-        claimRewardMutation.mutate(reward.id, {
-          onSettled: () => {
-            claimedCount++;
-            if (claimedCount === totalRewards) {
-              setIsClaimingAll(false);
-            }
-          }
-        });
+        claimRewardMutation.mutate(reward.id);
       }
     });
   };
@@ -226,29 +195,27 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
               <div className="text-2xl font-bold text-honey">{claimableRewards.length}</div>
               <div className="text-sm text-muted-foreground">Ready to Claim</div>
             </div>
-            <div className="text-center p-3 bg-green-500/5 rounded-lg">
-              <div className="text-2xl font-bold text-green-400">${totalClaimable.toFixed(2)}</div>
-              <div className="text-sm text-muted-foreground">Total Value</div>
+            <div className="text-center p-3 bg-orange-500/5 rounded-lg">
+              <div className="text-2xl font-bold text-orange-400">{pendingRewards.length}</div>
+              <div className="text-sm text-muted-foreground">Pending</div>
             </div>
           </div>
           
-          {/* Claim All Button */}
           {claimableRewards.length > 0 && (
             <Button 
               onClick={handleClaimAll}
-              disabled={isClaimingAll || claimableRewards.length === 0}
-              className="w-full bg-honey hover:bg-honey/90 text-black font-semibold"
-              data-testid="claim-all-button"
+              className="w-full bg-honey hover:bg-honey/90 text-secondary"
+              disabled={claimingRewards.length > 0}
             >
-              {isClaimingAll ? (
+              {claimingRewards.length > 0 ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  Claiming All...
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Claiming Rewards...
                 </>
               ) : (
                 <>
-                  <Gift className="w-4 h-4 mr-2" />
-                  Claim All ${totalClaimable.toFixed(2)} USDT
+                  <DollarSign className="w-4 h-4 mr-2" />
+                  Claim All Rewards (${totalClaimable.toFixed(2)} USDT)
                 </>
               )}
             </Button>
@@ -267,14 +234,18 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <Badge variant="outline" className="bg-honey/10 text-honey border-honey/30">
-                        ${reward.amount} USDT
+                        ${reward.rewardAmount} USDT
+                      </Badge>
+                      <Badge variant="secondary">
+                        Layer {reward.payoutLayer}
                       </Badge>
                       <Badge variant="outline">
                         Level {reward.triggerLevel}
                       </Badge>
                     </div>
                     <div className="text-sm text-muted-foreground space-y-1">
-                      <div>Trigger Level: {reward.triggerLevel}</div>
+                      <div>Position: {reward.matrixPosition}</div>
+                      <div>From: {reward.sourceWallet.slice(0, 8)}...{reward.sourceWallet.slice(-6)}</div>
                       <div>Created: {formatDate(reward.createdAt)}</div>
                     </div>
                   </div>
@@ -291,7 +262,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
                     ) : (
                       <>
                         <CheckCircle className="w-4 h-4 mr-2" />
-                        Claim ${reward.amount}
+                        Claim ${reward.rewardAmount}
                       </>
                     )}
                   </Button>
@@ -302,9 +273,51 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
         </div>
       )}
 
+      {/* Pending Rewards */}
+      {pendingRewards.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold text-orange-400">Pending Rewards</h3>
+          {pendingRewards.map((reward) => (
+            <Card key={reward.id} className="bg-secondary border-border opacity-60">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/30">
+                        ${reward.rewardAmount} USDT
+                      </Badge>
+                      <Badge variant="secondary">
+                        Layer {reward.payoutLayer}
+                      </Badge>
+                    </div>
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      <div>Position: {reward.matrixPosition}</div>
+                      <div>
+                        {reward.unlockCondition && (
+                          <span className="text-orange-400">Requires: {reward.unlockCondition}</span>
+                        )}
+                      </div>
+                      {reward.expiresAt && (
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          Expires: {formatDate(reward.expiresAt)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <Button variant="outline" disabled>
+                    <Clock className="w-4 h-4 mr-2" />
+                    Pending
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* No Rewards Message */}
-      {claimableRewards.length === 0 && (
+      {claimableRewards.length === 0 && pendingRewards.length === 0 && (
         <Card className="bg-secondary border-border">
           <CardContent className="p-6 text-center">
             <Gift className="w-12 h-12 text-muted-foreground mx-auto mb-4" />

@@ -11,9 +11,6 @@ import { DollarSign } from 'lucide-react';
 import { IconActivity } from '@tabler/icons-react';
 import { useLocation } from 'wouter';
 import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
-import { PendingRewardsSection } from '@/components/rewards/PendingRewardsSection';
-import { OrganizationActivity } from '@/components/organization/OrganizationActivity';
-import ReferralsMatrixComponent from '@/components/matrix/ReferralsMatrixComponent';
 import styles from '../styles/me/me.module.css';
 
 export default function Me() {
@@ -45,38 +42,36 @@ export default function Me() {
   };
 
   return (
-    <div className={`${styles.meContainer} container mx-auto px-4 py-4 sm:py-8`}>
-      <h2 className="text-xl sm:text-2xl font-bold text-honey mb-4 sm:mb-6">
+    <div className={`${styles.meContainer} container mx-auto px-4 py-8`}>
+      <h2 className="text-2xl font-bold text-honey mb-6">
         {t('me.title')}
       </h2>
       
       {/* Profile Card */}
-      <Card className="bg-secondary border-border mb-4 sm:mb-6">
-        <CardContent className="p-4 sm:p-6">
-          <div className="flex items-center space-x-3 sm:space-x-4 mb-4 sm:mb-6">
+      <Card className="bg-secondary border-border mb-6">
+        <CardContent className="p-6">
+          <div className="flex items-center space-x-4 mb-6">
             <div className="relative">
-              <HexagonIcon className="w-12 h-12 sm:w-16 sm:h-16 text-honey">
-                <span className="text-lg sm:text-2xl font-bold">L{currentLevel}</span>
-              </HexagonIcon>
+              <HexagonIcon className="w-16 h-16 text-honey" />
               <Badge className="absolute -top-2 -right-2 bg-honey text-secondary">
                 L{currentLevel}
               </Badge>
             </div>
             <div className="flex-1">
-              <h3 className="text-lg sm:text-xl font-semibold text-honey">
+              <h3 className="text-xl font-semibold text-honey">
                 {userData?.username || formatAddress(walletAddress || '')}
               </h3>
               <p className="text-muted-foreground text-sm">
                 {formatAddress(walletAddress || '')}
               </p>
-              <div className="flex items-center space-x-2 sm:space-x-4 mt-2">
-                <div className="text-xs sm:text-sm">
+              <div className="flex items-center space-x-4 mt-2">
+                <div className="text-sm">
                   <span className="text-muted-foreground">BCC:</span>
                   <span className="font-medium text-honey ml-1">
                     {bccBalance?.transferable || 0}
                   </span>
                 </div>
-                <div className="text-xs sm:text-sm">
+                <div className="text-sm">
                   <span className="text-muted-foreground">Locked:</span>
                   <span className="font-medium text-honey ml-1">
                     {bccBalance?.restricted || 0}
@@ -90,45 +85,86 @@ export default function Me() {
 
       {/* Tabs */}
       <Tabs defaultValue="rewards" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 bg-secondary h-auto">
-          <TabsTrigger value="rewards" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-3">
-            <DollarSign className="w-3 h-3 sm:w-4 sm:h-4" />
+        <TabsList className="grid w-full grid-cols-4 bg-secondary">
+          <TabsTrigger value="rewards" className="flex items-center gap-2">
+            <DollarSign className="w-4 h-4" />
             {t('me.rewards') || 'Rewards'}
           </TabsTrigger>
-          <TabsTrigger value="referrals" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-3">
-            <UsersIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+          <TabsTrigger value="activity" className="flex items-center gap-2">
+            <IconActivity className="w-4 h-4" />
+            {t('me.activity') || 'Activity'}
+          </TabsTrigger>
+          <TabsTrigger value="learn" className="flex items-center gap-2">
+            <AcademicCapIcon className="w-4 h-4" />
+            {t('me.learn') || 'Learn'}
+          </TabsTrigger>
+          <TabsTrigger value="referrals" className="flex items-center gap-2">
+            <UsersIcon className="w-4 h-4" />
             {t('me.referrals') || 'Referrals'}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="rewards" className="space-y-6">
-          {/* ClaimableRewardsCard for withdraw functionality and rewards stats */}
-          {walletAddress && (
-            <ClaimableRewardsCard walletAddress={walletAddress} />
-          )}
-          
-          {/* PendingRewardsSection for pending rewards with timer */}
-          {walletAddress && currentLevel && (
-            <PendingRewardsSection 
-              walletAddress={walletAddress} 
-              currentUserLevel={currentLevel}
-            />
-          )}
+          <ClaimableRewardsCard walletAddress={walletAddress || ''} />
         </TabsContent>
 
+        <TabsContent value="activity" className="space-y-6">
+          <Card className="bg-secondary border-border">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-honey mb-4">
+                {t('me.recentActivity') || 'Recent Activity'}
+              </h3>
+              {isActivityLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto"></div>
+                </div>
+              ) : userActivity && userActivity.length > 0 ? (
+                <div className="space-y-3">
+                  {userActivity.slice(0, 10).map((activity, index) => (
+                    <div key={index} className="flex justify-between items-center py-2 border-b border-border/50 last:border-b-0">
+                      <div>
+                        <p className="text-sm font-medium">{activity.description}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDate(activity.timestamp)}
+                        </p>
+                      </div>
+                      <Badge variant={activity.type === 'reward' ? 'default' : 'secondary'}>
+                        {activity.type}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-center py-8">
+                  {t('me.noActivity') || 'No recent activity'}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        <TabsContent value="referrals" className="space-y-4 sm:space-y-6">
-          {walletAddress && (
-            <>
-              <ReferralsMatrixComponent walletAddress={walletAddress} />
-              <OrganizationActivity 
-                walletAddress={walletAddress} 
-                maxItems={3}
-                isPopup={true}
-                className=""
-              />
-            </>
-          )}
+        <TabsContent value="learn">
+          <div className="text-center py-8">
+            <Button 
+              onClick={() => setLocation('/education')}
+              className="bg-honey text-secondary hover:bg-honey/90"
+            >
+              <AcademicCapIcon className="w-4 h-4 mr-2" />
+              {t('me.goToEducation') || 'Go to Education'}
+            </Button>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="referrals">
+          <div className="text-center py-8">
+            <Button 
+              onClick={() => setLocation('/referrals')}
+              className="bg-honey text-secondary hover:bg-honey/90"
+            >
+              <UsersIcon className="w-4 h-4 mr-2" />
+              {t('me.goToReferrals') || 'Go to Referrals'}
+            </Button>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

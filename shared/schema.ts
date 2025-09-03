@@ -57,20 +57,7 @@ export const membershipState = pgTable("membership_state", {
   lastUpgradeAt: timestamp("last_upgrade_at"),
 });
 
-// Matrix positions table - Each member has their own L M R matrix
-export const matrixPositions = pgTable("matrix_positions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  rootWallet: varchar("root_wallet", { length: 42 }).references(() => users.walletAddress).notNull(), // Member who owns this matrix
-  memberWallet: varchar("member_wallet", { length: 42 }).references(() => users.walletAddress).notNull(), // Member placed in position
-  position: text("position").notNull(), // "L", "M", "R"
-  layer: integer("layer").default(1).notNull(), // 1-19 layers
-  placementType: text("placement_type").notNull(), // "direct" or "spillover"
-  placedBy: varchar("placed_by", { length: 42 }).references(() => users.walletAddress).notNull(), // Who placed this member
-  isActive: boolean("is_active").default(true).notNull(),
-  placedAt: timestamp("placed_at").defaultNow().notNull(),
-});
-
-// Referral nodes table - Enhanced for 3x3 matrix system (Legacy support)
+// Referral nodes table - Enhanced for 3x3 matrix system
 export const referralNodes = pgTable("referral_nodes", {
   walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
   sponsorWallet: varchar("sponsor_wallet", { length: 42 }), // Direct sponsor (upline)
@@ -84,48 +71,7 @@ export const referralNodes = pgTable("referral_nodes", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Organization activity feed for referral notifications
-export const organizationActivity = pgTable("organization_activity", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  organizationWallet: varchar("organization_wallet", { length: 42 }).notNull(), // Who this activity is for
-  activityType: text("activity_type").notNull(), // "direct_referral", "placement", "downline_referral", "spillover"
-  actorWallet: varchar("actor_wallet", { length: 42 }).notNull(), // Who performed the action
-  actorUsername: text("actor_username"),
-  targetWallet: varchar("target_wallet", { length: 42 }), // Who was affected (for placements)
-  targetUsername: text("target_username"),
-  message: text("message").notNull(), // Human readable message
-  metadata: jsonb("metadata").$type<{
-    level?: number;
-    position?: string;
-    amount?: number;
-    referralCode?: string;
-  }>().default({}).notNull(),
-  isRead: boolean("is_read").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
 // 19-Layer referral tree tracking for each user
-// Matrix layers for each member (as root) - New structure
-export const memberMatrixLayers = pgTable("member_matrix_layers", {
-  rootWallet: varchar("root_wallet", { length: 42 }).references(() => users.walletAddress).notNull(),
-  layer: integer("layer").notNull(), // 1-19
-  leftPosition: varchar("left_position", { length: 42 }), // Wallet in L position
-  middlePosition: varchar("middle_position", { length: 42 }), // Wallet in M position  
-  rightPosition: varchar("right_position", { length: 42 }), // Wallet in R position
-  leftPlacementType: text("left_placement_type"), // "direct" or "spillover"
-  middlePlacementType: text("middle_placement_type"), // "direct" or "spillover"
-  rightPlacementType: text("right_placement_type"), // "direct" or "spillover"
-  leftPlacedBy: varchar("left_placed_by", { length: 42 }),
-  middlePlacedBy: varchar("middle_placed_by", { length: 42 }),
-  rightPlacedBy: varchar("right_placed_by", { length: 42 }),
-  totalMembers: integer("total_members").default(0).notNull(),
-  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
-}, (table) => {
-  return {
-    pk: primaryKey({ columns: [table.rootWallet, table.layer] })
-  };
-});
-
 export const referralLayers = pgTable("referral_layers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   walletAddress: varchar("wallet_address", { length: 42 }).notNull().references(() => users.walletAddress),
@@ -386,31 +332,6 @@ export const insertMembershipStateSchema = createInsertSchema(membershipState).p
   walletAddress: true,
   levelsOwned: true,
   activeLevel: true,
-});
-
-export const insertMatrixPositionSchema = createInsertSchema(matrixPositions).pick({
-  rootWallet: true,
-  memberWallet: true,
-  position: true,
-  layer: true,
-  placementType: true,
-  placedBy: true,
-  isActive: true,
-});
-
-export const insertMemberMatrixLayerSchema = createInsertSchema(memberMatrixLayers).pick({
-  rootWallet: true,
-  layer: true,
-  leftPosition: true,
-  middlePosition: true,
-  rightPosition: true,
-  leftPlacementType: true,
-  middlePlacementType: true,
-  rightPlacementType: true,
-  leftPlacedBy: true,
-  middlePlacedBy: true,
-  rightPlacedBy: true,
-  totalMembers: true,
 });
 
 export const insertReferralNodeSchema = createInsertSchema(referralNodes).pick({
@@ -676,12 +597,6 @@ export type User = typeof users.$inferSelect;
 
 export type InsertMembershipState = z.infer<typeof insertMembershipStateSchema>;
 export type MembershipState = typeof membershipState.$inferSelect;
-
-export type InsertMatrixPosition = z.infer<typeof insertMatrixPositionSchema>;
-export type MatrixPosition = typeof matrixPositions.$inferSelect;
-
-export type InsertMemberMatrixLayer = z.infer<typeof insertMemberMatrixLayerSchema>;
-export type MemberMatrixLayer = typeof memberMatrixLayers.$inferSelect;
 
 export type InsertReferralNode = z.infer<typeof insertReferralNodeSchema>;
 export type ReferralNode = typeof referralNodes.$inferSelect;
