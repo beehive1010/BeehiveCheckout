@@ -46,40 +46,6 @@ export default function UserProfileCard({
     );
   }
 
-  if (variant === 'compact') {
-    return (
-      <div className={`flex items-center gap-3 bg-secondary/30 rounded-xl p-3 border border-border/30 ${className}`}>
-        {/* Avatar */}
-        <div className="w-10 h-10 rounded-full bg-muted border border-border flex items-center justify-center flex-shrink-0">
-          <User className="w-5 h-5 text-muted-foreground" />
-        </div>
-        
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-mono truncate">
-              {formatAddress(walletAddress)}
-            </span>
-            <Badge variant="outline" className="text-xs bg-honey/10 text-honey border-honey">
-              L{currentLevel || 1}
-            </Badge>
-          </div>
-        </div>
-        
-        {/* User Center Button */}
-        {showUserCenter && (
-          <Button 
-            size="sm"
-            onClick={handleUserCenter}
-            className="bg-blue-600 hover:bg-blue-700 text-white flex-shrink-0"
-            data-testid="button-user-center"
-          >
-            <Settings className="w-4 h-4" />
-          </Button>
-        )}
-      </div>
-    );
-  }
 
   if (variant === 'detailed') {
     return (
