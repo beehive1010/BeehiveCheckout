@@ -1,8 +1,64 @@
 import type { Express } from "express";
 import { usersService, referralsService, rewardsService } from '../services';
 import { debugKeys } from '../repositories';
+import { db } from "../../db";
+import { members } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 export function registerAdminRoutes(app: Express, requireWallet: any) {
+  
+  // Temporary admin endpoint to activate membership
+  app.post("/api/admin/activate-member", async (req, res) => {
+    try {
+      const { walletAddress } = req.body;
+      
+      if (!walletAddress) {
+        return res.status(400).json({ error: 'Wallet address required' });
+      }
+
+      console.log('🔧 Admin: Manually activating membership for:', walletAddress);
+
+      // Insert or update member record
+      try {
+        await db
+          .insert(members)
+          .values({
+            walletAddress: walletAddress.toLowerCase(),
+            isActivated: true,
+            activatedAt: new Date(),
+            currentLevel: 1,
+            levelsOwned: [1],
+            hasPendingRewards: false,
+            upgradeReminderEnabled: false,
+            totalDirectReferrals: 0,
+            totalTeamSize: 0
+          });
+        console.log('✅ Member record created');
+      } catch (insertError) {
+        // If insert fails, try update
+        await db
+          .update(members)
+          .set({
+            isActivated: true,
+            activatedAt: new Date(),
+            currentLevel: 1,
+            levelsOwned: [1],
+            updatedAt: new Date()
+          })
+          .where(eq(members.walletAddress, walletAddress.toLowerCase()));
+        console.log('✅ Member record updated');
+      }
+
+      res.json({ 
+        success: true, 
+        message: 'Membership activated successfully',
+        walletAddress: walletAddress.toLowerCase()
+      });
+    } catch (error) {
+      console.error('Admin activation error:', error);
+      res.status(500).json({ error: 'Failed to activate membership' });
+    }
+  });
   
   // Admin settings endpoint
   app.post("/api/admin/settings", requireWallet, async (req: any, res) => {

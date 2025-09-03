@@ -183,16 +183,22 @@ export class UsersService {
       throw new Error('User not found');
     }
 
-    // Update user with membership activation
+    // Update user with membership level
     const updatedUser = await storage.updateUser(walletAddress.toLowerCase(), {
-      currentLevel: membershipLevel,
-      memberActivated: true,
-      lastUpdatedAt: new Date()
+      currentLevel: membershipLevel
     });
 
     if (!updatedUser) {
       throw new Error('Failed to update user');
     }
+
+    // Create/update member activation record
+    await storage.createOrUpdateMember(walletAddress.toLowerCase(), {
+      isActivated: true,
+      activatedAt: new Date(),
+      currentLevel: membershipLevel,
+      levelsOwned: [membershipLevel]
+    });
 
     return updatedUser;
   }

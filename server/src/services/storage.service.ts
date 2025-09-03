@@ -112,6 +112,37 @@ export class StorageService {
       .limit(1);
     return user || null;
   }
+
+  async createOrUpdateMember(walletAddress: string, memberData: any) {
+    // Try to insert first, if it fails due to unique constraint, update instead
+    try {
+      await db
+        .insert(members)
+        .values({
+          walletAddress: walletAddress.toLowerCase(),
+          isActivated: memberData.isActivated,
+          activatedAt: memberData.activatedAt,
+          currentLevel: memberData.currentLevel,
+          levelsOwned: memberData.levelsOwned,
+          hasPendingRewards: false,
+          upgradeReminderEnabled: false,
+          totalDirectReferrals: 0,
+          totalTeamSize: 0
+        });
+    } catch (error) {
+      // If insert fails due to unique constraint, update existing record
+      await db
+        .update(members)
+        .set({
+          isActivated: memberData.isActivated,
+          activatedAt: memberData.activatedAt,
+          currentLevel: memberData.currentLevel,
+          levelsOwned: memberData.levelsOwned,
+          updatedAt: new Date()
+        })
+        .where(eq(members.walletAddress, walletAddress.toLowerCase()));
+    }
+  }
 }
 
 export const storage = new StorageService();
