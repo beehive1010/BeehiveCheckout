@@ -1,0 +1,268 @@
+import { db } from '../../db';
+import { users, membershipState, earningsWallet, platformRevenue } from '@shared/schema';
+import { globalMatrixService } from './global-matrix.service';
+import { rewardDistributionService } from './reward-distribution.service';
+import { eq } from 'drizzle-orm';
+
+export interface RegistrationInput {
+  walletAddress: string;
+  username: string;
+  email: string;
+  referrerWallet?: string;
+  secondaryPassword?: string;
+}
+
+export interface ActivationInput {
+  walletAddress: string;
+  level: number;
+  txHash: string;
+  tokenId?: number;
+}
+
+/**
+ * B) Registration → Activation Service
+ * Handles user registration and Level 1 NFT claiming
+ */
+export class RegistrationService {
+
+  /**
+   * Edge function: on-register
+   * Create users row with status: registered
+   */
+  async registerUser(input: RegistrationInput): Promise<{
+    success: boolean;
+    user?: any;
+    message: string;
+  }> {
+    const wallet = input.walletAddress.toLowerCase();
+    
+    try {
+      // Check if user already exists
+      const [existingUser] = await db.select().from(users).where(eq(users.walletAddress, wallet));
+      if (existingUser) {
+        return { success: false, message: 'User already registered' };
+      }
+
+      // Validate referrer if provided
+      let referrerWallet: string | undefined;
+      if (input.referrerWallet) {
+        const [referrer] = await db.select().from(users).where(eq(users.walletAddress, input.referrerWallet.toLowerCase()));
+        if (referrer && referrer.memberActivated) {
+          referrerWallet = input.referrerWallet.toLowerCase();
+        }
+      }
+
+      // Create user record
+      const now = new Date();
+      const [newUser] = await db.insert(users).values({
+        walletAddress: wallet,
+        username: input.username,
+        email: input.email,
+        secondaryPasswordHash: input.secondaryPassword ? this.hashPassword(input.secondaryPassword) : undefined,
+        referrerWallet,
+        registrationStatus: 'completed',
+        registeredAt: now,
+        createdAt: now,
+        lastUpdatedAt: now,
+        memberActivated: false,
+        currentLevel: 0
+      }).returning();
+
+      // Initialize membership state
+      await db.insert(membershipState).values({
+        walletAddress: wallet,
+        levelsOwned: [],
+        activeLevel: 0
+      });
+
+      // Initialize earnings wallet
+      await db.insert(earningsWallet).values({
+        walletAddress: wallet,
+        totalEarnings: "0",
+        referralEarnings: "0",
+        levelEarnings: "0",
+        pendingRewards: "0",
+        withdrawnAmount: "0",
+        createdAt: now
+      });
+
+      console.log(`✅ User registered: ${wallet} with referrer: ${referrerWallet || 'none'}`);
+
+      return {
+        success: true,
+        user: newUser,
+        message: 'User registered successfully'
+      };
+    } catch (error) {
+      console.error('Registration error:', error);
+      return { success: false, message: 'Registration failed' };
+    }
+  }
+
+  /**
+   * Edge function: on-claim-membership (Level 1 = activation)
+   * Handles L1 NFT claiming and matrix placement
+   */
+  async activateMembership(input: ActivationInput): Promise<{
+    success: boolean;
+    message: string;
+    matrixPosition?: any;
+    rewards?: {
+      ancestorReward?: number;
+      platformRevenue?: number;
+    };
+  }> {
+    const wallet = input.walletAddress.toLowerCase();
+    
+    try {
+      // 1. Verify user exists and is not already activated
+      const [user] = await db.select().from(users).where(eq(users.walletAddress, wallet));
+      if (!user) {
+        return { success: false, message: 'User not found' };
+      }
+      if (user.memberActivated) {
+        return { success: false, message: 'User already activated' };
+      }
+
+      // 2. Activate membership (users.membership_level ≥ 1)
+      const now = new Date();
+      await db.update(users)
+        .set({
+          memberActivated: true,
+          currentLevel: Math.max(input.level, 1),
+          activationAt: now,
+          lastUpdatedAt: now
+        })
+        .where(eq(users.walletAddress, wallet));
+
+      // Update membership state
+      await db.update(membershipState)
+        .set({
+          levelsOwned: [input.level],
+          activeLevel: input.level,
+          joinedAt: now,
+          lastUpgradeAt: now
+        })
+        .where(eq(membershipState.walletAddress, wallet));
+
+      // 3. Matrix placement under referrer
+      let matrixPosition;
+      if (user.referrerWallet) {
+        matrixPosition = await globalMatrixService.placeInGlobalMatrix(wallet, user.referrerWallet);
+        console.log(`📍 Matrix placement: ${wallet} → ${JSON.stringify(matrixPosition)}`);
+      }
+
+      // 4. Reward distribution
+      const rewards = await this.distributeActivationRewards(wallet, input.level, input.txHash);
+
+      console.log(`🎉 Membership activated: ${wallet} at Level ${input.level}`);
+
+      return {
+        success: true,
+        message: `Level ${input.level} membership activated successfully`,
+        matrixPosition,
+        rewards
+      };
+    } catch (error) {
+      console.error('Activation error:', error);
+      return { success: false, message: 'Activation failed' };
+    }
+  }
+
+  /**
+   * Distribute rewards for new Level 1 activation
+   */
+  private async distributeActivationRewards(memberWallet: string, level: number, txHash: string): Promise<{
+    ancestorReward?: number;
+    platformRevenue?: number;
+  }> {
+    try {
+      const rewards: any = {};
+
+      // Get the member's 1st ancestor (direct upline)
+      const ancestor = await globalMatrixService.getAncestorAtDepth(memberWallet, 1);
+      
+      if (ancestor) {
+        // Pay 100 USDT to 1st ancestor
+        const rewardAmount = 100;
+        await rewardDistributionService.distributeReward({
+          recipientWallet: ancestor.walletAddress,
+          sourceWallet: memberWallet,
+          triggerLevel: level,
+          rewardAmount,
+          rewardType: 'activation',
+          txHash
+        });
+        rewards.ancestorReward = rewardAmount;
+        
+        console.log(`💰 Ancestor reward: ${rewardAmount} USDT → ${ancestor.walletAddress}`);
+      }
+
+      // Platform revenue (Level 1 only)
+      if (level === 1) {
+        const platformAmount = 30;
+        await rewardDistributionService.recordPlatformRevenue({
+          sourceWallet: memberWallet,
+          amount: platformAmount,
+          revenueType: 'level_1_activation',
+          txHash,
+          notes: `Level ${level} activation platform revenue`
+        });
+        rewards.platformRevenue = platformAmount;
+        
+        console.log(`🏢 Platform revenue: ${platformAmount} USDT`);
+      }
+
+      return rewards;
+    } catch (error) {
+      console.error('Reward distribution error:', error);
+      return {};
+    }
+  }
+
+  /**
+   * Simple password hashing (use bcrypt in production)
+   */
+  private hashPassword(password: string): string {
+    // This is a simplified hash - use bcrypt or similar in production
+    return Buffer.from(password).toString('base64');
+  }
+
+  /**
+   * Check if username is available
+   */
+  async checkUsernameAvailability(username: string): Promise<boolean> {
+    try {
+      const [existingUser] = await db.select().from(users).where(eq(users.username, username));
+      return !existingUser;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  /**
+   * Get registration status for a wallet
+   */
+  async getRegistrationStatus(walletAddress: string): Promise<{
+    isRegistered: boolean;
+    registrationStatus: string;
+    user?: any;
+  }> {
+    try {
+      const [user] = await db.select().from(users).where(eq(users.walletAddress, walletAddress.toLowerCase()));
+      
+      return {
+        isRegistered: !!user,
+        registrationStatus: user?.registrationStatus || 'not_started',
+        user
+      };
+    } catch (error) {
+      return {
+        isRegistered: false,
+        registrationStatus: 'not_started'
+      };
+    }
+  }
+}
+
+export const registrationService = new RegistrationService();

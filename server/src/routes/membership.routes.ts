@@ -1,7 +1,43 @@
 import type { Express } from "express";
 import { usersService, referralsService, rewardsService } from '../services';
+import { registrationService } from '../services/registration.service';
+import { globalMatrixService } from '../services/global-matrix.service';
+import { rewardDistributionService } from '../services/reward-distribution.service';
 
 export function registerMembershipRoutes(app: Express, requireWallet: any) {
+
+  // B) Registration endpoint
+  app.post("/api/membership/register", async (req: any, res) => {
+    try {
+      const { walletAddress, username, email, referrerWallet, secondaryPassword } = req.body;
+      
+      if (!walletAddress || !username || !email) {
+        return res.status(400).json({ message: 'Wallet address, username, and email required' });
+      }
+
+      const result = await registrationService.registerUser({
+        walletAddress,
+        username,
+        email,
+        referrerWallet,
+        secondaryPassword
+      });
+
+      if (!result.success) {
+        return res.status(400).json({ message: result.message });
+      }
+
+      res.json({
+        success: true,
+        message: result.message,
+        user: result.user,
+        nextStep: 'activate_membership'
+      });
+    } catch (error) {
+      console.error('Registration error:', error);
+      res.status(500).json({ message: 'Registration failed' });
+    }
+  });
   
   // Activate membership level
   app.post("/api/membership/activate", requireWallet, async (req: any, res) => {
