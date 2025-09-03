@@ -6,7 +6,8 @@
       "Bash(pkill:*)",
       "Bash(killall:*)",
       "Bash(npm run build:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(npx tsx:*)"
     ],
     "deny": [],
     "ask": []
