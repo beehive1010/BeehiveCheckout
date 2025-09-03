@@ -298,26 +298,37 @@ export const courseLessons = pgTable("course_lessons", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Course access table
-export const courseAccess = pgTable("course_access", {
+// Course activations table - replaces courseAccess and lessonAccess
+export const courseActivations = pgTable("course_activations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   walletAddress: varchar("wallet_address", { length: 42 }).notNull().references(() => users.walletAddress),
   courseId: varchar("course_id").notNull().references(() => courses.id),
-  progress: integer("progress").default(0).notNull(),
-  completed: boolean("completed").default(false).notNull(),
-  grantedAt: timestamp("granted_at").defaultNow().notNull(),
-  zoomNickname: text("zoom_nickname"), // For online courses, generated nickname + 3 digits
-});
-
-// Lesson access table for tracking individual lesson unlocks
-export const lessonAccess = pgTable("lesson_access", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  walletAddress: varchar("wallet_address", { length: 42 }).notNull().references(() => users.walletAddress),
-  lessonId: varchar("lesson_id").notNull().references(() => courseLessons.id),
-  courseId: varchar("course_id").notNull().references(() => courses.id),
-  unlockedAt: timestamp("unlocked_at").defaultNow().notNull(),
-  watchProgress: integer("watch_progress").default(0).notNull(), // Percentage watched
-  completed: boolean("completed").default(false).notNull(),
+  
+  // 课程基本信息
+  totalLessons: integer("total_lessons").default(0).notNull(), // lessons总数量
+  courseCategory: text("course_category").notNull(), // 类别
+  
+  // 进度管理
+  unlockedLessons: jsonb("unlocked_lessons").$type<string[]>().default([]).notNull(), // 已解锁lessons ID列表
+  completedLessons: jsonb("completed_lessons").$type<string[]>().default([]).notNull(), // 已完成lessons ID列表
+  overallProgress: integer("overall_progress").default(0).notNull(), // 总体进度百分比
+  
+  // 价格信息
+  bccOriginalPrice: integer("bcc_original_price").notNull(), // BCC原价
+  bccDiscountPrice: integer("bcc_discount_price").default(0).notNull(), // 折扣价格
+  actualPaidBCC: integer("actual_paid_bcc").notNull(), // 实际支付BCC
+  
+  // 时间记录
+  courseActivatedAt: timestamp("course_activated_at").defaultNow().notNull(), // 课程激活时间
+  lastLessonUnlockedAt: timestamp("last_lesson_unlocked_at"), // 最后lesson解锁时间
+  lastProgressUpdate: timestamp("last_progress_update").defaultNow().notNull(), // 最后进度更新
+  
+  // 额外信息
+  zoomNickname: text("zoom_nickname"), // 在线课程昵称
+  completed: boolean("completed").default(false).notNull(), // 课程是否完成
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Blog posts table for Hiveworld
@@ -536,20 +547,21 @@ export const insertCourseLessonSchema = createInsertSchema(courseLessons).pick({
   isFree: true,
 });
 
-export const insertLessonAccessSchema = createInsertSchema(lessonAccess).pick({
-  walletAddress: true,
-  lessonId: true,
-  courseId: true,
-  watchProgress: true,
-  completed: true,
-});
-
-export const insertCourseAccessSchema = createInsertSchema(courseAccess).pick({
+export const insertCourseActivationSchema = createInsertSchema(courseActivations).pick({
   walletAddress: true,
   courseId: true,
-  progress: true,
-  completed: true,
+  totalLessons: true,
+  courseCategory: true,
+  unlockedLessons: true,
+  completedLessons: true,
+  overallProgress: true,
+  bccOriginalPrice: true,
+  bccDiscountPrice: true,
+  actualPaidBCC: true,
+  courseActivatedAt: true,
+  lastLessonUnlockedAt: true,
   zoomNickname: true,
+  completed: true,
 });
 
 // Advertisement NFTs table - different from merchant NFTs
@@ -751,11 +763,8 @@ export type Course = typeof courses.$inferSelect;
 export type InsertCourseLesson = z.infer<typeof insertCourseLessonSchema>;
 export type CourseLesson = typeof courseLessons.$inferSelect;
 
-export type InsertLessonAccess = z.infer<typeof insertLessonAccessSchema>;
-export type LessonAccess = typeof lessonAccess.$inferSelect;
-
-export type InsertCourseAccess = z.infer<typeof insertCourseAccessSchema>;
-export type CourseAccess = typeof courseAccess.$inferSelect;
+export type InsertCourseActivation = z.infer<typeof insertCourseActivationSchema>;
+export type CourseActivation = typeof courseActivations.$inferSelect;
 
 export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
 export type BlogPost = typeof blogPosts.$inferSelect;
