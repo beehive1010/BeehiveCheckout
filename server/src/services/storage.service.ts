@@ -3,12 +3,15 @@ import {
   users,
   members,
   cthBalances,
+  userNotifications,
   type UserActivity,
   type InsertUserActivity,
-  type User
+  type User,
+  type UserNotification,
+  type InsertUserNotification
 } from "@shared/schema";
 import { db } from "../../db";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and, isNull, not, count } from "drizzle-orm";
 
 // Simplified StorageService without service delegation to avoid initialization issues
 export class StorageService {
@@ -205,6 +208,167 @@ export class StorageService {
       console.error('Error getting user wallet:', error);
       return null;
     }
+  }
+
+  // ==================== User Notifications Methods ====================
+
+  async createUserNotification(data: InsertUserNotification): Promise<UserNotification> {
+    const insertData: any = {
+      recipientWallet: data.recipientWallet.toLowerCase(),
+      title: data.title,
+      message: data.message,
+      type: data.type,
+    };
+    
+    // Add optional fields only if they exist
+    if (data.triggerWallet) insertData.triggerWallet = data.triggerWallet.toLowerCase();
+    if (data.relatedWallet) insertData.relatedWallet = data.relatedWallet.toLowerCase();
+    if (data.amount !== undefined) insertData.amount = data.amount;
+    if (data.amountType) insertData.amountType = data.amountType;
+    if (data.level !== undefined) insertData.level = data.level;
+    if (data.layer !== undefined) insertData.layer = data.layer;
+    if (data.position) insertData.position = data.position;
+    if (data.priority) insertData.priority = data.priority;
+    if (data.actionRequired !== undefined) insertData.actionRequired = data.actionRequired;
+    if (data.actionType) insertData.actionType = data.actionType;
+    if (data.actionUrl) insertData.actionUrl = data.actionUrl;
+    if (data.expiresAt) insertData.expiresAt = data.expiresAt;
+    if (data.metadata) insertData.metadata = data.metadata;
+    if (data.isRead !== undefined) insertData.isRead = data.isRead;
+    if (data.isArchived !== undefined) insertData.isArchived = data.isArchived;
+    if (data.emailSent !== undefined) insertData.emailSent = data.emailSent;
+
+    const [notification] = await db
+      .insert(userNotifications)
+      .values(insertData)
+      .returning();
+    return notification;
+  }
+
+  async updateUserNotification(id: string, updates: Partial<UserNotification>): Promise<UserNotification | null> {
+    const [updated] = await db
+      .update(userNotifications)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(userNotifications.id, id))
+      .returning();
+    return updated || null;
+  }
+
+  async getUserNotifications(
+    walletAddress: string, 
+    filters: {
+      isRead?: boolean;
+      type?: string;
+      priority?: 'low' | 'normal' | 'high' | 'urgent';
+      isArchived?: boolean;
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<UserNotification[]> {
+    const conditions = [eq(userNotifications.recipientWallet, walletAddress.toLowerCase())];
+    
+    if (filters.isRead !== undefined) {
+      conditions.push(eq(userNotifications.isRead, filters.isRead));
+    }
+    if (filters.type) {
+      conditions.push(eq(userNotifications.type, filters.type));
+    }
+    if (filters.priority) {
+      conditions.push(eq(userNotifications.priority, filters.priority));
+    }
+    if (filters.isArchived !== undefined) {
+      conditions.push(eq(userNotifications.isArchived, filters.isArchived));
+    }
+
+    let baseQuery = db
+      .select()
+      .from(userNotifications)
+      .where(and(...conditions))
+      .orderBy(desc(userNotifications.createdAt));
+
+    if (filters.limit) {
+      if (filters.offset) {
+        return await baseQuery.limit(filters.limit).offset(filters.offset);
+      } else {
+        return await baseQuery.limit(filters.limit);
+      }
+    }
+
+    return await baseQuery;
+  }
+
+  async countUserNotifications(
+    walletAddress: string,
+    filters: {
+      isRead?: boolean;
+      type?: string;
+      priority?: 'low' | 'normal' | 'high' | 'urgent';
+      isArchived?: boolean;
+      actionRequired?: boolean;
+    } = {}
+  ): Promise<number> {
+    const conditions = [eq(userNotifications.recipientWallet, walletAddress.toLowerCase())];
+    
+    if (filters.isRead !== undefined) {
+      conditions.push(eq(userNotifications.isRead, filters.isRead));
+    }
+    if (filters.type) {
+      conditions.push(eq(userNotifications.type, filters.type));
+    }
+    if (filters.priority) {
+      conditions.push(eq(userNotifications.priority, filters.priority));
+    }
+    if (filters.isArchived !== undefined) {
+      conditions.push(eq(userNotifications.isArchived, filters.isArchived));
+    }
+    if (filters.actionRequired !== undefined) {
+      conditions.push(eq(userNotifications.actionRequired, filters.actionRequired));
+    }
+
+    const [result] = await db
+      .select({ count: count() })
+      .from(userNotifications)
+      .where(and(...conditions));
+
+    return result.count;
+  }
+
+  async getUserNotificationById(id: string): Promise<UserNotification | null> {
+    const [notification] = await db
+      .select()
+      .from(userNotifications)
+      .where(eq(userNotifications.id, id))
+      .limit(1);
+    return notification || null;
+  }
+
+  async markAllNotificationsAsRead(walletAddress: string): Promise<number> {
+    const result = await db
+      .update(userNotifications)
+      .set({ 
+        isRead: true, 
+        updatedAt: new Date() 
+      })
+      .where(
+        and(
+          eq(userNotifications.recipientWallet, walletAddress.toLowerCase()),
+          eq(userNotifications.isRead, false),
+          eq(userNotifications.isArchived, false)
+        )
+      );
+
+    return result.rowCount || 0;
+  }
+
+  async deleteUserNotification(id: string): Promise<boolean> {
+    const result = await db
+      .delete(userNotifications)
+      .where(eq(userNotifications.id, id));
+    
+    return (result.rowCount || 0) > 0;
   }
 }
 

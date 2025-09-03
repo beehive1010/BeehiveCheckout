@@ -188,8 +188,8 @@ export class NotificationsService {
       throw new Error('User email not found');
     }
 
-    // Import SendGrid service
-    const { sendEmail } = await import('../../../sendgrid');
+    // Import SendGrid service from root level
+    const { sendEmail } = await import('../../../sendgrid.js');
 
     if (!process.env.SENDGRID_API_KEY) {
       throw new Error('SendGrid API key not configured');
