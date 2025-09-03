@@ -1,12 +1,8 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 
-// Configure Neon with minimal logging
-neonConfig.webSocketConstructor = ws;
-neonConfig.pipelineConnect = false; // Reduce connection logging
-neonConfig.fetchConnectionCache = true; // Enable caching to reduce logs
+// Configure for Supabase with SSL
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -15,7 +11,10 @@ if (!process.env.DATABASE_URL) {
 }
 
 export const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false, // For Supabase compatibility
+  }
 });
 
 export const db = drizzle({ 
