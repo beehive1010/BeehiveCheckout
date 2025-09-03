@@ -139,7 +139,7 @@ export default function Tasks() {
             >
               <Star className="w-4 h-4" />
               <span className="hidden sm:inline">My Collection</span>
-              <span className="sm:hidden">Collection</span>
+              <span className="inline sm:hidden">Collection</span>
               <Badge variant="secondary" className="ml-1 bg-purple-500/20 text-purple-400 text-xs">
                 {totalServices}
               </Badge>
