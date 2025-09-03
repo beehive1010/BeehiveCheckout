@@ -629,29 +629,94 @@ export const availablePositions = pgTable("available_positions", {
 export type InsertRewardNotification = z.infer<typeof insertRewardNotificationSchema>;
 export type RewardNotification = typeof rewardNotifications.$inferSelect;
 
-// User inbox notifications for BCC, upgrades, and other activities
+// Matrix organization notifications - activation, upgrades, and countdown reminders
 export const userNotifications = pgTable("user_notifications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  walletAddress: varchar("wallet_address", { length: 42 }).notNull(),
-  title: varchar("title").notNull(),
+  recipientWallet: varchar("recipient_wallet", { length: 42 }).notNull().references(() => users.walletAddress),
+  title: text("title").notNull(),
   message: text("message").notNull(),
-  type: varchar("type").notNull(), // 'bcc_reward', 'level_upgrade', 'referral_joined', 'matrix_placement', 'earnings'
-  relatedWallet: varchar("related_wallet", { length: 42 }), // wallet of person who triggered the notification
-  amount: varchar("amount"), // BCC amount, earnings amount, etc.
-  metadata: jsonb("metadata"), // additional data like level, layer, etc.
+  
+  // Notification types for matrix organization
+  type: text("type").notNull(), 
+  // 'member_activated', 'level_upgraded', 'upgrade_reminder', 'reward_received', 
+  // 'referral_joined', 'matrix_placement', 'countdown_warning', 'system_announcement'
+  
+  // Related parties and amounts
+  triggerWallet: varchar("trigger_wallet", { length: 42 }), // Who caused this notification
+  relatedWallet: varchar("related_wallet", { length: 42 }), // Additional related member
+  amount: integer("amount"), // USDT cents or BCC amount
+  amountType: text("amount_type"), // 'USDT', 'BCC'
+  
+  // Matrix context information
+  level: integer("level"), // Related member level (1-19)
+  layer: integer("layer"), // Matrix layer if applicable
+  position: text("position"), // 'L', 'M', 'R' for matrix positions
+  
+  // Priority and actions
+  priority: text("priority").default("normal").notNull(), // 'low', 'normal', 'high', 'urgent'
+  actionRequired: boolean("action_required").default(false).notNull(), // Requires user action
+  actionType: text("action_type"), // 'upgrade_now', 'claim_reward', 'complete_profile'
+  actionUrl: text("action_url"), // Deep link for action
+  
+  // Countdown and expiration
+  expiresAt: timestamp("expires_at"), // For time-sensitive notifications
+  reminderSentAt: timestamp("reminder_sent_at"), // When reminder was sent
+  
+  // Status tracking
   isRead: boolean("is_read").default(false).notNull(),
+  isArchived: boolean("is_archived").default(false).notNull(),
+  emailSent: boolean("email_sent").default(false).notNull(), // Email notification sent
+  emailSentAt: timestamp("email_sent_at"), // When email was sent
+  
+  // Additional data
+  metadata: jsonb("metadata").$type<{
+    // Upgrade countdown info
+    timeLeft?: string;
+    upgradeDeadline?: string;
+    // Reward details
+    rewardSource?: string;
+    // Matrix details
+    matrixInfo?: {
+      rootWallet: string;
+      teamSize: number;
+      directReferrals: number;
+    };
+    // Custom data
+    [key: string]: any;
+  }>(), 
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  // Indexes for efficient queries
+  recipientIdx: index("user_notifications_recipient_idx").on(table.recipientWallet),
+  typeIdx: index("user_notifications_type_idx").on(table.type),
+  unreadIdx: index("user_notifications_unread_idx").on(table.recipientWallet, table.isRead),
+  priorityIdx: index("user_notifications_priority_idx").on(table.priority, table.createdAt),
+  expiresIdx: index("user_notifications_expires_idx").on(table.expiresAt),
+}));
 
 export const insertUserNotificationSchema = createInsertSchema(userNotifications).pick({
-  walletAddress: true,
+  recipientWallet: true,
   title: true,
   message: true,
   type: true,
+  triggerWallet: true,
   relatedWallet: true,
   amount: true,
+  amountType: true,
+  level: true,
+  layer: true,
+  position: true,
+  priority: true,
+  actionRequired: true,
+  actionType: true,
+  actionUrl: true,
+  expiresAt: true,
   metadata: true,
   isRead: true,
+  isArchived: true,
+  emailSent: true,
 });
 
 export type InsertUserNotification = z.infer<typeof insertUserNotificationSchema>;

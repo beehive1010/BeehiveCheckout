@@ -266,11 +266,15 @@ export interface IStorage {
   getAdminSession(sessionToken: string): Promise<AdminSession | undefined>;
   deleteAdminSession(sessionToken: string): Promise<boolean>;
   
-  // User notifications methods
-  getUserNotifications(walletAddress: string): Promise<UserNotification[]>;
+  // User notifications methods - expanded for matrix organization
+  getUserNotifications(walletAddress: string, filters?: { isRead?: boolean; type?: string; priority?: string; isArchived?: boolean; limit?: number; offset?: number }): Promise<UserNotification[]>;
+  getUserNotificationById(notificationId: string): Promise<UserNotification | undefined>;
   createUserNotification(notification: InsertUserNotification): Promise<UserNotification>;
+  updateUserNotification(notificationId: string, updates: Partial<UserNotification>): Promise<UserNotification | undefined>;
+  deleteUserNotification(notificationId: string): Promise<boolean>;
   markNotificationAsRead(notificationId: string, walletAddress: string): Promise<UserNotification | undefined>;
-  markAllNotificationsAsRead(walletAddress: string): Promise<void>;
+  markAllNotificationsAsRead(walletAddress: string): Promise<number>;
+  countUserNotifications(walletAddress: string, filters?: { isRead?: boolean; type?: string; priority?: string; isArchived?: boolean; actionRequired?: boolean }): Promise<number>;
   getUnreadNotificationCount(walletAddress: string): Promise<number>;
 
   // Platform Revenue methods
@@ -3741,6 +3745,154 @@ export class DatabaseStorage implements IStorage {
     // Check if the source wallet has reached the required level
     const membership = await this.getMembershipState(reward.sourceWallet);
     return membership?.levelsOwned.includes(requiredLevel) || false;
+  }
+
+  // ==================== User Notifications Implementation ====================
+
+  async getUserNotifications(
+    walletAddress: string, 
+    filters: { isRead?: boolean; type?: string; priority?: string; isArchived?: boolean; limit?: number; offset?: number } = {}
+  ): Promise<UserNotification[]> {
+    const conditions = [eq(userNotifications.recipientWallet, walletAddress.toLowerCase())];
+    
+    if (filters.isRead !== undefined) {
+      conditions.push(eq(userNotifications.isRead, filters.isRead));
+    }
+    if (filters.type) {
+      conditions.push(eq(userNotifications.type, filters.type));
+    }
+    if (filters.priority) {
+      conditions.push(eq(userNotifications.priority, filters.priority));
+    }
+    if (filters.isArchived !== undefined) {
+      conditions.push(eq(userNotifications.isArchived, filters.isArchived));
+    }
+
+    const query = db
+      .select()
+      .from(userNotifications)
+      .where(and(...conditions))
+      .orderBy(desc(userNotifications.createdAt));
+
+    if (filters.limit) {
+      query.limit(filters.limit);
+    }
+    if (filters.offset) {
+      query.offset(filters.offset);
+    }
+
+    return query;
+  }
+
+  async getUserNotificationById(notificationId: string): Promise<UserNotification | undefined> {
+    const [notification] = await db
+      .select()
+      .from(userNotifications)
+      .where(eq(userNotifications.id, notificationId))
+      .limit(1);
+    
+    return notification || undefined;
+  }
+
+  async createUserNotification(notification: InsertUserNotification): Promise<UserNotification> {
+    const [created] = await db
+      .insert(userNotifications)
+      .values({
+        ...notification,
+        recipientWallet: notification.recipientWallet.toLowerCase(),
+        triggerWallet: notification.triggerWallet?.toLowerCase(),
+        relatedWallet: notification.relatedWallet?.toLowerCase(),
+      })
+      .returning();
+    
+    return created;
+  }
+
+  async updateUserNotification(
+    notificationId: string, 
+    updates: Partial<UserNotification>
+  ): Promise<UserNotification | undefined> {
+    const [updated] = await db
+      .update(userNotifications)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userNotifications.id, notificationId))
+      .returning();
+    
+    return updated || undefined;
+  }
+
+  async deleteUserNotification(notificationId: string): Promise<boolean> {
+    const result = await db
+      .delete(userNotifications)
+      .where(eq(userNotifications.id, notificationId));
+    
+    return result.rowCount > 0;
+  }
+
+  async markNotificationAsRead(
+    notificationId: string, 
+    walletAddress: string
+  ): Promise<UserNotification | undefined> {
+    const [updated] = await db
+      .update(userNotifications)
+      .set({ isRead: true, updatedAt: new Date() })
+      .where(
+        and(
+          eq(userNotifications.id, notificationId),
+          eq(userNotifications.recipientWallet, walletAddress.toLowerCase())
+        )
+      )
+      .returning();
+    
+    return updated || undefined;
+  }
+
+  async markAllNotificationsAsRead(walletAddress: string): Promise<number> {
+    const result = await db
+      .update(userNotifications)
+      .set({ isRead: true, updatedAt: new Date() })
+      .where(
+        and(
+          eq(userNotifications.recipientWallet, walletAddress.toLowerCase()),
+          eq(userNotifications.isRead, false)
+        )
+      );
+    
+    return result.rowCount || 0;
+  }
+
+  async countUserNotifications(
+    walletAddress: string, 
+    filters: { isRead?: boolean; type?: string; priority?: string; isArchived?: boolean; actionRequired?: boolean } = {}
+  ): Promise<number> {
+    const conditions = [eq(userNotifications.recipientWallet, walletAddress.toLowerCase())];
+    
+    if (filters.isRead !== undefined) {
+      conditions.push(eq(userNotifications.isRead, filters.isRead));
+    }
+    if (filters.type) {
+      conditions.push(eq(userNotifications.type, filters.type));
+    }
+    if (filters.priority) {
+      conditions.push(eq(userNotifications.priority, filters.priority));
+    }
+    if (filters.isArchived !== undefined) {
+      conditions.push(eq(userNotifications.isArchived, filters.isArchived));
+    }
+    if (filters.actionRequired !== undefined) {
+      conditions.push(eq(userNotifications.actionRequired, filters.actionRequired));
+    }
+
+    const [result] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(userNotifications)
+      .where(and(...conditions));
+    
+    return result.count || 0;
+  }
+
+  async getUnreadNotificationCount(walletAddress: string): Promise<number> {
+    return this.countUserNotifications(walletAddress, { isRead: false, isArchived: false });
   }
 }
 
