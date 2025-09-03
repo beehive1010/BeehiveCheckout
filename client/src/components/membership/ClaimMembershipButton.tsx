@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { Button } from '../ui/button';
 import { useToast } from '../../hooks/use-toast';
 import { useI18n } from '../../contexts/I18nContext';
-import { getMembershipLevel } from '../../lib/config/membershipLevels';
+import { useLevelConfiguration, convertToLegacyMembershipLevel } from '../../hooks/useLevelConfig';
 import { membershipEventEmitter } from '../../lib/membership/events';
 import { ConnectButton, useActiveAccount } from "thirdweb/react";
 import { client, alphaCentauri, bbcMembershipContract, levelToTokenId, paymentChains, contractAddresses } from '../../lib/web3';
@@ -42,10 +42,28 @@ export default function ClaimMembershipButton({
   const { toast } = useToast();
   const { t } = useI18n();
 
-  const membershipLevel = getMembershipLevel(level);
+  // Use dynamic level configuration from database
+  const { data: levelConfigData, isLoading: isLoadingLevelConfig, error: levelConfigError } = useLevelConfiguration(level);
 
-  if (!membershipLevel) {
-    return null;
+  // Convert to legacy format for backward compatibility
+  const membershipLevel = levelConfigData ? convertToLegacyMembershipLevel(levelConfigData) : null;
+
+  if (isLoadingLevelConfig) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-honey"></div>
+        <span className="ml-2 text-muted-foreground">Loading level configuration...</span>
+      </div>
+    );
+  }
+
+  if (levelConfigError || !membershipLevel) {
+    return (
+      <div className="text-center p-4">
+        <p className="text-red-500 text-sm">Failed to load level configuration</p>
+        <p className="text-muted-foreground text-xs mt-1">Please try again later</p>
+      </div>
+    );
   }
 
   // NFT-based automatic activation for existing NFT holders

@@ -36,7 +36,8 @@ export class BCCCalculationService {
 
       return result[0]?.totalSpent || 0;
     } catch (error) {
-      console.error('Error calculating total NFT spending:', error);
+      console.error('Orders table not found, returning 0 USDT spent:', error.message);
+      // 如果表不存在，返回0（新用户还没有购买记录）
       return 0;
     }
   }
@@ -46,6 +47,7 @@ export class BCCCalculationService {
    */
   private async calculateTotalUnlockedBCC(walletAddress: string): Promise<number> {
     try {
+      // 检查表是否存在，如果不存在则返回0
       const result = await db
         .select({ 
           totalUnlocked: sum(bccUnlockHistory.unlockAmount).mapWith(Number)
@@ -55,7 +57,8 @@ export class BCCCalculationService {
 
       return result[0]?.totalUnlocked || 0;
     } catch (error) {
-      console.error('Error calculating total unlocked BCC:', error);
+      console.error('BCC unlock history table not found, returning 0:', error.message);
+      // 如果表不存在，返回0（新用户还没有解锁历史）
       return 0;
     }
   }

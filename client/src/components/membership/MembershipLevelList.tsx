@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader } from '../ui/card';
 import { useI18n } from '../../contexts/I18nContext';
 import { useWallet } from '../../hooks/useWallet';
-import { membershipLevels } from '../../lib/config/membershipLevels';
+import { useLevelConfigurations, convertToLegacyMembershipLevel } from '../../hooks/useLevelConfig';
 import MembershipBadge from './MembershipBadge';
 import ClaimMembershipButton from './ClaimMembershipButton';
 import MobileDivider from '../shared/MobileDivider';
@@ -20,8 +20,14 @@ export default function MembershipLevelList({
   const { walletAddress, userData } = useWallet();
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
 
+  // Use dynamic level configurations from database
+  const { data: levelConfigs, isLoading: isLoadingLevels, error: levelConfigError } = useLevelConfigurations();
+
   const currentLevel = userData?.user?.currentLevel || 0;
   const levelsOwned = userData?.membershipState?.levelsOwned || [];
+
+  // Convert database configs to legacy format
+  const membershipLevels = levelConfigs ? levelConfigs.map(convertToLegacyMembershipLevel) : [];
 
   const getCardStatus = (level: number) => {
     if (levelsOwned.includes(level)) return 'owned';
@@ -45,6 +51,30 @@ export default function MembershipLevelList({
     setSelectedLevel(null);
     onPurchaseSuccess?.();
   };
+
+  // Loading state
+  if (isLoadingLevels) {
+    return (
+      <div className={`space-y-6 ${className}`}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading membership levels...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (levelConfigError || !levelConfigs || levelConfigs.length === 0) {
+    return (
+      <div className={`space-y-6 ${className}`}>
+        <div className="text-center">
+          <p className="text-red-500 mb-2">Failed to load membership levels</p>
+          <p className="text-muted-foreground text-sm">Please try refreshing the page</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`space-y-6 ${className}`}>

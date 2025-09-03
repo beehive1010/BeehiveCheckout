@@ -16,6 +16,7 @@ import { registerDashboardFixRoutes } from "./routes/dashboard-fix.routes";
 import { registerNotificationsRoutes } from "./routes/notifications.routes";
 import { registerStatsRoutes } from "./routes/stats.routes";
 import { registerMatrixRoutes } from "./routes/matrix.routes";
+import { registerConfigRoutes } from "./routes/config.routes";
 import healthRoutes from "./routes/health.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -58,6 +59,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerNotificationsRoutes(app, requireWallet);
   registerStatsRoutes(app);
   registerMatrixRoutes(app);
+  registerConfigRoutes(app);
 
   console.log('✅ All route modules registered successfully');
 
