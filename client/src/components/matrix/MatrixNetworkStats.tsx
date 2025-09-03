@@ -1,9 +1,8 @@
-import { Card, CardContent } from './ui/card';
-import { Badge } from './ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Users } from 'lucide-react';
-import { useI18n } from '../contexts/I18nContext';
-import { dashboardService } from '../features/dashboard/services/dashboard.client';
-import styles from '../features/dashboard/styles/dashboard.module.css';
+import { useI18n } from '@/contexts/I18nContext';
+import styles from '@/styles/dashboard/dashboard.module.css';
 
 interface MatrixNetworkStatsProps {
   userStats: any;
@@ -32,29 +31,7 @@ export function MatrixNetworkStats({ userStats, isLoadingUserStats }: MatrixNetw
     ));
 
   const renderMatrixRows = () => {
-    if (userStats?.downlineMatrix) {
-      return userStats.downlineMatrix.map((levelData: any) => (
-        <div key={levelData.level} className={styles.matrixRow}>
-          <span className={styles.matrixLevel}>{t('dashboard.layer.name')} {levelData.level}</span>
-          <div className={styles.matrixStats}>
-            <div className={styles.matrixStatGroup}>
-              <span className={`${styles.matrixStatValue} text-honey`}>
-                {dashboardService.formatNumber(levelData?.members)}
-              </span>
-              <span className={styles.matrixStatLabel}>{t('dashboard.layer.members')}</span>
-            </div>
-            <div className={styles.matrixSeparator}>•</div>
-            <div className={styles.matrixStatGroup}>
-              <span className={`${styles.matrixStatValue} text-green-400`}>
-                {dashboardService.formatNumber(levelData?.upgraded)}
-              </span>
-              <span className={styles.matrixStatLabel}>{t('dashboard.layer.upgraded')}</span>
-            </div>
-          </div>
-        </div>
-      ));
-    }
-
+    // Always render 19 layers with proper data structure
     return Array.from({length: 19}, (_, i) => (
       <div key={i + 1} className={styles.matrixRow}>
         <span className={styles.matrixLevel}>{t('dashboard.layer.name')} {i + 1}</span>
