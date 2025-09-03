@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { Eye, ExternalLink, Code, Calendar, Sparkles } from 'lucide-react';
 import MembershipBadge from '../membership/MembershipBadge';
 import { IconCode } from '@tabler/icons-react';
+import { NFTDetailModal } from './NFTDetailModal';
+import { useToast } from '../../hooks/use-toast';
+import { useWallet } from '../../hooks/useWallet';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export interface UserOwnedNFT {
   id: string;
@@ -32,8 +35,60 @@ interface MyNFTCardProps {
   className?: string;
 }
 
+// Transform function to convert UserOwnedNFT to NFTDetailModal format
+const transformNFTForModal = (nft: UserOwnedNFT) => {
+  return {
+    id: nft.id,
+    title: nft.title,
+    description: nft.description,
+    imageUrl: nft.imageUrl || '/placeholder-nft.png',
+    serviceName: nft.serviceName || 'Digital Service',
+    serviceType: nft.nftType,
+    websiteUrl: undefined,
+    priceBCC: 0 // Services are already owned
+  };
+};
+
 export default function MyNFTCard({ nft, onServiceAccess, className = '' }: MyNFTCardProps) {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const { toast } = useToast();
+  const { walletAddress } = useWallet();
+  const queryClient = useQueryClient();
+
+  // Service request mutation
+  const serviceRequestMutation = useMutation({
+    mutationFn: async (requestData: any) => {
+      const response = await fetch('/api/service-requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Wallet-Address': walletAddress!,
+        },
+        body: JSON.stringify(requestData),
+      });
+      if (!response.ok) throw new Error('Failed to create service request');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Service Request Submitted',
+        description: 'Your service request has been submitted successfully. We will review it and get back to you soon.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/service-requests'] });
+    },
+    onError: (error) => {
+      console.error('Service request failed:', error);
+      toast({
+        title: 'Request Failed',
+        description: 'Failed to submit service request. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleServiceRequest = async (requestData: any) => {
+    await serviceRequestMutation.mutateAsync(requestData);
+  };
 
   const getNFTTypeColor = (type: string) => {
     switch (type) {
@@ -166,77 +221,16 @@ export default function MyNFTCard({ nft, onServiceAccess, className = '' }: MyNF
 
         {/* Action Buttons */}
         <div className="flex gap-2 pt-2">
-          <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-            <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 border-honey/30 text-honey hover:bg-honey/10"
-                data-testid={`button-view-details-${nft.id}`}
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                Details
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle className="text-honey flex items-center gap-2">
-                  <span className="text-lg">{getNFTTypeIcon(nft.nftType)}</span>
-                  {nft.title}
-                </DialogTitle>
-                <DialogDescription>
-                  {nft.nftType} NFT {nft.serviceName && `• ${nft.serviceName}`}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                {nft.imageUrl && (
-                  <img src={nft.imageUrl} alt={nft.title} className="w-full h-48 object-cover rounded-lg" />
-                )}
-                <p className="text-sm text-muted-foreground">{nft.description}</p>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Type:</span>
-                    <p className="font-medium capitalize">{nft.nftType}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Acquired:</span>
-                    <p className="font-medium">{formatDate(nft.acquiredAt)}</p>
-                  </div>
-                  {nft.level && (
-                    <div>
-                      <span className="text-muted-foreground">Level:</span>
-                      <p className="font-medium">{nft.level}</p>
-                    </div>
-                  )}
-                  <div>
-                    <span className="text-muted-foreground">Services:</span>
-                    <p className="font-medium">{hasServices ? nft.services!.length : 0}</p>
-                  </div>
-                </div>
-                {hasServices && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-semibold text-honey">All Services:</h4>
-                    {nft.services!.map((service) => (
-                      <div key={service.id} className="flex items-center justify-between p-2 bg-muted rounded">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium">{service.serviceName}</p>
-                          <p className="text-xs text-muted-foreground">{service.serviceDescription}</p>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => onServiceAccess?.(nft, service)}
-                          className="border-honey/50 text-honey hover:bg-honey/10 ml-2"
-                        >
-                          <Code className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 border-honey/30 text-honey hover:bg-honey/10"
+            data-testid={`button-view-details-${nft.id}`}
+            onClick={() => setIsDetailsOpen(true)}
+          >
+            <Eye className="w-4 h-4 mr-2" />
+            Details
+          </Button>
 
           {hasServices && (
             <Button
@@ -252,6 +246,15 @@ export default function MyNFTCard({ nft, onServiceAccess, className = '' }: MyNF
           )}
         </div>
       </CardContent>
+
+      {/* NFT Detail Modal */}
+      <NFTDetailModal
+        nft={transformNFTForModal(nft)}
+        isOpen={isDetailsOpen}
+        onClose={() => setIsDetailsOpen(false)}
+        walletAddress={walletAddress}
+        onRequestService={handleServiceRequest}
+      />
     </Card>
   );
 }
