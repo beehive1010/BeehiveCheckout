@@ -1,15 +1,4 @@
 import { 
-  userService,
-  memberService,
-  walletService,
-  referralService,
-  rewardService,
-  nftService,
-  courseService,
-  adminService,
-  configService
-} from './index';
-import { 
   userActivities,
   type UserActivity,
   type InsertUserActivity
@@ -17,99 +6,9 @@ import {
 import { db } from "../../db";
 import { eq, desc, sql } from "drizzle-orm";
 
+// Simplified StorageService without service delegation to avoid initialization issues
 export class StorageService {
-  // Delegate all operations to specific services
   
-  // User operations
-  getUser = userService.getUser.bind(userService);
-  getUserByUsername = userService.getUserByUsername.bind(userService);
-  createUser = userService.createUser.bind(userService);
-  updateUser = userService.updateUser.bind(userService);
-
-  // Member operations
-  getMember = memberService.getMember.bind(memberService);
-  createMember = memberService.createMember.bind(memberService);
-  updateMember = memberService.updateMember.bind(memberService);
-  getTotalMemberCount = memberService.getTotalMemberCount.bind(memberService);
-  getMemberCountByLevel = memberService.getMemberCountByLevel.bind(memberService);
-  getDirectReferralCount = memberService.getDirectReferralCount.bind(memberService);
-
-  // Wallet operations
-  getUserWallet = walletService.getUserWallet.bind(walletService);
-  createUserWallet = walletService.createUserWallet.bind(walletService);
-  updateUserWallet = walletService.updateUserWallet.bind(walletService);
-  getUserBalances = walletService.getUserBalances.bind(walletService);
-
-  // Referral operations
-  getReferrals = referralService.getReferrals.bind(referralService);
-  getReferralsByMember = referralService.getReferralsByMember.bind(referralService);
-  createReferral = referralService.createReferral.bind(referralService);
-  updateReferral = referralService.updateReferral.bind(referralService);
-  findAvailablePosition = referralService.findAvailablePosition.bind(referralService);
-
-  // Reward operations
-  getRewardClaims = rewardService.getRewardClaims.bind(rewardService);
-  createRewardClaim = rewardService.createRewardClaim.bind(rewardService);
-  updateRewardClaim = rewardService.updateRewardClaim.bind(rewardService);
-  getPendingRewardClaims = rewardService.getPendingRewardClaims.bind(rewardService);
-  getExpiredRewardClaims = rewardService.getExpiredRewardClaims.bind(rewardService);
-  getRewardRollups = rewardService.getRewardRollups.bind(rewardService);
-  createRewardRollup = rewardService.createRewardRollup.bind(rewardService);
-  createUserReward = rewardService.createUserReward.bind(rewardService);
-  getUserRewardsByRecipient = rewardService.getUserRewardsByRecipient.bind(rewardService);
-  getUserRewardsBySource = rewardService.getUserRewardsBySource.bind(rewardService);
-  getPendingUserRewards = rewardService.getPendingUserRewards.bind(rewardService);
-  updateUserRewardStatus = rewardService.updateUserRewardStatus.bind(rewardService);
-  getUserRewardsExpiredBefore = rewardService.getUserRewardsExpiredBefore.bind(rewardService);
-  unlockPendingRewards = rewardService.unlockPendingRewards.bind(rewardService);
-  processMatrixRewards = rewardService.processMatrixRewards.bind(rewardService);
-  processReferralRewards = rewardService.processReferralRewards.bind(rewardService);
-  createRewardWithdrawal = rewardService.createRewardWithdrawal.bind(rewardService);
-
-  // NFT operations
-  getMemberNFTVerification = nftService.getMemberNFTVerification.bind(nftService);
-  createNFTVerification = nftService.createNFTVerification.bind(nftService);
-  updateNFTVerification = nftService.updateNFTVerification.bind(nftService);
-  getMerchantNFTs = nftService.getMerchantNFTs.bind(nftService);
-  getMerchantNFT = nftService.getMerchantNFT.bind(nftService);
-  createMerchantNFT = nftService.createMerchantNFT.bind(nftService);
-  createMerchantNFTClaim = nftService.createMerchantNFTClaim.bind(nftService);
-  getMerchantNFTClaimsByWallet = nftService.getMerchantNFTClaimsByWallet.bind(nftService);
-  processNFTClaimRewards = nftService.processNFTClaimRewards.bind(nftService);
-
-  // Course operations
-  getCourses = courseService.getCourses.bind(courseService);
-  getCourse = courseService.getCourse.bind(courseService);
-  createCourse = courseService.createCourse.bind(courseService);
-  updateCourse = courseService.updateCourse.bind(courseService);
-  getCourseActivation = courseService.getCourseActivation.bind(courseService);
-  getCourseActivationsByWallet = courseService.getCourseActivationsByWallet.bind(courseService);
-  createCourseActivation = courseService.createCourseActivation.bind(courseService);
-  updateCourseActivation = courseService.updateCourseActivation.bind(courseService);
-
-  // Admin operations
-  getAdminUsers = adminService.getAdminUsers.bind(adminService);
-  getAdminUser = adminService.getAdminUser.bind(adminService);
-  getAdminUserByUsername = adminService.getAdminUserByUsername.bind(adminService);
-  createAdminUser = adminService.createAdminUser.bind(adminService);
-  updateAdminUser = adminService.updateAdminUser.bind(adminService);
-  deleteAdminUser = adminService.deleteAdminUser.bind(adminService);
-  createAdminSession = adminService.createAdminSession.bind(adminService);
-  getAdminSession = adminService.getAdminSession.bind(adminService);
-  deleteAdminSession = adminService.deleteAdminSession.bind(adminService);
-  createPlatformRevenue = adminService.createPlatformRevenue.bind(adminService);
-  getPlatformRevenueByDate = adminService.getPlatformRevenueByDate.bind(adminService);
-  getPlatformRevenueBySourceWallet = adminService.getPlatformRevenueBySourceWallet.bind(adminService);
-
-  // Config operations
-  getLevelConfig = configService.getLevelConfig.bind(configService);
-  getAllLevelConfigs = configService.getAllLevelConfigs.bind(configService);
-  createOrUpdateLevelConfig = configService.createOrUpdateLevelConfig.bind(configService);
-  createTokenPurchase = configService.createTokenPurchase.bind(configService);
-  getTokenPurchase = configService.getTokenPurchase.bind(configService);
-  getTokenPurchasesByWallet = configService.getTokenPurchasesByWallet.bind(configService);
-  updateTokenPurchase = configService.updateTokenPurchase.bind(configService);
-
   // User Activity operations - implemented directly here
   async getUserActivity(walletAddress: string, limit: number = 50): Promise<Array<{
     id: string;
@@ -142,6 +41,19 @@ export class StorageService {
       .values(activity)
       .returning();
     return newActivity;
+  }
+
+  // Placeholder methods to maintain compatibility - these can be implemented as needed
+  async getUser(walletAddress: string) {
+    throw new Error('StorageService.getUser not implemented - use userService directly');
+  }
+  
+  async createUser(userData: any) {
+    throw new Error('StorageService.createUser not implemented - use userService directly');
+  }
+  
+  async updateUser(walletAddress: string, updates: any) {
+    throw new Error('StorageService.updateUser not implemented - use userService directly');
   }
 }
 
