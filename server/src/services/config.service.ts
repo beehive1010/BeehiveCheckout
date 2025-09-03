@@ -107,8 +107,8 @@ export class ConfigService {
     return await db
       .select()
       .from(discoverPartners)
-      .where(eq(discoverPartners.active, true))
-      .orderBy(discoverPartners.displayOrder);
+      .where(eq(discoverPartners.status, 'published'))
+      .orderBy(discoverPartners.createdAt);
   }
 
   async createDiscoverPartner(partner: InsertDiscoverPartner): Promise<DiscoverPartner> {

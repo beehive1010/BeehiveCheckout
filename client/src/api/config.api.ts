@@ -20,9 +20,12 @@ export interface DiscoverPartner {
   chains: string[];
   dappType: string;
   featured: boolean;
-  verified: boolean;
-  active: boolean;
-  displayOrder: number;
+  status: string;
+  submitterWallet?: string;
+  redeemCodeUsed?: string;
+  approvedBy?: string;
+  approvedAt?: Date;
+  rejectionReason?: string;
   createdAt: Date;
   updatedAt: Date;
 }

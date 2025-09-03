@@ -130,7 +130,7 @@ export default function Discover() {
                           <div>
                             <CardTitle className="text-honey text-lg flex items-center gap-2">
                               {partner.name}
-                              {partner.verified && (
+                              {partner.status === 'published' && (
                                 <CheckCircle className="w-4 h-4 text-green-500" />
                               )}
                             </CardTitle>
@@ -146,23 +146,25 @@ export default function Discover() {
                     
                     <CardContent className="space-y-4">
                       <p className="text-sm text-muted-foreground line-clamp-3">
-                        {partner.description}
+                        {partner.shortDescription}
                       </p>
                       
                       <div className="flex items-center justify-between text-sm">
                         <div className="flex items-center space-x-1">
-                          <Users className="w-4 h-4 text-muted-foreground" />
-                          <span>{formatNumber(partner.stats.users)}</span>
+                          <Globe className="w-4 h-4 text-muted-foreground" />
+                          <span>Active Partner</span>
                         </div>
-                        <div className="flex items-center space-x-1">
-                          <Star className="w-4 h-4 text-yellow-500" />
-                          <span>{partner.stats.rating}</span>
-                        </div>
+                        {partner.chains.length > 0 && (
+                          <div className="flex items-center space-x-1">
+                            <Star className="w-4 h-4 text-yellow-500" />
+                            <span>{partner.chains[0]}</span>
+                          </div>
+                        )}
                       </div>
                       
                       <Button
                         className="w-full bg-honey text-secondary hover:bg-honey/90 group"
-                        onClick={() => window.open(partner.website, '_blank')}
+                        onClick={() => window.open(partner.websiteUrl, '_blank')}
                       >
                         Visit Platform
                         <ArrowUpRight className="w-4 h-4 ml-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
@@ -170,31 +172,45 @@ export default function Discover() {
                     </CardContent>
                   </Card>
                 ))}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* All Partners */}
           <div>
             <h2 className="text-2xl font-bold text-honey mb-6">All Partners</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {mockPartners.map((partner) => (
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="bg-secondary border border-border rounded-lg p-4 animate-pulse">
+                    <div className="h-4 bg-muted rounded mb-3"></div>
+                    <div className="h-3 bg-muted rounded mb-2"></div>
+                    <div className="h-3 bg-muted rounded w-3/4"></div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {partners.map((partner) => (
                 <Card key={partner.id} className="bg-secondary border-border hover:border-honey/50 transition-all duration-300">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-3">
-                        <img
-                          src={partner.logo}
-                          alt={partner.name}
-                          className="w-10 h-10 rounded-lg object-cover"
-                        />
+                        {partner.logoUrl && (
+                          <img
+                            src={partner.logoUrl}
+                            alt={partner.name}
+                            className="w-10 h-10 rounded-lg object-cover"
+                          />
+                        )}
                         <div>
                           <CardTitle className="text-honey flex items-center gap-2">
                             {partner.name}
-                            {partner.verified && (
+                            {partner.status === 'published' && (
                               <CheckCircle className="w-4 h-4 text-green-500" />
                             )}
                           </CardTitle>
-                          <p className="text-sm text-muted-foreground">{partner.category}</p>
+                          <p className="text-sm text-muted-foreground">{partner.dappType}</p>
                         </div>
                       </div>
                     </div>
@@ -202,22 +218,24 @@ export default function Discover() {
                   
                   <CardContent className="space-y-3">
                     <p className="text-sm text-muted-foreground line-clamp-2">
-                      {partner.description}
+                      {partner.shortDescription}
                     </p>
                     
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">
-                        {formatNumber(partner.stats.users)} users
+                        Active Partner
                       </span>
-                      <span className="text-muted-foreground">
-                        ⭐ {partner.stats.rating}
-                      </span>
+                      {partner.tags.length > 0 && (
+                        <span className="text-muted-foreground">
+                          {partner.tags[0]}
+                        </span>
+                      )}
                     </div>
                     
                     <Button
                       variant="outline"
                       className="w-full border-honey text-honey hover:bg-honey hover:text-secondary"
-                      onClick={() => window.open(partner.website, '_blank')}
+                      onClick={() => window.open(partner.websiteUrl, '_blank')}
                     >
                       <ExternalLink className="w-4 h-4 mr-2" />
                       Visit
@@ -225,7 +243,8 @@ export default function Discover() {
                   </CardContent>
                 </Card>
               ))}
-            </div>
+              </div>
+            )}
           </div>
         </TabsContent>
       </Tabs>
