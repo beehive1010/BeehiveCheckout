@@ -12,6 +12,7 @@ import { registerEducationRoutes } from "./routes/education.routes";
 import { registerTasksRoutes } from "./routes/tasks.routes";
 import { registerAdminRoutes } from "./routes/admin.routes";
 import { registerDashboardRoutes } from "./routes/dashboard.routes";
+import { registerDashboardFixRoutes } from "./routes/dashboard-fix.routes";
 import { registerNotificationsRoutes } from "./routes/notifications.routes";
 import { registerStatsRoutes } from "./routes/stats.routes";
 import { registerMatrixRoutes } from "./routes/matrix.routes";
@@ -53,6 +54,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerTasksRoutes(app, requireWallet);
   registerAdminRoutes(app, requireWallet);
   registerDashboardRoutes(app);
+  registerDashboardFixRoutes(app);
   registerNotificationsRoutes(app, requireWallet);
   registerStatsRoutes(app);
   registerMatrixRoutes(app);
