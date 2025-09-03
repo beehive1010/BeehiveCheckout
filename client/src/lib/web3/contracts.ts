@@ -1,14 +1,11 @@
-import { getContract } from 'thirdweb';
-import { arbitrum, arbitrumSepolia } from 'thirdweb/chains';
+import { getContract, createThirdwebClient } from 'thirdweb';
+import { arbitrum, arbitrumSepolia, ethereum, polygon, optimism, bsc, base } from 'thirdweb/chains';
 import { defineChain } from 'thirdweb/chains';
 
 // Import client and custom chain
-const client = (() => {
-  const { createThirdwebClient } = require('thirdweb');
-  return createThirdwebClient({
-    clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || '3123b1ac2ebdb966dd415c6e964dc335'
-  });
-})();
+const client = createThirdwebClient({
+  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || '3123b1ac2ebdb966dd415c6e964dc335'
+});
 
 // Alpha Centauri chain definition
 const alphaCentauri = defineChain({
@@ -183,18 +180,18 @@ export function getUSDTContract(chainId: number) {
     throw new Error(`USDT not supported on chain ${chainId}`);
   }
   
-  // Import chain dynamically based on chainId
+  // Get chain based on chainId
   let chain;
   switch(chainId) {
-    case 1: chain = require('./chains').ethereum; break;
-    case 137: chain = require('./chains').polygon; break;
-    case 42161: chain = require('./chains').arbitrum; break;
-    case 10: chain = require('./chains').optimism; break;
-    case 56: chain = require('./chains').bsc; break;
-    case 8453: chain = require('./chains').base; break;
-    case 141941: chain = require('./chains').alphaCentauri; break;
-    case 421614: chain = require('./chains').arbitrumSepolia; break;
-    default: chain = require('./chains').ethereum; break;
+    case 1: chain = ethereum; break;
+    case 137: chain = polygon; break;
+    case 42161: chain = arbitrum; break;
+    case 10: chain = optimism; break;
+    case 56: chain = bsc; break;
+    case 8453: chain = base; break;
+    case 141941: chain = alphaCentauri; break;
+    case 421614: chain = arbitrumSepolia; break;
+    default: chain = ethereum; break;
   }
   
   return getContract({

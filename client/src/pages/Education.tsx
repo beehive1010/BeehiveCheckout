@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { useToast } from '../hooks/use-toast';
 import HexagonIcon from '../components/shared/HexagonIcon';
 import { Book, BookOpen, Award, User } from 'lucide-react';
-import UserProfile from '../components/shared/UserProfile';
+import UserProfileCard from '../components/shared/UserProfileCard';
 import { coursesApi } from '../api/education/courses.api';
 import { useState, useMemo } from 'react';
 import { Progress } from '../components/ui/progress';
@@ -138,16 +138,17 @@ export default function Education() {
 
   return (
     <div className={`${styles.educationContainer} container mx-auto px-4 py-8`}>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-honey mb-2">
-            {t('education.title')}
+      {/* Header with UserProfile */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8">
+        <div className="flex-1">
+          <h1 className="text-3xl lg:text-4xl font-bold text-honey mb-2">
+            {t('education.title') || 'Learning Hub'}
           </h1>
-          <p className="text-muted-foreground">
-            {t('education.subtitle')}
+          <p className="text-lg text-muted-foreground">
+            {t('education.subtitle') || 'Enhance your skills with premium courses and tutorials'}
           </p>
         </div>
-        <UserProfile />
+        <UserProfileCard variant="compact" />
       </div>
 
       <Tabs defaultValue="all-courses" className="space-y-6">

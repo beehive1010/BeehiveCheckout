@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import UserProfileCard from '../components/shared/UserProfileCard';
 import { useToast } from '../hooks/use-toast';
 import { prepareContractCall, sendTransaction, getContract } from 'thirdweb';
 import { useActiveAccount } from 'thirdweb/react';
@@ -114,24 +115,17 @@ export default function NFTCenter() {
 
   return (
     <div className={`${styles.nftContainer} container mx-auto px-4 py-8`}>
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-honey mb-2">
+      {/* Header with UserProfile */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8">
+        <div className="flex-1">
+          <h1 className="text-3xl lg:text-4xl font-bold text-honey mb-2">
             {t('nft.title') || 'NFT Center'}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-lg text-muted-foreground">
             {t('nft.subtitle') || 'Discover and claim exclusive NFTs from our partners'}
           </p>
         </div>
-        
-        <Button
-          variant="outline"
-          onClick={() => setLocation('/nft/advertisements')}
-          className="border-honey text-honey hover:bg-honey hover:text-secondary"
-        >
-          <IconFlame className="w-4 h-4 mr-2" />
-          {t('nft.viewAdvertisements') || 'Advertisement NFTs'}
-        </Button>
+        <UserProfileCard variant="compact" />
       </div>
 
       {/* NFT Grid */}

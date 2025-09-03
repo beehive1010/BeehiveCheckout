@@ -4,6 +4,7 @@ import { useI18n } from '../contexts/I18nContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
+import UserProfileCard from '../components/shared/UserProfileCard';
 import { UsersIcon, ShareIcon, TrophyIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
 import IndividualMatrixView from '../components/matrix/IndividualMatrixView';
@@ -23,22 +24,18 @@ export default function Referrals() {
   };
 
   return (
-    <div className={`${styles.referralsContainer} space-y-4 sm:space-y-6`}>
-      {/* Header with Back Button */}
-      <div className="flex items-center gap-3 mb-2">
-        <Link href="/dashboard">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex items-center gap-2 hover:bg-honey/10 border-honey/20"
-            data-testid="button-back-to-dashboard"
-          >
-            <ArrowLeftIcon className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('nav.back') || 'Back'}</span>
-            <span className="sm:hidden">{t('nav.dashboard') || 'Dashboard'}</span>
-          </Button>
-        </Link>
-        <h1 className="text-xl sm:text-2xl font-bold text-honey">{t('nav.referrals') || 'Referrals'}</h1>
+    <div className={`${styles.referralsContainer} container mx-auto px-4 py-8`}>
+      {/* Header with UserProfile */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8">
+        <div className="flex-1">
+          <h1 className="text-3xl lg:text-4xl font-bold text-honey mb-2">
+            {t('nav.referrals') || 'Referrals'}
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            {t('referrals.subtitle') || 'Build your network and earn rewards through our referral system'}
+          </p>
+        </div>
+        <UserProfileCard variant="compact" />
       </div>
 
       {/* Referral Link Section */}

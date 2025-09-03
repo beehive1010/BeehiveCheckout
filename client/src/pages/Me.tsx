@@ -8,6 +8,7 @@ import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Progress } from '../components/ui/progress';
 import HexagonIcon from '../components/shared/HexagonIcon';
+import UserProfileCard from '../components/shared/UserProfileCard';
 import { UsersIcon, Edit, User } from 'lucide-react';
 import { DollarSign } from 'lucide-react';
 import { useLocation } from 'wouter';
@@ -45,9 +46,18 @@ export default function Me() {
 
   return (
     <div className={`${styles.meContainer} container mx-auto px-4 py-8`}>
-      <h2 className="text-2xl font-bold text-honey mb-6">
-        {t('me.title')}
-      </h2>
+      {/* Header with UserProfile */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8">
+        <div className="flex-1">
+          <h1 className="text-3xl lg:text-4xl font-bold text-honey mb-2">
+            {t('me.title') || 'My Profile'}
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            {t('me.subtitle') || 'View your stats, balances, and account details'}
+          </p>
+        </div>
+        <UserProfileCard variant="compact" />
+      </div>
       
       {/* Profile Card */}
       <Card className="bg-secondary border-border mb-6">

@@ -4,6 +4,7 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import HexagonIcon from '../components/shared/HexagonIcon';
+import UserProfileCard from '../components/shared/UserProfileCard';
 import { useLocation } from 'wouter';
 import { useState, useEffect } from 'react';
 import { Search, Calendar, User, Eye, ArrowRight } from 'lucide-react';
@@ -62,17 +63,20 @@ export default function HiveWorld() {
 
   return (
     <div className={`${styles.hiveWorldContainer} container mx-auto px-4 py-8`}>
-      {/* Header */}
-      <div className="text-center mb-12">
-        <div className="flex justify-center mb-4">
-          <HexagonIcon className="w-16 h-16 text-honey" />
+      {/* Header with UserProfile */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8">
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-2">
+            <HexagonIcon className="w-10 h-10 text-honey" />
+            <h1 className="text-3xl lg:text-4xl font-bold text-honey">
+              {t('hiveworld.title') || 'Hive World'}
+            </h1>
+          </div>
+          <p className="text-lg text-muted-foreground">
+            {t('hiveworld.subtitle') || 'Discover insights, tutorials, and the latest news from the Beehive ecosystem'}
+          </p>
         </div>
-        <h1 className="text-4xl font-bold text-honey mb-4">
-          {t('hiveworld.title') || 'Hive World'}
-        </h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          {t('hiveworld.subtitle') || 'Discover insights, tutorials, and the latest news from the Beehive ecosystem'}
-        </p>
+        <UserProfileCard variant="compact" />
       </div>
 
       {/* Search */}

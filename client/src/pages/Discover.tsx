@@ -4,6 +4,7 @@ import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import UserProfileCard from '../components/shared/UserProfileCard';
 import { 
   Search, 
   ExternalLink, 
@@ -102,13 +103,17 @@ export default function Discover() {
 
   return (
     <div className={`${styles.discoverContainer} container mx-auto px-4 py-8`}>
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-honey mb-4">
-          {t('discover.title') || 'Discover Partners'}
-        </h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          {t('discover.subtitle') || 'Explore our ecosystem of trusted partners and integrated platforms'}
-        </p>
+      {/* Header with UserProfile */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8">
+        <div className="flex-1">
+          <h1 className="text-3xl lg:text-4xl font-bold text-honey mb-2">
+            {t('discover.title') || 'Discover Partners'}
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            {t('discover.subtitle') || 'Explore our ecosystem of trusted partners and integrated platforms'}
+          </p>
+        </div>
+        <UserProfileCard variant="compact" />
       </div>
 
       {/* Search */}
