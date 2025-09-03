@@ -49,26 +49,97 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
       if (!response.ok) throw new Error('Failed to fetch matrix data');
       const data = await response.json();
       
-      // Transform and initialize full 19-layer matrix data
+      // Use memberMatrixView data if available, otherwise transform dashboard data
       const allLayers: MatrixLayer[] = [];
       
-      // Initialize all 19 layers with empty structure
-      for (let layerNum = 1; layerNum <= 19; layerNum++) {
-        const apiLayerData = data.downlineMatrix?.find((layer: any) => layer.level === layerNum);
-        
-        allLayers.push({
-          layerNumber: layerNum,
-          maxMembers: Math.pow(3, layerNum),
-          members: apiLayerData?.members || [],
-          leftLeg: apiLayerData?.members?.filter((m: any) => m.placement === 'left') || [],
-          middleLeg: apiLayerData?.members?.filter((m: any) => m.placement === 'middle') || [],
-          rightLeg: apiLayerData?.members?.filter((m: any) => m.placement === 'right') || [],
+      if (data.memberMatrixData?.layerData) {
+        // Use the efficient memberMatrixView data
+        data.memberMatrixData.layerData.forEach((layer: any) => {
+          const members: MatrixMember[] = [];
+          const leftLeg: MatrixMember[] = [];
+          const middleLeg: MatrixMember[] = [];
+          const rightLeg: MatrixMember[] = [];
+          
+          // Extract members from positions data
+          if (layer.positions?.L) {
+            const member: MatrixMember = {
+              walletAddress: layer.positions.L.wallet,
+              username: layer.positions.L.wallet.slice(0, 8),
+              currentLevel: 1, // TODO: Get from user data
+              memberActivated: true,
+              placement: 'left',
+              joinedAt: layer.positions.L.placedAt
+            };
+            leftLeg.push(member);
+            members.push(member);
+          }
+          
+          if (layer.positions?.M) {
+            const member: MatrixMember = {
+              walletAddress: layer.positions.M.wallet,
+              username: layer.positions.M.wallet.slice(0, 8),
+              currentLevel: 1,
+              memberActivated: true,
+              placement: 'middle',
+              joinedAt: layer.positions.M.placedAt
+            };
+            middleLeg.push(member);
+            members.push(member);
+          }
+          
+          if (layer.positions?.R) {
+            const member: MatrixMember = {
+              walletAddress: layer.positions.R.wallet,
+              username: layer.positions.R.wallet.slice(0, 8),
+              currentLevel: 1,
+              memberActivated: true,
+              placement: 'right',
+              joinedAt: layer.positions.R.placedAt
+            };
+            rightLeg.push(member);
+            members.push(member);
+          }
+          
+          allLayers.push({
+            layerNumber: layer.layer,
+            maxMembers: layer.maxPositions,
+            members,
+            leftLeg,
+            middleLeg,
+            rightLeg,
+          });
         });
+        
+        // Fill in remaining layers up to 19
+        for (let layerNum = allLayers.length + 1; layerNum <= 19; layerNum++) {
+          allLayers.push({
+            layerNumber: layerNum,
+            maxMembers: Math.pow(3, layerNum),
+            members: [],
+            leftLeg: [],
+            middleLeg: [],
+            rightLeg: [],
+          });
+        }
+      } else {
+        // Fallback to dashboard matrix data
+        for (let layerNum = 1; layerNum <= 19; layerNum++) {
+          const apiLayerData = data.downlineMatrix?.find((layer: any) => layer.level === layerNum);
+          
+          allLayers.push({
+            layerNumber: layerNum,
+            maxMembers: Math.pow(3, layerNum),
+            members: apiLayerData?.members || [],
+            leftLeg: apiLayerData?.members?.filter((m: any) => m.placement === 'left') || [],
+            middleLeg: apiLayerData?.members?.filter((m: any) => m.placement === 'middle') || [],
+            rightLeg: apiLayerData?.members?.filter((m: any) => m.placement === 'right') || [],
+          });
+        }
       }
       
       const transformedData: IndividualMatrixData = {
         layers: allLayers,
-        totalMembers: data.downlineMatrix?.reduce((sum: number, layer: any) => sum + (layer.members || 0), 0) || 0,
+        totalMembers: data.memberMatrixData?.totalMembers || data.downlineMatrix?.reduce((sum: number, layer: any) => sum + (layer.members || 0), 0) || 0,
         totalLevels: 19, // Always show all 19 levels
       };
       

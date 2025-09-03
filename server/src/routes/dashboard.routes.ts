@@ -1,5 +1,8 @@
 import { Express } from 'express';
 import { storage } from '../services/storage.service';
+import { db } from '../../db';
+import { memberMatrixView } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 /**
  * Dashboard Routes - Real member data from database
@@ -60,31 +63,54 @@ export function registerDashboardRoutes(app: Express) {
     }
   });
 
-  // Get user matrix data - 19 layer referral structure
+  // Get user matrix data - 19 layer referral structure (enhanced with memberMatrixView)
   app.get("/api/dashboard/matrix", requireWallet, async (req: any, res) => {
     try {
       const walletAddress = req.headers['x-wallet-address'] as string;
       
       console.log('🔗 Fetching matrix data for:', walletAddress);
 
-      // For new users, return default matrix structure
-      const defaultMatrixData = {
+      // Try to get memberMatrixView data first (high-performance view)
+      const [memberMatrixData] = await db
+        .select()
+        .from(memberMatrixView)
+        .where(eq(memberMatrixView.rootWallet, walletAddress.toLowerCase()))
+        .limit(1);
+
+      // Enhanced response with memberMatrixView data
+      const matrixResponse = {
+        // Traditional format for compatibility
         userPosition: {
           layer: 0, // Root user
           position: 0
         },
         directChildren: 0,
-        totalDownline: 0,
-        downlineLayers: Array.from({ length: 19 }, (_, i) => ({
-          layer: i + 1,
+        totalDownline: memberMatrixData?.totalMembers || 0,
+        downlineMatrix: Array.from({ length: 19 }, (_, i) => ({
+          level: i + 1,
           totalMembers: 0,
           maxCapacity: Math.pow(3, i + 1), // 3^n for each layer
           members: []
-        }))
+        })),
+        
+        // NEW: memberMatrixView efficient data structure
+        memberMatrixData: memberMatrixData ? {
+          layerData: memberMatrixData.layerData,
+          totalMembers: memberMatrixData.totalMembers,
+          deepestLayer: memberMatrixData.deepestLayer,
+          nextAvailableLayer: memberMatrixData.nextAvailableLayer,
+          nextAvailablePosition: memberMatrixData.nextAvailablePosition,
+          lastUpdated: memberMatrixData.lastUpdated
+        } : null
       };
 
-      console.log('✅ Sending matrix data for new user:', defaultMatrixData);
-      res.json(defaultMatrixData);
+      console.log('✅ Sending enhanced matrix data:', {
+        hasMatrixView: !!memberMatrixData,
+        totalMembers: memberMatrixData?.totalMembers || 0,
+        deepestLayer: memberMatrixData?.deepestLayer || 0
+      });
+      
+      res.json(matrixResponse);
     } catch (error) {
       console.error('Matrix data error:', error);
       res.status(500).json({ error: 'Failed to fetch matrix data' });
