@@ -35,23 +35,6 @@ export default function Header() {
 
           {/* Right Side Content */}
           <div className="flex items-center space-x-2 md:space-x-4">
-            {/* User Profile Quick Access (Mobile Only when connected) */}
-            {isConnected && isActivated && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setLocation('/me')}
-                className="md:hidden flex items-center gap-2 px-3 py-2 bg-honey/10 hover:bg-honey/20 border border-honey/20 rounded-lg"
-                data-testid="button-mobile-user-center"
-              >
-                <User className="w-4 h-4 text-honey" />
-                <div className="flex items-center gap-1">
-                  <Badge variant="secondary" className="text-xs bg-honey/20 text-honey border-honey/30 px-1">
-                    L{currentLevel || 1}
-                  </Badge>
-                </div>
-              </Button>
-            )}
 
             {/* Language Switcher */}
             <LanguageSwitcher />
