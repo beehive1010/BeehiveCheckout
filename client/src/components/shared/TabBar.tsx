@@ -17,7 +17,7 @@ const tabItems: TabItem[] = [
   { key: 'education', path: '/education', icon: 'fas fa-graduation-cap', labelKey: 'nav.education' },
   { key: 'home', path: '/dashboard', icon: '', labelKey: 'nav.home' }, // Special home tab with logo
   { key: 'discover', path: '/discover', icon: 'fas fa-compass', labelKey: 'nav.discover' },
-  { key: 'me', path: '/me', icon: 'fas fa-user-circle', labelKey: 'nav.me' },
+  { key: 'referrals', path: '/referrals', icon: 'fas fa-users', labelKey: 'nav.referrals' },
 ];
 
 export default function TabBar() {

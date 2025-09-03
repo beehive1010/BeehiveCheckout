@@ -11,6 +11,7 @@ import { useToast } from '../hooks/use-toast';
 import { Crown, Megaphone, Package, ArrowRight, Star } from 'lucide-react';
 import ClaimMembershipButton from '../components/membership/ClaimMembershipButton';
 import MembershipBadge from '../components/membership/MembershipBadge';
+import MembershipNFTGrid from '../components/membership/MembershipNFTGrid';
 import { getMembershipLevel } from '../lib/config/membershipLevels';
 import AdvertisementNFTGrid from '../components/nfts/AdvertisementNFTGrid';
 import MyNFTGrid from '../components/nfts/MyNFTGrid';
@@ -154,101 +155,47 @@ export default function Tasks() {
               <Crown className="w-8 h-8 text-honey" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-honey">Membership NFTs</h2>
-              <p className="text-muted-foreground">Unlock premium features and exclusive benefits</p>
+              <h2 className="text-2xl font-bold text-honey">Membership NFTs (Level 1-19)</h2>
+              <p className="text-muted-foreground">
+                Multi-chain NFT collection with exclusive Web3 benefits. Purchase with USDT on any supported chain.
+              </p>
             </div>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {/* Current Level Showcase */}
-            <Card className="md:col-span-2 lg:col-span-1 bg-gradient-to-br from-honey/10 via-honey/5 to-transparent border-honey/20">
-              <CardHeader className="text-center pb-4">
-                <CardTitle className="text-honey">Your Current Level</CardTitle>
-              </CardHeader>
-              <CardContent className="text-center space-y-4">
-                <div className="relative">
-                  <MembershipBadge level={currentLevel || 1} size="xl" showLabel />
-                  <div className="absolute -inset-2 bg-honey/20 rounded-full blur-xl -z-10"></div>
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg text-honey">
-                    {getMembershipLevel(currentLevel || 1)?.titleEn || 'Warrior'}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Level {currentLevel || 1} Member
-                  </p>
-                </div>
-                <div className="text-center pt-2">
-                  <div className="text-xs text-muted-foreground mb-1">Benefits Unlocked</div>
-                  <div className="flex flex-wrap gap-1 justify-center">
-                    <Badge variant="secondary" className="text-xs">Dashboard</Badge>
-                    <Badge variant="secondary" className="text-xs">Education</Badge>
-                    <Badge variant="secondary" className="text-xs">Community</Badge>
+          {/* Current Status */}
+          <Card className="bg-gradient-to-r from-honey/10 via-honey/5 to-transparent border-honey/30">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <MembershipBadge level={currentLevel || 1} size="lg" showLabel />
+                  <div>
+                    <h3 className="font-bold text-lg text-honey">
+                      Level {currentLevel || 1} - {getMembershipLevel(currentLevel || 1)?.titleEn || 'Warrior'}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      You own Level {currentLevel || 1} NFT. Unlock higher levels for more benefits!
+                    </p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-honey">
+                    {19 - (currentLevel || 1)} <span className="text-sm text-muted-foreground">more levels</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Available to claim</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Available Level Upgrades */}
-            {availableMembershipLevels.slice(0, 3).map((level) => {
-              const membershipData = getMembershipLevel(level);
-              if (!membershipData) return null;
-
-              return (
-                <Card key={level} className="group bg-secondary border-border hover:border-honey/50 hover:shadow-xl hover:shadow-honey/10 transition-all duration-300">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <MembershipBadge level={level} size="md" />
-                        <div>
-                          <CardTitle className="text-honey text-lg">Level {level}</CardTitle>
-                          <p className="text-sm text-muted-foreground">{membershipData.titleEn}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex flex-wrap gap-1">
-                      {membershipData.benefitsKeys.slice(0, 2).map((benefit, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs bg-honey/10 text-honey">
-                          {benefit.split('.').pop()}
-                        </Badge>
-                      ))}
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-2xl font-bold text-honey">
-                          ${(membershipData.priceUSDT / 100).toFixed(2)}
-                        </span>
-                        <Badge variant="outline" className="text-honey border-honey">
-                          USDT
-                        </Badge>
-                      </div>
-                      
-                      <ClaimMembershipButton
-                        walletAddress={walletAddress || ''}
-                        level={level}
-                        className="w-full bg-honey text-secondary hover:bg-honey/90 font-semibold"
-                        onSuccess={() => {
-                          toast({
-                            title: 'Success!',
-                            description: `Level ${level} NFT claimed successfully!`,
-                          });
-                        }}
-                        onError={(error) => {
-                          toast({
-                            title: 'Error',
-                            description: error,
-                            variant: 'destructive',
-                          });
-                        }}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+          {/* Multi-chain NFT Grid */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-semibold text-honey">Available NFTs</h3>
+              <Badge variant="outline" className="text-honey border-honey">
+                Multi-Chain Support
+              </Badge>
+            </div>
+            <MembershipNFTGrid className="mt-6" />
           </div>
         </TabsContent>
 

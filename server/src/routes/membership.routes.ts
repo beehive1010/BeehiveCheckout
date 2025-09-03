@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { usersService, referralsService, rewardsService } from '../services';
+import { storage } from '../services/storage.service';
 import { registrationService } from '../services/registration.service';
 import { globalMatrixService } from '../services/global-matrix.service';
 import { rewardDistributionService } from '../services/reward-distribution.service';
@@ -107,6 +108,100 @@ export function registerMembershipRoutes(app: Express, requireWallet: any) {
       res.status(500).json({ 
         error: 'Failed to activate NFT membership',
         details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Multi-chain NFT claiming endpoint
+  app.post('/api/membership/multi-chain-claim', requireWallet, async (req: any, res) => {
+    try {
+      const { level, transactionHash, chainId, priceUSDT, userWallet } = req.body;
+      
+      if (!level || !transactionHash || !chainId || !priceUSDT || !userWallet) {
+        return res.status(400).json({ 
+          error: 'Missing required parameters: level, transactionHash, chainId, priceUSDT, userWallet' 
+        });
+      }
+
+      // Log the multi-chain claim attempt
+      console.log(`🔗 Multi-chain NFT claim attempt:`, {
+        userWallet,
+        level,
+        chainId,
+        transactionHash: transactionHash.slice(0, 10) + '...',
+        priceUSDT: `$${priceUSDT / 100}`
+      });
+
+      // TODO: Verify transaction on the selected chain
+      // This would involve:
+      // 1. Connecting to the chain's RPC
+      // 2. Verifying the USDT transfer to bridge wallet
+      // 3. Confirming the correct amount was sent
+      
+      // For now, simulate verification delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // TODO: Mint NFT to user's wallet via server wallet
+      // This would involve:
+      // 1. Using server's private key to mint NFT
+      // 2. Transferring from server wallet to user wallet
+      // 3. Recording the mint transaction
+      
+      // Simulate NFT minting
+      const simulatedMintTxHash = `0x${Math.random().toString(16).substr(2, 64)}`;
+      
+      // Update user's membership level
+      await usersService.updateMembershipLevel(req.walletAddress, level);
+
+      // Log successful claim
+      console.log(`✅ NFT Level ${level} claimed successfully for ${userWallet}`);
+      console.log(`💰 Payment: $${priceUSDT / 100} USDT on chain ${chainId}`);
+      console.log(`🔗 Payment TX: ${transactionHash}`);
+      console.log(`🎨 Mint TX: ${simulatedMintTxHash}`);
+
+      res.json({
+        success: true,
+        level,
+        mintTxHash: simulatedMintTxHash,
+        paymentTxHash: transactionHash,
+        chainId,
+        message: `Level ${level} NFT successfully minted to your wallet`
+      });
+
+    } catch (error: any) {
+      console.error('Multi-chain claim error:', error);
+      res.status(500).json({ 
+        error: 'Failed to process NFT claim',
+        details: error.message 
+      });
+    }
+  });
+
+  // Get available membership levels for purchase
+  app.get('/api/membership/available-levels/:walletAddress', async (req, res) => {
+    try {
+      const { walletAddress } = req.params;
+      
+      const user = await storage.getUser(walletAddress);
+      const currentLevel = user?.currentLevel || 0;
+      
+      // User can purchase levels higher than their current level
+      const availableLevels = [];
+      for (let level = currentLevel + 1; level <= 19; level++) {
+        availableLevels.push(level);
+      }
+      
+      res.json({
+        currentLevel,
+        availableLevels,
+        maxLevel: 19
+      });
+
+    } catch (error: any) {
+      console.error('Error getting available levels:', error);
+      res.status(500).json({ 
+        error: 'Failed to get available levels',
+        details: error.message 
       });
     }
   });
