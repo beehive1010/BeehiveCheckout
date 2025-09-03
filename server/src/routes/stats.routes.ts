@@ -24,26 +24,25 @@ export function registerStatsRoutes(app: Express) {
     try {
       const { walletAddress } = req;
       
-      // Use new referral service
-      const referralStats = await storage.getReferralsByMember(walletAddress);
+      // Get member data from storage service
       const member = await storage.getMember(walletAddress);
       
       const stats = {
         directReferralCount: member?.totalDirectReferrals || 0,
         totalTeamCount: member?.totalTeamSize || 0,
-        totalReferrals: referralStats.length,
+        totalReferrals: 0,
         totalEarnings: 0, // TODO: Calculate from rewards
         monthlyEarnings: 0,
         pendingCommissions: 0,
         nextPayout: 'No pending payouts',
         currentLevel: member?.currentLevel || 0,
         memberActivated: member?.isActivated || false,
-        matrixLevel: member?.maxLayer || 0,
+        matrixLevel: 0, // TODO: Implement when matrix data available
         positionIndex: 0,
         levelsOwned: member?.levelsOwned || [],
         downlineMatrix: Array.from({ length: 19 }, (_, i) => ({
           level: i + 1,
-          members: referralStats.filter(r => r.layer === i + 1).length,
+          members: 0,
           upgraded: 0,
           placements: 0
         })),
@@ -62,25 +61,23 @@ export function registerStatsRoutes(app: Express) {
     try {
       const { walletAddress } = req;
       
-      const referrals = await storage.getReferrals(walletAddress);
       const member = await storage.getMember(walletAddress);
       
       const matrixStats = {
-        totalMembers: referrals.length,
-        activeLayers: member?.maxLayer || 0,
+        totalMembers: 0,
+        activeLayers: 0,
         matrixCapacity: Math.pow(3, 19) - 1, // 19 layers, 3^19 total capacity
-        fillPercentage: referrals.length / (Math.pow(3, 19) - 1) * 100,
+        fillPercentage: 0,
         layerStats: Array.from({ length: 19 }, (_, i) => {
           const layer = i + 1;
-          const layerMembers = referrals.filter(r => r.layer === layer);
           return {
             layer,
-            filled: layerMembers.length,
+            filled: 0,
             capacity: Math.pow(3, layer),
-            available: Math.pow(3, layer) - layerMembers.length,
-            leftCount: layerMembers.filter(r => r.position === 'L').length,
-            middleCount: layerMembers.filter(r => r.position === 'M').length,
-            rightCount: layerMembers.filter(r => r.position === 'R').length,
+            available: Math.pow(3, layer),
+            leftCount: 0,
+            middleCount: 0,
+            rightCount: 0,
           };
         })
       };
@@ -98,14 +95,13 @@ export function registerStatsRoutes(app: Express) {
       const { walletAddress } = req;
       
       const wallet = await storage.getUserWallet(walletAddress);
-      const rewardClaims = await storage.getPendingRewardClaims(walletAddress);
       
       const rewardStats = {
-        totalEarned: wallet?.totalUSDTEarnings || 0,
+        totalEarned: 0, // TODO: Implement when reward system is available
         available: wallet?.availableUSDT || 0,
-        withdrawn: wallet?.withdrawnUSDT || 0,
-        pendingClaims: rewardClaims?.length || 0,
-        pendingAmount: rewardClaims?.reduce((sum, claim) => sum + claim.amount, 0) || 0,
+        withdrawn: 0, // TODO: Implement when withdrawal system is available
+        pendingClaims: 0,
+        pendingAmount: 0,
         bccBalance: wallet?.bccBalance || 0,
         bccLocked: wallet?.bccLocked || 0,
         recentRewards: [], // TODO: Get recent reward history
