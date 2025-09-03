@@ -39,12 +39,12 @@ export function useWallet() {
     }
   }, [isConnected, walletAddress]);
 
-  // Enhanced user status check - registration AND NFT ownership
+  // Enhanced user status check using new database framework
   const userQuery = useQuery({
     queryKey: ['/api/auth/user'],
     enabled: !!walletAddress,
     queryFn: async () => {
-      console.log('🔍 Checking wallet status (registration + NFT):', walletAddress);
+      console.log('🔍 Checking user status (new DB framework):', walletAddress);
       const response = await fetch(`/api/auth/user?t=${Date.now()}`, {
         headers: {
           'X-Wallet-Address': walletAddress!,
@@ -54,16 +54,21 @@ export function useWallet() {
       if (!response.ok) {
         if (response.status === 404) {
           console.log('👤 New user - needs registration');
-          return { isRegistered: false, hasNFT: false, userFlow: 'registration' };
+          return { 
+            isRegistered: false, 
+            hasNFT: false, 
+            isActivated: false,
+            userFlow: 'registration' 
+          };
         }
         throw new Error('Failed to fetch user data');
       }
       const userStatus = await response.json();
-      console.log('📊 User status:', userStatus.userFlow, userStatus);
+      console.log('📊 User status (new framework):', userStatus.userFlow, userStatus);
       return userStatus;
     },
-    staleTime: 2000, // 2 seconds
-    refetchInterval: (query) => query.state.data?.isRegistered ? 5000 : false, // Only refetch for registered users
+    staleTime: 2000,
+    refetchInterval: (query) => query.state.data?.isRegistered ? 5000 : false,
     refetchIntervalInBackground: true,
   });
   
@@ -114,6 +119,23 @@ export function useWallet() {
     },
   });
 
+  // Get user balances using new wallet service FIRST
+  const { data: userBalances, isLoading: isBalancesLoading } = useQuery({
+    queryKey: ['/api/dashboard/balances'],
+    enabled: !!walletAddress && userStatus?.isRegistered,
+    queryFn: async () => {
+      const response = await fetch('/api/dashboard/balances', {
+        headers: {
+          'X-Wallet-Address': walletAddress!,
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch user balances');
+      }
+      return response.json();
+    },
+  });
+
   // Extract user data from enhanced response
   const userData = userStatus?.user;
   const isRegistered = userStatus?.isRegistered ?? false;
@@ -121,16 +143,17 @@ export function useWallet() {
   const isActivated = userStatus?.isActivated ?? false;
   const currentLevel = userStatus?.membershipLevel || userData?.currentLevel || 0;
   const membershipState = { activeLevel: currentLevel, levelsOwned: currentLevel > 0 ? [currentLevel] : [] };
-  const bccBalance = { transferable: 0, restricted: 0 }; // Would be fetched separately
-  const cthBalance = 0;
+  const bccBalance = { 
+    transferable: userBalances?.bccTransferable || 0, 
+    restricted: userBalances?.bccRestricted || 0 
+  };
+  const cthBalance = userBalances?.cth || 0;
   const referralNode = null; // Would be fetched separately
-
-  // Get user activity
   const { data: userActivity, isLoading: isActivityLoading } = useQuery({
-    queryKey: ['/api/user/activity'],
+    queryKey: ['/api/dashboard/activity'],
     enabled: !!walletAddress && isRegistered,
     queryFn: async () => {
-      const response = await fetch('/api/user/activity?limit=10', {
+      const response = await fetch('/api/dashboard/activity?limit=10', {
         headers: {
           'X-Wallet-Address': walletAddress!,
         },
@@ -142,22 +165,7 @@ export function useWallet() {
     },
   });
 
-  // Get user balances  
-  const { data: userBalances, isLoading: isBalancesLoading } = useQuery({
-    queryKey: ['/api/user/balances'],
-    enabled: !!walletAddress && isRegistered,
-    queryFn: async () => {
-      const response = await fetch('/api/user/balances', {
-        headers: {
-          'X-Wallet-Address': walletAddress!,
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch user balances');
-      }
-      return response.json();
-    },
-  });
+  // Get user activity using new database framework
 
   return {
     // Wallet connection

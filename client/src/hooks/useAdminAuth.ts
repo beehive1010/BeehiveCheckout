@@ -6,6 +6,10 @@ interface AdminUser {
   username: string;
   email: string;
   role: string;
+  adminLevel: number;
+  permissions: string[];
+  isActive: boolean;
+  lastLoginAt?: Date;
 }
 
 export function useAdminAuth() {
@@ -21,31 +25,39 @@ export function useAdminAuth() {
   const checkAuthStatus = async () => {
     try {
       const sessionToken = localStorage.getItem('adminSessionToken');
-      const storedUser = localStorage.getItem('adminUser');
-
-      if (!sessionToken || !storedUser) {
+      
+      if (!sessionToken) {
         setIsLoading(false);
         return;
       }
 
-      // Temporary solution: use stored admin data instead of API call
-      const userData = JSON.parse(storedUser);
-      
-      // Check if token is still valid (simple time-based check)
-      if (sessionToken.startsWith('temp-admin-session-')) {
-        const timestamp = parseInt(sessionToken.replace('temp-admin-session-', ''));
-        const expiryTime = timestamp + (12 * 60 * 60 * 1000); // 12 hours
-        
-        if (Date.now() > expiryTime) {
-          throw new Error('Session expired');
+      // Verify session with new admin service
+      const response = await fetch('/api/admin/verify-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionToken}`
+        },
+        body: JSON.stringify({ sessionToken })
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Session expired or invalid');
         }
+        throw new Error('Failed to verify admin session');
       }
-      
-      setAdminUser(userData);
+
+      const adminData = await response.json();
+      setAdminUser(adminData.admin);
       setIsAuthenticated(true);
+      
+      // Update stored user data with latest from server
+      localStorage.setItem('adminUser', JSON.stringify(adminData.admin));
+      
     } catch (error) {
       console.error('Auth check failed:', error);
-      // Clear state without navigation on error
+      // Clear state on any auth error
       localStorage.removeItem('adminSessionToken');
       localStorage.removeItem('adminUser');
       setAdminUser(null);
@@ -57,16 +69,26 @@ export function useAdminAuth() {
 
   const logout = async () => {
     try {
-      // Temporary solution: skip API call and just clear local storage
-      console.log('Admin logout requested');
+      const sessionToken = localStorage.getItem('adminSessionToken');
+      
+      if (sessionToken) {
+        // Call new admin service to properly destroy session
+        await fetch('/api/admin/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionToken}`
+          },
+          body: JSON.stringify({ sessionToken })
+        });
+      }
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('Logout API error:', error);
     } finally {
       localStorage.removeItem('adminSessionToken');
       localStorage.removeItem('adminUser');
       setAdminUser(null);
       setIsAuthenticated(false);
-      // Only navigate if not already on login page
       setTimeout(() => setLocation('/admin/login'), 0);
     }
   };
@@ -79,38 +101,30 @@ export function useAdminAuth() {
   const hasPermission = (permission: string): boolean => {
     if (!adminUser) return false;
     
-    // Super admin has all permissions
-    if (adminUser.role === 'super_admin') return true;
+    // Use permissions from new admin service (stored in adminUser.permissions)
+    if (adminUser.permissions && adminUser.permissions.includes('*')) return true;
+    if (adminUser.permissions && adminUser.permissions.includes(permission)) return true;
     
-    // Define role-based permissions
-    const rolePermissions: Record<string, string[]> = {
-      super_admin: ['*'], // All permissions
-      ops_admin: [
+    // Fallback: level-based permissions for new admin system
+    const levelPermissions: Record<number, string[]> = {
+      3: ['*'], // Super admin (level 3+) - all permissions
+      2: [ // Operations admin (level 2)
         'users.read', 'users.update', 'users.export',
-        'referrals.read', 'referrals.export',
-        'nfts.read', 'nfts.create', 'nfts.update', 'nfts.mint',
-        'contracts.read', 'contracts.deploy', 'contracts.manage',
+        'referrals.read', 'referrals.export', 'referrals.manage',
+        'members.read', 'members.update', 'members.activate',
+        'rewards.read', 'rewards.process', 'rewards.distribute',
+        'nfts.read', 'nfts.create', 'nfts.verify',
         'courses.read', 'courses.create', 'courses.edit',
-        'blog.read', 'blog.create', 'blog.update',
-        'discover.read', 'discover.approve', 'discover.reject',
-        'system.read', 'logs.read', 'logs.export'
+        'finances.read', 'stats.read', 'system.read'
       ],
-      creator_admin: [
-        'blog.read', 'blog.create', 'blog.update',
-        'nfts.read', 'nfts.create',
-        'contracts.read',
-        'courses.read', 'courses.create',
-        'discover.read'
-      ],
-      viewer: [
-        'users.read', 'referrals.read', 'nfts.read',
-        'contracts.read',
-        'blog.read', 'courses.read', 'discover.read',
-        'system.read', 'logs.read'
+      1: [ // Basic admin (level 1)
+        'users.read', 'referrals.read', 'members.read',
+        'courses.read', 'stats.read'
       ]
     };
-
-    const userPermissions = rolePermissions[adminUser.role] || [];
+    
+    const adminLevel = adminUser.adminLevel || 0;
+    const userPermissions = levelPermissions[adminLevel] || [];
     return userPermissions.includes('*') || userPermissions.includes(permission);
   };
 

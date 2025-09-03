@@ -33,11 +33,10 @@ export function useUserReferralStats() {
   const { walletAddress } = useWallet();
 
   return useQuery<UserReferralStats>({
-    queryKey: ['/api/beehive/user-stats', walletAddress],
+    queryKey: ['/api/stats/user-referrals', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
-      const response = await fetch(`/api/beehive/user-stats/${walletAddress}?t=${Date.now()}`, { 
-        credentials: 'include',
+      const response = await fetch(`/api/stats/user-referrals?t=${Date.now()}`, { 
         headers: { 
           'X-Wallet-Address': walletAddress,
           'Content-Type': 'application/json',
@@ -45,14 +44,64 @@ export function useUserReferralStats() {
         }
       });
       if (!response.ok) {
-        throw new Error(`Failed to fetch user stats: ${response.status} ${response.statusText}`);
+        throw new Error(`Failed to fetch referral stats: ${response.status} ${response.statusText}`);
       }
       const data = await response.json();
       return data;
     },
     enabled: !!walletAddress,
-    staleTime: 2000, // 2 seconds for faster updates
-    refetchInterval: 3000, // Real-time polling every 3 seconds
-    refetchIntervalInBackground: true, // Continue polling when tab is in background
+    staleTime: 5000,
+    refetchInterval: 10000, // Less frequent polling for better performance
+    refetchIntervalInBackground: true,
+  });
+}
+
+// 新增：用户矩阵统计hook
+export function useUserMatrixStats() {
+  const { walletAddress } = useWallet();
+
+  return useQuery({
+    queryKey: ['/api/stats/user-matrix', walletAddress],
+    queryFn: async () => {
+      if (!walletAddress) throw new Error('No wallet address');
+      const response = await fetch('/api/stats/user-matrix', {
+        headers: { 
+          'X-Wallet-Address': walletAddress,
+          'Cache-Control': 'no-cache'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch matrix stats');
+      }
+      return response.json();
+    },
+    enabled: !!walletAddress,
+    staleTime: 5000,
+    refetchInterval: 15000,
+  });
+}
+
+// 新增：用户奖励统计hook
+export function useUserRewardStats() {
+  const { walletAddress } = useWallet();
+
+  return useQuery({
+    queryKey: ['/api/stats/user-rewards', walletAddress],
+    queryFn: async () => {
+      if (!walletAddress) throw new Error('No wallet address');
+      const response = await fetch('/api/stats/user-rewards', {
+        headers: { 
+          'X-Wallet-Address': walletAddress,
+          'Cache-Control': 'no-cache'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch reward stats');
+      }
+      return response.json();
+    },
+    enabled: !!walletAddress,
+    staleTime: 3000,
+    refetchInterval: 8000,
   });
 }
