@@ -1,7 +1,7 @@
 import { useWallet } from '../hooks/useWallet';
 import { useUserReferralStats } from '../hooks/useBeeHiveStats';
-import { useUserMatrixLayers } from '../hooks/useMatrixPlacement';
 import { useI18n } from '../contexts/I18nContext';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -28,7 +28,28 @@ export default function Me() {
     isBalancesLoading 
   } = useWallet();
   const { data: userStats, isLoading: isLoadingUserStats } = useUserReferralStats();
-  const { data: matrixData, isLoading: isMatrixLoading } = useUserMatrixLayers();
+  
+  // 使用dashboard matrix API来获取19层矩阵数据
+  const { data: dashboardData, isLoading: isMatrixLoading } = useQuery({
+    queryKey: ['/api/dashboard/matrix', walletAddress],
+    queryFn: async () => {
+      if (!walletAddress) throw new Error('No wallet address');
+      const response = await fetch(`/api/dashboard/matrix?t=${Date.now()}`, {
+        headers: {
+          'X-Wallet-Address': walletAddress,
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch matrix data: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    },
+    enabled: !!walletAddress,
+    staleTime: 5000,
+    refetchInterval: 30000,
+  });
   const { t, language } = useI18n();
   const [, setLocation] = useLocation();
 
@@ -181,19 +202,19 @@ export default function Me() {
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto"></div>
                 </div>
-              ) : matrixData?.layers ? (
+              ) : dashboardData?.downlineMatrix ? (
                 <div className="space-y-4">
                   {/* Summary */}
                   <div className="grid grid-cols-3 gap-4 mb-6">
                     <div className="text-center">
                       <div className="text-xl font-bold text-honey">
-                        {matrixData.totalMembers}
+                        {dashboardData.downlineMatrix.reduce((sum: number, level: any) => sum + level.members, 0)}
                       </div>
                       <p className="text-sm text-muted-foreground">Total Members</p>
                     </div>
                     <div className="text-center">
                       <div className="text-xl font-bold text-honey">
-                        {matrixData.maxLayer}
+                        {dashboardData.downlineMatrix.findLastIndex((level: any) => level.members > 0) + 1 || 0}
                       </div>
                       <p className="text-sm text-muted-foreground">Active Layers</p>
                     </div>
@@ -205,47 +226,37 @@ export default function Me() {
                     </div>
                   </div>
 
-                  {/* Layer Details */}
+                  {/* Layer Details - 完整显示19层 */}
                   <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {matrixData.layers.slice(0, 10).map((layer: any) => (
-                      <div key={layer.layer} className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <Badge variant="outline" className="text-honey border-honey">
-                            L{layer.layer}
-                          </Badge>
-                          <div>
-                            <p className="text-sm font-medium">
-                              {layer.filledPositions} / {layer.totalPositions} positions
-                            </p>
+                    {dashboardData.downlineMatrix.map((level: any) => {
+                      const maxCapacity = Math.pow(3, level.level);
+                      return (
+                        <div key={level.level} className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <Badge variant="outline" className="text-honey border-honey">
+                              L{level.level}
+                            </Badge>
+                            <div>
+                              <p className="text-sm font-medium">
+                                {level.members} / {maxCapacity.toLocaleString()} positions
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Members: {level.members} | Upgraded: {level.upgraded}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <Progress 
+                              value={level.members > 0 ? (level.members / maxCapacity) * 100 : 0} 
+                              className="w-20 h-2 mb-1"
+                            />
                             <p className="text-xs text-muted-foreground">
-                              L: {layer.leftCount} | M: {layer.middleCount} | R: {layer.rightCount}
+                              {level.members > 0 ? ((level.members / maxCapacity) * 100).toFixed(1) : '0.0'}%
                             </p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <Progress 
-                            value={layer.fillPercentage} 
-                            className="w-20 h-2 mb-1"
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            {layer.fillPercentage.toFixed(1)}%
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                    
-                    {matrixData.layers.length > 10 && (
-                      <div className="text-center py-4">
-                        <Button 
-                          onClick={() => setLocation('/referrals')}
-                          variant="outline"
-                          size="sm"
-                          className="border-honey text-honey hover:bg-honey hover:text-secondary"
-                        >
-                          View All {matrixData.layers.length} Layers
-                        </Button>
-                      </div>
-                    )}
+                      );
+                    })}
                   </div>
                 </div>
               ) : (
