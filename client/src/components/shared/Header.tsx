@@ -46,9 +46,6 @@ export default function Header() {
               >
                 <User className="w-4 h-4 text-honey" />
                 <div className="flex items-center gap-1">
-                  <span className="text-xs font-mono text-honey">
-                    {formatAddress(walletAddress || '')}
-                  </span>
                   <Badge variant="secondary" className="text-xs bg-honey/20 text-honey border-honey/30 px-1">
                     L{currentLevel || 1}
                   </Badge>
