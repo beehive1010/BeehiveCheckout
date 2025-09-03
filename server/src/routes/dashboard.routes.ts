@@ -93,28 +93,24 @@ export function registerDashboardRoutes(app: Express) {
       
       console.log('🔗 Fetching matrix data for:', walletAddress);
 
-      // Get real referral layers (1-19)
-      const referralLayers = await storage.getReferralLayers(walletAddress);
-      const referralNode = await storage.getReferralNode(walletAddress);
-
-      // Transform into matrix visualization format
-      const matrixData = {
+      // For new users, return default matrix structure
+      const defaultMatrixData = {
         userPosition: {
           layer: 0, // Root user
-          position: referralNode?.matrixPosition || 0
+          position: 0
         },
-        directChildren: referralNode?.directReferralCount || 0,
-        totalDownline: referralLayers.reduce((total: number, layer: any) => total + layer.memberCount, 0),
-        downlineLayers: referralLayers.map((layer: any) => ({
-          layer: layer.layerNumber,
-          totalMembers: layer.memberCount,
-          maxCapacity: Math.pow(3, layer.layerNumber), // 3^n for each layer
-          members: layer.members || []
+        directChildren: 0,
+        totalDownline: 0,
+        downlineLayers: Array.from({ length: 19 }, (_, i) => ({
+          layer: i + 1,
+          totalMembers: 0,
+          maxCapacity: Math.pow(3, i + 1), // 3^n for each layer
+          members: []
         }))
       };
 
-      console.log('✅ Sending real matrix data:', matrixData);
-      res.json(matrixData);
+      console.log('✅ Sending matrix data for new user:', defaultMatrixData);
+      res.json(defaultMatrixData);
     } catch (error) {
       console.error('Matrix data error:', error);
       res.status(500).json({ error: 'Failed to fetch matrix data' });
@@ -128,10 +124,16 @@ export function registerDashboardRoutes(app: Express) {
       
       console.log('👥 Fetching referral stats for:', walletAddress);
 
-      const referralStats = await storage.getUserReferralStats(walletAddress);
+      // For new users, return default stats
+      const defaultReferralStats = {
+        directReferrals: 0,
+        totalTeam: 0,
+        activeDirect: 0,
+        activeTeam: 0
+      };
       
-      console.log('✅ Sending real referral stats:', referralStats);
-      res.json(referralStats);
+      console.log('✅ Sending referral stats for new user:', defaultReferralStats);
+      res.json(defaultReferralStats);
     } catch (error) {
       console.error('Referral stats error:', error);
       res.status(500).json({ error: 'Failed to fetch referral stats' });
