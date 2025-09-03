@@ -4,6 +4,9 @@ import { storage } from '../services/storage.service';
 import { registrationService } from '../services/registration.service';
 import { globalMatrixService } from '../services/global-matrix.service';
 import { rewardDistributionService } from '../services/reward-distribution.service';
+import { db } from '../../db';
+import { referrals } from '@shared/schema';
+import { eq, count } from 'drizzle-orm';
 
 export function registerMembershipRoutes(app: Express, requireWallet: any) {
 
@@ -177,7 +180,7 @@ export function registerMembershipRoutes(app: Express, requireWallet: any) {
     }
   });
 
-  // Get available membership levels for purchase
+  // Get available membership levels for purchase (sequential + referral requirements)
   app.get('/api/membership/available-levels/:walletAddress', async (req, res) => {
     try {
       const { walletAddress } = req.params;
@@ -185,16 +188,57 @@ export function registerMembershipRoutes(app: Express, requireWallet: any) {
       const user = await storage.getUser(walletAddress);
       const currentLevel = user?.currentLevel || 0;
       
-      // User can purchase levels higher than their current level
+      // Get direct referral count
+      const directReferrals = await db
+        .select({ count: count() })
+        .from(referrals)
+        .where(eq(referrals.rootWallet, walletAddress.toLowerCase()));
+      
+      const directReferralCount = directReferrals[0]?.count || 0;
+      
+      // Sequential purchase: only next level available
+      const nextLevel = currentLevel + 1;
       const availableLevels = [];
-      for (let level = currentLevel + 1; level <= 19; level++) {
-        availableLevels.push(level);
+      let requirementsMet = true;
+      let requirementDetails = null;
+      
+      // Check if next level can be purchased
+      if (nextLevel <= 19) {
+        // Referral requirements for specific levels
+        const referralRequirements = {
+          2: 2, // Level 2 needs 2 direct referrals
+          3: 2, // Level 3 needs 2 direct referrals
+          // Add more levels as needed
+        };
+        
+        const requiredReferrals = referralRequirements[nextLevel as keyof typeof referralRequirements] || 0;
+        
+        if (requiredReferrals > 0) {
+          if (directReferralCount >= requiredReferrals) {
+            availableLevels.push(nextLevel);
+          } else {
+            requirementsMet = false;
+            requirementDetails = {
+              requiredReferrals,
+              currentReferrals: directReferralCount,
+              missingReferrals: requiredReferrals - directReferralCount
+            };
+          }
+        } else {
+          // No referral requirement for this level
+          availableLevels.push(nextLevel);
+        }
       }
       
       res.json({
         currentLevel,
+        nextLevel: nextLevel <= 19 ? nextLevel : null,
         availableLevels,
-        maxLevel: 19
+        maxLevel: 19,
+        directReferralCount,
+        requirementsMet,
+        requirementDetails,
+        isSequential: true // Flag to indicate sequential purchase system
       });
 
     } catch (error: any) {

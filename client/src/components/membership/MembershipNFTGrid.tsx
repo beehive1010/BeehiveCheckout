@@ -63,6 +63,11 @@ export default function MembershipNFTGrid({ className = '' }: MembershipNFTGridP
   });
 
   const availableLevels = (availableLevelsData as any)?.availableLevels || [];
+  const isSequential = (availableLevelsData as any)?.isSequential || false;
+  const nextLevel = (availableLevelsData as any)?.nextLevel;
+  const requirementsMet = (availableLevelsData as any)?.requirementsMet;
+  const requirementDetails = (availableLevelsData as any)?.requirementDetails;
+  const directReferralCount = (availableLevelsData as any)?.directReferralCount || 0;
 
   const handlePurchase = (level: number) => {
     setSelectedLevel(level);
@@ -78,8 +83,26 @@ export default function MembershipNFTGrid({ className = '' }: MembershipNFTGridP
 
   const getNFTStatus = (level: number) => {
     if (level <= (currentLevel || 0)) return 'owned';
-    if (availableLevels.includes(level)) return 'available';
+    
+    if (isSequential) {
+      // Sequential system: only next level can be purchased
+      if (level === nextLevel && requirementsMet) return 'available';
+      if (level === nextLevel && !requirementsMet) return 'requirements_not_met';
+      if (level > (currentLevel || 0)) return 'locked';
+    } else {
+      // Legacy system
+      if (availableLevels.includes(level)) return 'available';
+    }
+    
     return 'locked';
+  };
+  
+  const getReferralRequirement = (level: number) => {
+    const requirements: Record<number, number> = {
+      2: 2, // Level 2 needs 2 direct referrals
+      3: 2, // Level 3 needs 2 direct referrals
+    };
+    return requirements[level] || 0;
   };
 
   if (isLoading) {
@@ -109,6 +132,8 @@ export default function MembershipNFTGrid({ className = '' }: MembershipNFTGridP
           const isOwned = status === 'owned';
           const isAvailable = status === 'available';
           const isLocked = status === 'locked';
+          const requirementsNotMet = status === 'requirements_not_met';
+          const requiredReferrals = getReferralRequirement(membershipLevel.level);
           
           return (
             <Card
@@ -119,7 +144,9 @@ export default function MembershipNFTGrid({ className = '' }: MembershipNFTGridP
                   ? 'border-green-500/50 bg-green-50/50 dark:bg-green-950/20' 
                   : isAvailable 
                     ? 'border-honey/50 bg-honey/5 hover:border-honey hover:shadow-honey/20' 
-                    : 'border-gray-200 bg-gray-50/50 dark:bg-gray-950/20'
+                    : requirementsNotMet
+                      ? 'border-orange-500/50 bg-orange-50/50 dark:bg-orange-950/20'
+                      : 'border-gray-200 bg-gray-50/50 dark:bg-gray-950/20'
                 }
               `}
             >
@@ -167,6 +194,18 @@ export default function MembershipNFTGrid({ className = '' }: MembershipNFTGridP
                   )}
                 </div>
 
+                {/* Requirements display for sequential system */}
+                {isSequential && requirementsNotMet && requiredReferrals > 0 && (
+                  <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-lg p-2 mb-2">
+                    <div className="text-xs text-orange-700 dark:text-orange-300 text-center">
+                      <div className="font-medium">Need {requiredReferrals} direct referrals</div>
+                      <div className="text-orange-600 dark:text-orange-400">
+                        Current: {directReferralCount}/{requiredReferrals}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <Button
                   onClick={() => handlePurchase(membershipLevel.level)}
                   disabled={!isAvailable || !walletAddress}
@@ -175,7 +214,9 @@ export default function MembershipNFTGrid({ className = '' }: MembershipNFTGridP
                       ? 'bg-green-100 text-green-800 border-green-200 cursor-not-allowed'
                       : isAvailable
                         ? 'bg-honey text-secondary hover:bg-honey/90'
-                        : 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                        : requirementsNotMet
+                          ? 'bg-orange-100 text-orange-800 border-orange-200 cursor-not-allowed'
+                          : 'bg-gray-100 text-gray-500 cursor-not-allowed'
                   }`}
                   variant={isOwned ? 'outline' : 'default'}
                   data-testid={`button-purchase-level-${membershipLevel.level}`}
@@ -190,10 +231,15 @@ export default function MembershipNFTGrid({ className = '' }: MembershipNFTGridP
                       <ShoppingCart className="w-3 h-3 mr-1" />
                       Purchase
                     </>
+                  ) : requirementsNotMet ? (
+                    <>
+                      <Star className="w-3 h-3 mr-1" />
+                      Need Referrals
+                    </>
                   ) : (
                     <>
                       <Lock className="w-3 h-3 mr-1" />
-                      Locked
+                      {isSequential ? 'Sequential' : 'Locked'}
                     </>
                   )}
                 </Button>
