@@ -14,6 +14,7 @@ import DashboardPage from "@/pages/DashboardPage";
 import Education from "@/pages/Education";
 import HiveWorld from "@/pages/HiveWorld";
 import Me from "@/pages/Me";
+import ProfileSettings from "@/pages/ProfileSettings";
 import NFTCenter from "@/pages/NFTCenter";
 import Referrals from "@/pages/Referrals";
 import Discover from "@/pages/Discover";
@@ -220,6 +221,7 @@ function Router() {
         <Route path="/discover" component={Discover} />
         <Route path="/referrals" component={Referrals} />
         <Route path="/me" component={Me} />
+        <Route path="/me/profile-settings" component={ProfileSettings} />
         <Route path="/ads" component={AdvertisementNFTs} />
         <Route path="/nft-center" component={NFTCenter} />
         <Route path="/admin-nft-manager" component={AdminNFTManager} />
