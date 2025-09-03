@@ -1,13 +1,15 @@
 {
   "nav": {
     "dashboard": "仪表板",
+    "referrals": "推荐",
     "tasks": "任务",
     "marketplace": "市场",
     "education": "教育",
     "discover": "发现",
     "hiveworld": "蜂巢世界",
     "me": "我",
-    "home": "主页"
+    "home": "主页",
+    "back": "返回"
   },
   "common": {
     "cancel": "取消",
@@ -367,8 +369,74 @@
       "noNotifications": "暂无升级通知",
       "notificationsAppear": "当团队成员升级时，通知将显示在这里"
     },
+    "organization": {
+      "title": "组织动态",
+      "viewMore": "查看更多 ({{count}} 条)",
+      "noActivity": "暂无动态",
+      "noActivityDesc": "当您的团队有新活动时，这里会显示通知",
+      "details": "详情",
+      "activityDetails": "活动详情",
+      "user": "用户",
+      "activity": "活动",
+      "time": "时间",
+      "wallet": "钱包地址",
+      "backToList": "返回列表",
+      "activities": {
+        "direct_referral": "直推加入",
+        "placement": "矩阵安置", 
+        "upgrade": "等级升级",
+        "joined": "加入了您的团队",
+        "placed": "在矩阵第{{level}}层{{position}}位置放置了{{member}}",
+        "upgraded": "升级到Level {{level}}",
+        "timeAgo": {
+          "hours": "{{count}}小时前",
+          "days": "{{count}}天前",
+          "minutes": "{{count}}分钟前"
+        }
+      }
+    },
     "upgradeRewards": {
       "description": "跟踪您矩阵层的升级奖励。当成员购买更高级别的NFT时，您有72小时的时间升级。"
+    },
+    "matrix": {
+      "title": "3×3矩阵结构",
+      "loading": "加载矩阵数据中...",
+      "noMembers": "暂无矩阵成员",
+      "noMembersDesc": "开始推荐新成员来建立您的矩阵网络",
+      "noMembersAtLevel": "第{{level}}层暂无成员",
+      "noMembersAtLevelDesc": "此层级尚未有成员加入",
+      "layer": "第{{level}}层",
+      "layerDetails": "第{{level}}层详情",
+      "layerPosition": "第{{level}}层 - {{position}}位",
+      "pathIndicator": "路径: {{path}}",
+      "navigation": {
+        "root": "根节点",
+        "backToRoot": "返回根节点",
+        "viewSubLevel": "查看下级 →"
+      },
+      "stats": {
+        "direct": "直推成员",
+        "total": "团队总数", 
+        "activeLayers": "活跃层级",
+        "totalMembers": "总成员数",
+        "newPlacements": "新安置数"
+      },
+      "position": {
+        "L": "L位",
+        "M": "M位", 
+        "R": "R位",
+        "filled": "已填充",
+        "direct": "直推",
+        "spillover": "滑落"
+      },
+      "rules": {
+        "title": "3×3强制矩阵填充规则：",
+        "rule1": "• 每个位置最多容纳3个直接下级",
+        "rule2": "• 滑落优先填充L位，再填充M位，最后填充R位",
+        "rule3": "• 绿色 = 直接推荐的成员，蓝色 = 从上线滑落的成员",
+        "rule4": "• 点击有成员的位置可以查看其下级矩阵结构",
+        "rule5": "• 最深可查看到第19层"
+      }
     }
   },
   "me": {
@@ -724,7 +792,9 @@
     }
   },
   "me": {
-    "title": "个人资料和设置",
+    "title": "个人中心",
+    "rewards": "奖励",
+    "referrals": "推荐",
     "editProfile": "编辑个人资料",
     "status": {
       "active": "活跃",
@@ -956,6 +1026,17 @@
     "enrolled": "已注册"
   },
   "membership": {
+    "levels": {
+      "title": "会员级别",
+      "subtitle": "选择您的会员级别以解锁更多功能和奖励",
+      "currentLevel": "当前级别",
+      "owned": "已拥有",
+      "available": "可购买",
+      "locked": "锁定",
+      "selected": "已选择",
+      "priceUSDT": "USDT价格",
+      "benefits": "专属权益"
+    },
     "purchase": {
       "button": "会员解锁价格 - 130 USDT",
       "connectWallet": "连接钱包进行购买",

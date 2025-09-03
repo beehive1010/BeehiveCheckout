@@ -1,0 +1,68 @@
+1) Global 3×3 Placement (Frontend & Backend)
+
+The entire company shares a single 3×3 pyramid matrix.
+
+Layer 1: exactly 3 seats for A (A’s first layer).
+
+Layer 2: 3×3 = 9 seats; Layer 3: 9×3 = 27 seats; … up to Layer 19 (size = 3^layer).
+
+Spillover (BFS): regardless of direct referrals or overflow from above, members are placed by join time using BFS to the first available slot under A. Layer 1 is always capped at 3.
+
+2) Upgrades & Qualification
+
+Upgrade = buy the corresponding Level Member NFT (on-chain proof). It does not depend on having a full 3×3.
+
+To receive a layer’s rewards, you must own that Level’s NFT (or higher).
+
+Sequential purchase: you may buy multiple levels in one go, but they must be recorded step-by-step (no skipping).
+
+Level 1 special case: Among the 3 rewards from A’s Layer 1, the 3rd reward is locked until A upgrades to Level 2; otherwise it follows the 72-hour pass-up.
+
+3) Costs & Rewards (Layer-Linked)
+
+Level 1 entry: 130 USDT total — 100 USDT counts as the NFT price & distributable reward; 30 USDT goes to the admin wallet.
+
+Levels 2–19: the NFT price = 100% reward amount paid to the nearest qualified upline when a member in that layer buys that level.
+
+Trigger: a reward is created for you when someone in your Layer n buys Level n.
+
+Layer	Required Level	NFT Price / Reward (USDT)	Max Seats (3^layer)	Qualification You Must Hold
+1	L1	100 (from 130; +30 admin fee)	3	L1 (3rd seat requires L2)
+2	L2	150	9	L2
+3	L3	200	27	L3
+4	L4	250	81	L4
+5	L5	300	243	L5
+6	L6	350	729	L6
+7	L7	400	2,187	L7
+8	L8	450	6,561	L8
+9	L9	500	19,683	L9
+10	L10	550	59,049	L10
+11	L11	600	177,147	L11
+12	L12	650	531,441	L12
+13	L13	700	1,594,323	L13
+14	L14	750	4,782,969	L14
+15	L15	800	14,348,907	L15
+16	L16	850	43,046,721	L16
+17	L17	900	129,140,163	L17
+18	L18	950	387,420,489	L18
+19	L19	1000	1,162,261,467	L19
+
+Note: At Level 1, only 100 USDT is rewardable; the additional 30 USDT always goes to the admin wallet.
+
+4) 72-Hour Countdown & Roll-Up
+
+When a member in your Layer n buys Level n, a pending reward (amount per table) is created for you and a 72-hour countdown starts.
+
+If you hold Level n (or higher) within 72h, the reward becomes claimable.
+
+If not, at expiry it passes up 100% to the nearest qualified upline, and a fresh 72-hour timer starts for them.
+
+Level 1 special: the 3rd seat also follows this rule unless you upgrade to L2 in time.
+
+5) FE/BE Alignment (Action Items)
+
+BFS spillover placement shared by FE & BE; Layer 1 fixed at 3, then 3, 9, 27…
+
+Upgrade = buy Level NFT; Qualification = own that Level (or higher) to receive.
+
+Reward engine: trigger on “Layer n member buys Level n” → amount = Level price → 72h lock → unlock if qualified → else roll up.

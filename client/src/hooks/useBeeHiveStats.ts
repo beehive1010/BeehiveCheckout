@@ -5,6 +5,7 @@ import { membershipLevels } from '../lib/config/membershipLevels';
 interface UserReferralStats {
   directReferralCount: string | number;
   totalTeamCount: number;
+  totalReferrals?: number; // Add missing property
   totalEarnings: string | number;
   monthlyEarnings: string | number;
   pendingCommissions: string | number;
@@ -20,6 +21,11 @@ interface UserReferralStats {
     upgraded: number;
     placements: number;
   }>;
+  recentReferrals?: Array<{
+    walletAddress: string;
+    joinedAt: string;
+    activated: boolean;
+  }>; // Add missing property
 }
 
 

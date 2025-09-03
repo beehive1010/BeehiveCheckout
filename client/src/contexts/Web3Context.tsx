@@ -1,14 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { createThirdwebClient } from 'thirdweb';
-import { ThirdwebProvider, useActiveAccount } from 'thirdweb/react';
-
-const client = createThirdwebClient({
-  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || "3123b1ac2ebdb966dd415c6e964dc335"
-});
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { ThirdwebProvider, useActiveAccount, useActiveWallet, useActiveWalletChain } from 'thirdweb/react';
+import { client, supportedChains } from '../lib/web3';
 
 interface Web3ContextType {
   client: any;
   account: any;
+  wallet: any;
+  activeChain: any;
   isConnected: boolean;
   walletAddress: string | null;
 }
@@ -17,6 +15,8 @@ const Web3Context = createContext<Web3ContextType | undefined>(undefined);
 
 function Web3ContextProvider({ children }: { children: React.ReactNode }) {
   const account = useActiveAccount();
+  const wallet = useActiveWallet();
+  const activeChain = useActiveWalletChain();
   const [isConnected, setIsConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
@@ -24,22 +24,41 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     if (account?.address) {
       setIsConnected(true);
       setWalletAddress(account.address);
-      // Store wallet address for API client access
+      // Store wallet address and chain for API client access
       sessionStorage.setItem('wallet-address', account.address);
+      // Safe chain ID handling with validation
+      if (activeChain?.id !== undefined && activeChain.id !== null) {
+        sessionStorage.setItem('active-chain-id', activeChain.id.toString());
+      } else {
+        // Remove invalid chain data
+        sessionStorage.removeItem('active-chain-id');
+      }
+      
+      // Enhanced logging with wallet info from useActiveWallet
+      console.log('🔗 Wallet connected via useActiveWallet:', {
+        address: account.address,
+        walletId: wallet?.id,
+        chainId: activeChain?.id
+      });
     } else {
       setIsConnected(false);
       setWalletAddress(null);
-      // Remove wallet address when disconnected
+      // Remove wallet data when disconnected
       sessionStorage.removeItem('wallet-address');
+      sessionStorage.removeItem('active-chain-id');
+      
+      console.log('🔗 Wallet disconnected');
     }
-  }, [account]);
+  }, [account, wallet, activeChain]);
 
-  const value = useMemo(() => ({
+  const value = {
     client,
     account,
+    wallet,
+    activeChain,
     isConnected,
     walletAddress,
-  }), [account, isConnected, walletAddress]);
+  };
 
   return (
     <Web3Context.Provider value={value}>
@@ -61,14 +80,7 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
 export function useWeb3() {
   const context = useContext(Web3Context);
   if (context === undefined) {
-    // Return default values instead of throwing error to prevent crashes  
-    console.warn('useWeb3 called outside Web3Provider, returning defaults');
-    return {
-      client,
-      account: null,
-      isConnected: false,
-      walletAddress: null,
-    };
+    throw new Error('useWeb3 must be used within a Web3Provider');
   }
   return context;
 }

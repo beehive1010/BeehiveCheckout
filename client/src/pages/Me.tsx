@@ -5,13 +5,16 @@ import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import HexagonIcon from '../components/UI/HexagonIcon';
-import Learn from './Learn';
-import Referrals from './Referrals';
-import Settings from './Settings';
+import HexagonIcon from '../components/shared/HexagonIcon';
 import { AcademicCapIcon, UsersIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
+import { DollarSign } from 'lucide-react';
 import { IconActivity } from '@tabler/icons-react';
 import { useLocation } from 'wouter';
+import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
+import { PendingRewardsSection } from '@/components/rewards/PendingRewardsSection';
+import { OrganizationActivity } from '@/components/organization/OrganizationActivity';
+import ReferralsMatrixComponent from '@/components/matrix/ReferralsMatrixComponent';
+import styles from '../styles/me/me.module.css';
 
 export default function Me() {
   const { 
@@ -42,193 +45,90 @@ export default function Me() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h2 className="text-2xl font-bold text-honey mb-6">
+    <div className={`${styles.meContainer} container mx-auto px-4 py-4 sm:py-8`}>
+      <h2 className="text-xl sm:text-2xl font-bold text-honey mb-4 sm:mb-6">
         {t('me.title')}
       </h2>
       
       {/* Profile Card */}
-      <Card className="bg-secondary border-border mb-6">
-        <CardContent className="p-6">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center space-y-4 lg:space-y-0 lg:space-x-6">
-            <HexagonIcon size="xl">
-              <img 
-                src={userData?.user?.ipfsHash 
-                  ? `https://ipfs.io/ipfs/${userData.user.ipfsHash}` 
-                  : `https://api.dicebear.com/7.x/shapes/svg?seed=${walletAddress || 'default'}`
-                } 
-                alt="Profile Avatar" 
-                className="w-20 h-20 rounded-full" 
-              />
-            </HexagonIcon>
-            
+      <Card className="bg-secondary border-border mb-4 sm:mb-6">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex items-center space-x-3 sm:space-x-4 mb-4 sm:mb-6">
+            <div className="relative">
+              <HexagonIcon className="w-12 h-12 sm:w-16 sm:h-16 text-honey">
+                <span className="text-lg sm:text-2xl font-bold">L{currentLevel}</span>
+              </HexagonIcon>
+              <Badge className="absolute -top-2 -right-2 bg-honey text-secondary">
+                L{currentLevel}
+              </Badge>
+            </div>
             <div className="flex-1">
-              <h3 className="text-xl font-bold text-honey mb-2">
-                {userData?.user?.username || t('me.profile.member')}
+              <h3 className="text-lg sm:text-xl font-semibold text-honey">
+                {userData?.username || formatAddress(walletAddress || '')}
               </h3>
-              <p className="text-muted-foreground text-sm mb-2">
-                {userData?.user?.email || t('me.profile.defaultEmail')}
+              <p className="text-muted-foreground text-sm">
+                {formatAddress(walletAddress || '')}
               </p>
-              <p className="text-muted-foreground text-sm font-mono mb-4">
-                {walletAddress ? formatAddress(walletAddress) : ''}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <Badge className="bg-honey text-black font-semibold">
-                  {t('me.profile.levelMember', { level: currentLevel })}
-                </Badge>
-                <Badge variant="secondary" className="bg-green-600 text-white">
-                  {t('me.status.active')}
-                </Badge>
-                <Badge variant="secondary" className="bg-blue-600 text-white">
-                  {t('me.status.memberSince')} {userData?.user?.createdAt ? formatDate(userData.user.createdAt) : 'Oct 2024'}
-                </Badge>
+              <div className="flex items-center space-x-2 sm:space-x-4 mt-2">
+                <div className="text-xs sm:text-sm">
+                  <span className="text-muted-foreground">BCC:</span>
+                  <span className="font-medium text-honey ml-1">
+                    {bccBalance?.transferable || 0}
+                  </span>
+                </div>
+                <div className="text-xs sm:text-sm">
+                  <span className="text-muted-foreground">Locked:</span>
+                  <span className="font-medium text-honey ml-1">
+                    {bccBalance?.restricted || 0}
+                  </span>
+                </div>
               </div>
             </div>
-            
-            <Button 
-              className="btn-honey"
-              data-testid="button-edit-profile"
-            >
-              <i className="fas fa-edit mr-2"></i>
-              {t('me.editProfile')}
-            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Balance Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-secondary border-border text-center">
-          <CardContent className="p-6">
-            <i className="fas fa-dollar-sign text-green-400 text-2xl mb-3"></i>
-            <div className="text-2xl font-bold text-honey">
-              {isBalancesLoading ? '...' : Number(userBalances?.usdt || 0).toFixed(2)}
-            </div>
-            <div className="text-muted-foreground text-sm">{t('me.balances.usdt')}</div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-secondary border-border text-center">
-          <CardContent className="p-6">
-            <i className="fas fa-coins text-honey text-2xl mb-3"></i>
-            <div className="text-2xl font-bold text-honey">{bccBalance?.transferable || 0}</div>
-            <div className="text-muted-foreground text-sm">{t('me.balances.bccTransferable')}</div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-secondary border-border text-center">
-          <CardContent className="p-6">
-            <i className="fas fa-lock text-yellow-400 text-2xl mb-3"></i>
-            <div className="text-2xl font-bold text-honey">{bccBalance?.restricted || 0}</div>
-            <div className="text-muted-foreground text-sm">{t('me.balances.bccRestricted')}</div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-secondary border-border text-center">
-          <CardContent className="p-6">
-            <i className="fas fa-gem text-purple-400 text-2xl mb-3"></i>
-            <div className="text-2xl font-bold text-honey">
-              {cthBalance?.balance || 0}
-            </div>
-            <div className="text-muted-foreground text-sm">{t('me.balances.cth')}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Referral Statistics Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-secondary border-border text-center">
-          <CardContent className="p-6">
-            <i className="fas fa-users text-blue-400 text-2xl mb-3"></i>
-            <div className="text-2xl font-bold text-honey">
-              {isLoadingUserStats ? '...' : (Number(userStats?.directReferralCount) || 0)}
-            </div>
-            <div className="text-muted-foreground text-sm">{t('me.referrals.directReferrals') || 'Direct Referrals'}</div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-secondary border-border text-center">
-          <CardContent className="p-6">
-            <i className="fas fa-sitemap text-green-400 text-2xl mb-3"></i>
-            <div className="text-2xl font-bold text-honey">
-              {isLoadingUserStats ? '...' : (userStats?.totalTeamCount || 0)}
-            </div>
-            <div className="text-muted-foreground text-sm">{t('me.referrals.totalTeam') || 'Total Team'}</div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-secondary border-border text-center">
-          <CardContent className="p-6">
-            <i className="fas fa-chart-line text-yellow-400 text-2xl mb-3"></i>
-            <div className="text-2xl font-bold text-honey">
-              {isLoadingUserStats ? '...' : (Number(userStats?.totalEarnings || 0).toFixed(2))}
-            </div>
-            <div className="text-muted-foreground text-sm">{t('me.referrals.totalEarnings') || 'Total Earnings'}</div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-secondary border-border text-center">
-          <CardContent className="p-6">
-            <i className="fas fa-clock text-purple-400 text-2xl mb-3"></i>
-            <div className="text-2xl font-bold text-honey">
-              {isLoadingUserStats ? '...' : (Number(userStats?.pendingCommissions || 0).toFixed(2))}
-            </div>
-            <div className="text-muted-foreground text-sm">{t('me.referrals.pendingRewards') || 'Pending Rewards'}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Top Up Button */}
-      <div className="flex justify-center mb-6">
-        <Button 
-          onClick={() => setLocation('/tokens')}
-          className="bg-honey text-black hover:bg-honey/90 font-semibold px-8 py-3 text-lg"
-          data-testid="button-top-up"
-        >
-          <i className="fas fa-plus mr-2"></i>
-          {t('buttons.topUp')}
-        </Button>
-      </div>
-
-      {/* Tab Navigation */}
-      <Tabs defaultValue="learn" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-secondary/50 border border-honey/20 rounded-xl p-1 mb-6 backdrop-blur-sm">
-          <TabsTrigger 
-            value="learn" 
-            className="relative flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 data-[state=active]:bg-honey data-[state=active]:text-black data-[state=active]:shadow-lg data-[state=active]:shadow-honey/25 text-honey hover:bg-honey/10 hover:text-honey"
-            data-testid="tab-learn"
-          >
-            <AcademicCapIcon className="w-5 h-5" />
-            <span className="font-semibold">{t('me.tabs.learn')}</span>
+      {/* Tabs */}
+      <Tabs defaultValue="rewards" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 bg-secondary h-auto">
+          <TabsTrigger value="rewards" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-3">
+            <DollarSign className="w-3 h-3 sm:w-4 sm:h-4" />
+            {t('me.rewards') || 'Rewards'}
           </TabsTrigger>
-          <TabsTrigger 
-            value="referrals" 
-            className="relative flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 data-[state=active]:bg-honey data-[state=active]:text-black data-[state=active]:shadow-lg data-[state=active]:shadow-honey/25 text-honey hover:bg-honey/10 hover:text-honey"
-            data-testid="tab-referrals"
-          >
-            <UsersIcon className="w-5 h-5" />
-            <span className="font-semibold">{t('me.tabs.referrals')}</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="settings" 
-            className="relative flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-300 data-[state=active]:bg-honey data-[state=active]:text-black data-[state=active]:shadow-lg data-[state=active]:shadow-honey/25 text-honey hover:bg-honey/10 hover:text-honey"
-            data-testid="tab-settings"
-          >
-            <Cog6ToothIcon className="w-5 h-5" />
-            <span className="font-semibold">{t('me.tabs.settings')}</span>
+          <TabsTrigger value="referrals" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-3">
+            <UsersIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+            {t('me.referrals') || 'Referrals'}
           </TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="learn" className="mt-0">
-          <Learn />
+
+        <TabsContent value="rewards" className="space-y-6">
+          {/* ClaimableRewardsCard for withdraw functionality and rewards stats */}
+          {walletAddress && (
+            <ClaimableRewardsCard walletAddress={walletAddress} />
+          )}
+          
+          {/* PendingRewardsSection for pending rewards with timer */}
+          {walletAddress && currentLevel && (
+            <PendingRewardsSection 
+              walletAddress={walletAddress} 
+              currentUserLevel={currentLevel}
+            />
+          )}
         </TabsContent>
-        
-        <TabsContent value="referrals" className="mt-0">
-          <Referrals />
-        </TabsContent>
-        
-        <TabsContent value="settings" className="mt-0">
-          <Settings />
+
+
+        <TabsContent value="referrals" className="space-y-4 sm:space-y-6">
+          {walletAddress && (
+            <>
+              <ReferralsMatrixComponent walletAddress={walletAddress} />
+              <OrganizationActivity 
+                walletAddress={walletAddress} 
+                maxItems={3}
+                isPopup={true}
+                className=""
+              />
+            </>
+          )}
         </TabsContent>
       </Tabs>
     </div>

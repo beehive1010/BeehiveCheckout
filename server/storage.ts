@@ -1,55 +1,62 @@
 import { 
-  // Core tables
   users,
+  membershipState,
+  referralNodes,
+  referralLayers,
+  matrixLayers,
+  matrixPositions,
+  memberMatrixLayers,
+  rewardNotifications,
   userActivities,
-  userNotifications,
+  globalMatrixPosition,
+  usdtBalances,
   bccBalances,
   orders,
   earningsWallet,
   levelConfig,
   memberNFTVerification,
-  
-  
-  // V2 Matrix tables
-  globalMatrixPositionsV2,
-  membershipNFTsV2,
-  matrixTreeV2,
-  layerRewardsV2,
-  pendingRewardsV2,
-  platformRevenueV2,
-  rewardDistributionsV2,
-  
-  // NFT and marketplace
   merchantNFTs,
   nftPurchases,
-  advertisementNFTs,
-  advertisementNFTClaims,
-  
-  // Education
   courses,
   courseLessons,
   courseAccess,
   lessonAccess,
-  
-  // Admin
+  bridgePayments,
+  advertisementNFTs,
+  advertisementNFTClaims,
   adminUsers,
   adminSessions,
-  adminSettings,
   discoverPartners,
   dappTypes,
   partnerChains,
-  
-  // Bridge and tokens
-  bridgePayments,
-  tokenPurchases,
-  cthBalances,
-  walletConnectionLogs,
-  
-  // Types - Core
+  memberActivations,
+  rewardDistributions,
+  platformRevenue,
+  userRewards,
+  adminSettings,
   type User, 
   type InsertUser,
+  type MembershipState,
+  type InsertMembershipState,
+  type ReferralNode,
+  type InsertReferralNode,
+  type ReferralLayer,
+  type InsertReferralLayer,
+  type MatrixLayer,
+  type InsertMatrixLayer,
+  type MatrixPosition,
+  type InsertMatrixPosition,
+  type MemberMatrixLayer,
+  type InsertMemberMatrixLayer,
+  type RewardNotification,
+  type InsertRewardNotification,
+  userNotifications,
   type UserNotification,
   type InsertUserNotification,
+  type GlobalMatrixPosition,
+  type InsertGlobalMatrixPosition,
+  type USDTBalance,
+  type InsertUSDTBalance,
   type BCCBalance,
   type InsertBCCBalance,
   type Order,
@@ -60,34 +67,10 @@ import {
   type InsertLevelConfig,
   type MemberNFTVerification,
   type InsertMemberNFTVerification,
-  
-  // Types - V2 Matrix
-  type GlobalMatrixPositionV2,
-  type InsertGlobalMatrixPositionV2,
-  type MembershipNFTV2,
-  type InsertMembershipNFTV2,
-  type MatrixTreeV2,
-  type InsertMatrixTreeV2,
-  type LayerRewardV2,
-  type InsertLayerRewardV2,
-  type PendingRewardV2,
-  type InsertPendingRewardV2,
-  type PlatformRevenueV2,
-  type InsertPlatformRevenueV2,
-  type RewardDistributionV2,
-  type InsertRewardDistributionV2,
-  
-  // Types - NFT and marketplace
   type MerchantNFT,
   type InsertMerchantNFT,
   type NFTPurchase,
   type InsertNFTPurchase,
-  type AdvertisementNFT,
-  type InsertAdvertisementNFT,
-  type AdvertisementNFTClaim,
-  type InsertAdvertisementNFTClaim,
-  
-  // Types - Education
   type Course,
   type InsertCourse,
   type CourseLesson,
@@ -96,69 +79,71 @@ import {
   type InsertCourseAccess,
   type LessonAccess,
   type InsertLessonAccess,
-  
-  // Types - Admin
+  type BridgePayment,
+  type InsertBridgePayment,
+  type AdvertisementNFT,
+  type InsertAdvertisementNFT,
+  type AdvertisementNFTClaim,
+  type InsertAdvertisementNFTClaim,
   type AdminUser,
   type InsertAdminUser,
   type AdminSession,
   type InsertAdminSession,
-  type AdminSetting,
-  type InsertAdminSetting,
+  tokenPurchases,
+  cthBalances,
+  type TokenPurchase,
+  type InsertTokenPurchase,
+  type CTHBalance,
+  type InsertCTHBalance,
   type DiscoverPartner,
   type InsertDiscoverPartner,
   type DappType,
   type InsertDappType,
   type PartnerChain,
-  type InsertPartnerChain,
-  
-  // Types - Bridge and tokens
-  type BridgePayment,
-  type InsertBridgePayment,
-  type TokenPurchase,
-  type InsertTokenPurchase,
-  type CTHBalance,
-  type InsertCTHBalance,
+  walletConnectionLogs,
   type WalletConnectionLog,
-  type InsertWalletConnectionLog
+  type InsertWalletConnectionLog,
+  type InsertPartnerChain,
+  type MemberActivation,
+  type InsertMemberActivation,
+  type RewardDistribution,
+  type InsertRewardDistribution,
+  type PlatformRevenue,
+  type InsertPlatformRevenue,
+  type UserReward,
+  type InsertUserReward,
+  type AdminSetting,
+  type InsertAdminSetting
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, sql, isNull, inArray, not, gt, lt } from "drizzle-orm";
+import { eq, and, desc, sql, isNull, inArray, not, gt, lt, gte, lte, isNotNull } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
+  // NFT operations
+  recordNFTPurchase(purchase: InsertNFTPurchase): Promise<NFTPurchase>;
+  
   // User operations
   getUser(walletAddress: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(walletAddress: string, updates: Partial<User>): Promise<User | undefined>;
 
-  // V2 Matrix Position operations
-  getGlobalMatrixPositionV2(walletAddress: string): Promise<GlobalMatrixPositionV2 | undefined>;
-  createGlobalMatrixPositionV2(position: InsertGlobalMatrixPositionV2): Promise<GlobalMatrixPositionV2>;
-  updateGlobalMatrixPositionV2(walletAddress: string, updates: Partial<GlobalMatrixPositionV2>): Promise<GlobalMatrixPositionV2 | undefined>;
-  
-  // V2 Membership NFT operations
-  getMembershipNFTV2(walletAddress: string, level?: number): Promise<MembershipNFTV2 | undefined>;
-  getMembershipNFTsV2(walletAddress: string): Promise<MembershipNFTV2[]>;
-  createMembershipNFTV2(nft: InsertMembershipNFTV2): Promise<MembershipNFTV2>;
-  updateMembershipNFTV2(id: string, updates: Partial<MembershipNFTV2>): Promise<MembershipNFTV2 | undefined>;
-  
-  // V2 Matrix Tree operations
-  getMatrixTreeV2(rootWallet: string, layer?: number): Promise<MatrixTreeV2[]>;
-  createMatrixTreeNodeV2(node: InsertMatrixTreeV2): Promise<MatrixTreeV2>;
-  
-  // V2 Layer Rewards operations
-  getLayerRewardsV2(rootWallet: string): Promise<LayerRewardV2[]>;
-  createLayerRewardV2(reward: InsertLayerRewardV2): Promise<LayerRewardV2>;
-  updateLayerRewardV2(id: string, updates: Partial<LayerRewardV2>): Promise<LayerRewardV2 | undefined>;
-  
-  // V2 Platform Revenue operations
-  createPlatformRevenueV2(revenue: InsertPlatformRevenueV2): Promise<PlatformRevenueV2>;
-  getPlatformRevenueV2(): Promise<PlatformRevenueV2[]>;
-  
-  // NFT operations
-  recordNFTPurchase(purchase: InsertNFTPurchase): Promise<NFTPurchase>;
-  findGlobalMatrixPlacement(sponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string }>;
+  // Membership operations
+  getMembershipState(walletAddress: string): Promise<MembershipState | undefined>;
+  createMembershipState(membership: InsertMembershipState): Promise<MembershipState>;
+  updateMembershipState(walletAddress: string, updates: Partial<MembershipState>): Promise<MembershipState | undefined>;
+
+  // Global Matrix Position operations
+  getGlobalMatrixPosition(walletAddress: string): Promise<GlobalMatrixPosition | undefined>;
+  createGlobalMatrixPosition(position: InsertGlobalMatrixPosition): Promise<GlobalMatrixPosition>;
+  updateGlobalMatrixPosition(walletAddress: string, updates: Partial<GlobalMatrixPosition>): Promise<GlobalMatrixPosition | undefined>;
+  findGlobalMatrixPlacement(sponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string; matrixPosition: 'L' | 'M' | 'R' }>;
+
+  // USDT balance operations
+  getUSDTBalance(walletAddress: string): Promise<USDTBalance | undefined>;
+  createUSDTBalance(balance: InsertUSDTBalance): Promise<USDTBalance>;
+  updateUSDTBalance(walletAddress: string, balance: Partial<USDTBalance>): Promise<USDTBalance | undefined>;
 
   // BCC Balance operations
   getBCCBalance(walletAddress: string): Promise<BCCBalance | undefined>;
@@ -195,7 +180,8 @@ export interface IStorage {
 
   // BeeHive business logic operations
   processGlobalMatrixRewards(buyerWallet: string, level: number): Promise<void>;
-  createRewardDistributionV2(distribution: InsertRewardDistributionV2): Promise<RewardDistributionV2>;
+  processReferralRewards(walletAddress: string, level: number): Promise<void>;
+  createRewardDistribution(distribution: InsertRewardDistribution): Promise<RewardDistribution>;
 
   // Merchant NFT operations
   getMerchantNFTs(): Promise<MerchantNFT[]>;
@@ -221,11 +207,23 @@ export interface IStorage {
   // Lesson Access operations
   getLessonAccessByCourse(walletAddress: string, courseId: string): Promise<LessonAccess[]>;
 
-  // V2 Pending Rewards operations
-  getPendingRewardsV2(walletAddress: string): Promise<PendingRewardV2[]>;
-  createPendingRewardV2(reward: InsertPendingRewardV2): Promise<PendingRewardV2>;
-  updatePendingRewardV2(id: string, updates: Partial<PendingRewardV2>): Promise<PendingRewardV2 | undefined>;
-  checkAndExpirePendingRewardsV2(): Promise<void>;
+  // Referral node operations
+  getReferralNode(walletAddress: string): Promise<ReferralNode | undefined>;
+  createReferralNode(referralNode: InsertReferralNode): Promise<ReferralNode>;
+  updateReferralNode(walletAddress: string, updates: Partial<ReferralNode>): Promise<ReferralNode | undefined>;
+  
+  // 19-Layer referral tracking operations
+  getReferralLayers(walletAddress: string): Promise<ReferralLayer[]>;
+  getReferralLayer(walletAddress: string, layerNumber: number): Promise<ReferralLayer | undefined>;
+  createOrUpdateReferralLayer(layer: InsertReferralLayer): Promise<ReferralLayer>;
+  calculateAndStore19Layers(walletAddress: string): Promise<void>;
+  
+  // Reward notification operations
+  getRewardNotifications(walletAddress: string): Promise<RewardNotification[]>;
+  getPendingRewardNotifications(walletAddress: string): Promise<RewardNotification[]>;
+  createRewardNotification(notification: InsertRewardNotification): Promise<RewardNotification>;
+  updateRewardNotification(id: string, updates: Partial<RewardNotification>): Promise<RewardNotification | undefined>;
+  checkAndExpireNotifications(): Promise<void>;
 
   // Bridge payment operations
   createBridgePayment(bridgePayment: InsertBridgePayment): Promise<BridgePayment>;
@@ -280,6 +278,23 @@ export interface IStorage {
   markNotificationAsRead(notificationId: string, walletAddress: string): Promise<UserNotification | undefined>;
   markAllNotificationsAsRead(walletAddress: string): Promise<void>;
   getUnreadNotificationCount(walletAddress: string): Promise<number>;
+
+  // Platform Revenue methods
+  createPlatformRevenue(data: InsertPlatformRevenue): Promise<PlatformRevenue>;
+  getPlatformRevenueByDate(startDate: Date, endDate: Date): Promise<PlatformRevenue[]>;
+  getPlatformRevenueBySourceWallet(sourceWallet: string): Promise<PlatformRevenue[]>;
+
+  // User Rewards methods  
+  createUserReward(data: InsertUserReward): Promise<UserReward>;
+  getUserRewardsByRecipient(recipientWallet: string): Promise<UserReward[]>;
+  getUserRewardsBySource(sourceWallet: string): Promise<UserReward[]>;
+  getPendingUserRewards(): Promise<UserReward[]>;
+  updateUserRewardStatus(id: string, status: string, confirmedAt?: Date, expiredAt?: Date, notes?: string): Promise<void>;
+  getUserRewardsExpiredBefore(date: Date): Promise<UserReward[]>;
+  unlockPendingRewards(unlockCondition: string, sourceWallet: string): Promise<void>;
+
+  // NFT claim reward distribution
+  processNFTClaimRewards(sourceWallet: string, triggerLevel: number, nftId?: string, claimTx?: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -482,8 +497,105 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
+  // Membership operations
+  async getMembershipState(walletAddress: string): Promise<MembershipState | undefined> {
+    const [state] = await db.select().from(membershipState).where(eq(membershipState.walletAddress, walletAddress.toLowerCase()));
+    return state || undefined;
+  }
+
+  async createMembershipState(membership: InsertMembershipState): Promise<MembershipState> {
+    const insertData = {
+      walletAddress: membership.walletAddress.toLowerCase(),
+      levelsOwned: (membership.levelsOwned as number[]) || ([] as number[]),
+      activeLevel: membership.activeLevel || 0,
+    };
+    const [state] = await db
+      .insert(membershipState)
+      .values([insertData])
+      .returning();
+    return state;
+  }
+
+  async updateMembershipState(walletAddress: string, updates: Partial<MembershipState>): Promise<MembershipState | undefined> {
+    const [state] = await db
+      .update(membershipState)
+      .set({ ...updates, lastUpgradeAt: new Date() })
+      .where(eq(membershipState.walletAddress, walletAddress.toLowerCase()))
+      .returning();
+    return state || undefined;
+  }
+
+  // Global Matrix Position operations
+  async getGlobalMatrixPosition(walletAddress: string): Promise<GlobalMatrixPosition | undefined> {
+    try {
+      const [position] = await db.select()
+        .from(globalMatrixPosition)
+        .where(eq(globalMatrixPosition.walletAddress, walletAddress.toLowerCase()));
+      return position || undefined;
+    } catch (error) {
+      console.error('Get global matrix position error:', error);
+      return undefined;
+    }
+  }
+
+  async createGlobalMatrixPosition(position: InsertGlobalMatrixPosition): Promise<GlobalMatrixPosition> {
+    const [matrixPosition] = await db
+      .insert(globalMatrixPosition)
+      .values({
+        ...position,
+        walletAddress: position.walletAddress.toLowerCase(),
+        directSponsorWallet: position.directSponsorWallet.toLowerCase(),
+        placementSponsorWallet: position.placementSponsorWallet.toLowerCase(),
+        matrixPosition: position.matrixPosition || 'L', // Default to L if not specified
+      })
+      .returning();
+    return matrixPosition;
+  }
+
+  async updateGlobalMatrixPosition(walletAddress: string, updates: Partial<GlobalMatrixPosition>): Promise<GlobalMatrixPosition | undefined> {
+    try {
+      const [position] = await db
+        .update(globalMatrixPosition)
+        .set(updates)
+        .where(eq(globalMatrixPosition.walletAddress, walletAddress.toLowerCase()))
+        .returning();
+      return position || undefined;
+    } catch (error) {
+      console.error('Update global matrix position error:', error);
+      return undefined;
+    }
+  }
 
   // BCC Balance operations
+  // USDT Balance operations
+  async getUSDTBalance(walletAddress: string): Promise<USDTBalance | undefined> {
+    const [balance] = await db.select().from(usdtBalances).where(eq(usdtBalances.walletAddress, walletAddress.toLowerCase()));
+    return balance || undefined;
+  }
+
+  async createUSDTBalance(balance: InsertUSDTBalance): Promise<USDTBalance> {
+    const [usdtBalance] = await db
+      .insert(usdtBalances)
+      .values({
+        ...balance,
+        walletAddress: balance.walletAddress.toLowerCase(),
+      })
+      .returning();
+    return usdtBalance;
+  }
+
+  async updateUSDTBalance(walletAddress: string, updates: Partial<USDTBalance>): Promise<USDTBalance | undefined> {
+    // Use transaction to prevent race conditions on concurrent balance updates
+    return await db.transaction(async (tx) => {
+      const [balance] = await tx
+        .update(usdtBalances)
+        .set({ ...updates, lastUpdated: new Date() })
+        .where(eq(usdtBalances.walletAddress, walletAddress.toLowerCase()))
+        .returning();
+      return balance || undefined;
+    });
+  }
+
   async getBCCBalance(walletAddress: string): Promise<BCCBalance | undefined> {
     const [balance] = await db.select().from(bccBalances).where(eq(bccBalances.walletAddress, walletAddress.toLowerCase()));
     return balance || undefined;
@@ -501,12 +613,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateBCCBalance(walletAddress: string, updates: Partial<BCCBalance>): Promise<BCCBalance | undefined> {
-    const [balance] = await db
-      .update(bccBalances)
-      .set({ ...updates, lastUpdated: new Date() })
-      .where(eq(bccBalances.walletAddress, walletAddress.toLowerCase()))
-      .returning();
-    return balance || undefined;
+    // Use transaction to prevent race conditions on concurrent balance updates
+    return await db.transaction(async (tx) => {
+      const [balance] = await tx
+        .update(bccBalances)
+        .set({ ...updates, lastUpdated: new Date() })
+        .where(eq(bccBalances.walletAddress, walletAddress.toLowerCase()))
+        .returning();
+      return balance || undefined;
+    });
   }
 
   // Order operations
@@ -608,6 +723,17 @@ export class DatabaseStorage implements IStorage {
     return result.count || 0;
   }
 
+  async getMemberCountByLevel(): Promise<{ level: number; count: number }[]> {
+    const results = await db.select({
+      level: membershipState.activeLevel,
+      count: sql<number>`count(*)`
+    })
+    .from(membershipState)
+    .groupBy(membershipState.activeLevel)
+    .orderBy(membershipState.activeLevel);
+    
+    return results.map(r => ({ level: r.level, count: r.count || 0 }));
+  }
 
   async getDirectReferralCount(walletAddress: string): Promise<number> {
     const result = await db.select({
@@ -620,9 +746,226 @@ export class DatabaseStorage implements IStorage {
   }
 
 
+  // DEPRECATED: Old matrix logic replaced by Global 1×3 Matrix system
+  // This function is disabled to prevent conflicts with the new processNFTClaimRewards
+  async processGlobalMatrixRewards(buyerWallet: string, purchasedLevel: number): Promise<void> {
+    console.log(`DEPRECATED: processGlobalMatrixRewards called for ${buyerWallet} level ${purchasedLevel}`);
+    console.log(`Using new Global 1×3 Matrix system instead via processNFTClaimRewards`);
+    
+    // Redirect to the new Global 1×3 Matrix system
+    await this.processNFTClaimRewards(
+      buyerWallet, 
+      purchasedLevel, 
+      `level_${purchasedLevel}_purchase`, 
+      `redirect_${Date.now()}`
+    );
+  }
 
+  // 1×3 Global Matrix Placement Algorithm with L→M→R order and Spillover
+  async findGlobalMatrixPlacement(sponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string; matrixPosition: 'L' | 'M' | 'R' }> {
+    // Check sponsor's current direct referrals and their L→M→R positions
+    const sponsorDirectReferrals = await db.select()
+      .from(globalMatrixPosition)
+      .where(eq(globalMatrixPosition.directSponsorWallet, sponsorWallet.toLowerCase()))
+      .orderBy(globalMatrixPosition.joinedAt); // Ensure we get them in order they joined
+    
+    // Determine next available L→M→R position
+    const usedPositions = sponsorDirectReferrals.map(ref => ref.matrixPosition);
+    let nextPosition: 'L' | 'M' | 'R';
+    let positionIndex: number;
+    
+    if (!usedPositions.includes('L')) {
+      nextPosition = 'L';
+      positionIndex = 1;
+    } else if (!usedPositions.includes('M')) {
+      nextPosition = 'M';
+      positionIndex = 2;
+    } else if (!usedPositions.includes('R')) {
+      nextPosition = 'R';
+      positionIndex = 3;
+    } else {
+      // All L,M,R positions are full - need spillover
+      return await this.findSpilloverPlacement(sponsorWallet);
+    }
+    
+    return {
+      matrixLevel: 1,
+      positionIndex,
+      placementSponsorWallet: sponsorWallet,
+      matrixPosition: nextPosition
+    };
+  }
 
+  // BFS spillover placement - Find earliest member with available L→M→R slots
+  async findSpilloverPlacement(originalSponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string; matrixPosition: 'L' | 'M' | 'R' }> {
+    // Get all members, ordered by join time (earliest first for spillover)
+    const allMembers = await db.select()
+      .from(globalMatrixPosition)
+      .orderBy(globalMatrixPosition.joinedAt);
+    
+    // BFS: Check each member starting from earliest for available L→M→R positions
+    for (const member of allMembers) {
+      const memberDirectReferrals = await db.select()
+        .from(globalMatrixPosition)
+        .where(eq(globalMatrixPosition.directSponsorWallet, member.walletAddress))
+        .orderBy(globalMatrixPosition.joinedAt);
+      
+      // Check which L→M→R positions are available
+      const usedPositions = memberDirectReferrals.map(ref => ref.matrixPosition);
+      let nextPosition: 'L' | 'M' | 'R' | null = null;
+      let positionIndex: number = 0;
+      
+      if (!usedPositions.includes('L')) {
+        nextPosition = 'L';
+        positionIndex = 1;
+      } else if (!usedPositions.includes('M')) {
+        nextPosition = 'M';
+        positionIndex = 2;
+      } else if (!usedPositions.includes('R')) {
+        nextPosition = 'R';
+        positionIndex = 3;
+      }
+      
+      if (nextPosition) {
+        // Found available position in this member's matrix
+        return {
+          matrixLevel: member.matrixLevel + 1,
+          positionIndex,
+          placementSponsorWallet: member.walletAddress,
+          matrixPosition: nextPosition
+        };
+      }
+    }
+    
+    // If all existing members are full, place under the original sponsor as new level
+    const maxLevel = Math.max(...allMembers.map(m => m.matrixLevel));
+    return {
+      matrixLevel: maxLevel + 1,
+      positionIndex: 1,
+      placementSponsorWallet: originalSponsorWallet,
+      matrixPosition: 'L' // Start new level with L position
+    };
+  }
 
+  // Helper: Get upline wallets who should receive rewards for this purchase
+  async getUplineWallets(buyerWallet: string, purchasedLevel: number): Promise<Array<{wallet: string, layer: number}>> {
+    const uplines: Array<{wallet: string, layer: number}> = [];
+    let currentWallet = buyerWallet;
+    
+    // Walk up the tree to find uplines in each layer
+    for (let layer = 1; layer <= 19; layer++) {
+      const position = await this.getGlobalMatrixPosition(currentWallet);
+      if (!position || position.directSponsorWallet === currentWallet) break;
+      
+      const uplineWallet = position.directSponsorWallet;
+      
+      // SPECIFICATION: When member buys Level N, all uplines in all layers get rewards
+      // But qualification depends on their level ownership
+      uplines.push({ wallet: uplineWallet, layer });
+      
+      currentWallet = uplineWallet;
+    }
+    
+    return uplines;
+  }
+
+  // Helper: Get count of Layer 1 members for qualification checks  
+  async getLayer1MemberCount(uplineWallet: string): Promise<number> {
+    const layer1Members = await db.select()
+      .from(globalMatrixPosition)
+      .where(eq(globalMatrixPosition.directSponsorWallet, uplineWallet.toLowerCase()));
+    return layer1Members.length;
+  }
+
+  // Helper: Get Level 1 reward count for qualification checking
+  async getLevel1RewardCount(uplineWallet: string): Promise<number> {
+    const level1Rewards = await db.select()
+      .from(rewardDistributions)
+      .where(
+        and(
+          eq(rewardDistributions.recipientWallet, uplineWallet.toLowerCase()),
+          eq(rewardDistributions.level, 1),
+          eq(rewardDistributions.rewardType, 'level_bonus')
+        )
+      );
+    return level1Rewards.length;
+  }
+
+  // Helper: Check if upline has at least one Layer 1 member with specified level
+  async hasLayer1MemberWithLevel(uplineWallet: string, requiredLevel: number): Promise<boolean> {
+    const layer1Members = await db.select()
+      .from(globalMatrixPosition)
+      .where(eq(globalMatrixPosition.directSponsorWallet, uplineWallet.toLowerCase()));
+    
+    for (const member of layer1Members) {
+      const membership = await this.getMembershipState(member.walletAddress);
+      if (membership?.levelsOwned.includes(requiredLevel)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Removed duplicate findNearestActivatedUpline function
+
+  async processReferralRewards(walletAddress: string, level: number): Promise<void> {
+    try {
+      console.log(`Processing referral rewards for ${walletAddress} at level ${level}`);
+      
+      // Get user's referral information
+      const user = await this.getUser(walletAddress);
+      if (!user || !user.referrerWallet) {
+        console.log('User has no referrer, skipping referral rewards');
+        return;
+      }
+
+      // Direct referral reward: 100% of NFT price based on membershipLevels config
+      const levelConfig = await this.getLevelConfig(level);
+      if (!levelConfig) {
+        console.error(`Level config not found for level ${level}`);
+        return;
+      }
+      const directRewardAmount = Number(levelConfig.nftPriceUSDT) || 0; // Ensure it's a number
+      
+      // Create reward entry for direct referrer
+      await this.createRewardDistribution({
+        recipientWallet: user.referrerWallet,
+        sourceWallet: walletAddress,
+        rewardType: 'direct_referral',
+        rewardAmount: directRewardAmount.toString(),
+        level: level,
+        status: 'claimable',
+      });
+      
+      console.log(`Created direct referral reward for ${user.referrerWallet}: ${directRewardAmount} USDT`);
+      
+      // Update BCC balance for the referrer (40% transferable, 60% restricted)
+      const referrerBCCBalance = await this.getBCCBalance(user.referrerWallet);
+      if (referrerBCCBalance) {
+        const bccReward = directRewardAmount; // 1:1 USDT to BCC for referral rewards
+        await this.updateBCCBalance(user.referrerWallet, {
+          transferable: referrerBCCBalance.transferable + Math.floor(bccReward * 0.4),
+          restricted: referrerBCCBalance.restricted + Math.floor(bccReward * 0.6),
+        });
+        
+        console.log(`Updated BCC balance for referrer ${user.referrerWallet}`);
+      } else {
+        // Create initial BCC balance if doesn't exist
+        const bccReward = directRewardAmount;
+        await this.createBCCBalance({
+          walletAddress: user.referrerWallet,
+          transferable: Math.floor(bccReward * 0.4),
+          restricted: Math.floor(bccReward * 0.6),
+        });
+        
+        console.log(`Created initial BCC balance for referrer ${user.referrerWallet}`);
+      }
+      
+    } catch (error) {
+      console.error('Error processing referral rewards:', error);
+      throw error;
+    }
+  }
 
   // Merchant NFT operations
   async getMerchantNFTs(): Promise<MerchantNFT[]> {
@@ -910,75 +1253,155 @@ export class DatabaseStorage implements IStorage {
 
   // Enhanced earnings reward method that syncs with reward distribution system
   async addEarningsReward(walletAddress: string, amount: number, type: 'referral' | 'level' | 'matrix_spillover', isPending = false): Promise<void> {
-    // Get or create earnings wallet
-    let earnings = await this.getEarningsWalletByWallet(walletAddress);
-    
-    if (!earnings || earnings.length === 0) {
-      earnings = [await this.createEarningsWallet({
-        walletAddress,
-        totalEarnings: "0",
-        referralEarnings: "0", 
-        levelEarnings: "0",
-        pendingRewards: "0",
-        withdrawnAmount: "0",
-      })];
-    }
-
-    const currentEarnings = earnings[0];
-    const amountStr = amount.toFixed(2);
-
-    const updates: Partial<EarningsWallet> = {
-      lastRewardAt: new Date()
-    };
-
-    if (isPending) {
-      // Add to pending rewards
-      const currentPending = parseFloat(currentEarnings.pendingRewards);
-      updates.pendingRewards = (currentPending + amount).toFixed(2);
-    } else {
-      // Add to total and category-specific earnings
-      const currentTotal = parseFloat(currentEarnings.totalEarnings);
-      updates.totalEarnings = (currentTotal + amount).toFixed(2);
+    // Use transaction to prevent race conditions on concurrent balance updates
+    await db.transaction(async (tx) => {
+      // Get or create earnings wallet within transaction
+      let earnings = await tx.select()
+        .from(earningsWallet)
+        .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()));
       
-      if (type === 'referral') {
-        const currentReferral = parseFloat(currentEarnings.referralEarnings);
-        updates.referralEarnings = (currentReferral + amount).toFixed(2);
-      } else if (type === 'level') {
-        const currentLevel = parseFloat(currentEarnings.levelEarnings);
-        updates.levelEarnings = (currentLevel + amount).toFixed(2);
+      if (earnings.length === 0) {
+        // Create new earnings wallet
+        const [newEarnings] = await tx
+          .insert(earningsWallet)
+          .values({
+            walletAddress: walletAddress.toLowerCase(),
+            totalEarnings: "0",
+            referralEarnings: "0", 
+            levelEarnings: "0",
+            pendingRewards: "0",
+            withdrawnAmount: "0",
+          })
+          .returning();
+        earnings = [newEarnings];
       }
-    }
 
-    await this.updateEarningsWallet(walletAddress, updates);
+      const currentEarnings = earnings[0];
+      const updates: Partial<EarningsWallet> = {
+        lastRewardAt: new Date()
+      };
+
+      if (isPending) {
+        // Add to pending rewards
+        const currentPending = parseFloat(currentEarnings.pendingRewards);
+        updates.pendingRewards = (currentPending + amount).toFixed(2);
+      } else {
+        // Add to total and category-specific earnings
+        const currentTotal = parseFloat(currentEarnings.totalEarnings);
+        updates.totalEarnings = (currentTotal + amount).toFixed(2);
+        
+        if (type === 'referral') {
+          const currentReferral = parseFloat(currentEarnings.referralEarnings);
+          updates.referralEarnings = (currentReferral + amount).toFixed(2);
+        } else if (type === 'level') {
+          const currentLevel = parseFloat(currentEarnings.levelEarnings);
+          updates.levelEarnings = (currentLevel + amount).toFixed(2);
+        }
+      }
+
+      // Update within the same transaction
+      await tx
+        .update(earningsWallet)
+        .set(updates)
+        .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()));
+    });
   }
 
   // Process claimed reward - move from pending to total
   async processClaimedReward(walletAddress: string, rewardAmount: number, rewardType: 'referral' | 'level' | 'matrix_spillover'): Promise<void> {
-    const earnings = await this.getEarningsWalletByWallet(walletAddress);
-    if (!earnings || earnings.length === 0) return;
+    // Use transaction to prevent race conditions on concurrent balance updates
+    await db.transaction(async (tx) => {
+      const earnings = await tx.select()
+        .from(earningsWallet)
+        .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()));
+        
+      if (earnings.length === 0) return;
 
-    const currentEarnings = earnings[0];
-    const currentPending = parseFloat(currentEarnings.pendingRewards);
-    const currentTotal = parseFloat(currentEarnings.totalEarnings);
+      const currentEarnings = earnings[0];
+      const currentPending = parseFloat(currentEarnings.pendingRewards);
+      const currentTotal = parseFloat(currentEarnings.totalEarnings);
 
-    const updates: Partial<EarningsWallet> = {
-      pendingRewards: Math.max(0, currentPending - rewardAmount).toFixed(2),
-      totalEarnings: (currentTotal + rewardAmount).toFixed(2),
-      lastRewardAt: new Date()
-    };
+      const updates: Partial<EarningsWallet> = {
+        pendingRewards: Math.max(0, currentPending - rewardAmount).toFixed(2),
+        totalEarnings: (currentTotal + rewardAmount).toFixed(2),
+        lastRewardAt: new Date()
+      };
 
-    // Update category-specific earnings
-    if (rewardType === 'referral') {
-      const currentReferral = parseFloat(currentEarnings.referralEarnings);
-      updates.referralEarnings = (currentReferral + rewardAmount).toFixed(2);
-    } else if (rewardType === 'level') {
-      const currentLevel = parseFloat(currentEarnings.levelEarnings);
-      updates.levelEarnings = (currentLevel + rewardAmount).toFixed(2);
-    }
+      // Update category-specific earnings
+      if (rewardType === 'referral') {
+        const currentReferral = parseFloat(currentEarnings.referralEarnings);
+        updates.referralEarnings = (currentReferral + rewardAmount).toFixed(2);
+      } else if (rewardType === 'level') {
+        const currentLevel = parseFloat(currentEarnings.levelEarnings);
+        updates.levelEarnings = (currentLevel + rewardAmount).toFixed(2);
+      }
 
-    await this.updateEarningsWallet(walletAddress, updates);
+      // Update within the same transaction
+      await tx
+        .update(earningsWallet)
+        .set(updates)
+        .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()));
+    });
   }
 
+  // Calculate real earnings from reward distributions
+  async calculateRealEarnings(walletAddress: string): Promise<{
+    totalEarnings: number;
+    referralEarnings: number;
+    levelEarnings: number;
+    pendingRewards: number;
+  }> {
+    // Get claimed rewards
+    const claimedRewards = await db
+      .select()
+      .from(rewardDistributions)
+      .where(
+        and(
+          eq(rewardDistributions.recipientWallet, walletAddress.toLowerCase()),
+          eq(rewardDistributions.status, 'claimed')
+        )
+      );
+
+    // Get pending rewards  
+    const pendingRewards = await db
+      .select()
+      .from(rewardDistributions)
+      .where(
+        and(
+          eq(rewardDistributions.recipientWallet, walletAddress.toLowerCase()),
+          eq(rewardDistributions.status, 'claimable')
+        )
+      );
+
+    let totalEarnings = 0;
+    let referralEarnings = 0;
+    let levelEarnings = 0;
+    let totalPending = 0;
+
+    // Calculate claimed earnings by type
+    for (const reward of claimedRewards) {
+      const amount = parseFloat(reward.rewardAmount);
+      totalEarnings += amount;
+      
+      if (reward.rewardType === 'direct_referral') {
+        referralEarnings += amount;
+      } else if (reward.rewardType === 'level_bonus') {
+        levelEarnings += amount;
+      }
+    }
+
+    // Calculate pending rewards
+    for (const reward of pendingRewards) {
+      totalPending += parseFloat(reward.rewardAmount);
+    }
+
+    return {
+      totalEarnings,
+      referralEarnings,
+      levelEarnings,
+      pendingRewards: totalPending
+    };
+  }
 
   // Company-wide statistics
   async getCompanyStats(): Promise<any> {
@@ -990,16 +1413,17 @@ export class DatabaseStorage implements IStorage {
         .where(eq(users.memberActivated, true));
       const totalMembers = totalMembersResult[0]?.total || 0;
 
-      // Members by level - use V2 system
+      // Members by level
       const levelDistributionResult = await db
         .select({
-          activeLevel: users.currentLevel,
+          activeLevel: membershipState.activeLevel,
           count: sql<number>`COUNT(*)`
         })
-        .from(users)
+        .from(membershipState)
+        .innerJoin(users, eq(membershipState.walletAddress, users.walletAddress))
         .where(eq(users.memberActivated, true))
-        .groupBy(users.currentLevel)
-        .orderBy(users.currentLevel);
+        .groupBy(membershipState.activeLevel)
+        .orderBy(membershipState.activeLevel);
 
       // Calculate total rewards from earnings_wallet
       const totalRewardsResult = await db
@@ -1018,7 +1442,7 @@ export class DatabaseStorage implements IStorage {
       const pendingRewards = pendingRewardsResult[0]?.total || 0;
 
       const levelDistribution = levelDistributionResult.map((row) => ({
-        level: row.activeLevel || 0,
+        level: row.activeLevel,
         count: row.count
       }));
 
@@ -1039,91 +1463,80 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // User-specific referral statistics using V2 system
+  // User-specific referral statistics - USING VIEWS
   async getUserReferralStats(walletAddress: string): Promise<any> {
     try {
-      // Direct referrals count from users table
-      const directReferralsCount = await db.select()
-        .from(users)
-        .where(eq(users.referrerWallet, walletAddress.toLowerCase()));
-      const directReferrals = directReferralsCount.length;
+      const lowerWallet = walletAddress.toLowerCase();
+      
+      // Get direct referrals from view where this user placed members directly
+      const directReferralsResult = await db.execute(sql`
+        SELECT member_wallet, layer, placement_type, placed_by
+        FROM user_matrix_positions 
+        WHERE root_wallet = ${lowerWallet} 
+          AND placement_type = 'direct'
+      `);
+      
+      const directReferrals = directReferralsResult.rows.length;
 
-      // Total team size - simplified for now
-      const totalTeam = directReferrals; // Will expand to full recursive count later
+      // Get total team size from all members in this user's matrix view
+      const totalTeamResult = await db.execute(sql`
+        SELECT COUNT(*) as total_count
+        FROM user_matrix_positions 
+        WHERE root_wallet = ${lowerWallet}
+      `);
+      
+      const totalTeam = Number(totalTeamResult.rows[0]?.total_count || 0);
 
-      // User's earnings from earnings_wallet
-      const userEarningsData = await this.getEarningsWalletByWallet(walletAddress);
-      const totalEarnings = userEarningsData[0]?.totalEarnings ? parseFloat(userEarningsData[0].totalEarnings) : 0;
-      const pendingRewards = userEarningsData[0]?.pendingRewards ? parseFloat(userEarningsData[0].pendingRewards) : 0;
+      // User's real earnings from earnings_wallet
+      const userEarnings = await this.calculateRealEarnings(walletAddress);
+      const totalEarnings = userEarnings.totalEarnings;
+      const pendingRewards = userEarnings.pendingRewards;
 
-      // Recent direct referrals with real data
-      const directReferralsList = directReferralsCount.map((user) => ({
-        walletAddress: user.walletAddress,
-        username: user.username || 'User',
-        level: user.currentLevel || 0,
-        joinDate: user.createdAt,
-        earnings: 0 // Will be calculated from earnings table later
-      }));
-
-      // Get real downline matrix data for all 19 levels
-      const downlineMatrix = [];
-      for (let level = 1; level <= 19; level++) {
-        try {
-          // Count members at this specific level in the user's downline
-          const levelMembersResult = await db.execute(sql`
-            WITH RECURSIVE downline_tree AS (
-              SELECT wallet_address, referrer_wallet, current_level, 1 as depth
-              FROM users 
-              WHERE referrer_wallet = ${walletAddress}
-              
-              UNION ALL
-              
-              SELECT u.wallet_address, u.referrer_wallet, u.current_level, dt.depth + 1
-              FROM users u
-              JOIN downline_tree dt ON u.referrer_wallet = dt.wallet_address
-              WHERE dt.depth < 19
-            )
-            SELECT COUNT(*) as member_count
-            FROM downline_tree 
-            WHERE current_level = ${level}
-          `);
-
-          const memberCount = Number(levelMembersResult.rows[0]?.member_count || 0);
-          
-          // Count total placements at this level (matrix positions filled)
-          const placementResult = await db.execute(sql`
-            WITH RECURSIVE downline_tree AS (
-              SELECT wallet_address, referrer_wallet, 1 as depth
-              FROM users 
-              WHERE referrer_wallet = ${walletAddress}
-              
-              UNION ALL
-              
-              SELECT u.wallet_address, u.referrer_wallet, dt.depth + 1
-              FROM users u
-              JOIN downline_tree dt ON u.referrer_wallet = dt.wallet_address
-              WHERE dt.depth < 19
-            )
-            SELECT COUNT(*) as placement_count
-            FROM downline_tree 
-            WHERE depth = ${level}
-          `);
-
-          const placementCount = Number(placementResult.rows[0]?.placement_count || 0);
-
-          downlineMatrix.push({
-            level,
-            members: memberCount,
-            placements: placementCount
-          });
-        } catch (error) {
-          console.error(`Error fetching downline data for level ${level}:`, error);
-          downlineMatrix.push({
-            level,
-            members: 0,
-            placements: 0
+      // Get direct referrals list with user details
+      const directReferralsList = [];
+      for (const row of directReferralsResult.rows.slice(0, 10)) { // Limit to 10 for performance
+        const memberWallet = row.member_wallet as string;
+        const user = await db.select()
+          .from(users)
+          .where(eq(users.walletAddress, memberWallet))
+          .limit(1);
+        
+        if (user.length > 0) {
+          directReferralsList.push({
+            walletAddress: memberWallet,
+            username: user[0].username || `User${memberWallet.slice(-4)}`,
+            level: user[0].currentLevel || 1,
+            joinDate: user[0].createdAt,
+            earnings: 0 // TODO: Calculate from earnings
           });
         }
+      }
+
+      // Get downline matrix data for all 19 layers from matrix layer stats view
+      const downlineMatrix = [];
+      const layerStatsResult = await db.execute(sql`
+        SELECT layer, total_members, direct_placements, spillover_placements
+        FROM user_matrix_layer_stats 
+        WHERE root_wallet = ${lowerWallet}
+        ORDER BY layer
+      `);
+
+      // Fill all 19 levels
+      const layerStatsMap = new Map();
+      for (const row of layerStatsResult.rows) {
+        layerStatsMap.set(Number(row.layer), {
+          members: Number(row.total_members),
+          placements: Number(row.direct_placements) + Number(row.spillover_placements)
+        });
+      }
+
+      for (let level = 1; level <= 19; level++) {
+        const layerData = layerStatsMap.get(level) || { members: 0, placements: 0 };
+        downlineMatrix.push({
+          level,
+          members: layerData.members,
+          placements: layerData.placements
+        });
       }
 
       return {
@@ -1638,7 +2051,351 @@ export class DatabaseStorage implements IStorage {
     return updated || undefined;
   }
 
+  // Reward Distribution operations for 3x3 matrix spillover
+  async createRewardDistribution(reward: InsertRewardDistribution): Promise<RewardDistribution> {
+    // Validate that both recipient and source wallets exist in users table
+    const recipientWallet = reward.recipientWallet.toLowerCase();
+    const sourceWallet = reward.sourceWallet.toLowerCase();
+    
+    // Check if recipient wallet exists
+    const recipientUser = await this.getUser(recipientWallet);
+    if (!recipientUser) {
+      console.error(`Cannot create reward distribution: recipient wallet ${recipientWallet} does not exist in users table`);
+      throw new Error(`Recipient wallet ${recipientWallet} not found`);
+    }
+    
+    // Check if source wallet exists
+    const sourceUser = await this.getUser(sourceWallet);
+    if (!sourceUser) {
+      console.error(`Cannot create reward distribution: source wallet ${sourceWallet} does not exist in users table`);
+      throw new Error(`Source wallet ${sourceWallet} not found`);
+    }
+    
+    const [created] = await db
+      .insert(rewardDistributions)
+      .values({
+        recipientWallet,
+        sourceWallet,
+        rewardType: reward.rewardType,
+        rewardAmount: reward.rewardAmount.toString(),
+        level: reward.level,
+        status: reward.status ?? 'pending',
+        pendingUntil: reward.pendingUntil,
+        claimedAt: reward.claimedAt,
+        redistributedTo: reward.redistributedTo?.toLowerCase(),
+      })
+      .returning();
+    return created;
+  }
 
+  async getPendingRewards(walletAddress: string): Promise<RewardDistribution[]> {
+    return await db
+      .select()
+      .from(rewardDistributions)
+      .where(and(
+        eq(rewardDistributions.recipientWallet, walletAddress.toLowerCase()),
+        eq(rewardDistributions.status, 'pending')
+      ))
+      .orderBy(desc(rewardDistributions.createdAt));
+  }
+
+  async getExpiredRewards(): Promise<RewardDistribution[]> {
+    const now = new Date();
+    return await db
+      .select()
+      .from(rewardDistributions)
+      .where(and(
+        eq(rewardDistributions.status, 'pending'),
+        sql`${rewardDistributions.pendingUntil} < ${now}`
+      ))
+      .orderBy(desc(rewardDistributions.createdAt));
+  }
+
+  async redistributeReward(rewardId: string, newRecipientWallet: string): Promise<RewardDistribution | undefined> {
+    const [updated] = await db
+      .update(rewardDistributions)
+      .set({
+        status: 'expired_redistributed',
+        redistributedTo: newRecipientWallet.toLowerCase(),
+      })
+      .where(eq(rewardDistributions.id, rewardId))
+      .returning();
+
+    if (updated) {
+      // Create new reward for the spillover recipient
+      await this.createRewardDistribution({
+        recipientWallet: newRecipientWallet,
+        sourceWallet: updated.sourceWallet,
+        rewardType: 'matrix_spillover',
+        rewardAmount: updated.rewardAmount,
+        level: updated.level,
+        status: 'claimable',
+      });
+    }
+
+    return updated || undefined;
+  }
+
+  // Referral node operations
+  async getReferralNode(walletAddress: string): Promise<ReferralNode | undefined> {
+    const [node] = await db
+      .select()
+      .from(referralNodes)
+      .where(eq(referralNodes.walletAddress, walletAddress.toLowerCase()));
+    return node || undefined;
+  }
+
+  async createReferralNode(referralNode: InsertReferralNode): Promise<ReferralNode> {
+    const insertData = {
+      walletAddress: referralNode.walletAddress.toLowerCase(),
+      sponsorWallet: referralNode.sponsorWallet?.toLowerCase() || null,
+      placerWallet: referralNode.placerWallet?.toLowerCase() || null,
+      matrixPosition: referralNode.matrixPosition || 0,
+      leftLeg: (referralNode.leftLeg as string[]) || ([] as string[]),
+      middleLeg: (referralNode.middleLeg as string[]) || ([] as string[]),
+      rightLeg: (referralNode.rightLeg as string[]) || ([] as string[]),
+      directReferralCount: referralNode.directReferralCount || 0,
+      totalTeamCount: referralNode.totalTeamCount || 0,
+    };
+    const [created] = await db
+      .insert(referralNodes)
+      .values([insertData])
+      .returning();
+    return created;
+  }
+
+  async updateReferralNode(walletAddress: string, updates: Partial<ReferralNode>): Promise<ReferralNode | undefined> {
+    const [updated] = await db
+      .update(referralNodes)
+      .set({
+        ...updates,
+        sponsorWallet: updates.sponsorWallet?.toLowerCase() || null,
+        placerWallet: updates.placerWallet?.toLowerCase() || null,
+      })
+      .where(eq(referralNodes.walletAddress, walletAddress.toLowerCase()))
+      .returning();
+    return updated || undefined;
+  }
+
+  // Sync user level with membership state and update layers
+  async syncUserLevelWithMembership(walletAddress: string): Promise<void> {
+    const membership = await this.getMembershipState(walletAddress);
+    if (!membership) return;
+
+    // Update user's current level to match membership active level
+    await this.updateUser(walletAddress, {
+      currentLevel: membership.activeLevel
+    });
+
+    // Recalculate referral layers if user has an active level
+    if (membership.activeLevel > 0) {
+      await this.calculateAndStore19Layers(walletAddress);
+    }
+  }
+
+  // Initialize referral matrix structure for a new member
+  async initializeReferralMatrix(walletAddress: string, sponsorWallet?: string): Promise<ReferralNode> {
+    let matrixPosition = 0;
+    let placerWallet = sponsorWallet;
+
+    // Find placement position in sponsor's matrix if sponsor exists
+    if (sponsorWallet) {
+      const sponsorNode = await this.getReferralNode(sponsorWallet);
+      if (sponsorNode) {
+        // Find next available position in sponsor's matrix (0-8)
+        const totalPositions = sponsorNode.leftLeg.length + sponsorNode.middleLeg.length + sponsorNode.rightLeg.length;
+        matrixPosition = totalPositions % 9;
+        
+        // Update sponsor's matrix legs
+        await this.addToSponsorMatrix(sponsorWallet, walletAddress, matrixPosition);
+        
+        // Update sponsor's direct referral count
+        await this.updateReferralNode(sponsorWallet, {
+          directReferralCount: sponsorNode.directReferralCount + 1,
+          totalTeamCount: sponsorNode.totalTeamCount + 1
+        });
+      }
+    }
+
+    // Create the referral node
+    return await this.createReferralNode({
+      walletAddress,
+      sponsorWallet: sponsorWallet || null,
+      placerWallet,
+      matrixPosition,
+      leftLeg: [],
+      middleLeg: [],
+      rightLeg: [],
+      directReferralCount: 0,
+      totalTeamCount: 0
+    });
+  }
+
+  // Add member to sponsor's matrix structure
+  async addToSponsorMatrix(sponsorWallet: string, memberWallet: string, position: number): Promise<void> {
+    const sponsorNode = await this.getReferralNode(sponsorWallet);
+    if (!sponsorNode) return;
+
+    let updatedLeg;
+    if (position <= 2) {
+      // Left leg (positions 0,1,2)
+      updatedLeg = { leftLeg: [...sponsorNode.leftLeg, memberWallet] };
+    } else if (position <= 5) {
+      // Middle leg (positions 3,4,5)
+      updatedLeg = { middleLeg: [...sponsorNode.middleLeg, memberWallet] };
+    } else {
+      // Right leg (positions 6,7,8)
+      updatedLeg = { rightLeg: [...sponsorNode.rightLeg, memberWallet] };
+    }
+
+    await this.updateReferralNode(sponsorWallet, updatedLeg);
+  }
+
+  // Update team counts up the referral chain
+  async updateTeamCountsUpline(walletAddress: string): Promise<void> {
+    const node = await this.getReferralNode(walletAddress);
+    if (!node || !node.sponsorWallet) return;
+
+    // Update sponsor's team count
+    const sponsorNode = await this.getReferralNode(node.sponsorWallet);
+    if (sponsorNode) {
+      await this.updateReferralNode(node.sponsorWallet, {
+        totalTeamCount: sponsorNode.totalTeamCount + 1
+      });
+
+      // Recursively update upline
+      await this.updateTeamCountsUpline(node.sponsorWallet);
+    }
+  }
+
+  // 19-Layer referral tracking operations
+  async getReferralLayers(walletAddress: string): Promise<ReferralLayer[]> {
+    return await db
+      .select()
+      .from(referralLayers)
+      .where(eq(referralLayers.walletAddress, walletAddress.toLowerCase()))
+      .orderBy(referralLayers.layerNumber);
+  }
+
+  async getReferralLayer(walletAddress: string, layerNumber: number): Promise<ReferralLayer | undefined> {
+    const [layer] = await db
+      .select()
+      .from(referralLayers)
+      .where(
+        and(
+          eq(referralLayers.walletAddress, walletAddress.toLowerCase()),
+          eq(referralLayers.layerNumber, layerNumber)
+        )
+      );
+    return layer || undefined;
+  }
+
+  async createOrUpdateReferralLayer(layer: InsertReferralLayer): Promise<ReferralLayer> {
+    const existing = await this.getReferralLayer(layer.walletAddress, layer.layerNumber);
+    
+    if (existing) {
+      const [updated] = await db
+        .update(referralLayers)
+        .set({
+          memberCount: layer.memberCount,
+          members: (layer.members || []) as string[],
+          lastUpdated: new Date(),
+        })
+        .where(eq(referralLayers.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(referralLayers)
+        .values({
+          walletAddress: layer.walletAddress.toLowerCase(),
+          layerNumber: layer.layerNumber,
+          memberCount: layer.memberCount || 0,
+          members: (layer.members || []) as string[],
+        })
+        .returning();
+      return created;
+    }
+  }
+
+  async calculateAndStore19Layers(walletAddress: string): Promise<void> {
+    // Calculate all 19 layers for a user using BFS algorithm
+    const visited = new Set<string>();
+    const layers: Map<number, string[]> = new Map();
+    
+    // Initialize first layer with direct referrals
+    const node = await this.getReferralNode(walletAddress);
+    if (!node) return;
+    
+    // Use BFS to traverse the tree up to 19 layers
+    let currentLayer = [walletAddress];
+    visited.add(walletAddress.toLowerCase());
+    
+    for (let layerNum = 1; layerNum <= 19; layerNum++) {
+      const nextLayer: string[] = [];
+      
+      for (const currentWallet of currentLayer) {
+        // Get all direct referrals of current wallet
+        const directReferrals = await db
+          .select()
+          .from(referralNodes)
+          .where(eq(referralNodes.sponsorWallet, currentWallet.toLowerCase()));
+        
+        for (const referral of directReferrals) {
+          if (!visited.has(referral.walletAddress.toLowerCase())) {
+            visited.add(referral.walletAddress.toLowerCase());
+            nextLayer.push(referral.walletAddress);
+          }
+        }
+      }
+      
+      if (nextLayer.length > 0) {
+        layers.set(layerNum, nextLayer);
+      }
+      
+      currentLayer = nextLayer;
+      if (currentLayer.length === 0) break; // No more members to process
+    }
+    
+    // Store the calculated layers
+    for (const layerEntry of Array.from(layers.entries())) {
+      const [layerNum, members] = layerEntry;
+      await this.createOrUpdateReferralLayer({
+        walletAddress,
+        layerNumber: layerNum,
+        memberCount: members.length,
+        members: members,
+      });
+    }
+  }
+
+  // Reward notification operations (removed duplicate - keeping enhanced version below)
+
+  async getPendingRewardNotifications(walletAddress: string): Promise<RewardNotification[]> {
+    return await db
+      .select()
+      .from(rewardNotifications)
+      .where(
+        and(
+          eq(rewardNotifications.recipientWallet, walletAddress.toLowerCase()),
+          eq(rewardNotifications.status, 'pending'),
+          gt(rewardNotifications.expiresAt, new Date())
+        )
+      )
+      .orderBy(rewardNotifications.expiresAt);
+  }
+
+  async createRewardNotification(notification: InsertRewardNotification): Promise<RewardNotification> {
+    const [created] = await db
+      .insert(rewardNotifications)
+      .values({
+        ...notification,
+        recipientWallet: notification.recipientWallet.toLowerCase(),
+        triggerWallet: notification.triggerWallet.toLowerCase(),
+      })
+      .returning();
+    return created;
+  }
 
   async updateRewardNotification(id: string, updates: Partial<RewardNotification>): Promise<RewardNotification | undefined> {
     const [updated] = await db
@@ -1694,6 +2451,21 @@ export class DatabaseStorage implements IStorage {
 
   // Legacy 3x3 Matrix system replaced by global matrix system - function removed
 
+  // Helper: Find nearest activated upline who can receive rewards
+  async findNearestActivatedUpline(walletAddress: string): Promise<string | null> {
+    const position = await this.getGlobalMatrixPosition(walletAddress);
+    if (!position || position.directSponsorWallet === walletAddress) {
+      return null; // No upline or reached root
+    }
+    
+    const uplineMembership = await this.getMembershipState(position.directSponsorWallet);
+    if (uplineMembership && uplineMembership.activeLevel > 0) {
+      return position.directSponsorWallet; // Found activated upline
+    }
+    
+    // Continue searching up the chain
+    return this.findNearestActivatedUpline(position.directSponsorWallet);
+  }
 
   // Earnings wallet operations (missing implementations)
   async createEarningsWalletEntry(entry: InsertEarningsWallet): Promise<EarningsWallet> {
@@ -1745,6 +2517,26 @@ export class DatabaseStorage implements IStorage {
       );
   }
 
+  async passUpReward(originalRecipient: string, rewardAmount: number, rewardType: 'referral' | 'level' | 'matrix_spillover'): Promise<void> {
+    // Find the nearest activated upline for the original recipient
+    const nearestUpline = await this.findNearestActivatedUpline(originalRecipient);
+    
+    if (nearestUpline) {
+      // Add the reward to upline's earnings
+      await this.addEarningsReward(nearestUpline, rewardAmount, rewardType, false);
+      
+      // Also create a reward distribution record for the upline
+      await this.createRewardDistribution({
+        recipientWallet: nearestUpline,
+        sourceWallet: originalRecipient,
+        rewardType: 'matrix_spillover',
+        rewardAmount: rewardAmount.toString(),
+        level: 1, // Default level for spillover
+        status: 'claimed', // Immediately available since it's a spillover
+        claimedAt: new Date()
+      });
+    }
+  }
 
   // Wallet connection logging
   async logWalletConnection(log: InsertWalletConnectionLog): Promise<WalletConnectionLog> {
@@ -2061,15 +2853,27 @@ export class DatabaseStorage implements IStorage {
       pendingTimeoutHours: 0,
     });
 
-    // 9. Create global matrix position
+    // 9. Create global matrix position using proper 1×3 placement
     let globalMatrixPosition = await this.getGlobalMatrixPosition(lowerWalletAddress);
-    if (!globalMatrixPosition) {
+    if (!globalMatrixPosition && sponsorWallet) {
+      const placement = await this.findGlobalMatrixPlacement(sponsorWallet);
       globalMatrixPosition = await this.createGlobalMatrixPosition({
         walletAddress: lowerWalletAddress,
-        matrixLevel: membershipLevel,
-        positionIndex: await this.getNextGlobalMatrixPosition(),
-        directSponsorWallet: sponsorWallet?.toLowerCase() || '',
-        placementSponsorWallet: sponsorWallet?.toLowerCase() || '',
+        matrixLevel: placement.matrixLevel,
+        positionIndex: placement.positionIndex,
+        matrixPosition: placement.matrixPosition,
+        directSponsorWallet: sponsorWallet.toLowerCase(),
+        placementSponsorWallet: placement.placementSponsorWallet,
+      });
+    } else if (!globalMatrixPosition) {
+      // Root member (no sponsor)
+      globalMatrixPosition = await this.createGlobalMatrixPosition({
+        walletAddress: lowerWalletAddress,
+        matrixLevel: 1,
+        positionIndex: 1,
+        matrixPosition: 'L',
+        directSponsorWallet: lowerWalletAddress,
+        placementSponsorWallet: lowerWalletAddress,
       });
     }
 
@@ -2090,7 +2894,7 @@ export class DatabaseStorage implements IStorage {
       await this.updateTeamCountsUpline(lowerWalletAddress);
     }
 
-    // 12. Trigger sponsor rewards if there's a sponsor
+    // 12. Trigger Global 1×3 Matrix rewards if there's a sponsor
     if (sponsorWallet) {
       await this.triggerSponsorRewards(lowerWalletAddress, sponsorWallet, membershipLevel, nftPrice);
     }
@@ -2111,7 +2915,7 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  // Trigger rewards for sponsor and upline when new member claims NFT
+  // Trigger Global 1×3 Matrix rewards when new member claims NFT
   async triggerSponsorRewards(
     newMemberWallet: string, 
     sponsorWallet: string, 
@@ -2119,41 +2923,17 @@ export class DatabaseStorage implements IStorage {
     nftPrice: number
   ): Promise<void> {
     try {
-      const directReferralReward = nftPrice * 0.1; // 10% direct referral reward
-      const levelBonus = nftPrice * 0.05; // 5% level bonus
+      console.log(`Triggering Global 1×3 Matrix rewards for ${newMemberWallet} at level ${membershipLevel}`);
       
-      // 1. Create direct referral reward for sponsor
-      await this.createUpgradeAndRewardRecords({
-        walletAddress: sponsorWallet,
-        triggerWallet: newMemberWallet,
-        level: membershipLevel,
-        layerNumber: 1,
-        rewardAmount: directReferralReward,
-        rewardType: 'direct_referral'
-      });
+      // Use the new Global 1×3 Matrix reward distribution system
+      await this.processNFTClaimRewards(
+        newMemberWallet, 
+        membershipLevel, 
+        `member_nft_${membershipLevel}`, 
+        `trigger_${Date.now()}`
+      );
 
-      // 2. Create level bonus rewards for upline (up to 19 levels)
-      const uplineChain = await this.getUplineChain(sponsorWallet, 19);
-      
-      for (let i = 0; i < uplineChain.length; i++) {
-        const uplineWallet = uplineChain[i];
-        const layerNumber = i + 2; // Start from layer 2 (layer 1 is direct sponsor)
-        
-        // Check if upline member is activated and has required level
-        const uplineMembership = await this.getMembershipState(uplineWallet);
-        if (uplineMembership && uplineMembership.activeLevel >= membershipLevel) {
-          await this.createUpgradeAndRewardRecords({
-            walletAddress: uplineWallet,
-            triggerWallet: newMemberWallet,
-            level: membershipLevel,
-            layerNumber,
-            rewardAmount: levelBonus / (i + 1), // Decreasing reward amount up the chain
-            rewardType: 'level_bonus'
-          });
-        }
-      }
-
-      // 3. Update sponsor's direct referral count
+      // Update sponsor's direct referral count
       const sponsorNode = await this.getReferralNode(sponsorWallet);
       if (sponsorNode) {
         await this.updateReferralNode(sponsorWallet, {
@@ -2161,8 +2941,9 @@ export class DatabaseStorage implements IStorage {
         });
       }
 
+      console.log(`Global 1×3 Matrix rewards processed successfully for level ${membershipLevel}`);
     } catch (error) {
-      console.error('Error triggering sponsor rewards:', error);
+      console.error('Error triggering Global 1×3 Matrix rewards:', error);
     }
   }
 
@@ -2244,7 +3025,8 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Synchronized notification and reward methods
+  // DEPRECATED: Old reward record creation replaced by Global 1×3 Matrix system
+  // This function is disabled to prevent conflicts with the new userRewards table
   async createUpgradeAndRewardRecords(data: {
     walletAddress: string;
     triggerWallet: string;
@@ -2257,44 +3039,14 @@ export class DatabaseStorage implements IStorage {
     memberActivation: any;
     rewardDistribution: RewardDistribution;
   }> {
-    const { walletAddress, triggerWallet, level, layerNumber, rewardAmount, rewardType } = data;
+    console.log(`DEPRECATED: createUpgradeAndRewardRecords called for ${data.walletAddress} level ${data.level}`);
+    console.log(`New Global 1×3 Matrix system handles rewards via userRewards table`);
     
-    // Create reward notification (72-hour countdown)
-    const rewardNotification = await this.createRewardNotification({
-      recipientWallet: walletAddress.toLowerCase(),
-      triggerWallet: triggerWallet.toLowerCase(),
-      triggerLevel: level,
-      layerNumber,
-      rewardAmount: Math.round(rewardAmount * 100), // Convert to cents
-      status: 'pending',
-      expiresAt: new Date(Date.now() + 72 * 60 * 60 * 1000), // 72 hours
-    });
-
-    // Create member activation record (24-hour countdown for upgrade)
-    const memberActivation = await this.createMemberActivation({
-      walletAddress: walletAddress.toLowerCase(),
-      activationType: 'upgrade_triggered' as any,
-      level,
-      pendingUntil: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-      isPending: true,
-      pendingTimeoutHours: 24,
-    });
-
-    // Create reward distribution record (72-hour countdown)
-    const rewardDistribution = await this.createRewardDistribution({
-      recipientWallet: walletAddress.toLowerCase(),
-      sourceWallet: triggerWallet.toLowerCase(),
-      rewardType,
-      rewardAmount: rewardAmount.toString(),
-      level,
-      status: 'pending',
-      pendingUntil: new Date(Date.now() + 72 * 60 * 60 * 1000), // 72 hours
-    });
-
+    // Return empty objects to prevent breaking existing code
     return {
-      rewardNotification,
-      memberActivation,
-      rewardDistribution
+      rewardNotification: {} as RewardNotification,
+      memberActivation: {} as any,
+      rewardDistribution: {} as RewardDistribution
     };
   }
 
@@ -2547,1054 +3299,441 @@ export class DatabaseStorage implements IStorage {
       );
     return result[0]?.count || 0;
   }
-}
 
-// MemStorage: In-memory storage for local development
-export class MemStorage implements IStorage {
-  private users = new Map<string, User>();
-  private membershipStates = new Map<string, MembershipState>();
-  private referralNodes = new Map<string, ReferralNode>();
-  private globalMatrixPositions = new Map<string, GlobalMatrixPosition>();
-  private globalMatrixPositionsV2Map = new Map<string, GlobalMatrixPositionV2>();
-  private membershipNFTsV2Map = new Map<string, MembershipNFTV2[]>();
-  private matrixTreeV2Map = new Map<string, MatrixTreeV2[]>();
-  private layerRewardsV2Map = new Map<string, LayerRewardV2[]>();
-  private pendingRewardsV2Map = new Map<string, PendingRewardV2[]>();
-  private platformRevenueV2List: PlatformRevenueV2[] = [];
-  private rewardDistributions = new Map<string, RewardDistribution[]>();
-  private bccBalances = new Map<string, BCCBalance>();
-  private orders = new Map<string, Order>();
-  private earningsWallet = new Map<string, EarningsWallet[]>();
-  private levelConfigs = new Map<number, LevelConfig>();
-  private memberNFTVerifications = new Map<string, MemberNFTVerification>();
-  private adminSettings = new Map<string, string>();
-  private memberActivations = new Map<string, any>();
-  private pendingRewards = new Map<string, any>();
-  private userActivities = new Map<string, UserActivity[]>();
-  private notifications = new Map<string, UserNotification[]>();
-  private nftPurchases = new Map<string, NFTPurchase>();
-  private merchantNFTs = new Map<string, MerchantNFT>();
-  private courses: Course[] = [];
-  private courseAccess = new Map<string, CourseAccess[]>();
-  private lessonAccess = new Map<string, LessonAccess[]>();
-  private bridgePayments = new Map<string, BridgePayment>();
-  private tokenPurchases = new Map<string, TokenPurchase[]>();
-  private cthBalances = new Map<string, CTHBalance>();
-  private adminUsers = new Map<string, AdminUser>();
-  private adminSessions = new Map<string, AdminSession>();
-  private userNotifications = new Map<string, UserNotification[]>();
-
-  constructor() {
-    this.initializeSeedData();
+  // Platform Revenue Methods
+  async createPlatformRevenue(data: InsertPlatformRevenue): Promise<PlatformRevenue> {
+    const [result] = await db.insert(platformRevenue).values({
+      ...data,
+      sourceWallet: data.sourceWallet.toLowerCase()
+    }).returning();
+    return result;
   }
 
-  private initializeSeedData() {
-    // Initialize level configs
-    this.initializeLevelConfig();
+  async getPlatformRevenueByDate(startDate: Date, endDate: Date): Promise<PlatformRevenue[]> {
+    return await db.select()
+      .from(platformRevenue)
+      .where(
+        and(
+          gte(platformRevenue.createdAt, startDate),
+          lte(platformRevenue.createdAt, endDate)
+        )
+      )
+      .orderBy(desc(platformRevenue.createdAt));
+  }
+
+  async getPlatformRevenueBySourceWallet(sourceWallet: string): Promise<PlatformRevenue[]> {
+    return await db.select()
+      .from(platformRevenue)
+      .where(eq(platformRevenue.sourceWallet, sourceWallet.toLowerCase()))
+      .orderBy(desc(platformRevenue.createdAt));
+  }
+
+  // User Rewards Methods
+  async createUserReward(data: InsertUserReward): Promise<UserReward> {
+    const [result] = await db.insert(userRewards).values({
+      ...data,
+      recipientWallet: data.recipientWallet.toLowerCase(),
+      sourceWallet: data.sourceWallet.toLowerCase()
+    }).returning();
+    return result;
+  }
+
+  async getUserRewardsByRecipient(recipientWallet: string): Promise<UserReward[]> {
+    return await db.select()
+      .from(userRewards)
+      .where(eq(userRewards.recipientWallet, recipientWallet.toLowerCase()))
+      .orderBy(desc(userRewards.createdAt));
+  }
+
+  async getUserRewardsBySource(sourceWallet: string): Promise<UserReward[]> {
+    return await db.select()
+      .from(userRewards)
+      .where(eq(userRewards.sourceWallet, sourceWallet.toLowerCase()))
+      .orderBy(desc(userRewards.createdAt));
+  }
+
+  async getPendingUserRewards(): Promise<UserReward[]> {
+    return await db.select()
+      .from(userRewards)
+      .where(eq(userRewards.status, 'pending'))
+      .orderBy(desc(userRewards.createdAt));
+  }
+
+  async updateUserRewardStatus(id: string, status: string, confirmedAt?: Date, expiredAt?: Date, notes?: string): Promise<void> {
+    const updates: Partial<UserReward> = { status };
+    if (confirmedAt) updates.confirmedAt = confirmedAt;
+    if (expiredAt) updates.expiredAt = expiredAt;
+    if (notes) updates.notes = notes;
+
+    await db.update(userRewards)
+      .set(updates)
+      .where(eq(userRewards.id, id));
+  }
+
+  async getUserRewardsExpiredBefore(date: Date): Promise<UserReward[]> {
+    return await db.select()
+      .from(userRewards)
+      .where(
+        and(
+          eq(userRewards.status, 'pending'),
+          lte(userRewards.expiresAt, date)
+        )
+      );
+  }
+
+  async unlockPendingRewards(unlockCondition: string, sourceWallet: string): Promise<void> {
+    await db.update(userRewards)
+      .set({
+        status: 'confirmed',
+        confirmedAt: new Date(),
+        notes: 'Unlock condition met'
+      })
+      .where(
+        and(
+          eq(userRewards.status, 'pending'),
+          eq(userRewards.unlockCondition, unlockCondition),
+          eq(userRewards.sourceWallet, sourceWallet.toLowerCase())
+        )
+      );
+  }
+
+  // NFT Claim Reward Distribution - Main Logic (Global 1×3 Matrix)
+  async processNFTClaimRewards(sourceWallet: string, triggerLevel: number, nftId?: string, claimTx?: string): Promise<void> {
+    console.log(`Processing NFT claim rewards for ${sourceWallet} at level ${triggerLevel}`);
     
-    // Initialize sample merchant NFTs
-    const sampleNFTs: MerchantNFT[] = [
-      {
-        id: "nft1",
-        title: "Digital Art Collection #001",
-        description: "Exclusive geometric art piece with rare attributes",
-        imageUrl: "https://images.unsplash.com/photo-1634973357973-f2ed2657db3c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
-        priceBCC: 150,
-        active: true,
-        createdAt: new Date(),
-      },
-      {
-        id: "nft2", 
-        title: "Legendary Weapon",
-        description: "Rare gaming asset with special abilities",
-        imageUrl: "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
-        priceBCC: 300,
-        active: true,
-        createdAt: new Date(),
-      },
-    ];
-    this.merchantNFTs = sampleNFTs;
-
-    // Initialize sample courses
-    const sampleCourses: Course[] = [
-      {
-        id: "course1",
-        title: "Blockchain Basics",
-        description: "Learn the fundamentals of blockchain technology",
-        requiredLevel: 1,
-        priceBCC: 0,
-        isFree: true,
-        duration: "4 hours",
-        isActive: true,
-        createdAt: new Date(),
-      },
-      {
-        id: "course2",
-        title: "DeFi Strategies", 
-        description: "Advanced DeFi strategies",
-        requiredLevel: 2,
-        priceBCC: 50,
-        isFree: false,
-        duration: "4 hours",
-        isActive: true,
-        createdAt: new Date(),
-      },
-    ];
-    this.courses = sampleCourses;
-  }
-
-  private initializeLevelConfig() {
-    const levels = [
-      { level: 1, levelName: "Warrior", priceUSDT: 130, nftPriceUSDT: 100, platformFeeUSDT: 30, requiredDirectReferrals: 1, maxMatrixCount: 3 },
-      { level: 2, levelName: "Bronze", priceUSDT: 150, nftPriceUSDT: 150, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 9 },
-      { level: 3, levelName: "Silver", priceUSDT: 200, nftPriceUSDT: 200, platformFeeUSDT: 0, requiredDirectReferrals: 1, maxMatrixCount: 27 },
-    ];
-    
-    levels.forEach(config => {
-      this.levelConfigs.set(config.level, config as LevelConfig);
-    });
-  }
-
-  // User operations
-  async getUser(walletAddress: string): Promise<User | undefined> {
-    return this.users.get(walletAddress.toLowerCase());
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(u => u.username === username);
-  }
-
-  async createUser(user: InsertUser): Promise<User> {
-    const newUser: User = {
-      ...user,
-      walletAddress: user.walletAddress.toLowerCase(),
-      memberActivated: user.memberActivated || false,
-      currentLevel: user.currentLevel || 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    } as User;
-    this.users.set(newUser.walletAddress, newUser);
-    return newUser;
-  }
-
-  async updateUser(walletAddress: string, updates: Partial<User>): Promise<User | undefined> {
-    const user = this.users.get(walletAddress.toLowerCase());
-    if (!user) return undefined;
-    const updated = { ...user, ...updates, updatedAt: new Date() };
-    this.users.set(walletAddress.toLowerCase(), updated);
-    return updated;
-  }
-
-  // V2 Matrix operations
-  async getGlobalMatrixPositionV2(walletAddress: string): Promise<GlobalMatrixPositionV2 | undefined> {
-    return this.globalMatrixPositionsV2Map.get(walletAddress.toLowerCase());
-  }
-
-  async createGlobalMatrixPositionV2(position: InsertGlobalMatrixPositionV2): Promise<GlobalMatrixPositionV2> {
-    const newPosition: GlobalMatrixPositionV2 = {
-      id: `pos_${Date.now()}`,
-      ...position,
-      walletAddress: position.walletAddress.toLowerCase(),
-      activatedAt: new Date(),
-      lastActiveAt: new Date(),
-    } as GlobalMatrixPositionV2;
-    this.globalMatrixPositionsV2Map.set(newPosition.walletAddress, newPosition);
-    return newPosition;
-  }
-
-  async updateGlobalMatrixPositionV2(walletAddress: string, updates: Partial<GlobalMatrixPositionV2>): Promise<GlobalMatrixPositionV2 | undefined> {
-    const position = this.globalMatrixPositionsV2Map.get(walletAddress.toLowerCase());
-    if (!position) return undefined;
-    const updated = { ...position, ...updates, lastActiveAt: new Date() };
-    this.globalMatrixPositionsV2Map.set(walletAddress.toLowerCase(), updated);
-    return updated;
-  }
-
-  // V2 Membership NFT operations
-  async getMembershipNFTV2(walletAddress: string, level?: number): Promise<MembershipNFTV2 | undefined> {
-    const nfts = this.membershipNFTsV2Map.get(walletAddress.toLowerCase()) || [];
-    return level ? nfts.find(n => n.level === level) : nfts[0];
-  }
-
-  async getMembershipNFTsV2(walletAddress: string): Promise<MembershipNFTV2[]> {
-    return this.membershipNFTsV2Map.get(walletAddress.toLowerCase()) || [];
-  }
-
-  async createMembershipNFTV2(nft: InsertMembershipNFTV2): Promise<MembershipNFTV2> {
-    const newNFT: MembershipNFTV2 = {
-      id: `nft_${Date.now()}`,
-      ...nft,
-      walletAddress: nft.walletAddress.toLowerCase(),
-      purchasedAt: new Date(),
-      status: nft.status || 'pending',
-    } as MembershipNFTV2;
-    
-    const existing = this.membershipNFTsV2Map.get(newNFT.walletAddress) || [];
-    existing.push(newNFT);
-    this.membershipNFTsV2Map.set(newNFT.walletAddress, existing);
-    return newNFT;
-  }
-
-  async updateMembershipNFTV2(id: string, updates: Partial<MembershipNFTV2>): Promise<MembershipNFTV2 | undefined> {
-    for (const [wallet, nfts] of this.membershipNFTsV2Map.entries()) {
-      const index = nfts.findIndex(n => n.id === id);
-      if (index >= 0) {
-        nfts[index] = { ...nfts[index], ...updates };
-        return nfts[index];
+    try {
+      // Get level configuration for validation
+      const levelConfig = await this.getLevelConfig(triggerLevel);
+      if (!levelConfig) {
+        throw new Error(`Level config not found for level ${triggerLevel}`);
       }
-    }
-    return undefined;
-  }
 
-  // V2 Matrix Tree operations
-  async getMatrixTreeV2(rootWallet: string, layer?: number): Promise<MatrixTreeV2[]> {
-    const trees = this.matrixTreeV2Map.get(rootWallet.toLowerCase()) || [];
-    return layer !== undefined ? trees.filter(t => t.layer === layer) : trees;
-  }
-
-  async createMatrixTreeNodeV2(node: InsertMatrixTreeV2): Promise<MatrixTreeV2> {
-    const newNode: MatrixTreeV2 = {
-      id: `tree_${Date.now()}`,
-      ...node,
-      rootWallet: node.rootWallet.toLowerCase(),
-      memberWallet: node.memberWallet.toLowerCase(),
-      parentWallet: node.parentWallet?.toLowerCase(),
-      addedAt: new Date(),
-    } as MatrixTreeV2;
-    
-    const existing = this.matrixTreeV2Map.get(newNode.rootWallet) || [];
-    existing.push(newNode);
-    this.matrixTreeV2Map.set(newNode.rootWallet, existing);
-    return newNode;
-  }
-
-  // V2 Layer Rewards operations
-  async getLayerRewardsV2(rootWallet: string): Promise<LayerRewardV2[]> {
-    return this.layerRewardsV2Map.get(rootWallet.toLowerCase()) || [];
-  }
-
-  async createLayerRewardV2(reward: InsertLayerRewardV2): Promise<LayerRewardV2> {
-    const newReward: LayerRewardV2 = {
-      id: `reward_${Date.now()}`,
-      ...reward,
-      rootWallet: reward.rootWallet.toLowerCase(),
-      triggerWallet: reward.triggerWallet.toLowerCase(),
-      createdAt: new Date(),
-      status: reward.status || 'pending',
-    } as LayerRewardV2;
-    
-    const existing = this.layerRewardsV2Map.get(newReward.rootWallet) || [];
-    existing.push(newReward);
-    this.layerRewardsV2Map.set(newReward.rootWallet, existing);
-    return newReward;
-  }
-
-  async updateLayerRewardV2(id: string, updates: Partial<LayerRewardV2>): Promise<LayerRewardV2 | undefined> {
-    for (const [wallet, rewards] of this.layerRewardsV2Map.entries()) {
-      const index = rewards.findIndex(r => r.id === id);
-      if (index >= 0) {
-        rewards[index] = { ...rewards[index], ...updates };
-        return rewards[index];
+      // Find the Nth ancestor (exactly N steps up)
+      const targetUpline = await this.getNthAncestor(sourceWallet, triggerLevel);
+      
+      if (!targetUpline) {
+        console.log(`No ancestor found at depth ${triggerLevel} for ${sourceWallet}`);
+        // Still process platform revenue for L1
+        if (triggerLevel === 1) {
+          await this.createPlatformRevenue({
+            sourceType: 'nft_claim',
+            sourceWallet,
+            level: triggerLevel,
+            amount: '30',
+            description: `Platform fee from Level ${triggerLevel} NFT claim`,
+            metadata: { nftId, claimTx }
+          });
+        }
+        return;
       }
-    }
-    return undefined;
-  }
 
-  // V2 Platform Revenue operations
-  async createPlatformRevenueV2(revenue: InsertPlatformRevenueV2): Promise<PlatformRevenueV2> {
-    const newRevenue: PlatformRevenueV2 = {
-      id: `rev_${Date.now()}`,
-      ...revenue,
-      triggerWallet: revenue.triggerWallet.toLowerCase(),
-      createdAt: new Date(),
-      status: revenue.status || 'pending',
-    } as PlatformRevenueV2;
-    
-    this.platformRevenueV2List.push(newRevenue);
-    return newRevenue;
-  }
+      console.log(`Found target upline ${targetUpline} at depth ${triggerLevel}`);
 
-  async getPlatformRevenueV2(): Promise<PlatformRevenueV2[]> {
-    return this.platformRevenueV2List;
-  }
-
-  // V2 Pending Rewards operations
-  async getPendingRewardsV2(walletAddress: string): Promise<PendingRewardV2[]> {
-    return this.pendingRewardsV2Map.get(walletAddress.toLowerCase()) || [];
-  }
-
-  async createPendingRewardV2(reward: InsertPendingRewardV2): Promise<PendingRewardV2> {
-    const newReward: PendingRewardV2 = {
-      id: `pending_${Date.now()}`,
-      ...reward,
-      recipientWallet: reward.recipientWallet.toLowerCase(),
-      createdAt: new Date(),
-      status: reward.status || 'pending',
-    } as PendingRewardV2;
-    
-    const existing = this.pendingRewardsV2Map.get(newReward.recipientWallet) || [];
-    existing.push(newReward);
-    this.pendingRewardsV2Map.set(newReward.recipientWallet, existing);
-    return newReward;
-  }
-
-  async updatePendingRewardV2(id: string, updates: Partial<PendingRewardV2>): Promise<PendingRewardV2 | undefined> {
-    for (const [wallet, rewards] of this.pendingRewardsV2Map.entries()) {
-      const index = rewards.findIndex(r => r.id === id);
-      if (index >= 0) {
-        rewards[index] = { ...rewards[index], ...updates };
-        return rewards[index];
-      }
-    }
-    return undefined;
-  }
-
-  async checkAndExpirePendingRewardsV2(): Promise<void> {
-    const now = new Date();
-    for (const [wallet, rewards] of this.pendingRewardsV2Map.entries()) {
-      rewards.forEach(reward => {
-        if (reward.expiresAt && reward.expiresAt < now && reward.status === 'pending') {
-          reward.status = 'expired';
+      // Check if target upline is eligible (has membership_level >= N)
+      const uplineEligible = await this.checkLevelRequirement(targetUpline, triggerLevel);
+      
+      // Calculate reward parameters based on eligibility
+      const { rewardAmount, isPending, expiresAt, unlockCondition } = this.calculateRewardParameters(triggerLevel, uplineEligible);
+      
+      // Create user reward record
+      await this.createUserReward({
+        recipientWallet: targetUpline,
+        sourceWallet,
+        triggerLevel,
+        payoutLayer: triggerLevel,
+        matrixPosition: `depth_${triggerLevel}`,
+        rewardAmount,
+        status: isPending ? 'pending' : 'confirmed',
+        requiresLevel: triggerLevel,
+        unlockCondition: isPending ? unlockCondition : undefined,
+        expiresAt: isPending ? expiresAt : undefined,
+        metadata: {
+          nftId,
+          claimTx,
+          originalPrice: triggerLevel === 1 ? 100 : 100 + (triggerLevel - 1) * 50,
+          ancestorDepth: triggerLevel,
+          eligible: uplineEligible
         }
       });
+
+      // Update user's earnings wallet for confirmed rewards
+      if (!isPending) {
+        await this.updateEarningsForConfirmedReward(targetUpline, rewardAmount);
+      }
+
+      // Handle platform revenue for L1 only (+30 USDT)
+      if (triggerLevel === 1) {
+        await this.createPlatformRevenue({
+          sourceType: 'nft_claim',
+          sourceWallet,
+          level: triggerLevel,
+          amount: '30',
+          description: `Platform fee from Level ${triggerLevel} NFT claim`,
+          metadata: { nftId, claimTx }
+        });
+      }
+
+      // Unlock any pending rewards that now meet conditions
+      await this.unlockPendingRewards(`upgrade_to_level_${triggerLevel}`, sourceWallet);
+
+      console.log(`NFT claim rewards processed successfully for level ${triggerLevel}`);
+    } catch (error) {
+      console.error(`Error processing NFT claim rewards:`, error);
+      throw error;
     }
   }
 
-  // V1 Membership operations (for backwards compatibility)
-  async getMembershipState(walletAddress: string): Promise<MembershipState | undefined> {
-    return this.membershipStates.get(walletAddress.toLowerCase());
-  }
-
-  async createMembershipState(membership: InsertMembershipState): Promise<MembershipState> {
-    const newState: MembershipState = {
-      walletAddress: membership.walletAddress.toLowerCase(),
-      levelsOwned: membership.levelsOwned || [],
-      activeLevel: membership.activeLevel || 0,
-      joinedAt: membership.joinedAt || new Date(),
-      lastUpgradeAt: membership.lastUpgradeAt,
-    } as MembershipState;
-    this.membershipStates.set(newState.walletAddress, newState);
-    return newState;
-  }
-
-  async updateMembershipState(walletAddress: string, updates: Partial<MembershipState>): Promise<MembershipState | undefined> {
-    const state = this.membershipStates.get(walletAddress.toLowerCase());
-    if (!state) return undefined;
-    const updated = { ...state, ...updates, lastUpgradeAt: new Date() };
-    this.membershipStates.set(walletAddress.toLowerCase(), updated);
-    return updated;
-  }
-
-  // V1 Global Matrix Position operations
-  async getGlobalMatrixPosition(walletAddress: string): Promise<GlobalMatrixPosition | undefined> {
-    return this.globalMatrixPositions.get(walletAddress.toLowerCase());
-  }
-
-  async createGlobalMatrixPosition(position: InsertGlobalMatrixPosition): Promise<GlobalMatrixPosition> {
-    const newPosition: GlobalMatrixPosition = {
-      walletAddress: position.walletAddress.toLowerCase(),
-      matrixLevel: position.matrixLevel,
-      positionIndex: position.positionIndex,
-      directSponsorWallet: position.directSponsorWallet.toLowerCase(),
-      placementSponsorWallet: position.placementSponsorWallet.toLowerCase(),
-      joinedAt: new Date(),
-      lastUpgradeAt: position.lastUpgradeAt,
-    } as GlobalMatrixPosition;
-    this.globalMatrixPositions.set(newPosition.walletAddress, newPosition);
-    return newPosition;
-  }
-
-  async updateGlobalMatrixPosition(walletAddress: string, updates: Partial<GlobalMatrixPosition>): Promise<GlobalMatrixPosition | undefined> {
-    const position = this.globalMatrixPositions.get(walletAddress.toLowerCase());
-    if (!position) return undefined;
-    const updated = { ...position, ...updates, lastUpgradeAt: new Date() };
-    this.globalMatrixPositions.set(walletAddress.toLowerCase(), updated);
-    return updated;
-  }
-
-  // V1 Referral Node operations
-  async getReferralNode(walletAddress: string): Promise<ReferralNode | undefined> {
-    return this.referralNodes.get(walletAddress.toLowerCase());
-  }
-
-  async createReferralNode(referralNode: InsertReferralNode): Promise<ReferralNode> {
-    const newNode: ReferralNode = {
-      walletAddress: referralNode.walletAddress.toLowerCase(),
-      sponsorWallet: referralNode.sponsorWallet?.toLowerCase(),
-      placerWallet: referralNode.placerWallet?.toLowerCase(),
-      matrixPosition: referralNode.matrixPosition || 0,
-      leftLeg: referralNode.leftLeg || [],
-      middleLeg: referralNode.middleLeg || [],
-      rightLeg: referralNode.rightLeg || [],
-      directReferralCount: referralNode.directReferralCount || 0,
-      totalTeamCount: referralNode.totalTeamCount || 0,
-      createdAt: new Date(),
-    } as ReferralNode;
-    this.referralNodes.set(newNode.walletAddress, newNode);
-    return newNode;
-  }
-
-  async updateReferralNode(walletAddress: string, updates: Partial<ReferralNode>): Promise<ReferralNode | undefined> {
-    const node = this.referralNodes.get(walletAddress.toLowerCase());
-    if (!node) return undefined;
-    const updated = { ...node, ...updates };
-    this.referralNodes.set(walletAddress.toLowerCase(), updated);
-    return updated;
-  }
-
-  // User referral statistics
-  async getUserReferralStats(walletAddress: string): Promise<any> {
-    const directReferrals = Array.from(this.globalMatrixPositions.values())
-      .filter(p => p.directSponsorWallet === walletAddress.toLowerCase()).length;
+  // Find the Nth ancestor (exactly N steps up in the referral tree)
+  private async getNthAncestor(sourceWallet: string, depth: number): Promise<string | null> {
+    let currentWallet = sourceWallet;
     
-    const teamMembers = Array.from(this.globalMatrixPositions.values())
-      .filter(p => p.placementSponsorWallet === walletAddress.toLowerCase()).length;
-    
-    return {
-      directReferrals,
-      teamMembers,
-      totalReferrals: directReferrals + teamMembers,
-    };
-  }
-
-  // Admin settings operations
-  async getAdminSetting(key: string): Promise<string | undefined> {
-    return this.adminSettings.get(key);
-  }
-
-  async updateAdminSetting(key: string, value: string): Promise<void> {
-    this.adminSettings.set(key, value);
-  }
-
-  // Referral matrix initialization
-  async initializeReferralMatrix(walletAddress: string, sponsorWallet: string): Promise<void> {
-    // Basic matrix initialization for in-memory storage
-    const position = await this.createGlobalMatrixPosition({
-      walletAddress,
-      matrixLevel: 1,
-      positionIndex: this.globalMatrixPositions.size + 1,
-      directSponsorWallet: sponsorWallet,
-      placementSponsorWallet: sponsorWallet,
-    });
-    
-    // Also create referral node
-    await this.createReferralNode({
-      walletAddress,
-      sponsorWallet,
-      placerWallet: sponsorWallet,
-      matrixPosition: position.positionIndex,
-      leftLeg: [],
-      middleLeg: [],
-      rightLeg: [],
-      directReferralCount: 0,
-      totalTeamCount: 0,
-    });
-  }
-
-  // Layer calculation (simplified for in-memory)
-  async calculateAndStore19Layers(walletAddress: string): Promise<void> {
-    // For in-memory storage, just store basic layer info
-    console.log(`Calculating layers for ${walletAddress} (in-memory mode)`);
-  }
-
-  // Member activation operations
-  async createMemberActivation(activation: any): Promise<any> {
-    const newActivation = {
-      id: `activation_${Date.now()}`,
-      ...activation,
-      createdAt: new Date(),
-    };
-    this.memberActivations.set(activation.walletAddress.toLowerCase(), newActivation);
-    return newActivation;
-  }
-
-  async getMemberActivation(walletAddress: string): Promise<any> {
-    return this.memberActivations.get(walletAddress.toLowerCase());
-  }
-
-  // Referral layers (simplified)
-  async getReferralLayers(walletAddress: string): Promise<any[]> {
-    // Return basic layer structure for in-memory mode
-    return [];
-  }
-
-  // Reward operations
-  async getPendingRewards(walletAddress: string): Promise<any[]> {
-    return Array.from(this.pendingRewards.values())
-      .filter(r => r.recipientWallet === walletAddress.toLowerCase());
-  }
-
-  async getExpiredRewards(): Promise<any[]> {
-    const now = new Date();
-    return Array.from(this.pendingRewards.values())
-      .filter(r => r.expiresAt && new Date(r.expiresAt) < now);
-  }
-
-
-  async redistributeReward(rewardId: string, newRecipient: string): Promise<void> {
-    const reward = this.pendingRewards.get(rewardId);
-    if (reward) {
-      reward.recipientWallet = newRecipient.toLowerCase();
-      this.pendingRewards.set(rewardId, reward);
-    }
-  }
-
-  // Notification operations
-  async createRewardNotification(notification: any): Promise<any> {
-    return this.createUserNotification(notification);
-  }
-
-  async getRewardNotifications(walletAddress: string): Promise<any[]> {
-    return this.getUserNotifications(walletAddress);
-  }
-
-  async getPendingRewardNotifications(walletAddress: string): Promise<any[]> {
-    return this.getUserNotifications(walletAddress);
-  }
-
-  // User tracking
-  async updateUserRegistrationTracking(walletAddress: string, data: any): Promise<void> {
-    const user = this.users.get(walletAddress.toLowerCase());
-    if (user) {
-      Object.assign(user, data);
-      this.users.set(walletAddress.toLowerCase(), user);
-    }
-  }
-
-  // Activity operations
-  async getUserRecentActivities(walletAddress: string, limit: number = 10): Promise<any[]> {
-    return this.getUserActivity(walletAddress, limit);
-  }
-
-  async logUserActivity(activity: any): Promise<void> {
-    const newActivity = {
-      id: `activity_${Date.now()}`,
-      ...activity,
-      timestamp: new Date(),
-    };
-    
-    if (!this.userActivities.has(activity.walletAddress.toLowerCase())) {
-      this.userActivities.set(activity.walletAddress.toLowerCase(), []);
+    // Walk up exactly N steps
+    for (let step = 1; step <= depth; step++) {
+      const user = await this.getUser(currentWallet);
+      if (!user?.referrerWallet || user.referrerWallet === currentWallet) {
+        return null; // No ancestor at this depth
+      }
+      
+      currentWallet = user.referrerWallet;
     }
     
-    this.userActivities.get(activity.walletAddress.toLowerCase())?.push(newActivity);
+    return currentWallet;
   }
 
-  // Layer members data
-  async getLayerMembersData(walletAddress: string): Promise<any> {
-    return {
-      layers: [],
-      totalMembers: 0,
-      activatedMembers: 0,
-    };
-  }
-
-  // Implement remaining required methods with basic in-memory logic
-  async recordNFTPurchase(purchase: InsertNFTPurchase): Promise<NFTPurchase> {
-    const newPurchase: NFTPurchase = {
-      id: `purchase_${Date.now()}`,
-      ...purchase,
-      walletAddress: purchase.walletAddress.toLowerCase(),
-      purchasedAt: new Date(),
-    } as NFTPurchase;
-    this.nftPurchases.push(newPurchase);
-    return newPurchase;
-  }
-
-  async findGlobalMatrixPlacement(sponsorWallet: string): Promise<{ matrixLevel: number; positionIndex: number; placementSponsorWallet: string }> {
-    return { matrixLevel: 1, positionIndex: 0, placementSponsorWallet: sponsorWallet };
-  }
-
-  async getBCCBalance(walletAddress: string): Promise<BCCBalance | undefined> {
-    return this.bccBalances.get(walletAddress.toLowerCase());
-  }
-
-  async createBCCBalance(balance: InsertBCCBalance): Promise<BCCBalance> {
-    const newBalance: BCCBalance = {
-      ...balance,
-      walletAddress: balance.walletAddress.toLowerCase(),
-      transferable: balance.transferable || 0,
-      restricted: balance.restricted || 0,
-      lastUpdated: new Date(),
-    } as BCCBalance;
-    this.bccBalances.set(newBalance.walletAddress, newBalance);
-    return newBalance;
-  }
-
-  async updateBCCBalance(walletAddress: string, updates: Partial<BCCBalance>): Promise<BCCBalance | undefined> {
-    const balance = this.bccBalances.get(walletAddress.toLowerCase());
-    if (!balance) return undefined;
-    const updated = { ...balance, ...updates, lastUpdated: new Date() };
-    this.bccBalances.set(walletAddress.toLowerCase(), updated);
-    return updated;
-  }
-
-  // Add stubs for remaining methods to satisfy interface
-  async createOrder(order: InsertOrder): Promise<Order> {
-    const newOrder: Order = {
-      id: `order_${Date.now()}`,
-      ...order,
-      walletAddress: order.walletAddress.toLowerCase(),
-      createdAt: new Date(),
-      status: order.status || 'pending',
-    } as Order;
-    this.orders.set(newOrder.id, newOrder);
-    return newOrder;
-  }
-
-  async getOrder(id: string): Promise<Order | undefined> {
-    return this.orders.get(id);
-  }
-
-  async getOrdersByWallet(walletAddress: string): Promise<Order[]> {
-    return Array.from(this.orders.values()).filter(o => o.walletAddress === walletAddress.toLowerCase());
-  }
-
-  async updateOrder(id: string, updates: Partial<Order>): Promise<Order | undefined> {
-    const order = this.orders.get(id);
-    if (!order) return undefined;
-    const updated = { ...order, ...updates };
-    this.orders.set(id, updated);
-    return updated;
-  }
-
-  async createEarningsWalletEntry(entry: InsertEarningsWallet): Promise<EarningsWallet> {
-    const newEntry: EarningsWallet = {
-      id: `earn_${Date.now()}`,
-      ...entry,
-      walletAddress: entry.walletAddress.toLowerCase(),
-      createdAt: new Date(),
-      status: entry.status || 'pending',
-    } as EarningsWallet;
+  // Find qualified ancestor by searching upward
+  private async findQualifiedAncestor(sourceWallet: string, requiredLevel: number, startDepth: number = 1): Promise<string | null> {
+    let currentWallet = sourceWallet;
     
-    const existing = this.earningsWallet.get(newEntry.walletAddress) || [];
-    existing.push(newEntry);
-    this.earningsWallet.set(newEntry.walletAddress, existing);
-    return newEntry;
-  }
-
-  async getEarningsWalletByWallet(walletAddress: string): Promise<EarningsWallet[]> {
-    return this.earningsWallet.get(walletAddress.toLowerCase()) || [];
-  }
-
-  async updateEarningsWalletEntry(id: string, updates: Partial<EarningsWallet>): Promise<EarningsWallet | undefined> {
-    for (const [wallet, entries] of this.earningsWallet.entries()) {
-      const index = entries.findIndex(e => e.id === id);
-      if (index >= 0) {
-        entries[index] = { ...entries[index], ...updates };
-        return entries[index];
+    // Skip to start depth first
+    for (let step = 1; step < startDepth; step++) {
+      const user = await this.getUser(currentWallet);
+      if (!user?.referrerWallet || user.referrerWallet === currentWallet) {
+        return null;
+      }
+      currentWallet = user.referrerWallet;
+    }
+    
+    // Then search upward for qualified ancestor
+    for (let depth = startDepth; depth <= 19; depth++) {
+      const user = await this.getUser(currentWallet);
+      if (!user?.referrerWallet || user.referrerWallet === currentWallet) {
+        break;
+      }
+      
+      currentWallet = user.referrerWallet;
+      
+      // Check if this ancestor is qualified
+      if (await this.checkLevelRequirement(currentWallet, requiredLevel)) {
+        return currentWallet;
       }
     }
-    return undefined;
+    
+    return null; // No qualified ancestor found
   }
 
-  async getPendingEarningsEntries(): Promise<EarningsWallet[]> {
-    const result: EarningsWallet[] = [];
-    for (const entries of this.earningsWallet.values()) {
-      result.push(...entries.filter(e => e.status === 'pending'));
-    }
-    return result;
+  private getMatrixPosition(index: number): string {
+    const positions = ['L', 'M', 'R'];
+    return positions[index % 3] || `${index + 1}`;
   }
 
-  async getExpiredEarningsEntries(): Promise<EarningsWallet[]> {
-    const result: EarningsWallet[] = [];
+  private async checkLevelRequirement(walletAddress: string, requiredLevel: number): Promise<boolean> {
+    const membership = await this.getMembershipState(walletAddress);
+    return membership?.levelsOwned.includes(requiredLevel) || false;
+  }
+
+  private calculateRewardParameters(triggerLevel: number, uplineEligible: boolean): {
+    rewardAmount: string;
+    isPending: boolean;
+    expiresAt?: Date;
+    unlockCondition?: string;
+  } {
+    // NFT Price progression: Level 1 = 100 USDT, Level N = 100 + (N-1)*50 USDT
+    // Reward = NFT Price × 100%
+    const nftPrice = triggerLevel === 1 ? 100 : 100 + (triggerLevel - 1) * 50;
+    const rewardAmount = nftPrice.toString();
+    
+    let isPending = false;
+    let expiresAt: Date | undefined;
+    let unlockCondition: string | undefined;
+
     const now = new Date();
-    for (const entries of this.earningsWallet.values()) {
-      result.push(...entries.filter(e => e.expiresAt && e.expiresAt < now));
+    const expires72h = new Date(now.getTime() + (72 * 60 * 60 * 1000));
+
+    // If upline doesn't meet level requirement, make it pending
+    if (!uplineEligible) {
+      isPending = true;
+      expiresAt = expires72h;
+      unlockCondition = `upgrade_to_level_${triggerLevel}`;
     }
-    return result;
+
+    return { rewardAmount, isPending, expiresAt, unlockCondition };
   }
 
-  async getLevelConfig(level: number): Promise<LevelConfig | undefined> {
-    return this.levelConfigs.get(level);
-  }
-
-  async getAllLevelConfigs(): Promise<LevelConfig[]> {
-    return Array.from(this.levelConfigs.values()).sort((a, b) => a.level - b.level);
-  }
-
-  async createOrUpdateLevelConfig(config: InsertLevelConfig): Promise<LevelConfig> {
-    const levelConfig = config as LevelConfig;
-    this.levelConfigs.set(levelConfig.level, levelConfig);
-    return levelConfig;
-  }
-
-  async getMemberNFTVerification(walletAddress: string): Promise<MemberNFTVerification | undefined> {
-    return this.memberNFTVerifications.get(walletAddress.toLowerCase());
-  }
-
-  async createNFTVerification(verification: InsertMemberNFTVerification): Promise<MemberNFTVerification> {
-    const newVerification: MemberNFTVerification = {
-      ...verification,
-      walletAddress: verification.walletAddress.toLowerCase(),
-      createdAt: new Date(),
-    } as MemberNFTVerification;
-    this.memberNFTVerifications.set(newVerification.walletAddress, newVerification);
-    return newVerification;
-  }
-
-  async updateNFTVerification(walletAddress: string, updates: Partial<MemberNFTVerification>): Promise<MemberNFTVerification | undefined> {
-    const verification = this.memberNFTVerifications.get(walletAddress.toLowerCase());
-    if (!verification) return undefined;
-    const updated = { ...verification, ...updates };
-    this.memberNFTVerifications.set(walletAddress.toLowerCase(), updated);
-    return updated;
-  }
-
-  async getTotalMemberCount(): Promise<number> {
-    return this.users.size;
-  }
-
-  async getMemberCountByLevel(): Promise<{ level: number; count: number }[]> {
-    const counts = new Map<number, number>();
-    for (const user of this.users.values()) {
-      const level = user.currentLevel || 0;
-      counts.set(level, (counts.get(level) || 0) + 1);
-    }
-    return Array.from(counts.entries()).map(([level, count]) => ({ level, count }));
-  }
-
-  async getDirectReferralCount(walletAddress: string): Promise<number> {
-    return Array.from(this.referralNodes.values()).filter(n => n.sponsorWallet === walletAddress.toLowerCase()).length;
-  }
-
-  async processGlobalMatrixRewards(buyerWallet: string, level: number): Promise<void> {
-    // Stub implementation
-  }
-
-  async processReferralRewards(walletAddress: string, level: number): Promise<void> {
-    // Stub implementation
-  }
-
-  async createRewardDistributionV2(distribution: InsertRewardDistributionV2): Promise<RewardDistributionV2> {
-    const newDistribution: RewardDistributionV2 = {
-      id: `dist_${Date.now()}`,
-      ...distribution,
-      recipientWallet: distribution.recipientWallet.toLowerCase(),
-      triggerWallet: distribution.triggerWallet.toLowerCase(),
-      createdAt: new Date(),
-      status: distribution.status || 'pending',
-    } as RewardDistributionV2;
-    return newDistribution;
-  }
-
-  async getMerchantNFTs(): Promise<MerchantNFT[]> {
-    return this.merchantNFTs;
-  }
-
-  async getMerchantNFT(id: string): Promise<MerchantNFT | undefined> {
-    return this.merchantNFTs.find(n => n.id === id);
-  }
-
-  async createMerchantNFT(nft: InsertMerchantNFT): Promise<MerchantNFT> {
-    const newNFT: MerchantNFT = {
-      id: `merchant_${Date.now()}`,
-      ...nft,
-      active: nft.active ?? true,
-      createdAt: new Date(),
-    } as MerchantNFT;
-    this.merchantNFTs.push(newNFT);
-    return newNFT;
-  }
-
-  async createNFTPurchase(purchase: InsertNFTPurchase): Promise<NFTPurchase> {
-    return this.recordNFTPurchase(purchase);
-  }
-
-  async getNFTPurchasesByWallet(walletAddress: string): Promise<(NFTPurchase & { nft: MerchantNFT })[]> {
-    const purchases = this.nftPurchases.filter(p => p.walletAddress === walletAddress.toLowerCase());
-    return purchases.map(p => {
-      const nft = this.merchantNFTs.find(n => n.id === p.nftId);
-      return { ...p, nft: nft! };
-    }).filter(p => p.nft);
-  }
-
-  async getCourses(): Promise<Course[]> {
-    return this.courses;
-  }
-
-  async getCourse(id: string): Promise<Course | undefined> {
-    return this.courses.find(c => c.id === id);
-  }
-
-  async createCourse(course: InsertCourse): Promise<Course> {
-    const newCourse: Course = {
-      id: `course_${Date.now()}`,
-      ...course,
-      isActive: course.isActive ?? true,
-      createdAt: new Date(),
-    } as Course;
-    this.courses.push(newCourse);
-    return newCourse;
-  }
-
-  async getCourseLessons(courseId: string): Promise<CourseLesson[]> {
-    return [];
-  }
-
-  async getCourseAccess(walletAddress: string, courseId: string): Promise<CourseAccess | undefined> {
-    const accesses = this.courseAccess.get(walletAddress.toLowerCase()) || [];
-    return accesses.find(a => a.courseId === courseId);
-  }
-
-  async getCourseAccessByWallet(walletAddress: string): Promise<CourseAccess[]> {
-    return this.courseAccess.get(walletAddress.toLowerCase()) || [];
-  }
-
-  async createCourseAccess(access: InsertCourseAccess): Promise<CourseAccess> {
-    const newAccess: CourseAccess = {
-      id: `access_${Date.now()}`,
-      ...access,
-      walletAddress: access.walletAddress.toLowerCase(),
-      grantedAt: new Date(),
-    } as CourseAccess;
+  private async updateEarningsForConfirmedReward(walletAddress: string, rewardAmount: string): Promise<void> {
+    const amount = parseFloat(rewardAmount);
     
-    const existing = this.courseAccess.get(newAccess.walletAddress) || [];
-    existing.push(newAccess);
-    this.courseAccess.set(newAccess.walletAddress, existing);
-    return newAccess;
-  }
+    // Get or create earnings wallet entry
+    let earningsResults = await db.select()
+      .from(earningsWallet)
+      .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()))
+      .limit(1);
 
-  async updateCourseAccess(walletAddress: string, courseId: string, updates: Partial<CourseAccess>): Promise<CourseAccess | undefined> {
-    const accesses = this.courseAccess.get(walletAddress.toLowerCase()) || [];
-    const index = accesses.findIndex(a => a.courseId === courseId);
-    if (index >= 0) {
-      accesses[index] = { ...accesses[index], ...updates };
-      return accesses[index];
+    if (earningsResults.length === 0) {
+      // Create new earnings wallet entry
+      await this.createEarningsWalletEntry({
+        walletAddress,
+        totalEarnings: rewardAmount,
+        pendingRewards: rewardAmount,
+        referralEarnings: '0',
+        levelEarnings: '0',
+        withdrawnAmount: '0'
+      });
+    } else {
+      // Update existing entry
+      const current = earningsResults[0];
+      await db.update(earningsWallet)
+        .set({
+          totalEarnings: (parseFloat(current.totalEarnings) + amount).toString(),
+          pendingRewards: (parseFloat(current.pendingRewards) + amount).toString(),
+          lastRewardAt: new Date()
+        })
+        .where(eq(earningsWallet.walletAddress, walletAddress.toLowerCase()));
     }
-    return undefined;
   }
 
-  async getLessonAccessByCourse(walletAddress: string, courseId: string): Promise<LessonAccess[]> {
-    const accesses = this.lessonAccess.get(walletAddress.toLowerCase()) || [];
-    return accesses.filter(a => a.courseId === courseId);
-  }
+  // Cron job method for processing expired/confirmed rewards with spillover reallocation
+  async processPendingUserRewards(): Promise<{ processed: number; expired: number; confirmed: number; reallocated: number }> {
+    const now = new Date();
+    let processed = 0;
+    let expired = 0;
+    let confirmed = 0;
+    let reallocated = 0;
 
-  async createBridgePayment(bridgePayment: InsertBridgePayment): Promise<BridgePayment> {
-    const newPayment: BridgePayment = {
-      id: `bridge_${Date.now()}`,
-      ...bridgePayment,
-      walletAddress: bridgePayment.walletAddress.toLowerCase(),
-      createdAt: new Date(),
-      status: bridgePayment.status || 'pending',
-    } as BridgePayment;
-    this.bridgePayments.set(newPayment.id, newPayment);
-    return newPayment;
-  }
+    try {
+      // Get all pending rewards that are ready to be processed
+      const pendingRewards = await db.select()
+        .from(userRewards)
+        .where(
+          and(
+            eq(userRewards.status, 'pending'),
+            isNotNull(userRewards.expiresAt),
+            lte(userRewards.expiresAt, now)
+          )
+        );
 
-  async getBridgePayment(sourceTxHash: string): Promise<BridgePayment | undefined> {
-    return Array.from(this.bridgePayments.values()).find(p => p.sourceTxHash === sourceTxHash);
-  }
+      console.log(`Processing ${pendingRewards.length} expired pending rewards`);
 
-  async getBridgePaymentsByWallet(walletAddress: string): Promise<BridgePayment[]> {
-    return Array.from(this.bridgePayments.values()).filter(p => p.walletAddress === walletAddress.toLowerCase());
-  }
+      for (const reward of pendingRewards) {
+        processed++;
 
-  async updateBridgePayment(id: string, updates: Partial<BridgePayment>): Promise<BridgePayment | undefined> {
-    const payment = this.bridgePayments.get(id);
-    if (!payment) return undefined;
-    const updated = { ...payment, ...updates };
-    this.bridgePayments.set(id, updated);
-    return updated;
-  }
+        // Check if unlock condition has been met
+        const conditionMet = await this.checkUnlockCondition(reward);
 
-  async getPendingBridgePayments(): Promise<BridgePayment[]> {
-    return Array.from(this.bridgePayments.values()).filter(p => p.status === 'pending');
-  }
+        if (conditionMet) {
+          // Confirm the reward
+          await this.updateUserRewardStatus(
+            reward.id,
+            'confirmed',
+            now,
+            undefined,
+            'Unlock condition met - confirmed'
+          );
 
-  async createTokenPurchase(purchase: InsertTokenPurchase): Promise<TokenPurchase> {
-    const newPurchase: TokenPurchase = {
-      id: `token_${Date.now()}`,
-      ...purchase,
-      walletAddress: purchase.walletAddress.toLowerCase(),
-      createdAt: new Date(),
-      status: purchase.status || 'pending',
-    } as TokenPurchase;
-    
-    const existing = this.tokenPurchases.get(newPurchase.walletAddress) || [];
-    existing.push(newPurchase);
-    this.tokenPurchases.set(newPurchase.walletAddress, existing);
-    return newPurchase;
-  }
+          // Update earnings wallet
+          await this.updateEarningsForConfirmedReward(reward.recipientWallet, reward.rewardAmount);
+          confirmed++;
+          
+          console.log(`Confirmed reward ${reward.id} for ${reward.recipientWallet}`);
+        } else {
+          // Expired - implement spillover reallocation
+          await this.updateUserRewardStatus(
+            reward.id,
+            'expired',
+            undefined,
+            now,
+            'Original recipient not qualified - searching for spillover'
+          );
+          
+          // Find qualified ancestor for reallocation
+          const qualifiedAncestor = await this.findQualifiedAncestor(
+            reward.sourceWallet, 
+            reward.requiresLevel || reward.triggerLevel,
+            reward.triggerLevel + 1 // Start searching from the next level up
+          );
+          
+          if (qualifiedAncestor) {
+            // Create new reward for qualified ancestor
+            await this.createUserReward({
+              recipientWallet: qualifiedAncestor,
+              sourceWallet: reward.sourceWallet,
+              triggerLevel: reward.triggerLevel,
+              payoutLayer: reward.payoutLayer,
+              matrixPosition: `spillover_${reward.matrixPosition}`,
+              rewardAmount: reward.rewardAmount,
+              status: 'confirmed',
+              requiresLevel: reward.requiresLevel,
+              unlockCondition: undefined,
+              expiresAt: undefined,
+              metadata: {
+                ...(reward.metadata as object || {}),
+                spilloverFrom: reward.recipientWallet,
+                originalRewardId: reward.id,
+                reallocatedAt: now.toISOString()
+              }
+            });
 
-  async getTokenPurchase(id: string): Promise<TokenPurchase | undefined> {
-    for (const purchases of this.tokenPurchases.values()) {
-      const purchase = purchases.find(p => p.id === id);
-      if (purchase) return purchase;
-    }
-    return undefined;
-  }
-
-  async getTokenPurchasesByWallet(walletAddress: string): Promise<TokenPurchase[]> {
-    return this.tokenPurchases.get(walletAddress.toLowerCase()) || [];
-  }
-
-  async updateTokenPurchase(id: string, updates: Partial<TokenPurchase>): Promise<TokenPurchase | undefined> {
-    for (const [wallet, purchases] of this.tokenPurchases.entries()) {
-      const index = purchases.findIndex(p => p.id === id);
-      if (index >= 0) {
-        purchases[index] = { ...purchases[index], ...updates };
-        return purchases[index];
+            // Update earnings wallet for spillover recipient
+            await this.updateEarningsForConfirmedReward(qualifiedAncestor, reward.rewardAmount);
+            reallocated++;
+            
+            console.log(`Reallocated reward ${reward.id} from ${reward.recipientWallet} to ${qualifiedAncestor}`);
+          } else {
+            // No qualified ancestor found - goes to platform revenue
+            await this.createPlatformRevenue({
+              sourceType: 'spillover_fallback',
+              sourceWallet: reward.sourceWallet,
+              level: reward.triggerLevel,
+              amount: reward.rewardAmount,
+              description: `Fallback revenue from expired Level ${reward.triggerLevel} reward`,
+              metadata: {
+                originalRewardId: reward.id,
+                originalRecipient: reward.recipientWallet,
+                reason: 'No qualified ancestor found for spillover'
+              }
+            });
+            
+            console.log(`Reward ${reward.id} sent to platform revenue - no qualified ancestors`);
+          }
+          
+          expired++;
+        }
       }
+
+      console.log(`Processed ${processed} rewards: ${confirmed} confirmed, ${expired} expired, ${reallocated} reallocated`);
+      return { processed, expired, confirmed, reallocated };
+    } catch (error) {
+      console.error('Error processing pending user rewards:', error);
+      throw error;
     }
-    return undefined;
   }
 
-  async getCTHBalance(walletAddress: string): Promise<CTHBalance | undefined> {
-    return this.cthBalances.get(walletAddress.toLowerCase());
-  }
-
-  async createCTHBalance(balance: InsertCTHBalance): Promise<CTHBalance> {
-    const newBalance: CTHBalance = {
-      ...balance,
-      walletAddress: balance.walletAddress.toLowerCase(),
-      balance: balance.balance || 0,
-      lastUpdated: new Date(),
-    } as CTHBalance;
-    this.cthBalances.set(newBalance.walletAddress, newBalance);
-    return newBalance;
-  }
-
-  async updateCTHBalance(walletAddress: string, updates: Partial<CTHBalance>): Promise<CTHBalance | undefined> {
-    const balance = this.cthBalances.get(walletAddress.toLowerCase());
-    if (!balance) return undefined;
-    const updated = { ...balance, ...updates, lastUpdated: new Date() };
-    this.cthBalances.set(walletAddress.toLowerCase(), updated);
-    return updated;
-  }
-
-  async getUserActivity(walletAddress: string, limit?: number): Promise<Array<{
-    id: string;
-    type: 'reward' | 'purchase' | 'nft_purchase' | 'token_purchase' | 'membership';
-    description: string;
-    amount?: string;
-    timestamp: Date;
-    status?: string;
-  }>> {
-    return [];
-  }
-
-  async getUserBalances(walletAddress: string): Promise<{
-    usdt?: number;
-    bccTransferable: number;
-    bccRestricted: number;
-    cth: number;
-  }> {
-    const bcc = this.bccBalances.get(walletAddress.toLowerCase());
-    const cth = this.cthBalances.get(walletAddress.toLowerCase());
-    return {
-      bccTransferable: bcc?.transferable || 0,
-      bccRestricted: bcc?.restricted || 0,
-      cth: cth?.balance || 0,
-    };
-  }
-
-  async getAdminUsers(filters?: { search?: string; role?: string; status?: string }): Promise<AdminUser[]> {
-    let users = Array.from(this.adminUsers.values());
-    if (filters?.search) {
-      const search = filters.search.toLowerCase();
-      users = users.filter(u => u.username.toLowerCase().includes(search));
+  private async checkUnlockCondition(reward: UserReward): Promise<boolean> {
+    if (!reward.unlockCondition || !reward.sourceWallet) {
+      return false;
     }
-    if (filters?.role) {
-      users = users.filter(u => u.role === filters.role);
+
+    // Parse unlock condition like "upgrade_to_level_2"
+    const match = reward.unlockCondition.match(/upgrade_to_level_(\d+)/);
+    if (!match) {
+      return false;
     }
-    if (filters?.status) {
-      users = users.filter(u => u.status === filters.status);
-    }
-    return users;
-  }
 
-  async getAdminUser(id: string): Promise<AdminUser | undefined> {
-    return this.adminUsers.get(id);
-  }
-
-  async getAdminUserByUsername(username: string): Promise<AdminUser | undefined> {
-    return Array.from(this.adminUsers.values()).find(u => u.username === username);
-  }
-
-  async createAdminUser(adminUser: InsertAdminUser): Promise<AdminUser> {
-    const newAdmin: AdminUser = {
-      id: `admin_${Date.now()}`,
-      ...adminUser,
-      status: adminUser.status || 'active',
-      createdAt: new Date(),
-      lastLogin: null,
-    } as AdminUser;
-    this.adminUsers.set(newAdmin.id, newAdmin);
-    return newAdmin;
-  }
-
-  async updateAdminUser(id: string, updates: Partial<AdminUser>): Promise<AdminUser | undefined> {
-    const admin = this.adminUsers.get(id);
-    if (!admin) return undefined;
-    const updated = { ...admin, ...updates };
-    this.adminUsers.set(id, updated);
-    return updated;
-  }
-
-  async deleteAdminUser(id: string): Promise<boolean> {
-    return this.adminUsers.delete(id);
-  }
-
-  async createAdminSession(session: InsertAdminSession): Promise<AdminSession> {
-    const newSession: AdminSession = {
-      ...session,
-      sessionToken: session.sessionToken,
-      createdAt: new Date(),
-      expiresAt: session.expiresAt || new Date(Date.now() + 24 * 60 * 60 * 1000),
-    } as AdminSession;
-    this.adminSessions.set(newSession.sessionToken, newSession);
-    return newSession;
-  }
-
-  async getAdminSession(sessionToken: string): Promise<AdminSession | undefined> {
-    return this.adminSessions.get(sessionToken);
-  }
-
-  async deleteAdminSession(sessionToken: string): Promise<boolean> {
-    return this.adminSessions.delete(sessionToken);
-  }
-
-  async getUserNotifications(walletAddress: string): Promise<UserNotification[]> {
-    return this.userNotifications.get(walletAddress.toLowerCase()) || [];
-  }
-
-  async createUserNotification(notification: InsertUserNotification): Promise<UserNotification> {
-    const newNotification: UserNotification = {
-      id: `notif_${Date.now()}`,
-      ...notification,
-      walletAddress: notification.walletAddress.toLowerCase(),
-      isRead: notification.isRead || false,
-      createdAt: new Date(),
-    } as UserNotification;
+    const requiredLevel = parseInt(match[1], 10);
     
-    const existing = this.userNotifications.get(newNotification.walletAddress) || [];
-    existing.push(newNotification);
-    this.userNotifications.set(newNotification.walletAddress, existing);
-    return newNotification;
-  }
-
-  async markNotificationAsRead(notificationId: string, walletAddress: string): Promise<UserNotification | undefined> {
-    const notifications = this.userNotifications.get(walletAddress.toLowerCase()) || [];
-    const notif = notifications.find(n => n.id === notificationId);
-    if (notif) {
-      notif.isRead = true;
-      return notif;
-    }
-    return undefined;
-  }
-
-  async markAllNotificationsAsRead(walletAddress: string): Promise<void> {
-    const notifications = this.userNotifications.get(walletAddress.toLowerCase()) || [];
-    notifications.forEach(n => n.isRead = true);
-  }
-
-  async getUnreadNotificationCount(walletAddress: string): Promise<number> {
-    const notifications = this.userNotifications.get(walletAddress.toLowerCase()) || [];
-    return notifications.filter(n => !n.isRead).length;
+    // Check if the source wallet has reached the required level
+    const membership = await this.getMembershipState(reward.sourceWallet);
+    return membership?.levelsOwned.includes(requiredLevel) || false;
   }
 }
 
-// Use MemStorage for local development, DatabaseStorage for production
-export const storage = new MemStorage();
-// export const storage = new DatabaseStorage();
+export const storage = new DatabaseStorage();

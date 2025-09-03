@@ -3,222 +3,160 @@ import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
-import HexagonIcon from '../components/UI/HexagonIcon';
+import HexagonIcon from '../components/shared/HexagonIcon';
 import { useLocation } from 'wouter';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Calendar, User, Eye, ArrowRight } from 'lucide-react';
+import { blogApi } from '../api/hiveworld/blog.api';
+import styles from '../styles/hiveworld/hiveworld.module.css';
 
-// Mock blog data - in real implementation would come from API
-const mockBlogs = [
-  {
-    id: '1',
-    title: 'The Future of Web3 Membership Systems',
-    excerpt: 'Exploring how blockchain technology is revolutionizing membership and loyalty programs across industries.',
-    content: 'Full blog content here...',
-    author: 'Beehive Team',
-    imageUrl: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&h=400&fit=crop',
-    publishedAt: '2024-12-20T10:00:00Z',
-    tags: ['Web3', 'Blockchain', 'Membership'],
-    views: 1250,
-    language: 'en'
-  },
-  {
-    id: '2', 
-    title: 'Understanding NFT-Based Access Control',
-    excerpt: 'How NFTs are being used to gate content and create exclusive community experiences.',
-    content: 'Full blog content here...',
-    author: 'Technical Team',
-    imageUrl: 'https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?w=800&h=400&fit=crop',
-    publishedAt: '2024-12-18T14:30:00Z',
-    tags: ['NFT', 'Access Control', 'Technology'],
-    views: 892,
-    language: 'en'
-  },
-  {
-    id: '3',
-    title: 'Building Sustainable Referral Economies',
-    excerpt: 'The mechanics behind successful referral programs and how they create lasting value.',
-    content: 'Full blog content here...',
-    author: 'Strategy Team',
-    imageUrl: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=800&h=400&fit=crop',
-    publishedAt: '2024-12-15T09:15:00Z',
-    tags: ['Referrals', 'Economics', 'Strategy'],
-    views: 567,
-    language: 'en'
-  },
-  {
-    id: '4',
-    title: 'Multi-Chain Payment Integration Guide',
-    excerpt: 'Technical deep-dive into implementing cross-chain payment solutions for dApps.',
-    content: 'Full blog content here...',
-    author: 'Dev Team',
-    imageUrl: 'https://images.unsplash.com/photo-1642104704074-907c0698cbd9?w=800&h=400&fit=crop',
-    publishedAt: '2024-12-12T16:45:00Z',
-    tags: ['Multi-chain', 'Payments', 'Development'],
-    views: 723,
-    language: 'en'
-  },
-  {
-    id: '5',
-    title: 'Community Governance in Decentralized Platforms',
-    excerpt: 'Best practices for implementing fair and effective governance systems in Web3 communities.',
-    content: 'Full blog content here...',
-    author: 'Community Team',
-    imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=400&fit=crop',
-    publishedAt: '2024-12-10T11:20:00Z',
-    tags: ['Governance', 'Community', 'DAO'],
-    views: 934,
-    language: 'en'
-  }
-];
+interface BlogPost {
+  id: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  author: string;
+  imageUrl: string;
+  publishedAt: string;
+  tags: string[];
+  views: number;
+  language: string;
+}
 
 export default function HiveWorld() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  
-  // Get all unique tags
-  const allTags = Array.from(new Set(mockBlogs.flatMap(blog => blog.tags)));
-  
-  // Filter blogs based on search and tag
-  const filteredBlogs = mockBlogs.filter(blog => {
-    const matchesSearch = blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         blog.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTag = !selectedTag || blog.tags.includes(selectedTag);
-    return matchesSearch && matchesTag;
-  });
-  
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchBlogPosts = async () => {
+      try {
+        setIsLoading(true);
+        const posts = await blogApi.getBlogPosts(language);
+        setBlogPosts(posts);
+      } catch (error) {
+        console.error('Failed to fetch blog posts:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBlogPosts();
+  }, [language]);
+
+  const filteredPosts = blogPosts.filter(post =>
+    post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString(language === 'en' ? 'en-US' : language, {
       year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric'
     });
   };
-  
-  const formatViews = (views: number) => {
-    if (views >= 1000) {
-      return `${(views / 1000).toFixed(1)}k`;
-    }
-    return views.toString();
-  };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header Section */}
+    <div className={`${styles.hiveWorldContainer} container mx-auto px-4 py-8`}>
+      {/* Header */}
       <div className="text-center mb-12">
+        <div className="flex justify-center mb-4">
+          <HexagonIcon className="w-16 h-16 text-honey" />
+        </div>
         <h1 className="text-4xl font-bold text-honey mb-4">
-          {t('hiveworld.blog.title')}
+          {t('hiveworld.title') || 'Hive World'}
         </h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          {t('hiveworld.blog.subtitle')}
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          {t('hiveworld.subtitle') || 'Discover insights, tutorials, and the latest news from the Beehive ecosystem'}
         </p>
       </div>
-      
-      {/* Search and Filter Section */}
-      <div className="mb-8">
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder={t('hiveworld.blog.searchPlaceholder')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-              data-testid="input-search-blogs"
-            />
-          </div>
-        </div>
-        
-        {/* Tag Filter */}
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant={!selectedTag ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedTag(null)}
-            className={!selectedTag ? "bg-honey text-black" : ""}
-          >
-            {t('hiveworld.blog.allTopics')}
-          </Button>
-          {allTags.map(tag => (
-            <Button
-              key={tag}
-              variant={selectedTag === tag ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
-              className={selectedTag === tag ? "bg-honey text-black" : ""}
-              data-testid={`button-tag-${tag.toLowerCase()}`}
-            >
-              {t(`hiveworld.blog.tags.${tag}`) || tag}
-            </Button>
-          ))}
+
+      {/* Search */}
+      <div className="max-w-md mx-auto mb-8">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+          <Input
+            placeholder={t('hiveworld.searchPlaceholder') || 'Search articles...'}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 bg-secondary border-border"
+          />
         </div>
       </div>
 
-      {/* Blog Posts Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filteredBlogs.map((blog) => (
-          <Card 
-            key={blog.id} 
-            className="bg-secondary border-border glow-hover card-hover cursor-pointer transition-all duration-300 hover:scale-105"
-            onClick={() => setLocation(`/hiveworld/${blog.id}`)}
-            data-testid={`card-blog-${blog.id}`}
-          >
-            <div className="aspect-video overflow-hidden rounded-t-lg">
-              <img 
-                src={blog.imageUrl} 
-                alt={blog.title}
-                className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
-              />
-            </div>
-            <CardContent className="p-6">
-              <div className="flex flex-wrap gap-2 mb-3">
-                {blog.tags.map(tag => (
-                  <Badge key={tag} variant="secondary" className="text-xs">
-                    {t(`hiveworld.blog.tags.${tag}`) || tag}
-                  </Badge>
-                ))}
-              </div>
-              
-              <h3 className="text-xl font-bold text-honey mb-3 line-clamp-2">
-                {t(`hiveworld.blog.posts.${blog.id}.title`) || blog.title}
-              </h3>
-              
-              <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
-                {t(`hiveworld.blog.posts.${blog.id}.excerpt`) || blog.excerpt}
-              </p>
-              
-              <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  <span>{t(`hiveworld.blog.posts.${blog.id}.author`) || blog.author}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Eye className="h-4 w-4" />
-                  <span>{formatViews(blog.views)}</span>
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  <span>{formatDate(blog.publishedAt)}</span>
-                </div>
-                <ArrowRight className="h-4 w-4 text-honey" />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      
-      {filteredBlogs.length === 0 && (
+      {/* Blog Posts */}
+      {isLoading ? (
         <div className="text-center py-12">
-          <h3 className="text-xl font-semibold text-muted-foreground mb-2">
-            {t('hiveworld.blog.noArticles')}
-          </h3>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto"></div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredPosts.map((post) => (
+            <Card key={post.id} className="bg-secondary border-border hover:border-honey/50 transition-all duration-300 group cursor-pointer">
+              <div className="aspect-video bg-muted rounded-t-lg overflow-hidden">
+                <img
+                  src={post.imageUrl}
+                  alt={post.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <CardContent className="p-6">
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    {post.tags.slice(0, 2).map((tag) => (
+                      <Badge key={tag} variant="outline" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                  
+                  <h3 className="text-lg font-semibold text-honey line-clamp-2 group-hover:text-honey/80 transition-colors">
+                    {post.title}
+                  </h3>
+                  
+                  <p className="text-sm text-muted-foreground line-clamp-3">
+                    {post.excerpt}
+                  </p>
+                  
+                  <div className="flex items-center justify-between text-xs text-muted-foreground pt-2">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-1">
+                        <User className="w-3 h-3" />
+                        <span>{post.author}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Calendar className="w-3 h-3" />
+                        <span>{formatDate(post.publishedAt)}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Eye className="w-3 h-3" />
+                      <span>{post.views}</span>
+                    </div>
+                  </div>
+                  
+                  <Button
+                    className="w-full mt-4 bg-honey text-secondary hover:bg-honey/90 group"
+                    onClick={() => setLocation(`/blog/${post.id}`)}
+                  >
+                    {t('hiveworld.readMore') || 'Read More'}
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {filteredPosts.length === 0 && !isLoading && (
+        <div className="text-center py-12">
           <p className="text-muted-foreground">
-            {t('hiveworld.blog.noArticlesDesc')}
+            {t('hiveworld.noPosts') || 'No articles found'}
           </p>
         </div>
       )}

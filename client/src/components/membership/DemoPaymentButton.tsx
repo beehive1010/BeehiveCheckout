@@ -48,7 +48,6 @@ export default function DemoPaymentButton({
       setDemoState('verifying');
       console.log('🔍 Checking user registration...');
       
-      // Check if user is already registered
       const userCheckResponse = await fetch('/api/auth/user', {
         headers: {
           'X-Wallet-Address': account.address,
@@ -56,20 +55,6 @@ export default function DemoPaymentButton({
       });
 
       let isUserRegistered = userCheckResponse.ok;
-      
-      if (!isUserRegistered) {
-        // Check registration status to see if user exists but had API error
-        const regStatusResponse = await fetch('/api/wallet/registration-status', {
-          headers: {
-            'X-Wallet-Address': account.address,
-          },
-        });
-        
-        if (regStatusResponse.ok) {
-          const regStatus = await regStatusResponse.json();
-          isUserRegistered = regStatus.registered;
-        }
-      }
       
       if (!isUserRegistered) {
         console.log('📝 Registering user for demo...');
@@ -91,13 +76,9 @@ export default function DemoPaymentButton({
         });
 
         if (!registerResponse.ok) {
-          const registerError = await registerResponse.text();
-          console.error('❌ Registration failed:', registerError);
-          throw new Error(`Failed to register user: ${registerError}`);
+          throw new Error('Failed to register user');
         }
         console.log('✅ User registered successfully');
-      } else {
-        console.log('✅ User already registered, proceeding to membership activation');
       }
       
       // Step 3: Activate membership with demo payment
@@ -117,13 +98,7 @@ export default function DemoPaymentButton({
       });
 
       if (!membershipResponse.ok) {
-        let errorData;
-        try {
-          errorData = await membershipResponse.json();
-        } catch {
-          errorData = { error: await membershipResponse.text() };
-        }
-        console.error('❌ Membership activation failed:', errorData);
+        const errorData = await membershipResponse.json();
         throw new Error(errorData.error || 'Failed to activate membership');
       }
 

@@ -42,25 +42,14 @@ export async function apiRequest(
   if (addressToUse) {
     headers["X-Wallet-Address"] = addressToUse;
   }
+  
+  // No JWT authentication - simplified wallet-only approach
 
-  // Check if this is an edge function call
-  const isEdgeFunction = url.includes('/functions/v1/');
-  const baseUrl = isEdgeFunction ? 
-    import.meta.env.VITE_SUPABASE_URL : 
-    window.location.origin;
-
-  // Add authorization for edge functions
-  if (isEdgeFunction) {
-    headers["Authorization"] = `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`;
-  }
-
-  const fullUrl = isEdgeFunction ? url : `${baseUrl}${url}`;
-
-  const res = await fetch(fullUrl, {
+  const res = await fetch(url, {
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
-    credentials: isEdgeFunction ? "omit" : "include",
+    credentials: "include",
   });
 
   await throwIfResNotOk(res);
@@ -80,6 +69,8 @@ export const getQueryFn: <T>(options: {
     if (walletAddress) {
       headers["X-Wallet-Address"] = walletAddress;
     }
+    
+    // No JWT authentication - simplified wallet-only approach
     
     const res = await fetch(queryKey.join("/") as string, {
       headers,
