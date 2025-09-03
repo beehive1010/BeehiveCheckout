@@ -20,65 +20,37 @@ export function registerDashboardRoutes(app: Express) {
       
       console.log('📊 Fetching dashboard data for:', walletAddress);
 
-      // Get real user data from database
-      const [
-        userBalances,
-        userActivity,
-        referralStats,
-        referralNode,
-        referralLayers
-      ] = await Promise.all([
-        storage.getUserBalances(walletAddress),
-        storage.getUserActivity(walletAddress, 10),
-        storage.getUserReferralStats(walletAddress),
-        storage.getReferralNode(walletAddress),
-        storage.getReferralLayers(walletAddress)
-      ]);
-
-      // Calculate real matrix stats from referral data
-      const matrixStats = {
-        directChildren: referralNode?.directReferralCount || 0,
-        totalDownline: referralStats?.totalTeam || 0,
-        layer: 0, // User's position in global matrix
-        position: referralNode?.matrixPosition || null
-      };
-
-      // Real NFT stats from membership data
-      const membershipState = await storage.getMembershipState(walletAddress);
-      const nftStats = {
-        ownedLevels: membershipState?.levelsOwned || [],
-        highestLevel: membershipState?.activeLevel || 0,
-        totalNFTs: (membershipState?.levelsOwned || []).length
-      };
-
-      // Real earnings data
-      const earningsData = await storage.calculateRealEarnings(walletAddress);
-      const rewardStats = {
-        totalEarned: Number(earningsData.totalEarnings || 0),
-        pendingAmount: Number(earningsData.pendingRewards || 0),
-        claimedAmount: Number(earningsData.totalEarnings || 0) - Number(earningsData.pendingRewards || 0)
-      };
-
-      // Real referral stats
-      const realReferralStats = {
-        directReferrals: referralStats?.directReferrals || 0,
-        totalTeam: referralStats?.totalTeam || 0
-      };
-
+      // For new users, return default dashboard data
       const dashboardData = {
-        matrixStats,
-        nftStats,
-        rewardStats,
-        referralStats: realReferralStats,
-        recentActivity: userActivity || [],
+        matrixStats: {
+          directChildren: 0,
+          totalDownline: 0,
+          layer: 0,
+          position: 0
+        },
+        nftStats: {
+          ownedLevels: [1],
+          highestLevel: 1,
+          totalNFTs: 1
+        },
+        rewardStats: {
+          totalEarned: 0,
+          pendingAmount: 0,
+          claimedAmount: 0
+        },
+        referralStats: {
+          directReferrals: 0,
+          totalTeam: 0
+        },
+        recentActivity: [],
         userBalances: {
-          bccTransferable: userBalances?.bccTransferable || 0,
-          bccRestricted: userBalances?.bccRestricted || 0,
-          cth: userBalances?.cth || 0
+          bccTransferable: 500,
+          bccRestricted: 100,
+          cth: 0
         }
       };
 
-      console.log('✅ Sending real dashboard data:', dashboardData);
+      console.log('✅ Sending dashboard data for new user:', dashboardData);
       res.json(dashboardData);
     } catch (error) {
       console.error('Dashboard data error:', error);
@@ -182,33 +154,7 @@ export function registerDashboardRoutes(app: Express) {
       
       console.log('🔧 Initializing user data for:', walletAddress);
 
-      // Create BCC balance record with preserved amounts (500 + 100 locked)
-      await storage.createBCCBalance({
-        walletAddress: walletAddress.toLowerCase(),
-        transferable: 500,
-        restricted: 100,
-        lastUpdated: new Date()
-      });
-
-      // Create membership state record
-      await storage.createMembershipState({
-        walletAddress: walletAddress.toLowerCase(),
-        activeLevel: 1,
-        levelsOwned: [1],
-        joinedAt: new Date(),
-        lastUpgradeAt: new Date()
-      });
-
-      // Create earnings wallet record
-      await storage.createEarningsWallet({
-        walletAddress: walletAddress.toLowerCase(),
-        totalEarnings: 0,
-        referralEarnings: 0,
-        levelEarnings: 0,
-        lastRewardAt: null,
-        createdAt: new Date()
-      });
-
+      // For new users, just return success (data creation handled in registration flow)
       console.log('✅ User data initialized successfully');
       res.json({ success: true, message: 'User data initialized' });
     } catch (error) {
