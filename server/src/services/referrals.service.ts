@@ -50,7 +50,7 @@ export class ReferralsService {
       await this.placeWithSpillover(child, referrer);
     } else {
       // Place directly under referrer
-      await this.placeDirectly(child, referrer, availableSlot);
+      await this.placeDirectly(child, referrer, availableSlot.slot);
     }
   }
 
@@ -85,7 +85,7 @@ export class ReferralsService {
     for (const directChild of directReferrals) {
       const availableSlot = await referralsRepo.findNextAvailableSlot(directChild);
       if (availableSlot) {
-        await this.placeDirectly(childWallet, directChild, availableSlot);
+        await this.placeDirectly(childWallet, directChild, availableSlot.slot);
         return;
       }
     }
@@ -95,7 +95,7 @@ export class ReferralsService {
     for (const secondLevelChild of secondLevelReferrals) {
       const availableSlot = await referralsRepo.findNextAvailableSlot(secondLevelChild);
       if (availableSlot) {
-        await this.placeDirectly(childWallet, secondLevelChild, availableSlot);
+        await this.placeDirectly(childWallet, secondLevelChild, availableSlot.slot);
         return;
       }
     }

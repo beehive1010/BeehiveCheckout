@@ -119,12 +119,12 @@ export function useWallet() {
     },
   });
 
-  // Get user balances using new wallet service FIRST
+  // Get user balances using new balance system
   const { data: userBalances, isLoading: isBalancesLoading } = useQuery({
-    queryKey: ['/api/dashboard/balances'],
+    queryKey: ['/api/balance/user'],
     enabled: !!walletAddress && userStatus?.isRegistered,
     queryFn: async () => {
-      const response = await fetch('/api/dashboard/balances', {
+      const response = await fetch('/api/balance/user', {
         headers: {
           'X-Wallet-Address': walletAddress!,
         },
@@ -145,9 +145,19 @@ export function useWallet() {
   const membershipState = { activeLevel: currentLevel, levelsOwned: currentLevel > 0 ? [currentLevel] : [] };
   const bccBalance = { 
     transferable: userBalances?.bccTransferable || 0, 
-    restricted: userBalances?.bccRestricted || 0 
+    restricted: userBalances?.bccRestricted || 0,
+    locked: userBalances?.bccLocked || 0,
+    total: (userBalances?.bccTransferable || 0) + (userBalances?.bccRestricted || 0)
   };
-  const cthBalance = userBalances?.cth || 0;
+  // CTH balance not displayed as requested by user
+  const cthBalance = 0;
+  
+  // USDT reward balance for withdrawal functionality  
+  const usdtBalance = {
+    totalEarned: userBalances?.totalUsdtEarned || 0,
+    availableRewards: userBalances?.availableUsdtRewards || 0,
+    totalWithdrawn: userBalances?.totalUsdtWithdrawn || 0,
+  };
   const referralNode = null; // Would be fetched separately
   const { data: userActivity, isLoading: isActivityLoading } = useQuery({
     queryKey: ['/api/dashboard/activity'],
@@ -197,6 +207,7 @@ export function useWallet() {
     isActivityLoading,
     userBalances,
     isBalancesLoading,
+    usdtBalance, // USDT rewards for withdrawal
     
     // Actions
     register: registerMutation.mutate,

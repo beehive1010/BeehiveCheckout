@@ -515,6 +515,90 @@ export const advertisementNFTClaims = pgTable("advertisement_nft_claims", {
   codeUsedAt: timestamp("code_used_at"),
 });
 
+// Global BCC staking tiers - defines unlock amounts for different activation phases
+export const bccStakingTiers = pgTable("bcc_staking_tiers", {
+  tierId: integer("tier_id").primaryKey(),
+  tierName: text("tier_name").notNull(), // 'phase_1', 'phase_2', 'phase_3', 'phase_4'
+  maxActivations: integer("max_activations").notNull(), // Max members in this tier (9999, 19999, etc.)
+  currentActivations: integer("current_activations").default(0).notNull(), // Current members activated
+  bccUnlockPerLevel: integer("bcc_unlock_per_level").notNull(), // BCC unlocked per level upgrade
+  bccLockDeduction: integer("bcc_lock_deduction").notNull(), // BCC deducted from total locked pool
+  phase: text("phase").notNull(), // 'active', 'completed', 'upcoming'
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// User balance details with staking tier tracking
+export const userBalances = pgTable("user_balances", {
+  walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
+  
+  // BCC balance management
+  bccTransferable: integer("bcc_transferable").default(500).notNull(), // Transferable BCC (initial: 500)
+  bccRestricted: integer("bcc_restricted").default(0).notNull(), // Restricted BCC from rewards
+  bccLocked: integer("bcc_locked").default(0).notNull(), // Locked BCC from staking system
+  
+  // USDT reward management
+  totalUsdtEarned: integer("total_usdt_earned").default(0).notNull(), // Total USDT earned (cents)
+  availableUsdtRewards: integer("available_usdt_rewards").default(0).notNull(), // Available for withdrawal (cents)
+  totalUsdtWithdrawn: integer("total_usdt_withdrawn").default(0).notNull(), // Total withdrawn (cents)
+  
+  // Staking tier when user activated
+  activationTier: integer("activation_tier"), // Which tier user activated in (1,2,3,4)
+  activationOrder: integer("activation_order"), // User's position in activation queue
+  
+  // CTH balance (hidden from UI as requested)
+  cthBalance: integer("cth_balance").default(0).notNull(), // CTH balance (not displayed)
+  
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// USDT withdrawal claims table
+export const usdtWithdrawals = pgTable("usdt_withdrawals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  walletAddress: varchar("wallet_address", { length: 42 }).notNull().references(() => users.walletAddress),
+  
+  // Withdrawal details
+  amountUsdt: integer("amount_usdt").notNull(), // Amount in cents
+  targetChain: text("target_chain").notNull(), // Chain to withdraw to
+  targetWalletAddress: varchar("target_wallet_address", { length: 42 }).notNull(), // User's wallet on target chain
+  
+  // Fee and processing
+  gasFeePercentage: numeric("gas_fee_percentage", { precision: 5, scale: 2 }).notNull(), // Fee percentage
+  gasFeeAmount: integer("gas_fee_amount").notNull(), // Fee amount in cents
+  netAmount: integer("net_amount").notNull(), // Net amount after fees (cents)
+  
+  // Status tracking
+  status: text("status").default("pending").notNull(), // 'pending', 'processing', 'completed', 'failed'
+  serverWalletTxHash: text("server_wallet_tx_hash"), // ThirdWeb ServerWallet transaction hash
+  targetChainTxHash: text("target_chain_tx_hash"), // Final transaction on target chain
+  
+  // Processing details
+  processedBy: text("processed_by"), // Server wallet address that processed this
+  failureReason: text("failure_reason"), // If failed, reason
+  
+  requestedAt: timestamp("requested_at").defaultNow().notNull(),
+  processedAt: timestamp("processed_at"),
+  completedAt: timestamp("completed_at"),
+});
+
+// Global BCC pool tracking - tracks total locked BCC across all users
+export const bccGlobalPool = pgTable("bcc_global_pool", {
+  id: integer("id").primaryKey().default(1), // Single row table
+  totalBccLocked: integer("total_bcc_locked").default(0).notNull(), // Total BCC locked in system
+  totalMembersActivated: integer("total_members_activated").default(0).notNull(), // Total activated members
+  currentTier: integer("current_tier").default(1).notNull(), // Current activation tier (1-4)
+  
+  // Per-tier tracking
+  tier1Activations: integer("tier1_activations").default(0).notNull(), // 1-9999
+  tier2Activations: integer("tier2_activations").default(0).notNull(), // 10000-19999
+  tier3Activations: integer("tier3_activations").default(0).notNull(), // 20000-39999
+  tier4Activations: integer("tier4_activations").default(0).notNull(), // 40000+
+  
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+});
+
 export const insertBlogPostSchema = createInsertSchema(blogPosts).pick({
   title: true,
   excerpt: true,
@@ -536,6 +620,56 @@ export const insertAdvertisementNFTSchema = createInsertSchema(advertisementNFTs
   codeTemplate: true,
   active: true,
   totalSupply: true,
+});
+
+export const insertBccStakingTierSchema = createInsertSchema(bccStakingTiers).pick({
+  tierId: true,
+  tierName: true,
+  maxActivations: true,
+  currentActivations: true,
+  bccUnlockPerLevel: true,
+  bccLockDeduction: true,
+  phase: true,
+  startedAt: true,
+  completedAt: true,
+});
+
+export const insertUserBalancesSchema = createInsertSchema(userBalances).pick({
+  walletAddress: true,
+  bccTransferable: true,
+  bccRestricted: true,
+  bccLocked: true,
+  totalUsdtEarned: true,
+  availableUsdtRewards: true,
+  totalUsdtWithdrawn: true,
+  activationTier: true,
+  activationOrder: true,
+  cthBalance: true,
+});
+
+export const insertUsdtWithdrawalSchema = createInsertSchema(usdtWithdrawals).pick({
+  walletAddress: true,
+  amountUsdt: true,
+  targetChain: true,
+  targetWalletAddress: true,
+  gasFeePercentage: true,
+  gasFeeAmount: true,
+  netAmount: true,
+  status: true,
+  serverWalletTxHash: true,
+  targetChainTxHash: true,
+  processedBy: true,
+  failureReason: true,
+});
+
+export const insertBccGlobalPoolSchema = createInsertSchema(bccGlobalPool).pick({
+  totalBccLocked: true,
+  totalMembersActivated: true,
+  currentTier: true,
+  tier1Activations: true,
+  tier2Activations: true,
+  tier3Activations: true,
+  tier4Activations: true,
 });
 
 export const insertAdvertisementNFTClaimSchema = createInsertSchema(advertisementNFTClaims).pick({

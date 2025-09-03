@@ -1,5 +1,5 @@
 import { db } from '../../db';
-import { referralNodes } from '@shared/schema';
+import { referrals } from '@shared/schema';
 import { eq, sql } from 'drizzle-orm';
 
 export interface ReferralChainNode {
@@ -29,19 +29,19 @@ export class ReferralsPostgreSQLRepository {
     
     while (depth <= 19) {
       const [node] = await db
-        .select({ sponsorWallet: referralNodes.sponsorWallet })
-        .from(referralNodes)
-        .where(eq(referralNodes.walletAddress, currentWallet));
+        .select({ placerWallet: referrals.placerWallet })
+        .from(referrals)
+        .where(eq(referrals.memberWallet, currentWallet));
         
-      if (!node?.sponsorWallet) break;
+      if (!node?.placerWallet) break;
       
       chain.push({
-        upline: node.sponsorWallet,
+        upline: node.placerWallet,
         depth: depth,
         slot: 'middle' // Simplified for now
       });
       
-      currentWallet = node.sponsorWallet;
+      currentWallet = node.placerWallet;
       depth++;
     }
     
@@ -55,11 +55,11 @@ export class ReferralsPostgreSQLRepository {
     const wallet = uplineWallet.toLowerCase();
     
     const directReferrals = await db
-      .select({ walletAddress: referralNodes.walletAddress })
-      .from(referralNodes)
-      .where(eq(referralNodes.sponsorWallet, wallet));
+      .select({ memberWallet: referrals.memberWallet })
+      .from(referrals)
+      .where(eq(referrals.placerWallet, wallet));
       
-    return directReferrals.map(r => r.walletAddress);
+    return directReferrals.map(r => r.memberWallet);
   }
 
   /**
@@ -120,20 +120,18 @@ export class ReferralsPostgreSQLRepository {
       byDepth: {}
     };
     
-    // Get direct referral count from referral_nodes table
+    // Get direct referral count from referrals table
     const [directCountResult] = await db
       .select({ 
-        count: sql<number>`cast(count(*) as int)`,
-        directReferralCount: referralNodes.directReferralCount,
-        totalTeamCount: referralNodes.totalTeamCount
+        count: sql<number>`cast(count(*) as int)`
       })
-      .from(referralNodes)
-      .where(eq(referralNodes.sponsorWallet, wallet.toLowerCase()));
+      .from(referrals)
+      .where(eq(referrals.placerWallet, wallet.toLowerCase()));
     
-    // Use the stored counts from referral_nodes if available
+    // Use the counted referrals
     if (directCountResult) {
-      stats.directCount = directCountResult.directReferralCount || directCountResult.count || 0;
-      stats.totalCount = directCountResult.totalTeamCount || 0;
+      stats.directCount = directCountResult.count || 0;
+      stats.totalCount = 0; // Will be calculated below
     }
     
     // If no stored counts, calculate from relationships
@@ -165,8 +163,8 @@ export class ReferralsPostgreSQLRepository {
    * Set referral chain (stub implementation for compatibility)
    */
   async setChain(childWallet: string, chain: ReferralChainNode[]): Promise<void> {
-    // For now, just ensure the user exists in referral_nodes
-    // The actual chain is built dynamically from sponsor relationships
+    // For now, just ensure the user exists in referrals table
+    // The actual chain is built dynamically from placer relationships
     console.log(`Setting chain for ${childWallet} with ${chain.length} nodes`);
   }
 
@@ -193,8 +191,8 @@ export class ReferralsPostgreSQLRepository {
     
     const [node] = await db
       .select()
-      .from(referralNodes)
-      .where(eq(referralNodes.walletAddress, wallet));
+      .from(referrals)
+      .where(eq(referrals.memberWallet, wallet));
       
     return node;
   }
