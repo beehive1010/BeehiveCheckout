@@ -11,7 +11,7 @@ async function getMatrixStats(walletAddress: string) {
     const directReferrals = await db
       .select({ count: count() })
       .from(referrals)
-      .where(eq(referrals.referrerWalletAddress, walletAddress.toLowerCase()));
+      .where(eq(referrals.rootWallet, walletAddress.toLowerCase()));
     
     // Try to get matrix view data for total downline
     let totalDownline = 0;
@@ -50,11 +50,11 @@ async function getRewardStats(walletAddress: string) {
     try {
       const rewards = await db
         .select({
-          total: sum(userRewards.amount),
-          pending: sum(userRewards.amount) // Adjust based on status field if available
+          total: sum(userRewards.rewardAmount),
+          pending: sum(userRewards.rewardAmount) // Adjust based on status field if available
         })
         .from(userRewards)
-        .where(eq(userRewards.walletAddress, walletAddress.toLowerCase()));
+        .where(eq(userRewards.recipientWallet, walletAddress.toLowerCase()));
       
       totalEarned = Number(rewards[0]?.total) || 0;
       claimedAmount = totalEarned; // Assume all are claimed for now
@@ -80,7 +80,7 @@ async function getReferralStats(walletAddress: string) {
     const directReferrals = await db
       .select({ count: count() })
       .from(referrals)
-      .where(eq(referrals.referrerWalletAddress, walletAddress.toLowerCase()));
+      .where(eq(referrals.rootWallet, walletAddress.toLowerCase()));
     
     // For now, use direct referrals as total team (could be expanded with recursive query)
     const totalTeam = directReferrals[0]?.count || 0;
@@ -149,7 +149,7 @@ export function registerDashboardRoutes(app: Express) {
               cth: 0
             };
           } catch (error) {
-            console.error('BCC calculation error, using defaults:', error.message);
+            console.error('BCC calculation error, using defaults:', (error as Error).message);
             return { bccTransferable: 0, bccRestricted: 0, cth: 0 };
           }
         })()
@@ -179,7 +179,7 @@ export function registerDashboardRoutes(app: Express) {
           .where(eq(memberMatrixView.rootWallet, walletAddress.toLowerCase()))
           .limit(1);
       } catch (error) {
-        console.error('memberMatrixView table not found, using fallback data:', error.message);
+        console.error('memberMatrixView table not found, using fallback data:', (error as Error).message);
         // Fallback: No matrix data available yet
         memberMatrixData = null;
       }
@@ -195,7 +195,7 @@ export function registerDashboardRoutes(app: Express) {
         totalDownline: memberMatrixData?.totalMembers || 0,
         downlineMatrix: Array.from({ length: 19 }, (_, i) => ({
           level: i + 1,
-          totalMembers: memberMatrixData?.layerData?.[i]?.memberCount || 0,
+          totalMembers: memberMatrixData?.layerData?.[i]?.filledPositions || 0,
           maxCapacity: Math.pow(3, i + 1), // 3^n for each layer
           members: memberMatrixData?.layerData?.[i]?.positions ? 
             Object.entries(memberMatrixData.layerData[i].positions).map(([position, data]: [string, any]) => ({
@@ -297,7 +297,7 @@ export function registerDashboardRoutes(app: Express) {
         bccRestricted: bccData.restricted,
         cth: 0,
         usdt: wallet?.availableUSDT || 0,
-        bccDetails: bccData.details // 额外信息用于调试
+        // Additional calculation breakdown available in calculationBreakdown
       };
       
       console.log('✅ Sending REAL BCC balances (calculated):', balances);
