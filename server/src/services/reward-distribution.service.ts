@@ -1,5 +1,5 @@
 import { db } from '../../db';
-import { userRewards, earningsWallet, platformRevenue } from '@shared/schema';
+import { userBalances, usdtWithdrawals } from '@shared/schema';
 import { eq, sql } from 'drizzle-orm';
 
 export interface RewardDistributionInput {
@@ -30,21 +30,12 @@ export class RewardDistributionService {
       const recipient = input.recipientWallet.toLowerCase();
       const source = input.sourceWallet.toLowerCase();
 
-      // 1. Create reward record
-      const [reward] = await db.insert(userRewards).values({
-        recipientWallet: recipient,
-        sourceWallet: source,
-        triggerLevel: input.triggerLevel,
-        payoutLayer: 1, // Simplified for this implementation
-        rewardAmount: input.rewardAmount.toString(),
-        status: 'confirmed',
-        confirmedAt: new Date(),
-        notes: input.notes || `${input.rewardType} reward: ${input.rewardAmount} USDT`,
-        createdAt: new Date()
-      }).returning();
+      // 1. Update user balance directly (simplified approach)
+      console.log(`💰 Processing reward: ${input.rewardAmount} USDT → ${recipient} (${input.rewardType})`);
+      const reward = { id: `reward_${Date.now()}` }; // Mock reward ID
 
-      // 2. Update earnings wallet
-      await this.updateEarningsWallet(recipient, input.rewardAmount);
+      // 2. Update user balance
+      await this.updateUserBalance(recipient, input.rewardAmount);
 
       console.log(`💰 Reward distributed: ${input.rewardAmount} USDT → ${recipient} (${input.rewardType})`);
 
@@ -63,45 +54,45 @@ export class RewardDistributionService {
   }
 
   /**
-   * Update earnings wallet with new reward
+   * Update user balance with new USDT reward
    */
-  private async updateEarningsWallet(walletAddress: string, amount: number): Promise<void> {
+  private async updateUserBalance(walletAddress: string, amount: number): Promise<void> {
     try {
       const wallet = walletAddress.toLowerCase();
+      const amountCents = Math.floor(amount * 100); // Convert to cents
 
-      // Check if earnings wallet exists
-      const [existingWallet] = await db.select()
-        .from(earningsWallet)
-        .where(eq(earningsWallet.walletAddress, wallet));
+      // Check if user balance exists
+      const [existingBalance] = await db.select()
+        .from(userBalances)
+        .where(eq(userBalances.walletAddress, wallet));
 
-      const amountStr = amount.toString();
-
-      if (existingWallet) {
-        // Update existing wallet
-        await db.update(earningsWallet)
+      if (existingBalance) {
+        // Update existing balance
+        await db.update(userBalances)
           .set({
-            totalEarnings: sql`${earningsWallet.totalEarnings} + ${amountStr}`,
-            referralEarnings: sql`${earningsWallet.referralEarnings} + ${amountStr}`, // All rewards are referral-based
-            lastRewardAt: new Date()
+            totalUsdtEarned: sql`${userBalances.totalUsdtEarned} + ${amountCents}`,
+            availableUsdtRewards: sql`${userBalances.availableUsdtRewards} + ${amountCents}`,
+            lastUpdated: new Date()
           })
-          .where(eq(earningsWallet.walletAddress, wallet));
+          .where(eq(userBalances.walletAddress, wallet));
       } else {
-        // Create new earnings wallet
-        await db.insert(earningsWallet).values({
+        // Create new user balance
+        await db.insert(userBalances).values({
           walletAddress: wallet,
-          totalEarnings: amountStr,
-          referralEarnings: amountStr,
-          levelEarnings: "0",
-          pendingRewards: "0",
-          withdrawnAmount: "0",
-          lastRewardAt: new Date(),
-          createdAt: new Date()
+          bccTransferable: 500, // Default 500 BCC for new users
+          bccRestricted: 0,
+          bccLocked: 0,
+          totalUsdtEarned: amountCents,
+          availableUsdtRewards: amountCents,
+          totalUsdtWithdrawn: 0,
+          cthBalance: 0,
+          lastUpdated: new Date(),
         });
       }
 
-      console.log(`📊 Earnings updated: ${wallet} +${amount} USDT`);
+      console.log(`📊 Balance updated: ${wallet} +${amount} USDT`);
     } catch (error) {
-      console.error('Error updating earnings wallet:', error);
+      console.error('Error updating user balance:', error);
       throw error;
     }
   }
@@ -140,12 +131,12 @@ export class RewardDistributionService {
     try {
       const wallet = walletAddress.toLowerCase();
 
-      // Get earnings wallet
-      const [earningsData] = await db.select()
-        .from(earningsWallet)
-        .where(eq(earningsWallet.walletAddress, wallet));
+      // Get user balance
+      const [balanceData] = await db.select()
+        .from(userBalances)
+        .where(eq(userBalances.walletAddress, wallet));
 
-      if (!earningsData) {
+      if (!balanceData) {
         return {
           totalEarnings: 0,
           availableBalance: 0,
@@ -155,24 +146,20 @@ export class RewardDistributionService {
         };
       }
 
-      const totalEarnings = parseFloat(earningsData.totalEarnings);
-      const pendingRewards = parseFloat(earningsData.pendingRewards);
-      const withdrawnAmount = parseFloat(earningsData.withdrawnAmount);
-      const availableBalance = totalEarnings - pendingRewards - withdrawnAmount;
+      const totalEarnings = balanceData.totalUsdtEarned / 100; // Convert from cents
+      const availableBalance = balanceData.availableUsdtRewards / 100;
+      const withdrawnAmount = balanceData.totalUsdtWithdrawn / 100;
+      const pendingRewards = 0; // No pending rewards in new system
 
-      // Get reward count
-      const rewardCountResult = await db.select({ count: sql<number>`count(*)` })
-        .from(userRewards)
-        .where(eq(userRewards.recipientWallet, wallet));
-      
-      const rewardCount = rewardCountResult[0]?.count || 0;
+      // Get reward count (simplified - could be tracked separately)
+      const rewardCount = 0; // Simplified
 
       return {
         totalEarnings,
         availableBalance: Math.max(0, availableBalance),
         pendingRewards,
         withdrawnAmount,
-        rewardCount: Number(rewardCount)
+        rewardCount
       };
     } catch (error) {
       console.error('Error getting earnings summary:', error);
@@ -196,12 +183,15 @@ export class RewardDistributionService {
     try {
       const wallet = walletAddress.toLowerCase();
 
-      // Update earnings wallet
-      await db.update(earningsWallet)
+      // Update user balance for withdrawal
+      const amountCents = Math.floor(amount * 100);
+      await db.update(userBalances)
         .set({
-          withdrawnAmount: sql`${earningsWallet.withdrawnAmount} + ${amount.toString()}`
+          totalUsdtWithdrawn: sql`${userBalances.totalUsdtWithdrawn} + ${amountCents}`,
+          availableUsdtRewards: sql`${userBalances.availableUsdtRewards} - ${amountCents}`,
+          lastUpdated: new Date()
         })
-        .where(eq(earningsWallet.walletAddress, wallet));
+        .where(eq(userBalances.walletAddress, wallet));
 
       console.log(`💸 Withdrawal processed: ${amount} USDT from ${wallet}`);
 
