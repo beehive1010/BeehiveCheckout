@@ -65,30 +65,22 @@ export class BCCCalculationService {
   }
 
   /**
-   * 根据激活顺序计算用户解锁的BCC数量
-   * 激活顺序：1~9999个激活会员
-   * 
-   * TODO: 实际应该根据用户激活时间/顺序计算解锁比例
-   * 这里暂时使用简化逻辑，等数据库schema完善后实现
+   * 根据用户等级计算已解锁的BCC数量
+   * Level 1 = 解锁100 BCC, Level 2 = 解锁150 BCC, Level 3 = 解锁200 BCC, 累积计算
    */
-  private async calculateUnlockedBCCByActivationOrder(walletAddress: string): Promise<number> {
+  private async calculateUnlockedBCCByLevel(walletAddress: string, currentLevel: number): Promise<number> {
     try {
-      // TODO: 实际应该查询用户激活时间/顺序
-      // 这里暂时假设为早期激活会员，返回小部分解锁
+      let totalUnlocked = 0;
       
-      // 简化版本：根据用户等级估算激活顺序
-      const user = await this.getUserLevel(walletAddress);
-      const currentLevel = user?.currentLevel || 1;
+      // 累积计算从Level 1到当前Level的解锁量
+      for (let level = 1; level <= currentLevel; level++) {
+        totalUnlocked += this.calculateBCCReleaseByLevel(level);
+      }
       
-      // 假设激活顺序与等级相关（简化逻辑）
-      const estimatedActivationOrder = Math.min(currentLevel * 100, this.MAX_ACTIVATIONS);
-      
-      // 计算解锁比例
-      const unlockRatio = estimatedActivationOrder / this.MAX_ACTIVATIONS;
-      
-      return Math.floor(this.TOTAL_LOCKUP_AMOUNT * unlockRatio);
+      console.log(`🔓 Level ${currentLevel} 累积解锁BCC: ${totalUnlocked}`);
+      return totalUnlocked;
     } catch (error: any) {
-      console.error('Unable to calculate unlock ratio, returning 0:', error?.message);
+      console.error('Unable to calculate unlocked BCC by level:', error?.message);
       return 0;
     }
   }
@@ -127,8 +119,8 @@ export class BCCCalculationService {
     // 2. 总锁仓量
     const totalLockup = this.TOTAL_LOCKUP_AMOUNT;
     
-    // 3. 根据激活顺序计算已解锁的BCC
-    const unlockedBCC = await this.calculateUnlockedBCCByActivationOrder(walletAddress);
+    // 3. 根据用户等级计算已解锁的BCC
+    const unlockedBCC = await this.calculateUnlockedBCCByLevel(walletAddress, currentLevel);
     
     // 4. 剩余锁仓的BCC
     const restrictedBCC = Math.max(0, totalLockup - unlockedBCC);
@@ -172,6 +164,7 @@ export class BCCCalculationService {
       userLevel: number;
     };
   }> {
+    console.log(`🚀 BCC计算服务被调用 [${walletAddress}]`);
     try {
       // 获取用户当前等级
       const user = await this.getUserLevel(walletAddress);

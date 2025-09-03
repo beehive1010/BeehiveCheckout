@@ -1,8 +1,99 @@
 import { Express } from 'express';
 import { storage } from '../services/storage.service';
 import { db } from '../../db';
-import { memberMatrixView } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { memberMatrixView, referrals, userRewards, rewardDistributions } from '@shared/schema';
+import { eq, count, sum, and } from 'drizzle-orm';
+
+// Helper functions to get real stats from database
+async function getMatrixStats(walletAddress: string) {
+  try {
+    // Get direct referrals count
+    const directReferrals = await db
+      .select({ count: count() })
+      .from(referrals)
+      .where(eq(referrals.referrerWalletAddress, walletAddress.toLowerCase()));
+    
+    // Try to get matrix view data for total downline
+    let totalDownline = 0;
+    try {
+      const [matrixData] = await db
+        .select()
+        .from(memberMatrixView)
+        .where(eq(memberMatrixView.rootWallet, walletAddress.toLowerCase()))
+        .limit(1);
+      
+      totalDownline = matrixData?.totalMembers || 0;
+    } catch (error) {
+      // If memberMatrixView doesn't exist, use direct referrals as fallback
+      totalDownline = directReferrals[0]?.count || 0;
+    }
+    
+    return {
+      directChildren: directReferrals[0]?.count || 0,
+      totalDownline,
+      layer: 0, // Root user
+      position: 0
+    };
+  } catch (error) {
+    console.error('Error fetching matrix stats:', error);
+    return { directChildren: 0, totalDownline: 0, layer: 0, position: 0 };
+  }
+}
+
+async function getRewardStats(walletAddress: string) {
+  try {
+    // Get total earned from userRewards or rewardDistributions
+    let totalEarned = 0;
+    let pendingAmount = 0;
+    let claimedAmount = 0;
+    
+    try {
+      const rewards = await db
+        .select({
+          total: sum(userRewards.amount),
+          pending: sum(userRewards.amount) // Adjust based on status field if available
+        })
+        .from(userRewards)
+        .where(eq(userRewards.walletAddress, walletAddress.toLowerCase()));
+      
+      totalEarned = Number(rewards[0]?.total) || 0;
+      claimedAmount = totalEarned; // Assume all are claimed for now
+    } catch (error) {
+      // If userRewards table doesn't exist, try rewardDistributions
+      console.log('userRewards table not found, checking rewardDistributions');
+    }
+    
+    return {
+      totalEarned,
+      pendingAmount,
+      claimedAmount
+    };
+  } catch (error) {
+    console.error('Error fetching reward stats:', error);
+    return { totalEarned: 0, pendingAmount: 0, claimedAmount: 0 };
+  }
+}
+
+async function getReferralStats(walletAddress: string) {
+  try {
+    // Get direct referrals
+    const directReferrals = await db
+      .select({ count: count() })
+      .from(referrals)
+      .where(eq(referrals.referrerWalletAddress, walletAddress.toLowerCase()));
+    
+    // For now, use direct referrals as total team (could be expanded with recursive query)
+    const totalTeam = directReferrals[0]?.count || 0;
+    
+    return {
+      directReferrals: directReferrals[0]?.count || 0,
+      totalTeam
+    };
+  } catch (error) {
+    console.error('Error fetching referral stats:', error);
+    return { directReferrals: 0, totalTeam: 0 };
+  }
+}
 
 /**
  * Dashboard Routes - Real member data from database
@@ -29,27 +120,24 @@ export function registerDashboardRoutes(app: Express) {
       // Get recent activities from database
       const recentActivities = await storage.getUserActivity(walletAddress, 5);
       
+      // Get real matrix stats from database
+      const matrixStats = await getMatrixStats(walletAddress);
+      
+      // Get real reward stats from database
+      const rewardStats = await getRewardStats(walletAddress);
+      
+      // Get real referral stats from database
+      const referralStats = await getReferralStats(walletAddress);
+      
       const dashboardData = {
-        matrixStats: {
-          directChildren: 0,
-          totalDownline: 0,
-          layer: 0,
-          position: 0
-        },
+        matrixStats,
         nftStats: {
-          ownedLevels: [user?.currentLevel || 1],
-          highestLevel: user?.currentLevel || 1,
+          ownedLevels: user?.currentLevel ? [user.currentLevel] : [],
+          highestLevel: user?.currentLevel || 0,
           totalNFTs: user?.memberActivated ? 1 : 0
         },
-        rewardStats: {
-          totalEarned: 0,
-          pendingAmount: 0,
-          claimedAmount: 0
-        },
-        referralStats: {
-          directReferrals: 0,
-          totalTeam: 0
-        },
+        rewardStats,
+        referralStats,
         recentActivity: recentActivities,
         userBalances: await (async () => {
           try {

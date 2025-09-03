@@ -293,9 +293,12 @@ export function registerAuthRoutes(app: Express, requireWallet: any) {
           activeLevel: userStatus.membershipLevel || 0
         },
         bccBalance: await (async () => {
+          console.log(`🔑 BCC计算检查 isActivated: ${userStatus.isActivated}`);
           if (!userStatus.isActivated) return { transferable: 0, restricted: 0 };
+          console.log(`🧮 开始动态计算BCC [${walletAddress}]`);
           const { bccCalculationService } = await import('../services/bcc-calculation.service');
           const bccData = await bccCalculationService.calculateBCCBalances(walletAddress);
+          console.log(`✅ BCC动态计算完成: transferable=${bccData.transferable}, restricted=${bccData.restricted}`);
           return {
             transferable: bccData.transferable,
             restricted: bccData.restricted

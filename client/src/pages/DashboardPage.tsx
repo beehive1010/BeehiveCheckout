@@ -157,15 +157,15 @@ export default function Dashboard() {
   // Hook for refreshing data
   const { refreshAll } = useRefreshDashboard();
   
-  // Extract real data from dashboard hook results - use real user data as fallback
-  const userMatrixStats = dashboardData?.matrixStats || { directChildren: 3, totalDownline: 0, layer: 0, position: null };
+  // Extract real data from dashboard hook results - use zero values as fallback for new users
+  const userMatrixStats = dashboardData?.matrixStats || { directChildren: 0, totalDownline: 0, layer: 0, position: null };
   const nftStats = dashboardData?.nftStats || { 
     ownedLevels: isActivated && currentLevel >= 1 ? [1] : [], 
     highestLevel: currentLevel || 0, 
     totalNFTs: isActivated && currentLevel >= 1 ? 1 : 0 
   };
-  const rewardStats = dashboardData?.rewardStats || { totalEarned: 450, pendingAmount: 0, claimedAmount: 450 };
-  const referralStats = dashboardData?.referralStats || { directReferrals: 3, totalTeam: 3 };
+  const rewardStats = dashboardData?.rewardStats || { totalEarned: 0, pendingAmount: 0, claimedAmount: 0 };
+  const referralStats = dashboardData?.referralStats || { directReferrals: 0, totalTeam: 0 };
   
   // Real BCC balances - use from auth data if dashboard data not available
   const realBCCBalance = {
