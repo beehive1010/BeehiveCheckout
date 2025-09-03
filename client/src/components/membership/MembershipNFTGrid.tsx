@@ -46,6 +46,18 @@ export default function MembershipNFTGrid({ className = '' }: MembershipNFTGridP
   // Get available levels for purchase
   const { data: availableLevelsData, isLoading } = useQuery({
     queryKey: ['/api/membership/available-levels', walletAddress],
+    queryFn: async () => {
+      if (!walletAddress) return null;
+      const response = await fetch(`/api/membership/available-levels/${walletAddress}`, {
+        headers: {
+          'X-Wallet-Address': walletAddress
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch available levels');
+      }
+      return response.json();
+    },
     enabled: !!walletAddress,
     refetchInterval: 30000,
   });
