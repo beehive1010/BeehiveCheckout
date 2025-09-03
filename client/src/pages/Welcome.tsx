@@ -2,23 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useI18n } from '../contexts/I18nContext';
 import { useLocation } from 'wouter';
 import { useActiveAccount } from 'thirdweb/react';
-import { getContract, prepareContractCall, sendTransaction } from 'thirdweb';
-import { arbitrum, arbitrumSepolia } from 'thirdweb/chains';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { useToast } from '../hooks/use-toast';
-import { Loader2, Crown, Shield, Zap, Users } from 'lucide-react';
+import { Loader2, Crown, Shield, Zap, Users, Database } from 'lucide-react';
+import DemoClaimButton from '../components/DemoClaimButton';
 
-// Mock dependencies for now - these would need to be implemented
-const client = { clientId: "mock", secretKey: undefined } as any; // Mock thirdweb client
-const getAdminWalletAddress = () => "0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0"; // Mock admin address
-const contractAddresses = {
-  BBC_MEMBERSHIP: { alphaCentauri: "0x0000000000000000000000000000000000000000" },
-  USDT: { arbitrumSepolia: "0x0000000000000000000000000000000000000000" }
-};
-const MemberNFTAbi: any[] = []; // Mock NFT ABI
-const transactionRateLimiter = { waitForAvailableSlot: async () => {} };
-const retryWithBackoff = async (fn: any) => await fn();
 
 export default function Welcome() {
   const { t } = useI18n();
@@ -26,6 +15,7 @@ export default function Welcome() {
   const { toast } = useToast();
   const account = useActiveAccount();
   const [demoClaimState, setDemoClaimState] = useState<'idle' | 'claiming' | 'success' | 'error'>('idle');
+  const [fakeClaimState, setFakeClaimState] = useState<'idle' | 'claiming' | 'success' | 'error'>('idle');
   const [hasLevel1NFT, setHasLevel1NFT] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -44,13 +34,6 @@ export default function Welcome() {
     }
   }, [account?.address]);
 
-  // Demo NFT contract on Arbitrum
-  const demoContract = getContract({
-    client,
-    address: contractAddresses.BBC_MEMBERSHIP.alphaCentauri,
-    chain: arbitrumSepolia,
-    abi: MemberNFTAbi,
-  });
 
   // Handle redirects in useEffect to avoid setState during render
   useEffect(() => {
@@ -102,44 +85,39 @@ export default function Welcome() {
     }
 
     try {
-      setDemoClaimState('claiming');
+      setFakeClaimState('claiming');
       
       toast({
-        title: "Demo Purchase Started",
-        description: "Processing payment...",
+        title: "Fake Claim Started",
+        description: "Processing database-only claim...",
       });
 
-      // Simulate the complex claiming process
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Simulate the fake claiming process
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
       const result = {
-        transactionHash: "0x1234567890123456789012345678901234567890",
+        transactionHash: "fake_tx_" + Date.now(),
         mintResult: {
           success: true,
-          message: 'Level 1 Membership NFT minted successfully',
+          message: 'Level 1 Membership activated (database test)',
           nftLevel: 1,
           userWallet: account.address,
-          mintTxHash: "0x0987654321098765432109876543210987654321"
+          mintTxHash: "fake_mint_" + Date.now()
         }
       };
 
-      console.log('Demo claim result:', result);
+      console.log('Fake claim result:', result);
       
-      const successMessage = result.mintResult?.success 
-        ? `Payment & NFT minting successful! Payment TX: ${result.transactionHash.slice(0, 10)}... | Mint TX: ${result.mintResult.mintTxHash.slice(0, 10)}...`
-        : `Payment successful! TX: ${result.transactionHash.slice(0, 10)}... | NFT minting failed`;
-
       toast({
-        title: result.mintResult?.success ? "Purchase Complete! 🎉" : "Payment Complete! ⚠️",
-        description: successMessage,
-        variant: result.mintResult?.success ? "default" : "destructive",
+        title: "Test Claim Complete! 🎉",
+        description: "Database-only claim successful (no blockchain transaction)",
       });
 
-      setDemoClaimState('success');
+      setFakeClaimState('success');
       
       // Actually update the backend database
       try {
-        console.log('🔄 Updating user membership in database...');
+        console.log('🔄 Updating user membership in database (fake claim)...');
         
         const claimResponse = await fetch('/api/auth/claim-nft', {
           method: 'POST',
@@ -150,7 +128,8 @@ export default function Welcome() {
           body: JSON.stringify({
             level: 1,
             transactionHash: result.transactionHash,
-            mintTxHash: result.mintResult.mintTxHash
+            mintTxHash: result.mintResult.mintTxHash,
+            isFakeClaim: true
           }),
         });
 
@@ -174,16 +153,17 @@ export default function Welcome() {
       } catch (dbError: any) {
         console.error('❌ Database update failed:', dbError);
         toast({
-          title: "NFT Claimed but Activation Pending",
-          description: "Your NFT was minted successfully, but there was an issue activating your membership. Please contact support.",
+          title: "Test Claim Failed",
+          description: "Database update failed during test claim.",
           variant: "destructive",
         });
+        setFakeClaimState('error');
       }
 
     } catch (error: any) {
-      console.error('Demo claim error:', error);
-      handlePurchaseError(error.message || 'Failed to claim demo NFT');
-      setDemoClaimState('error');
+      console.error('Fake claim error:', error);
+      handlePurchaseError(error.message || 'Failed to process fake claim');
+      setFakeClaimState('error');
     }
   };
 
@@ -255,31 +235,76 @@ export default function Welcome() {
                 </div>
               </div>
 
-              {/* Claim Button */}
-              <div className="text-center">
+              {/* Claim Buttons */}
+              <div className="space-y-4">
                 {isLoading ? (
                   <Button disabled className="w-full h-14 text-lg">
                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                     Checking NFT Status...
                   </Button>
                 ) : (
-                  <Button
-                    onClick={handleDemoClaim}
-                    disabled={demoClaimState === 'claiming'}
-                    className="w-full h-14 text-lg bg-honey text-secondary hover:bg-honey/90 font-semibold"
-                    data-testid="button-claim-nft"
-                  >
-                    {demoClaimState === 'claiming' ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Claiming NFT...
-                      </>
-                    ) : demoClaimState === 'success' ? (
-                      'NFT Claimed Successfully! 🎉'
-                    ) : (
-                      'Claim Level 1 NFT (130 USDT)'
-                    )}
-                  </Button>
+                  <>
+                    {/* Onchain NFT Claim Button */}
+                    <DemoClaimButton 
+                      className="w-full"
+                      onSuccess={handlePurchaseSuccess}
+                      onError={handlePurchaseError}
+                      disabled={demoClaimState === 'claiming' || fakeClaimState === 'claiming'}
+                    />
+                    
+                    {/* Fake Database Claim Button */}
+                    <Card className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 border-green-500/30">
+                      <CardHeader className="text-center pb-4">
+                        <CardTitle className="text-honey flex items-center justify-center gap-2">
+                          <Database className="h-5 w-5" />
+                          Database Test Claim
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                          Test claim for database-only (no blockchain)
+                        </p>
+                      </CardHeader>
+                      <CardContent>
+                        {fakeClaimState === 'claiming' && (
+                          <div className="bg-blue-600/10 border border-blue-600/30 rounded-lg p-3 text-center mb-4">
+                            <div className="flex items-center justify-center gap-2 text-blue-400 font-medium">
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-400 border-t-transparent"></div>
+                              Processing...
+                            </div>
+                          </div>
+                        )}
+                        
+                        {fakeClaimState === 'success' && (
+                          <div className="bg-green-600/10 border border-green-600/30 rounded-lg p-3 text-center mb-4">
+                            <div className="text-green-400 font-medium">✅ Success!</div>
+                          </div>
+                        )}
+                        
+                        {fakeClaimState === 'error' && (
+                          <div className="bg-red-600/10 border border-red-600/30 rounded-lg p-3 text-center mb-4">
+                            <div className="text-red-400 font-medium">❌ Failed</div>
+                          </div>
+                        )}
+                        
+                        <Button
+                          onClick={handleDemoClaim}
+                          disabled={demoClaimState === 'claiming' || fakeClaimState === 'claiming'}
+                          className="w-full h-12 text-white font-medium bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 border-0"
+                          data-testid="button-fake-claim-nft"
+                        >
+                          {fakeClaimState === 'claiming' ? (
+                            <>
+                              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                              Processing...
+                            </>
+                          ) : fakeClaimState === 'success' ? (
+                            'Test Claim Complete! 🎉'
+                          ) : (
+                            'Fake Claim Test (Database Only)'
+                          )}
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </>
                 )}
               </div>
 
