@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, timestamp, jsonb, numeric, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp, jsonb, numeric, primaryKey, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -16,6 +16,10 @@ export const users = pgTable("users", {
   memberActivated: boolean("member_activated").default(false).notNull(),
   currentLevel: integer("current_level").default(0).notNull(),
   preferredLanguage: text("preferred_language").default("en").notNull(),
+  
+  // BCC unlock tracking
+  activationOrder: integer("activation_order"), // 1st, 2nd, 3rd member to activate
+  bccUnlockTier: text("bcc_unlock_tier"), // 'full', 'half', 'quarter', 'eighth', 'none'
   
   // Registration wizard state
   registrationStatus: text("registration_status").default("not_started").notNull(),
@@ -39,6 +43,10 @@ export const users = pgTable("users", {
   registrationExpiresAt: timestamp("registration_expires_at"),
   registrationTimeoutHours: integer("registration_timeout_hours").default(48),
   
+  // Upgrade timer functionality
+  upgradeTimerEnabled: boolean("upgrade_timer_enabled").default(false).notNull(),
+  upgradeExpiresAt: timestamp("upgrade_expires_at"),
+  
   // Connection logging
   lastWalletConnectionAt: timestamp("last_wallet_connection_at"),
   walletConnectionCount: integer("wallet_connection_count").default(0),
@@ -57,42 +65,48 @@ export const membershipState = pgTable("membership_state", {
   lastUpgradeAt: timestamp("last_upgrade_at"),
 });
 
-// Referral nodes table - Enhanced for 3x3 matrix system
-export const referralNodes = pgTable("referral_nodes", {
+// Individual referral trees table - Each member has their own 19-layer tree
+export const referrals = pgTable("referrals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  rootWallet: varchar("root_wallet", { length: 42 }).notNull().references(() => users.walletAddress), // Tree owner
+  memberWallet: varchar("member_wallet", { length: 42 }).notNull().references(() => users.walletAddress), // Placed member
+  layer: integer("layer").notNull(), // 1-19 layer in root's tree
+  position: text("position").notNull(), // 'L', 'M', 'R' position
+  parentWallet: varchar("parent_wallet", { length: 42 }), // Direct placement parent
+  placerWallet: varchar("placer_wallet", { length: 42 }).notNull(), // Who placed this member (spillover or direct)
+  placementType: text("placement_type").notNull(), // 'direct' or 'spillover'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  // Composite index for efficient tree queries
+  rootLayerIdx: index("referrals_root_layer_idx").on(table.rootWallet, table.layer),
+  memberIdx: index("referrals_member_idx").on(table.memberWallet),
+}));
+
+// Reward distribution table - replaces old earnings wallet
+export const userWallet = pgTable("user_wallet", {
   walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
-  sponsorWallet: varchar("sponsor_wallet", { length: 42 }), // Direct sponsor (upline)
-  placerWallet: varchar("placer_wallet", { length: 42 }), // Who placed this member (for spillover)
-  matrixPosition: integer("matrix_position").default(0).notNull(), // 0-8 position in 3x3 matrix
-  leftLeg: jsonb("left_leg").$type<string[]>().default([]).notNull(), // Left leg positions 0,1,2
-  middleLeg: jsonb("middle_leg").$type<string[]>().default([]).notNull(), // Middle leg positions 3,4,5  
-  rightLeg: jsonb("right_leg").$type<string[]>().default([]).notNull(), // Right leg positions 6,7,8
-  directReferralCount: integer("direct_referral_count").default(0).notNull(),
-  totalTeamCount: integer("total_team_count").default(0).notNull(),
+  // USDT tracking
+  totalUSDTEarnings: integer("total_usdt_earnings").default(0).notNull(), // Total USDT rewards earned (cents)
+  withdrawnUSDT: integer("withdrawn_usdt").default(0).notNull(), // USDT withdrawn (cents)
+  availableUSDT: integer("available_usdt").default(0).notNull(), // USDT available for withdrawal (cents)
+  // BCC tracking
+  bccBalance: integer("bcc_balance").default(0).notNull(), // Available BCC for spending
+  bccLocked: integer("bcc_locked").default(0).notNull(), // Locked BCC from activation gifts
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+});
+
+// Reward rollup table - handles expired rewards
+export const rewardRollups = pgTable("reward_rollups", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  originalRecipient: varchar("original_recipient", { length: 42 }).notNull().references(() => users.walletAddress),
+  rolledUpTo: varchar("rolled_up_to", { length: 42 }).notNull().references(() => users.walletAddress),
+  rewardAmount: integer("reward_amount").notNull(), // USDT cents
+  triggerWallet: varchar("trigger_wallet", { length: 42 }).notNull(), // Who caused the upgrade
+  triggerLevel: integer("trigger_level").notNull(),
+  originalNotificationId: varchar("original_notification_id").notNull(),
+  rollupReason: text("rollup_reason").notNull(), // 'expired', 'not_qualified'
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
-
-// 19-Layer referral tree tracking for each user
-export const referralLayers = pgTable("referral_layers", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  walletAddress: varchar("wallet_address", { length: 42 }).notNull().references(() => users.walletAddress),
-  layerNumber: integer("layer_number").notNull(), // 1-19
-  memberCount: integer("member_count").default(0).notNull(),
-  members: jsonb("members").$type<string[]>().default([]).notNull(), // Array of wallet addresses in this layer
-  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
-  placementTypes: text("placement_types"), // Track placement type information
-});
-
-// Matrix layers table - tracks the matrix structure
-export const matrixLayers = pgTable("matrix_layers", {
-  walletAddress: varchar("wallet_address", { length: 42 }).notNull().references(() => users.walletAddress),
-  layer: integer("layer").notNull(),
-  members: jsonb("members").$type<string[]>().default([]),
-  memberCount: integer("member_count").default(0),
-  maxMembers: integer("max_members"),
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => ({
-  pk: primaryKey({ columns: [table.walletAddress, table.layer] }),
-}));
 
 // Reward notifications with countdown timers
 export const rewardNotifications = pgTable("reward_notifications", {
@@ -119,19 +133,14 @@ export const memberNFTVerification = pgTable("member_nft_verification", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// USDT balances table
-export const usdtBalances = pgTable("usdt_balances", {
-  walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
-  balance: integer("balance").default(0).notNull(), // USDT balance in cents (e.g., $100 = 10000 cents)
-  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
-});
-
-// BCC balances table
-export const bccBalances = pgTable("bcc_balances", {
-  walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
-  transferable: integer("transferable").default(0).notNull(),
-  restricted: integer("restricted").default(0).notNull(),
-  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+// BCC unlock tracking - tracks conditional release based on activation order
+export const bccUnlockHistory = pgTable("bcc_unlock_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  walletAddress: varchar("wallet_address", { length: 42 }).notNull().references(() => users.walletAddress),
+  unlockLevel: integer("unlock_level").notNull(), // 1-19
+  unlockAmount: integer("unlock_amount").notNull(), // BCC amount unlocked
+  unlockTier: text("unlock_tier").notNull(), // 'full', 'half', 'quarter', 'eighth'
+  unlockedAt: timestamp("unlocked_at").defaultNow().notNull(),
 });
 
 // Orders table for membership purchases
@@ -150,15 +159,16 @@ export const orders = pgTable("orders", {
   completedAt: timestamp("completed_at"),
 });
 
-// Earnings wallet table - tracks all member earnings and rewards
-export const earningsWallet = pgTable("earnings_wallet", {
-  walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
-  totalEarnings: numeric("total_earnings", { precision: 10, scale: 2 }).default("0").notNull(),
-  referralEarnings: numeric("referral_earnings", { precision: 10, scale: 2 }).default("0").notNull(),
-  levelEarnings: numeric("level_earnings", { precision: 10, scale: 2 }).default("0").notNull(),
-  pendingRewards: numeric("pending_rewards", { precision: 10, scale: 2 }).default("0").notNull(),
-  withdrawnAmount: numeric("withdrawn_amount", { precision: 10, scale: 2 }).default("0").notNull(),
-  lastRewardAt: timestamp("last_reward_at"),
+// Reward claims tracking - pending/claimable/expired rewards
+export const rewardClaims = pgTable("reward_claims", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  recipientWallet: varchar("recipient_wallet", { length: 42 }).notNull().references(() => users.walletAddress),
+  rewardAmount: integer("reward_amount").notNull(), // USDT cents
+  triggerWallet: varchar("trigger_wallet", { length: 42 }).notNull(), // Member who upgraded
+  triggerLevel: integer("trigger_level").notNull(),
+  status: text("status").default("pending").notNull(), // 'pending', 'claimable', 'claimed', 'expired'
+  expiresAt: timestamp("expires_at").notNull(), // 72 hours from creation
+  claimedAt: timestamp("claimed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -334,32 +344,33 @@ export const insertMembershipStateSchema = createInsertSchema(membershipState).p
   activeLevel: true,
 });
 
-export const insertReferralNodeSchema = createInsertSchema(referralNodes).pick({
-  walletAddress: true,
-  sponsorWallet: true,
-  placerWallet: true,
-  matrixPosition: true,
-  leftLeg: true,
-  middleLeg: true,
-  rightLeg: true,
-  directReferralCount: true,
-  totalTeamCount: true,
-});
-
-export const insertReferralLayerSchema = createInsertSchema(referralLayers).pick({
-  walletAddress: true,
-  layerNumber: true,
-  memberCount: true,
-  members: true,
-  placementTypes: true,
-});
-
-export const insertMatrixLayerSchema = createInsertSchema(matrixLayers).pick({
-  walletAddress: true,
+export const insertReferralSchema = createInsertSchema(referrals).pick({
+  rootWallet: true,
+  memberWallet: true,
   layer: true,
-  members: true,
-  memberCount: true,
-  maxMembers: true,
+  position: true,
+  parentWallet: true,
+  placerWallet: true,
+  placementType: true,
+});
+
+export const insertUserWalletSchema = createInsertSchema(userWallet).pick({
+  walletAddress: true,
+  totalUSDTEarnings: true,
+  withdrawnUSDT: true,
+  availableUSDT: true,
+  bccBalance: true,
+  bccLocked: true,
+});
+
+export const insertRewardRollupSchema = createInsertSchema(rewardRollups).pick({
+  originalRecipient: true,
+  rolledUpTo: true,
+  rewardAmount: true,
+  triggerWallet: true,
+  triggerLevel: true,
+  originalNotificationId: true,
+  rollupReason: true,
 });
 
 export const insertRewardNotificationSchema = createInsertSchema(rewardNotifications).pick({
@@ -372,14 +383,13 @@ export const insertRewardNotificationSchema = createInsertSchema(rewardNotificat
   expiresAt: true,
 });
 
-export const insertEarningsWalletSchema = createInsertSchema(earningsWallet).pick({
-  walletAddress: true,
-  totalEarnings: true,
-  referralEarnings: true,
-  levelEarnings: true,
-  pendingRewards: true,
-  withdrawnAmount: true,
-  lastRewardAt: true,
+export const insertRewardClaimSchema = createInsertSchema(rewardClaims).pick({
+  recipientWallet: true,
+  rewardAmount: true,
+  triggerWallet: true,
+  triggerLevel: true,
+  status: true,
+  expiresAt: true,
 });
 
 export const insertLevelConfigSchema = createInsertSchema(levelConfig).pick({
@@ -401,15 +411,13 @@ export const insertMemberNFTVerificationSchema = createInsertSchema(memberNFTVer
   lastVerified: true,
 });
 
-export const insertUSDTBalanceSchema = createInsertSchema(usdtBalances).pick({
-  walletAddress: true,
-  balance: true,
-});
+// Member activation order moved to users table
 
-export const insertBCCBalanceSchema = createInsertSchema(bccBalances).pick({
+export const insertBCCUnlockHistorySchema = createInsertSchema(bccUnlockHistory).pick({
   walletAddress: true,
-  transferable: true,
-  restricted: true,
+  unlockLevel: true,
+  unlockAmount: true,
+  unlockTier: true,
 });
 
 export const insertOrderSchema = createInsertSchema(orders).pick({
@@ -598,14 +606,8 @@ export type User = typeof users.$inferSelect;
 export type InsertMembershipState = z.infer<typeof insertMembershipStateSchema>;
 export type MembershipState = typeof membershipState.$inferSelect;
 
-export type InsertReferralNode = z.infer<typeof insertReferralNodeSchema>;
-export type ReferralNode = typeof referralNodes.$inferSelect;
-
-export type InsertReferralLayer = z.infer<typeof insertReferralLayerSchema>;
-export type ReferralLayer = typeof referralLayers.$inferSelect;
-
-export type InsertMatrixLayer = z.infer<typeof insertMatrixLayerSchema>;
-export type MatrixLayer = typeof matrixLayers.$inferSelect;
+// Old referral types replaced with new structure
+// See InsertReferral and Referral types defined below
 
 export type InsertRewardNotification = z.infer<typeof insertRewardNotificationSchema>;
 export type RewardNotification = typeof rewardNotifications.$inferSelect;
@@ -638,17 +640,14 @@ export const insertUserNotificationSchema = createInsertSchema(userNotifications
 export type InsertUserNotification = z.infer<typeof insertUserNotificationSchema>;
 export type UserNotification = typeof userNotifications.$inferSelect;
 
-export type InsertUSDTBalance = z.infer<typeof insertUSDTBalanceSchema>;
-export type USDTBalance = typeof usdtBalances.$inferSelect;
-
-export type InsertBCCBalance = z.infer<typeof insertBCCBalanceSchema>;
-export type BCCBalance = typeof bccBalances.$inferSelect;
+// Old balance types replaced with user_wallet structure
+// See InsertUserWallet and UserWallet types defined below
 
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type Order = typeof orders.$inferSelect;
 
-export type InsertEarningsWallet = z.infer<typeof insertEarningsWalletSchema>;
-export type EarningsWallet = typeof earningsWallet.$inferSelect;
+// Old earnings wallet replaced with user_wallet and reward_claims
+// See InsertUserWallet and InsertRewardClaim types defined below
 
 export type InsertLevelConfig = z.infer<typeof insertLevelConfigSchema>;
 export type LevelConfig = typeof levelConfig.$inferSelect;
@@ -1214,30 +1213,24 @@ export const insertSystemStatusSchema = createInsertSchema(systemStatus).pick({
   errorMessage: true,
 });
 
-// Global Matrix Position Table - Single company-wide matrix structure
-export const globalMatrixPosition = pgTable("global_matrix_position", {
-  walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
-  sponsorWallet: varchar("sponsor_wallet", { length: 42 }), // Original sponsor (production column)
-  directSponsorWallet: varchar("direct_sponsor_wallet", { length: 42 }).notNull(), // Who invited them (gets direct rewards)
-  matrixLevel: integer("matrix_level").notNull(), // 1-19 (Level 1=3 positions, Level 2=9, Level 3=27, etc.)
-  positionIndex: integer("position_index").notNull(), // 1, 2, 3 for L, M, R respectively
-  matrixPosition: varchar("matrix_position", { length: 1 }).notNull(), // 'L', 'M', 'R' - Left, Middle, Right in 1×3 matrix
-  placementSponsorWallet: varchar("placement_sponsor_wallet", { length: 42 }).notNull(), // Where they were placed in matrix
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  joinedAt: timestamp("joined_at").defaultNow().notNull(),
-  lastUpgradeAt: timestamp("last_upgrade_at"),
-});
 
-export const insertGlobalMatrixPositionSchema = createInsertSchema(globalMatrixPosition).pick({
-  walletAddress: true,
-  sponsorWallet: true,
-  directSponsorWallet: true,
-  matrixLevel: true,
-  positionIndex: true,
-  matrixPosition: true,
-  placementSponsorWallet: true,
-});
+// New table type exports
+export type InsertReferral = z.infer<typeof insertReferralSchema>;
+export type Referral = typeof referrals.$inferSelect;
+
+export type InsertUserWallet = z.infer<typeof insertUserWalletSchema>;
+export type UserWallet = typeof userWallet.$inferSelect;
+
+export type InsertRewardRollup = z.infer<typeof insertRewardRollupSchema>;
+export type RewardRollup = typeof rewardRollups.$inferSelect;
+
+export type InsertRewardClaim = z.infer<typeof insertRewardClaimSchema>;
+export type RewardClaim = typeof rewardClaims.$inferSelect;
+
+// Member activation order types moved to users table types
+
+export type InsertBCCUnlockHistory = z.infer<typeof insertBCCUnlockHistorySchema>;
+export type BCCUnlockHistory = typeof bccUnlockHistory.$inferSelect;
 
 
 // Admin panel types
@@ -1262,8 +1255,7 @@ export type RedeemCode = typeof redeemCodes.$inferSelect;
 export type InsertSystemStatus = z.infer<typeof insertSystemStatusSchema>;
 export type SystemStatus = typeof systemStatus.$inferSelect;
 
-export type InsertGlobalMatrixPosition = z.infer<typeof insertGlobalMatrixPositionSchema>;
-export type GlobalMatrixPosition = typeof globalMatrixPosition.$inferSelect;
+// Legacy types removed - globalMatrixPosition table deleted
 
 
 // Wallet connection logs table for verification tracking
