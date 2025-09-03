@@ -47,7 +47,7 @@ export default function MultiChainMembershipClaim({
   const { toast } = useToast();
   const { t } = useI18n();
   const account = useActiveAccount();
-  const { mutate: sendTransaction, isLoading: isSending } = useSendTransaction();
+  const { mutate: sendTransaction, isPending: isSending } = useSendTransaction();
 
   const membershipConfig = getMembershipLevel(level);
   
@@ -110,7 +110,7 @@ export default function MultiChainMembershipClaim({
 
       // Get USDT contract for selected chain
       const usdtContract = getUSDTContract(selectedChainId);
-      const priceInWei = toWei(membershipConfig.priceUSDT.toString());
+      const priceInWei = toWei((membershipConfig.priceUSDT / 100).toString());
 
       setClaimState('transferring');
       
@@ -118,7 +118,7 @@ export default function MultiChainMembershipClaim({
       const transaction = transfer({
         contract: usdtContract,
         to: bridgeWallet,
-        amount: priceInWei
+        amount: priceInWei.toString()
       });
 
       sendTransaction(transaction, {
@@ -177,10 +177,16 @@ export default function MultiChainMembershipClaim({
       });
       
       // Emit event for other components to refresh
-      membershipEventEmitter.emit('membership-upgraded', { 
-        level, 
-        walletAddress,
-        txHash: result.mintTxHash
+      membershipEventEmitter.emit({
+        type: 'MEMBERSHIP_PERSISTED',
+        payload: { 
+          walletAddress,
+          level, 
+          orderId: result.mintTxHash,
+          activated: true,
+          previousLevel: level - 1,
+          timestamp: Date.now()
+        }
       });
       
       onSuccess?.();
