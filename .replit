@@ -19,7 +19,6 @@ integrations = ["javascript_object_storage==1.0.0", "javascript_database==1.0.0"
 
 [[ports]]
 localPort = 5000
-externalPort = 80
 
 [objectStorage]
 defaultBucketID = "replit-objstore-80f613b7-e782-4754-9b10-4f5bb52443a8"
