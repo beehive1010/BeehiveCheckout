@@ -72,7 +72,17 @@ export const getQueryFn: <T>(options: {
     
     // No JWT authentication - simplified wallet-only approach
     
-    const res = await fetch(queryKey.join("/") as string, {
+    // Handle different queryKey formats
+    let url: string;
+    if (queryKey.length === 1 && typeof queryKey[0] === 'string') {
+      // Single URL string: ["/api/membership/available-levels/0x123"]
+      url = queryKey[0];
+    } else {
+      // Array segments: ["/api/membership", "available-levels", "0x123"]
+      url = queryKey.join("/");
+    }
+    
+    const res = await fetch(url, {
       headers,
       credentials: "include",
     });
