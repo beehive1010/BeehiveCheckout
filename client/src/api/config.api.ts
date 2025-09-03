@@ -9,6 +9,24 @@ export interface LevelConfiguration {
   baseBccUnlockAmount: number; // Base BCC unlock amount
 }
 
+export interface DiscoverPartner {
+  id: string;
+  name: string;
+  logoUrl?: string;
+  websiteUrl: string;
+  shortDescription: string;
+  longDescription: string;
+  tags: string[];
+  chains: string[];
+  dappType: string;
+  featured: boolean;
+  verified: boolean;
+  active: boolean;
+  displayOrder: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 class ConfigAPI {
   
   // Get all level configurations
@@ -30,7 +48,7 @@ class ConfigAPI {
   }
 
   // Get discover partners  
-  async getDiscoverPartners(): Promise<any[]> {
+  async getDiscoverPartners(): Promise<DiscoverPartner[]> {
     const response = await fetch('/api/discover/partners');
     if (!response.ok) {
       throw new Error('Failed to fetch discover partners');

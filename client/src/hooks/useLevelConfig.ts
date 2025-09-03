@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { configApi, type LevelConfiguration } from '../api/config.api';
+import { configApi, type LevelConfiguration, type DiscoverPartner } from '../api/config.api';
 
 // Hook to get all level configurations
 export const useLevelConfigurations = () => {
@@ -19,6 +19,16 @@ export const useLevelConfiguration = (level: number) => {
     enabled: level >= 1 && level <= 19,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+};
+
+// Hook to get discover partners
+export const useDiscoverPartners = () => {
+  return useQuery({
+    queryKey: ['discoverPartners'],
+    queryFn: configApi.getDiscoverPartners,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
   });
 };
 

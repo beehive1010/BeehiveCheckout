@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import UserProfileCard from '../components/shared/UserProfileCard';
+import { useDiscoverPartners, type DiscoverPartner } from '../hooks/useLevelConfig';
 import { 
   Search, 
   ExternalLink, 
@@ -24,71 +25,19 @@ import {
 } from 'lucide-react';
 import styles from '../styles/discover/discover.module.css';
 
-interface Partner {
-  id: string;
-  name: string;
-  description: string;
-  logo: string;
-  website: string;
-  category: string;
-  partnerType: 'strategic' | 'technology' | 'integration' | 'ecosystem';
-  verified: boolean;
-  featured: boolean;
-  stats: {
-    users: number;
-    rating: number;
-    integration_date: string;
-  };
-}
-
 export default function Discover() {
   const { t } = useI18n();
-
-  // Mock partner data - in real implementation would come from API
-  const mockPartners: Partner[] = [
-    {
-      id: '1',
-      name: 'DeFi Protocol',
-      description: 'Advanced decentralized finance platform with yield farming and staking',
-      logo: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=64&h=64&fit=crop',
-      website: 'https://defiprotocol.example.com',
-      category: 'DeFi',
-      partnerType: 'strategic',
-      verified: true,
-      featured: true,
-      stats: {
-        users: 50000,
-        rating: 4.8,
-        integration_date: '2024-12-01'
-      }
-    },
-    {
-      id: '2',
-      name: 'NFT Marketplace',
-      description: 'Leading NFT trading platform with exclusive collections',
-      logo: 'https://images.unsplash.com/photo-1620321023374-d1a68fbc720d?w=64&h=64&fit=crop',
-      website: 'https://nftmarket.example.com',
-      category: 'NFT',
-      partnerType: 'technology',
-      verified: true,
-      featured: false,
-      stats: {
-        users: 25000,
-        rating: 4.6,
-        integration_date: '2024-11-15'
-      }
-    }
-  ];
+  const { data: partners = [], isLoading, error } = useDiscoverPartners();
 
   const getPartnerTypeIcon = (type: string) => {
-    switch (type) {
-      case 'strategic':
+    switch (type.toLowerCase()) {
+      case 'wallet':
         return <Star className="w-4 h-4" />;
-      case 'technology':
+      case 'game':
         return <Code className="w-4 h-4" />;
-      case 'integration':
+      case 'tools':
         return <Zap className="w-4 h-4" />;
-      case 'ecosystem':
+      case 'defi':
         return <Globe className="w-4 h-4" />;
       default:
         return <Building className="w-4 h-4" />;
@@ -100,6 +49,17 @@ export default function Discover() {
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
     return num.toString();
   };
+
+  if (error) {
+    return (
+      <div className={`${styles.discoverContainer} container mx-auto px-4 py-8`}>
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-bold text-destructive mb-4">Error Loading Partners</h2>
+          <p className="text-muted-foreground">Failed to load partner information. Please try again later.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`${styles.discoverContainer} container mx-auto px-4 py-8`}>
@@ -141,10 +101,21 @@ export default function Discover() {
           {/* Featured Partners */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-honey mb-6">Featured Partners</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {mockPartners
-                .filter(partner => partner.featured)
-                .map((partner) => (
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-secondary border border-border rounded-lg p-6 animate-pulse">
+                    <div className="h-4 bg-muted rounded mb-4"></div>
+                    <div className="h-3 bg-muted rounded mb-2"></div>
+                    <div className="h-3 bg-muted rounded w-2/3"></div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {partners
+                  .filter(partner => partner.featured)
+                  .map((partner) => (
                   <Card key={partner.id} className="bg-secondary border-border hover:border-honey/50 transition-all duration-300 group">
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">

@@ -501,6 +501,40 @@ export const advertisementNFTs = pgTable("advertisement_nfts", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Service requests table - tracks user service applications with 4-state workflow
+export const serviceRequests = pgTable("service_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  walletAddress: varchar("wallet_address", { length: 42 }).notNull().references(() => users.walletAddress),
+  nftId: varchar("nft_id").notNull().references(() => advertisementNFTs.id), // Which NFT/service
+  serviceName: text("service_name").notNull(), // Service name from NFT
+  serviceType: text("service_type").notNull(), // Service type from NFT
+  
+  // Application data
+  applicationData: jsonb("application_data").$type<Record<string, any>>().notNull(), // User submitted form data
+  requestTitle: text("request_title").notNull(), // User's request title
+  requestDescription: text("request_description").notNull(), // User's request description
+  
+  // 4-state workflow: 新申请, 处理中, 等待反馈, 处理完毕
+  status: text("status").default("new_application").notNull(), // 'new_application', 'processing', 'awaiting_feedback', 'completed'
+  
+  // Admin processing
+  assignedAdmin: varchar("assigned_admin", { length: 42 }), // Admin wallet handling this
+  adminNotes: text("admin_notes"), // Internal admin notes
+  responseData: jsonb("response_data").$type<Record<string, any>>(), // Admin response/results
+  
+  // Status tracking
+  statusHistory: jsonb("status_history").$type<Array<{status: string, timestamp: string, notes?: string}>>().default([]).notNull(),
+  
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"), // When marked as completed
+}, (table) => ({
+  walletIdx: index("service_requests_wallet_idx").on(table.walletAddress),
+  statusIdx: index("service_requests_status_idx").on(table.status),
+  nftIdx: index("service_requests_nft_idx").on(table.nftId),
+}));
+
 // Advertisement NFT Claims - BCC locked in NFTs
 export const advertisementNFTClaims = pgTable("advertisement_nft_claims", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1429,6 +1463,21 @@ export const insertSystemStatusSchema = createInsertSchema(systemStatus).pick({
   latency: true,
   blockHeight: true,
   errorMessage: true,
+});
+
+export const insertServiceRequestSchema = createInsertSchema(serviceRequests).pick({
+  walletAddress: true,
+  nftId: true,
+  serviceName: true,
+  serviceType: true,
+  applicationData: true,
+  requestTitle: true,
+  requestDescription: true,
+  status: true,
+  assignedAdmin: true,
+  adminNotes: true,
+  responseData: true,
+  statusHistory: true,
 });
 
 
