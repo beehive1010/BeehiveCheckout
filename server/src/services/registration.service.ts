@@ -1,5 +1,5 @@
 import { db } from '../../db';
-import { users, membershipState, earningsWallet, platformRevenue } from '@shared/schema';
+import { users, userBalances, platformRevenue } from '@shared/schema';
 import { simpleGlobalMatrixService } from './simple-global-matrix.service';
 import { rewardDistributionService } from './reward-distribution.service';
 import { eq } from 'drizzle-orm';
@@ -68,22 +68,19 @@ export class RegistrationService {
         currentLevel: 0
       }).returning();
 
-      // Initialize membership state
-      await db.insert(membershipState).values({
-        walletAddress: wallet,
-        levelsOwned: [],
-        activeLevel: 0
-      });
+      // Skip membership state initialization - will be handled in activation
 
-      // Initialize earnings wallet
-      await db.insert(earningsWallet).values({
+      // Initialize user balance
+      await db.insert(userBalances).values({
         walletAddress: wallet,
-        totalEarnings: "0",
-        referralEarnings: "0",
-        levelEarnings: "0",
-        pendingRewards: "0",
-        withdrawnAmount: "0",
-        createdAt: now
+        bccTransferable: 500, // Default 500 BCC for new users
+        bccRestricted: 0,
+        bccLocked: 0,
+        totalUsdtEarned: 0,
+        availableUsdtRewards: 0,
+        totalUsdtWithdrawn: 0,
+        cthBalance: 0,
+        lastUpdated: now
       });
 
       console.log(`✅ User registered: ${wallet} with referrer: ${referrerWallet || 'none'}`);
@@ -143,7 +140,7 @@ export class RegistrationService {
           joinedAt: now,
           lastUpgradeAt: now
         })
-        .where(eq(membershipState.walletAddress, wallet));
+        .where(eq(users.walletAddress, wallet));
 
       // 3. Matrix placement under referrer
       let matrixPosition;
@@ -203,8 +200,9 @@ export class RegistrationService {
         const platformAmount = 30;
         await rewardDistributionService.recordPlatformRevenue({
           sourceWallet: memberWallet,
+          level: level,
           amount: platformAmount,
-          revenueType: 'level_1_activation',
+          revenueType: 'nft_claim',
           txHash,
           notes: `Level ${level} activation platform revenue`
         });

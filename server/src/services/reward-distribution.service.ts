@@ -1,5 +1,5 @@
 import { db } from '../../db';
-import { userBalances, usdtWithdrawals } from '@shared/schema';
+import { userRewards, userBalances, platformRevenue } from '@shared/schema';
 import { eq, sql } from 'drizzle-orm';
 
 export interface RewardDistributionInput {
@@ -30,9 +30,18 @@ export class RewardDistributionService {
       const recipient = input.recipientWallet.toLowerCase();
       const source = input.sourceWallet.toLowerCase();
 
-      // 1. Update user balance directly (simplified approach)
-      console.log(`💰 Processing reward: ${input.rewardAmount} USDT → ${recipient} (${input.rewardType})`);
-      const reward = { id: `reward_${Date.now()}` }; // Mock reward ID
+      // 1. Create reward record
+      const [reward] = await db.insert(userRewards).values({
+        recipientWallet: recipient,
+        sourceWallet: source,
+        triggerLevel: input.triggerLevel,
+        payoutLayer: 1, // Simplified for this implementation
+        rewardAmount: input.rewardAmount.toString(),
+        status: 'confirmed',
+        confirmedAt: new Date(),
+        notes: input.notes || `${input.rewardType} reward: ${input.rewardAmount} USDT`,
+        createdAt: new Date()
+      }).returning();
 
       // 2. Update user balance
       await this.updateUserBalance(recipient, input.rewardAmount);
@@ -98,24 +107,63 @@ export class RewardDistributionService {
   }
 
   /**
-   * Record platform revenue
+   * Record platform revenue (especially 30 USDT from Level 1 activations)
    */
   async recordPlatformRevenue(input: {
     sourceWallet: string;
+    level: number;
     amount: number;
     revenueType: string;
     txHash: string;
     notes?: string;
-  }): Promise<void> {
+  }): Promise<{
+    success: boolean;
+    revenueId?: string;
+    message: string;
+  }> {
     try {
-      // Simplified platform revenue recording
-      console.log(`🏢 Platform revenue recorded: ${input.amount} USDT (${input.revenueType}) from ${input.sourceWallet}`);
+      const [revenue] = await db.insert(platformRevenue).values({
+        sourceType: input.revenueType, // 'nft_claim', 'membership_upgrade', 'platform_fee'
+        sourceWallet: input.sourceWallet.toLowerCase(),
+        level: input.level,
+        amount: input.amount.toString(),
+        txHash: input.txHash,
+        notes: input.notes || `Level ${input.level} activation - Platform revenue: ${input.amount} USDT`,
+        createdAt: new Date()
+      }).returning();
 
-      console.log(`🏢 Platform revenue recorded: ${input.amount} USDT (${input.revenueType})`);
+      console.log(`🏢 Platform revenue recorded: ${input.amount} USDT from Level ${input.level} activation by ${input.sourceWallet}`);
+
+      return {
+        success: true,
+        revenueId: revenue.id,
+        message: `Platform revenue of ${input.amount} USDT recorded successfully`
+      };
     } catch (error) {
       console.error('Error recording platform revenue:', error);
-      throw error;
+      return {
+        success: false,
+        message: 'Failed to record platform revenue'
+      };
     }
+  }
+
+  /**
+   * Record Level 1 activation revenue (30 USDT to platform)
+   */
+  async recordLevel1Revenue(sourceWallet: string, txHash: string): Promise<{
+    success: boolean;
+    revenueId?: string;
+    message: string;
+  }> {
+    return this.recordPlatformRevenue({
+      sourceWallet,
+      level: 1,
+      amount: 30,
+      revenueType: 'nft_claim',
+      txHash,
+      notes: 'Level 1 NFT claim - Platform receives 30 USDT (130 USDT total - 100 USDT to user BCC unlock)'
+    });
   }
 
   /**
@@ -151,15 +199,19 @@ export class RewardDistributionService {
       const withdrawnAmount = balanceData.totalUsdtWithdrawn / 100;
       const pendingRewards = 0; // No pending rewards in new system
 
-      // Get reward count (simplified - could be tracked separately)
-      const rewardCount = 0; // Simplified
+      // Get reward count from userRewards table
+      const rewardCountResult = await db.select({ count: sql<number>`count(*)` })
+        .from(userRewards)
+        .where(eq(userRewards.recipientWallet, wallet));
+      
+      const rewardCount = rewardCountResult[0]?.count || 0;
 
       return {
         totalEarnings,
         availableBalance: Math.max(0, availableBalance),
         pendingRewards,
         withdrawnAmount,
-        rewardCount
+        rewardCount: Number(rewardCount)
       };
     } catch (error) {
       console.error('Error getting earnings summary:', error);
