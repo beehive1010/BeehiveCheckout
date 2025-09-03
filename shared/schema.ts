@@ -3,57 +3,16 @@ import { pgTable, text, varchar, integer, boolean, timestamp, jsonb, numeric, pr
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// User profiles table
+// User profiles table - simplified to essential fields only
 export const users = pgTable("users", {
   walletAddress: varchar("wallet_address", { length: 42 }).primaryKey(),
-  email: text("email"),
-  username: text("username").unique(),
-  secondaryPasswordHash: text("secondary_password_hash"),
-  ipfsHash: text("ipfs_hash"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  lastUpdatedAt: timestamp("last_updated_at").defaultNow().notNull(),
   referrerWallet: varchar("referrer_wallet", { length: 42 }),
-  memberActivated: boolean("member_activated").default(false).notNull(),
-  currentLevel: integer("current_level").default(0).notNull(),
-  preferredLanguage: text("preferred_language").default("en").notNull(),
-  
-  // BCC unlock tracking
-  activationOrder: integer("activation_order"), // 1st, 2nd, 3rd member to activate
-  bccUnlockTier: text("bcc_unlock_tier"), // 'full', 'half', 'quarter', 'eighth', 'none'
-  
-  // Registration wizard state
-  registrationStatus: text("registration_status").default("not_started").notNull(),
-  // not_started, profile_saved, ipfs_uploaded, prepared_for_purchase, paid_waiting_verification, completed
-  
-  // IPFS metadata for wizard
-  ipfsAvatarCid: text("ipfs_avatar_cid"),
-  ipfsCoverCid: text("ipfs_cover_cid"),
-  ipfsProfileJsonCid: text("ipfs_profile_json_cid"),
-  
-  // Prepared membership data
-  preparedLevel: integer("prepared_level"),
-  preparedTokenId: integer("prepared_token_id"),
-  preparedPrice: integer("prepared_price"), // in USDT cents
-  
-  // Activation tracking
-  activationAt: timestamp("activation_at"),
-  
-  // Registration countdown tracking
-  registeredAt: timestamp("registered_at"),
-  registrationExpiresAt: timestamp("registration_expires_at"),
-  registrationTimeoutHours: integer("registration_timeout_hours").default(48),
-  
-  // Upgrade timer functionality
+  username: text("username").unique(),
+  email: text("email"),
+  isUpgraded: boolean("is_upgraded").default(false).notNull(),
   upgradeTimerEnabled: boolean("upgrade_timer_enabled").default(false).notNull(),
-  upgradeExpiresAt: timestamp("upgrade_expires_at"),
-  
-  // Connection logging
-  lastWalletConnectionAt: timestamp("last_wallet_connection_at"),
-  walletConnectionCount: integer("wallet_connection_count").default(0),
-  
-  // Referral system enhancement
-  referralCode: text("referral_code"), // Special codes like "001122"
-  isCompanyDirectReferral: boolean("is_company_direct_referral").default(false),
+  currentLevel: integer("current_level").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // Members table - Replaces multiple old status tables
@@ -346,53 +305,15 @@ export const blogPosts = pgTable("blog_posts", {
   language: text("language").default("en").notNull(),
 });
 
-// Insert schemas
+// Insert schemas - simplified users table
 export const insertUserSchema = createInsertSchema(users).pick({
   walletAddress: true,
-  email: true,
-  username: true,
-  secondaryPasswordHash: true,
-  ipfsHash: true,
   referrerWallet: true,
-  preferredLanguage: true,
-  registrationStatus: true,
-  ipfsAvatarCid: true,
-  ipfsCoverCid: true,
-  ipfsProfileJsonCid: true,
-  preparedLevel: true,
-  preparedTokenId: true,
-  preparedPrice: true,
-  registeredAt: true,
-  registrationExpiresAt: true,
-  registrationTimeoutHours: true,
-  memberActivated: true,
-});
-
-// Registration wizard schemas for step-by-step updates
-export const profileStepSchema = createInsertSchema(users).pick({
-  walletAddress: true,
-  email: true,
   username: true,
-  secondaryPasswordHash: true,
-  referrerWallet: true,
-  preferredLanguage: true,
-  registrationStatus: true,
-});
-
-export const ipfsStepSchema = createInsertSchema(users).pick({
-  walletAddress: true,
-  ipfsAvatarCid: true,
-  ipfsCoverCid: true,
-  ipfsProfileJsonCid: true,
-  registrationStatus: true,
-});
-
-export const preparationStepSchema = createInsertSchema(users).pick({
-  walletAddress: true,
-  preparedLevel: true,
-  preparedTokenId: true,
-  preparedPrice: true,
-  registrationStatus: true,
+  email: true,
+  isUpgraded: true,
+  upgradeTimerEnabled: true,
+  currentLevel: true,
 });
 
 export const insertMemberSchema = createInsertSchema(members).pick({
