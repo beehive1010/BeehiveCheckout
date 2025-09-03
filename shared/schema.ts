@@ -93,17 +93,25 @@ export const referrals = pgTable("referrals", {
   rootActiveIdx: index("referrals_root_active_idx").on(table.rootWallet, table.isActive),
 }));
 
-// Reward distribution table - replaces old earnings wallet
+// User wallet table - comprehensive balance management
 export const userWallet = pgTable("user_wallet", {
   walletAddress: varchar("wallet_address", { length: 42 }).primaryKey().references(() => users.walletAddress),
-  // USDT tracking
-  totalUSDTEarnings: integer("total_usdt_earnings").default(0).notNull(), // Total USDT rewards earned (cents)
-  withdrawnUSDT: integer("withdrawn_usdt").default(0).notNull(), // USDT withdrawn (cents)
-  availableUSDT: integer("available_usdt").default(0).notNull(), // USDT available for withdrawal (cents)
-  // BCC tracking
-  bccBalance: integer("bcc_balance").default(0).notNull(), // Available BCC for spending
-  bccLocked: integer("bcc_locked").default(0).notNull(), // Locked BCC from activation gifts
+  
+  // USDT 奖励管理
+  totalUSDTEarnings: integer("total_usdt_earnings").default(0).notNull(), // 奖励总额 (cents)
+  withdrawnUSDT: integer("withdrawn_usdt").default(0).notNull(), // 已提现金额 (cents)
+  availableUSDT: integer("available_usdt").default(0).notNull(), // 剩余可提现金额 (cents)
+  
+  // BCC 代币管理
+  bccBalance: integer("bcc_balance").default(0).notNull(), // BCC余额 (可用于购买课程和NFT)
+  bccLocked: integer("bcc_locked").default(0).notNull(), // BCC锁仓金额 (激活奖励锁仓)
+  
+  // 升级待领取状态
+  pendingUpgradeRewards: integer("pending_upgrade_rewards").default(0).notNull(), // 待升级领取的奖励数量
+  hasPendingUpgrades: boolean("has_pending_upgrades").default(false).notNull(), // 是否有待升级的状态
+  
   lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // Reward rollup table - handles expired rewards
@@ -407,6 +415,8 @@ export const insertUserWalletSchema = createInsertSchema(userWallet).pick({
   availableUSDT: true,
   bccBalance: true,
   bccLocked: true,
+  pendingUpgradeRewards: true,
+  hasPendingUpgrades: true,
 });
 
 export const insertRewardRollupSchema = createInsertSchema(rewardRollups).pick({
