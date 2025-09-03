@@ -135,7 +135,7 @@ export const rewardNotifications = pgTable("reward_notifications", {
   triggerLevel: integer("trigger_level").notNull(), // Level purchased that triggered the notification
   layerNumber: integer("layer_number").notNull(), // Which layer the trigger came from (1-19)
   rewardAmount: integer("reward_amount").notNull(), // Potential reward amount in USDT cents
-  status: text("status").default("pending").notNull(), // pending, claimed, expired
+  status: text("status").default("pending").notNull(), // 'pending', 'claimable', 'rollup'
   expiresAt: timestamp("expires_at").notNull(), // 72 hours from creation
   claimedAt: timestamp("claimed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -185,7 +185,7 @@ export const rewardClaims = pgTable("reward_claims", {
   rewardAmount: integer("reward_amount").notNull(), // USDT cents
   triggerWallet: varchar("trigger_wallet", { length: 42 }).notNull(), // Member who upgraded
   triggerLevel: integer("trigger_level").notNull(),
-  status: text("status").default("pending").notNull(), // 'pending', 'claimable', 'claimed', 'expired'
+  status: text("status").default("pending").notNull(), // 'pending', 'claimable', 'rollup'
   expiresAt: timestamp("expires_at").notNull(), // 72 hours from creation
   claimedAt: timestamp("claimed_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -916,7 +916,7 @@ export const rewardDistributions = pgTable("reward_distributions", {
   rewardType: text("reward_type").notNull(), // 'direct_referral', 'level_bonus', 'matrix_spillover'
   rewardAmount: numeric("reward_amount", { precision: 10, scale: 2 }).notNull(),
   level: integer("level"), // Level that triggered reward (nullable to match production)
-  status: text("status").default("pending").notNull(), // 'pending', 'claimable', 'claimed', 'expired'
+  status: text("status").default("pending").notNull(), // 'pending', 'claimable', 'rollup'
   expiresAt: timestamp("expires_at"), // When reward expires if not claimed
   pendingUntil: timestamp("pending_until"), // Timer for pending rewards
   claimedAt: timestamp("claimed_at"),
