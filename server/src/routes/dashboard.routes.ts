@@ -1,5 +1,5 @@
 import { Express } from 'express';
-import { storage } from '../../storage';
+import { storage } from '../services/storage.service';
 
 /**
  * Dashboard Routes - Real member data from database
