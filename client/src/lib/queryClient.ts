@@ -43,8 +43,9 @@ export async function apiRequest(
     headers["X-Wallet-Address"] = addressToUse;
   }
   
-  // FORCE localhost for all API calls in development
-  const baseUrl = 'http://localhost:5000';
+  // Use relative URLs for production, localhost for development
+  const isDevelopment = import.meta.env.MODE === 'development';
+  const baseUrl = isDevelopment ? 'http://localhost:5000' : '';
   const fullUrl = url.startsWith('http') ? url.replace(/https:\/\/[^\/]+/, baseUrl) : `${baseUrl}${url}`;
 
   const res = await fetch(fullUrl, {
@@ -84,7 +85,12 @@ export const getQueryFn: <T>(options: {
       url = queryKey.join("/");
     }
     
-    const res = await fetch(url, {
+    // Use relative URLs in production
+    const isDevelopment = import.meta.env.MODE === 'development';
+    const baseUrl = isDevelopment ? 'http://localhost:5000' : '';
+    const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
+    
+    const res = await fetch(fullUrl, {
       headers,
       credentials: "include",
     });
