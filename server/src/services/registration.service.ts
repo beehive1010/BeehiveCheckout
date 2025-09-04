@@ -1,6 +1,6 @@
 import { db } from '../../db';
-import { users, userBalances, platformRevenue } from '@shared/schema';
-import { simpleGlobalMatrixService } from './simple-global-matrix.service';
+import { users, userBalances, platformRevenue, members } from '@shared/schema';
+import { matrixPlacementService } from './matrix-placement.service';
 import { rewardDistributionService } from './reward-distribution.service';
 import { eq } from 'drizzle-orm';
 
@@ -68,7 +68,20 @@ export class RegistrationService {
         currentLevel: 0
       }).returning();
 
-      // Skip membership state initialization - will be handled in activation
+      // Initialize member state
+      await db.insert(members).values({
+        walletAddress: wallet,
+        isActivated: false,
+        currentLevel: 0,
+        maxLayer: 0,
+        levelsOwned: [],
+        hasPendingRewards: false,
+        upgradeReminderEnabled: false,
+        totalDirectReferrals: 0,
+        totalTeamSize: 0,
+        createdAt: now,
+        updatedAt: now
+      });
 
       // Initialize user balance
       await db.insert(userBalances).values({
@@ -132,21 +145,23 @@ export class RegistrationService {
         })
         .where(eq(users.walletAddress, wallet));
 
-      // Update membership state
-      await db.update(membershipState)
+      // Update member state
+      await db.update(members)
         .set({
+          isActivated: true,
+          activatedAt: now,
+          currentLevel: input.level,
           levelsOwned: [input.level],
-          activeLevel: input.level,
-          joinedAt: now,
-          lastUpgradeAt: now
+          lastUpgradeAt: now,
+          updatedAt: now
         })
-        .where(eq(users.walletAddress, wallet));
+        .where(eq(members.walletAddress, wallet));
 
       // 3. Matrix placement under referrer
       let matrixPosition;
       if (user.referrerWallet) {
-        matrixPosition = await globalMatrixService.placeInGlobalMatrix(wallet, user.referrerWallet);
-        console.log(`📍 Matrix placement: ${wallet} → ${JSON.stringify(matrixPosition)}`);
+        matrixPosition = await matrixPlacementService.placeInMatrix(wallet, user.referrerWallet);
+        console.log(`📍 Matrix placement: ${wallet} → Layer ${matrixPosition.layer} ${matrixPosition.position} (${matrixPosition.placementType})`);
       }
 
       // 4. Reward distribution
@@ -176,8 +191,17 @@ export class RegistrationService {
     try {
       const rewards: any = {};
 
-      // Get the member's 1st ancestor (direct upline)
-      const ancestor = await globalMatrixService.getAncestorAtDepth(memberWallet, 1);
+      // Get the member's placement info to find direct upline
+      const [user] = await db.select().from(users).where(eq(users.walletAddress, memberWallet));
+      let ancestor = null;
+      
+      if (user?.referrerWallet) {
+        // Get placement position to find direct upline (parent)
+        const placement = await matrixPlacementService.getMatrixPosition(memberWallet, user.referrerWallet);
+        if (placement && placement.parentWallet) {
+          ancestor = { walletAddress: placement.parentWallet };
+        }
+      }
       
       if (ancestor) {
         // Pay 100 USDT to 1st ancestor

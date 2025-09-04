@@ -1,8 +1,7 @@
-import { usersRepo, type ReferralChainNode } from '../repositories';
-import { ReferralsPostgreSQLRepository, type ReferralStats as PgReferralStats } from '../repositories/referrals-pg.repository';
-
-// Use PostgreSQL-based referrals repository instead of ReplitDB
-const referralsRepo = new ReferralsPostgreSQLRepository();
+import { db } from '../../db';
+import { referrals, users, members } from '@shared/schema';
+import { matrixPlacementService } from './matrix-placement.service';
+import { eq, and } from 'drizzle-orm';
 
 export interface ReferralStats {
   directReferralCount: number;
@@ -15,92 +14,25 @@ export interface ReferralStats {
   }>;
 }
 
+export interface ReferralChainNode {
+  upline: string;
+  depth: number;
+  slot: 'L' | 'M' | 'R';
+}
+
 export class ReferralsService {
   /**
-   * Place user in 1x3 matrix under their referrer
+   * Place user in 3×3 matrix under their referrer
+   * Delegates to the matrix placement service
    */
   async placeUserInMatrix(childWallet: string, referrerWallet: string): Promise<void> {
-    const child = childWallet.toLowerCase();
-    const referrer = referrerWallet.toLowerCase();
-
-    // Verify both users exist
-    const [childUser, referrerUser] = await Promise.all([
-      usersRepo.getByWallet(child),
-      usersRepo.getByWallet(referrer)
-    ]);
-
-    if (!childUser) {
-      throw new Error('Child user not found');
+    try {
+      const placement = await matrixPlacementService.placeInMatrix(childWallet, referrerWallet);
+      console.log(`✅ Matrix placement successful: ${childWallet} → Layer ${placement.layer} ${placement.position}`);
+    } catch (error) {
+      console.error('Matrix placement failed:', error);
+      throw error;
     }
-    if (!referrerUser) {
-      throw new Error('Referrer user not found');
-    }
-
-    // Check if user is already placed
-    const existingChain = await referralsRepo.getChain(child);
-    if (existingChain.length > 0) {
-      throw new Error('User already placed in matrix');
-    }
-
-    // Find available slot under referrer
-    const availableSlot = await referralsRepo.findNextAvailableSlot(referrer);
-    
-    if (!availableSlot) {
-      // Referrer's direct level is full, need to find spillover placement
-      await this.placeWithSpillover(child, referrer);
-    } else {
-      // Place directly under referrer
-      await this.placeDirectly(child, referrer, availableSlot.slot);
-    }
-  }
-
-  /**
-   * Place user directly under referrer in available slot
-   */
-  private async placeDirectly(childWallet: string, referrerWallet: string, slot: 'left' | 'middle' | 'right'): Promise<void> {
-    // Build complete referral chain
-    const referrerChain = await referralsRepo.getChain(referrerWallet);
-    const childChain: ReferralChainNode[] = [
-      // Direct connection to referrer
-      { upline: referrerWallet, depth: 1, slot },
-      // Add all of referrer's uplines with incremented depth
-      ...referrerChain.map(node => ({
-        upline: node.upline,
-        depth: node.depth + 1,
-        slot: node.slot
-      }))
-    ];
-
-    await referralsRepo.setChain(childWallet, childChain);
-  }
-
-  /**
-   * Place user with spillover when referrer's direct level is full
-   */
-  private async placeWithSpillover(childWallet: string, originalReferrer: string): Promise<void> {
-    // In 1x3 matrix spillover, find the next available position in the downline
-    const directReferrals = await referralsRepo.getDirectReferrals(originalReferrer);
-    
-    // Try to place under each direct referral
-    for (const directChild of directReferrals) {
-      const availableSlot = await referralsRepo.findNextAvailableSlot(directChild);
-      if (availableSlot) {
-        await this.placeDirectly(childWallet, directChild, availableSlot.slot);
-        return;
-      }
-    }
-
-    // If all direct slots are full, go to next level
-    const secondLevelReferrals = await referralsRepo.getReferralsAtDepth(originalReferrer, 2);
-    for (const secondLevelChild of secondLevelReferrals) {
-      const availableSlot = await referralsRepo.findNextAvailableSlot(secondLevelChild);
-      if (availableSlot) {
-        await this.placeDirectly(childWallet, secondLevelChild, availableSlot.slot);
-        return;
-      }
-    }
-
-    throw new Error('No available matrix positions found in spillover');
   }
 
   /**
@@ -109,61 +41,124 @@ export class ReferralsService {
   async getReferralStats(walletAddress: string): Promise<ReferralStats> {
     const wallet = walletAddress.toLowerCase();
     
-    // Get basic referral counts from PostgreSQL
-    const pgStats = await referralsRepo.getReferralStats(wallet);
-    const stats = {
-      directCount: pgStats.directCount,
-      totalCount: pgStats.totalCount,
-      byDepth: pgStats.byDepth
-    };
-    
-    // Build downline matrix view (levels 1-19)
-    const downlineMatrix: Array<{
-      level: number;
-      members: number;
-      upgraded: number;
-      placements: number;
-    }> = [];
+    try {
+      // Get team statistics from matrix placement service
+      const teamStats = await matrixPlacementService.getTeamStats(wallet);
+      
+      // Build downline matrix view (levels 1-19)
+      const downlineMatrix: Array<{
+        level: number;
+        members: number;
+        upgraded: number;
+        placements: number;
+      }> = [];
 
-    for (let level = 1; level <= 19; level++) {
-      const referralsAtLevel = await referralsRepo.getReferralsAtDepth(wallet, level);
-      let upgradedCount = 0;
+      for (let level = 1; level <= 19; level++) {
+        const levelMembers = await matrixPlacementService.getLayerMembers(wallet, level);
+        let upgradedCount = 0;
 
-      // Count how many at this level are activated/upgraded
-      for (const referralWallet of referralsAtLevel) {
-        const user = await usersRepo.getByWallet(referralWallet);
-        if (user && user.isActivated && user.membershipLevel >= level) {
-          upgradedCount++;
+        // Count how many at this level are activated/upgraded
+        for (const member of levelMembers) {
+          const [user] = await db.select().from(users).where(eq(users.walletAddress, member.memberWallet));
+          if (user && user.memberActivated && user.currentLevel >= level) {
+            upgradedCount++;
+          }
         }
+
+        const memberCount = levelMembers.length;
+        downlineMatrix.push({
+          level,
+          members: memberCount,
+          upgraded: upgradedCount,
+          placements: memberCount // Same as members in matrix system
+        });
       }
 
-      downlineMatrix.push({
-        level,
-        members: referralsAtLevel.length,
-        upgraded: upgradedCount,
-        placements: referralsAtLevel.length // Same as members in this simplified model
-      });
+      return {
+        directReferralCount: teamStats.directReferrals,
+        totalTeamCount: teamStats.totalTeamSize,
+        downlineMatrix
+      };
+    } catch (error) {
+      console.error('Error getting referral stats:', error);
+      return {
+        directReferralCount: 0,
+        totalTeamCount: 0,
+        downlineMatrix: []
+      };
     }
-
-    return {
-      directReferralCount: stats.directCount,
-      totalTeamCount: stats.totalCount,
-      downlineMatrix
-    };
   }
 
   /**
    * Get referral chain for a user (upline hierarchy)
+   * Returns chain of uplines up to 19 levels
    */
   async getReferralChain(walletAddress: string): Promise<ReferralChainNode[]> {
-    return await referralsRepo.getChain(walletAddress);
+    const wallet = walletAddress.toLowerCase();
+    const chain: ReferralChainNode[] = [];
+
+    try {
+      // Get all referral records for this user across different roots
+      const userReferrals = await db
+        .select()
+        .from(referrals)
+        .where(eq(referrals.memberWallet, wallet));
+
+      // For each placement, build upline chain
+      for (const referral of userReferrals) {
+        // Get this user's position
+        const position = await matrixPlacementService.getMatrixPosition(wallet, referral.rootWallet);
+        if (position) {
+          // Build chain by traversing up the tree
+          let currentParent = position.parentWallet;
+          let depth = 1;
+
+          while (currentParent && depth <= 19) {
+            const parentPosition = await matrixPlacementService.getMatrixPosition(currentParent, referral.rootWallet);
+            
+            chain.push({
+              upline: currentParent,
+              depth: depth,
+              slot: parentPosition ? parentPosition.position : 'L'
+            });
+
+            if (parentPosition && parentPosition.parentWallet && parentPosition.parentWallet !== referral.rootWallet) {
+              currentParent = parentPosition.parentWallet;
+              depth++;
+            } else {
+              // Reached root
+              if (currentParent !== referral.rootWallet) {
+                chain.push({
+                  upline: referral.rootWallet,
+                  depth: depth + 1,
+                  slot: 'L' // Root position
+                });
+              }
+              break;
+            }
+          }
+          break; // Use the first (primary) referral chain
+        }
+      }
+
+      return chain;
+    } catch (error) {
+      console.error('Error getting referral chain:', error);
+      return [];
+    }
   }
 
   /**
    * Get all referrals for a user at specific depth
    */
   async getReferralsAtLevel(walletAddress: string, level: number): Promise<string[]> {
-    return await referralsRepo.getReferralsAtDepth(walletAddress, level);
+    try {
+      const levelMembers = await matrixPlacementService.getLayerMembers(walletAddress, level);
+      return levelMembers.map(member => member.memberWallet);
+    } catch (error) {
+      console.error('Error getting referrals at level:', error);
+      return [];
+    }
   }
 
   /**
@@ -176,27 +171,33 @@ export class ReferralsService {
     isActivated: boolean;
     joinedAt: string;
   }>> {
-    const directReferrals = await referralsRepo.getDirectReferrals(walletAddress);
-    const referralDetails = [];
+    try {
+      const directReferrals = await this.getReferralsAtLevel(walletAddress, 1);
+      const referralDetails = [];
 
-    for (const referralWallet of directReferrals) {
-      const user = await usersRepo.getByWallet(referralWallet);
-      if (user) {
-        referralDetails.push({
-          wallet: user.walletAddress,
-          username: user.username,
-          membershipLevel: user.membershipLevel,
-          isActivated: user.isActivated,
-          joinedAt: user.createdAt
-        });
+      for (const referralWallet of directReferrals) {
+        const [user] = await db.select().from(users).where(eq(users.walletAddress, referralWallet));
+        if (user) {
+          referralDetails.push({
+            wallet: user.walletAddress,
+            username: user.username || undefined,
+            membershipLevel: user.currentLevel || 0,
+            isActivated: user.memberActivated || false,
+            joinedAt: user.createdAt?.toISOString() || new Date().toISOString()
+          });
+        }
       }
-    }
 
-    return referralDetails;
+      return referralDetails;
+    } catch (error) {
+      console.error('Error getting direct referrals with details:', error);
+      return [];
+    }
   }
 
   /**
    * Calculate matrix rewards for level upgrades
+   * Uses the standard BeeHive reward structure
    */
   async calculateMatrixRewards(memberWallet: string, newLevel: number): Promise<Array<{
     beneficiaryWallet: string;
@@ -204,35 +205,67 @@ export class ReferralsService {
     layer: number;
   }>> {
     const rewards = [];
-    const chain = await referralsRepo.getChain(memberWallet);
+    
+    try {
+      const chain = await this.getReferralChain(memberWallet);
 
-    // Standard BCC rewards: 500 BCC + 100 BCC locked per level upgrade
-    const baseReward = 500;
-    const lockedReward = 100;
+      // Standard BCC rewards: Different amounts per layer
+      const rewardStructure = {
+        1: 500,  // Direct upline gets 500 BCC
+        2: 300,  // Layer 2 gets 300 BCC
+        3: 200,  // Layer 3 gets 200 BCC
+        4: 100,  // Layer 4 gets 100 BCC
+        5: 100   // Layer 5 gets 100 BCC
+      };
 
-    // Distribute rewards up the chain (simplified model)
-    for (let i = 0; i < Math.min(chain.length, 5); i++) {
-      const uplineNode = chain[i];
-      const uplineUser = await usersRepo.getByWallet(uplineNode.upline);
-      
-      // Only reward if upline is activated and has required level
-      if (uplineUser && uplineUser.isActivated && uplineUser.membershipLevel >= newLevel) {
-        rewards.push({
-          beneficiaryWallet: uplineNode.upline,
-          amount: i === 0 ? baseReward : lockedReward, // Direct sponsor gets base, others get locked
-          layer: uplineNode.depth
-        });
+      // Distribute rewards up the chain (up to 5 layers)
+      for (let i = 0; i < Math.min(chain.length, 5); i++) {
+        const uplineNode = chain[i];
+        const [uplineUser] = await db.select().from(users).where(eq(users.walletAddress, uplineNode.upline));
+        
+        // Only reward if upline is activated and has required level
+        if (uplineUser && uplineUser.memberActivated && (uplineUser.currentLevel || 0) >= newLevel) {
+          const layer = uplineNode.depth;
+          const amount = rewardStructure[layer as keyof typeof rewardStructure] || 50;
+          
+          rewards.push({
+            beneficiaryWallet: uplineNode.upline,
+            amount,
+            layer
+          });
+        }
       }
-    }
 
-    return rewards;
+      return rewards;
+    } catch (error) {
+      console.error('Error calculating matrix rewards:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get matrix tree structure for visualization
+   */
+  async getMatrixTree(walletAddress: string, maxLayers: number = 5): Promise<any> {
+    try {
+      return await matrixPlacementService.getMatrixTree(walletAddress, maxLayers);
+    } catch (error) {
+      console.error('Error getting matrix tree:', error);
+      return { root: walletAddress, layers: {} };
+    }
   }
 
   /**
    * Remove user from matrix (admin function)
    */
   async removeFromMatrix(walletAddress: string): Promise<void> {
-    await referralsRepo.removeReferral(walletAddress);
+    try {
+      await db.delete(referrals).where(eq(referrals.memberWallet, walletAddress.toLowerCase()));
+      console.log(`🗑️ Removed ${walletAddress} from all matrices`);
+    } catch (error) {
+      console.error('Error removing from matrix:', error);
+      throw error;
+    }
   }
 
   /**
@@ -243,29 +276,46 @@ export class ReferralsService {
     issues: string[];
   }> {
     const issues: string[] = [];
-    const chain = await referralsRepo.getChain(walletAddress);
+    
+    try {
+      // Get all referral records for this user
+      const userReferrals = await db
+        .select()
+        .from(referrals)
+        .where(eq(referrals.memberWallet, walletAddress.toLowerCase()));
 
-    // Check chain continuity
-    for (let i = 0; i < chain.length - 1; i++) {
-      const currentNode = chain[i];
-      const nextNode = chain[i + 1];
-      
-      if (nextNode.depth !== currentNode.depth + 1) {
-        issues.push(`Depth gap between layer ${currentNode.depth} and ${nextNode.depth}`);
+      // Check for duplicate placements in same matrix
+      const matrixPlacements = new Map<string, number>();
+      for (const referral of userReferrals) {
+        const key = `${referral.rootWallet}-${referral.layer}-${referral.position}`;
+        if (matrixPlacements.has(key)) {
+          issues.push(`Duplicate placement: ${key}`);
+        }
+        matrixPlacements.set(key, 1);
       }
-    }
 
-    // Check if all uplines exist
-    for (const node of chain) {
-      const uplineExists = await usersRepo.exists(node.upline);
-      if (!uplineExists) {
-        issues.push(`Upline ${node.upline} at depth ${node.depth} does not exist`);
+      // Check if parent wallets exist
+      for (const referral of userReferrals) {
+        if (referral.parentWallet) {
+          const [parentUser] = await db.select().from(users).where(eq(users.walletAddress, referral.parentWallet));
+          if (!parentUser) {
+            issues.push(`Parent wallet ${referral.parentWallet} does not exist`);
+          }
+        }
       }
-    }
 
-    return {
-      isValid: issues.length === 0,
-      issues
-    };
+      return {
+        isValid: issues.length === 0,
+        issues
+      };
+    } catch (error) {
+      console.error('Error validating matrix integrity:', error);
+      return {
+        isValid: false,
+        issues: [`Validation error: ${error}`]
+      };
+    }
   }
 }
+
+export const referralsService = new ReferralsService();
