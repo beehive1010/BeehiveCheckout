@@ -143,6 +143,12 @@
     }
   },
   "dashboard": {
+    "activitiesWillAppear": "Your activities will appear here as you interact with the platform",
+    "bccLocked": "BCC Locked", 
+    "noActivities": "No recent activities",
+    "recentActivities": "Recent Activities",
+    "referralDescription": "Share this link to earn referral rewards",
+    "referrals": "Referrals",
     "nftRequired": {
       "title": "Welcome to Beehive! 🎉",
       "description": "Complete your membership by purchasing your Level 1 Warrior NFT. This activates your position in the matrix and starts your Web3 journey.",
@@ -173,6 +179,9 @@
         "description": "Failed to purchase NFT. Please try again."
       },
       "getButton": "Purchase Membership"
+    },
+    "activation": {
+      "activationNote": "Click to activate your existing NFT"
     },
     "activation": {
       "title": "Welcome to Beehive",
@@ -485,6 +494,18 @@
   "education": {
     "title": "Education Center",
     "subtitle": "Learn blockchain, DeFi, and Web3 technologies",
+    "allLevels": "All Levels",
+    "filterByLevel": "Filter by Level",
+    "insufficientBalance": "Insufficient Balance",
+    "insufficientBalanceDesc": "You don't have enough BCC to purchase this course",
+    "level": "Level",
+    "levelRequiredDesc": "This course requires a higher membership level",
+    "noCourses": "No courses available",
+    "purchaseError": "Purchase Failed",
+    "purchaseErrorDesc": "Failed to purchase course. Please try again.",
+    "purchaseSuccess": "Purchase Successful",
+    "purchaseSuccessDesc": "Course has been added to your library",
+    "searchPlaceholder": "Search courses...",
     "search": {
       "placeholder": "Search courses, topics, or instructors..."
     },
@@ -1195,6 +1216,10 @@
   },
   "hiveworld": {
     "title": "HiveWorld - Your Matrix",
+    "noPosts": "No articles found",
+    "readMore": "Read More",
+    "searchPlaceholder": "Search articles...",
+    "subtitle": "Discover insights, tutorials, and the latest news from the Beehive ecosystem",
     "stats": {
       "directReferrals": "Direct Referrals",
       "totalTeam": "Total Team",

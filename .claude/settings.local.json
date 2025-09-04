@@ -10,7 +10,8 @@
       "Bash(npx tsx:*)",
       "Bash(npm run:*)",
       "Bash(curl:*)",
-      "Bash(tsx:*)"
+      "Bash(tsx:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

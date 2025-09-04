@@ -179,9 +179,53 @@ export function registerDashboardRoutes(app: Express) {
           .where(eq(memberMatrixView.rootWallet, walletAddress.toLowerCase()))
           .limit(1);
       } catch (error) {
-        console.error('memberMatrixView table not found, using fallback data:', (error as Error).message);
-        // Fallback: No matrix data available yet
-        memberMatrixData = null;
+        console.error('memberMatrixView table not found, using referrals table:', (error as Error).message);
+      }
+
+      // If no memberMatrixView data, build from referrals table
+      if (!memberMatrixData) {
+        try {
+          const referralData = await db
+            .select()
+            .from(referrals)
+            .where(eq(referrals.rootWallet, walletAddress.toLowerCase()));
+          
+          console.log(`📊 Found ${referralData.length} referrals for ${walletAddress}`);
+          
+          // Build layerData from referrals
+          const layerData: any[] = [];
+          for (let layer = 1; layer <= 19; layer++) {
+            const layerMembers = referralData.filter(r => r.layer === layer);
+            const positions: any = {};
+            
+            layerMembers.forEach(member => {
+              positions[member.position.toUpperCase()] = {
+                wallet: member.memberWallet,
+                placedAt: member.placedAt.toISOString()
+              };
+            });
+            
+            layerData.push({
+              layer,
+              maxPositions: Math.pow(3, layer),
+              filledPositions: layerMembers.length,
+              positions
+            });
+          }
+          
+          memberMatrixData = {
+            layerData,
+            totalMembers: referralData.length,
+            deepestLayer: referralData.length > 0 ? Math.max(...referralData.map(r => r.layer)) : 0,
+            nextAvailableLayer: 1,
+            nextAvailablePosition: 'L',
+            lastUpdated: new Date().toISOString()
+          };
+          
+        } catch (error) {
+          console.error('Error fetching from referrals table:', error);
+          memberMatrixData = null;
+        }
       }
 
       // Enhanced response with memberMatrixView data and sample data for demonstration
