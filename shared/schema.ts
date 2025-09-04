@@ -1629,5 +1629,8 @@ export const insertMemberUpgradePendingSchema = createInsertSchema(memberUpgrade
 export type InsertWalletConnectionLog = z.infer<typeof insertWalletConnectionLogSchema>;
 export type WalletConnectionLog = typeof walletConnectionLogs.$inferSelect;
 
+export type InsertMemberUpgradePending = z.infer<typeof insertMemberUpgradePendingSchema>;
+export type MemberUpgradePending = typeof memberUpgradePending.$inferSelect;
+
 export type InsertUserActivity = z.infer<typeof insertUserActivitySchema>;
 export type UserActivity = typeof userActivities.$inferSelect;
