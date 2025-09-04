@@ -13,7 +13,16 @@
       "Bash(tsx:*)",
       "Bash(grep:*)",
       "Bash(npx supabase:*)",
-      "Bash(psql:*)"
+      "Bash(psql:*)",
+      "Bash(tar:*)",
+      "Bash(chmod:*)",
+      "Bash(./supabase --version)",
+      "Bash(rm:*)",
+      "Bash(./supabase gen types typescript --project-id wykvpctrsqhebqpjmvdb --schema public)",
+      "Bash(./supabase login)",
+      "Bash(DEV_DB=$DATABASE_URL)",
+      "Bash(__NEW_LINE__ echo \"=== PRODUCTION USERS ===\")",
+      "Bash(__NEW_LINE__ echo \"=== DEVELOPMENT USERS ===\")"
     ],
     "deny": [],
     "ask": []
