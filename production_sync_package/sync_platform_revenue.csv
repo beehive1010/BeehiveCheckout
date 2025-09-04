@@ -1,0 +1,9 @@
+id,source_type,source_wallet,level,amount,currency,description,metadata,created_at
+0c5afc60-fa36-480f-aae4-bb963a5873ff,level_activation,0x479abda60f8c62a7c3fba411ab948a8be0e616ab,1,30.00,USDT,Level 1 membership activation revenue,,2025-09-04 00:01:39.85481
+5049c7fe-dbdd-4b37-8f3e-212b0f4253ef,level_activation,0x380fd6a57fc2df6f10b8920002e4acc7d57d61c0,1,30.00,USDT,Level 1 membership activation revenue,"{""platform_fee"": 30, ""nft_price_usdt"": 100}",2025-09-04 06:10:00
+ce59301f-91fd-4ba9-bf16-1fcf4f576fcb,level_activation,0xe6fb55d860c72f5e42056244410f5ea46895bfd8,1,30.00,USDT,Level 1 membership activation revenue,"{""platform_fee"": 30, ""nft_price_usdt"": 100}",2025-09-04 04:00:00
+b6eff4c4-2465-49be-8184-b75a4a45bf0a,level_activation,0xb79d58df8ea073dd3904bc804df1e187a0ae4821,1,30.00,USDT,Level 1 membership activation revenue,"{""platform_fee"": 30, ""nft_price_usdt"": 100}",2025-09-04 04:40:00
+ac3c8585-0485-4778-bb3d-3babe344ff41,level_activation,0x6366573ff5f6b07be1e96b024c8862f5502d13e3,1,30.00,USDT,Level 1 membership activation revenue,"{""platform_fee"": 30, ""nft_price_usdt"": 100}",2025-09-04 06:15:00
+af37e265-1848-4150-9bbb-0f918eca14d5,level_activation,0x2bc46f768384f88b3d3c53de6a69b3718026d23f,1,30.00,USDT,Level 1 membership activation revenue,"{""platform_fee"": 30, ""nft_price_usdt"": 100}",2025-09-04 07:25:00
+807cfffa-c1c5-43f0-91e4-af4f4e846dc7,level_activation,0xf9e54564d273531f97f95291baf0c3d74f337937,1,30.00,USDT,Level 1 membership activation revenue,"{""platform_fee"": 30, ""nft_price_usdt"": 100}",2025-09-04 08:00:00
+c8527ee4-f242-4d47-8d5d-d06616aed5e8,level_activation,0x9b132b74a6246fa90e9c36e5cd845f1ded10c589,1,30.00,USDT,Level 1 membership activation revenue,"{""platform_fee"": 30, ""nft_price_usdt"": 100}",2025-09-04 08:20:00
