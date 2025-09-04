@@ -16,6 +16,7 @@ import {
   Filter
 } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { useI18n } from '@/contexts/I18nContext';
 import NotificationInbox from '@/components/notifications/NotificationInbox';
 import NotificationDetail from '@/components/notifications/NotificationDetail';
 import NotificationPopup from '@/components/notifications/NotificationPopup';
@@ -59,6 +60,7 @@ export default function NotificationsPage() {
   const [, navigate] = useLocation();
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const { t } = useI18n();
 
   // Get wallet address from context/auth (you'll need to implement this)
   const walletAddress = "0x1234567890123456789012345678901234567890"; // Replace with actual wallet address
@@ -102,7 +104,7 @@ export default function NotificationsPage() {
                   data-testid="back-to-dashboard"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Dashboard
+                  {t('notificationsPage.backToDashboard')}
                 </Button>
                 
                 <div className="flex items-center gap-3">
@@ -111,10 +113,10 @@ export default function NotificationsPage() {
                   </div>
                   <div>
                     <CardTitle className="text-white text-2xl">
-                      Notifications
+                      {t('notificationsPage.title')}
                     </CardTitle>
                     <p className="text-gray-400 mt-1">
-                      Stay updated with your BeeHive matrix activities
+                      {t('notificationsPage.subtitle')}
                     </p>
                   </div>
                 </div>
@@ -125,20 +127,20 @@ export default function NotificationsPage() {
                   <div className="flex items-center gap-4">
                     <div className="text-center">
                       <p className="text-2xl font-bold text-white">{stats.totalCount}</p>
-                      <p className="text-sm text-gray-400">Total</p>
+                      <p className="text-sm text-gray-400">{t('notificationsPage.stats.total')}</p>
                     </div>
                     
                     {stats.unreadCount > 0 && (
                       <div className="text-center">
                         <p className="text-2xl font-bold text-yellow-400">{stats.unreadCount}</p>
-                        <p className="text-sm text-gray-400">Unread</p>
+                        <p className="text-sm text-gray-400">{t('notificationsPage.stats.unread')}</p>
                       </div>
                     )}
                     
                     {stats.urgentCount > 0 && (
                       <div className="text-center">
                         <p className="text-2xl font-bold text-red-400">{stats.urgentCount}</p>
-                        <p className="text-sm text-gray-400">Urgent</p>
+                        <p className="text-sm text-gray-400">{t('notificationsPage.stats.urgent')}</p>
                       </div>
                     )}
                   </div>
@@ -151,7 +153,7 @@ export default function NotificationsPage() {
                   data-testid="notification-settings"
                 >
                   <Settings className="w-4 h-4 mr-2" />
-                  Settings
+                  {t('notificationsPage.settings')}
                 </Button>
               </div>
             </div>
@@ -188,7 +190,7 @@ export default function NotificationsPage() {
                   <div className="text-center">
                     <Bell className="w-12 h-12 text-gray-600 mx-auto mb-4" />
                     <p className="text-gray-400">
-                      Select a notification to view details
+                      {t('notificationsPage.detail.selectNotification')}
                     </p>
                   </div>
                 </CardContent>
@@ -200,7 +202,7 @@ export default function NotificationsPage() {
         {/* Quick Actions */}
         <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border-yellow-500/20">
           <CardHeader>
-            <CardTitle className="text-yellow-400">Quick Actions</CardTitle>
+            <CardTitle className="text-yellow-400">{t('notificationsPage.quickActions.title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -212,7 +214,7 @@ export default function NotificationsPage() {
                 <Badge className="bg-red-500">
                   {stats?.urgentCount || 0}
                 </Badge>
-                <span>Urgent Notifications</span>
+                <span>{t('notificationsPage.quickActions.urgentNotifications')}</span>
               </Button>
               
               <Button
@@ -223,7 +225,7 @@ export default function NotificationsPage() {
                 <Badge className="bg-yellow-500 text-black">
                   {stats?.actionRequiredCount || 0}
                 </Badge>
-                <span>Action Required</span>
+                <span>{t('notificationsPage.quickActions.actionRequired')}</span>
               </Button>
               
               <Button
@@ -233,7 +235,7 @@ export default function NotificationsPage() {
                 data-testid="quick-action-matrix"
               >
                 <Bell className="w-5 h-5" />
-                <span>Matrix Dashboard</span>
+                <span>{t('notificationsPage.quickActions.matrixDashboard')}</span>
               </Button>
             </div>
           </CardContent>
@@ -244,59 +246,59 @@ export default function NotificationsPage() {
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
         <DialogContent className="bg-gray-900 border-yellow-500/20">
           <DialogHeader>
-            <DialogTitle className="text-yellow-400">Notification Settings</DialogTitle>
+            <DialogTitle className="text-yellow-400">{t('notificationsPage.settingsDialog.title')}</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
             <div className="space-y-4">
-              <h4 className="text-white font-medium">Email Notifications</h4>
+              <h4 className="text-white font-medium">{t('notificationsPage.settingsDialog.emailNotifications')}</h4>
               <div className="space-y-2">
                 <label className="flex items-center gap-2">
                   <input type="checkbox" defaultChecked className="rounded" />
-                  <span className="text-gray-300">Member activations</span>
+                  <span className="text-gray-300">{t('notificationsPage.settingsDialog.memberActivations')}</span>
                 </label>
                 <label className="flex items-center gap-2">
                   <input type="checkbox" defaultChecked className="rounded" />
-                  <span className="text-gray-300">Level upgrades</span>
+                  <span className="text-gray-300">{t('notificationsPage.settingsDialog.levelUpgrades')}</span>
                 </label>
                 <label className="flex items-center gap-2">
                   <input type="checkbox" defaultChecked className="rounded" />
-                  <span className="text-gray-300">Upgrade reminders</span>
+                  <span className="text-gray-300">{t('notificationsPage.settingsDialog.upgradeReminders')}</span>
                 </label>
                 <label className="flex items-center gap-2">
                   <input type="checkbox" defaultChecked className="rounded" />
-                  <span className="text-gray-300">Reward notifications</span>
+                  <span className="text-gray-300">{t('notificationsPage.settingsDialog.rewardNotifications')}</span>
                 </label>
               </div>
             </div>
             
             <div className="space-y-4">
-              <h4 className="text-white font-medium">Push Notifications</h4>
+              <h4 className="text-white font-medium">{t('notificationsPage.settingsDialog.pushNotifications')}</h4>
               <div className="space-y-2">
                 <label className="flex items-center gap-2">
                   <input type="checkbox" defaultChecked className="rounded" />
-                  <span className="text-gray-300">Urgent notifications</span>
+                  <span className="text-gray-300">{t('notificationsPage.settingsDialog.urgentNotifications')}</span>
                 </label>
                 <label className="flex items-center gap-2">
                   <input type="checkbox" defaultChecked className="rounded" />
-                  <span className="text-gray-300">High priority only</span>
+                  <span className="text-gray-300">{t('notificationsPage.settingsDialog.highPriorityOnly')}</span>
                 </label>
                 <label className="flex items-center gap-2">
                   <input type="checkbox" className="rounded" />
-                  <span className="text-gray-300">All notifications</span>
+                  <span className="text-gray-300">{t('notificationsPage.settingsDialog.allNotifications')}</span>
                 </label>
               </div>
             </div>
             
             <div className="flex justify-end gap-2 pt-4">
               <Button variant="outline" onClick={() => setShowSettings(false)}>
-                Cancel
+                {t('notificationsPage.settingsDialog.cancel')}
               </Button>
               <Button 
                 className="bg-yellow-500 hover:bg-yellow-600 text-black"
                 onClick={() => setShowSettings(false)}
               >
-                Save Settings
+                {t('notificationsPage.settingsDialog.saveSettings')}
               </Button>
             </div>
           </div>

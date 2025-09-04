@@ -1056,5 +1056,98 @@
     "activationSuccess": "会员激活成功！",
     "nftActivationFailed": "NFT激活失败。请重试。",
     "walletNotConnected": "请先连接您的钱包"
+  },
+  "notificationsPage": {
+    "title": "通知",
+    "subtitle": "及时了解您的蜂巢矩阵活动",
+    "backToDashboard": "返回仪表板",
+    "settings": "设置",
+    "stats": {
+      "total": "总计",
+      "unread": "未读",
+      "urgent": "紧急"
+    },
+    "quickActions": {
+      "title": "快捷操作",
+      "urgentNotifications": "紧急通知",
+      "actionRequired": "需要操作",
+      "matrixDashboard": "矩阵仪表板"
+    },
+    "detail": {
+      "selectNotification": "选择通知以查看详情"
+    },
+    "settingsDialog": {
+      "title": "通知设置",
+      "emailNotifications": "邮件通知",
+      "pushNotifications": "推送通知",
+      "memberActivations": "会员激活",
+      "levelUpgrades": "级别升级",
+      "upgradeReminders": "升级提醒",
+      "rewardNotifications": "奖励通知",
+      "urgentNotifications": "紧急通知",
+      "highPriorityOnly": "仅高优先级",
+      "allNotifications": "所有通知",
+      "cancel": "取消",
+      "saveSettings": "保存设置"
+    }
+  },
+  "profileSettings": {
+    "title": "个人资料设置",
+    "backToProfile": "返回个人资料",
+    "profileInformation": {
+      "title": "个人资料信息",
+      "profileImage": "头像",
+      "username": "用户名",
+      "usernamePlaceholder": "输入您的用户名",
+      "email": "邮箱（可选）",
+      "emailPlaceholder": "输入您的邮箱",
+      "bio": "个人简介",
+      "bioPlaceholder": "介绍一下自己...",
+      "language": "语言"
+    },
+    "notificationSettings": {
+      "title": "通知设置",
+      "emailNotifications": "邮件通知",
+      "emailDescription": "通过邮件接收重要更新",
+      "pushNotifications": "推送通知",
+      "pushDescription": "在应用中接收实时通知",
+      "rewardNotifications": "奖励通知",
+      "rewardDescription": "获得奖励时收到通知",
+      "referralNotifications": "推荐通知",
+      "referralDescription": "关于新推荐和团队活动的通知"
+    },
+    "privacySettings": {
+      "title": "隐私设置",
+      "profileVisibility": "个人资料可见性",
+      "profileVisibilityDescription": "控制谁可以查看您的个人资料信息",
+      "showEarnings": "显示收益",
+      "showEarningsDescription": "公开显示您的收益",
+      "showReferrals": "显示推荐数量",
+      "showReferralsDescription": "显示您的推荐统计信息",
+      "visibilityOptions": {
+        "public": "公开",
+        "teamOnly": "仅团队成员",
+        "private": "私密"
+      }
+    },
+    "accountSummary": {
+      "title": "账户摘要",
+      "wallet": "钱包：",
+      "memberSince": "会员注册时间：",
+      "recentlyJoined": "最近加入"
+    },
+    "actions": {
+      "saveChanges": "保存更改",
+      "cancel": "取消"
+    },
+    "toast": {
+      "profileUpdated": "个人资料已更新",
+      "profileUpdatedDescription": "您的个人资料设置已成功保存。",
+      "updateFailed": "更新失败",
+      "updateFailedDescription": "更新个人资料时出错。请重试。",
+      "profileImageUpdated": "头像已更新",
+      "profileImageUpdatedDescription": "您的头像已成功上传。",
+      "uploadFailed": "上传失败"
+    }
   }
 }
