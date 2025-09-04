@@ -173,16 +173,31 @@ export const levelConfig = pgTable("level_config", {
   level: integer("level").primaryKey(),
   levelName: text("level_name").notNull(),
   tokenId: integer("token_id").notNull(), // NFT token ID corresponding to level
+  
+  // Pricing structure
+  nftPrice: integer("nft_price").notNull(), // NFT price in USDT cents
+  platformFee: integer("platform_fee").notNull(), // Platform fee in USDT cents
+  totalPrice: integer("total_price").notNull(), // nft_price + platform_fee
+  
+  // Legacy pricing fields (for backward compatibility)
   priceUSDT: integer("price_usdt").notNull(), // Base price in USDT cents
   activationFeeUSDT: integer("activation_fee_usdt").notNull(), // Platform activation fee (cents)
   totalPriceUSDT: integer("total_price_usdt").notNull(), // price_usdt + activation_fee_usdt
   rewardUSDT: integer("reward_usdt").notNull(), // 100% reward to referrer (same as price_usdt)
   
-  // BCC unlock amounts for different tiers
-  tier1BccAmount: integer("tier1_bcc_amount").notNull(), // First activation tier
-  tier2BccAmount: integer("tier2_bcc_amount").notNull(), // Second activation tier  
-  tier3BccAmount: integer("tier3_bcc_amount").notNull(), // Third activation tier (half of tier2)
-  tier4BccAmount: integer("tier4_bcc_amount").notNull(), // Fourth activation tier (half of tier3)
+  // BCC unlock amounts for different tiers (calculated as: Tier 1 = NFT price in BCC, each tier halved)
+  tier1Release: numeric("tier_1_release", { precision: 10, scale: 2 }).notNull(), // NFT price in BCC (e.g., 100 BCC for level 1)
+  tier2Release: numeric("tier_2_release", { precision: 10, scale: 2 }).notNull(), // Tier 1 / 2 (e.g., 50 BCC for level 1)
+  tier3Release: numeric("tier_3_release", { precision: 10, scale: 2 }).notNull(), // Tier 2 / 2 (e.g., 25 BCC for level 1)
+  tier4Release: numeric("tier_4_release", { precision: 10, scale: 2 }).notNull(), // Tier 3 / 2 (e.g., 12.5 BCC for level 1)
+  
+  // Layer reward system (level n = layer n reward)
+  layerLevel: integer("layer_level").notNull(), // Layer number (same as level)
+  totalActivatedSeats: integer("total_activated_seats").notNull(), // 3^level total activated member seats
+  maxActivePositions: integer("max_active_positions").notNull().default(3), // Max positions per member
+  maxReferralDepth: integer("max_referral_depth").notNull().default(12), // Max referral depth
+  canEarnCommissions: boolean("can_earn_commissions").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // 19-layer matrix view for each root member - shows complete matrix structure
@@ -394,14 +409,22 @@ export const insertLevelConfigSchema = createInsertSchema(levelConfig).pick({
   level: true,
   levelName: true,
   tokenId: true,
+  nftPrice: true,
+  platformFee: true,
+  totalPrice: true,
   priceUSDT: true,
   activationFeeUSDT: true,
   totalPriceUSDT: true,
   rewardUSDT: true,
-  tier1BccAmount: true,
-  tier2BccAmount: true,
-  tier3BccAmount: true,
-  tier4BccAmount: true,
+  tier1Release: true,
+  tier2Release: true,
+  tier3Release: true,
+  tier4Release: true,
+  layerLevel: true,
+  totalActivatedSeats: true,
+  maxActivePositions: true,
+  maxReferralDepth: true,
+  canEarnCommissions: true,
 });
 
 export const insertMemberNFTVerificationSchema = createInsertSchema(memberNFTVerification).pick({
