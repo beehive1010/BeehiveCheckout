@@ -126,13 +126,13 @@ export class RewardsService {
   }> {
     const wallet = walletAddress.toLowerCase();
     
-    // Get user wallet balance (replacing earnings_wallet)
+    // Get user balance from user_balances table
     const result = await db.execute(sql`
-      SELECT * FROM user_wallet WHERE wallet_address = ${wallet}
+      SELECT * FROM user_balances WHERE wallet_address = ${wallet}
     `);
-    const userWallet = result.rows[0];
+    const userBalance = result.rows[0];
     
-    if (!userWallet) {
+    if (!userBalance) {
       return {
         claimableRewards: [],
         pendingRewards: [],
@@ -141,29 +141,29 @@ export class RewardsService {
       };
     }
 
-    const wallet_data = userWallet as any;
-    const totalUSDTEarnings = parseFloat(wallet_data.total_usdt_earnings || '0') / 100; // Convert from cents
-    const withdrawnUSDT = parseFloat(wallet_data.withdrawn_usdt || '0') / 100; // Convert from cents
-    const pendingUpgradeRewards = parseFloat(wallet_data.pending_upgrade_rewards || '0');
+    const balance_data = userBalance as any;
+    const totalUSDTEarnings = parseFloat(balance_data.total_usdt_earned || '0') / 100; // Convert from cents
+    const withdrawnUSDT = parseFloat(balance_data.total_usdt_withdrawn || '0') / 100; // Convert from cents
+    const availableUSDTRewards = parseFloat(balance_data.available_usdt_rewards || '0') / 100;
     
-    // Available to claim = total earnings - already withdrawn
-    const availableBalance = totalUSDTEarnings - withdrawnUSDT;
+    // Use available_usdt_rewards directly as the claimable amount
+    const availableBalance = availableUSDTRewards;
     
     // Create a single claimable reward representing the available balance
     const claimableRewards = availableBalance > 0 ? [{
-      id: 'user-wallet-balance',
+      id: 'user-balance-usdt',
       rewardAmount: availableBalance,
       triggerLevel: 0,
       payoutLayer: 0,
-      matrixPosition: 'User Wallet',
+      matrixPosition: 'User Balance',
       sourceWallet: 'Multiple Sources',
       status: 'confirmed',
-      createdAt: wallet_data.last_updated || wallet_data.created_at,
+      createdAt: balance_data.last_updated || balance_data.created_at,
       metadata: {
         type: 'aggregated_balance',
         totalUSDTEarnings,
         withdrawnUSDT,
-        pendingUpgradeRewards
+        availableUSDTRewards
       }
     }] : [];
 
@@ -192,7 +192,7 @@ export class RewardsService {
       claimableRewards,
       pendingRewards: pendingRewardsFormatted,
       totalClaimable: availableBalance,
-      totalPending: pendingUpgradeRewards
+      totalPending: availableUSDTRewards - availableBalance
     };
   }
 
@@ -228,22 +228,21 @@ export class RewardsService {
   }> {
     const wallet = claimerWallet.toLowerCase();
     
-    // For user wallet balance, rewardId will be 'user-wallet-balance'
-    if (rewardId === 'user-wallet-balance') {
-      // Get current user wallet
+    // For user balance, rewardId will be 'user-balance-usdt'
+    if (rewardId === 'user-balance-usdt') {
+      // Get current user balance
       const result = await db.execute(sql`
-        SELECT * FROM user_wallet WHERE wallet_address = ${wallet}
+        SELECT * FROM user_balances WHERE wallet_address = ${wallet}
       `);
-      const userWallet = result.rows[0];
+      const userBalance = result.rows[0];
       
-      if (!userWallet) {
-        throw new Error('User wallet not found');
+      if (!userBalance) {
+        throw new Error('User balance not found');
       }
 
-      const wallet_data = userWallet as any;
-      const totalUSDTEarnings = parseFloat(wallet_data.total_usdt_earnings || '0') / 100;
-      const withdrawnUSDT = parseFloat(wallet_data.withdrawn_usdt || '0') / 100;
-      const availableBalance = totalUSDTEarnings - withdrawnUSDT;
+      const balance_data = userBalance as any;
+      const availableUSDTRewards = parseFloat(balance_data.available_usdt_rewards || '0') / 100;
+      const availableBalance = availableUSDTRewards;
 
       if (availableBalance <= 0) {
         throw new Error('No balance available to claim');
@@ -257,10 +256,11 @@ export class RewardsService {
           rewardId: 'earnings-wallet-claim'
         });
 
-        // Update user wallet - mark as withdrawn (convert back to cents)
+        // Update user balance - mark as withdrawn (convert back to cents)
         await db.execute(sql`
-          UPDATE user_wallet 
-          SET withdrawn_usdt = withdrawn_usdt + ${Math.round(availableBalance * 100)}
+          UPDATE user_balances 
+          SET total_usdt_withdrawn = total_usdt_withdrawn + ${Math.round(availableBalance * 100)},
+              available_usdt_rewards = available_usdt_rewards - ${Math.round(availableBalance * 100)}
           WHERE wallet_address = ${wallet}
         `);
 
@@ -268,7 +268,7 @@ export class RewardsService {
           success: true,
           transactionHash: transferResult.transactionHash,
           explorerUrl: transferResult.explorerUrl,
-          message: `${availableBalance} USDT transferred successfully from your wallet`
+          message: `${availableBalance} USDT transferred successfully from your balance`
         };
       } catch (error) {
         console.error('Earnings wallet claim failed:', error);
