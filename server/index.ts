@@ -549,24 +549,76 @@ app.use((req, res, next) => {
   // Helper function to record NFT claims in database
   async function recordNFTClaim(walletAddress: string, level: number, txHash: string, isRealNFT: boolean) {
     try {
-      const { storage } = await import('./storage');
+      const { users, members, userWallet } = await import('@shared/schema');
+      const { eq } = await import('drizzle-orm');
       
       console.log(`📝 Recording NFT claim for ${walletAddress}: Level ${level}`);
       
-      // Note: Membership NFTs are different from merchant NFTs
-      // We don't record membership NFT claims in nft_purchases table
-      // That table is for merchant NFTs purchased with BCC tokens
+      const wallet = walletAddress.toLowerCase();
       
-      // Instead, we could update the user's membership state if needed
-      // For now, just log the successful claim
+      // 1. Ensure user exists
+      let user = await adminDb.select().from(users).where(eq(users.walletAddress, wallet));
+      if (user.length === 0) {
+        await adminDb.insert(users).values({
+          walletAddress: wallet,
+          currentLevel: level,
+          isUpgraded: true,
+          upgradeTimerEnabled: true
+        });
+      } else {
+        // Update user level
+        await adminDb.update(users)
+          .set({ 
+            currentLevel: level, 
+            isUpgraded: true,
+            upgradeTimerEnabled: true
+          })
+          .where(eq(users.walletAddress, wallet));
+      }
+
+      // 2. Activate membership in members table
+      let member = await adminDb.select().from(members).where(eq(members.walletAddress, wallet));
+      if (member.length === 0) {
+        await adminDb.insert(members).values({
+          walletAddress: wallet,
+          isActivated: true,
+          activatedAt: new Date(),
+          currentLevel: level,
+          levelsOwned: [level],
+          lastUpgradeAt: new Date()
+        });
+      } else {
+        // Update existing member
+        const existingLevels = member[0].levelsOwned || [];
+        const newLevels = [...new Set([...existingLevels, level])]; // Add new level, avoid duplicates
+        
+        await adminDb.update(members)
+          .set({
+            isActivated: true,
+            activatedAt: new Date(),
+            currentLevel: Math.max(member[0].currentLevel, level),
+            levelsOwned: newLevels,
+            lastUpgradeAt: new Date()
+          })
+          .where(eq(members.walletAddress, wallet));
+      }
+
+      // 3. Initialize user wallet if not exists
+      let wallet_record = await adminDb.select().from(userWallet).where(eq(userWallet.walletAddress, wallet));
+      if (wallet_record.length === 0) {
+        await adminDb.insert(userWallet).values({
+          walletAddress: wallet,
+          totalUSDTEarnings: 0,
+          withdrawnUSDT: 0,
+          availableUSDT: 0,
+          bccBalance: 0,
+          bccLocked: 0,
+          pendingUpgradeRewards: 0,
+          hasPendingUpgrades: false
+        });
+      }
       
-      // Update membership_state 
-      await storage.updateMembershipState(walletAddress, {
-        activeLevel: level,
-        lastUpgradeAt: new Date()
-      });
-      
-      console.log(`✅ NFT claim recorded successfully in database`);
+      console.log(`✅ NFT claim recorded successfully: Member activated at Level ${level}`);
       
     } catch (error) {
       console.error('Error recording NFT claim:', error);
