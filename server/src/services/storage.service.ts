@@ -114,19 +114,38 @@ export class StorageService {
   }
   
   async createUser(userData: any): Promise<User> {
-    const [newUser] = await db
-      .insert(users)
-      .values({
-        walletAddress: userData.walletAddress.toLowerCase(),
-        username: userData.username,
-        email: userData.email,
-        referrerWallet: userData.referrerWallet?.toLowerCase(),
-        currentLevel: userData.currentLevel || 0,
-        isUpgraded: false,
-        upgradeTimerEnabled: false
-      })
-      .returning();
-    return newUser;
+    try {
+      // Use raw SQL for production compatibility to handle different schemas
+      if (process.env.PRODUCTION_DATABASE_URL && (process.env.REPLIT_DEPLOYMENT === 'true' || process.env.NODE_ENV === 'production')) {
+        // Production database - use only core columns that definitely exist
+        const result = await db.execute(sql`
+          INSERT INTO users (wallet_address, username, email, referrer_wallet, current_level, member_activated)
+          VALUES (${userData.walletAddress.toLowerCase()}, ${userData.username}, ${userData.email || null}, 
+                  ${userData.referrerWallet?.toLowerCase() || null}, ${userData.currentLevel || 0}, false)
+          RETURNING wallet_address as "walletAddress", username, email, referrer_wallet as "referrerWallet", 
+                   current_level as "currentLevel", member_activated as "memberActivated", created_at as "createdAt"
+        `);
+        return result.rows[0] as User;
+      } else {
+        // Development database - use ORM normally
+        const [newUser] = await db
+          .insert(users)
+          .values({
+            walletAddress: userData.walletAddress.toLowerCase(),
+            username: userData.username,
+            email: userData.email,
+            referrerWallet: userData.referrerWallet?.toLowerCase(),
+            currentLevel: userData.currentLevel || 0,
+            isUpgraded: false,
+            upgradeTimerEnabled: false
+          })
+          .returning();
+        return newUser;
+      }
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw new Error(`Failed to create user: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
   
   async updateUser(walletAddress: string, updates: any) {
