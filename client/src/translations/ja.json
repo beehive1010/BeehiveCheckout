@@ -939,18 +939,17 @@
     "completed": "完了",
     "enrolled": "登録済み"
   },
-    "levels": {
-      "title": "メンバーシップレベル",
-      "subtitle": "レベルを選択し、独占特典をアンロックしましょう",
-      "currentLevel": "現在のレベル",
-      "priceUSDT": "USDT",
-      "benefits": "主な特典",
-      "owned": "所有済み",
-      "selected": "選択済み",
-      "activated": "アクティベート済み",
-      "higherLevelOwned": "より高いレベルがアクティブ",
-      "selectionInfo": "このメンバーシップレベルを獲得するには購入ボタンをクリックしてください"
-    }
+  "levels": {
+    "title": "メンバーシップレベル",
+    "subtitle": "レベルを選択し、独占特典をアンロックしましょう",
+    "currentLevel": "現在のレベル",
+    "priceUSDT": "USDT",
+    "benefits": "主な特典",
+    "owned": "所有済み",
+    "selected": "選択済み",
+    "activated": "アクティベート済み",
+    "higherLevelOwned": "より高いレベルがアクティブ",
+    "selectionInfo": "このメンバーシップレベルを獲得するには購入ボタンをクリックしてください"
   },
   "membership": {
     "activationSuccess": "メンバーシップが成功裁にアクティベートされました！",
