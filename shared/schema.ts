@@ -172,10 +172,17 @@ export const userActivities = pgTable("user_activities", {
 export const levelConfig = pgTable("level_config", {
   level: integer("level").primaryKey(),
   levelName: text("level_name").notNull(),
-  priceUSDT: integer("price_usdt").notNull(), // Total price in USDT cents
-  rewardUSDT: integer("reward_usdt").notNull(), // 100% reward to referrer (cents)
+  tokenId: integer("token_id").notNull(), // NFT token ID corresponding to level
+  priceUSDT: integer("price_usdt").notNull(), // Base price in USDT cents
   activationFeeUSDT: integer("activation_fee_usdt").notNull(), // Platform activation fee (cents)
-  baseBccUnlockAmount: integer("base_bcc_unlock_amount").notNull(), // Base BCC unlocked when claiming this level NFT (tier 1)
+  totalPriceUSDT: integer("total_price_usdt").notNull(), // price_usdt + activation_fee_usdt
+  rewardUSDT: integer("reward_usdt").notNull(), // 100% reward to referrer (same as price_usdt)
+  
+  // BCC unlock amounts for different tiers
+  tier1BccAmount: integer("tier1_bcc_amount").notNull(), // First activation tier
+  tier2BccAmount: integer("tier2_bcc_amount").notNull(), // Second activation tier  
+  tier3BccAmount: integer("tier3_bcc_amount").notNull(), // Third activation tier (half of tier2)
+  tier4BccAmount: integer("tier4_bcc_amount").notNull(), // Fourth activation tier (half of tier3)
 });
 
 // 19-layer matrix view for each root member - shows complete matrix structure
@@ -386,10 +393,15 @@ export const insertRewardClaimSchema = createInsertSchema(rewardClaims).pick({
 export const insertLevelConfigSchema = createInsertSchema(levelConfig).pick({
   level: true,
   levelName: true,
+  tokenId: true,
   priceUSDT: true,
-  rewardUSDT: true,
   activationFeeUSDT: true,
-  baseBccUnlockAmount: true,
+  totalPriceUSDT: true,
+  rewardUSDT: true,
+  tier1BccAmount: true,
+  tier2BccAmount: true,
+  tier3BccAmount: true,
+  tier4BccAmount: true,
 });
 
 export const insertMemberNFTVerificationSchema = createInsertSchema(memberNFTVerification).pick({
