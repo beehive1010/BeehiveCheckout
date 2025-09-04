@@ -1,5 +1,4 @@
 import { Express } from 'express';
-import { storage } from '../services/storage.service';
 import { db } from '../../db';
 import { users, members, referrals, userWallet } from '@shared/schema';
 import { eq, count, sum, and, desc } from 'drizzle-orm';
@@ -30,26 +29,47 @@ export function registerStatsRoutes(app: Express) {
       
       console.log(`📊 Fetching referral stats for: ${wallet}`);
       
-      // Get member data from database
-      const [member] = await db.select().from(members).where(eq(members.walletAddress, wallet));
-      const [user] = await db.select().from(users).where(eq(users.walletAddress, wallet));
+      // Get member data from database with timeout handling
+      let member, user, wallet_data, recentReferralsData;
       
-      // Get referral counts
-      const directReferralsResult = await db
-        .select({ count: count() })
-        .from(referrals)
-        .where(eq(referrals.rootWallet, wallet));
+      try {
+        [member] = await db.select().from(members).where(eq(members.walletAddress, wallet));
+        [user] = await db.select().from(users).where(eq(users.walletAddress, wallet));
+      } catch (error) {
+        console.warn('Database timeout for member/user query, using fallback data:', error.message);
+        member = null;
+        user = null;
+      }
       
-      const totalReferralsResult = await db
-        .select({ count: count() })
-        .from(referrals)
-        .where(eq(referrals.rootWallet, wallet));
+      // Get referral counts with error handling
+      let directReferralsResult = [{ count: 0 }];
+      let totalReferralsResult = [{ count: 0 }];
       
-      // Get user wallet for earnings
-      const [wallet_data] = await db.select().from(userWallet).where(eq(userWallet.walletAddress, wallet));
+      try {
+        directReferralsResult = await db
+          .select({ count: count() })
+          .from(referrals)
+          .where(eq(referrals.rootWallet, wallet));
+        
+        totalReferralsResult = await db
+          .select({ count: count() })
+          .from(referrals)
+          .where(eq(referrals.rootWallet, wallet));
+      } catch (error) {
+        console.warn('Database timeout for referrals query, using fallback data:', error.message);
+      }
       
-      // Get recent referrals (last 10)
-      const recentReferralsData = await db
+      // Get user wallet for earnings with error handling
+      try {
+        [wallet_data] = await db.select().from(userWallet).where(eq(userWallet.walletAddress, wallet));
+      } catch (error) {
+        console.warn('Database timeout for wallet query, using fallback data:', error.message);
+        wallet_data = null;
+      }
+      
+      // Get recent referrals (last 10) with error handling
+      try {
+        recentReferralsData = await db
         .select({
           memberWallet: referrals.memberWallet,
           placedAt: referrals.placedAt,
@@ -61,23 +81,33 @@ export function registerStatsRoutes(app: Express) {
         .where(eq(referrals.rootWallet, wallet))
         .limit(10)
         .orderBy(desc(referrals.placedAt));
+      } catch (error) {
+        console.warn('Database timeout for recent referrals query, using fallback data:', error.message);
+        recentReferralsData = [];
+      }
       
-      // Build downline matrix by layers
+      // Build downline matrix by layers with error handling
       const downlineMatrix = [];
       for (let level = 1; level <= 19; level++) {
-        const layerReferralsResult = await db
-          .select({ count: count() })
-          .from(referrals)
-          .where(and(
-            eq(referrals.rootWallet, wallet),
-            eq(referrals.layer, level)
-          ));
+        let layerCount = 0;
+        try {
+          const layerReferralsResult = await db
+            .select({ count: count() })
+            .from(referrals)
+            .where(and(
+              eq(referrals.rootWallet, wallet),
+              eq(referrals.layer, level)
+            ));
+          layerCount = layerReferralsResult[0]?.count || 0;
+        } catch (error) {
+          console.warn(`Database timeout for layer ${level} query, using fallback data:`, error.message);
+        }
         
         downlineMatrix.push({
           level,
-          members: layerReferralsResult[0]?.count || 0,
+          members: layerCount,
           upgraded: 0, // TODO: Calculate upgraded members
-          placements: layerReferralsResult[0]?.count || 0
+          placements: layerCount
         });
       }
       
@@ -125,8 +155,10 @@ export function registerStatsRoutes(app: Express) {
   app.get("/api/stats/user-matrix", requireWallet, async (req: any, res) => {
     try {
       const { walletAddress } = req;
+      const wallet = walletAddress.toLowerCase();
       
-      const member = await storage.getMember(walletAddress);
+      // Get member data from database  
+      const [member] = await db.select().from(members).where(eq(members.walletAddress, wallet));
       
       const matrixStats = {
         totalMembers: 0,
@@ -158,17 +190,19 @@ export function registerStatsRoutes(app: Express) {
   app.get("/api/stats/user-rewards", requireWallet, async (req: any, res) => {
     try {
       const { walletAddress } = req;
+      const wallet_address = walletAddress.toLowerCase();
       
-      const wallet = await storage.getUserWallet(walletAddress);
+      // Get user wallet data from database
+      const [wallet_data] = await db.select().from(userWallet).where(eq(userWallet.walletAddress, wallet_address));
       
       const rewardStats = {
-        totalEarned: 0, // TODO: Implement when reward system is available
-        available: wallet?.availableUSDT || 0,
-        withdrawn: 0, // TODO: Implement when withdrawal system is available
+        totalEarned: wallet_data ? (wallet_data.totalUSDTEarnings / 100) : 0, // Convert from cents
+        available: wallet_data ? (wallet_data.availableUSDT / 100) : 0,
+        withdrawn: wallet_data ? (wallet_data.withdrawnUSDT / 100) : 0,
         pendingClaims: 0,
-        pendingAmount: 0,
-        bccBalance: wallet?.bccBalance || 0,
-        bccLocked: wallet?.bccLocked || 0,
+        pendingAmount: wallet_data?.pendingUpgradeRewards || 0,
+        bccBalance: wallet_data?.bccBalance || 0,
+        bccLocked: wallet_data?.bccLocked || 0,
         recentRewards: [], // TODO: Get recent reward history
       };
       

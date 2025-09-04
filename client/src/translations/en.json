@@ -356,6 +356,18 @@
     "showAll": "Show all {{count}} notifications"
   },
   "referrals": {
+    "activated": "Activated",
+    "copy": "Copy", 
+    "linkDescription": "Share this link to earn rewards when people join through your referral",
+    "matrixLevel": "Matrix Level",
+    "matrixView": "Your Matrix Network",
+    "noReferrals": "No referrals yet. Start sharing your link!",
+    "pending": "Pending",
+    "recentReferrals": "Recent Referrals",
+    "subtitle": "Build your network and earn rewards through our referral system",
+    "totalEarnings": "Total Earnings",
+    "totalReferrals": "Total Referrals", 
+    "yourLink": "Your Referral Link",
     "rewardStructure": {
       "title": "BeeHive Reward Structure",
       "globalMatrix": "Global Matrix System",
@@ -608,6 +620,7 @@
   "discover": {
     "title": "Discover",
     "subtitle": "Explore Web3 DApps and Services",
+    "searchPlaceholder": "Search partners...",
     "search": {
       "placeholder": "Search DApps, protocols, or services...",
       "recent": "Recent",
@@ -834,6 +847,24 @@
       "enterValidAmount": "Please enter a valid token amount"
     }
   },
+  "nft": {
+    "claimError": "Claim Failed",
+    "claimErrorDesc": "Failed to claim NFT. Please try again.",
+    "claimNow": "Claim NFT",
+    "claimSuccess": "NFT Claimed Successfully",
+    "claimSuccessDesc": "Your NFT has been claimed and added to your collection",
+    "confirmAndClaim": "Confirm & Claim",
+    "confirmClaim": "Confirm NFT Claim", 
+    "confirmClaimDesc": "You are about to claim this exclusive NFT. This action cannot be undone.",
+    "connectWallet": "Connect Wallet",
+    "connectWalletDesc": "Please connect your wallet to claim NFTs",
+    "insufficientBalance": "Insufficient Balance",
+    "insufficientBalanceDesc": "You don't have enough tokens to claim this NFT",
+    "price": "Price",
+    "subtitle": "Discover and claim exclusive NFTs from our partners",
+    "title": "NFT Center",
+    "yourBalance": "Your Balance"
+  },
   "nftCenter": {
     "title": "NFT Center",
     "description": "Manage your Advertisement NFTs, view locked BCC amounts, and activate promotional services",
@@ -865,8 +896,17 @@
     }
   },
   "me": {
-    "title": "Profile & Settings",
+    "title": "Profile & Settings", 
+    "directReferrals": "Direct Referrals",
     "editProfile": "Edit Profile",
+    "indirectReferrals": "Team Referrals",
+    "noReferralData": "No referral data available",
+    "referrals": "Referrals",
+    "referralStats": "Referral Statistics", 
+    "rewards": "Rewards",
+    "subtitle": "View your stats, balances, and account details",
+    "totalEarnings": "Total Earnings",
+    "totalReferrals": "Total Referrals",
     "status": {
       "active": "Active",
       "memberSince": "Member since"
@@ -906,7 +946,22 @@
     }
   },
   "membership": {
+    "levels": {
+      "title": "Membership Levels",
+      "subtitle": "Choose your level and unlock exclusive benefits", 
+      "currentLevel": "Current Level",
+      "priceUSDT": "USDT",
+      "benefits": "Key Benefits",
+      "owned": "Owned",
+      "selected": "Selected",
+      "activated": "Activated", 
+      "higherLevelOwned": "Higher Level Active",
+      "selectionInfo": "Click the purchase button to acquire this membership level"
+    },
     "purchase": {
+      "activationSuccess": "Membership activated successfully!",
+      "nftActivationFailed": "NFT activation failed. Please try again.",
+      "walletNotConnected": "Please connect your wallet first",
       "button": "Purchase Level {level} (${price} USDT)",
       "approving": "Approving USDT...",
       "preparing": "Preparing Payment...",

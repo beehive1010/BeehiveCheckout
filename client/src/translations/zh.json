@@ -165,7 +165,14 @@
       }
     },
     "recentActivity": "最近活动",
+    "activitiesWillAppear": "当您与平台交互时，您的活动将显示在此处",
+    "bccLocked": "BCC 已锁定",
+    "noActivities": "暂无最近活动",
+    "recentActivities": "最近活动",
+    "referralDescription": "分享此链接以获得推荐奖励",
+    "referrals": "推荐",
     "activation": {
+      "activationNote": "点击激活您现有的NFT",
       "success": {
         "title": "会员已激活！",
         "description": "欢迎来到蜂巢！您现在可以访问所有会员功能。"
@@ -368,9 +375,39 @@
       "noNotifications": "暂无升级通知",
       "notificationsAppear": "当团队成员升级时，通知将显示在这里"
     },
+    "activated": "已激活",
+    "copy": "复制",
+    "linkDescription": "分享此链接，当有人通过您的推荐加入时获得奖励",
+    "matrixLevel": "矩阵级别",
+    "matrixView": "您的矩阵网络",
+    "noReferrals": "暂无推荐记录。开始分享您的链接吧！",
+    "pending": "待处理",
+    "recentReferrals": "最近推荐",
+    "subtitle": "构建您的网络，通过我们的推荐系统获得奖励",
+    "totalEarnings": "总收益",
+    "totalReferrals": "总推荐数",
+    "yourLink": "您的推荐链接",
     "upgradeRewards": {
       "description": "跟踪您矩阵层的升级奖励。当成员购买更高级别的NFT时，您有72小时的时间升级。"
     }
+  },
+  "nft": {
+    "claimError": "认领失败",
+    "claimErrorDesc": "认领NFT失败。请重试。",
+    "claimNow": "认领NFT",
+    "claimSuccess": "NFT认领成功",
+    "claimSuccessDesc": "您的NFT已成功认领并添加到收藏中",
+    "confirmAndClaim": "确认并认领",
+    "confirmClaim": "确认NFT认领",
+    "confirmClaimDesc": "您即将认领此独家NFT。此操作无法撤销。",
+    "connectWallet": "连接钱包",
+    "connectWalletDesc": "请连接您的钱包以认领NFT",
+    "insufficientBalance": "余额不足",
+    "insufficientBalanceDesc": "您的代币余额不足，无法认领此NFT",
+    "price": "价格",
+    "subtitle": "发现并认领我们合作伙伴的独家NFT",
+    "title": "NFT中心",
+    "yourBalance": "您的余额"
   },
   "me": {
     "title": "用户中心",
@@ -503,6 +540,18 @@
     "purchase": "购买课程",
     "enrolling": "注册中...",
     "insufficientBCC": "BCC不足",
+    "allLevels": "所有级别",
+    "filterByLevel": "按级别筛选",
+    "insufficientBalance": "余额不足",
+    "insufficientBalanceDesc": "您的BCC余额不足，无法购买此课程",
+    "level": "级别",
+    "levelRequiredDesc": "此课程需要更高的会员级别",
+    "noCourses": "暂无可用课程",
+    "purchaseError": "购买失败",
+    "purchaseErrorDesc": "购买课程失败。请重试。",
+    "purchaseSuccess": "购买成功",
+    "purchaseSuccessDesc": "课程已添加到您的学习库",
+    "searchPlaceholder": "搜索课程...",
     "claim": {
       "success": {
         "title": "注册成功！",
@@ -523,6 +572,7 @@
       "trending": "热门",
       "clear": "清除"
     },
+    "searchPlaceholder": "搜索合作伙伴...",
     "featured": {
       "title": "Beehive精选",
       "viewAll": "查看全部"
@@ -695,6 +745,9 @@
         "Community": "社区",
         "DAO": "DAO"
       },
+      "noPosts": "未找到文章",
+      "readMore": "阅读更多",
+      "searchPlaceholder": "搜索文章...",
       "posts": {
         "1": {
           "title": "Web3会员系统的未来",
@@ -750,6 +803,15 @@
       "totalEarnings": "总收益",
       "thisMonth": "本月"
     },
+    "directReferrals": "直接推荐",
+    "indirectReferrals": "团队推荐",
+    "noReferralData": "暂无推荐数据",
+    "referrals": "推荐",
+    "referralStats": "推荐统计",
+    "rewards": "奖励",
+    "subtitle": "查看您的统计数据、余额和账户详情",
+    "totalEarnings": "总收益",
+    "totalReferrals": "总推荐数",
     "settings": {
       "title": "账户设置",
       "language": "语言",
@@ -978,6 +1040,22 @@
         "title": "购买失败",
         "description": "无法完成会员购买。请重试。"
       }
-    }
+    },
+    "levels": {
+      "title": "会员级别",
+      "subtitle": "选择您的级别并解锁独家权益",
+      "currentLevel": "当前级别",
+      "priceUSDT": "USDT",
+      "benefits": "主要权益",
+      "owned": "已拥有",
+      "selected": "已选择",
+      "activated": "已激活",
+      "higherLevelOwned": "更高级别已激活",
+      "selectionInfo": "点击购买按钮获取此会员级别"
+    },
+    "activationSuccess": "会员激活成功！",
+    "nftActivationFailed": "NFT激活失败。请重试。",
+    "walletNotConnected": "请先连接您的钱包"
   }
+}
 }
