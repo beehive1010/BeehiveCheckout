@@ -172,7 +172,14 @@
       }
     },
     "recentActivity": "最近のアクティビティ",
+    "activitiesWillAppear": "プラットフォームとインタラクトすると、あなたのアクティビティがここに表示されます",
+    "bccLocked": "BCCロック済み",
+    "noActivities": "最近のアクティビティなし",
+    "recentActivities": "最近のアクティビティ",
+    "referralDescription": "紹介リンクをシェアして紹介報酬を獲得",
+    "referrals": "紹介",
     "activation": {
+      "activationNote": "既存のNFTをアクティベートするにはクリック",
       "success": {
         "title": "メンバーシップがアクティベートされました！",
         "description": "Beehiveへようこそ！すべてのメンバー機能にアクセスできるようになりました。"
@@ -363,6 +370,18 @@
     "search": {
       "placeholder": "コース、トピック、スキルを検索..."
     },
+    "allLevels": "すべてのレベル",
+    "filterByLevel": "レベルでフィルター",
+    "insufficientBalance": "残高不足",
+    "insufficientBalanceDesc": "このコースを購入するのに十分なBCCがありません",
+    "level": "レベル",
+    "levelRequiredDesc": "このコースはより高いメンバーシップレベルが必要です",
+    "noCourses": "使用可能なコースなし",
+    "purchaseError": "購入失敗",
+    "purchaseErrorDesc": "コースの購入に失敗しました。もう一度試してください。",
+    "purchaseSuccess": "購入成功",
+    "purchaseSuccessDesc": "コースがライブラリに追加されました",
+    "searchPlaceholder": "コースを検索...",
     "filters": {
       "category": "カテゴリー",
       "level": "レベル",
@@ -439,8 +458,12 @@
   "discover": {
     "title": "発見",
     "subtitle": "Web3 DAppsとサービスを探索",
+    "noPosts": "記事が見つかりません",
+    "readMore": "詳しく読む",
+    "searchPlaceholder": "記事を検索...",
+    "subtitle": "Beehiveエコシステムからの洞察、チュートリアル、最新ニュースを発見",
     "search": {
-      "placeholder": "DApps、プロトコル、サービスを検索...",
+      "placeholder": "パートナーを検索...",
       "recent": "最近",
       "trending": "トレンド",
       "clear": "クリア"
@@ -561,8 +584,26 @@
     "featured": "特集",
     "trending": "トレンド"
   },
+  "referrals": {
+    "activated": "アクティベート済み",
+    "copy": "コピー",
+    "linkDescription": "人々があなたの紹介で参加したときに報酬を獲得するためにこのリンクをシェア",
+    "matrixLevel": "マトリックスレベル",
+    "matrixView": "マトリックスネットワーク",
+    "noReferrals": "まだ紹介がありません。リンクのシェアを開始しましょう！",
+    "pending": "保留中",
+    "recentReferrals": "最近の紹介",
+    "subtitle": "ネットワークを構築し、紹介システムで報酬を獲得しましょう",
+    "totalEarnings": "総収益",
+    "totalReferrals": "総紹介数",
+    "yourLink": "あなたの紹介リンク"
+  },
   "hiveworld": {
     "title": "ハイブワールド - あなたのマトリックス",
+    "noPosts": "記事が見つかりません",
+    "readMore": "詳しく読む",
+    "searchPlaceholder": "記事を検索...",
+    "subtitle": "Beehiveエコシステムからの洞察、チュートリアル、最新ニュースを発見",
     "stats": {
       "directReferrals": "直接紹介",
       "totalTeam": "総チーム",
@@ -646,8 +687,35 @@
       }
     }
   },
+  "nft": {
+    "claimError": "請求失敗",
+    "claimErrorDesc": "NFTの請求に失敗しました。もう一度試してください。",
+    "claimNow": "NFT請求",
+    "claimSuccess": "NFT請求成功",
+    "claimSuccessDesc": "NFTが請求され、コレクションに追加されました",
+    "confirmAndClaim": "確認して請求",
+    "confirmClaim": "NFT請求の確認",
+    "confirmClaimDesc": "この独占的なNFTを請求しようとしています。この操作は取り消しできません。",
+    "connectWallet": "ウォレット接続",
+    "connectWalletDesc": "NFTを請求するにはウォレットを接続してください",
+    "insufficientBalance": "残高不足",
+    "insufficientBalanceDesc": "このNFTを請求するのに十分なトークンがありません",
+    "price": "価格",
+    "subtitle": "パートナーからの独占的なNFTを発見し、請求しましょう",
+    "title": "NFTセンター",
+    "yourBalance": "あなたの残高"
+  },
   "me": {
     "title": "プロフィールと設定",
+    "directReferrals": "直接紹介",
+    "indirectReferrals": "チーム紹介",
+    "noReferralData": "利用可能な紹介データなし",
+    "referrals": "紹介",
+    "referralStats": "紹介統計",
+    "rewards": "報酬",
+    "subtitle": "あなたの統計、残高、アカウント詳細を表示",
+    "totalEarnings": "総収益",
+    "totalReferrals": "総紹介数",
     "editProfile": "プロフィール編集",
     "status": {
       "active": "アクティブ",
@@ -871,7 +939,23 @@
     "completed": "完了",
     "enrolled": "登録済み"
   },
+    "levels": {
+      "title": "メンバーシップレベル",
+      "subtitle": "レベルを選択し、独占特典をアンロックしましょう",
+      "currentLevel": "現在のレベル",
+      "priceUSDT": "USDT",
+      "benefits": "主な特典",
+      "owned": "所有済み",
+      "selected": "選択済み",
+      "activated": "アクティベート済み",
+      "higherLevelOwned": "より高いレベルがアクティブ",
+      "selectionInfo": "このメンバーシップレベルを獲得するには購入ボタンをクリックしてください"
+    }
+  },
   "membership": {
+    "activationSuccess": "メンバーシップが成功裁にアクティベートされました！",
+    "nftActivationFailed": "NFTのアクティベーションに失敗しました。もう一度試してください。",
+    "walletNotConnected": "まずウォレットを接続してください",
     "purchase": {
       "button": "メンバーアンロック - 130 USDT",
       "connectWallet": "購入のためウォレット接続",

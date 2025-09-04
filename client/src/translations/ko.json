@@ -239,7 +239,14 @@
       }
     },
     "recentActivity": "최근 활동",
+    "activitiesWillAppear": "플랫폼과 상호 작용할 때 활동이 여기에 나타납니다",
+    "bccLocked": "BCC 잠김",
+    "noActivities": "최근 활동 없음",
+    "recentActivities": "최근 활동",
+    "referralDescription": "추천 보상을 받으려면 이 링크를 공유하세요",
+    "referrals": "추천",
     "activation": {
+      "activationNote": "기존 NFT를 활성화하려면 클릭하세요",
       "success": {
         "title": "멤버십 활성화됨!",
         "description": "Beehive에 오신 것을 환영합니다! 이제 모든 회원 기능에 액세스할 수 있습니다."
@@ -430,6 +437,18 @@
     "search": {
       "placeholder": "배우고 싶은 내용"
     },
+    "allLevels": "모든 레벨",
+    "filterByLevel": "레벨로 필터링",
+    "insufficientBalance": "잔액 부족",
+    "insufficientBalanceDesc": "이 코스를 구매하기에 BCC가 부족합니다",
+    "level": "레벨",
+    "levelRequiredDesc": "이 코스는 더 높은 멤버십 레벨이 필요합니다",
+    "noCourses": "사용 가능한 코스 없음",
+    "purchaseError": "구매 실패",
+    "purchaseErrorDesc": "코스 구매에 실패했습니다. 다시 시도해 주세요.",
+    "purchaseSuccess": "구매 성공",
+    "purchaseSuccessDesc": "코스가 라이브러리에 추가되었습니다",
+    "searchPlaceholder": "코스 검색...",
     "filters": {
       "category": "카테고리",
       "allCategories": "모든 카테고리",
@@ -500,8 +519,12 @@
   "discover": {
     "title": "탐색",
     "subtitle": "Web3 DApps 및 서비스 탐색",
+    "noPosts": "기사를 찾을 수 없음",
+    "readMore": "더 읽기",
+    "searchPlaceholder": "기사 검색...",
+    "subtitle": "Beehive 생태계의 인사이트, 튜토리얼 및 최신 뉴스를 발견하세요",
     "search": {
-      "placeholder": "DApps, 프로토콜 또는 서비스 검색...",
+      "placeholder": "파트너 검색...",
       "recent": "최근",
       "trending": "트렌딩",
       "clear": "지우기"
@@ -640,8 +663,26 @@
     "featured": "추천",
     "trending": "트렌딩"
   },
+  "referrals": {
+    "activated": "활성화됨",
+    "copy": "복사",
+    "linkDescription": "사람들이 추천을 통해 가입할 때 보상을 받으려면 이 링크를 공유하세요",
+    "matrixLevel": "매트릭스 레벨",
+    "matrixView": "매트릭스 네트워크",
+    "noReferrals": "아직 추천이 없습니다. 링크 공유를 시작하세요!",
+    "pending": "대기 중",
+    "recentReferrals": "최근 추천",
+    "subtitle": "네트워크를 구축하고 추천 시스템을 통해 보상을 받으세요",
+    "totalEarnings": "총 수익",
+    "totalReferrals": "총 추천",
+    "yourLink": "추천 링크"
+  },
   "hiveworld": {
     "title": "HiveWorld - 당신의 매트릭스",
+    "noPosts": "기사를 찾을 수 없음",
+    "readMore": "더 읽기",
+    "searchPlaceholder": "기사 검색...",
+    "subtitle": "Beehive 생태계의 인사이트, 튜토리얼 및 최신 뉴스를 발견하세요",
     "stats": {
       "directReferrals": "직접 추천",
       "totalTeam": "총 팀",
@@ -725,8 +766,35 @@
       }
     }
   },
+  "nft": {
+    "claimError": "클레임 실패",
+    "claimErrorDesc": "NFT 클레임에 실패했습니다. 다시 시도해 주세요.",
+    "claimNow": "NFT 클레임",
+    "claimSuccess": "NFT 클레임 성공",
+    "claimSuccessDesc": "NFT가 클레임되어 컬렉션에 추가되었습니다",
+    "confirmAndClaim": "확인 및 클레임",
+    "confirmClaim": "NFT 클레임 확인",
+    "confirmClaimDesc": "이 독점적인 NFT를 클레임하려고 합니다. 이 작업은 취소할 수 없습니다.",
+    "connectWallet": "지갑 연결",
+    "connectWalletDesc": "NFT를 클레임하려면 지갑을 연결해 주세요",
+    "insufficientBalance": "잔액 부족",
+    "insufficientBalanceDesc": "이 NFT를 클레임하기에 토큰이 부족합니다",
+    "price": "가격",
+    "subtitle": "파트너로부터 독점적인 NFT를 발견하고 클레임하세요",
+    "title": "NFT 센터",
+    "yourBalance": "보유 잔액"
+  },
   "me": {
     "title": "프로필 및 설정",
+    "directReferrals": "직접 추천",
+    "indirectReferrals": "팀 추천",
+    "noReferralData": "사용 가능한 추천 데이터 없음",
+    "referrals": "추천",
+    "referralStats": "추천 통계",
+    "rewards": "보상",
+    "subtitle": "통계, 잔액 및 계정 세부 정보 보기",
+    "totalEarnings": "총 수익",
+    "totalReferrals": "총 추천",
     "editProfile": "프로필 편집",
     "status": {
       "active": "활성",
@@ -792,6 +860,14 @@
     "levels": {
       "title": "멤버십 레벨",
       "subtitle": "레벨을 선택하고 독점 혜택을 잠금 해제하세요",
+      "currentLevel": "현재 레벨",
+      "priceUSDT": "USDT",
+      "benefits": "주요 혜택",
+      "owned": "소유함",
+      "selected": "선택됨",
+      "activated": "활성화됨",
+      "higherLevelOwned": "더 높은 레벨 활성",
+      "selectionInfo": "이 멤버십 레벨을 획득하려면 구매 버튼을 클릭하세요",
       "currentLevel": "현재 레벨",
       "priceUSDT": "USDT",
       "benefits": "주요 혜택",
@@ -1215,6 +1291,9 @@
     "enrolled": "등록됨"
   },
   "membership": {
+    "activationSuccess": "멤버십이 성공적으로 활성화되었습니다!",
+    "nftActivationFailed": "NFT 활성화에 실패했습니다. 다시 시도해 주세요.",
+    "walletNotConnected": "먼저 지갑을 연결해 주세요",
     "purchase": {
       "button": "회원 잠금 해제 - 130 USDT",
       "connectWallet": "구매를 위해 지갑 연결",

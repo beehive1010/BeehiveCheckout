@@ -233,7 +233,14 @@
       }
     },
     "recentActivity": "Aktiviti Terkini",
+    "activitiesWillAppear": "Aktiviti anda akan muncul di sini semasa anda berinteraksi dengan platform",
+    "bccLocked": "BCC Terkunci",
+    "noActivities": "Tiada aktiviti terkini",
+    "recentActivities": "Aktiviti Terkini",
+    "referralDescription": "Kongsi pautan ini untuk mendapat ganjaran rujukan",
+    "referrals": "Rujukan",
     "activation": {
+      "activationNote": "Klik untuk mengaktifkan NFT sedia ada anda",
       "success": {
         "title": "Keahlian Diaktifkan!",
         "description": "Selamat datang ke Beehive! Anda kini mempunyai akses kepada semua ciri ahli."
@@ -399,6 +406,18 @@
     "search": {
       "placeholder": "Apa yang anda mahu pelajari"
     },
+    "allLevels": "Semua Tahap",
+    "filterByLevel": "Tapis Mengikut Tahap",
+    "insufficientBalance": "Baki Tidak Mencukupi",
+    "insufficientBalanceDesc": "Anda tidak mempunyai BCC yang cukup untuk membeli kursus ini",
+    "level": "Tahap",
+    "levelRequiredDesc": "Kursus ini memerlukan tahap keahlian yang lebih tinggi",
+    "noCourses": "Tiada kursus tersedia",
+    "purchaseError": "Pembelian Gagal",
+    "purchaseErrorDesc": "Gagal membeli kursus. Sila cuba lagi.",
+    "purchaseSuccess": "Pembelian Berjaya",
+    "purchaseSuccessDesc": "Kursus telah ditambah ke perpustakaan anda",
+    "searchPlaceholder": "Cari kursus...",
     "filters": {
       "category": "Kategori",
       "allCategories": "Semua Kategori",
@@ -469,8 +488,12 @@
   "discover": {
     "title": "Terokai",
     "subtitle": "Jelajahi Web3 DApps dan Perkhidmatan",
+    "noPosts": "Tiada artikel ditemui",
+    "readMore": "Baca Selanjutnya",
+    "searchPlaceholder": "Cari artikel...",
+    "subtitle": "Temui wawasan, tutorial, dan berita terkini dari ekosistem Beehive",
     "search": {
-      "placeholder": "Cari DApps, protokol, atau perkhidmatan...",
+      "placeholder": "Cari rakan kongsi...",
       "recent": "Terkini",
       "trending": "Trending",
       "clear": "Kosongkan"
@@ -593,8 +616,26 @@
     "featured": "Diketengahkan",
     "trending": "Trending"
   },
+  "referrals": {
+    "activated": "Diaktifkan",
+    "copy": "Salin",
+    "linkDescription": "Kongsi pautan ini untuk mendapat ganjaran apabila orang menyertai melalui rujukan anda",
+    "matrixLevel": "Tahap Matrix",
+    "matrixView": "Rangkaian Matrix Anda",
+    "noReferrals": "Tiada rujukan lagi. Mula kongsi pautan anda!",
+    "pending": "Menunggu",
+    "recentReferrals": "Rujukan Terkini",
+    "subtitle": "Bina rangkaian anda dan dapatkan ganjaran melalui sistem rujukan kami",
+    "totalEarnings": "Jumlah Pendapatan",
+    "totalReferrals": "Jumlah Rujukan",
+    "yourLink": "Pautan Rujukan Anda"
+  },
   "hiveworld": {
     "title": "HiveWorld - Matrix Anda",
+    "noPosts": "Tiada artikel ditemui",
+    "readMore": "Baca Selanjutnya",
+    "searchPlaceholder": "Cari artikel...",
+    "subtitle": "Temui wawasan, tutorial, dan berita terkini dari ekosistem Beehive",
     "stats": {
       "directReferrals": "Rujukan Langsung",
       "totalTeam": "Jumlah Pasukan",
@@ -626,8 +667,35 @@
       "description": "Pautan rujukan anda telah disalin ke papan keratan."
     }
   },
+  "nft": {
+    "claimError": "Tuntutan Gagal",
+    "claimErrorDesc": "Gagal menuntut NFT. Sila cuba lagi.",
+    "claimNow": "Tuntut NFT",
+    "claimSuccess": "NFT Berjaya Dituntut",
+    "claimSuccessDesc": "NFT anda telah dituntut dan ditambah ke koleksi anda",
+    "confirmAndClaim": "Sahkan & Tuntut",
+    "confirmClaim": "Sahkan Tuntutan NFT",
+    "confirmClaimDesc": "Anda akan menuntut NFT eksklusif ini. Tindakan ini tidak boleh dibatalkan.",
+    "connectWallet": "Sambung Dompet",
+    "connectWalletDesc": "Sila sambung dompet anda untuk menuntut NFT",
+    "insufficientBalance": "Baki Tidak Mencukupi",
+    "insufficientBalanceDesc": "Anda tidak mempunyai token yang cukup untuk menuntut NFT ini",
+    "price": "Harga",
+    "subtitle": "Temui dan tuntut NFT eksklusif daripada rakan kongsi kami",
+    "title": "Pusat NFT",
+    "yourBalance": "Baki Anda"
+  },
   "me": {
     "title": "Profil & Tetapan",
+    "directReferrals": "Rujukan Langsung",
+    "indirectReferrals": "Rujukan Pasukan",
+    "noReferralData": "Tiada data rujukan tersedia",
+    "referrals": "Rujukan",
+    "referralStats": "Statistik Rujukan",
+    "rewards": "Ganjaran",
+    "subtitle": "Lihat statistik, baki, dan butiran akaun anda",
+    "totalEarnings": "Jumlah Pendapatan",
+    "totalReferrals": "Jumlah Rujukan",
     "editProfile": "Edit Profil",
     "status": {
       "active": "Aktif",
@@ -811,6 +879,14 @@
     "levels": {
       "title": "Tahap Keahlian",
       "subtitle": "Pilih tahap anda dan buka kunci faedah eksklusif",
+      "currentLevel": "Tahap Semasa",
+      "priceUSDT": "USDT",
+      "benefits": "Faedah Utama",
+      "owned": "Dimiliki",
+      "selected": "Dipilih",
+      "activated": "Diaktifkan",
+      "higherLevelOwned": "Tahap Lebih Tinggi Aktif",
+      "selectionInfo": "Klik butang beli untuk memperoleh tahap keahlian ini",
       "currentLevel": "Tahap Semasa",
       "priceUSDT": "USDT",
       "benefits": "Faedah Utama",
@@ -1152,6 +1228,9 @@
     "enrolled": "Didaftarkan"
   },
   "membership": {
+    "activationSuccess": "Keahlian berjaya diaktifkan!",
+    "nftActivationFailed": "Pengaktifan NFT gagal. Sila cuba lagi.",
+    "walletNotConnected": "Sila sambung dompet anda dahulu",
     "purchase": {
       "button": "Buka Kunci Keahlian - 130 USDT",
       "connectWallet": "Sambung Dompet untuk Beli",

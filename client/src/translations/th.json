@@ -210,7 +210,14 @@
       }
     },
     "recentActivity": "กิจกรรมล่าสุด",
+    "activitiesWillAppear": "กิจกรรมของคุณจะปรากฏที่นี่เมื่อคุณมีปฏิสัมพันธ์กับแพลตฟอร์ม",
+    "bccLocked": "BCC ล็อค",
+    "noActivities": "ไม่มีกิจกรรมล่าสุด",
+    "recentActivities": "กิจกรรมล่าสุด",
+    "referralDescription": "แชร์ลิงค์นี้เพื่อรับรางวัลการแนะนำ",
+    "referrals": "การแนะนำ",
     "activation": {
+      "activationNote": "คลิกเพื่อเปิดใช้งาน NFT ที่มีอยู่ของคุณ",
       "success": {
         "title": "เปิดใช้งานสมาชิกแล้ว!",
         "description": "ยินดีต้อนรับสู่ Beehive! คุณสามารถเข้าถึงฟีเจอร์สมาชิกทั้งหมดได้แล้ว"
@@ -376,6 +383,18 @@
     "search": {
       "placeholder": "สิ่งที่คุณต้องการเรียนรู้"
     },
+    "allLevels": "ระดับทั้งหมด",
+    "filterByLevel": "กรองตามระดับ",
+    "insufficientBalance": "ยอดเงินไม่เพียงพอ",
+    "insufficientBalanceDesc": "คุณมี BCC ไม่เพียงพอสำหรับซื้อคอร์สนี้",
+    "level": "ระดับ",
+    "levelRequiredDesc": "คอร์สนี้ต้องการระดับสมาชิกที่สูงกว่า",
+    "noCourses": "ไม่มีคอร์สที่มีอยู่",
+    "purchaseError": "การซื้อล้มเหลว",
+    "purchaseErrorDesc": "ซื้อคอร์สล้มเหลว กรุณาลองใหม่อีกครั้ง",
+    "purchaseSuccess": "ซื้อสำเร็จ",
+    "purchaseSuccessDesc": "คอร์สถูกเพิ่มเข้าไลบรารีของคุณแล้ว",
+    "searchPlaceholder": "ค้นหาคอร์ส...",
     "filters": {
       "category": "หมวดหมู่",
       "allCategories": "หมวดหมู่ทั้งหมด",
@@ -446,8 +465,12 @@
   "discover": {
     "title": "ค้นพบ",
     "subtitle": "สำรวจ Web3 DApps และบริการ",
+    "noPosts": "ไม่พบบทความ",
+    "readMore": "อ่านเพิ่มเติม",
+    "searchPlaceholder": "ค้นหาบทความ...",
+    "subtitle": "ค้นพบข้อมูลเชิงลึก บทเรียน และข่าวสารล่าสุดจากระบบนิเวศ Beehive",
     "search": {
-      "placeholder": "ค้นหา DApps, โปรโตคอล หรือบริการ...",
+      "placeholder": "ค้นหาพันธมิตร...",
       "recent": "ล่าสุด",
       "trending": "ทริ้นดิ้ง",
       "clear": "ล้าง"
@@ -582,8 +605,26 @@
     "featured": "เด่น",
     "trending": "ทริ้นดิ้ง"
   },
+  "referrals": {
+    "activated": "เปิดใช้งานแล้ว",
+    "copy": "คัดลอก",
+    "linkDescription": "แชร์ลิงค์นี้เพื่อรับรางวัลเมื่อมีคนเข้าร่วมผ่านการแนะนำของคุณ",
+    "matrixLevel": "ระดับ Matrix",
+    "matrixView": "เครือข่าย Matrix ของคุณ",
+    "noReferrals": "ยังไม่มีการแนะนำ เริ่มแชร์ลิงค์ของคุณ!",
+    "pending": "รอดำเนินการ",
+    "recentReferrals": "การแนะนำล่าสุด",
+    "subtitle": "สร้างเครือข่ายของคุณและรับรางวัลผ่านระบบการแนะนำของเรา",
+    "totalEarnings": "รายได้ทั้งหมด",
+    "totalReferrals": "การแนะนำทั้งหมด",
+    "yourLink": "ลิงค์การแนะนำของคุณ"
+  },
   "hiveworld": {
     "title": "HiveWorld - Matrix ของคุณ",
+    "noPosts": "ไม่พบบทความ",
+    "readMore": "อ่านเพิ่มเติม",
+    "searchPlaceholder": "ค้นหาบทความ...",
+    "subtitle": "ค้นพบข้อมูลเชิงลึก บทเรียน และข่าวสารล่าสุดจากระบบนิเวศ Beehive",
     "stats": {
       "directReferrals": "การแนะนำโดยตรง",
       "totalTeam": "ทีมทั้งหมด",
@@ -615,8 +656,35 @@
       "description": "ลิงก์แนะนำของคุณได้ถูกคัดลอกไปยังคลิปบอร์ดแล้ว"
     }
   },
+  "nft": {
+    "claimError": "การเคลมล้มเหลว",
+    "claimErrorDesc": "ไม่สามารถเคลม NFT ได้ กรุณาลองใหม่อีกครั้ง",
+    "claimNow": "เคลม NFT",
+    "claimSuccess": "เคลม NFT สำเร็จ",
+    "claimSuccessDesc": "NFT ของคุณถูกเคลมและเพิ่มเข้าคอลเลกชันแล้ว",
+    "confirmAndClaim": "ยืนยันและเคลม",
+    "confirmClaim": "ยืนยันการเคลม NFT",
+    "confirmClaimDesc": "คุณกำลังจะเคลม NFT พิเศษนี้ การดำเนินการนี้ไม่สามารถยกเลิกได้",
+    "connectWallet": "เชื่อมต่อกระเป๋าเงิน",
+    "connectWalletDesc": "กรุณาเชื่อมต่อกระเป๋าเงินของคุณเพื่อเคลม NFT",
+    "insufficientBalance": "ยอดเงินไม่เพียงพอ",
+    "insufficientBalanceDesc": "คุณมีโทเค็นไม่เพียงพอสำหรับเคลม NFT นี้",
+    "price": "ราคา",
+    "subtitle": "ค้นพบและเคลม NFT พิเศษจากพันธมิตรของเรา",
+    "title": "ศูนย์ NFT",
+    "yourBalance": "ยอดเงินของคุณ"
+  },
   "me": {
     "title": "โปรไฟล์และการตั้งค่า",
+    "directReferrals": "การแนะนำโดยตรง",
+    "indirectReferrals": "การแนะนำทีม",
+    "noReferralData": "ไม่มีข้อมูลการแนะนำ",
+    "referrals": "การแนะนำ",
+    "referralStats": "สถิติการแนะนำ",
+    "rewards": "รางวัล",
+    "subtitle": "ดูสถิติ ยอดเงิน และรายละเอียดบัญชีของคุณ",
+    "totalEarnings": "รายได้ทั้งหมด",
+    "totalReferrals": "การแนะนำทั้งหมด",
     "editProfile": "แก้ไขโปรไฟล์",
     "status": {
       "active": "เปิดใช้งาน",
@@ -682,6 +750,14 @@
     "levels": {
       "title": "ระดับสมาชิก",
       "subtitle": "เลือกระดับของคุณและปลดล็อกสิทธิประโยชน์พิเศษ",
+      "currentLevel": "ระดับปัจจุบัน",
+      "priceUSDT": "USDT",
+      "benefits": "ผลประโยชน์หลัก",
+      "owned": "เป็นเจ้าของ",
+      "selected": "เลือกแล้ว",
+      "activated": "เปิดใช้งานแล้ว",
+      "higherLevelOwned": "ระดับสูงกว่าเปิดใช้งาน",
+      "selectionInfo": "คลิกปุ่มซื้อเพื่อรับระดับสมาชิกนี้",
       "currentLevel": "ระดับปัจจุบัน",
       "priceUSDT": "USDT",
       "benefits": "สิทธิประโยชน์หลัก",
@@ -1110,6 +1186,9 @@
     }
   },
   "membership": {
+    "activationSuccess": "เปิดใช้งานสมาชิกสำเร็จ!",
+    "nftActivationFailed": "การเปิดใช้งาน NFT ล้มเหลว กรุณาลองใหม่อีกครั้ง",
+    "walletNotConnected": "กรุณาเชื่อมต่อกระเป๋าเงินก่อน",
     "purchase": {
       "button": "ปลดล็อกสมาชิก - 130 USDT",
       "connectWallet": "เชื่อมต่อกระเป๋าเงินเพื่อซื้อ",
