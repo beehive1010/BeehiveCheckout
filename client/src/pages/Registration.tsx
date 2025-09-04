@@ -54,7 +54,7 @@ export default function Registration() {
   }, []);
 
   // Validate referrer exists and is not self-referral
-  const { data: referrerValidation, isLoading: isValidatingReferrer } = useQuery({
+  const { data: referrerValidation, isLoading: isValidatingReferrer, error: referrerError } = useQuery({
     queryKey: ['/api/auth/validate-referrer', referrerWallet],
     queryFn: async () => {
       if (!referrerWallet || !walletAddress) return null;
@@ -64,21 +64,27 @@ export default function Registration() {
         throw new Error('You cannot refer yourself');
       }
       
-      const response = await fetch(`/api/auth/validate-referrer?address=${referrerWallet}`, {
-        headers: { 'X-Wallet-Address': walletAddress }
-      });
-      
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error('Referrer not found - they must be registered first');
+      try {
+        const response = await fetch(`/api/auth/validate-referrer?address=${referrerWallet}`, {
+          headers: { 'X-Wallet-Address': walletAddress }
+        });
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('Referrer not found - they must be registered first');
+          }
+          throw new Error('Invalid referrer');
         }
-        throw new Error('Invalid referrer');
+        
+        return response.json();
+      } catch (error: any) {
+        console.warn('Referrer validation failed:', error.message);
+        throw error;
       }
-      
-      return response.json();
     },
     enabled: !!referrerWallet && !!walletAddress,
-    retry: false
+    retry: false,
+    throwOnError: false
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -104,10 +110,10 @@ export default function Registration() {
     }
 
     // Validate referrer if provided
-    if (referrerWallet && !referrerValidation) {
+    if (referrerWallet && referrerError) {
       toast({
         title: 'Invalid Referrer',
-        description: 'Please check your referral link',
+        description: referrerError.message || 'Please check your referral link',
         variant: 'destructive'
       });
       return;
@@ -145,6 +151,15 @@ export default function Registration() {
         <div className="flex items-center text-sm text-muted-foreground">
           <div className="animate-spin h-4 w-4 border-2 border-honey border-t-transparent rounded-full mr-2"></div>
           Validating referrer...
+        </div>
+      );
+    }
+    
+    if (referrerError) {
+      return (
+        <div className="flex items-center text-sm text-red-400">
+          <AlertCircle className="h-4 w-4 mr-2" />
+          {referrerError.message || 'Invalid referrer'}
         </div>
       );
     }
@@ -261,7 +276,7 @@ export default function Registration() {
 
             <Button
               type="submit"
-              disabled={registerMutation.isPending || (!!referrerWallet && !referrerValidation)}
+              disabled={registerMutation.isPending || (!!referrerWallet && (isValidatingReferrer || !!referrerError))}
               className="w-full bg-honey text-secondary hover:bg-honey/90"
               data-testid="button-register"
             >
