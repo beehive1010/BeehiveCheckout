@@ -79,7 +79,7 @@ export class ConfigService {
   async updateTokenPurchase(id: string, updates: Partial<TokenPurchase>): Promise<TokenPurchase | undefined> {
     const [updated] = await db
       .update(tokenPurchases)
-      .set({ ...updates, updatedAt: new Date() })
+      .set(updates)
       .where(eq(tokenPurchases.id, id))
       .returning();
     return updated || undefined;
