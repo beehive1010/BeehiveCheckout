@@ -12,6 +12,21 @@ import {
 } from "@shared/schema";
 import { db } from "../../db";
 import { eq, desc, sql, and, isNull, not, count } from "drizzle-orm";
+import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { randomBytes } from 'crypto';
+import path from 'path';
+
+// Initialize S3 client with Supabase Storage credentials
+const s3Client = new S3Client({
+  endpoint: process.env.SUPABASE_STORAGE_URL,
+  region: process.env.SUPABASE_STORAGE_REGION || 'ap-southeast-1',
+  credentials: {
+    accessKeyId: process.env.SUPABASE_STORAGE_ACCESS_KEY!,
+    secretAccessKey: process.env.SUPABASE_STORAGE_SECRET_KEY!,
+  },
+  forcePathStyle: true, // Required for Supabase Storage
+});
 
 // Simplified StorageService without service delegation to avoid initialization issues
 export class StorageService {
@@ -370,6 +385,208 @@ export class StorageService {
     
     return (result.rowCount || 0) > 0;
   }
+
+  // ==================== File Storage Methods ====================
+
+  private readonly publicBucket = 'behive.public';
+  private readonly privateBucket = '_private';
+
+  /**
+   * Upload file to public bucket (accessible without authentication)
+   */
+  async uploadPublicFile(
+    file: Buffer | Uint8Array,
+    fileName: string,
+    contentType: string,
+    folder?: string
+  ): Promise<{ url: string; key: string }> {
+    const key = this.generateFileKey(fileName, folder);
+    
+    const command = new PutObjectCommand({
+      Bucket: this.publicBucket,
+      Key: key,
+      Body: file,
+      ContentType: contentType,
+    });
+
+    await s3Client.send(command);
+    
+    const url = `${process.env.SUPABASE_STORAGE_URL}/${this.publicBucket}/${key}`;
+    return { url, key };
+  }
+
+  /**
+   * Upload file to private bucket (requires authentication)
+   */
+  async uploadPrivateFile(
+    file: Buffer | Uint8Array,
+    fileName: string,
+    contentType: string,
+    folder?: string
+  ): Promise<{ url: string; key: string }> {
+    const key = this.generateFileKey(fileName, folder);
+    
+    const command = new PutObjectCommand({
+      Bucket: this.privateBucket,
+      Key: key,
+      Body: file,
+      ContentType: contentType,
+    });
+
+    await s3Client.send(command);
+    
+    // Generate presigned URL for private files
+    const url = await this.getSignedUrl(key, true);
+    return { url, key };
+  }
+
+  /**
+   * Upload profile image (public access)
+   */
+  async uploadProfileImage(
+    walletAddress: string,
+    file: Buffer | Uint8Array,
+    fileName: string,
+    contentType: string
+  ): Promise<{ url: string; key: string }> {
+    const folder = `profiles/${walletAddress}`;
+    return this.uploadPublicFile(file, fileName, contentType, folder);
+  }
+
+  /**
+   * Upload NFT metadata or image
+   */
+  async uploadNFTAsset(
+    tokenId: number,
+    file: Buffer | Uint8Array,
+    fileName: string,
+    contentType: string,
+    isMetadata: boolean = false
+  ): Promise<{ url: string; key: string }> {
+    const folder = isMetadata ? `nfts/metadata` : `nfts/images`;
+    const prefixedFileName = `${tokenId}-${fileName}`;
+    return this.uploadPublicFile(file, prefixedFileName, contentType, folder);
+  }
+
+  /**
+   * Upload merchant NFT assets
+   */
+  async uploadMerchantNFT(
+    nftId: string,
+    file: Buffer | Uint8Array,
+    fileName: string,
+    contentType: string
+  ): Promise<{ url: string; key: string }> {
+    const folder = `merchant-nfts/${nftId}`;
+    return this.uploadPublicFile(file, fileName, contentType, folder);
+  }
+
+  /**
+   * Upload course materials (private access)
+   */
+  async uploadCourseMaterial(
+    courseId: string,
+    file: Buffer | Uint8Array,
+    fileName: string,
+    contentType: string
+  ): Promise<{ url: string; key: string }> {
+    const folder = `courses/${courseId}`;
+    return this.uploadPrivateFile(file, fileName, contentType, folder);
+  }
+
+  /**
+   * Get signed URL for accessing private files
+   */
+  async getSignedUrl(
+    key: string,
+    isPrivate: boolean = false,
+    expiresIn: number = 3600 // 1 hour default
+  ): Promise<string> {
+    const bucket = isPrivate ? this.privateBucket : this.publicBucket;
+    
+    if (!isPrivate) {
+      // Public files don't need signed URLs
+      return `${process.env.SUPABASE_STORAGE_URL}/${bucket}/${key}`;
+    }
+
+    const command = new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+    });
+
+    return await getSignedUrl(s3Client, command, { expiresIn });
+  }
+
+  /**
+   * Delete file from storage
+   */
+  async deleteFile(key: string, isPrivate: boolean = false): Promise<void> {
+    const bucket = isPrivate ? this.privateBucket : this.publicBucket;
+    
+    const command = new DeleteObjectCommand({
+      Bucket: bucket,
+      Key: key,
+    });
+
+    await s3Client.send(command);
+  }
+
+  /**
+   * Generate unique file key with folder structure
+   */
+  private generateFileKey(fileName: string, folder?: string): string {
+    const timestamp = Date.now();
+    const randomSuffix = randomBytes(4).toString('hex');
+    const ext = path.extname(fileName);
+    const baseName = path.basename(fileName, ext);
+    
+    // Sanitize filename
+    const sanitizedBaseName = baseName
+      .replace(/[^a-zA-Z0-9-_]/g, '_')
+      .substring(0, 50);
+    
+    const uniqueFileName = `${sanitizedBaseName}_${timestamp}_${randomSuffix}${ext}`;
+    
+    return folder ? `${folder}/${uniqueFileName}` : uniqueFileName;
+  }
+
+  /**
+   * Validate file type and size
+   */
+  static validateFile(
+    file: { size: number; mimetype: string },
+    allowedTypes: string[],
+    maxSizeMB: number = 10
+  ): { valid: boolean; error?: string } {
+    // Check file size (convert MB to bytes)
+    const maxSizeBytes = maxSizeMB * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      return {
+        valid: false,
+        error: `File size exceeds ${maxSizeMB}MB limit`
+      };
+    }
+
+    // Check file type
+    if (!allowedTypes.includes(file.mimetype)) {
+      return {
+        valid: false,
+        error: `File type ${file.mimetype} not allowed. Allowed types: ${allowedTypes.join(', ')}`
+      };
+    }
+
+    return { valid: true };
+  }
+
+  /**
+   * Get file type constants
+   */
+  static readonly FileTypes = {
+    IMAGES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+    DOCUMENTS: ['application/pdf', 'text/plain'],
+    VIDEOS: ['video/mp4', 'video/webm'],
+    ALL_MEDIA: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'application/pdf']
+  };
 }
 
 export const storage = new StorageService();

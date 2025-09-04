@@ -20,6 +20,7 @@ import { registerConfigRoutes } from "./routes/config.routes";
 import { registerBlogRoutes } from "./routes/blog.routes";
 import { serviceRequestsRouter } from "./routes/service-requests.routes";
 import healthRoutes from "./routes/health.routes";
+import { registerUploadRoutes } from "./routes/upload.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // JWT secret for authentication
@@ -63,6 +64,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerMatrixRoutes(app);
   registerConfigRoutes(app);
   registerBlogRoutes(app);
+  registerUploadRoutes(app, requireWallet);
 
   // Register service requests routes
   app.use('/api/service-requests', serviceRequestsRouter);

@@ -10,6 +10,7 @@ import { Switch } from '../components/ui/switch';
 import { ArrowLeft, Save, User, Bell, Eye, Shield } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useToast } from '../hooks/use-toast';
+import { FileUpload } from '../components/shared/FileUpload';
 
 export default function ProfileSettings() {
   const { userData, walletAddress, currentLevel } = useWallet();
@@ -110,6 +111,30 @@ export default function ProfileSettings() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Profile Image Upload */}
+              <div className="space-y-2">
+                <Label>Profile Image</Label>
+                <FileUpload
+                  uploadType="profile-image"
+                  maxSizeMB={5}
+                  showPreview={true}
+                  onUploadComplete={(data) => {
+                    toast({
+                      title: "Profile Image Updated",
+                      description: "Your profile image has been uploaded successfully."
+                    });
+                  }}
+                  onUploadError={(error) => {
+                    toast({
+                      title: "Upload Failed",
+                      description: error,
+                      variant: "destructive"
+                    });
+                  }}
+                  className="max-w-md"
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
                 <Input
