@@ -195,7 +195,10 @@ export const levelConfig = pgTable("level_config", {
   layerLevel: integer("layer_level").notNull(), // Layer number (same as level)
   totalActivatedSeats: integer("total_activated_seats").notNull(), // 3^level total activated member seats
   maxActivePositions: integer("max_active_positions").notNull().default(3), // Max positions per member
-  maxReferralDepth: integer("max_referral_depth").notNull().default(12), // Max referral depth
+  maxReferralDepth: integer("max_referral_depth").notNull().default(19), // Max referral depth (19 layers)
+  directReferrersRequired: integer("direct_referrers_required").notNull().default(0), // Direct referrer requirement
+  upgradeCountdownHours: integer("upgrade_countdown_hours").notNull().default(72), // 72-hour countdown
+  rewardRequiresLevelMatch: boolean("reward_requires_level_match").notNull().default(true), // Level X rewards require >= Level X
   canEarnCommissions: boolean("can_earn_commissions").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -424,6 +427,9 @@ export const insertLevelConfigSchema = createInsertSchema(levelConfig).pick({
   totalActivatedSeats: true,
   maxActivePositions: true,
   maxReferralDepth: true,
+  directReferrersRequired: true,
+  upgradeCountdownHours: true,
+  rewardRequiresLevelMatch: true,
   canEarnCommissions: true,
 });
 
@@ -1581,10 +1587,42 @@ export const walletConnectionLogs = pgTable("wallet_connection_logs", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Member upgrade pending table for 72-hour countdown system
+export const memberUpgradePending = pgTable("member_upgrade_pending", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  walletAddress: varchar("wallet_address", { length: 42 }).notNull().references(() => users.walletAddress),
+  targetLevel: integer("target_level").notNull(),
+  currentLevel: integer("current_level").notNull(),
+  upgradeFeePaid: integer("upgrade_fee_paid").notNull(), // USDT cents paid
+  directReferrersCount: integer("direct_referrers_count").notNull().default(0),
+  directReferrersRequired: integer("direct_referrers_required").notNull().default(0),
+  countdownExpiresAt: timestamp("countdown_expires_at").notNull(), // 72 hours from payment
+  status: text("status").notNull().default("pending"), // 'pending', 'qualified', 'expired', 'activated'
+  paymentTxHash: text("payment_tx_hash"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  walletIdx: index("member_upgrade_pending_wallet_idx").on(table.walletAddress),
+  expiresIdx: index("member_upgrade_pending_expires_idx").on(table.countdownExpiresAt),
+  statusIdx: index("member_upgrade_pending_status_idx").on(table.status),
+}));
+
 // Insert schemas and types for new tables
 export const insertWalletConnectionLogSchema = createInsertSchema(walletConnectionLogs).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertMemberUpgradePendingSchema = createInsertSchema(memberUpgradePending).pick({
+  walletAddress: true,
+  targetLevel: true,
+  currentLevel: true,
+  upgradeFeePaid: true,
+  directReferrersCount: true,
+  directReferrersRequired: true,
+  countdownExpiresAt: true,
+  status: true,
+  paymentTxHash: true,
 });
 
 
