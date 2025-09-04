@@ -1607,6 +1607,19 @@ export const memberUpgradePending = pgTable("member_upgrade_pending", {
   statusIdx: index("member_upgrade_pending_status_idx").on(table.status),
 }));
 
+// Matrix activity log table for tracking matrix actions
+export const matrixActivityLog = pgTable("matrix_activity_log", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  memberWallet: varchar("member_wallet", { length: 42 }).notNull().references(() => users.walletAddress),
+  rootWallet: varchar("root_wallet", { length: 42 }).notNull().references(() => users.walletAddress),
+  actionType: text("action_type").notNull(),
+  layer: integer("layer"),
+  placementType: text("placement_type"),
+  positionSlot: text("position_slot"),
+  details: jsonb("details"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas and types for new tables
 export const insertWalletConnectionLogSchema = createInsertSchema(walletConnectionLogs).omit({
   id: true,
@@ -1625,6 +1638,14 @@ export const insertMemberUpgradePendingSchema = createInsertSchema(memberUpgrade
   paymentTxHash: true,
 });
 
+
+export const insertMatrixActivityLogSchema = createInsertSchema(matrixActivityLog).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertMatrixActivityLog = z.infer<typeof insertMatrixActivityLogSchema>;
+export type MatrixActivityLog = typeof matrixActivityLog.$inferSelect;
 
 export type InsertWalletConnectionLog = z.infer<typeof insertWalletConnectionLogSchema>;
 export type WalletConnectionLog = typeof walletConnectionLogs.$inferSelect;

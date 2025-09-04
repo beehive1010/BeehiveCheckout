@@ -242,7 +242,7 @@ export class StorageService {
     if (data.amountType) insertData.amountType = data.amountType;
     if (data.level !== undefined) insertData.level = data.level;
     if (data.layer !== undefined) insertData.layer = data.layer;
-    if (data.position) insertData.position = data.position;
+    if (data.position) insertData.positionSlot = data.position;
     if (data.priority) insertData.priority = data.priority;
     if (data.actionRequired !== undefined) insertData.actionRequired = data.actionRequired;
     if (data.actionType) insertData.actionType = data.actionType;

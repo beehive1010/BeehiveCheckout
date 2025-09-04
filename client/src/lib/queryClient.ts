@@ -43,9 +43,11 @@ export async function apiRequest(
     headers["X-Wallet-Address"] = addressToUse;
   }
   
-  // No JWT authentication - simplified wallet-only approach
+  // Force local development URL for API calls
+  const baseUrl = import.meta.env.MODE === 'development' ? 'http://localhost:5000' : '';
+  const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
 
-  const res = await fetch(url, {
+  const res = await fetch(fullUrl, {
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
