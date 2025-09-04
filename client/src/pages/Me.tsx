@@ -177,12 +177,6 @@ export default function Me() {
                     </p>
                   </div>
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">
-                    {t('me.noReferralData') || 'No referral data available'}
-                  </p>
-                </div>
               )}
             </CardContent>
           </Card>

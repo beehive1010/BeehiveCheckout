@@ -22,7 +22,10 @@
       "Bash(./supabase login)",
       "Bash(DEV_DB=$DATABASE_URL)",
       "Bash(__NEW_LINE__ echo \"=== PRODUCTION USERS ===\")",
-      "Bash(__NEW_LINE__ echo \"=== DEVELOPMENT USERS ===\")"
+      "Bash(__NEW_LINE__ echo \"=== DEVELOPMENT USERS ===\")",
+      "Bash(DEV_DB=$DATABASE_URL psql $DEV_DB -c \"SELECT sponsor_wallet_address, member_wallet_address FROM referrals WHERE sponsor_wallet_address NOT LIKE ''0x%'' OR member_wallet_address NOT LIKE ''0x%'';\")",
+      "Bash(DEV_DB=$DATABASE_URL psql $DEV_DB -c \"\\d referrals\")",
+      "Bash(DEV_DB=$DATABASE_URL psql $DEV_DB -c \"SELECT root_wallet, member_wallet, placer_wallet, parent_wallet FROM referrals WHERE root_wallet NOT LIKE ''0x%'' OR member_wallet NOT LIKE ''0x%'' OR placer_wallet NOT LIKE ''0x%'' OR (parent_wallet IS NOT NULL AND parent_wallet NOT LIKE ''0x%'');\")"
     ],
     "deny": [],
     "ask": []
