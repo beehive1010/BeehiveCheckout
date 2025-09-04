@@ -2,13 +2,15 @@ import {
   userActivities,
   users,
   members,
+  referrals,
   cthBalances,
   userNotifications,
   type UserActivity,
   type InsertUserActivity,
   type User,
   type UserNotification,
-  type InsertUserNotification
+  type InsertUserNotification,
+  type Referral
 } from "@shared/schema";
 import { db } from "../../db";
 import { eq, desc, sql, and, isNull, not, count } from "drizzle-orm";
@@ -384,6 +386,131 @@ export class StorageService {
       .where(eq(userNotifications.id, id));
     
     return (result.rowCount || 0) > 0;
+  }
+
+  // ==================== Referral Methods ====================
+  
+  async getReferrals(walletAddress: string): Promise<Array<{
+    id: string;
+    rootWallet: string;
+    memberWallet: string;
+    layer: number;
+    position: string;
+    parentWallet: string | null;
+    placerWallet: string;
+    placementType: string;
+    isActive: boolean;
+    placedAt: Date;
+  }>> {
+    try {
+      const referralData = await db
+        .select()
+        .from(referrals)
+        .where(eq(referrals.rootWallet, walletAddress.toLowerCase()));
+      
+      return referralData.map(r => ({
+        id: r.id,
+        rootWallet: r.rootWallet,
+        memberWallet: r.memberWallet,
+        layer: r.layer,
+        position: r.position,
+        parentWallet: r.parentWallet,
+        placerWallet: r.placerWallet,
+        placementType: r.placementType,
+        isActive: r.isActive,
+        placedAt: r.placedAt
+      }));
+    } catch (error) {
+      console.error('Error getting referrals:', error);
+      return [];
+    }
+  }
+
+  async getMember(walletAddress: string) {
+    try {
+      const [member] = await db
+        .select()
+        .from(members)
+        .where(eq(members.walletAddress, walletAddress.toLowerCase()))
+        .limit(1);
+      
+      return member ? {
+        walletAddress: member.walletAddress,
+        isActivated: member.isActivated,
+        currentLevel: member.currentLevel,
+        maxLayer: member.maxLayer,
+        levelsOwned: member.levelsOwned,
+        totalDirectReferrals: member.totalDirectReferrals,
+        totalTeamSize: member.totalTeamSize,
+        createdAt: member.createdAt,
+        updatedAt: member.updatedAt
+      } : null;
+    } catch (error) {
+      console.error('Error getting member:', error);
+      return null;
+    }
+  }
+
+  async createReferral(data: {
+    rootWallet: string;
+    memberWallet: string;
+    layer: number;
+    position: string;
+    parentWallet?: string;
+    placerWallet: string;
+    placementType: string;
+    isActive: boolean;
+  }) {
+    try {
+      const [newReferral] = await db
+        .insert(referrals)
+        .values({
+          rootWallet: data.rootWallet.toLowerCase(),
+          memberWallet: data.memberWallet.toLowerCase(),
+          layer: data.layer,
+          position: data.position,
+          parentWallet: data.parentWallet?.toLowerCase() || null,
+          placerWallet: data.placerWallet.toLowerCase(),
+          placementType: data.placementType,
+          isActive: data.isActive
+        })
+        .returning();
+      
+      return newReferral;
+    } catch (error) {
+      console.error('Error creating referral:', error);
+      throw error;
+    }
+  }
+
+  async findAvailablePosition(rootWallet: string) {
+    try {
+      const referralData = await this.getReferrals(rootWallet);
+      
+      // Find first available position in Layer 1
+      for (let layer = 1; layer <= 19; layer++) {
+        const layerReferrals = referralData.filter(r => r.layer === layer);
+        const maxPositions = Math.pow(3, layer);
+        
+        if (layerReferrals.length < maxPositions) {
+          const positions = ['L', 'M', 'R'];
+          for (const position of positions) {
+            if (!layerReferrals.some(r => r.position === position)) {
+              return {
+                layer,
+                position,
+                parentWallet: layer === 1 ? rootWallet : layerReferrals[0]?.memberWallet || rootWallet
+              };
+            }
+          }
+        }
+      }
+      
+      return null; // No available positions
+    } catch (error) {
+      console.error('Error finding available position:', error);
+      return null;
+    }
   }
 
   // ==================== File Storage Methods ====================
