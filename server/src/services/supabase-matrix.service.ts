@@ -246,7 +246,7 @@ export class SupabaseMatrixService {
   }>> {
     try {
       const result = await db.execute(sql`
-        SELECT id, member_wallet, action_type, layer, position, details, created_at
+        SELECT id, member_wallet, action_type, layer, position_slot, details, created_at
         FROM matrix_activity_log 
         WHERE root_wallet = ${rootWallet.toLowerCase()}
         ORDER BY created_at DESC 
@@ -258,7 +258,7 @@ export class SupabaseMatrixService {
         memberWallet: row.member_wallet,
         actionType: row.action_type,
         layer: row.layer,
-        position: row.position,
+        position: row.position_slot,
         details: row.details,
         createdAt: new Date(row.created_at)
       }));

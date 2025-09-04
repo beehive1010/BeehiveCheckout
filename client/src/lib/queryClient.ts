@@ -43,9 +43,9 @@ export async function apiRequest(
     headers["X-Wallet-Address"] = addressToUse;
   }
   
-  // Force local development URL for API calls
-  const baseUrl = import.meta.env.MODE === 'development' ? 'http://localhost:5000' : '';
-  const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
+  // FORCE localhost for all API calls in development
+  const baseUrl = 'http://localhost:5000';
+  const fullUrl = url.startsWith('http') ? url.replace(/https:\/\/[^\/]+/, baseUrl) : `${baseUrl}${url}`;
 
   const res = await fetch(fullUrl, {
     method,
