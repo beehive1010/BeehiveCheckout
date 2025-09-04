@@ -1424,5 +1424,98 @@
         "description": "Unable to complete membership purchase. Please try again."
       }
     }
+  },
+  "notificationsPage": {
+    "title": "Notifications",
+    "subtitle": "Stay updated with your BeeHive matrix activities",
+    "backToDashboard": "Back to Dashboard",
+    "settings": "Settings",
+    "stats": {
+      "total": "Total",
+      "unread": "Unread",
+      "urgent": "Urgent"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "urgentNotifications": "Urgent Notifications",
+      "actionRequired": "Action Required",
+      "matrixDashboard": "Matrix Dashboard"
+    },
+    "detail": {
+      "selectNotification": "Select a notification to view details"
+    },
+    "settingsDialog": {
+      "title": "Notification Settings",
+      "emailNotifications": "Email Notifications",
+      "pushNotifications": "Push Notifications",
+      "memberActivations": "Member activations",
+      "levelUpgrades": "Level upgrades",
+      "upgradeReminders": "Upgrade reminders",
+      "rewardNotifications": "Reward notifications",
+      "urgentNotifications": "Urgent notifications",
+      "highPriorityOnly": "High priority only",
+      "allNotifications": "All notifications",
+      "cancel": "Cancel",
+      "saveSettings": "Save Settings"
+    }
+  },
+  "profileSettings": {
+    "title": "Profile Settings",
+    "backToProfile": "Back to Profile",
+    "profileInformation": {
+      "title": "Profile Information",
+      "profileImage": "Profile Image",
+      "username": "Username",
+      "usernamePlaceholder": "Enter your username",
+      "email": "Email (Optional)",
+      "emailPlaceholder": "Enter your email",
+      "bio": "Bio",
+      "bioPlaceholder": "Tell us about yourself...",
+      "language": "Language"
+    },
+    "notificationSettings": {
+      "title": "Notification Settings",
+      "emailNotifications": "Email Notifications",
+      "emailDescription": "Receive important updates via email",
+      "pushNotifications": "Push Notifications",
+      "pushDescription": "Receive real-time notifications in the app",
+      "rewardNotifications": "Reward Notifications",
+      "rewardDescription": "Get notified when you receive rewards",
+      "referralNotifications": "Referral Notifications",
+      "referralDescription": "Get notified about new referrals and team activities"
+    },
+    "privacySettings": {
+      "title": "Privacy Settings",
+      "profileVisibility": "Profile Visibility",
+      "profileVisibilityDescription": "Control who can view your profile information",
+      "showEarnings": "Show Earnings",
+      "showEarningsDescription": "Display your earnings publicly",
+      "showReferrals": "Show Referral Count",
+      "showReferralsDescription": "Display your referral statistics",
+      "visibilityOptions": {
+        "public": "Public",
+        "teamOnly": "Team Members Only",
+        "private": "Private"
+      }
+    },
+    "accountSummary": {
+      "title": "Account Summary",
+      "wallet": "Wallet:",
+      "memberSince": "Member Since:",
+      "recentlyJoined": "Recently Joined"
+    },
+    "actions": {
+      "saveChanges": "Save Changes",
+      "cancel": "Cancel"
+    },
+    "toast": {
+      "profileUpdated": "Profile Updated",
+      "profileUpdatedDescription": "Your profile settings have been saved successfully.",
+      "updateFailed": "Update Failed",
+      "updateFailedDescription": "There was an error updating your profile. Please try again.",
+      "profileImageUpdated": "Profile Image Updated",
+      "profileImageUpdatedDescription": "Your profile image has been uploaded successfully.",
+      "uploadFailed": "Upload Failed"
+    }
   }
 }
