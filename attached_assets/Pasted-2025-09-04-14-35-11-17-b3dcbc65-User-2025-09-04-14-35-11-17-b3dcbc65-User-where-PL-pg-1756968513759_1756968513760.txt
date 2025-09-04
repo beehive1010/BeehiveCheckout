@@ -1,0 +1,136 @@
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+' )',
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+where: 'PL/pgSQL function log_matrix_activity() line 4 at SQL statement\n' +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+'SQL statement "INSERT INTO referrals (\r\n' +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+' root_wallet,\r\n' +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+' member_wallet,\r\n' +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+' layer,\r\n' +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+' position,\r\n' +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+' parent_wallet,\r\n' +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+' placer_wallet,\r\n' +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+' placement_type,\r\n' +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+' is_active,\r\n' +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+' placed_at\r\n' +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+' )\r\n' +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+' SELECT \r\n' +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+' NEW.referrer_wallet as root_wallet,\r\n' +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+' NEW.wallet_address as member_wallet,\r\n' +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+' COALESCE(find_next_available_layer(NEW.referrer_wallet), 1) as layer,\r\n' +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+" COALESCE(find_next_available_position(NEW.referrer_wallet), 'L') as position,\r\n" +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+' NEW.referrer_wallet as parent_wallet, -- For now, direct under referrer\r\n' +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+' NEW.referrer_wallet as placer_wallet,\r\n' +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+" 'direct' as placement_type,\r\n" +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+' false as is_active, -- Not active until membership is activated\r\n' +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+' NOW() as placed_at\r\n' +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+' WHERE EXISTS(SELECT 1 FROM members WHERE wallet_address = NEW.referrer_wallet AND is_activated = true)"\n' +
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+'PL/pgSQL function trigger_user_registration() line 54 at SQL statement',
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+schema: undefined,
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+table: undefined,
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+column: undefined,
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+dataType: undefined,
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+constraint: undefined,
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+file: 'parse_target.c',
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+line: '1065',
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+routine: 'checkInsertTargets'
+2025-09-04 14:35:11.17
+b3dcbc65
+User
+}
