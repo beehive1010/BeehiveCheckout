@@ -592,6 +592,7 @@ export const bccStakingTiers = pgTable("bcc_staking_tiers", {
   currentActivations: integer("current_activations").default(0).notNull(), // Current members activated
   unlockMultiplier: numeric("unlock_multiplier", { precision: 5, scale: 4 }).default('1.0000').notNull(), // BCC unlock multiplier (1.0, 0.5, 0.25, 0.125)
   totalLockMultiplier: numeric("total_lock_multiplier", { precision: 5, scale: 4 }).default('1.0000').notNull(), // Total pool lock multiplier
+  totalLockedBCC: numeric("total_locked_bcc", { precision: 12, scale: 2 }).notNull(), // Total BCC locked across all levels for this tier
   phase: text("phase").notNull(), // 'active', 'completed', 'upcoming'
   startedAt: timestamp("started_at"),
   completedAt: timestamp("completed_at"),
@@ -698,6 +699,7 @@ export const insertBccStakingTierSchema = createInsertSchema(bccStakingTiers).pi
   currentActivations: true,
   unlockMultiplier: true,
   totalLockMultiplier: true,
+  totalLockedBCC: true,
   phase: true,
   startedAt: true,
   completedAt: true,
