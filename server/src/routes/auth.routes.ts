@@ -207,7 +207,9 @@ export function registerAuthRoutes(app: Express, requireWallet: any) {
     try {
       console.log('🔄 Registration request received:', req.body);
       
-      const { walletAddress, username, email, secondaryPasswordHash, referrerWallet } = req.body;
+      // Extract wallet address from header (consistent with other endpoints)
+      const walletAddress = req.headers['x-wallet-address'] as string;
+      const { username, email, secondaryPasswordHash, referrerWallet } = req.body;
       
       if (!walletAddress || !walletAddress.startsWith('0x')) {
         return res.status(400).json({ error: 'Invalid wallet address format' });
