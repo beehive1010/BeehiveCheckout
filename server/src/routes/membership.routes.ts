@@ -5,7 +5,15 @@ import { registrationService } from '../services/registration.service';
 import { globalMatrixService } from '../services/global-matrix.service';
 import { rewardDistributionService } from '../services/reward-distribution.service';
 import { db } from '../../db';
-import { referrals } from '@shared/schema';
+import { 
+  referrals, 
+  platformRevenue, 
+  memberActivations, 
+  memberNFTVerification, 
+  userNotifications, 
+  bccUnlockHistory,
+  levelConfig
+} from '@shared/schema';
 import { eq, count } from 'drizzle-orm';
 
 export function registerMembershipRoutes(app: Express, requireWallet: any) {
@@ -173,9 +181,79 @@ export function registerMembershipRoutes(app: Express, requireWallet: any) {
       // Update user's membership level
       await usersService.updateMembershipLevel(req.walletAddress, level);
 
+      // Get level configuration for platform revenue calculation
+      const [levelConfigData] = await db
+        .select()
+        .from(levelConfig)
+        .where(eq(levelConfig.level, level));
+
+      // 1. Record platform revenue (30 USDT for level 1)
+      const platformFee = levelConfigData?.platformFee || (level === 1 ? 3000 : 0); // 30 USDT in cents
+      await db.insert(platformRevenue).values({
+        sourceType: 'nft_claim',
+        sourceWallet: userWallet,
+        level: level,
+        amount: platformFee.toString(),
+        currency: 'USDT',
+        description: `Platform fee from Level ${level} NFT claim`,
+        metadata: {
+          transactionHash,
+          chainId,
+          mintTxHash,
+          nftContractAddress
+        }
+      });
+
+      // 2. Record member activation
+      await db.insert(memberActivations).values({
+        walletAddress: userWallet,
+        activationType: 'nft_purchase',
+        level: level,
+        isPending: false,
+        activatedAt: new Date()
+      });
+
+      // 3. Record NFT verification
+      await db.insert(memberNFTVerification).values({
+        walletAddress: userWallet,
+        memberLevel: level,
+        tokenId: level,
+        nftContractAddress: nftContractAddress,
+        chain: chainId.toString(),
+        networkType: 'testnet',
+        verificationStatus: 'verified',
+        verifiedAt: new Date()
+      });
+
+      // 4. Create user notification
+      await db.insert(userNotifications).values({
+        recipientWallet: userWallet,
+        title: `Level ${level} NFT Claimed Successfully`,
+        message: `Congratulations! Your Level ${level} NFT has been successfully minted and verified.`,
+        type: 'member_activated',
+        triggerWallet: userWallet,
+        amount: priceUSDT,
+        amountType: 'USDT',
+        level: level,
+        isRead: false,
+        priority: 'high'
+      });
+
+      // 5. Record BCC unlock history if applicable
+      if (levelConfigData?.tier1Release) {
+        const bccUnlockAmount = parseInt(levelConfigData.tier1Release.toString());
+        await db.insert(bccUnlockHistory).values({
+          walletAddress: userWallet,
+          unlockLevel: level,
+          unlockAmount: bccUnlockAmount,
+          unlockTier: 'full'
+        });
+      }
+
       // Log successful claim
       console.log(`✅ NFT Level ${level} claimed successfully for ${userWallet}`);
       console.log(`💰 Payment: $${priceUSDT / 100} USDT on chain ${chainId}`);
+      console.log(`💰 Platform Revenue: $${platformFee / 100} USDT recorded`);
       console.log(`🔗 Payment TX: ${transactionHash}`);
       console.log(`🎨 Mint TX: ${mintTxHash}`);
 
