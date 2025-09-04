@@ -142,9 +142,9 @@ export class RewardsService {
     }
 
     const balance_data = userBalance as any;
-    const totalUSDTEarnings = parseFloat(balance_data.total_usdt_earned || '0') / 100; // Convert from cents
-    const withdrawnUSDT = parseFloat(balance_data.total_usdt_withdrawn || '0') / 100; // Convert from cents
-    const availableUSDTRewards = parseFloat(balance_data.available_usdt_rewards || '0') / 100;
+    const totalUSDTEarnings = parseFloat(balance_data.total_usdt_earned || '0'); // Already in dollars
+    const withdrawnUSDT = parseFloat(balance_data.total_usdt_withdrawn || '0'); // Already in dollars
+    const availableUSDTRewards = parseFloat(balance_data.available_usdt_rewards || '0'); // Already in dollars
     
     // Use available_usdt_rewards directly as the claimable amount
     const availableBalance = availableUSDTRewards;

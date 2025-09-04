@@ -303,9 +303,8 @@ export function registerMembershipRoutes(app: Express, requireWallet: any) {
       if (nextLevel <= 19) {
         // Referral requirements for specific levels
         const referralRequirements = {
-          2: 2, // Level 2 needs 2 direct referrals
-          3: 2, // Level 3 needs 2 direct referrals
-          // Add more levels as needed
+          2: 3, // Level 2 needs 3 direct sponsors
+          // Level 3+: No referral requirements, just sequential unlock
         };
         
         const requiredReferrals = referralRequirements[nextLevel as keyof typeof referralRequirements] || 0;

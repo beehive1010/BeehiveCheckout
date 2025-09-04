@@ -84,8 +84,14 @@ export default function Me() {
                   </div>
                   <div className="text-sm">
                     <span className="text-muted-foreground">Locked:</span>
-                    <span className="font-medium text-honey ml-1">
-                      {bccBalance?.restricted || 0}
+                    <span className="font-medium text-orange-400 ml-1">
+                      {bccBalance?.restricted || bccBalance?.locked || 0}
+                    </span>
+                  </div>
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">USDT:</span>
+                    <span className="font-medium text-emerald-400 ml-1">
+                      ${userBalances?.availableUSDTRewards || 0}
                     </span>
                   </div>
                 </div>
@@ -132,15 +138,15 @@ export default function Me() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {isLoadingUserStats ? (
+              {isLoadingUserStats || isBalancesLoading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto"></div>
                 </div>
-              ) : userStats ? (
+              ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="text-center p-4 bg-background rounded-lg">
                     <div className="text-2xl font-bold text-honey mb-1">
-                      {userStats.totalReferrals || 0}
+                      {userStats?.totalReferrals || 0}
                     </div>
                     <p className="text-sm text-muted-foreground">
                       {t('me.totalReferrals') || 'Total Referrals'}
@@ -148,26 +154,26 @@ export default function Me() {
                   </div>
                   <div className="text-center p-4 bg-background rounded-lg">
                     <div className="text-2xl font-bold text-green-400 mb-1">
-                      {Array.isArray(userStats.recentReferrals) ? userStats.recentReferrals.length : (userStats.recentReferrals || 0)}
+                      {userStats?.recentReferrals?.length || 0}
                     </div>
                     <p className="text-sm text-muted-foreground">
                       {t('me.directReferrals') || 'Direct Referrals'}
                     </p>
                   </div>
                   <div className="text-center p-4 bg-background rounded-lg">
-                    <div className="text-2xl font-bold text-blue-400 mb-1">
-                      {userStats.totalReferrals || 0}
+                    <div className="text-2xl font-bold text-emerald-400 mb-1">
+                      ${userBalances?.availableUSDTRewards || 0}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {t('me.indirectReferrals') || 'Team Referrals'}
+                      Available to Withdraw
                     </p>
                   </div>
                   <div className="text-center p-4 bg-background rounded-lg">
-                    <div className="text-2xl font-bold text-purple-400 mb-1">
-                      {typeof userStats.totalEarnings === 'number' ? userStats.totalEarnings.toFixed(2) : (userStats.totalEarnings || '0.00')}
+                    <div className="text-2xl font-bold text-orange-400 mb-1">
+                      ${userBalances?.pendingUpgradeRewards || 0}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {t('me.totalEarnings') || 'Total Earnings'}
+                      Pending Upgrades
                     </p>
                   </div>
                 </div>
