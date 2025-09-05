@@ -33,23 +33,30 @@ export const members = pgTable("members", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// New referrals table - Individual member trees with 19 layers
-export const referrals = pgTable("referrals", {
+// Member referral tree - 19层3x3矩阵推荐树系统
+export const memberReferralTree = pgTable("member_referral_tree", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  rootWallet: varchar("root_wallet", { length: 42 }).notNull().references(() => users.walletAddress), // Tree owner (推荐者)
-  memberWallet: varchar("member_wallet", { length: 42 }).notNull().references(() => users.walletAddress), // Placed member (被安置会员)
-  layer: integer("layer").notNull(), // 1-19 (第几层)
-  position: text("position").notNull(), // 'L', 'M', 'R' (位置)
-  parentWallet: varchar("parent_wallet", { length: 42 }), // Direct parent in tree (直接上级)
-  placerWallet: varchar("placer_wallet", { length: 42 }).notNull().references(() => users.walletAddress), // Who placed this member (安置者)
-  placementType: text("placement_type").notNull(), // 'direct' or 'spillover' (直推或滑落)
-  isActive: boolean("is_active").default(true).notNull(), // 是否激活状态
+  rootWallet: varchar("root_wallet", { length: 42 }).notNull().references(() => users.walletAddress), // 树的根用户(拥有者)
+  memberWallet: varchar("member_wallet", { length: 42 }).notNull().references(() => users.walletAddress), // 被安置的会员
+  layer: integer("layer").notNull(), // 1-19层
+  position: integer("position").notNull(), // 在该层的位置编号 (0-based: 0,1,2 for layer 1; 0-8 for layer 2, etc.)
+  zone: text("zone").notNull(), // 'L'(左区), 'M'(中区), 'R'(右区)
+  parentWallet: varchar("parent_wallet", { length: 42 }), // 直接上级 (layer n-1的父节点)
+  parentPosition: integer("parent_position"), // 父节点在其层的位置
+  placerWallet: varchar("placer_wallet", { length: 42 }).notNull().references(() => users.walletAddress), // 执行安置的用户
+  placementType: text("placement_type").notNull(), // 'direct'(直推), 'spillover'(滑落)
+  isActivePosition: boolean("is_active_position").default(true).notNull(), // 位置是否激活
+  memberActivated: boolean("member_activated").default(false).notNull(), // 会员是否已激活
+  registrationOrder: integer("registration_order").notNull(), // 注册顺序号
   placedAt: timestamp("placed_at").defaultNow().notNull(), // 安置时间
+  activatedAt: timestamp("activated_at"), // 会员激活时间
 }, (table) => ({
-  // 复合索引优化查询
-  rootLayerIdx: index("referrals_root_layer_idx").on(table.rootWallet, table.layer),
-  memberIdx: index("referrals_member_idx").on(table.memberWallet),
-  rootActiveIdx: index("referrals_root_active_idx").on(table.rootWallet, table.isActive),
+  // 关键索引优化查询性能
+  rootLayerIdx: index("member_referral_tree_root_layer_idx").on(table.rootWallet, table.layer),
+  memberIdx: index("member_referral_tree_member_idx").on(table.memberWallet),
+  rootActiveIdx: index("member_referral_tree_root_active_idx").on(table.rootWallet, table.isActivePosition),
+  layerPositionIdx: index("member_referral_tree_layer_position_idx").on(table.rootWallet, table.layer, table.position),
+  placementOrderIdx: index("member_referral_tree_placement_order_idx").on(table.rootWallet, table.registrationOrder),
 }));
 
 // User wallet table - comprehensive balance management
@@ -73,32 +80,50 @@ export const userWallet = pgTable("user_wallet", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Reward rollup table - handles expired rewards
-export const rewardRollups = pgTable("reward_rollups", {
+// Roll up records - 记录奖励上滚历史
+export const rollUpRecords = pgTable("roll_up_records", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  originalRecipient: varchar("original_recipient", { length: 42 }).notNull().references(() => users.walletAddress),
-  rolledUpTo: varchar("rolled_up_to", { length: 42 }).notNull().references(() => users.walletAddress),
-  rewardAmount: integer("reward_amount").notNull(), // USDT cents
-  triggerWallet: varchar("trigger_wallet", { length: 42 }).notNull(), // Who caused the upgrade
-  triggerLevel: integer("trigger_level").notNull(),
-  originalNotificationId: varchar("original_notification_id").notNull(),
-  rollupReason: text("rollup_reason").notNull(), // 'expired', 'not_qualified'
+  originalRecipient: varchar("original_recipient", { length: 42 }).notNull().references(() => users.walletAddress), // 原始受益人
+  finalRecipient: varchar("final_recipient", { length: 42 }).notNull().references(() => users.walletAddress), // 最终受益人
+  triggerWallet: varchar("trigger_wallet", { length: 42 }).notNull().references(() => users.walletAddress), // 触发升级的会员
+  triggerLevel: integer("trigger_level").notNull(), // 触发的等级
+  rewardAmountUSDT: integer("reward_amount_usdt").notNull(), // 奖励金额 (cents)
+  rollupReason: text("rollup_reason").notNull(), // 'pending_expired'(72小时超时), 'level_insufficient'(等级不够)
+  originalPendingId: varchar("original_pending_id"), // 原始pending奖励记录ID
+  rollupPath: jsonb("rollup_path").$type<{wallet: string, level: number, reason: string}[]>().notNull(), // 上滚路径
+  rollupLayer: integer("rollup_layer").notNull(), // 上滚到第几层
+  processedAt: timestamp("processed_at").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  originalIdx: index("roll_up_records_original_idx").on(table.originalRecipient),
+  finalIdx: index("roll_up_records_final_idx").on(table.finalRecipient),
+  triggerIdx: index("roll_up_records_trigger_idx").on(table.triggerWallet, table.triggerLevel),
+}));
 
-// Reward notifications with countdown timers
-export const rewardNotifications = pgTable("reward_notifications", {
+// Layer rewards - 层级奖励分配记录
+export const layerRewards = pgTable("layer_rewards", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  recipientWallet: varchar("recipient_wallet", { length: 42 }).notNull().references(() => users.walletAddress),
-  triggerWallet: varchar("trigger_wallet", { length: 42 }).notNull(), // Who made the purchase that triggered this
-  triggerLevel: integer("trigger_level").notNull(), // Level purchased that triggered the notification
-  layerNumber: integer("layer_number").notNull(), // Which layer the trigger came from (1-19)
-  rewardAmount: integer("reward_amount").notNull(), // Potential reward amount in USDT cents
-  status: text("status").default("pending").notNull(), // 'pending', 'claimable', 'rollup'
-  expiresAt: timestamp("expires_at").notNull(), // 72 hours from creation
-  claimedAt: timestamp("claimed_at"),
+  rootWallet: varchar("root_wallet", { length: 42 }).notNull().references(() => users.walletAddress), // 推荐树根用户
+  recipientWallet: varchar("recipient_wallet", { length: 42 }).notNull().references(() => users.walletAddress), // 奖励接收人
+  triggerWallet: varchar("trigger_wallet", { length: 42 }).notNull().references(() => users.walletAddress), // 触发奖励的会员
+  triggerLevel: integer("trigger_level").notNull(), // 触发的等级
+  layerNumber: integer("layer_number").notNull(), // 层级号 (1-19)
+  rewardAmountUSDT: integer("reward_amount_usdt").notNull(), // 奖励金额 (cents)
+  status: text("status").notNull().default("pending"), // 'pending'(待升级), 'claimable'(可领取), 'rollup'(已上滚), 'claimed'(已领取)
+  requiresLevel: integer("requires_level").notNull(), // 需要达到的等级才能领取
+  currentRecipientLevel: integer("current_recipient_level").notNull(), // 当前接收人等级
+  pendingExpiresAt: timestamp("pending_expires_at").notNull(), // 72小时超时时间
+  claimedAt: timestamp("claimed_at"), // 领取时间
+  rolledUpAt: timestamp("rolled_up_at"), // 上滚时间
+  rollupToWallet: varchar("rollup_to_wallet", { length: 42 }), // 上滚到哪个钱包
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  rootIdx: index("layer_rewards_root_idx").on(table.rootWallet),
+  recipientIdx: index("layer_rewards_recipient_idx").on(table.recipientWallet),
+  statusIdx: index("layer_rewards_status_idx").on(table.status),
+  expiresIdx: index("layer_rewards_expires_idx").on(table.pendingExpiresAt),
+  triggerIdx: index("layer_rewards_trigger_idx").on(table.triggerWallet, table.triggerLevel),
+}));
 
 // Member NFT verification table
 export const memberNFTVerification = pgTable("member_nft_verification", {
@@ -168,64 +193,68 @@ export const userActivities = pgTable("user_activities", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Level progression configuration (19 levels from Warrior to Mythic Peak)
+// Level progression configuration (19 levels) - 100-950 USDT递增50每级
 export const levelConfig = pgTable("level_config", {
-  level: integer("level").primaryKey(),
+  level: integer("level").primaryKey(), // 1-19
   levelName: text("level_name").notNull(),
-  tokenId: integer("token_id").notNull(), // NFT token ID corresponding to level
+  tokenId: integer("token_id").notNull(), // NFT token ID (1-19)
   
-  // Pricing structure
-  nftPrice: integer("nft_price").notNull(), // NFT price in USDT cents
-  platformFee: integer("platform_fee").notNull(), // Platform fee in USDT cents
-  totalPrice: integer("total_price").notNull(), // nft_price + platform_fee
+  // 价格结构 (cents) - Level 1: 100 USDT = 10000 cents
+  nftPriceUSDT: integer("nft_price_usdt").notNull(), // NFT价格 cents
+  rewardAmountUSDT: integer("reward_amount_usdt").notNull(), // 100%奖励金额 (等于nft_price_usdt)
   
-  // Legacy pricing fields (for backward compatibility)
-  priceUSDT: integer("price_usdt").notNull(), // Base price in USDT cents
-  activationFeeUSDT: integer("activation_fee_usdt").notNull(), // Platform activation fee (cents)
-  totalPriceUSDT: integer("total_price_usdt").notNull(), // price_usdt + activation_fee_usdt
-  rewardUSDT: integer("reward_usdt").notNull(), // 100% reward to referrer (same as price_usdt)
+  // 层级矩阵配置
+  layerNumber: integer("layer_number").notNull(), // 对应的层级号 (level = layer)
+  maxPositionsInLayer: integer("max_positions_in_layer").notNull(), // 该层最大位置数 (3^layer)
+  leftZonePositions: jsonb("left_zone_positions").$type<number[]>().notNull(), // 左区位置编号数组
+  middleZonePositions: jsonb("middle_zone_positions").$type<number[]>().notNull(), // 中区位置编号数组
+  rightZonePositions: jsonb("right_zone_positions").$type<number[]>().notNull(), // 右区位置编号数组
   
-  // BCC unlock amounts for different tiers (calculated as: Tier 1 = NFT price in BCC, each tier halved)
-  tier1Release: numeric("tier_1_release", { precision: 10, scale: 2 }).notNull(), // NFT price in BCC (e.g., 100 BCC for level 1)
-  tier2Release: numeric("tier_2_release", { precision: 10, scale: 2 }).notNull(), // Tier 1 / 2 (e.g., 50 BCC for level 1)
-  tier3Release: numeric("tier_3_release", { precision: 10, scale: 2 }).notNull(), // Tier 2 / 2 (e.g., 25 BCC for level 1)
-  tier4Release: numeric("tier_4_release", { precision: 10, scale: 2 }).notNull(), // Tier 3 / 2 (e.g., 12.5 BCC for level 1)
+  // 奖励资格要求
+  rewardRequiresLevel: integer("reward_requires_level").notNull(), // 获得奖励需要的最低等级
+  pendingTimeoutHours: integer("pending_timeout_hours").notNull().default(72), // 72小时待升级超时
+  canEarnRewards: boolean("can_earn_rewards").notNull().default(true),
   
-  // Layer reward system (level n = layer n reward)
-  layerLevel: integer("layer_level").notNull(), // Layer number (same as level)
-  totalActivatedSeats: integer("total_activated_seats").notNull(), // 3^level total activated member seats
-  maxActivePositions: integer("max_active_positions").notNull().default(3), // Max positions per member
-  maxReferralDepth: integer("max_referral_depth").notNull().default(19), // Max referral depth (19 layers)
-  directReferrersRequired: integer("direct_referrers_required").notNull().default(0), // Direct referrer requirement
-  upgradeCountdownHours: integer("upgrade_countdown_hours").notNull().default(72), // 72-hour countdown
-  rewardRequiresLevelMatch: boolean("reward_requires_level_match").notNull().default(true), // Level X rewards require >= Level X
-  canEarnCommissions: boolean("can_earn_commissions").notNull().default(true),
+  // BCC解锁数量配置
+  tier1ReleaseAmount: integer("tier_1_release_amount").notNull(), // BCC解锁数量
+  tier2ReleaseAmount: integer("tier_2_release_amount").notNull(),
+  tier3ReleaseAmount: integer("tier_3_release_amount").notNull(),
+  tier4ReleaseAmount: integer("tier_4_release_amount").notNull(),
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// 19-layer matrix view for each root member - shows complete matrix structure
-export const memberMatrixView = pgTable("member_matrix_view", {
+// Matrix summary view - 每个root用户的矩阵概览
+export const memberMatrixSummary = pgTable("member_matrix_summary", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   rootWallet: varchar("root_wallet", { length: 42 }).notNull().references(() => users.walletAddress),
-  layerData: jsonb("layer_data").$type<{
+  
+  // 层级统计
+  totalMembers: integer("total_members").default(0).notNull(), // 总成员数
+  activatedMembers: integer("activated_members").default(0).notNull(), // 已激活成员数
+  deepestLayer: integer("deepest_layer").default(0).notNull(), // 最深层级
+  
+  // 各层填充情况 - 完全匹配SQL设计
+  layerStats: jsonb("layer_stats").$type<{
     layer: number; // 1-19
     maxPositions: number; // 3^layer
     filledPositions: number;
-    positions: {
-      L?: { wallet: string; placementType: 'direct' | 'spillover'; placerWallet: string; placedAt: string };
-      M?: { wallet: string; placementType: 'direct' | 'spillover'; placerWallet: string; placedAt: string };
-      R?: { wallet: string; placementType: 'direct' | 'spillover'; placerWallet: string; placedAt: string };
-    };
-    availablePositions: ('L' | 'M' | 'R')[];
-    isLayerComplete: boolean;
-  }[]>().notNull(),
-  totalMembers: integer("total_members").default(0).notNull(),
-  deepestLayer: integer("deepest_layer").default(0).notNull(),
-  nextAvailableLayer: integer("next_available_layer").default(1).notNull(),
-  nextAvailablePosition: text("next_available_position").default('L').notNull(),
+    activatedPositions: number;
+    leftZoneFilled: number;
+    middleZoneFilled: number;
+    rightZoneFilled: number;
+    availablePositions: number[];
+    nextZone: 'L' | 'M' | 'R'; // 下一个可用区域
+  }[]>().notNull().default([]),
+  
+  // 下次安置信息
+  nextPlacementLayer: integer("next_placement_layer").default(1).notNull(),
+  nextPlacementPosition: integer("next_placement_position").default(0).notNull(),
+  nextPlacementZone: text("next_placement_zone").default('L').notNull(),
+  
   lastUpdated: timestamp("last_updated").defaultNow().notNull(),
 }, (table) => ({
-  rootIdx: index("member_matrix_view_root_idx").on(table.rootWallet),
+  rootIdx: index("member_matrix_summary_root_idx").on(table.rootWallet),
 }));
 
 // Merchant NFTs table
@@ -355,18 +384,64 @@ export const insertMemberSchema = createInsertSchema(members).pick({
   totalTeamSize: true,
 });
 
-export const insertReferralSchema = createInsertSchema(referrals).pick({
+// 插入 schemas
+export const insertMemberReferralTreeSchema = createInsertSchema(memberReferralTree).pick({
   rootWallet: true,
   memberWallet: true,
   layer: true,
   position: true,
+  zone: true,
   parentWallet: true,
+  parentPosition: true,
   placerWallet: true,
   placementType: true,
-  isActive: true,
+  isActivePosition: true,
+  memberActivated: true,
+  registrationOrder: true,
+  activatedAt: true,
 });
 
-// insertMatrixLayerSummarySchema moved to after table definition
+export const insertRollUpRecordSchema = createInsertSchema(rollUpRecords).pick({
+  originalRecipient: true,
+  finalRecipient: true,
+  triggerWallet: true,
+  triggerLevel: true,
+  rewardAmountUSDT: true,
+  rollupReason: true,
+  originalPendingId: true,
+  rollupPath: true,
+  rollupLayer: true,
+  processedAt: true,
+});
+
+export const insertLayerRewardSchema = createInsertSchema(layerRewards).pick({
+  rootWallet: true,
+  recipientWallet: true,
+  triggerWallet: true,
+  triggerLevel: true,
+  layerNumber: true,
+  rewardAmountUSDT: true,
+  status: true,
+  requiresLevel: true,
+  currentRecipientLevel: true,
+  pendingExpiresAt: true,
+  claimedAt: true,
+  rolledUpAt: true,
+  rollupToWallet: true,
+});
+
+export const insertMemberMatrixSummarySchema = createInsertSchema(memberMatrixSummary).pick({
+  rootWallet: true,
+  totalMembers: true,
+  activatedMembers: true,
+  deepestLayer: true,
+  layerStats: true,
+  nextPlacementLayer: true,
+  nextPlacementPosition: true,
+  nextPlacementZone: true,
+});
+
+export type InsertMemberMatrixSummary = z.infer<typeof insertMemberMatrixSummarySchema>;
 
 export const insertUserWalletSchema = createInsertSchema(userWallet).pick({
   walletAddress: true,
@@ -379,25 +454,7 @@ export const insertUserWalletSchema = createInsertSchema(userWallet).pick({
   hasPendingUpgrades: true,
 });
 
-export const insertRewardRollupSchema = createInsertSchema(rewardRollups).pick({
-  originalRecipient: true,
-  rolledUpTo: true,
-  rewardAmount: true,
-  triggerWallet: true,
-  triggerLevel: true,
-  originalNotificationId: true,
-  rollupReason: true,
-});
 
-export const insertRewardNotificationSchema = createInsertSchema(rewardNotifications).pick({
-  recipientWallet: true,
-  triggerWallet: true,
-  triggerLevel: true,
-  layerNumber: true,
-  rewardAmount: true,
-  status: true,
-  expiresAt: true,
-});
 
 export const insertRewardClaimSchema = createInsertSchema(rewardClaims).pick({
   recipientWallet: true,
@@ -412,25 +469,20 @@ export const insertLevelConfigSchema = createInsertSchema(levelConfig).pick({
   level: true,
   levelName: true,
   tokenId: true,
-  nftPrice: true,
-  platformFee: true,
-  totalPrice: true,
-  priceUSDT: true,
-  activationFeeUSDT: true,
-  totalPriceUSDT: true,
-  rewardUSDT: true,
-  tier1Release: true,
-  tier2Release: true,
-  tier3Release: true,
-  tier4Release: true,
-  layerLevel: true,
-  totalActivatedSeats: true,
-  maxActivePositions: true,
-  maxReferralDepth: true,
-  directReferrersRequired: true,
-  upgradeCountdownHours: true,
-  rewardRequiresLevelMatch: true,
-  canEarnCommissions: true,
+  nftPriceUSDT: true,
+  rewardAmountUSDT: true,
+  layerNumber: true,
+  maxPositionsInLayer: true,
+  leftZonePositions: true,
+  middleZonePositions: true,
+  rightZonePositions: true,
+  rewardRequiresLevel: true,
+  pendingTimeoutHours: true,
+  canEarnRewards: true,
+  tier1ReleaseAmount: true,
+  tier2ReleaseAmount: true,
+  tier3ReleaseAmount: true,
+  tier4ReleaseAmount: true,
 });
 
 export const insertMemberNFTVerificationSchema = createInsertSchema(memberNFTVerification).pick({
@@ -837,8 +889,6 @@ export type MatrixLayerSummary = typeof matrixLayerSummary.$inferSelect;
 //   firstAvailableIdx: index("available_positions_first_idx").on(table.rootWallet, table.isFirstAvailable),
 // }));
 
-export type InsertRewardNotification = z.infer<typeof insertRewardNotificationSchema>;
-export type RewardNotification = typeof rewardNotifications.$inferSelect;
 
 // Matrix organization notifications - activation, upgrades, and countdown reminders
 export const userNotifications = pgTable("user_notifications", {
@@ -1461,15 +1511,19 @@ export const insertServiceRequestSchema = createInsertSchema(serviceRequests).pi
 });
 
 
-// Updated type exports for new schema
-export type InsertReferral = z.infer<typeof insertReferralSchema>;
-export type Referral = typeof referrals.$inferSelect;
+// 新的类型导出 - 与SQL设计完全对应
+export type InsertMemberReferralTree = z.infer<typeof insertMemberReferralTreeSchema>;
+export type MemberReferralTree = typeof memberReferralTree.$inferSelect;
+
+export type InsertRollUpRecord = z.infer<typeof insertRollUpRecordSchema>;
+export type RollUpRecord = typeof rollUpRecords.$inferSelect;
+
+export type InsertLayerReward = z.infer<typeof insertLayerRewardSchema>;
+export type LayerReward = typeof layerRewards.$inferSelect;
 
 export type InsertUserWallet = z.infer<typeof insertUserWalletSchema>;
 export type UserWallet = typeof userWallet.$inferSelect;
 
-export type InsertRewardRollup = z.infer<typeof insertRewardRollupSchema>;
-export type RewardRollup = typeof rewardRollups.$inferSelect;
 
 export type InsertRewardClaim = z.infer<typeof insertRewardClaimSchema>;
 export type RewardClaim = typeof rewardClaims.$inferSelect;
@@ -1477,7 +1531,7 @@ export type RewardClaim = typeof rewardClaims.$inferSelect;
 export type InsertBCCUnlockHistory = z.infer<typeof insertBCCUnlockHistorySchema>;
 export type BCCUnlockHistory = typeof bccUnlockHistory.$inferSelect;
 
-export type MemberMatrixView = typeof memberMatrixView.$inferSelect;
+export type MemberMatrixSummary = typeof memberMatrixSummary.$inferSelect;
 // export type AvailablePositions = typeof availablePositions.$inferSelect; // TEMPORARILY COMMENTED
 
 
