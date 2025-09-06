@@ -45,7 +45,7 @@ export default defineConfig({
     },
   },
   preview: {
-    port: 5000,
+    port: process.env.NODE_ENV === 'production' ? 3000 : 5000,
     host: '0.0.0.0',
     allowedHosts: 'all', // Allow all hosts for Replit dynamic hostnames
     headers: {
@@ -53,5 +53,7 @@ export default defineConfig({
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
+    // Ensure static assets are served correctly
+    strictPort: false,
   },
 });
