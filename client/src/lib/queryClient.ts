@@ -63,7 +63,7 @@ export async function apiRequest(
   try {
     // For rewards functions that use URL-based actions, call directly
     if (functionName.startsWith('rewards/')) {
-      const result = await supabaseApi.callFunction(functionName, data || {}, addressToUse);
+      const result = await supabaseApi.callFunction(functionName, data || {}, addressToUse || undefined);
       
       // Create a mock Response object for compatibility
       const mockResponse = {
@@ -129,12 +129,12 @@ export async function apiRequest(
 
     const requestData = {
       action,
-      ...data,
-      walletAddress: addressToUse || data?.walletAddress,
+      ...(data || {}),
+      walletAddress: addressToUse || (data as any)?.walletAddress,
       _method: method.toUpperCase()
     };
     
-    const result = await supabaseApi.callFunction(functionName, requestData, addressToUse);
+    const result = await supabaseApi.callFunction(functionName, requestData, addressToUse || undefined);
     
     // Create a mock Response object for compatibility
     const mockResponse = {
@@ -191,7 +191,7 @@ export const getQueryFn: <T>(options: {
     
     try {
       // Use apiRequest to handle Supabase calls
-      const res = await apiRequest('GET', url, undefined, walletAddress);
+      const res = await apiRequest('GET', url, undefined, walletAddress || undefined);
       return await res.json();
     } catch (error: any) {
       if (unauthorizedBehavior === "returnNull" && error.status === 401) {
