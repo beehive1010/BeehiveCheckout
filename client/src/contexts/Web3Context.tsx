@@ -198,6 +198,36 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
         } catch (error: any) {
           console.error('Error checking membership status:', error);
           
+          // Handle account expired error (410)
+          if (error.status === 410 || error.message?.includes('Account expired')) {
+            console.log('⏰ Account expired, user cleanup completed');
+            
+            // Parse error response for cleanup information
+            let errorData;
+            try {
+              if (typeof error.message === 'string' && error.message.includes('{')) {
+                const jsonStart = error.message.indexOf('{');
+                errorData = JSON.parse(error.message.substring(jsonStart));
+              } else if (error.response?.data) {
+                errorData = error.response.data;
+              }
+            } catch (parseError) {
+              console.warn('Could not parse error response:', parseError);
+            }
+            
+            // Show cleanup message if available
+            if (errorData?.message) {
+              console.log('📋 Cleanup message:', errorData.message);
+            }
+            
+            // Clear any local state and redirect to registration
+            setIsSupabaseAuthenticated(false);
+            setSupabaseUser(null);
+            localStorage.removeItem('supabase-wallet-session');
+            setLocation('/');
+            return;
+          }
+          
           // Handle authentication errors
           if (error.status === 401 || 
               error.message?.includes('Authentication') || 
@@ -218,6 +248,17 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
               setLocation('/welcome');
             } catch (regError: any) {
               console.error('Auto-registration failed:', regError);
+              
+              // Handle cleanup error during auto-registration
+              if (regError.status === 410 || regError.message?.includes('Account expired')) {
+                console.log('⏰ Auto-registration detected expired account, redirecting to home');
+                setIsSupabaseAuthenticated(false);
+                setSupabaseUser(null);
+                localStorage.removeItem('supabase-wallet-session');
+                setLocation('/');
+                return;
+              }
+              
               // Check if auto-registration failed due to auth
               if (regError.status === 401) {
                 setLocation('/auth');

@@ -120,9 +120,16 @@ serve(async (req) => {
           )
         }
       } else if (userData && memberData?.is_activated) {
-        // Case 2: Active member → Use member auth (skip user auth)
-        requiresAuth = !publicActions.includes(action)
-        console.log(`👑 Active member - Auth required: ${requiresAuth}`)
+        // Case 2: Active member → Check for countdown benefits
+        if (countdownData && new Date(countdownData.end_time) > now) {
+          // Active member with countdown time - no auth required for any operations
+          requiresAuth = false
+          console.log(`👑⏰ Active member with countdown - No auth required for any operations`)
+        } else {
+          // Active member without countdown - use standard member auth
+          requiresAuth = !publicActions.includes(action)
+          console.log(`👑 Active member (no countdown) - Auth required: ${requiresAuth}`)
+        }
       } else if (userData && !memberData?.is_activated) {
         // Case 3: User exists but not active member
         if (countdownData && new Date(countdownData.end_time) > now) {
