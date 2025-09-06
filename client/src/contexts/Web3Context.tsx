@@ -16,7 +16,10 @@ interface Web3ContextType {
   disconnectWallet: () => Promise<void>;
   isSupabaseAuthenticated: boolean;
   supabaseUser: any;
-  signInWithWallet: () => Promise<void>;
+  isMember: boolean;
+  referrerWallet: string | null;
+  recordWalletConnection: () => Promise<void>;
+  checkMembershipStatus: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -32,16 +35,26 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [isSupabaseAuthenticated, setIsSupabaseAuthenticated] = useState(false);
   const [supabaseUser, setSupabaseUser] = useState<any>(null);
+  const [isMember, setIsMember] = useState(false);
+  const [referrerWallet, setReferrerWallet] = useState<string | null>(null);
 
-  // Connect Thirdweb InAppWallet with custom auth configuration
+  // Connect with InAppWallet (includes all authentication methods)
   const connectWallet = async () => {
     try {
       const wallet = inAppWallet({
         auth: {
-          options: ['email', 'google', 'apple', 'facebook'],
-          // Custom authentication endpoints (optional)
-          // authUrl: 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/auth',
-          // mode: 'popup', // or 'redirect'
+          options: [
+            'email', 
+            'google', 
+            'apple', 
+            'facebook',
+            'discord',
+            'farcaster',
+            'telegram',
+            // External wallets
+            'wallet'  // This enables MetaMask, WalletConnect, etc.
+          ],
+          mode: 'popup',
         },
         metadata: {
           name: "Beehive Platform",
@@ -49,11 +62,12 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
           logoUrl: "https://beehive-lifestyle.io/logo.png",
           url: "https://beehive-lifestyle.io",
         },
-        // Custom styling (optional)
+        // Custom styling & branding
         styling: {
           theme: 'dark',
           accentColor: '#F59E0B', // Honey color
         },
+        hideThirdwebBranding: true, // Hide "Powered by Thirdweb"
       });
       
       await connect({ 
@@ -62,53 +76,67 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
         chains: supportedChains,
       });
       
-      console.log('🔗 InAppWallet connection initiated');
+      console.log('🔗 InAppWallet connection initiated (all methods available)');
     } catch (error) {
       console.error('Failed to connect InAppWallet:', error);
       throw error;
     }
   };
 
-  // Sign in with wallet to Supabase
-  const signInWithWallet = async () => {
+  // Record wallet connection and capture referrer from URL
+  const recordWalletConnection = async () => {
     try {
-      if (!account?.address) {
-        throw new Error('No wallet connected');
+      if (!account?.address) return;
+
+      // Capture referrer from URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const referrer = urlParams.get('ref');
+      
+      if (referrer && /^0x[a-fA-F0-9]{40}$/.test(referrer)) {
+        setReferrerWallet(referrer);
+        console.log('🔗 Referrer captured from URL:', referrer);
       }
 
-      // Create a message to sign for authentication
-      const message = `Sign in to Beehive Platform\nWallet: ${account.address}\nTimestamp: ${Date.now()}`;
+      // Register user with wallet address and referrer
+      const result = await supabaseApi.register(
+        account.address.toLowerCase(), 
+        referrer || undefined,
+        undefined, // username - can be added later
+        undefined  // email - InAppWallet may provide this
+      );
       
-      // Sign the message with the wallet
-      const signature = await wallet?.signMessage(message);
-      
-      if (!signature) {
-        throw new Error('Failed to sign message');
+      console.log('✅ Wallet connection recorded:', account.address);
+      return result;
+    } catch (error) {
+      console.error('Failed to record wallet connection:', error);
+    }
+  };
+
+  // Check membership status after both wallet + Supabase auth
+  const checkMembershipStatus = async () => {
+    try {
+      if (!account?.address || !isSupabaseAuthenticated) {
+        return;
       }
 
-      // Authenticate with your Supabase auth function using the API client
-      const result = await supabaseApi.login(account.address.toLowerCase(), signature, message);
+      // Check if user is a member
+      const result = await supabaseApi.getUser(account.address.toLowerCase());
       
-      if (result.success) {
-        setIsSupabaseAuthenticated(true);
-        setSupabaseUser(result.user);
+      if (result.success && result.user) {
+        const isActiveMember = result.user.members?.[0]?.is_activated || false;
+        setIsMember(isActiveMember);
         
-        // Store session info
-        localStorage.setItem('supabase-wallet-session', JSON.stringify({
-          walletAddress: account.address,
-          user: result.user,
-          session: result.session,
-          timestamp: Date.now(),
-        }));
-        
-        console.log('✅ Authenticated with Supabase using wallet:', account.address);
-        return result;
-      } else {
-        throw new Error(result.error || 'Authentication failed');
+        // Route based on membership status
+        if (isActiveMember) {
+          console.log('✅ User is a member, redirecting to dashboard');
+          setLocation('/dashboard');
+        } else {
+          console.log('⏳ User not a member, redirecting to welcome');
+          setLocation('/welcome');
+        }
       }
     } catch (error) {
-      console.error('Wallet authentication error:', error);
-      throw error;
+      console.error('Failed to check membership status:', error);
     }
   };
 
@@ -151,33 +179,42 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Check for existing Supabase session on mount
+  // Check for existing Supabase Auth session on mount
   useEffect(() => {
-    const checkExistingSession = async () => {
+    const checkSupabaseSession = async () => {
       try {
-        const storedSession = localStorage.getItem('supabase-wallet-session');
-        if (storedSession) {
-          const sessionData = JSON.parse(storedSession);
-          // Check if session is still valid (less than 24 hours old)
-          const isValid = Date.now() - sessionData.timestamp < 24 * 60 * 60 * 1000;
-          
-          if (isValid && sessionData.user) {
-            setIsSupabaseAuthenticated(true);
-            setSupabaseUser(sessionData.user);
-            console.log('🔄 Restored Supabase session for:', sessionData.walletAddress);
-          } else {
-            localStorage.removeItem('supabase-wallet-session');
-          }
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setIsSupabaseAuthenticated(true);
+          setSupabaseUser(session.user);
+          console.log('🔄 Supabase session restored:', session.user.email);
         }
       } catch (error) {
-        console.error('Error checking existing session:', error);
-        localStorage.removeItem('supabase-wallet-session');
+        console.error('Error checking Supabase session:', error);
       }
     };
 
-    checkExistingSession();
+    checkSupabaseSession();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          setIsSupabaseAuthenticated(true);
+          setSupabaseUser(session.user);
+          console.log('✅ Supabase user signed in:', session.user.email);
+        } else if (event === 'SIGNED_OUT') {
+          setIsSupabaseAuthenticated(false);
+          setSupabaseUser(null);
+          console.log('🔓 Supabase user signed out');
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
+  // Handle wallet connection and record it
   useEffect(() => {
     const handleWalletConnection = async () => {
       if (account?.address) {
@@ -188,21 +225,26 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
         sessionStorage.setItem('wallet-address', account.address);
         if (activeChain?.id !== undefined && activeChain.id !== null) {
           sessionStorage.setItem('active-chain-id', activeChain.id.toString());
-        } else {
-          sessionStorage.removeItem('active-chain-id');
         }
         
-        console.log('🔗 InAppWallet connected:', {
+        console.log('🔗 Wallet connected:', {
           address: account.address,
           walletId: wallet?.id,
           chainId: activeChain?.id
         });
+
+        // Record wallet connection and capture referrer
+        await recordWalletConnection();
       } else {
         const wasConnected = isConnected;
         setIsConnected(false);
         setWalletAddress(null);
+        setReferrerWallet(null);
         sessionStorage.removeItem('wallet-address');
         sessionStorage.removeItem('active-chain-id');
+        
+        // Reset member status on wallet disconnect
+        setIsMember(false);
         
         // Auto-redirect to landing page when wallet disconnects (except admin and public pages)
         const publicPages = ['/', '/hiveworld', '/register', '/welcome'];
@@ -220,6 +262,13 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     handleWalletConnection();
   }, [account, wallet, activeChain, isConnected, location, setLocation]);
 
+  // Check membership status when both wallet and Supabase auth are ready
+  useEffect(() => {
+    if (isConnected && isSupabaseAuthenticated && account?.address) {
+      checkMembershipStatus();
+    }
+  }, [isConnected, isSupabaseAuthenticated, account?.address]);
+
   const value = {
     client,
     account,
@@ -231,7 +280,10 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     disconnectWallet,
     isSupabaseAuthenticated,
     supabaseUser,
-    signInWithWallet,
+    isMember,
+    referrerWallet,
+    recordWalletConnection,
+    checkMembershipStatus,
     signOut,
   };
 
