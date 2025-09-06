@@ -27,7 +27,7 @@ class HttpClient {
         _method: method
       };
       
-      const result = await supabaseApi.invokeFunction(functionName, requestData);
+      const result = await supabaseApi.callFunction(functionName, requestData);
       return result.data as T;
     } catch (error: any) {
       throw new Error(error.message || `Failed to call ${endpoint}`);

@@ -67,7 +67,7 @@ export async function apiRequest(
       _method: method.toUpperCase()
     };
     
-    const result = await supabaseApi.invokeFunction(functionName, requestData);
+    const result = await supabaseApi.callFunction(functionName, requestData);
     
     // Create a mock Response object for compatibility
     const mockResponse = {
