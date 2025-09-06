@@ -13,11 +13,20 @@ const corsHeaders = {
 }
 
 interface AuthRequest {
-  action: 'register' | 'get-user' | 'activate-membership';
+  action: 'register' | 'get-user' | 'activate-membership' | 'toggle-pending' | 'check-pending' | 'create-countdown' | 'get-countdowns';
   walletAddress?: string;
   referrerWallet?: string;
   username?: string;
   email?: string;
+  // Countdown timer params
+  timerType?: string;
+  title?: string;
+  durationHours?: number;
+  description?: string;
+  autoAction?: string;
+  // Pending system params
+  pendingHours?: number;
+  pendingEnabled?: boolean;
 }
 
 serve(async (req) => {
@@ -60,6 +69,27 @@ serve(async (req) => {
 
     const { action } = requestData
 
+    // Check Supabase authentication first
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Supabase authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Verify Supabase JWT token
+    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    )
+
+    if (authError || !authUser) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid Supabase authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // Most actions require wallet address
     if (!walletAddress && req.method !== 'OPTIONS') {
       return new Response(
@@ -71,13 +101,25 @@ serve(async (req) => {
     switch (action) {
       
       case 'register':
-        return await handleUserRegistration(supabase, walletAddress!, requestData)
+        return await handleUserRegistration(supabase, walletAddress!, requestData, authUser)
       
       case 'get-user':
         return await handleGetUser(supabase, walletAddress!)
       
       case 'activate-membership':
         return await handleActivateMembership(supabase, walletAddress!)
+
+      case 'toggle-pending':
+        return await handleTogglePending(supabase, walletAddress!, requestData)
+
+      case 'check-pending':
+        return await handleCheckPending(supabase, walletAddress!)
+
+      case 'create-countdown':
+        return await handleCreateCountdown(supabase, walletAddress!, requestData)
+
+      case 'get-countdowns':
+        return await handleGetCountdowns(supabase, walletAddress!)
 
       default:
         return new Response(
@@ -94,16 +136,16 @@ serve(async (req) => {
   }
 })
 
-async function handleUserRegistration(supabase: any, walletAddress: string, data: any) {
+async function handleUserRegistration(supabase: any, walletAddress: string, data: any, authUser: any) {
   try {
-    // Check if member already exists
-    const { data: existingMember } = await supabase
-      .from('members')
-      .select('wallet_address, referrer_wallet, is_activated')
+    // Check if user already exists in users table
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('wallet_address, referrer_wallet')
       .eq('wallet_address', walletAddress)
       .single()
 
-    if (existingMember) {
+    if (existingUser) {
       return new Response(
         JSON.stringify({
           success: true,
@@ -118,7 +160,7 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
     let validReferrerWallet = null
     if (data.referrerWallet) {
       const { data: referrerExists } = await supabase
-        .from('members')
+        .from('users')
         .select('wallet_address')
         .eq('wallet_address', data.referrerWallet)
         .single()
@@ -130,14 +172,29 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
       }
     }
 
-    // Create member record (not activated yet)
-    const { data: newMember, error: memberError } = await supabase
-      .from('members')
+    // Create user record - linked to authenticated Supabase user
+    const { data: newUser, error: userError } = await supabase
+      .from('users')
       .insert({
         wallet_address: walletAddress,
         referrer_wallet: validReferrerWallet,
-        username: data.username || null,
-        email: data.email || null,
+        username: data.username || authUser.user_metadata?.username || null,
+        email: data.email || authUser.email || null,
+        current_level: 0,
+        supabase_user_id: authUser.id, // Link to auth.users
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+
+    if (userError) throw userError
+
+    // Create member record (not activated yet)
+    const { error: memberError } = await supabase
+      .from('members')
+      .insert({
+        wallet_address: walletAddress,
         is_activated: false,
         current_level: 0,
         max_layer: 0,
@@ -145,8 +202,6 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
-      .select()
-      .single()
 
     if (memberError) throw memberError
 
@@ -166,7 +221,8 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
     const response = {
       success: true,
       action: 'created',
-      user: newMember,
+      user: newUser,
+      authUser: authUser.id,
       message: 'User registered successfully - ready to activate membership'
     }
 
