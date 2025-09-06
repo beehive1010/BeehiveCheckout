@@ -30,6 +30,7 @@ import TokenPurchase from "@/pages/TokenPurchase";
 import Header from "@/components/shared/Header";
 import Navigation from "@/components/shared/Navigation";
 import { useWallet } from "@/hooks/useWallet";
+import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
 
 // Temporary components for features not yet refactored
 const CourseDetails = () => <div>Course Details - Coming Soon</div>;
@@ -56,11 +57,6 @@ const AdminDiscover = () => <div>Admin Discover - Coming Soon</div>;
 const Courses = () => <div>Courses - Coming Soon</div>;
 const DiscoverPartners = () => <div>Discover Partners - Coming Soon</div>;
 const AdminLayout = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
-const AdminRouteGuard = ({ children, requiredPermission, requiredRoles }: { 
-  children: React.ReactNode;
-  requiredPermission?: string;
-  requiredRoles?: string[];
-}) => <div>{children}</div>;
 
 // Layout components (temporary)
 // Navigation component imported from components/shared/Navigation
