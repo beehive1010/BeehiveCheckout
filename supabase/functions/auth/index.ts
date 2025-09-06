@@ -181,24 +181,9 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
       throw memberError
     }
 
-    // Create referral entry
-    try {
-      await supabase
-        .from('referrals')
-        .insert({
-          root_wallet: validReferrerWallet,
-          member_wallet: walletAddress,
-          layer: 1,
-          position: 'L', // Simplified placement
-          parent_wallet: validReferrerWallet,
-          placer_wallet: validReferrerWallet,
-          placement_type: validReferrerWallet === ROOT_WALLET ? 'direct' : 'direct',
-          is_active: true
-        })
-      console.log(`✅ Referral entry created for: ${walletAddress}`)
-    } catch (referralError) {
-      console.error('Referral creation failed (non-critical):', referralError)
-    }
+    // Note: Referral entry will be created during membership activation
+    // Registration only stores the referrer_wallet in users table
+    console.log(`📝 Referrer stored for later activation: ${validReferrerWallet}`)
 
     // Create user balance record
     try {
@@ -356,67 +341,59 @@ async function handleActivateMembership(supabase: any, walletAddress: string) {
   try {
     console.log(`🚀 Activation request for: ${walletAddress}`)
 
-    // Check if member record exists
-    const { data: memberData } = await supabase
-      .from('members')
-      .select('wallet_address, is_activated')
-      .eq('wallet_address', walletAddress)
-      .single()
-
-    if (!memberData) {
-      console.log(`❌ Member not found for activation: ${walletAddress}`)
-      return new Response(
-        JSON.stringify({ 
-          error: 'User not found. Please register first.' 
-        }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // Check if already activated
-    if (memberData.is_activated) {
-      console.log(`⚠️ User already activated: ${walletAddress}`)
-      return new Response(
-        JSON.stringify({ 
-          success: true,
-          message: 'Membership is already activated' 
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // Activate membership
-    const { error: activationError } = await supabase
-      .from('members')
-      .update({
-        is_activated: true,
-        activated_at: new Date().toISOString(),
-        current_level: 1,
-        levels_owned: [1],
-        updated_at: new Date().toISOString()
+    // Use the new SQL function to handle the complete activation flow
+    const { data: activationResult, error: activationError } = await supabase
+      .rpc('activate_member_with_nft_claim', {
+        p_wallet_address: walletAddress,
+        p_nft_type: 'membership',
+        p_payment_method: 'demo_activation',
+        p_transaction_hash: `activation_${Date.now()}`
       })
-      .eq('wallet_address', walletAddress)
 
     if (activationError) {
-      console.error('Activation error:', activationError)
+      console.error('SQL activation function error:', activationError)
       throw activationError
     }
 
-    // Update user record
-    await supabase
-      .from('users')
-      .update({
-        current_level: 1,
-        is_upgraded: true
-      })
-      .eq('wallet_address', walletAddress)
+    if (!activationResult.success) {
+      console.log(`❌ Activation failed: ${activationResult.error}`)
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: activationResult.error
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
-    console.log(`🎉 Membership activated for: ${walletAddress}`)
+    // Process referral rewards for the new member
+    try {
+      const { data: rewardResult } = await supabase
+        .rpc('process_referral_rewards', {
+          p_new_member_wallet: walletAddress,
+          p_activation_level: 1
+        })
+      
+      if (rewardResult.success) {
+        console.log(`💰 Referral rewards processed: ${rewardResult.total_rewards_distributed} USDT distributed across ${rewardResult.layers_processed} layers`)
+      }
+    } catch (rewardError) {
+      console.error('Reward processing failed (non-critical):', rewardError)
+      // Continue - member activation is successful even if rewards fail
+    }
+
+    console.log(`🎉 Complete member activation successful:`, activationResult)
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Membership activated! Welcome to Beehive!'
+        message: 'Membership activated! Welcome to Beehive! 🎉',
+        details: {
+          wallet_address: activationResult.wallet_address,
+          referrer_wallet: activationResult.referrer_wallet,
+          level: activationResult.level,
+          activated_at: activationResult.activated_at
+        }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )

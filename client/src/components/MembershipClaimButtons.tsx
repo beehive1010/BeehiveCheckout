@@ -58,32 +58,21 @@ export function MembershipClaimButtons({
       return;
     }
 
-    // Check if user is authenticated with Supabase
-    if (!isSupabaseAuthenticated) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in first to claim your NFT",
-        variant: "destructive"
-      });
-      setLocation('/auth');
-      return;
-    }
+    // Note: With the simplified auth flow, wallet connection is sufficient
+    // The Supabase auth function will handle user registration and activation automatically
 
     setClaimState({ method: claimMethod, loading: true, error: null });
 
     try {
-      const response = await fetch('/api/auth/claim-nft-token-1', {
+      // Call the Supabase auth function directly for activation
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-Wallet-Address': account.address
         },
         body: JSON.stringify({
-          claimMethod,
-          referrerWallet: referrerWallet || null,
-          // Mock transaction data for demo
-          transactionHash: claimMethod === 'demo' ? 'demo_tx_' + Date.now() : undefined,
-          mintTxHash: claimMethod === 'demo' ? 'demo_mint_' + Date.now() : undefined
+          action: 'activate-membership'
         })
       });
 

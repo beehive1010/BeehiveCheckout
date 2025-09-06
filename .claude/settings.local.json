@@ -5,7 +5,8 @@
       "Bash(npm run build:*)",
       "Bash(supabase functions deploy:*)",
       "Bash(npm run dev:*)",
-      "Bash(psql:*)"
+      "Bash(psql:*)",
+      "Bash(supabase projects:*)"
     ],
     "deny": [],
     "ask": []
