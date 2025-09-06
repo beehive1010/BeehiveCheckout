@@ -182,6 +182,9 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
         email: data.email || authUser.email || null,
         current_level: 0,
         supabase_user_id: authUser.id, // Link to auth.users
+        pending_enabled: false, // No pending by default
+        pending_hours: null,
+        pending_until: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
@@ -195,6 +198,9 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
       .from('members')
       .insert({
         wallet_address: walletAddress,
+        referrer_wallet: validReferrerWallet,
+        username: data.username || authUser.user_metadata?.username || null,
+        email: data.email || authUser.email || null,
         is_activated: false,
         current_level: 0,
         max_layer: 0,
@@ -300,6 +306,16 @@ async function handleGetUser(supabase: any, walletAddress: string) {
       user_balances: [balanceData || { bcc_transferable: 0, bcc_locked: 0 }]
     }
 
+    // Determine user flow for frontend routing
+    let userFlow = 'registration';
+    if (memberData) {
+      if (isMember) {
+        userFlow = 'dashboard'; // Fully activated member
+      } else {
+        userFlow = 'claim_nft'; // Registered but needs to activate membership
+      }
+    }
+
     const response = {
       success: true,
       user: userData,
@@ -307,7 +323,8 @@ async function handleGetUser(supabase: any, walletAddress: string) {
       isMember: isMember,
       canAccessReferrals: isMember && !isPending,
       isPending: isPending,
-      memberData: memberData
+      memberData: memberData,
+      userFlow: userFlow
     }
 
     return new Response(

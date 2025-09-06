@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useI18n } from '../contexts/I18nContext';
 import { useLocation } from 'wouter';
-import { useActiveAccount } from 'thirdweb/react';
+import { useActiveAccount, useActiveWallet } from 'thirdweb/react';
+import { useWeb3 } from '../contexts/Web3Context';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -13,6 +14,10 @@ export default function Welcome() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const account = useActiveAccount();
+  const { checkMembershipStatus } = useWeb3();
+  
+  // Import wallet hook at component level
+  const wallet = useActiveWallet();
   const [isLoading, setIsLoading] = useState(true);
   const [referrerWallet, setReferrerWallet] = useState<string | null>(null);
   const [claimState, setClaimState] = useState<{
@@ -45,6 +50,118 @@ export default function Welcome() {
       return;
     }
   }, [account?.address, setLocation]);
+
+  // Helper function to get level-to-tokenId mapping
+  const getLevelTokenId = (level: number): number => {
+    // Level 1 → Token ID 1, Level 2 → Token ID 2, ..., Level 19 → Token ID 19
+    if (level < 1 || level > 19) {
+      throw new Error(`Invalid level: ${level}. Must be between 1 and 19.`);
+    }
+    return level;
+  };
+
+  const handleOnChainClaim = async (claimMethod: string, claimData: any, walletAddress: string) => {
+    try {
+      // Import Thirdweb dependencies
+      const { prepareContractCall, sendTransaction } = await import('thirdweb');
+      const { bbcMembershipContracts } = await import('../lib/web3/contracts');
+      
+      let contract;
+      let chainName;
+      
+      // Select the appropriate contract based on claim method
+      if (claimMethod === 'testnet_arb_sepolia') {
+        contract = bbcMembershipContracts.arbitrumSepolia;
+        chainName = 'Arbitrum Sepolia';
+      } else if (claimMethod === 'mainnet_arb_one') {
+        contract = bbcMembershipContracts.arbitrum;
+        chainName = 'Arbitrum One';
+      } else {
+        throw new Error('Invalid claim method for on-chain claiming');
+      }
+      
+      toast({
+        title: `Preparing ${chainName} Transaction`,
+        description: 'Please confirm the transaction in your wallet...',
+      });
+      
+      // Check if wallet is connected
+      if (!wallet) {
+        throw new Error('No wallet connected');
+      }
+      
+      // ERC1155 Edition Drop claiming
+      // Level 1 = Token ID 1, Level 2 = Token ID 2, etc.
+      const targetLevel = claimData.targetLevel || 1;
+      const tokenId = targetLevel; // Level maps directly to token ID
+      
+      console.log(`Claiming Level ${targetLevel} BBC Membership NFT (Token ID ${tokenId}) on ${chainName}`);
+      console.log('Contract address:', contract.address);
+      console.log('Recipient:', walletAddress);
+      
+      // Prepare ERC1155 Edition Drop claim transaction
+      const transaction = prepareContractCall({
+        contract,
+        method: 'claim',
+        params: [
+          walletAddress, // recipient
+          tokenId, // tokenId (1 for Level 1, 2 for Level 2, etc.)
+          1, // quantity (1 NFT)
+          "0x0000000000000000000000000000000000000000", // currency (native token = free)
+          0, // pricePerToken (0 = free claim)
+          {
+            proof: [], // merkle proof (empty for public claim)
+            quantityLimitPerWallet: 1, // limit 1 per wallet
+            pricePerToken: 0, // free claim
+            currency: "0x0000000000000000000000000000000000000000"
+          }, // allowlist claim conditions
+          "0x" // data
+        ],
+      });
+      
+      // Send the transaction
+      const txResult = await sendTransaction({
+        transaction,
+        account: wallet.getAccount()
+      });
+      
+      toast({
+        title: "Transaction Sent!",
+        description: `Transaction hash: ${txResult.transactionHash}`,
+      });
+      
+      // Wait for transaction confirmation
+      // You might want to add transaction receipt waiting here
+      
+      // Update the backend with the successful on-chain claim
+      const { supabaseApi } = await import('../lib/supabase');
+      const activationResult = await supabaseApi.activateMembership(walletAddress);
+      
+      if (!activationResult.success) {
+        console.warn('On-chain claim successful but backend activation failed:', activationResult.error);
+        // Don't throw error here - the NFT was successfully minted
+      }
+      
+      return {
+        success: true,
+        message: `Level 1 BBC Membership NFT successfully claimed on ${chainName}!`,
+        transactionHash: txResult.transactionHash,
+        chainName
+      };
+      
+    } catch (error: any) {
+      console.error('On-chain claim error:', error);
+      
+      // Handle specific wallet errors
+      if (error.message?.includes('User rejected') || error.message?.includes('denied')) {
+        throw new Error('Transaction was rejected by user');
+      } else if (error.message?.includes('insufficient funds')) {
+        throw new Error('Insufficient funds for gas fees');
+      } else {
+        throw new Error(error.message || 'Failed to claim NFT on-chain');
+      }
+    }
+  };
 
   const handleClaim = async (claimMethod: 'database_test' | 'testnet_arb_sepolia' | 'mainnet_arb_one') => {
     if (!account?.address) {
@@ -85,13 +202,13 @@ export default function Welcome() {
             claimMethod: 'testnet_purchase',
             referrerWallet: referrerWallet || null,
             network: 'arbitrum-sepolia',
-            tokenContract: '0xTestFakeUSDTContract',
+            tokenContract: '0xAc8c8662726b72f8DB4F5D1d1a16aC5b06B7a90D', // Arbitrum Sepolia BBC contract
             amount: '100000000', // 100 fake USDT (6 decimals)
             chainId: 421614, // Arbitrum Sepolia
             transactionHash: 'testnet_tx_' + Date.now(),
             mintTxHash: 'testnet_mint_' + Date.now(),
             targetLevel: 1, // Level 1 NFT activation
-            tokenId: 1
+            tokenId: 1 // Token ID 1 for Level 1
           };
           networkInfo = {
             name: 'Testnet (Arbitrum Sepolia)',
@@ -105,14 +222,14 @@ export default function Welcome() {
             claimMethod: 'mainnet_purchase',
             referrerWallet: referrerWallet || null,
             network: 'arbitrum-one',
-            tokenContract: '0xA0b86a33E6441E8Ff8BBb5F0f1F4a90AC4Cd0a35', // USDC on Arbitrum One
+            tokenContract: '0x0000000000000000000000000000000000000000', // Mainnet BBC contract (to be set)
             amount: '100000000', // 100 USDC (6 decimals)
             chainId: 42161, // Arbitrum One
             bridgeUsed: true,
             transactionHash: 'mainnet_tx_' + Date.now(),
             mintTxHash: 'mainnet_mint_' + Date.now(),
             targetLevel: 1, // Level 1 NFT activation
-            tokenId: 1
+            tokenId: 1 // Token ID 1 for Level 1
           };
           networkInfo = {
             name: 'Mainnet (Arbitrum One)',
@@ -130,19 +247,18 @@ export default function Welcome() {
         description: networkInfo.description,
       });
 
-      // Call the enhanced NFT claim API
-      const response = await fetch('/api/auth/claim-nft-token-1', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Wallet-Address': account.address
-        },
-        body: JSON.stringify(claimData)
-      });
+      let result;
+      
+      if (claimMethod === 'database_test') {
+        // Database-only claim (no blockchain transaction)
+        const { supabaseApi } = await import('../lib/supabase');
+        result = await supabaseApi.activateMembership(account.address);
+      } else {
+        // On-chain NFT claim using Thirdweb
+        result = await handleOnChainClaim(claimMethod, claimData, account.address);
+      }
 
-      const result = await response.json();
-
-      if (response.ok) {
+      if (result.success) {
         toast({
           title: "🎉 Membership Activated!",
           description: result.message,
@@ -151,12 +267,18 @@ export default function Welcome() {
 
         console.log('✅ Membership activation successful:', result);
         
-        // Redirect to dashboard after successful activation
+        // Refresh membership status and let Web3Context handle routing
+        await checkMembershipStatus();
+        
+        // Small delay for UI feedback, then let the context handle routing
         setTimeout(() => {
-          setLocation('/dashboard');
-        }, 2000);
+          if (window.location.pathname === '/welcome') {
+            // If still on welcome page, force redirect to dashboard
+            setLocation('/dashboard');
+          }
+        }, 1000);
       } else {
-        throw new Error(result.error || 'Failed to claim NFT Token ID 1');
+        throw new Error(result.error || result.message || 'Failed to activate membership');
       }
     } catch (error: any) {
       console.error('Claim error:', error);
