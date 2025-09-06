@@ -149,10 +149,18 @@ export async function apiRequest(
   } catch (error: any) {
     console.error(`Supabase API Error [${functionName}]:`, error);
     
+    // Handle authentication errors specifically
+    let status = 500;
+    if (error.message?.includes('Authentication') || 
+        error.message?.includes('session') || 
+        error.message?.includes('sign in')) {
+      status = 401;
+    }
+    
     // Create mock error response
     const errorResponse = {
       ok: false,
-      status: 500,
+      status: status,
       statusText: error.message || 'Internal Server Error',
       json: async () => ({ error: error.message }),
       text: async () => error.message

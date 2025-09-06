@@ -195,8 +195,20 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
             console.log('❌ Failed to get user data, redirecting to welcome');
             setLocation('/welcome');
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error checking membership status:', error);
+          
+          // Handle authentication errors
+          if (error.status === 401 || 
+              error.message?.includes('Authentication') || 
+              error.message?.includes('session') ||
+              error.message?.includes('sign in')) {
+            console.log('🔓 Authentication error, redirecting to sign in');
+            setIsSupabaseAuthenticated(false);
+            setSupabaseUser(null);
+            setLocation('/auth');
+            return;
+          }
           
           // If user doesn't exist, try to auto-register
           if (error.message?.includes('not found') || error.message?.includes('404')) {
@@ -204,9 +216,14 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
             try {
               await recordWalletConnection();
               setLocation('/welcome');
-            } catch (regError) {
+            } catch (regError: any) {
               console.error('Auto-registration failed:', regError);
-              setLocation('/welcome');
+              // Check if auto-registration failed due to auth
+              if (regError.status === 401) {
+                setLocation('/auth');
+              } else {
+                setLocation('/welcome');
+              }
             }
           } else {
             setLocation('/welcome');

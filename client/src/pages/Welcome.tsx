@@ -14,7 +14,7 @@ export default function Welcome() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const account = useActiveAccount();
-  const { checkMembershipStatus } = useWeb3();
+  const { checkMembershipStatus, isSupabaseAuthenticated } = useWeb3();
   
   // Import wallet hook at component level
   const wallet = useActiveWallet();
@@ -181,6 +181,17 @@ export default function Welcome() {
       return;
     }
 
+    // Check if user is authenticated with Supabase
+    if (!isSupabaseAuthenticated) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in first to claim your NFT",
+        variant: "destructive"
+      });
+      setLocation('/auth');
+      return;
+    }
+
     setClaimState({ method: claimMethod, loading: true, error: null });
 
     try {
@@ -211,7 +222,7 @@ export default function Welcome() {
             referrerWallet: referrerWallet || null,
             network: 'arbitrum-sepolia',
             tokenContract: '0xAc8c8662726b72f8DB4F5D1d1a16aC5b06B7a90D', // Arbitrum Sepolia BBC contract
-            amount: '100000000', // 100 fake USDT (6 decimals)
+            amount: '130000000', // 100 fake USDT (6 decimals)
             chainId: 421614, // Arbitrum Sepolia
             transactionHash: 'testnet_tx_' + Date.now(),
             mintTxHash: 'testnet_mint_' + Date.now(),
@@ -231,7 +242,7 @@ export default function Welcome() {
             referrerWallet: referrerWallet || null,
             network: 'arbitrum-one',
             tokenContract: '0x0000000000000000000000000000000000000000', // Mainnet BBC contract (to be set)
-            amount: '100000000', // 100 USDC (6 decimals)
+            amount: '130000000', // 100 USDC (6 decimals)
             chainId: 42161, // Arbitrum One
             bridgeUsed: true,
             transactionHash: 'mainnet_tx_' + Date.now(),

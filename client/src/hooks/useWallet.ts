@@ -34,8 +34,11 @@ export function useWallet() {
       }
     },
     staleTime: 2000,
-    refetchInterval: (query) => query.state.data?.isRegistered ? 5000 : false,
-    refetchIntervalInBackground: true,
+    refetchInterval: (query) => {
+      // Only refetch if user is registered AND both wallet and Supabase are authenticated
+      return (query.state.data?.isRegistered && walletAddress && isSupabaseAuthenticated) ? 5000 : false;
+    },
+    refetchIntervalInBackground: false, // Disable background refetching to prevent auth errors
   });
   
   const { data: userStatus, isLoading: isUserLoading, error: userError } = userQuery;

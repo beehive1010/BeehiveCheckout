@@ -3,7 +3,8 @@
     "allow": [
       "Bash(supabase status:*)",
       "Bash(npm run build:*)",
-      "Bash(supabase functions deploy:*)"
+      "Bash(supabase functions deploy:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []

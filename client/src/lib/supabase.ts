@@ -36,13 +36,32 @@ export class SupabaseApiClient {
     }
 
     // Get auth token from Supabase session - required for most operations
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session?.access_token) {
-      headers['Authorization'] = `Bearer ${session.access_token}`
-    } else {
-      // Fallback to anon key - auth function will return 401 if auth is required
-      headers['Authorization'] = `Bearer ${this.anonKey}`
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    
+    if (sessionError) {
+      console.warn('⚠️ Session error:', sessionError)
       console.warn('⚠️ No Supabase session found, using anon key. Some operations may fail.')
+      headers['Authorization'] = `Bearer ${this.anonKey}`
+    } else if (session?.access_token) {
+      // Check if token is expired
+      const now = Math.floor(Date.now() / 1000)
+      if (session.expires_at && session.expires_at < now) {
+        console.warn('⚠️ Supabase token expired, attempting refresh...')
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+        
+        if (refreshError || !refreshData.session) {
+          console.warn('⚠️ Token refresh failed, using anon key. Some operations may fail.')
+          headers['Authorization'] = `Bearer ${this.anonKey}`
+        } else {
+          headers['Authorization'] = `Bearer ${refreshData.session.access_token}`
+        }
+      } else {
+        headers['Authorization'] = `Bearer ${session.access_token}`
+      }
+    } else {
+      // No session - fall back to anon key for compatibility
+      console.warn('⚠️ No Supabase session found, using anon key. Some operations may fail.')
+      headers['Authorization'] = `Bearer ${this.anonKey}`
     }
 
     if (walletAddress) {
