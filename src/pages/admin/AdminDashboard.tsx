@@ -45,10 +45,11 @@ export default function AdminDashboard() {
 
   const loadDashboardStats = async () => {
     try {
-      const response = await fetch('/api/admin/dashboard-stats', {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-stats?action=dashboard-stats`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           'Content-Type': 'application/json',
+          'x-admin-token': localStorage.getItem('admin_token') || '',
         },
       });
 
@@ -56,8 +57,21 @@ export default function AdminDashboard() {
         throw new Error('Failed to fetch dashboard stats');
       }
 
-      const data = await response.json();
-      setStats(data);
+      const result = await response.json();
+      if (result.success && result.data) {
+        setStats({
+          totalUsers: result.data.overview.total_members || 0,
+          activeMembers: result.data.overview.total_activated || 0,
+          totalNFTs: 19, // Fixed based on our NFT levels 1-19
+          blogPosts: 0,
+          courses: 16,
+          discoverPartners: 0,
+          pendingApprovals: result.data.overview.total_pending_rewards || 0,
+          systemHealth: result.data.systemHealth || 'healthy',
+        });
+      } else {
+        throw new Error(result.error || 'Invalid response format');
+      }
       setIsLoading(false);
     } catch (error) {
       console.error('Failed to load dashboard stats:', error);

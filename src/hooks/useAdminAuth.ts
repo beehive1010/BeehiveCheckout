@@ -31,12 +31,13 @@ export function useAdminAuth() {
         return;
       }
 
-      // Verify session with new admin service
-      const response = await fetch('/api/admin/verify-session', {
+      // Verify session with Supabase admin function
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin?action=verify-session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionToken}`
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'x-admin-token': sessionToken
         },
         body: JSON.stringify({ sessionToken })
       });
@@ -72,12 +73,13 @@ export function useAdminAuth() {
       const sessionToken = localStorage.getItem('adminSessionToken');
       
       if (sessionToken) {
-        // Call new admin service to properly destroy session
-        await fetch('/api/admin/logout', {
+        // Call Supabase admin function to properly destroy session
+        await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin?action=logout`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${sessionToken}`
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'x-admin-token': sessionToken
           },
           body: JSON.stringify({ sessionToken })
         });
