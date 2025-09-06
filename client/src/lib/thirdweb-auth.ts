@@ -57,23 +57,9 @@ export class BeehiveAuth {
    */
   async initialize() {
     try {
-      // Check Supabase session
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (session?.user) {
-        this.currentUser = session.user
-        // Try to restore wallet connection if metadata exists
-        const walletAddress = session.user.user_metadata?.wallet_address
-        if (walletAddress) {
-          await this.restoreWalletConnection(walletAddress)
-        }
-      }
-
-      return {
-        isAuthenticated: !!session,
-        user: this.currentUser,
-        wallet: this.currentWallet
-      }
+      // Custom auth initialization - no Supabase auth dependency
+      console.log('🔄 BeehiveAuth initialized for wallet-based authentication')
+      return { isAuthenticated: false, user: null, wallet: null }
     } catch (error) {
       console.error('Auth initialization error:', error)
       return { isAuthenticated: false, user: null, wallet: null }
@@ -101,35 +87,21 @@ export class BeehiveAuth {
       // Step 3: Get user details from Thirdweb (email, etc.)
       const userDetails = await wallet.getUserDetails()
       
-      // Step 4: Create/update Supabase Auth user
-      const { data: authData, error: authError } = await supabase.auth.signInWithOAuth({
-        provider: 'google', // This will be customized based on authMethod
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            wallet_address: walletAddress,
-            auth_method: authMethod,
-          },
-        },
-      })
+      // Step 4: Register/authenticate directly via our Edge Function (no Supabase Auth)
+      const result = await supabaseApi.register(
+        walletAddress,
+        undefined, // no referrer for direct login
+        userDetails.email ? `User_${walletAddress.slice(0, 8)}` : undefined,
+        userDetails.email
+      )
 
-      if (authError) {
-        // Fallback: Create user directly via our Edge Function
-        const result = await supabaseApi.register(
-          walletAddress,
-          undefined, // no referrer for direct login
-          userDetails.email ? `User_${walletAddress.slice(0, 8)}` : undefined,
-          userDetails.email
-        )
-
-        if (!result.success) {
-          throw new Error(result.error || 'Registration failed')
-        }
+      if (!result.success && !result.error?.includes('already registered')) {
+        throw new Error(result.error || 'Registration failed')
       }
 
       // Step 5: Store wallet connection
       this.currentWallet = wallet
-      this.currentUser = authData.user
+      this.currentUser = { email: userDetails.email, wallet_address: walletAddress }
 
       // Step 6: Process any pending referral links
       await this.processReferralFromUrl()
@@ -184,15 +156,9 @@ export class BeehiveAuth {
         }
       }
 
-      // Step 5: Create Supabase session with custom JWT
-      const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-        access_token: 'custom_wallet_token', // This would be a proper JWT in production
-        refresh_token: 'custom_refresh_token',
-      })
-
-      // Step 6: Store connections
+      // Step 5: Store connections (no Supabase session)
       this.currentWallet = wallet
-      this.currentUser = authResult.user
+      this.currentUser = { wallet_address: walletAddress, auth_method: 'external_wallet' }
 
       // Step 7: Process any pending referral links
       await this.processReferralFromUrl()
@@ -261,8 +227,7 @@ export class BeehiveAuth {
         this.currentWallet = null
       }
 
-      // Sign out from Supabase
-      await supabase.auth.signOut()
+      // Clear user session (no Supabase signOut)
       this.currentUser = null
 
       return { success: true }

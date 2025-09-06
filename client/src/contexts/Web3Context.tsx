@@ -105,9 +105,9 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
         console.log('🏠 Using default root referrer:', DEFAULT_REFERRER);
       }
 
-      // Register user with wallet address and referrer (always has a referrer now)
+      // Register user with wallet address and referrer (PRESERVE CASE)
       const result = await supabaseApi.register(
-        account.address.toLowerCase(), 
+        account.address, // Preserve original case for withdrawal compatibility
         finalReferrer,
         undefined, // username - can be added later
         undefined  // email - InAppWallet may provide this
@@ -147,7 +147,7 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
         
         try {
           // Check if user is a member - only members can access dashboard
-          const result = await supabaseApi.getUser(account.address.toLowerCase());
+          const result = await supabaseApi.getUser(account.address); // PRESERVE CASE
           
           if (result.success && result.user) {
             // Check member status from API response
@@ -172,8 +172,8 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
               await recordWalletConnection();
               console.log('✅ User auto-registered, checking membership again...');
               
-              // Check again after registration
-              const newResult = await supabaseApi.getUser(account.address.toLowerCase());
+              // Check again after registration (PRESERVE CASE)
+              const newResult = await supabaseApi.getUser(account.address);
               if (newResult.success && newResult.user) {
                 const isActiveMember = newResult.isMember || false;
                 setIsMember(isActiveMember);
@@ -276,14 +276,14 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Sign out from Supabase
+  // Sign out (wallet-based auth)
   const signOut = async () => {
     try {
-      await supabase.auth.signOut();
+      // No Supabase auth signOut needed
       setIsSupabaseAuthenticated(false);
       setSupabaseUser(null);
       localStorage.removeItem('supabase-wallet-session');
-      console.log('🔓 Signed out from Supabase');
+      console.log('🔓 Signed out from wallet auth');
     } catch (error) {
       console.error('Sign out error:', error);
     }
@@ -315,39 +315,19 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Check for existing Supabase Auth session on mount
+  // Initialize wallet-based authentication (no Supabase Auth)
   useEffect(() => {
-    const checkSupabaseSession = async () => {
+    const initializeAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          setIsSupabaseAuthenticated(true);
-          setSupabaseUser(session.user);
-          console.log('🔄 Supabase session restored:', session.user.email);
-        }
+        console.log('🔄 Initializing wallet-based authentication');
+        // Always authenticated for wallet-based auth - no Supabase session needed
+        setIsSupabaseAuthenticated(true);
       } catch (error) {
-        console.error('Error checking Supabase session:', error);
+        console.error('Error initializing auth:', error);
       }
     };
 
-    checkSupabaseSession();
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          setIsSupabaseAuthenticated(true);
-          setSupabaseUser(session.user);
-          console.log('✅ Supabase user signed in:', session.user.email);
-        } else if (event === 'SIGNED_OUT') {
-          setIsSupabaseAuthenticated(false);
-          setSupabaseUser(null);
-          console.log('🔓 Supabase user signed out');
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
+    initializeAuth();
   }, []);
 
   // Handle wallet connection and record it

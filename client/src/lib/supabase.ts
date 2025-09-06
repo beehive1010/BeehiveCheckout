@@ -8,17 +8,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables')
 }
 
-// Create Supabase client with auth configuration
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    flowType: 'pkce',
-    storage: window.localStorage,
-    storageKey: 'beehive-supabase-auth'
-  }
-})
+// Create Supabase client for database operations only (no auth)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Supabase Edge Function client with wallet authentication
 export class SupabaseApiClient {
@@ -32,46 +23,12 @@ export class SupabaseApiClient {
 
   private async getHeaders(walletAddress?: string, requireAuth = true) {
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json'
-    }
-
-    if (!requireAuth) {
-      // For public operations, just use anon key
-      headers['Authorization'] = `Bearer ${this.anonKey}`
-    } else {
-      // For authenticated operations, ensure we have a valid session
-      let session = null
-      const { data: { session: currentSession } } = await supabase.auth.getSession()
-      
-      if (currentSession?.access_token) {
-        // Check if token is expired
-        const now = Math.floor(Date.now() / 1000)
-        if (currentSession.expires_at && currentSession.expires_at > now) {
-          session = currentSession
-        }
-      }
-      
-      if (!session) {
-        // Create anonymous session for authenticated operations
-        console.log('🔐 Creating auth session for wallet:', walletAddress)
-        const { data, error } = await supabase.auth.signInAnonymously()
-        if (error) {
-          console.warn('⚠️ Failed to create auth session:', error)
-          headers['Authorization'] = `Bearer ${this.anonKey}`
-        } else {
-          session = data.session
-        }
-      }
-      
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`
-      } else {
-        headers['Authorization'] = `Bearer ${this.anonKey}`
-      }
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${this.anonKey}` // Always use anon key for our custom functions
     }
 
     if (walletAddress) {
-      headers['x-wallet-address'] = walletAddress.toLowerCase()
+      headers['x-wallet-address'] = walletAddress // Preserve original case for withdrawal compatibility
     }
 
     return headers
