@@ -137,52 +137,60 @@ serve(async (req) => {
 
 async function handleUserRegistration(supabase: any, walletAddress: string, data: any) {
   try {
-    // Create or update user
-    const { data: result, error } = await supabase
-      .rpc('upsert_user', {
-        p_wallet_address: walletAddress,
-        p_referrer_wallet: data.referrerWallet,
-        p_username: data.username,
-        p_email: data.email
-      })
-
-    if (error) throw error
-
-    // Get complete user data
-    const { data: userData, error: userError } = await supabase
+    // Check if user already exists
+    const { data: existingUser } = await supabase
       .from('users')
-      .select(`
-        wallet_address,
-        referrer_wallet,
-        username,
-        email,
-        current_level,
-        created_at,
-        members (
-          is_activated,
-          activated_at,
-          current_level,
-          levels_owned,
-          total_direct_referrals,
-          total_team_size
-        ),
-        user_balances (
-          bcc_transferable,
-          bcc_locked,
-          total_usdt_earned,
-          pending_upgrade_rewards
-        )
-      `)
+      .select('wallet_address, referrer_wallet')
       .eq('wallet_address', walletAddress)
       .single()
 
-    if (userError) throw userError
+    if (existingUser) {
+      // Update existing user if needed
+      const updateData: any = {}
+      if (data.username) updateData.username = data.username
+      if (data.email) updateData.email = data.email
+      
+      if (Object.keys(updateData).length > 0) {
+        await supabase
+          .from('users')
+          .update(updateData)
+          .eq('wallet_address', walletAddress)
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          action: 'updated',
+          user: existingUser,
+          message: 'User profile updated'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Create new user with no level (not a member yet)
+    const { data: newUser, error: insertError } = await supabase
+      .from('users')
+      .insert({
+        wallet_address: walletAddress,
+        referrer_wallet: data.referrerWallet || null,
+        username: data.username || null,
+        email: data.email || null,
+        current_level: null, // No level until membership is claimed
+        member_activated: false, // Not a member yet
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+
+    if (insertError) throw insertError
 
     const response = {
       success: true,
-      action: result.action,
-      user: userData,
-      message: result.action === 'created' ? 'User registered successfully' : 'User updated successfully'
+      action: 'created',
+      user: newUser,
+      message: 'User registered successfully - ready to claim membership'
     }
 
     return new Response(
@@ -192,7 +200,10 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
   } catch (error) {
     console.error('Registration error:', error)
     return new Response(
-      JSON.stringify({ error: 'Registration failed' }),
+      JSON.stringify({ 
+        error: 'Registration failed',
+        details: error.message 
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
