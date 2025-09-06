@@ -112,36 +112,53 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Check membership status after both wallet + Supabase auth
+  // Check membership status with proper dual auth routing
   const checkMembershipStatus = async () => {
     try {
-      // Need both wallet connected AND Supabase authenticated
-      if (!account?.address || !isSupabaseAuthenticated) {
-        console.log('⏳ Waiting for both wallet and Supabase authentication');
+      // Handle different authentication states
+      if (!account?.address && !isSupabaseAuthenticated) {
+        console.log('❌ No wallet and no Supabase auth - staying on current page');
+        return;
+      }
+      
+      if (account?.address && !isSupabaseAuthenticated) {
+        console.log('🔗 Wallet connected but no Supabase auth - redirecting to authentication');
+        setLocation('/auth'); // Redirect to Supabase Auth page
+        return;
+      }
+      
+      if (!account?.address && isSupabaseAuthenticated) {
+        console.log('🔐 Supabase authenticated but no wallet - need to connect wallet');
+        // Stay on current page and show wallet connection prompt
         return;
       }
 
-      // Check if user is a member - only members can access dashboard
-      const result = await supabaseApi.getUser(account.address.toLowerCase());
-      
-      if (result.success && result.user) {
-        // Check member status from API response
-        const isActiveMember = result.isMember || false;
-        const canAccessReferrals = result.canAccessReferrals || false;
-        setIsMember(isActiveMember);
+      // Both wallet and Supabase auth are connected
+      if (account?.address && isSupabaseAuthenticated) {
+        console.log('✅ Both wallet and Supabase authenticated - checking membership');
         
-        // Route based on membership status  
-        if (isActiveMember) {
-          console.log('✅ User is a member, redirecting to dashboard');
-          console.log(`🔗 Referral access: ${canAccessReferrals ? 'Enabled' : 'Blocked (pending active)'}`);
-          setLocation('/dashboard');
+        // Check if user is a member - only members can access dashboard
+        const result = await supabaseApi.getUser(account.address.toLowerCase());
+        
+        if (result.success && result.user) {
+          // Check member status from API response
+          const isActiveMember = result.isMember || false;
+          const canAccessReferrals = result.canAccessReferrals || false;
+          setIsMember(isActiveMember);
+          
+          // Route based on membership status  
+          if (isActiveMember) {
+            console.log('✅ User is a member, redirecting to dashboard');
+            console.log(`🔗 Referral access: ${canAccessReferrals ? 'Enabled' : 'Blocked (pending active)'}`);
+            setLocation('/dashboard');
+          } else {
+            console.log('⏳ User authenticated but not a member, redirecting to welcome');
+            setLocation('/welcome');
+          }
         } else {
-          console.log('⏳ User authenticated but not a member, redirecting to welcome');
+          console.log('👤 User authenticated but not registered, redirecting to welcome');
           setLocation('/welcome');
         }
-      } else {
-        console.log('👤 User authenticated but not registered, redirecting to welcome');
-        setLocation('/welcome');
       }
     } catch (error) {
       console.error('Failed to check membership status:', error);

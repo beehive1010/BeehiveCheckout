@@ -1,8 +1,8 @@
-// Auth Callback Page - Handles Thirdweb + Supabase Auth redirects
+// Auth Callback Page - Handles Supabase OAuth redirects
 import React, { useEffect, useState } from 'react'
-import { useLocation, useHistory } from 'wouter'
-import { supabase, supabaseApi } from '../lib/supabase'
-import { beehiveAuth } from '../lib/thirdweb-auth'
+import { useLocation } from 'wouter'
+import { supabase } from '../lib/supabase'
+import { useWeb3 } from '../contexts/Web3Context'
 
 interface AuthCallbackState {
   loading: boolean
@@ -11,8 +11,8 @@ interface AuthCallbackState {
 }
 
 export const AuthCallback: React.FC = () => {
-  const [location] = useLocation()
-  const [, navigate] = useHistory()
+  const [location, setLocation] = useLocation()
+  const { walletAddress, checkMembershipStatus } = useWeb3()
   const [state, setState] = useState<AuthCallbackState>({
     loading: true,
     error: null,
@@ -21,7 +21,7 @@ export const AuthCallback: React.FC = () => {
 
   useEffect(() => {
     handleAuthCallback()
-  }, [location])
+  }, [])
 
   const handleAuthCallback = async () => {
     try {
@@ -29,71 +29,36 @@ export const AuthCallback: React.FC = () => {
 
       // Parse URL parameters
       const urlParams = new URLSearchParams(window.location.search)
-      const code = urlParams.get('code')
       const error = urlParams.get('error')
       const errorDescription = urlParams.get('error_description')
-      const referralToken = urlParams.get('ref')
-      const referrerWallet = urlParams.get('referrer')
 
       // Handle OAuth errors
       if (error) {
         throw new Error(errorDescription || error)
       }
 
-      // Handle Supabase OAuth callback
-      if (code) {
-        const { data, error: sessionError } = await supabase.auth.exchangeCodeForSession(code)
-        
-        if (sessionError) throw sessionError
+      // Handle Supabase OAuth callback - session should be automatically set
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError) throw sessionError
 
-        if (data.session?.user) {
-          // Get wallet address from user metadata
-          const walletAddress = data.session.user.user_metadata?.wallet_address
-          
+      if (session?.user) {
+        console.log('✅ Supabase OAuth successful:', session.user.email)
+        
+        setState({ loading: false, error: null, success: true })
+        
+        // Wait a moment then trigger membership check
+        setTimeout(async () => {
           if (walletAddress) {
-            // Process referral if present
-            if (referralToken) {
-              try {
-                await supabaseApi.processReferralLink(walletAddress, referralToken)
-              } catch (referralError) {
-                console.warn('Referral processing failed:', referralError)
-              }
-            } else if (referrerWallet) {
-              // Fallback: set referrer directly
-              try {
-                await supabaseApi.register(walletAddress, referrerWallet)
-              } catch (referrerError) {
-                console.warn('Referrer setting failed:', referrerError)
-              }
-            }
-
-            // Initialize auth state
-            await beehiveAuth.initialize()
-            
-            setState({ loading: false, error: null, success: true })
-            
-            // Redirect to dashboard after brief success message
-            setTimeout(() => {
-              navigate('/dashboard')
-            }, 2000)
+            // Both wallet and Supabase auth complete - check membership
+            await checkMembershipStatus()
           } else {
-            throw new Error('Wallet address not found in authentication data')
+            // Supabase auth complete, need wallet - redirect to connect wallet
+            setLocation('/') // Or wherever wallet connection happens
           }
-        } else {
-          throw new Error('No session data received')
-        }
+        }, 1500)
       } else {
-        // Handle direct callback (non-OAuth)
-        const authState = await beehiveAuth.initialize()
-        
-        if (authState.isAuthenticated) {
-          setState({ loading: false, error: null, success: true })
-          setTimeout(() => {
-            navigate('/dashboard')
-          }, 1000)
-        } else {
-          throw new Error('Authentication verification failed')
-        }
+        throw new Error('No session found - authentication may have failed')
       }
 
     } catch (error) {
@@ -104,9 +69,9 @@ export const AuthCallback: React.FC = () => {
         success: false 
       })
 
-      // Redirect to login after error display
+      // Redirect to auth page after error display
       setTimeout(() => {
-        navigate('/login')
+        setLocation('/auth')
       }, 3000)
     }
   }

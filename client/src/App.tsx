@@ -25,6 +25,8 @@ import Registration from "@/pages/Registration";
 import Welcome from "@/pages/Welcome";
 import Tasks from "@/pages/Tasks";
 import TokenPurchase from "@/pages/TokenPurchase";
+import SupabaseAuth from "@/pages/SupabaseAuth";
+import AuthCallback from "@/pages/AuthCallback";
 
 // Import proper Header and Navigation components
 import Header from "@/components/shared/Header";
@@ -210,6 +212,8 @@ function Router() {
         {/* Smart home route - automatically routes based on user status */}
         <Route path="/" component={SmartHomePage} />
         <Route path="/register" component={Registration} />
+        <Route path="/auth" component={SupabaseAuth} />
+        <Route path="/auth/callback" component={AuthCallback} />
         <Route path="/welcome" component={Welcome} />
         
         {/* Main app routes - Protected with wallet connection and Level 1 NFT requirement */}
