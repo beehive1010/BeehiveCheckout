@@ -31,7 +31,14 @@ export default defineConfig({
   server: {
     port: 5000,
     host: '0.0.0.0',
-    allowedHosts: 'all', // Allow all hosts for development (string format)
+    allowedHosts: [
+      'localhost',
+      '127.0.0.1',
+      '*.replit.dev',
+      '*.janeway.replit.dev',
+      /.*\.replit\.dev$/,
+      /.*\.janeway\.replit\.dev$/,
+    ],
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
