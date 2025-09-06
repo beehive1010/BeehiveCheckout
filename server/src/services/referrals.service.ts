@@ -1,5 +1,5 @@
 import { db } from '../../db';
-import { referrals, users, members } from '@shared/schema';
+import { memberReferralTree, users, members } from '@shared/schema';
 import { matrixPlacementService } from './matrix-placement.service';
 import { eq, and } from 'drizzle-orm';
 
@@ -101,8 +101,8 @@ export class ReferralsService {
       // Get all referral records for this user across different roots
       const userReferrals = await db
         .select()
-        .from(referrals)
-        .where(eq(referrals.memberWallet, wallet));
+        .from(memberReferralTree)
+        .where(eq(memberReferralTree.memberWallet, wallet));
 
       // For each placement, build upline chain
       for (const referral of userReferrals) {
@@ -260,7 +260,7 @@ export class ReferralsService {
    */
   async removeFromMatrix(walletAddress: string): Promise<void> {
     try {
-      await db.delete(referrals).where(eq(referrals.memberWallet, walletAddress.toLowerCase()));
+      await db.delete(referrals).where(eq(memberReferralTree.memberWallet, walletAddress.toLowerCase()));
       console.log(`🗑️ Removed ${walletAddress} from all matrices`);
     } catch (error) {
       console.error('Error removing from matrix:', error);
@@ -281,8 +281,8 @@ export class ReferralsService {
       // Get all referral records for this user
       const userReferrals = await db
         .select()
-        .from(referrals)
-        .where(eq(referrals.memberWallet, walletAddress.toLowerCase()));
+        .from(memberReferralTree)
+        .where(eq(memberReferralTree.memberWallet, walletAddress.toLowerCase()));
 
       // Check for duplicate placements in same matrix
       const matrixPlacements = new Map<string, number>();
