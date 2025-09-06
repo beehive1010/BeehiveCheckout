@@ -366,16 +366,24 @@ async function handleActivateMembership(supabase: any, walletAddress: string) {
       )
     }
 
-    // Process referral rewards for the new member
+    // Process YOUR ORIGINAL reward system (100 USDT ancestor + 30 USDT platform)
     try {
       const { data: rewardResult } = await supabase
-        .rpc('process_referral_rewards', {
+        .rpc('process_activation_rewards', {
           p_new_member_wallet: walletAddress,
-          p_activation_level: 1
+          p_activation_level: 1,
+          p_tx_hash: `activation_${Date.now()}`
         })
       
       if (rewardResult.success) {
-        console.log(`💰 Referral rewards processed: ${rewardResult.total_rewards_distributed} USDT distributed across ${rewardResult.layers_processed} layers`)
+        console.log(`💰 Original reward system processed:`)
+        if (rewardResult.ancestor_reward) {
+          console.log(`💰 Ancestor reward: ${rewardResult.ancestor_reward} USDT → ${rewardResult.ancestor_wallet}`)
+        }
+        if (rewardResult.platform_revenue) {
+          console.log(`🏢 Platform revenue: ${rewardResult.platform_revenue} USDT`)
+        }
+        console.log(`Total distributed: ${rewardResult.total_rewards_distributed} USDT`)
       }
     } catch (rewardError) {
       console.error('Reward processing failed (non-critical):', rewardError)

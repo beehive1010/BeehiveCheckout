@@ -313,21 +313,23 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 4. REFERRAL REWARD PROCESSING (ONLY FOR ACTIVATED MEMBERS)
--- This processes rewards when new members are activated
-CREATE OR REPLACE FUNCTION public.process_referral_rewards(
+-- 4. YOUR ORIGINAL REWARD SYSTEM (100 USDT to 1st ancestor + 30 USDT platform)
+-- This processes rewards exactly like your original registration.service.ts
+CREATE OR REPLACE FUNCTION public.process_activation_rewards(
     p_new_member_wallet TEXT,
-    p_activation_level INTEGER DEFAULT 1
+    p_activation_level INTEGER DEFAULT 1,
+    p_tx_hash TEXT DEFAULT NULL
 )
 RETURNS JSON AS $$
 DECLARE
-    referral_chain RECORD;
-    reward_amount INTEGER;
-    layer_count INTEGER := 0;
+    user_record RECORD;
+    ancestor_wallet TEXT;
+    ancestor_reward INTEGER := 100; -- Your original: 100 USDT to 1st ancestor
+    platform_revenue INTEGER := 30; -- Your original: 30 USDT platform revenue
     total_rewards INTEGER := 0;
-    reward_results JSON[] := ARRAY[]::JSON[];
+    reward_results JSON;
 BEGIN
-    -- Only process rewards for activated members (PRESERVE CASE)
+    -- Only process rewards for activated members
     IF NOT EXISTS (SELECT 1 FROM public.members WHERE wallet_address = p_new_member_wallet AND is_activated = true) THEN
         RETURN json_build_object(
             'success', false,
@@ -335,63 +337,106 @@ BEGIN
         );
     END IF;
 
-    -- Walk up the referral chain and distribute rewards
-    FOR referral_chain IN 
-        WITH RECURSIVE referral_path AS (
-            -- Start with the new member's direct referrer (PRESERVE CASE)
-            SELECT r.root_wallet, r.member_wallet, r.parent_wallet, 1 as depth
-            FROM public.referrals r
-            WHERE r.member_wallet = p_new_member_wallet
-            
-            UNION ALL
-            
-            -- Recursively get the parent's referrer
-            SELECT r.root_wallet, r.member_wallet, r.parent_wallet, rp.depth + 1
-            FROM public.referrals r
-            INNER JOIN referral_path rp ON r.member_wallet = rp.parent_wallet
-            WHERE rp.depth < 19 -- Max 19 layers
-        )
-        SELECT DISTINCT root_wallet as beneficiary_wallet, depth
-        FROM referral_path
-        WHERE depth <= 19
-        ORDER BY depth
-    LOOP
-        layer_count := layer_count + 1;
+    -- Get the member's referrer info (your original logic)
+    SELECT * INTO user_record 
+    FROM public.users 
+    WHERE wallet_address = p_new_member_wallet;
+
+    -- Find the 1st ancestor (direct upline) from matrix placement
+    -- This matches your original: "Get placement position to find direct upline (parent)"
+    IF user_record.referrer_wallet IS NOT NULL THEN
+        -- In your original system, you get the parent from matrix placement
+        -- For now, we'll use the direct referrer as the ancestor
+        -- (You can enhance this to use actual matrix placement logic later)
+        SELECT parent_wallet INTO ancestor_wallet
+        FROM public.referrals 
+        WHERE member_wallet = p_new_member_wallet 
+        LIMIT 1;
         
-        -- Calculate reward based on layer (simplified - adjust as needed)
-        reward_amount := CASE 
-            WHEN referral_chain.depth = 1 THEN 100 -- Direct referrer gets 100 USDT
-            WHEN referral_chain.depth <= 3 THEN 50  -- Next 2 levels get 50 USDT
-            WHEN referral_chain.depth <= 7 THEN 25  -- Next 4 levels get 25 USDT
-            ELSE 10 -- Remaining levels get 10 USDT
-        END;
+        -- If no matrix parent found, use referrer as fallback
+        ancestor_wallet := COALESCE(ancestor_wallet, user_record.referrer_wallet);
+    END IF;
 
-        -- Only give rewards to activated members
-        IF EXISTS (SELECT 1 FROM public.members WHERE wallet_address = referral_chain.beneficiary_wallet AND is_activated = true) THEN
-            -- Update beneficiary's balance
+    -- YOUR ORIGINAL: Pay 100 USDT to 1st ancestor
+    IF ancestor_wallet IS NOT NULL AND ancestor_wallet != '0x0000000000000000000000000000000000000001' THEN
+        -- Only give reward to activated ancestors
+        IF EXISTS (SELECT 1 FROM public.members WHERE wallet_address = ancestor_wallet AND is_activated = true) THEN
+            -- Update ancestor's balance (your original: available_usdt_rewards)
             UPDATE public.user_balances SET
-                available_usdt_rewards = available_usdt_rewards + reward_amount,
-                total_usdt_earned = total_usdt_earned + reward_amount,
+                available_usdt_rewards = available_usdt_rewards + ancestor_reward,
+                total_usdt_earned = total_usdt_earned + ancestor_reward,
                 updated_at = NOW()
-            WHERE wallet_address = referral_chain.beneficiary_wallet;
+            WHERE wallet_address = ancestor_wallet;
 
-            total_rewards := total_rewards + reward_amount;
-            reward_results := reward_results || json_build_object(
-                'beneficiary', referral_chain.beneficiary_wallet,
-                'layer', referral_chain.depth,
-                'reward_amount', reward_amount,
-                'processed_at', NOW()
+            total_rewards := total_rewards + ancestor_reward;
+            
+            -- Log the reward distribution (matches your rewardDistributionService.distributeReward)
+            INSERT INTO public.admin_actions (
+                admin_wallet,
+                action_type,
+                target_wallet,
+                action_data,
+                reason
+            ) VALUES (
+                '0x0000000000000000000000000000000000000001', -- System
+                'ancestor_reward',
+                ancestor_wallet,
+                json_build_object(
+                    'recipient_wallet', ancestor_wallet,
+                    'source_wallet', p_new_member_wallet,
+                    'trigger_level', p_activation_level,
+                    'reward_amount', ancestor_reward,
+                    'reward_type', 'activation',
+                    'tx_hash', p_tx_hash
+                ),
+                'Ancestor reward for new member activation'
             );
+            
+            -- Your original log: "💰 Ancestor reward: 100 USDT → ancestor_wallet"
         END IF;
-    END LOOP;
+    END IF;
 
-    RETURN json_build_object(
+    -- YOUR ORIGINAL: Platform revenue (Level 1 only) - 30 USDT
+    IF p_activation_level = 1 THEN
+        -- Record platform revenue (matches your rewardDistributionService.recordPlatformRevenue)
+        INSERT INTO public.admin_actions (
+            admin_wallet,
+            action_type,
+            target_wallet,
+            action_data,
+            reason
+        ) VALUES (
+            '0x0000000000000000000000000000000000000001', -- System
+            'platform_revenue',
+            p_new_member_wallet,
+            json_build_object(
+                'source_wallet', p_new_member_wallet,
+                'level', p_activation_level,
+                'amount', platform_revenue,
+                'revenue_type', 'nft_claim',
+                'tx_hash', p_tx_hash,
+                'notes', 'Level ' || p_activation_level || ' activation platform revenue'
+            ),
+            'Platform revenue from Level 1 activation'
+        );
+        
+        total_rewards := total_rewards + platform_revenue;
+        
+        -- Your original log: "🏢 Platform revenue: 30 USDT"
+    END IF;
+
+    -- Build result matching your original return format
+    reward_results := json_build_object(
         'success', true,
-        'new_member', p_new_member_wallet, -- PRESERVE CASE
+        'new_member', p_new_member_wallet,
+        'ancestor_reward', CASE WHEN ancestor_wallet IS NOT NULL THEN ancestor_reward ELSE NULL END,
+        'platform_revenue', CASE WHEN p_activation_level = 1 THEN platform_revenue ELSE NULL END,
         'total_rewards_distributed', total_rewards,
-        'layers_processed', layer_count,
-        'reward_details', reward_results
+        'ancestor_wallet', ancestor_wallet,
+        'level', p_activation_level
     );
+
+    RETURN reward_results;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -467,8 +512,8 @@ $$ LANGUAGE plpgsql;
 -- To cleanup expired users:
 -- SELECT public.cleanup_expired_users();
 
--- To process referral rewards manually:
--- SELECT public.process_referral_rewards('0x1234...', 1);
+-- To process YOUR ORIGINAL activation rewards manually:
+-- SELECT public.process_activation_rewards('0x1234...', 1, 'tx_hash_123');
 
 -- To run scheduled cleanup:
 -- SELECT public.run_scheduled_cleanup();
