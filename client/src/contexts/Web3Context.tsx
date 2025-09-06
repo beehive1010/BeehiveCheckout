@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ThirdwebProvider, useActiveAccount, useActiveWallet, useActiveWalletChain, useConnect } from 'thirdweb/react';
 import { client, supportedChains } from '../lib/web3';
 import { inAppWallet, createWallet } from 'thirdweb/wallets';
-import { supabase } from '../lib/supabase';
+import { supabase, supabaseApi } from '../lib/supabase';
 import { useLocation } from 'wouter';
 
 interface Web3ContextType {
@@ -33,12 +33,26 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
   const [isSupabaseAuthenticated, setIsSupabaseAuthenticated] = useState(false);
   const [supabaseUser, setSupabaseUser] = useState<any>(null);
 
-  // Connect Thirdweb InAppWallet
+  // Connect Thirdweb InAppWallet with custom auth configuration
   const connectWallet = async () => {
     try {
       const wallet = inAppWallet({
         auth: {
           options: ['email', 'google', 'apple', 'facebook'],
+          // Custom authentication endpoints (optional)
+          // authUrl: 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/auth',
+          // mode: 'popup', // or 'redirect'
+        },
+        metadata: {
+          name: "Beehive Platform",
+          description: "Web3 Membership and Learning Platform",
+          logoUrl: "https://beehive-lifestyle.io/logo.png",
+          url: "https://beehive-lifestyle.io",
+        },
+        // Custom styling (optional)
+        styling: {
+          theme: 'dark',
+          accentColor: '#F59E0B', // Honey color
         },
       });
       
@@ -72,27 +86,8 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Failed to sign message');
       }
 
-      // Authenticate with your Supabase auth function
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/auth`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.supabaseAnonKey}`,
-          'x-wallet-address': account.address.toLowerCase(),
-        },
-        body: JSON.stringify({
-          action: 'login',
-          signature,
-          message,
-          walletAddress: account.address.toLowerCase(),
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Supabase authentication failed');
-      }
-
-      const result = await response.json();
+      // Authenticate with your Supabase auth function using the API client
+      const result = await supabaseApi.login(account.address.toLowerCase(), signature, message);
       
       if (result.success) {
         setIsSupabaseAuthenticated(true);

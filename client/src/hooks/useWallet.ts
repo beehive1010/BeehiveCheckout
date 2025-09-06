@@ -7,31 +7,7 @@ export function useWallet() {
   const { isConnected, walletAddress } = useWeb3();
   const queryClient = useQueryClient();
 
-  // Log wallet connection when connected using Supabase API
-  const logWalletConnection = async (connectionType: string, additionalData?: any) => {
-    if (!walletAddress) return;
-    
-    try {
-      await apiRequest('POST', '/api/wallet/log-connection', {
-        walletAddress, // Fix: Include walletAddress in body as expected by backend
-        chainId: 1, // Default chain
-        timestamp: new Date().toISOString(),
-        connectionType,
-        userAgent: navigator.userAgent,
-        referrerUrl: document.referrer,
-        ...additionalData
-      });
-    } catch (error) {
-      console.error('Failed to log wallet connection:', error);
-    }
-  };
-
-  // Log initial connection
-  React.useEffect(() => {
-    if (isConnected && walletAddress) {
-      logWalletConnection('connect');
-    }
-  }, [isConnected, walletAddress]);
+  // Remove old logging - now handled by Web3Context authentication
 
   // Enhanced user status check using Supabase API
   const userQuery = useQuery({

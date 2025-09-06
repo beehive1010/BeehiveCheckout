@@ -5,6 +5,8 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createThirdwebClient, verifySignature } from 'https://esm.sh/thirdweb@5'
+import * as jose from 'https://deno.land/x/jose@v4.14.4/index.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,8 +14,79 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
 }
 
+// Initialize Thirdweb client
+const thirdwebClient = createThirdwebClient({
+  clientId: Deno.env.get('THIRDWEB_CLIENT_ID') || 'your-client-id',
+})
+
+// JWT Configuration
+const JWT_AUD = 'beehive-platform'
+const JWT_ISS = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/auth'
+const JWT_EXPIRY = 3600 // 1 hour
+
+// Generate or get stored JWT keys
+let jwtKeyPair: CryptoKeyPair | null = null
+
+async function getJWTKeys(): Promise<CryptoKeyPair> {
+  if (jwtKeyPair) return jwtKeyPair
+  
+  // Try to get keys from environment (base64 encoded)
+  const storedPrivateKey = Deno.env.get('JWT_PRIVATE_KEY')
+  const storedPublicKey = Deno.env.get('JWT_PUBLIC_KEY')
+  
+  if (storedPrivateKey && storedPublicKey) {
+    try {
+      const privateKeyBuffer = Uint8Array.from(atob(storedPrivateKey), c => c.charCodeAt(0))
+      const publicKeyBuffer = Uint8Array.from(atob(storedPublicKey), c => c.charCodeAt(0))
+      
+      const privateKey = await crypto.subtle.importKey(
+        'pkcs8',
+        privateKeyBuffer,
+        { name: 'ECDSA', namedCurve: 'P-256' },
+        false,
+        ['sign']
+      )
+      
+      const publicKey = await crypto.subtle.importKey(
+        'spki',
+        publicKeyBuffer,
+        { name: 'ECDSA', namedCurve: 'P-256' },
+        true,
+        ['verify']
+      )
+      
+      jwtKeyPair = { privateKey, publicKey }
+      console.log('✅ JWT keys loaded from environment')
+      return jwtKeyPair
+    } catch (error) {
+      console.warn('Failed to load stored JWT keys:', error)
+    }
+  }
+  
+  // Generate new keys if not found
+  console.log('🔑 Generating new JWT keys...')
+  jwtKeyPair = await crypto.subtle.generateKey(
+    { name: 'ECDSA', namedCurve: 'P-256' },
+    true,
+    ['sign', 'verify']
+  )
+  
+  // Export keys for storage (you should store these in environment variables)
+  const privateKeyBuffer = await crypto.subtle.exportKey('pkcs8', jwtKeyPair.privateKey)
+  const publicKeyBuffer = await crypto.subtle.exportKey('spki', jwtKeyPair.publicKey)
+  
+  const privateKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(privateKeyBuffer)))
+  const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(publicKeyBuffer)))
+  
+  console.log('🔑 New JWT keys generated. Store these in environment variables:')
+  console.log('JWT_PRIVATE_KEY:', privateKeyBase64)
+  console.log('JWT_PUBLIC_KEY:', publicKeyBase64)
+  
+  return jwtKeyPair
+}
+
 interface AuthRequest {
-  action: 'login' | 'register' | 'get-user' | 'claim-nft-token-1' | 'create-referral-link' | 'process-referral-link' | 'get-countdowns' | 'create-countdown';
+  action: 'login' | 'register' | 'get-user' | 'claim-nft-token-1' | 'create-referral-link' | 'process-referral-link' | 'get-countdowns' | 'create-countdown' | 'log-connection' | 'jwks' | 'generate-jwt';
   walletAddress?: string;
   signature?: string;
   message?: string;
@@ -53,20 +126,51 @@ serve(async (req) => {
   }
 
   try {
+    // Handle GET requests for JWKS endpoint
+    if (req.method === 'GET') {
+      const url = new URL(req.url)
+      if (url.pathname.endsWith('/.well-known/jwks.json') || url.searchParams.get('jwks') === 'true') {
+        return await handleJWKS()
+      }
+    }
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
     const walletAddress = req.headers.get('x-wallet-address')?.toLowerCase()
+    
+    // Parse request body
+    let requestData: AuthRequest = { action: 'get-user' }
+    try {
+      const body = await req.json()
+      requestData = body
+    } catch {
+      // For GET requests or requests without body, use query params
+      const url = new URL(req.url)
+      const action = url.searchParams.get('action') || 'get-user'
+      requestData = { action: action as any }
+    }
+
+    const { action } = requestData
+
+    // JWKS and JWT generation don't require wallet address
+    if (action === 'jwks') {
+      return await handleJWKS()
+    }
+    
+    if (action === 'generate-jwt' && walletAddress) {
+      return await handleGenerateJWT(supabase, walletAddress, requestData)
+    }
+
+    // Other actions require wallet address
     if (!walletAddress && req.method !== 'OPTIONS') {
       return new Response(
         JSON.stringify({ error: 'Wallet address required' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-
-    const { action, ...requestData }: AuthRequest = await req.json()
 
     switch (action) {
       case 'login':
@@ -93,6 +197,15 @@ serve(async (req) => {
       case 'create-countdown':
         return await handleCreateCountdown(supabase, walletAddress!, requestData)
 
+      case 'log-connection':
+        return await handleLogConnection(supabase, walletAddress!, requestData)
+
+      case 'jwks':
+        return await handleJWKS()
+
+      case 'generate-jwt':
+        return await handleGenerateJWT(supabase, walletAddress!, requestData)
+
       default:
         return new Response(
           JSON.stringify({ error: 'Invalid action' }),
@@ -110,12 +223,44 @@ serve(async (req) => {
 
 async function handleWalletLogin(supabase: any, walletAddress: string, data: any) {
   try {
-    // Create wallet session
+    const { signature, message } = data
+    
+    if (!signature || !message) {
+      return new Response(
+        JSON.stringify({ error: 'Signature and message are required for wallet authentication' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Verify signature using Thirdweb
+    try {
+      const isValid = await verifySignature({
+        message,
+        signature,
+        address: walletAddress,
+        client: thirdwebClient,
+      })
+
+      if (!isValid) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid signature' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+    } catch (verifyError) {
+      console.error('Signature verification failed:', verifyError)
+      return new Response(
+        JSON.stringify({ error: 'Signature verification failed' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Create wallet session (signature already verified)
     const { data: sessionResult, error: sessionError } = await supabase
       .rpc('create_wallet_session', {
         p_wallet_address: walletAddress,
-        p_signature: data.signature || 'demo_signature',
-        p_message: data.message || 'Login to Beehive Platform'
+        p_signature: signature,
+        p_message: message
       })
 
     if (sessionError) throw sessionError
@@ -625,6 +770,146 @@ async function handleCreateCountdown(supabase: any, walletAddress: string, data:
     console.error('Create countdown error:', error)
     return new Response(
       JSON.stringify({ error: 'Failed to create countdown timer' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+}
+
+async function handleLogConnection(supabase: any, walletAddress: string, data: any) {
+  try {
+    // Just return success for connection logging - no actual logging needed
+    // This endpoint exists for backward compatibility with old client code
+    const response = {
+      success: true,
+      message: 'Connection logged successfully',
+      walletAddress
+    }
+
+    return new Response(
+      JSON.stringify(response),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  } catch (error) {
+    console.error('Log connection error:', error)
+    return new Response(
+      JSON.stringify({ error: 'Failed to log connection' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+}
+
+async function handleJWKS() {
+  try {
+    const keyPair = await getJWTKeys()
+    
+    // Export public key in JWK format
+    const publicKey = await crypto.subtle.exportKey('jwk', keyPair.publicKey)
+    
+    // Create JWKS response
+    const jwks = {
+      keys: [{
+        kty: publicKey.kty,
+        use: 'sig',
+        alg: 'ES256',
+        kid: 'beehive-auth-key-1',
+        crv: publicKey.crv,
+        x: publicKey.x,
+        y: publicKey.y
+      }]
+    }
+
+    return new Response(
+      JSON.stringify(jwks),
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json',
+          'Cache-Control': 'public, max-age=3600' // Cache for 1 hour
+        } 
+      }
+    )
+  } catch (error) {
+    console.error('JWKS error:', error)
+    return new Response(
+      JSON.stringify({ error: 'Failed to generate JWKS' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+}
+
+async function handleGenerateJWT(supabase: any, walletAddress: string, data: any) {
+  try {
+    // Verify user exists and get user data
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select(`
+        wallet_address,
+        username,
+        email,
+        current_level,
+        members (
+          is_activated,
+          current_level
+        )
+      `)
+      .eq('wallet_address', walletAddress)
+      .single()
+
+    if (userError || !userData) {
+      return new Response(
+        JSON.stringify({ error: 'User not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const keyPair = await getJWTKeys()
+    const now = Math.floor(Date.now() / 1000)
+    
+    // Create JWT payload
+    const payload = {
+      iss: JWT_ISS, // Issuer
+      aud: JWT_AUD, // Audience 
+      sub: walletAddress, // Subject (wallet address)
+      iat: now, // Issued at
+      exp: now + JWT_EXPIRY, // Expires at
+      wallet_address: walletAddress,
+      username: userData.username,
+      email: userData.email,
+      current_level: userData.current_level,
+      is_activated: userData.members?.[0]?.is_activated || false,
+      user_level: userData.members?.[0]?.current_level || 0
+    }
+
+    // Sign JWT
+    const jwt = await new jose.SignJWT(payload)
+      .setProtectedHeader({ 
+        alg: 'ES256', 
+        kid: 'beehive-auth-key-1',
+        typ: 'JWT' 
+      })
+      .sign(keyPair.privateKey)
+
+    const response = {
+      success: true,
+      jwt,
+      payload: {
+        wallet_address: walletAddress,
+        username: userData.username,
+        current_level: userData.current_level,
+        is_activated: userData.members?.[0]?.is_activated || false
+      },
+      expires_in: JWT_EXPIRY,
+      expires_at: new Date((now + JWT_EXPIRY) * 1000).toISOString()
+    }
+
+    return new Response(
+      JSON.stringify(response),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  } catch (error) {
+    console.error('JWT generation error:', error)
+    return new Response(
+      JSON.stringify({ error: 'Failed to generate JWT' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }

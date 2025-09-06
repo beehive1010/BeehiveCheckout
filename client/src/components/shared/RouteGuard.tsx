@@ -23,22 +23,7 @@ export function RouteGuard({ children }: RouteGuardProps) {
       localStorage.setItem('beehive-referrer', referrer);
       console.log('Referrer saved to localStorage:', referrer);
       
-      // Also backup to server log (secondary storage)
-      fetch('/api/wallet/log-connection', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Wallet-Address': account?.address || 'unknown'
-        },
-        body: JSON.stringify({
-          connectionType: 'referral_link_visit',
-          referralCode: referrer,
-          userAgent: navigator.userAgent,
-          referrerUrl: window.location.href
-        })
-      }).catch(error => {
-        console.warn('Failed to backup referral to server:', error);
-      });
+      // Referral tracking is now handled by Web3Context authentication
     }
   }, [account?.address]);
 
