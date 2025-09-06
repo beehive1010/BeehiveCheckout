@@ -47,7 +47,7 @@ export default defineConfig({
   preview: {
     port: process.env.NODE_ENV === 'production' ? 3000 : 5000,
     host: '0.0.0.0',
-    allowedHosts: 'all', // Allow all hosts for Replit dynamic hostnames
+    allowedHosts: 'all', // Allow all hosts for Replit dynamic hostnames and custom domains
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
