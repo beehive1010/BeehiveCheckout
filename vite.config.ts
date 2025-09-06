@@ -7,38 +7,28 @@ export default defineConfig({
   plugins: [
     react(),
     runtimeErrorOverlay(),
-    // Temporarily disable cartographer plugin due to traverse errors
-    // ...(process.env.NODE_ENV !== "production" &&
-    // process.env.REPL_ID !== undefined
-    //   ? [
-    //       await import("@replit/vite-plugin-cartographer").then((m) =>
-    //         m.cartographer(),
-    //       ),
-    //     ]
-    //   : []),
   ],
   resolve: {
     alias: {
-      "@": path.resolve(import.meta.dirname, "client", "src"),
+      "@": path.resolve(import.meta.dirname, "src"),
       "@shared": path.resolve(import.meta.dirname, "shared"),
       "@assets": path.resolve(import.meta.dirname, "attached_assets"),
     },
   },
-  root: path.resolve(import.meta.dirname, "client"),
+  root: import.meta.dirname,
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    outDir: "dist",
     emptyOutDir: true,
   },
   server: {
     port: 5000,
     host: '0.0.0.0',
-    allowedHosts: 'all', // Allow all hosts for Replit dynamic hostnames
+    allowedHosts: true,
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
-    // No proxy needed - using Supabase Edge Functions directly
     fs: {
       strict: true,
       deny: ["**/.*"],
@@ -47,13 +37,12 @@ export default defineConfig({
   preview: {
     port: process.env.NODE_ENV === 'production' ? 3000 : 5000,
     host: '0.0.0.0',
-    allowedHosts: 'all', // Allow all hosts for Replit dynamic hostnames and custom domains
+    allowedHosts: true,
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
-    // Ensure static assets are served correctly
     strictPort: false,
   },
 });
