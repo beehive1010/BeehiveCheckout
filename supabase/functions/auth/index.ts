@@ -208,22 +208,37 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
 
 async function handleGetUser(supabase: any, walletAddress: string) {
   try {
-    // Get member data
-    const { data: memberData, error: memberError } = await supabase
-      .from('members')
-      .select('*')
+    // Get user data with member status using proper joins
+    const { data: userData, error } = await supabase
+      .from('users')
+      .select(`
+        wallet_address,
+        referrer_wallet,
+        username,
+        email,
+        current_level,
+        is_upgraded,
+        upgrade_timer_enabled,
+        created_at,
+        updated_at,
+        members (
+          is_activated,
+          activated_at,
+          current_level,
+          max_layer,
+          levels_owned,
+          has_pending_rewards
+        ),
+        user_balances (
+          bcc_transferable,
+          bcc_locked
+        )
+      `)
       .eq('wallet_address', walletAddress)
       .single()
 
-    // Get balance data
-    const { data: balanceData, error: balanceError } = await supabase
-      .from('user_balances')
-      .select('*')
-      .eq('wallet_address', walletAddress)
-      .single()
-
-    // User doesn't exist if no member record
-    if (memberError && memberError.code === 'PGRST116') {
+    // User doesn't exist - return null but success
+    if (error && error.code === 'PGRST116') {
       return new Response(
         JSON.stringify({
           success: true,
@@ -237,23 +252,21 @@ async function handleGetUser(supabase: any, walletAddress: string) {
       )
     }
 
-    if (memberError) throw memberError
+    if (error) throw error
 
-    // Check if user is a member
+    // Check if user is a member (from members table)
+    const memberData = userData?.members?.[0] || null
     const isMember = memberData?.is_activated || false
-    // For now, no pending system without users table
-    const isPending = false
+    
+    // Check pending status (using upgrade_timer_enabled from users table)
+    const isPending = userData?.upgrade_timer_enabled || false
 
     const response = {
       success: true,
-      user: {
-        wallet_address: walletAddress,
-        members: [memberData],
-        user_balances: [balanceData]
-      },
-      isRegistered: !!memberData,
+      user: userData || null,
+      isRegistered: !!userData,
       isMember: isMember,
-      canAccessReferrals: isMember && !isPending,
+      canAccessReferrals: isMember && !isPending, // Only active members can access referrals
       isPending: isPending,
       memberData: memberData
     }
