@@ -1,5 +1,5 @@
 // Education API functions - Updated for Supabase Edge Functions
-import { apiRequest } from '../lib/queryClient';
+import { apiRequest } from '../../lib/queryClient';
 
 export const coursesApi = {
   async getCourses() {
