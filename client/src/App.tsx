@@ -39,7 +39,7 @@ const CourseDetails = () => <div>Course Details - Coming Soon</div>;
 const BlogPost = () => <div>Blog Post - Coming Soon</div>;
 const AdvertisementNFTs = () => <div>Advertisement NFTs - Coming Soon</div>;
 const AdminNFTManager = () => <div>Admin NFT Manager - Coming Soon</div>;
-const TokenPurchase = () => <div>Token Purchase - Coming Soon</div>;
+const TokenPurchasePage = () => <div>Token Purchase - Coming Soon</div>;
 const NotFound = () => <div className="text-center py-12"><h1 className="text-honey text-2xl">Page Not Found</h1></div>;
 
 // Admin components
