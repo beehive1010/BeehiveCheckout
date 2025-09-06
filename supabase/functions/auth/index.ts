@@ -13,7 +13,7 @@ const corsHeaders = {
 }
 
 interface AuthRequest {
-  action: 'register' | 'get-user' | 'activate-membership' | 'create-countdown' | 'get-countdowns';
+  action: 'register' | 'get-user' | 'activate-membership' | 'create-countdown' | 'get-countdowns' | 'toggle-countdown-mode' | 'get-countdown-settings';
   walletAddress?: string;
   referrerWallet?: string;
   username?: string;
@@ -24,6 +24,9 @@ interface AuthRequest {
   durationHours?: number;
   description?: string;
   autoAction?: string;
+  // Admin settings
+  enableCountdowns?: boolean;
+  defaultCountdownHours?: number;
 }
 
 serve(async (req) => {
@@ -66,25 +69,139 @@ serve(async (req) => {
 
     const { action } = requestData
 
-    // Check Supabase authentication first
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Supabase authentication required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+    // Handle sophisticated authentication flow
+    let authUser = null
+    let requiresAuth = false
+    let shouldCleanupUser = false
+    
+    // Get wallet address first to determine auth requirements
+    if (walletAddress) {
+      // Check user existence
+      const { data: userData } = await supabase
+        .from('users')
+        .select('wallet_address, auth_user_id')
+        .eq('wallet_address', walletAddress)
+        .single()
+      
+      // Check member status
+      const { data: memberData } = await supabase
+        .from('members')
+        .select('is_activated')
+        .eq('wallet_address', walletAddress)
+        .single()
+      
+      // Check for active countdown timers
+      const { data: countdownData } = await supabase
+        .from('countdown_timers')
+        .select('end_time, timer_type, is_active')
+        .eq('wallet_address', walletAddress)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+      
+      const publicActions = ['get-user', 'register', 'create-countdown', 'get-countdowns', 'activate-membership']
+      const now = new Date()
+      
+      console.log(`🔍 Auth Check - User: ${!!userData}, Member: ${!!memberData}, Active: ${memberData?.is_activated}, Countdown: ${!!countdownData}`)
+      
+      // Authentication flow logic
+      if (!userData && !memberData) {
+        // Case 1: No user, no membership → Only allow register
+        requiresAuth = false
+        if (action !== 'register' && !publicActions.includes(action)) {
+          return new Response(
+            JSON.stringify({ 
+              error: 'User not found', 
+              action_required: 'register',
+              message: 'Please register first' 
+            }),
+            { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+      } else if (userData && memberData?.is_activated) {
+        // Case 2: Active member → Use member auth (skip user auth)
+        requiresAuth = !publicActions.includes(action)
+        console.log(`👑 Active member - Auth required: ${requiresAuth}`)
+      } else if (userData && !memberData?.is_activated) {
+        // Case 3: User exists but not active member
+        if (countdownData && new Date(countdownData.end_time) > now) {
+          // Has countdown time - allow operations (including NFT claiming)
+          requiresAuth = false
+          console.log(`⏰ User with countdown - No auth required for any operations`)
+        } else if (action === 'activate-membership') {
+          // Allow membership activation even without countdown
+          requiresAuth = false
+          console.log(`🎫 Allowing membership activation without countdown`)
+        } else {
+          // No countdown time - cleanup user and redirect to registration
+          shouldCleanupUser = true
+          requiresAuth = false
+        }
+      } else if (!userData && memberData) {
+        // Case 4: Member exists but no user record (shouldn't happen, but handle it)
+        requiresAuth = !publicActions.includes(action)
+        console.log(`⚠️ Member without user record - Auth required: ${requiresAuth}`)
+      } else {
+        // Default case
+        requiresAuth = false
+      }
     }
 
-    // Verify Supabase JWT token
-    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    )
+    // Handle user cleanup if needed
+    if (shouldCleanupUser && action === 'get-user') {
+      try {
+        console.log(`🗑️ Cleaning up inactive user without countdown: ${walletAddress}`)
+        
+        // Delete in order due to foreign key constraints
+        await supabase.from('user_balances').delete().eq('wallet_address', walletAddress)
+        await supabase.from('members').delete().eq('wallet_address', walletAddress)
+        await supabase.from('referrals').delete().eq('member_wallet', walletAddress)
+        await supabase.from('users').delete().eq('wallet_address', walletAddress)
+        
+        return new Response(
+          JSON.stringify({
+            error: 'Account expired',
+            action_required: 'register_with_referral',
+            message: 'Your registration has expired. Please re-register using a referral link and activate your membership.',
+            cleanup: true
+          }),
+          { status: 410, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      } catch (cleanupError) {
+        console.error('Failed to cleanup user:', cleanupError)
+      }
+    }
 
-    if (authError || !authUser) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid Supabase authentication' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+    // If auth is required, verify the token
+    if (requiresAuth) {
+      const authHeader = req.headers.get('Authorization')
+      if (!authHeader) {
+        return new Response(
+          JSON.stringify({ error: 'Authentication required for active members' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser(
+          authHeader.replace('Bearer ', '')
+        )
+        
+        if (authError || !user) {
+          return new Response(
+            JSON.stringify({ error: 'Invalid authentication' }),
+            { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+        
+        authUser = user
+      } catch (e) {
+        return new Response(
+          JSON.stringify({ error: 'Authentication verification failed' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
     }
 
     // Most actions require wallet address
@@ -106,17 +223,18 @@ serve(async (req) => {
       case 'activate-membership':
         return await handleActivateMembership(supabase, walletAddress!)
 
-      case 'toggle-pending':
-        return await handleTogglePending(supabase, walletAddress!, requestData)
-
-      case 'check-pending':
-        return await handleCheckPending(supabase, walletAddress!)
 
       case 'create-countdown':
         return await handleCreateCountdown(supabase, walletAddress!, requestData)
 
       case 'get-countdowns':
         return await handleGetCountdowns(supabase, walletAddress!)
+
+      case 'toggle-countdown-mode':
+        return await handleToggleCountdownMode(supabase, walletAddress!, requestData)
+
+      case 'get-countdown-settings':
+        return await handleGetCountdownSettings(supabase, walletAddress!)
 
       default:
         return new Response(
@@ -135,6 +253,16 @@ serve(async (req) => {
 
 async function handleUserRegistration(supabase: any, walletAddress: string, data: any, authUser: any) {
   try {
+    // Create anonymous Supabase auth user if none exists
+    if (!authUser) {
+      const { data: newAuthUser, error: authCreateError } = await supabase.auth.signInAnonymously()
+      if (authCreateError) {
+        console.error('Failed to create auth user:', authCreateError)
+      } else {
+        authUser = newAuthUser.user
+      }
+    }
+
     // Check if user already exists in users table
     const { data: existingUser } = await supabase
       .from('users')
@@ -143,40 +271,56 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
       .single()
 
     if (existingUser) {
+      // Sync auth user ID to existing user record
+      if (authUser) {
+        await supabase
+          .from('users')
+          .update({ 
+            auth_user_id: authUser.id,
+            updated_at: new Date().toISOString()
+          })
+          .eq('wallet_address', walletAddress)
+      }
+
       return new Response(
         JSON.stringify({
           success: true,
           action: 'existing',
-          message: 'User already registered'
+          message: 'User already registered',
+          authUserId: authUser?.id
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Validate referrer exists if provided
+    // Validate referrer exists and is an active member
     let validReferrerWallet = null
     if (data.referrerWallet) {
-      const { data: referrerExists } = await supabase
-        .from('users')
-        .select('wallet_address')
+      const { data: referrerMember } = await supabase
+        .from('members')
+        .select('wallet_address, is_activated')
         .eq('wallet_address', data.referrerWallet)
         .single()
       
-      if (referrerExists) {
+      if (referrerMember && referrerMember.is_activated) {
         validReferrerWallet = data.referrerWallet
+        console.log(`✅ Valid active referrer found: ${data.referrerWallet}`)
+      } else if (referrerMember && !referrerMember.is_activated) {
+        console.log(`❌ Referrer ${data.referrerWallet} exists but not activated, proceeding without referrer`)
       } else {
-        console.log(`Referrer ${data.referrerWallet} not found, proceeding without referrer`)
+        console.log(`❌ Referrer ${data.referrerWallet} not found or not a member, proceeding without referrer`)
       }
     }
 
-    // Create user record - using actual database schema
+    // Create user record - sync with auth user
     const { data: newUser, error: userError } = await supabase
       .from('users')
       .insert({
         wallet_address: walletAddress,
         referrer_wallet: validReferrerWallet,
-        username: data.username || authUser.user_metadata?.username || null,
-        email: data.email || authUser.email || null,
+        username: data.username || authUser?.user_metadata?.username || null,
+        email: data.email || authUser?.email || null,
+        auth_user_id: authUser?.id || null,
         current_level: 0,
         is_upgraded: false,
         upgrade_timer_enabled: false
@@ -203,19 +347,126 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
 
     if (memberError) throw memberError
 
-    // Create user balance record
-    const { error: balanceError } = await supabase
-      .from('user_balances')
-      .insert({
-        wallet_address: walletAddress,
-        bcc_transferable: 0,
-        bcc_locked: 0,
-        total_usdt_earned: 0,
-        pending_upgrade_rewards: 0,
-        rewards_claimed: 0
-      })
+    // Handle referral tree placement if there's a valid referrer
+    if (validReferrerWallet) {
+      try {
+        // Get the next available position in the referrer's matrix
+        const { data: matrixSummary } = await supabase
+          .from('member_matrix_summary')
+          .select('*')
+          .eq('root_wallet', validReferrerWallet)
+          .single()
 
-    if (balanceError) throw balanceError
+        // Determine placement details
+        let placementLayer = 1
+        let placementPosition = 0
+        let placementZone = 'L'
+        
+        if (matrixSummary) {
+          placementLayer = matrixSummary.next_placement_layer
+          placementPosition = matrixSummary.next_placement_position
+          placementZone = matrixSummary.next_placement_zone
+        }
+
+        // Insert into referrals table
+        await supabase
+          .from('referrals')
+          .insert({
+            root_wallet: validReferrerWallet,
+            member_wallet: walletAddress,
+            layer: placementLayer,
+            position: placementZone, // L, M, R format expected
+            parent_wallet: validReferrerWallet, // For layer 1, parent is the referrer
+            placer_wallet: validReferrerWallet,
+            placement_type: 'direct',
+            is_active: true
+          })
+
+        // Update referrer's direct referral count
+        await supabase
+          .from('members')
+          .update({
+            total_direct_referrals: supabase.rpc('increment', { increment_by: 1 })
+          })
+          .eq('wallet_address', validReferrerWallet)
+
+      } catch (referralError) {
+        console.error('Referral tree placement failed:', referralError)
+        // Don't fail registration if referral placement fails
+      }
+    }
+
+    // Create countdown timer for new users with referrals (if enabled)
+    if (validReferrerWallet) {
+      try {
+        // Check if countdown mode is enabled
+        const { data: settings } = await supabase
+          .from('admin_settings')
+          .select('setting_key, setting_value')
+          .in('setting_key', ['countdown_mode_enabled', 'default_countdown_hours'])
+
+        const countdownEnabled = settings?.find(s => s.setting_key === 'countdown_mode_enabled')?.setting_value === 'true'
+        const countdownHours = parseInt(settings?.find(s => s.setting_key === 'default_countdown_hours')?.setting_value || '24')
+
+        if (countdownEnabled) {
+          const endTime = new Date(Date.now() + (countdownHours * 60 * 60 * 1000))
+          
+          await supabase
+            .from('countdown_timers')
+            .insert({
+              wallet_address: walletAddress,
+              timer_type: 'referral_join_timer',
+              title: 'Complete Registration',
+              description: `You have ${countdownHours} hours to complete your membership activation after joining via referral`,
+              end_time: endTime.toISOString(),
+              auto_action: 'require_auth', // After countdown, require auth
+              is_active: true,
+              metadata: {
+                referrer_wallet: validReferrerWallet,
+                countdown_hours: countdownHours
+              }
+            })
+            
+          console.log(`⏰ Countdown enabled: Created ${countdownHours}h timer for ${walletAddress}`)
+        } else {
+          console.log(`🚫 Countdown disabled: No timer created for ${walletAddress}`)
+        }
+      } catch (countdownError) {
+        console.error('Failed to create countdown timer:', countdownError)
+        // Don't fail registration if countdown creation fails
+      }
+    }
+
+    // Create user balance record - using actual database schema
+    try {
+      await supabase
+        .from('user_balances')
+        .insert({
+          wallet_address: walletAddress,
+          bcc_transferable: 500.0, // Default 500 BCC
+          bcc_locked: 0.0,
+          total_usdt_earned: 0.0,
+          pending_upgrade_rewards: 0.0,
+          rewards_claimed: 0.0
+        })
+    } catch (insertError) {
+      // If insert fails, try update (user might already exist)
+      console.log('Insert failed, trying upsert:', insertError.message)
+      const { error: upsertError } = await supabase
+        .from('user_balances')
+        .upsert({
+          wallet_address: walletAddress,
+          bcc_transferable: 500.0, // Default 500 BCC
+          bcc_locked: 0.0,
+          total_usdt_earned: 0.0,
+          pending_upgrade_rewards: 0.0,
+          rewards_claimed: 0.0
+        }, { 
+          onConflict: 'wallet_address'
+        })
+      if (upsertError) throw upsertError
+    }
+
 
     const response = {
       success: true,
@@ -242,14 +493,11 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
 
 async function handleGetUser(supabase: any, walletAddress: string) {
   try {
-    // Get member data with balance info
+    // Get member data 
     const { data: memberData, error: memberError } = await supabase
       .from('members')
       .select(`
         wallet_address,
-        referrer_wallet,
-        username,
-        email,
         is_activated,
         activated_at,
         current_level,
@@ -262,15 +510,22 @@ async function handleGetUser(supabase: any, walletAddress: string) {
       .eq('wallet_address', walletAddress)
       .single()
 
+    // Get user data for referrer_wallet, username, email
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('referrer_wallet, username, email')
+      .eq('wallet_address', walletAddress)
+      .single()
+
     // Get balance data
     const { data: balanceData, error: balanceError } = await supabase
       .from('user_balances')
-      .select('bcc_transferable, bcc_locked')
+      .select('bcc_transferable, bcc_restricted, bcc_locked, total_usdt_earned, available_usdt_rewards')
       .eq('wallet_address', walletAddress)
       .single()
 
     // User doesn't exist - return null but success
-    if (memberError && memberError.code === 'PGRST116') {
+    if ((memberError && memberError.code === 'PGRST116') || (userError && userError.code === 'PGRST116')) {
       return new Response(
         JSON.stringify({
           success: true,
@@ -285,6 +540,7 @@ async function handleGetUser(supabase: any, walletAddress: string) {
     }
 
     if (memberError) throw memberError
+    if (userError) throw userError
 
     // Check if user is a member
     const isMember = memberData?.is_activated || false
@@ -292,10 +548,17 @@ async function handleGetUser(supabase: any, walletAddress: string) {
     // For now, no pending system (can be added later if needed)
     const isPending = false
 
-    // Combine member and balance data
-    const userData = {
+    // Combine member, user, and balance data
+    const combinedUserData = {
       ...memberData,
-      user_balances: [balanceData || { bcc_transferable: 0, bcc_locked: 0 }]
+      ...(userData || {}), // Add referrer_wallet, username, email from users table
+      user_balances: [balanceData || { 
+        bcc_transferable: 0, 
+        bcc_restricted: 0, 
+        bcc_locked: 0, 
+        total_usdt_earned: 0, 
+        available_usdt_rewards: 0 
+      }]
     }
 
     // Determine user flow for frontend routing
@@ -310,7 +573,7 @@ async function handleGetUser(supabase: any, walletAddress: string) {
 
     const response = {
       success: true,
-      user: userData,
+      user: combinedUserData,
       isRegistered: !!memberData,
       isMember: isMember,
       canAccessReferrals: isMember && !isPending,
@@ -396,85 +659,6 @@ async function handleActivateMembership(supabase: any, walletAddress: string) {
   }
 }
 
-async function handleTogglePending(supabase: any, walletAddress: string, data: any) {
-  try {
-    const { pendingEnabled, pendingHours } = data;
-    
-    // Update user's pending status
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({
-        pending_enabled: pendingEnabled,
-        pending_hours: pendingHours || null,
-        pending_until: pendingEnabled && pendingHours 
-          ? new Date(Date.now() + (pendingHours * 60 * 60 * 1000)).toISOString() 
-          : null,
-        updated_at: new Date().toISOString()
-      })
-      .eq('wallet_address', walletAddress);
-
-    if (updateError) throw updateError;
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: `Pending status ${pendingEnabled ? 'enabled' : 'disabled'}`,
-        pendingEnabled,
-        pendingHours
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  } catch (error) {
-    console.error('Toggle pending error:', error);
-    return new Response(
-      JSON.stringify({ 
-        error: 'Failed to toggle pending status',
-        details: error.message 
-      }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-}
-
-async function handleCheckPending(supabase: any, walletAddress: string) {
-  try {
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('pending_enabled, pending_hours, pending_until')
-      .eq('wallet_address', walletAddress)
-      .single();
-
-    if (userError) throw userError;
-
-    // Check if pending period has expired
-    let isPending = false;
-    if (userData.pending_enabled && userData.pending_until) {
-      isPending = new Date() < new Date(userData.pending_until);
-    } else if (userData.pending_enabled && !userData.pending_until) {
-      isPending = true; // Indefinite pending
-    }
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        isPending,
-        pendingEnabled: userData.pending_enabled,
-        pendingHours: userData.pending_hours,
-        pendingUntil: userData.pending_until
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  } catch (error) {
-    console.error('Check pending error:', error);
-    return new Response(
-      JSON.stringify({ 
-        error: 'Failed to check pending status',
-        details: error.message 
-      }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-}
 
 async function handleCreateCountdown(supabase: any, walletAddress: string, data: any) {
   try {
@@ -606,3 +790,82 @@ async function handleGetCountdowns(supabase: any, walletAddress: string) {
   }
 }
 
+async function handleToggleCountdownMode(supabase: any, walletAddress: string, data: any) {
+  try {
+    // Check if user is admin (you may want to add proper admin check)
+    const { enableCountdowns, defaultCountdownHours = 24 } = data;
+
+    // Update admin settings
+    await supabase
+      .from('admin_settings')
+      .upsert({
+        setting_key: 'countdown_mode_enabled',
+        setting_value: enableCountdowns ? 'true' : 'false',
+        description: 'Enable/disable countdown timers for new referral users'
+      }, { onConflict: 'setting_key' })
+
+    await supabase
+      .from('admin_settings')
+      .upsert({
+        setting_key: 'default_countdown_hours',
+        setting_value: defaultCountdownHours.toString(),
+        description: 'Default countdown hours for referral users'
+      }, { onConflict: 'setting_key' })
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: `Countdown mode ${enableCountdowns ? 'enabled' : 'disabled'}`,
+        settings: {
+          countdownEnabled: enableCountdowns,
+          defaultHours: defaultCountdownHours
+        }
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    console.error('Toggle countdown mode error:', error);
+    return new Response(
+      JSON.stringify({ 
+        error: 'Failed to toggle countdown mode',
+        details: error.message 
+      }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+}
+
+async function handleGetCountdownSettings(supabase: any, walletAddress: string) {
+  try {
+    // Get current countdown settings
+    const { data: settings } = await supabase
+      .from('admin_settings')
+      .select('setting_key, setting_value')
+      .in('setting_key', ['countdown_mode_enabled', 'default_countdown_hours'])
+
+    const countdownEnabled = settings?.find(s => s.setting_key === 'countdown_mode_enabled')?.setting_value === 'true'
+    const defaultHours = parseInt(settings?.find(s => s.setting_key === 'default_countdown_hours')?.setting_value || '24')
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        settings: {
+          countdownEnabled: countdownEnabled || false,
+          defaultHours: defaultHours || 24
+        }
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    console.error('Get countdown settings error:', error);
+    return new Response(
+      JSON.stringify({ 
+        error: 'Failed to get countdown settings',
+        details: error.message 
+      }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+}
+
+// Updated Sat Sep  6 05:25:12 PM UTC 2025

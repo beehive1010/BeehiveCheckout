@@ -30,54 +30,43 @@ export class SupabaseApiClient {
     this.anonKey = supabaseAnonKey
   }
 
-  private async getHeaders(walletAddress?: string) {
+  private async getHeaders(walletAddress?: string, requireAuth = true) {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json'
     }
 
-    // Get auth token from Supabase session - required for most operations
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
-    if (sessionError) {
-      console.warn('⚠️ Session error:', sessionError)
-      // Try anonymous authentication if no session exists
-      const { data, error: anonError } = await supabase.auth.signInAnonymously()
-      if (anonError) {
-        console.warn('⚠️ Anonymous auth failed, using anon key. Some operations may fail.')
-        headers['Authorization'] = `Bearer ${this.anonKey}`
-      } else {
-        headers['Authorization'] = `Bearer ${data.session.access_token}`
-      }
-    } else if (session?.access_token) {
-      // Check if token is expired
-      const now = Math.floor(Date.now() / 1000)
-      if (session.expires_at && session.expires_at < now) {
-        console.warn('⚠️ Supabase token expired, attempting refresh...')
-        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
-        
-        if (refreshError || !refreshData.session) {
-          console.warn('⚠️ Token refresh failed, trying anonymous auth...')
-          const { data, error: anonError } = await supabase.auth.signInAnonymously()
-          if (anonError) {
-            headers['Authorization'] = `Bearer ${this.anonKey}`
-          } else {
-            headers['Authorization'] = `Bearer ${data.session.access_token}`
-          }
-        } else {
-          headers['Authorization'] = `Bearer ${refreshData.session.access_token}`
-        }
-      } else {
-        headers['Authorization'] = `Bearer ${session.access_token}`
-      }
+    if (!requireAuth) {
+      // For public operations, just use anon key
+      headers['Authorization'] = `Bearer ${this.anonKey}`
     } else {
-      // No session - try anonymous authentication
-      console.warn('⚠️ No Supabase session found, trying anonymous auth...')
-      const { data, error: anonError } = await supabase.auth.signInAnonymously()
-      if (anonError) {
-        console.warn('⚠️ Anonymous auth failed, using anon key. Some operations may fail.')
-        headers['Authorization'] = `Bearer ${this.anonKey}`
+      // For authenticated operations, ensure we have a valid session
+      let session = null
+      const { data: { session: currentSession } } = await supabase.auth.getSession()
+      
+      if (currentSession?.access_token) {
+        // Check if token is expired
+        const now = Math.floor(Date.now() / 1000)
+        if (currentSession.expires_at && currentSession.expires_at > now) {
+          session = currentSession
+        }
+      }
+      
+      if (!session) {
+        // Create anonymous session for authenticated operations
+        console.log('🔐 Creating auth session for wallet:', walletAddress)
+        const { data, error } = await supabase.auth.signInAnonymously()
+        if (error) {
+          console.warn('⚠️ Failed to create auth session:', error)
+          headers['Authorization'] = `Bearer ${this.anonKey}`
+        } else {
+          session = data.session
+        }
+      }
+      
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`
       } else {
-        headers['Authorization'] = `Bearer ${data.session.access_token}`
+        headers['Authorization'] = `Bearer ${this.anonKey}`
       }
     }
 
@@ -98,11 +87,12 @@ export class SupabaseApiClient {
   async callFunction(
     functionName: string, 
     data: any, 
-    walletAddress?: string
+    walletAddress?: string,
+    requireAuth = true
   ): Promise<any> {
     const response = await fetch(`${this.baseUrl}/${functionName}`, {
       method: 'POST',
-      headers: await this.getHeaders(walletAddress),
+      headers: await this.getHeaders(walletAddress, requireAuth),
       body: JSON.stringify(data)
     })
 
@@ -134,19 +124,20 @@ export class SupabaseApiClient {
       referrerWallet,
       username,
       email
-    }, walletAddress)
+    }, walletAddress, false) // No auth required
   }
 
   async getUser(walletAddress: string) {
     return this.callFunction('auth', {
       action: 'get-user'
-    }, walletAddress)
+    }, walletAddress, false) // No auth required
   }
 
   async activateMembership(walletAddress: string) {
+    // After membership activation, user will need auth for future operations
     return this.callFunction('auth', {
       action: 'activate-membership'
-    }, walletAddress)
+    }, walletAddress, true) // Require auth after activation
   }
 
   async upgradeToLevel(walletAddress: string, nftLevel: number, paymentAmountUsdc: number, transactionHash: string) {
@@ -155,7 +146,7 @@ export class SupabaseApiClient {
       nft_level: nftLevel,
       payment_amount_usdc: paymentAmountUsdc,
       transaction_hash: transactionHash
-    })
+    }, walletAddress, false) // No auth required for first NFT claim
   }
 
   // Referral link methods
@@ -327,14 +318,14 @@ export class SupabaseApiClient {
     return this.callFunction('nft-upgrade', {
       action: 'get-level-info',
       level
-    }, walletAddress)
+    }, walletAddress, false) // No auth required to view level info
   }
 
   async checkUpgradeEligibility(walletAddress: string, level: number) {
     return this.callFunction('nft-upgrade', {
       action: 'check-eligibility',
       level
-    }, walletAddress)
+    }, walletAddress, false) // No auth required to check eligibility
   }
 
   async processUpgrade(
@@ -350,7 +341,7 @@ export class SupabaseApiClient {
       paymentMethod,
       transactionHash,
       network
-    }, walletAddress)
+    }, walletAddress, false) // No auth required for NFT upgrade/claiming
   }
 
   async getUpgradeHistory(walletAddress: string, limit = 20, offset = 0) {
