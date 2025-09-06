@@ -64,7 +64,25 @@ export function MembershipClaimButtons({
     setClaimState({ method: claimMethod, loading: true, error: null });
 
     try {
-      // Call the Supabase auth function directly for activation
+      // STEP 1: First ensure user is registered
+      const registerResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Wallet-Address': account.address
+        },
+        body: JSON.stringify({
+          action: 'register',
+          referrerWallet: referrerWallet || null,
+          username: `user_${account.address.slice(-6)}`,
+          email: null
+        })
+      });
+
+      const registerResult = await registerResponse.json();
+      console.log('📝 Registration result:', registerResult);
+
+      // STEP 2: Now activate membership (NFT claim)
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth`, {
         method: 'POST',
         headers: {

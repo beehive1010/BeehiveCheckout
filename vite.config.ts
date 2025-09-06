@@ -32,19 +32,7 @@ export default defineConfig({
   server: {
     port: 5000,
     host: '0.0.0.0',
-    allowedHosts: [
-      'localhost',
-      '127.0.0.1',
-      'beehive-lifestyle.io',
-      'www.beehive-lifestyle.io',
-      'beehive-lifestyle.replit.app',
-      '*.replit.dev',
-      '*.replit.app',
-      '*.janeway.replit.dev',
-      /.*\.replit\.dev$/,
-      /.*\.replit\.app$/,
-      /.*\.janeway\.replit\.dev$/,
-    ],
+    allowedHosts: 'all', // Allow all hosts for Replit dynamic hostnames
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -59,19 +47,7 @@ export default defineConfig({
   preview: {
     port: 5000,
     host: '0.0.0.0',
-    allowedHosts: [
-      'localhost',
-      '127.0.0.1',
-      'beehive-lifestyle.io',
-      'www.beehive-lifestyle.io',
-      'beehive-lifestyle.replit.app',
-      '*.replit.dev',
-      '*.replit.app',
-      '*.janeway.replit.dev',
-      /.*\.replit\.dev$/,
-      /.*\.replit\.app$/,
-      /.*\.janeway\.replit\.dev$/,
-    ],
+    allowedHosts: 'all', // Allow all hosts for Replit dynamic hostnames
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
