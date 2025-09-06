@@ -7,6 +7,7 @@ import { useToast } from '../hooks/use-toast';
 import { useI18n } from '../contexts/I18nContext';
 import { useWeb3 } from '../contexts/Web3Context';
 import { useLocation } from 'wouter';
+import { getReferrerInfo, hasRealReferrer } from '../lib/referrerUtils';
 import { 
   Crown, 
   Zap, 
@@ -43,6 +44,9 @@ export function MembershipClaimButtons({
     loading: false,
     error: null
   });
+
+  // Get referrer display info using utility
+  const referrerInfo = getReferrerInfo(referrerWallet);
 
   const handleClaim = async (claimMethod: 'purchase' | 'demo' | 'referral_bonus') => {
     if (!account?.address) {
@@ -217,7 +221,7 @@ export function MembershipClaimButtons({
                 Special Offer
               </Badge>
               <p className="text-sm text-muted-foreground">
-                {referrerWallet 
+                {referrerInfo.hasReferrer 
                   ? "Claim your referral bonus activation from your sponsor"
                   : "Requires a referral link to unlock this option"
                 }
@@ -228,7 +232,7 @@ export function MembershipClaimButtons({
             </div>
             <Button 
               onClick={() => handleClaim('referral_bonus')}
-              disabled={claimState.loading || !referrerWallet}
+              disabled={claimState.loading || !referrerInfo.hasReferrer}
               className="w-full bg-purple-500 hover:bg-purple-500/90 text-white disabled:opacity-50"
             >
               {claimState.loading && claimState.method === 'referral_bonus' ? (
@@ -239,7 +243,7 @@ export function MembershipClaimButtons({
               ) : (
                 <>
                   <Gift className="mr-2 h-4 w-4" />
-                  {referrerWallet ? 'Claim Bonus' : 'No Referrer'}
+                  {referrerInfo.hasReferrer ? 'Claim Bonus' : 'No Referrer'}
                 </>
               )}
             </Button>
@@ -247,7 +251,7 @@ export function MembershipClaimButtons({
         </Card>
       </div>
 
-      {referrerWallet && (
+      {referrerInfo.hasReferrer && (
         <Card className="bg-muted/30 border-muted">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 mb-2">
@@ -257,7 +261,7 @@ export function MembershipClaimButtons({
             <div className="text-sm text-muted-foreground">
               <span>Referred by: </span>
               <code className="bg-muted px-2 py-1 rounded text-xs">
-                {referrerWallet.slice(0, 6)}...{referrerWallet.slice(-4)}
+                {referrerInfo.displayText}
               </code>
             </div>
             <p className="text-xs text-muted-foreground mt-1">

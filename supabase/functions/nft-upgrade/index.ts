@@ -37,8 +37,8 @@ serve(async (req) => {
     )
 
     const walletAddress = req.headers.get('x-wallet-address')?.toLowerCase()
-
-    // Parse request body
+    
+    // Parse request body first to check for Level 1 NFT claim
     let requestData: NFTRequest = { action: 'get-level-info' }
     try {
       const body = await req.json()
@@ -58,8 +58,23 @@ serve(async (req) => {
       // For GET requests, use query params
       const url = new URL(req.url)
       const action = url.searchParams.get('action') || 'get-level-info'
-      requestData = { action: action as any }
+      const level = url.searchParams.get('level')
+      requestData = { 
+        action: action as any,
+        level: level ? parseInt(level) : undefined
+      }
     }
+
+    // Special handling for Level 1 NFT claims - no authentication required
+    const isLevel1Claim = (requestData.action === 'process-upgrade' || requestData.action === 'process-nft-purchase') && 
+                          (requestData.level === 1 || requestData.nft_level === 1)
+    
+    if (isLevel1Claim) {
+      console.log('🎁 Level 1 NFT claim detected - proceeding without authentication check')
+    }
+
+    // Request data already parsed above
+    // (Removed duplicate parsing code)
 
     const { action } = requestData
 

@@ -3,6 +3,7 @@ import { users, userBalances, platformRevenue, members } from '@shared/schema';
 import { matrixPlacementService } from './matrix-placement.service';
 import { rewardDistributionService } from './reward-distribution.service';
 import { eq } from 'drizzle-orm';
+import { getRootWallet, ensureReferrerWallet } from '../utils/referrerUtils';
 
 export interface RegistrationInput {
   walletAddress: string;
@@ -134,7 +135,21 @@ export class RegistrationService {
         return { success: false, message: 'User already activated' };
       }
 
-      // 2. Activate membership (users.membership_level ≥ 1)
+      // 2. Determine referrer (use root if no referrer)
+      let referrerWallet = ensureReferrerWallet(user.referrerWallet);
+      if (referrerWallet === getRootWallet() && !user.referrerWallet) {
+        // Update user record with root referrer
+        await db.update(users)
+          .set({ 
+            referrerWallet: getRootWallet(),
+            lastUpdatedAt: new Date()
+          })
+          .where(eq(users.walletAddress, wallet));
+        
+        console.log(`🔄 No referrer found for ${wallet}, using root referrer: ${getRootWallet()}`);
+      }
+
+      // 3. Activate membership (users.membership_level ≥ 1)
       const now = new Date();
       await db.update(users)
         .set({
@@ -157,17 +172,14 @@ export class RegistrationService {
         })
         .where(eq(members.walletAddress, wallet));
 
-      // 3. Matrix placement under referrer
-      let matrixPosition;
-      if (user.referrerWallet) {
-        matrixPosition = await matrixPlacementService.placeInMatrix(wallet, user.referrerWallet);
-        console.log(`📍 Matrix placement: ${wallet} → Layer ${matrixPosition.layer} ${matrixPosition.position} (${matrixPosition.placementType})`);
-      }
+      // 4. Matrix placement under referrer (now guaranteed to have one)
+      const matrixPosition = await matrixPlacementService.placeInMatrix(wallet, referrerWallet);
+      console.log(`📍 Matrix placement: ${wallet} → Layer ${matrixPosition.layer} ${matrixPosition.position} (${matrixPosition.placementType}) under ${referrerWallet}`);
 
-      // 4. Reward distribution
+      // 5. Reward distribution
       const rewards = await this.distributeActivationRewards(wallet, input.level, input.txHash);
 
-      console.log(`🎉 Membership activated: ${wallet} at Level ${input.level}`);
+      console.log(`🎉 Membership activated: ${wallet} at Level ${input.level} with referrer: ${referrerWallet}`);
 
       return {
         success: true,

@@ -335,13 +335,16 @@ export class SupabaseApiClient {
     transactionHash?: string,
     network?: string
   ) {
+    // Level 1 NFT claims never require authentication
+    const requiresAuth = level !== 1
+    
     return this.callFunction('nft-upgrade', {
       action: 'process-upgrade',
       level,
       paymentMethod,
       transactionHash,
       network
-    }, walletAddress, false) // No auth required for NFT upgrade/claiming
+    }, walletAddress, requiresAuth)
   }
 
   async getUpgradeHistory(walletAddress: string, limit = 20, offset = 0) {
