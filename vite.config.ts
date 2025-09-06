@@ -31,7 +31,12 @@ export default defineConfig({
   server: {
     port: 5000,
     host: '0.0.0.0',
-    allowedHosts: ['all'], // Allow all hosts for development
+    allowedHosts: 'all', // Allow all hosts for development (string format)
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
     // No proxy needed - using Supabase Edge Functions directly
     fs: {
       strict: true,
