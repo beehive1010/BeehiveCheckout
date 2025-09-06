@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Web3Provider } from "./contexts/Web3Context";
 import { I18nProvider } from "./contexts/I18nContext";
+import { AdminAuthProvider } from "./contexts/AdminAuthContext";
 import { ThemeProvider } from "next-themes";
 import { Toaster as HotToaster } from "react-hot-toast";
 
@@ -38,8 +39,8 @@ const AdminNFTManager = () => <div>Admin NFT Manager - Coming Soon</div>;
 const TokenPurchase = () => <div>Token Purchase - Coming Soon</div>;
 const NotFound = () => <div className="text-center py-12"><h1 className="text-honey text-2xl">Page Not Found</h1></div>;
 
-// Temporary admin components (to be refactored)
-const AdminLogin = () => <div>Admin Login - Coming Soon</div>;
+// Admin components
+import AdminLogin from "@/pages/AdminLogin";
 const AdminDashboard = () => <div>Admin Dashboard - Coming Soon</div>;
 const AdminUsers = () => <div>Admin Users - Coming Soon</div>;
 const AdminUserManagement = () => <div>Admin User Management - Coming Soon</div>;
@@ -259,8 +260,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
         <Web3Provider>
-          <I18nProvider>
-            <TooltipProvider>
+          <AdminAuthProvider>
+            <I18nProvider>
+              <TooltipProvider>
               <div className="min-h-screen bg-background text-foreground">
                 {!isAdminPage && <Header />}
                 {!isAdminPage && <Navigation />}
@@ -283,6 +285,7 @@ function App() {
               </div>
             </TooltipProvider>
           </I18nProvider>
+        </AdminAuthProvider>
         </Web3Provider>
       </ThemeProvider>
     </QueryClientProvider>

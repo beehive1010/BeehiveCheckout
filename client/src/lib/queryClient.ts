@@ -38,36 +38,103 @@ export async function apiRequest(
   
   // Map Express.js endpoints to Supabase Edge Function endpoints
   const endpointMap: Record<string, string> = {
-    '/api/auth/register': 'auth-register',
-    '/api/auth/user': 'auth-user', 
-    '/api/balance/user': 'balance-user',
-    '/api/balance/initialize': 'balance-initialize',
-    '/api/balance/activate-level1': 'balance-activate-level1',
-    '/api/balance/withdraw-usdt': 'balance-withdraw-usdt',
-    '/api/balance/withdrawals': 'balance-withdrawals',
-    '/api/dashboard/data': 'dashboard-data',
-    '/api/dashboard/balances': 'dashboard-balances',
-    '/api/dashboard/matrix': 'dashboard-matrix',
-    '/api/dashboard/referrals': 'dashboard-referrals',
-    '/api/dashboard/activity': 'dashboard-activity',
-    '/api/membership/activate': 'membership-activate',
-    '/api/rewards/user': 'rewards-user',
-    '/api/rewards/claimable': 'rewards-claimable',
-    '/api/rewards/claim': 'rewards-claim',
-    '/api/wallet/withdraw-usdt': 'wallet-withdraw-usdt',
-    '/api/wallet/log-connection': 'wallet-log-connection'
+    '/api/auth/register': 'auth',
+    '/api/auth/user': 'auth', 
+    '/api/balance/user': 'balance',
+    '/api/balance/initialize': 'balance',
+    '/api/balance/activate-level1': 'balance',
+    '/api/balance/withdraw-usdt': 'balance',
+    '/api/balance/withdrawals': 'balance',
+    '/api/dashboard/data': 'dashboard',
+    '/api/dashboard/balances': 'dashboard',
+    '/api/dashboard/matrix': 'matrix',
+    '/api/dashboard/referrals': 'matrix',
+    '/api/dashboard/activity': 'dashboard',
+    '/api/membership/activate': 'nft-upgrades',
+    '/api/rewards/user': 'rewards/get-balance',
+    '/api/rewards/claimable': 'rewards/get-claims',
+    '/api/rewards/claim': 'rewards/claim-reward',
+    '/api/wallet/withdraw-usdt': 'balance',
+    '/api/wallet/log-connection': 'auth'
   };
   
   const functionName = endpointMap[url] || url.replace('/api/', '').replace(/\//g, '-');
   
   try {
+    // For rewards functions that use URL-based actions, call directly
+    if (functionName.startsWith('rewards/')) {
+      const result = await supabaseApi.callFunction(functionName, data || {}, addressToUse);
+      
+      // Create a mock Response object for compatibility
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        json: async () => result.data || result,
+        text: async () => JSON.stringify(result.data || result)
+      } as Response;
+      
+      return mockResponse;
+    }
+    
+    // For other functions that use action-based parameters
+    let action = '';
+    switch (url) {
+      case '/api/auth/register':
+        action = 'register';
+        break;
+      case '/api/auth/user':
+        action = 'get-user';
+        break;
+      case '/api/balance/user':
+        action = 'get-balance';
+        break;
+      case '/api/balance/initialize':
+        action = 'initialize-balance';
+        break;
+      case '/api/balance/activate-level1':
+        action = 'activate-level1';
+        break;
+      case '/api/balance/withdraw-usdt':
+        action = 'withdraw-usdt';
+        break;
+      case '/api/balance/withdrawals':
+        action = 'get-withdrawals';
+        break;
+      case '/api/membership/activate':
+        action = 'process-upgrade';
+        break;
+      case '/api/dashboard/matrix':
+        action = 'get-matrix';
+        break;
+      case '/api/dashboard/referrals':
+        action = 'get-downline';
+        break;
+      case '/api/matrix/stats':
+        action = 'get-matrix-stats';
+        break;
+      case '/api/matrix/upline':
+        action = 'get-upline';
+        break;
+      case '/api/matrix/downline':
+        action = 'get-downline';
+        break;
+      case '/api/matrix/place':
+        action = 'place-member';
+        break;
+      default:
+        // For other endpoints, derive action from URL
+        action = url.replace('/api/', '').replace(/\//g, '-');
+    }
+
     const requestData = {
+      action,
       ...data,
       walletAddress: addressToUse || data?.walletAddress,
       _method: method.toUpperCase()
     };
     
-    const result = await supabaseApi.callFunction(functionName, requestData);
+    const result = await supabaseApi.callFunction(functionName, requestData, addressToUse);
     
     // Create a mock Response object for compatibility
     const mockResponse = {
