@@ -40,8 +40,14 @@ export class SupabaseApiClient {
     
     if (sessionError) {
       console.warn('⚠️ Session error:', sessionError)
-      console.warn('⚠️ No Supabase session found, using anon key. Some operations may fail.')
-      headers['Authorization'] = `Bearer ${this.anonKey}`
+      // Try anonymous authentication if no session exists
+      const { data, error: anonError } = await supabase.auth.signInAnonymously()
+      if (anonError) {
+        console.warn('⚠️ Anonymous auth failed, using anon key. Some operations may fail.')
+        headers['Authorization'] = `Bearer ${this.anonKey}`
+      } else {
+        headers['Authorization'] = `Bearer ${data.session.access_token}`
+      }
     } else if (session?.access_token) {
       // Check if token is expired
       const now = Math.floor(Date.now() / 1000)
@@ -50,8 +56,13 @@ export class SupabaseApiClient {
         const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
         
         if (refreshError || !refreshData.session) {
-          console.warn('⚠️ Token refresh failed, using anon key. Some operations may fail.')
-          headers['Authorization'] = `Bearer ${this.anonKey}`
+          console.warn('⚠️ Token refresh failed, trying anonymous auth...')
+          const { data, error: anonError } = await supabase.auth.signInAnonymously()
+          if (anonError) {
+            headers['Authorization'] = `Bearer ${this.anonKey}`
+          } else {
+            headers['Authorization'] = `Bearer ${data.session.access_token}`
+          }
         } else {
           headers['Authorization'] = `Bearer ${refreshData.session.access_token}`
         }
@@ -59,9 +70,15 @@ export class SupabaseApiClient {
         headers['Authorization'] = `Bearer ${session.access_token}`
       }
     } else {
-      // No session - fall back to anon key for compatibility
-      console.warn('⚠️ No Supabase session found, using anon key. Some operations may fail.')
-      headers['Authorization'] = `Bearer ${this.anonKey}`
+      // No session - try anonymous authentication
+      console.warn('⚠️ No Supabase session found, trying anonymous auth...')
+      const { data, error: anonError } = await supabase.auth.signInAnonymously()
+      if (anonError) {
+        console.warn('⚠️ Anonymous auth failed, using anon key. Some operations may fail.')
+        headers['Authorization'] = `Bearer ${this.anonKey}`
+      } else {
+        headers['Authorization'] = `Bearer ${data.session.access_token}`
+      }
     }
 
     if (walletAddress) {

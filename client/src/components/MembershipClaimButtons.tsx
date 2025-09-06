@@ -5,6 +5,8 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { useToast } from '../hooks/use-toast';
 import { useI18n } from '../contexts/I18nContext';
+import { useWeb3 } from '../contexts/Web3Context';
+import { useLocation } from 'wouter';
 import { 
   Crown, 
   Zap, 
@@ -30,6 +32,8 @@ export function MembershipClaimButtons({
   const { t } = useI18n();
   const { toast } = useToast();
   const account = useActiveAccount();
+  const { isSupabaseAuthenticated } = useWeb3();
+  const [, setLocation] = useLocation();
   const [claimState, setClaimState] = useState<{
     method: string | null;
     loading: boolean;
@@ -47,6 +51,17 @@ export function MembershipClaimButtons({
         description: "Please connect your wallet first",
         variant: "destructive"
       });
+      return;
+    }
+
+    // Check if user is authenticated with Supabase
+    if (!isSupabaseAuthenticated) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in first to claim your NFT",
+        variant: "destructive"
+      });
+      setLocation('/auth');
       return;
     }
 

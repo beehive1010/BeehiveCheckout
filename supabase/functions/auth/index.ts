@@ -13,7 +13,7 @@ const corsHeaders = {
 }
 
 interface AuthRequest {
-  action: 'register' | 'get-user' | 'activate-membership' | 'toggle-pending' | 'check-pending' | 'create-countdown' | 'get-countdowns';
+  action: 'register' | 'get-user' | 'activate-membership' | 'create-countdown' | 'get-countdowns';
   walletAddress?: string;
   referrerWallet?: string;
   username?: string;
@@ -24,9 +24,6 @@ interface AuthRequest {
   durationHours?: number;
   description?: string;
   autoAction?: string;
-  // Pending system params
-  pendingHours?: number;
-  pendingEnabled?: boolean;
 }
 
 serve(async (req) => {
@@ -172,7 +169,7 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
       }
     }
 
-    // Create user record - linked to authenticated Supabase user
+    // Create user record - using actual database schema
     const { data: newUser, error: userError } = await supabase
       .from('users')
       .insert({
@@ -181,12 +178,8 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
         username: data.username || authUser.user_metadata?.username || null,
         email: data.email || authUser.email || null,
         current_level: 0,
-        supabase_user_id: authUser.id, // Link to auth.users
-        pending_enabled: false, // No pending by default
-        pending_hours: null,
-        pending_until: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        is_upgraded: false,
+        upgrade_timer_enabled: false
       })
       .select()
       .single()
@@ -198,15 +191,14 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
       .from('members')
       .insert({
         wallet_address: walletAddress,
-        referrer_wallet: validReferrerWallet,
-        username: data.username || authUser.user_metadata?.username || null,
-        email: data.email || authUser.email || null,
         is_activated: false,
         current_level: 0,
         max_layer: 0,
         levels_owned: [],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        has_pending_rewards: false,
+        upgrade_reminder_enabled: false,
+        total_direct_referrals: 0,
+        total_team_size: 0
       })
 
     if (memberError) throw memberError
@@ -218,8 +210,9 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
         wallet_address: walletAddress,
         bcc_transferable: 0,
         bcc_locked: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        total_usdt_earned: 0,
+        pending_upgrade_rewards: 0,
+        rewards_claimed: 0
       })
 
     if (balanceError) throw balanceError
@@ -228,7 +221,6 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
       success: true,
       action: 'created',
       user: newUser,
-      authUser: authUser.id,
       message: 'User registered successfully - ready to activate membership'
     }
 
@@ -488,20 +480,18 @@ async function handleCreateCountdown(supabase: any, walletAddress: string, data:
   try {
     const { timerType, title, durationHours, description, autoAction } = data;
 
-    // Create countdown timer
+    // Create countdown timer using correct table name
     const { data: newCountdown, error: countdownError } = await supabase
-      .from('user_countdowns')
+      .from('countdown_timers')
       .insert({
         wallet_address: walletAddress,
         timer_type: timerType,
         title: title,
         description: description || null,
-        duration_hours: durationHours,
+        start_time: new Date().toISOString(),
+        end_time: new Date(Date.now() + (durationHours * 60 * 60 * 1000)).toISOString(),
         auto_action: autoAction || 'delete_user_and_referrals', // Default action
-        starts_at: new Date().toISOString(),
-        ends_at: new Date(Date.now() + (durationHours * 60 * 60 * 1000)).toISOString(),
-        is_active: true,
-        created_at: new Date().toISOString()
+        is_active: true
       })
       .select()
       .single();
@@ -531,7 +521,7 @@ async function handleCreateCountdown(supabase: any, walletAddress: string, data:
 async function handleGetCountdowns(supabase: any, walletAddress: string) {
   try {
     const { data: countdowns, error: countdownError } = await supabase
-      .from('user_countdowns')
+      .from('countdown_timers')
       .select('*')
       .eq('wallet_address', walletAddress)
       .eq('is_active', true)
@@ -545,7 +535,7 @@ async function handleGetCountdowns(supabase: any, walletAddress: string) {
     const expiredCountdowns = [];
 
     for (const countdown of countdowns || []) {
-      if (new Date(countdown.ends_at) <= now) {
+      if (new Date(countdown.end_time) <= now) {
         expiredCountdowns.push(countdown);
         
         // Execute auto action - delete user and referrals when countdown expires
@@ -591,7 +581,7 @@ async function handleGetCountdowns(supabase: any, walletAddress: string) {
     if (expiredCountdowns.length > 0) {
       const expiredIds = expiredCountdowns.map(c => c.id);
       await supabase
-        .from('user_countdowns')
+        .from('countdown_timers')
         .update({ is_active: false })
         .in('id', expiredIds);
     }
