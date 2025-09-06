@@ -30,12 +30,10 @@ Preferred communication style: Simple, everyday language.
 - **Responsiveness**: Mobile-first design with progressive enhancement for tablet and desktop
 
 ### Backend Architecture
-- **Runtime**: Node.js with Express.js server
-- **Database**: PostgreSQL with Drizzle ORM for type-safe database operations
-- **Database Provider**: Neon serverless PostgreSQL for cloud hosting
+- **Runtime**: Supabase Edge Functions for serverless backend processing
+- **Database**: PostgreSQL with Neon serverless PostgreSQL for cloud hosting
 - **Authentication**: Wallet-based authentication using wallet addresses as primary keys
-- **Session Management**: Express sessions with connect-pg-simple for PostgreSQL session storage
-- **API Design**: RESTful APIs with middleware for wallet address extraction and validation
+- **API Design**: Supabase Edge Functions with direct client-to-function communication
 
 ### Data Storage Solutions
 - **Primary Database**: PostgreSQL with the following key tables:
@@ -47,13 +45,12 @@ Preferred communication style: Simple, everyday language.
   - `merchantNFTs` and `nftPurchases`: NFT marketplace data
   - `courses` and `courseAccess`: Educational content and user progress
 - **File Storage**: IPFS for user profile metadata and NFT assets
-- **Session Storage**: PostgreSQL-backed sessions for server-side session management
 
 ### Authentication and Authorization
 - **Primary Identity**: Ethereum wallet address as the unique user identifier
 - **Wallet Connection**: Thirdweb SDK for secure wallet integration
 - **Secondary Authentication**: Hashed secondary passwords for additional security
-- **Route Protection**: Middleware-based access control requiring Level 1+ membership activation
+- **Route Protection**: Supabase Edge Functions handle access control requiring Level 1+ membership activation
 - **Authorization Levels**: Membership level-based content and feature access
 
 ### External Dependencies
@@ -62,6 +59,6 @@ Preferred communication style: Simple, everyday language.
 - **File Storage**: IPFS via Thirdweb upload service
 - **Database Hosting**: Neon serverless PostgreSQL
 - **Wallet Integration**: MetaMask and other Web3 wallets via Thirdweb
-- **Background Jobs**: Replit scheduled tasks for timer processing and reward distribution
+- **Backend Processing**: Supabase Edge Functions for all server-side logic
 
-The architecture follows a typical full-stack pattern with clear separation between frontend and backend concerns, using modern Web3 technologies for blockchain integration and traditional database systems for application data management.
+The architecture follows a modern serverless pattern with pure frontend + Supabase Edge Functions, using Supabase for database operations and Thirdweb for blockchain integration.
