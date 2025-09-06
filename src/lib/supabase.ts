@@ -1,5 +1,6 @@
 // Supabase client configuration for Beehive Platform
 import { createClient } from '@supabase/supabase-js'
+import type { Database } from '../../types/database.types'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -8,8 +9,380 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables')
 }
 
-// Create Supabase client for database operations only (no auth)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Create typed Supabase client for database operations
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
+
+// Direct database function caller - typed according to database.types.ts
+export const dbFunctions = {
+  // User activation functions
+  async activateNewUser(walletAddress: string) {
+    return await supabase.rpc('activate_new_user', {
+      p_wallet_address: walletAddress
+    })
+  },
+
+  async activateMemberWithNFTClaim(walletAddress: string, nftType?: string, paymentMethod?: string, transactionHash?: string) {
+    return await supabase.rpc('activate_member_with_nft_claim', {
+      p_wallet_address: walletAddress,
+      p_nft_type: nftType,
+      p_payment_method: paymentMethod,
+      p_transaction_hash: transactionHash
+    })
+  },
+
+  async activateMemberWithTierRewards(walletAddress: string) {
+    return await supabase.rpc('activate_member_with_tier_rewards', {
+      p_wallet_address: walletAddress
+    })
+  },
+
+  // Reward functions
+  async claimRewardToBalance(claimId: string, walletAddress: string) {
+    return await supabase.rpc('claim_reward_to_balance', {
+      p_claim_id: claimId,
+      p_wallet_address: walletAddress
+    })
+  },
+
+  async claimPendingRewards(walletAddress: string) {
+    return await supabase.rpc('claim_pending_rewards', {
+      p_wallet_address: walletAddress
+    })
+  },
+
+  // Calculation functions
+  async calculateNFTTotalPrice(level: number) {
+    return await supabase.rpc('calculate_nft_total_price', {
+      p_level: level
+    })
+  },
+
+  async calculateTotalNFTCost(level: number) {
+    return await supabase.rpc('calculate_total_nft_cost', {
+      p_level: level
+    })
+  },
+
+  async calculateBCCUnlock(nftLevel: number, tier: number) {
+    return await supabase.rpc('calculate_bcc_unlock', {
+      p_nft_level: nftLevel,
+      p_tier: tier
+    })
+  },
+
+  // Reward checking functions
+  async canReceiveLayerReward(claimNumber: number, layer: number, rootWallet: string) {
+    return await supabase.rpc('can_receive_layer_reward', {
+      p_claim_number: claimNumber,
+      p_layer: layer,
+      p_root_wallet: rootWallet
+    })
+  },
+
+  async canRootClaimLayerReward(layer: number, rootWallet: string, layer1ClaimCount?: number) {
+    return await supabase.rpc('can_root_claim_layer_reward', {
+      p_layer: layer,
+      p_root_wallet: rootWallet,
+      p_layer_1_claim_count: layer1ClaimCount
+    })
+  },
+
+  // Member management functions
+  async createMemberWithPending(walletAddress: string, usePending?: boolean) {
+    return await supabase.rpc('create_member_with_pending', {
+      p_wallet_address: walletAddress,
+      p_use_pending: usePending
+    })
+  },
+
+  async countDirectReferrals(walletAddress: string) {
+    return await supabase.rpc('count_direct_referrals', {
+      p_wallet_address: walletAddress
+    })
+  },
+
+  // Utility functions
+  async cleanupExpiredUsers() {
+    return await supabase.rpc('cleanup_expired_users', {})
+  },
+
+  // Admin functions
+  async clearMemberActivationPending(adminWallet: string, targetWallet: string, reason?: string) {
+    return await supabase.rpc('clear_member_activation_pending', {
+      p_admin_wallet: adminWallet,
+      p_target_wallet: targetWallet,
+      p_reason: reason
+    })
+  },
+
+  async setMemberActivationPending(adminWallet: string, targetWallet: string, pendingHours: number, reason?: string) {
+    return await supabase.rpc('set_member_activation_pending', {
+      p_admin_wallet: adminWallet,
+      p_target_wallet: targetWallet,
+      p_pending_hours: pendingHours,
+      p_reason: reason
+    })
+  },
+
+  async toggleActivationPendingGlobal(adminWallet: string, enabled: boolean, pendingHours?: number, reason?: string) {
+    return await supabase.rpc('toggle_activation_pending_global', {
+      p_admin_wallet: adminWallet,
+      p_enabled: enabled,
+      p_pending_hours: pendingHours,
+      p_reason: reason
+    })
+  },
+
+  async isAdmin(walletAddress: string) {
+    return await supabase.rpc('is_admin', {
+      p_wallet_address: walletAddress
+    })
+  },
+
+  // Timer functions
+  async createCountdownTimer(walletAddress: string, timerType: string, title: string, durationHours: number, description?: string, autoAction?: string, adminWallet?: string) {
+    return await supabase.rpc('create_countdown_timer', {
+      p_wallet_address: walletAddress,
+      p_timer_type: timerType,
+      p_title: title,
+      p_duration_hours: durationHours,
+      p_description: description,
+      p_auto_action: autoAction,
+      p_admin_wallet: adminWallet
+    })
+  },
+
+  async getActiveCountdowns(walletAddress: string) {
+    return await supabase.rpc('get_active_countdowns', {
+      p_wallet_address: walletAddress
+    })
+  },
+
+  // Referral functions
+  async createReferralLink(walletAddress: string) {
+    return await supabase.rpc('create_referral_link', {
+      p_wallet_address: walletAddress
+    })
+  },
+
+  async generateReferralToken(walletAddress: string) {
+    return await supabase.rpc('generate_referral_token', {
+      p_wallet_address: walletAddress
+    })
+  },
+
+  async processReferralLink(referralToken: string, walletAddress?: string) {
+    return await supabase.rpc('process_referral_link', {
+      p_referral_token: referralToken,
+      p_wallet_address: walletAddress
+    })
+  },
+
+  async processReferralRewards(walletAddress: string, nftLevel: number) {
+    return await supabase.rpc('process_referral_rewards', {
+      p_wallet_address: walletAddress,
+      p_nft_level: nftLevel
+    })
+  },
+
+  // Matrix functions
+  async findNextMatrixPosition(rootWallet: string, newMemberWallet: string) {
+    return await supabase.rpc('find_next_matrix_position', {
+      p_root_wallet: rootWallet,
+      p_new_member_wallet: newMemberWallet
+    })
+  },
+
+  async placeMemberInMatrix(rootWallet: string, memberWallet: string, placerWallet: string, matrixPosition: string) {
+    return await supabase.rpc('place_member_in_matrix', {
+      p_root_wallet: rootWallet,
+      p_member_wallet: memberWallet,
+      p_placer_wallet: placerWallet,
+      p_matrix_position: matrixPosition
+    })
+  },
+
+  async updateMatrixLayerSummary() {
+    return await supabase.rpc('update_matrix_layer_summary', {})
+  },
+
+  // Layer reward functions
+  async createLayerRewardClaim(rootWallet: string, layer: number, nftLevel: number, triggeringMemberWallet: string, transactionHash: string) {
+    return await supabase.rpc('create_layer_reward_claim', {
+      p_root_wallet: rootWallet,
+      p_layer: layer,
+      p_nft_level: nftLevel,
+      p_triggering_member_wallet: triggeringMemberWallet,
+      p_transaction_hash: transactionHash
+    })
+  },
+
+  async createLayerRewardClaimWithNotifications(rootWallet: string, layer: number, nftLevel: number, triggeringMemberWallet: string, transactionHash: string) {
+    return await supabase.rpc('create_layer_reward_claim_with_notifications', {
+      p_root_wallet: rootWallet,
+      p_layer: layer,
+      p_nft_level: nftLevel,
+      p_triggering_member_wallet: triggeringMemberWallet,
+      p_transaction_hash: transactionHash
+    })
+  },
+
+  async distributeLayerRewards(nftLevel: number, payerWallet: string, transactionHash: string) {
+    return await supabase.rpc('distribute_layer_rewards', {
+      p_nft_level: nftLevel,
+      p_payer_wallet: payerWallet,
+      p_transaction_hash: transactionHash
+    })
+  },
+
+  // Purchase processing functions
+  async processBCCPurchase(walletAddress: string, amountUsdt: number, transactionHash: string, sourceTransactionId?: string) {
+    return await supabase.rpc('process_bcc_purchase', {
+      p_wallet_address: walletAddress,
+      p_amount_usdt: amountUsdt,
+      p_transaction_hash: transactionHash,
+      p_source_transaction_id: sourceTransactionId
+    })
+  },
+
+  async processNFTPurchaseWithRequirements(walletAddress: string, nftLevel: number, paymentAmountUsdc: number, transactionHash: string) {
+    return await supabase.rpc('process_nft_purchase_with_requirements', {
+      p_wallet_address: walletAddress,
+      p_nft_level: nftLevel,
+      p_payment_amount_usdc: paymentAmountUsdc,
+      p_transaction_hash: transactionHash
+    })
+  },
+
+  async processNFTPurchaseWithUnlock(walletAddress: string, nftLevel: number, paymentAmountUsdc: number, transactionHash: string) {
+    return await supabase.rpc('process_nft_purchase_with_unlock', {
+      p_wallet_address: walletAddress,
+      p_nft_level: nftLevel,
+      p_payment_amount_usdc: paymentAmountUsdc,
+      p_transaction_hash: transactionHash
+    })
+  },
+
+  // BCC and token functions
+  async spendBCCTokens(walletAddress: string, amountBcc: number, itemType: string, itemId: string) {
+    return await supabase.rpc('spend_bcc_tokens', {
+      p_wallet_address: walletAddress,
+      p_amount_bcc: amountBcc,
+      p_item_type: itemType,
+      p_item_id: itemId
+    })
+  },
+
+  async unlockBCCForNFTLevel(walletAddress: string, nftLevel: number) {
+    return await supabase.rpc('unlock_bcc_for_nft_level', {
+      p_wallet_address: walletAddress,
+      p_nft_level: nftLevel
+    })
+  },
+
+  // Withdrawal functions
+  async withdrawRewardBalance(walletAddress: string, amountUsdt: number) {
+    return await supabase.rpc('withdraw_reward_balance', {
+      p_wallet_address: walletAddress,
+      p_amount_usdt: amountUsdt
+    })
+  },
+
+  // Information functions
+  async getCurrentWalletAddress() {
+    return await supabase.rpc('get_current_wallet_address', {})
+  },
+
+  async getDefaultPendingHours() {
+    return await supabase.rpc('get_default_pending_hours', {})
+  },
+
+  async getMemberTier(walletAddress: string) {
+    return await supabase.rpc('get_member_tier', {
+      p_wallet_address: walletAddress
+    })
+  },
+
+  async getNFTFeeBreakdown(nftLevel: number) {
+    return await supabase.rpc('get_nft_fee_breakdown', {
+      p_nft_level: nftLevel
+    })
+  },
+
+  async getPendingActivations(adminWallet: string) {
+    return await supabase.rpc('get_pending_activations', {
+      p_admin_wallet: adminWallet
+    })
+  },
+
+  async isActivationPendingEnabled() {
+    return await supabase.rpc('is_activation_pending_enabled', {})
+  },
+
+  async isValidWalletAddress(walletAddress: string) {
+    return await supabase.rpc('is_valid_wallet_address', {
+      p_wallet_address: walletAddress
+    })
+  },
+
+  // Processing and maintenance functions
+  async processActivationRewards(walletAddress: string, nftLevel: number) {
+    return await supabase.rpc('process_activation_rewards', {
+      p_wallet_address: walletAddress,
+      p_nft_level: nftLevel
+    })
+  },
+
+  async processExpiredRewards() {
+    return await supabase.rpc('process_expired_rewards', {})
+  },
+
+  async processRewardSystemMaintenance() {
+    return await supabase.rpc('process_reward_system_maintenance', {})
+  },
+
+  async runScheduledCleanup() {
+    return await supabase.rpc('run_scheduled_cleanup', {})
+  },
+
+  async updateMemberRequirements(walletAddress: string) {
+    return await supabase.rpc('update_member_requirements', {
+      p_wallet_address: walletAddress
+    })
+  },
+
+  async upsertUser(walletAddress: string, username?: string) {
+    return await supabase.rpc('upsert_user', {
+      p_wallet_address: walletAddress,
+      p_username: username
+    })
+  },
+
+  // Wallet session functions
+  async createWalletSession(walletAddress: string, signature: string, message: string) {
+    return await supabase.rpc('create_wallet_session', {
+      p_wallet_address: walletAddress,
+      p_signature: signature,
+      p_message: message
+    })
+  },
+
+  async validateWalletSignature(walletAddress: string, signature: string, message: string) {
+    return await supabase.rpc('validate_wallet_signature', {
+      p_wallet_address: walletAddress,
+      p_signature: signature,
+      p_message: message
+    })
+  },
+
+  // Notification functions
+  async createRewardCountdownNotification(walletAddress: string, timerId: string) {
+    return await supabase.rpc('create_reward_countdown_notification', {
+      p_wallet_address: walletAddress,
+      p_timer_id: timerId
+    })
+  }
+}
 
 // Supabase Edge Function client with wallet authentication
 export class SupabaseApiClient {

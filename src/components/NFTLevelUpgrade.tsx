@@ -7,6 +7,8 @@ import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
 import { useToast } from '../hooks/use-toast';
 import { useI18n } from '../contexts/I18nContext';
+import { typedApiClient, ApiException, TypedApiClient } from '../lib/apiClient';
+import type { UpgradePathResponse, NFTUpgradeResponse } from '../../types/api.types';
 import { 
   Crown, 
   Loader2, 
@@ -59,50 +61,63 @@ export function NFTLevelUpgrade({
     level: null
   });
 
-  // Fetch user's upgrade path
+  // Fetch user's upgrade path using typed API client
   const { data: upgradePath, isLoading, error } = useQuery({
     queryKey: ['/api/nft/upgrade-path', account?.address],
     enabled: !!account?.address,
     queryFn: async () => {
-      const response = await fetch('/api/nft/upgrade-path', {
-        headers: {
-          'X-Wallet-Address': account!.address,
-          'Cache-Control': 'no-cache'
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch upgrade path');
+      try {
+        const response = await typedApiClient.getUpgradePath(account!.address);
+        if (TypedApiClient.isSuccessResponse(response)) {
+          return response.data;
+        }
+        throw new ApiException({
+          code: 'UPGRADE_PATH_ERROR',
+          message: response.error || 'Failed to fetch upgrade path',
+        });
+      } catch (error) {
+        if (error instanceof ApiException) {
+          throw error;
+        }
+        throw new ApiException({
+          code: 'NETWORK_ERROR',
+          message: 'Failed to fetch upgrade path',
+        });
       }
-      
-      return response.json();
     },
     staleTime: 30000, // 30 seconds
   });
 
-  // Handle NFT level upgrade
+  // Handle NFT level upgrade using typed API client
   const upgradeMutation = useMutation({
     mutationFn: async (level: number) => {
-      const response = await fetch('/api/nft/upgrade', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Wallet-Address': account!.address
-        },
-        body: JSON.stringify({
-          targetLevel: level,
-          claimMethod: 'purchase', // Default to purchase, can be expanded later
-          transactionHash: `upgrade_tx_${Date.now()}`,
-          mintTxHash: `mint_tx_${Date.now()}`
-        })
-      });
+      try {
+        const response = await typedApiClient.processUpgrade(
+          account!.address,
+          level,
+          'purchase', // Default to purchase, can be expanded later
+          `upgrade_tx_${Date.now()}`,
+          'ethereum' // Default network
+        );
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Upgrade failed');
+        if (TypedApiClient.isSuccessResponse(response)) {
+          return response.data;
+        }
+        
+        throw new ApiException({
+          code: 'UPGRADE_FAILED',
+          message: response.error || 'Upgrade failed',
+          details: response.details ? { details: response.details } : undefined,
+        });
+      } catch (error) {
+        if (error instanceof ApiException) {
+          throw error;
+        }
+        throw new ApiException({
+          code: 'NETWORK_ERROR',
+          message: 'Network error during upgrade',
+        });
       }
-
-      return response.json();
     },
     onSuccess: (result) => {
       toast({

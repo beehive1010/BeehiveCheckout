@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useWeb3 } from '../contexts/Web3Context';
 import { apiRequest } from '../lib/queryClient';
+import { updatedApiClient } from '../lib/apiClientUpdated';
 
 // BCC Level-based unlock amounts (base amounts for Phase 1)
 export const BCC_LEVEL_UNLOCK_AMOUNTS = {
@@ -37,30 +38,33 @@ export const BCC_STAKING_TIERS = {
 } as const;
 
 export interface UserBalanceData {
-  // BCC balances
+  // BCC balances (segregated)
   bccTransferable: number;
-  bccRestricted: number;
-  bccLocked: number;
+  bccLockedRewards: number;
+  bccLockedLevel: number;
+  bccLockedStaking: number;
+  bccPendingActivation: number;
+  bccTotal: number;
   
   // USDT rewards
   totalUsdtEarned: number;
   availableUsdtRewards: number;
   totalUsdtWithdrawn: number;
   
-  // Activation tracking
-  activationTier: number | null;
-  activationOrder: number | null;
+  // Tier information
+  tierPhase: number;
+  tierMultiplier: number;
+  tierName: string;
   
-  // Global pool info
-  globalPool: {
-    totalBccLocked: number;
-    totalMembersActivated: number;
-    currentTier: number;
-    tier1Activations: number;
-    tier2Activations: number;
-    tier3Activations: number;
-    tier4Activations: number;
-  } | null;
+  // Member info
+  currentLevel: number;
+  isActivated: boolean;
+  levelsOwned: number[];
+  
+  // Breakdown details
+  nextUnlockLevel?: number;
+  nextUnlockAmount?: number;
+  pendingRewardClaims: number;
 }
 
 export interface WithdrawalData {
@@ -74,33 +78,50 @@ export function useBalance() {
   const { walletAddress, isConnected } = useWeb3();
   const queryClient = useQueryClient();
 
-  // Fetch user balance data using Supabase API
+  // Fetch user balance data using enhanced Supabase API
   const {
     data: balanceData,
     isLoading: isBalanceLoading,
     error: balanceError,
     refetch: refetchBalance
   } = useQuery({
-    queryKey: ['/api/balance/user', walletAddress],
+    queryKey: ['/api/balance-enhanced/breakdown', walletAddress],
     enabled: !!walletAddress && isConnected,
     queryFn: async (): Promise<UserBalanceData> => {
-      const response = await apiRequest('GET', '/api/dashboard/balances', undefined, walletAddress!);
-      const data = await response.json();
+      const balanceResponse = await updatedApiClient.getBalanceBreakdown(walletAddress!);
+      
+      if (!balanceResponse.success) {
+        throw new Error(balanceResponse.error || 'Failed to fetch balance data');
+      }
+      
+      const breakdown = balanceResponse.balance_breakdown!;
+      const memberInfo = balanceResponse.member_info!;
+      const tierInfo = balanceResponse.tier_info!;
       
       // Transform to match UserBalanceData interface
       return {
-        bccTransferable: data.bccTransferable || 0,
-        bccRestricted: data.bccRestricted || 0,
-        bccLocked: data.bccRestricted || 0,
-        totalUsdtEarned: data.usdt || 0,
-        availableUsdtRewards: data.usdt || 0,
+        bccTransferable: breakdown.transferable || 0,
+        bccLockedRewards: breakdown.locked_rewards || 0,
+        bccLockedLevel: breakdown.locked_level_unlock || 0,
+        bccLockedStaking: breakdown.locked_staking_rewards || 0,
+        bccPendingActivation: breakdown.pending_activation || 0,
+        bccTotal: breakdown.total || 0,
+        totalUsdtEarned: 0, // Will be fetched from rewards API
+        availableUsdtRewards: 0, // Will be fetched from rewards API
         totalUsdtWithdrawn: 0,
-        activationTier: null,
-        activationOrder: null,
-        globalPool: null
+        tierPhase: tierInfo.current_phase || 1,
+        tierMultiplier: tierInfo.multiplier || 1.0,
+        tierName: tierInfo.phase_name || 'Phase 1',
+        currentLevel: memberInfo.current_level || 0,
+        isActivated: memberInfo.is_activated || false,
+        levelsOwned: memberInfo.levels_owned || [],
+        nextUnlockLevel: breakdown.breakdown_details.next_unlock_level,
+        nextUnlockAmount: breakdown.breakdown_details.next_unlock_amount,
+        pendingRewardClaims: breakdown.breakdown_details.pending_reward_claims || 0
       };
     },
     staleTime: 30000, // 30 seconds
+    retry: 2,
   });
 
   // Initialize user balance (creates balance record with 500 BCC)
@@ -138,8 +159,58 @@ export function useBalance() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/balance/user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/balance-enhanced/breakdown'] });
       queryClient.invalidateQueries({ queryKey: ['/api/balance/withdrawals'] });
+    },
+  });
+
+  // Claim locked BCC rewards
+  const claimLockedRewardsMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('POST', '/api/balance-enhanced?action=claim-locked-rewards', {
+        walletAddress: walletAddress!
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/balance-enhanced/breakdown'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/rewards'] });
+    },
+  });
+
+  // Transfer BCC to another wallet
+  const transferBccMutation = useMutation({
+    mutationFn: async (data: { recipientWallet: string; amount: number; purpose?: string }) => {
+      const response = await updatedApiClient.transferBCC(walletAddress!, {
+        recipient_wallet: data.recipientWallet,
+        amount: data.amount,
+        purpose: data.purpose || 'BCC Transfer'
+      });
+      
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to transfer BCC');
+      }
+      
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/balance-enhanced/breakdown'] });
+    },
+  });
+
+  // Unlock level rewards
+  const unlockLevelRewardsMutation = useMutation({
+    mutationFn: async (data: { level: number }) => {
+      const response = await updatedApiClient.unlockLevelRewards(walletAddress!, data.level);
+      
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to unlock level rewards');
+      }
+      
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/balance-enhanced/breakdown'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
     },
   });
 
@@ -203,7 +274,20 @@ export function useBalance() {
   // Calculate total BCC balance
   const getTotalBccBalance = (): number => {
     if (!balanceData) return 0;
-    return balanceData.bccTransferable + balanceData.bccRestricted;
+    return balanceData.bccTotal;
+  };
+
+  // Get segregated balance breakdown
+  const getBalanceBreakdown = () => {
+    if (!balanceData) return null;
+    return {
+      transferable: balanceData.bccTransferable,
+      lockedRewards: balanceData.bccLockedRewards,
+      lockedLevel: balanceData.bccLockedLevel,
+      lockedStaking: balanceData.bccLockedStaking,
+      pendingActivation: balanceData.bccPendingActivation,
+      total: balanceData.bccTotal
+    };
   };
 
   // Check if user can withdraw USDT
@@ -239,18 +323,33 @@ export function useBalance() {
     withdrawalHistory: withdrawalHistory?.withdrawals || [],
     isWithdrawalHistoryLoading,
     
-    // Actions
+    // Balance initialization
     initializeBalance: initializeBalanceMutation.mutate,
     isInitializingBalance: initializeBalanceMutation.isPending,
     initializeError: initializeBalanceMutation.error,
     
+    // Level 1 activation
     activateLevel1: activateLevel1Mutation.mutate,
     isActivatingLevel1: activateLevel1Mutation.isPending,
     activationError: activateLevel1Mutation.error,
     
+    // USDT operations
     withdrawUsdt: withdrawUsdtMutation.mutate,
     isWithdrawingUsdt: withdrawUsdtMutation.isPending,
     withdrawalError: withdrawUsdtMutation.error,
+    
+    // BCC operations
+    claimLockedRewards: claimLockedRewardsMutation.mutate,
+    isClaimingRewards: claimLockedRewardsMutation.isPending,
+    claimRewardsError: claimLockedRewardsMutation.error,
+    
+    transferBcc: transferBccMutation.mutate,
+    isTransferringBcc: transferBccMutation.isPending,
+    transferBccError: transferBccMutation.error,
+    
+    unlockLevelRewards: unlockLevelRewardsMutation.mutate,
+    isUnlockingLevel: unlockLevelRewardsMutation.isPending,
+    unlockLevelError: unlockLevelRewardsMutation.error,
     
     // Utility functions
     getCurrentStakingTier,
@@ -258,6 +357,7 @@ export function useBalance() {
     getTotalBccLockedForTier,
     getTierInfo,
     getTotalBccBalance,
+    getBalanceBreakdown,
     canWithdrawUsdt,
     formatUsdtAmount,
     calculateWithdrawalFee,

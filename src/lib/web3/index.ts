@@ -6,6 +6,13 @@ export * from './client';
 // Chain definitions and utilities
 export * from './chains';
 
+// Network configuration for primary Arbitrum networks
+export * from './network-config';
+
+// Multi-chain payment configuration and processing
+export * from './multi-chain-config';
+export * from './multi-chain-payment';
+
 // Wallet configurations
 export * from './wallets';
 

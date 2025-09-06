@@ -39,6 +39,14 @@ serve(async (req) => {
         return await runMaintenance(req, supabaseClient);
       case 'dashboard':
         return await getRewardDashboard(req, supabaseClient);
+      case 'check-pending-rewards':
+        return await checkPendingRewards(req, supabaseClient);
+      case 'process-expired-rewards':
+        return await processExpiredRewards(req, supabaseClient);
+      case 'get-reward-timers':
+        return await getRewardTimers(req, supabaseClient);
+      case 'update-reward-status':
+        return await updateRewardStatus(req, supabaseClient);
       default:
         return new Response(JSON.stringify({
           success: false,
@@ -172,6 +180,45 @@ async function claimReward(req, supabaseClient) {
       },
       status: 400
     });
+  }
+
+  // CRITICAL BUSINESS RULE: Check Level 2 Right Slot restriction
+  // Layer 1 (Right slot) rewards require root to be Level 2+
+  if (claim.layer === 1 && claim.matrix_position === 'right') {
+    const { data: memberData, error: memberError } = await supabaseClient
+      .from('members')
+      .select('current_level')
+      .eq('wallet_address', wallet_address)
+      .single();
+
+    if (memberError || !memberData) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Unable to verify member level requirements'
+      }), {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        },
+        status: 400
+      });
+    }
+
+    if (memberData.current_level < 2) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Level 2 Right Slot Restriction: You must upgrade to Level 2 to claim Layer 1 Right slot rewards',
+        restriction_type: 'level_2_right_slot',
+        required_level: 2,
+        current_level: memberData.current_level
+      }), {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        },
+        status: 403
+      });
+    }
   }
 
   // Process the claim using new balance system
@@ -492,4 +539,361 @@ async function getRewardBalance(req, supabaseClient) {
       'Content-Type': 'application/json'
     }
   });
+}
+
+// New functions for enhanced reward management
+
+async function checkPendingRewards(req, supabaseClient) {
+  const { wallet_address } = await req.json();
+
+  if (!wallet_address) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'wallet_address required'
+    }), {
+      status: 400,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+  }
+
+  try {
+    // Get pending rewards with countdown timers
+    const { data: pendingRewards, error } = await supabaseClient
+      .from('reward_claims')
+      .select(`
+        *,
+        countdown_timers (
+          id,
+          timer_type,
+          title,
+          ends_at,
+          status,
+          auto_action
+        )
+      `)
+      .eq('root_wallet', wallet_address)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    // Calculate time remaining for each pending reward
+    const enrichedRewards = (pendingRewards || []).map(reward => {
+      const timer = reward.countdown_timers?.[0];
+      let timeRemaining = null;
+      let canUpgrade = false;
+
+      if (timer) {
+        const now = new Date();
+        const endTime = new Date(timer.ends_at);
+        const remainingMs = endTime.getTime() - now.getTime();
+        
+        if (remainingMs > 0) {
+          timeRemaining = {
+            hours: Math.floor(remainingMs / (1000 * 60 * 60)),
+            minutes: Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60)),
+            total_hours: remainingMs / (1000 * 60 * 60)
+          };
+        } else {
+          // Timer expired - should be processed
+          canUpgrade = true;
+        }
+      }
+
+      return {
+        ...reward,
+        time_remaining: timeRemaining,
+        can_upgrade: canUpgrade,
+        is_expired: timeRemaining === null && timer
+      };
+    });
+
+    return new Response(JSON.stringify({
+      success: true,
+      data: {
+        pending_rewards: enrichedRewards,
+        total_pending: enrichedRewards.length,
+        expired_count: enrichedRewards.filter(r => r.is_expired).length,
+        upgrade_ready_count: enrichedRewards.filter(r => r.can_upgrade).length
+      }
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+  } catch (error) {
+    console.error('Check pending rewards error:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Failed to check pending rewards',
+      details: error.message
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      },
+      status: 500
+    });
+  }
+}
+
+async function processExpiredRewards(req, supabaseClient) {
+  try {
+    // Process expired rewards using the stored procedure
+    const { data: processResult, error } = await supabaseClient.rpc('process_expired_rewards');
+
+    if (error) {
+      throw error;
+    }
+
+    console.log('✅ Expired rewards processed:', processResult);
+
+    return new Response(JSON.stringify({
+      success: true,
+      message: 'Expired rewards processed successfully',
+      data: processResult
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+  } catch (error) {
+    console.error('Process expired rewards error:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Failed to process expired rewards',
+      details: error.message
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      },
+      status: 500
+    });
+  }
+}
+
+async function getRewardTimers(req, supabaseClient) {
+  const { wallet_address, timer_type } = await req.json();
+
+  if (!wallet_address) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'wallet_address required'
+    }), {
+      status: 400,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+  }
+
+  try {
+    let query = supabaseClient
+      .from('countdown_timers')
+      .select('*')
+      .eq('wallet_address', wallet_address)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
+
+    if (timer_type) {
+      query = query.eq('timer_type', timer_type);
+    }
+
+    const { data: timers, error } = await query;
+
+    if (error) {
+      throw error;
+    }
+
+    // Enrich timers with remaining time calculation
+    const enrichedTimers = (timers || []).map(timer => {
+      const now = new Date();
+      const endTime = new Date(timer.ends_at);
+      const remainingMs = endTime.getTime() - now.getTime();
+      
+      return {
+        ...timer,
+        time_remaining: remainingMs > 0 ? {
+          total_ms: remainingMs,
+          hours: Math.floor(remainingMs / (1000 * 60 * 60)),
+          minutes: Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((remainingMs % (1000 * 60)) / 1000)
+        } : null,
+        is_expired: remainingMs <= 0
+      };
+    });
+
+    return new Response(JSON.stringify({
+      success: true,
+      data: {
+        timers: enrichedTimers,
+        active_count: enrichedTimers.filter(t => !t.is_expired).length,
+        expired_count: enrichedTimers.filter(t => t.is_expired).length
+      }
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+  } catch (error) {
+    console.error('Get reward timers error:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Failed to fetch reward timers',
+      details: error.message
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      },
+      status: 500
+    });
+  }
+}
+
+async function updateRewardStatus(req, supabaseClient) {
+  const { wallet_address, claim_id, new_status, admin_override } = await req.json();
+
+  if (!wallet_address || !claim_id || !new_status) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'wallet_address, claim_id, and new_status required'
+    }), {
+      status: 400,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+  }
+
+  try {
+    // Verify the reward claim exists and belongs to the user (unless admin override)
+    const { data: existingClaim, error: fetchError } = await supabaseClient
+      .from('reward_claims')
+      .select('*')
+      .eq('id', claim_id)
+      .single();
+
+    if (fetchError || !existingClaim) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Reward claim not found'
+      }), {
+        status: 404,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+
+    // Check authorization (either owner or admin)
+    let isAuthorized = existingClaim.root_wallet === wallet_address;
+    
+    if (!isAuthorized && admin_override) {
+      // Check if user is admin
+      const { data: adminCheck } = await supabaseClient.rpc('is_admin', {
+        p_wallet_address: wallet_address
+      });
+      isAuthorized = adminCheck?.is_admin || false;
+    }
+
+    if (!isAuthorized) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Unauthorized to update this reward claim'
+      }), {
+        status: 403,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+
+    // Validate status transition
+    const validTransitions = {
+      'pending': ['claimable', 'expired', 'rolled_up'],
+      'claimable': ['claimed', 'expired'],
+      'claimed': [], // Final state
+      'expired': ['rolled_up'], // Can be rolled up to upline
+      'rolled_up': [] // Final state
+    };
+
+    if (!validTransitions[existingClaim.status]?.includes(new_status)) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: `Invalid status transition from ${existingClaim.status} to ${new_status}`
+      }), {
+        status: 400,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+
+    // Update the reward status
+    const updateData = {
+      status: new_status,
+      updated_at: new Date().toISOString()
+    };
+
+    // Add specific fields based on new status
+    if (new_status === 'claimed') {
+      updateData.claimed_at = new Date().toISOString();
+    } else if (new_status === 'expired') {
+      updateData.expired_at = new Date().toISOString();
+    } else if (new_status === 'claimable') {
+      updateData.claimable_at = new Date().toISOString();
+    }
+
+    const { data: updatedClaim, error: updateError } = await supabaseClient
+      .from('reward_claims')
+      .update(updateData)
+      .eq('id', claim_id)
+      .select()
+      .single();
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    console.log(`Reward claim ${claim_id} status updated from ${existingClaim.status} to ${new_status}`);
+
+    return new Response(JSON.stringify({
+      success: true,
+      message: `Reward status updated to ${new_status}`,
+      data: updatedClaim
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+  } catch (error) {
+    console.error('Update reward status error:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Failed to update reward status',
+      details: error.message
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      },
+      status: 500
+    });
+  }
 }

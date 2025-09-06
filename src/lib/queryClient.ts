@@ -1,5 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
-import { supabaseApi } from './supabase';
+import { supabaseApi, dbFunctions } from './supabase';
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -36,10 +36,16 @@ export async function apiRequest(
   // Get wallet address from session storage
   const addressToUse = walletAddress || getWalletAddress();
   
-  // Map Express.js endpoints to Supabase Edge Function endpoints
+  // Map Express.js endpoints to deployed Supabase Edge Functions
+  // Based on deployed functions: admin, auth, balance, bcc-purchase, matrix, nft-upgrades, rewards, admin-cleanup
   const endpointMap: Record<string, string> = {
+    // Auth functions
     '/api/auth/register': 'auth',
     '/api/auth/user': 'auth', 
+    '/api/auth/login': 'auth',
+    '/api/wallet/log-connection': 'auth',
+    
+    // Balance functions
     '/api/balance/user': 'balance',
     '/api/balance/initialize': 'balance',
     '/api/balance/activate-level1': 'balance',
@@ -47,88 +53,58 @@ export async function apiRequest(
     '/api/balance/withdrawals': 'balance',
     '/api/dashboard/data': 'balance', 
     '/api/dashboard/balances': 'balance',
+    '/api/wallet/withdraw-usdt': 'balance',
+    
+    // Matrix functions
     '/api/dashboard/matrix': 'matrix',
     '/api/dashboard/referrals': 'matrix',
+    '/api/matrix/stats': 'matrix',
+    '/api/matrix/upline': 'matrix',
+    '/api/matrix/downline': 'matrix',
+    '/api/matrix/place': 'matrix',
+    
+    // Rewards functions
     '/api/dashboard/activity': 'rewards',
+    '/api/rewards/user': 'rewards',
+    '/api/rewards/claimable': 'rewards',
+    '/api/rewards/claim': 'rewards',
+    
+    // NFT upgrade functions
     '/api/membership/activate': 'nft-upgrades',
-    '/api/rewards/user': 'rewards/get-balance',
-    '/api/rewards/claimable': 'rewards/get-claims',
-    '/api/rewards/claim': 'rewards/claim-reward',
-    '/api/wallet/withdraw-usdt': 'balance',
-    '/api/wallet/log-connection': 'auth'
+    '/api/nft/upgrade': 'nft-upgrades',
+    '/api/membership/purchase': 'nft-upgrades',
+    
+    // BCC purchase functions
+    '/api/bcc/purchase': 'bcc-purchase',
+    '/api/bcc/exchange': 'bcc-purchase',
+    
+    // Admin functions
+    '/api/admin/users': 'admin',
+    '/api/admin/stats': 'admin',
+    '/api/admin/cleanup': 'admin-cleanup'
   };
   
   const functionName = endpointMap[url] || url.replace('/api/', '').replace(/\//g, '-');
   
   try {
-    // For rewards functions that use URL-based actions, call directly
-    if (functionName.startsWith('rewards/')) {
-      try {
-        const result = await supabaseApi.callFunction(functionName, data || {}, addressToUse || undefined);
-        
-        // Create a mock Response object for compatibility
-        const mockResponse = {
-          ok: true,
-          status: 200,
-          statusText: 'OK',
-          json: async () => result.data || result,
-          text: async () => JSON.stringify(result.data || result)
-        } as Response;
-        
-        return mockResponse;
-      } catch (functionError: any) {
-        console.warn(`Rewards function ${functionName} not available, providing fallback response:`, functionError.message);
-        
-        // Provide fallback responses for rewards functions
-        let fallbackData;
-        if (functionName === 'rewards/get-balance') {
-          fallbackData = {
-            success: true,
-            data: {
-              wallet_address: addressToUse,
-              pending_balance_usdc: 0,
-              claimable_balance_usdc: 0,
-              total_withdrawn_usdc: 0,
-              pending_claims_count: 0,
-              claimable_claims_count: 0,
-              pending_claims_total_usdc: 0,
-              claimable_claims_total_usdc: 0
-            }
-          };
-        } else if (functionName === 'rewards/get-claims') {
-          fallbackData = {
-            success: true,
-            data: []
-          };
-        } else {
-          fallbackData = {
-            success: false,
-            error: 'Rewards system is temporarily unavailable',
-            message: 'Edge functions not deployed'
-          };
-        }
-        
-        const fallbackResponse = {
-          ok: true,
-          status: 200,
-          statusText: 'OK',
-          json: async () => fallbackData,
-          text: async () => JSON.stringify(fallbackData)
-        } as Response;
-        
-        return fallbackResponse;
-      }
-    }
-    
-    // For other functions that use action-based parameters
+    // Determine action based on the endpoint URL
     let action = '';
     switch (url) {
+      // Auth actions
       case '/api/auth/register':
         action = 'register';
         break;
       case '/api/auth/user':
         action = 'get-user';
         break;
+      case '/api/auth/login':
+        action = 'login';
+        break;
+      case '/api/wallet/log-connection':
+        action = 'log-connection';
+        break;
+      
+      // Balance actions
       case '/api/balance/user':
         action = 'get-balance';
         break;
@@ -139,19 +115,23 @@ export async function apiRequest(
         action = 'activate-level1';
         break;
       case '/api/balance/withdraw-usdt':
+      case '/api/wallet/withdraw-usdt':
         action = 'withdraw-usdt';
         break;
       case '/api/balance/withdrawals':
         action = 'get-withdrawals';
         break;
-      case '/api/membership/activate':
-        action = 'process-upgrade';
+      case '/api/dashboard/data':
+      case '/api/dashboard/balances':
+        action = 'get-dashboard-data';
         break;
+      
+      // Matrix actions
       case '/api/dashboard/matrix':
         action = 'get-matrix';
         break;
       case '/api/dashboard/referrals':
-        action = 'get-downline';
+        action = 'get-referrals';
         break;
       case '/api/matrix/stats':
         action = 'get-matrix-stats';
@@ -165,6 +145,51 @@ export async function apiRequest(
       case '/api/matrix/place':
         action = 'place-member';
         break;
+      
+      // Rewards actions
+      case '/api/dashboard/activity':
+        action = 'get-activity';
+        break;
+      case '/api/rewards/user':
+        action = 'get-rewards';
+        break;
+      case '/api/rewards/claimable':
+        action = 'get-claimable';
+        break;
+      case '/api/rewards/claim':
+        action = 'claim-reward';
+        break;
+      
+      // NFT upgrade actions
+      case '/api/membership/activate':
+        action = 'activate-membership';
+        break;
+      case '/api/nft/upgrade':
+        action = 'process-upgrade';
+        break;
+      case '/api/membership/purchase':
+        action = 'purchase-membership';
+        break;
+      
+      // BCC purchase actions
+      case '/api/bcc/purchase':
+        action = 'purchase-bcc';
+        break;
+      case '/api/bcc/exchange':
+        action = 'exchange-bcc';
+        break;
+      
+      // Admin actions
+      case '/api/admin/users':
+        action = 'get-users';
+        break;
+      case '/api/admin/stats':
+        action = 'get-stats';
+        break;
+      case '/api/admin/cleanup':
+        action = 'cleanup';
+        break;
+      
       default:
         // For other endpoints, derive action from URL
         action = url.replace('/api/', '').replace(/\//g, '-');
@@ -177,108 +202,49 @@ export async function apiRequest(
       _method: method.toUpperCase()
     };
     
-    try {
-      const result = await supabaseApi.callFunction(functionName, requestData, addressToUse || undefined);
-      
-      // Create a mock Response object for compatibility
-      const mockResponse = {
-        ok: true,
-        status: 200,
-        statusText: 'OK',
-        json: async () => result.data || result,
-        text: async () => JSON.stringify(result.data || result)
-      } as Response;
-      
-      return mockResponse;
-    } catch (functionError: any) {
-      console.warn(`Supabase function ${functionName} failed, providing fallback for action ${action}:`, functionError.message);
-      
-      // Provide appropriate fallbacks based on the action
-      let fallbackData;
-      switch (action) {
-        case 'get-user':
-          fallbackData = {
-            success: true,
-            user: {
-              wallet_address: addressToUse,
-              username: null,
-              email: null,
-              created_at: new Date().toISOString(),
-              is_registered: true,
-              is_member: false,
-              can_access_referrals: false,
-              status: 'claim_nft'
-            },
-            isRegistered: true,
-            isMember: false,
-            canAccessReferrals: false
-          };
-          break;
-        case 'register':
-          fallbackData = {
-            success: true,
-            message: 'Registration completed',
-            user: {
-              wallet_address: addressToUse,
-              username: null,
-              email: null,
-              created_at: new Date().toISOString()
-            }
-          };
-          break;
-        case 'get-balance':
-          fallbackData = {
-            success: true,
-            balance: {
-              transferable_bcc: 0,
-              restricted_bcc: 0,
-              total_bcc: 0,
-              wallet_address: addressToUse
-            }
-          };
-          break;
-        case 'process-upgrade':
-          fallbackData = {
-            success: false,
-            error: 'Membership upgrade system temporarily unavailable'
-          };
-          break;
-        default:
-          fallbackData = {
-            success: false,
-            error: `${functionName} service temporarily unavailable`,
-            message: 'Edge function not deployed'
-          };
-      }
-      
-      const fallbackResponse = {
-        ok: true,
-        status: 200,
-        statusText: 'OK',
-        json: async () => fallbackData,
-        text: async () => JSON.stringify(fallbackData)
-      } as Response;
-      
-      return fallbackResponse;
-    }
+    // Call the Edge Function directly - no fallback since functions are deployed
+    const result = await supabaseApi.callFunction(functionName, requestData, addressToUse || undefined);
+    
+    // Create a mock Response object for compatibility
+    const mockResponse = {
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: async () => result.data || result,
+      text: async () => JSON.stringify(result.data || result)
+    } as Response;
+    
+    return mockResponse;
   } catch (error: any) {
-    console.error(`Supabase API Error [${functionName}]:`, error);
+    console.error(`Supabase Edge Function Error [${functionName}]:`, error);
     
     // Handle authentication errors specifically
     let status = 500;
     if (error.message?.includes('Authentication') || 
         error.message?.includes('session') || 
-        error.message?.includes('sign in')) {
+        error.message?.includes('sign in') ||
+        error.message?.includes('JWT')) {
       status = 401;
+    } else if (error.message?.includes('not found') || 
+               error.message?.includes('404')) {
+      status = 404;
+    } else if (error.message?.includes('forbidden') || 
+               error.message?.includes('403')) {
+      status = 403;
     }
     
-    // Create mock error response
+    // Create mock error response for compatibility
     const errorResponse = {
       ok: false,
       status: status,
       statusText: error.message || 'Internal Server Error',
-      json: async () => ({ error: error.message }),
-      text: async () => error.message
+      json: async () => ({ 
+        success: false, 
+        error: error.message || 'Edge Function request failed',
+        functionName,
+        action: error.action || 'unknown'
+      }),
+      text: async () => error.message || 'Edge Function request failed'
     } as Response;
     
     throw errorResponse;

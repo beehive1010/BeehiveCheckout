@@ -3,21 +3,24 @@ import { useActiveAccount } from 'thirdweb/react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { useToast } from '../hooks/use-toast';
 import { useI18n } from '../contexts/I18nContext';
 import { useWeb3 } from '../contexts/Web3Context';
 import { useLocation } from 'wouter';
 import { getReferrerInfo, hasRealReferrer } from '../lib/referrerUtils';
+import { typedApiClient, ApiException, TypedApiClient } from '../lib/apiClient';
+import type { AuthResponse, MembershipActivationResponse } from '../../types/api.types';
 import { 
   Crown, 
   Zap, 
   Gift, 
-  Loader2, 
   CheckCircle, 
   ExternalLink,
   CreditCard,
   Users
 } from 'lucide-react';
+import { LoadingSpinner } from './ui/loading-spinner';
+import { useToast, useApiErrorHandler, useApiSuccessHandler } from './ui/toast-system';
+import { FadeTransition, ScaleTransition } from './ui/transitions';
 
 interface MembershipClaimButtonsProps {
   onSuccess: () => void;
@@ -64,57 +67,51 @@ export function MembershipClaimButtons({
     setClaimState({ method: claimMethod, loading: true, error: null });
 
     try {
-      // STEP 1: First ensure user is registered
-      const registerResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Wallet-Address': account.address
-        },
-        body: JSON.stringify({
-          action: 'register',
-          referrerWallet: referrerWallet || null,
-          username: `user_${account.address.slice(-6)}`,
-          email: null
-        })
-      });
+      // STEP 1: First ensure user is registered using typed API client
+      const registerResult = await typedApiClient.register(
+        account.address,
+        referrerWallet || undefined,
+        `user_${account.address.slice(-6)}`,
+        undefined // email
+      );
 
-      const registerResult = await registerResponse.json();
-      console.log('📝 Registration result:', registerResult);
+      if (TypedApiClient.isSuccessResponse(registerResult)) {
+        console.log('📝 Registration successful:', registerResult.data);
+      } else {
+        console.warn('⚠️ Registration warning:', registerResult.error);
+        // Continue with activation even if registration has issues (user might already exist)
+      }
 
-      // STEP 2: Now activate membership (NFT claim)
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Wallet-Address': account.address
-        },
-        body: JSON.stringify({
-          action: 'activate-membership'
-        })
-      });
+      // STEP 2: Now activate membership (NFT claim) using typed API client
+      const activationResult = await typedApiClient.activateMembership(account.address);
 
-      const result = await response.json();
-
-      if (response.ok) {
+      if (TypedApiClient.isSuccessResponse(activationResult)) {
         toast({
           title: "🎉 Membership Activated!",
-          description: result.message,
+          description: activationResult.message || 'Successfully activated Level 1 membership',
           duration: 5000
         });
 
-        console.log('✅ Membership activation successful:', result);
+        console.log('✅ Membership activation successful:', activationResult.data);
         onSuccess();
       } else {
-        throw new Error(result.error || 'Failed to claim NFT Token ID 1');
+        throw new ApiException({
+          code: 'ACTIVATION_FAILED',
+          message: activationResult.error || 'Failed to claim NFT Token ID 1',
+        });
       }
     } catch (error: any) {
       console.error('Claim error:', error);
-      setClaimState({ method: null, loading: false, error: error.message });
+      
+      const errorMessage = error instanceof ApiException 
+        ? error.message 
+        : (error.message || 'Failed to claim NFT Token ID 1');
+        
+      setClaimState({ method: null, loading: false, error: errorMessage });
       
       toast({
         title: "Claim Failed",
-        description: error.message || 'Failed to claim NFT Token ID 1',
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {

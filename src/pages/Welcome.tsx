@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Badge } from '../components/ui/badge';
 import { useToast } from '../hooks/use-toast';
 import { Loader2, Crown, Shield, Zap, Users, Database, CreditCard } from 'lucide-react';
-import { MembershipClaimButtons } from '../components/MembershipClaimButtons';
+import { ArbitrumMembershipActivation } from '../components/membership/ArbitrumMembershipActivation';
 
 export default function Welcome() {
   const { t } = useI18n();
@@ -25,7 +25,8 @@ export default function Welcome() {
     const urlParams = new URLSearchParams(window.location.search);
     const refParam = urlParams.get('ref');
     if (refParam && refParam.startsWith('0x') && refParam.length === 42) {
-      setReferrerWallet(refParam.toLowerCase());
+      // Keep original case as specified - wallet addresses must be case-preserved
+      setReferrerWallet(refParam);
     }
     
     // Simulate loading time for better UX
@@ -138,10 +139,10 @@ export default function Welcome() {
           </Card>
         </div>
 
-        {/* Membership Claim Buttons */}
-        <MembershipClaimButtons 
+        {/* Arbitrum Membership Activation - Following MarketingPlan.md */}
+        <ArbitrumMembershipActivation 
           onSuccess={handleClaimSuccess}
-          referrerWallet={referrerWallet}
+          referrerWallet={referrerWallet || undefined}
           className="mb-8"
         />
 

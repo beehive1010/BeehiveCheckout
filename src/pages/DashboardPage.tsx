@@ -1,14 +1,18 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React from 'react';
 import { useWallet } from '../hooks/useWallet';
 import { useI18n } from '../contexts/I18nContext';
-import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
-import { Input } from '../components/ui/input';
-import { useToast } from '../hooks/use-toast';
-import { Copy, Share2, Users, Award, TrendingUp, DollarSign, Building2, Crown, Gift, ShoppingCart, Activity, Coins } from 'lucide-react';
+import { Alert, AlertDescription } from '../components/ui/alert';
+import { Skeleton } from '../components/ui/skeleton';
+import { AlertCircle, Wifi } from 'lucide-react';
 import MemberGuard from '../components/guards/MemberGuard';
+
+// Enhanced Components
+import { EnhancedMemberDashboard } from '../components/dashboard/EnhancedMemberDashboard';
+import { BccBalanceCard } from '../components/balance/BccBalanceCard';
+import { MatrixVisualization } from '../components/matrix/MatrixVisualization';
+import CountdownTimer from '../components/rewards/CountdownTimer';
+import { useBalance } from '../hooks/useBalance';
 
 // Mock components and hooks for comprehensive dashboard
 const HexagonIcon = ({ size, children }: { size: string; children: React.ReactNode }) => (

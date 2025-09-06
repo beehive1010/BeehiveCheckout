@@ -49,7 +49,8 @@ export default function Registration() {
     const urlParams = new URLSearchParams(window.location.search);
     const refParam = urlParams.get('ref');
     if (refParam && refParam.startsWith('0x') && refParam.length === 42) {
-      setReferrerWallet(refParam.toLowerCase());
+      // Keep original case as specified - wallet addresses must be case-preserved
+      setReferrerWallet(refParam);
     }
   }, []);
 
@@ -59,7 +60,7 @@ export default function Registration() {
     queryFn: async () => {
       if (!referrerWallet || !walletAddress) return null;
       
-      // Check for self-referral
+      // Check for self-referral (case-insensitive comparison)
       if (referrerWallet.toLowerCase() === walletAddress.toLowerCase()) {
         throw new Error('You cannot refer yourself');
       }

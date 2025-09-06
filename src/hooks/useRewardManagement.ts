@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useWallet } from './useWallet';
-import { apiRequest } from '../lib/queryClient';
+import { updatedApiClient } from '../lib/apiClientUpdated';
 
 // 用户奖励详情hook
 export function useUserRewards() {
@@ -27,8 +27,13 @@ export function useClaimableRewards() {
     queryKey: ['/api/rewards/claimable', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
-      const response = await apiRequest('GET', '/api/rewards/claimable', { 'Cache-Control': 'no-cache' }, walletAddress);
-      return response.json();
+      const response = await updatedApiClient.getClaimableRewards(walletAddress);
+      
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to fetch claimable rewards');
+      }
+      
+      return response.data;
     },
     enabled: !!walletAddress,
     staleTime: 3000,

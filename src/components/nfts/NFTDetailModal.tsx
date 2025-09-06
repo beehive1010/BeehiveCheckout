@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, ExternalLink, Settings, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ServiceRequestModal } from "./ServiceRequestModal";
+import { typedApiClient, ApiException, TypedApiClient } from "../../lib/apiClient";
+import type { ServiceRequestResponse } from "../../../types/api.types";
+import { useToast } from "../../hooks/use-toast";
 
 interface NFTDetailModalProps {
   nft: {
@@ -45,18 +48,85 @@ const StatusBadge = ({ status }: { status: string }) => {
 
 export function NFTDetailModal({ nft, isOpen, onClose, walletAddress, onRequestService }: NFTDetailModalProps) {
   const [showServiceRequest, setShowServiceRequest] = useState(false);
-  const [serviceRequests, setServiceRequests] = useState<any[]>([]); // This would come from API
+  const [serviceRequests, setServiceRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   if (!nft) return null;
 
-  const handleServiceRequest = async (requestData: any) => {
+  // Fetch service requests for this NFT when modal opens
+  useEffect(() => {
+    if (isOpen && walletAddress && nft?.id) {
+      fetchServiceRequests();
+    }
+  }, [isOpen, walletAddress, nft?.id]);
+
+  const fetchServiceRequests = async () => {
+    if (!walletAddress || !nft?.id) return;
+
     try {
-      await onRequestService(nft.id, requestData);
-      setShowServiceRequest(false);
-      // Refresh service requests list
-      // fetchServiceRequests(); // This would be implemented
+      setLoading(true);
+      const response = await typedApiClient.getServiceRequests(walletAddress, nft.id);
+      
+      if (TypedApiClient.isSuccessResponse(response)) {
+        setServiceRequests(response.data || []);
+      } else {
+        console.warn('Failed to fetch service requests:', response.error);
+        setServiceRequests([]);
+      }
+    } catch (error) {
+      console.error('Service requests fetch error:', error);
+      setServiceRequests([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleServiceRequest = async (requestData: any) => {
+    if (!walletAddress) {
+      toast({
+        title: "Wallet Required",
+        description: "Please connect your wallet to submit service requests",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const response = await typedApiClient.submitServiceRequest(
+        walletAddress,
+        nft.id,
+        requestData
+      );
+
+      if (TypedApiClient.isSuccessResponse(response)) {
+        toast({
+          title: "✅ Service Request Submitted",
+          description: "Your service request has been submitted successfully",
+          duration: 5000
+        });
+        
+        setShowServiceRequest(false);
+        // Refresh service requests list
+        fetchServiceRequests();
+      } else {
+        throw new ApiException({
+          code: 'SERVICE_REQUEST_FAILED',
+          message: response.error || 'Failed to submit service request'
+        });
+      }
     } catch (error) {
       console.error('Service request failed:', error);
+      
+      const errorMessage = error instanceof ApiException 
+        ? error.message 
+        : 'Failed to submit service request';
+        
+      toast({
+        title: "Service Request Failed",
+        description: errorMessage,
+        variant: "destructive"
+      });
     }
   };
 
