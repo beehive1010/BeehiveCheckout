@@ -88,19 +88,27 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     try {
       if (!account?.address) return;
 
+      // Default root referrer for users without referral links
+      const DEFAULT_REFERRER = '0x0000000000000000000000000000000000000001';
+
       // Capture referrer from URL parameters
       const urlParams = new URLSearchParams(window.location.search);
-      const referrer = urlParams.get('ref');
+      const urlReferrer = urlParams.get('ref');
       
-      if (referrer && /^0x[a-fA-F0-9]{40}$/.test(referrer)) {
-        setReferrerWallet(referrer);
-        console.log('🔗 Referrer captured from URL:', referrer);
+      let finalReferrer = DEFAULT_REFERRER; // Default to root user
+      
+      if (urlReferrer && /^0x[a-fA-F0-9]{40}$/.test(urlReferrer)) {
+        finalReferrer = urlReferrer;
+        setReferrerWallet(urlReferrer);
+        console.log('🔗 Referrer captured from URL:', urlReferrer);
+      } else {
+        console.log('🏠 Using default root referrer:', DEFAULT_REFERRER);
       }
 
-      // Register user with wallet address and referrer
+      // Register user with wallet address and referrer (always has a referrer now)
       const result = await supabaseApi.register(
         account.address.toLowerCase(), 
-        referrer || undefined,
+        finalReferrer,
         undefined, // username - can be added later
         undefined  // email - InAppWallet may provide this
       );
@@ -137,27 +145,72 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
       if (account?.address && isSupabaseAuthenticated) {
         console.log('✅ Both wallet and Supabase authenticated - checking membership');
         
-        // Check if user is a member - only members can access dashboard
-        const result = await supabaseApi.getUser(account.address.toLowerCase());
-        
-        if (result.success && result.user) {
-          // Check member status from API response
-          const isActiveMember = result.isMember || false;
-          const canAccessReferrals = result.canAccessReferrals || false;
-          setIsMember(isActiveMember);
+        try {
+          // Check if user is a member - only members can access dashboard
+          const result = await supabaseApi.getUser(account.address.toLowerCase());
           
-          // Route based on membership status  
-          if (isActiveMember) {
-            console.log('✅ User is a member, redirecting to dashboard');
-            console.log(`🔗 Referral access: ${canAccessReferrals ? 'Enabled' : 'Blocked (pending active)'}`);
-            setLocation('/dashboard');
+          if (result.success && result.user) {
+            // Check member status from API response
+            const isActiveMember = result.isMember || false;
+            const canAccessReferrals = result.canAccessReferrals || false;
+            setIsMember(isActiveMember);
+            
+            // Route based on membership status  
+            if (isActiveMember) {
+              console.log('✅ User is a member, redirecting to dashboard');
+              console.log(`🔗 Referral access: ${canAccessReferrals ? 'Enabled' : 'Blocked (pending active)'}`);
+              setLocation('/dashboard');
+            } else {
+              console.log('⏳ User authenticated but not a member, redirecting to welcome');
+              setLocation('/welcome');
+            }
+          } else if (result.success && !result.user) {
+            // User doesn't exist yet - auto-register them
+            console.log('👤 User not found, auto-registering...');
+            
+            try {
+              await recordWalletConnection();
+              console.log('✅ User auto-registered, checking membership again...');
+              
+              // Check again after registration
+              const newResult = await supabaseApi.getUser(account.address.toLowerCase());
+              if (newResult.success && newResult.user) {
+                const isActiveMember = newResult.isMember || false;
+                setIsMember(isActiveMember);
+                
+                if (isActiveMember) {
+                  setLocation('/dashboard');
+                } else {
+                  setLocation('/welcome');
+                }
+              } else {
+                console.log('⚠️ Registration failed, redirecting to welcome');
+                setLocation('/welcome');
+              }
+            } catch (regError) {
+              console.error('Auto-registration failed:', regError);
+              setLocation('/welcome');
+            }
           } else {
-            console.log('⏳ User authenticated but not a member, redirecting to welcome');
+            console.log('❌ Failed to get user data, redirecting to welcome');
             setLocation('/welcome');
           }
-        } else {
-          console.log('👤 User authenticated but not registered, redirecting to welcome');
-          setLocation('/welcome');
+        } catch (error) {
+          console.error('Error checking membership status:', error);
+          
+          // If user doesn't exist, try to auto-register
+          if (error.message?.includes('not found') || error.message?.includes('404')) {
+            console.log('👤 User not found, auto-registering...');
+            try {
+              await recordWalletConnection();
+              setLocation('/welcome');
+            } catch (regError) {
+              console.error('Auto-registration failed:', regError);
+              setLocation('/welcome');
+            }
+          } else {
+            setLocation('/welcome');
+          }
         }
       }
     } catch (error) {

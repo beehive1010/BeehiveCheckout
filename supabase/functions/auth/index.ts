@@ -104,15 +104,14 @@ serve(async (req) => {
 
 async function handleUserRegistration(supabase: any, walletAddress: string, data: any) {
   try {
-    // Since there's no users table, just create member and balance records
-    // Check if member already exists
-    const { data: existingMember } = await supabase
-      .from('members')
-      .select('wallet_address, is_activated')
+    // Check if user already exists
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('wallet_address, referrer_wallet')
       .eq('wallet_address', walletAddress)
       .single()
 
-    if (existingMember) {
+    if (existingUser) {
       return new Response(
         JSON.stringify({
           success: true,
@@ -123,6 +122,39 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
       )
     }
 
+    // Validate referrer exists if provided
+    let validReferrerWallet = null
+    if (data.referrerWallet) {
+      const { data: referrerExists } = await supabase
+        .from('users')
+        .select('wallet_address')
+        .eq('wallet_address', data.referrerWallet)
+        .single()
+      
+      if (referrerExists) {
+        validReferrerWallet = data.referrerWallet
+      } else {
+        console.log(`Referrer ${data.referrerWallet} not found, proceeding without referrer`)
+      }
+    }
+
+    // Create user record first
+    const { data: newUser, error: userError } = await supabase
+      .from('users')
+      .insert({
+        wallet_address: walletAddress,
+        referrer_wallet: validReferrerWallet,
+        username: data.username || null,
+        email: data.email || null,
+        current_level: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+
+    if (userError) throw userError
+
     // Create member record (not activated yet)
     const { error: memberError } = await supabase
       .from('members')
@@ -130,36 +162,31 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
         wallet_address: walletAddress,
         is_activated: false,
         current_level: 0,
+        max_layer: 0,
+        levels_owned: [],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
 
     if (memberError) throw memberError
 
-    // Create user balance record if it doesn't exist
-    const { data: existingBalance } = await supabase
+    // Create user balance record
+    const { error: balanceError } = await supabase
       .from('user_balances')
-      .select('wallet_address')
-      .eq('wallet_address', walletAddress)
-      .single()
+      .insert({
+        wallet_address: walletAddress,
+        bcc_transferable: 0,
+        bcc_locked: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
 
-    if (!existingBalance) {
-      const { error: balanceError } = await supabase
-        .from('user_balances')
-        .insert({
-          wallet_address: walletAddress,
-          bcc_transferable: 0,
-          bcc_locked: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-
-      if (balanceError) throw balanceError
-    }
+    if (balanceError) throw balanceError
 
     const response = {
       success: true,
       action: 'created',
+      user: newUser,
       message: 'User registered successfully - ready to activate membership'
     }
 
