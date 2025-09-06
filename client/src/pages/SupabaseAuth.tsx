@@ -18,6 +18,7 @@ export default function SupabaseAuth() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
+    username: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -63,6 +64,12 @@ export default function SupabaseAuth() {
         const { data, error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
+          options: {
+            data: {
+              username: formData.username,
+              display_name: formData.username
+            }
+          }
         });
 
         if (error) throw error;
@@ -135,47 +142,25 @@ export default function SupabaseAuth() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Social Auth Buttons */}
-          <div className="space-y-3">
-            <Button
-              onClick={() => handleSocialAuth('google')}
-              variant="outline"
-              className="w-full bg-muted border-border hover:bg-muted/80"
-            >
-              <Chrome className="h-4 w-4 mr-2" />
-              Continue with Google
-            </Button>
-            <Button
-              onClick={() => handleSocialAuth('facebook')}
-              variant="outline"
-              className="w-full bg-muted border-border hover:bg-muted/80"
-            >
-              <Facebook className="h-4 w-4 mr-2" />
-              Continue with Facebook
-            </Button>
-            <Button
-              onClick={() => handleSocialAuth('github')}
-              variant="outline"
-              className="w-full bg-muted border-border hover:bg-muted/80"
-            >
-              <Github className="h-4 w-4 mr-2" />
-              Continue with GitHub
-            </Button>
-          </div>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-secondary px-2 text-muted-foreground">
-                Or continue with email
-              </span>
-            </div>
-          </div>
-
-          {/* Email/Password Form */}
+          {/* Email/Password Form - Only Authentication Method */}
           <form onSubmit={handleEmailAuth} className="space-y-4">
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="username">
+                  Username
+                </Label>
+                <Input
+                  id="username"
+                  type="text"
+                  value={formData.username}
+                  onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                  placeholder="Choose a username"
+                  className="bg-muted border-border"
+                  required={!isLogin}
+                />
+              </div>
+            )}
+            
             <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center">
                 <Mail className="h-4 w-4 mr-2" />

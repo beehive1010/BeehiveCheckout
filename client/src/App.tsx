@@ -101,11 +101,12 @@ function Router() {
   const [location] = useLocation();
   const isAdminRoute = location.startsWith('/admin');
 
-  // Handle admin routes separately without RouteGuard
+  // Handle admin routes separately with AdminAuthProvider
   if (isAdminRoute) {
     return (
-      <Switch>
-        <Route path="/admin/login" component={AdminLogin} />
+      <AdminAuthProvider>
+        <Switch>
+          <Route path="/admin/login" component={AdminLogin} />
         <Route path="/admin/dashboard" component={() => (
           <AdminRouteGuard>
             <AdminLayout>
@@ -202,6 +203,7 @@ function Router() {
         )} />
         <Route component={NotFound} />
       </Switch>
+      </AdminAuthProvider>
     );
   }
 
@@ -260,8 +262,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
         <Web3Provider>
-          <AdminAuthProvider>
-            <I18nProvider>
+          <I18nProvider>
               <TooltipProvider>
               <div className="min-h-screen bg-background text-foreground">
                 {!isAdminPage && <Header />}
@@ -285,7 +286,6 @@ function App() {
               </div>
             </TooltipProvider>
           </I18nProvider>
-        </AdminAuthProvider>
         </Web3Provider>
       </ThemeProvider>
     </QueryClientProvider>

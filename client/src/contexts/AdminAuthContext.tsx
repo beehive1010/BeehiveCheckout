@@ -42,10 +42,10 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
             });
             console.log('✅ Admin session restored:', adminData.email);
           } else {
-            // Not an admin user or inactive, sign out
-            await supabase.auth.signOut();
+            // Not an admin user or inactive - just reset admin state, don't sign out regular users
             setIsAdminAuthenticated(false);
             setAdminUser(null);
+            console.log('🔍 User is not an admin, but keeping regular user session active');
           }
         }
       } catch (error) {
@@ -81,7 +81,10 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
               adminData
             });
           } else {
-            await supabase.auth.signOut();
+            // User is not an admin - just reset admin state without signing out
+            setIsAdminAuthenticated(false);
+            setAdminUser(null);
+            console.log('🔍 User signed in but not admin, keeping regular user session');
           }
         } else if (event === 'SIGNED_OUT') {
           setIsAdminAuthenticated(false);
