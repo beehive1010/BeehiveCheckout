@@ -115,25 +115,33 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
   // Check membership status after both wallet + Supabase auth
   const checkMembershipStatus = async () => {
     try {
+      // Need both wallet connected AND Supabase authenticated
       if (!account?.address || !isSupabaseAuthenticated) {
+        console.log('⏳ Waiting for both wallet and Supabase authentication');
         return;
       }
 
-      // Check if user is a member
+      // Check if user is a member - only members can access dashboard
       const result = await supabaseApi.getUser(account.address.toLowerCase());
       
       if (result.success && result.user) {
-        const isActiveMember = result.user.members?.[0]?.is_activated || false;
+        // Check member status from API response
+        const isActiveMember = result.isMember || false;
+        const canAccessReferrals = result.canAccessReferrals || false;
         setIsMember(isActiveMember);
         
-        // Route based on membership status
+        // Route based on membership status  
         if (isActiveMember) {
           console.log('✅ User is a member, redirecting to dashboard');
+          console.log(`🔗 Referral access: ${canAccessReferrals ? 'Enabled' : 'Blocked (pending active)'}`);
           setLocation('/dashboard');
         } else {
-          console.log('⏳ User not a member, redirecting to welcome');
+          console.log('⏳ User authenticated but not a member, redirecting to welcome');
           setLocation('/welcome');
         }
+      } else {
+        console.log('👤 User authenticated but not registered, redirecting to welcome');
+        setLocation('/welcome');
       }
     } catch (error) {
       console.error('Failed to check membership status:', error);

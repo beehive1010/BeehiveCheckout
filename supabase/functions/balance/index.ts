@@ -89,13 +89,12 @@ async function handleGetBalance(supabase: any, walletAddress: string) {
       throw balanceError
     }
 
-    // Get pending rewards
+    // Get pending rewards (unclaimed rewards)
     const { data: pendingRewards, error: rewardsError } = await supabase
       .from('layer_rewards')
       .select('amount_usdt')
       .eq('recipient_wallet', walletAddress)
-      .eq('status', 'pending')
-      .gt('expires_at', new Date().toISOString())
+      .eq('is_claimed', false)
 
     if (rewardsError) throw rewardsError
 
@@ -152,19 +151,19 @@ async function handleGetTransactions(supabase: any, walletAddress: string, data:
   try {
     const { limit = 50, offset = 0 } = data
 
-    // Use the bcc_transactions view we created earlier
+    // Get BCC purchase orders as transaction history
     const { data: transactions, error } = await supabase
-      .from('bcc_transactions')
-      .select('*')
-      .eq('wallet_address', walletAddress)
+      .from('bcc_purchase_orders')
+      .select('order_id, amount_bcc as amount, amount_usdc, status, network, payment_method, created_at, completed_at')
+      .eq('buyer_wallet', walletAddress)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
     if (error) throw error
 
-    // Get transaction summary
-    const credits = transactions?.filter(t => t.direction === 'credit') || []
-    const debits = transactions?.filter(t => t.direction === 'debit') || []
+    // Get transaction summary - all BCC purchases are credits
+    const credits = transactions?.filter(t => t.status === 'completed') || []
+    const debits = [] // No debits in this simple view
 
     const response = {
       success: true,
@@ -383,15 +382,11 @@ async function handleGetEarningHistory(supabase: any, walletAddress: string, dat
       .select(`
         id,
         payer_wallet,
-        level,
         layer,
         amount_usdt,
-        status,
+        is_claimed,
         created_at,
-        claimed_at,
-        payer_info:users!layer_rewards_payer_wallet_fkey (
-          username
-        )
+        claimed_at
       `)
       .eq('recipient_wallet', walletAddress)
       .order('created_at', { ascending: false })
@@ -422,8 +417,8 @@ async function handleGetEarningHistory(supabase: any, walletAddress: string, dat
     // Calculate totals
     const totalUsdtEarned = rewardHistory?.reduce((sum, reward) => sum + parseFloat(reward.amount_usdt), 0) || 0
     const totalBccEarned = bccHistory?.reduce((sum, purchase) => sum + parseFloat(purchase.amount_bcc), 0) || 0
-    const totalClaimedRewards = rewardHistory?.filter(r => r.status === 'claimed').length || 0
-    const totalPendingRewards = rewardHistory?.filter(r => r.status === 'pending').length || 0
+    const totalClaimedRewards = rewardHistory?.filter(r => r.is_claimed === true).length || 0
+    const totalPendingRewards = rewardHistory?.filter(r => r.is_claimed === false).length || 0
 
     const response = {
       success: true,

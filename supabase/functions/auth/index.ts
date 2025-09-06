@@ -16,7 +16,7 @@ const corsHeaders = {
 // This function only handles user management and membership operations
 
 interface AuthRequest {
-  action: 'register' | 'get-user' | 'claim-nft-token-1' | 'create-referral-link' | 'process-referral-link' | 'get-countdowns' | 'create-countdown';
+  action: 'register' | 'get-user' | 'create-referral-link' | 'process-referral-link' | 'get-countdowns' | 'create-countdown' | 'activate-membership' | 'toggle-pending' | 'check-pending';
   walletAddress?: string;
   referrerWallet?: string;
   referralToken?: string;
@@ -28,6 +28,9 @@ interface AuthRequest {
   durationHours?: number;
   description?: string;
   autoAction?: string;
+  // Pending system params
+  pendingHours?: number;
+  pendingEnabled?: boolean;
   // Referral link params
   baseUrl?: string;
   maxUses?: number;
@@ -103,8 +106,8 @@ serve(async (req) => {
       case 'get-user':
         return await handleGetUser(supabase, walletAddress!)
       
-      case 'claim-nft-token-1':
-        return await handleNFTClaim(supabase, walletAddress!, requestData.claimData!)
+      case 'activate-membership':
+        return await handleActivateMembership(supabase, walletAddress!)
 
       case 'create-referral-link':
         return await handleCreateReferralLink(supabase, walletAddress!, requestData)
@@ -117,6 +120,12 @@ serve(async (req) => {
 
       case 'create-countdown':
         return await handleCreateCountdown(supabase, walletAddress!, requestData)
+
+      case 'toggle-pending':
+        return await handleTogglePending(supabase, walletAddress!, requestData)
+
+      case 'check-pending':
+        return await handleCheckPending(supabase, walletAddress!)
 
       default:
         return new Response(
@@ -151,6 +160,7 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
       if (data.email) updateData.email = data.email
       
       if (Object.keys(updateData).length > 0) {
+        updateData.updated_at = new Date().toISOString()
         await supabase
           .from('users')
           .update(updateData)
@@ -168,16 +178,31 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
       )
     }
 
-    // Create new user with no level (not a member yet)
+    // Validate referrer exists if provided
+    let validReferrerWallet = null
+    if (data.referrerWallet) {
+      const { data: referrerExists } = await supabase
+        .from('users')
+        .select('wallet_address')
+        .eq('wallet_address', data.referrerWallet)
+        .single()
+      
+      if (referrerExists) {
+        validReferrerWallet = data.referrerWallet
+      } else {
+        console.log(`Referrer ${data.referrerWallet} not found, proceeding without referrer`)
+      }
+    }
+
+    // Create new user (basic user record)
     const { data: newUser, error: insertError } = await supabase
       .from('users')
       .insert({
         wallet_address: walletAddress,
-        referrer_wallet: data.referrerWallet || null,
+        referrer_wallet: validReferrerWallet,
         username: data.username || null,
         email: data.email || null,
-        current_level: null, // No level until membership is claimed
-        member_activated: false, // Not a member yet
+        current_level: 0, // No level initially 
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
@@ -186,11 +211,42 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
 
     if (insertError) throw insertError
 
+    // Create member record (not activated yet)
+    const { error: memberError } = await supabase
+      .from('members')
+      .insert({
+        wallet_address: walletAddress,
+        is_activated: false,
+        current_level: 0,
+        max_layer: 0,
+        levels_owned: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+
+    if (memberError) throw memberError
+
+    // Create user balance record
+    const { error: balanceError } = await supabase
+      .from('user_balances')
+      .insert({
+        wallet_address: walletAddress,
+        bcc_transferable: 0,
+        bcc_locked: 0,
+        total_usdt_earned: 0,
+        pending_upgrade_rewards: 0,
+        rewards_claimed: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+
+    if (balanceError) throw balanceError
+
     const response = {
       success: true,
       action: 'created',
       user: newUser,
-      message: 'User registered successfully - ready to claim membership'
+      message: 'User registered successfully - ready to activate membership'
     }
 
     return new Response(
@@ -211,10 +267,32 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
 
 async function handleGetUser(supabase: any, walletAddress: string) {
   try {
-    // Simplified user query - just basic user table
+    // Get user data with member status using proper joins
     const { data: userData, error } = await supabase
       .from('users')
-      .select('*')
+      .select(`
+        wallet_address,
+        referrer_wallet,
+        username,
+        email,
+        current_level,
+        is_upgraded,
+        upgrade_timer_enabled,
+        created_at,
+        updated_at,
+        members (
+          is_activated,
+          activated_at,
+          current_level,
+          max_layer,
+          levels_owned,
+          has_pending_rewards
+        ),
+        user_balances (
+          bcc_transferable,
+          bcc_locked
+        )
+      `)
       .eq('wallet_address', walletAddress)
       .single()
 
@@ -225,7 +303,9 @@ async function handleGetUser(supabase: any, walletAddress: string) {
           success: true,
           user: null,
           isRegistered: false,
-          isActivated: false
+          isMember: false,
+          canAccessReferrals: false,
+          isPending: false
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
@@ -233,11 +313,21 @@ async function handleGetUser(supabase: any, walletAddress: string) {
 
     if (error) throw error
 
+    // Check if user is a member (from members table)
+    const memberData = userData?.members?.[0] || null
+    const isMember = memberData?.is_activated || false
+    
+    // Check pending status (using upgrade_timer_enabled from users table)
+    const isPending = userData?.upgrade_timer_enabled || false
+
     const response = {
       success: true,
       user: userData || null,
       isRegistered: !!userData,
-      isActivated: userData?.member_activated || false // Assuming single field for member status
+      isMember: isMember,
+      canAccessReferrals: isMember && !isPending, // Only active members can access referrals
+      isPending: isPending,
+      memberData: memberData
     }
 
     return new Response(
@@ -256,111 +346,49 @@ async function handleGetUser(supabase: any, walletAddress: string) {
   }
 }
 
-async function handleNFTClaim(supabase: any, walletAddress: string, claimData: any) {
+async function handleActivateMembership(supabase: any, walletAddress: string) {
   try {
-    // Ensure user exists
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('wallet_address')
+    // Check if member record exists
+    const { data: memberData } = await supabase
+      .from('members')
+      .select('wallet_address, is_activated')
       .eq('wallet_address', walletAddress)
       .single()
 
-    if (!existingUser) {
-      // Create user first
-      const { error: createError } = await supabase
-        .rpc('upsert_user', {
-          p_wallet_address: walletAddress,
-          p_referrer_wallet: claimData.referrerWallet
-        })
-
-      if (createError) throw createError
+    if (!memberData) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'User not found. Please register first.' 
+        }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
-    // Generate transaction ID
-    const transactionId = `nft_claim_${walletAddress}_${Date.now()}`
+    // Check if already activated
+    if (memberData.is_activated) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Membership is already activated' 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
-    // Create order record
-    const { error: orderError } = await supabase
-      .from('orders')
-      .insert({
-        wallet_address: walletAddress,
-        order_type: 'membership',
-        item_id: `level_${claimData.targetLevel || 1}`,
-        amount_usdt: claimData.claimMethod === 'demo' ? 0 : 100,
-        payment_method: claimData.claimMethod,
-        status: 'completed',
-        transaction_hash: claimData.transactionHash || transactionId,
-        completed_at: new Date().toISOString(),
-        metadata: {
-          ...claimData,
-          transaction_id: transactionId
-        }
-      })
-
-    if (orderError) throw orderError
-
-    // Activate member
-    const { error: memberError } = await supabase
+    // Activate membership in members table
+    const { error: activationError } = await supabase
       .from('members')
       .update({
         is_activated: true,
         activated_at: new Date().toISOString(),
-        current_level: claimData.targetLevel || 1,
-        levels_owned: [claimData.targetLevel || 1],
         updated_at: new Date().toISOString()
       })
       .eq('wallet_address', walletAddress)
 
-    if (memberError) throw memberError
-
-    // Update user current level
-    const { error: userUpdateError } = await supabase
-      .from('users')
-      .update({
-        current_level: claimData.targetLevel || 1,
-        updated_at: new Date().toISOString()
-      })
-      .eq('wallet_address', walletAddress)
-
-    if (userUpdateError) throw userUpdateError
-
-    // Credit initial BCC tokens (500 transferable + 10,350 locked)
-    const { error: balanceError } = await supabase
-      .from('user_balances')
-      .update({
-        bcc_transferable: 500,
-        bcc_locked: 10350,
-        updated_at: new Date().toISOString()
-      })
-      .eq('wallet_address', walletAddress)
-
-    if (balanceError) throw balanceError
-
-    // Place in referrer's matrix if referrer exists
-    if (claimData.referrerWallet) {
-      const { error: matrixError } = await supabase
-        .rpc('place_member_in_matrix', {
-          p_root_wallet: claimData.referrerWallet,
-          p_member_wallet: walletAddress,
-          p_placer_wallet: claimData.referrerWallet,
-          p_placement_type: 'direct'
-        })
-
-      // Don't fail if matrix placement fails (referrer might not exist)
-      if (matrixError) {
-        console.warn('Matrix placement warning:', matrixError)
-      }
-    }
+    if (activationError) throw activationError
 
     const response = {
       success: true,
-      transactionId,
-      level: claimData.targetLevel || 1,
-      bccCredited: {
-        transferable: 500,
-        locked: 10350
-      },
-      message: `Level ${claimData.targetLevel || 1} NFT claimed successfully! You've received 500 transferable BCC and 10,350 locked BCC tokens.`
+      message: 'Membership activated! You can now access referral system and use nft-upgrade function for levels.'
     }
 
     return new Response(
@@ -368,9 +396,12 @@ async function handleNFTClaim(supabase: any, walletAddress: string, claimData: a
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
-    console.error('NFT claim error:', error)
+    console.error('Membership activation error:', error)
     return new Response(
-      JSON.stringify({ error: 'Failed to claim NFT' }),
+      JSON.stringify({ 
+        error: 'Failed to activate membership',
+        details: error.message 
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
@@ -615,4 +646,108 @@ async function handleLogConnection(supabase: any, walletAddress: string, data: a
   }
 }
 
-// JWT/JWKS functions removed - InAppWallet handles authentication
+// Pending system functions for special users
+async function handleTogglePending(supabase: any, walletAddress: string, data: any) {
+  try {
+    const { pendingHours, pendingEnabled } = data
+
+    // Check if user is a member (only members can have pending status)
+    const { data: memberData } = await supabase
+      .from('members')
+      .select('is_activated')
+      .eq('wallet_address', walletAddress)
+      .single()
+
+    if (!memberData?.is_activated) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Only activated members can have pending status' 
+        }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Update upgrade_timer_enabled in users table (this acts as pending)
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({
+        upgrade_timer_enabled: pendingEnabled,
+        updated_at: new Date().toISOString()
+      })
+      .eq('wallet_address', walletAddress)
+
+    if (updateError) throw updateError
+
+    const response = {
+      success: true,
+      pendingEnabled,
+      message: pendingEnabled 
+        ? 'Pending timer activated - referrals temporarily blocked'
+        : 'Pending timer deactivated - referrals restored'
+    }
+
+    return new Response(
+      JSON.stringify(response),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  } catch (error) {
+    console.error('Toggle pending error:', error)
+    return new Response(
+      JSON.stringify({ 
+        error: 'Failed to toggle pending status',
+        details: error.message 
+      }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+}
+
+async function handleCheckPending(supabase: any, walletAddress: string) {
+  try {
+    // Get user and member data with joins
+    const { data: userData } = await supabase
+      .from('users')
+      .select(`
+        upgrade_timer_enabled,
+        members (
+          is_activated
+        )
+      `)
+      .eq('wallet_address', walletAddress)
+      .single()
+
+    if (!userData) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'User not found' 
+        }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const memberData = userData?.members?.[0] || null
+    const isMember = memberData?.is_activated || false
+    const isPending = userData.upgrade_timer_enabled || false
+
+    const response = {
+      success: true,
+      isMember: isMember,
+      isPending: isPending,
+      canAccessReferrals: isMember && !isPending
+    }
+
+    return new Response(
+      JSON.stringify(response),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  } catch (error) {
+    console.error('Check pending error:', error)
+    return new Response(
+      JSON.stringify({ 
+        error: 'Failed to check pending status',
+        details: error.message 
+      }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+}

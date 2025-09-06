@@ -99,11 +99,19 @@ export class SupabaseApiClient {
     }, walletAddress)
   }
 
-  async claimNFT(walletAddress: string, claimData: any) {
+  async activateMembership(walletAddress: string) {
     return this.callFunction('auth', {
-      action: 'claim-nft-token-1',
-      claimData
+      action: 'activate-membership'
     }, walletAddress)
+  }
+
+  async upgradeToLevel(walletAddress: string, nftLevel: number, paymentAmountUsdc: number, transactionHash: string) {
+    return this.callFunction('nft-upgrade', {
+      wallet_address: walletAddress,
+      nft_level: nftLevel,
+      payment_amount_usdc: paymentAmountUsdc,
+      transaction_hash: transactionHash
+    })
   }
 
   // Referral link methods
@@ -158,6 +166,21 @@ export class SupabaseApiClient {
       durationHours,
       description,
       autoAction
+    }, walletAddress)
+  }
+
+  // Pending system methods (for special users)
+  async togglePending(walletAddress: string, pendingEnabled: boolean, pendingHours?: number) {
+    return this.callFunction('auth', {
+      action: 'toggle-pending',
+      pendingEnabled,
+      pendingHours
+    }, walletAddress)
+  }
+
+  async checkPending(walletAddress: string) {
+    return this.callFunction('auth', {
+      action: 'check-pending'
     }, walletAddress)
   }
 
