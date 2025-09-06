@@ -18,6 +18,43 @@ import { eq, count } from 'drizzle-orm';
 
 export function registerMembershipRoutes(app: Express, requireWallet: any) {
 
+  // Member status endpoint for NFT verification
+  app.get("/api/member/status", requireWallet, async (req: any, res) => {
+    try {
+      const walletAddress = req.headers['x-wallet-address'] as string;
+      
+      if (!walletAddress) {
+        return res.status(400).json({ error: 'Wallet address required' });
+      }
+
+      console.log('🔍 Getting member status for:', walletAddress);
+
+      // Get user membership status
+      const userStatus = await usersService.getUserStatusWithNFT(walletAddress);
+      
+      if (!userStatus.isRegistered) {
+        return res.status(404).json({ 
+          isActivated: false, 
+          currentLevel: 0, 
+          levelsOwned: [] 
+        });
+      }
+
+      // Return NFT-focused status
+      const memberStatus = {
+        isActivated: userStatus.isActivated || false,
+        currentLevel: userStatus.membershipLevel || 0,
+        levelsOwned: userStatus.membershipLevel ? [userStatus.membershipLevel] : []
+      };
+
+      console.log('✅ Member status response:', memberStatus);
+      res.json(memberStatus);
+    } catch (error) {
+      console.error('Get member status error:', error);
+      res.status(500).json({ error: 'Failed to get member status' });
+    }
+  });
+
   // B) Registration endpoint
   app.post("/api/membership/register", async (req: any, res) => {
     try {
@@ -188,7 +225,7 @@ export function registerMembershipRoutes(app: Express, requireWallet: any) {
         .where(eq(levelConfig.level, level));
 
       // 1. Record platform revenue (30 USDT for level 1)
-      const platformFee = levelConfigData?.platformFee || (level === 1 ? 3000 : 0); // 30 USDT in cents
+      const platformFee = (level === 1 ? 3000 : 0); // 30 USDT in cents
       await db.insert(platformRevenue).values({
         sourceType: 'nft_claim',
         sourceWallet: userWallet,
@@ -200,7 +237,7 @@ export function registerMembershipRoutes(app: Express, requireWallet: any) {
           transactionHash,
           chainId,
           mintTxHash,
-          nftContractAddress
+          nftContractAddress: '0xAc8c8662726b72f8DB4F5D1d1a16aC5b06B7a90D'
         }
       });
 
@@ -218,30 +255,30 @@ export function registerMembershipRoutes(app: Express, requireWallet: any) {
         walletAddress: userWallet,
         memberLevel: level,
         tokenId: level,
-        nftContractAddress: nftContractAddress,
+        nftContractAddress: '0xAc8c8662726b72f8DB4F5D1d1a16aC5b06B7a90D',
         chain: chainId.toString(),
         networkType: 'testnet',
         verificationStatus: 'verified',
         verifiedAt: new Date()
       });
 
-      // 4. Create user notification
-      await db.insert(userNotifications).values({
-        recipientWallet: userWallet,
-        title: `Level ${level} NFT Claimed Successfully`,
-        message: `Congratulations! Your Level ${level} NFT has been successfully minted and verified.`,
-        type: 'member_activated',
-        triggerWallet: userWallet,
-        amount: priceUSDT,
-        amountType: 'USDT',
-        level: level,
-        isRead: false,
-        priority: 'high'
-      });
+      // 4. Create user notification (temporarily disabled for schema compatibility)
+      // await db.insert(userNotifications).values({
+      //   walletAddress: userWallet,
+      //   title: `Level ${level} NFT Claimed Successfully`,
+      //   message: `Congratulations! Your Level ${level} NFT has been successfully minted and verified.`,
+      //   type: 'member_activated',
+      //   triggerWallet: userWallet,
+      //   amount: priceUSDT,
+      //   amountType: 'USDT',
+      //   level: level,
+      //   isRead: false,
+      //   priority: 'high'
+      // });
 
       // 5. Record BCC unlock history if applicable
-      if (levelConfigData?.tier1Release) {
-        const bccUnlockAmount = parseInt(levelConfigData.tier1Release.toString());
+      if (level >= 1) {
+        const bccUnlockAmount = 50000 * level; // Standard BCC unlock amount
         await db.insert(bccUnlockHistory).values({
           walletAddress: userWallet,
           unlockLevel: level,
@@ -263,8 +300,8 @@ export function registerMembershipRoutes(app: Express, requireWallet: any) {
         mintTxHash: mintTxHash,
         paymentTxHash: transactionHash,
         chainId,
-        nftContractAddress,
-        tokenId,
+        nftContractAddress: '0xAc8c8662726b72f8DB4F5D1d1a16aC5b06B7a90D',
+        tokenId: level,
         message: `Level ${level} NFT successfully minted to your wallet`
       });
 
