@@ -8,6 +8,7 @@ import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { useToast } from '../hooks/use-toast';
 import { Copy, Share2, Users, Award, TrendingUp, DollarSign, Building2, Crown, Gift, ShoppingCart, Activity, Coins } from 'lucide-react';
+import MemberGuard from '../components/guards/MemberGuard';
 
 // Mock components and hooks for comprehensive dashboard
 const HexagonIcon = ({ size, children }: { size: string; children: React.ReactNode }) => (
@@ -58,23 +59,22 @@ const ClaimMembershipButton = ({ level, onSuccess, onError, className }: any) =>
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '../lib/queryClient';
 
+// V2 Components and Hooks
+import { useDashboardV2, useMatrixTreeV2 } from '../hooks/useDashboardV2';
+import ClaimableRewardsCardV2 from '../components/rewards/ClaimableRewardsCardV2';
+import IndividualMatrixViewV2 from '../components/matrix/IndividualMatrixViewV2';
+import { MatrixNetworkStatsV2 } from '../components/matrix/MatrixNetworkStatsV2';
+
 const useNFTVerification = () => ({ hasLevel1NFT: false, isLoading: false });
 const useCompanyStats = () => ({ data: null, isLoading: false });
 
-// Real dashboard data hook
+// Real dashboard data hook using Supabase API
 const useDashboardData = (walletAddress?: string) => {
   return useQuery({
     queryKey: ['/api/dashboard/data', walletAddress],
     enabled: !!walletAddress,
     queryFn: async () => {
-      const response = await fetch('/api/dashboard/data', {
-        headers: {
-          'X-Wallet-Address': walletAddress!,
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch dashboard data');
-      }
+      const response = await apiRequest('GET', '/api/dashboard/data', undefined, walletAddress!);
       return response.json();
     },
     staleTime: 30000, // 30 seconds
@@ -82,20 +82,13 @@ const useDashboardData = (walletAddress?: string) => {
   });
 };
 
-// Real user matrix hook
+// Real user matrix hook using Supabase API
 const useUserMatrix = (walletAddress?: string) => {
   return useQuery({
     queryKey: ['/api/dashboard/matrix', walletAddress],
     enabled: !!walletAddress,
     queryFn: async () => {
-      const response = await fetch('/api/dashboard/matrix', {
-        headers: {
-          'X-Wallet-Address': walletAddress!,
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch matrix data');
-      }
+      const response = await apiRequest('GET', '/api/dashboard/matrix', undefined, walletAddress!);
       return response.json();
     },
     staleTime: 30000, // 30 seconds
@@ -103,21 +96,14 @@ const useUserMatrix = (walletAddress?: string) => {
   });
 };
 
-// Real referral stats hook
+// Real referral stats hook using Supabase API
 const useUserReferralStats = () => {
   const { walletAddress } = useWallet();
   return useQuery({
     queryKey: ['/api/dashboard/referrals', walletAddress],
     enabled: !!walletAddress,
     queryFn: async () => {
-      const response = await fetch('/api/dashboard/referrals', {
-        headers: {
-          'X-Wallet-Address': walletAddress!,
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch referral stats');
-      }
+      const response = await apiRequest('GET', '/api/dashboard/referrals', undefined, walletAddress!);
       return response.json();
     },
     staleTime: 30000, // 30 seconds
@@ -128,7 +114,7 @@ const useUserReferralStats = () => {
 const useRefreshDashboard = () => ({ refreshAll: (address: string) => {} });
 const formatAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`;
 
-export default function Dashboard() {
+function Dashboard() {
   const { 
     userData, 
     isActivated, 
@@ -143,6 +129,11 @@ export default function Dashboard() {
   const { data: companyStats, isLoading: isLoadingCompanyStats } = useCompanyStats();
   const { data: userStats, isLoading: isLoadingUserStats } = useUserReferralStats();
   const [showReferralLink, setShowReferralLink] = useState(false);
+  const [useV2Dashboard, setUseV2Dashboard] = useState(true); // Enable V2 by default
+
+  // V2 Dashboard data
+  const { data: dashboardV2Data, isLoading: isDashboardV2Loading } = useDashboardV2(walletAddress || undefined);
+  const { data: matrixTreeData, isLoading: isMatrixTreeLoading } = useMatrixTreeV2(walletAddress || undefined, 19);
 
   // Fetch comprehensive dashboard data using real database
   const { data: dashboardData, isLoading: isLoadingDashboard, error: dashboardError } = useDashboardData(walletAddress || undefined);
@@ -525,8 +516,8 @@ export default function Dashboard() {
               <div className="bg-gradient-to-r from-honey/10 via-purple-500/10 to-honey/5 border-honey/20 rounded-lg border p-4">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
                   <div className="flex-1">
-                    <h3 className="text-base md:text-lg font-bold text-honey mb-1 md:mb-2">{t('buttons.topUp') || 'Top Up'}</h3>
-                    <p className="text-muted-foreground text-xs md:text-sm">{t('dashboard.tokenPurchase.topUpDescription') || 'Purchase additional tokens'}</p>
+                    <h3 className="text-base md:text-lg font-bold text-honey mb-1 md:mb-2">{t('buttons.topUp') || 'BCC Token Center'}</h3>
+                    <p className="text-muted-foreground text-xs md:text-sm">{t('dashboard.tokenPurchase.topUpDescription') || 'Purchase BCC tokens with USDC via Thirdweb bridge'}</p>
                     <div className="flex items-center gap-4 mt-2">
                       <div className="flex items-center gap-1">
                         <DollarSign className="text-honey text-sm" />
@@ -539,12 +530,12 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <Button 
-                    onClick={() => setLocation('/tokens')}
+                    onClick={() => setLocation('/token-purchase')}
                     className="bg-gradient-to-r from-honey to-purple-500 text-black hover:from-honey/90 hover:to-purple-500/90 font-semibold w-full md:w-auto flex-shrink-0"
                     data-testid="button-top-up"
                   >
-                    <DollarSign className="h-4 w-4 mr-2" />
-                    {t('buttons.topUp') || 'Top Up'}
+                    <Coins className="h-4 w-4 mr-2" />
+                    {t('buttons.topUp') || 'Purchase BCC'}
                   </Button>
                 </div>
               </div>
@@ -730,7 +721,7 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Activities */}
-      <Card className="bg-secondary border-border">
+      <Card className="bg-secondary border-border mb-8">
         <CardHeader>
           <CardTitle className="text-honey">{t('dashboard.recentActivities') || 'Recent Activities'}</CardTitle>
         </CardHeader>
@@ -770,6 +761,71 @@ export default function Dashboard() {
           )}
         </CardContent>
       </Card>
+
+      {/* V2 Dashboard Toggle */}
+      <Card className="bg-secondary border-border mb-8">
+        <CardHeader>
+          <CardTitle className="text-honey flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Enhanced Dashboard (V2)
+            </span>
+            <Button
+              onClick={() => setUseV2Dashboard(!useV2Dashboard)}
+              variant="outline"
+              size="sm"
+              className={`border-honey/30 text-honey hover:bg-honey hover:text-black ${
+                useV2Dashboard ? 'bg-honey/10' : ''
+              }`}
+            >
+              {useV2Dashboard ? 'Hide V2' : 'Show V2'}
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        {useV2Dashboard && (
+          <CardContent className="space-y-6">
+            <div className="text-sm text-muted-foreground bg-honey/5 rounded-lg p-4 border border-honey/20">
+              <p className="mb-2 font-medium text-honey">Enhanced Features:</p>
+              <ul className="space-y-1 text-xs">
+                <li>• Layer-based reward system with USDT payments</li>
+                <li>• 3×3 Matrix visualization with 19 layers</li>
+                <li>• Intelligent spillover mechanics</li>
+                <li>• Real-time performance analytics</li>
+                <li>• Enhanced balance management</li>
+              </ul>
+            </div>
+          </CardContent>
+        )}
+      </Card>
+
+      {/* V2 Enhanced Components */}
+      {useV2Dashboard && walletAddress && (
+        <div className="space-y-8">
+          {/* V2 Matrix Network Statistics */}
+          <MatrixNetworkStatsV2 walletAddress={walletAddress} />
+
+          {/* V2 Enhanced Matrix Visualization */}
+          <IndividualMatrixViewV2 
+            walletAddress={walletAddress} 
+            rootUser={{
+              username: userData?.user?.username || 'Member',
+              currentLevel: currentLevel
+            }}
+          />
+
+          {/* V2 Enhanced Rewards System */}
+          <ClaimableRewardsCardV2 walletAddress={walletAddress} />
+        </div>
+      )}
     </div>
+  );
+}
+
+// Export Dashboard wrapped with MemberGuard for Level 1 requirement
+export default function ProtectedDashboard() {
+  return (
+    <MemberGuard requireLevel={1}>
+      <Dashboard />
+    </MemberGuard>
   );
 }

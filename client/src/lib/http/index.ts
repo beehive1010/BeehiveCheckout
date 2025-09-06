@@ -1,4 +1,5 @@
-const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.MODE === 'development' ? '/api' : '/api');
+// Updated HTTP Client to use Supabase Edge Functions
+import { supabaseApi } from '../supabase';
 
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
@@ -10,39 +11,28 @@ interface RequestOptions {
 class HttpClient {
   private baseUrl: string;
 
-  constructor(baseUrl: string = API_BASE) {
+  constructor(baseUrl: string = '') {
     this.baseUrl = baseUrl;
   }
 
   private async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-    const { method = 'GET', headers = {}, body, walletAddress } = options;
+    const { method = 'GET', body, walletAddress } = options;
     
-    const config: RequestInit = {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        ...headers,
-        ...(walletAddress && { 'x-wallet-address': walletAddress }),
-      },
-    };
-
-    if (body && method !== 'GET') {
-      config.body = JSON.stringify(body);
+    // Use Supabase API for all requests
+    try {
+      const functionName = endpoint.replace('/api/', '').replace(/\//g, '-');
+      const requestData = {
+        ...body,
+        walletAddress: walletAddress || sessionStorage.getItem('wallet-address'),
+        _method: method
+      };
+      
+      const result = await supabaseApi.invokeFunction(functionName, requestData);
+      return result.data as T;
+    } catch (error: any) {
+      throw new Error(error.message || `Failed to call ${endpoint}`);
     }
-
-    const url = `${this.baseUrl}${endpoint}`;
-    const response = await fetch(url, config);
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      return await response.json();
-    }
-
-    return await response.text() as T;
   }
 
   async get<T>(endpoint: string, walletAddress?: string): Promise<T> {
@@ -67,7 +57,7 @@ class HttpClient {
 
   // Health check for connectivity testing
   async health(): Promise<{ status: string; timestamp: string }> {
-    return this.get('/health');
+    return this.get('/api/health');
   }
 }
 

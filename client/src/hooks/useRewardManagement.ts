@@ -10,15 +10,7 @@ export function useUserRewards() {
     queryKey: ['/api/rewards/user', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
-      const response = await fetch('/api/rewards/user', {
-        headers: {
-          'X-Wallet-Address': walletAddress,
-          'Cache-Control': 'no-cache'
-        }
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch user rewards');
-      }
+      const response = await apiRequest('GET', '/api/rewards/user', { 'Cache-Control': 'no-cache' }, walletAddress);
       return response.json();
     },
     enabled: !!walletAddress,
@@ -35,15 +27,7 @@ export function useClaimableRewards() {
     queryKey: ['/api/rewards/claimable', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
-      const response = await fetch('/api/rewards/claimable', {
-        headers: {
-          'X-Wallet-Address': walletAddress,
-          'Cache-Control': 'no-cache'
-        }
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch claimable rewards');
-      }
+      const response = await apiRequest('GET', '/api/rewards/claimable', { 'Cache-Control': 'no-cache' }, walletAddress);
       return response.json();
     },
     enabled: !!walletAddress,

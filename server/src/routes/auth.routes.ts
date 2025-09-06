@@ -5,6 +5,61 @@ import jwt from "jsonwebtoken";
 
 export function registerAuthRoutes(app: Express, requireWallet: any) {
   const JWT_SECRET = process.env.JWT_SECRET || 'beehive-secret-key';
+  
+  // Supabase Auth integration for wallet-based users
+  app.post("/api/auth/supabase-login", async (req, res) => {
+    try {
+      const { walletAddress, walletType } = req.body;
+      const headerWallet = req.headers['x-wallet-address'] as string;
+      
+      if (!walletAddress || !headerWallet || walletAddress.toLowerCase() !== headerWallet.toLowerCase()) {
+        return res.status(400).json({ error: 'Wallet address mismatch' });
+      }
+      
+      // Check if user exists or create new user
+      let user = await usersService.checkUserExists(walletAddress.toLowerCase());
+      
+      if (!user.exists) {
+        // Create new user with Supabase integration
+        const newUser = await usersService.createUserEnhanced({
+          walletAddress: walletAddress.toLowerCase(),
+          username: `user_${walletAddress.slice(-6)}`,
+          email: null,
+          secondaryPasswordHash: null,
+          referrerWallet: null
+        });
+        
+        console.log('🆕 New user created for Supabase auth:', newUser.walletAddress);
+      }
+      
+      // Create session token for Supabase compatibility
+      const sessionToken = jwt.sign(
+        { 
+          wallet: walletAddress.toLowerCase(), 
+          type: 'supabase_wallet',
+          walletType: walletType || 'unknown'
+        }, 
+        JWT_SECRET, 
+        { expiresIn: '7d' } // Longer session for wallet users
+      );
+      
+      const session = {
+        access_token: sessionToken,
+        token_type: 'Bearer',
+        expires_in: 604800, // 7 days
+        user: {
+          id: walletAddress.toLowerCase(),
+          wallet_address: walletAddress.toLowerCase(),
+          wallet_type: walletType
+        }
+      };
+      
+      res.json({ session, user: user.user || null });
+    } catch (error) {
+      console.error('Supabase auth error:', error);
+      res.status(500).json({ error: 'Failed to authenticate with Supabase' });
+    }
+  });
 
   // Check if user exists (for referral validation)
   app.get("/api/auth/check-user-exists/:walletAddress", async (req, res) => {
@@ -156,13 +211,179 @@ export function registerAuthRoutes(app: Express, requireWallet: any) {
     }
   });
 
-  // NFT Claim and Membership Activation endpoint
+  // Membership Activation endpoint (alternative route for frontend compatibility)
+  app.post("/api/membership/activate", requireWallet, async (req, res) => {
+    try {
+      const walletAddress = req.headers['x-wallet-address'] as string;
+      const { level, txHash } = req.body;
+      
+      console.log('🎫 Membership activation request:', { walletAddress, level, txHash });
+      
+      if (!level || level !== 1) {
+        return res.status(400).json({ error: 'Only Level 1 activation supported' });
+      }
+
+      // Get user profile
+      const userProfile = await usersService.getUserProfile(walletAddress);
+      if (!userProfile) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Update user membership status
+      const updatedUser = await usersService.activateUserMembership({
+        walletAddress,
+        membershipLevel: 1,
+        transactionHash: txHash
+      });
+
+      console.log('🎉 Membership activated:', updatedUser.walletAddress);
+
+      res.json({
+        success: true,
+        user: updatedUser,
+        message: 'Level 1 membership activated successfully'
+      });
+    } catch (error) {
+      console.error('Membership activation error:', error);
+      res.status(500).json({ 
+        error: 'Failed to activate membership',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Enhanced NFT Token ID 1 Claim and Membership Activation endpoint
+  app.post("/api/auth/claim-nft-token-1", requireWallet, async (req, res) => {
+    try {
+      const walletAddress = req.headers['x-wallet-address'] as string;
+      const { claimMethod, transactionHash, mintTxHash, referrerWallet } = req.body;
+      
+      console.log('🎫 NFT Token ID 1 Claim request:', { 
+        walletAddress, 
+        claimMethod, 
+        transactionHash, 
+        referrerWallet 
+      });
+      
+      // Validate claim method - including new network-specific methods
+      const validClaimMethods = ['purchase', 'demo', 'referral_bonus', 'testnet_purchase', 'mainnet_purchase'];
+      if (!claimMethod || !validClaimMethods.includes(claimMethod)) {
+        return res.status(400).json({ 
+          error: 'Invalid claim method. Must be: purchase, demo, referral_bonus, testnet_purchase, or mainnet_purchase' 
+        });
+      }
+      
+      // Get user profile
+      const userProfile = await usersService.getUserProfile(walletAddress);
+      if (!userProfile) {
+        return res.status(404).json({ error: 'User not found. Please register first.' });
+      }
+      
+      // Check if already activated
+      if (userProfile.isActivated && userProfile.membershipLevel >= 1) {
+        return res.status(409).json({ 
+          error: 'Membership already activated',
+          membershipLevel: userProfile.membershipLevel 
+        });
+      }
+      
+      // Process referral placement if referrer provided
+      let referralPlacement = null;
+      if (referrerWallet) {
+        try {
+          const { matrixPlacementService } = await import('../services/matrix-placement.service');
+          referralPlacement = await matrixPlacementService.placeMemberInMatrix({
+            rootWallet: referrerWallet.toLowerCase(),
+            memberWallet: walletAddress.toLowerCase(),
+            placerWallet: referrerWallet.toLowerCase(),
+            placementType: 'direct'
+          });
+          console.log('🎯 Referral placement successful:', referralPlacement);
+        } catch (error) {
+          console.warn('⚠️ Referral placement failed, continuing with activation:', error);
+        }
+      }
+      
+      // Activate membership with Token ID 1
+      const updatedUser = await usersService.activateUserMembership({
+        walletAddress,
+        membershipLevel: 1,
+        transactionHash,
+        mintTxHash
+      });
+      
+      // Record rewards and process referral bonuses
+      try {
+        const { layerRewardsService } = await import('../services/layer-rewards.service');
+        await layerRewardsService.processNewMemberActivation({
+          memberWallet: walletAddress.toLowerCase(),
+          membershipLevel: 1,
+          activationMethod: claimMethod,
+          referrerWallet: referrerWallet?.toLowerCase() || null
+        });
+        console.log('💰 Rewards processed for new activation');
+      } catch (error) {
+        console.warn('⚠️ Rewards processing failed, continuing:', error);
+      }
+      
+      // Determine network info for response
+      const networkInfo = {
+        'demo': { network: 'off-chain', description: 'Database test claim' },
+        'testnet_purchase': { network: 'arbitrum-sepolia', description: 'Testnet claim with fake USDT' },
+        'mainnet_purchase': { network: 'arbitrum-one', description: 'Mainnet purchase with USDC' },
+        'purchase': { network: 'ethereum', description: 'Legacy purchase method' },
+        'referral_bonus': { network: 'bonus', description: 'Referral bonus activation' }
+      };
+
+      const currentNetwork = networkInfo[claimMethod as keyof typeof networkInfo] || networkInfo.demo;
+
+      console.log('🎉 NFT Token ID 1 claimed and user activated:', {
+        wallet: updatedUser.walletAddress,
+        method: claimMethod,
+        network: currentNetwork.network
+      });
+
+      res.json({
+        success: true,
+        user: updatedUser,
+        message: `NFT Token ID 1 claimed successfully - Membership Level 1 activated! (${currentNetwork.description})`,
+        membershipLevel: 1,
+        tokenId: 1,
+        claimMethod,
+        network: currentNetwork.network,
+        networkDescription: currentNetwork.description,
+        referralPlacement,
+        rewards: {
+          bccTransferable: 500,
+          bccLocked: 10350,
+          activationTier: referralPlacement?.activationTier || 'standard'
+        },
+        // Transaction info for blockchain claims
+        ...(req.body.chainId && {
+          blockchain: {
+            chainId: req.body.chainId,
+            tokenContract: req.body.tokenContract,
+            amount: req.body.amount,
+            bridgeUsed: req.body.bridgeUsed || false
+          }
+        })
+      });
+    } catch (error) {
+      console.error('NFT Token ID 1 claim error:', error);
+      res.status(500).json({ 
+        error: 'Failed to claim NFT Token ID 1',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Legacy NFT Claim endpoint (backwards compatibility)
   app.post("/api/auth/claim-nft", requireWallet, async (req, res) => {
     try {
       const walletAddress = req.headers['x-wallet-address'] as string;
       const { level, transactionHash, mintTxHash } = req.body;
       
-      console.log('🎫 NFT Claim request:', { walletAddress, level, transactionHash });
+      console.log('🎫 Legacy NFT Claim request:', { walletAddress, level, transactionHash });
       
       if (!level || level !== 1) {
         return res.status(400).json({ error: 'Only Level 1 NFT claims supported' });

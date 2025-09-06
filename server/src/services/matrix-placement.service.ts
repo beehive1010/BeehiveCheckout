@@ -93,8 +93,8 @@ export class MatrixPlacementService {
       ));
 
     // 检查L、M、R位置的可用性
-    const occupiedPositions = layer1Members.map(m => m.position);
-    const availablePositions = ['L', 'M', 'R'].filter(pos => !occupiedPositions.includes(pos));
+    const occupiedZones = layer1Members.map(m => m.zone);
+    const availablePositions = ['L', 'M', 'R'].filter(pos => !occupiedZones.includes(pos));
 
     if (availablePositions.length > 0) {
       // 选择第一个可用位置（L优先）
@@ -141,8 +141,8 @@ export class MatrixPlacementService {
           eq(memberReferralTree.parentWallet, current.wallet)
         ));
 
-      const occupiedPositions = children.map(c => c.position);
-      const availablePositions = ['L', 'M', 'R'].filter(pos => !occupiedPositions.includes(pos));
+      const occupiedZones = children.map(c => c.zone);
+      const availablePositions = ['L', 'M', 'R'].filter(pos => !occupiedZones.includes(pos));
 
       if (availablePositions.length > 0) {
         // 找到可用位置，执行滑落放置
@@ -177,15 +177,28 @@ export class MatrixPlacementService {
    * 执行矩阵放置
    */
   private async executePlacement(placement: MatrixPlacement): Promise<void> {
-    await db.insert(referrals).values({
+    // Get current registration count for this root to determine order
+    const [registrationCountResult] = await db
+      .select({ count: count() })
+      .from(memberReferralTree)
+      .where(eq(memberReferralTree.rootWallet, placement.rootWallet));
+    
+    const registrationOrder = (registrationCountResult.count || 0) + 1;
+
+    await db.insert(memberReferralTree).values({
       rootWallet: placement.rootWallet,
       memberWallet: placement.memberWallet,
       layer: placement.layer,
-      position: placement.position,
+      position: this.calculateNumericPosition(placement.layer, placement.position),
+      zone: placement.position,
       parentWallet: placement.parentWallet,
+      parentPosition: placement.parentWallet === placement.rootWallet ? null : 
+        await this.getParentPosition(placement.rootWallet, placement.parentWallet),
       placerWallet: placement.placerWallet,
       placementType: placement.placementType,
-      isActive: true,
+      isActivePosition: true,
+      memberActivated: false, // Will be set to true when member activates
+      registrationOrder,
       placedAt: new Date()
     });
 
@@ -237,6 +250,35 @@ export class MatrixPlacementService {
   }
 
   /**
+   * 计算位置的数字编号 (0-based)
+   * Layer 1: L=0, M=1, R=2
+   * Layer 2: L-L=0, L-M=1, L-R=2, M-L=3, M-M=4, M-R=5, R-L=6, R-M=7, R-R=8
+   */
+  private calculateNumericPosition(layer: number, zone: 'L' | 'M' | 'R'): number {
+    if (layer === 1) {
+      return zone === 'L' ? 0 : zone === 'M' ? 1 : 2;
+    }
+    // For deeper layers, this would be more complex
+    // For now, simple mapping
+    return zone === 'L' ? 0 : zone === 'M' ? 1 : 2;
+  }
+
+  /**
+   * 获取父节点的位置编号
+   */
+  private async getParentPosition(rootWallet: string, parentWallet: string): Promise<number | null> {
+    const [parent] = await db
+      .select()
+      .from(memberReferralTree)
+      .where(and(
+        eq(memberReferralTree.rootWallet, rootWallet),
+        eq(memberReferralTree.memberWallet, parentWallet)
+      ));
+    
+    return parent ? parent.position : null;
+  }
+
+  /**
    * 获取会员的矩阵位置信息
    */
   async getMatrixPosition(memberWallet: string, rootWallet: string): Promise<{
@@ -257,7 +299,7 @@ export class MatrixPlacementService {
 
     return {
       layer: placement.layer,
-      position: placement.position as 'L' | 'M' | 'R',
+      position: placement.zone as 'L' | 'M' | 'R',
       placementType: placement.placementType as 'direct' | 'spillover',
       parentWallet: placement.parentWallet || rootWallet
     };
@@ -325,7 +367,7 @@ export class MatrixPlacementService {
 
     return members.map(member => ({
       memberWallet: member.memberWallet,
-      position: member.position as 'L' | 'M' | 'R',
+      position: member.zone as 'L' | 'M' | 'R',
       parentWallet: member.parentWallet || rootWallet,
       placementType: member.placementType as 'direct' | 'spillover',
       placedAt: member.placedAt

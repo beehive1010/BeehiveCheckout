@@ -194,20 +194,6 @@ export class StorageService {
     }
   }
 
-  async getMember(walletAddress: string) {
-    try {
-      const [member] = await db
-        .select()
-        .from(members)
-        .where(eq(members.walletAddress, walletAddress.toLowerCase()))
-        .limit(1);
-      return member || null;
-    } catch (error) {
-      console.error('Error getting member:', error);
-      return null;
-    }
-  }
-
   async getUserWallet(walletAddress: string) {
     try {
       const [wallet] = await db

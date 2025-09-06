@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { supabaseApi } from './supabase';
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -25,38 +26,73 @@ function getWalletAddress(): string | null {
   }
 }
 
+// Enhanced API request helper using Supabase Edge Functions
 export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
   walletAddress?: string,
 ): Promise<Response> {
-  const headers: Record<string, string> = {};
-  
-  if (data) {
-    headers["Content-Type"] = "application/json";
-  }
-  
-  // Include wallet address header if available
+  // Get wallet address from session storage
   const addressToUse = walletAddress || getWalletAddress();
-  if (addressToUse) {
-    headers["X-Wallet-Address"] = addressToUse;
-  }
   
-  // Use relative URLs for production, localhost for development
-  const isDevelopment = import.meta.env.MODE === 'development';
-  const baseUrl = isDevelopment ? 'http://localhost:5000' : '';
-  const fullUrl = url.startsWith('http') ? url.replace(/https:\/\/[^\/]+/, baseUrl) : `${baseUrl}${url}`;
-
-  const res = await fetch(fullUrl, {
-    method,
-    headers,
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
-
-  await throwIfResNotOk(res);
-  return res;
+  // Map Express.js endpoints to Supabase Edge Function endpoints
+  const endpointMap: Record<string, string> = {
+    '/api/auth/register': 'auth-register',
+    '/api/auth/user': 'auth-user', 
+    '/api/balance/user': 'balance-user',
+    '/api/balance/initialize': 'balance-initialize',
+    '/api/balance/activate-level1': 'balance-activate-level1',
+    '/api/balance/withdraw-usdt': 'balance-withdraw-usdt',
+    '/api/balance/withdrawals': 'balance-withdrawals',
+    '/api/dashboard/data': 'dashboard-data',
+    '/api/dashboard/balances': 'dashboard-balances',
+    '/api/dashboard/matrix': 'dashboard-matrix',
+    '/api/dashboard/referrals': 'dashboard-referrals',
+    '/api/dashboard/activity': 'dashboard-activity',
+    '/api/membership/activate': 'membership-activate',
+    '/api/rewards/user': 'rewards-user',
+    '/api/rewards/claimable': 'rewards-claimable',
+    '/api/rewards/claim': 'rewards-claim',
+    '/api/wallet/withdraw-usdt': 'wallet-withdraw-usdt',
+    '/api/wallet/log-connection': 'wallet-log-connection'
+  };
+  
+  const functionName = endpointMap[url] || url.replace('/api/', '').replace(/\//g, '-');
+  
+  try {
+    const requestData = {
+      ...data,
+      walletAddress: addressToUse || data?.walletAddress,
+      _method: method.toUpperCase()
+    };
+    
+    const result = await supabaseApi.invokeFunction(functionName, requestData);
+    
+    // Create a mock Response object for compatibility
+    const mockResponse = {
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: async () => result.data || result,
+      text: async () => JSON.stringify(result.data || result)
+    } as Response;
+    
+    return mockResponse;
+  } catch (error: any) {
+    console.error(`Supabase API Error [${functionName}]:`, error);
+    
+    // Create mock error response
+    const errorResponse = {
+      ok: false,
+      status: 500,
+      statusText: error.message || 'Internal Server Error',
+      json: async () => ({ error: error.message }),
+      text: async () => error.message
+    } as Response;
+    
+    throw errorResponse;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
@@ -65,15 +101,8 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const headers: Record<string, string> = {};
-    
-    // Include wallet address header if available
+    // Include wallet address if available
     const walletAddress = getWalletAddress();
-    if (walletAddress) {
-      headers["X-Wallet-Address"] = walletAddress;
-    }
-    
-    // No JWT authentication - simplified wallet-only approach
     
     // Handle different queryKey formats
     let url: string;
@@ -85,22 +114,16 @@ export const getQueryFn: <T>(options: {
       url = queryKey.join("/");
     }
     
-    // Use relative URLs in production
-    const isDevelopment = import.meta.env.MODE === 'development';
-    const baseUrl = isDevelopment ? 'http://localhost:5000' : '';
-    const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
-    
-    const res = await fetch(fullUrl, {
-      headers,
-      credentials: "include",
-    });
-
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+    try {
+      // Use apiRequest to handle Supabase calls
+      const res = await apiRequest('GET', url, undefined, walletAddress);
+      return await res.json();
+    } catch (error: any) {
+      if (unauthorizedBehavior === "returnNull" && error.status === 401) {
+        return null;
+      }
+      throw error;
     }
-
-    await throwIfResNotOk(res);
-    return await res.json();
   };
 
 export const queryClient = new QueryClient({

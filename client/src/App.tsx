@@ -23,6 +23,7 @@ import Discover from "@/pages/Discover";
 import Registration from "@/pages/Registration";
 import Welcome from "@/pages/Welcome";
 import Tasks from "@/pages/Tasks";
+import TokenPurchase from "@/pages/TokenPurchase";
 
 // Import proper Header and Navigation components
 import Header from "@/components/shared/Header";
@@ -217,6 +218,7 @@ function Router() {
         {/* Main app routes - Protected with wallet connection and Level 1 NFT requirement */}
         <Route path="/dashboard" component={DashboardPage} />
         <Route path="/tasks" component={Tasks} />
+        <Route path="/token-purchase" component={TokenPurchase} />
         <Route path="/education" component={Education} />
         <Route path="/education/:courseId" component={CourseDetails} />
         <Route path="/discover" component={Discover} />

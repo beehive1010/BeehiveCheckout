@@ -7,19 +7,11 @@ import { apiRequest } from '../lib/queryClient';
 export function useMemberManagement() {
   const { isAuthenticated, hasPermission } = useAdminAuth();
 
-  // 获取所有会员列表
+  // 获取所有会员列表 using Supabase API
   const membersQuery = useQuery({
     queryKey: ['/api/admin/members'],
     queryFn: async () => {
-      const response = await fetch('/api/admin/members', {
-        credentials: 'include',
-        headers: {
-          'Cache-Control': 'no-cache'
-        }
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch members');
-      }
+      const response = await apiRequest('GET', '/api/admin/members', { 'Cache-Control': 'no-cache' });
       return response.json();
     },
     enabled: isAuthenticated && hasPermission('members.read'),

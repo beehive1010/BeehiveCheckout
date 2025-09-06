@@ -37,7 +37,15 @@
       "Bash(DEV_DB=$DATABASE_URL psql $DEV_DB -c \"\\d user_balances\")",
       "Bash(DEV_DB=$DATABASE_URL psql $DEV_DB -c \"\n-- Check which users should have root matrix entries\nSELECT ''Users who should have root matrices:'' as info;\nSELECT wallet_address, username FROM users ORDER BY created_at;\n\")",
       "Bash(DEV_DB=$DATABASE_URL psql $DEV_DB -c \"\n-- STEP 3: Add cascading for users with uplines\n-- Every referral cascades up through the entire upline chain\n\n-- Laurent153''s referrals also need to cascade to Laurent153''s upline (Admin) - ALREADY DONE ABOVE\n\n-- Test001''s referrals also need to cascade to Test001''s upline (Admin) - ALREADY DONE ABOVE\n\n-- Now add missing upline cascading for deeper levels\n-- laurent1532 is referred by Laurent153, so laurent1532''s future referrals should cascade to Laurent153 AND Admin\n-- admin12345 is referred by Laurent153, so admin12345''s future referrals should cascade to Laurent153 AND Admin  \n-- laurent153889 is referred by Laurent153, so laurent153889''s future referrals should cascade to Laurent153 AND Admin\n\n-- TestAA is referred by Test001, so TestAA''s future referrals should cascade to Test001 AND Admin\n-- TestBB is referred by Test001, so TestBB''s future referrals should cascade to Test001 AND Admin  \n-- TeatCC is referred by Test001, so TeatCC''s future referrals should cascade to Test001 AND Admin\n\n-- Since these users currently have NO referrals themselves, there are no cascading relationships to add yet.\n-- The cascading will be automatically added when they get referrals.\n\n-- Let''s verify the current complete structure:\nSELECT ''Current complete referral matrix:'' as status;\nSELECT root_wallet, COUNT(*) as total_referrals, \n       COUNT(CASE WHEN layer = 1 THEN 1 END) as layer1,\n       COUNT(CASE WHEN layer = 2 THEN 1 END) as layer2\nFROM referrals \nGROUP BY root_wallet \nORDER BY root_wallet;\n\")",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(supabase:*)",
+      "Bash(export SUPABASE_URL=https://cvqibjcbfrwsgkvthccp.supabase.co)",
+      "Bash(export:*)",
+      "Bash(./deploy-migrations.sh:*)",
+      "Bash(npm install:*)",
+      "Bash(DEV_DB=$DATABASE_URL psql $DEV_DB -c \"SELECT level, level_name FROM nft_levels ORDER BY level;\")",
+      "Bash(DEV_DB=$DATABASE_URL psql $DEV_DB -c \"\\dt\")",
+      "Bash(DEV_DB=$DATABASE_URL psql $DEV_DB -c \"SELECT * FROM level_config ORDER BY level;\")"
     ],
     "deny": [],
     "ask": []

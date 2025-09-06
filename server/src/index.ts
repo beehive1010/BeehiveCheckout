@@ -16,11 +16,18 @@ import { registerDashboardFixRoutes } from "./routes/dashboard-fix.routes";
 import { registerNotificationsRoutes } from "./routes/notifications.routes";
 import { registerStatsRoutes } from "./routes/stats.routes";
 import { registerMatrixRoutes } from "./routes/matrix.routes";
+import { registerMatrixV2Routes } from "./routes/matrix-v2.routes";
+import { registerRewardsV2Routes } from "./routes/rewards-v2.routes";
+import { registerBalanceV2Routes } from "./routes/balance-v2.routes";
+import { registerAdminV2Routes } from "./routes/admin-v2.routes";
 import { registerConfigRoutes } from "./routes/config.routes";
 import { registerBlogRoutes } from "./routes/blog.routes";
 import { serviceRequestsRouter } from "./routes/service-requests.routes";
 import healthRoutes from "./routes/health.routes";
 import { registerUploadRoutes } from "./routes/upload.routes";
+import { registerNFTUpgradeRoutes } from "./routes/nft-upgrade.routes";
+import { registerBccPurchaseRoutes } from "./routes/bcc-purchase.routes";
+import { registerBccSpendingRoutes } from "./routes/bcc-spending.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // JWT secret for authentication
@@ -62,6 +69,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   registerNotificationsRoutes(app, requireWallet);
   registerStatsRoutes(app);
   registerMatrixRoutes(app);
+  registerMatrixV2Routes(app); // New enhanced matrix API
+  registerRewardsV2Routes(app, requireWallet); // New layer-based rewards API
+  registerBalanceV2Routes(app, requireWallet); // New enhanced balance API
+  registerAdminV2Routes(app); // New admin management API
+  registerNFTUpgradeRoutes(app, requireWallet); // ERC5115 NFT upgrade system
+  registerBccPurchaseRoutes(app, requireWallet); // BCC token purchase with Thirdweb bridge
+  registerBccSpendingRoutes(app, requireWallet); // BCC token spending for NFTs and courses
   registerConfigRoutes(app);
   registerBlogRoutes(app);
   registerUploadRoutes(app, requireWallet);

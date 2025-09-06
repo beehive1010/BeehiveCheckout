@@ -7,25 +7,19 @@ export function useWallet() {
   const { isConnected, walletAddress } = useWeb3();
   const queryClient = useQueryClient();
 
-  // Log wallet connection when connected
+  // Log wallet connection when connected using Supabase API
   const logWalletConnection = async (connectionType: string, additionalData?: any) => {
     if (!walletAddress) return;
     
     try {
-      await fetch('/api/wallet/log-connection', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          walletAddress, // Fix: Include walletAddress in body as expected by backend
-          chainId: 1, // Default chain
-          timestamp: new Date().toISOString(),
-          connectionType,
-          userAgent: navigator.userAgent,
-          referrerUrl: document.referrer,
-          ...additionalData
-        })
+      await apiRequest('POST', '/api/wallet/log-connection', {
+        walletAddress, // Fix: Include walletAddress in body as expected by backend
+        chainId: 1, // Default chain
+        timestamp: new Date().toISOString(),
+        connectionType,
+        userAgent: navigator.userAgent,
+        referrerUrl: document.referrer,
+        ...additionalData
       });
     } catch (error) {
       console.error('Failed to log wallet connection:', error);
@@ -39,20 +33,19 @@ export function useWallet() {
     }
   }, [isConnected, walletAddress]);
 
-  // Enhanced user status check using new database framework
+  // Enhanced user status check using Supabase API
   const userQuery = useQuery({
     queryKey: ['/api/auth/user'],
     enabled: !!walletAddress,
     queryFn: async () => {
-      console.log('🔍 Checking user status (new DB framework):', walletAddress);
-      const response = await fetch(`/api/auth/user?t=${Date.now()}`, {
-        headers: {
-          'X-Wallet-Address': walletAddress!,
-          'Cache-Control': 'no-cache'
-        },
-      });
-      if (!response.ok) {
-        if (response.status === 404) {
+      console.log('🔍 Checking user status (Supabase API):', walletAddress);
+      try {
+        const response = await apiRequest('GET', '/api/auth/user', { t: Date.now() }, walletAddress!);
+        const userStatus = await response.json();
+        console.log('📊 User status (Supabase):', userStatus.userFlow, userStatus);
+        return userStatus;
+      } catch (error: any) {
+        if (error.status === 404) {
           console.log('👤 New user - needs registration');
           return { 
             isRegistered: false, 
@@ -61,11 +54,8 @@ export function useWallet() {
             userFlow: 'registration' 
           };
         }
-        throw new Error('Failed to fetch user data');
+        throw error;
       }
-      const userStatus = await response.json();
-      console.log('📊 User status (new framework):', userStatus.userFlow, userStatus);
-      return userStatus;
     },
     staleTime: 2000,
     refetchInterval: (query) => query.state.data?.isRegistered ? 5000 : false,
@@ -98,20 +88,10 @@ export function useWallet() {
     },
   });
 
-  // Activate membership
+  // Activate membership using Supabase API
   const activateMembershipMutation = useMutation({
     mutationFn: async (data: { level: number; txHash?: string }) => {
-      const response = await fetch('/api/membership/activate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Wallet-Address': walletAddress!,
-        },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to activate membership');
-      }
+      const response = await apiRequest('POST', '/api/membership/activate', data, walletAddress!);
       return response.json();
     },
     onSuccess: () => {
@@ -119,19 +99,12 @@ export function useWallet() {
     },
   });
 
-  // Get user balances using new balance system
+  // Get user balances using Supabase API
   const { data: userBalances, isLoading: isBalancesLoading } = useQuery({
     queryKey: ['/api/balance/user'],
     enabled: !!walletAddress && userStatus?.isRegistered,
     queryFn: async () => {
-      const response = await fetch('/api/balance/user', {
-        headers: {
-          'X-Wallet-Address': walletAddress!,
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch user balances');
-      }
+      const response = await apiRequest('GET', '/api/balance/user', undefined, walletAddress!);
       return response.json();
     },
   });
@@ -163,14 +136,7 @@ export function useWallet() {
     queryKey: ['/api/dashboard/activity'],
     enabled: !!walletAddress && isRegistered,
     queryFn: async () => {
-      const response = await fetch('/api/dashboard/activity?limit=10', {
-        headers: {
-          'X-Wallet-Address': walletAddress!,
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch user activity');
-      }
+      const response = await apiRequest('GET', '/api/dashboard/activity', { limit: 10 }, walletAddress!);
       return response.json();
     },
   });

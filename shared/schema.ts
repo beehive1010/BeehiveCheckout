@@ -359,6 +359,28 @@ export const blogPosts = pgTable("blog_posts", {
   language: text("language").default("en").notNull(),
 });
 
+// BCC Token Purchase Orders - Track USDC to BCC purchases via Thirdweb bridge
+export const bccPurchaseOrders = pgTable("bcc_purchase_orders", {
+  orderId: varchar("order_id", { length: 100 }).primaryKey(),
+  buyerWallet: varchar("buyer_wallet", { length: 42 }).notNull().references(() => users.walletAddress),
+  amountUSDC: numeric("amount_usdc", { precision: 18, scale: 6 }).notNull(), // USDC amount (6 decimals)
+  amountBCC: numeric("amount_bcc", { precision: 18, scale: 8 }).notNull(), // BCC amount to credit (8 decimals)
+  exchangeRate: numeric("exchange_rate", { precision: 10, scale: 6 }).notNull(), // USDC to BCC rate
+  network: varchar("network", { length: 50 }).notNull(), // arbitrum-one, arbitrum-sepolia, ethereum, polygon
+  paymentMethod: varchar("payment_method", { length: 50 }).notNull(), // thirdweb_bridge, direct_transfer
+  companyWallet: varchar("company_wallet", { length: 42 }).notNull(), // Company receiving wallet
+  transactionHash: varchar("transaction_hash", { length: 66 }), // Blockchain transaction hash
+  actualAmountReceived: numeric("actual_amount_received", { precision: 18, scale: 6 }), // Actual USDC received
+  bridgeUsed: boolean("bridge_used").default(false).notNull(), // Whether Thirdweb bridge was used
+  status: varchar("status", { length: 20 }).default("pending").notNull(), // pending, processing, completed, expired, failed
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at").notNull(), // Order expiry time
+  completedAt: timestamp("completed_at"), // When the order was completed
+  failureReason: text("failure_reason"), // Reason for failure if status is failed
+  metadata: jsonb("metadata").$type<Record<string, any>>().default({}).notNull() // Additional data
+});
+
 // Insert schemas - simplified users table
 export const insertUserSchema = createInsertSchema(users).pick({
   walletAddress: true,
@@ -738,6 +760,25 @@ export const insertBlogPostSchema = createInsertSchema(blogPosts).pick({
   language: true,
 });
 
+export const insertBccPurchaseOrderSchema = createInsertSchema(bccPurchaseOrders).pick({
+  orderId: true,
+  buyerWallet: true,
+  amountUSDC: true,
+  amountBCC: true,
+  exchangeRate: true,
+  network: true,
+  paymentMethod: true,
+  companyWallet: true,
+  transactionHash: true,
+  actualAmountReceived: true,
+  bridgeUsed: true,
+  status: true,
+  expiresAt: true,
+  completedAt: true,
+  failureReason: true,
+  metadata: true,
+});
+
 export const insertAdvertisementNFTSchema = createInsertSchema(advertisementNFTs).pick({
   title: true,
   description: true,
@@ -952,6 +993,9 @@ export type CourseActivation = typeof courseActivations.$inferSelect;
 
 export type InsertBlogPost = z.infer<typeof insertBlogPostSchema>;
 export type BlogPost = typeof blogPosts.$inferSelect;
+
+export type InsertBccPurchaseOrder = z.infer<typeof insertBccPurchaseOrderSchema>;
+export type BccPurchaseOrder = typeof bccPurchaseOrders.$inferSelect;
 
 export type InsertAdvertisementNFT = z.infer<typeof insertAdvertisementNFTSchema>;
 export type AdvertisementNFT = typeof advertisementNFTs.$inferSelect;

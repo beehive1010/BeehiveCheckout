@@ -29,14 +29,10 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    port: 5173,
-    proxy: {
-      "/api": {
-        target: "http://localhost:5000",
-        changeOrigin: true,
-        secure: false,
-      },
-    },
+    port: 5000,
+    host: '0.0.0.0',
+    allowedHosts: ['all'], // Allow all hosts for development
+    // No proxy needed - using Supabase Edge Functions directly
     fs: {
       strict: true,
       deny: ["**/.*"],

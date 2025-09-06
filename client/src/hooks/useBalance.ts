@@ -74,7 +74,7 @@ export function useBalance() {
   const { walletAddress, isConnected } = useWeb3();
   const queryClient = useQueryClient();
 
-  // Fetch user balance data
+  // Fetch user balance data using Supabase API
   const {
     data: balanceData,
     isLoading: isBalanceLoading,
@@ -84,14 +84,7 @@ export function useBalance() {
     queryKey: ['/api/balance/user', walletAddress],
     enabled: !!walletAddress && isConnected,
     queryFn: async (): Promise<UserBalanceData> => {
-      const response = await fetch('/api/dashboard/balances', {
-        headers: {
-          'X-Wallet-Address': walletAddress!,
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch balance data');
-      }
+      const response = await apiRequest('GET', '/api/dashboard/balances', undefined, walletAddress!);
       const data = await response.json();
       
       // Transform to match UserBalanceData interface
@@ -150,7 +143,7 @@ export function useBalance() {
     },
   });
 
-  // Get user withdrawal history
+  // Get user withdrawal history using Supabase API
   const {
     data: withdrawalHistory,
     isLoading: isWithdrawalHistoryLoading
@@ -158,14 +151,7 @@ export function useBalance() {
     queryKey: ['/api/balance/withdrawals', walletAddress],
     enabled: !!walletAddress && isConnected,
     queryFn: async () => {
-      const response = await fetch('/api/balance/withdrawals', {
-        headers: {
-          'X-Wallet-Address': walletAddress!,
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch withdrawal history');
-      }
+      const response = await apiRequest('GET', '/api/balance/withdrawals', undefined, walletAddress!);
       return response.json();
     },
   });

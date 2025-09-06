@@ -10,15 +10,7 @@ export function useUserNotifications() {
     queryKey: ['/api/notifications', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
-      const response = await fetch('/api/notifications', {
-        headers: {
-          'X-Wallet-Address': walletAddress,
-          'Cache-Control': 'no-cache'
-        }
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch notifications');
-      }
+      const response = await apiRequest('GET', '/api/notifications', { 'Cache-Control': 'no-cache' }, walletAddress);
       return response.json();
     },
     enabled: !!walletAddress,

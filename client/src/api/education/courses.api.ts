@@ -1,34 +1,24 @@
-// Education API functions
+// Education API functions - Updated for Supabase Edge Functions
+import { apiRequest } from '../lib/queryClient';
+
 export const coursesApi = {
   async getCourses() {
-    const response = await fetch('/api/courses');
-    if (!response.ok) throw new Error('Failed to fetch courses');
+    const response = await apiRequest('GET', '/api/courses');
     return response.json();
   },
 
   async getCourseAccess(walletAddress: string) {
-    const response = await fetch(`/api/course-access/${walletAddress}`);
-    if (!response.ok) throw new Error('Failed to fetch course access');
+    const response = await apiRequest('GET', `/api/course-access/${walletAddress}`, undefined, walletAddress);
     return response.json();
   },
 
-  async purchaseCourse(courseId: string, bccAmount: number) {
-    const response = await fetch('/api/purchase-course', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ courseId, bccAmount })
-    });
-    if (!response.ok) throw new Error('Failed to purchase course');
+  async purchaseCourse(courseId: string, bccAmount: number, walletAddress?: string) {
+    const response = await apiRequest('POST', '/api/purchase-course', { courseId, bccAmount }, walletAddress);
     return response.json();
   },
 
-  async updateProgress(courseId: string, progress: number) {
-    const response = await fetch('/api/course-progress', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ courseId, progress })
-    });
-    if (!response.ok) throw new Error('Failed to update progress');
+  async updateProgress(courseId: string, progress: number, walletAddress?: string) {
+    const response = await apiRequest('POST', '/api/course-progress', { courseId, progress }, walletAddress);
     return response.json();
   }
 };
