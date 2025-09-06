@@ -1,4 +1,4 @@
-// Updated HTTP Client to use Supabase Edge Functions
+// Clean HTTP Client for Supabase-first architecture
 import { supabaseApi } from '../supabase';
 
 interface RequestOptions {
@@ -18,7 +18,13 @@ class HttpClient {
   private async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
     const { method = 'GET', body, walletAddress } = options;
     
-    // Use Supabase API for all requests
+    // For health checks, call the simplified server
+    if (endpoint === '/api/health') {
+      const response = await fetch('/api/health');
+      return response.json() as T;
+    }
+    
+    // All other API requests use Supabase Edge Functions
     try {
       const functionName = endpoint.replace('/api/', '').replace(/\//g, '-');
       const requestData = {
@@ -27,11 +33,10 @@ class HttpClient {
         _method: method
       };
       
-      const result = await supabaseApi.callFunction(functionName, requestData);
-      return result.data as T;
+      const result = await supabaseApi.callFunction(functionName, requestData, walletAddress);
+      return result as T;
     } catch (error: any) {
       throw new Error(error.message || `Failed to call ${endpoint}`);
-    }
     }
   }
 
