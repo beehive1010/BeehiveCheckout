@@ -13,13 +13,11 @@ const corsHeaders = {
 }
 
 interface AuthRequest {
-  action: 'register' | 'get-user' | 'activate-membership' | 'toggle-pending' | 'check-pending';
+  action: 'register' | 'get-user' | 'activate-membership';
   walletAddress?: string;
   referrerWallet?: string;
   username?: string;
   email?: string;
-  pendingHours?: number;
-  pendingEnabled?: boolean;
 }
 
 serve(async (req) => {
@@ -81,12 +79,6 @@ serve(async (req) => {
       case 'activate-membership':
         return await handleActivateMembership(supabase, walletAddress!)
 
-      case 'toggle-pending':
-        return await handleTogglePending(supabase, walletAddress!, requestData)
-
-      case 'check-pending':
-        return await handleCheckPending(supabase, walletAddress!)
-
       default:
         return new Response(
           JSON.stringify({ error: 'Invalid action' }),
@@ -104,14 +96,14 @@ serve(async (req) => {
 
 async function handleUserRegistration(supabase: any, walletAddress: string, data: any) {
   try {
-    // Check if user already exists
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('wallet_address, referrer_wallet')
+    // Check if member already exists
+    const { data: existingMember } = await supabase
+      .from('members')
+      .select('wallet_address, referrer_wallet, is_activated')
       .eq('wallet_address', walletAddress)
       .single()
 
-    if (existingUser) {
+    if (existingMember) {
       return new Response(
         JSON.stringify({
           success: true,
@@ -126,7 +118,7 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
     let validReferrerWallet = null
     if (data.referrerWallet) {
       const { data: referrerExists } = await supabase
-        .from('users')
+        .from('members')
         .select('wallet_address')
         .eq('wallet_address', data.referrerWallet)
         .single()
@@ -138,28 +130,14 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
       }
     }
 
-    // Create user record first
-    const { data: newUser, error: userError } = await supabase
-      .from('users')
+    // Create member record (not activated yet)
+    const { data: newMember, error: memberError } = await supabase
+      .from('members')
       .insert({
         wallet_address: walletAddress,
         referrer_wallet: validReferrerWallet,
         username: data.username || null,
         email: data.email || null,
-        current_level: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .select()
-      .single()
-
-    if (userError) throw userError
-
-    // Create member record (not activated yet)
-    const { error: memberError } = await supabase
-      .from('members')
-      .insert({
-        wallet_address: walletAddress,
         is_activated: false,
         current_level: 0,
         max_layer: 0,
@@ -167,6 +145,8 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
+      .select()
+      .single()
 
     if (memberError) throw memberError
 
@@ -186,7 +166,7 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
     const response = {
       success: true,
       action: 'created',
-      user: newUser,
+      user: newMember,
       message: 'User registered successfully - ready to activate membership'
     }
 
@@ -208,37 +188,35 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
 
 async function handleGetUser(supabase: any, walletAddress: string) {
   try {
-    // Get user data with member status using proper joins
-    const { data: userData, error } = await supabase
-      .from('users')
+    // Get member data with balance info
+    const { data: memberData, error: memberError } = await supabase
+      .from('members')
       .select(`
         wallet_address,
         referrer_wallet,
         username,
         email,
+        is_activated,
+        activated_at,
         current_level,
-        is_upgraded,
-        upgrade_timer_enabled,
+        max_layer,
+        levels_owned,
+        has_pending_rewards,
         created_at,
-        updated_at,
-        members (
-          is_activated,
-          activated_at,
-          current_level,
-          max_layer,
-          levels_owned,
-          has_pending_rewards
-        ),
-        user_balances (
-          bcc_transferable,
-          bcc_locked
-        )
+        updated_at
       `)
       .eq('wallet_address', walletAddress)
       .single()
 
+    // Get balance data
+    const { data: balanceData, error: balanceError } = await supabase
+      .from('user_balances')
+      .select('bcc_transferable, bcc_locked')
+      .eq('wallet_address', walletAddress)
+      .single()
+
     // User doesn't exist - return null but success
-    if (error && error.code === 'PGRST116') {
+    if (memberError && memberError.code === 'PGRST116') {
       return new Response(
         JSON.stringify({
           success: true,
@@ -252,21 +230,26 @@ async function handleGetUser(supabase: any, walletAddress: string) {
       )
     }
 
-    if (error) throw error
+    if (memberError) throw memberError
 
-    // Check if user is a member (from members table)
-    const memberData = userData?.members?.[0] || null
+    // Check if user is a member
     const isMember = memberData?.is_activated || false
     
-    // Check pending status (using upgrade_timer_enabled from users table)
-    const isPending = userData?.upgrade_timer_enabled || false
+    // For now, no pending system (can be added later if needed)
+    const isPending = false
+
+    // Combine member and balance data
+    const userData = {
+      ...memberData,
+      user_balances: [balanceData || { bcc_transferable: 0, bcc_locked: 0 }]
+    }
 
     const response = {
       success: true,
-      user: userData || null,
-      isRegistered: !!userData,
+      user: userData,
+      isRegistered: !!memberData,
       isMember: isMember,
-      canAccessReferrals: isMember && !isPending, // Only active members can access referrals
+      canAccessReferrals: isMember && !isPending,
       isPending: isPending,
       memberData: memberData
     }
@@ -348,68 +331,3 @@ async function handleActivateMembership(supabase: any, walletAddress: string) {
   }
 }
 
-async function handleTogglePending(supabase: any, walletAddress: string, data: any) {
-  try {
-    // For now, return not implemented since we don't have users table
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: 'Pending system not implemented without users table'
-      }),
-      { status: 501, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-  } catch (error) {
-    console.error('Toggle pending error:', error)
-    return new Response(
-      JSON.stringify({ 
-        error: 'Failed to toggle pending status',
-        details: error.message 
-      }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-  }
-}
-
-async function handleCheckPending(supabase: any, walletAddress: string) {
-  try {
-    // Get member data
-    const { data: memberData } = await supabase
-      .from('members')
-      .select('is_activated')
-      .eq('wallet_address', walletAddress)
-      .single()
-
-    if (!memberData) {
-      return new Response(
-        JSON.stringify({ 
-          error: 'User not found' 
-        }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    const isMember = memberData?.is_activated || false
-    const isPending = false // No pending system without users table
-
-    const response = {
-      success: true,
-      isMember: isMember,
-      isPending: isPending,
-      canAccessReferrals: isMember && !isPending
-    }
-
-    return new Response(
-      JSON.stringify(response),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-  } catch (error) {
-    console.error('Check pending error:', error)
-    return new Response(
-      JSON.stringify({ 
-        error: 'Failed to check pending status',
-        details: error.message 
-      }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-  }
-}

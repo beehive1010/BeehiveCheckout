@@ -144,45 +144,8 @@ export class SupabaseApiClient {
     }) // No wallet address = just click tracking
   }
 
-  // Countdown timer methods
-  async getCountdowns(walletAddress: string) {
-    return this.callFunction('auth', {
-      action: 'get-countdowns'
-    }, walletAddress)
-  }
-
-  async createCountdown(
-    walletAddress: string,
-    timerType: string,
-    title: string,
-    durationHours: number,
-    description?: string,
-    autoAction?: string
-  ) {
-    return this.callFunction('auth', {
-      action: 'create-countdown',
-      timerType,
-      title,
-      durationHours,
-      description,
-      autoAction
-    }, walletAddress)
-  }
-
-  // Pending system methods (for special users)
-  async togglePending(walletAddress: string, pendingEnabled: boolean, pendingHours?: number) {
-    return this.callFunction('auth', {
-      action: 'toggle-pending',
-      pendingEnabled,
-      pendingHours
-    }, walletAddress)
-  }
-
-  async checkPending(walletAddress: string) {
-    return this.callFunction('auth', {
-      action: 'check-pending'
-    }, walletAddress)
-  }
+  // Note: Countdown and pending functions removed - not supported in simplified auth
+  // These would need separate Edge Functions if required
 
   // BCC Purchase methods
   async getBccConfig() {
