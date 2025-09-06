@@ -60,8 +60,8 @@ app.use("/api/*", (req, res) => {
     console.error(err);
   });
 
-  // Start server on correct port for deployment
-  const port = parseInt(process.env.PORT || '3000', 10);
+  // Force port 3000 for deployment compatibility (override any environment setting)
+  const port = 3000;
   server.listen({
     port,
     host: "0.0.0.0",
