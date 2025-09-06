@@ -114,9 +114,6 @@ async function handleGetBalance(supabase: any, walletAddress: string) {
       wallet_address: walletAddress,
       bcc_transferable: 0,
       bcc_locked: 0,
-      total_usdt_earned: 0,
-      pending_upgrade_rewards: 0,
-      rewards_claimed: 0,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }

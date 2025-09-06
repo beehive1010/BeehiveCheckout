@@ -146,18 +146,35 @@ serve(async (req) => {
 
 async function handleUserRegistration(supabase: any, walletAddress: string, data: any) {
   try {
-    // Check if user already exists
-    const { data: existingUser } = await supabase
+    // Check if user already exists (with member and balance data)
+    const { data: existingUser, error: checkError } = await supabase
       .from('users')
-      .select('wallet_address, referrer_wallet')
+      .select(`
+        wallet_address,
+        referrer_wallet,
+        username,
+        email,
+        members (
+          is_activated
+        ),
+        user_balances (
+          bcc_transferable,
+          bcc_locked
+        )
+      `)
       .eq('wallet_address', walletAddress)
       .single()
 
-    if (existingUser) {
-      // Update existing user if needed
+    // If user exists, just return their current data
+    if (existingUser && !checkError) {
+      // Optionally update username/email if provided
       const updateData: any = {}
-      if (data.username) updateData.username = data.username
-      if (data.email) updateData.email = data.email
+      if (data.username && data.username !== existingUser.username) {
+        updateData.username = data.username
+      }
+      if (data.email && data.email !== existingUser.email) {
+        updateData.email = data.email
+      }
       
       if (Object.keys(updateData).length > 0) {
         updateData.updated_at = new Date().toISOString()
@@ -170,12 +187,17 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
       return new Response(
         JSON.stringify({
           success: true,
-          action: 'updated',
+          action: 'existing',
           user: existingUser,
-          message: 'User profile updated'
+          message: 'User already registered'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
+    }
+
+    // User doesn't exist or there was an error checking - proceed with creation
+    if (checkError && checkError.code !== 'PGRST116') {
+      throw checkError
     }
 
     // Validate referrer exists if provided
@@ -226,16 +248,13 @@ async function handleUserRegistration(supabase: any, walletAddress: string, data
 
     if (memberError) throw memberError
 
-    // Create user balance record
+    // Create user balance record with only existing columns
     const { error: balanceError } = await supabase
       .from('user_balances')
       .insert({
         wallet_address: walletAddress,
         bcc_transferable: 0,
         bcc_locked: 0,
-        total_usdt_earned: 0,
-        pending_upgrade_rewards: 0,
-        rewards_claimed: 0,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
