@@ -34,6 +34,8 @@ export default defineConfig({
     allowedHosts: [
       'localhost',
       '127.0.0.1',
+      'beehive-lifestyle.io',
+      'www.beehive-lifestyle.io',
       '*.replit.dev',
       '*.janeway.replit.dev',
       /.*\.replit\.dev$/,
@@ -48,6 +50,25 @@ export default defineConfig({
     fs: {
       strict: true,
       deny: ["**/.*"],
+    },
+  },
+  preview: {
+    port: 5000,
+    host: '0.0.0.0',
+    allowedHosts: [
+      'localhost',
+      '127.0.0.1',
+      'beehive-lifestyle.io',
+      'www.beehive-lifestyle.io',
+      '*.replit.dev',
+      '*.janeway.replit.dev',
+      /.*\.replit\.dev$/,
+      /.*\.janeway\.replit\.dev$/,
+    ],
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
   },
 });

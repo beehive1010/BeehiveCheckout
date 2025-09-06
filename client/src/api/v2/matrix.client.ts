@@ -215,7 +215,7 @@ export const matrixV2Client = {
       const maxCapacity = Math.pow(3, layer);
       
       // Create position map
-      const positionMap = { L: [], M: [], R: [] };
+      const positionMap: { L: any[]; M: any[]; R: any[] } = { L: [], M: [], R: [] };
       const members = layerMembers.map((member: any) => {
         const memberData = {
           memberWallet: member.member_wallet,
@@ -228,8 +228,9 @@ export const matrixV2Client = {
           isActivated: member.member_data?.[0]?.is_activated || false
         };
         
-        if (positionMap[member.position]) {
-          positionMap[member.position].push(memberData);
+        const position = member.position as 'L' | 'M' | 'R';
+        if (positionMap[position]) {
+          positionMap[position].push(memberData);
         }
         
         return memberData;
