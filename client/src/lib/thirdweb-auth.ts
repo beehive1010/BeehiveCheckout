@@ -37,15 +37,15 @@ export const inAppWalletConfig = inAppWallet({
   },
   smartAccount: {
     chain: arbitrumOne,
-    sponsorGas: ture, // Set to true if you want to sponsor gas fees
+    sponsorGas: true, // Set to true if you want to sponsor gas fees
   }
 })
 
-// External Wallet Support (WalletConnect, MetaMask, etc.)
-export const externalWalletConfig = createWallet("io.metamask")
-export const walletConnectConfig = createWallet("walletConnect", {
-  projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID,
-})
+// External Wallet Support (MetaMask, Coinbase, etc.)
+export const metamaskWallet = createWallet("io.metamask")
+export const coinbaseWallet = createWallet("com.coinbase.wallet")
+export const trustWallet = createWallet("com.trustwallet.app")
+export const rainbowWallet = createWallet("me.rainbow")
 
 // Beehive Platform Auth Integration
 export class BeehiveAuth {
