@@ -311,8 +311,16 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
           chainId: activeChain?.id
         });
 
-        // Record wallet connection and capture referrer
-        await recordWalletConnection();
+        // Check if we need Supabase authentication
+        if (!isSupabaseAuthenticated) {
+          console.log('🔗 Wallet connected but no Supabase auth - redirecting to authentication');
+          // Only redirect if not already on auth page
+          if (location !== '/auth') {
+            setLocation('/auth');
+          }
+        }
+        
+        // Note: recordWalletConnection will be called later when both wallet and Supabase auth are ready
       } else {
         const wasConnected = isConnected;
         setIsConnected(false);

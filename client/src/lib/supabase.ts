@@ -35,13 +35,14 @@ export class SupabaseApiClient {
       'Content-Type': 'application/json'
     }
 
-    // Try to get auth token from Supabase session first
+    // Get auth token from Supabase session - required for most operations
     const { data: { session } } = await supabase.auth.getSession()
     if (session?.access_token) {
       headers['Authorization'] = `Bearer ${session.access_token}`
     } else {
-      // Fallback to anon key
+      // Fallback to anon key - auth function will return 401 if auth is required
       headers['Authorization'] = `Bearer ${this.anonKey}`
+      console.warn('⚠️ No Supabase session found, using anon key. Some operations may fail.')
     }
 
     if (walletAddress) {
@@ -49,6 +50,13 @@ export class SupabaseApiClient {
     }
 
     return headers
+  }
+
+  private async getUnauthenticatedHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${this.anonKey}`
+    }
   }
 
   async callFunction(

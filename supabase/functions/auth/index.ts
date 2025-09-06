@@ -387,3 +387,215 @@ async function handleActivateMembership(supabase: any, walletAddress: string) {
   }
 }
 
+async function handleTogglePending(supabase: any, walletAddress: string, data: any) {
+  try {
+    const { pendingEnabled, pendingHours } = data;
+    
+    // Update user's pending status
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({
+        pending_enabled: pendingEnabled,
+        pending_hours: pendingHours || null,
+        pending_until: pendingEnabled && pendingHours 
+          ? new Date(Date.now() + (pendingHours * 60 * 60 * 1000)).toISOString() 
+          : null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('wallet_address', walletAddress);
+
+    if (updateError) throw updateError;
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: `Pending status ${pendingEnabled ? 'enabled' : 'disabled'}`,
+        pendingEnabled,
+        pendingHours
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    console.error('Toggle pending error:', error);
+    return new Response(
+      JSON.stringify({ 
+        error: 'Failed to toggle pending status',
+        details: error.message 
+      }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+}
+
+async function handleCheckPending(supabase: any, walletAddress: string) {
+  try {
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('pending_enabled, pending_hours, pending_until')
+      .eq('wallet_address', walletAddress)
+      .single();
+
+    if (userError) throw userError;
+
+    // Check if pending period has expired
+    let isPending = false;
+    if (userData.pending_enabled && userData.pending_until) {
+      isPending = new Date() < new Date(userData.pending_until);
+    } else if (userData.pending_enabled && !userData.pending_until) {
+      isPending = true; // Indefinite pending
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        isPending,
+        pendingEnabled: userData.pending_enabled,
+        pendingHours: userData.pending_hours,
+        pendingUntil: userData.pending_until
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    console.error('Check pending error:', error);
+    return new Response(
+      JSON.stringify({ 
+        error: 'Failed to check pending status',
+        details: error.message 
+      }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+}
+
+async function handleCreateCountdown(supabase: any, walletAddress: string, data: any) {
+  try {
+    const { timerType, title, durationHours, description, autoAction } = data;
+
+    // Create countdown timer
+    const { data: newCountdown, error: countdownError } = await supabase
+      .from('user_countdowns')
+      .insert({
+        wallet_address: walletAddress,
+        timer_type: timerType,
+        title: title,
+        description: description || null,
+        duration_hours: durationHours,
+        auto_action: autoAction || 'delete_user_and_referrals', // Default action
+        starts_at: new Date().toISOString(),
+        ends_at: new Date(Date.now() + (durationHours * 60 * 60 * 1000)).toISOString(),
+        is_active: true,
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (countdownError) throw countdownError;
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        countdown: newCountdown,
+        message: 'Countdown timer created successfully'
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    console.error('Create countdown error:', error);
+    return new Response(
+      JSON.stringify({ 
+        error: 'Failed to create countdown timer',
+        details: error.message 
+      }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+}
+
+async function handleGetCountdowns(supabase: any, walletAddress: string) {
+  try {
+    const { data: countdowns, error: countdownError } = await supabase
+      .from('user_countdowns')
+      .select('*')
+      .eq('wallet_address', walletAddress)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    if (countdownError) throw countdownError;
+
+    // Update expired countdowns and execute auto actions
+    const now = new Date();
+    const activeCountdowns = [];
+    const expiredCountdowns = [];
+
+    for (const countdown of countdowns || []) {
+      if (new Date(countdown.ends_at) <= now) {
+        expiredCountdowns.push(countdown);
+        
+        // Execute auto action - delete user and referrals when countdown expires
+        if (countdown.auto_action === 'delete_user_and_referrals') {
+          console.log(`Executing auto action: deleting user and referrals for ${countdown.wallet_address}`);
+          
+          try {
+            // Delete referrals first (foreign key dependencies)
+            await supabase
+              .from('referrals')
+              .delete()
+              .or(`root_wallet.eq.${countdown.wallet_address},member_wallet.eq.${countdown.wallet_address},parent_wallet.eq.${countdown.wallet_address},placer_wallet.eq.${countdown.wallet_address}`);
+            
+            // Delete user balances
+            await supabase
+              .from('user_balances')
+              .delete()
+              .eq('wallet_address', countdown.wallet_address);
+            
+            // Delete member record
+            await supabase
+              .from('members')
+              .delete()
+              .eq('wallet_address', countdown.wallet_address);
+            
+            // Finally delete user record
+            await supabase
+              .from('users')
+              .delete()
+              .eq('wallet_address', countdown.wallet_address);
+              
+            console.log(`✅ Deleted user and all referrals for ${countdown.wallet_address}`);
+          } catch (deleteError) {
+            console.error(`❌ Failed to delete user data for ${countdown.wallet_address}:`, deleteError);
+          }
+        }
+      } else {
+        activeCountdowns.push(countdown);
+      }
+    }
+
+    // Deactivate expired countdowns
+    if (expiredCountdowns.length > 0) {
+      const expiredIds = expiredCountdowns.map(c => c.id);
+      await supabase
+        .from('user_countdowns')
+        .update({ is_active: false })
+        .in('id', expiredIds);
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        countdowns: activeCountdowns,
+        expiredCount: expiredCountdowns.length
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    console.error('Get countdowns error:', error);
+    return new Response(
+      JSON.stringify({ 
+        error: 'Failed to fetch countdown timers',
+        details: error.message 
+      }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+}
+

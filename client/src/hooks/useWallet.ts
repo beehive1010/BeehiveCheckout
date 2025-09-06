@@ -4,15 +4,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '../lib/queryClient';
 
 export function useWallet() {
-  const { isConnected, walletAddress } = useWeb3();
+  const { isConnected, walletAddress, isSupabaseAuthenticated } = useWeb3();
   const queryClient = useQueryClient();
 
   // Remove old logging - now handled by Web3Context authentication
 
-  // Enhanced user status check using Supabase API
+  // Enhanced user status check using Supabase API - only when both auths are ready
   const userQuery = useQuery({
     queryKey: ['/api/auth/user'],
-    enabled: !!walletAddress,
+    enabled: !!walletAddress && isSupabaseAuthenticated,
     queryFn: async () => {
       console.log('🔍 Checking user status (Supabase API):', walletAddress);
       try {
@@ -75,10 +75,10 @@ export function useWallet() {
     },
   });
 
-  // Get user balances using Supabase API
+  // Get user balances using Supabase API - only when both auths are ready
   const { data: userBalances, isLoading: isBalancesLoading } = useQuery({
     queryKey: ['/api/balance/user'],
-    enabled: !!walletAddress && userStatus?.isRegistered,
+    enabled: !!walletAddress && isSupabaseAuthenticated && userStatus?.isRegistered,
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/balance/user', undefined, walletAddress!);
       return response.json();
@@ -110,7 +110,7 @@ export function useWallet() {
   const referralNode = null; // Would be fetched separately
   const { data: userActivity, isLoading: isActivityLoading } = useQuery({
     queryKey: ['/api/dashboard/activity'],
-    enabled: !!walletAddress && isRegistered,
+    enabled: !!walletAddress && isSupabaseAuthenticated && isRegistered,
     queryFn: async () => {
       const response = await apiRequest('GET', '/api/dashboard/activity', { limit: 10 }, walletAddress!);
       return response.json();

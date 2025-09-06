@@ -1,10 +1,37 @@
 -- =============================================
 -- Create Root Member for Default Referrals
 -- This member will be the default referrer for users without referral links
--- Uses members table + Supabase auth.users (no custom users table)
+-- Uses custom users table + members table + Supabase auth.users
 -- =============================================
 
--- Insert root member record (no custom users table needed)
+-- Step 1: Insert root user record (required for foreign key references)
+INSERT INTO public.users (
+    wallet_address,
+    referrer_wallet,
+    username,
+    email,
+    current_level,
+    supabase_user_id,
+    pending_enabled,
+    pending_hours,
+    pending_until,
+    created_at,
+    updated_at
+) VALUES (
+    '0x0000000000000000000000000000000000000001', -- Root wallet address
+    NULL,                                             -- No referrer (this is the root)
+    'Beehive Root',                                   -- Username
+    'root@beehive-platform.com',                     -- Email
+    19,                                               -- Max level (Level 19)
+    NULL,                                             -- No Supabase user (system account)
+    false,                                            -- Pending disabled
+    NULL,                                             -- No pending hours
+    NULL,                                             -- No pending until
+    NOW(),                                            -- Created now
+    NOW()                                             -- Updated now
+);
+
+-- Step 2: Insert root member record
 INSERT INTO public.members (
     wallet_address,
     referrer_wallet,
@@ -63,7 +90,7 @@ ON CONFLICT (key) DO UPDATE SET
     value = EXCLUDED.value,
     updated_at = NOW();
 
--- Step 3: Display confirmation
+-- Step 4: Display confirmation
 SELECT 
     'Root member created successfully!' as message,
     wallet_address,
