@@ -2,15 +2,14 @@ import {
   userActivities,
   users,
   members,
-  referrals,
+  memberReferralTree,
   cthBalances,
   userNotifications,
   type UserActivity,
   type InsertUserActivity,
   type User,
   type UserNotification,
-  type InsertUserNotification,
-  type Referral
+  type InsertUserNotification
 } from "@shared/schema";
 import { db } from "../../db";
 import { eq, desc, sql, and, isNull, not, count } from "drizzle-orm";
@@ -395,18 +394,19 @@ export class StorageService {
     rootWallet: string;
     memberWallet: string;
     layer: number;
-    position: string;
+    position: number;
+    zone: string;
     parentWallet: string | null;
     placerWallet: string;
     placementType: string;
-    isActive: boolean;
+    isActivePosition: boolean;
     placedAt: Date;
   }>> {
     try {
       const referralData = await db
         .select()
-        .from(referrals)
-        .where(eq(referrals.rootWallet, walletAddress.toLowerCase()));
+        .from(memberReferralTree)
+        .where(eq(memberReferralTree.rootWallet, walletAddress.toLowerCase()));
       
       return referralData.map(r => ({
         id: r.id,
@@ -414,10 +414,11 @@ export class StorageService {
         memberWallet: r.memberWallet,
         layer: r.layer,
         position: r.position,
+        zone: r.zone,
         parentWallet: r.parentWallet,
         placerWallet: r.placerWallet,
         placementType: r.placementType,
-        isActive: r.isActive,
+        isActivePosition: r.isActivePosition,
         placedAt: r.placedAt
       }));
     } catch (error) {
@@ -455,24 +456,31 @@ export class StorageService {
     rootWallet: string;
     memberWallet: string;
     layer: number;
-    position: string;
+    position: number;
+    zone: string;
     parentWallet?: string;
+    parentPosition?: number;
     placerWallet: string;
     placementType: string;
-    isActive: boolean;
+    isActivePosition: boolean;
+    registrationOrder: number;
   }) {
     try {
       const [newReferral] = await db
-        .insert(referrals)
+        .insert(memberReferralTree)
         .values({
           rootWallet: data.rootWallet.toLowerCase(),
           memberWallet: data.memberWallet.toLowerCase(),
           layer: data.layer,
           position: data.position,
+          zone: data.zone,
           parentWallet: data.parentWallet?.toLowerCase() || null,
+          parentPosition: data.parentPosition || null,
           placerWallet: data.placerWallet.toLowerCase(),
           placementType: data.placementType,
-          isActive: data.isActive
+          isActivePosition: data.isActivePosition,
+          memberActivated: false,
+          registrationOrder: data.registrationOrder
         })
         .returning();
       
@@ -487,19 +495,42 @@ export class StorageService {
     try {
       const referralData = await this.getReferrals(rootWallet);
       
-      // Find first available position in Layer 1
+      // Find first available position starting from Layer 1
       for (let layer = 1; layer <= 19; layer++) {
         const layerReferrals = referralData.filter(r => r.layer === layer);
         const maxPositions = Math.pow(3, layer);
         
         if (layerReferrals.length < maxPositions) {
-          const positions = ['L', 'M', 'R'];
-          for (const position of positions) {
+          // Find the first available position in this layer
+          for (let position = 0; position < maxPositions; position++) {
             if (!layerReferrals.some(r => r.position === position)) {
+              // Determine zone based on position
+              let zone: string;
+              let parentPosition: number | null = null;
+              
+              if (layer === 1) {
+                zone = position === 0 ? 'L' : position === 1 ? 'M' : 'R';
+              } else {
+                // For layers > 1, calculate zone and parent position
+                const zoneSize = Math.pow(3, layer - 1);
+                if (position < zoneSize) {
+                  zone = 'L';
+                  parentPosition = Math.floor(position / 3);
+                } else if (position < 2 * zoneSize) {
+                  zone = 'M';
+                  parentPosition = Math.floor((position - zoneSize) / 3) + zoneSize / 3;
+                } else {
+                  zone = 'R';
+                  parentPosition = Math.floor((position - 2 * zoneSize) / 3) + (2 * zoneSize) / 3;
+                }
+              }
+              
               return {
                 layer,
                 position,
-                parentWallet: layer === 1 ? rootWallet : layerReferrals[0]?.memberWallet || rootWallet
+                zone,
+                parentPosition,
+                parentWallet: layer === 1 ? rootWallet : layerReferrals.find(r => r.position === parentPosition)?.memberWallet || rootWallet
               };
             }
           }

@@ -1,5 +1,5 @@
 import { db } from '../../db';
-import { referrals, users, members } from '@shared/schema';
+import { memberReferralTree, users, members } from '@shared/schema';
 import { eq, and, inArray, count } from 'drizzle-orm';
 
 export interface MatrixPlacement {
@@ -40,10 +40,10 @@ export class MatrixPlacementService {
     // 检查会员是否已经在此推荐者的矩阵中
     const [existingPlacement] = await db
       .select()
-      .from(referrals)
+      .from(memberReferralTree)
       .where(and(
-        eq(referrals.rootWallet, referrer),
-        eq(referrals.memberWallet, member)
+        eq(memberReferralTree.rootWallet, referrer),
+        eq(memberReferralTree.memberWallet, member)
       ));
 
     if (existingPlacement) {
@@ -86,10 +86,10 @@ export class MatrixPlacementService {
     // 获取Layer 1的现有成员
     const layer1Members = await db
       .select()
-      .from(referrals)
+      .from(memberReferralTree)
       .where(and(
-        eq(referrals.rootWallet, rootWallet),
-        eq(referrals.layer, 1)
+        eq(memberReferralTree.rootWallet, rootWallet),
+        eq(memberReferralTree.layer, 1)
       ));
 
     // 检查L、M、R位置的可用性
@@ -135,10 +135,10 @@ export class MatrixPlacementService {
 
       const children = await db
         .select()
-        .from(referrals)
+        .from(memberReferralTree)
         .where(and(
-          eq(referrals.rootWallet, rootWallet),
-          eq(referrals.parentWallet, current.wallet)
+          eq(memberReferralTree.rootWallet, rootWallet),
+          eq(memberReferralTree.parentWallet, current.wallet)
         ));
 
       const occupiedPositions = children.map(c => c.position);
@@ -201,10 +201,10 @@ export class MatrixPlacementService {
       // 计算团队总数
       const [totalTeamResult] = await db
         .select({ count: count() })
-        .from(referrals)
+        .from(memberReferralTree)
         .where(and(
-          eq(referrals.rootWallet, rootWallet),
-          eq(referrals.isActive, true)
+          eq(memberReferralTree.rootWallet, rootWallet),
+          eq(memberReferralTree.isActivePosition, true)
         ));
 
       const totalTeamSize = totalTeamResult.count || 0;
@@ -212,11 +212,11 @@ export class MatrixPlacementService {
       // 计算直推数量（Layer 1的成员数）
       const [directReferralsResult] = await db
         .select({ count: count() })
-        .from(referrals)
+        .from(memberReferralTree)
         .where(and(
-          eq(referrals.rootWallet, rootWallet),
-          eq(referrals.layer, 1),
-          eq(referrals.isActive, true)
+          eq(memberReferralTree.rootWallet, rootWallet),
+          eq(memberReferralTree.layer, 1),
+          eq(memberReferralTree.isActivePosition, true)
         ));
 
       const directReferrals = directReferralsResult.count || 0;
@@ -247,10 +247,10 @@ export class MatrixPlacementService {
   } | null> {
     const [placement] = await db
       .select()
-      .from(referrals)
+      .from(memberReferralTree)
       .where(and(
-        eq(referrals.rootWallet, rootWallet.toLowerCase()),
-        eq(referrals.memberWallet, memberWallet.toLowerCase())
+        eq(memberReferralTree.rootWallet, rootWallet.toLowerCase()),
+        eq(memberReferralTree.memberWallet, memberWallet.toLowerCase())
       ));
 
     if (!placement) return null;
@@ -271,10 +271,10 @@ export class MatrixPlacementService {
       // 获取所有团队成员
       const teamMembers = await db
         .select()
-        .from(referrals)
+        .from(memberReferralTree)
         .where(and(
-          eq(referrals.rootWallet, rootWallet.toLowerCase()),
-          eq(referrals.isActive, true)
+          eq(memberReferralTree.rootWallet, rootWallet.toLowerCase()),
+          eq(memberReferralTree.isActivePosition, true)
         ));
 
       // 统计各层人数
@@ -316,11 +316,11 @@ export class MatrixPlacementService {
   }>> {
     const members = await db
       .select()
-      .from(referrals)
+      .from(memberReferralTree)
       .where(and(
-        eq(referrals.rootWallet, rootWallet.toLowerCase()),
-        eq(referrals.layer, layer),
-        eq(referrals.isActive, true)
+        eq(memberReferralTree.rootWallet, rootWallet.toLowerCase()),
+        eq(memberReferralTree.layer, layer),
+        eq(memberReferralTree.isActivePosition, true)
       ));
 
     return members.map(member => ({
