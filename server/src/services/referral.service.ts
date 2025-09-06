@@ -1,41 +1,39 @@
 import { 
-  referrals,
-  type Referral,
-  type InsertReferral 
+  memberReferralTree
 } from "@shared/schema";
 import { db } from "../../db";
 import { eq, and, sql } from "drizzle-orm";
 
 export class ReferralService {
   // Referral operations - individual trees per referrer
-  async getReferrals(rootWallet: string): Promise<Referral[]> {
+  async getReferrals(rootWallet: string): Promise<typeof memberReferralTree.$inferSelect[]> {
     return await db
       .select()
-      .from(referrals)
-      .where(eq(referrals.rootWallet, rootWallet))
-      .orderBy(referrals.layer, referrals.position);
+      .from(memberReferralTree)
+      .where(eq(memberReferralTree.rootWallet, rootWallet))
+      .orderBy(memberReferralTree.layer, memberReferralTree.position);
   }
 
-  async getReferralsByMember(memberWallet: string): Promise<Referral[]> {
+  async getReferralsByMember(memberWallet: string): Promise<typeof memberReferralTree.$inferSelect[]> {
     return await db
       .select()
-      .from(referrals)
-      .where(eq(referrals.memberWallet, memberWallet));
+      .from(memberReferralTree)
+      .where(eq(memberReferralTree.memberWallet, memberWallet));
   }
 
-  async createReferral(referral: InsertReferral): Promise<Referral> {
+  async createReferral(referral: typeof memberReferralTree.$inferInsert): Promise<typeof memberReferralTree.$inferSelect> {
     const [newReferral] = await db
-      .insert(referrals)
+      .insert(memberReferralTree)
       .values(referral)
       .returning();
     return newReferral;
   }
 
-  async updateReferral(id: string, updates: Partial<Referral>): Promise<Referral | undefined> {
+  async updateReferral(id: string, updates: Partial<typeof memberReferralTree.$inferSelect>): Promise<typeof memberReferralTree.$inferSelect | undefined> {
     const [updatedReferral] = await db
-      .update(referrals)
+      .update(memberReferralTree)
       .set(updates)
-      .where(eq(referrals.id, id))
+      .where(eq(memberReferralTree.id, id))
       .returning();
     return updatedReferral || undefined;
   }
@@ -49,11 +47,11 @@ export class ReferralService {
     // Check for available positions in the target layer
     const existingPositions = await db
       .select()
-      .from(referrals)
+      .from(memberReferralTree)
       .where(and(
-        eq(referrals.rootWallet, rootWallet),
-        eq(referrals.layer, targetLayer),
-        eq(referrals.isActive, true)
+        eq(memberReferralTree.rootWallet, rootWallet),
+        eq(memberReferralTree.layer, targetLayer),
+        eq(memberReferralTree.isActive, true)
       ));
 
     // Calculate max positions for this layer (3^layer)
@@ -86,11 +84,11 @@ export class ReferralService {
   async getDirectReferralCount(walletAddress: string): Promise<number> {
     const [result] = await db
       .select({ count: sql<number>`count(*)` })
-      .from(referrals)
+      .from(memberReferralTree)
       .where(and(
-        eq(referrals.rootWallet, walletAddress),
-        eq(referrals.layer, 1), // Direct referrals are in layer 1
-        eq(referrals.isActive, true)
+        eq(memberReferralTree.rootWallet, walletAddress),
+        eq(memberReferralTree.layer, 1), // Direct referrals are in layer 1
+        eq(memberReferralTree.isActive, true)
       ));
     
     return result.count || 0;

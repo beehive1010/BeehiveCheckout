@@ -1,7 +1,7 @@
 import { Express } from 'express';
 import { storage } from '../services/storage.service';
 import { db } from '../../db';
-import { memberMatrixView, referrals, userRewards, rewardDistributions } from '@shared/schema';
+import { memberMatrixSummary, memberReferralTree, userRewards, rewardDistributions } from '@shared/schema';
 import { eq, count, sum, and } from 'drizzle-orm';
 
 // Helper functions to get real stats from database
@@ -10,21 +10,21 @@ async function getMatrixStats(walletAddress: string) {
     // Get direct referrals count
     const directReferrals = await db
       .select({ count: count() })
-      .from(referrals)
-      .where(eq(referrals.rootWallet, walletAddress.toLowerCase()));
+      .from(memberReferralTree)
+      .where(eq(memberReferralTree.rootWallet, walletAddress.toLowerCase()));
     
     // Try to get matrix view data for total downline
     let totalDownline = 0;
     try {
       const [matrixData] = await db
         .select()
-        .from(memberMatrixView)
-        .where(eq(memberMatrixView.rootWallet, walletAddress.toLowerCase()))
+        .from(memberMatrixSummary)
+        .where(eq(memberMatrixSummary.rootWallet, walletAddress.toLowerCase()))
         .limit(1);
       
       totalDownline = matrixData?.totalMembers || 0;
     } catch (error) {
-      // If memberMatrixView doesn't exist, use direct referrals as fallback
+      // If memberMatrixSummary doesn't exist, use direct referrals as fallback
       totalDownline = directReferrals[0]?.count || 0;
     }
     
@@ -79,8 +79,8 @@ async function getReferralStats(walletAddress: string) {
     // Get direct referrals
     const directReferrals = await db
       .select({ count: count() })
-      .from(referrals)
-      .where(eq(referrals.rootWallet, walletAddress.toLowerCase()));
+      .from(memberReferralTree)
+      .where(eq(memberReferralTree.rootWallet, walletAddress.toLowerCase()));
     
     // For now, use direct referrals as total team (could be expanded with recursive query)
     const totalTeam = directReferrals[0]?.count || 0;
@@ -163,32 +163,32 @@ export function registerDashboardRoutes(app: Express) {
     }
   });
 
-  // Get user matrix data - 19 layer referral structure (enhanced with memberMatrixView)
+  // Get user matrix data - 19 layer referral structure (enhanced with memberMatrixSummary)
   app.get("/api/dashboard/matrix", requireWallet, async (req: any, res) => {
     try {
       const walletAddress = req.headers['x-wallet-address'] as string;
       
       console.log('🔗 Fetching matrix data for:', walletAddress);
 
-      // Try to get memberMatrixView data first (high-performance view)
+      // Try to get memberMatrixSummary data first (high-performance view)
       let memberMatrixData = null;
       try {
         [memberMatrixData] = await db
           .select()
-          .from(memberMatrixView)
-          .where(eq(memberMatrixView.rootWallet, walletAddress.toLowerCase()))
+          .from(memberMatrixSummary)
+          .where(eq(memberMatrixSummary.rootWallet, walletAddress.toLowerCase()))
           .limit(1);
       } catch (error) {
-        console.error('memberMatrixView table not found, using referrals table:', (error as Error).message);
+        console.error('memberMatrixSummary table not found, using referrals table:', (error as Error).message);
       }
 
-      // If no memberMatrixView data, build from referrals table
+      // If no memberMatrixSummary data, build from referrals table
       if (!memberMatrixData) {
         try {
           const referralData = await db
             .select()
-            .from(referrals)
-            .where(eq(referrals.rootWallet, walletAddress.toLowerCase()));
+            .from(memberReferralTree)
+            .where(eq(memberReferralTree.rootWallet, walletAddress.toLowerCase()));
           
           console.log(`📊 Found ${referralData.length} referrals for ${walletAddress}`);
           
@@ -228,7 +228,7 @@ export function registerDashboardRoutes(app: Express) {
         }
       }
 
-      // Enhanced response with memberMatrixView data and sample data for demonstration
+      // Enhanced response with memberMatrixSummary data and sample data for demonstration
       const matrixResponse = {
         // Traditional format for compatibility
         userPosition: {
@@ -252,7 +252,7 @@ export function registerDashboardRoutes(app: Express) {
             })) : []
         })),
         
-        // NEW: memberMatrixView efficient data structure
+        // NEW: memberMatrixSummary efficient data structure
         memberMatrixData: memberMatrixData ? {
           layerData: memberMatrixData.layerData,
           totalMembers: memberMatrixData.totalMembers,

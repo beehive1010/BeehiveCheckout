@@ -1,22 +1,14 @@
 import { 
   rewardClaims,
-  rewardRollups,
-  userRewards,
-  type RewardClaim,
-  type InsertRewardClaim,
-  type RewardRollup,
-  type InsertRewardRollup,
-  type UserReward,
-  type InsertUserReward,
-  type RewardWithdrawal,
-  type InsertRewardWithdrawal
+  rollUpRecords,
+  userRewards
 } from "@shared/schema";
 import { db } from "../../db";
 import { eq, and, lt, isNull } from "drizzle-orm";
 
 export class RewardService {
   // Reward claims operations - replaces earnings wallet
-  async getRewardClaims(recipientWallet: string): Promise<RewardClaim[]> {
+  async getRewardClaims(recipientWallet: string): Promise<typeof rewardClaims.$inferSelect[]> {
     return await db
       .select()
       .from(rewardClaims)
@@ -24,7 +16,7 @@ export class RewardService {
       .orderBy(rewardClaims.createdAt);
   }
 
-  async createRewardClaim(claim: InsertRewardClaim): Promise<RewardClaim> {
+  async createRewardClaim(claim: typeof rewardClaims.$inferInsert): Promise<typeof rewardClaims.$inferSelect> {
     const [newClaim] = await db
       .insert(rewardClaims)
       .values(claim)
@@ -32,7 +24,7 @@ export class RewardService {
     return newClaim;
   }
 
-  async updateRewardClaim(id: string, updates: Partial<RewardClaim>): Promise<RewardClaim | undefined> {
+  async updateRewardClaim(id: string, updates: Partial<typeof rewardClaims.$inferSelect>): Promise<RewardClaim | undefined> {
     const [updatedClaim] = await db
       .update(rewardClaims)
       .set(updates)
@@ -41,7 +33,7 @@ export class RewardService {
     return updatedClaim || undefined;
   }
 
-  async getPendingRewardClaims(): Promise<RewardClaim[]> {
+  async getPendingRewardClaims(): Promise<typeof rewardClaims.$inferSelect[]> {
     return await db
       .select()
       .from(rewardClaims)
@@ -51,7 +43,7 @@ export class RewardService {
       ));
   }
 
-  async getExpiredRewardClaims(): Promise<RewardClaim[]> {
+  async getExpiredRewardClaims(): Promise<typeof rewardClaims.$inferSelect[]> {
     return await db
       .select()
       .from(rewardClaims)
@@ -62,24 +54,24 @@ export class RewardService {
   }
 
   // Reward rollups operations
-  async getRewardRollups(walletAddress: string): Promise<RewardRollup[]> {
+  async getRewardRollups(walletAddress: string): Promise<typeof rollUpRecords.$inferSelect[]> {
     return await db
       .select()
-      .from(rewardRollups)
-      .where(eq(rewardRollups.originalRecipient, walletAddress))
-      .orderBy(rewardRollups.createdAt);
+      .from(rollUpRecords)
+      .where(eq(rollUpRecords.originalRecipient, walletAddress))
+      .orderBy(rollUpRecords.createdAt);
   }
 
-  async createRewardRollup(rollup: InsertRewardRollup): Promise<RewardRollup> {
+  async createRewardRollup(rollup: typeof rollUpRecords.$inferInsert): Promise<typeof rollUpRecords.$inferSelect> {
     const [newRollup] = await db
-      .insert(rewardRollups)
+      .insert(rollUpRecords)
       .values(rollup)
       .returning();
     return newRollup;
   }
 
   // User rewards operations
-  async createUserReward(data: InsertUserReward): Promise<UserReward> {
+  async createUserReward(data: InsertUserReward): Promise<typeof userRewards.$inferSelect> {
     const [newReward] = await db
       .insert(userRewards)
       .values(data)
@@ -87,7 +79,7 @@ export class RewardService {
     return newReward;
   }
 
-  async getUserRewardsByRecipient(recipientWallet: string): Promise<UserReward[]> {
+  async getUserRewardsByRecipient(recipientWallet: string): Promise<typeof userRewards.$inferSelect[]> {
     return await db
       .select()
       .from(userRewards)
@@ -95,7 +87,7 @@ export class RewardService {
       .orderBy(userRewards.createdAt);
   }
 
-  async getUserRewardsBySource(sourceWallet: string): Promise<UserReward[]> {
+  async getUserRewardsBySource(sourceWallet: string): Promise<typeof userRewards.$inferSelect[]> {
     return await db
       .select()
       .from(userRewards)
@@ -103,7 +95,7 @@ export class RewardService {
       .orderBy(userRewards.createdAt);
   }
 
-  async getPendingUserRewards(): Promise<UserReward[]> {
+  async getPendingUserRewards(): Promise<typeof userRewards.$inferSelect[]> {
     return await db
       .select()
       .from(userRewards)
@@ -129,7 +121,7 @@ export class RewardService {
       .where(eq(userRewards.id, id));
   }
 
-  async getUserRewardsExpiredBefore(date: Date): Promise<UserReward[]> {
+  async getUserRewardsExpiredBefore(date: Date): Promise<typeof userRewards.$inferSelect[]> {
     return await db
       .select()
       .from(userRewards)

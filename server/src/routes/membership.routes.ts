@@ -6,7 +6,7 @@ import { globalMatrixService } from '../services/global-matrix.service';
 import { rewardDistributionService } from '../services/reward-distribution.service';
 import { db } from '../../db';
 import { 
-  referrals, 
+  memberReferralTree, 
   platformRevenue, 
   memberActivations, 
   memberNFTVerification, 
@@ -288,8 +288,8 @@ export function registerMembershipRoutes(app: Express, requireWallet: any) {
       // Get direct referral count
       const directReferrals = await db
         .select({ count: count() })
-        .from(referrals)
-        .where(eq(referrals.rootWallet, walletAddress.toLowerCase()));
+        .from(memberReferralTree)
+        .where(eq(memberReferralTree.rootWallet, walletAddress.toLowerCase()));
       
       const directReferralCount = directReferrals[0]?.count || 0;
       

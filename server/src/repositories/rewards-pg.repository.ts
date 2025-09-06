@@ -1,5 +1,5 @@
 import { db } from '../../db';
-import { userRewards, rewardNotifications } from '@shared/schema';
+import { userRewards, userNotifications } from '@shared/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 
 export interface UserReward {
