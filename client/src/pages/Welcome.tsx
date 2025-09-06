@@ -93,7 +93,7 @@ export default function Welcome() {
       // ERC1155 Edition Drop claiming
       // Level 1 = Token ID 1, Level 2 = Token ID 2, etc.
       const targetLevel = claimData.targetLevel || 1;
-      const tokenId = targetLevel; // Level maps directly to token ID
+      const tokenId = getLevelTokenId(targetLevel);
       
       console.log(`Claiming Level ${targetLevel} BBC Membership NFT (Token ID ${tokenId}) on ${chainName}`);
       console.log('Contract address:', contract.address);
@@ -126,8 +126,8 @@ export default function Welcome() {
       });
       
       toast({
-        title: "Transaction Sent!",
-        description: `Transaction hash: ${txResult.transactionHash}`,
+        title: "🎉 NFT Claim Transaction Sent!",
+        description: `Level ${targetLevel} BBC Membership NFT (Token ID ${tokenId}) - TX: ${txResult.transactionHash.slice(0, 10)}...`,
       });
       
       // Wait for transaction confirmation
@@ -144,19 +144,27 @@ export default function Welcome() {
       
       return {
         success: true,
-        message: `Level 1 BBC Membership NFT successfully claimed on ${chainName}!`,
+        message: `Level ${targetLevel} BBC Membership NFT (Token ID ${tokenId}) successfully claimed on ${chainName}!`,
         transactionHash: txResult.transactionHash,
-        chainName
+        chainName,
+        level: targetLevel,
+        tokenId: tokenId
       };
       
     } catch (error: any) {
       console.error('On-chain claim error:', error);
       
-      // Handle specific wallet errors
+      // Handle specific errors
       if (error.message?.includes('User rejected') || error.message?.includes('denied')) {
         throw new Error('Transaction was rejected by user');
       } else if (error.message?.includes('insufficient funds')) {
         throw new Error('Insufficient funds for gas fees');
+      } else if (error.message?.includes('already claimed') || error.message?.includes('Already claimed')) {
+        throw new Error('You have already claimed this NFT level');
+      } else if (error.message?.includes('not eligible')) {
+        throw new Error('You are not eligible to claim this NFT');
+      } else if (error.message?.includes('exceed')) {
+        throw new Error('Claiming would exceed the allowed limit');
       } else {
         throw new Error(error.message || 'Failed to claim NFT on-chain');
       }
