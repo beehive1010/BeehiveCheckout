@@ -3,17 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { useToast } from '../../hooks/use-toast';
-import { Loader2, Crown, Gift, ArrowRight, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
+import { Loader2, Crown, Gift, ArrowRight, Clock } from 'lucide-react';
 import { useWallet } from '../../hooks/useWallet';
-import { authService, nftService, memberService } from '../../lib/supabaseClient';
+import { nftService, memberService } from '../../lib/supabaseClient';
 import { useI18n } from '../../contexts/I18nContext';
-
-interface WelcomePageProps {
-  onActivationComplete: () => void;
-}
+import { useLocation } from 'wouter';
 
 interface NFTClaimState {
-  isEligible: boolean;
   nftLevel: number;
   priceUsdc: number;
   activationFee: number;
@@ -22,17 +18,15 @@ interface NFTClaimState {
   bccUnlockAmount: number;
 }
 
-export default function WelcomePage({ onActivationComplete }: WelcomePageProps) {
-  const { walletAddress, isConnected } = useWallet();
+export default function WelcomePage() {
+  const { walletAddress } = useWallet();
   const { toast } = useToast();
   const { t } = useI18n();
+  const [, setLocation] = useLocation();
   
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [userExists, setUserExists] = useState(false);
-  const [isAlreadyMember, setIsAlreadyMember] = useState(false);
   const [claimState, setClaimState] = useState<NFTClaimState>({
-    isEligible: false,
     nftLevel: 1,
     priceUsdc: 100,
     activationFee: 30,
@@ -42,35 +36,16 @@ export default function WelcomePage({ onActivationComplete }: WelcomePageProps) 
   });
 
   useEffect(() => {
-    if (walletAddress && isConnected) {
-      checkUserAndMemberStatus();
+    if (walletAddress) {
+      loadNFTClaimData();
     }
-  }, [walletAddress, isConnected]);
+  }, [walletAddress]);
 
-  const checkUserAndMemberStatus = async () => {
+  const loadNFTClaimData = async () => {
     if (!walletAddress) return;
 
     setIsLoading(true);
     try {
-      // Check if user exists
-      const { exists } = await authService.userExists(walletAddress);
-      setUserExists(exists);
-
-      if (!exists) {
-        setIsLoading(false);
-        return; // User needs to register first
-      }
-
-      // Check if already an activated member
-      const { isActivated } = await authService.isActivatedMember(walletAddress);
-      setIsAlreadyMember(isActivated);
-
-      if (isActivated) {
-        // User is already activated, redirect to dashboard
-        onActivationComplete();
-        return;
-      }
-
       // Get NFT level 1 information
       const { data: nftLevel1 } = await nftService.getNFTLevel(1);
       
@@ -79,7 +54,6 @@ export default function WelcomePage({ onActivationComplete }: WelcomePageProps) 
 
       if (nftLevel1) {
         setClaimState({
-          isEligible: true,
           nftLevel: 1,
           priceUsdc: nftLevel1.price_usdc,
           activationFee: 30, // Platform activation fee
@@ -90,7 +64,7 @@ export default function WelcomePage({ onActivationComplete }: WelcomePageProps) 
       }
 
     } catch (error) {
-      console.error('Error checking user status:', error);
+      console.error('Error loading NFT claim data:', error);
       toast({
         title: t('welcome.errorLoading'),
         description: t('welcome.pleaseRefresh'),
@@ -144,7 +118,7 @@ export default function WelcomePage({ onActivationComplete }: WelcomePageProps) 
 
         // Activation complete, redirect to dashboard
         setTimeout(() => {
-          onActivationComplete();
+          setLocation('/dashboard');
         }, 2000);
       } else {
         throw new Error(result.error || 'Activation failed');
@@ -162,58 +136,13 @@ export default function WelcomePage({ onActivationComplete }: WelcomePageProps) 
     }
   };
 
-  if (!isConnected || !walletAddress) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card className="max-w-md mx-auto">
-          <CardContent className="pt-6 text-center">
-            <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">{t('welcome.walletRequired')}</h3>
-            <p className="text-muted-foreground">{t('welcome.pleaseConnect')}</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Card className="max-w-md mx-auto">
           <CardContent className="pt-6 text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p>{t('welcome.checkingStatus')}</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!userExists) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card className="max-w-md mx-auto">
-          <CardContent className="pt-6 text-center">
-            <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">{t('welcome.registrationRequired')}</h3>
-            <p className="text-muted-foreground mb-4">{t('welcome.pleaseRegister')}</p>
-            <Button onClick={() => window.location.href = '/register'}>
-              {t('welcome.goToRegistration')}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (isAlreadyMember) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card className="max-w-md mx-auto">
-          <CardContent className="pt-6 text-center">
-            <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">{t('welcome.alreadyActivated')}</h3>
-            <p className="text-muted-foreground mb-4">{t('welcome.redirectingToDashboard')}</p>
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-honey" />
+            <p className="text-honey">{t('welcome.checkingStatus') || 'Loading NFT data...'}</p>
           </CardContent>
         </Card>
       </div>
