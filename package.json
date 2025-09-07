@@ -6,9 +6,9 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite dev --host 0.0.0.0 --port 5000",
-    "build": "vite build",
-    "start": "vite preview --host 0.0.0.0 --port 3000",
-    "preview": "vite preview --host 0.0.0.0 --port 3000",
+    "build": "npm cache clean --force && timeout 600 npm install && vite build",
+    "start": "vite preview --host 0.0.0.0 --port 5000",
+    "preview": "vite preview --host 0.0.0.0 --port 5000",
     "check": "tsc",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",

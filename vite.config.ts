@@ -35,7 +35,7 @@ export default defineConfig({
     },
   },
   preview: {
-    port: process.env.NODE_ENV === 'production' ? 3000 : 5000,
+    port: 5000, // Single port for Autoscale deployment
     host: '0.0.0.0',
     allowedHosts: true,
     headers: {
@@ -43,6 +43,6 @@ export default defineConfig({
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
-    strictPort: false,
+    strictPort: true, // Required for Autoscale
   },
 });
