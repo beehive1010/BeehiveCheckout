@@ -44,19 +44,20 @@ export default function UserRegistration({
     
     setIsChecking(true);
     try {
-      const { exists } = await authService.userExists(walletAddress);
+      // Use Edge Function to check user existence
+      const { SupabaseApiClient } = await import('../../lib/supabase');
+      const apiClient = new SupabaseApiClient();
+      
+      const result = await apiClient.getUser(walletAddress);
+      const exists = result.success && result.isRegistered;
       setUserExists(exists);
       
-      if (exists) {
-        // Get existing user data
-        const { data: userData } = await authService.getUser(walletAddress);
-        if (userData) {
-          setFormData({
-            username: userData.username || '',
-            email: userData.email || '',
-          });
-          onRegistrationComplete(userData);
-        }
+      if (exists && result.user) {
+        setFormData({
+          username: result.user.username || '',
+          email: result.user.email || '',
+        });
+        onRegistrationComplete(result.user);
       }
     } catch (error) {
       console.error('Error checking user existence:', error);
@@ -117,16 +118,19 @@ export default function UserRegistration({
     setIsLoading(true);
 
     try {
-      // Register user in users table
-      const { data: userData, error } = await authService.registerUser(
+      // Use Edge Function for registration to bypass RLS
+      const { SupabaseApiClient } = await import('../../lib/supabase');
+      const apiClient = new SupabaseApiClient();
+      
+      const result = await apiClient.register(
         walletAddress,
+        referrerWallet,
         formData.username.trim(),
-        formData.email.trim(),
-        referrerWallet
+        formData.email.trim()
       );
 
-      if (error) {
-        throw new Error(error.message);
+      if (!result.success) {
+        throw new Error(result.error || 'Registration failed');
       }
 
       toast({
@@ -135,13 +139,23 @@ export default function UserRegistration({
       });
 
       // Call parent callback with user data
-      onRegistrationComplete(userData);
+      onRegistrationComplete(result.user);
 
     } catch (error: any) {
       console.error('Registration error:', error);
+      
+      // Handle specific error types
+      let errorMessage = error.message || t('auth.unknownError');
+      
+      if (errorMessage.includes('row-level security')) {
+        errorMessage = 'Registration service temporarily unavailable. Please try again.';
+      } else if (errorMessage.includes('already exists')) {
+        errorMessage = 'Account already exists. Please proceed to login.';
+      }
+      
       toast({
         title: t('auth.registrationFailed'),
-        description: error.message || t('auth.unknownError'),
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
