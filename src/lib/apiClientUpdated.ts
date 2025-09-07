@@ -437,6 +437,47 @@ export class UpdatedApiClient {
     return this.makeRequest(endpoint);
   }
 
+  // Multi-Chain Payment API methods
+  async recordMultiChainPayment(paymentData: {
+    transactionHash: string;
+    chainId: number;
+    amount: number;
+    payerAddress: string;
+    paymentPurpose: string;
+    fees: any;
+    status: string;
+    level?: number;
+    referenceId?: string;
+  }): Promise<ApiResponse> {
+    return this.makeRequest('multi-chain-payment/record', {
+      method: 'POST',
+      body: JSON.stringify(paymentData)
+    });
+  }
+
+  async createBridgeRequest(bridgeData: {
+    sourceChainId: number;
+    targetChainId: number;
+    amount: number;
+    transactionHash: string;
+    payerAddress: string;
+    paymentPurpose: string;
+    bridgeTransactionId: string;
+  }): Promise<ApiResponse> {
+    return this.makeRequest('multi-chain-payment/bridge', {
+      method: 'POST',
+      body: JSON.stringify(bridgeData)
+    });
+  }
+
+  async getMultiChainTransactions(walletAddress: string): Promise<ApiResponse> {
+    return this.makeRequest(`multi-chain-payment/history?wallet=${walletAddress}`);
+  }
+
+  async getBridgeStatus(bridgeTransactionId: string): Promise<ApiResponse> {
+    return this.makeRequest(`multi-chain-payment/bridge-status?id=${bridgeTransactionId}`);
+  }
+
   // Legacy API methods for backward compatibility
   async authenticateUser(walletAddress: string): Promise<ApiResponse> {
     return this.makeRequest('auth', {
