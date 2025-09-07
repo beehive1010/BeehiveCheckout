@@ -62,10 +62,15 @@ export const authService = {
       }, walletAddress);
 
       if (!result.success) {
-        throw new Error(result.error || 'Registration failed');
+        throw new Error(result.error || result.message || 'Registration failed');
       }
 
-      return { data: result.user, error: null };
+      // Handle both new registration and existing user cases
+      return { 
+        data: result.user, 
+        error: null,
+        isExisting: result.action === 'exists'
+      };
     } catch (error: any) {
       console.error('Registration error:', error);
       return { data: null, error: { message: error.message } };

@@ -70,14 +70,32 @@ async function registerUser(supabase, walletAddress, data) {
   // 检查用户是否已存在
   const { data: existingUser } = await supabase
     .from('users')
-    .select('wallet_address')
+    .select(`
+      wallet_address,
+      referrer_wallet,
+      username,
+      email,
+      current_level,
+      is_upgraded,
+      upgrade_timer_enabled,
+      created_at,
+      updated_at
+    `)
     .eq('wallet_address', walletAddress)
     .single();
 
   if (existingUser) {
+    // 隐藏根钱包地址
+    const ROOT_WALLET = '0x0000000000000000000000000000000000000001';
+    const sanitizedUser = {
+      ...existingUser,
+      referrer_wallet: existingUser?.referrer_wallet === ROOT_WALLET ? null : existingUser?.referrer_wallet,
+    };
+
     return {
-      success: false,
+      success: true,
       action: 'exists',
+      user: sanitizedUser,
       message: '用户已存在'
     };
   }

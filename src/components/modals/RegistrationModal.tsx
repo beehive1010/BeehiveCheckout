@@ -85,7 +85,7 @@ export default function RegistrationModal({
 
     try {
       // Register user with Supabase
-      const { data, error } = await authService.registerUser(
+      const { data, error, isExisting } = await authService.registerUser(
         walletAddress,
         formData.username.trim(),
         formData.email.trim() || undefined,
@@ -97,8 +97,8 @@ export default function RegistrationModal({
       }
 
       toast({
-        title: t('registration.success'),
-        description: t('registration.welcomeMessage'),
+        title: isExisting ? '欢迎回来' : t('registration.success'),
+        description: isExisting ? '账户已存在，无需重复注册' : t('registration.welcomeMessage'),
       });
 
       // Clear form and close modal
