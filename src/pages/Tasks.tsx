@@ -66,8 +66,8 @@ export default function Tasks() {
     },
   });
 
-  // Enhanced NFT claim function with three network options
-  const handleClaim = async (claimMethod: 'database_test' | 'testnet_arb_sepolia' | 'mainnet_arb_one') => {
+  // Enhanced NFT claim function for specific levels
+  const handleClaimLevel = async (level: number) => {
     if (!walletAddress) {
       toast({
         title: "Wallet Required",
@@ -77,82 +77,30 @@ export default function Tasks() {
       return;
     }
 
-    setClaimState({ method: claimMethod, loading: true, error: null });
+    const tokenId = level;
+    const basePrice = level * 100;
+
+    setClaimState({ method: `level_${level}`, loading: true, error: null });
 
     try {
-      let claimData = {};
-      let networkInfo = {};
-
-      switch (claimMethod) {
-        case 'database_test':
-          claimData = {
-            claimMethod: 'demo',
-            referrerWallet: null,
-            transactionHash: 'database_test_' + Date.now(),
-            mintTxHash: 'test_mint_' + Date.now(),
-            isOffChain: true,
-            targetLevel: 1,
-            tokenId: 1
-          };
-          networkInfo = {
-            name: 'Off-Chain Database Test',
-            description: 'No blockchain transaction - database only',
-            color: 'green'
-          };
-          break;
-
-        case 'testnet_arb_sepolia':
-          claimData = {
-            claimMethod: 'testnet_purchase',
-            referrerWallet: null,
-            network: 'arbitrum-sepolia',
-            tokenContract: '0xTestFakeUSDTContract',
-            amount: '100000000', // 100 fake USDT (6 decimals)
-            chainId: 421614, // Arbitrum Sepolia
-            transactionHash: 'testnet_tx_' + Date.now(),
-            mintTxHash: 'testnet_mint_' + Date.now(),
-            targetLevel: 1,
-            tokenId: 1
-          };
-          networkInfo = {
-            name: 'Testnet (Arbitrum Sepolia)',
-            description: 'Claim with fake USDT token - 100 fake USDT',
-            color: 'blue'
-          };
-          break;
-
-        case 'mainnet_arb_one':
-          claimData = {
-            claimMethod: 'mainnet_purchase',
-            referrerWallet: null,
-            network: 'arbitrum-one',
-            tokenContract: '0xA0b86a33E6441E8Ff8BBb5F0f1F4a90AC4Cd0a35', // USDC on Arbitrum One
-            amount: '100000000', // 100 USDC (6 decimals)
-            chainId: 42161, // Arbitrum One
-            bridgeUsed: true,
-            transactionHash: 'mainnet_tx_' + Date.now(),
-            mintTxHash: 'mainnet_mint_' + Date.now(),
-            targetLevel: 1,
-            tokenId: 1
-          };
-          networkInfo = {
-            name: 'Mainnet (Arbitrum One)',
-            description: 'Purchase with USDC via bridge - 100 USDC',
-            color: 'honey'
-          };
-          break;
-
-        default:
-          throw new Error('Invalid claim method');
-      }
+      const claimData = {
+        claimMethod: 'database_test', // Default to database test for demo
+        referrerWallet: null,
+        transactionHash: `level_${level}_tx_` + Date.now(),
+        mintTxHash: `level_${level}_mint_` + Date.now(),
+        isOffChain: true,
+        targetLevel: level,
+        tokenId: tokenId,
+        priceUsdc: basePrice
+      };
 
       toast({
-        title: `${networkInfo.name} Claim Started`,
-        description: networkInfo.description,
+        title: `Level ${level} Claim Started`,
+        description: `Claiming NFT Token ID ${tokenId} for $${basePrice} USDC`,
       });
 
-      // Call the enhanced NFT claim API
-      const response = await fetch('/api/auth/claim-nft-token-1', {
+      // Call the NFT claim API
+      const response = await fetch(`/api/auth/claim-nft-token-${tokenId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -165,17 +113,17 @@ export default function Tasks() {
 
       if (response.ok) {
         toast({
-          title: "🎉 Membership Activated!",
-          description: result.message,
+          title: `🎉 Level ${level} NFT Claimed!`,
+          description: `Successfully claimed Token ID ${tokenId}`,
           duration: 6000
         });
 
-        console.log('✅ Membership activation successful:', result);
+        console.log(`✅ Level ${level} claim successful:`, result);
         
         // Refresh the page data
         window.location.reload();
       } else {
-        throw new Error(result.error || 'Failed to claim NFT Token ID 1');
+        throw new Error(result.error || `Failed to claim NFT Token ID ${tokenId}`);
       }
     } catch (error: any) {
       console.error('Claim error:', error);
@@ -183,7 +131,7 @@ export default function Tasks() {
       
       toast({
         title: "Claim Failed",
-        description: error.message || 'Failed to claim NFT Token ID 1',
+        description: error.message || `Failed to claim Level ${level} NFT`,
         variant: "destructive"
       });
     } finally {
@@ -296,173 +244,95 @@ export default function Tasks() {
             </div>
           </div>
 
-          {/* Show claim options if user is not activated */}
-          {(!currentLevel || currentLevel === 0) ? (
-            <div className="space-y-6">
-              {/* Activation Instructions */}
-              <Card className="bg-gradient-to-r from-honey/10 via-honey/5 to-transparent border-honey/30">
-                <CardContent className="p-6">
-                  <div className="text-center">
-                    <h3 className="font-bold text-lg text-honey mb-2">
-                      Activate Your Membership
-                    </h3>
-                    <p className="text-muted-foreground">
-                      Choose your preferred network to claim NFT Token ID 1 and unlock Level 1 membership
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+          {/* Membership NFT Claim Grid - Token ID 1-19 */}
+          <div className="space-y-6">
+            {/* Instructions */}
+            <Card className="bg-gradient-to-r from-honey/10 via-honey/5 to-transparent border-honey/30">
+              <CardContent className="p-6">
+                <div className="text-center">
+                  <h3 className="font-bold text-lg text-honey mb-2">
+                    Claim Membership NFTs
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Choose any level to claim the corresponding NFT Token (Level 1-19)
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
 
-              {/* Three Claim Options */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Database Test Button - Off Chain */}
-                <Card className="border-green-500/20 hover:border-green-500/40 transition-colors">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-green-400">
-                      <TestTube className="h-5 w-5" />
-                      Database Test
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">
-                        Off-Chain
-                      </Badge>
-                      <p className="text-sm text-muted-foreground">
-                        Test activation with database-only recording. No blockchain transaction required.
-                      </p>
-                      <div className="text-lg font-semibold text-green-400">
-                        FREE
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        • No gas fees<br/>
-                        • Instant activation<br/>
-                        • Testing purposes
-                      </div>
-                    </div>
-                    <Button 
-                      onClick={() => handleClaim('database_test')}
-                      disabled={claimState.loading}
-                      className="w-full bg-green-500 hover:bg-green-500/90 text-black"
-                    >
-                      {claimState.loading && claimState.method === 'database_test' ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Activating...
-                        </>
-                      ) : (
-                        <>
-                          <TestTube className="mr-2 h-4 w-4" />
-                          Test Claim
-                        </>
+            {/* Membership Level Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {Array.from({ length: 19 }, (_, index) => {
+                const level = index + 1;
+                const tokenId = level;
+                const basePrice = level * 100; // Simple pricing: Level 1 = 100 USDC, Level 2 = 200 USDC, etc.
+                const isCurrentLevel = level === (currentLevel || 0);
+                const isAvailable = !currentLevel || level > currentLevel;
+                const isOwned = currentLevel && level <= currentLevel;
+                
+                return (
+                  <Button
+                    key={level}
+                    onClick={() => handleClaimLevel(level)}
+                    disabled={claimState.loading || isOwned}
+                    className={`h-auto flex-col gap-2 py-4 relative ${
+                      isCurrentLevel 
+                        ? 'bg-honey hover:bg-honey/90 text-black' 
+                        : isOwned 
+                        ? 'bg-green-500/20 border-green-500/30 text-green-400'
+                        : isAvailable
+                        ? 'border-honey/30 text-honey hover:bg-honey/10'
+                        : 'opacity-50'
+                    }`}
+                    variant={isCurrentLevel ? 'default' : 'outline'}
+                    data-testid={`button-claim-level-${level}`}
+                  >
+                    {/* Level Badge */}
+                    <div className="absolute top-2 right-2">
+                      {isOwned && (
+                        <Badge className="bg-green-500 text-white text-xs">
+                          Owned
+                        </Badge>
                       )}
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                {/* Testnet Button - Arbitrum Sepolia */}
-                <Card className="border-blue-500/20 hover:border-blue-500/40 transition-colors">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-blue-400">
-                      <Shield className="h-5 w-5" />
-                      Testnet Claim
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
-                        Arbitrum Sepolia
-                      </Badge>
-                      <p className="text-sm text-muted-foreground">
-                        Claim with fake USDT token on Arbitrum Sepolia testnet.
-                      </p>
-                      <div className="text-lg font-semibold text-blue-400">
-                        100 Fake USDT
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        • Testnet only<br/>
-                        • Free testnet ETH needed<br/>
-                        • Chain ID: 421614
-                      </div>
                     </div>
-                    <Button 
-                      onClick={() => handleClaim('testnet_arb_sepolia')}
-                      disabled={claimState.loading}
-                      className="w-full bg-blue-500 hover:bg-blue-500/90 text-white"
-                    >
-                      {claimState.loading && claimState.method === 'testnet_arb_sepolia' ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <Shield className="mr-2 h-4 w-4" />
-                          Testnet Claim
-                        </>
-                      )}
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                {/* Mainnet Button - Arbitrum One */}
-                <Card className="border-honey/20 hover:border-honey/40 transition-colors">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-honey">
-                      <CreditCard className="h-5 w-5" />
-                      Mainnet Purchase
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Badge variant="outline" className="bg-honey/10 text-honey border-honey/30">
-                        Arbitrum One
-                      </Badge>
-                      <p className="text-sm text-muted-foreground">
-                        Purchase with USDC via bridge on Arbitrum One mainnet.
-                      </p>
-                      <div className="text-lg font-semibold text-honey">
-                        100 USDC
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        • Real transaction<br/>
-                        • Bridge supported<br/>
-                        • Chain ID: 42161
-                      </div>
+                    
+                    {/* Level Number */}
+                    <div className="text-2xl font-bold">
+                      L{level}
                     </div>
-                    <Button 
-                      onClick={() => handleClaim('mainnet_arb_one')}
-                      disabled={claimState.loading}
-                      className="w-full bg-honey hover:bg-honey/90 text-black"
-                    >
-                      {claimState.loading && claimState.method === 'mainnet_arb_one' ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <CreditCard className="mr-2 h-4 w-4" />
-                          Purchase Now
-                        </>
-                      )}
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Network Information */}
-              <div className="text-center text-xs text-muted-foreground space-y-1">
-                <p>🎯 All methods activate Level 1 membership with NFT Token ID 1</p>
-                <p>💰 Rewards: 500 BCC transferable + 10,350 BCC locked + referral bonuses</p>
-                <p>🌐 Connected: {walletAddress?.slice(0, 8)}...{walletAddress?.slice(-6)}</p>
-              </div>
+                    
+                    {/* Token ID */}
+                    <div className="text-sm opacity-80">
+                      Token ID: {tokenId}
+                    </div>
+                    
+                    {/* Price */}
+                    <div className="text-lg font-semibold">
+                      ${basePrice} USDC
+                    </div>
+                    
+                    {/* Loading or Icon */}
+                    {claimState.loading && claimState.method === `level_${level}` ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : isOwned ? (
+                      <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                        ✓ Claimed
+                      </Badge>
+                    ) : (
+                      <Crown className="h-4 w-4" />
+                    )}
+                  </Button>
+                );
+              })}
             </div>
-          ) : (
-            <div className="space-y-6">
-              {/* Current Status for Activated Users */}
-              <Card className="bg-gradient-to-r from-honey/10 via-honey/5 to-transparent border-honey/30">
-                <CardContent className="p-6">
+
+            {/* Information Footer */}
+            <div className="text-center text-xs text-muted-foreground space-y-1 mt-6">
+              <p>🎯 Each level unlocks higher tier benefits and rewards</p>
+              <p>💰 BCC rewards scale with level: Level × 500 transferable + Level × 5000 locked</p>
+              <p>🌐 Connected: {walletAddress?.slice(0, 8)}...{walletAddress?.slice(-6)}</p>
+            </div>
+          </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <MembershipBadge level={currentLevel || 1} size="lg" showLabel />
