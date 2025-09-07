@@ -88,8 +88,8 @@ export default function Tasks() {
     }
 
     const tokenId = level;
-    // Progressive pricing: Level 1 = 100, Level 2 = 150, then +50 per level
-    const levelPrice = level === 1 ? 100 : 150 + (level - 2) * 50;
+    // Progressive pricing: Level 1 = 100, Level 2 = 150, Level 3 = 200, +50 per level, up to Level 19 = 1000
+    const levelPrice = level === 1 ? 100 : 100 + (level - 1) * 50;
     const platformFee = 30;
     const totalPrice = levelPrice + platformFee;
 
@@ -275,7 +275,7 @@ export default function Tasks() {
                     Claim Membership NFTs (Level 1-19)
                   </h3>
                   <p className="text-muted-foreground">
-                    Progressive pricing: Level 1 (100 USDC) → Level 2 (150 USDC) → +50 USDC per level
+                    Progressive pricing: Level 1 (130 USDC) → Level 2 (180 USDC) → Level 19 (1030 USDC)
                   </p>
                 </div>
               </CardContent>
@@ -286,8 +286,8 @@ export default function Tasks() {
               {Array.from({ length: 19 }, (_, index) => {
                 const level = index + 1;
                 const tokenId = level;
-                // Progressive pricing: Level 1 = 100, Level 2 = 150, then +50 per level
-                const levelPrice = level === 1 ? 100 : 150 + (level - 2) * 50;
+                // Progressive pricing: Level 1 = 100, Level 2 = 150, Level 3 = 200, +50 per level, up to Level 19 = 1000
+                const levelPrice = level === 1 ? 100 : 100 + (level - 1) * 50;
                 const platformFee = 30;
                 const totalPrice = levelPrice + platformFee;
                 
