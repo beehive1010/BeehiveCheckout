@@ -77,7 +77,7 @@ export function HeroSection({ title, subtitle, getStartedText }: HeroSectionProp
         {/* Dynamic Title Section */}
         <div className="mb-16">
           {/* Animated title with enhanced gradient */}
-          <h1 className={`${styles.heroTitle} text-6xl md:text-8xl lg:text-9xl font-black mb-8 tracking-tight`}>
+          <h1 className={`${styles.heroTitle} text-4xl md:text-6xl lg:text-7xl font-black mb-8 tracking-tight`}>
             <span className="relative inline-block">
               <span className="absolute inset-0 bg-gradient-to-r from-honey via-yellow-300 to-amber-400 bg-clip-text text-transparent blur-sm opacity-50 scale-105"></span>
               <span className="relative bg-gradient-to-r from-honey via-yellow-300 to-amber-400 bg-clip-text text-transparent animate-pulse">
@@ -88,7 +88,7 @@ export function HeroSection({ title, subtitle, getStartedText }: HeroSectionProp
           
           {/* Animated subtitle with typewriter effect */}
           <div className="relative">
-            <p className={`${styles.heroSubtitle} text-xl md:text-3xl lg:text-4xl text-gray-200 max-w-4xl mx-auto leading-relaxed font-light`}>
+            <p className={`${styles.heroSubtitle} text-lg md:text-2xl lg:text-3xl text-gray-200 max-w-4xl mx-auto leading-relaxed font-light`}>
               <span className="inline-block animate-pulse">{subtitle}</span>
             </p>
             <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-honey to-transparent rounded-full animate-pulse"></div>
@@ -108,7 +108,7 @@ export function HeroSection({ title, subtitle, getStartedText }: HeroSectionProp
           
           <button
             className="relative bg-gradient-to-r from-honey via-yellow-400 to-amber-400 text-black 
-                     text-lg sm:text-xl md:text-2xl 
+                     text-base sm:text-lg md:text-xl 
                      px-12 py-5 sm:px-16 sm:py-6 md:px-20 md:py-7 
                      font-bold rounded-full 
                      transform hover:scale-110 active:scale-95 

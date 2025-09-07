@@ -56,12 +56,12 @@ export function HowItWorks() {
         {/* Enhanced Section Header */}
         <div className="mb-20">
           <div className="relative inline-block mb-8">
-            <h2 className="text-5xl md:text-6xl font-black bg-gradient-to-r from-honey via-yellow-300 to-amber-400 bg-clip-text text-transparent mb-6">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black bg-gradient-to-r from-honey via-yellow-300 to-amber-400 bg-clip-text text-transparent mb-6">
               {t('landing.howItWorks.title')}
             </h2>
             <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-honey to-transparent rounded-full animate-pulse"></div>
           </div>
-          <p className="text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed font-light">
+          <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed font-light">
             {t('landing.howItWorks.subtitle')}
           </p>
         </div>
@@ -157,7 +157,7 @@ export function HowItWorks() {
               <div className="relative bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-6">
                 <div className="text-center">
                   <div className="text-4xl mb-4">🕸️</div>
-                  <h3 className="text-xl font-bold bg-gradient-to-r from-honey via-yellow-300 to-amber-400 bg-clip-text text-transparent mb-3">
+                  <h3 className="text-lg font-bold bg-gradient-to-r from-honey via-yellow-300 to-amber-400 bg-clip-text text-transparent mb-3">
                     {t('landing.matrix.explainTitle')}
                   </h3>
                   <p className="text-gray-300 text-sm mb-6 leading-relaxed">

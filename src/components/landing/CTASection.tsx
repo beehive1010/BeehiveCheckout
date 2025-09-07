@@ -81,12 +81,12 @@ export function CTASection() {
           {/* Enhanced Header Section */}
           <div className="text-center mb-16">
             <div className="relative mb-8">
-              <h2 className="text-6xl md:text-7xl font-black bg-gradient-to-r from-honey via-yellow-300 to-amber-400 bg-clip-text text-transparent mb-6 leading-tight">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-black bg-gradient-to-r from-honey via-yellow-300 to-amber-400 bg-clip-text text-transparent mb-6 leading-tight">
                 {t('landing.cta.title')}
               </h2>
               <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-40 h-1 bg-gradient-to-r from-transparent via-honey to-transparent rounded-full animate-pulse"></div>
             </div>
-            <p className="text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed font-light">
+            <p className="text-lg md:text-xl text-gray-300 max-w-4xl mx-auto leading-relaxed font-light">
               {t('landing.cta.description')}
             </p>
           </div>
@@ -109,7 +109,7 @@ export function CTASection() {
                   </div>
                   
                   {/* Animated Stat Value */}
-                  <div className={`text-5xl font-black bg-gradient-to-r ${stat.gradient} bg-clip-text text-transparent mb-3 transform group-hover:scale-110 transition-all duration-300`}>
+                  <div className={`text-3xl md:text-4xl font-black bg-gradient-to-r ${stat.gradient} bg-clip-text text-transparent mb-3 transform group-hover:scale-110 transition-all duration-300`}>
                     {index === 1 ? '3×3' : index === 2 && stat.value === 100 ? '∞' : stat.value}{stat.suffix}
                   </div>
                   

@@ -4,13 +4,12 @@ import { ArrowLeft, Users, TrendingUp, Gift, Clock } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import MatrixVisualization from '@/components/illustrations/MatrixVisualization';
 import { AnimatedIcon } from '@/components/illustrations/AnimatedIcon';
-import MatrixBottomNav from '@/components/matrix/MatrixBottomNav';
 
 export default function MatrixExplanation() {
   const { t } = useI18n();
 
   return (
-    <div className="min-h-screen bg-[#0F0F23] text-white pb-20">
+    <div className="min-h-screen bg-[#0F0F23] text-white">
       {/* Header with back button */}
       <div className="container mx-auto px-4 py-4 max-w-4xl">
         <Link href="/">
@@ -140,9 +139,6 @@ export default function MatrixExplanation() {
           </Link>
         </div>
       </div>
-      
-      {/* Fixed Bottom Navigation */}
-      <MatrixBottomNav />
     </div>
   );
 }
