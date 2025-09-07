@@ -127,6 +127,51 @@
       "button": "立即加入蜂巢"
     }
   },
+  "footer": {
+    "platform": {
+      "title": "平台",
+      "membership": "会员级别",
+      "rewards": "奖励系统",
+      "nfts": "NFT市场",
+      "education": "教育中心"
+    },
+    "resources": {
+      "title": "资源",
+      "whitepaper": "白皮书",
+      "documentation": "文档",
+      "tutorials": "教程",
+      "faq": "常见问题"
+    },
+    "community": {
+      "title": "社区",
+      "discord": "Discord",
+      "telegram": "Telegram",
+      "twitter": "Twitter",
+      "medium": "Medium"
+    },
+    "legal": {
+      "title": "法律",
+      "privacy": "隐私政策",
+      "terms": "服务条款",
+      "cookies": "Cookie政策",
+      "disclaimer": "免责声明"
+    },
+    "newsletter": {
+      "title": "保持更新",
+      "description": "获取有关新功能、奖励和社区活动的最新更新",
+      "placeholder": "输入您的邮箱地址",
+      "button": "订阅",
+      "disclaimer": "我们尊重您的隐私，绝不分享您的信息"
+    },
+    "brand": {
+      "tagline": "Web3会员和学习平台"
+    },
+    "copyright": {
+      "rights": "版权所有。",
+      "blockchain": "由区块链技术驱动"
+    },
+    "backToTop": "返回顶部"
+  },
   "dashboard": {
     "welcome": "欢迎回来",
     "nftRequired": {

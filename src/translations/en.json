@@ -101,6 +101,51 @@
       "button": "Join Beehive Now"
     }
   },
+  "footer": {
+    "platform": {
+      "title": "Platform",
+      "membership": "Membership Levels",
+      "rewards": "Rewards System",
+      "nfts": "NFT Marketplace",
+      "education": "Education Center"
+    },
+    "resources": {
+      "title": "Resources",
+      "whitepaper": "Whitepaper",
+      "documentation": "Documentation",
+      "tutorials": "Tutorials",
+      "faq": "FAQ"
+    },
+    "community": {
+      "title": "Community",
+      "discord": "Discord",
+      "telegram": "Telegram",
+      "twitter": "Twitter",
+      "medium": "Medium"
+    },
+    "legal": {
+      "title": "Legal",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "cookies": "Cookie Policy",
+      "disclaimer": "Disclaimer"
+    },
+    "newsletter": {
+      "title": "Stay Updated",
+      "description": "Get the latest updates about new features, rewards, and community events",
+      "placeholder": "Enter your email address",
+      "button": "Subscribe",
+      "disclaimer": "We respect your privacy and never share your information"
+    },
+    "brand": {
+      "tagline": "Web3 Membership & Learning Platform"
+    },
+    "copyright": {
+      "rights": "All rights reserved.",
+      "blockchain": "Powered by blockchain technology"
+    },
+    "backToTop": "Back to Top"
+  },
   "registration": {
     "title": "Complete Registration",
     "subtitle": "Set up your Beehive profile",

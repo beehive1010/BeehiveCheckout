@@ -101,6 +101,51 @@
       "button": "今すぐBeehiveに参加"
     }
   },
+  "footer": {
+    "platform": {
+      "title": "プラットフォーム",
+      "membership": "メンバーシップレベル",
+      "rewards": "報酬システム",
+      "nfts": "NFTマーケットプレイス",
+      "education": "教育センター"
+    },
+    "resources": {
+      "title": "リソース",
+      "whitepaper": "ホワイトペーパー",
+      "documentation": "ドキュメント",
+      "tutorials": "チュートリアル",
+      "faq": "よくある質問"
+    },
+    "community": {
+      "title": "コミュニティ",
+      "discord": "Discord",
+      "telegram": "Telegram",
+      "twitter": "Twitter",
+      "medium": "Medium"
+    },
+    "legal": {
+      "title": "法的事項",
+      "privacy": "プライバシーポリシー",
+      "terms": "利用規約",
+      "cookies": "Cookieポリシー",
+      "disclaimer": "免責事項"
+    },
+    "newsletter": {
+      "title": "最新情報を受け取る",
+      "description": "新機能、報酬、コミュニティイベントの最新情報を受け取る",
+      "placeholder": "メールアドレスを入力",
+      "button": "購読",
+      "disclaimer": "お客様のプライバシーを尊重し、情報を共有することはありません"
+    },
+    "brand": {
+      "tagline": "Web3メンバーシップ＆学習プラットフォーム"
+    },
+    "copyright": {
+      "rights": "すべての権利を保有。",
+      "blockchain": "ブロックチェーン技術による"
+    },
+    "backToTop": "トップに戻る"
+  },
   "dashboard": {
     "welcome": "おかえりなさい",
     "nftRequired": {

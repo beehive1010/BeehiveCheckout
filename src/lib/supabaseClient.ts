@@ -52,15 +52,18 @@ export async function callEdgeFunction(
 // === USER AUTHENTICATION & REGISTRATION ===
 export const authService = {
   // Register user in users table
-  async registerUser(walletAddress: string, username: string, email: string, referrerWallet?: string) {
+  async registerUser(walletAddress: string, username: string, email?: string, referrerWallet?: string) {
     return supabase
       .from('users')
       .insert([
         {
           wallet_address: walletAddress,
           username,
-          email,
+          email: email || null,
           referrer_wallet: referrerWallet || null,
+          current_level: 0,
+          is_upgraded: false,
+          upgrade_timer_enabled: false,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
