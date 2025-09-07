@@ -164,8 +164,9 @@ async function handleUserRegistration(supabase, walletAddress, data) {
     let validReferrerWallet = ROOT_WALLET // Default to root
     ;
     if (data.referrerWallet && data.referrerWallet !== ROOT_WALLET) {
-      const { data: referrerUser } = await supabase.from('users').select('wallet_address, is_activated').eq('wallet_address', data.referrerWallet).single();
-      if (referrerUser && referrerUser.is_activated) {
+      // Check if referrer exists in members table (activated members only)
+      const { data: referrerMember } = await supabase.from('members').select('wallet_address, is_activated').eq('wallet_address', data.referrerWallet).single();
+      if (referrerMember && referrerMember.is_activated) {
         validReferrerWallet = data.referrerWallet;
         console.log(`✅ Valid active referrer: ${data.referrerWallet}`);
       } else {
@@ -193,19 +194,16 @@ async function handleUserRegistration(supabase, walletAddress, data) {
       }
     }
 
-    // Create user record with membership fields
+    // Create user record - basic registration only
     const { data: newUser, error: userError } = await supabase.from('users').insert({
       wallet_address: walletAddress,
-      referrer_wallet: validReferrerWallet,
+      referrer_wallet: validReferrerWallet, // Store for later activation
       username: username,
       email: data.email || null,
       current_level: 0,
-      is_activated: false,
+      is_activated: false, // Will be set to true during NFT claim/upgrade
       is_upgraded: false,
-      upgrade_timer_enabled: false,
-      levels_owned: [],
-      total_direct_referrals: 0,
-      total_team_size: 0
+      upgrade_timer_enabled: false
     }).select().single();
     if (userError) {
       console.error('User creation error:', userError);
@@ -219,14 +217,15 @@ async function handleUserRegistration(supabase, walletAddress, data) {
         throw userError;
       }
     }
-    // Note: Referral entry will be created during membership activation
-    // Registration only stores the referrer_wallet in users table
-    console.log(`📝 Referrer stored for later activation: ${validReferrerWallet}`);
+    
+    console.log(`📝 User registered - referrer stored for later activation: ${validReferrerWallet}`);
+    console.log(`⏳ Members table entry will be created during NFT claim/upgrade`);
+    
     // Create user balance record
     try {
       await supabase.from('user_balances').insert({
         wallet_address: walletAddress,
-        bcc_transferable: 500,
+        bcc_transferable: 0, // No initial BCC until NFT claim
         bcc_locked: 0,
         total_usdt_earned: 0
       });
@@ -234,12 +233,13 @@ async function handleUserRegistration(supabase, walletAddress, data) {
     } catch (balanceError) {
       console.error('Balance creation failed (non-critical):', balanceError);
     }
-    console.log(`🎉 Registration completed for: ${walletAddress}`);
+    console.log(`🎉 User registration completed for: ${walletAddress}`);
+    console.log(`🎯 Next step: Claim Level 1 NFT to become an activated member`);
     return new Response(JSON.stringify({
       success: true,
       action: 'created',
       user: newUser,
-      message: 'User registered successfully - ready to activate membership'
+      message: 'User registered successfully - claim Level 1 NFT to become a member'
     }), {
       headers: {
         ...corsHeaders,
@@ -263,7 +263,7 @@ async function handleUserRegistration(supabase, walletAddress, data) {
 async function handleGetUser(supabase, walletAddress) {
   try {
     console.log(`👤 Get user request for: ${walletAddress}`);
-    // Get all user data from users table only
+    // Get user data from users table
     const { data: userData, error: userError } = await supabase.from('users').select(`
         wallet_address,
         referrer_wallet,
@@ -271,12 +271,17 @@ async function handleGetUser(supabase, walletAddress) {
         email,
         current_level,
         is_activated,
-        activated_at,
+        created_at,
+        updated_at
+      `).eq('wallet_address', walletAddress).single();
+    
+    // Get member data if user is activated (member exists)
+    const { data: memberData, error: memberError } = await supabase.from('members').select(`
+        current_level,
         levels_owned,
         total_direct_referrals,
         total_team_size,
-        created_at,
-        updated_at
+        activated_at
       `).eq('wallet_address', walletAddress).single();
     // Get balance data
     const { data: balanceData, error: balanceError } = await supabase.from('user_balances').select('bcc_transferable, bcc_restricted, bcc_locked, total_usdt_earned, available_usdt_rewards').eq('wallet_address', walletAddress).single();
@@ -301,13 +306,22 @@ async function handleGetUser(supabase, walletAddress) {
     }
     if (userError) throw userError;
     
-    const isMember = userData?.is_activated || false;
+    const isMember = userData?.is_activated && !!memberData;
+    
     // Sanitize referrer wallet - don't expose root wallet to frontend
     const ROOT_WALLET = '0x0000000000000000000000000000000000000001';
     const sanitizedUserData = {
       ...userData,
-      referrer_wallet: userData?.referrer_wallet === ROOT_WALLET ? null : userData?.referrer_wallet
+      referrer_wallet: userData?.referrer_wallet === ROOT_WALLET ? null : userData?.referrer_wallet,
+      // Add member data if exists
+      ...(memberData && {
+        levels_owned: memberData.levels_owned,
+        total_direct_referrals: memberData.total_direct_referrals,
+        total_team_size: memberData.total_team_size,
+        activated_at: memberData.activated_at
+      })
     };
+    
     // Combine user and balance data
     const combinedUserData = {
       ...sanitizedUserData,
