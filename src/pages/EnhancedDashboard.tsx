@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useWallet } from '../hooks/useWallet';
 import { useI18n } from '../contexts/I18nContext';
 import { useLocation } from 'wouter';
+import { useActiveWallet } from 'thirdweb/react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -168,6 +169,7 @@ export default function EnhancedDashboard() {
   const { t } = useI18n();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const activeWallet = useActiveWallet();
   
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -249,7 +251,10 @@ export default function EnhancedDashboard() {
   }, [walletAddress, dataMethod]);
 
   const copyReferralLink = async () => {
-    const referralLink = `${window.location.origin}/register?ref=${walletAddress}`;
+    // Get the original wallet address (not lowercase) from activeWallet
+    const originalWalletAddress = activeWallet?.getAccount()?.address || walletAddress;
+    const referralLink = `${window.location.origin}/register?ref=${originalWalletAddress}`;
+    
     try {
       await navigator.clipboard.writeText(referralLink);
       toast({
