@@ -135,15 +135,33 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       
       // BACKUP: If dynamic detection failed, try common values
       let finalAmount = usdcAmount;
-      if (tokenDecimals === 6 && usdcAmount.toString() === "130000000") {
+      
+      // Dynamic calculation based on detected decimals
+      if (tokenDecimals === 6) {
+        finalAmount = BigInt("130") * BigInt("1000000"); // 130 * 10^6 = 130000000
         console.log("✅ Using 6-decimal USDC amount");
       } else if (tokenDecimals === 18) {
-        finalAmount = BigInt("130000000000000000000"); // 130 * 10^18
-        console.log("🔄 Forcing 18-decimal USDC amount");
-      } else if (usdcAmount < BigInt("130000000")) {
-        // If amount is too small, force to 18 decimals
-        finalAmount = BigInt("130000000000000000000"); // 130 * 10^18
-        console.log("🚨 FORCED 18-decimal amount due to small value");
+        finalAmount = BigInt("130") * BigInt("1000000000000000000"); // 130 * 10^18
+        console.log("🔄 Using 18-decimal USDC amount");
+      } else if (tokenDecimals === 8) {
+        finalAmount = BigInt("130") * BigInt("100000000"); // 130 * 10^8
+        console.log("🔄 Using 8-decimal USDC amount");
+      } else if (tokenDecimals === 10) {
+        finalAmount = BigInt("130") * BigInt("10000000000"); // 130 * 10^10
+        console.log("🔄 Using 10-decimal USDC amount");
+      } else if (tokenDecimals === 12) {
+        finalAmount = BigInt("130") * BigInt("1000000000000"); // 130 * 10^12
+        console.log("🔄 Using 12-decimal USDC amount");
+      } else {
+        // Fallback: calculate dynamically
+        finalAmount = BigInt("130") * (BigInt(10) ** BigInt(tokenDecimals));
+        console.log(`🔄 Using ${tokenDecimals}-decimal USDC amount`);
+      }
+      
+      // Safety check: if calculated amount seems too small, recalculate
+      if (finalAmount < BigInt("130000000")) {
+        console.log("⚠️ Amount seems too small, recalculating...");
+        finalAmount = BigInt("130") * (BigInt(10) ** BigInt(tokenDecimals));
       }
       
       console.log(`📋 Final approving amount: ${finalAmount.toString()} wei`);
