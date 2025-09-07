@@ -34,6 +34,11 @@
       "subtitle": "Web3 membership and learning platform with blockchain-based rewards"
     },
     "getStarted": "Get Started",
+    "matrix": {
+      "explainTitle": "Learn the 3×3 Matrix",
+      "explainDescription": "Discover how our matrix system works and how you can earn rewards",
+      "explainButton": "Matrix Explained"
+    },
     "features": {
       "membership": {
         "title": "Web3 Membership",

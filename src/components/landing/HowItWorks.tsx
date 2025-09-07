@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'wouter';
 import { useI18n } from '../../contexts/I18nContext';
 import styles from '../../styles/landing/landing.module.css';
 
@@ -145,6 +146,33 @@ export function HowItWorks() {
                 </div>
               </div>
             ))}
+          </div>
+          
+          {/* Matrix Explanation CTA */}
+          <div className="text-center mt-16 mb-12">
+            <div className="relative max-w-md mx-auto">
+              {/* Background Glow */}
+              <div className="absolute -inset-4 bg-gradient-to-r from-honey/20 via-yellow-400/20 to-amber-400/20 rounded-3xl blur-2xl animate-pulse"></div>
+              
+              <div className="relative bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-6">
+                <div className="text-center">
+                  <div className="text-4xl mb-4">🕸️</div>
+                  <h3 className="text-xl font-bold bg-gradient-to-r from-honey via-yellow-300 to-amber-400 bg-clip-text text-transparent mb-3">
+                    {t('landing.matrix.explainTitle')}
+                  </h3>
+                  <p className="text-gray-300 text-sm mb-6 leading-relaxed">
+                    {t('landing.matrix.explainDescription')}
+                  </p>
+                  
+                  <Link href="/matrix-explanation">
+                    <button className="w-full bg-gradient-to-r from-honey to-yellow-400 text-black font-bold py-3 px-6 rounded-full hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-honey/25"
+                            data-testid="button-matrix-explanation">
+                      {t('landing.matrix.explainButton')}
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
           
           {/* Enhanced Mobile Progress Dots */}

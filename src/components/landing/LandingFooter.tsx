@@ -27,9 +27,9 @@ export function LandingFooter() {
         ))}
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 py-16">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 py-8 md:py-16">
         {/* Newsletter Section */}
-        <div className="bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-xl rounded-3xl border border-white/10 p-8 mb-16">
+        <div className="bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-xl rounded-3xl border border-white/10 p-6 md:p-8 mb-8 md:mb-16">
           <div className="text-center max-w-2xl mx-auto">
             <h3 className="text-3xl font-bold bg-gradient-to-r from-honey via-yellow-300 to-amber-400 bg-clip-text text-transparent mb-4">
               {t('footer.newsletter.title')}
@@ -118,7 +118,7 @@ export function LandingFooter() {
         </div>
 
         {/* Back to Top Button */}
-        <div className="text-center mt-8">
+        <div className="text-center mt-4 md:mt-8">
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="group relative inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-honey/20 to-yellow-400/20 backdrop-blur-sm rounded-full border border-honey/30 hover:border-honey/50 transition-all duration-300 hover:scale-105"
