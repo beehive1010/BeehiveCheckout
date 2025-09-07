@@ -23,6 +23,7 @@ export default defineConfig({
   server: {
     port: 5000,
     host: '0.0.0.0',
+    allowedHosts: ['beehive-lifestyle.io', 'localhost', '127.0.0.1'],
     fs: {
       strict: false,
     },
@@ -30,6 +31,7 @@ export default defineConfig({
   preview: {
     port: 5000,
     host: '0.0.0.0',
+    allowedHosts: ['beehive-lifestyle.io', 'localhost', '127.0.0.1'],
     strictPort: true,
   },
   define: {
