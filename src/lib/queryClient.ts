@@ -149,12 +149,15 @@ export async function apiRequest(
         action = 'place-member';
         break;
       
-      // Rewards actions
+      // Dashboard actions (handled by dashboard function)
       case '/api/dashboard/activity':
+        action = 'get-activity';
+        break;
       case '/api/dashboard/data':
+        action = 'get-dashboard-data';
+        break;
       case '/api/dashboard/stats':
-        // Dashboard function will determine action from URL path
-        action = null; // Let the function determine action from URL
+        action = 'get-stats';
         break;
       case '/api/rewards/user':
         action = 'get-rewards';

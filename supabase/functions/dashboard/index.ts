@@ -22,13 +22,25 @@ serve(async (req) => {
     const url = new URL(req.url);
     let action = 'get-activity';
     
-    // Determine action from URL path
-    if (url.pathname.includes('/activity')) {
-      action = 'get-activity';
-    } else if (url.pathname.includes('/data')) {
-      action = 'get-data';
-    } else if (url.pathname.includes('/stats')) {
-      action = 'get-stats';
+    // Get action from request body for POST requests
+    if (req.method === 'POST') {
+      try {
+        const body = await req.json();
+        action = body.action || 'get-activity';
+        // Store parsed body for later use
+        req.parsedBody = body;
+      } catch {
+        // If JSON parsing fails, keep default action
+      }
+    } else {
+      // For GET requests, determine action from URL path
+      if (url.pathname.includes('/activity')) {
+        action = 'get-activity';
+      } else if (url.pathname.includes('/data')) {
+        action = 'get-dashboard-data';
+      } else if (url.pathname.includes('/stats')) {
+        action = 'get-stats';
+      }
     }
 
     const walletAddress = req.headers.get('x-wallet-address')?.toLowerCase();
@@ -46,7 +58,8 @@ serve(async (req) => {
 
     switch (action) {
       case 'get-activity':
-        return await getDashboardActivity(supabase, walletAddress);
+        return await getDashboardActivity(supabase, walletAddress, req);
+      case 'get-dashboard-data':
       case 'get-data':
         return await getDashboardData(supabase, walletAddress);
       case 'get-stats':
@@ -71,18 +84,40 @@ serve(async (req) => {
   }
 });
 
-async function getDashboardActivity(supabase, walletAddress) {
+async function getDashboardActivity(supabase, walletAddress, req) {
   try {
-    // Return minimal activity data - can be expanded later
-    const activities = [
-      {
-        id: 1,
-        activity_type: 'membership_activation',
-        activity_data: { level: 1 },
-        created_at: new Date().toISOString(),
-        description: 'Membership activated'
-      }
-    ];
+    // Get limit from request body or default to 10
+    let limit = 10;
+    if (req?.parsedBody?.limit) {
+      limit = parseInt(req.parsedBody.limit) || 10;
+    }
+
+    console.log(`Getting activity for ${walletAddress}, limit: ${limit}`);
+
+    // Try to get real activity data from user_activity_log table
+    const { data: activityData, error } = await supabase
+      .from('user_activity_log')
+      .select('*')
+      .eq('wallet_address', walletAddress)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    let activities = [];
+
+    if (error || !activityData || activityData.length === 0) {
+      // Return minimal activity data if no real data found
+      activities = [
+        {
+          id: 1,
+          activity_type: 'membership_activation',
+          activity_data: { level: 1 },
+          created_at: new Date().toISOString(),
+          description: 'Membership activated'
+        }
+      ];
+    } else {
+      activities = activityData;
+    }
 
     return new Response(JSON.stringify({
       success: true,

@@ -813,4 +813,136 @@ async function handleCreateMissingData(supabase, walletAddress, data) {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
+}
+
+async function handleCreateReferralLink(supabase, walletAddress, data) {
+  try {
+    console.log(`🔗 Creating referral link for: ${walletAddress}`);
+
+    // Check if user is activated (only activated members can have referral links)
+    const { data: memberData } = await supabase
+      .from('members')
+      .select('is_activated')
+      .eq('wallet_address', walletAddress.toLowerCase())
+      .single();
+
+    if (!memberData?.is_activated) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Only activated members can generate referral links'
+      }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Simple referral link: current_url/register?ref=wallet_address
+    const baseUrl = data.baseUrl || 'https://beehive-lifestyle.io';
+    const referralLink = `${baseUrl}/register?ref=${walletAddress.toLowerCase()}`;
+
+    // Check if referral_links record exists
+    const { data: existingLink } = await supabase
+      .from('referral_links')
+      .select('*')
+      .eq('referrer_wallet', walletAddress.toLowerCase())
+      .single();
+
+    if (!existingLink) {
+      // Create referral_links record
+      await supabase
+        .from('referral_links')
+        .insert({
+          referrer_wallet: walletAddress.toLowerCase(),
+          link_code: walletAddress.toLowerCase(), // Use wallet address as link code
+          is_active: true,
+          clicks: 0,
+          conversions: 0
+        });
+      
+      console.log(`✅ Created referral_links record for: ${walletAddress}`);
+    }
+
+    return new Response(JSON.stringify({
+      success: true,
+      link: referralLink,
+      wallet_address: walletAddress.toLowerCase()
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+
+  } catch (error) {
+    console.error('Create referral link error:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Failed to create referral link',
+      details: error.message
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+}
+
+async function handleGetReferralLink(supabase, walletAddress, data) {
+  try {
+    console.log(`🔍 Getting referral link for: ${walletAddress}`);
+
+    // Check if user is activated
+    const { data: memberData } = await supabase
+      .from('members')
+      .select('is_activated')
+      .eq('wallet_address', walletAddress.toLowerCase())
+      .single();
+
+    if (!memberData?.is_activated) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Only activated members can have referral links'
+      }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Generate referral link
+    const baseUrl = data.baseUrl || 'https://beehive-lifestyle.io';
+    const referralLink = `${baseUrl}/register?ref=${walletAddress.toLowerCase()}`;
+
+    // Get referral stats
+    const { data: linkStats } = await supabase
+      .from('referral_links')
+      .select('clicks, conversions')
+      .eq('referrer_wallet', walletAddress.toLowerCase())
+      .single();
+
+    const { count: directReferrals } = await supabase
+      .from('referrals')
+      .select('*', { count: 'exact' })
+      .eq('referrer_wallet', walletAddress.toLowerCase())
+      .eq('layer', 1);
+
+    return new Response(JSON.stringify({
+      success: true,
+      link: referralLink,
+      wallet_address: walletAddress.toLowerCase(),
+      stats: {
+        clicks: linkStats?.clicks || 0,
+        conversions: linkStats?.conversions || 0,
+        direct_referrals: directReferrals || 0
+      }
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+
+  } catch (error) {
+    console.error('Get referral link error:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Failed to get referral link',
+      details: error.message
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
 } // Updated Sat Sep  7 2025
