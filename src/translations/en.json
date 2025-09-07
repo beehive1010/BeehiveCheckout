@@ -320,9 +320,13 @@
       "title": "Referral Link",
       "show": "Show",
       "hide": "Hide",
+      "copy": "Copy Referral Link",
       "copied": "Link Copied!",
       "copiedDesc": "Referral link copied to clipboard"
     },
+    "shareToEarn": "Share your link to earn commissions from your referrals",
+    "copyLink": "Copy Link",
+    "referralLinkCopied": "Referral link copied",
     "social": {
       "twitter": "Twitter",
       "telegram": "Telegram", 

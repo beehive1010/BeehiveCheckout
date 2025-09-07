@@ -139,11 +139,11 @@ const getDataFromTables = async (walletAddress: string) => {
       .eq('wallet_address', walletAddress)
       .single();
 
-    // Get matrix positions count (using referral_nodes instead)
+    // Get matrix positions count (using members table)
     const { data: matrixCount } = await supabase
-      .from('referral_nodes')
+      .from('members')
       .select('*', { count: 'exact' })
-      .eq('root_wallet', walletAddress);
+      .eq('referrer_wallet', walletAddress);
 
     // Get rewards
     const { data: rewardsData } = await supabase
@@ -260,8 +260,8 @@ export default function EnhancedDashboard() {
     try {
       await navigator.clipboard.writeText(referralLink);
       toast({
-        title: t('common.copied'),
-        description: t('dashboard.referralLinkCopied'),
+        title: t('dashboard.linkCopied.title') || 'Link Copied!',
+        description: t('dashboard.linkCopied.description') || 'Referral link copied to clipboard.',
       });
     } catch (err) {
       console.error('Failed to copy referral link:', err);
@@ -391,7 +391,7 @@ export default function EnhancedDashboard() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Share2 className="h-5 w-5 text-honey" />
-            {t('dashboard.referralLink') || 'Referral Link'}
+            {t('dashboard.referralLink.title') || 'Referral Link'}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -402,7 +402,7 @@ export default function EnhancedDashboard() {
             <div className="flex gap-2">
               <Button onClick={copyReferralLink} className="bg-honey hover:bg-honey/90 text-black font-semibold flex-1">
                 <Copy className="h-4 w-4 mr-2" />
-                {t('dashboard.copyLink') || 'Copy Referral Link'}
+                {t('dashboard.referralLink.copy') || 'Copy Referral Link'}
               </Button>
               <Button 
                 onClick={() => setLocation('/referrals')} 

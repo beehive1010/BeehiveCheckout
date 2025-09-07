@@ -297,9 +297,13 @@
       "title": "推荐链接",
       "show": "显示",
       "hide": "隐藏",
+      "copy": "复制推荐链接",
       "copied": "链接已复制！",
       "copiedDesc": "推荐链接已复制到剪贴板"
     },
+    "shareToEarn": "分享您的链接，从推荐中赚取佣金",
+    "copyLink": "复制链接",
+    "referralLinkCopied": "推荐链接已复制",
     "social": {
       "twitter": "Twitter",
       "telegram": "Telegram",
