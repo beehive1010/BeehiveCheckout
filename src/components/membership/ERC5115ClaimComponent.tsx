@@ -119,6 +119,35 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       // Wait a moment for approval to be confirmed
       await new Promise(resolve => setTimeout(resolve, 3000));
 
+      // Verify allowance was set correctly
+      console.log('🔍 Verifying allowance...');
+      try {
+        const allowanceCheck = prepareContractCall({
+          contract: tokenContract,
+          method: "function allowance(address owner, address spender) view returns (uint256)",
+          params: [account.address, NFT_CONTRACT]
+        });
+        // Note: For read calls, we'd typically use readContract, but let's log what we expect
+        console.log(`📋 Expected allowance: 130000000 (130 USDC)`);
+        console.log(`📋 Spender: ${NFT_CONTRACT}`);
+        console.log(`📋 Owner: ${account.address}`);
+      } catch (allowanceError) {
+        console.warn('⚠️ Could not verify allowance:', allowanceError);
+      }
+
+      // Check if already minted
+      console.log('🔍 Checking if already minted...');
+      try {
+        const hasMintedCheck = prepareContractCall({
+          contract: nftContract,
+          method: "function hasMinted(address) view returns (bool)",
+          params: [account.address]
+        });
+        console.log(`📋 Checking hasMinted for: ${account.address}`);
+      } catch (mintedError) {
+        console.warn('⚠️ Could not check minted status:', mintedError);
+      }
+
       // Claim NFT using token payment
       console.log('🎁 Claiming NFT with token payment...');
       const mintTransaction = prepareContractCall({
@@ -140,18 +169,21 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         // Provide specific error messages based on contract requirements
         const errorMessage = mintError instanceof Error ? mintError.message : String(mintError);
         
-        if (errorMessage.includes('Already minted')) {
-          throw new Error('❌ Already Minted: This wallet has already claimed the Level 1 NFT. Each wallet can only mint once.');
-        } else if (errorMessage.includes('Insufficient allowance')) {
-          throw new Error('❌ Insufficient Allowance: Token approval failed or expired. Please try again.');
-        } else if (errorMessage.includes('Insufficient balance')) {
-          throw new Error('❌ Insufficient Balance: You need 130 USDC to claim this NFT.');
+        // Enhanced error messages based on transaction analysis
+        if (errorMessage.includes('Already minted') || errorMessage.includes('hasMinted')) {
+          throw new Error(`❌ Already Minted: Wallet ${account.address} has already claimed the Level 1 NFT. Each wallet can only mint once. Try with a different wallet.`);
+        } else if (errorMessage.includes('Insufficient allowance') || errorMessage.includes('allowance')) {
+          throw new Error(`❌ Insufficient Allowance: The approval for 130 USDC may have failed or expired. Required: approve contract ${NFT_CONTRACT} to spend 130 USDC from ${account.address}.`);
+        } else if (errorMessage.includes('Insufficient balance') || errorMessage.includes('balance')) {
+          throw new Error(`❌ Insufficient Balance: Wallet ${account.address} needs exactly 130 USDC (with 6 decimals = 130,000,000 wei) to claim this NFT.`);
         } else if (errorMessage.includes('Payment token not set')) {
-          throw new Error('❌ Contract Error: Payment token not configured. Please contact support.');
+          throw new Error('❌ Contract Error: Payment token not configured in the NFT contract. Please contact support.');
         } else if (errorMessage.includes('Only tokenId 1')) {
           throw new Error('❌ Invalid Token ID: Only Token ID 1 can be minted.');
+        } else if (errorMessage.includes('revert') || errorMessage.includes('execution reverted')) {
+          throw new Error(`❌ Transaction Reverted: Check if you've already minted, have sufficient USDC balance (130 USDC), and proper allowance. Transaction may have failed due to contract state. Details: ${errorMessage}`);
         } else {
-          throw new Error(`❌ Minting Failed: ${errorMessage}`);
+          throw new Error(`❌ Minting Failed: ${errorMessage}. Common causes: already minted, insufficient balance/allowance, or contract configuration issues.`);
         }
       }
 
