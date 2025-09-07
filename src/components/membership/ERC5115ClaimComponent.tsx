@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useActiveAccount } from 'thirdweb/react';
 import { getContract, prepareContractCall, sendTransaction } from 'thirdweb';
 import { arbitrumSepolia } from 'thirdweb/chains';
@@ -83,14 +83,13 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       });
 
       // Amount to pay: 130 USDC total (100 for NFT + 30 platform fee)
-      const paymentAmount = "130000000"; // 130 USDC (6 decimals)
       
       // Approve tokens for NFT contract
       console.log('📝 Approving tokens...');
       const approveTransaction = prepareContractCall({
         contract: tokenContract,
-        method: "approve",
-        params: [NFT_CONTRACT, paymentAmount]
+        method: "function approve(address spender, uint256 amount) returns (bool)",
+        params: [NFT_CONTRACT, BigInt("130000000")]
       });
 
       const approveTxResult = await sendTransaction({
@@ -107,8 +106,8 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       console.log('🎁 Claiming NFT with token payment...');
       const mintTransaction = prepareContractCall({
         contract: nftContract,
-        method: "mintWithTokens",
-        params: [account.address, 1] // Mint token ID 1 to user's address
+        method: "function mintWithTokens(address to, uint256 tokenId)",
+        params: [account.address, BigInt(1)] // Mint token ID 1 to user's address
       });
 
       const mintTxResult = await sendTransaction({
@@ -185,7 +184,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       console.error('❌ Token claim error:', error);
       toast({
         title: "Claim failed",
-        description: error.message || "Failed to claim NFT with tokens. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to claim NFT with tokens. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -198,7 +197,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       <CardHeader className="text-center pb-4">
         <div className="flex items-center justify-center mb-3">
           <Crown className="h-8 w-8 text-honey mr-2" />
-          <Badge variant="outline" className="bg-honey/20 text-honey border-honey/50">
+          <Badge className="bg-honey/20 text-honey border-honey/50">
             ERC-5115 NFT Claim
           </Badge>
         </div>
