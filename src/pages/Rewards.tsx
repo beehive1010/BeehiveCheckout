@@ -1,44 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWallet } from '../hooks/useWallet';
 import { useI18n } from '../contexts/I18nContext';
 import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
+import { Separator } from '../components/ui/separator';
 import { useToast } from '../hooks/use-toast';
+import { createSupabaseClient } from '../lib/supabase';
 import { 
+  User, 
   Award, 
   DollarSign, 
   TrendingUp, 
+  Settings,
   Timer,
   Coins,
   BarChart3,
   RefreshCw,
-  Gift,
   ArrowLeft,
-  CheckCircle,
-  Clock,
-  AlertCircle
+  Users,
+  Gift,
+  Target
 } from 'lucide-react';
 
-// Simplified interfaces for rewards page
-interface RewardItem {
-  id: string;
-  type: 'direct' | 'matrix' | 'upgrade' | 'bonus';
-  amount: number;
-  currency: 'USDT' | 'BCC';
-  status: 'pending' | 'claimable' | 'claimed';
-  description: string;
-  date: string;
-  expiresAt?: string;
+interface ProfileData {
+  wallet_address: string;
+  display_name?: string;
+  bio?: string;
+  profile_image?: string;
+  created_at: string;
 }
 
-interface RewardsSummary {
-  totalEarned: number;
-  totalClaimed: number;
-  totalPending: number;
-  claimableAmount: number;
-  monthlyEarnings: number;
+interface RewardsData {
+  total: number;
+  thisMonth: number;
+  lastMonth: number;
+  pending: number;
+  claimable: number;
+  history: RewardHistory[];
+}
+
+interface RewardHistory {
+  id: string;
+  type: string;
+  amount: number;
+  currency: string;
+  date: string;
+  status: 'pending' | 'completed' | 'failed';
+  description: string;
 }
 
 export default function Rewards() {
@@ -47,69 +57,114 @@ export default function Rewards() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
-  const [isLoading, setIsLoading] = useState(false);
-  const [rewardsSummary] = useState<RewardsSummary>({
-    totalEarned: 1250.50,
-    totalClaimed: 980.25,
-    totalPending: 270.25,
-    claimableAmount: 150.75,
-    monthlyEarnings: 320.15
-  });
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [rewardsData, setRewardsData] = useState<RewardsData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [recentRewards] = useState<RewardItem[]>([
-    {
-      id: '1',
-      type: 'direct',
-      amount: 50.00,
-      currency: 'USDT',
-      status: 'claimable',
-      description: 'Direct referral bonus from new member',
-      date: '2024-01-15',
-    },
-    {
-      id: '2',
-      type: 'matrix',
-      amount: 25.50,
-      currency: 'USDT',
-      status: 'claimable',
-      description: 'Matrix position reward - Layer 2',
-      date: '2024-01-14',
-    },
-    {
-      id: '3',
-      type: 'upgrade',
-      amount: 75.25,
-      currency: 'USDT',
-      status: 'pending',
-      description: 'Level upgrade bonus',
-      date: '2024-01-13',
-      expiresAt: '2024-01-20'
-    },
-    {
-      id: '4',
-      type: 'bonus',
-      amount: 100,
-      currency: 'BCC',
-      status: 'claimed',
-      description: 'Weekly activity bonus',
-      date: '2024-01-12',
+  const supabase = createSupabaseClient();
+
+  useEffect(() => {
+    if (walletAddress) {
+      loadRewardsData();
     }
-  ]);
+  }, [walletAddress]);
 
-  const claimReward = async (rewardId: string) => {
-    setIsLoading(true);
+  const loadRewardsData = async () => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Reward Claimed!",
-        description: "Your reward has been successfully claimed and added to your balance.",
+      setIsLoading(true);
+      setError(null);
+
+      // Call Supabase Edge Function for rewards data
+      const { data, error: functionsError } = await supabase.functions.invoke('rewards', {
+        body: { 
+          wallet_address: walletAddress,
+          action: 'get_rewards_summary'
+        }
       });
-    } catch (error) {
+
+      if (functionsError) {
+        console.error('Supabase Edge Function Error [rewards]:', functionsError);
+        throw new Error(`Function call failed: ${functionsError.message}`);
+      }
+
+      if (data?.success) {
+        setRewardsData(data.rewards);
+      } else {
+        throw new Error(data?.error || 'Failed to load rewards data');
+      }
+
+    } catch (err) {
+      console.error('Rewards data fetch error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load rewards');
+      
+      // Set fallback data for demonstration
+      setRewardsData({
+        total: 1250.50,
+        thisMonth: 320.15,
+        lastMonth: 245.80,
+        pending: 125.25,
+        claimable: 75.50,
+        history: [
+          {
+            id: '1',
+            type: 'referral',
+            amount: 50.00,
+            currency: 'USDT',
+            date: '2024-01-15',
+            status: 'completed',
+            description: 'Direct referral bonus'
+          },
+          {
+            id: '2',
+            type: 'matrix',
+            amount: 25.25,
+            currency: 'USDT',
+            date: '2024-01-12',
+            status: 'pending',
+            description: 'Matrix position reward'
+          }
+        ]
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const claimPendingRewards = async () => {
+    if (!rewardsData?.claimable || rewardsData.claimable <= 0) return;
+    
+    try {
+      setIsLoading(true);
+      
+      const { data, error: functionsError } = await supabase.functions.invoke('rewards', {
+        body: { 
+          wallet_address: walletAddress,
+          action: 'claim_rewards'
+        }
+      });
+
+      if (functionsError) {
+        throw new Error(`Failed to claim rewards: ${functionsError.message}`);
+      }
+
+      if (data?.success) {
+        toast({
+          title: "Rewards Claimed!",
+          description: `Successfully claimed ${rewardsData.claimable} USDT`,
+        });
+        
+        // Reload data
+        await loadRewardsData();
+      } else {
+        throw new Error(data?.error || 'Failed to claim rewards');
+      }
+
+    } catch (err) {
+      console.error('Claim rewards error:', err);
       toast({
         title: "Claim Failed",
-        description: "Failed to claim reward. Please try again.",
+        description: err instanceof Error ? err.message : "Failed to claim rewards",
         variant: "destructive"
       });
     } finally {
@@ -117,46 +172,31 @@ export default function Rewards() {
     }
   };
 
-  const getStatusIcon = (status: RewardItem['status']) => {
-    switch (status) {
-      case 'claimable':
-        return <Gift className="h-4 w-4 text-green-400" />;
-      case 'pending':
-        return <Clock className="h-4 w-4 text-yellow-400" />;
-      case 'claimed':
-        return <CheckCircle className="h-4 w-4 text-blue-400" />;
-      default:
-        return <AlertCircle className="h-4 w-4 text-gray-400" />;
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <RefreshCw className="h-8 w-8 animate-spin text-honey" />
+        <div className="text-muted-foreground">Loading rewards data...</div>
+      </div>
+    );
+  }
 
-  const getStatusColor = (status: RewardItem['status']) => {
-    switch (status) {
-      case 'claimable':
-        return 'bg-green-500/10 text-green-400 border-green-500/30';
-      case 'pending':
-        return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30';
-      case 'claimed':
-        return 'bg-blue-500/10 text-blue-400 border-blue-500/30';
-      default:
-        return 'bg-gray-500/10 text-gray-400 border-gray-500/30';
-    }
-  };
-
-  const getTypeLabel = (type: RewardItem['type']) => {
-    const labels = {
-      'direct': 'Direct Referral',
-      'matrix': 'Matrix Reward',
-      'upgrade': 'Upgrade Bonus',
-      'bonus': 'Activity Bonus'
-    };
-    return labels[type];
-  };
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <div className="text-red-500">Error: {error}</div>
+        <Button onClick={loadRewardsData} variant="outline">
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Retry
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4 space-y-4">
       {/* Header with Back Button */}
-      <div className="flex items-center gap-3 mb-2">
+      <div className="flex items-center gap-3 mb-6">
         <Button 
           variant="ghost" 
           size="sm" 
@@ -172,37 +212,37 @@ export default function Rewards() {
         </div>
       </div>
 
-      {/* Rewards Summary */}
+      {/* Rewards Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
             <DollarSign className="h-6 w-6 text-green-400 mx-auto mb-2" />
-            <div className="text-lg font-bold text-green-400">${rewardsSummary.totalEarned}</div>
+            <div className="text-lg font-bold text-green-400">${rewardsData?.total || 0}</div>
             <div className="text-xs text-muted-foreground">Total Earned</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4 text-center">
-            <CheckCircle className="h-6 w-6 text-blue-400 mx-auto mb-2" />
-            <div className="text-lg font-bold text-blue-400">${rewardsSummary.totalClaimed}</div>
-            <div className="text-xs text-muted-foreground">Total Claimed</div>
+            <TrendingUp className="h-6 w-6 text-blue-400 mx-auto mb-2" />
+            <div className="text-lg font-bold text-blue-400">${rewardsData?.thisMonth || 0}</div>
+            <div className="text-xs text-muted-foreground">This Month</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4 text-center">
+            <Timer className="h-6 w-6 text-yellow-400 mx-auto mb-2" />
+            <div className="text-lg font-bold text-yellow-400">${rewardsData?.pending || 0}</div>
+            <div className="text-xs text-muted-foreground">Pending</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="p-4 text-center">
             <Gift className="h-6 w-6 text-honey mx-auto mb-2" />
-            <div className="text-lg font-bold text-honey">${rewardsSummary.claimableAmount}</div>
-            <div className="text-xs text-muted-foreground">Claimable Now</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4 text-center">
-            <TrendingUp className="h-6 w-6 text-purple-400 mx-auto mb-2" />
-            <div className="text-lg font-bold text-purple-400">${rewardsSummary.monthlyEarnings}</div>
-            <div className="text-xs text-muted-foreground">This Month</div>
+            <div className="text-lg font-bold text-honey">${rewardsData?.claimable || 0}</div>
+            <div className="text-xs text-muted-foreground">Claimable</div>
           </CardContent>
         </Card>
       </div>
@@ -218,17 +258,22 @@ export default function Rewards() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <Button 
+              onClick={claimPendingRewards}
+              disabled={!rewardsData?.claimable || rewardsData.claimable <= 0 || isLoading}
               className="bg-honey hover:bg-honey/90 text-black font-semibold"
-              disabled={rewardsSummary.claimableAmount === 0}
             >
               <Gift className="h-4 w-4 mr-2" />
-              Claim Available (${rewardsSummary.claimableAmount})
+              Claim Available (${rewardsData?.claimable || 0})
             </Button>
             <Button variant="outline" className="border-honey/30 text-honey hover:bg-honey/10">
               <BarChart3 className="h-4 w-4 mr-2" />
               View Analytics
             </Button>
-            <Button variant="outline" className="border-honey/30 text-honey hover:bg-honey/10">
+            <Button 
+              onClick={loadRewardsData}
+              variant="outline" 
+              className="border-honey/30 text-honey hover:bg-honey/10"
+            >
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
             </Button>
@@ -236,7 +281,7 @@ export default function Rewards() {
         </CardContent>
       </Card>
 
-      {/* Recent Rewards */}
+      {/* Recent Rewards History */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -245,59 +290,40 @@ export default function Rewards() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {recentRewards.map((reward) => (
-              <div 
-                key={reward.id} 
-                className="flex items-center justify-between p-3 rounded-lg border border-border/50 hover:bg-muted/30 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  {getStatusIcon(reward.status)}
-                  <div>
-                    <div className="font-medium text-sm">{getTypeLabel(reward.type)}</div>
-                    <div className="text-xs text-muted-foreground">{reward.description}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {reward.date}
-                      {reward.expiresAt && (
-                        <span className="text-yellow-400 ml-2">
-                          • Expires {reward.expiresAt}
-                        </span>
-                      )}
+          {rewardsData?.history && rewardsData.history.length > 0 ? (
+            <div className="space-y-3">
+              {rewardsData.history.map((reward) => (
+                <div 
+                  key={reward.id} 
+                  className="flex items-center justify-between p-3 rounded-lg border border-border/50 hover:bg-muted/30 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex flex-col">
+                      <div className="font-medium text-sm">{reward.description}</div>
+                      <div className="text-xs text-muted-foreground">{reward.date}</div>
                     </div>
                   </div>
-                </div>
-                
-                <div className="text-right flex items-center gap-2">
-                  <div>
-                    <div className="font-bold text-honey">
-                      {reward.amount} {reward.currency}
-                    </div>
+                  <div className="text-right">
+                    <div className="font-bold text-honey">{reward.amount} {reward.currency}</div>
                     <Badge 
                       variant="outline" 
-                      className={`text-xs ${getStatusColor(reward.status)}`}
+                      className={
+                        reward.status === 'completed' ? 'text-green-400 border-green-400/30' :
+                        reward.status === 'pending' ? 'text-yellow-400 border-yellow-400/30' :
+                        'text-red-400 border-red-400/30'
+                      }
                     >
                       {reward.status}
                     </Badge>
                   </div>
-                  
-                  {reward.status === 'claimable' && (
-                    <Button 
-                      size="sm" 
-                      onClick={() => claimReward(reward.id)}
-                      disabled={isLoading}
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      {isLoading ? (
-                        <RefreshCw className="h-3 w-3 animate-spin" />
-                      ) : (
-                        'Claim'
-                      )}
-                    </Button>
-                  )}
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              No rewards history available
+            </div>
+          )}
         </CardContent>
       </Card>
 
