@@ -59,6 +59,11 @@
       "subtitle": "基于区块链奖励的Web3会员和学习平台"
     },
     "getStarted": "开始使用",
+    "matrix": {
+      "explainTitle": "了解3×3矩阵",
+      "explainDescription": "了解我们的矩阵系统如何运作以及如何赚取奖励",
+      "explainButton": "矩阵解释"
+    },
     "features": {
       "membership": {
         "title": "Web3会员",
