@@ -138,7 +138,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         console.error('❌ NFT minting failed:', mintError);
         
         // Provide specific error messages based on contract requirements
-        const errorMessage = mintError.message || mintError.toString();
+        const errorMessage = mintError instanceof Error ? mintError.message : String(mintError);
         
         if (errorMessage.includes('Already minted')) {
           throw new Error('❌ Already Minted: This wallet has already claimed the Level 1 NFT. Each wallet can only mint once.');
