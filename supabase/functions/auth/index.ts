@@ -565,9 +565,41 @@ async function handleSyncBlockchainStatus(supabase, walletAddress, data) {
       });
     }
 
-    // Check if user is already activated
+    // Check if user is already activated - but also fix levels_owned if needed
     if (memberData.is_activated) {
       console.log(`✅ Member already activated: ${walletAddress}`);
+      
+      // Fix levels_owned if it's empty but user is activated with current_level
+      if ((!memberData.levels_owned || memberData.levels_owned.length === 0) && memberData.current_level > 0) {
+        console.log(`🔧 Fixing levels_owned for activated member: ${walletAddress}, level: ${memberData.current_level}`);
+        
+        const { data: fixedMember, error: fixError } = await supabase
+          .from('members')
+          .update({
+            levels_owned: [memberData.current_level],
+            updated_at: new Date().toISOString()
+          })
+          .eq('wallet_address', walletAddress.toLowerCase())
+          .select()
+          .single();
+          
+        if (fixError) {
+          console.error('Failed to fix levels_owned:', fixError);
+        } else {
+          console.log(`✅ Fixed levels_owned for ${walletAddress}: [${memberData.current_level}]`);
+          return new Response(JSON.stringify({
+            success: true,
+            message: 'Fixed levels_owned data for activated member',
+            member: fixedMember
+          }), {
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'application/json'
+            }
+          });
+        }
+      }
+      
       return new Response(JSON.stringify({
         success: true,
         message: 'Member is already activated',
