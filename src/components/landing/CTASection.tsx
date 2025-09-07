@@ -42,7 +42,7 @@ export function CTASection() {
   }, [isVisible]);
 
   return (
-    <div className={`relative mb-32 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+    <div id="cta" className={`relative mb-32 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
       {/* Spectacular Background Effects */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-honey/10 via-yellow-400/5 to-amber-400/10 rounded-3xl blur-3xl animate-pulse"></div>

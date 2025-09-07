@@ -47,7 +47,7 @@ export function HowItWorks() {
   ];
 
   return (
-    <div className={`text-center mb-32 relative transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+    <div id="how-it-works" className={`text-center mb-32 relative transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
       {/* Section Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-900/50 to-transparent rounded-3xl blur-3xl"></div>
       

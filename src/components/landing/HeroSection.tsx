@@ -17,7 +17,7 @@ export function HeroSection({ title, subtitle, getStartedText }: HeroSectionProp
   }, []);
 
   return (
-    <div className={`${styles.heroSection} relative min-h-screen flex items-center justify-center overflow-hidden`}>
+    <div id="hero" className={`${styles.heroSection} relative min-h-screen flex items-center justify-center overflow-hidden`}>
       {/* Dynamic Particle Background */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-black via-slate-900/90 to-black"></div>

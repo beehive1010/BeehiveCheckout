@@ -66,7 +66,7 @@ export function FeaturesGrid() {
   ];
 
   return (
-    <div className="features-section mb-32 relative">
+    <div id="features" className="features-section mb-32 relative">
       {/* Section Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-honey/5 to-transparent blur-3xl"></div>
       
