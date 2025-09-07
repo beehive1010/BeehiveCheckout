@@ -57,6 +57,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
+    "drizzle-kit": "^0.31.4",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^11.13.1",
     "input-otp": "^1.4.2",
@@ -74,6 +75,7 @@
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "thirdweb": "^5.105.37",
+    "util-deprecate": "^1.0.2",
     "vaul": "^1.1.2",
     "wouter": "^3.3.5",
     "zod": "^3.24.2",
@@ -81,6 +83,7 @@
   },
   "devDependencies": {
     "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
+    "@rollup/rollup-linux-x64-gnu": "4.50.0",
     "@tailwindcss/typography": "^0.5.15",
     "@types/jest": "^29.5.14",
     "@types/node": "20.16.11",

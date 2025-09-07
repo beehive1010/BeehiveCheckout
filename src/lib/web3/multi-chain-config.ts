@@ -366,6 +366,16 @@ export function formatTransactionUrl(chainId: number, txHash: string): string {
   return `${config.explorerUrl}/tx/${txHash}`;
 }
 
+// Format USDC amount for display
+export function formatUSDCAmount(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 6
+  }).format(amount);
+}
+
 // Export commonly used chains for easy access
 export const SUPPORTED_CHAINS = {
   ETHEREUM: MULTI_CHAIN_CONFIG.ethereum,

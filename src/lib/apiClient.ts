@@ -1,8 +1,8 @@
 // Enhanced API Client with Type Safety and Error Handling
 import { supabaseApi } from './supabase';
+import { ApiException } from '../../types/api.types';
 import type { 
   ApiResponse, 
-  ApiException,
   AuthResponse,
   NFTUpgradeResponse,
   UpgradePathResponse,
@@ -318,5 +318,5 @@ export class TypedApiClient {
 export const typedApiClient = new TypedApiClient();
 
 // Export for convenience
-export { ApiException };
+export { ApiException, TypedApiClient };
 export type { ApiResponse };

@@ -5,7 +5,7 @@ import { Badge } from '../ui/badge';
 import { Eye, ExternalLink, Code, Calendar, Sparkles } from 'lucide-react';
 import MembershipBadge from '../membership/MembershipBadge';
 import { IconCode } from '@tabler/icons-react';
-import { NFTDetailModal } from '../nft/NFTDetailModal';
+import { NFTDetailModal } from './NFTDetailModal';
 import { useToast } from '../../hooks/use-toast';
 import { useWallet } from '../../hooks/useWallet';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
