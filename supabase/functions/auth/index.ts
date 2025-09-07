@@ -105,14 +105,16 @@ async function registerUser(supabase, walletAddress, data) {
   const ROOT_WALLET = '0x0000000000000000000000000000000000000001';
   let referrerWallet = ROOT_WALLET;
   
-  // 修复：正确处理推荐人参数（referrerWallet vs referrer_wallet）
+  // 修复：正确处理推荐人参数，确保参数传递正确
   const inputReferrer = data.referrerWallet || data.referrer_wallet;
   if (inputReferrer && inputReferrer !== ROOT_WALLET) {
-    referrerWallet = inputReferrer.toLowerCase(); // 确保小写
-    console.log(`📝 记录推荐人: ${referrerWallet}（将在NFT claim成功后验证）`);
+    referrerWallet = inputReferrer.toLowerCase(); // 确保小写  
+    console.log(`📝 正在记录推荐人: ${inputReferrer} -> ${referrerWallet}`);
   } else {
-    console.log(`📝 使用默认推荐人（根用户）`);
+    console.log(`📝 使用默认推荐人（根用户），输入推荐人: ${inputReferrer}`);
   }
+  
+  console.log(`🔍 最终推荐人地址: ${referrerWallet}`);
 
   // 生成用户名（如果未提供）
   let username = data.username;

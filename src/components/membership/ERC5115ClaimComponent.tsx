@@ -279,29 +279,33 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         console.warn('⚠️ Backend processing error but continuing:', backendError);
       }
 
-      // Step 4: Activate membership (try regardless of backend processing)
-      console.log('🚀 Activating membership...');
+      // Step 4: 安全激活会员身份（使用专用函数验证NFT claim）
+      console.log('🚀 安全激活会员身份...');
       try {
-        const activateResponse = await fetch(`${API_BASE}/auth`, {
+        const activateResponse = await fetch(`${API_BASE}/activate-membership`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'x-wallet-address': account.address
           },
           body: JSON.stringify({
-            action: 'activate-membership'
+            transactionHash: claimTxResult.transactionHash,
+            level: 1,
+            paymentMethod: 'token_payment',
+            paymentAmount: 130
           })
         });
 
         if (activateResponse.ok) {
           const activateResult = await activateResponse.json();
-          console.log('✅ Membership activation result:', activateResult);
+          console.log('✅ 安全会员激活结果:', activateResult);
           membershipActivated = activateResult.success;
         } else {
-          console.warn('⚠️ Membership activation failed');
+          const errorText = await activateResponse.text();
+          console.warn('⚠️ 会员激活失败:', errorText);
         }
       } catch (activationError) {
-        console.warn('⚠️ Membership activation error:', activationError);
+        console.warn('⚠️ 会员激活错误:', activationError);
       }
 
       // Show success message if NFT was claimed successfully
