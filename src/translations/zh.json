@@ -27,6 +27,32 @@
   "header": {
     "connectWallet": "连接钱包"
   },
+  "registration": {
+    "title": "完成注册",
+    "subtitle": "设置您的蜂巢资料",
+    "walletAddress": "钱包地址",
+    "email": "邮箱地址",
+    "emailPlaceholder": "输入您的邮箱",
+    "username": "用户名",
+    "usernamePlaceholder": "选择一个用户名",
+    "referrer": "推荐人",
+    "register": "完成注册",
+    "registering": "处理中...",
+    "optional": "可选",
+    "referredBy": "推荐人",
+    "nextSteps": "下一步",
+    "activationInfo": "注册后请前往激活页面获取您的会员NFT",
+    "success": "注册成功！",
+    "welcomeMessage": "您的资料已创建。现在可以激活您的会员资格了。",
+    "failed": "注册失败",
+    "unknownError": "请重试或联系客服",
+    "usernameRequired": "用户名必填",
+    "usernameMinLength": "用户名至少需要3个字符",
+    "usernameFormat": "用户名只能包含字母、数字和下划线",
+    "emailInvalid": "请输入有效的邮箱地址",
+    "usernameExists": "用户名已存在",
+    "emailExists": "邮箱已注册"
+  },
   "landing": {
     "hero": {
       "title": "欢迎来到蜂巢",

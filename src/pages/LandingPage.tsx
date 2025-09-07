@@ -5,6 +5,7 @@ import { HeroSection } from '../components/landing/HeroSection';
 import { FeaturesGrid } from '../components/landing/FeaturesGrid';
 import { HowItWorks } from '../components/landing/HowItWorks';
 import { CTASection } from '../components/landing/CTASection';
+import { LandingFooter } from '../components/landing/LandingFooter';
 import { referralService } from '../api/landing/referral.client';
 import styles from '../styles/landing/landing.module.css';
 
@@ -33,6 +34,8 @@ export default function LandingPage() {
         
         <CTASection />
       </div>
+      
+      <LandingFooter />
     </div>
   );
 }

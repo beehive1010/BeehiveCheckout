@@ -132,10 +132,12 @@
       "passwordMismatch": "Passwords do not match",
       "referrerRequired": "A valid referral link is required to register"
     },
-    "success": {
-      "title": "Registration Successful!",
-      "description": "Your profile has been created. You can now activate your membership."
-    },
+    "success": "Registration Successful!",
+    "welcomeMessage": "Your profile has been created. You can now activate your membership.",
+    "failed": "Registration Failed",
+    "unknownError": "Please try again or contact support if the problem persists.",
+    "registering": "Processing...",
+    "register": "Complete Registration",
     "error": {
       "title": "Registration Failed",
       "description": "Please try again or contact support if the problem persists."
