@@ -82,6 +82,13 @@ export function MultiChainPaymentSelector({
     }
   }, [selectedChainId, paymentAmount]);
 
+  // Reset bridge mode if testnet is selected
+  useEffect(() => {
+    if (selectedChain && selectedChain.isTestnet) {
+      setBridgeMode(false);
+    }
+  }, [selectedChain]);
+
   const loadUserBalance = async () => {
     if (!account?.address) return;
     
@@ -329,8 +336,8 @@ export function MultiChainPaymentSelector({
             </div>
           )}
 
-          {/* Bridge Mode Toggle */}
-          {selectedChainId !== MULTI_CHAIN_CONFIG.arbitrum.chainId && (
+          {/* Bridge Mode Toggle - Only for mainnet chains */}
+          {selectedChainId !== MULTI_CHAIN_CONFIG.arbitrum.chainId && selectedChain && !selectedChain.isTestnet && (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <input
@@ -350,6 +357,19 @@ export function MultiChainPaymentSelector({
                   "Your payment will be bridged to Arbitrum One for platform use. Additional $2 bridge fee applies." :
                   "Payment will remain on selected network. Manual bridging may be required later."
                 }
+              </p>
+            </div>
+          )}
+
+          {/* Testnet Bridge Restriction Notice */}
+          {selectedChain && selectedChain.isTestnet && selectedChainId !== MULTI_CHAIN_CONFIG.arbitrum.chainId && (
+            <div className="bg-muted/30 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Info className="h-4 w-4" />
+                <span className="text-sm font-medium">Testnet Payment</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Testnet payments remain on the test network and cannot be bridged to mainnet.
               </p>
             </div>
           )}

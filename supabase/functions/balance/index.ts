@@ -199,7 +199,7 @@ async function handleTransferBcc(supabase, walletAddress, data) {
     // Process BCC transfer
     const { data: result, error: transferError } = await supabase.rpc('transfer_bcc_tokens', {
       p_from_wallet: walletAddress,
-      p_to_wallet: recipientWallet.toLowerCase(),
+      p_to_wallet: recipientWallet,
       p_amount: amount,
       p_purpose: purpose || 'User transfer'
     });
@@ -220,7 +220,7 @@ async function handleTransferBcc(supabase, walletAddress, data) {
       success: true,
       transfer: {
         from: walletAddress,
-        to: recipientWallet.toLowerCase(),
+        to: recipientWallet,
         amount: amount,
         purpose: purpose || 'User transfer',
         newBalance: result.new_sender_balance,

@@ -3,7 +3,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { createThirdwebClient, getContract, prepareContractCall, sendTransaction } from "https://esm.sh/thirdweb@5";
-import { defineChain } from "https://esm.sh/thirdweb/chains";
+import { arbitrum, arbitrumSepolia } from "https://esm.sh/thirdweb/chains";
 import { createWallet } from "https://esm.sh/thirdweb/wallets";
 
 // Thirdweb configuration
@@ -19,31 +19,32 @@ const thirdwebClient = createThirdwebClient({
 // Initialize server wallet for NFT operations
 const serverWallet = createWallet("privateKeyAccount");
 
-// NFT Contract configuration - adjust based on your deployed contract
-const NFT_CONTRACT_ADDRESS = "0x..."; // Replace with actual deployed contract address
-const CHAIN_ID = 137; // Polygon network
+// Network Configuration - uses Arbitrum as per MarketingPlan.md
+const NETWORK_CONFIG = {
+  MAINNET: {
+    chain: arbitrum,
+    chainId: 42161,
+    name: "Arbitrum One",
+    nftContractAddress: Deno.env.get('VITE_BBC_MEMBERSHIP_ARB') || '0x0000000000000000000000000000000000000000',
+    isTestnet: false
+  },
+  TESTNET: {
+    chain: arbitrumSepolia,
+    chainId: 421614, 
+    name: "Arbitrum Sepolia",
+    nftContractAddress: '0xAc8c8662726b72f8DB4F5D1d1a16aC5b06B7a90D', // BBC Membership contract on Arbitrum Sepolia
+    isTestnet: true
+  }
+};
 
-// Define the chain
-const chain = defineChain({
-  id: CHAIN_ID,
-  name: "Polygon",
-  nativeCurrency: {
-    name: "MATIC",
-    symbol: "MATIC",
-    decimals: 18,
-  },
-  rpcUrls: {
-    default: {
-      http: ["https://polygon-rpc.com"],
-    },
-  },
-  blockExplorers: {
-    default: {
-      name: "PolygonScan",
-      url: "https://polygonscan.com",
-    },
-  },
-});
+// Determine current network based on environment
+function getCurrentNetwork() {
+  const isDevelopment = Deno.env.get('NODE_ENV') !== 'production';
+  return isDevelopment ? NETWORK_CONFIG.TESTNET : NETWORK_CONFIG.MAINNET;
+}
+
+// Get current network configuration
+const currentNetwork = getCurrentNetwork();
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -102,8 +103,14 @@ serve(async (req)=>{
       case 'process-upgrade':
       case 'process-nft-purchase':
         return await handleProcessUpgrade(supabase, walletAddress || requestData.wallet_address, requestData);
+      case 'process-mainnet-claim':
+        return await handleProcessUpgrade(supabase, walletAddress || requestData.wallet_address, { ...requestData, targetNetwork: NETWORK_CONFIG.MAINNET });
+      case 'process-testnet-claim':
+        return await handleProcessUpgrade(supabase, walletAddress || requestData.wallet_address, { ...requestData, targetNetwork: NETWORK_CONFIG.TESTNET });
       case 'get-upgrade-history':
         return await handleGetUpgradeHistory(supabase, walletAddress, requestData.limit, requestData.offset);
+      case 'get-network-status':
+        return await handleGetNetworkStatus(supabase);
       default:
         return new Response(JSON.stringify({
           error: 'Invalid action'
@@ -309,14 +316,22 @@ async function handleCheckEligibility(supabase, walletAddress, level) {
     });
   }
 }
-// NFT minting function using Thirdweb
-async function mintNFT(recipientAddress: string, level: number, metadata: any) {
+// NFT minting function using Thirdweb with dynamic network support
+async function mintNFT(recipientAddress: string, level: number, metadata: any, targetNetwork?: any) {
   try {
-    // Get NFT contract
+    // Use provided network or default to current
+    const network = targetNetwork || currentNetwork;
+    
+    // Validate BBC Membership contract address
+    if (!network.nftContractAddress || network.nftContractAddress === '0x0000000000000000000000000000000000000000') {
+      throw new Error(`BBC Membership contract not configured for ${network.name}`);
+    }
+    
+    // Get NFT contract for the specific network
     const nftContract = getContract({
       client: thirdwebClient,
-      address: NFT_CONTRACT_ADDRESS,
-      chain: chain,
+      address: network.nftContractAddress,
+      chain: network.chain,
     });
 
     // Prepare the mint transaction
@@ -335,7 +350,9 @@ async function mintNFT(recipientAddress: string, level: number, metadata: any) {
     return {
       success: true,
       transactionHash: result.transactionHash,
-      tokenId: level // or get from event logs
+      tokenId: level,
+      network: network.name,
+      chainId: network.chainId
     };
   } catch (error) {
     console.error('NFT minting error:', error);
@@ -351,6 +368,7 @@ async function handleProcessUpgrade(supabase, walletAddress, data) {
     const level = data.level || data.nft_level;
     const transactionHash = data.transactionHash || data.transaction_hash;
     const paymentAmount = data.payment_amount_usdc || 0;
+    const targetNetwork = data.targetNetwork || currentNetwork;
     if (!level || !transactionHash) {
       return new Response(JSON.stringify({
         success: false,
@@ -505,7 +523,9 @@ async function handleProcessUpgrade(supabase, walletAddress, data) {
       metadata: {
         level: level,
         token_id: level,
-        network: data.network || 'ethereum'
+        network: targetNetwork.name,
+        chain_id: targetNetwork.chainId,
+        is_testnet: targetNetwork.isTestnet
       }
     }).select().single();
     if (orderError) {
@@ -581,16 +601,20 @@ async function handleProcessUpgrade(supabase, walletAddress, data) {
     }
     // Mint NFT using Thirdweb after successful purchase
     const nftMetadata = {
-      name: `Beehive Level ${level} NFT`,
-      description: `Level ${level} membership NFT for Beehive Platform`,
-      image: `https://your-cdn.com/nft-level-${level}.png`, // Replace with actual URL
+      name: `Beehive Membership Level ${level}`,
+      description: `Level ${level} membership NFT for Beehive Platform on ${targetNetwork.name}`,
+      image: `https://your-cdn.com/membership-level-${level}.png`, // Replace with actual URL
       level: level,
       wallet_address: walletAddress,
-      mint_date: new Date().toISOString()
+      mint_date: new Date().toISOString(),
+      network: targetNetwork.name,
+      chain_id: targetNetwork.chainId,
+      is_testnet: targetNetwork.isTestnet,
+      contract_type: 'BBC_MEMBERSHIP'
     };
 
-    console.log(`Minting NFT Level ${level} for ${walletAddress}`);
-    const mintResult = await mintNFT(walletAddress, level, nftMetadata);
+    console.log(`Minting NFT Level ${level} for ${walletAddress} on ${targetNetwork.name} (${targetNetwork.chainId})`);
+    const mintResult = await mintNFT(walletAddress, level, nftMetadata, targetNetwork);
 
     if (!mintResult.success) {
       console.error('NFT minting failed:', mintResult.error);
@@ -678,6 +702,59 @@ async function handleGetUpgradeHistory(supabase, walletAddress, limit = 20, offs
     return new Response(JSON.stringify({
       success: false,
       error: 'Failed to get upgrade history',
+      details: error.message
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      },
+      status: 500
+    });
+  }
+}
+
+async function handleGetNetworkStatus(supabase) {
+  try {
+    return new Response(JSON.stringify({
+      success: true,
+      networks: {
+        current: {
+          name: currentNetwork.name,
+          chainId: currentNetwork.chainId,
+          isTestnet: currentNetwork.isTestnet,
+          nftContract: currentNetwork.nftContractAddress
+        },
+        available: {
+          mainnet: {
+            name: NETWORK_CONFIG.MAINNET.name,
+            chainId: NETWORK_CONFIG.MAINNET.chainId,
+            isTestnet: NETWORK_CONFIG.MAINNET.isTestnet,
+            nftContract: NETWORK_CONFIG.MAINNET.nftContractAddress
+          },
+          testnet: {
+            name: NETWORK_CONFIG.TESTNET.name,
+            chainId: NETWORK_CONFIG.TESTNET.chainId,
+            isTestnet: NETWORK_CONFIG.TESTNET.isTestnet,
+            nftContract: NETWORK_CONFIG.TESTNET.nftContractAddress
+          }
+        }
+      },
+      supportedActions: [
+        'process-mainnet-claim',
+        'process-testnet-claim',
+        'process-upgrade',
+        'process-nft-purchase'
+      ]
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+  } catch (error) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Failed to get network status',
       details: error.message
     }), {
       headers: {

@@ -7,6 +7,8 @@ import { useI18n } from '../../contexts/I18nContext';
 import { useWeb3 } from '../../contexts/Web3Context';
 import { ACTIVATION_BUTTONS, PRIMARY_NETWORK_INFO } from '../../lib/web3/network-config';
 import { updatedApiClient } from '../../lib/apiClientUpdated';
+import { MultiChainPaymentSelector } from '../payment/MultiChainPaymentSelector';
+import { type PaymentResult } from '../../lib/web3/multi-chain-payment';
 import { 
   Crown, 
   Network, 
@@ -16,7 +18,8 @@ import {
   CreditCard,
   Users,
   Loader2,
-  AlertTriangle
+  AlertTriangle,
+  ArrowLeft
 } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
 
@@ -33,6 +36,8 @@ interface ActivationState {
   loading: boolean;
   error: string | null;
   txHash?: string;
+  showPayment: boolean;
+  paymentCompleted: boolean;
 }
 
 /**
@@ -56,10 +61,12 @@ export function ArbitrumMembershipActivation({
   const [activationState, setActivationState] = useState<ActivationState>({
     method: null,
     loading: false,
-    error: null
+    error: null,
+    showPayment: false,
+    paymentCompleted: false
   });
 
-  // Handle activation for each method according to MarketingPlan.md
+  // Handle activation button click - shows payment selector for mainnet/testnet
   const handleActivation = async (method: ActivationMethod) => {
     if (!account?.address) {
       toast({
@@ -70,7 +77,63 @@ export function ArbitrumMembershipActivation({
       return;
     }
 
-    setActivationState({ method, loading: true, error: null });
+    if (method === 'simulation') {
+      // Process simulation immediately
+      await processActivation(method);
+    } else {
+      // Show payment selector for mainnet/testnet
+      setActivationState({
+        method,
+        loading: false,
+        error: null,
+        showPayment: true,
+        paymentCompleted: false
+      });
+    }
+  };
+
+  // Handle successful payment from MultiChainPaymentSelector
+  const handlePaymentSuccess = async (paymentResult: PaymentResult) => {
+    if (!activationState.method) return;
+    
+    setActivationState(prev => ({
+      ...prev,
+      paymentCompleted: true,
+      txHash: paymentResult.transactionHash
+    }));
+
+    // Process activation after successful payment
+    await processActivation(activationState.method, paymentResult);
+  };
+
+  // Handle payment error
+  const handlePaymentError = (error: string) => {
+    setActivationState(prev => ({
+      ...prev,
+      error: error
+    }));
+
+    toast({
+      title: "Payment Failed",
+      description: error,
+      variant: "destructive"
+    });
+  };
+
+  // Go back to method selection
+  const handleBackToSelection = () => {
+    setActivationState({
+      method: null,
+      loading: false,
+      error: null,
+      showPayment: false,
+      paymentCompleted: false
+    });
+  };
+
+  // Process activation after payment or for simulation
+  const processActivation = async (method: ActivationMethod, paymentResult?: PaymentResult) => {
+    setActivationState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
       // Step 1: Register user if not exists (preserves wallet case as required)
@@ -86,10 +149,12 @@ export function ArbitrumMembershipActivation({
         level: 1, // NFT Level 1 as per MarketingPlan.md
         transactionHash: method === 'simulation' 
           ? `0x${Date.now().toString(16)}` // Generate demo hash for simulation
-          : '0x' + Math.random().toString(16).slice(2), // Demo hash for testing
+          : paymentResult?.transactionHash || `0x${Date.now().toString(16)}`, // Use actual payment tx hash
         payment_amount_usdc: method === 'simulation' ? 0 : 130, // 130 USDC total cost
         paymentMethod: method,
-        network: method === 'mainnet' ? 'arbitrum' : 'arbitrumSepolia'
+        network: method === 'mainnet' ? 'arbitrum' : 'arbitrumSepolia',
+        paymentChain: paymentResult?.sourceChain || (method === 'mainnet' ? 'arbitrum' : 'arbitrumSepolia'),
+        bridged: paymentResult?.bridged || false
       };
 
       const activationResult = await updatedApiClient.processNFTUpgrade(
@@ -173,6 +238,77 @@ export function ArbitrumMembershipActivation({
       default: return 'bg-honey hover:bg-honey/90 text-black';
     }
   };
+
+  // Show payment selector for mainnet/testnet activations
+  if (activationState.showPayment && (activationState.method === 'mainnet' || activationState.method === 'testnet')) {
+    return (
+      <div className={`space-y-6 ${className}`}>
+        {/* Header with back button */}
+        <div className="flex items-center gap-4 mb-6">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBackToSelection}
+            className="flex items-center gap-2 text-muted-foreground hover:text-honey"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Methods
+          </Button>
+        </div>
+
+        <div className="text-center mb-6">
+          <Badge variant="outline" className="bg-honey/10 text-honey border-honey/30 mb-4">
+            {getMethodDisplayName(activationState.method)} Payment
+          </Badge>
+          <h2 className="text-2xl font-bold text-honey mb-2">
+            Complete Your Activation
+          </h2>
+          <p className="text-muted-foreground">
+            Pay 130 USDC to activate Level 1 membership
+          </p>
+        </div>
+
+        {/* Multi-chain payment selector */}
+        <MultiChainPaymentSelector
+          amount={130}
+          paymentPurpose="membership_activation"
+          level={1}
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentError={handlePaymentError}
+        />
+
+        {/* Loading state during activation processing */}
+        {activationState.paymentCompleted && activationState.loading && (
+          <Card className="bg-muted/30 border-muted">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3 text-center justify-center">
+                <Loader2 className="h-5 w-5 animate-spin text-honey" />
+                <span className="text-honey font-medium">Processing activation...</span>
+              </div>
+              <p className="text-sm text-muted-foreground text-center mt-2">
+                Confirming your membership and setting up rewards...
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Error Display */}
+        {activationState.error && (
+          <Card className="border-destructive/20 bg-destructive/5">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-2 text-destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <span className="font-medium">Activation Error</span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                {activationState.error}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={`space-y-6 ${className}`}>
