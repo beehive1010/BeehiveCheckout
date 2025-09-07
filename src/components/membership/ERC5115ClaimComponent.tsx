@@ -21,8 +21,8 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
   const [isProcessing, setIsProcessing] = useState(false);
 
   const API_BASE = import.meta.env.VITE_API_BASE;
-  const FAKE_USDC_CONTRACT = import.meta.env.VITE_FAKE_USDC_TESTNET;
-  const NFT_CONTRACT = import.meta.env.VITE_NFT_TESTNET_CONTRACT;
+  const PAYMENT_TOKEN_CONTRACT = "0x4470734620414168Aa1673A30849DB25E5886E2A";
+  const NFT_CONTRACT = "0x2Cb47141485754371c24Efcc65d46Ccf004f769a";
   const THIRDWEB_CLIENT_ID = import.meta.env.VITE_THIRDWEB_CLIENT_ID;
 
   // Initialize Thirdweb client
@@ -71,7 +71,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       // Get the token contract
       const tokenContract = getContract({
         client,
-        address: FAKE_USDC_CONTRACT,
+        address: PAYMENT_TOKEN_CONTRACT,
         chain: arbitrumSepolia
       });
 
@@ -90,7 +90,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       let decimalMultiplier = BigInt("1000000000000000000"); // 10^18
       
       try {
-        const decimalsResult = await fetch(`https://api.thirdweb.com/v1/chains/421614/contracts/${FAKE_USDC_CONTRACT}/read?functionName=decimals`, {
+        const decimalsResult = await fetch(`https://api.thirdweb.com/v1/chains/421614/contracts/${PAYMENT_TOKEN_CONTRACT}/read?functionName=decimals`, {
           headers: { 'x-client-id': THIRDWEB_CLIENT_ID }
         });
         
@@ -114,7 +114,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
 
       // Check user's USDC balance with correct decimals
       console.log('💰 Checking USDC balance...');
-      const balanceResult = await fetch('https://api.thirdweb.com/v1/chains/421614/contracts/' + FAKE_USDC_CONTRACT + '/erc20/balance-of?wallet_address=' + account.address, {
+      const balanceResult = await fetch('https://api.thirdweb.com/v1/chains/421614/contracts/' + PAYMENT_TOKEN_CONTRACT + '/erc20/balance-of?wallet_address=' + account.address, {
         headers: { 'x-client-id': THIRDWEB_CLIENT_ID }
       });
       
@@ -175,7 +175,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       console.log(`📋 Decimals detected: ${tokenDecimals}`);
       console.log(`📋 Calculated human readable: ${Number(finalAmount) / Number(BigInt(10 ** tokenDecimals))} USDC`);
       console.log(`📋 Spender (NFT Contract): ${NFT_CONTRACT}`);
-      console.log(`📋 Token Contract: ${FAKE_USDC_CONTRACT}`);
+      console.log(`📋 Token Contract: ${PAYMENT_TOKEN_CONTRACT}`);
       
       const approveTransaction = prepareContractCall({
         contract: tokenContract,
@@ -209,107 +209,104 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         console.warn('⚠️ Could not verify allowance:', allowanceError);
       }
 
-      // Check if already minted - CRITICAL CHECK
-      console.log('🔍 Checking if already minted...');
+      // Check if already claimed - CRITICAL CHECK
+      console.log('🔍 Checking if already claimed...');
       try {
-        // First, let's get the contract state via Thirdweb API
-        const contractStateCheck = await fetch(`https://api.thirdweb.com/v1/chains/421614/contracts/${NFT_CONTRACT}/read?functionName=hasMinted&args=${account.address}`, {
+        // Check if user has already claimed token ID 1
+        const balanceCheck = await fetch(`https://api.thirdweb.com/v1/chains/421614/contracts/${NFT_CONTRACT}/erc1155/balance-of?wallet_address=${account.address}&token_id=1`, {
           headers: { 'x-client-id': THIRDWEB_CLIENT_ID }
         });
         
-        if (contractStateCheck.ok) {
-          const stateData = await contractStateCheck.json();
-          console.log(`📋 hasMinted(${account.address}):`, stateData);
+        if (balanceCheck.ok) {
+          const balanceData = await balanceCheck.json();
+          const balance = parseInt(balanceData.result || "0");
+          console.log(`📋 Token ID 1 balance for ${account.address}:`, balance);
           
-          if (stateData.result === true || stateData.result === "true") {
-            throw new Error(`❌ ALREADY MINTED: Wallet ${account.address} has already claimed the Level 1 NFT. You cannot mint twice. Use a different wallet that hasn't minted yet.`);
+          if (balance > 0) {
+            throw new Error(`❌ ALREADY CLAIMED: Wallet ${account.address} has already claimed the Level 1 NFT (Token ID 1). You cannot claim twice. Use a different wallet that hasn't claimed yet.`);
           } else {
-            console.log(`✅ Wallet has NOT minted yet - can proceed`);
+            console.log(`✅ Wallet has NOT claimed yet - can proceed`);
           }
         } else {
-          console.warn('⚠️ Could not verify minted status via API');
+          console.warn('⚠️ Could not verify claimed status via API');
         }
-      } catch (mintedError) {
-        console.warn('⚠️ Error checking minted status:', mintedError);
+      } catch (claimedError) {
+        console.warn('⚠️ Error checking claimed status:', claimedError);
         // If this check itself fails, we'll continue and let the transaction tell us
       }
       
-      // Additional check: Verify contract configuration
-      console.log('🔍 Checking contract configuration...');
+      // Additional check: Verify claim conditions
+      console.log('🔍 Checking claim conditions...');
       try {
-        const configChecks = await Promise.all([
-          fetch(`https://api.thirdweb.com/v1/chains/421614/contracts/${NFT_CONTRACT}/read?functionName=paymentToken`, {
-            headers: { 'x-client-id': THIRDWEB_CLIENT_ID }
-          }),
-          fetch(`https://api.thirdweb.com/v1/chains/421614/contracts/${NFT_CONTRACT}/read?functionName=treasury`, {
-            headers: { 'x-client-id': THIRDWEB_CLIENT_ID }
-          }),
-          fetch(`https://api.thirdweb.com/v1/chains/421614/contracts/${NFT_CONTRACT}/read?functionName=platform`, {
-            headers: { 'x-client-id': THIRDWEB_CLIENT_ID }
-          })
-        ]);
+        // Check if Token ID 1 exists and has claim conditions set
+        const claimConditionCheck = await fetch(`https://api.thirdweb.com/v1/chains/421614/contracts/${NFT_CONTRACT}/read?functionName=getActiveClaimConditionId&args=1`, {
+          headers: { 'x-client-id': THIRDWEB_CLIENT_ID }
+        });
         
-        const [tokenResult, treasuryResult, platformResult] = await Promise.all(
-          configChecks.map(response => response.ok ? response.json() : null)
-        );
-        
-        console.log('📋 Contract Config:');
-        console.log('  - paymentToken:', tokenResult?.result || 'FAILED TO READ');
-        console.log('  - treasury:', treasuryResult?.result || 'FAILED TO READ');  
-        console.log('  - platform:', platformResult?.result || 'FAILED TO READ');
-        
-        // Check if any are zero address
-        const zeroAddress = '0x0000000000000000000000000000000000000000';
-        if (tokenResult?.result === zeroAddress) {
-          throw new Error('❌ CONTRACT ERROR: Payment token not set (zero address)');
-        }
-        if (treasuryResult?.result === zeroAddress) {
-          throw new Error('❌ CONTRACT ERROR: Treasury address not set (zero address)');  
-        }
-        if (platformResult?.result === zeroAddress) {
-          throw new Error('❌ CONTRACT ERROR: Platform address not set (zero address)');
+        if (claimConditionCheck.ok) {
+          const conditionData = await claimConditionCheck.json();
+          console.log('📋 Active claim condition ID for token 1:', conditionData.result);
+        } else {
+          console.warn('⚠️ Could not verify claim conditions');
         }
         
       } catch (configError) {
-        console.warn('⚠️ Could not verify contract configuration:', configError);
+        console.warn('⚠️ Could not verify claim conditions:', configError);
       }
 
       // Claim NFT using token payment
       console.log('🎁 Claiming NFT with token payment...');
-      const mintTransaction = prepareContractCall({
+      
+      // Prepare allowlist proof (empty for public claims)
+      const allowlistProof = {
+        proof: [], // Empty array for public claims
+        quantityLimitPerWallet: BigInt(1), // Limit 1 per wallet
+        pricePerToken: finalAmount, // 130 USDC in wei
+        currency: PAYMENT_TOKEN_CONTRACT // Payment token address
+      };
+      
+      const claimTransaction = prepareContractCall({
         contract: nftContract,
-        method: "function mintWithTokens(address to, uint256 tokenId)",
-        params: [account.address, BigInt(1)] // Mint token ID 1 to user's address
+        method: "function claim(address _receiver, uint256 _tokenId, uint256 _quantity, address _currency, uint256 _pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) _allowlistProof, bytes _data) payable",
+        params: [
+          account.address, // _receiver
+          BigInt(1), // _tokenId (Level 1)
+          BigInt(1), // _quantity
+          PAYMENT_TOKEN_CONTRACT, // _currency
+          finalAmount, // _pricePerToken (130 USDC in wei)
+          allowlistProof, // _allowlistProof
+          "0x" // _data (empty bytes)
+        ]
       });
 
-      let mintTxResult;
+      let claimTxResult;
       try {
-        mintTxResult = await sendTransaction({
-          transaction: mintTransaction,
+        claimTxResult = await sendTransaction({
+          transaction: claimTransaction,
           account
         });
-        console.log('🎉 NFT minting transaction:', mintTxResult.transactionHash);
-      } catch (mintError) {
-        console.error('❌ NFT minting failed:', mintError);
+        console.log('🎉 NFT claim transaction:', claimTxResult.transactionHash);
+      } catch (claimError) {
+        console.error('❌ NFT claim failed:', claimError);
         
         // Provide specific error messages based on contract requirements
-        const errorMessage = mintError instanceof Error ? mintError.message : String(mintError);
+        const errorMessage = claimError instanceof Error ? claimError.message : String(claimError);
         
         // Enhanced error messages based on transaction analysis
-        if (errorMessage.includes('Already minted') || errorMessage.includes('hasMinted')) {
-          throw new Error(`❌ Already Minted: Wallet ${account.address} has already claimed the Level 1 NFT. Each wallet can only mint once. Try with a different wallet.`);
+        if (errorMessage.includes('Already claimed') || errorMessage.includes('quantity limit')) {
+          throw new Error(`❌ Already Claimed: Wallet ${account.address} has already claimed the Level 1 NFT. Each wallet can only claim once. Try with a different wallet.`);
         } else if (errorMessage.includes('Insufficient allowance') || errorMessage.includes('allowance')) {
           throw new Error(`❌ Insufficient Allowance: The approval for 130 USDC may have failed or expired. Required: approve contract ${NFT_CONTRACT} to spend 130 USDC from ${account.address}.`);
         } else if (errorMessage.includes('Insufficient balance') || errorMessage.includes('balance')) {
-          throw new Error(`❌ Insufficient Balance: Wallet ${account.address} needs exactly 130 USDC (with 6 decimals = 130,000,000 wei) to claim this NFT.`);
-        } else if (errorMessage.includes('Payment token not set')) {
-          throw new Error('❌ Contract Error: Payment token not configured in the NFT contract. Please contact support.');
-        } else if (errorMessage.includes('Only tokenId 1')) {
-          throw new Error('❌ Invalid Token ID: Only Token ID 1 can be minted.');
+          throw new Error(`❌ Insufficient Balance: Wallet ${account.address} needs exactly 130 USDC to claim this NFT.`);
+        } else if (errorMessage.includes('Invalid price') || errorMessage.includes('price')) {
+          throw new Error('❌ Price Error: Invalid price specified for claim. Expected 130 USDC.');
+        } else if (errorMessage.includes('Invalid currency')) {
+          throw new Error('❌ Currency Error: Invalid payment currency specified.');
         } else if (errorMessage.includes('revert') || errorMessage.includes('execution reverted')) {
-          throw new Error(`❌ Transaction Reverted: Check if you've already minted, have sufficient USDC balance (130 USDC), and proper allowance. Transaction may have failed due to contract state. Details: ${errorMessage}`);
+          throw new Error(`❌ Transaction Reverted: Check if you've already claimed, have sufficient balance (130 USDC), and proper allowance. Details: ${errorMessage}`);
         } else {
-          throw new Error(`❌ Minting Failed: ${errorMessage}. Common causes: already minted, insufficient balance/allowance, or contract configuration issues.`);
+          throw new Error(`❌ Claim Failed: ${errorMessage}. Common causes: already claimed, insufficient balance/allowance, or contract configuration issues.`);
         }
       }
 
@@ -324,7 +321,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         body: JSON.stringify({
           action: 'process-upgrade',
           level: 1,
-          transactionHash: mintTxResult.transactionHash,
+          transactionHash: claimTxResult.transactionHash,
           paymentMethod: 'token_payment',
           payment_amount_usdc: 130 // 130 USDC (100 NFT + 30 platform fee)
         })
@@ -460,7 +457,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
             <div className="flex justify-between">
               <span>Token Contract:</span>
               <span className="text-foreground font-mono text-xs">
-                {FAKE_USDC_CONTRACT?.slice(0, 8)}...{FAKE_USDC_CONTRACT?.slice(-6)}
+                {PAYMENT_TOKEN_CONTRACT?.slice(0, 8)}...{PAYMENT_TOKEN_CONTRACT?.slice(-6)}
               </span>
             </div>
             {referrerWallet && (
