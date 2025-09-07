@@ -10,7 +10,9 @@
       "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions deploy rewards --project-ref cvqibjcbfrwsgkvthccp)",
       "Read(//tmp/**)",
       "Bash(curl:*)",
-      "WebFetch(domain:api.thirdweb.com)"
+      "WebFetch(domain:api.thirdweb.com)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run check:*)"
     ],
     "deny": [],
     "ask": []
