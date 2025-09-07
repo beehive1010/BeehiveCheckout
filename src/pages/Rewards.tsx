@@ -7,7 +7,7 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
 import { useToast } from '../hooks/use-toast';
-import { createSupabaseClient } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { 
   User, 
   Award, 
@@ -62,7 +62,7 @@ export default function Rewards() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const supabase = createSupabaseClient();
+  // Use imported supabase client
 
   useEffect(() => {
     if (walletAddress) {
