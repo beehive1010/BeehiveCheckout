@@ -51,45 +51,57 @@ export async function callEdgeFunction(
 
 // === USER AUTHENTICATION & REGISTRATION ===
 export const authService = {
-  // Register user in users table
+  // Register user via Edge Function to bypass RLS
   async registerUser(walletAddress: string, username: string, email?: string, referrerWallet?: string) {
-    return supabase
-      .from('users')
-      .insert([
-        {
-          wallet_address: walletAddress,
-          username,
-          email: email || null,
-          referrer_wallet: referrerWallet || null,
-          current_level: 0,
-          is_upgraded: false,
-          upgrade_timer_enabled: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      ])
-      .select()
-      .single();
+    try {
+      const result = await callEdgeFunction('auth', {
+        action: 'register',
+        username,
+        email,
+        referrerWallet
+      }, walletAddress);
+
+      if (!result.success) {
+        throw new Error(result.error || 'Registration failed');
+      }
+
+      return { data: result.user, error: null };
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      return { data: null, error: { message: error.message } };
+    }
   },
 
-  // Get user by wallet address
+  // Get user by wallet address via Edge Function
   async getUser(walletAddress: string) {
-    return supabase
-      .from('users')
-      .select('*')
-      .eq('wallet_address', walletAddress)
-      .single();
+    try {
+      const result = await callEdgeFunction('auth', {
+        action: 'get-user'
+      }, walletAddress);
+
+      if (!result.success) {
+        return { data: null, error: { message: result.error || 'User not found' } };
+      }
+
+      return { data: result.user, error: null };
+    } catch (error: any) {
+      console.error('Error getting user:', error);
+      return { data: null, error: { message: error.message } };
+    }
   },
 
-  // Check if user exists
+  // Check if user exists via Edge Function
   async userExists(walletAddress: string) {
-    const { data, error } = await supabase
-      .from('users')
-      .select('wallet_address')
-      .eq('wallet_address', walletAddress)
-      .single();
-    
-    return { exists: !error && !!data, error };
+    try {
+      const result = await callEdgeFunction('auth', {
+        action: 'get-user'
+      }, walletAddress);
+
+      return { exists: result.success && result.isRegistered, error: null };
+    } catch (error: any) {
+      console.error('Error checking user existence:', error);
+      return { exists: false, error: { message: error.message } };
+    }
   },
 
   // Get member info (check if user is activated)

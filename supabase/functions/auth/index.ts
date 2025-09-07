@@ -215,14 +215,13 @@ async function handleUserRegistration(supabase, walletAddress, data) {
       }
     }
 
-    // Create user record - basic registration only
+    // Create user record using Supabase client - should work with RLS disabled
     const { data: newUser, error: userError } = await supabase.from('users').insert({
       wallet_address: walletAddress,
-      referrer_wallet: validReferrerWallet, // Store for later activation
+      referrer_wallet: validReferrerWallet,
       username: username,
       email: data.email || null,
       current_level: 0,
-      member_activated: false, // Will be set to true during NFT claim/upgrade
       is_upgraded: false,
       upgrade_timer_enabled: false
     }).select().single();
