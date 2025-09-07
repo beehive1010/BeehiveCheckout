@@ -12,12 +12,12 @@ import {
   getSupportedPaymentChains,
   getChainConfig,
   calculateTransactionFee,
-  validatePaymentAmount,
-  formatUSDCAmount
+  validatePaymentAmount
 } from '../../lib/web3/multi-chain-config';
 import { 
   multiChainPaymentProcessor,
   getUSDCBalance,
+  formatUSDCAmount,
   type PaymentRequest,
   type PaymentResult
 } from '../../lib/web3/multi-chain-payment';

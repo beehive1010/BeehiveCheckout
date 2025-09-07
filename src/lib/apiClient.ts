@@ -1,8 +1,8 @@
 // Enhanced API Client with Type Safety and Error Handling
 import { supabaseApi } from './supabase';
-import { ApiException } from '../../types/api.types';
 import type { 
   ApiResponse, 
+  ApiError,
   AuthResponse,
   NFTUpgradeResponse,
   UpgradePathResponse,
@@ -17,7 +17,22 @@ import type {
   isErrorResponse
 } from '../../types/api.types';
 
-export class TypedApiClient {
+// Local ApiException class to avoid import issues
+export class ApiException extends Error {
+  code: string;
+  details?: Record<string, any>;
+  status?: number;
+
+  constructor(error: ApiError) {
+    super(error.message);
+    this.name = 'ApiException';
+    this.code = error.code;
+    this.details = error.details;
+    this.status = error.status;
+  }
+}
+
+class TypedApiClient {
   private baseUrl: string;
 
   constructor() {
@@ -317,6 +332,6 @@ export class TypedApiClient {
 // Create singleton instance
 export const typedApiClient = new TypedApiClient();
 
-// Export for convenience
-export { ApiException, TypedApiClient };
+// Export for convenience  
+export { TypedApiClient };
 export type { ApiResponse };
