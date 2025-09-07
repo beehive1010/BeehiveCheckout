@@ -118,7 +118,7 @@ export function useWallet() {
   const userData = userStatus?.user;
   const isRegistered = userStatus?.isRegistered ?? false;
   const hasNFT = userStatus?.hasNFT ?? false;
-  const isActivated = userStatus?.isActivated ?? false;
+  const isActivated = userStatus?.isMember ?? userStatus?.isActivated ?? false;
   const currentLevel = userStatus?.membershipLevel || userData?.currentLevel || 0;
   const membershipState = { activeLevel: currentLevel, levelsOwned: currentLevel > 0 ? [currentLevel] : [] };
   const bccBalance = { 

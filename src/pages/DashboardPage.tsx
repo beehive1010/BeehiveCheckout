@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLocation } from 'wouter';
 import { useWallet } from '../hooks/useWallet';
 import { useI18n } from '../contexts/I18nContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';

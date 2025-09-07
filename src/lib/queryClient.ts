@@ -72,6 +72,13 @@ export async function apiRequest(
     '/api/rewards/claimable': 'rewards',
     '/api/rewards/claim': 'rewards',
     
+    // V2 API endpoints - map to existing edge functions
+    '/api/v2/rewards/claimable': 'rewards',
+    '/api/v2/rewards/pending': 'rewards',
+    '/api/v2/rewards/stats': 'rewards',
+    '/api/v2/balance/summary': 'balance',
+    '/api/v2/balance/breakdown': 'balance',
+    
     // NFT upgrade functions
     '/api/membership/activate': 'nft-upgrades',
     '/api/nft/upgrade': 'nft-upgrades',
@@ -164,6 +171,23 @@ export async function apiRequest(
         break;
       case '/api/rewards/claim':
         action = 'claim-reward';
+        break;
+      
+      // V2 API actions
+      case '/api/v2/rewards/claimable':
+        action = 'get-claimable';
+        break;
+      case '/api/v2/rewards/pending':
+        action = 'get-pending';
+        break;
+      case '/api/v2/rewards/stats':
+        action = 'get-stats';
+        break;
+      case '/api/v2/balance/summary':
+        action = 'get-summary';
+        break;
+      case '/api/v2/balance/breakdown':
+        action = 'get-breakdown';
         break;
       
       // NFT upgrade actions
