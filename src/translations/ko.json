@@ -90,6 +90,51 @@
       "button": "지금 Beehive 가입"
     }
   },
+  "footer": {
+    "platform": {
+      "title": "플랫폼",
+      "membership": "멤버십 레벨",
+      "rewards": "보상 시스템",
+      "nfts": "NFT 마켓플레이스",
+      "education": "교육 센터"
+    },
+    "resources": {
+      "title": "리소스",
+      "whitepaper": "백서",
+      "documentation": "문서",
+      "tutorials": "튜토리얼",
+      "faq": "자주 묻는 질문"
+    },
+    "community": {
+      "title": "커뮤니티",
+      "discord": "Discord",
+      "telegram": "Telegram",
+      "twitter": "Twitter",
+      "medium": "Medium"
+    },
+    "legal": {
+      "title": "법률",
+      "privacy": "개인정보 보호정책",
+      "terms": "서비스 약관",
+      "cookies": "쿠키 정책",
+      "disclaimer": "면책조항"
+    },
+    "newsletter": {
+      "title": "최신 정보 받기",
+      "description": "새로운 기능, 보상, 커뮤니티 이벤트에 대한 최신 정보를 받아보세요",
+      "placeholder": "이메일 주소 입력",
+      "button": "구독",
+      "disclaimer": "귀하의 개인정보를 존중하며 정보를 공유하지 않습니다"
+    },
+    "brand": {
+      "tagline": "Web3 멤버십 및 학습 플랫폼"
+    },
+    "copyright": {
+      "rights": "모든 권리 보유.",
+      "blockchain": "블록체인 기술 지원"
+    },
+    "backToTop": "맨 위로"
+  },
   "registration": {
     "title": "등록 완료",
     "subtitle": "Beehive 프로필 설정",

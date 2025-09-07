@@ -90,6 +90,51 @@
       "button": "Sertai Beehive Sekarang"
     }
   },
+  "footer": {
+    "platform": {
+      "title": "Platform",
+      "membership": "Tahap Keahlian",
+      "rewards": "Sistem Ganjaran",
+      "nfts": "Pasar NFT",
+      "education": "Pusat Pendidikan"
+    },
+    "resources": {
+      "title": "Sumber",
+      "whitepaper": "Kertas Putih",
+      "documentation": "Dokumentasi",
+      "tutorials": "Tutorial",
+      "faq": "Soalan Lazim"
+    },
+    "community": {
+      "title": "Komuniti",
+      "discord": "Discord",
+      "telegram": "Telegram",
+      "twitter": "Twitter",
+      "medium": "Medium"
+    },
+    "legal": {
+      "title": "Undang-undang",
+      "privacy": "Dasar Privasi",
+      "terms": "Terma Perkhidmatan",
+      "cookies": "Dasar Kuki",
+      "disclaimer": "Penafian"
+    },
+    "newsletter": {
+      "title": "Kekal Dikemas kini",
+      "description": "Dapatkan kemas kini terkini tentang ciri baharu, ganjaran dan acara komuniti",
+      "placeholder": "Masukkan alamat e-mel anda",
+      "button": "Langgan",
+      "disclaimer": "Kami menghormati privasi anda dan tidak berkongsi maklumat anda"
+    },
+    "brand": {
+      "tagline": "Platform Keahlian & Pembelajaran Web3"
+    },
+    "copyright": {
+      "rights": "Semua hak terpelihara.",
+      "blockchain": "Dikuasakan oleh teknologi blockchain"
+    },
+    "backToTop": "Kembali ke Atas"
+  },
   "registration": {
     "title": "Lengkapkan Pendaftaran",
     "subtitle": "Sediakan profil Beehive anda",

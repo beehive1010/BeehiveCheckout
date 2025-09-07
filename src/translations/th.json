@@ -90,6 +90,51 @@
       "button": "เข้าร่วม Beehive ตอนนี้"
     }
   },
+  "footer": {
+    "platform": {
+      "title": "แพลตฟอร์ม",
+      "membership": "ระดับสมาชิก",
+      "rewards": "ระบบรางวัล",
+      "nfts": "ตลาด NFT",
+      "education": "ศูนย์การศึกษา"
+    },
+    "resources": {
+      "title": "ทรัพยากร",
+      "whitepaper": "เอกสารเผยแพร่",
+      "documentation": "เอกสารประกอบ",
+      "tutorials": "บทเรียน",
+      "faq": "คำถามที่พบบ่อย"
+    },
+    "community": {
+      "title": "ชุมชน",
+      "discord": "Discord",
+      "telegram": "Telegram",
+      "twitter": "Twitter",
+      "medium": "Medium"
+    },
+    "legal": {
+      "title": "กฎหมาย",
+      "privacy": "นโยบายความเป็นส่วนตัว",
+      "terms": "ข้อตกลงการให้บริการ",
+      "cookies": "นโยบายคุกกี้",
+      "disclaimer": "ข้อปฏิเสธความรับผิดชอบ"
+    },
+    "newsletter": {
+      "title": "รับข้อมูลอัปเดต",
+      "description": "รับข้อมูลล่าสุดเกี่ยวกับฟีเจอร์ใหม่ รางวัล และกิจกรรมชุมชน",
+      "placeholder": "ป้อนที่อยู่อีเมลของคุณ",
+      "button": "สมัครสมาชิก",
+      "disclaimer": "เราเคารพความเป็นส่วนตัวของคุณและไม่แบ่งปันข้อมูลของคุณ"
+    },
+    "brand": {
+      "tagline": "แพลตฟอร์มสมาชิกและการเรียนรู้ Web3"
+    },
+    "copyright": {
+      "rights": "สงวนลิขสิทธิ์ทั้งหมด",
+      "blockchain": "ขับเคลื่อนโดยเทคโนโลยีบล็อกเชน"
+    },
+    "backToTop": "กลับไปด้านบน"
+  },
   "registration": {
     "title": "ลงทะเบียนให้เสร็จสิ้น",
     "subtitle": "ตั้งค่าโปรไฟล์ Beehive ของคุณ",
