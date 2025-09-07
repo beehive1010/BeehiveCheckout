@@ -16,10 +16,11 @@ import {
   CheckCircle, 
   ExternalLink,
   CreditCard,
-  Users
+  Users,
+  Loader2
 } from 'lucide-react';
 import { LoadingSpinner } from './ui/loading-spinner';
-import { useToast, useApiErrorHandler, useApiSuccessHandler } from './ui/toast-system';
+import { useToast } from '../hooks/use-toast';
 import { FadeTransition, ScaleTransition } from './ui/transitions';
 
 interface MembershipClaimButtonsProps {

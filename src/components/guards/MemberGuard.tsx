@@ -6,7 +6,6 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Loader2, Shield, Crown, Users, AlertTriangle } from 'lucide-react';
 import { useLocation } from 'wouter';
-import MembershipClaimButtons from '../MembershipClaimButtons';
 import { apiRequest } from '../../lib/queryClient';
 
 interface MemberGuardProps {
@@ -174,43 +173,10 @@ export function MemberGuard({
       return <FallbackComponent />;
     }
 
-    // Show membership activation interface
+    // Redirect to Welcome page for membership activation
     if (!memberStatus?.isActivated) {
-      return (
-        <div className="min-h-screen bg-background p-4">
-          <div className="container mx-auto max-w-6xl">
-            <div className="mb-8 text-center">
-              <Badge variant="outline" className="bg-honey/10 text-honey border-honey/30 mb-4">
-                Membership Activation Required
-              </Badge>
-              <h1 className="text-3xl font-bold text-honey mb-2">
-                Welcome to Beehive!
-              </h1>
-              <p className="text-muted-foreground">
-                You're registered but need to activate your membership to access the dashboard.
-              </p>
-            </div>
-
-            <MembershipClaimButtons
-              onSuccess={() => {
-                // Refresh the membership status
-                window.location.reload();
-              }}
-              className="mb-8"
-            />
-            
-            <div className="text-center">
-              <Button 
-                variant="outline"
-                onClick={() => setLocation('/')}
-                className="mt-4"
-              >
-                Back to Home
-              </Button>
-            </div>
-          </div>
-        </div>
-      );
+      setLocation('/welcome');
+      return null;
     }
 
     // Show level upgrade required
