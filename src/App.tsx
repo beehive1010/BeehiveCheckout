@@ -65,7 +65,8 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => <div>{child
 
 // Layout components (temporary)
 // Navigation component imported from components/shared/Navigation
-const Footer = () => <footer className="bg-secondary border-t border-border py-8"></footer>;
+import { LandingFooter } from '@/components/landing/LandingFooter';
+const Footer = () => <LandingFooter />;
 const RouteGuard = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
 
 // Smart routing component that routes based on user status
@@ -281,6 +282,7 @@ function App() {
   const [location] = useLocation();
   const isLandingPage = location === '/';
   const isAdminPage = location.startsWith('/admin/');
+  const isMatrixPage = location === '/matrix-explanation';
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -289,12 +291,12 @@ function App() {
           <I18nProvider>
               <TooltipProvider>
               <div className="min-h-screen bg-background text-foreground">
-                {!isAdminPage && <Header />}
-                {!isAdminPage && <Navigation />}
-                <main className={isAdminPage ? "min-h-screen" : "min-h-[calc(100vh-theme(spacing.32))] pb-16 md:pb-0"}>
+                {!isAdminPage && !isMatrixPage && <Header />}
+                {!isAdminPage && !isMatrixPage && <Navigation />}
+                <main className={isAdminPage || isMatrixPage ? "min-h-screen" : "min-h-[calc(100vh-theme(spacing.32))] pb-16 md:pb-0"}>
                   <Router />
                 </main>
-                {isLandingPage && <Footer />}
+                {(isLandingPage || isMatrixPage) && <Footer />}
                 <Toaster />
                 <HotToaster 
                   position="top-right"
