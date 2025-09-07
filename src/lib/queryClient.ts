@@ -153,9 +153,6 @@ export async function apiRequest(
       case '/api/dashboard/activity':
         action = 'get-activity';
         break;
-      case '/api/dashboard/data':
-        action = 'get-dashboard-data';
-        break;
       case '/api/dashboard/stats':
         action = 'get-stats';
         break;

@@ -39,18 +39,28 @@ class ConfigAPI {
   async getAllLevelConfigurations(walletAddress?: string): Promise<LevelConfiguration[]> {
     try {
       if (walletAddress) {
-        const result = await supabaseApi.getLevelInfo(walletAddress);
-        if (result.success && result.allLevels) {
-          return result.allLevels.map((level: any) => ({
-            level: level.level,
-            levelName: `Level ${level.level}`,
-            priceUSDT: level.price * 100, // Convert to cents
-            rewardUSDT: level.price * 100, // Full price as reward for simplicity
-            activationFeeUSDT: 0, // No separate activation fee
-            baseBccUnlockAmount: level.level === 1 ? 10950 : 0, // Only Level 1 gets BCC
-            description: level.description,
-            directReferrals: level.directReferrals
-          }));
+        try {
+          const result = await supabaseApi.getLevelInfo(walletAddress);
+          if (result.success && result.allLevels) {
+            return result.allLevels.map((level: any) => ({
+              level: level.level,
+              levelName: `Level ${level.level}`,
+              priceUSDT: level.price * 100, // Convert to cents
+              rewardUSDT: level.price * 100, // Full price as reward for simplicity
+              activationFeeUSDT: 0, // No separate activation fee
+              baseBccUnlockAmount: level.level === 1 ? 10950 : 0, // Only Level 1 gets BCC
+              description: level.description,
+              directReferrals: level.directReferrals
+            }));
+          }
+        } catch (apiError) {
+          // Check if it's a JSON parsing error (HTML response from server)
+          if (apiError instanceof Error && apiError.message.includes('Unexpected token')) {
+            console.warn('API returned HTML instead of JSON (likely server error), using fallback config');
+          } else {
+            console.warn('API call failed:', apiError);
+          }
+          // Continue to fallback regardless of error type
         }
       }
       
@@ -66,18 +76,28 @@ class ConfigAPI {
   async getLevelConfiguration(level: number, walletAddress?: string): Promise<LevelConfiguration> {
     try {
       if (walletAddress) {
-        const result = await supabaseApi.getLevelInfo(walletAddress, level);
-        if (result.success) {
-          return {
-            level: result.level,
-            levelName: `Level ${result.level}`,
-            priceUSDT: result.price * 100,
-            rewardUSDT: result.price * 100,
-            activationFeeUSDT: 0,
-            baseBccUnlockAmount: result.level === 1 ? 10950 : 0,
-            description: result.description,
-            directReferrals: result.directReferrals
-          };
+        try {
+          const result = await supabaseApi.getLevelInfo(walletAddress, level);
+          if (result.success) {
+            return {
+              level: result.level,
+              levelName: `Level ${result.level}`,
+              priceUSDT: result.price * 100,
+              rewardUSDT: result.price * 100,
+              activationFeeUSDT: 0,
+              baseBccUnlockAmount: result.level === 1 ? 10950 : 0,
+              description: result.description,
+              directReferrals: result.directReferrals
+            };
+          }
+        } catch (apiError) {
+          // Check if it's a JSON parsing error (HTML response from server)
+          if (apiError instanceof Error && apiError.message.includes('Unexpected token')) {
+            console.warn(`API returned HTML instead of JSON for level ${level}, using fallback config`);
+          } else {
+            console.warn(`API call failed for level ${level}:`, apiError);
+          }
+          // Continue to fallback regardless of error type
         }
       }
       
