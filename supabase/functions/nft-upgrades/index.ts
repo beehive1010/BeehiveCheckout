@@ -60,8 +60,23 @@ serve(async (req)=>{
   try {
     const supabase = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
     const walletAddress = req.headers.get('x-wallet-address'); // Preserve original case
+    // Define interface for request data
+    interface RequestData {
+      action: string;
+      level?: number;
+      nft_level?: number;
+      wallet_address?: string;
+      transactionHash?: string;
+      transaction_hash?: string;
+      payment_amount_usdc?: number;
+      paymentMethod?: string;
+      limit?: number;
+      offset?: number;
+      targetNetwork?: any;
+    }
+
     // Parse request body first to check for Level 1 NFT claim
-    let requestData = {
+    let requestData: RequestData = {
       action: 'get-level-info'
     };
     try {
@@ -239,7 +254,7 @@ async function handleCheckEligibility(supabase, walletAddress, level) {
     const currentLevel = memberData.current_level || 0;
     const levelsOwned = memberData.levels_owned || [];
     let eligible = true;
-    let restrictions = [];
+    let restrictions: string[] = [];
 
     // Check if user already owns this level
     if (levelsOwned.includes(level)) {
