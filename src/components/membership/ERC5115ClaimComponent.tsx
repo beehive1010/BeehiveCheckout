@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useActiveAccount } from 'thirdweb/react';
 import { getContract, prepareContractCall, sendTransaction } from 'thirdweb';
-import { approve } from 'thirdweb/extensions/erc20';
 import { arbitrumSepolia } from 'thirdweb/chains';
 import { createThirdwebClient } from 'thirdweb';
 import { Button } from '../ui/button';
@@ -88,10 +87,10 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       
       // Approve tokens for NFT contract
       console.log('📝 Approving tokens...');
-      const approveTransaction = approve({
+      const approveTransaction = prepareContractCall({
         contract: tokenContract,
-        spender: NFT_CONTRACT,
-        amount: paymentAmount
+        method: "function approve(address spender, uint256 amount) returns (bool)",
+        params: [NFT_CONTRACT, paymentAmount]
       });
 
       const approveTxResult = await sendTransaction({
