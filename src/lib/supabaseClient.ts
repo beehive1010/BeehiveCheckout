@@ -395,54 +395,102 @@ export const matrixService = {
 
 // === REWARDS MANAGEMENT ===
 export const rewardService = {
-  // Create layer reward
-  async createLayerReward(rewardData: Database['public']['Tables']['layer_rewards']['Insert']) {
-    return supabase
-      .from('layer_rewards')
-      .insert([{
-        ...rewardData,
-        created_at: new Date().toISOString(),
-      }])
-      .select()
-      .single();
+  // Get reward dashboard data using Edge Function
+  async getRewardDashboard(walletAddress: string) {
+    return callEdgeFunction('rewards', {
+      action: 'dashboard'
+    }, walletAddress);
   },
 
   // Get claimable rewards using Edge Function
   async getClaimableRewards(walletAddress: string) {
     return callEdgeFunction('rewards', {
-      action: 'get-claimable-rewards',
+      action: 'get-claims'
+    }, walletAddress);
+  },
+
+  // Get reward balance using Edge Function
+  async getRewardBalance(walletAddress: string) {
+    return callEdgeFunction('rewards', {
+      action: 'get-balance'
     }, walletAddress);
   },
 
   // Get reward history using Edge Function
   async getRewardHistory(walletAddress: string, limit = 50) {
     return callEdgeFunction('rewards', {
-      action: 'get-reward-history',
-      limit,
+      action: 'get-claims'
     }, walletAddress);
   },
 
   // Claim reward using Edge Function
-  async claimReward(walletAddress: string, rewardData: {
-    reward_claim_id: string;
-    layer: number;
-  }) {
+  async claimReward(walletAddress: string, rewardId: string) {
     return callEdgeFunction('rewards', {
       action: 'claim-reward',
-      ...rewardData,
+      reward_id: rewardId
     }, walletAddress);
   },
 
-  // Create reward claim record
-  async createRewardClaim(claimData: Database['public']['Tables']['reward_claims']['Insert']) {
-    return supabase
-      .from('reward_claims')
-      .insert([{
-        ...claimData,
-        created_at: new Date().toISOString(),
-      }])
-      .select()
-      .single();
+  // Withdraw reward balance using Edge Function
+  async withdrawRewardBalance(walletAddress: string, withdrawData: {
+    amount_usdt?: number;
+    amount_bcc?: number;
+    withdrawal_address: string;
+    withdrawal_type: 'usdt' | 'bcc';
+  }) {
+    return callEdgeFunction('rewards', {
+      action: 'withdraw-balance',
+      ...withdrawData
+    }, walletAddress);
+  },
+
+  // Get reward notifications using Edge Function
+  async getRewardNotifications(walletAddress: string) {
+    return callEdgeFunction('rewards', {
+      action: 'get-notifications'
+    }, walletAddress);
+  },
+
+  // Get reward timers using Edge Function
+  async getRewardTimers(walletAddress: string) {
+    return callEdgeFunction('rewards', {
+      action: 'get-reward-timers'
+    }, walletAddress);
+  },
+
+  // Create layer reward using database function
+  async createLayerReward(payer_wallet: string, amount_usdt: number, nft_level: number, source_transaction_id: string) {
+    const { data, error } = await supabase.rpc('create_layer_reward_claim', {
+      p_payer_wallet: payer_wallet,
+      p_amount_usdt: amount_usdt,
+      p_nft_level: nft_level,
+      p_source_transaction_id: source_transaction_id,
+      p_layer: nft_level, // Assuming layer matches NFT level
+      p_root_wallet: payer_wallet,
+      p_triggering_member_wallet: payer_wallet,
+      p_transaction_hash: source_transaction_id
+    });
+
+    return { data, error };
+  },
+
+  // Distribute layer rewards using database function
+  async distributeLayerRewards(payer_wallet: string, amount_usdt: number, nft_level: number, source_transaction_id: string) {
+    const { data, error } = await supabase.rpc('distribute_layer_rewards', {
+      p_payer_wallet: payer_wallet,
+      p_amount_usdt: amount_usdt,
+      p_nft_level: nft_level,
+      p_source_transaction_id: source_transaction_id
+    });
+
+    return { data, error };
+  },
+
+  // Check pending rewards using Edge Function
+  async checkPendingRewards(walletAddress: string) {
+    return callEdgeFunction('rewards', {
+      action: 'check-pending-rewards'
+    }, walletAddress);
   },
 };
 
