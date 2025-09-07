@@ -43,8 +43,8 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
     setIsProcessing(true);
 
     try {
-      // Step 1: Verify user is registered (should be done in Registration page)
-      console.log('🔍 Verifying user registration status...');
+      // Step 1: Verify user has complete registration (username, email, referrer)
+      console.log('🔍 Verifying complete user registration...');
       const userCheckResponse = await fetch(`${API_BASE}/auth`, {
         method: 'POST',
         headers: {
@@ -63,9 +63,23 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       const userStatus = await userCheckResponse.json();
       console.log('📝 User status:', userStatus);
 
+      // Check if user is registered AND has complete information
       if (!userStatus.isRegistered) {
-        throw new Error('User must complete registration first before claiming NFT');
+        throw new Error('Please complete registration first with username, email, and referrer information');
       }
+
+      // Verify user has complete registration data (not auto-generated)
+      const userData = userStatus.user;
+      const hasCompleteInfo = userData && 
+        userData.username && 
+        userData.username !== `user_${account.address.slice(-6)}` && // Not auto-generated username
+        userData.email; // Has email
+      
+      if (!hasCompleteInfo) {
+        throw new Error('Please complete your registration with username and email before claiming NFT');
+      }
+
+      console.log('✅ User has complete registration information');
 
       // Step 2: Approve and transfer tokens for NFT claim
       console.log('🪙 Processing token payment for NFT claim...');
@@ -292,22 +306,31 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
 
       // Show success message if NFT was claimed successfully
       let successMessage = "Your Level 1 NFT has been claimed successfully!";
+      let shouldNavigate = true;
+      
       if (backendProcessed && membershipActivated) {
-        successMessage = "Your Level 1 NFT has been claimed and membership activated!";
+        successMessage = "Your Level 1 NFT has been claimed and membership activated! Redirecting to dashboard...";
       } else if (membershipActivated) {
-        successMessage = "Your Level 1 NFT has been claimed and membership activated! (Backend processing may need manual completion)";
+        successMessage = "Your Level 1 NFT has been claimed and membership activated! (Backend processing may need manual completion) Redirecting to dashboard...";
       } else if (backendProcessed) {
-        successMessage = "Your Level 1 NFT has been claimed and processed! (Membership may need manual activation)";
+        successMessage = "Your Level 1 NFT has been claimed and processed! (Membership activation pending) Redirecting to dashboard...";
+      } else {
+        // Neither backend processing nor membership activation worked
+        successMessage = "Your Level 1 NFT claim succeeded on blockchain! Backend processing is slow - you may need to refresh or check your membership status in a few minutes.";
+        shouldNavigate = true; // Still navigate to dashboard since NFT claim succeeded
       }
 
       toast({
         title: "🎉 NFT Claimed Successfully!",
         description: successMessage,
         variant: "default",
+        duration: 6000, // Show longer for important message
       });
 
-      // Call success handler - NFT claim itself was successful
-      if (onSuccess) {
+      // Always call success handler since NFT claim was successful on blockchain
+      // User can manually activate or refresh if backend is slow
+      if (onSuccess && shouldNavigate) {
+        console.log('🔄 Navigating to dashboard - NFT claim successful on blockchain');
         onSuccess();
       }
 

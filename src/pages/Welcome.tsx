@@ -9,6 +9,7 @@ import { Badge } from '../components/ui/badge';
 import { useToast } from '../hooks/use-toast';
 import { Loader2, Crown, Shield, Zap, Users, Database, CreditCard } from 'lucide-react';
 import { ERC5115ClaimComponent } from '../components/membership/ERC5115ClaimComponent';
+import { BlockchainSyncButton } from '../components/shared/BlockchainSyncButton';
 
 export default function Welcome() {
   const { t } = useI18n();
@@ -146,6 +147,20 @@ export default function Welcome() {
           className="mb-8"
         />
 
+
+        {/* Status Sync Section */}
+        <Card className="mb-6 bg-muted/30 border-dashed">
+          <CardContent className="pt-6 text-center">
+            <h3 className="font-semibold text-foreground mb-2">Having Issues?</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              If your NFT claim succeeded on blockchain but membership isn't activated, sync your status
+            </p>
+            <BlockchainSyncButton className="mb-2" />
+            <p className="text-xs text-muted-foreground">
+              This will check blockchain and update your membership status
+            </p>
+          </CardContent>
+        </Card>
 
         {/* Back Button */}
         <div className="text-center">

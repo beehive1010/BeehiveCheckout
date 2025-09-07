@@ -19,6 +19,28 @@ export function useWallet() {
         const response = await apiRequest('GET', '/api/auth/user', { t: Date.now() }, walletAddress!);
         const userStatus = await response.json();
         console.log('📊 User status (Supabase):', userStatus.userFlow, userStatus);
+        
+        // Auto-sync blockchain status if user is registered but not activated
+        if (userStatus.isRegistered && !userStatus.isMember) {
+          console.log('🔄 User registered but not activated - attempting blockchain sync');
+          try {
+            const syncResponse = await apiRequest('POST', '/api/auth/sync-blockchain-status', {}, walletAddress!);
+            if (syncResponse.ok) {
+              const syncResult = await syncResponse.json();
+              console.log('✅ Blockchain sync result:', syncResult);
+              // Refetch user status after sync
+              if (syncResult.success) {
+                const refreshResponse = await apiRequest('GET', '/api/auth/user', { t: Date.now() }, walletAddress!);
+                const refreshedStatus = await refreshResponse.json();
+                console.log('🔄 Refreshed user status after sync:', refreshedStatus);
+                return refreshedStatus;
+              }
+            }
+          } catch (syncError) {
+            console.warn('⚠️ Auto-sync failed (non-critical):', syncError);
+          }
+        }
+        
         return userStatus;
       } catch (error: any) {
         if (error.status === 404) {

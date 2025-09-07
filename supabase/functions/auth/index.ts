@@ -42,9 +42,20 @@ serve(async (req)=>{
     } catch  {
       // For GET requests or requests without body, use query params
       const url = new URL(req.url);
-      const action = url.searchParams.get('action') || 'get-user';
+      let action = url.searchParams.get('action') || 'get-user';
+      
+      // Check if it's a validate-referrer endpoint from URL path
+      if (url.pathname.includes('validate-referrer')) {
+        action = 'validate-referrer';
+      }
+      
+      // Extract referrer address for validation endpoint
+      const address = url.searchParams.get('address');
+      
       requestData = {
-        action: action
+        action: action,
+        address: address,
+        url: url.pathname + url.search // Pass full URL for parsing
       };
     }
     const { action } = requestData;
@@ -68,6 +79,10 @@ serve(async (req)=>{
         return await handleGetUser(supabase, walletAddress);
       case 'activate-membership':
         return await handleActivateMembership(supabase, walletAddress);
+      case 'validate-referrer':
+        return await handleValidateReferrer(supabase, walletAddress, requestData);
+      case 'sync-blockchain-status':
+        return await handleSyncBlockchainStatus(supabase, walletAddress, requestData);
       default:
         return new Response(JSON.stringify({
           error: 'Invalid action'
@@ -402,4 +417,240 @@ async function handleActivateMembership(supabase, walletAddress) {
       }
     });
   }
-} // Updated Sat Sep  6 06:20:00 PM UTC 2025
+}
+
+async function handleValidateReferrer(supabase, currentWallet, data) {
+  try {
+    // Get referrer address from query params (for GET requests) or request data (for POST)
+    let referrerAddress = data.referrerWallet;
+    
+    // For GET requests, parse from URL query params
+    if (!referrerAddress && data.url) {
+      const url = new URL('http://localhost' + data.url);
+      referrerAddress = url.searchParams.get('address');
+    }
+    
+    // Also handle direct query parameter parsing
+    if (!referrerAddress) {
+      referrerAddress = data.address;
+    }
+    
+    if (!referrerAddress) {
+      return new Response(JSON.stringify({
+        error: 'Referrer address required'
+      }), {
+        status: 400,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+
+    console.log(`🔍 Validating referrer: ${referrerAddress} for user: ${currentWallet}`);
+
+    // Check for self-referral
+    if (referrerAddress.toLowerCase() === currentWallet.toLowerCase()) {
+      return new Response(JSON.stringify({
+        error: 'You cannot refer yourself'
+      }), {
+        status: 400,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+
+    // Check if referrer exists and is activated
+    const { data: referrerData, error: referrerError } = await supabase
+      .from('members')
+      .select('wallet_address, is_activated')
+      .eq('wallet_address', referrerAddress.toLowerCase())
+      .single();
+
+    if (referrerError || !referrerData) {
+      return new Response(JSON.stringify({
+        error: 'Referrer not found - they must be registered first'
+      }), {
+        status: 404,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+
+    if (!referrerData.is_activated) {
+      return new Response(JSON.stringify({
+        error: 'Referrer must be activated first'
+      }), {
+        status: 400,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+
+    // Get referrer username for display
+    const { data: userData } = await supabase
+      .from('users')
+      .select('username')
+      .eq('wallet_address', referrerAddress.toLowerCase())
+      .single();
+
+    console.log(`✅ Valid referrer found: ${referrerAddress}`);
+
+    return new Response(JSON.stringify({
+      success: true,
+      wallet_address: referrerData.wallet_address,
+      username: userData?.username || referrerAddress.slice(0, 8) + '...',
+      is_activated: referrerData.is_activated
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+
+  } catch (error) {
+    console.error('Referrer validation error:', error);
+    return new Response(JSON.stringify({
+      error: 'Failed to validate referrer',
+      details: error.message
+    }), {
+      status: 500,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+  }
+}
+
+async function handleSyncBlockchainStatus(supabase, walletAddress, data) {
+  try {
+    console.log(`🔄 Syncing blockchain status for: ${walletAddress}`);
+
+    // Get current member data
+    const { data: memberData, error: memberError } = await supabase
+      .from('members')
+      .select('is_activated, current_level, levels_owned, wallet_address')
+      .eq('wallet_address', walletAddress.toLowerCase())
+      .single();
+
+    if (memberError) {
+      console.log(`❌ No member record found for: ${walletAddress}`);
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'No member record found'
+      }), {
+        status: 404,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+
+    // Check if user is already activated
+    if (memberData.is_activated) {
+      console.log(`✅ Member already activated: ${walletAddress}`);
+      return new Response(JSON.stringify({
+        success: true,
+        message: 'Member is already activated',
+        member: memberData
+      }), {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+
+    console.log(`🔍 Found unactivated member, attempting to sync with blockchain: ${walletAddress}`);
+    
+    // If member exists but not activated, try to activate them
+    // This handles cases where NFT claim succeeded but activation failed
+    const { data: activationResult, error: activationError } = await supabase.rpc('activate_member_with_nft_claim', {
+      p_wallet_address: walletAddress,
+      p_nft_type: 'membership',
+      p_payment_method: 'blockchain_sync',
+      p_transaction_hash: `sync_${Date.now()}`
+    });
+
+    if (activationError) {
+      console.error('Activation sync failed:', activationError);
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Failed to sync blockchain status',
+        details: activationError.message
+      }), {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+
+    if (!activationResult.success) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: activationResult.error || 'Activation sync failed'
+      }), {
+        status: 400,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+
+    // Process rewards if activation was successful
+    try {
+      const { data: rewardResult } = await supabase.rpc('process_activation_rewards', {
+        p_new_member_wallet: walletAddress,
+        p_activation_level: 1,
+        p_tx_hash: `sync_${Date.now()}`
+      });
+      
+      if (rewardResult.success) {
+        console.log(`✅ Sync rewards processed for: ${walletAddress}`);
+      }
+    } catch (rewardError) {
+      console.warn('Sync reward processing failed (non-critical):', rewardError);
+    }
+
+    console.log(`✅ Blockchain sync successful for: ${walletAddress}`);
+
+    return new Response(JSON.stringify({
+      success: true,
+      message: 'Blockchain status synced successfully - membership activated!',
+      details: {
+        wallet_address: activationResult.wallet_address,
+        level: activationResult.level,
+        activated_at: activationResult.activated_at
+      }
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+
+  } catch (error) {
+    console.error('Blockchain sync error:', error);
+    return new Response(JSON.stringify({
+      error: 'Failed to sync blockchain status',
+      details: error.message
+    }), {
+      status: 500,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+  }
+} // Updated Sat Sep  7 2025
