@@ -43,27 +43,29 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
     setIsProcessing(true);
 
     try {
-      // Step 1: Register the user if needed
-      console.log('🔗 Registering user if needed...');
-      const registerResponse = await fetch(`${API_BASE}/auth`, {
+      // Step 1: Verify user is registered (should be done in Registration page)
+      console.log('🔍 Verifying user registration status...');
+      const userCheckResponse = await fetch(`${API_BASE}/auth`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-wallet-address': account.address
         },
         body: JSON.stringify({
-          action: 'register',
-          referrerWallet: referrerWallet,
-          username: `user_${account.address.slice(-6)}`
+          action: 'get-user'
         })
       });
 
-      if (!registerResponse.ok) {
-        throw new Error('Failed to register user');
+      if (!userCheckResponse.ok) {
+        throw new Error('Failed to verify user registration');
       }
 
-      const registerResult = await registerResponse.json();
-      console.log('📝 Registration result:', registerResult);
+      const userStatus = await userCheckResponse.json();
+      console.log('📝 User status:', userStatus);
+
+      if (!userStatus.isRegistered) {
+        throw new Error('User must complete registration first before claiming NFT');
+      }
 
       // Step 2: Approve and transfer tokens for NFT claim
       console.log('🪙 Processing token payment for NFT claim...');
