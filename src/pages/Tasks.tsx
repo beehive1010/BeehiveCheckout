@@ -219,7 +219,7 @@ export default function Tasks() {
 
       toast({
         title: `🎉 Level ${level} NFT Claimed!`,
-        description: `Successfully claimed Token ID ${tokenId}. Earned ${level * 500} transferable + ${level * 5000} locked BCC!`,
+        description: `Successfully claimed Token ID ${tokenId}. Earned ${totalPrice} BCC reward!`,
         duration: 6000
       });
 
@@ -455,7 +455,7 @@ export default function Tasks() {
                           <div className="text-xs text-muted-foreground">Total Cost</div>
                         </div>
                         <div className="text-center p-3 bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-lg border border-purple-500/20">
-                          <div className="text-lg font-bold text-purple-400">{level * 500}</div>
+                          <div className="text-lg font-bold text-purple-400">{totalPrice}</div>
                           <div className="text-xs text-muted-foreground">BCC Reward</div>
                         </div>
                       </div>
@@ -519,7 +519,7 @@ export default function Tasks() {
                       {/* Additional Info for Available Levels */}
                       {isUnlocked && !isOwned && (
                         <div className="text-center text-xs text-muted-foreground space-y-1">
-                          <p>🎯 {level * 500} transferable + {level * 5000} locked BCC</p>
+                          <p>🎯 {totalPrice} BCC reward (matches USDC price)</p>
                           <p>⚡ Two transactions: Approval + Minting</p>
                         </div>
                       )}
@@ -532,7 +532,7 @@ export default function Tasks() {
             {/* Information Footer */}
             <div className="text-center text-xs text-muted-foreground space-y-1 mt-6">
               <p>🎯 Progressive unlocking: Complete lower levels to access higher ones</p>
-              <p>💰 Rewards scale with level: Level × 500 transferable + Level × 5000 locked BCC</p>
+              <p>💰 BCC rewards match USDC price: Level 1 = 130 BCC, Level 2 = 180 BCC, etc.</p>
               <p>🌐 Connected: {walletAddress?.slice(0, 8)}...{walletAddress?.slice(-6)}</p>
               <p>📊 Current Level: {currentLevel || 'None'} | Next Available: Level {(currentLevel || 0) + 1}</p>
             </div>
