@@ -435,14 +435,16 @@ async function handleProcessUpgrade(supabase, walletAddress, data) {
     }
 
     // CRITICAL BUSINESS RULE: Sequential NFT Purchase Validation
-    // Users must own lower levels before upgrading to higher levels
+    // Check if user is already a member or if this is their first Level 1 claim
     const { data: memberData, error: memberError } = await supabase
       .from('members')
       .select('current_level, levels_owned, is_activated')
       .eq('wallet_address', walletAddress)
       .single();
 
-    if (memberError && memberError.code !== 'PGRST116') { // PGRST116 = no rows returned (new user)
+    const isNewMember = memberError && memberError.code === 'PGRST116'; // No member record exists
+    
+    if (memberError && memberError.code !== 'PGRST116') {
       console.error('Member data fetch error:', memberError);
       return new Response(JSON.stringify({
         success: false,
@@ -456,7 +458,24 @@ async function handleProcessUpgrade(supabase, walletAddress, data) {
       });
     }
 
-    // For existing members, enforce sequential upgrade rules
+    // NEW USERS: Can only claim Level 1 as their first NFT
+    if (isNewMember && level !== 1) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: `New members must claim Level 1 NFT first. You cannot start with Level ${level}.`,
+        restriction_type: 'new_member_level_1_required',
+        requested_level: level,
+        required_first_level: 1
+      }), {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        },
+        status: 403
+      });
+    }
+
+    // EXISTING MEMBERS: Enforce sequential upgrade rules
     if (memberData && level > 1) {
       const currentLevel = memberData.current_level || 0;
       const levelsOwned = memberData.levels_owned || [];
@@ -592,6 +611,42 @@ async function handleProcessUpgrade(supabase, walletAddress, data) {
 
     console.log(`📋 Processing NFT Level ${level} for ${walletAddress}, referrer: ${userData?.referrer_wallet || 'none'}`);
 
+    // FOR NEW MEMBERS (Level 1): Create member record first
+    if (isNewMember && level === 1) {
+      console.log(`🎯 Creating member record for new user: ${walletAddress}`);
+      
+      const { data: newMemberData, error: memberCreateError } = await supabase
+        .from('members')
+        .insert({
+          wallet_address: walletAddress,
+          referrer_wallet: userData?.referrer_wallet || null,
+          current_level: 0, // Will be updated after NFT purchase
+          is_activated: false, // Will be activated after NFT purchase
+          levels_owned: [],
+          total_direct_referrals: 0,
+          total_team_size: 0
+        })
+        .select()
+        .single();
+
+      if (memberCreateError) {
+        console.error('Failed to create member record:', memberCreateError);
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'Failed to create member record for new user',
+          details: memberCreateError.message
+        }), {
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          },
+          status: 500
+        });
+      }
+      
+      console.log(`✅ Member record created for: ${walletAddress}`);
+    }
+
     // Process NFT purchase with the stored procedure
     const { data: purchaseResult, error: purchaseError } = await supabase.rpc('process_nft_purchase_with_requirements', {
       p_wallet_address: walletAddress,
@@ -640,7 +695,7 @@ async function handleProcessUpgrade(supabase, walletAddress, data) {
 
     // After successful purchase, ensure referral relationship is properly recorded
     if (userData?.referrer_wallet && level === 1) {
-      console.log(`🔗 Ensuring referral relationship: ${userData.referrer_wallet} → ${walletAddress}`);
+      console.log(`🔗 Creating referral relationship: ${userData.referrer_wallet} → ${walletAddress}`);
       
       // Check if referral record already exists
       const { data: existingReferral, error: referralCheckError } = await supabase
@@ -651,7 +706,7 @@ async function handleProcessUpgrade(supabase, walletAddress, data) {
         .single();
 
       if (!existingReferral) {
-        // Create referral record
+        // Create referral record - this officially adds user to referral system
         const { error: referralCreateError } = await supabase
           .from('referrals')
           .insert({
@@ -667,22 +722,28 @@ async function handleProcessUpgrade(supabase, walletAddress, data) {
         if (referralCreateError) {
           console.error('⚠️ Failed to create referral record:', referralCreateError);
         } else {
-          console.log('✅ Referral relationship created successfully');
+          console.log('✅ Referral relationship created - user now in referral system');
         }
       } else {
         console.log('ℹ️ Referral relationship already exists');
       }
+    }
 
-      // Also ensure members table has the referrer information
-      const { error: memberUpdateError } = await supabase
-        .from('members')
-        .update({ referrer_wallet: userData.referrer_wallet })
+    // FOR LEVEL 1: Activate user in users table (becomes official member)
+    if (level === 1) {
+      const { error: userActivationError } = await supabase
+        .from('users')
+        .update({ 
+          is_activated: true,
+          current_level: 1,
+          activated_at: new Date().toISOString()
+        })
         .eq('wallet_address', walletAddress);
 
-      if (memberUpdateError) {
-        console.error('⚠️ Failed to update member referrer:', memberUpdateError);
+      if (userActivationError) {
+        console.error('⚠️ Failed to activate user:', userActivationError);
       } else {
-        console.log('✅ Member referrer information updated');
+        console.log(`✅ User activated as member: ${walletAddress}`);
       }
     }
 
