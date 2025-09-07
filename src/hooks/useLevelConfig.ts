@@ -2,10 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import { configApi, type LevelConfiguration, type DiscoverPartner } from '../api/config.api';
 
 // Hook to get all level configurations
-export const useLevelConfigurations = () => {
+export const useLevelConfigurations = (walletAddress?: string) => {
   return useQuery({
-    queryKey: ['levelConfigurations'],
-    queryFn: configApi.getAllLevelConfigurations,
+    queryKey: ['levelConfigurations', walletAddress],
+    queryFn: () => configApi.getAllLevelConfigurations(walletAddress),
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
   });

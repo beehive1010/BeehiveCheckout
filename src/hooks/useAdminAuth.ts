@@ -130,6 +130,48 @@ export function useAdminAuth() {
     return userPermissions.includes('*') || userPermissions.includes(permission);
   };
 
+  const login = async (email: string, password: string) => {
+    try {
+      setIsLoading(true);
+      
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin?action=login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Login failed');
+      }
+
+      const loginData = await response.json();
+      
+      if (!loginData.success) {
+        throw new Error(loginData.error || 'Login failed');
+      }
+
+      // Store session token and admin data
+      localStorage.setItem('adminSessionToken', loginData.sessionToken);
+      localStorage.setItem('adminUser', JSON.stringify(loginData.admin));
+      
+      setAdminUser(loginData.admin);
+      setIsAuthenticated(true);
+      
+      // Redirect to dashboard
+      setTimeout(() => setLocation('/admin/dashboard'), 0);
+      
+    } catch (error: any) {
+      console.error('Login error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     adminUser,
     isLoading,

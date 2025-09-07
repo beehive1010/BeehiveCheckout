@@ -21,7 +21,7 @@ export default function MembershipLevelList({
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
 
   // Use dynamic level configurations from database
-  const { data: levelConfigs, isLoading: isLoadingLevels, error: levelConfigError } = useLevelConfigurations();
+  const { data: levelConfigs, isLoading: isLoadingLevels, error: levelConfigError } = useLevelConfigurations(walletAddress || undefined);
 
   const currentLevel = userData?.user?.currentLevel || 0;
   const levelsOwned = userData?.membershipState?.levelsOwned || [];

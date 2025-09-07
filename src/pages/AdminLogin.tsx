@@ -4,11 +4,11 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { useToast } from '../hooks/use-toast';
-import { useAdminAuth } from '../contexts/AdminAuthContext';
+import { useAdminAuthContext } from '../contexts/AdminAuthContext';
 import { Mail, Lock, Shield } from 'lucide-react';
 
 export default function AdminLogin() {
-  const { signInAdmin, isLoading } = useAdminAuth();
+  const { signInAdmin, isLoading } = useAdminAuthContext();
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({

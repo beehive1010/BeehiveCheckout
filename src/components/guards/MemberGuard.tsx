@@ -7,6 +7,7 @@ import { Badge } from '../ui/badge';
 import { Loader2, Shield, Crown, Users, AlertTriangle } from 'lucide-react';
 import { useLocation } from 'wouter';
 import MembershipClaimButtons from '../MembershipClaimButtons';
+import { apiRequest } from '../../lib/queryClient';
 
 interface MemberGuardProps {
   children: React.ReactNode;

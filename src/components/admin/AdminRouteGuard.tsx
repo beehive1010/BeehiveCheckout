@@ -1,4 +1,4 @@
-import { useAdminAuth } from '../../contexts/AdminAuthContext';
+import { useAdminAuthContext } from '../../contexts/AdminAuthContext';
 import { useLocation } from 'wouter';
 import { useEffect } from 'react';
 
@@ -13,7 +13,7 @@ export default function AdminRouteGuard({
   requiredPermission,
   requiredRoles
 }: AdminRouteGuardProps) {
-  const { isAdminAuthenticated, adminUser, isLoading } = useAdminAuth();
+  const { isAdminAuthenticated, adminUser, isLoading } = useAdminAuthContext();
   const [, setLocation] = useLocation();
 
   useEffect(() => {

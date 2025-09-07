@@ -10,9 +10,9 @@ interface AdminAuthContextType {
   signOutAdmin: () => Promise<void>;
 }
 
-const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
+export const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
 
-export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
+const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [adminUser, setAdminUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -172,12 +172,18 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
       {children}
     </AdminAuthContext.Provider>
   );
-}
+};
 
-export function useAdminAuth() {
+AdminAuthProvider.displayName = 'AdminAuthProvider';
+
+export { AdminAuthProvider };
+
+const useAdminAuthContext = () => {
   const context = useContext(AdminAuthContext);
   if (context === undefined) {
-    throw new Error('useAdminAuth must be used within an AdminAuthProvider');
+    throw new Error('useAdminAuthContext must be used within an AdminAuthProvider');
   }
   return context;
-}
+};
+
+export { useAdminAuthContext };
