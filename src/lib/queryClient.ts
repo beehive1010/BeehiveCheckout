@@ -51,7 +51,6 @@ export async function apiRequest(
     '/api/balance/activate-level1': 'balance',
     '/api/balance/withdraw-usdt': 'balance',
     '/api/balance/withdrawals': 'balance',
-    '/api/dashboard/data': 'balance', 
     '/api/dashboard/balances': 'balance',
     '/api/wallet/withdraw-usdt': 'balance',
     

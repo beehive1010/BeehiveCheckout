@@ -90,6 +90,10 @@ serve(async (req)=>{
         return await handleSyncBlockchainStatus(supabase, walletAddress, requestData);
       case 'create-missing-data':
         return await handleCreateMissingData(supabase, walletAddress, requestData);
+      case 'create-referral-link':
+        return await handleCreateReferralLink(supabase, walletAddress, requestData);
+      case 'get-referral-link':
+        return await handleGetReferralLink(supabase, walletAddress, requestData);
       default:
         return new Response(JSON.stringify({
           error: 'Invalid action'
