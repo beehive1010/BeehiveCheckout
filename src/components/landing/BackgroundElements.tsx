@@ -27,35 +27,6 @@ export function BackgroundElements() {
       <div className={`${styles.backgroundDot} ${styles.backgroundDot3}`}></div>
       <div className={`${styles.backgroundDot} ${styles.backgroundDot4}`}></div>
       
-      {/* Dynamic Gradient Mesh */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div 
-          className="absolute w-96 h-96 bg-honey/10 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"
-          style={{
-            left: `${20 + mousePosition.x * 10}%`,
-            top: `${20 + mousePosition.y * 10}%`,
-            animationDuration: '4s'
-          }}
-        />
-        <div 
-          className="absolute w-80 h-80 bg-yellow-400/10 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"
-          style={{
-            right: `${15 + mousePosition.x * 15}%`,
-            top: `${30 + mousePosition.y * 10}%`,
-            animationDuration: '5s',
-            animationDelay: '1s'
-          }}
-        />
-        <div 
-          className="absolute w-72 h-72 bg-amber-400/8 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"
-          style={{
-            left: `${40 + mousePosition.x * 8}%`,
-            bottom: `${25 + mousePosition.y * 12}%`,
-            animationDuration: '6s',
-            animationDelay: '2s'
-          }}
-        />
-      </div>
       
       {/* Floating Geometric Shapes */}
       <div className="absolute inset-0 overflow-hidden">
