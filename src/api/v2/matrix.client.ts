@@ -2,7 +2,7 @@
  * Matrix V2 API Client
  * Enhanced client for the new 3x3 matrix system - Updated for Supabase Edge Functions
  */
-import { supabaseApi } from '../../lib/supabase';
+import { apiRequest } from '../../lib/queryClient';
 
 export interface MatrixTreeResponse {
   rootWallet: string;
@@ -112,7 +112,8 @@ export const matrixV2Client = {
    */
   async getMatrixTree(rootWallet: string, maxLayers: number = 5, walletAddress?: string): Promise<MatrixTreeResponse> {
     try {
-      const result = await supabaseApi.getMatrix(walletAddress || rootWallet, rootWallet);
+      const response = await apiRequest('POST', '/api/matrix/stats', { rootWallet }, walletAddress || rootWallet);
+      const result = await response.json();
       
       if (!result.success) {
         throw new Error(result.error || 'Failed to fetch matrix tree');
@@ -162,7 +163,8 @@ export const matrixV2Client = {
    */
   async getMatrixStats(walletAddress: string): Promise<MatrixStatsResponse> {
     try {
-      const result = await supabaseApi.getMatrixStats(walletAddress);
+      const response = await apiRequest('POST', '/api/matrix/stats', {}, walletAddress);
+      const result = await response.json();
       
       if (!result.success) {
         throw new Error(result.error || 'Failed to fetch matrix stats');
@@ -205,7 +207,8 @@ export const matrixV2Client = {
    */
   async getLayerMembers(rootWallet: string, layer: number, walletAddress?: string): Promise<LayerMembersResponse> {
     try {
-      const result = await supabaseApi.getMatrix(walletAddress || rootWallet, rootWallet, layer);
+      const response = await apiRequest('POST', '/api/matrix/downline', { rootWallet, layer }, walletAddress || rootWallet);
+      const result = await response.json();
       
       if (!result.success) {
         throw new Error(result.error || 'Failed to fetch layer members');
@@ -268,13 +271,12 @@ export const matrixV2Client = {
     message: string;
   }> {
     try {
-      const result = await supabaseApi.placeMember(
-        walletAddress,
+      const response = await apiRequest('POST', '/api/matrix/place', {
         referrerWallet,
         memberWallet,
-        referrerWallet,
-        'direct'
-      );
+        placementType: 'direct'
+      }, walletAddress);
+      const result = await response.json();
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to place member');
