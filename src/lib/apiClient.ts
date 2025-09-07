@@ -11,7 +11,9 @@ import type {
   MembershipActivationResponse,
   BCCPurchaseResponse,
   MatrixResponse,
-  ServiceRequestResponse,
+  ServiceRequestResponse
+} from '../../types/api.types';
+import { 
   isApiResponse,
   isSuccessResponse,
   isErrorResponse
