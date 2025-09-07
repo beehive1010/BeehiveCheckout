@@ -343,27 +343,42 @@ export const matrixService = {
     return query.order('created_at', { ascending: true });
   },
 
-  // Get matrix statistics
+  // Get matrix statistics using Edge Function
   async getMatrixStats(walletAddress: string) {
-    const { data: referrals, error } = await this.getReferrals(walletAddress);
-    if (error) return { error };
+    return callEdgeFunction('matrix', {
+      action: 'get-matrix-stats'
+    }, walletAddress);
+  },
 
-    // Calculate statistics
-    const totalMembers = referrals?.length || 0;
-    const layerCounts = referrals?.reduce((acc: Record<number, number>, ref) => {
-      acc[ref.layer] = (acc[ref.layer] || 0) + 1;
-      return acc;
-    }, {}) || {};
+  // Create referral record (usually handled by matrix placement)
+  async createReferral(referralData: {
+    root_wallet: string;
+    member_wallet: string;
+    parent_wallet?: string;
+    placer_wallet: string;
+    position: string;
+    layer: number;
+    placement_type: string;
+  }) {
+    return supabase
+      .from('referrals')
+      .insert([{
+        ...referralData,
+        is_active: true,
+        created_at: new Date().toISOString(),
+      }])
+      .select()
+      .single();
+  },
 
-    return {
-      data: {
-        totalMembers,
-        layerCounts,
-        maxLayer: Math.max(...Object.keys(layerCounts).map(Number), 0),
-        referrals
-      },
-      error: null
-    };
+  // Update referral status
+  async updateReferralStatus(referralId: string, isActive: boolean) {
+    return supabase
+      .from('referrals')
+      .update({ is_active: isActive })
+      .eq('id', referralId)
+      .select()
+      .single();
   },
 
   // Count direct referrals (layer 1 referrals placed by this wallet)
