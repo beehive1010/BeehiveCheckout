@@ -174,9 +174,16 @@ export function MemberGuard({
     );
   }
 
-  // Handle insufficient membership level  
-  if (!memberStatus?.isMember || (memberStatus?.membershipLevel || 0) < requireLevel) {
-    const currentLevel = memberStatus?.membershipLevel || 0;
+  // Handle insufficient membership level
+  // Check multiple possible field names for membership level
+  const userLevel = memberStatus?.membershipLevel || 
+                   memberStatus?.currentLevel || 
+                   memberStatus?.memberData?.current_level || 
+                   memberStatus?.user?.currentLevel || 
+                   (memberStatus?.isMember ? 1 : 0); // If isMember is true, assume at least level 1
+  
+  if (!memberStatus?.isMember || userLevel < requireLevel) {
+    const currentLevel = userLevel;
     
     if (FallbackComponent) {
       return <FallbackComponent />;
