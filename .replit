@@ -21,5 +21,9 @@ NODE_ENV = "development"
 localPort = 5000
 externalPort = 80
 
+[[ports]]
+localPort = 5001
+externalPort = 3000
+
 [objectStorage]
 defaultBucketID = "replit-objstore-80f613b7-e782-4754-9b10-4f5bb52443a8"

@@ -25,17 +25,27 @@ serve(async (req) => {
     const url = new URL(req.url);
     let action = url.pathname.split('/').pop();
     
+    console.log(`Rewards function: ${req.method} ${url.pathname}`);
+    
     // Handle specific endpoint patterns (order matters - check more specific paths first)
-    if (url.pathname.includes('/claimable')) {
+    if (url.pathname.endsWith('/claimable')) {
       action = 'get-claims'; 
-    } else if (url.pathname.includes('/claim') && !url.pathname.includes('/claimable')) {
+    } else if (url.pathname.endsWith('/claim') || url.pathname.includes('/claim/')) {
       action = 'claim-reward';
-    } else if (url.pathname.includes('/user')) {
+    } else if (url.pathname.endsWith('/user')) {
       action = 'get-balance';
-    } else if (url.pathname.includes('/withdraw')) {
+    } else if (url.pathname.endsWith('/withdraw')) {
       action = 'withdraw-balance';
-    } else if (url.pathname.includes('/timers')) {
+    } else if (url.pathname.endsWith('/timers')) {
       action = 'get-reward-timers';
+    } else if (url.pathname.endsWith('/pending')) {
+      action = 'check-pending-rewards';
+    } else if (url.pathname.endsWith('/notifications')) {
+      action = 'get-notifications';
+    } else if (url.pathname.endsWith('/dashboard')) {
+      action = 'dashboard';
+    } else if (url.pathname.endsWith('/maintenance')) {
+      action = 'maintenance';
     } else if (!action || action === 'rewards') {
       // Fallback: try query params or request body
       action = url.searchParams.get('action') || 'get-balance';
@@ -54,6 +64,8 @@ serve(async (req) => {
         }
       }
     }
+    
+    console.log(`Resolved action: ${action}`);
 
     switch (action) {
       case 'get-claims':
@@ -66,6 +78,8 @@ serve(async (req) => {
         return await withdrawRewardBalance(req, supabaseClient);
       case 'get-balance':
         return await getRewardBalance(req, supabaseClient);
+      case 'get-activity':
+        return await getDashboardActivity(req, supabaseClient);
       case 'maintenance':
         return await runMaintenance(req, supabaseClient);
       case 'dashboard':
@@ -528,7 +542,15 @@ async function withdrawRewardBalance(req, supabaseClient) {
 }
 
 async function getRewardBalance(req, supabaseClient) {
-  const { wallet_address } = await req.json();
+  let wallet_address;
+  
+  // Handle both GET and POST requests
+  if (req.method === 'GET') {
+    wallet_address = req.headers.get('x-wallet-address');
+  } else {
+    const body = req.parsedBody || await req.json();
+    wallet_address = body.wallet_address;
+  }
 
   if (!wallet_address) {
     return new Response(JSON.stringify({
@@ -930,6 +952,85 @@ async function updateRewardStatus(req, supabaseClient) {
     return new Response(JSON.stringify({
       success: false,
       error: 'Failed to update reward status',
+      details: error.message
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      },
+      status: 500
+    });
+  }
+}
+
+async function getDashboardActivity(req, supabaseClient) {
+  let wallet_address, limit;
+  
+  // Handle both GET and POST requests
+  if (req.method === 'GET') {
+    wallet_address = req.headers.get('x-wallet-address');
+    limit = parseInt(new URL(req.url).searchParams.get('limit') || '10');
+  } else {
+    const body = req.parsedBody || await req.json();
+    wallet_address = body.walletAddress || body.wallet_address;
+    limit = body.limit || 10;
+  }
+
+  if (!wallet_address) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'wallet_address required'
+    }), {
+      status: 400,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+  }
+
+  try {
+    // Get recent user activity (transactions, claims, etc.)
+    const { data: activity, error } = await supabaseClient
+      .from('user_activity_log')
+      .select(`
+        *,
+        activity_type,
+        activity_data,
+        created_at
+      `)
+      .eq('wallet_address', wallet_address)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Activity fetch error:', error);
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Failed to fetch activity'
+      }), {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        },
+        status: 500
+      });
+    }
+
+    return new Response(JSON.stringify({
+      success: true,
+      activity: activity || []
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+  } catch (error) {
+    console.error('Get dashboard activity error:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Failed to fetch dashboard activity',
       details: error.message
     }), {
       headers: {

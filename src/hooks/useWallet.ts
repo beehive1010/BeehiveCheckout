@@ -25,7 +25,9 @@ export function useWallet() {
         if (userStatus.isRegistered && !userStatus.isMember && userStatus.userFlow !== 'claim_nft') {
           console.log('🔄 User registered but not activated - attempting blockchain sync');
           try {
-            const syncResponse = await apiRequest('POST', '/api/auth/sync-blockchain-status', {}, walletAddress!);
+            const syncResponse = await apiRequest('POST', '/api/auth/sync-blockchain-status', {
+              action: 'sync-blockchain-status'
+            }, walletAddress!);
             if (syncResponse.ok) {
               const syncResult = await syncResponse.json();
               console.log('✅ Blockchain sync result:', syncResult);
