@@ -5,7 +5,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-wallet-address'
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-wallet-address',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
 };
 
 serve(async (req) => {
@@ -22,7 +23,12 @@ serve(async (req) => {
     );
 
     const url = new URL(req.url);
-    const action = url.pathname.split('/').pop();
+    let action = url.pathname.split('/').pop();
+    
+    // If no action from URL path, try to get from query params or use default
+    if (!action || action === 'rewards') {
+      action = url.searchParams.get('action') || 'get-balance';
+    }
 
     switch (action) {
       case 'get-claims':

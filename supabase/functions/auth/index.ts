@@ -99,6 +99,28 @@ async function handleUserRegistration(supabase, walletAddress, data) {
     const { data: existingUser } = await supabase.from('users').select('wallet_address, referrer_wallet').eq('wallet_address', walletAddress).single();
     if (existingUser) {
       console.log(`✅ User already exists: ${walletAddress}`);
+      
+      // Update referrer if provided and different from existing
+      if (data.referrerWallet && data.referrerWallet !== existingUser.referrer_wallet) {
+        const ROOT_WALLET = '0x0000000000000000000000000000000000000001';
+        let validReferrerWallet = ROOT_WALLET;
+        
+        if (data.referrerWallet && data.referrerWallet !== ROOT_WALLET) {
+          const { data: referrerMember } = await supabase.from('members').select('wallet_address, is_activated').eq('wallet_address', data.referrerWallet).single();
+          if (referrerMember && referrerMember.is_activated) {
+            validReferrerWallet = data.referrerWallet;
+            console.log(`✅ Updating referrer to: ${data.referrerWallet}`);
+            
+            // Update user record with new referrer
+            await supabase.from('users').update({
+              referrer_wallet: validReferrerWallet
+            }).eq('wallet_address', walletAddress);
+          } else {
+            console.log(`📍 Invalid/inactive referrer, keeping existing: ${data.referrerWallet}`);
+          }
+        }
+      }
+      
       return new Response(JSON.stringify({
         success: true,
         action: 'existing',
@@ -260,12 +282,17 @@ async function handleGetUser(supabase, walletAddress) {
     // Determine user flow for frontend routing
     let userFlow = 'registration';
     if (memberData) {
+      // Check if user has complete registration info (username, email, etc.)
+      const hasCompleteUserInfo = userData && userData.username && 
+        userData.username !== `user_${walletAddress.slice(-6)}` && // Not auto-generated username
+        userData.email; // Has email
+      
       if (isMember) {
-        userFlow = 'dashboard' // Fully activated member
-        ;
+        userFlow = 'dashboard'; // Fully activated member
+      } else if (hasCompleteUserInfo) {
+        userFlow = 'claim_nft'; // Has complete info, ready for NFT claim
       } else {
-        userFlow = 'claim_nft' // Registered but needs to activate membership
-        ;
+        userFlow = 'registration'; // Needs to complete registration info
       }
     }
     console.log(`✅ User data retrieved for: ${walletAddress}, Flow: ${userFlow}, Member: ${isMember}`);
