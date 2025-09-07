@@ -85,15 +85,15 @@ export default function RegistrationModal({
 
     try {
       // Register user with Supabase
-      const result = await authService.registerUser(
+      const { data, error } = await authService.registerUser(
         walletAddress,
         formData.username.trim(),
         formData.email.trim() || undefined,
         referrerWallet
       );
 
-      if (result.error) {
-        throw new Error(result.error.message);
+      if (error) {
+        throw new Error(error.message);
       }
 
       toast({

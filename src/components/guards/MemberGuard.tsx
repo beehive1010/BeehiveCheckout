@@ -65,7 +65,7 @@ export function MemberGuard({
     try {
       // Get referrer from stored referral link
       const storedReferrer = referralService.getReferrerWallet();
-      setReferrerWallet(storedReferrer);
+      setReferrerWallet(storedReferrer || undefined);
 
       // Check if user exists in database
       const { exists } = await authService.userExists(walletAddress);
