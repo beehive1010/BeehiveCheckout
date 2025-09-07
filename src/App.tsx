@@ -65,8 +65,6 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => <div>{child
 
 // Layout components (temporary)
 // Navigation component imported from components/shared/Navigation
-import { LandingFooter } from '@/components/landing/LandingFooter';
-const Footer = () => <LandingFooter />;
 const RouteGuard = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
 
 // Smart routing component that routes based on user status
@@ -296,7 +294,6 @@ function App() {
                 <main className={isAdminPage || isMatrixPage ? "min-h-screen" : "min-h-[calc(100vh-theme(spacing.32))] pb-16 md:pb-0"}>
                   <Router />
                 </main>
-                {(isLandingPage || isMatrixPage) && <Footer />}
                 <Toaster />
                 <HotToaster 
                   position="top-right"
