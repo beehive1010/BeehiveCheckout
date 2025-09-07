@@ -27,7 +27,8 @@ import {
   Building2,
   Gift,
   ShoppingCart,
-  Loader2
+  Loader2,
+  User
 } from 'lucide-react';
 
 // Data interfaces based on existing components
@@ -174,7 +175,7 @@ export default function EnhancedDashboard() {
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dataMethod, setDataMethod] = useState<'functions' | 'views' | 'tables'>('functions');
+  const [dataMethod] = useState<'functions' | 'views' | 'tables'>('functions'); // 固定使用functions数据源
 
   const loadDashboardData = async () => {
     if (!walletAddress) return;
@@ -281,17 +282,6 @@ export default function EnhancedDashboard() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <div className="text-red-500">Error: {error}</div>
-        <div className="flex space-x-2">
-          <Button onClick={() => setDataMethod('functions')} variant={dataMethod === 'functions' ? 'default' : 'outline'} size="sm">
-            Functions
-          </Button>
-          <Button onClick={() => setDataMethod('views')} variant={dataMethod === 'views' ? 'default' : 'outline'} size="sm">
-            Views
-          </Button>
-          <Button onClick={() => setDataMethod('tables')} variant={dataMethod === 'tables' ? 'default' : 'outline'} size="sm">
-            Tables
-          </Button>
-        </div>
         <Button onClick={loadDashboardData} variant="outline">
           <RefreshCw className="h-4 w-4 mr-2" />
           Retry
@@ -305,104 +295,119 @@ export default function EnhancedDashboard() {
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-6 space-y-6">
-      {/* Header with Data Method Selector */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-honey">Dashboard</h1>
-          <p className="text-muted-foreground">Your BeeHive overview</p>
-        </div>
-        <div className="hidden md:flex gap-2">
-          <div className="flex border rounded-lg p-1 bg-muted">
-            <Button 
-              onClick={() => setDataMethod('functions')} 
-              variant={dataMethod === 'functions' ? 'default' : 'ghost'} 
-              size="sm"
-            >
-              Functions
-            </Button>
-            <Button 
-              onClick={() => setDataMethod('views')} 
-              variant={dataMethod === 'views' ? 'default' : 'ghost'} 
-              size="sm"
-            >
-              Views
-            </Button>
-            <Button 
-              onClick={() => setDataMethod('tables')} 
-              variant={dataMethod === 'tables' ? 'default' : 'ghost'} 
-              size="sm"
-            >
-              Tables
-            </Button>
-          </div>
-          <Button onClick={loadDashboardData} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-        </div>
+    <div className="container mx-auto p-4 space-y-4">
+      {/* Header */}
+      <div className="text-center space-y-1">
+        <h1 className="text-2xl font-bold text-honey">Dashboard</h1>
+        <p className="text-sm text-muted-foreground">Your BeeHive overview</p>
       </div>
 
-      {/* Member Status Card */}
+      {/* 用户信息 */}
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <User className="h-5 w-5 text-honey" />
+            User Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Crown className="h-5 w-5 text-honey" />
-              Member Status
-            </CardTitle>
-            <div className="flex gap-2">
+            <div className="space-y-1">
+              <div className="text-sm text-muted-foreground">Status</div>
               <Badge variant="secondary" className="bg-green-600 text-white">
                 {dashboardStats.member.isActivated ? 'Active' : 'Inactive'}
               </Badge>
+            </div>
+            <div className="space-y-1 text-right">
+              <div className="text-sm text-muted-foreground">Level</div>
               <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/30">
                 Level {dashboardStats.member.currentLevel}
               </Badge>
-              <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
-                Tier {dashboardStats.member.activationTier}
-              </Badge>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-honey">{dashboardStats.matrix.directReferrals}</div>
-              <div className="text-sm text-muted-foreground">Direct Referrals</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-400">{dashboardStats.matrix.totalTeamSize}</div>
-              <div className="text-sm text-muted-foreground">Total Team</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-400">${dashboardStats.balance.totalUsdtEarned.toFixed(2)}</div>
-              <div className="text-sm text-muted-foreground">Total Earnings</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-400">{dashboardStats.rewards.totalPending}</div>
-              <div className="text-sm text-muted-foreground">Pending Rewards</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Referral Link Section - Priority */}
+      {/* 奖励余额 */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <DollarSign className="h-5 w-5 text-green-400" />
+            Reward Balance
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Total Earned</span>
+              <span className="text-xl font-bold text-green-400">${dashboardStats.balance.totalUsdtEarned.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Available</span>
+              <span className="text-lg font-semibold text-blue-400">${dashboardStats.balance.availableRewards.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Pending</span>
+              <span className="text-lg font-semibold text-purple-400">{dashboardStats.rewards.totalPending}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* BCC余额 */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Coins className="h-5 w-5 text-honey" />
+            BCC Balance
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Total BCC</span>
+              <span className="text-xl font-bold text-honey">{dashboardStats.balance.totalBcc}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center">
+                <div className="text-lg font-semibold text-green-400">{dashboardStats.balance.transferableBcc}</div>
+                <div className="text-xs text-muted-foreground">Transferable</div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-semibold text-orange-400">{dashboardStats.balance.lockedBcc}</div>
+                <div className="text-xs text-muted-foreground">Locked</div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 推荐链接组件 - 显示链接 */}
       <Card className="border-honey/20 bg-gradient-to-r from-honey/5 to-yellow-400/5">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
             <Share2 className="h-5 w-5 text-honey" />
             {t('dashboard.referralLink.title') || 'Referral Link'}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="text-sm text-muted-foreground">
               {t('dashboard.shareToEarn') || 'Share your link to earn commissions from your referrals'}
             </div>
+            
+            {/* 显示实际链接 */}
+            <div className="bg-background/50 rounded-lg p-3 border border-border/50">
+              <div className="text-xs text-muted-foreground mb-1">Your Referral Link:</div>
+              <div className="text-sm font-mono break-all text-honey">
+                {`${window.location.origin}/register?ref=${(activeWallet?.getAccount()?.address || walletAddress)}`}
+              </div>
+            </div>
+            
             <div className="flex gap-2">
               <Button onClick={copyReferralLink} className="bg-honey hover:bg-honey/90 text-black font-semibold flex-1">
                 <Copy className="h-4 w-4 mr-2" />
-                {t('dashboard.referralLink.copy') || 'Copy Referral Link'}
+                {t('dashboard.referralLink.copy') || 'Copy Link'}
               </Button>
               <Button 
                 onClick={() => setLocation('/referrals')} 
@@ -410,183 +415,30 @@ export default function EnhancedDashboard() {
                 className="border-honey/30 text-honey hover:bg-honey/10"
               >
                 <Users className="h-4 w-4 mr-2" />
-                {t('nav.referrals') || 'View Network'}
+                Network
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-        {/* BCC Balance Card */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Coins className="h-5 w-5 text-honey" />
-              BCC Balance
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div>
-                <div className="text-2xl font-bold text-honey">{dashboardStats.balance.totalBcc}</div>
-                <div className="text-sm text-muted-foreground">Total BCC</div>
-              </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <div className="text-green-400 font-semibold">{dashboardStats.balance.transferableBcc}</div>
-                  <div className="text-muted-foreground">Transferable</div>
-                </div>
-                <div>
-                  <div className="text-orange-400 font-semibold">{dashboardStats.balance.lockedBcc}</div>
-                  <div className="text-muted-foreground">Locked</div>
-                </div>
-              </div>
-            </div>
+      {/* 奖励/推荐子页面导航 */}
+      <div className="grid grid-cols-2 gap-4">
+        <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setLocation('/referrals')}>
+          <CardContent className="p-4 text-center space-y-2">
+            <Users className="h-8 w-8 text-blue-400 mx-auto" />
+            <div className="font-semibold">Referrals</div>
+            <div className="text-2xl font-bold text-honey">{dashboardStats.matrix.directReferrals}</div>
+            <div className="text-xs text-muted-foreground">Direct referrals</div>
           </CardContent>
         </Card>
 
-        {/* USDT Earnings Card */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <DollarSign className="h-5 w-5 text-green-400" />
-              USDT Earnings
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div>
-                <div className="text-2xl font-bold text-green-400">${dashboardStats.balance.totalUsdtEarned.toFixed(2)}</div>
-                <div className="text-sm text-muted-foreground">Total Earned</div>
-              </div>
-              <div>
-                <div className="text-lg font-semibold text-blue-400">${dashboardStats.balance.availableRewards.toFixed(2)}</div>
-                <div className="text-sm text-muted-foreground">Available Rewards</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Matrix Network Card */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Users className="h-5 w-5 text-blue-400" />
-              Matrix Network
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="text-xl font-bold text-honey">{dashboardStats.matrix.directReferrals}</div>
-                  <div className="text-sm text-muted-foreground">Direct Referrals</div>
-                </div>
-                <div>
-                  <div className="text-xl font-bold text-blue-400">{dashboardStats.matrix.totalTeamSize}</div>
-                  <div className="text-sm text-muted-foreground">Total Team</div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Rewards Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-        {/* Pending Rewards */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Timer className="h-5 w-5 text-purple-400" />
-              Pending Rewards
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <div className="text-2xl font-bold text-purple-400">{dashboardStats.rewards.totalPending}</div>
-                <div className="text-sm text-muted-foreground">Rewards to claim</div>
-              </div>
-              <Button 
-                variant="outline" 
-                className="w-full border-purple-400/30 text-purple-400 hover:bg-purple-400/10"
-                disabled={dashboardStats.rewards.totalPending === 0}
-              >
-                <Gift className="h-4 w-4 mr-2" />
-                View Pending Rewards
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Claimed Rewards */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="h-5 w-5 text-green-400" />
-              Claimed Rewards
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <div className="text-2xl font-bold text-green-400">{dashboardStats.rewards.totalClaimed}</div>
-                <div className="text-sm text-muted-foreground">Total claimed</div>
-              </div>
-              <Button 
-                variant="outline" 
-                className="w-full border-green-400/30 text-green-400 hover:bg-green-400/10"
-              >
-                <BarChart3 className="h-4 w-4 mr-2" />
-                View History
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Mobile Data Method Selector */}
-      <div className="md:hidden">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Data Source</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col gap-2">
-              <div className="flex border rounded-lg p-1 bg-muted">
-                <Button 
-                  onClick={() => setDataMethod('functions')} 
-                  variant={dataMethod === 'functions' ? 'default' : 'ghost'} 
-                  size="sm"
-                  className="flex-1"
-                >
-                  Functions
-                </Button>
-                <Button 
-                  onClick={() => setDataMethod('views')} 
-                  variant={dataMethod === 'views' ? 'default' : 'ghost'} 
-                  size="sm"
-                  className="flex-1"
-                >
-                  Views
-                </Button>
-                <Button 
-                  onClick={() => setDataMethod('tables')} 
-                  variant={dataMethod === 'tables' ? 'default' : 'ghost'} 
-                  size="sm"
-                  className="flex-1"
-                >
-                  Tables
-                </Button>
-              </div>
-              <Button onClick={loadDashboardData} variant="outline" size="sm" className="w-full">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh Data
-              </Button>
-            </div>
+        <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setLocation('/me')}>
+          <CardContent className="p-4 text-center space-y-2">
+            <Award className="h-8 w-8 text-green-400 mx-auto" />
+            <div className="font-semibold">Rewards</div>
+            <div className="text-2xl font-bold text-green-400">{dashboardStats.rewards.totalClaimed}</div>
+            <div className="text-xs text-muted-foreground">Total claimed</div>
           </CardContent>
         </Card>
       </div>
