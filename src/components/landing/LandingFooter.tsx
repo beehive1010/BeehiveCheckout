@@ -1,54 +1,8 @@
-import { useState } from 'react';
 import { useI18n } from '../../contexts/I18nContext';
 
 export function LandingFooter() {
   const { t } = useI18n();
-  const [hoveredSection, setHoveredSection] = useState<number | null>(null);
-
   const currentYear = new Date().getFullYear();
-
-  const footerSections = [
-    {
-      title: t('footer.platform.title'),
-      links: [
-        { name: t('footer.platform.membership'), href: '#features' },
-        { name: t('footer.platform.rewards'), href: '#how-it-works' },
-        { name: t('footer.platform.nfts'), href: '#features' },
-        { name: t('footer.platform.education'), href: '#features' }
-      ],
-      gradient: 'from-blue-400 to-cyan-500'
-    },
-    {
-      title: t('footer.resources.title'),
-      links: [
-        { name: t('footer.resources.whitepaper'), href: '#' },
-        { name: t('footer.resources.documentation'), href: '#' },
-        { name: t('footer.resources.tutorials'), href: '#' },
-        { name: t('footer.resources.faq'), href: '#' }
-      ],
-      gradient: 'from-purple-400 to-pink-500'
-    },
-    {
-      title: t('footer.community.title'),
-      links: [
-        { name: t('footer.community.discord'), href: '#', icon: '💬' },
-        { name: t('footer.community.telegram'), href: '#', icon: '📱' },
-        { name: t('footer.community.twitter'), href: '#', icon: '🐦' },
-        { name: t('footer.community.medium'), href: '#', icon: '📝' }
-      ],
-      gradient: 'from-green-400 to-emerald-500'
-    },
-    {
-      title: t('footer.legal.title'),
-      links: [
-        { name: t('footer.legal.privacy'), href: '#' },
-        { name: t('footer.legal.terms'), href: '#' },
-        { name: t('footer.legal.cookies'), href: '#' },
-        { name: t('footer.legal.disclaimer'), href: '#' }
-      ],
-      gradient: 'from-orange-400 to-red-500'
-    }
-  ];
 
   return (
     <footer className="relative bg-gradient-to-br from-black via-slate-900 to-black border-t border-white/10 overflow-hidden">
@@ -74,46 +28,6 @@ export function LandingFooter() {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-16">
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
-          {footerSections.map((section, sectionIndex) => (
-            <div
-              key={sectionIndex}
-              className="group"
-              onMouseEnter={() => setHoveredSection(sectionIndex)}
-              onMouseLeave={() => setHoveredSection(null)}
-            >
-              {/* Section Header */}
-              <h3 className={`text-xl font-bold mb-6 bg-gradient-to-r ${section.gradient} bg-clip-text text-transparent transition-all duration-300 ${hoveredSection === sectionIndex ? 'scale-105' : ''}`}>
-                {section.title}
-              </h3>
-              
-              {/* Section Links */}
-              <ul className="space-y-4">
-                {section.links.map((link, linkIndex) => (
-                  <li key={linkIndex}>
-                    <a
-                      href={link.href}
-                      className="group/link flex items-center gap-3 text-gray-400 hover:text-white transition-all duration-300 hover:translate-x-2"
-                      data-testid={`footer-link-${sectionIndex}-${linkIndex}`}
-                    >
-                      {'icon' in link && link.icon && (
-                        <span className="text-lg group-hover/link:scale-110 transition-transform duration-300">
-                          {link.icon}
-                        </span>
-                      )}
-                      <span className="relative">
-                        {link.name}
-                        <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r ${section.gradient} group-hover/link:w-full transition-all duration-300`}></span>
-                      </span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-
         {/* Newsletter Section */}
         <div className="bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-xl rounded-3xl border border-white/10 p-8 mb-16">
           <div className="text-center max-w-2xl mx-auto">
