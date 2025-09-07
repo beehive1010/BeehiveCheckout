@@ -193,7 +193,7 @@ function DashboardV2() {
                   <Badge variant="secondary" className="bg-green-600 text-white">
                     Matrix Active
                   </Badge>
-                  {balanceBreakdown && (
+                  {balanceBreakdown?.activation?.tier && (
                     <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/30">
                       Tier {balanceBreakdown.activation.tier}
                     </Badge>
