@@ -24,6 +24,7 @@ import Discover from "@/pages/Discover";
 
 // Additional pages  
 import Registration from "@/pages/Registration";
+import MatrixExplanation from "@/pages/MatrixExplanation";
 import Welcome from "@/pages/Welcome";
 import Tasks from "@/pages/Tasks";
 import TokenPurchase from "@/pages/TokenPurchase";
@@ -255,6 +256,7 @@ function Router() {
         <Route path="/admin-nft-manager" component={AdminNFTManager} />
         
         {/* Public routes - No authentication required */}
+        <Route path="/matrix-explanation" component={MatrixExplanation} />
         <Route path="/hiveworld" component={HiveWorld} />
         <Route path="/hiveworld/:id" component={BlogPost} />
         <Route path="/tokens" component={() => (
