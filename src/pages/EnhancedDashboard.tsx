@@ -253,7 +253,9 @@ export default function EnhancedDashboard() {
   const copyReferralLink = async () => {
     // Get the original wallet address (not lowercase) from activeWallet
     const originalWalletAddress = activeWallet?.getAccount()?.address || walletAddress;
-    const referralLink = `${window.location.origin}/register?ref=${originalWalletAddress}`;
+    // Use current page URL as base for referral link
+    const baseUrl = window.location.origin;
+    const referralLink = `${baseUrl}/register?ref=${originalWalletAddress}`;
     
     try {
       await navigator.clipboard.writeText(referralLink);
