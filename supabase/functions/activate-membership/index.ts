@@ -162,13 +162,27 @@ async function activateMembershipSecure(supabase, walletAddress, transactionHash
           console.log(`✅ 推荐关系创建成功: ${referrerWallet} -> ${walletAddress}`);
           
           // 更新推荐人的直接推荐数量
-          const { error: updateError } = await supabase
-            .from('members')
-            .update({ 
-              total_direct_referrals: supabase.sql`total_direct_referrals + 1`,
-              updated_at: currentTime
-            })
-            .eq('wallet_address', referrerWallet);
+          const { error: updateError } = await supabase.rpc('increment_direct_referrals', {
+            p_wallet_address: referrerWallet
+          });
+          
+          // 如果没有专用函数，使用简单更新
+          if (updateError && updateError.message.includes('function')) {
+            const { data: currentReferrer } = await supabase
+              .from('members')
+              .select('total_direct_referrals')
+              .eq('wallet_address', referrerWallet)
+              .single();
+              
+            const newCount = (currentReferrer?.total_direct_referrals || 0) + 1;
+            await supabase
+              .from('members')
+              .update({ 
+                total_direct_referrals: newCount,
+                updated_at: currentTime
+              })
+              .eq('wallet_address', referrerWallet);
+          }
             
           if (updateError) {
             console.warn('更新推荐人统计失败:', updateError);
