@@ -66,7 +66,7 @@ export default function Tasks() {
     },
   });
 
-  // Enhanced NFT claim function for specific levels
+  // Enhanced NFT claim function for specific levels with progressive pricing
   const handleClaimLevel = async (level: number) => {
     if (!walletAddress) {
       toast({
@@ -77,8 +77,21 @@ export default function Tasks() {
       return;
     }
 
+    // Check if user can claim this level (must have previous level)
+    if (level > 1 && (!currentLevel || level > currentLevel + 1)) {
+      toast({
+        title: "Level Locked",
+        description: `You must own Level ${level - 1} NFT before claiming Level ${level}`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     const tokenId = level;
-    const basePrice = level * 100;
+    // Progressive pricing: Level 1 = 100, Level 2 = 150, then +50 per level
+    const levelPrice = level === 1 ? 100 : 150 + (level - 2) * 50;
+    const platformFee = 30;
+    const totalPrice = levelPrice + platformFee;
 
     setClaimState({ method: `level_${level}`, loading: true, error: null });
 
@@ -91,12 +104,14 @@ export default function Tasks() {
         isOffChain: true,
         targetLevel: level,
         tokenId: tokenId,
-        priceUsdc: basePrice
+        priceUsdc: totalPrice,
+        nftPrice: levelPrice,
+        platformFee: platformFee
       };
 
       toast({
         title: `Level ${level} Claim Started`,
-        description: `Claiming NFT Token ID ${tokenId} for $${basePrice} USDC`,
+        description: `Claiming NFT Token ID ${tokenId} for $${totalPrice} USDC (${levelPrice} + ${platformFee} fee)`,
       });
 
       // Call the NFT claim API
@@ -114,7 +129,7 @@ export default function Tasks() {
       if (response.ok) {
         toast({
           title: `🎉 Level ${level} NFT Claimed!`,
-          description: `Successfully claimed Token ID ${tokenId}`,
+          description: `Successfully claimed Token ID ${tokenId}. Earned ${level * 500} transferable + ${level * 5000} locked BCC!`,
           duration: 6000
         });
 
@@ -244,129 +259,174 @@ export default function Tasks() {
             </div>
           </div>
 
-          {/* Membership NFT Claim Grid - Token ID 1-19 */}
+          {/* ERC5115 Style Membership NFT Claim Grid - Token ID 1-19 */}
           <div className="space-y-6">
             {/* Instructions */}
             <Card className="bg-gradient-to-r from-honey/10 via-honey/5 to-transparent border-honey/30">
               <CardContent className="p-6">
                 <div className="text-center">
+                  <div className="flex items-center justify-center mb-3">
+                    <Crown className="h-8 w-8 text-honey mr-2" />
+                    <Badge className="bg-honey/20 text-honey border-honey/50">
+                      ERC-5115 NFT Collection
+                    </Badge>
+                  </div>
                   <h3 className="font-bold text-lg text-honey mb-2">
-                    Claim Membership NFTs
+                    Claim Membership NFTs (Level 1-19)
                   </h3>
                   <p className="text-muted-foreground">
-                    Choose any level to claim the corresponding NFT Token (Level 1-19)
+                    Progressive pricing: Level 1 (100 USDC) → Level 2 (150 USDC) → +50 USDC per level
                   </p>
                 </div>
               </CardContent>
             </Card>
 
             {/* Membership Level Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {Array.from({ length: 19 }, (_, index) => {
                 const level = index + 1;
                 const tokenId = level;
-                const basePrice = level * 100; // Simple pricing: Level 1 = 100 USDC, Level 2 = 200 USDC, etc.
-                const isCurrentLevel = level === (currentLevel || 0);
-                const isAvailable = !currentLevel || level > currentLevel;
+                // Progressive pricing: Level 1 = 100, Level 2 = 150, then +50 per level
+                const levelPrice = level === 1 ? 100 : 150 + (level - 2) * 50;
+                const platformFee = 30;
+                const totalPrice = levelPrice + platformFee;
+                
                 const isOwned = currentLevel && level <= currentLevel;
+                const isUnlocked = level === 1 || (currentLevel && level <= currentLevel + 1);
+                const isNextLevel = currentLevel && level === currentLevel + 1;
                 
                 return (
-                  <Button
+                  <Card 
                     key={level}
-                    onClick={() => handleClaimLevel(level)}
-                    disabled={claimState.loading || isOwned}
-                    className={`h-auto flex-col gap-2 py-4 relative ${
-                      isCurrentLevel 
-                        ? 'bg-honey hover:bg-honey/90 text-black' 
-                        : isOwned 
-                        ? 'bg-green-500/20 border-green-500/30 text-green-400'
-                        : isAvailable
-                        ? 'border-honey/30 text-honey hover:bg-honey/10'
-                        : 'opacity-50'
+                    className={`transition-all duration-200 ${
+                      isOwned 
+                        ? 'bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/30' 
+                        : isNextLevel
+                        ? 'bg-gradient-to-br from-honey/10 to-honey/5 border-honey/30'
+                        : isUnlocked
+                        ? 'bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/30 hover:border-blue-500/50'
+                        : 'bg-muted/20 border-muted/30 opacity-60'
                     }`}
-                    variant={isCurrentLevel ? 'default' : 'outline'}
-                    data-testid={`button-claim-level-${level}`}
                   >
-                    {/* Level Badge */}
-                    <div className="absolute top-2 right-2">
-                      {isOwned && (
-                        <Badge className="bg-green-500 text-white text-xs">
-                          Owned
+                    <CardHeader className="text-center pb-4">
+                      <div className="flex items-center justify-center mb-2">
+                        <Crown className="h-6 w-6 text-honey mr-2" />
+                        <Badge 
+                          className={
+                            isOwned 
+                              ? 'bg-green-500/20 text-green-400 border-green-500/50'
+                              : isNextLevel
+                              ? 'bg-honey/20 text-honey border-honey/50'
+                              : isUnlocked
+                              ? 'bg-blue-500/20 text-blue-400 border-blue-500/50'
+                              : 'bg-muted/20 text-muted-foreground border-muted/50'
+                          }
+                        >
+                          Level {level}
                         </Badge>
+                      </div>
+                      <CardTitle className={`text-xl mb-1 ${
+                        isOwned ? 'text-green-400' : isNextLevel ? 'text-honey' : isUnlocked ? 'text-blue-400' : 'text-muted-foreground'
+                      }`}>
+                        Token ID {tokenId}
+                      </CardTitle>
+                      {!isUnlocked && (
+                        <p className="text-xs text-muted-foreground">
+                          🔒 Requires Level {level - 1} NFT
+                        </p>
                       )}
-                    </div>
-                    
-                    {/* Level Number */}
-                    <div className="text-2xl font-bold">
-                      L{level}
-                    </div>
-                    
-                    {/* Token ID */}
-                    <div className="text-sm opacity-80">
-                      Token ID: {tokenId}
-                    </div>
-                    
-                    {/* Price */}
-                    <div className="text-lg font-semibold">
-                      ${basePrice} USDC
-                    </div>
-                    
-                    {/* Loading or Icon */}
-                    {claimState.loading && claimState.method === `level_${level}` ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : isOwned ? (
-                      <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                        ✓ Claimed
-                      </Badge>
-                    ) : (
-                      <Crown className="h-4 w-4" />
-                    )}
-                  </Button>
+                    </CardHeader>
+
+                    <CardContent className="space-y-4">
+                      {/* Pricing Information */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="text-center p-3 bg-gradient-to-br from-orange-500/10 to-orange-500/5 rounded-lg border border-orange-500/20">
+                          <div className="text-lg font-bold text-orange-400">${totalPrice}</div>
+                          <div className="text-xs text-muted-foreground">Total Cost</div>
+                        </div>
+                        <div className="text-center p-3 bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-lg border border-purple-500/20">
+                          <div className="text-lg font-bold text-purple-400">{level * 500}</div>
+                          <div className="text-xs text-muted-foreground">BCC Reward</div>
+                        </div>
+                      </div>
+
+                      {/* Price Breakdown */}
+                      <div className="bg-muted/50 rounded-lg p-3">
+                        <div className="space-y-1 text-xs text-muted-foreground">
+                          <div className="flex justify-between">
+                            <span>NFT Price:</span>
+                            <span className="text-foreground">${levelPrice} USDC</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Platform Fee:</span>
+                            <span className="text-foreground">${platformFee} USDC</span>
+                          </div>
+                          <div className="flex justify-between border-t border-border/50 pt-1">
+                            <span className="font-medium">Total:</span>
+                            <span className="text-foreground font-medium">${totalPrice} USDC</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Button */}
+                      <Button 
+                        onClick={() => handleClaimLevel(level)}
+                        disabled={claimState.loading || isOwned || !isUnlocked}
+                        className={`w-full h-10 font-semibold ${
+                          isOwned 
+                            ? 'bg-green-500/20 text-green-400 border-green-500/30 cursor-default'
+                            : isNextLevel
+                            ? 'bg-gradient-to-r from-honey to-honey/80 hover:from-honey/90 hover:to-honey/70 text-black'
+                            : isUnlocked
+                            ? 'bg-gradient-to-r from-blue-500 to-blue-400 hover:from-blue-600 hover:to-blue-500 text-white'
+                            : 'bg-muted/20 text-muted-foreground cursor-not-allowed'
+                        }`}
+                        variant={isOwned ? 'outline' : 'default'}
+                        data-testid={`button-claim-level-${level}`}
+                      >
+                        {claimState.loading && claimState.method === `level_${level}` ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Claiming...
+                          </>
+                        ) : isOwned ? (
+                          <>
+                            <Badge className="mr-2 bg-green-500/20 text-green-400">✓</Badge>
+                            Owned
+                          </>
+                        ) : !isUnlocked ? (
+                          <>
+                            🔒 Locked
+                          </>
+                        ) : (
+                          <>
+                            <Crown className="mr-2 h-4 w-4" />
+                            Claim NFT (${totalPrice} USDC)
+                          </>
+                        )}
+                      </Button>
+
+                      {/* Additional Info for Available Levels */}
+                      {isUnlocked && !isOwned && (
+                        <div className="text-center text-xs text-muted-foreground space-y-1">
+                          <p>🎯 {level * 500} transferable + {level * 5000} locked BCC</p>
+                          <p>⚡ Two transactions: Approval + Minting</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
                 );
               })}
             </div>
 
             {/* Information Footer */}
             <div className="text-center text-xs text-muted-foreground space-y-1 mt-6">
-              <p>🎯 Each level unlocks higher tier benefits and rewards</p>
-              <p>💰 BCC rewards scale with level: Level × 500 transferable + Level × 5000 locked</p>
+              <p>🎯 Progressive unlocking: Complete lower levels to access higher ones</p>
+              <p>💰 Rewards scale with level: Level × 500 transferable + Level × 5000 locked BCC</p>
               <p>🌐 Connected: {walletAddress?.slice(0, 8)}...{walletAddress?.slice(-6)}</p>
+              <p>📊 Current Level: {currentLevel || 'None'} | Next Available: Level {(currentLevel || 0) + 1}</p>
             </div>
           </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <MembershipBadge level={currentLevel || 1} size="lg" showLabel />
-                      <div>
-                        <h3 className="font-bold text-lg text-honey">
-                          Level {currentLevel || 1} - {getMembershipLevel(currentLevel || 1)?.titleEn || 'Warrior'}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          You own Level {currentLevel || 1} NFT. Unlock higher levels for more benefits!
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-honey">
-                        {19 - (currentLevel || 1)} <span className="text-sm text-muted-foreground">more levels</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground">Available to claim</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Multi-chain NFT Grid for Activated Users */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-semibold text-honey">Available NFT Upgrades</h3>
-                  <Badge variant="outline" className="text-honey border-honey">
-                    Multi-Chain Support
-                  </Badge>
-                </div>
-                <MembershipNFTGrid className="mt-6" />
-              </div>
-            </div>
-          )}
         </TabsContent>
 
         {/* Service NFTs Tab */}
