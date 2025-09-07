@@ -164,8 +164,8 @@ async function handleUserRegistration(supabase, walletAddress, data) {
     let validReferrerWallet = ROOT_WALLET // Default to root
     ;
     if (data.referrerWallet && data.referrerWallet !== ROOT_WALLET) {
-      const { data: referrerMember } = await supabase.from('members').select('wallet_address, is_activated').eq('wallet_address', data.referrerWallet).single();
-      if (referrerMember && referrerMember.is_activated) {
+      const { data: referrerUser } = await supabase.from('users').select('wallet_address, is_activated').eq('wallet_address', data.referrerWallet).single();
+      if (referrerUser && referrerUser.is_activated) {
         validReferrerWallet = data.referrerWallet;
         console.log(`✅ Valid active referrer: ${data.referrerWallet}`);
       } else {
@@ -193,15 +193,19 @@ async function handleUserRegistration(supabase, walletAddress, data) {
       }
     }
 
-    // Create user record
+    // Create user record with membership fields
     const { data: newUser, error: userError } = await supabase.from('users').insert({
       wallet_address: walletAddress,
       referrer_wallet: validReferrerWallet,
       username: username,
       email: data.email || null,
       current_level: 0,
+      is_activated: false,
       is_upgraded: false,
-      upgrade_timer_enabled: false
+      upgrade_timer_enabled: false,
+      levels_owned: [],
+      total_direct_referrals: 0,
+      total_team_size: 0
     }).select().single();
     if (userError) {
       console.error('User creation error:', userError);
@@ -214,22 +218,6 @@ async function handleUserRegistration(supabase, walletAddress, data) {
       } else {
         throw userError;
       }
-    }
-    // Create member record (not activated yet)
-    const { error: memberError } = await supabase.from('members').insert({
-      wallet_address: walletAddress,
-      is_activated: false,
-      current_level: 0,
-      max_layer: 0,
-      levels_owned: [],
-      has_pending_rewards: false,
-      upgrade_reminder_enabled: false,
-      total_direct_referrals: 0,
-      total_team_size: 0
-    });
-    if (memberError) {
-      console.error('Member creation error:', memberError);
-      throw memberError;
     }
     // Note: Referral entry will be created during membership activation
     // Registration only stores the referrer_wallet in users table
@@ -275,24 +263,26 @@ async function handleUserRegistration(supabase, walletAddress, data) {
 async function handleGetUser(supabase, walletAddress) {
   try {
     console.log(`👤 Get user request for: ${walletAddress}`);
-    // Get member data 
-    const { data: memberData, error: memberError } = await supabase.from('members').select(`
+    // Get all user data from users table only
+    const { data: userData, error: userError } = await supabase.from('users').select(`
         wallet_address,
+        referrer_wallet,
+        username,
+        email,
+        current_level,
         is_activated,
         activated_at,
-        current_level,
-        max_layer,
         levels_owned,
-        has_pending_rewards,
+        total_direct_referrals,
+        total_team_size,
         created_at,
         updated_at
       `).eq('wallet_address', walletAddress).single();
-    // Get user data for referrer_wallet, username, email
-    const { data: userData, error: userError } = await supabase.from('users').select('referrer_wallet, username, email').eq('wallet_address', walletAddress).single();
     // Get balance data
     const { data: balanceData, error: balanceError } = await supabase.from('user_balances').select('bcc_transferable, bcc_restricted, bcc_locked, total_usdt_earned, available_usdt_rewards').eq('wallet_address', walletAddress).single();
+    
     // User doesn't exist - return null but success (allows smooth registration flow)
-    if (memberError && memberError.code === 'PGRST116' || userError && userError.code === 'PGRST116') {
+    if (userError && userError.code === 'PGRST116') {
       console.log(`❌ User not found: ${walletAddress}`);
       return new Response(JSON.stringify({
         success: true,
@@ -309,18 +299,17 @@ async function handleGetUser(supabase, walletAddress) {
         }
       });
     }
-    if (memberError) throw memberError;
     if (userError) throw userError;
-    const isMember = memberData?.is_activated || false;
+    
+    const isMember = userData?.is_activated || false;
     // Sanitize referrer wallet - don't expose root wallet to frontend
     const ROOT_WALLET = '0x0000000000000000000000000000000000000001';
     const sanitizedUserData = {
       ...userData,
       referrer_wallet: userData?.referrer_wallet === ROOT_WALLET ? null : userData?.referrer_wallet
     };
-    // Combine member, user, and balance data
+    // Combine user and balance data
     const combinedUserData = {
-      ...memberData,
       ...sanitizedUserData,
       user_balances: [
         balanceData || {
@@ -332,12 +321,13 @@ async function handleGetUser(supabase, walletAddress) {
         }
       ]
     };
+    
     // Determine user flow for frontend routing
     let userFlow = 'registration';
-    if (memberData) {
+    if (userData) {
       // Check if user has complete registration info (username, email, etc.)
-      const hasCompleteUserInfo = userData && userData.username && 
-        userData.username !== `user_${walletAddress.slice(-6)}` && // Not auto-generated username
+      const hasCompleteUserInfo = userData.username && 
+        !userData.username.startsWith(`user_${walletAddress.slice(-6)}`) && // Not auto-generated username
         userData.email; // Has email
       
       if (isMember) {
@@ -348,15 +338,15 @@ async function handleGetUser(supabase, walletAddress) {
         userFlow = 'registration'; // Needs to complete registration info
       }
     }
+    
     console.log(`✅ User data retrieved for: ${walletAddress}, Flow: ${userFlow}, Member: ${isMember}`);
     return new Response(JSON.stringify({
       success: true,
       user: combinedUserData,
-      isRegistered: !!memberData,
+      isRegistered: !!userData,
       isMember: isMember,
       canAccessReferrals: isMember,
       isPending: false,
-      memberData: memberData,
       userFlow: userFlow
     }), {
       headers: {
