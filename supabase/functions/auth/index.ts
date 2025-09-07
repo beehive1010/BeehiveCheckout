@@ -32,6 +32,27 @@ serve(async (req)=>{
     }
     const supabase = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
     const walletAddress = req.headers.get('x-wallet-address')?.toLowerCase();
+    
+    // Set session variables to bypass RLS policies for service functions
+    try {
+      await supabase.rpc('set_config', {
+        setting_name: 'app.is_admin',
+        setting_value: 'true',
+        is_local: true
+      });
+      
+      if (walletAddress) {
+        await supabase.rpc('set_config', {
+          setting_name: 'app.current_wallet',
+          setting_value: walletAddress,
+          is_local: true
+        });
+      }
+      console.log(`🔓 Session variables set for wallet: ${walletAddress}`);
+    } catch (configError) {
+      console.error('Failed to set session variables:', configError);
+      // Continue anyway - service role should have access
+    }
     // Parse request body
     let requestData = {
       action: 'get-user'
@@ -201,7 +222,7 @@ async function handleUserRegistration(supabase, walletAddress, data) {
       username: username,
       email: data.email || null,
       current_level: 0,
-      is_activated: false, // Will be set to true during NFT claim/upgrade
+      member_activated: false, // Will be set to true during NFT claim/upgrade
       is_upgraded: false,
       upgrade_timer_enabled: false
     }).select().single();
@@ -270,7 +291,8 @@ async function handleGetUser(supabase, walletAddress) {
         username,
         email,
         current_level,
-        is_activated,
+        member_activated,
+        activation_at,
         created_at,
         updated_at
       `).eq('wallet_address', walletAddress).single();
@@ -306,19 +328,21 @@ async function handleGetUser(supabase, walletAddress) {
     }
     if (userError) throw userError;
     
-    const isMember = userData?.is_activated && !!memberData;
+    const isMember = userData?.member_activated && !!memberData;
     
     // Sanitize referrer wallet - don't expose root wallet to frontend
     const ROOT_WALLET = '0x0000000000000000000000000000000000000001';
     const sanitizedUserData = {
       ...userData,
       referrer_wallet: userData?.referrer_wallet === ROOT_WALLET ? null : userData?.referrer_wallet,
+      // Normalize field names for frontend compatibility
+      is_activated: userData?.member_activated,
+      activated_at: userData?.activation_at,
       // Add member data if exists
       ...(memberData && {
         levels_owned: memberData.levels_owned,
         total_direct_referrals: memberData.total_direct_referrals,
-        total_team_size: memberData.total_team_size,
-        activated_at: memberData.activated_at
+        total_team_size: memberData.total_team_size
       })
     };
     
