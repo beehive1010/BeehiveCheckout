@@ -130,17 +130,32 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       // Approve tokens for NFT contract (the contract itself: 0x99265477249389469929CEA07c4a337af9e12cdA)
       console.log('📝 Approving 130 USDC for NFT contract...');
       
-      // CRITICAL: Use correct decimals for approval amount
+      // CRITICAL: Use correct decimals for approval amount - FORCED FIX
       const usdcAmount = BigInt("130") * decimalMultiplier; // 130 USDC with correct decimals
-      console.log(`📋 Approving amount: ${usdcAmount.toString()} wei (130 USDC with ${tokenDecimals} decimals)`);
-      console.log(`📋 Human readable: ${(Number(usdcAmount) / Number(decimalMultiplier)).toFixed(6)} USDC`);
+      
+      // BACKUP: If dynamic detection failed, try common values
+      let finalAmount = usdcAmount;
+      if (tokenDecimals === 6 && usdcAmount.toString() === "130000000") {
+        console.log("✅ Using 6-decimal USDC amount");
+      } else if (tokenDecimals === 18) {
+        finalAmount = BigInt("130000000000000000000"); // 130 * 10^18
+        console.log("🔄 Forcing 18-decimal USDC amount");
+      } else if (usdcAmount < BigInt("130000000")) {
+        // If amount is too small, force to 18 decimals
+        finalAmount = BigInt("130000000000000000000"); // 130 * 10^18
+        console.log("🚨 FORCED 18-decimal amount due to small value");
+      }
+      
+      console.log(`📋 Final approving amount: ${finalAmount.toString()} wei`);
+      console.log(`📋 Decimals detected: ${tokenDecimals}`);
+      console.log(`📋 Calculated human readable: ${Number(finalAmount) / Number(BigInt(10 ** tokenDecimals))} USDC`);
       console.log(`📋 Spender (NFT Contract): ${NFT_CONTRACT}`);
       console.log(`📋 Token Contract: ${FAKE_USDC_CONTRACT}`);
       
       const approveTransaction = prepareContractCall({
         contract: tokenContract,
         method: "function approve(address spender, uint256 amount) returns (bool)",
-        params: [NFT_CONTRACT, usdcAmount] // Approve NFT contract to spend 130 USDC
+        params: [NFT_CONTRACT, finalAmount] // Approve NFT contract to spend 130 USDC
       });
 
       const approveTxResult = await sendTransaction({
