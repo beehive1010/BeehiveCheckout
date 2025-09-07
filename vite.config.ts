@@ -10,15 +10,25 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(import.meta.dirname, "src"),
-      "@shared": path.resolve(import.meta.dirname, "shared"),
-      "@assets": path.resolve(import.meta.dirname, "attached_assets"),
+      "@": path.resolve(__dirname, "src"),
+      "@shared": path.resolve(__dirname, "shared"),
+      "@assets": path.resolve(__dirname, "attached_assets"),
     },
   },
-  root: import.meta.dirname,
+  root: ".",
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          supabase: ['@supabase/supabase-js'],
+          web3: ['thirdweb'],
+        }
+      }
+    }
   },
   server: {
     port: 5000,
@@ -30,12 +40,11 @@ export default defineConfig({
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
     fs: {
-      strict: true,
-      deny: ["**/.*"],
+      strict: false,
     },
   },
   preview: {
-    port: 5000, // Single port for Autoscale deployment
+    port: 5000,
     host: '0.0.0.0',
     allowedHosts: true,
     headers: {
@@ -43,6 +52,9 @@ export default defineConfig({
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
-    strictPort: true, // Required for Autoscale
+    strictPort: true,
+  },
+  define: {
+    global: 'globalThis',
   },
 });
