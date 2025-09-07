@@ -30,15 +30,15 @@ export function MemberGuard({
     queryKey: ['/api/auth/user', account?.address],
     enabled: !!account?.address,
     queryFn: async () => {
-      const response = await fetch('/api/auth/user', {
-        headers: {
-          'X-Wallet-Address': account!.address,
+      try {
+        const response = await apiRequest('GET', '/api/auth/user', { 
+          t: Date.now(),
           'Cache-Control': 'no-cache'
-        },
-      });
-      
-      if (!response.ok) {
-        if (response.status === 404) {
+        }, account!.address);
+        
+        return await response.json();
+      } catch (error: any) {
+        if (error.status === 404) {
           return { 
             isRegistered: false, 
             hasNFT: false, 
@@ -49,8 +49,6 @@ export function MemberGuard({
         }
         throw new Error('Failed to fetch membership status');
       }
-      
-      return response.json();
     },
     staleTime: 30000, // 30 seconds
     refetchInterval: 60000, // 1 minute
