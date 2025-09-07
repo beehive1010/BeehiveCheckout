@@ -165,6 +165,7 @@ async function getUser(supabase, walletAddress) {
       return {
         success: false,
         action: 'not_found',
+        isRegistered: false, // 用户不存在，未注册
         message: '用户不存在'
       };
     }
@@ -182,6 +183,7 @@ async function getUser(supabase, walletAddress) {
     success: true,
     action: 'found',
     user: sanitizedUser,
+    isRegistered: true, // 用户存在就表示已注册
     message: '用户信息获取成功'
   };
 }

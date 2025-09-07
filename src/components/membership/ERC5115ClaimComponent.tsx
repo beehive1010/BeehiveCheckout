@@ -64,7 +64,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       console.log('📝 User status:', userStatus);
 
       // Check if user is registered AND has complete information
-      if (!userStatus.isRegistered) {
+      if (!userStatus.success || !userStatus.user) {
         throw new Error('Please complete registration first with username, email, and referrer information');
       }
 
@@ -72,7 +72,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       const userData = userStatus.user;
       const hasCompleteInfo = userData && 
         userData.username && 
-        userData.username !== `user_${account.address.slice(-6)}` && // Not auto-generated username
+        !userData.username.startsWith(`user_${account.address.slice(-6)}`) && // Not auto-generated username
         userData.email; // Has email
       
       if (!hasCompleteInfo) {
