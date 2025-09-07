@@ -20,9 +20,10 @@ export function useWallet() {
         const userStatus = await response.json();
         console.log('📊 User status (Supabase):', userStatus.userFlow, userStatus);
         
+        // TEMPORARILY DISABLED: Auto-sync blockchain status - causing UUID errors
         // Auto-sync blockchain status if user is registered but not activated
         // BUT skip auto-sync if user is in claim_nft flow (they need to manually claim)
-        if (userStatus.isRegistered && !userStatus.isMember && userStatus.userFlow !== 'claim_nft') {
+        if (false && userStatus.isRegistered && !userStatus.isMember && userStatus.userFlow !== 'claim_nft') {
           console.log('🔄 User registered but not activated - attempting blockchain sync');
           try {
             const syncResponse = await apiRequest('POST', '/api/auth/sync-blockchain-status', {}, walletAddress!);
