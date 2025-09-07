@@ -264,23 +264,21 @@ export const memberService = {
 
 // === MATRIX & REFERRALS ===
 export const matrixService = {
-  // Place member in 3x3 matrix using database function
-  // Automatically finds optimal placement with L→M→R priority
+  // Place member in 3x3 matrix using Edge Function
+  // Automatically finds optimal placement with L→M→R priority  
   async placeMemberInMatrix(
     memberWallet: string,
     placerWallet: string,
     rootWallet: string,
     placementType: string = 'direct'
   ) {
-    const { data, error } = await supabase
-      .rpc('place_member_in_matrix', {
-        p_member_wallet: memberWallet,
-        p_placer_wallet: placerWallet,
-        p_root_wallet: rootWallet,
-        p_placement_type: placementType
-      });
-
-    return { data, error };
+    return callEdgeFunction('matrix', {
+      action: 'place-member',
+      rootWallet,
+      memberWallet,
+      placerWallet,
+      placementType
+    }, memberWallet);
   },
 
   // Find available placement position in matrix
