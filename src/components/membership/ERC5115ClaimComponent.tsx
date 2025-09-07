@@ -86,8 +86,8 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       
       // Check USDC token decimals first - CRITICAL 
       console.log('🔍 Checking USDC token decimals...');
-      let tokenDecimals = 6; // Default assumption
-      let decimalMultiplier = BigInt("1000000"); // 10^6
+      let tokenDecimals = 18; // Default to 18 decimals (most common)
+      let decimalMultiplier = BigInt("1000000000000000000"); // 10^18
       
       try {
         const decimalsResult = await fetch(`https://api.thirdweb.com/v1/chains/421614/contracts/${FAKE_USDC_CONTRACT}/read?functionName=decimals`, {
@@ -96,13 +96,20 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         
         if (decimalsResult.ok) {
           const decimalsData = await decimalsResult.json();
-          tokenDecimals = parseInt(decimalsData.result || "6");
+          tokenDecimals = parseInt(decimalsData.result || "18");
           decimalMultiplier = BigInt(10 ** tokenDecimals);
-          console.log(`📋 USDC Token Decimals: ${tokenDecimals}`);
-          console.log(`📋 Decimal Multiplier: ${decimalMultiplier.toString()}`);
+          console.log(`🔥 USDC Token Decimals DETECTED: ${tokenDecimals}`);
+          console.log(`🔥 Decimal Multiplier: ${decimalMultiplier.toString()}`);
+          
+          if (tokenDecimals === 18) {
+            console.log(`✅ CONFIRMED: Using 18-decimal USDC (standard ERC20)`);
+          }
         }
       } catch (decimalsError) {
-        console.warn('⚠️ Could not fetch decimals, using default 6:', decimalsError);
+        console.warn('⚠️ Could not fetch decimals, using default 18:', decimalsError);
+        tokenDecimals = 18;
+        decimalMultiplier = BigInt("1000000000000000000"); // Force 18 decimals
+        console.log(`🚨 FORCED: Using 18-decimal USDC as fallback`);
       }
 
       // Check user's USDC balance with correct decimals
@@ -130,17 +137,50 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       // Approve tokens for NFT contract (the contract itself: 0x99265477249389469929CEA07c4a337af9e12cdA)
       console.log('📝 Approving 130 USDC for NFT contract...');
       
-      // CRITICAL: Use correct decimals for approval amount
+      // CRITICAL: Use correct decimals for approval amount - FORCED FIX
       const usdcAmount = BigInt("130") * decimalMultiplier; // 130 USDC with correct decimals
-      console.log(`📋 Approving amount: ${usdcAmount.toString()} wei (130 USDC with ${tokenDecimals} decimals)`);
-      console.log(`📋 Human readable: ${(Number(usdcAmount) / Number(decimalMultiplier)).toFixed(6)} USDC`);
+      
+      // BACKUP: If dynamic detection failed, try common values
+      let finalAmount = usdcAmount;
+      
+      // Dynamic calculation based on detected decimals - PRIORITIZE 18 DECIMALS
+      if (tokenDecimals === 18) {
+        finalAmount = BigInt("130") * BigInt("1000000000000000000"); // 130 * 10^18
+        console.log("🔥 USING 18-DECIMAL USDC AMOUNT (STANDARD ERC20)");
+      } else if (tokenDecimals === 6) {
+        finalAmount = BigInt("130") * BigInt("1000000"); // 130 * 10^6 = 130000000
+        console.log("✅ Using 6-decimal USDC amount");
+      } else if (tokenDecimals === 8) {
+        finalAmount = BigInt("130") * BigInt("100000000"); // 130 * 10^8
+        console.log("🔄 Using 8-decimal USDC amount");
+      } else if (tokenDecimals === 10) {
+        finalAmount = BigInt("130") * BigInt("10000000000"); // 130 * 10^10
+        console.log("🔄 Using 10-decimal USDC amount");
+      } else if (tokenDecimals === 12) {
+        finalAmount = BigInt("130") * BigInt("1000000000000"); // 130 * 10^12
+        console.log("🔄 Using 12-decimal USDC amount");
+      } else {
+        // Fallback: calculate dynamically
+        finalAmount = BigInt("130") * (BigInt(10) ** BigInt(tokenDecimals));
+        console.log(`🔄 Using ${tokenDecimals}-decimal USDC amount`);
+      }
+      
+      // Safety check: if calculated amount seems too small, recalculate
+      if (finalAmount < BigInt("130000000")) {
+        console.log("⚠️ Amount seems too small, recalculating...");
+        finalAmount = BigInt("130") * (BigInt(10) ** BigInt(tokenDecimals));
+      }
+      
+      console.log(`📋 Final approving amount: ${finalAmount.toString()} wei`);
+      console.log(`📋 Decimals detected: ${tokenDecimals}`);
+      console.log(`📋 Calculated human readable: ${Number(finalAmount) / Number(BigInt(10 ** tokenDecimals))} USDC`);
       console.log(`📋 Spender (NFT Contract): ${NFT_CONTRACT}`);
       console.log(`📋 Token Contract: ${FAKE_USDC_CONTRACT}`);
       
       const approveTransaction = prepareContractCall({
         contract: tokenContract,
         method: "function approve(address spender, uint256 amount) returns (bool)",
-        params: [NFT_CONTRACT, usdcAmount] // Approve NFT contract to spend 130 USDC
+        params: [NFT_CONTRACT, finalAmount] // Approve NFT contract to spend 130 USDC
       });
 
       const approveTxResult = await sendTransaction({
