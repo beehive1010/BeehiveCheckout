@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { useToast } from '../hooks/use-toast';
-import TabBar from '../components/shared/TabBar';
+import Navigation from '../components/shared/Navigation';
 import { supabase } from '../lib/supabase';
 import { 
   Users, 
@@ -138,9 +138,9 @@ const getDataFromTables = async (walletAddress: string) => {
       .eq('wallet_address', walletAddress)
       .single();
 
-    // Get matrix positions count
+    // Get matrix positions count (using referral_nodes instead)
     const { data: matrixCount } = await supabase
-      .from('matrix_positions')
+      .from('referral_nodes')
       .select('*', { count: 'exact' })
       .eq('root_wallet', walletAddress);
 
@@ -298,7 +298,7 @@ export default function EnhancedDashboard() {
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-6 space-y-6 pb-20 md:pb-6">
+    <div className="container mx-auto p-4 md:p-6 space-y-6">
       {/* Header with Data Method Selector */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -584,8 +584,6 @@ export default function EnhancedDashboard() {
         </Card>
       </div>
 
-      {/* TabBar for mobile navigation */}
-      <TabBar />
     </div>
   );
 }
