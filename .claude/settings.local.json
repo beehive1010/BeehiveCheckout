@@ -13,7 +13,8 @@
       "WebFetch(domain:api.thirdweb.com)",
       "Bash(npx tsc:*)",
       "Bash(npm run check:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

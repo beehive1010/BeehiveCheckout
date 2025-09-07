@@ -583,6 +583,15 @@ async function handleProcessUpgrade(supabase, walletAddress, data) {
     if (orderError) {
       console.error('Order creation error:', orderError);
     }
+    // Before processing, get user's referrer information to preserve it
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('referrer_wallet, username')
+      .eq('wallet_address', walletAddress)
+      .single();
+
+    console.log(`📋 Processing NFT Level ${level} for ${walletAddress}, referrer: ${userData?.referrer_wallet || 'none'}`);
+
     // Process NFT purchase with the stored procedure
     const { data: purchaseResult, error: purchaseError } = await supabase.rpc('process_nft_purchase_with_requirements', {
       p_wallet_address: walletAddress,
@@ -629,6 +638,54 @@ async function handleProcessUpgrade(supabase, walletAddress, data) {
       });
     }
 
+    // After successful purchase, ensure referral relationship is properly recorded
+    if (userData?.referrer_wallet && level === 1) {
+      console.log(`🔗 Ensuring referral relationship: ${userData.referrer_wallet} → ${walletAddress}`);
+      
+      // Check if referral record already exists
+      const { data: existingReferral, error: referralCheckError } = await supabase
+        .from('referrals')
+        .select('id')
+        .eq('referrer_wallet', userData.referrer_wallet)
+        .eq('referred_wallet', walletAddress)
+        .single();
+
+      if (!existingReferral) {
+        // Create referral record
+        const { error: referralCreateError } = await supabase
+          .from('referrals')
+          .insert({
+            referrer_wallet: userData.referrer_wallet,
+            referred_wallet: walletAddress,
+            is_active: true,
+            layer: 1,
+            member_wallet: walletAddress,
+            placement_type: 'direct',
+            position: 'left' // Default position
+          });
+
+        if (referralCreateError) {
+          console.error('⚠️ Failed to create referral record:', referralCreateError);
+        } else {
+          console.log('✅ Referral relationship created successfully');
+        }
+      } else {
+        console.log('ℹ️ Referral relationship already exists');
+      }
+
+      // Also ensure members table has the referrer information
+      const { error: memberUpdateError } = await supabase
+        .from('members')
+        .update({ referrer_wallet: userData.referrer_wallet })
+        .eq('wallet_address', walletAddress);
+
+      if (memberUpdateError) {
+        console.error('⚠️ Failed to update member referrer:', memberUpdateError);
+      } else {
+        console.log('✅ Member referrer information updated');
+      }
+    }
+
     // After successful NFT purchase, trigger layer reward distribution
     console.log(`🎯 Triggering layer reward distribution for NFT Level ${level} purchase by ${walletAddress}`);
     
@@ -666,9 +723,33 @@ async function handleProcessUpgrade(supabase, walletAddress, data) {
           nft_transaction_hash: claimResult.transactionHash,
           nft_token_id: claimResult.tokenId,
           verified: claimResult.verified || false,
-          note: claimResult.note || 'Transaction processed'
+          note: claimResult.note || 'Transaction processed',
+          user_referrer: userData?.referrer_wallet || null,
+          user_username: userData?.username || null
         }
       }).eq('id', orderData.id);
+    }
+
+    // Create explicit NFT claim record for better tracking
+    const { error: claimRecordError } = await supabase
+      .from('nft_claims')
+      .insert({
+        wallet_address: walletAddress,
+        nft_level: level,
+        transaction_hash: transactionHash,
+        claim_status: 'completed',
+        claimed_at: new Date().toISOString(),
+        referrer_wallet: userData?.referrer_wallet || null,
+        verification_result: claimResult,
+        order_id: orderData?.id || null
+      })
+      .onConflict('wallet_address, nft_level, transaction_hash')
+      .merge();
+
+    if (claimRecordError) {
+      console.warn('⚠️ Failed to create NFT claim record (non-critical):', claimRecordError);
+    } else {
+      console.log(`✅ NFT Level ${level} claim record created for ${walletAddress}`);
     }
     console.log(`NFT Level ${level} claim processed successfully:`, claimResult);
 
