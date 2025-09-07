@@ -22,12 +22,12 @@ const navItems: NavItem[] = [
 ];
 
 export default function Navigation() {
-  const { isActivated } = useWallet();
+  const { walletAddress } = useWallet();
   const { t } = useI18n();
   const [location] = useLocation();
 
-  // Only show navigation for activated members
-  if (!isActivated) {
+  // Show navigation for users with connected wallets (not just activated)
+  if (!walletAddress) {
     return null;
   }
 
