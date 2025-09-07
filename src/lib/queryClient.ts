@@ -152,13 +152,10 @@ export async function apiRequest(
       
       // Rewards actions
       case '/api/dashboard/activity':
-        action = 'get-dashboard-activity';
-        break;
       case '/api/dashboard/data':
-        action = 'get-balance'; // Use existing balance action
-        break;
       case '/api/dashboard/stats':
-        action = 'get-balance'; // Use existing balance action
+        // Dashboard function will determine action from URL path
+        action = null; // Let the function determine action from URL
         break;
       case '/api/rewards/user':
         action = 'get-rewards';
