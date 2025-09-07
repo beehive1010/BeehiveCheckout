@@ -431,7 +431,18 @@ export class SupabaseApiClient {
       throw new Error(`API Error: ${response.status} - ${errorText}`)
     }
 
-    return response.json()
+    // Get response text first to check content type
+    const responseText = await response.text()
+    
+    try {
+      return JSON.parse(responseText)
+    } catch (jsonError) {
+      // Handle cases where server returns HTML instead of JSON
+      if (responseText.startsWith('<!DOCTYPE')) {
+        throw new Error(`API returned HTML instead of JSON (likely server error): ${functionName}`)
+      }
+      throw new Error(`JSON parsing error for function ${functionName}: ${jsonError}`)
+    }
   }
 
   // Authentication methods

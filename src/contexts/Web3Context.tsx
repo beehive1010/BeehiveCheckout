@@ -370,6 +370,8 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
   );
 }
 
+Web3Provider.displayName = 'Web3Provider';
+
 export function useWeb3() {
   const context = useContext(Web3Context);
   if (context === undefined) {
