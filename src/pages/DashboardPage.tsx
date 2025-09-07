@@ -1,7 +1,10 @@
 import React from 'react';
-import { useLocation } from 'wouter';
 import { useWallet } from '../hooks/useWallet';
 import { useI18n } from '../contexts/I18nContext';
+import { useLocation } from 'wouter';
+import { useToast } from '../hooks/use-toast';
+// Force import refresh for useLocation
+const _useLocationImport = useLocation;
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Skeleton } from '../components/ui/skeleton';

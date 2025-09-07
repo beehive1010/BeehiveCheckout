@@ -11,7 +11,8 @@ import { Toaster as HotToaster } from "react-hot-toast";
 
 // Refactored pages with clean architecture
 import LandingPage from "@/pages/LandingPage";
-import DashboardPage from "@/pages/DashboardPage";
+import DashboardPageV2 from "@/pages/DashboardPageV2";
+// Force cache refresh
 import Education from "@/pages/Education";
 import HiveWorld from "@/pages/HiveWorld";
 import Me from "@/pages/Me";
@@ -90,7 +91,7 @@ function SmartHomePage() {
   }
   
   if (isFullyActivated) {
-    return <DashboardPage />;
+    return <DashboardPageV2 />;
   }
 
   // Fallback to landing page
@@ -219,7 +220,7 @@ function Router() {
         <Route path="/welcome" component={Welcome} />
         
         {/* Main app routes - Protected with wallet connection and Level 1 NFT requirement */}
-        <Route path="/dashboard" component={DashboardPage} />
+        <Route path="/dashboard" component={() => <DashboardPageV2 />} />
         <Route path="/tasks" component={Tasks} />
         <Route path="/token-purchase" component={TokenPurchase} />
         <Route path="/education" component={Education} />

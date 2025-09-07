@@ -18,6 +18,7 @@ import {
   useMatrixHealthV2
 } from '../hooks/useDashboardV2';
 import ClaimableRewardsCardV2 from '../components/rewards/ClaimableRewardsCardV2';
+import MemberGuard from '../components/guards/MemberGuard';
 
 // Utility components
 const HexagonIcon = ({ size, children }: { size: string; children: React.ReactNode }) => (
@@ -28,7 +29,7 @@ const HexagonIcon = ({ size, children }: { size: string; children: React.ReactNo
 
 const formatAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`;
 
-export default function DashboardPageV2() {
+function DashboardV2() {
   const { 
     userData, 
     isActivated, 
@@ -386,5 +387,14 @@ export default function DashboardPageV2() {
         </Button>
       </div>
     </div>
+  );
+}
+
+// Export Dashboard wrapped with MemberGuard for Level 1 requirement
+export default function ProtectedDashboardV2() {
+  return (
+    <MemberGuard requireLevel={1}>
+      <DashboardV2 />
+    </MemberGuard>
   );
 }

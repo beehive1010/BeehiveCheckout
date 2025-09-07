@@ -78,6 +78,7 @@ export async function apiRequest(
     '/api/v2/rewards/stats': 'rewards',
     '/api/v2/balance/summary': 'balance',
     '/api/v2/balance/breakdown': 'balance',
+    '/api/v2/balance/global-pool': 'balance',
     
     // NFT upgrade functions
     '/api/membership/activate': 'nft-upgrades',
@@ -173,21 +174,24 @@ export async function apiRequest(
         action = 'claim-reward';
         break;
       
-      // V2 API actions
+      // V2 API actions - Fixed to match actual edge function actions
       case '/api/v2/rewards/claimable':
-        action = 'get-claimable';
+        action = 'get-claims'; // Fixed: was 'get-claimable'
         break;
       case '/api/v2/rewards/pending':
-        action = 'get-pending';
+        action = 'check-pending-rewards'; // Fixed: was 'get-pending'
         break;
       case '/api/v2/rewards/stats':
-        action = 'get-stats';
+        action = 'dashboard'; // Fixed: was 'get-stats'
         break;
       case '/api/v2/balance/summary':
-        action = 'get-summary';
+        action = 'get-balance'; // Fixed: balance function uses 'get-balance' for summary
         break;
       case '/api/v2/balance/breakdown':
-        action = 'get-breakdown';
+        action = 'get-balance'; // Fixed: balance function doesn't support breakdown, use get-balance
+        break;
+      case '/api/v2/balance/global-pool':
+        action = 'get-balance'; // Fixed: balance function doesn't support global-pool, use get-balance
         break;
       
       // NFT upgrade actions
