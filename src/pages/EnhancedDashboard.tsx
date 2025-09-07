@@ -422,7 +422,7 @@ export default function EnhancedDashboard() {
         </CardContent>
       </Card>
 
-      {/* 奖励/推荐子页面导航 */}
+      {/* 推荐和奖励页面导航 */}
       <div className="grid grid-cols-2 gap-4">
         <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setLocation('/referrals')}>
           <CardContent className="p-4 text-center space-y-2">
@@ -433,7 +433,7 @@ export default function EnhancedDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setLocation('/me')}>
+        <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setLocation('/rewards')}>
           <CardContent className="p-4 text-center space-y-2">
             <Award className="h-8 w-8 text-green-400 mx-auto" />
             <div className="font-semibold">Rewards</div>
