@@ -63,8 +63,12 @@ export async function apiRequest(
     '/api/matrix/downline': 'matrix',
     '/api/matrix/place': 'matrix',
     
+    // Dashboard functions
+    '/api/dashboard/activity': 'dashboard',
+    '/api/dashboard/data': 'dashboard', 
+    '/api/dashboard/stats': 'dashboard',
+    
     // Rewards functions
-    '/api/dashboard/activity': 'rewards',
     '/api/rewards/user': 'rewards',
     '/api/rewards/claimable': 'rewards',
     '/api/rewards/claim': 'rewards',
@@ -148,7 +152,13 @@ export async function apiRequest(
       
       // Rewards actions
       case '/api/dashboard/activity':
-        action = 'get-activity';
+        action = 'get-dashboard-activity';
+        break;
+      case '/api/dashboard/data':
+        action = 'get-balance'; // Use existing balance action
+        break;
+      case '/api/dashboard/stats':
+        action = 'get-balance'; // Use existing balance action
         break;
       case '/api/rewards/user':
         action = 'get-rewards';

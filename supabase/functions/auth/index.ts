@@ -88,6 +88,8 @@ serve(async (req)=>{
         return await handleValidateReferrer(supabase, walletAddress, requestData);
       case 'sync-blockchain-status':
         return await handleSyncBlockchainStatus(supabase, walletAddress, requestData);
+      case 'create-missing-data':
+        return await handleCreateMissingData(supabase, walletAddress, requestData);
       default:
         return new Response(JSON.stringify({
           error: 'Invalid action'
@@ -574,16 +576,22 @@ async function handleSyncBlockchainStatus(supabase, walletAddress, data) {
       });
     }
 
-    console.log(`🔍 Found unactivated member, attempting simple activation: ${walletAddress}`);
+    console.log(`🔍 Found unactivated member, attempting complete activation: ${walletAddress}`);
     
-    // SIMPLIFIED: Just mark member as activated without complex stored procedure
-    // This avoids the UUID error in activate_member_with_nft_claim
+    // Get user data for referrer information
+    const { data: userData } = await supabase
+      .from('users')
+      .select('referrer_wallet')
+      .eq('wallet_address', walletAddress.toLowerCase())
+      .single();
+    
+    // COMPLETE ACTIVATION: Update member with all required data
     const { data: updateResult, error: updateError } = await supabase
       .from('members')
       .update({
         is_activated: true,
         current_level: memberData.current_level || 1,
-        levels_owned: memberData.levels_owned || [1],
+        levels_owned: [memberData.current_level || 1], // Ensure levels_owned includes current level
         activated_at: new Date().toISOString()
       })
       .eq('wallet_address', walletAddress.toLowerCase())
@@ -598,12 +606,65 @@ async function handleSyncBlockchainStatus(supabase, walletAddress, data) {
         details: updateError.message
       }), {
         status: 500,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
+
+    // Create referrals record if missing and user has a referrer
+    if (userData?.referrer_wallet) {
+      const { data: existingReferral } = await supabase
+        .from('referrals')
+        .select('id')
+        .eq('referred_wallet', walletAddress.toLowerCase())
+        .single();
+
+      if (!existingReferral) {
+        const { error: referralError } = await supabase
+          .from('referrals')
+          .insert({
+            referrer_wallet: userData.referrer_wallet,
+            referred_wallet: walletAddress.toLowerCase(),
+            is_active: true,
+            layer: 1,
+            member_wallet: walletAddress.toLowerCase(),
+            placement_type: 'direct',
+            position: 'left'
+          });
+
+        if (referralError) {
+          console.error('Referrals creation failed (non-critical):', referralError);
+        } else {
+          console.log(`✅ Created referrals record: ${userData.referrer_wallet} -> ${walletAddress}`);
+        }
+      }
+    }
+
+    // Ensure user_balances record exists
+    const { data: existingBalance } = await supabase
+      .from('user_balances')
+      .select('wallet_address')
+      .eq('wallet_address', walletAddress.toLowerCase())
+      .single();
+
+    if (!existingBalance) {
+      const { error: balanceError } = await supabase
+        .from('user_balances')
+        .insert({
+          wallet_address: walletAddress.toLowerCase(),
+          bcc_transferable: 500,
+          bcc_restricted: 0,
+          bcc_locked: 0,
+          total_usdt_earned: 0,
+          available_usdt_rewards: 0
+        });
+
+      if (balanceError) {
+        console.error('Balance creation failed (non-critical):', balanceError);
+      } else {
+        console.log(`✅ Created balance record for: ${walletAddress}`);
+      }
+    }
+
 
     console.log(`✅ Member activation synced successfully: ${walletAddress}`);
     return new Response(JSON.stringify({
@@ -628,6 +689,124 @@ async function handleSyncBlockchainStatus(supabase, walletAddress, data) {
         ...corsHeaders,
         'Content-Type': 'application/json'
       }
+    });
+  }
+}
+
+async function handleCreateMissingData(supabase, walletAddress, data) {
+  try {
+    console.log(`🔧 Creating missing data for: ${walletAddress}`);
+    
+    const fixes = [];
+
+    // Get current user and member data
+    const { data: userData } = await supabase
+      .from('users')
+      .select('referrer_wallet, username, email')
+      .eq('wallet_address', walletAddress.toLowerCase())
+      .single();
+
+    const { data: memberData } = await supabase
+      .from('members')
+      .select('*')
+      .eq('wallet_address', walletAddress.toLowerCase())
+      .single();
+
+    if (!memberData || !userData) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'User or member data not found'
+      }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // 1. Create referrals record if missing
+    if (userData.referrer_wallet) {
+      const { data: existingReferral } = await supabase
+        .from('referrals')
+        .select('id')
+        .eq('referred_wallet', walletAddress.toLowerCase())
+        .single();
+
+      if (!existingReferral) {
+        const { error: referralError } = await supabase
+          .from('referrals')
+          .insert({
+            referrer_wallet: userData.referrer_wallet,
+            referred_wallet: walletAddress.toLowerCase(),
+            is_active: true,
+            layer: 1,
+            member_wallet: walletAddress.toLowerCase(),
+            placement_type: 'direct',
+            position: 'left'
+          });
+
+        if (!referralError) {
+          fixes.push(`✅ Created referrals record: ${userData.referrer_wallet} -> ${walletAddress}`);
+        } else {
+          fixes.push(`❌ Failed to create referrals record: ${referralError.message}`);
+        }
+      } else {
+        fixes.push(`✓ Referrals record already exists`);
+      }
+    } else {
+      fixes.push(`⚠️  No referrer wallet found in user data`);
+    }
+
+    // 2. Create orders record if missing (for activated members)
+    if (memberData.is_activated) {
+      const { data: existingOrder } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('wallet_address', walletAddress.toLowerCase())
+        .eq('level', memberData.current_level)
+        .single();
+
+      if (!existingOrder) {
+        const { error: orderError } = await supabase
+          .from('orders')
+          .insert({
+            wallet_address: walletAddress.toLowerCase(),
+            level: memberData.current_level,
+            status: 'completed',
+            payment_method: 'blockchain_activation',
+            transaction_hash: `activation_${Date.now()}`,
+            amount_usdt: memberData.current_level === 1 ? '130.00' : '0.00',
+            created_at: memberData.activated_at || new Date().toISOString(),
+            completed_at: memberData.activated_at || new Date().toISOString()
+          });
+
+        if (!orderError) {
+          fixes.push(`✅ Created orders record for level ${memberData.current_level}`);
+        } else {
+          fixes.push(`❌ Failed to create orders record: ${orderError.message}`);
+        }
+      } else {
+        fixes.push(`✓ Orders record already exists for level ${memberData.current_level}`);
+      }
+    }
+
+    console.log(`🔧 Missing data creation completed for ${walletAddress}:`, fixes);
+
+    return new Response(JSON.stringify({
+      success: true,
+      message: `Missing data created for ${walletAddress}`,
+      fixes: fixes
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+
+  } catch (error) {
+    console.error('Create missing data error:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Failed to create missing data',
+      details: error.message
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
 } // Updated Sat Sep  7 2025
