@@ -20,7 +20,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const API_BASE = import.meta.env.VITE_API_BASE;
+  const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
   const PAYMENT_TOKEN_CONTRACT = "0x4470734620414168Aa1673A30849DB25E5886E2A";
   const NFT_CONTRACT = "0x2Cb47141485754371c24Efcc65d46Ccf004f769a";
   const THIRDWEB_CLIENT_ID = import.meta.env.VITE_THIRDWEB_CLIENT_ID;
