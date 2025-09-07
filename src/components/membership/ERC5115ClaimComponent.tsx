@@ -84,12 +84,29 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
 
       // Amount to pay: 130 USDC total (100 for NFT + 30 platform fee)
       
-      // Approve tokens for NFT contract
-      console.log('📝 Approving tokens...');
+      // Check user's USDC balance first
+      console.log('💰 Checking USDC balance...');
+      const balanceResult = await fetch('https://api.thirdweb.com/v1/chains/421614/contracts/' + FAKE_USDC_CONTRACT + '/erc20/balance-of?wallet_address=' + account.address, {
+        headers: { 'x-client-id': THIRDWEB_CLIENT_ID }
+      });
+      
+      if (balanceResult.ok) {
+        const balanceData = await balanceResult.json();
+        const balance = BigInt(balanceData.value || "0");
+        const required = BigInt("130000000"); // 130 USDC
+        
+        if (balance < required) {
+          throw new Error(`Insufficient USDC balance. You have ${(Number(balance) / 1000000).toFixed(2)} USDC, but need 130 USDC.`);
+        }
+        console.log(`✅ Sufficient balance: ${(Number(balance) / 1000000).toFixed(2)} USDC`);
+      }
+
+      // Approve tokens for NFT contract (the contract itself: 0x99265477249389469929CEA07c4a337af9e12cdA)
+      console.log('📝 Approving 130 USDC for NFT contract...');
       const approveTransaction = prepareContractCall({
         contract: tokenContract,
         method: "function approve(address spender, uint256 amount) returns (bool)",
-        params: [NFT_CONTRACT, BigInt("130000000")]
+        params: [NFT_CONTRACT, BigInt("130000000")] // Approve NFT contract to spend 130 USDC
       });
 
       const approveTxResult = await sendTransaction({
@@ -110,12 +127,33 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         params: [account.address, BigInt(1)] // Mint token ID 1 to user's address
       });
 
-      const mintTxResult = await sendTransaction({
-        transaction: mintTransaction,
-        account
-      });
-
-      console.log('🎉 NFT minting transaction:', mintTxResult.transactionHash);
+      let mintTxResult;
+      try {
+        mintTxResult = await sendTransaction({
+          transaction: mintTransaction,
+          account
+        });
+        console.log('🎉 NFT minting transaction:', mintTxResult.transactionHash);
+      } catch (mintError) {
+        console.error('❌ NFT minting failed:', mintError);
+        
+        // Provide specific error messages based on contract requirements
+        const errorMessage = mintError.message || mintError.toString();
+        
+        if (errorMessage.includes('Already minted')) {
+          throw new Error('❌ Already Minted: This wallet has already claimed the Level 1 NFT. Each wallet can only mint once.');
+        } else if (errorMessage.includes('Insufficient allowance')) {
+          throw new Error('❌ Insufficient Allowance: Token approval failed or expired. Please try again.');
+        } else if (errorMessage.includes('Insufficient balance')) {
+          throw new Error('❌ Insufficient Balance: You need 130 USDC to claim this NFT.');
+        } else if (errorMessage.includes('Payment token not set')) {
+          throw new Error('❌ Contract Error: Payment token not configured. Please contact support.');
+        } else if (errorMessage.includes('Only tokenId 1')) {
+          throw new Error('❌ Invalid Token ID: Only Token ID 1 can be minted.');
+        } else {
+          throw new Error(`❌ Minting Failed: ${errorMessage}`);
+        }
+      }
 
       // Step 3: Process the NFT purchase on backend
       console.log('📋 Processing NFT purchase on backend...');
