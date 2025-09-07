@@ -264,16 +264,142 @@ export const memberService = {
 
 // === MATRIX & REFERRALS ===
 export const matrixService = {
-  // Create referral record
-  async createReferral(referralData: Database['public']['Tables']['referrals']['Insert']) {
-    return supabase
-      .from('referrals')
-      .insert([{
-        ...referralData,
-        created_at: new Date().toISOString(),
-      }])
-      .select()
-      .single();
+  // Place member in 3x3 matrix using database function
+  // Automatically finds optimal placement with L→M→R priority
+  async placeMemberInMatrix(
+    memberWallet: string,
+    placerWallet: string,
+    rootWallet: string,
+    placementType: string = 'direct'
+  ) {
+    const { data, error } = await supabase
+      .rpc('place_member_in_matrix', {
+        p_member_wallet: memberWallet,
+        p_placer_wallet: placerWallet,
+        p_root_wallet: rootWallet,
+        p_placement_type: placementType
+      });
+
+    return { data, error };
+  },
+
+  // Find available placement position in matrix
+  // This analyzes the current matrix structure to determine where new member should go
+  async findAvailablePlacement(rootWallet: string, newMemberWallet: string) {
+    // Get current matrix structure for analysis
+    const { data: matrixData, error: matrixError } = await this.getReferrals(rootWallet);
+    if (matrixError) return { error: matrixError };
+
+    // Analyze matrix to find first incomplete position using L→M→R priority
+    return this.analyzeMatrixForPlacement(matrixData || [], rootWallet);
+  },
+
+  // Analyze matrix structure to find optimal placement
+  // Implements L→M→R priority: Left → Middle → Right positions
+  analyzeMatrixForPlacement(matrixData: any[], rootWallet: string) {
+    // Build matrix tree structure
+    const matrixTree = this.buildMatrixTree(matrixData);
+    
+    // Find first incomplete position using breadth-first search with L→M→R priority
+    const placement = this.findFirstIncompletePosition(matrixTree, rootWallet);
+    
+    return { data: placement, error: null };
+  },
+
+  // Build tree structure from referrals data
+  buildMatrixTree(referrals: any[]) {
+    const tree: Record<string, any> = {};
+    
+    // Group referrals by parent
+    referrals.forEach(referral => {
+      const parentWallet = referral.parent_wallet || referral.root_wallet;
+      if (!tree[parentWallet]) {
+        tree[parentWallet] = {
+          L: null, M: null, R: null,
+          children: []
+        };
+      }
+      
+      tree[parentWallet][referral.position] = referral;
+      tree[parentWallet].children.push(referral);
+    });
+    
+    return tree;
+  },
+
+  // Find first incomplete position using L→M→R priority
+  findFirstIncompletePosition(matrixTree: Record<string, any>, rootWallet: string) {
+    // Start with root wallet
+    const queue = [rootWallet];
+    
+    while (queue.length > 0) {
+      const currentWallet = queue.shift()!;
+      const node = matrixTree[currentWallet];
+      
+      if (!node) {
+        // This wallet has no children yet, can place in L position
+        return {
+          parentWallet: currentWallet,
+          position: 'L',
+          layer: 1
+        };
+      }
+      
+      // Check L→M→R priority
+      if (!node.L) {
+        return {
+          parentWallet: currentWallet,
+          position: 'L',
+          layer: this.calculateLayer(matrixTree, currentWallet, rootWallet) + 1
+        };
+      }
+      if (!node.M) {
+        return {
+          parentWallet: currentWallet,
+          position: 'M',
+          layer: this.calculateLayer(matrixTree, currentWallet, rootWallet) + 1
+        };
+      }
+      if (!node.R) {
+        return {
+          parentWallet: currentWallet,
+          position: 'R',
+          layer: this.calculateLayer(matrixTree, currentWallet, rootWallet) + 1
+        };
+      }
+      
+      // All positions filled, add children to queue for next layer
+      queue.push(node.L.member_wallet, node.M.member_wallet, node.R.member_wallet);
+    }
+    
+    return null; // Matrix is full (shouldn't happen in practice)
+  },
+
+  // Calculate layer depth for a wallet in the matrix
+  calculateLayer(matrixTree: Record<string, any>, walletAddress: string, rootWallet: string) {
+    if (walletAddress === rootWallet) return 0;
+    
+    // Find this wallet in the matrix and calculate its depth
+    const findDepth = (wallet: string, depth: number): number => {
+      const node = matrixTree[wallet];
+      if (!node) return -1;
+      
+      for (const child of node.children) {
+        if (child.member_wallet === walletAddress) {
+          return depth + 1;
+        }
+      }
+      
+      // Recursively search children
+      for (const child of node.children) {
+        const childDepth = findDepth(child.member_wallet, depth + 1);
+        if (childDepth !== -1) return childDepth;
+      }
+      
+      return -1;
+    };
+    
+    return findDepth(rootWallet, 0);
   },
 
   // Get referrals for a root wallet
@@ -282,7 +408,7 @@ export const matrixService = {
       .from('referrals')
       .select(`
         *,
-        member_info:users!referrals_member_wallet_fkey(wallet_address, username, avatar_url)
+        member_info:users!referrals_member_wallet_fkey(wallet_address, username)
       `)
       .eq('root_wallet', rootWallet)
       .eq('is_active', true);
@@ -294,44 +420,35 @@ export const matrixService = {
     return query.order('created_at', { ascending: true });
   },
 
-  // Get matrix statistics using Edge Function
+  // Get matrix statistics
   async getMatrixStats(walletAddress: string) {
-    return callEdgeFunction('matrix', {
-      action: 'get-matrix-stats',
-    }, walletAddress);
+    const { data: referrals, error } = await this.getReferrals(walletAddress);
+    if (error) return { error };
+
+    // Calculate statistics
+    const totalMembers = referrals?.length || 0;
+    const layerCounts = referrals?.reduce((acc: Record<number, number>, ref) => {
+      acc[ref.layer] = (acc[ref.layer] || 0) + 1;
+      return acc;
+    }, {}) || {};
+
+    return {
+      data: {
+        totalMembers,
+        layerCounts,
+        maxLayer: Math.max(...Object.keys(layerCounts).map(Number), 0),
+        referrals
+      },
+      error: null
+    };
   },
 
-  // Find available matrix placement using Edge Function
-  async findAvailablePlacement(rootWallet: string, newMemberWallet: string) {
-    return callEdgeFunction('matrix', {
-      action: 'find-placement',
-      rootWallet,
-      newMemberWallet,
-    });
-  },
-
-  // Place member in matrix using Edge Function
-  async placeMemberInMatrix(placementData: {
-    rootWallet: string;
-    memberWallet: string;
-    parentWallet: string;
-    placerWallet: string;
-    layer: number;
-    position: string;
-    placementType: string;
-  }) {
-    return callEdgeFunction('matrix', {
-      action: 'place-member',
-      ...placementData,
-    });
-  },
-
-  // Count direct referrals
+  // Count direct referrals (layer 1 referrals placed by this wallet)
   async countDirectReferrals(walletAddress: string) {
     const { count } = await supabase
       .from('referrals')
       .select('*', { count: 'exact', head: true })
-      .eq('placer_wallet', walletAddress) // Direct referrals are placed by this wallet
+      .eq('placer_wallet', walletAddress)
       .eq('layer', 1);
 
     return count || 0;
@@ -423,7 +540,7 @@ export const balanceService = {
 
 // === ACTIVATION PROCESSING ===
 export const activationService = {
-  // Complete member activation (called after NFT claim)
+  // Complete member activation with matrix placement
   async completeMemberActivation(walletAddress: string, activationData: {
     transactionHash: string;
     nftLevel: number;
@@ -431,19 +548,123 @@ export const activationService = {
     paymentAmountUsdc: number;
     referrerWallet?: string;
   }) {
-    // This would typically be handled by an Edge Function to ensure atomicity
-    return callEdgeFunction('nft-upgrades', {
-      action: 'activate-membership',
-      ...activationData,
-    }, walletAddress);
+    try {
+      // Step 1: Complete NFT upgrade
+      const nftResult = await nftService.processNFTUpgrade(walletAddress, {
+        level: activationData.nftLevel,
+        transactionHash: activationData.transactionHash,
+        payment_method: activationData.paymentMethod,
+        payment_amount_usdc: activationData.paymentAmountUsdc,
+      });
+
+      if (nftResult.error) {
+        throw new Error(`NFT upgrade failed: ${nftResult.error.message}`);
+      }
+
+      // Step 2: Activate member in members table (using database function)
+      const memberResult = await supabase.rpc('create_member_with_pending', {
+        p_wallet_address: walletAddress,
+        p_use_pending: false
+      });
+
+      if (memberResult.error) {
+        throw new Error(`Member activation failed: ${memberResult.error.message}`);
+      }
+
+      // Step 3: Place member in matrix if they have a referrer
+      if (activationData.referrerWallet) {
+        const placementResult = await matrixService.placeMemberInMatrix(
+          walletAddress,
+          activationData.referrerWallet,
+          activationData.referrerWallet,
+          'direct'
+        );
+
+        if (placementResult.error) {
+          console.error('Matrix placement failed:', placementResult.error);
+          // Continue with activation even if matrix placement fails
+        }
+      }
+
+      // Step 4: Process activation rewards
+      await this.processActivationRewards(walletAddress, activationData.nftLevel);
+
+      return {
+        data: {
+          nftUpgrade: nftResult.data,
+          memberActivation: memberResult.data,
+          message: 'Member activation completed successfully'
+        },
+        error: null
+      };
+
+    } catch (error) {
+      console.error('Activation error:', error);
+      return {
+        data: null,
+        error: error instanceof Error ? error : new Error('Unknown activation error')
+      };
+    }
   },
 
-  // Process all activation rewards (BCC bonus, tier rewards, matrix placement)
+  // Process all activation rewards using database function
   async processActivationRewards(walletAddress: string, nftLevel: number) {
-    return callEdgeFunction('rewards', {
-      action: 'process-activation-rewards',
-      nftLevel,
-    }, walletAddress);
+    const { data, error } = await supabase.rpc('process_activation_rewards', {
+      p_new_member_wallet: walletAddress,
+      p_activation_level: nftLevel,
+      p_tx_hash: `activation_${walletAddress}_${Date.now()}`
+    });
+
+    return { data, error };
+  },
+
+  // Check if member can be activated (has all requirements)
+  async checkActivationEligibility(walletAddress: string) {
+    try {
+      // Check if user is already activated
+      const { data: memberData } = await supabase
+        .from('members')
+        .select('is_activated, current_level')
+        .eq('wallet_address', walletAddress)
+        .single();
+
+      if (memberData?.is_activated) {
+        return {
+          eligible: false,
+          reason: 'Member is already activated',
+          data: memberData
+        };
+      }
+
+      // Check if user exists in users table
+      const { data: userData } = await supabase
+        .from('users')
+        .select('wallet_address, username, referrer_wallet')
+        .eq('wallet_address', walletAddress)
+        .single();
+
+      if (!userData) {
+        return {
+          eligible: false,
+          reason: 'User must be registered first',
+          data: null
+        };
+      }
+
+      return {
+        eligible: true,
+        reason: 'Ready for activation',
+        data: userData
+      };
+
+    } catch (error) {
+      console.error('Eligibility check error:', error);
+      return {
+        eligible: false,
+        reason: 'Error checking eligibility',
+        data: null
+      };
+    }
   },
 };
 
