@@ -5,7 +5,8 @@ import { Badge } from '../ui/badge';
 import { useToast } from '../../hooks/use-toast';
 import { Loader2, Crown, Gift, ArrowRight, Clock } from 'lucide-react';
 import { useWallet } from '../../hooks/useWallet';
-import { nftService, memberService } from '../../lib/supabaseClient';
+import { nftService, memberService, activationService } from '../../lib/supabaseClient';
+import { referralService } from '../../api/landing/referral.client';
 import { useI18n } from '../../contexts/I18nContext';
 import { useLocation } from 'wouter';
 
@@ -101,8 +102,11 @@ export default function WelcomePage() {
         return;
       }
 
-      // Process NFT upgrade using Edge Function
-      const result = await nftService.processNFTUpgrade(walletAddress, {
+      // Get referrer wallet from stored referral link
+      const referrerWallet = referralService.getReferrerWallet();
+
+      // Step 1: Process NFT upgrade using Edge Function
+      const upgradeResult = await nftService.processNFTUpgrade(walletAddress, {
         level: 1,
         transactionHash,
         payment_amount_usdc: claimState.totalCost,
@@ -110,19 +114,44 @@ export default function WelcomePage() {
         network: network === 'mainnet' ? 'arbitrum-one' : 'arbitrum-sepolia',
       });
 
-      if (result.success) {
-        toast({
-          title: t('welcome.activationSuccess'),
-          description: t('welcome.welcomeToBeehive'),
-        });
-
-        // Activation complete, redirect to dashboard
-        setTimeout(() => {
-          setLocation('/dashboard');
-        }, 2000);
-      } else {
-        throw new Error(result.error || 'Activation failed');
+      if (!upgradeResult.success) {
+        throw new Error(upgradeResult.error || 'NFT upgrade failed');
       }
+
+      // Step 2: Complete member activation with referrer data
+      const activationResult = await activationService.completeMemberActivation(walletAddress, {
+        transactionHash,
+        nftLevel: 1,
+        paymentMethod: 'USDC',
+        paymentAmountUsdc: claimState.totalCost,
+        referrerWallet,
+      });
+
+      if (!activationResult.success) {
+        console.warn('Activation processing incomplete:', activationResult.error);
+        // Continue with basic success flow even if activation rewards fail
+      }
+
+      // Step 3: Process activation rewards (500 BCC + tier-based locked BCC)
+      try {
+        await activationService.processActivationRewards(walletAddress, 1);
+      } catch (rewardsError) {
+        console.warn('Activation rewards processing failed:', rewardsError);
+        // Non-critical error, continue with success flow
+      }
+
+      toast({
+        title: t('welcome.activationSuccess'),
+        description: t('welcome.welcomeToBeehive'),
+      });
+
+      // Clear stored referrer after successful activation
+      referralService.clearReferrer();
+
+      // Activation complete, redirect to dashboard
+      setTimeout(() => {
+        setLocation('/dashboard');
+      }, 2000);
 
     } catch (error: any) {
       console.error('NFT claim error:', error);

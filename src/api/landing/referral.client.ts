@@ -12,5 +12,15 @@ export const referralService = {
   // Get stored referral code
   getStoredReferral(): string | null {
     return localStorage.getItem('beehive-referrer');
+  },
+
+  // Get referrer wallet address (alias for getStoredReferral for compatibility)
+  getReferrerWallet(): string | null {
+    return this.getStoredReferral();
+  },
+
+  // Clear stored referrer after successful registration/activation
+  clearReferrer(): void {
+    localStorage.removeItem('beehive-referrer');
   }
 };

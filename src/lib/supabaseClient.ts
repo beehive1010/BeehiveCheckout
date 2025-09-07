@@ -444,4 +444,77 @@ export const activationService = {
   },
 };
 
+// === MATRIX & REFERRAL MANAGEMENT ===
+export const matrixService = {
+  // Find placement position for new member in 3x3 matrix
+  async findOptimalPlacement(referrerWallet: string, newMemberWallet: string) {
+    return callEdgeFunction('matrix', {
+      action: 'find-placement',
+      referrerWallet,
+      newMemberWallet,
+    }, newMemberWallet);
+  },
+
+  // Create referral record with matrix placement
+  async createReferralRecord(referralData: {
+    referrerWallet: string;
+    referredWallet: string;
+    level: number;
+    position: string; // 'L', 'M', 'R'
+    layer: number;
+  }) {
+    return callEdgeFunction('matrix', {
+      action: 'create-referral',
+      ...referralData,
+    }, referralData.referredWallet);
+  },
+
+  // Get user's matrix tree
+  async getUserMatrix(walletAddress: string, depth = 3) {
+    return callEdgeFunction('matrix', {
+      action: 'get-matrix',
+      depth,
+    }, walletAddress);
+  },
+
+  // Get user's referral network
+  async getReferralNetwork(walletAddress: string) {
+    return supabase
+      .from('referrals')
+      .select('*')
+      .eq('referrer_wallet', walletAddress)
+      .order('created_at', { ascending: false });
+  },
+};
+
+// === REWARD PROCESSING ===
+export const rewardService = {
+  // Process layer rewards when downline member activates
+  async processLayerRewards(activatedMemberWallet: string, nftLevel: number) {
+    return callEdgeFunction('rewards', {
+      action: 'process-layer-rewards',
+      activatedMemberWallet,
+      nftLevel,
+    }, activatedMemberWallet);
+  },
+
+  // Get user's pending rewards
+  async getPendingRewards(walletAddress: string) {
+    return supabase
+      .from('layer_rewards')
+      .select('*')
+      .eq('member_wallet', walletAddress)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+  },
+
+  // Claim available rewards
+  async claimRewards(walletAddress: string, rewardIds: string[]) {
+    return callEdgeFunction('rewards', {
+      action: 'claim-rewards',
+      rewardIds,
+    }, walletAddress);
+  },
+};
+
 export default supabase;
