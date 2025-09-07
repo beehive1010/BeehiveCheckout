@@ -100,7 +100,7 @@ serve(async (req)=>{
       requestData = {
         action: action,
         level: level ? parseInt(level) : undefined
-      };
+      } as RequestData;
     }
     // Special handling for Level 1 NFT claims - no authentication required
     const isLevel1Claim = (requestData.action === 'process-upgrade' || requestData.action === 'process-nft-purchase') && (requestData.level === 1 || requestData.nft_level === 1);
