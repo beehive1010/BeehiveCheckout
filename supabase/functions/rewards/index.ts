@@ -25,9 +25,34 @@ serve(async (req) => {
     const url = new URL(req.url);
     let action = url.pathname.split('/').pop();
     
-    // If no action from URL path, try to get from query params or use default
-    if (!action || action === 'rewards') {
+    // Handle specific endpoint patterns (order matters - check more specific paths first)
+    if (url.pathname.includes('/claimable')) {
+      action = 'get-claims'; 
+    } else if (url.pathname.includes('/claim') && !url.pathname.includes('/claimable')) {
+      action = 'claim-reward';
+    } else if (url.pathname.includes('/user')) {
+      action = 'get-balance';
+    } else if (url.pathname.includes('/withdraw')) {
+      action = 'withdraw-balance';
+    } else if (url.pathname.includes('/timers')) {
+      action = 'get-reward-timers';
+    } else if (!action || action === 'rewards') {
+      // Fallback: try query params or request body
       action = url.searchParams.get('action') || 'get-balance';
+      
+      // For POST requests, also check the request body for action
+      if (req.method === 'POST') {
+        try {
+          const body = await req.json();
+          if (body.action) {
+            action = body.action;
+          }
+          // Store body for later use by handler functions
+          req.parsedBody = body;
+        } catch {
+          // Non-JSON body, continue with existing action
+        }
+      }
     }
 
     switch (action) {
@@ -82,7 +107,19 @@ serve(async (req) => {
 });
 
 async function getRewardClaims(req, supabaseClient) {
-  const { wallet_address, status, layer } = await req.json();
+  let requestData;
+  if (req.parsedBody) {
+    requestData = req.parsedBody;
+  } else {
+    try {
+      requestData = await req.json();
+    } catch {
+      requestData = {};
+    }
+  }
+  
+  const wallet_address = requestData.wallet_address || req.headers.get('x-wallet-address');
+  const { status, layer } = requestData;
 
   if (!wallet_address) {
     return new Response(JSON.stringify({

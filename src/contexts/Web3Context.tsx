@@ -83,40 +83,25 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Record wallet connection and capture referrer from URL
+  // Capture referrer from URL parameters (no auto-registration)
   const recordWalletConnection = async () => {
     try {
       if (!account?.address) return;
 
-      // Default root referrer for users without referral links
-      const DEFAULT_REFERRER = '0x0000000000000000000000000000000000000001';
-
-      // Capture referrer from URL parameters
+      // Capture referrer from URL parameters and store it for later use
       const urlParams = new URLSearchParams(window.location.search);
       const urlReferrer = urlParams.get('ref');
       
-      let finalReferrer = DEFAULT_REFERRER; // Default to root user
-      
       if (urlReferrer && /^0x[a-fA-F0-9]{40}$/.test(urlReferrer)) {
-        finalReferrer = urlReferrer;
         setReferrerWallet(urlReferrer);
         console.log('🔗 Referrer captured from URL:', urlReferrer);
       } else {
-        console.log('🏠 Using default root referrer:', DEFAULT_REFERRER);
+        console.log('🏠 No referrer in URL');
       }
 
-      // Register user with wallet address and referrer (PRESERVE CASE)
-      const result = await supabaseApi.register(
-        account.address, // Preserve original case for withdrawal compatibility
-        finalReferrer,
-        undefined, // username - can be added later
-        undefined  // email - InAppWallet may provide this
-      );
-      
-      console.log('✅ Wallet connection recorded:', account.address);
-      return result;
+      console.log('✅ Wallet connection processed (no auto-registration):', account.address);
     } catch (error) {
-      console.error('Failed to record wallet connection:', error);
+      console.error('Failed to process wallet connection:', error);
     }
   };
 
@@ -165,32 +150,10 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
               setLocation('/welcome');
             }
           } else if (result.success && !result.user) {
-            // User doesn't exist yet - auto-register them
-            console.log('👤 User not found, auto-registering...');
-            
-            try {
-              await recordWalletConnection();
-              console.log('✅ User auto-registered, checking membership again...');
-              
-              // Check again after registration (PRESERVE CASE)
-              const newResult = await supabaseApi.getUser(account.address);
-              if (newResult.success && newResult.user) {
-                const isActiveMember = newResult.isMember || false;
-                setIsMember(isActiveMember);
-                
-                if (isActiveMember) {
-                  setLocation('/dashboard');
-                } else {
-                  setLocation('/welcome');
-                }
-              } else {
-                console.log('⚠️ Registration failed, redirecting to welcome');
-                setLocation('/welcome');
-              }
-            } catch (regError) {
-              console.error('Auto-registration failed:', regError);
-              setLocation('/welcome');
-            }
+            // User doesn't exist yet - redirect to registration page
+            console.log('👤 User not found, redirecting to registration...');
+            setIsMember(false);
+            setLocation('/register');
           } else {
             console.log('❌ Failed to get user data, redirecting to welcome');
             setLocation('/welcome');
@@ -240,32 +203,11 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
             return;
           }
           
-          // If user doesn't exist, try to auto-register
+          // If user doesn't exist, redirect to registration page
           if (error.message?.includes('not found') || error.message?.includes('404')) {
-            console.log('👤 User not found, auto-registering...');
-            try {
-              await recordWalletConnection();
-              setLocation('/welcome');
-            } catch (regError: any) {
-              console.error('Auto-registration failed:', regError);
-              
-              // Handle cleanup error during auto-registration
-              if (regError.status === 410 || regError.message?.includes('Account expired')) {
-                console.log('⏰ Auto-registration detected expired account, redirecting to home');
-                setIsSupabaseAuthenticated(false);
-                setSupabaseUser(null);
-                localStorage.removeItem('supabase-wallet-session');
-                setLocation('/');
-                return;
-              }
-              
-              // Check if auto-registration failed due to auth
-              if (regError.status === 401) {
-                setLocation('/auth');
-              } else {
-                setLocation('/welcome');
-              }
-            }
+            console.log('👤 User not found, redirecting to registration...');
+            setIsMember(false);
+            setLocation('/register');
           } else {
             setLocation('/welcome');
           }

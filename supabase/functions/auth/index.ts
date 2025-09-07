@@ -49,6 +49,11 @@ serve(async (req)=>{
         action = 'validate-referrer';
       }
       
+      // Check if it's a sync-blockchain-status endpoint from URL path
+      if (url.pathname.includes('sync-blockchain-status')) {
+        action = 'sync-blockchain-status';
+      }
+      
       // Extract referrer address for validation endpoint
       const address = url.searchParams.get('address');
       
