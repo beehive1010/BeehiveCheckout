@@ -32,7 +32,7 @@ const NETWORK_CONFIG = {
     chain: arbitrumSepolia,
     chainId: 421614, 
     name: "Arbitrum Sepolia",
-    nftContractAddress: '0xAc8c8662726b72f8DB4F5D1d1a16aC5b06B7a90D', // BBC Membership contract on Arbitrum Sepolia
+    nftContractAddress: Deno.env.get('VITE_NFT_TESTNET_CONTRACT') || '0x99265477249389469929CEA07c4a337af9e12cdA',
     isTestnet: true
   }
 };

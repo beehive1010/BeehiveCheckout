@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Badge } from '../components/ui/badge';
 import { useToast } from '../hooks/use-toast';
 import { Loader2, Crown, Shield, Zap, Users, Database, CreditCard } from 'lucide-react';
-import { ArbitrumMembershipActivation } from '../components/membership/ArbitrumMembershipActivation';
+import { ERC5115ClaimComponent } from '../components/membership/ERC5115ClaimComponent';
 
 export default function Welcome() {
   const { t } = useI18n();
@@ -89,10 +89,10 @@ export default function Welcome() {
             Activate Your Membership
           </h1>
           <p className="text-xl text-muted-foreground mb-2">
-            Choose your preferred network to claim NFT Token ID 1
+            Claim your unique ERC-5115 NFT (Token ID 1) to unlock full platform access
           </p>
           <p className="text-muted-foreground">
-            All methods activate Level 1 membership with the same rewards
+            Free testnet claim with instant membership activation
           </p>
         </div>
 
@@ -139,8 +139,8 @@ export default function Welcome() {
           </Card>
         </div>
 
-        {/* Arbitrum Membership Activation - Following MarketingPlan.md */}
-        <ArbitrumMembershipActivation 
+        {/* ERC-5115 NFT Claim for Membership Activation */}
+        <ERC5115ClaimComponent 
           onSuccess={handleClaimSuccess}
           referrerWallet={referrerWallet || undefined}
           className="mb-8"
