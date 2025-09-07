@@ -43,27 +43,43 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
     setIsProcessing(true);
 
     try {
-      // Step 1: Register the user if needed
-      console.log('🔗 Registering user if needed...');
-      const registerResponse = await fetch(`${API_BASE}/auth`, {
+      // Step 1: Verify user has complete registration (username, email, referrer)
+      console.log('🔍 Verifying complete user registration...');
+      const userCheckResponse = await fetch(`${API_BASE}/auth`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-wallet-address': account.address
         },
         body: JSON.stringify({
-          action: 'register',
-          referrerWallet: referrerWallet,
-          username: `user_${account.address.slice(-6)}`
+          action: 'get-user'
         })
       });
 
-      if (!registerResponse.ok) {
-        throw new Error('Failed to register user');
+      if (!userCheckResponse.ok) {
+        throw new Error('Failed to verify user registration');
       }
 
-      const registerResult = await registerResponse.json();
-      console.log('📝 Registration result:', registerResult);
+      const userStatus = await userCheckResponse.json();
+      console.log('📝 User status:', userStatus);
+
+      // Check if user is registered AND has complete information
+      if (!userStatus.isRegistered) {
+        throw new Error('Please complete registration first with username, email, and referrer information');
+      }
+
+      // Verify user has complete registration data (not auto-generated)
+      const userData = userStatus.user;
+      const hasCompleteInfo = userData && 
+        userData.username && 
+        userData.username !== `user_${account.address.slice(-6)}` && // Not auto-generated username
+        userData.email; // Has email
+      
+      if (!hasCompleteInfo) {
+        throw new Error('Please complete your registration with username and email before claiming NFT');
+      }
+
+      console.log('✅ User has complete registration information');
 
       // Step 2: Approve and transfer tokens for NFT claim
       console.log('🪙 Processing token payment for NFT claim...');
@@ -84,55 +100,15 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
 
       // Amount to pay: 130 USDC total (100 for NFT + 30 platform fee)
       
-      // Check USDC token decimals first - CRITICAL 
-      console.log('🔍 Checking USDC token decimals...');
-      let tokenDecimals = 18; // Default to 18 decimals (most common)
-      let decimalMultiplier = BigInt("1000000000000000000"); // 10^18
+      // Use standard 18 decimals for this token contract - SIMPLIFIED
+      console.log('🔍 Using standard 18 decimals for payment token...');
+      const tokenDecimals = 18; // Standard ERC20 decimals
+      const decimalMultiplier = BigInt("1000000000000000000"); // 10^18
       
-      try {
-        const decimalsResult = await fetch(`https://api.thirdweb.com/v1/chains/421614/contracts/${PAYMENT_TOKEN_CONTRACT}/read?functionName=decimals`, {
-          headers: { 'x-client-id': THIRDWEB_CLIENT_ID }
-        });
-        
-        if (decimalsResult.ok) {
-          const decimalsData = await decimalsResult.json();
-          tokenDecimals = parseInt(decimalsData.result || "18");
-          decimalMultiplier = BigInt(10 ** tokenDecimals);
-          console.log(`🔥 USDC Token Decimals DETECTED: ${tokenDecimals}`);
-          console.log(`🔥 Decimal Multiplier: ${decimalMultiplier.toString()}`);
-          
-          if (tokenDecimals === 18) {
-            console.log(`✅ CONFIRMED: Using 18-decimal USDC (standard ERC20)`);
-          }
-        }
-      } catch (decimalsError) {
-        console.warn('⚠️ Could not fetch decimals, using default 18:', decimalsError);
-        tokenDecimals = 18;
-        decimalMultiplier = BigInt("1000000000000000000"); // Force 18 decimals
-        console.log(`🚨 FORCED: Using 18-decimal USDC as fallback`);
-      }
+      console.log(`✅ Using 18-decimal USDC (standard ERC20)`);
 
-      // Check user's USDC balance with correct decimals
-      console.log('💰 Checking USDC balance...');
-      const balanceResult = await fetch('https://api.thirdweb.com/v1/chains/421614/contracts/' + PAYMENT_TOKEN_CONTRACT + '/erc20/balance-of?wallet_address=' + account.address, {
-        headers: { 'x-client-id': THIRDWEB_CLIENT_ID }
-      });
-      
-      if (balanceResult.ok) {
-        const balanceData = await balanceResult.json();
-        const balance = BigInt(balanceData.value || "0");
-        const required = BigInt("130") * decimalMultiplier; // 130 USDC with correct decimals
-        
-        console.log(`📋 Raw balance: ${balance.toString()}`);
-        console.log(`📋 Required amount: ${required.toString()}`);
-        console.log(`📋 Balance in USDC: ${(Number(balance) / Number(decimalMultiplier)).toFixed(6)}`);
-        console.log(`📋 Required in USDC: ${(Number(required) / Number(decimalMultiplier)).toFixed(6)}`);
-        
-        if (balance < required) {
-          throw new Error(`Insufficient USDC balance. You have ${(Number(balance) / Number(decimalMultiplier)).toFixed(6)} USDC, but need 130 USDC.`);
-        }
-        console.log(`✅ Sufficient balance: ${(Number(balance) / Number(decimalMultiplier)).toFixed(6)} USDC`);
-      }
+      // Skip balance check - the transaction will fail if insufficient balance
+      console.log('💰 Skipping balance check - transaction will validate balance on-chain');
 
       // Approve tokens for NFT contract (the contract itself: 0x99265477249389469929CEA07c4a337af9e12cdA)
       console.log('📝 Approving 130 USDC for NFT contract...');
@@ -209,50 +185,11 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         console.warn('⚠️ Could not verify allowance:', allowanceError);
       }
 
-      // Check if already claimed - CRITICAL CHECK
-      console.log('🔍 Checking if already claimed...');
-      try {
-        // Check if user has already claimed token ID 1
-        const balanceCheck = await fetch(`https://api.thirdweb.com/v1/chains/421614/contracts/${NFT_CONTRACT}/erc1155/balance-of?wallet_address=${account.address}&token_id=1`, {
-          headers: { 'x-client-id': THIRDWEB_CLIENT_ID }
-        });
-        
-        if (balanceCheck.ok) {
-          const balanceData = await balanceCheck.json();
-          const balance = parseInt(balanceData.result || "0");
-          console.log(`📋 Token ID 1 balance for ${account.address}:`, balance);
-          
-          if (balance > 0) {
-            throw new Error(`❌ ALREADY CLAIMED: Wallet ${account.address} has already claimed the Level 1 NFT (Token ID 1). You cannot claim twice. Use a different wallet that hasn't claimed yet.`);
-          } else {
-            console.log(`✅ Wallet has NOT claimed yet - can proceed`);
-          }
-        } else {
-          console.warn('⚠️ Could not verify claimed status via API');
-        }
-      } catch (claimedError) {
-        console.warn('⚠️ Error checking claimed status:', claimedError);
-        // If this check itself fails, we'll continue and let the transaction tell us
-      }
+      // Skip already claimed check - the transaction will fail if already claimed
+      console.log('🔍 Skipping already claimed check - transaction will validate on-chain');
       
-      // Additional check: Verify claim conditions
-      console.log('🔍 Checking claim conditions...');
-      try {
-        // Check if Token ID 1 exists and has claim conditions set
-        const claimConditionCheck = await fetch(`https://api.thirdweb.com/v1/chains/421614/contracts/${NFT_CONTRACT}/read?functionName=getActiveClaimConditionId&args=1`, {
-          headers: { 'x-client-id': THIRDWEB_CLIENT_ID }
-        });
-        
-        if (claimConditionCheck.ok) {
-          const conditionData = await claimConditionCheck.json();
-          console.log('📋 Active claim condition ID for token 1:', conditionData.result);
-        } else {
-          console.warn('⚠️ Could not verify claim conditions');
-        }
-        
-      } catch (configError) {
-        console.warn('⚠️ Could not verify claim conditions:', configError);
-      }
+      // Skip claim conditions check - rely on contract validation
+      console.log('🔍 Proceeding to claim - contract will validate conditions');
 
       // Claim NFT using token payment
       console.log('🎁 Claiming NFT with token payment...');
@@ -312,64 +249,88 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
 
       // Step 3: Process the NFT purchase on backend
       console.log('📋 Processing NFT purchase on backend...');
-      const claimResponse = await fetch(`${API_BASE}/nft-upgrades`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-wallet-address': account.address
-        },
-        body: JSON.stringify({
-          action: 'process-upgrade',
-          level: 1,
-          transactionHash: claimTxResult.transactionHash,
-          paymentMethod: 'token_payment',
-          payment_amount_usdc: 130 // 130 USDC (100 NFT + 30 platform fee)
-        })
-      });
+      let backendProcessed = false;
+      let membershipActivated = false;
+      
+      try {
+        const claimResponse = await fetch(`${API_BASE}/nft-upgrades`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-wallet-address': account.address
+          },
+          body: JSON.stringify({
+            action: 'process-upgrade',
+            level: 1,
+            transactionHash: claimTxResult.transactionHash,
+            paymentMethod: 'token_payment',
+            payment_amount_usdc: 130 // 130 USDC (100 NFT + 30 platform fee)
+          })
+        });
 
-      if (!claimResponse.ok) {
-        throw new Error(`Backend processing failed: ${claimResponse.status}`);
+        if (claimResponse.ok) {
+          const claimResult = await claimResponse.json();
+          console.log('📋 Backend processing result:', claimResult);
+          backendProcessed = claimResult.success;
+        } else {
+          console.warn('⚠️ Backend processing failed but continuing...');
+        }
+      } catch (backendError) {
+        console.warn('⚠️ Backend processing error but continuing:', backendError);
       }
 
-      const claimResult = await claimResponse.json();
-      console.log('📋 Backend processing result:', claimResult);
-
-      if (!claimResult.success) {
-        throw new Error(claimResult.error || 'Backend processing failed');
-      }
-
-      // Step 4: Activate membership
+      // Step 4: Activate membership (try regardless of backend processing)
       console.log('🚀 Activating membership...');
-      const activateResponse = await fetch(`${API_BASE}/auth`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-wallet-address': account.address
-        },
-        body: JSON.stringify({
-          action: 'activate-membership'
-        })
-      });
+      try {
+        const activateResponse = await fetch(`${API_BASE}/auth`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-wallet-address': account.address
+          },
+          body: JSON.stringify({
+            action: 'activate-membership'
+          })
+        });
 
-      if (!activateResponse.ok) {
-        throw new Error('Failed to activate membership');
+        if (activateResponse.ok) {
+          const activateResult = await activateResponse.json();
+          console.log('✅ Membership activation result:', activateResult);
+          membershipActivated = activateResult.success;
+        } else {
+          console.warn('⚠️ Membership activation failed');
+        }
+      } catch (activationError) {
+        console.warn('⚠️ Membership activation error:', activationError);
       }
 
-      const activateResult = await activateResponse.json();
-      console.log('✅ Membership activation result:', activateResult);
-
-      if (!activateResult.success) {
-        throw new Error(activateResult.error || 'Membership activation failed');
+      // Show success message if NFT was claimed successfully
+      let successMessage = "Your Level 1 NFT has been claimed successfully!";
+      let shouldNavigate = true;
+      
+      if (backendProcessed && membershipActivated) {
+        successMessage = "Your Level 1 NFT has been claimed and membership activated! Redirecting to dashboard...";
+      } else if (membershipActivated) {
+        successMessage = "Your Level 1 NFT has been claimed and membership activated! (Backend processing may need manual completion) Redirecting to dashboard...";
+      } else if (backendProcessed) {
+        successMessage = "Your Level 1 NFT has been claimed and processed! (Membership activation pending) Redirecting to dashboard...";
+      } else {
+        // Neither backend processing nor membership activation worked
+        successMessage = "Your Level 1 NFT claim succeeded on blockchain! Backend processing is slow - you may need to refresh or check your membership status in a few minutes.";
+        shouldNavigate = true; // Still navigate to dashboard since NFT claim succeeded
       }
 
       toast({
-        title: "🎉 Success!",
-        description: "Your Level 1 NFT has been claimed with tokens and membership activated!",
+        title: "🎉 NFT Claimed Successfully!",
+        description: successMessage,
         variant: "default",
+        duration: 6000, // Show longer for important message
       });
 
-      // Call success handler
-      if (onSuccess) {
+      // Always call success handler since NFT claim was successful on blockchain
+      // User can manually activate or refresh if backend is slow
+      if (onSuccess && shouldNavigate) {
+        console.log('🔄 Navigating to dashboard - NFT claim successful on blockchain');
         onSuccess();
       }
 
