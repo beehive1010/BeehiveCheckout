@@ -83,14 +83,13 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       });
 
       // Amount to pay: 130 USDC total (100 for NFT + 30 platform fee)
-      const paymentAmount = "130000000"; // 130 USDC (6 decimals)
       
       // Approve tokens for NFT contract
       console.log('📝 Approving tokens...');
       const approveTransaction = prepareContractCall({
         contract: tokenContract,
         method: "function approve(address spender, uint256 amount) returns (bool)",
-        params: [NFT_CONTRACT, paymentAmount]
+        params: [NFT_CONTRACT, BigInt("130000000")]
       });
 
       const approveTxResult = await sendTransaction({
