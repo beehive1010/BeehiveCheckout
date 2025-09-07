@@ -106,8 +106,8 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       console.log('🎁 Claiming NFT with token payment...');
       const mintTransaction = prepareContractCall({
         contract: nftContract,
-        method: "mintWithTokens",
-        params: [account.address, 1] // Mint token ID 1 to user's address
+        method: "function mintWithTokens(address to, uint256 tokenId)",
+        params: [account.address, BigInt(1)] // Mint token ID 1 to user's address
       });
 
       const mintTxResult = await sendTransaction({
