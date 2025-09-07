@@ -64,7 +64,7 @@ export default function Tasks() {
     },
   });
 
-  // Enhanced NFT claim function for specific levels with progressive pricing
+  // Real NFT claim function using Supabase API
   const handleClaimLevel = async (level: number) => {
     if (!walletAddress) {
       toast({
@@ -94,48 +94,66 @@ export default function Tasks() {
     setClaimState({ method: `level_${level}`, loading: true, error: null });
 
     try {
-      const claimData = {
-        claimMethod: 'database_test', // Default to database test for demo
-        referrerWallet: null,
-        transactionHash: `level_${level}_tx_` + Date.now(),
-        mintTxHash: `level_${level}_mint_` + Date.now(),
-        isOffChain: true,
-        targetLevel: level,
-        tokenId: tokenId,
-        priceUsdc: totalPrice,
-        nftPrice: levelPrice,
-        platformFee: platformFee
-      };
+      // Import API client
+      const { SupabaseApiClient } = await import('../lib/supabase');
+      const apiClient = new SupabaseApiClient();
 
       toast({
         title: `Level ${level} Claim Started`,
-        description: `Claiming NFT Token ID ${tokenId} for $${totalPrice} USDC`,
+        description: `Processing NFT claim for $${totalPrice} USDC`,
       });
 
-      // Simulate successful claim for demo
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Generate a transaction hash for this claim (in real app, this would come from blockchain)
+      const transactionHash = `0x${Date.now().toString(16)}${Math.random().toString(16).slice(2, 10)}`;
 
-      toast({
-        title: `🎉 Level ${level} NFT Claimed!`,
-        description: `Successfully claimed Token ID ${tokenId}. Earned ${totalPrice} BCC reward!`,
-        duration: 6000
-      });
+      // Call real Supabase API
+      const result = await apiClient.processUpgrade(
+        walletAddress,
+        level,
+        'token_payment', // payment method
+        transactionHash, // transaction hash
+        'arbitrum-sepolia' // network
+      );
 
-      console.log(`✅ Level ${level} claim successful:`, claimData);
-      
-      // Refresh the page data
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      if (result.success) {
+        toast({
+          title: `🎉 Level ${level} NFT Claimed!`,
+          description: `Successfully processed claim for Token ID ${tokenId}. Earned ${totalPrice} BCC reward!`,
+          duration: 6000
+        });
+
+        console.log(`✅ Level ${level} claim successful:`, result);
+        
+        // Refresh the page data
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        throw new Error(result.error || 'Claim processing failed');
+      }
 
     } catch (error: any) {
       console.error('Claim error:', error);
       setClaimState({ method: null, loading: false, error: error.message });
       
+      // Parse error message for better user feedback
+      let errorMessage = error.message || `Failed to claim Level ${level} NFT`;
+      
+      if (errorMessage.includes('Sequential Upgrade Required')) {
+        errorMessage = `You must upgrade to Level ${(currentLevel || 0) + 1} first. Cannot skip levels.`;
+      } else if (errorMessage.includes('already own')) {
+        errorMessage = `You already own Level ${level} NFT. Each level can only be purchased once.`;
+      } else if (errorMessage.includes('Level 2 requires')) {
+        errorMessage = 'Level 2 requires 3 active direct referrals. Invite more members first.';
+      } else if (errorMessage.includes('Missing Prerequisites')) {
+        errorMessage = `Missing prerequisite levels. Please complete lower levels first.`;
+      }
+      
       toast({
         title: "Claim Failed",
-        description: error.message || `Failed to claim Level ${level} NFT`,
-        variant: "destructive"
+        description: errorMessage,
+        variant: "destructive",
+        duration: 8000
       });
     } finally {
       setClaimState({ method: null, loading: false, error: null });
