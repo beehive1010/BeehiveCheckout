@@ -174,11 +174,30 @@ async function handleUserRegistration(supabase, walletAddress, data) {
     } else {
       console.log(`📍 No referrer provided, using root wallet`);
     }
+    // Generate unique username if not provided
+    let username = data.username;
+    if (!username) {
+      // Create a unique username using wallet address + timestamp
+      const timestamp = Date.now().toString().slice(-6);
+      username = `user_${walletAddress.slice(-6)}_${timestamp}`;
+      
+      // Additional check - if still conflicts, add random suffix
+      const { data: existingUsername } = await supabase
+        .from('users')
+        .select('username')
+        .eq('username', username)
+        .single();
+      
+      if (existingUsername) {
+        username = `user_${walletAddress.slice(-6)}_${timestamp}_${Math.random().toString(36).slice(2, 6)}`;
+      }
+    }
+
     // Create user record
     const { data: newUser, error: userError } = await supabase.from('users').insert({
       wallet_address: walletAddress,
       referrer_wallet: validReferrerWallet,
-      username: data.username || `user_${walletAddress.slice(-6)}`,
+      username: username,
       email: data.email || null,
       current_level: 0,
       is_upgraded: false,
@@ -186,7 +205,15 @@ async function handleUserRegistration(supabase, walletAddress, data) {
     }).select().single();
     if (userError) {
       console.error('User creation error:', userError);
-      throw userError;
+      
+      // Handle specific constraint violations
+      if (userError.message?.includes('users_username_key')) {
+        throw new Error('Username already exists. Please choose a different username.');
+      } else if (userError.message?.includes('users_wallet_address_key')) {
+        throw new Error('This wallet address is already registered.');
+      } else {
+        throw userError;
+      }
     }
     // Create member record (not activated yet)
     const { error: memberError } = await supabase.from('members').insert({

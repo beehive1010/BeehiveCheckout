@@ -17,20 +17,38 @@ export default function Registration() {
   const [, setLocation] = useLocation();
   const { walletAddress } = useWallet();
   
-  // Create our own register mutation since useWallet might not have it
+  // Create register mutation using the correct Edge Function
   const registerMutation = useMutation({
     mutationFn: async (registrationData: {
       walletAddress: string;
       username: string;
       email?: string;
-      secondaryPasswordHash?: string;
       referrerWallet?: string;
     }) => {
-      return await apiRequest('POST', '/api/auth/register', registrationData);
+      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-address': registrationData.walletAddress,
+        },
+        body: JSON.stringify({
+          action: 'register',
+          username: registrationData.username,
+          email: registrationData.email,
+          referrerWallet: registrationData.referrerWallet,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || errorData.error || 'Registration failed');
+      }
+
+      return await response.json();
     },
     onSuccess: () => {
       // Invalidate user queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      queryClient.invalidateQueries({ queryKey: ['user-status'] });
     },
   });
   
@@ -56,7 +74,7 @@ export default function Registration() {
 
   // Validate referrer exists and is not self-referral
   const { data: referrerValidation, isLoading: isValidatingReferrer, error: referrerError } = useQuery({
-    queryKey: ['/api/auth/validate-referrer', referrerWallet],
+    queryKey: ['validate-referrer', referrerWallet],
     queryFn: async () => {
       if (!referrerWallet || !walletAddress) return null;
       
@@ -66,8 +84,8 @@ export default function Registration() {
       }
       
       try {
-        const response = await fetch(`/api/auth/validate-referrer?address=${referrerWallet}`, {
-          headers: { 'X-Wallet-Address': walletAddress }
+        const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/auth?action=validate-referrer&address=${referrerWallet}`, {
+          headers: { 'x-wallet-address': walletAddress }
         });
         
         if (!response.ok) {
