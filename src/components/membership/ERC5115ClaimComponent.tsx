@@ -84,7 +84,28 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
 
       // Amount to pay: 130 USDC total (100 for NFT + 30 platform fee)
       
-      // Check user's USDC balance first
+      // Check USDC token decimals first - CRITICAL 
+      console.log('🔍 Checking USDC token decimals...');
+      let tokenDecimals = 6; // Default assumption
+      let decimalMultiplier = BigInt("1000000"); // 10^6
+      
+      try {
+        const decimalsResult = await fetch(`https://api.thirdweb.com/v1/chains/421614/contracts/${FAKE_USDC_CONTRACT}/read?functionName=decimals`, {
+          headers: { 'x-client-id': THIRDWEB_CLIENT_ID }
+        });
+        
+        if (decimalsResult.ok) {
+          const decimalsData = await decimalsResult.json();
+          tokenDecimals = parseInt(decimalsData.result || "6");
+          decimalMultiplier = BigInt(10 ** tokenDecimals);
+          console.log(`📋 USDC Token Decimals: ${tokenDecimals}`);
+          console.log(`📋 Decimal Multiplier: ${decimalMultiplier.toString()}`);
+        }
+      } catch (decimalsError) {
+        console.warn('⚠️ Could not fetch decimals, using default 6:', decimalsError);
+      }
+
+      // Check user's USDC balance with correct decimals
       console.log('💰 Checking USDC balance...');
       const balanceResult = await fetch('https://api.thirdweb.com/v1/chains/421614/contracts/' + FAKE_USDC_CONTRACT + '/erc20/balance-of?wallet_address=' + account.address, {
         headers: { 'x-client-id': THIRDWEB_CLIENT_ID }
@@ -93,20 +114,33 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       if (balanceResult.ok) {
         const balanceData = await balanceResult.json();
         const balance = BigInt(balanceData.value || "0");
-        const required = BigInt("130000000"); // 130 USDC
+        const required = BigInt("130") * decimalMultiplier; // 130 USDC with correct decimals
+        
+        console.log(`📋 Raw balance: ${balance.toString()}`);
+        console.log(`📋 Required amount: ${required.toString()}`);
+        console.log(`📋 Balance in USDC: ${(Number(balance) / Number(decimalMultiplier)).toFixed(6)}`);
+        console.log(`📋 Required in USDC: ${(Number(required) / Number(decimalMultiplier)).toFixed(6)}`);
         
         if (balance < required) {
-          throw new Error(`Insufficient USDC balance. You have ${(Number(balance) / 1000000).toFixed(2)} USDC, but need 130 USDC.`);
+          throw new Error(`Insufficient USDC balance. You have ${(Number(balance) / Number(decimalMultiplier)).toFixed(6)} USDC, but need 130 USDC.`);
         }
-        console.log(`✅ Sufficient balance: ${(Number(balance) / 1000000).toFixed(2)} USDC`);
+        console.log(`✅ Sufficient balance: ${(Number(balance) / Number(decimalMultiplier)).toFixed(6)} USDC`);
       }
 
       // Approve tokens for NFT contract (the contract itself: 0x99265477249389469929CEA07c4a337af9e12cdA)
       console.log('📝 Approving 130 USDC for NFT contract...');
+      
+      // CRITICAL: Use correct decimals for approval amount
+      const usdcAmount = BigInt("130") * decimalMultiplier; // 130 USDC with correct decimals
+      console.log(`📋 Approving amount: ${usdcAmount.toString()} wei (130 USDC with ${tokenDecimals} decimals)`);
+      console.log(`📋 Human readable: ${(Number(usdcAmount) / Number(decimalMultiplier)).toFixed(6)} USDC`);
+      console.log(`📋 Spender (NFT Contract): ${NFT_CONTRACT}`);
+      console.log(`📋 Token Contract: ${FAKE_USDC_CONTRACT}`);
+      
       const approveTransaction = prepareContractCall({
         contract: tokenContract,
         method: "function approve(address spender, uint256 amount) returns (bool)",
-        params: [NFT_CONTRACT, BigInt("130000000")] // Approve NFT contract to spend 130 USDC
+        params: [NFT_CONTRACT, usdcAmount] // Approve NFT contract to spend 130 USDC
       });
 
       const approveTxResult = await sendTransaction({
