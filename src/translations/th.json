@@ -13,6 +13,9 @@
     "disconnect": "ตัดการเชื่อมต่อ",
     "connected": "เชื่อมต่อแล้ว"
   },
+  "header": {
+    "connectWallet": "เชื่อมต่อกระเป๋าเงิน"
+  },
   "landing": {
     "hero": {
       "title": "ยินดีต้อนรับสู่ Beehive",

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useWeb3 } from '../contexts/Web3Context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '../lib/queryClient';
+import { authService, balanceService, activationService } from '../lib/supabaseClient';
 
 export function useWallet() {
   const { isConnected, walletAddress, isSupabaseAuthenticated } = useWeb3();
@@ -9,62 +9,58 @@ export function useWallet() {
 
   // Remove old logging - now handled by Web3Context authentication
 
-  // Enhanced user status check using Supabase API - only when both auths are ready
+  // Enhanced user status check using new Supabase client - only when wallet is connected
   const userQuery = useQuery({
-    queryKey: ['/api/auth/user'],
-    enabled: !!walletAddress && isSupabaseAuthenticated,
+    queryKey: ['user-status', walletAddress],
+    enabled: !!walletAddress && isConnected,
     queryFn: async () => {
-      console.log('🔍 Checking user status (Supabase API):', walletAddress);
+      console.log('🔍 Checking user status (Direct Supabase):', walletAddress);
       try {
-        const response = await apiRequest('GET', '/api/auth/user', { t: Date.now() }, walletAddress!);
-        const userStatus = await response.json();
-        console.log('📊 User status (Supabase):', userStatus.userFlow, userStatus);
+        // Check if user exists
+        const { exists } = await authService.userExists(walletAddress!);
         
-        // Auto-sync blockchain status if user is registered but not activated
-        // BUT skip auto-sync if user is in claim_nft flow (they need to manually claim)
-        // TEMPORARILY DISABLED - sync function has issues
-        if (userStatus.isRegistered && !userStatus.isMember && userStatus.userFlow !== 'claim_nft') {
-          console.log('🔄 Auto-sync temporarily disabled due to edge function issues');
-          // try {
-          //   const syncResponse = await apiRequest('POST', '/api/auth/sync-blockchain-status', {
-          //     action: 'sync-blockchain-status'
-          //   }, walletAddress!);
-          //   if (syncResponse.ok) {
-          //     const syncResult = await syncResponse.json();
-          //     console.log('✅ Blockchain sync result:', syncResult);
-          //     // Refetch user status after sync
-          //     if (syncResult.success) {
-          //       const refreshResponse = await apiRequest('GET', '/api/auth/user', { t: Date.now() }, walletAddress!);
-          //       const refreshedStatus = await refreshResponse.json();
-          //       console.log('🔄 Refreshed user status after sync:', refreshedStatus);
-          //       return refreshedStatus;
-          //     }
-          //   }
-          // } catch (syncError) {
-          //   console.warn('⚠️ Auto-sync failed (non-critical):', syncError);
-          // }
-        }
-        
-        return userStatus;
-      } catch (error: any) {
-        if (error.status === 404) {
+        if (!exists) {
           console.log('👤 New user - needs registration');
           return { 
             isRegistered: false, 
             hasNFT: false, 
             isActivated: false,
+            isMember: false,
+            membershipLevel: 0,
             userFlow: 'registration' 
           };
         }
+
+        // Check if user is an activated member
+        const { isActivated } = await authService.isActivatedMember(walletAddress!);
+        
+        // Get user data
+        const userData = await authService.getUserData(walletAddress!);
+        
+        const userStatus = {
+          isRegistered: true,
+          hasNFT: isActivated,
+          isActivated,
+          isMember: isActivated,
+          membershipLevel: isActivated ? 1 : 0, // Assume Level 1 if activated
+          userFlow: isActivated ? 'dashboard' : 'claim_nft',
+          user: userData
+        };
+        
+        console.log('📊 User status (Direct Supabase):', userStatus.userFlow, userStatus);
+        return userStatus;
+        
+      } catch (error: any) {
+        console.error('❌ User status check error:', error);
         throw error;
       }
     },
-    staleTime: 2000,
+    staleTime: 5000,
     refetchInterval: (query) => {
-      // Only refetch if user is registered AND both wallet and Supabase are authenticated
-      return (query.state.data?.isRegistered && walletAddress && isSupabaseAuthenticated) ? 5000 : false;
+      // Only refetch if user is registered
+      return query.state.data?.isRegistered ? 10000 : false;
     },
-    refetchIntervalInBackground: false, // Disable background refetching to prevent auth errors
+    refetchIntervalInBackground: false,
   });
   
   const { data: userStatus, isLoading: isUserLoading, error: userError } = userQuery;
@@ -85,32 +81,42 @@ export function useWallet() {
       secondaryPasswordHash?: string;
       referrerWallet?: string;
     }) => {
-      const response = await apiRequest('POST', '/api/auth/register', registrationData);
-      return response;
+      const result = await authService.registerUser(
+        registrationData.walletAddress,
+        registrationData.username,
+        registrationData.email,
+        registrationData.referrerWallet
+      );
+      return result;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      queryClient.invalidateQueries({ queryKey: ['user-status', walletAddress] });
     },
   });
 
-  // Activate membership using Supabase API
+  // Activate membership using new Supabase services
   const activateMembershipMutation = useMutation({
     mutationFn: async (data: { level: number; txHash?: string }) => {
-      const response = await apiRequest('POST', '/api/membership/activate', data, walletAddress!);
-      return response.json();
+      const result = await activationService.processMembershipActivation(
+        walletAddress!,
+        data.level,
+        data.txHash || ''
+      );
+      return result;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      queryClient.invalidateQueries({ queryKey: ['user-status', walletAddress] });
+      queryClient.invalidateQueries({ queryKey: ['user-balances', walletAddress] });
     },
   });
 
-  // Get user balances using Supabase API - only when both auths are ready
+  // Get user balances using new Supabase services - only when user is registered
   const { data: userBalances, isLoading: isBalancesLoading } = useQuery({
-    queryKey: ['/api/balance/user'],
-    enabled: !!walletAddress && isSupabaseAuthenticated && userStatus?.isRegistered,
+    queryKey: ['user-balances', walletAddress],
+    enabled: !!walletAddress && isConnected && userStatus?.isRegistered,
     queryFn: async () => {
-      const response = await apiRequest('POST', '/api/balance/user', {}, walletAddress!);
-      return response.json();
+      const balances = await balanceService.getUserBalances(walletAddress!);
+      return balances;
     },
   });
 
@@ -138,11 +144,11 @@ export function useWallet() {
   };
   const referralNode = null; // Would be fetched separately
   const { data: userActivity, isLoading: isActivityLoading } = useQuery({
-    queryKey: ['/api/dashboard/activity'],
-    enabled: !!walletAddress && isSupabaseAuthenticated && isRegistered,
+    queryKey: ['user-activity', walletAddress],
+    enabled: !!walletAddress && isConnected && isRegistered,
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/dashboard/activity', { limit: 10 }, walletAddress!);
-      return response.json();
+      // For now, return empty activity until we implement activity tracking
+      return { activity: [] };
     },
   });
 

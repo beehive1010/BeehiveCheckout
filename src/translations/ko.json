@@ -13,6 +13,9 @@
     "disconnect": "연결 해제",
     "connected": "연결됨"
   },
+  "header": {
+    "connectWallet": "지갑 연결"
+  },
   "landing": {
     "hero": {
       "title": "Beehive에 오신 것을 환영합니다",

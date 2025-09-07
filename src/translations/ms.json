@@ -13,6 +13,9 @@
     "disconnect": "Putuskan Sambungan",
     "connected": "Disambungkan"
   },
+  "header": {
+    "connectWallet": "Sambung Dompet"
+  },
   "landing": {
     "hero": {
       "title": "Selamat Datang ke Beehive",

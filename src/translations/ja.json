@@ -24,6 +24,9 @@
     "disconnect": "切断",
     "connected": "接続済み"
   },
+  "header": {
+    "connectWallet": "ウォレット接続"
+  },
   "landing": {
     "hero": {
       "title": "Beehiveへようこそ",

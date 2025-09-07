@@ -24,6 +24,9 @@
     "disconnect": "断开连接",
     "connected": "已连接"
   },
+  "header": {
+    "connectWallet": "连接钱包"
+  },
   "landing": {
     "hero": {
       "title": "欢迎来到蜂巢",

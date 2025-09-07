@@ -6,6 +6,7 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { useToast } from '../hooks/use-toast';
 import { Copy, Share2, Users, Award, TrendingUp, DollarSign, Building2, Crown, Gift, ShoppingCart, Activity, Coins, Loader2, RefreshCw, ArrowUpRight, Layers, Timer } from 'lucide-react';
+import { balanceService, matrixService, authService } from '../lib/supabaseClient';
 
 // Simple dashboard data interface
 interface DashboardData {
@@ -39,32 +40,7 @@ interface DashboardData {
   };
 }
 
-// Direct Supabase function caller
-async function callSupabaseFunction(functionName: string, data: any, walletAddress?: string) {
-  const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1MjUwMTYsImV4cCI6MjA0MDEwMTAxNn0.gBWZUvwCJgP1lsVQlZNDsYXDxBEr31QfRtNEgYzS6NA';
-  
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${anonKey}`
-  };
-  
-  if (walletAddress) {
-    headers['x-wallet-address'] = walletAddress;
-  }
-  
-  const response = await fetch(`${baseUrl}/${functionName}`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ ...data, walletAddress })
-  });
-  
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.status}`);
-  }
-  
-  return response.json();
-}
+// Remove old callSupabaseFunction - now using supabaseClient services
 
 function DashboardV2Simple() {
   const { walletAddress } = useWallet();
@@ -82,45 +58,52 @@ function DashboardV2Simple() {
     setError(null);
     
     try {
-      // Get balance data
-      const balanceResult = await callSupabaseFunction('balance', {
-        action: 'get-balance'
-      }, walletAddress);
+      // Check if user is activated member first
+      const { isActivated, memberData } = await authService.isActivatedMember(walletAddress);
       
-      // Get matrix data
-      const matrixResult = await callSupabaseFunction('matrix', {
-        action: 'get-matrix-stats'
-      }, walletAddress);
+      if (!isActivated) {
+        setError('User is not an activated member');
+        return;
+      }
+
+      // Get balance data using new service
+      const balanceResult = await balanceService.getUserBalance(walletAddress);
       
-      // Set default data structure
+      // Get matrix data using new service
+      const matrixResult = await matrixService.getMatrixStats(walletAddress);
+      
+      // Count direct referrals
+      const directReferralsCount = await matrixService.countDirectReferrals(walletAddress);
+      
+      // Set dashboard data structure
       setDashboardData({
         balance: {
           bcc: {
             total: balanceResult?.balance?.total_bcc || 0,
             transferable: balanceResult?.balance?.bcc_transferable || 0,
-            restricted: 0,
+            restricted: balanceResult?.balance?.bcc_restricted || 0,
             locked: balanceResult?.balance?.bcc_locked || 0,
           },
           usdt: {
             totalEarned: balanceResult?.balance?.total_usdt_earned || 0,
-            availableRewards: balanceResult?.balance?.pending_rewards_usdt || 0,
-            totalWithdrawn: 0
+            availableRewards: balanceResult?.balance?.available_rewards || 0,
+            totalWithdrawn: balanceResult?.balance?.total_withdrawn || 0,
           },
-          activationTier: 1
+          activationTier: memberData?.tier_level || 1,
         },
         matrix: {
-          totalTeamSize: matrixResult?.stats?.totalReferrals || 0,
-          directReferrals: matrixResult?.stats?.directReferrals || 0,
-          layerCounts: {},
-          deepestLayer: 0
+          totalTeamSize: matrixResult?.stats?.totalTeamSize || 0,
+          directReferrals: directReferralsCount,
+          layerCounts: matrixResult?.stats?.layerCounts || {},
+          deepestLayer: matrixResult?.stats?.deepestLayer || 0,
         },
         rewards: {
-          totalEarnings: 0,
-          claimableAmount: 0,
-          pendingAmount: 0,
-          claimedAmount: 0,
-          claimableCount: 0,
-          pendingCount: 0
+          totalEarnings: matrixResult?.rewards?.totalEarnings || 0,
+          claimableAmount: matrixResult?.rewards?.claimableAmount || 0,
+          pendingAmount: matrixResult?.rewards?.pendingAmount || 0,
+          claimedAmount: matrixResult?.rewards?.claimedAmount || 0,
+          claimableCount: matrixResult?.rewards?.claimableCount || 0,
+          pendingCount: matrixResult?.rewards?.pendingCount || 0,
         }
       });
       

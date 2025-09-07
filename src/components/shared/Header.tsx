@@ -1,21 +1,11 @@
 import { useI18n } from '../../contexts/I18nContext';
 import LanguageSwitcher from './LanguageSwitcher';
-import { Link, useLocation } from 'wouter';
+import { Link } from 'wouter';
 import { ConnectButton } from 'thirdweb/react';
 import { client, supportedChains, wallets } from '../../lib/web3';
-import { useWallet } from '../../hooks/useWallet';
-import { User, Bell } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
 
 export default function Header() {
   const { t } = useI18n();
-  const { isConnected, walletAddress, currentLevel, isActivated } = useWallet();
-  const [, setLocation] = useLocation();
-
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -35,7 +25,6 @@ export default function Header() {
 
           {/* Right Side Content */}
           <div className="flex items-center space-x-2 md:space-x-4">
-
             {/* Language Switcher */}
             <LanguageSwitcher />
             <div className="w-px h-6 bg-border"></div>
@@ -53,7 +42,7 @@ export default function Header() {
                 titleIcon: "🐝",
               }}
               connectButton={{
-                label: "Connect Wallet",
+                label: t('header.connectWallet'),
                 className: "btn-honey text-sm px-4 py-2 font-medium hover:scale-105 transition-all duration-300"
               }}
               detailsButton={{

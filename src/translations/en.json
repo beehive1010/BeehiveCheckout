@@ -24,6 +24,9 @@
     "disconnect": "Disconnect",
     "connected": "Connected"
   },
+  "header": {
+    "connectWallet": "Connect Wallet"
+  },
   "landing": {
     "hero": {
       "title": "Welcome to Beehive",
