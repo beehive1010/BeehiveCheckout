@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useActiveAccount } from 'thirdweb/react';
 import { getContract, prepareContractCall, sendTransaction } from 'thirdweb';
 import { arbitrumSepolia } from 'thirdweb/chains';
@@ -184,7 +184,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       console.error('❌ Token claim error:', error);
       toast({
         title: "Claim failed",
-        description: error.message || "Failed to claim NFT with tokens. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to claim NFT with tokens. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -197,7 +197,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       <CardHeader className="text-center pb-4">
         <div className="flex items-center justify-center mb-3">
           <Crown className="h-8 w-8 text-honey mr-2" />
-          <Badge variant="outline" className="bg-honey/20 text-honey border-honey/50">
+          <Badge className="bg-honey/20 text-honey border-honey/50">
             ERC-5115 NFT Claim
           </Badge>
         </div>
