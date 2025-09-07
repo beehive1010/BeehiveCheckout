@@ -309,12 +309,16 @@ export class MultiChainPaymentProcessor {
     referenceId?: string;
   }): Promise<void> {
     try {
-      // This would typically call a Supabase edge function
-      // For now, we'll use console logging
       console.log('Recording payment in database:', paymentData);
       
-      // TODO: Implement actual database recording via updatedApiClient
-      // await updatedApiClient.recordMultiChainPayment(paymentData);
+      // Record payment via API client
+      const result = await updatedApiClient.recordMultiChainPayment(paymentData);
+      
+      if (!result.success) {
+        console.warn('Payment recording failed:', result.error);
+      } else {
+        console.log('Payment successfully recorded in database');
+      }
       
     } catch (error) {
       console.error('Failed to record payment in database:', error);
