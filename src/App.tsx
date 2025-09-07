@@ -102,11 +102,6 @@ function SmartHomePage() {
     return <Registration />;
   }
   
-  // Skip Welcome if user is already registered - go directly to dashboard
-  if (isConnected && userStatus?.isRegistered) {
-    return <EnhancedDashboard />;
-  }
-  
   if (needsNFTClaim) {
     return <Welcome />;
   }

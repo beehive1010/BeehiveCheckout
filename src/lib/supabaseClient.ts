@@ -118,15 +118,16 @@ export const authService = {
       .single();
   },
 
-  // Check if user is activated member
+  // Check if user is activated member - use case-insensitive query
   async isActivatedMember(walletAddress: string) {
     const { data, error } = await supabase
       .from('members')
-      .select('is_activated, current_level')
-      .eq('wallet_address', walletAddress)
+      .select('is_activated, current_level, wallet_address')
+      .eq('wallet_address', walletAddress.toLowerCase())
       .eq('is_activated', true)
       .single();
     
+    console.log(`🔍 Member query result for ${walletAddress}:`, { data, error });
     return { isActivated: !error && !!data, memberData: data, error };
   },
 };

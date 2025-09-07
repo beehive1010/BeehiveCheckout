@@ -8,7 +8,13 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { useToast } from '../hooks/use-toast';
 import Navigation from '../components/shared/Navigation';
-import { supabase } from '../lib/supabase';
+import { 
+  authService, 
+  memberService, 
+  balanceService, 
+  matrixService, 
+  rewardService 
+} from '../lib/supabaseClient';
 import { 
   Users, 
   DollarSign, 
@@ -28,15 +34,17 @@ import {
   Gift,
   ShoppingCart,
   Loader2,
-  User
+  User,
+  Network
 } from 'lucide-react';
 
-// Data interfaces based on existing components
+// Data interfaces based on database types
 interface DashboardStats {
   balance: {
     totalBcc: number;
     transferableBcc: number;
     lockedBcc: number;
+    restrictedBcc: number;
     totalUsdtEarned: number;
     availableRewards: number;
     pendingRewards: number;
@@ -44,7 +52,8 @@ interface DashboardStats {
   matrix: {
     directReferrals: number;
     totalTeamSize: number;
-    layers: any[];
+    maxLayer: number;
+    layers: MatrixLayer[];
     recentActivity: any[];
   };
   rewards: {
@@ -55,114 +64,120 @@ interface DashboardStats {
   };
   member: {
     currentLevel: number;
-    activationTier: number;
+    activationRank: number | null;
+    tierLevel: number | null;
     isActivated: boolean;
-    joinedAt: string;
+    activatedAt: string | null;
+    levelsOwned: number[];
   };
 }
 
-// Method 1: Direct Supabase Function Calls
-const callSupabaseFunction = async (functionName: string, action: string, data: any = {}, walletAddress?: string) => {
-  const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1MjUwMTYsImV4cCI6MjA0MDEwMTAxNn0.gBWZUvwCJgP1lsVQlZNDsYXDxBEr31QfRtNEgYzS6NA';
-  
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${anonKey}`
-  };
-  
-  if (walletAddress) {
-    headers['x-wallet-address'] = walletAddress;
-  }
-  
-  const response = await fetch(`${baseUrl}/${functionName}`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ action, ...data, walletAddress })
-  });
-  
-  if (!response.ok) {
-    throw new Error(`${functionName} API Error: ${response.status}`);
-  }
-  
-  return response.json();
-};
+interface MatrixLayer {
+  layer: number;
+  positions: MatrixPosition[];
+  filledPositions: number;
+  totalPositions: number;
+}
 
-// Method 2: Direct Supabase SDK API calls for views
-const getDataFromViews = async (walletAddress: string) => {
+interface MatrixPosition {
+  position: string;
+  memberWallet?: string;
+  username?: string;
+  level?: number;
+  isActive: boolean;
+}
+
+// Load dashboard data using proper Supabase services
+const loadDashboardData = async (walletAddress: string) => {
+  console.log('🔄 Loading dashboard data for:', walletAddress);
+  
   try {
-    // Get balance from view
-    const { data: balanceData } = await supabase
-      .from('user_bcc_balance_overview')
-      .select('*')
-      .eq('wallet_address', walletAddress)
-      .single();
+    // Load all data concurrently using proper services
+    const [
+      memberResult,
+      balanceResult,
+      matrixResult,
+      rewardResult
+    ] = await Promise.allSettled([
+      authService.getMemberInfo(walletAddress),
+      balanceService.getUserBalance(walletAddress),
+      matrixService.getMatrixStats(walletAddress),
+      rewardService.getClaimableRewards(walletAddress)
+    ]);
 
-    // Get member requirements
-    const { data: memberData } = await supabase
-      .from('member_requirements_view')
-      .select('*')
-      .eq('wallet_address', walletAddress)
-      .single();
+    console.log('📊 Dashboard API results:', {
+      member: memberResult.status === 'fulfilled' ? 'success' : 'failed',
+      balance: balanceResult.status === 'fulfilled' ? 'success' : 'failed', 
+      matrix: matrixResult.status === 'fulfilled' ? 'success' : 'failed',
+      rewards: rewardResult.status === 'fulfilled' ? 'success' : 'failed'
+    });
 
-    // Get matrix overview
-    const { data: matrixData } = await supabase
-      .from('matrix_overview')
-      .select('*')
-      .eq('root_wallet', walletAddress)
-      .single();
+    // Extract data from results
+    const memberData = memberResult.status === 'fulfilled' ? memberResult.value.data : null;
+    const balanceData = balanceResult.status === 'fulfilled' ? balanceResult.value : null;
+    const matrixData = matrixResult.status === 'fulfilled' ? matrixResult.value : null;
+    const rewardsData = rewardResult.status === 'fulfilled' ? rewardResult.value : null;
+
+    // Get matrix layers for 3x3 visualization
+    let matrixLayers: MatrixLayer[] = [];
+    try {
+      const matrixTreeResult = await matrixService.getMatrixTree(walletAddress, 3);
+      if (matrixTreeResult.success) {
+        matrixLayers = buildMatrixLayers(matrixTreeResult.matrix || []);
+      }
+    } catch (error) {
+      console.warn('Matrix tree load failed:', error);
+    }
 
     return {
-      balance: balanceData,
       member: memberData,
-      matrix: matrixData
+      balance: balanceData?.balance || balanceData,
+      matrix: {
+        ...matrixData,
+        layers: matrixLayers
+      },
+      rewards: rewardsData
     };
+
   } catch (error) {
-    console.error('Views API error:', error);
-    return null;
+    console.error('❌ Dashboard data loading failed:', error);
+    throw error;
   }
 };
 
-// Method 3: Direct table queries (fallback)
-const getDataFromTables = async (walletAddress: string) => {
-  try {
-    // Get user balance
-    const { data: balanceData } = await supabase
-      .from('user_balances')
-      .select('*')
-      .eq('wallet_address', walletAddress)
-      .single();
-
-    // Get member info
-    const { data: memberData } = await supabase
-      .from('members')
-      .select('*')
-      .eq('wallet_address', walletAddress)
-      .single();
-
-    // Get matrix positions count (using members table)
-    const { data: matrixCount } = await supabase
-      .from('members')
-      .select('*', { count: 'exact' })
-      .eq('referrer_wallet', walletAddress);
-
-    // Get rewards
-    const { data: rewardsData } = await supabase
-      .from('layer_rewards')
-      .select('*')
-      .eq('recipient_wallet', walletAddress)
-      .limit(10);
-
-    return {
-      balance: balanceData,
-      member: memberData,
-      matrixCount: matrixCount?.length || 0,
-      rewards: rewardsData || []
-    };
-  } catch (error) {
-    console.error('Tables API error:', error);
-    return null;
+// Build 3x3 matrix layers from referrals data
+const buildMatrixLayers = (referrals: any[]): MatrixLayer[] => {
+  const layers: MatrixLayer[] = [];
+  
+  // Process first 3 layers for 3x3 matrix visualization
+  for (let layerNum = 1; layerNum <= 3; layerNum++) {
+    const layerReferrals = referrals.filter(r => r.layer === layerNum);
+    const totalPositions = Math.pow(3, layerNum); // Layer 1=3, Layer 2=9, Layer 3=27
+    
+    const positions: MatrixPosition[] = [];
+    
+    // Create positions for this layer
+    for (let pos = 1; pos <= totalPositions; pos++) {
+      const referral = layerReferrals.find(r => r.position === pos.toString());
+      
+      positions.push({
+        position: pos.toString(),
+        memberWallet: referral?.member_wallet,
+        username: referral?.member_info?.username,
+        level: referral?.member_info?.current_level,
+        isActive: referral?.is_active || false
+      });
+    }
+    
+    layers.push({
+      layer: layerNum,
+      positions,
+      filledPositions: layerReferrals.length,
+      totalPositions
+    });
   }
+  
+  return layers;
 };
 
 export default function EnhancedDashboard() {
@@ -177,69 +192,91 @@ export default function EnhancedDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [dataMethod] = useState<'functions' | 'views' | 'tables'>('functions'); // 固定使用functions数据源
 
-  const loadDashboardData = async () => {
+  const loadComponentData = async () => {
     if (!walletAddress) return;
     
     setIsLoading(true);
     setError(null);
     
     try {
-      let data: any = {};
+      console.log('🔄 Loading dashboard for wallet:', walletAddress);
       
-      if (dataMethod === 'functions') {
-        // Method 1: Use Supabase Functions
-        const [balanceResult, matrixResult] = await Promise.all([
-          callSupabaseFunction('balance', 'get-balance', {}, walletAddress).catch(() => null),
-          callSupabaseFunction('matrix', 'get-matrix-stats', {}, walletAddress).catch(() => null)
-        ]);
-        
-        data = {
-          balance: balanceResult?.balance || {},
-          matrix: matrixResult?.stats || {}
-        };
-        
-      } else if (dataMethod === 'views') {
-        // Method 2: Use Supabase Views
-        data = await getDataFromViews(walletAddress);
-        
-      } else {
-        // Method 3: Direct table queries
-        data = await getDataFromTables(walletAddress);
-      }
+      // Use the external loadDashboardData function
+      const data = await loadDashboardData(walletAddress);
+      
+      console.log('✅ Dashboard data loaded:', data);
 
-      // Transform data to consistent format
+      // Transform data to consistent format based on database structure
       setDashboardStats({
         balance: {
-          totalBcc: data?.balance?.total_bcc || data?.balance?.totalBcc || 0,
+          totalBcc: data?.balance?.total_bcc || data?.balance?.bcc_transferable + data?.balance?.bcc_locked + data?.balance?.bcc_restricted || 0,
           transferableBcc: data?.balance?.bcc_transferable || 0,
           lockedBcc: data?.balance?.bcc_locked || 0,
+          restrictedBcc: data?.balance?.bcc_restricted || 0,
           totalUsdtEarned: data?.balance?.total_usdt_earned || 0,
           availableRewards: data?.balance?.pending_rewards_usdt || 0,
-          pendingRewards: 0
+          pendingRewards: data?.rewards?.pending?.length || 0
         },
         matrix: {
-          directReferrals: data?.matrix?.directReferrals || data?.matrix?.direct_referrals || 0,
-          totalTeamSize: data?.matrix?.totalReferrals || data?.matrix?.total_team_size || data?.matrixCount || 0,
-          layers: [],
+          directReferrals: data?.member?.total_direct_referrals || 0,
+          totalTeamSize: data?.member?.total_team_size || 0,
+          maxLayer: data?.member?.max_layer || 0,
+          layers: data?.matrix?.layers || [],
           recentActivity: data?.matrix?.recentActivity || []
         },
         rewards: {
-          claimableRewards: [],
-          pendingRewards: data?.rewards || [],
-          totalClaimed: 0,
-          totalPending: data?.rewards?.length || 0
+          claimableRewards: data?.rewards?.claimable || [],
+          pendingRewards: data?.rewards?.pending || [],
+          totalClaimed: data?.rewards?.totalClaimed || 0,
+          totalPending: data?.rewards?.pending?.length || 0
         },
         member: {
-          currentLevel: data?.member?.current_level || userData?.membershipLevel || 1,
-          activationTier: data?.member?.activation_tier || 1,
-          isActivated: data?.member?.is_activated || true,
-          joinedAt: data?.member?.created_at || new Date().toISOString()
+          currentLevel: data?.member?.current_level || 1,
+          activationRank: data?.member?.activation_rank,
+          tierLevel: data?.member?.tier_level,
+          isActivated: data?.member?.is_activated || false,
+          activatedAt: data?.member?.activated_at,
+          levelsOwned: Array.isArray(data?.member?.levels_owned) ? data?.member?.levels_owned : [data?.member?.current_level || 1]
         }
       });
       
     } catch (err: any) {
-      console.error('Dashboard load error:', err);
+      console.error('❌ Dashboard load error:', err);
       setError(err.message || 'Failed to load dashboard data');
+      
+      // Set default data to prevent crashes
+      setDashboardStats({
+        balance: {
+          totalBcc: 0,
+          transferableBcc: 0,
+          lockedBcc: 0,
+          restrictedBcc: 0,
+          totalUsdtEarned: 0,
+          availableRewards: 0,
+          pendingRewards: 0
+        },
+        matrix: {
+          directReferrals: 0,
+          totalTeamSize: 0,
+          maxLayer: 0,
+          layers: [],
+          recentActivity: []
+        },
+        rewards: {
+          claimableRewards: [],
+          pendingRewards: [],
+          totalClaimed: 0,
+          totalPending: 0
+        },
+        member: {
+          currentLevel: 1,
+          activationRank: null,
+          tierLevel: null,
+          isActivated: false,
+          activatedAt: null,
+          levelsOwned: [1]
+        }
+      });
     } finally {
       setIsLoading(false);
     }
@@ -247,7 +284,7 @@ export default function EnhancedDashboard() {
 
   useEffect(() => {
     if (walletAddress) {
-      loadDashboardData();
+      loadComponentData();
     }
   }, [walletAddress, dataMethod]);
 
@@ -282,7 +319,7 @@ export default function EnhancedDashboard() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <div className="text-red-500">Error: {error}</div>
-        <Button onClick={loadDashboardData} variant="outline">
+        <Button onClick={loadComponentData} variant="outline">
           <RefreshCw className="h-4 w-4 mr-2" />
           Retry
         </Button>
@@ -311,19 +348,48 @@ export default function EnhancedDashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <div className="text-sm text-muted-foreground">Status</div>
-              <Badge variant="secondary" className="bg-green-600 text-white">
-                {dashboardStats.member.isActivated ? 'Active' : 'Inactive'}
-              </Badge>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <div className="text-sm text-muted-foreground">Status</div>
+                <Badge variant="secondary" className={`${
+                  dashboardStats.member.isActivated 
+                    ? 'bg-green-600 text-white' 
+                    : 'bg-red-600 text-white'
+                }`}>
+                  {dashboardStats.member.isActivated ? 'Activated' : 'Not Activated'}
+                </Badge>
+              </div>
+              <div className="space-y-1 text-right">
+                <div className="text-sm text-muted-foreground">Current Level</div>
+                <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/30">
+                  Level {dashboardStats.member.currentLevel}
+                </Badge>
+              </div>
             </div>
-            <div className="space-y-1 text-right">
-              <div className="text-sm text-muted-foreground">Level</div>
-              <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/30">
-                Level {dashboardStats.member.currentLevel}
-              </Badge>
+            
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <div className="text-sm text-muted-foreground">Activation Rank</div>
+                <div className="text-sm font-semibold">
+                  #{dashboardStats.member.activationRank || 'Not ranked'}
+                </div>
+              </div>
+              <div className="space-y-1 text-right">
+                <div className="text-sm text-muted-foreground">Tier Level</div>
+                <Badge variant="outline" className="bg-honey/10 text-honey border-honey/30">
+                  Tier {dashboardStats.member.tierLevel || 1}
+                </Badge>
+              </div>
             </div>
+            
+            {dashboardStats.member.activatedAt && (
+              <div className="text-center pt-2 border-t border-border/50">
+                <div className="text-xs text-muted-foreground">
+                  Activated: {new Date(dashboardStats.member.activatedAt).toLocaleDateString()}
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -368,14 +434,18 @@ export default function EnhancedDashboard() {
               <span className="text-sm text-muted-foreground">Total BCC</span>
               <span className="text-xl font-bold text-honey">{dashboardStats.balance.totalBcc}</span>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               <div className="text-center">
-                <div className="text-lg font-semibold text-green-400">{dashboardStats.balance.transferableBcc}</div>
+                <div className="text-sm font-semibold text-green-400">{dashboardStats.balance.transferableBcc}</div>
                 <div className="text-xs text-muted-foreground">Transferable</div>
               </div>
               <div className="text-center">
-                <div className="text-lg font-semibold text-orange-400">{dashboardStats.balance.lockedBcc}</div>
+                <div className="text-sm font-semibold text-orange-400">{dashboardStats.balance.lockedBcc}</div>
                 <div className="text-xs text-muted-foreground">Locked</div>
+              </div>
+              <div className="text-center">
+                <div className="text-sm font-semibold text-red-400">{dashboardStats.balance.restrictedBcc}</div>
+                <div className="text-xs text-muted-foreground">Restricted</div>
               </div>
             </div>
           </div>
@@ -418,6 +488,103 @@ export default function EnhancedDashboard() {
                 Network
               </Button>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 3x3 Matrix Visualization */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Network className="h-5 w-5 text-purple-400" />
+            3×3 Matrix Network
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {/* Matrix Statistics */}
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <div className="text-lg font-bold text-blue-400">{dashboardStats.matrix.directReferrals}</div>
+                <div className="text-xs text-muted-foreground">Direct Referrals</div>
+              </div>
+              <div>
+                <div className="text-lg font-bold text-green-400">{dashboardStats.matrix.totalTeamSize}</div>
+                <div className="text-xs text-muted-foreground">Total Team</div>
+              </div>
+              <div>
+                <div className="text-lg font-bold text-purple-400">{dashboardStats.matrix.maxLayer}</div>
+                <div className="text-xs text-muted-foreground">Max Layer</div>
+              </div>
+            </div>
+
+            {/* Matrix Layers Visualization */}
+            {dashboardStats.matrix.layers.map((layer, index) => (
+              <div key={layer.layer} className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-muted-foreground">
+                    Layer {layer.layer}
+                  </h4>
+                  <Badge variant="outline" className="text-xs">
+                    {layer.filledPositions}/{layer.totalPositions}
+                  </Badge>
+                </div>
+                
+                {/* Matrix Grid */}
+                <div className={`grid gap-2 ${
+                  layer.layer === 1 ? 'grid-cols-3' : 
+                  layer.layer === 2 ? 'grid-cols-3' : 
+                  'grid-cols-6'
+                }`}>
+                  {layer.positions.slice(0, layer.layer === 1 ? 3 : layer.layer === 2 ? 9 : 12).map((position) => (
+                    <div
+                      key={position.position}
+                      className={`
+                        aspect-square rounded-lg border-2 flex items-center justify-center text-xs
+                        ${position.memberWallet 
+                          ? 'border-green-400 bg-green-400/10 text-green-400' 
+                          : 'border-gray-500 bg-gray-500/10 text-gray-400'
+                        }
+                      `}
+                    >
+                      {position.memberWallet ? (
+                        <div className="text-center">
+                          <div className="font-mono text-xs">
+                            {position.memberWallet.slice(-4)}
+                          </div>
+                          {position.level && (
+                            <div className="text-xs opacity-60">
+                              L{position.level}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-center">
+                          <div className="text-xs opacity-60">
+                            {position.position}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {layer.layer === 3 && layer.positions.length > 12 && (
+                    <div className="col-span-6 text-center">
+                      <Badge variant="outline" className="text-xs">
+                        +{layer.positions.length - 12} more positions
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {dashboardStats.matrix.layers.length === 0 && (
+              <div className="text-center py-8">
+                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                <div className="text-muted-foreground">No matrix data yet</div>
+                <div className="text-xs text-muted-foreground">Start referring members to build your network</div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

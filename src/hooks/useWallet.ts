@@ -1,7 +1,7 @@
 import React from 'react';
 import { useWeb3 } from '../contexts/Web3Context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { authService, balanceService, activationService } from '../lib/supabaseClient';
+import { authService, balanceService, callEdgeFunction } from '../lib/supabaseClient';
 
 export function useWallet() {
   const { isConnected, walletAddress, isSupabaseAuthenticated } = useWeb3();
@@ -31,20 +31,28 @@ export function useWallet() {
           };
         }
 
-        // Check if user is an activated member
-        const { isActivated } = await authService.isActivatedMember(walletAddress!);
+        // Check if user is an activated member and get membership info
+        const { isActivated, memberData } = await authService.isActivatedMember(walletAddress!);
         
         // Get user data
-        const userData = await authService.getUserData(walletAddress!);
+        const { data: userData } = await authService.getUser(walletAddress!);
+        
+        // Get the correct membership level from members table
+        let membershipLevel = 0;
+        if (isActivated && memberData) {
+          membershipLevel = memberData.current_level || 1;
+          console.log('📊 Member level from members table:', membershipLevel);
+        }
         
         const userStatus = {
           isRegistered: true,
           hasNFT: isActivated,
           isActivated,
           isMember: isActivated,
-          membershipLevel: isActivated ? 1 : 0, // Assume Level 1 if activated
+          membershipLevel,
           userFlow: isActivated ? 'dashboard' : 'claim_nft',
-          user: userData
+          user: userData,
+          memberData // Include member data for additional info
         };
         
         console.log('📊 User status (Direct Supabase):', userStatus.userFlow, userStatus);
@@ -94,14 +102,15 @@ export function useWallet() {
     },
   });
 
-  // Activate membership using new Supabase services
+  // Activate membership using Supabase Edge Function
   const activateMembershipMutation = useMutation({
     mutationFn: async (data: { level: number; txHash?: string }) => {
-      const result = await activationService.processMembershipActivation(
-        walletAddress!,
-        data.level,
-        data.txHash || ''
-      );
+      const result = await callEdgeFunction('activate-membership', {
+        transactionHash: data.txHash,
+        level: data.level,
+        paymentMethod: 'nft_claim',
+        paymentAmount: data.level === 1 ? 130 : data.level * 50 + 50
+      }, walletAddress!);
       return result;
     },
     onSuccess: () => {
@@ -115,7 +124,7 @@ export function useWallet() {
     queryKey: ['user-balances', walletAddress],
     enabled: !!walletAddress && isConnected && userStatus?.isRegistered,
     queryFn: async () => {
-      const balances = await balanceService.getUserBalances(walletAddress!);
+      const balances = await balanceService.getUserBalance(walletAddress!);
       return balances;
     },
   });

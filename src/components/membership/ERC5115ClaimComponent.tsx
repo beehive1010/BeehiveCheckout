@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useActiveAccount } from 'thirdweb/react';
-import { getContract, prepareContractCall, sendTransaction } from 'thirdweb';
+import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from 'thirdweb';
 import { arbitrumSepolia } from 'thirdweb/chains';
 import { createThirdwebClient } from 'thirdweb';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { useToast } from '../../hooks/use-toast';
-import { Loader2, Zap, Crown, Gift, Coins } from 'lucide-react';
+import { Loader2, Zap, Crown, Gift, Coins, Clock } from 'lucide-react';
 
 interface ERC5115ClaimComponentProps {
   onSuccess?: () => void;
@@ -19,6 +19,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
   const account = useActiveAccount();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [currentStep, setCurrentStep] = useState<string>('');
 
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
   const PAYMENT_TOKEN_CONTRACT = "0x4470734620414168Aa1673A30849DB25E5886E2A";
@@ -166,8 +167,15 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
 
       console.log('✅ Token approval transaction:', approveTxResult.transactionHash);
 
-      // Wait a moment for approval to be confirmed
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Wait for approval transaction to be confirmed
+      setCurrentStep('等待代币授权确认...');
+      const approvalReceipt = await waitForReceipt({
+        client,
+        chain: arbitrumSepolia,
+        transactionHash: approveTxResult.transactionHash,
+      });
+      
+      console.log('✅ Token approval confirmed:', approvalReceipt.status);
 
       // Verify allowance was set correctly
       console.log('🔍 Verifying allowance...');
@@ -193,6 +201,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
 
       // Claim NFT using token payment
       console.log('🎁 Claiming NFT with token payment...');
+      setCurrentStep('正在铸造NFT...');
       
       // Prepare allowlist proof (empty for public claims)
       const allowlistProof = {
@@ -223,6 +232,16 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
           account
         });
         console.log('🎉 NFT claim transaction:', claimTxResult.transactionHash);
+
+        // Wait for NFT claim transaction to be confirmed
+        setCurrentStep('等待NFT铸造确认...');
+        const claimReceipt = await waitForReceipt({
+          client,
+          chain: arbitrumSepolia,
+          transactionHash: claimTxResult.transactionHash,
+        });
+        
+        console.log('✅ NFT claim confirmed:', claimReceipt.status);
       } catch (claimError) {
         console.error('❌ NFT claim failed:', claimError);
         
@@ -279,33 +298,56 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         console.warn('⚠️ Backend processing error but continuing:', backendError);
       }
 
-      // Step 4: 安全激活会员身份（使用专用函数验证NFT claim）
-      console.log('🚀 安全激活会员身份...');
-      try {
-        const activateResponse = await fetch(`${API_BASE}/activate-membership`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-wallet-address': account.address
-          },
-          body: JSON.stringify({
-            transactionHash: claimTxResult.transactionHash,
-            level: 1,
-            paymentMethod: 'token_payment',
-            paymentAmount: 130
-          })
-        });
+      // Step 4: 等待区块链确认并安全激活会员身份
+      console.log('🚀 等待区块链确认并激活会员身份...');
+      setCurrentStep('等待区块链确认...');
+      
+      // 等待额外的确认时间以确保交易被完全确认
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      
+      let membershipActivationAttempts = 0;
+      const maxAttempts = 5;
+      
+      while (membershipActivationAttempts < maxAttempts && !membershipActivated) {
+        membershipActivationAttempts++;
+        console.log(`🔄 会员激活尝试 ${membershipActivationAttempts}/${maxAttempts}...`);
+        setCurrentStep(`验证交易并激活会员 (${membershipActivationAttempts}/${maxAttempts})...`);
+        
+        try {
+          const activateResponse = await fetch(`${API_BASE}/activate-membership`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-wallet-address': account.address
+            },
+            body: JSON.stringify({
+              transactionHash: claimTxResult.transactionHash,
+              level: 1,
+              paymentMethod: 'token_payment',
+              paymentAmount: 130
+            })
+          });
 
-        if (activateResponse.ok) {
-          const activateResult = await activateResponse.json();
-          console.log('✅ 安全会员激活结果:', activateResult);
-          membershipActivated = activateResult.success;
-        } else {
-          const errorText = await activateResponse.text();
-          console.warn('⚠️ 会员激活失败:', errorText);
+          if (activateResponse.ok) {
+            const activateResult = await activateResponse.json();
+            console.log('✅ 会员激活结果:', activateResult);
+            membershipActivated = activateResult.success;
+            if (membershipActivated) {
+              break; // 激活成功，退出循环
+            }
+          } else {
+            const errorText = await activateResponse.text();
+            console.warn(`⚠️ 会员激活失败 (尝试${membershipActivationAttempts}):`, errorText);
+          }
+        } catch (activationError) {
+          console.warn(`⚠️ 会员激活错误 (尝试${membershipActivationAttempts}):`, activationError);
         }
-      } catch (activationError) {
-        console.warn('⚠️ 会员激活错误:', activationError);
+        
+        // 如果没有激活成功且还有重试次数，等待再试
+        if (!membershipActivated && membershipActivationAttempts < maxAttempts) {
+          console.log('⏳ 等待10秒后重试激活...');
+          await new Promise(resolve => setTimeout(resolve, 10000));
+        }
       }
 
       // Show success message if NFT was claimed successfully
@@ -445,8 +487,12 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
           >
             {isProcessing ? (
               <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Claiming NFT...
+                {currentStep.includes('等待') ? (
+                  <Clock className="mr-2 h-5 w-5 animate-pulse" />
+                ) : (
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                )}
+                {currentStep || 'Processing...'}
               </>
             ) : (
               <>
@@ -455,6 +501,23 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
               </>
             )}
           </Button>
+          
+          {/* Progress indicator */}
+          {isProcessing && currentStep && (
+            <div className="mt-3 p-3 bg-muted/50 rounded-lg border border-border/50">
+              <div className="flex items-center gap-2 text-sm">
+                {currentStep.includes('等待') || currentStep.includes('确认') ? (
+                  <Clock className="h-4 w-4 text-blue-400 animate-pulse" />
+                ) : (
+                  <Loader2 className="h-4 w-4 text-honey animate-spin" />
+                )}
+                <span className="text-muted-foreground">{currentStep}</span>
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                ⚠️ 请勿关闭页面或断开钱包连接
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Additional Information */}

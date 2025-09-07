@@ -7,11 +7,14 @@ import { useWallet } from '../../hooks/useWallet';
 import { useI18n } from '../../contexts/I18nContext';
 import { useLocation } from 'wouter';
 import { ERC5115ClaimComponent } from '../membership/ERC5115ClaimComponent';
+import { authService } from '../../lib/supabaseClient';
 
 interface WelcomeState {
   showClaimComponent: boolean;
   userLevel: number;
   isActivated: boolean;
+  hasOnChainNFT: boolean;
+  needsSync: boolean;
 }
 
 export default function WelcomePage() {
@@ -25,7 +28,12 @@ export default function WelcomePage() {
     showClaimComponent: true,
     userLevel: 0,
     isActivated: false,
+    hasOnChainNFT: false,
+    needsSync: false,
   });
+  
+  const [isCheckingChain, setIsCheckingChain] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     if (walletAddress) {
@@ -38,7 +46,7 @@ export default function WelcomePage() {
 
     setIsLoading(true);
     try {
-      // Check user status via Edge Function - simplified to use only users table
+      // Check user status via Edge Function
       const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/auth', {
         method: 'POST',
         headers: {
@@ -57,14 +65,45 @@ export default function WelcomePage() {
       const userResult = await response.json();
       
       if (userResult.success && userResult.user) {
-        setWelcomeState({
-          showClaimComponent: !userResult.user.is_activated,
-          userLevel: userResult.user.current_level || 0,
-          isActivated: userResult.user.is_activated || false,
-        });
+        // Additional check: verify membership activation from members table using Supabase client
+        let isActivated = false;
+        let currentLevel = 0;
         
-        // If user is already activated, redirect to dashboard
-        if (userResult.user.is_activated) {
+        try {
+          console.log('🔍 Checking membership activation in members table...');
+          
+          // Use authService to check if user is an activated member
+          const { isActivated: memberActivated, memberData } = await authService.isActivatedMember(walletAddress);
+          
+          if (memberActivated && memberData) {
+            isActivated = true;
+            currentLevel = memberData.current_level || 1;
+            console.log('✅ User is activated member:', { isActivated, currentLevel, memberData });
+          } else {
+            console.log('📋 User not found in members table or not activated');
+            isActivated = false;
+            currentLevel = 0;
+          }
+        } catch (memberError) {
+          console.warn('⚠️ Member status check failed, using user data:', memberError);
+          // Fallback to user data if member check fails
+          isActivated = userResult.user.is_activated || false;
+          currentLevel = userResult.user.current_level || 0;
+        }
+
+        // 检查链上NFT状态
+        if (!isActivated) {
+          await checkOnChainNFT();
+        } else {
+          setWelcomeState({
+            showClaimComponent: false,
+            userLevel: currentLevel,
+            isActivated: true,
+            hasOnChainNFT: true,
+            needsSync: false,
+          });
+          
+          console.log('✅ User is activated, redirecting to dashboard');
           setLocation('/dashboard');
         }
       }
@@ -81,26 +120,107 @@ export default function WelcomePage() {
     }
   };
 
-  const handleClaimSuccess = () => {
-    toast({
-      title: t('welcome.claimSuccessful') || 'NFT Claimed Successfully!',
-      description: t('welcome.redirectingToDashboard') || 'Redirecting to dashboard...',
-      duration: 3000,
-    });
-    
-    // Redirect to dashboard after successful claim
-    setTimeout(() => {
-      setLocation('/dashboard');
-    }, 2000);
+  // 检查链上NFT状态
+  const checkOnChainNFT = async () => {
+    if (!walletAddress) return;
+
+    setIsCheckingChain(true);
+    try {
+      console.log('🔍 检查链上NFT状态...');
+      
+      // 使用Supabase客户端调用激活函数
+      const { callEdgeFunction } = await import('../../lib/supabaseClient');
+      
+      const result = await callEdgeFunction('activate-membership', {
+        level: 1,
+        transactionHash: 'check_existing' // 特殊标识，表示只检查不验证交易
+      }, walletAddress);
+      
+      if (result.success) {
+        if (result.action === 'already_synced') {
+          // 数据库已有记录且已激活
+          setWelcomeState({
+            showClaimComponent: false,
+            userLevel: result.member.current_level,
+            isActivated: true,
+            hasOnChainNFT: true,
+            needsSync: false,
+          });
+          setLocation('/dashboard');
+        } else if (result.action === 'synced_from_chain') {
+          // 从链上同步了记录
+          toast({
+            title: '✅ 检测到已拥有NFT',
+            description: '已自动同步会员身份，正在跳转...',
+            duration: 3000,
+          });
+          
+          setWelcomeState({
+            showClaimComponent: false,
+            userLevel: result.level,
+            isActivated: true,
+            hasOnChainNFT: true,
+            needsSync: false,
+          });
+          
+          setTimeout(() => setLocation('/dashboard'), 2000);
+        }
+      } else {
+        // 链上没有NFT，显示claim组件
+        setWelcomeState({
+          showClaimComponent: true,
+          userLevel: 0,
+          isActivated: false,
+          hasOnChainNFT: false,
+          needsSync: false,
+        });
+      }
+    } catch (error) {
+      console.error('检查链上NFT错误:', error);
+      // 出错时默认显示claim组件
+      setWelcomeState({
+        showClaimComponent: true,
+        userLevel: 0,
+        isActivated: false,
+        hasOnChainNFT: false,
+        needsSync: false,
+      });
+    } finally {
+      setIsCheckingChain(false);
+    }
   };
 
-  if (isLoading) {
+  const handleClaimSuccess = async () => {
+    toast({
+      title: t('welcome.claimSuccessful') || 'NFT Claimed Successfully!',
+      description: t('welcome.activatingMembership') || 'Activating membership...',
+      duration: 4000,
+    });
+    
+    // Wait a moment for backend processing to complete
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Refresh user status to check if activation was successful
+    await checkUserStatus();
+    
+    // Additional redirect as fallback (if checkUserStatus doesn't redirect)
+    setTimeout(() => {
+      setLocation('/dashboard');
+    }, 1000);
+  };
+
+  if (isLoading || isCheckingChain) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Card className="max-w-md mx-auto">
           <CardContent className="pt-6 text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-honey" />
-            <p className="text-honey">{t('welcome.checkingStatus') || 'Checking status...'}</p>
+            <p className="text-honey">
+              {isCheckingChain 
+                ? '🔍 检查链上NFT状态...' 
+                : (t('welcome.checkingStatus') || 'Checking status...')
+              }
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -243,6 +363,39 @@ export default function WelcomePage() {
             <p className="text-sm text-muted-foreground">
               Redirecting to dashboard...
             </p>
+          </CardContent>
+        </Card>
+      )}
+      
+      {/* Has On-Chain NFT but needs database sync */}
+      {welcomeState.hasOnChainNFT && welcomeState.needsSync && (
+        <Card className="border-blue-500/30 bg-blue-500/5">
+          <CardContent className="pt-6 text-center">
+            <div className="flex justify-center mb-4">
+              <div className="bg-blue-500/10 p-3 rounded-full">
+                <Sparkles className="h-8 w-8 text-blue-500" />
+              </div>
+            </div>
+            <h3 className="text-xl font-bold text-blue-500 mb-2">
+              🔍 NFT已检测到！
+            </h3>
+            <p className="text-muted-foreground mb-4">
+              您在链上已拥有Level 1 NFT，但数据库缺少会员记录。
+            </p>
+            <button
+              onClick={() => checkOnChainNFT()}
+              disabled={isSyncing}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg disabled:opacity-50"
+            >
+              {isSyncing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin inline mr-2" />
+                  同步中...
+                </>
+              ) : (
+                '🔄 同步会员身份'
+              )}
+            </button>
           </CardContent>
         </Card>
       )}
