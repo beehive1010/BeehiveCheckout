@@ -281,123 +281,48 @@ export const matrixService = {
     }, memberWallet);
   },
 
-  // Find available placement position in matrix
-  // This analyzes the current matrix structure to determine where new member should go
+  // Find available placement position in matrix using Edge Function
   async findAvailablePlacement(rootWallet: string, newMemberWallet: string) {
-    // Get current matrix structure for analysis
-    const { data: matrixData, error: matrixError } = await this.getReferrals(rootWallet);
-    if (matrixError) return { error: matrixError };
-
-    // Analyze matrix to find first incomplete position using L→M→R priority
-    return this.analyzeMatrixForPlacement(matrixData || [], rootWallet);
+    return callEdgeFunction('matrix', {
+      action: 'find-optimal-position',
+      rootWallet,
+      memberWallet: newMemberWallet
+    }, newMemberWallet);
   },
 
-  // Analyze matrix structure to find optimal placement
-  // Implements L→M→R priority: Left → Middle → Right positions
-  analyzeMatrixForPlacement(matrixData: any[], rootWallet: string) {
-    // Build matrix tree structure
-    const matrixTree = this.buildMatrixTree(matrixData);
-    
-    // Find first incomplete position using breadth-first search with L→M→R priority
-    const placement = this.findFirstIncompletePosition(matrixTree, rootWallet);
-    
-    return { data: placement, error: null };
+  // Get matrix tree structure using Edge Function
+  async getMatrixTree(rootWallet: string, layer?: number) {
+    return callEdgeFunction('matrix', {
+      action: 'get-matrix',
+      rootWallet,
+      layer
+    }, rootWallet);
   },
 
-  // Build tree structure from referrals data
-  buildMatrixTree(referrals: any[]) {
-    const tree: Record<string, any> = {};
-    
-    // Group referrals by parent
-    referrals.forEach(referral => {
-      const parentWallet = referral.parent_wallet || referral.root_wallet;
-      if (!tree[parentWallet]) {
-        tree[parentWallet] = {
-          L: null, M: null, R: null,
-          children: []
-        };
-      }
-      
-      tree[parentWallet][referral.position] = referral;
-      tree[parentWallet].children.push(referral);
-    });
-    
-    return tree;
+  // Get downline members using Edge Function
+  async getDownline(walletAddress: string, layer?: number, limit = 50, offset = 0) {
+    return callEdgeFunction('matrix', {
+      action: 'get-downline',
+      layer,
+      limit,
+      offset
+    }, walletAddress);
   },
 
-  // Find first incomplete position using L→M→R priority
-  findFirstIncompletePosition(matrixTree: Record<string, any>, rootWallet: string) {
-    // Start with root wallet
-    const queue = [rootWallet];
-    
-    while (queue.length > 0) {
-      const currentWallet = queue.shift()!;
-      const node = matrixTree[currentWallet];
-      
-      if (!node) {
-        // This wallet has no children yet, can place in L position
-        return {
-          parentWallet: currentWallet,
-          position: 'L',
-          layer: 1
-        };
-      }
-      
-      // Check L→M→R priority
-      if (!node.L) {
-        return {
-          parentWallet: currentWallet,
-          position: 'L',
-          layer: this.calculateLayer(matrixTree, currentWallet, rootWallet) + 1
-        };
-      }
-      if (!node.M) {
-        return {
-          parentWallet: currentWallet,
-          position: 'M',
-          layer: this.calculateLayer(matrixTree, currentWallet, rootWallet) + 1
-        };
-      }
-      if (!node.R) {
-        return {
-          parentWallet: currentWallet,
-          position: 'R',
-          layer: this.calculateLayer(matrixTree, currentWallet, rootWallet) + 1
-        };
-      }
-      
-      // All positions filled, add children to queue for next layer
-      queue.push(node.L.member_wallet, node.M.member_wallet, node.R.member_wallet);
-    }
-    
-    return null; // Matrix is full (shouldn't happen in practice)
+  // Get upline chain using Edge Function  
+  async getUpline(walletAddress: string) {
+    return callEdgeFunction('matrix', {
+      action: 'get-upline'
+    }, walletAddress);
   },
 
-  // Calculate layer depth for a wallet in the matrix
-  calculateLayer(matrixTree: Record<string, any>, walletAddress: string, rootWallet: string) {
-    if (walletAddress === rootWallet) return 0;
-    
-    // Find this wallet in the matrix and calculate its depth
-    const findDepth = (wallet: string, depth: number): number => {
-      const node = matrixTree[wallet];
-      if (!node) return -1;
-      
-      for (const child of node.children) {
-        if (child.member_wallet === walletAddress) {
-          return depth + 1;
-        }
-      }
-      
-      // Recursively search children
-      for (const child of node.children) {
-        const childDepth = findDepth(child.member_wallet, depth + 1);
-        if (childDepth !== -1) return childDepth;
-      }
-      
-      return -1;
-    };
-    
-    return findDepth(rootWallet, 0);
+  // Process spillover using Edge Function
+  async processSpillover(rootWallet: string, triggerLayer: number) {
+    return callEdgeFunction('matrix', {
+      action: 'process-spillover',
+      rootWallet,
+      triggerLayer
+    }, rootWallet);
   },
 
   // Get referrals for a root wallet
@@ -538,7 +463,7 @@ export const balanceService = {
 
 // === ACTIVATION PROCESSING ===
 export const activationService = {
-  // Complete member activation with matrix placement
+  // Complete member activation using database function
   async completeMemberActivation(walletAddress: string, activationData: {
     transactionHash: string;
     nftLevel: number;
@@ -546,71 +471,47 @@ export const activationService = {
     paymentAmountUsdc: number;
     referrerWallet?: string;
   }) {
-    try {
-      // Step 1: Complete NFT upgrade
-      const nftResult = await nftService.processNFTUpgrade(walletAddress, {
-        level: activationData.nftLevel,
-        transactionHash: activationData.transactionHash,
-        payment_method: activationData.paymentMethod,
-        payment_amount_usdc: activationData.paymentAmountUsdc,
-      });
+    // Use the comprehensive activation function that handles NFT, member creation, matrix placement, and rewards
+    const { data, error } = await supabase.rpc('activate_member_with_nft_claim', {
+      p_wallet_address: walletAddress,
+      p_transaction_hash: activationData.transactionHash,
+      p_payment_method: activationData.paymentMethod,
+      p_nft_type: `level_${activationData.nftLevel}`
+    });
 
-      if (nftResult.error) {
-        throw new Error(`NFT upgrade failed: ${nftResult.error.message}`);
-      }
-
-      // Step 2: Activate member in members table (using database function)
-      const memberResult = await supabase.rpc('create_member_with_pending', {
-        p_wallet_address: walletAddress,
-        p_use_pending: false
-      });
-
-      if (memberResult.error) {
-        throw new Error(`Member activation failed: ${memberResult.error.message}`);
-      }
-
-      // Step 3: Place member in matrix if they have a referrer
-      if (activationData.referrerWallet) {
-        const placementResult = await matrixService.placeMemberInMatrix(
-          walletAddress,
-          activationData.referrerWallet,
-          activationData.referrerWallet,
-          'direct'
-        );
-
-        if (placementResult.error) {
-          console.error('Matrix placement failed:', placementResult.error);
-          // Continue with activation even if matrix placement fails
-        }
-      }
-
-      // Step 4: Process activation rewards
-      await this.processActivationRewards(walletAddress, activationData.nftLevel);
-
-      return {
-        data: {
-          nftUpgrade: nftResult.data,
-          memberActivation: memberResult.data,
-          message: 'Member activation completed successfully'
-        },
-        error: null
-      };
-
-    } catch (error) {
-      console.error('Activation error:', error);
-      return {
-        data: null,
-        error: error instanceof Error ? error : new Error('Unknown activation error')
-      };
-    }
+    return { data, error };
   },
 
-  // Process all activation rewards using database function
+  // Process NFT upgrade using Edge Function
+  async processNFTUpgrade(walletAddress: string, upgradeData: {
+    level: number;
+    transactionHash: string;
+    payment_method: string;
+    payment_amount_usdc: number;
+    network?: string;
+  }) {
+    return callEdgeFunction('nft-upgrades', {
+      action: 'upgrade-level',
+      ...upgradeData,
+      wallet_address: walletAddress
+    }, walletAddress);
+  },
+
+  // Process activation rewards using database function
   async processActivationRewards(walletAddress: string, nftLevel: number) {
     const { data, error } = await supabase.rpc('process_activation_rewards', {
       p_new_member_wallet: walletAddress,
       p_activation_level: nftLevel,
       p_tx_hash: `activation_${walletAddress}_${Date.now()}`
+    });
+
+    return { data, error };
+  },
+
+  // Activate member with tier rewards using database function
+  async activateMemberWithTierRewards(walletAddress: string) {
+    const { data, error } = await supabase.rpc('activate_member_with_tier_rewards', {
+      p_wallet_address: walletAddress
     });
 
     return { data, error };
