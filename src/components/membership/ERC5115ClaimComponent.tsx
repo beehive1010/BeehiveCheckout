@@ -135,17 +135,69 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         console.warn('⚠️ Could not verify allowance:', allowanceError);
       }
 
-      // Check if already minted
+      // Check if already minted - CRITICAL CHECK
       console.log('🔍 Checking if already minted...');
       try {
-        const hasMintedCheck = prepareContractCall({
-          contract: nftContract,
-          method: "function hasMinted(address) view returns (bool)",
-          params: [account.address]
+        // First, let's get the contract state via Thirdweb API
+        const contractStateCheck = await fetch(`https://api.thirdweb.com/v1/chains/421614/contracts/${NFT_CONTRACT}/read?functionName=hasMinted&args=${account.address}`, {
+          headers: { 'x-client-id': THIRDWEB_CLIENT_ID }
         });
-        console.log(`📋 Checking hasMinted for: ${account.address}`);
+        
+        if (contractStateCheck.ok) {
+          const stateData = await contractStateCheck.json();
+          console.log(`📋 hasMinted(${account.address}):`, stateData);
+          
+          if (stateData.result === true || stateData.result === "true") {
+            throw new Error(`❌ ALREADY MINTED: Wallet ${account.address} has already claimed the Level 1 NFT. You cannot mint twice. Use a different wallet that hasn't minted yet.`);
+          } else {
+            console.log(`✅ Wallet has NOT minted yet - can proceed`);
+          }
+        } else {
+          console.warn('⚠️ Could not verify minted status via API');
+        }
       } catch (mintedError) {
-        console.warn('⚠️ Could not check minted status:', mintedError);
+        console.warn('⚠️ Error checking minted status:', mintedError);
+        // If this check itself fails, we'll continue and let the transaction tell us
+      }
+      
+      // Additional check: Verify contract configuration
+      console.log('🔍 Checking contract configuration...');
+      try {
+        const configChecks = await Promise.all([
+          fetch(`https://api.thirdweb.com/v1/chains/421614/contracts/${NFT_CONTRACT}/read?functionName=paymentToken`, {
+            headers: { 'x-client-id': THIRDWEB_CLIENT_ID }
+          }),
+          fetch(`https://api.thirdweb.com/v1/chains/421614/contracts/${NFT_CONTRACT}/read?functionName=treasury`, {
+            headers: { 'x-client-id': THIRDWEB_CLIENT_ID }
+          }),
+          fetch(`https://api.thirdweb.com/v1/chains/421614/contracts/${NFT_CONTRACT}/read?functionName=platform`, {
+            headers: { 'x-client-id': THIRDWEB_CLIENT_ID }
+          })
+        ]);
+        
+        const [tokenResult, treasuryResult, platformResult] = await Promise.all(
+          configChecks.map(response => response.ok ? response.json() : null)
+        );
+        
+        console.log('📋 Contract Config:');
+        console.log('  - paymentToken:', tokenResult?.result || 'FAILED TO READ');
+        console.log('  - treasury:', treasuryResult?.result || 'FAILED TO READ');  
+        console.log('  - platform:', platformResult?.result || 'FAILED TO READ');
+        
+        // Check if any are zero address
+        const zeroAddress = '0x0000000000000000000000000000000000000000';
+        if (tokenResult?.result === zeroAddress) {
+          throw new Error('❌ CONTRACT ERROR: Payment token not set (zero address)');
+        }
+        if (treasuryResult?.result === zeroAddress) {
+          throw new Error('❌ CONTRACT ERROR: Treasury address not set (zero address)');  
+        }
+        if (platformResult?.result === zeroAddress) {
+          throw new Error('❌ CONTRACT ERROR: Platform address not set (zero address)');
+        }
+        
+      } catch (configError) {
+        console.warn('⚠️ Could not verify contract configuration:', configError);
       }
 
       // Claim NFT using token payment
