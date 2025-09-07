@@ -23,7 +23,7 @@ export default defineConfig({
   server: {
     port: 5000,
     host: '0.0.0.0',
-    allowedHosts: ['beehive-lifestyle.io', 'localhost', '127.0.0.1'],
+    allowedHosts: ['beehive-lifestyle.io', 'localhost', '127.0.0.1', '4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev'],
     fs: {
       strict: false,
     },
@@ -31,7 +31,7 @@ export default defineConfig({
   preview: {
     port: 5000,
     host: '0.0.0.0',
-    allowedHosts: ['beehive-lifestyle.io', 'localhost', '127.0.0.1'],
+    allowedHosts: ['beehive-lifestyle.io', 'localhost', '127.0.0.1', '4139eeea-d90b-4ec5-966b-3edf2bc885fb-00-1oakfb5dzsx1z.janeway.replit.dev'],
     strictPort: true,
   },
   define: {
