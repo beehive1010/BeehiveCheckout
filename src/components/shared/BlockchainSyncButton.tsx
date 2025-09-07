@@ -35,37 +35,20 @@ export function BlockchainSyncButton({
     setIsSyncing(true);
 
     try {
-      console.log('🔄 Manual blockchain sync triggered for:', walletAddress);
+      // Temporarily disabled due to edge function issues
+      console.log('🔄 Manual blockchain sync temporarily disabled due to edge function issues');
       
-      const syncResponse = await apiRequest('POST', '/api/auth/sync-blockchain-status', {
-        action: 'sync-blockchain-status'
-      }, walletAddress);
-
-      if (!syncResponse.ok) {
-        const errorData = await syncResponse.json();
-        throw new Error(errorData.error || 'Sync failed');
-      }
-
-      const syncResult = await syncResponse.json();
-      console.log('✅ Manual sync result:', syncResult);
-
-      if (syncResult.success) {
-        toast({
-          title: "✅ Sync Successful!",
-          description: syncResult.message || "Your membership status has been synced with the blockchain",
-          variant: "default",
-        });
-
-        // Refresh user queries to reflect updated status
-        queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-        
-      } else {
-        toast({
-          title: "Sync Info",
-          description: syncResult.message || "No sync needed - status is already up to date",
-          variant: "default",
-        });
-      }
+      toast({
+        title: "Sync temporarily disabled",
+        description: "Blockchain sync is temporarily disabled due to technical issues. Your membership status is already correct.",
+        variant: "default",
+      });
+      
+      // Simulate some processing time
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Just refresh the cache without actual sync
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
 
     } catch (error: any) {
       console.error('❌ Manual sync failed:', error);

@@ -22,26 +22,27 @@ export function useWallet() {
         
         // Auto-sync blockchain status if user is registered but not activated
         // BUT skip auto-sync if user is in claim_nft flow (they need to manually claim)
+        // TEMPORARILY DISABLED - sync function has issues
         if (userStatus.isRegistered && !userStatus.isMember && userStatus.userFlow !== 'claim_nft') {
-          console.log('🔄 User registered but not activated - attempting blockchain sync');
-          try {
-            const syncResponse = await apiRequest('POST', '/api/auth/sync-blockchain-status', {
-              action: 'sync-blockchain-status'
-            }, walletAddress!);
-            if (syncResponse.ok) {
-              const syncResult = await syncResponse.json();
-              console.log('✅ Blockchain sync result:', syncResult);
-              // Refetch user status after sync
-              if (syncResult.success) {
-                const refreshResponse = await apiRequest('GET', '/api/auth/user', { t: Date.now() }, walletAddress!);
-                const refreshedStatus = await refreshResponse.json();
-                console.log('🔄 Refreshed user status after sync:', refreshedStatus);
-                return refreshedStatus;
-              }
-            }
-          } catch (syncError) {
-            console.warn('⚠️ Auto-sync failed (non-critical):', syncError);
-          }
+          console.log('🔄 Auto-sync temporarily disabled due to edge function issues');
+          // try {
+          //   const syncResponse = await apiRequest('POST', '/api/auth/sync-blockchain-status', {
+          //     action: 'sync-blockchain-status'
+          //   }, walletAddress!);
+          //   if (syncResponse.ok) {
+          //     const syncResult = await syncResponse.json();
+          //     console.log('✅ Blockchain sync result:', syncResult);
+          //     // Refetch user status after sync
+          //     if (syncResult.success) {
+          //       const refreshResponse = await apiRequest('GET', '/api/auth/user', { t: Date.now() }, walletAddress!);
+          //       const refreshedStatus = await refreshResponse.json();
+          //       console.log('🔄 Refreshed user status after sync:', refreshedStatus);
+          //       return refreshedStatus;
+          //     }
+          //   }
+          // } catch (syncError) {
+          //   console.warn('⚠️ Auto-sync failed (non-critical):', syncError);
+          // }
         }
         
         return userStatus;

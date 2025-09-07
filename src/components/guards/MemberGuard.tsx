@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useActiveAccount } from 'thirdweb/react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -52,6 +52,15 @@ export function MemberGuard({
     staleTime: 30000, // 30 seconds
     refetchInterval: 60000, // 1 minute
   });
+
+  // Handle redirects - this must be at top level to maintain hook order
+  useEffect(() => {
+    if (memberStatus && !memberStatus.isRegistered && redirectTo) {
+      setLocation(redirectTo);
+    } else if (memberStatus && memberStatus.isRegistered && !memberStatus.isMember) {
+      setLocation('/welcome');
+    }
+  }, [memberStatus, redirectTo, setLocation]);
 
   // Show loading state
   if (isLoading) {
@@ -165,18 +174,33 @@ export function MemberGuard({
     );
   }
 
-  // Handle insufficient membership level
-  if (!memberStatus?.isActivated || (memberStatus?.membershipLevel || 0) < requireLevel) {
+  // Handle insufficient membership level  
+  if (!memberStatus?.isMember || (memberStatus?.membershipLevel || 0) < requireLevel) {
     const currentLevel = memberStatus?.membershipLevel || 0;
     
     if (FallbackComponent) {
       return <FallbackComponent />;
     }
 
-    // Redirect to Welcome page for membership activation
-    if (!memberStatus?.isActivated) {
-      setLocation('/welcome');
-      return null;
+    // Show loading while redirect is happening for non-activated users  
+    if (memberStatus && !memberStatus.isMember) {
+      return (
+        <div className="min-h-[50vh] flex items-center justify-center">
+          <Card className="w-full max-w-md">
+            <CardContent className="pt-6">
+              <div className="flex flex-col items-center space-y-4">
+                <Loader2 className="h-8 w-8 animate-spin text-honey" />
+                <div className="text-center">
+                  <h3 className="font-medium text-honey">Redirecting...</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Taking you to membership activation
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      );
     }
 
     // Show level upgrade required
