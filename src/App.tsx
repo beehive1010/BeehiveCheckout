@@ -20,6 +20,7 @@ import Me from "@/pages/Me";
 import ProfileSettings from "@/pages/ProfileSettings";
 import NFTCenter from "@/pages/NFTCenter";
 import Referrals from "@/pages/Referrals";
+import Rewards from "@/pages/Rewards";
 import Discover from "@/pages/Discover";
 
 // Additional pages  
@@ -248,6 +249,7 @@ function Router() {
         <Route path="/education/:courseId" component={CourseDetails} />
         <Route path="/discover" component={Discover} />
         <Route path="/referrals" component={Referrals} />
+        <Route path="/rewards" component={Rewards} />
         <Route path="/me" component={Me} />
         <Route path="/me/profile-settings" component={ProfileSettings} />
         <Route path="/ads" component={AdvertisementNFTs} />
