@@ -134,9 +134,9 @@ export function CTASection() {
           <div className="text-center">
             <div className="relative inline-block group">
               {/* Multi-layer Button Glow */}
-              <div className="absolute -inset-4 bg-gradient-to-r from-honey via-yellow-400 to-amber-400 rounded-full blur-3xl opacity-40 group-hover:opacity-60 animate-pulse transition-all duration-500"></div>
-              <div className="absolute -inset-2 bg-gradient-to-r from-honey via-yellow-400 to-amber-400 rounded-full blur-2xl opacity-30 group-hover:opacity-50 animate-ping transition-all duration-300"></div>
-              <div className="absolute -inset-1 bg-gradient-to-r from-honey to-yellow-400 rounded-full opacity-20 group-hover:opacity-40 transition-all duration-300"></div>
+              <div className="absolute -inset-4 bg-gradient-to-r from-honey via-yellow-400 to-amber-400 rounded-full blur-3xl opacity-40 group-hover:opacity-60 group-active:opacity-80 animate-pulse transition-all duration-500"></div>
+              <div className="absolute -inset-2 bg-gradient-to-r from-honey via-yellow-400 to-amber-400 rounded-full blur-2xl opacity-30 group-hover:opacity-50 group-active:opacity-70 animate-ping transition-all duration-300"></div>
+              <div className="absolute -inset-1 bg-gradient-to-r from-honey to-yellow-400 rounded-full opacity-20 group-hover:opacity-40 group-active:opacity-60 transition-all duration-300"></div>
               
               <ConnectButton
                 client={client}
@@ -151,16 +151,41 @@ export function CTASection() {
                 }}
                 connectButton={{
                   label: `⚡ ${t('landing.cta.button')}`,
-                  className: "relative bg-gradient-to-r from-honey via-yellow-400 to-amber-400 text-black text-2xl md:text-3xl px-20 py-8 font-black rounded-full transform hover:scale-110 transition-all duration-500 shadow-2xl hover:shadow-honey/50 border-2 border-yellow-300/50 backdrop-blur-sm group overflow-hidden"
+                  className: `relative bg-gradient-to-r from-honey via-yellow-400 to-amber-400 text-black 
+                           text-lg sm:text-xl md:text-2xl lg:text-3xl 
+                           px-12 py-6 sm:px-16 sm:py-7 md:px-20 md:py-8 
+                           font-black rounded-full 
+                           transform hover:scale-110 active:scale-95 
+                           transition-all duration-500 ease-out
+                           shadow-2xl hover:shadow-honey/50 active:shadow-honey/70
+                           border-2 border-yellow-300/50 backdrop-blur-sm 
+                           group overflow-hidden
+                           min-h-[64px] sm:min-h-[72px] md:min-h-[80px] lg:min-h-[88px]
+                           touch-manipulation select-none
+                           w-full max-w-sm sm:max-w-md md:max-w-lg mx-auto`
                 }}
                 detailsButton={{
-                  className: "relative bg-gradient-to-r from-honey via-yellow-400 to-amber-400 text-black text-2xl md:text-3xl px-20 py-8 font-black rounded-full transform hover:scale-110 transition-all duration-500 shadow-2xl hover:shadow-honey/50 border-2 border-yellow-300/50 backdrop-blur-sm group overflow-hidden"
+                  className: `relative bg-gradient-to-r from-honey via-yellow-400 to-amber-400 text-black 
+                           text-lg sm:text-xl md:text-2xl lg:text-3xl 
+                           px-12 py-6 sm:px-16 sm:py-7 md:px-20 md:py-8 
+                           font-black rounded-full 
+                           transform hover:scale-110 active:scale-95 
+                           transition-all duration-500 ease-out
+                           shadow-2xl hover:shadow-honey/50 active:shadow-honey/70
+                           border-2 border-yellow-300/50 backdrop-blur-sm 
+                           group overflow-hidden
+                           min-h-[64px] sm:min-h-[72px] md:min-h-[80px] lg:min-h-[88px]
+                           touch-manipulation select-none
+                           w-full max-w-sm sm:max-w-md md:max-w-lg mx-auto`
                 }}
                 data-testid="button-cta-start"
               />
               
-              {/* Button Ripple Effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 rounded-full pointer-events-none"></div>
+              {/* Enhanced Button Ripple Effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full group-active:translate-x-full transition-transform duration-1000 ease-out rounded-full pointer-events-none"></div>
+              
+              {/* Mobile tap ripple effect */}
+              <div className="absolute inset-0 bg-white/20 rounded-full scale-0 group-active:scale-100 transition-transform duration-200 ease-out pointer-events-none"></div>
             </div>
             
             {/* Subtitle */}

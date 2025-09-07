@@ -147,19 +147,30 @@ export function HowItWorks() {
             ))}
           </div>
           
-          {/* Mobile Progress Dots */}
-          <div className="flex justify-center mt-12 lg:hidden gap-4">
+          {/* Enhanced Mobile Progress Dots */}
+          <div className="flex justify-center mt-12 lg:hidden gap-6">
             {steps.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setActiveStep(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                className={`relative w-6 h-6 rounded-full transition-all duration-300 ease-out 
+                         touch-manipulation select-none
+                         transform active:scale-90 hover:scale-110
+                         ${
                   activeStep === index
-                    ? 'bg-gradient-to-r from-honey to-yellow-400 scale-125'
-                    : 'bg-white/30 hover:bg-white/50'
+                    ? 'bg-gradient-to-r from-honey to-yellow-400 scale-125 shadow-lg shadow-honey/40'
+                    : 'bg-white/30 hover:bg-white/50 active:bg-white/60'
                 }`}
                 data-testid={`step-indicator-${index}`}
-              />
+              >
+                {/* Enhanced glow effect for active state */}
+                {activeStep === index && (
+                  <div className="absolute -inset-2 bg-honey/30 rounded-full blur-md animate-pulse"></div>
+                )}
+                
+                {/* Ripple effect for touch */}
+                <div className="absolute inset-0 bg-white/20 rounded-full scale-0 transition-transform duration-200 ease-out active:scale-150"></div>
+              </button>
             ))}
           </div>
         </div>

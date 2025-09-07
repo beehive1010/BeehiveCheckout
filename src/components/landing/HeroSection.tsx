@@ -103,11 +103,21 @@ export function HeroSection({ title, subtitle, getStartedText }: HeroSectionProp
         {/* Revolutionary CTA Button */}
         <div className="relative inline-block group mb-16">
           {/* Multi-layer Button Glow */}
-          <div className="absolute inset-0 bg-gradient-to-r from-honey via-yellow-400 to-amber-400 rounded-full blur-2xl opacity-40 animate-pulse group-hover:opacity-60 transition-opacity duration-300"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-honey via-yellow-400 to-amber-400 rounded-full blur-2xl opacity-40 animate-pulse group-hover:opacity-60 group-active:opacity-80 transition-opacity duration-300"></div>
           <div className="absolute inset-0 bg-gradient-to-r from-honey to-yellow-400 rounded-full blur-xl opacity-30 animate-ping"></div>
           
           <button
-            className="relative bg-gradient-to-r from-honey via-yellow-400 to-amber-400 text-black text-xl md:text-2xl px-16 py-6 font-bold rounded-full transform hover:scale-110 transition-all duration-500 shadow-2xl hover:shadow-honey/40 border-2 border-yellow-300/50 backdrop-blur-sm group overflow-hidden"
+            className="relative bg-gradient-to-r from-honey via-yellow-400 to-amber-400 text-black 
+                     text-lg sm:text-xl md:text-2xl 
+                     px-12 py-5 sm:px-16 sm:py-6 md:px-20 md:py-7 
+                     font-bold rounded-full 
+                     transform hover:scale-110 active:scale-95 
+                     transition-all duration-500 ease-out
+                     shadow-2xl hover:shadow-honey/40 active:shadow-honey/60
+                     border-2 border-yellow-300/50 backdrop-blur-sm 
+                     group overflow-hidden
+                     min-h-[60px] sm:min-h-[70px] md:min-h-[80px]
+                     touch-manipulation select-none"
             onClick={() => {
               document.querySelector('.features-section')?.scrollIntoView({ 
                 behavior: 'smooth' 
@@ -115,12 +125,16 @@ export function HeroSection({ title, subtitle, getStartedText }: HeroSectionProp
             }}
             data-testid="button-get-started"
           >
-            {/* Button ripple effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-            <span className="relative flex items-center gap-3">
-              <span className="text-2xl animate-bounce">🚀</span>
-              <span className="tracking-wide">{getStartedText}</span>
-              <span className="text-lg animate-pulse">⚡</span>
+            {/* Enhanced Button ripple effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 transform -skew-x-12 -translate-x-full group-hover:translate-x-full group-active:translate-x-full transition-transform duration-700 ease-out"></div>
+            
+            {/* Mobile tap ripple effect */}
+            <div className="absolute inset-0 bg-white/20 rounded-full scale-0 group-active:scale-100 transition-transform duration-200 ease-out"></div>
+            
+            <span className="relative flex items-center justify-center gap-2 sm:gap-3">
+              <span className="text-xl sm:text-2xl animate-bounce">🚀</span>
+              <span className="tracking-wide font-extrabold">{getStartedText}</span>
+              <span className="text-base sm:text-lg animate-pulse">⚡</span>
             </span>
           </button>
         </div>

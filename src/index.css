@@ -220,18 +220,115 @@
   background: var(--honey);
   color: var(--bee-black);
   font-weight: 600;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btn-honey:hover {
   background: var(--honey-dark);
   box-shadow: 0 0 15px hsl(43, 100%, 50%, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-honey:active {
+  transform: translateY(0px) scale(0.98);
+  box-shadow: 0 0 25px hsl(43, 100%, 50%, 0.5);
 }
 
 .btn-honey:disabled {
   background: var(--bee-light);
   color: var(--bee-light);
   cursor: not-allowed;
+  transform: none;
+}
+
+/* Enhanced mobile button animations */
+@media (max-width: 768px) {
+  .btn-honey {
+    min-height: 48px;
+    padding: 12px 24px;
+    font-size: 16px;
+  }
+  
+  .btn-honey:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+  }
+}
+
+/* Mobile-first button enhancements */
+button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Enhanced mobile touch feedback */
+@media (hover: none) and (pointer: coarse) {
+  button:active {
+    transform: scale(0.96);
+    transition: transform 0.1s ease;
+  }
+  
+  .group:active .group-hover\:scale-110 {
+    transform: scale(1.05);
+  }
+  
+  .group:active .group-hover\:opacity-60 {
+    opacity: 0.7;
+  }
+}
+
+/* Premium mobile animations */
+@keyframes mobile-glow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes mobile-ripple {
+  0% { transform: scale(0); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+/* Enhanced mobile interaction styles */
+@media (max-width: 768px) {
+  /* Improved touch targets */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Enhanced button press feedback */
+  .btn-premium:active {
+    transform: scale(0.95);
+    filter: brightness(1.1);
+    box-shadow: 0 0 20px rgba(255, 193, 7, 0.6);
+    transition: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  
+  /* Smooth scroll behavior for mobile */
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Enhanced tap highlight removal */
+  * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* Allow text selection where needed */
+  p, span, div[contenteditable] {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
 }
 
 /* Progress bar styles */
