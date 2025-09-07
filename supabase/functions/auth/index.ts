@@ -185,9 +185,9 @@ async function handleUserRegistration(supabase, walletAddress, data) {
     let validReferrerWallet = ROOT_WALLET // Default to root
     ;
     if (data.referrerWallet && data.referrerWallet !== ROOT_WALLET) {
-      // Check if referrer exists in members table (activated members only)
-      const { data: referrerMember } = await supabase.from('members').select('wallet_address, is_activated').eq('wallet_address', data.referrerWallet).single();
-      if (referrerMember && referrerMember.is_activated) {
+      // Check if referrer exists and is activated in users table
+      const { data: referrerUser } = await supabase.from('users').select('wallet_address, is_activated').eq('wallet_address', data.referrerWallet).single();
+      if (referrerUser && referrerUser.is_activated) {
         validReferrerWallet = data.referrerWallet;
         console.log(`✅ Valid active referrer: ${data.referrerWallet}`);
       } else {
@@ -222,6 +222,7 @@ async function handleUserRegistration(supabase, walletAddress, data) {
       username: username,
       email: data.email || null,
       current_level: 0,
+      is_activated: false,
       is_upgraded: false,
       upgrade_timer_enabled: false
     }).select().single();
@@ -290,8 +291,7 @@ async function handleGetUser(supabase, walletAddress) {
         username,
         email,
         current_level,
-        member_activated,
-        activation_at,
+        is_activated,
         created_at,
         updated_at
       `).eq('wallet_address', walletAddress).single();
@@ -327,16 +327,14 @@ async function handleGetUser(supabase, walletAddress) {
     }
     if (userError) throw userError;
     
-    const isMember = userData?.member_activated && !!memberData;
+    const isMember = userData?.is_activated && !!memberData;
     
     // Sanitize referrer wallet - don't expose root wallet to frontend
     const ROOT_WALLET = '0x0000000000000000000000000000000000000001';
     const sanitizedUserData = {
       ...userData,
       referrer_wallet: userData?.referrer_wallet === ROOT_WALLET ? null : userData?.referrer_wallet,
-      // Normalize field names for frontend compatibility
-      is_activated: userData?.member_activated,
-      activated_at: userData?.activation_at,
+      // Use is_activated field directly
       // Add member data if exists
       ...(memberData && {
         levels_owned: memberData.levels_owned,
