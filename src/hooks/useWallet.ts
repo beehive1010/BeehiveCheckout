@@ -109,7 +109,7 @@ export function useWallet() {
     queryKey: ['/api/balance/user'],
     enabled: !!walletAddress && isSupabaseAuthenticated && userStatus?.isRegistered,
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/balance/user', undefined, walletAddress!);
+      const response = await apiRequest('POST', '/api/balance/user', {}, walletAddress!);
       return response.json();
     },
   });

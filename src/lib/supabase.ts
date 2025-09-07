@@ -420,11 +420,22 @@ export class SupabaseApiClient {
     walletAddress?: string,
     requireAuth = true
   ): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/${functionName}`, {
-      method: 'POST',
-      headers: await this.getHeaders(walletAddress, requireAuth),
-      body: JSON.stringify(data)
-    })
+    // Extract HTTP method from data if provided
+    const httpMethod = data?._method || 'POST'
+    const requestData = { ...data }
+    delete requestData._method // Remove method from body data
+    
+    const fetchOptions: any = {
+      method: httpMethod,
+      headers: await this.getHeaders(walletAddress, requireAuth)
+    }
+    
+    // Only add body for POST/PUT requests
+    if (httpMethod === 'POST' || httpMethod === 'PUT') {
+      fetchOptions.body = JSON.stringify(requestData)
+    }
+    
+    const response = await fetch(`${this.baseUrl}/${functionName}`, fetchOptions)
 
     if (!response.ok) {
       const errorText = await response.text()

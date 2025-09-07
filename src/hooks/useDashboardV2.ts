@@ -60,7 +60,7 @@ export const useDashboardV2 = (walletAddress?: string) => {
       const [balanceSummary, matrixStats, rewardsStats, enhancedMatrix] = await Promise.all([
         balanceV2Client.getBalanceSummary(walletAddress),
         matrixV2Client.getMatrixStats(walletAddress),
-        rewardsV2Client.getRewardsStats(walletAddress),
+        rewardsV2Client.getRewardsStats(walletAddress).catch(() => null), // Optional until rewards API is fixed
         matrixV2Client.getEnhancedMatrixSummary(walletAddress).catch(() => null) // Optional
       ]);
 
@@ -88,12 +88,12 @@ export const useDashboardV2 = (walletAddress?: string) => {
           activationRate: enhancedMatrix?.performanceMetrics.activationRate || 0
         },
         rewards: {
-          totalEarnings: rewardsStats.summary.totalEarnings,
-          claimableAmount: rewardsStats.summary.claimableAmount,
-          pendingAmount: rewardsStats.summary.pendingAmount,
-          claimedAmount: rewardsStats.summary.claimedAmount,
-          claimableCount: rewardsStats.counts.claimableRewards,
-          pendingCount: rewardsStats.counts.pendingRewards
+          totalEarnings: rewardsStats?.summary?.totalEarnings || 0,
+          claimableAmount: rewardsStats?.summary?.claimableAmount || 0,
+          pendingAmount: rewardsStats?.summary?.pendingAmount || 0,
+          claimedAmount: rewardsStats?.summary?.claimedAmount || 0,
+          claimableCount: rewardsStats?.counts?.claimableRewards || 0,
+          pendingCount: rewardsStats?.counts?.pendingRewards || 0
         },
         performance: {
           spilloverRate: enhancedMatrix?.performanceMetrics.spilloverRate || 0,

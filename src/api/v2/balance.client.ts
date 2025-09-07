@@ -111,7 +111,7 @@ export const balanceV2Client = {
    * Get complete balance breakdown
    */
   async getBalanceBreakdown(walletAddress: string): Promise<BalanceBreakdown> {
-    const response = await apiRequest('GET', '/api/v2/balance/breakdown', undefined, walletAddress);
+    const response = await apiRequest('POST', '/api/v2/balance/breakdown', {}, walletAddress);
     return response.json();
   },
 
@@ -119,7 +119,7 @@ export const balanceV2Client = {
    * Get simple balance summary (for dashboard)
    */
   async getBalanceSummary(walletAddress: string): Promise<BalanceSummary> {
-    const response = await apiRequest('GET', '/api/v2/balance/summary', undefined, walletAddress);
+    const response = await apiRequest('POST', '/api/v2/balance/summary', {}, walletAddress);
     return response.json();
   },
 
@@ -151,7 +151,7 @@ export const balanceV2Client = {
       hasMore: boolean;
     };
   }> {
-    const response = await apiRequest('GET', '/api/v2/balance/withdrawals', { limit }, walletAddress);
+    const response = await apiRequest('POST', '/api/v2/balance/withdrawals', { limit }, walletAddress);
     return response.json();
   },
 
@@ -222,7 +222,7 @@ export const balanceV2Client = {
    * Get global BCC pool statistics
    */
   async getGlobalBccPoolStats(): Promise<GlobalPoolStats> {
-    const response = await apiRequest('GET', '/api/v2/balance/global-pool');
+    const response = await apiRequest('POST', '/api/v2/balance/global-pool', {});
     return response.json();
   },
 
@@ -248,7 +248,7 @@ export const balanceV2Client = {
     const params: any = { limit };
     if (type) params.type = type;
     
-    const response = await apiRequest('GET', '/api/v2/balance/activity', params, walletAddress);
+    const response = await apiRequest('POST', '/api/v2/balance/activity', params, walletAddress);
     return response.json();
   }
 };

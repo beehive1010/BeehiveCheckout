@@ -26,7 +26,7 @@ function getWalletAddress(): string | null {
   }
 }
 
-// Enhanced API request helper using Supabase Edge Functions
+// Direct Supabase Edge Function caller
 export async function apiRequest(
   method: string,
   url: string,
@@ -36,247 +36,103 @@ export async function apiRequest(
   // Get wallet address from session storage
   const addressToUse = walletAddress || getWalletAddress();
   
-  // Map Express.js endpoints to deployed Supabase Edge Functions
-  // Based on deployed functions: admin, auth, balance, bcc-purchase, matrix, nft-upgrades, rewards, admin-cleanup
-  const endpointMap: Record<string, string> = {
-    // Auth functions
-    '/api/auth/register': 'auth',
-    '/api/auth/user': 'auth', 
-    '/api/auth/login': 'auth',
-    '/api/wallet/log-connection': 'auth',
-    
-    // Balance functions
-    '/api/balance/user': 'balance',
-    '/api/balance/initialize': 'balance',
-    '/api/balance/activate-level1': 'balance',
-    '/api/balance/withdraw-usdt': 'balance',
-    '/api/balance/withdrawals': 'balance',
-    '/api/dashboard/balances': 'balance',
-    '/api/wallet/withdraw-usdt': 'balance',
-    
-    // Matrix functions
-    '/api/dashboard/matrix': 'matrix',
-    '/api/dashboard/referrals': 'matrix',
-    '/api/matrix/stats': 'matrix',
-    '/api/matrix/upline': 'matrix',
-    '/api/matrix/downline': 'matrix',
-    '/api/matrix/place': 'matrix',
-    
-    // Dashboard functions
-    '/api/dashboard/activity': 'dashboard',
-    '/api/dashboard/data': 'dashboard', 
-    '/api/dashboard/stats': 'dashboard',
-    
-    // Rewards functions
-    '/api/rewards/user': 'rewards',
-    '/api/rewards/claimable': 'rewards',
-    '/api/rewards/claim': 'rewards',
-    
-    // V2 API endpoints - map to existing edge functions
-    '/api/v2/rewards/claimable': 'rewards',
-    '/api/v2/rewards/pending': 'rewards',
-    '/api/v2/rewards/stats': 'rewards',
-    '/api/v2/balance/summary': 'balance',
-    '/api/v2/balance/breakdown': 'balance',
-    '/api/v2/balance/global-pool': 'balance',
-    
-    // NFT upgrade functions
-    '/api/membership/activate': 'nft-upgrades',
-    '/api/nft/upgrade': 'nft-upgrades',
-    '/api/membership/purchase': 'nft-upgrades',
-    
-    // BCC purchase functions
-    '/api/bcc/purchase': 'bcc-purchase',
-    '/api/bcc/exchange': 'bcc-purchase',
-    
-    // Admin functions
-    '/api/admin/users': 'admin',
-    '/api/admin/stats': 'admin',
-    '/api/admin/cleanup': 'admin-cleanup'
-  };
+  // Base Supabase URL
+  const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+  const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1MjUwMTYsImV4cCI6MjA0MDEwMTAxNn0.gBWZUvwCJgP1lsVQlZNDsYXDxBEr31QfRtNEgYzS6NA';
   
-  const functionName = endpointMap[url] || url.replace('/api/', '').replace(/\//g, '-');
+  // Simple mapping: extract function name from URL
+  let functionName = 'balance'; // default
+  let action = 'get-balance'; // default
+  
+  // Determine function and action from URL
+  if (url.includes('/auth/') || url.includes('/wallet/')) {
+    functionName = 'auth';
+    if (url.includes('register')) action = 'register';
+    else if (url.includes('user')) action = 'get-user';
+    else if (url.includes('login')) action = 'login';
+    else if (url.includes('log-connection')) action = 'log-connection';
+  } else if (url.includes('/balance/') || url.includes('/v2/balance/')) {
+    functionName = 'balance';
+    action = 'get-balance'; // All balance operations use get-balance
+  } else if (url.includes('/matrix/') || url.includes('/dashboard/matrix') || url.includes('/dashboard/referrals')) {
+    functionName = 'matrix';
+    if (url.includes('stats')) action = 'get-matrix-stats';
+    else if (url.includes('referrals')) action = 'get-referrals';
+    else if (url.includes('upline')) action = 'get-upline';
+    else if (url.includes('downline')) action = 'get-downline';
+    else if (url.includes('place')) action = 'place-member';
+    else action = 'get-matrix';
+  } else if (url.includes('/rewards/') || url.includes('/v2/rewards/')) {
+    functionName = 'rewards';
+    if (url.includes('claimable')) action = 'get-claims';
+    else if (url.includes('pending')) action = 'check-pending-rewards';
+    else if (url.includes('stats') || url.includes('dashboard')) action = 'dashboard';
+    else if (url.includes('history')) action = 'get-claims';
+    else if (url.includes('claim')) action = 'claim-reward';
+    else action = 'get-balance';
+  } else if (url.includes('/membership/') || url.includes('/nft/')) {
+    functionName = 'nft-upgrades';
+    if (url.includes('activate')) action = 'activate-membership';
+    else if (url.includes('upgrade')) action = 'process-upgrade';
+    else if (url.includes('purchase')) action = 'purchase-membership';
+  } else if (url.includes('/bcc/')) {
+    functionName = 'bcc-purchase';
+    if (url.includes('purchase')) action = 'purchase-bcc';
+    else if (url.includes('exchange')) action = 'exchange-bcc';
+  } else if (url.includes('/admin/')) {
+    functionName = 'admin';
+    if (url.includes('users')) action = 'get-users';
+    else if (url.includes('stats')) action = 'get-stats';
+    else if (url.includes('cleanup')) action = 'cleanup';
+  } else if (url.includes('/dashboard/')) {
+    functionName = 'dashboard';
+    if (url.includes('activity')) action = 'get-activity';
+    else if (url.includes('stats')) action = 'get-stats';
+    else action = 'get-dashboard-data';
+  }
   
   try {
-    // Determine action based on the endpoint URL
-    let action = '';
-    switch (url) {
-      // Auth actions
-      case '/api/auth/register':
-        action = 'register';
-        break;
-      case '/api/auth/user':
-        action = 'get-user';
-        break;
-      case '/api/auth/login':
-        action = 'login';
-        break;
-      case '/api/wallet/log-connection':
-        action = 'log-connection';
-        break;
-      
-      // Balance actions
-      case '/api/balance/user':
-        action = 'get-balance';
-        break;
-      case '/api/balance/initialize':
-        action = 'initialize-balance';
-        break;
-      case '/api/balance/activate-level1':
-        action = 'activate-level1';
-        break;
-      case '/api/balance/withdraw-usdt':
-      case '/api/wallet/withdraw-usdt':
-        action = 'withdraw-usdt';
-        break;
-      case '/api/balance/withdrawals':
-        action = 'get-withdrawals';
-        break;
-      case '/api/dashboard/data':
-      case '/api/dashboard/balances':
-        action = 'get-dashboard-data';
-        break;
-      
-      // Matrix actions
-      case '/api/dashboard/matrix':
-        action = 'get-matrix';
-        break;
-      case '/api/dashboard/referrals':
-        action = 'get-referrals';
-        break;
-      case '/api/matrix/stats':
-        action = 'get-matrix-stats';
-        break;
-      case '/api/matrix/upline':
-        action = 'get-upline';
-        break;
-      case '/api/matrix/downline':
-        action = 'get-downline';
-        break;
-      case '/api/matrix/place':
-        action = 'place-member';
-        break;
-      
-      // Dashboard actions (handled by dashboard function)
-      case '/api/dashboard/activity':
-        action = 'get-activity';
-        break;
-      case '/api/dashboard/stats':
-        action = 'get-stats';
-        break;
-      case '/api/rewards/user':
-        action = 'get-rewards';
-        break;
-      case '/api/rewards/claimable':
-        action = 'get-claimable';
-        break;
-      case '/api/rewards/claim':
-        action = 'claim-reward';
-        break;
-      
-      // V2 API actions - Fixed to match actual edge function actions
-      case '/api/v2/rewards/claimable':
-        action = 'get-claims'; // Fixed: was 'get-claimable'
-        break;
-      case '/api/v2/rewards/pending':
-        action = 'check-pending-rewards'; // Fixed: was 'get-pending'
-        break;
-      case '/api/v2/rewards/stats':
-        action = 'dashboard'; // Fixed: was 'get-stats'
-        break;
-      case '/api/v2/balance/summary':
-        action = 'get-balance'; // Fixed: balance function uses 'get-balance' for summary
-        break;
-      case '/api/v2/balance/breakdown':
-        action = 'get-balance'; // Fixed: balance function doesn't support breakdown, use get-balance
-        break;
-      case '/api/v2/balance/global-pool':
-        action = 'get-balance'; // Fixed: balance function doesn't support global-pool, use get-balance
-        break;
-      
-      // NFT upgrade actions
-      case '/api/membership/activate':
-        action = 'activate-membership';
-        break;
-      case '/api/nft/upgrade':
-        action = 'process-upgrade';
-        break;
-      case '/api/membership/purchase':
-        action = 'purchase-membership';
-        break;
-      
-      // BCC purchase actions
-      case '/api/bcc/purchase':
-        action = 'purchase-bcc';
-        break;
-      case '/api/bcc/exchange':
-        action = 'exchange-bcc';
-        break;
-      
-      // Admin actions
-      case '/api/admin/users':
-        action = 'get-users';
-        break;
-      case '/api/admin/stats':
-        action = 'get-stats';
-        break;
-      case '/api/admin/cleanup':
-        action = 'cleanup';
-        break;
-      
-      default:
-        // For other endpoints, derive action from URL
-        action = url.replace('/api/', '').replace(/\//g, '-');
-    }
-
     const requestData = {
       action,
       ...(data || {}),
-      walletAddress: addressToUse || (data as any)?.walletAddress,
-      _method: method.toUpperCase()
+      walletAddress: addressToUse
     };
     
-    // Call the Edge Function directly - no fallback since functions are deployed
-    const result = await supabaseApi.callFunction(functionName, requestData, addressToUse || undefined);
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${anonKey}`
+    };
     
-    // Create a mock Response object for compatibility
-    const mockResponse = {
-      ok: true,
-      status: 200,
-      statusText: 'OK',
-      json: async () => result.data || result,
-      text: async () => JSON.stringify(result.data || result)
-    } as Response;
+    if (addressToUse) {
+      headers['x-wallet-address'] = addressToUse;
+    }
     
-    return mockResponse;
+    // Call Supabase Edge Function directly
+    const response = await fetch(`${baseUrl}/${functionName}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(requestData)
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API Error: ${response.status} - ${errorText}`);
+    }
+    
+    return response;
   } catch (error: any) {
     console.error(`Supabase Edge Function Error [${functionName}]:`, error);
-    
-    // Handle authentication errors specifically
-    let status = 500;
-    if (error.message?.includes('Authentication') || 
-        error.message?.includes('session') || 
-        error.message?.includes('sign in') ||
-        error.message?.includes('JWT')) {
-      status = 401;
-    } else if (error.message?.includes('not found') || 
-               error.message?.includes('404')) {
-      status = 404;
-    } else if (error.message?.includes('forbidden') || 
-               error.message?.includes('403')) {
-      status = 403;
-    }
     
     // Create mock error response for compatibility
     const errorResponse = {
       ok: false,
-      status: status,
+      status: 500,
       statusText: error.message || 'Internal Server Error',
       json: async () => ({ 
         success: false, 
         error: error.message || 'Edge Function request failed',
         functionName,
-        action: error.action || 'unknown'
+        action
       }),
       text: async () => error.message || 'Edge Function request failed'
     } as Response;

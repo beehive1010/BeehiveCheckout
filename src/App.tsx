@@ -73,8 +73,22 @@ function SmartHomePage() {
     isCheckingRegistration,
     isNewUser, 
     needsNFTClaim, 
-    isFullyActivated 
+    isFullyActivated,
+    userStatus,
+    isUserLoading
   } = useWallet();
+
+  // Debug logging
+  console.log('SmartHomePage status:', {
+    isConnected,
+    isCheckingRegistration,
+    isNewUser,
+    needsNFTClaim,
+    isFullyActivated,
+    userFlow: userStatus?.userFlow,
+    isRegistered: userStatus?.isRegistered,
+    isUserLoading
+  });
 
   // Show landing page while checking user status or if not connected
   if (!isConnected || isCheckingRegistration) {
@@ -84,6 +98,11 @@ function SmartHomePage() {
   // Route based on enhanced user status
   if (isNewUser) {
     return <Registration />;
+  }
+  
+  // Skip Welcome if user is already registered - go directly to dashboard
+  if (isConnected && userStatus?.isRegistered) {
+    return <DashboardPageV2 />;
   }
   
   if (needsNFTClaim) {

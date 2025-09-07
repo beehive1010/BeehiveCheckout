@@ -24,8 +24,19 @@ serve(async (req) => {
 
     const url = new URL(req.url);
     let action = url.pathname.split('/').pop();
+    let requestBody = null;
     
     console.log(`Rewards function: ${req.method} ${url.pathname}`);
+    
+    // Parse request body once at the beginning for all POST requests
+    if (req.method === 'POST') {
+      try {
+        requestBody = await req.json();
+        req.parsedBody = requestBody; // Store for later use
+      } catch {
+        // Non-JSON body, continue
+      }
+    }
     
     // Handle specific endpoint patterns (order matters - check more specific paths first)
     if (url.pathname.endsWith('/claimable')) {
@@ -46,23 +57,13 @@ serve(async (req) => {
       action = 'dashboard';
     } else if (url.pathname.endsWith('/maintenance')) {
       action = 'maintenance';
+    } else if (url.pathname.endsWith('/stats')) {
+      action = 'dashboard';
+    } else if (url.pathname.endsWith('/history')) {
+      action = 'get-claims';
     } else if (!action || action === 'rewards') {
       // Fallback: try query params or request body
-      action = url.searchParams.get('action') || 'get-balance';
-      
-      // For POST requests, also check the request body for action
-      if (req.method === 'POST') {
-        try {
-          const body = await req.json();
-          if (body.action) {
-            action = body.action;
-          }
-          // Store body for later use by handler functions
-          req.parsedBody = body;
-        } catch {
-          // Non-JSON body, continue with existing action
-        }
-      }
+      action = url.searchParams.get('action') || (requestBody?.action) || 'get-balance';
     }
     
     console.log(`Resolved action: ${action}`);
