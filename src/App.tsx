@@ -11,7 +11,8 @@ import { Toaster as HotToaster } from "react-hot-toast";
 
 // Refactored pages with clean architecture
 import LandingPage from "@/pages/LandingPage";
-import DashboardPageV2 from "@/pages/DashboardPageV2";
+import DashboardPageV2Simple from "@/pages/DashboardPageV2Simple";
+import EnhancedDashboard from "@/pages/EnhancedDashboard";
 // Force cache refresh
 import Education from "@/pages/Education";
 import HiveWorld from "@/pages/HiveWorld";
@@ -102,7 +103,7 @@ function SmartHomePage() {
   
   // Skip Welcome if user is already registered - go directly to dashboard
   if (isConnected && userStatus?.isRegistered) {
-    return <DashboardPageV2 />;
+    return <EnhancedDashboard />;
   }
   
   if (needsNFTClaim) {
@@ -110,7 +111,7 @@ function SmartHomePage() {
   }
   
   if (isFullyActivated) {
-    return <DashboardPageV2 />;
+    return <EnhancedDashboard />;
   }
 
   // Fallback to landing page
@@ -239,7 +240,8 @@ function Router() {
         <Route path="/welcome" component={Welcome} />
         
         {/* Main app routes - Protected with wallet connection and Level 1 NFT requirement */}
-        <Route path="/dashboard" component={() => <DashboardPageV2 />} />
+        <Route path="/dashboard" component={() => <EnhancedDashboard />} />
+        <Route path="/dashboard/simple" component={() => <DashboardPageV2Simple />} />
         <Route path="/tasks" component={Tasks} />
         <Route path="/token-purchase" component={TokenPurchase} />
         <Route path="/education" component={Education} />
