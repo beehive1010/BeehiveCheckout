@@ -343,8 +343,17 @@ export class MultiChainPaymentProcessor {
       
       console.log('Creating bridge request:', { ...bridgeData, bridgeTransactionId });
       
-      // TODO: Implement actual bridge request creation
-      // await updatedApiClient.createBridgeRequest({ ...bridgeData, bridgeTransactionId });
+      // Create bridge request via API client
+      const result = await updatedApiClient.createBridgeRequest({ 
+        ...bridgeData, 
+        bridgeTransactionId 
+      });
+      
+      if (!result.success) {
+        console.warn('Bridge request creation failed:', result.error);
+      } else {
+        console.log('Bridge request successfully created');
+      }
       
       return bridgeTransactionId;
       
