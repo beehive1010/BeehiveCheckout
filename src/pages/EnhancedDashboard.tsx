@@ -5,8 +5,8 @@ import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useToast } from '../hooks/use-toast';
+import TabBar from '../components/shared/TabBar';
 import { supabase } from '../lib/supabase';
 import { 
   Users, 
@@ -298,14 +298,14 @@ export default function EnhancedDashboard() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-4 md:p-6 space-y-6 pb-20 md:pb-6">
       {/* Header with Data Method Selector */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-honey">Enhanced Dashboard</h1>
-          <p className="text-muted-foreground">Multi-method data loading</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-honey">Dashboard</h1>
+          <p className="text-muted-foreground">Your BeeHive overview</p>
         </div>
-        <div className="flex gap-2">
+        <div className="hidden md:flex gap-2">
           <div className="flex border rounded-lg p-1 bg-muted">
             <Button 
               onClick={() => setDataMethod('functions')} 
@@ -379,155 +379,213 @@ export default function EnhancedDashboard() {
         </CardContent>
       </Card>
 
-      {/* Tabs for different sections */}
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="balance">Balance</TabsTrigger>
-          <TabsTrigger value="matrix">Matrix</TabsTrigger>
-          <TabsTrigger value="rewards">Rewards</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* BCC Balance Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Coins className="h-5 w-5 text-honey" />
-                  BCC Balance
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div>
-                    <div className="text-2xl font-bold text-honey">{dashboardStats.balance.totalBcc}</div>
-                    <div className="text-sm text-muted-foreground">Total BCC</div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <div className="text-green-400 font-semibold">{dashboardStats.balance.transferableBcc}</div>
-                      <div className="text-muted-foreground">Transferable</div>
-                    </div>
-                    <div>
-                      <div className="text-orange-400 font-semibold">{dashboardStats.balance.lockedBcc}</div>
-                      <div className="text-muted-foreground">Locked</div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* USDT Earnings Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-green-400" />
-                  USDT Earnings
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div>
-                    <div className="text-2xl font-bold text-green-400">${dashboardStats.balance.totalUsdtEarned.toFixed(2)}</div>
-                    <div className="text-sm text-muted-foreground">Total Earned</div>
-                  </div>
-                  <div>
-                    <div className="text-lg font-semibold text-blue-400">${dashboardStats.balance.availableRewards.toFixed(2)}</div>
-                    <div className="text-sm text-muted-foreground">Available Rewards</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Referral Link Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Share2 className="h-5 w-5 text-blue-400" />
-                  Referral Link
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="text-sm text-muted-foreground">
-                    Share to earn commissions
-                  </div>
-                  <Button onClick={copyReferralLink} variant="outline" className="w-full">
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copy Link
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+      {/* Referral Link Section - Priority */}
+      <Card className="border-honey/20 bg-gradient-to-r from-honey/5 to-yellow-400/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Share2 className="h-5 w-5 text-honey" />
+            {t('dashboard.referralLink') || 'Referral Link'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="text-sm text-muted-foreground">
+              {t('dashboard.shareToEarn') || 'Share your link to earn commissions from your referrals'}
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={copyReferralLink} className="bg-honey hover:bg-honey/90 text-black font-semibold flex-1">
+                <Copy className="h-4 w-4 mr-2" />
+                {t('dashboard.copyLink') || 'Copy Referral Link'}
+              </Button>
+              <Button 
+                onClick={() => setLocation('/referrals')} 
+                variant="outline"
+                className="border-honey/30 text-honey hover:bg-honey/10"
+              >
+                <Users className="h-4 w-4 mr-2" />
+                {t('nav.referrals') || 'View Network'}
+              </Button>
+            </div>
           </div>
-        </TabsContent>
+        </CardContent>
+      </Card>
 
-        <TabsContent value="balance" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Detailed Balance Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="text-sm text-muted-foreground">
-                  Data source: <Badge variant="outline">{dataMethod}</Badge>
+      {/* Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        {/* BCC Balance Card */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Coins className="h-5 w-5 text-honey" />
+              BCC Balance
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div>
+                <div className="text-2xl font-bold text-honey">{dashboardStats.balance.totalBcc}</div>
+                <div className="text-sm text-muted-foreground">Total BCC</div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <div className="text-green-400 font-semibold">{dashboardStats.balance.transferableBcc}</div>
+                  <div className="text-muted-foreground">Transferable</div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-lg font-semibold">BCC Balance</div>
-                    <div className="text-honey text-xl">{dashboardStats.balance.totalBcc}</div>
-                  </div>
-                  <div>
-                    <div className="text-lg font-semibold">USDT Earned</div>
-                    <div className="text-green-400 text-xl">${dashboardStats.balance.totalUsdtEarned.toFixed(2)}</div>
-                  </div>
+                <div>
+                  <div className="text-orange-400 font-semibold">{dashboardStats.balance.lockedBcc}</div>
+                  <div className="text-muted-foreground">Locked</div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
+          </CardContent>
+        </Card>
 
-        <TabsContent value="matrix" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Matrix Network</CardTitle>
-            </CardHeader>
-            <CardContent>
+        {/* USDT Earnings Card */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <DollarSign className="h-5 w-5 text-green-400" />
+              USDT Earnings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div>
+                <div className="text-2xl font-bold text-green-400">${dashboardStats.balance.totalUsdtEarned.toFixed(2)}</div>
+                <div className="text-sm text-muted-foreground">Total Earned</div>
+              </div>
+              <div>
+                <div className="text-lg font-semibold text-blue-400">${dashboardStats.balance.availableRewards.toFixed(2)}</div>
+                <div className="text-sm text-muted-foreground">Available Rewards</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Matrix Network Card */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Users className="h-5 w-5 text-blue-400" />
+              Matrix Network
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="text-lg font-semibold">Direct Referrals</div>
-                  <div className="text-honey text-xl">{dashboardStats.matrix.directReferrals}</div>
+                  <div className="text-xl font-bold text-honey">{dashboardStats.matrix.directReferrals}</div>
+                  <div className="text-sm text-muted-foreground">Direct Referrals</div>
                 </div>
                 <div>
-                  <div className="text-lg font-semibold">Total Team Size</div>
-                  <div className="text-blue-400 text-xl">{dashboardStats.matrix.totalTeamSize}</div>
+                  <div className="text-xl font-bold text-blue-400">{dashboardStats.matrix.totalTeamSize}</div>
+                  <div className="text-sm text-muted-foreground">Total Team</div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        <TabsContent value="rewards" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Rewards Summary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="text-lg font-semibold">Pending Rewards</div>
-                  <div className="text-purple-400 text-xl">{dashboardStats.rewards.totalPending}</div>
-                </div>
-                <div>
-                  <div className="text-lg font-semibold">Total Claimed</div>
-                  <div className="text-green-400 text-xl">{dashboardStats.rewards.totalClaimed}</div>
-                </div>
+      {/* Rewards Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        {/* Pending Rewards */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Timer className="h-5 w-5 text-purple-400" />
+              Pending Rewards
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <div className="text-2xl font-bold text-purple-400">{dashboardStats.rewards.totalPending}</div>
+                <div className="text-sm text-muted-foreground">Rewards to claim</div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              <Button 
+                variant="outline" 
+                className="w-full border-purple-400/30 text-purple-400 hover:bg-purple-400/10"
+                disabled={dashboardStats.rewards.totalPending === 0}
+              >
+                <Gift className="h-4 w-4 mr-2" />
+                View Pending Rewards
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Claimed Rewards */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Award className="h-5 w-5 text-green-400" />
+              Claimed Rewards
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <div className="text-2xl font-bold text-green-400">{dashboardStats.rewards.totalClaimed}</div>
+                <div className="text-sm text-muted-foreground">Total claimed</div>
+              </div>
+              <Button 
+                variant="outline" 
+                className="w-full border-green-400/30 text-green-400 hover:bg-green-400/10"
+              >
+                <BarChart3 className="h-4 w-4 mr-2" />
+                View History
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Mobile Data Method Selector */}
+      <div className="md:hidden">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Data Source</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col gap-2">
+              <div className="flex border rounded-lg p-1 bg-muted">
+                <Button 
+                  onClick={() => setDataMethod('functions')} 
+                  variant={dataMethod === 'functions' ? 'default' : 'ghost'} 
+                  size="sm"
+                  className="flex-1"
+                >
+                  Functions
+                </Button>
+                <Button 
+                  onClick={() => setDataMethod('views')} 
+                  variant={dataMethod === 'views' ? 'default' : 'ghost'} 
+                  size="sm"
+                  className="flex-1"
+                >
+                  Views
+                </Button>
+                <Button 
+                  onClick={() => setDataMethod('tables')} 
+                  variant={dataMethod === 'tables' ? 'default' : 'ghost'} 
+                  size="sm"
+                  className="flex-1"
+                >
+                  Tables
+                </Button>
+              </div>
+              <Button onClick={loadDashboardData} variant="outline" size="sm" className="w-full">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh Data
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* TabBar for mobile navigation */}
+      <TabBar />
     </div>
   );
 }
