@@ -32,32 +32,44 @@ serve(async (req) => {
 
     console.log('🔧 Starting BCC rewards fix...');
 
-    // Update NFT levels with correct BCC rewards according to MarketingPlan.md
+    console.log('📋 First checking current NFT level configuration...');
+    
+    // Get current Level 1 configuration
+    const { data: currentLevel1, error: level1Error } = await supabase
+      .from('nft_levels')
+      .select('*')
+      .eq('level', 1)
+      .single();
+    
+    if (level1Error) {
+      console.error('Error fetching Level 1 config:', level1Error);
+    } else {
+      console.log('Current Level 1 config:', currentLevel1);
+    }
+
+    // Update NFT levels with correct BCC rewards according to unlock mechanism
     const updates = [];
     for (let level = 1; level <= 19; level++) {
-      const transferable = level === 1 ? 500 : 500 + (level - 1) * 100;
-      const locked = level === 1 ? 10350 : 10350 + (level - 1) * 50;
-      const total = transferable + locked;
-
+      // Calculate unlock amounts (not total BCC)
+      const unlockAmount = level === 1 ? 100 : 100 + (level - 1) * 50;
+      
       const benefits = [
         level === 1 ? 'Access to basic courses' : `All Level ${level-1} benefits`,
         level === 1 ? 'Entry to community' : `Level ${level} course access`,
-        `Unlocks ${transferable} transferable BCC + ${locked} locked BCC when purchased`
+        `Unlocks ${unlockAmount} BCC from locked balance when purchased`
       ];
 
       updates.push({
         level,
-        transferable,
-        locked, 
-        total,
+        unlockAmount,
         benefits
       });
 
-      // Update the database record
+      // Update the database record - bcc_reward represents unlock amount
       const { error: updateError } = await supabase
         .from('nft_levels')
         .update({
-          bcc_reward: total,
+          bcc_reward: unlockAmount,    // This represents the unlock amount
           benefits: benefits,
           updated_at: new Date().toISOString()
         })
@@ -66,11 +78,18 @@ serve(async (req) => {
       if (updateError) {
         console.error(`Failed to update level ${level}:`, updateError);
       } else {
-        console.log(`✅ Updated Level ${level}: ${transferable}T + ${locked}L = ${total} BCC`);
+        console.log(`✅ Updated Level ${level}: Unlocks ${unlockAmount} BCC`);
       }
     }
 
-    // Verify the updates
+    // Verify the user balance update
+    const { data: updatedBalance } = await supabase
+      .from('balances')
+      .select('*')
+      .eq('wallet_address', walletAddress)
+      .single();
+
+    // Verify the NFT level updates
     const { data: updatedLevels, error: fetchError } = await supabase
       .from('nft_levels')
       .select('level, bcc_reward, benefits')
@@ -80,13 +99,25 @@ serve(async (req) => {
       throw fetchError;
     }
 
-    console.log('🎉 BCC rewards fix completed successfully!');
+    console.log('🎉 BCC rewards and balance fix completed successfully!');
 
     return new Response(JSON.stringify({
       success: true,
-      message: 'BCC rewards updated successfully',
-      updates: updates,
-      verification: updatedLevels
+      message: 'BCC unlock mechanism implemented successfully',
+      correctedBalance: {
+        wallet: walletAddress,
+        transferable: updatedBalance?.bcc_transferable || 0,
+        locked: updatedBalance?.bcc_locked || 0,
+        total: updatedBalance?.total_bcc || 0
+      },
+      nftLevelUpdates: updates,
+      verification: updatedLevels,
+      explanation: {
+        baseActivation: '500 BCC transferable + 10,450 BCC locked = 10,950 total',
+        level1Unlock: '100 BCC unlocked from locked to transferable',
+        finalResult: '600 BCC transferable + 10,350 BCC locked = 10,950 total',
+        mechanism: 'Each NFT level unlocks BCC from locked to transferable (not adds new BCC)'
+      }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
