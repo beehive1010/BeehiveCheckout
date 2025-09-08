@@ -427,7 +427,8 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
               transactionHash: claimTxResult.transactionHash,
               level: 1,
               paymentMethod: 'token_payment',
-              paymentAmount: 130
+              paymentAmount: 130,
+              referrerWallet: referrerWallet
             })
           });
 

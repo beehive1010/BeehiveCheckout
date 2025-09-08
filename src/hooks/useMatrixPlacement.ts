@@ -1,25 +1,20 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useWallet } from './useWallet';
-import { apiRequest } from '../lib/queryClient';
+import { matrixService } from '../lib/supabase/matrixService';
 
 // 用户矩阵层级详情hook
 export function useUserMatrixLayers() {
   const { walletAddress } = useWallet();
 
   return useQuery({
-    queryKey: ['/api/matrix/layers', walletAddress],
+    queryKey: ['matrix-layers', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
-      const response = await fetch('/api/matrix/layers', {
-        headers: {
-          'X-Wallet-Address': walletAddress,
-          'Cache-Control': 'no-cache'
-        }
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch matrix layers');
+      const result = await matrixService.getMatrix(walletAddress, walletAddress);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch matrix layers');
       }
-      return response.json();
+      return result.matrix;
     },
     enabled: !!walletAddress,
     staleTime: 10000, // 10 seconds
@@ -32,19 +27,14 @@ export function useAvailablePositions() {
   const { walletAddress } = useWallet();
 
   return useQuery({
-    queryKey: ['/api/matrix/available-positions', walletAddress],
+    queryKey: ['matrix-positions', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
-      const response = await fetch('/api/matrix/available-positions', {
-        headers: {
-          'X-Wallet-Address': walletAddress,
-          'Cache-Control': 'no-cache'
-        }
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch available positions');
+      const result = await matrixService.findOptimalPosition(walletAddress, walletAddress);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch available positions');
       }
-      return response.json();
+      return result.position;
     },
     enabled: !!walletAddress,
     staleTime: 5000,
@@ -57,19 +47,14 @@ export function useOptimalPlacements() {
   const { walletAddress } = useWallet();
 
   return useQuery({
-    queryKey: ['/api/matrix/optimal-placements', walletAddress],
+    queryKey: ['matrix-stats', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
-      const response = await fetch('/api/matrix/optimal-placements', {
-        headers: {
-          'X-Wallet-Address': walletAddress,
-          'Cache-Control': 'no-cache'
-        }
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch optimal placements');
+      const result = await matrixService.getMatrixStats(walletAddress);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch matrix statistics');
       }
-      return response.json();
+      return result.stats;
     },
     enabled: !!walletAddress,
     staleTime: 8000,
@@ -85,19 +70,20 @@ export function usePlaceMember() {
   return useMutation({
     mutationFn: async (placementData: {
       memberWallet: string;
-      targetRootWallet: string;
-      layer: number;
-      position: 'L' | 'M' | 'R';
-      placementType: 'direct' | 'spillover';
+      referrerWallet: string;
     }) => {
-      return await apiRequest('POST', '/api/matrix/place-member', placementData);
+      if (!walletAddress) throw new Error('Wallet address required');
+      return await matrixService.placeMember(
+        placementData.memberWallet,
+        placementData.referrerWallet,
+        walletAddress
+      );
     },
     onSuccess: () => {
       // Invalidate related caches
-      queryClient.invalidateQueries({ queryKey: ['/api/matrix/layers'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/matrix/available-positions'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/matrix/optimal-placements'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/stats/user-referrals'] });
+      queryClient.invalidateQueries({ queryKey: ['matrix-layers'] });
+      queryClient.invalidateQueries({ queryKey: ['matrix-positions'] });
+      queryClient.invalidateQueries({ queryKey: ['matrix-stats'] });
     },
   });
 }
