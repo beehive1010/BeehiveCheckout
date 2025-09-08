@@ -268,12 +268,32 @@ function Router() {
             <Discover />
           </MemberGuard>
         )} />
-        <Route path="/referrals" component={Referrals} />
-        <Route path="/rewards" component={Rewards} />
-        <Route path="/me" component={Me} />
-        <Route path="/me/profile-settings" component={ProfileSettings} />
+        <Route path="/referrals" component={() => (
+          <MemberGuard requireActivation={true} redirectTo="/welcome">
+            <Referrals />
+          </MemberGuard>
+        )} />
+        <Route path="/rewards" component={() => (
+          <MemberGuard requireActivation={true} redirectTo="/welcome">
+            <Rewards />
+          </MemberGuard>
+        )} />
+        <Route path="/me" component={() => (
+          <MemberGuard requireActivation={true} redirectTo="/welcome">
+            <Me />
+          </MemberGuard>
+        )} />
+        <Route path="/me/profile-settings" component={() => (
+          <MemberGuard requireActivation={true} redirectTo="/welcome">
+            <ProfileSettings />
+          </MemberGuard>
+        )} />
         <Route path="/ads" component={AdvertisementNFTs} />
-        <Route path="/nft-center" component={NFTCenter} />
+        <Route path="/nft-center" component={() => (
+          <MemberGuard requireActivation={true} redirectTo="/welcome">
+            <NFTCenter />
+          </MemberGuard>
+        )} />
         <Route path="/admin-nft-manager" component={AdminNFTManager} />
         
         {/* Public routes - No authentication required */}
