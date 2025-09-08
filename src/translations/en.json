@@ -1578,5 +1578,200 @@
       "profileImageUpdatedDescription": "Your profile image has been uploaded successfully.",
       "uploadFailed": "Upload Failed"
     }
+  },
+  "membershipSystem": {
+    "wallet": {
+      "connectTitle": "Connect Your Wallet",
+      "connectDescription": "Please connect your wallet to access the membership system"
+    },
+    "activation": {
+      "title": "Activate Your Membership",
+      "description": "Join the community and start earning rewards",
+      "steps": {
+        "details": "Details",
+        "payment": "Payment",
+        "confirm": "Confirm",
+        "complete": "Complete"
+      },
+      "form": {
+        "username": "Username *",
+        "usernamePlaceholder": "Enter your username",
+        "email": "Email *",
+        "emailPlaceholder": "Enter your email",
+        "referrer": "Referrer Wallet (Optional)",
+        "referrerPlaceholder": "0x... (if you have a referrer)",
+        "continueToPayment": "Continue to Payment",
+        "continueToConfirmation": "Continue to Confirmation",
+        "back": "Back",
+        "activateMembership": "Activate Membership",
+        "activating": "Activating..."
+      },
+      "payment": {
+        "cost": "Membership Cost: 130 USDC",
+        "nftCost": "• 100 USDC for Level 1 NFT",
+        "activationFee": "• 30 USDC activation fee",
+        "networkLabel": "Select Network",
+        "networks": {
+          "simulation": "Simulation",
+          "testnet": "Testnet",
+          "mainnet": "Mainnet"
+        },
+        "transactionHashLabel": "Transaction Hash *",
+        "transactionHashPlaceholder": "0x... (transaction hash of NFT purchase)",
+        "transactionHashHelper": "Complete the NFT purchase first, then paste the transaction hash"
+      },
+      "confirm": {
+        "summaryTitle": "Activation Summary",
+        "username": "Username",
+        "email": "Email", 
+        "network": "Network",
+        "nftLevel": "NFT Level",
+        "level1": "Level 1",
+        "referrer": "Referrer"
+      },
+      "success": {
+        "welcomeTitle": "Welcome to the Community!",
+        "welcomeDescription": "Your membership has been activated successfully. You can now access all member features.",
+        "continueToDashboard": "Continue to Dashboard",
+        "activated": "Membership activated successfully!"
+      },
+      "errors": {
+        "fillRequiredFields": "Please fill in all required fields",
+        "transactionHashRequired": "Please provide transaction hash for blockchain activation",
+        "activationFailed": "Activation failed",
+        "tryAgain": "Activation failed. Please try again.",
+        "loadStatusFailed": "Failed to load activation status"
+      }
+    },
+    "dashboard": {
+      "title": "Member Dashboard - Level {{level}}",
+      "labels": {
+        "currentLevel": "Current Level",
+        "activationRank": "Activation Rank",
+        "memberTier": "Member Tier",
+        "directReferrals": "Direct Referrals"
+      },
+      "balance": {
+        "title": "BCC Balance",
+        "transferable": "Transferable BCC",
+        "locked": "Locked BCC",
+        "totalEarned": "Total Earned"
+      }
+    },
+    "rewards": {
+      "pendingTitle": "Pending Rewards ({{count}})",
+      "rewardDescription": "Level {{level}} Reward • {{hours}}h remaining",
+      "status": {
+        "claimable": "Claimable",
+        "pending": "Pending"
+      },
+      "actions": {
+        "claim": "Claim"
+      },
+      "success": {
+        "claimed": "Successfully claimed {{amount}} USDC!"
+      },
+      "errors": {
+        "claimFailed": "Failed to claim reward"
+      },
+      "quickActions": {
+        "title": "Quick Actions",
+        "upgrade": "Upgrade to Level {{level}}",
+        "withdraw": "Quick Withdraw $100 USDC",
+        "claimRewards": "Claim {{count}} Rewards"
+      },
+      "levelProgress": {
+        "title": "Level Progress",
+        "readyToUpgrade": "Ready to upgrade to Level {{level}}!",
+        "completeRequirements": "Complete requirements to unlock Level {{level}}"
+      }
+    },
+    "matrix": {
+      "title": "Referral Matrix",
+      "connectDescription": "Connect your wallet to view the referral matrix",
+      "layerFillStatus": "Layer Fill Status",
+      "stats": {
+        "totalMembers": "{{count}} Members",
+        "yourPosition": "You're in Layer {{layer}}, Position {{position}}",
+        "directRefs": "Direct Refs",
+        "matrixDepth": "Matrix Depth"
+      },
+      "visualization": {
+        "layerRoot": "Root",
+        "layerNumber": "Layer {{layer}}",
+        "available": "Available",
+        "member": "Member",
+        "you": "You",
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "controls": {
+        "viewLayer": "View Layer:",
+        "zoomIn": "Zoom In",
+        "zoomOut": "Zoom Out",
+        "reset": "Reset",
+        "treeView": "Tree",
+        "gridView": "Grid"
+      },
+      "referralLink": {
+        "title": "Your Referral Link",
+        "copy": "Copy",
+        "share": "Share Link"
+      },
+      "quickStats": {
+        "title": "Quick Stats",
+        "totalMembers": "Total Members:",
+        "activeLayers": "Active Layers:",
+        "yourDirectRefs": "Your Direct Refs:",
+        "matrixDepth": "Matrix Depth:",
+        "layersCount": "{{count}} Layers"
+      },
+      "share": {
+        "title": "Join the Community",
+        "text": "Join me in this amazing community and start earning rewards!"
+      },
+      "errors": {
+        "loadFailed": "Failed to load matrix data",
+        "copyFailed": "Failed to copy link"
+      },
+      "success": {
+        "linkCopied": "Referral link copied to clipboard!"
+      }
+    },
+    "upgrade": {
+      "title": "Level Upgrade",
+      "cost": "Upgrade Cost",
+      "bccUnlock": "BCC Unlock",
+      "requirements": {
+        "notMet": "Requirements Not Met",
+        "directReferrals": "Direct Referrals: {{current}}/{{required}} required"
+      },
+      "maxLevel": {
+        "title": "Maximum Level Reached!",
+        "description": "Congratulations on reaching Level {{level}}!"
+      },
+      "buttons": {
+        "upgrade": "Upgrade to Level {{level}}",
+        "upgrading": "Upgrading..."
+      }
+    },
+    "withdrawal": {
+      "title": "Withdrawal Limits",
+      "dailyLimit": "Daily Limit",
+      "monthlyLimit": "Monthly Limit",
+      "used": "Used:",
+      "remaining": "Remaining:"
+    }
+  },
+  "connectWallet": {
+    "title": "Connect Your Wallet",
+    "description": "Please connect your wallet to access the membership system"
+  },
+  "tabs": {
+    "overview": "Overview",
+    "rewards": "Rewards", 
+    "upgrade": "Upgrade",
+    "matrix": "Matrix",
+    "withdraw": "Withdraw"
   }
 }

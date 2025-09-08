@@ -174,10 +174,14 @@ export default function Registration() {
       
       toast({
         title: 'Registration Successful! 🎉',
-        description: 'Welcome to Beehive! Now claim your Level 1 NFT.',
+        description: 'Welcome to Beehive! Redirecting to claim your Level 1 NFT...',
+        duration: 3000,
       });
       
-      setLocation('/welcome');
+      // Add a small delay to show the success message
+      setTimeout(() => {
+        setLocation('/welcome');
+      }, 1500);
     } catch (error: any) {
       toast({
         title: 'Registration Failed',
@@ -298,6 +302,17 @@ export default function Registration() {
             </div>
 
 
+            {/* Information Box */}
+            <div className="p-4 bg-honey/10 rounded-lg border border-honey/30">
+              <h4 className="font-semibold text-honey mb-2">Next Steps</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• Complete registration to create your account</li>
+                <li>• Claim your Level 1 NFT for 130 USDC (100 NFT + 30 fee)</li>
+                <li>• Join the 3x3 matrix referral system</li>
+                <li>• Start earning BCC tokens and USDC rewards</li>
+              </ul>
+            </div>
+
             <Button
               type="submit"
               disabled={registerMutation.isPending || (!!referrerWallet && (isValidatingReferrer || !!referrerError))}
@@ -307,6 +322,18 @@ export default function Registration() {
               {registerMutation.isPending ? 'Registering...' : 'Register & Join Beehive'}
             </Button>
           </form>
+          
+          {/* Footer Information */}
+          <div className="mt-4 pt-4 border-t border-border/50">
+            <p className="text-xs text-muted-foreground text-center">
+              By registering, you'll be part of the 3x3 matrix referral system. 
+              {referrerWallet && <span className="block mt-1">
+                Referred by: <span className="font-mono text-honey">
+                  {referrerWallet.slice(0, 8)}...{referrerWallet.slice(-6)}
+                </span>
+              </span>}
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
