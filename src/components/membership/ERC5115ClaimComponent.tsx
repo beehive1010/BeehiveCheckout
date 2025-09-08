@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useActiveAccount } from 'thirdweb/react';
+import { useActiveAccount, useActiveWalletChain } from 'thirdweb/react';
 import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from 'thirdweb';
 import { arbitrumSepolia } from 'thirdweb/chains';
 import { createThirdwebClient } from 'thirdweb';
@@ -18,6 +18,7 @@ interface ERC5115ClaimComponentProps {
 
 export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '' }: ERC5115ClaimComponentProps) {
   const account = useActiveAccount();
+  const activeChain = useActiveWalletChain();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentStep, setCurrentStep] = useState<string>('');
@@ -33,30 +34,32 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
     clientId: THIRDWEB_CLIENT_ID
   });
 
-  // Fallback network detection for UI display
+  // Enhanced chain detection using multiple sources
   useEffect(() => {
     const detectFallbackNetwork = async () => {
-      if (!account?.chainId && typeof window !== 'undefined' && window.ethereum) {
+      const thirdwebChainId = activeChain?.id;
+      
+      if (!thirdwebChainId && typeof window !== 'undefined' && (window as any).ethereum) {
         try {
-          const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+          const chainId = await (window as any).ethereum.request({ method: 'eth_chainId' });
           const detectedChainId = parseInt(chainId, 16);
           setFallbackChainId(detectedChainId);
-          console.log(`🔄 UI fallback network detection: ${detectedChainId}`);
+          console.log(`🔄 Fallback network detection: ${detectedChainId}`);
         } catch (e) {
-          console.warn('UI fallback network detection failed:', e);
+          console.warn('Fallback network detection failed:', e);
           setFallbackChainId(null);
         }
-      } else if (account?.chainId) {
+      } else {
         // Clear fallback when Thirdweb detection is working
         setFallbackChainId(null);
       }
     };
 
     detectFallbackNetwork();
-  }, [account?.chainId]);
+  }, [activeChain?.id]);
 
-  // Get effective chainId (Thirdweb or fallback)
-  const effectiveChainId = account?.chainId || fallbackChainId;
+  // Get effective chainId using multiple sources
+  const effectiveChainId = activeChain?.id || fallbackChainId;
 
   const handleClaimNFT = async () => {
     console.log('🎯 NFT Claim attempt started');
@@ -76,43 +79,39 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
     try {
       // Step 0: Check network - must be on Arbitrum Sepolia
       console.log('🌐 Checking network...');
-      console.log(`Current network ID: ${account.chainId}`);
+      console.log(`Thirdweb activeChain ID: ${activeChain?.id}`);
+      console.log(`Fallback chainId: ${fallbackChainId}`);
+      console.log(`Effective chainId: ${effectiveChainId}`);
       console.log(`Required network ID: ${arbitrumSepolia.id}`);
-      console.log(`Network match: ${account.chainId === arbitrumSepolia.id}`);
-      console.log(`typeof window: ${typeof window}`);
-      console.log(`window.ethereum exists: ${typeof window !== 'undefined' && !!window.ethereum}`);
       
-      // Enhanced network detection with detailed logging
-      let finalChainId = account.chainId;
+      // Use the effective chain ID (priority: activeChain > fallback)
+      let finalChainId = effectiveChainId;
       
-      if (!account.chainId) {
-        console.log('⚠️ Thirdweb account.chainId is undefined, attempting fallback detection...');
+      if (!finalChainId) {
+        console.log('⚠️ No chain ID detected from any source, attempting fresh detection...');
         
         // Try to get network from window.ethereum if available
-        let detectedChainId = null;
-        if (typeof window !== 'undefined' && window.ethereum) {
-          console.log('🔍 window.ethereum is available, requesting chainId...');
+        if (typeof window !== 'undefined' && (window as any).ethereum) {
+          console.log('🔍 Attempting fresh chain detection...');
           try {
-            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-            console.log(`📡 Raw chainId from ethereum.request: ${chainId}`);
-            detectedChainId = parseInt(chainId, 16);
-            console.log(`🔄 Parsed chainId: ${detectedChainId}`);
-            finalChainId = detectedChainId; // Use fallback detection
+            const chainId = await (window as any).ethereum.request({ method: 'eth_chainId' });
+            console.log(`📡 Fresh chainId detection: ${chainId}`);
+            const detectedChainId = parseInt(chainId, 16);
+            console.log(`🔄 Parsed fresh chainId: ${detectedChainId}`);
+            finalChainId = detectedChainId;
           } catch (e) {
-            console.error('❌ Fallback network detection failed:', e);
+            console.error('❌ Fresh network detection failed:', e);
           }
-        } else {
-          console.warn('⚠️ window.ethereum not available for fallback detection');
         }
         
-        if (!detectedChainId) {
-          console.error('❌ Both Thirdweb and fallback network detection failed');
-          throw new Error('Unable to detect wallet network. Please disconnect and reconnect your wallet, then refresh the page.');
+        if (!finalChainId) {
+          console.error('❌ All network detection methods failed');
+          throw new Error('Unable to detect wallet network. Please ensure your wallet is connected to the correct network and try again.');
         }
         
-        console.log(`✅ Fallback network detection successful: ${detectedChainId}`);
+        console.log(`✅ Fresh network detection successful: ${finalChainId}`);
       } else {
-        console.log(`✅ Using Thirdweb network detection: ${account.chainId}`);
+        console.log(`✅ Using detected network: ${finalChainId} (Source: ${activeChain?.id ? 'activeChain' : 'fallback'})`);
       }
       
       // Verify network is correct (using finalChainId which could be from fallback)
@@ -554,7 +553,8 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
                 {!effectiveChainId ? 'Not Detected ❌' : 
                  effectiveChainId === arbitrumSepolia.id ? 'Arbitrum Sepolia ✅' : 
                  `Network ID: ${effectiveChainId} ❌`}
-                {fallbackChainId && !account?.chainId && <span className="text-xs text-muted-foreground ml-1">(fallback)</span>}
+                {activeChain?.id && <span className="text-xs text-muted-foreground ml-1">(active)</span>}
+                {!activeChain?.id && fallbackChainId && <span className="text-xs text-muted-foreground ml-1">(fallback)</span>}
               </span>
             </div>
             <div className="flex justify-between">
