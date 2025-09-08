@@ -76,7 +76,6 @@ async function registerUser(supabase, walletAddress, data) {
       referrer_wallet,
       username,
       email,
-      current_level,
       is_upgraded,
       upgrade_timer_enabled,
       created_at,
@@ -131,7 +130,6 @@ async function registerUser(supabase, walletAddress, data) {
       referrer_wallet: referrerWallet,
       username: username,
       email: data.email || null,
-      current_level: 0,
       is_upgraded: false,
       upgrade_timer_enabled: false
     })
@@ -165,7 +163,6 @@ async function getUser(supabase, walletAddress) {
       referrer_wallet,
       username,
       email,
-      current_level,
       is_upgraded,
       upgrade_timer_enabled,
       created_at,

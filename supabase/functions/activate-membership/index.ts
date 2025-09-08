@@ -28,11 +28,42 @@ serve(async (req) => {
       }
     )
 
-    const { transactionHash, level = 1, ...data } = await req.json()
+    const requestBody = await req.json().catch(() => ({}))
+    const { transactionHash, level = 1, action, ...data } = requestBody
     const walletAddress = req.headers.get('x-wallet-address')?.toLowerCase()
 
     if (!walletAddress) {
       throw new Error('钱包地址缺失')
+    }
+
+    // Handle member info query action
+    if (action === 'get-member-info') {
+      const { data: memberData, error: memberError } = await supabase
+        .from('members')
+        .select('*')
+        .eq('wallet_address', walletAddress)
+        .single()
+
+      if (memberError) {
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'Member not found',
+          member: null
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        })
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        member: memberData,
+        isActivated: memberData?.current_level > 0 || false,
+        currentLevel: memberData?.current_level || 0
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
+      })
     }
 
     // 特殊情况：检查现有NFT而非验证新交易
@@ -93,7 +124,7 @@ async function activateMembershipSecure(supabase, walletAddress, transactionHash
     // 1. 验证用户存在且有完整注册信息
     const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('wallet_address, referrer_wallet, username, email, current_level')
+      .select('wallet_address, referrer_wallet, username, email')
       .eq('wallet_address', walletAddress)
       .single();
 
@@ -106,11 +137,11 @@ async function activateMembershipSecure(supabase, walletAddress, transactionHash
     // 2. 检查是否已经是激活会员
     const { data: existingMember } = await supabase
       .from('members')
-      .select('wallet_address, is_activated, current_level')
+      .select('wallet_address, current_level, activation_rank')
       .eq('wallet_address', walletAddress)
       .single();
 
-    if (existingMember && existingMember.is_activated) {
+    if (existingMember && existingMember.current_level > 0) {
       return {
         success: true,
         action: 'already_activated',
@@ -134,15 +165,12 @@ async function activateMembershipSecure(supabase, walletAddress, transactionHash
       .from('members')
       .insert({
         wallet_address: walletAddress,
-        is_activated: true,
-        activated_at: currentTime,
         current_level: level,
-        max_layer: 0,
         levels_owned: [level],
-        total_direct_referrals: 0,
-        total_team_size: 0,
         has_pending_rewards: false,
-        upgrade_reminder_enabled: false,
+        referrer_wallet: userData.referrer_wallet,
+        activation_rank: 1, // Set initial activation rank
+        tier_level: 1, // Set initial tier level
         created_at: currentTime,
         updated_at: currentTime
       })
@@ -156,6 +184,81 @@ async function activateMembershipSecure(supabase, walletAddress, transactionHash
 
     console.log(`✅ 会员记录创建成功: ${walletAddress}`);
 
+    // 4.5. 初始化BCC余额 - 新激活会员奖励
+    try {
+      const initialBccLocked = 10450; // 锁仓BCC
+      const initialBccTransferable = 500; // 初始可转账BCC
+      const level1UnlockBonus = 100; // Level 1 激活解锁奖励
+      
+      // 计算最终余额: 锁仓减少100，可转账增加100
+      const finalBccLocked = initialBccLocked - level1UnlockBonus;
+      const finalBccTransferable = initialBccTransferable + level1UnlockBonus;
+      
+      console.log(`💰 分配BCC余额: ${finalBccLocked} 锁仓 + ${finalBccTransferable} 可转账`);
+      
+      // 创建或更新用户余额记录
+      const { data: existingBalance } = await supabase
+        .from('user_balances')
+        .select('wallet_address')
+        .eq('wallet_address', walletAddress)
+        .single();
+
+      if (existingBalance) {
+        // 更新现有余额
+        await supabase
+          .from('user_balances')
+          .update({
+            bcc_transferable: finalBccTransferable,
+            bcc_locked: finalBccLocked,
+            updated_at: currentTime
+          })
+          .eq('wallet_address', walletAddress);
+        console.log(`✅ BCC余额更新成功: ${walletAddress}`);
+      } else {
+        // 创建新的余额记录
+        await supabase
+          .from('user_balances')
+          .insert({
+            wallet_address: walletAddress,
+            bcc_transferable: finalBccTransferable,
+            bcc_locked: finalBccLocked,
+            bcc_restricted: 0,
+            total_usdt_earned: 0,
+            pending_rewards_usdt: 0,
+            created_at: currentTime,
+            updated_at: currentTime
+          });
+        console.log(`✅ BCC余额初始化成功: ${walletAddress}`);
+      }
+
+      // 记录BCC交易日志
+      await supabase
+        .from('bcc_transactions')
+        .insert({
+          wallet_address: walletAddress,
+          amount: finalBccTransferable + finalBccLocked,
+          balance_type: 'activation_reward',
+          transaction_type: 'reward',
+          purpose: `Level ${level} 会员激活奖励: ${finalBccLocked} 锁仓 + ${finalBccTransferable} 可转账`,
+          status: 'completed',
+          created_at: currentTime,
+          processed_at: currentTime,
+          metadata: {
+            initial_locked: initialBccLocked,
+            initial_transferable: initialBccTransferable,
+            unlock_bonus: level1UnlockBonus,
+            final_locked: finalBccLocked,
+            final_transferable: finalBccTransferable,
+            activation_level: level
+          }
+        });
+        
+      console.log(`✅ BCC交易记录创建成功: ${walletAddress}`);
+    } catch (bccError) {
+      console.error('BCC余额分配失败:', bccError);
+      // 不要因为BCC分配失败而回滚整个激活过程，只记录错误
+    }
+
     // 5. 处理推荐关系 - 使用改进的矩阵安置算法
     const referrerWallet = userData.referrer_wallet;
     const ROOT_WALLET = '0x0000000000000000000000000000000000000001';
@@ -166,9 +269,9 @@ async function activateMembershipSecure(supabase, walletAddress, transactionHash
       // 检查推荐者是否为激活会员
       const { data: referrerMember } = await supabase
         .from('members')
-        .select('wallet_address, is_activated')
+        .select('wallet_address, current_level')
         .eq('wallet_address', referrerWallet)
-        .eq('is_activated', true)
+        .gt('current_level', 0)
         .single();
 
       if (referrerMember) {
@@ -182,14 +285,13 @@ async function activateMembershipSecure(supabase, walletAddress, transactionHash
           const { error: referralError } = await supabase
             .from('referrals')
             .insert({
-              member_wallet: walletAddress,
-              parent_wallet: placementResult.parentWallet,
-              placer_wallet: referrerWallet,
-              root_wallet: placementResult.rootWallet,
-              layer: placementResult.layer,
-              position: placementResult.position,
-              placement_type: placementResult.placementType,
-              is_active: true
+              referred_wallet: walletAddress,
+              referrer_wallet: referrerWallet,
+              placement_root: placementResult.rootWallet,
+              placement_layer: placementResult.layer,
+              placement_position: placementResult.position,
+              placement_path: `${placementResult.rootWallet}/${placementResult.layer}/${placementResult.position}`,
+              referral_type: placementResult.placementType
             });
 
           if (referralError) {
@@ -197,18 +299,10 @@ async function activateMembershipSecure(supabase, walletAddress, transactionHash
           } else {
             console.log(`✅ 推荐关系创建成功: ${referrerWallet} -> ${walletAddress}`);
             
-            // 更新推荐人的直接推荐数量
-            const { data: currentReferrer } = await supabase
-              .from('members')
-              .select('total_direct_referrals')
-              .eq('wallet_address', referrerWallet)
-              .single();
-              
-            const newCount = (currentReferrer?.total_direct_referrals || 0) + 1;
+            // Update referrer's member record (simplified - just update timestamp)
             await supabase
               .from('members')
               .update({ 
-                total_direct_referrals: newCount,
                 updated_at: currentTime
               })
               .eq('wallet_address', referrerWallet);
@@ -408,11 +502,11 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
     // 2. 检查数据库中是否已有对应的会员记录
     const { data: existingMember } = await supabase
       .from('members')
-      .select('wallet_address, is_activated, current_level')
+      .select('wallet_address, current_level, activation_rank')
       .eq('wallet_address', walletAddress)
       .single();
     
-    if (existingMember && existingMember.is_activated) {
+    if (existingMember && existingMember.current_level > 0) {
       console.log(`✅ 数据库记录已存在且已激活`);
       return {
         success: true,
@@ -443,15 +537,12 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
       .from('members')
       .insert({
         wallet_address: walletAddress,
-        is_activated: true,
-        activated_at: currentTime,
         current_level: level,
-        max_layer: 0,
         levels_owned: [level],
-        total_direct_referrals: 0,
-        total_team_size: 0,
         has_pending_rewards: false,
-        upgrade_reminder_enabled: false,
+        referrer_wallet: userData.referrer_wallet,
+        activation_rank: 1,
+        tier_level: 1,
         created_at: currentTime,
         updated_at: currentTime
       })
@@ -464,6 +555,64 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
     }
     
     console.log(`✅ 链上NFT数据同步完成: ${walletAddress} -> Level ${level}`);
+
+    // 同步时也需要分配BCC余额
+    try {
+      const initialBccLocked = 10450;
+      const initialBccTransferable = 500;
+      const level1UnlockBonus = 100;
+      
+      const finalBccLocked = initialBccLocked - level1UnlockBonus;
+      const finalBccTransferable = initialBccTransferable + level1UnlockBonus;
+      
+      console.log(`💰 同步时分配BCC余额: ${finalBccLocked} 锁仓 + ${finalBccTransferable} 可转账`);
+      
+      // 检查是否已有余额记录
+      const { data: existingBalance } = await supabase
+        .from('user_balances')
+        .select('wallet_address')
+        .eq('wallet_address', walletAddress)
+        .single();
+
+      if (!existingBalance) {
+        await supabase
+          .from('user_balances')
+          .insert({
+            wallet_address: walletAddress,
+            bcc_transferable: finalBccTransferable,
+            bcc_locked: finalBccLocked,
+            bcc_restricted: 0,
+            total_usdt_earned: 0,
+            pending_rewards_usdt: 0,
+            created_at: currentTime,
+            updated_at: currentTime
+          });
+        
+        // 记录交易日志
+        await supabase
+          .from('bcc_transactions')
+          .insert({
+            wallet_address: walletAddress,
+            amount: finalBccTransferable + finalBccLocked,
+            balance_type: 'activation_reward',
+            transaction_type: 'reward',
+            purpose: `Level ${level} 会员同步奖励: ${finalBccLocked} 锁仓 + ${finalBccTransferable} 可转账`,
+            status: 'completed',
+            created_at: currentTime,
+            processed_at: currentTime,
+            metadata: {
+              sync_type: 'chain_to_db',
+              activation_level: level
+            }
+          });
+          
+        console.log(`✅ 同步时BCC余额分配成功: ${walletAddress}`);
+      } else {
+        console.log(`ℹ️ BCC余额记录已存在，跳过分配`);
+      }
+    } catch (bccError) {
+      console.error('同步时BCC余额分配失败:', bccError);
+    }
     
     return {
       success: true,
@@ -675,7 +824,7 @@ async function checkRewardEligibility(supabase, memberWallet: string, layer: num
     // 获取成员数据
     const { data: memberData } = await supabase
       .from('members')
-      .select('total_direct_referrals, current_level')
+      .select('current_level')
       .eq('wallet_address', memberWallet)
       .single();
       
@@ -686,7 +835,11 @@ async function checkRewardEligibility(supabase, memberWallet: string, layer: num
       };
     }
     
-    const directReferrals = memberData.total_direct_referrals || 0;
+    // 计算直接推荐数量
+    const { count: directReferrals } = await supabase
+      .from('referrals')
+      .select('*', { count: 'exact' })
+      .eq('referrer_wallet', memberWallet);
     const memberLevel = memberData.current_level || 0;
     
     // 基本要求：必须有NFT等级才能获得奖励

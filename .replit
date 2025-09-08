@@ -4,7 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist", "test
 
 [nix]
 channel = "stable-24_05"
-packages = ["imagemagick_light", "nedit", "supabase-cli", "python-launcher"]
+packages = ["imagemagick_light", "nedit", "python-launcher", "supabase-cli"]
 
 [deployment]
 deploymentTarget = "autoscale"

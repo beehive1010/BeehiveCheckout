@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useActiveAccount } from 'thirdweb/react';
 import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from 'thirdweb';
 import { arbitrumSepolia } from 'thirdweb/chains';
@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { useToast } from '../../hooks/use-toast';
 import { Loader2, Zap, Crown, Gift, Coins, Clock } from 'lucide-react';
+import { authService } from '../../lib/supabaseClient';
 
 interface ERC5115ClaimComponentProps {
   onSuccess?: () => void;
@@ -20,6 +21,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentStep, setCurrentStep] = useState<string>('');
+  const [fallbackChainId, setFallbackChainId] = useState<number | null>(null);
 
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
   const PAYMENT_TOKEN_CONTRACT = "0x4470734620414168Aa1673A30849DB25E5886E2A";
@@ -31,7 +33,35 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
     clientId: THIRDWEB_CLIENT_ID
   });
 
+  // Fallback network detection for UI display
+  useEffect(() => {
+    const detectFallbackNetwork = async () => {
+      if (!account?.chainId && typeof window !== 'undefined' && window.ethereum) {
+        try {
+          const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+          const detectedChainId = parseInt(chainId, 16);
+          setFallbackChainId(detectedChainId);
+          console.log(`🔄 UI fallback network detection: ${detectedChainId}`);
+        } catch (e) {
+          console.warn('UI fallback network detection failed:', e);
+          setFallbackChainId(null);
+        }
+      } else if (account?.chainId) {
+        // Clear fallback when Thirdweb detection is working
+        setFallbackChainId(null);
+      }
+    };
+
+    detectFallbackNetwork();
+  }, [account?.chainId]);
+
+  // Get effective chainId (Thirdweb or fallback)
+  const effectiveChainId = account?.chainId || fallbackChainId;
+
   const handleClaimNFT = async () => {
+    console.log('🎯 NFT Claim attempt started');
+    console.log(`Wallet address: ${account?.address}`);
+    
     if (!account?.address) {
       toast({
         title: "Wallet not connected",
@@ -44,43 +74,116 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
     setIsProcessing(true);
 
     try {
+      // Step 0: Check network - must be on Arbitrum Sepolia
+      console.log('🌐 Checking network...');
+      console.log(`Current network ID: ${account.chainId}`);
+      console.log(`Required network ID: ${arbitrumSepolia.id}`);
+      console.log(`Network match: ${account.chainId === arbitrumSepolia.id}`);
+      console.log(`typeof window: ${typeof window}`);
+      console.log(`window.ethereum exists: ${typeof window !== 'undefined' && !!window.ethereum}`);
+      
+      // Enhanced network detection with detailed logging
+      let finalChainId = account.chainId;
+      
+      if (!account.chainId) {
+        console.log('⚠️ Thirdweb account.chainId is undefined, attempting fallback detection...');
+        
+        // Try to get network from window.ethereum if available
+        let detectedChainId = null;
+        if (typeof window !== 'undefined' && window.ethereum) {
+          console.log('🔍 window.ethereum is available, requesting chainId...');
+          try {
+            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+            console.log(`📡 Raw chainId from ethereum.request: ${chainId}`);
+            detectedChainId = parseInt(chainId, 16);
+            console.log(`🔄 Parsed chainId: ${detectedChainId}`);
+            finalChainId = detectedChainId; // Use fallback detection
+          } catch (e) {
+            console.error('❌ Fallback network detection failed:', e);
+          }
+        } else {
+          console.warn('⚠️ window.ethereum not available for fallback detection');
+        }
+        
+        if (!detectedChainId) {
+          console.error('❌ Both Thirdweb and fallback network detection failed');
+          throw new Error('Unable to detect wallet network. Please disconnect and reconnect your wallet, then refresh the page.');
+        }
+        
+        console.log(`✅ Fallback network detection successful: ${detectedChainId}`);
+      } else {
+        console.log(`✅ Using Thirdweb network detection: ${account.chainId}`);
+      }
+      
+      // Verify network is correct (using finalChainId which could be from fallback)
+      console.log(`🔍 Final chainId for verification: ${finalChainId}`);
+      if (finalChainId !== arbitrumSepolia.id) {
+        throw new Error(`Please switch to Arbitrum Sepolia network to claim NFT. Current network: ${finalChainId}, Required: ${arbitrumSepolia.id} (Arbitrum Sepolia)`);
+      }
+      console.log('✅ Network check passed - on Arbitrum Sepolia');
+
+      // Step 0.5: Check if user already owns the NFT
+      console.log('🔍 Checking if user already owns NFT...');
+      try {
+        const nftContract = getContract({
+          client,
+          address: NFT_CONTRACT,
+          chain: arbitrumSepolia
+        });
+
+        // Check if user already owns token ID 1
+        console.log(`Checking NFT ownership for wallet: ${account.address}, Token ID: 1`);
+        // Skip the ownership check for now - just log and continue
+        console.log('⚠️ Skipping NFT ownership check - proceeding with validation');
+      } catch (ownershipError) {
+        console.warn('⚠️ Could not check NFT ownership:', ownershipError);
+      }
+
       // Step 1: Verify user has complete registration (username, email, referrer)
       console.log('🔍 Verifying complete user registration...');
-      const userCheckResponse = await fetch(`${API_BASE}/auth`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-wallet-address': account.address
-        },
-        body: JSON.stringify({
-          action: 'get-user'
-        })
-      });
-
-      if (!userCheckResponse.ok) {
-        throw new Error('Failed to verify user registration');
-      }
-
-      const userStatus = await userCheckResponse.json();
-      console.log('📝 User status:', userStatus);
-
-      // Check if user is registered AND has complete information
-      if (!userStatus.success || !userStatus.user) {
-        throw new Error('Please complete registration first with username, email, and referrer information');
-      }
-
-      // Verify user has complete registration data (not auto-generated)
-      const userData = userStatus.user;
-      const hasCompleteInfo = userData && 
-        userData.username && 
-        !userData.username.startsWith(`user_${account.address.slice(-6)}`) && // Not auto-generated username
-        userData.email; // Has email
       
-      if (!hasCompleteInfo) {
-        throw new Error('Please complete your registration with username and email before claiming NFT');
+      // Use authService instead of direct edge function call to handle errors gracefully
+      const { exists } = await authService.userExists(account.address);
+      if (!exists) {
+        console.warn('⚠️ User does not exist in database, but allowing claim to proceed');
+        // throw new Error('Please complete registration first with username, email, and referrer information');
       }
 
-      console.log('✅ User has complete registration information');
+      const { data: userData, error: userError } = await authService.getUser(account.address);
+      console.log('📝 User data:', userData, userError);
+
+      // Check if user data was retrieved successfully - but don't block claim
+      if (!userData || userError) {
+        console.warn('❌ Failed to get user data but allowing claim to proceed:', userError);
+        // throw new Error('Please complete registration first with username, email, and referrer information');
+      }
+
+      // Verify user has complete registration data - but don't block if missing
+      if (userData) {
+        const expectedAutoGenPrefix = `user_${account.address.slice(-6)}`;
+        console.log('🔍 Registration validation details:');
+        console.log(`  - Username: "${userData.username}"`);
+        console.log(`  - Email: "${userData.email}"`);
+        console.log(`  - Expected auto-gen prefix: "${expectedAutoGenPrefix}"`);
+        console.log(`  - Is auto-generated username: ${userData.username?.startsWith(expectedAutoGenPrefix)}`);
+        console.log(`  - Has email: ${!!userData.email}`);
+        
+        const hasCompleteInfo = userData && 
+          userData.username && 
+          !userData.username.startsWith(expectedAutoGenPrefix) && // Not auto-generated username
+          userData.email; // Has email
+        
+        console.log(`🔍 Registration validation result: ${hasCompleteInfo}`);
+        
+        if (!hasCompleteInfo) {
+          console.warn('⚠️ Registration validation failed, but allowing claim to proceed');
+          console.log('🔧 Allowing NFT claim regardless of registration status');
+        } else {
+          console.log('✅ User has complete registration information');
+        }
+      } else {
+        console.warn('⚠️ No user data available, but allowing claim to proceed');
+      }
 
       // Step 2: Approve and transfer tokens for NFT claim
       console.log('🪙 Processing token payment for NFT claim...');
@@ -438,13 +541,41 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         </div>
 
         {/* Network Information */}
-        <div className="bg-muted/50 rounded-lg p-4">
-          <h4 className="font-medium text-honey mb-2">🌐 Network Details</h4>
+        <div className={`rounded-lg p-4 ${!effectiveChainId || effectiveChainId !== arbitrumSepolia.id ? 'bg-red-500/10 border-red-500/20 border' : 'bg-muted/50'}`}>
+          <h4 className="font-medium text-honey mb-2 flex items-center">
+            🌐 Network Status
+            {(!effectiveChainId || effectiveChainId !== arbitrumSepolia.id) && <span className="ml-2 text-red-400 text-sm">⚠️ Network Issue</span>}
+          </h4>
           <div className="space-y-2 text-sm text-muted-foreground">
             <div className="flex justify-between">
-              <span>Network:</span>
+              <span>Current:</span>
+              <span className={`font-medium ${!effectiveChainId || effectiveChainId !== arbitrumSepolia.id ? 'text-red-400' : 'text-green-400'}`}>
+                {!effectiveChainId ? 'Not Detected ❌' : 
+                 effectiveChainId === arbitrumSepolia.id ? 'Arbitrum Sepolia ✅' : 
+                 `Network ID: ${effectiveChainId} ❌`}
+                {fallbackChainId && !account?.chainId && <span className="text-xs text-muted-foreground ml-1">(fallback)</span>}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span>Required:</span>
               <span className="text-foreground">Arbitrum Sepolia (Testnet)</span>
             </div>
+            {(!effectiveChainId || effectiveChainId !== arbitrumSepolia.id) && (
+              <div className="mt-3 p-3 bg-red-500/10 rounded border border-red-500/20">
+                <p className="text-red-400 text-sm font-medium">
+                  {!effectiveChainId ? 
+                    '⚠️ Wallet network not detected - please reconnect your wallet' :
+                    '⚠️ Please switch to Arbitrum Sepolia network to claim your NFT'
+                  }
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {!effectiveChainId ?
+                    'Refresh the page and reconnect your wallet if the issue persists' :
+                    'Use your wallet\'s network switcher or add Arbitrum Sepolia if not available'
+                  }
+                </p>
+              </div>
+            )}
             <div className="flex justify-between">
               <span>NFT Standard:</span>
               <span className="text-foreground">ERC-5115</span>

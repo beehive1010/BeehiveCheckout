@@ -20,5 +20,7 @@
     "ask": []
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": ["thirdweb-mcp"]
+  "enabledMcpjsonServers": [
+    "thirdweb-mcp"
+  ]
 }

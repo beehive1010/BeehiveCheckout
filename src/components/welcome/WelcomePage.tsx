@@ -86,9 +86,9 @@ export default function WelcomePage() {
           }
         } catch (memberError) {
           console.warn('⚠️ Member status check failed, using user data:', memberError);
-          // Fallback to user data if member check fails
-          isActivated = userResult.user.is_activated || false;
-          currentLevel = userResult.user.current_level || 0;
+          // Fallback to user data if member check fails - users table doesn't have activation fields
+          isActivated = false; // Users table doesn't have is_activated field
+          currentLevel = 0; // Users table doesn't have current_level field
         }
 
         // 检查链上NFT状态

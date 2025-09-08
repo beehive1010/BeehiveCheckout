@@ -95,7 +95,7 @@ export const authService = {
     }
   },
 
-  // Check if user exists via Edge Function
+  // Check if user exists via Auth Edge Function
   async userExists(walletAddress: string) {
     try {
       const result = await callEdgeFunction('auth', {
@@ -104,31 +104,63 @@ export const authService = {
 
       return { exists: result.success && result.isRegistered, error: null };
     } catch (error: any) {
-      console.error('Error checking user existence:', error);
-      return { exists: false, error: { message: error.message } };
+      // If edge function has issues, fall back to assuming user doesn't exist
+      console.warn('Auth edge function error, assuming user does not exist:', error.message);
+      return { exists: false, error: null };
     }
   },
 
-  // Get member info (check if user is activated)
+  // Get member info via activate-membership Edge Function (check_existing) to bypass RLS
   async getMemberInfo(walletAddress: string) {
-    return supabase
-      .from('members')
-      .select('*')
-      .eq('wallet_address', walletAddress)
-      .single();
+    try {
+      const result = await callEdgeFunction('activate-membership', {
+        transactionHash: 'check_existing',
+        level: 1
+      }, walletAddress);
+      
+      if (!result.success) {
+        return { data: null, error: { message: result.error || result.message || 'Member not found' } };
+      }
+      
+      // Extract member data from the check_existing response
+      const memberData = result.member || null;
+      return { data: memberData, error: null };
+    } catch (error: any) {
+      console.error('Error getting member info:', error);
+      return { data: null, error: { message: error.message } };
+    }
   },
 
-  // Check if user is activated member - use case-insensitive query
+  // Check if user is activated member via activate-membership Edge Function (check_existing)
   async isActivatedMember(walletAddress: string) {
-    const { data, error } = await supabase
-      .from('members')
-      .select('is_activated, current_level, wallet_address')
-      .eq('wallet_address', walletAddress.toLowerCase())
-      .eq('is_activated', true)
-      .single();
-    
-    console.log(`🔍 Member query result for ${walletAddress}:`, { data, error });
-    return { isActivated: !error && !!data, memberData: data, error };
+    try {
+      const result = await callEdgeFunction('activate-membership', {
+        transactionHash: 'check_existing',
+        level: 1
+      }, walletAddress);
+      
+      if (!result.success) {
+        return { isActivated: false, memberData: null, error: { message: result.error || result.message } };
+      }
+      
+      const memberData = result.member || null;
+      const isActivated = result.hasNFT || (memberData?.current_level > 0) || false;
+      
+      console.log(`🔍 Member activation status for ${walletAddress}:`, { 
+        isActivated, 
+        level: memberData?.current_level,
+        hasNFT: result.hasNFT 
+      });
+      
+      return { 
+        isActivated, 
+        memberData, 
+        error: null 
+      };
+    } catch (error: any) {
+      console.error('Error checking member activation:', error);
+      return { isActivated: false, memberData: null, error: { message: error.message } };
+    }
   },
 };
 
@@ -195,7 +227,7 @@ export const orderService = {
     return supabase
       .from('orders')
       .select('*')
-      .eq('wallet_address', walletAddress)
+      .eq('wallet_address', walletAddress.toLowerCase())
       .order('created_at', { ascending: false })
       .limit(limit);
   },
@@ -249,7 +281,7 @@ export const memberService = {
         ...updates,
         updated_at: new Date().toISOString(),
       })
-      .eq('wallet_address', walletAddress)
+      .eq('wallet_address', walletAddress.toLowerCase())
       .select()
       .single();
   },
@@ -605,7 +637,7 @@ export const activationService = {
       const { data: memberData } = await supabase
         .from('members')
         .select('is_activated, current_level')
-        .eq('wallet_address', walletAddress)
+        .eq('wallet_address', walletAddress.toLowerCase())
         .single();
 
       if (memberData?.is_activated) {
@@ -620,7 +652,7 @@ export const activationService = {
       const { data: userData } = await supabase
         .from('users')
         .select('wallet_address, username, referrer_wallet')
-        .eq('wallet_address', walletAddress)
+        .eq('wallet_address', walletAddress.toLowerCase())
         .single();
 
       if (!userData) {

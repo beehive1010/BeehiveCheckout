@@ -9,7 +9,8 @@ import { useLocation } from 'wouter';
 import { useWallet } from '../hooks/useWallet';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '../lib/queryClient';
-import { Check, AlertCircle, User, Mail, Key, Users } from 'lucide-react';
+import { Check, AlertCircle, User, Mail, Users } from 'lucide-react';
+import { authService } from '../lib/supabaseClient';
 
 export default function Registration() {
   const { t } = useI18n();
@@ -55,10 +56,11 @@ export default function Registration() {
   // Form state
   const [formData, setFormData] = useState({
     username: '',
-    email: '',
-    secondaryPassword: '',
-    confirmPassword: ''
+    email: ''
   });
+  
+  // Loading state for user existence check
+  const [isCheckingExistingUser, setIsCheckingExistingUser] = useState(true);
   
   // Get referrer from URL parameters
   const [referrerWallet, setReferrerWallet] = useState<string | null>(null);
@@ -71,6 +73,39 @@ export default function Registration() {
       setReferrerWallet(refParam);
     }
   }, []);
+
+  // Check if user already exists and redirect to welcome page
+  useEffect(() => {
+    const checkExistingUser = async () => {
+      if (!walletAddress) {
+        setIsCheckingExistingUser(false);
+        return;
+      }
+      
+      try {
+        const { exists } = await authService.userExists(walletAddress);
+        if (exists) {
+          console.log('👤 User already registered, redirecting to welcome page');
+          toast({
+            title: 'Already Registered',
+            description: 'You are already registered! Redirecting to welcome page...',
+          });
+          setTimeout(() => {
+            setLocation('/welcome');
+          }, 1000);
+        } else {
+          // User doesn't exist, show the registration form
+          setIsCheckingExistingUser(false);
+        }
+      } catch (error) {
+        console.error('Error checking existing user:', error);
+        // On error, show the registration form
+        setIsCheckingExistingUser(false);
+      }
+    };
+
+    checkExistingUser();
+  }, [walletAddress, setLocation, toast]);
 
   // Validate referrer exists and is not self-referral
   const { data: referrerValidation, isLoading: isValidatingReferrer, error: referrerError } = useQuery({
@@ -118,15 +153,6 @@ export default function Registration() {
       return;
     }
 
-    // Validate passwords match
-    if (formData.secondaryPassword !== formData.confirmPassword) {
-      toast({
-        title: 'Password Mismatch',
-        description: 'Passwords do not match',
-        variant: 'destructive'
-      });
-      return;
-    }
 
     // Validate referrer if provided
     if (referrerWallet && referrerError) {
@@ -143,7 +169,6 @@ export default function Registration() {
         walletAddress,
         username: formData.username,
         email: formData.email || undefined,
-        secondaryPasswordHash: formData.secondaryPassword, // Will be hashed on backend
         referrerWallet: referrerWallet || undefined
       });
       
@@ -199,6 +224,20 @@ export default function Registration() {
       </div>
     );
   };
+
+  // Show loading screen while checking if user already exists
+  if (isCheckingExistingUser) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-secondary border-border">
+          <CardContent className="pt-6 text-center">
+            <div className="animate-spin h-8 w-8 border-2 border-honey border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-honey">Checking registration status...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -258,40 +297,6 @@ export default function Registration() {
               />
             </div>
 
-            {/* Secondary Password */}
-            <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center">
-                <Key className="h-4 w-4 mr-2" />
-                Security Password *
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                value={formData.secondaryPassword}
-                onChange={(e) => setFormData(prev => ({ ...prev, secondaryPassword: e.target.value }))}
-                placeholder="Create a security password"
-                className="bg-muted border-border"
-                required
-                data-testid="input-password"
-              />
-            </div>
-
-            {/* Confirm Password */}
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">
-                Confirm Password *
-              </Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                placeholder="Confirm your password"
-                className="bg-muted border-border"
-                required
-                data-testid="input-confirm-password"
-              />
-            </div>
 
             <Button
               type="submit"
