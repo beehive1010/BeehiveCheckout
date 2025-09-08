@@ -37,6 +37,7 @@ import Header from "@/components/shared/Header";
 import Navigation from "@/components/shared/Navigation";
 import { useWallet } from "@/hooks/useWallet";
 import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
+import MemberGuard from "@/components/guards/MemberGuard";
 
 // Temporary components for features not yet refactored
 const CourseDetails = () => <div>Course Details - Coming Soon</div>;
@@ -236,13 +237,37 @@ function Router() {
         <Route path="/welcome" component={Welcome} />
         
         {/* Main app routes - Protected with wallet connection and Level 1 NFT requirement */}
-        <Route path="/dashboard" component={() => <EnhancedDashboard />} />
-        <Route path="/dashboard/simple" component={() => <DashboardPageV2Simple />} />
-        <Route path="/tasks" component={Tasks} />
+        <Route path="/dashboard" component={() => (
+          <MemberGuard requireActivation={true} redirectTo="/welcome">
+            <EnhancedDashboard />
+          </MemberGuard>
+        )} />
+        <Route path="/dashboard/simple" component={() => (
+          <MemberGuard requireActivation={true} redirectTo="/welcome">
+            <DashboardPageV2Simple />
+          </MemberGuard>
+        )} />
+        <Route path="/tasks" component={() => (
+          <MemberGuard requireActivation={true} redirectTo="/welcome">
+            <Tasks />
+          </MemberGuard>
+        )} />
         <Route path="/token-purchase" component={TokenPurchase} />
-        <Route path="/education" component={Education} />
-        <Route path="/education/:courseId" component={CourseDetails} />
-        <Route path="/discover" component={Discover} />
+        <Route path="/education" component={() => (
+          <MemberGuard requireActivation={true} redirectTo="/welcome">
+            <Education />
+          </MemberGuard>
+        )} />
+        <Route path="/education/:courseId" component={() => (
+          <MemberGuard requireActivation={true} redirectTo="/welcome">
+            <CourseDetails />
+          </MemberGuard>
+        )} />
+        <Route path="/discover" component={() => (
+          <MemberGuard requireActivation={true} redirectTo="/welcome">
+            <Discover />
+          </MemberGuard>
+        )} />
         <Route path="/referrals" component={Referrals} />
         <Route path="/rewards" component={Rewards} />
         <Route path="/me" component={Me} />
@@ -253,7 +278,11 @@ function Router() {
         
         {/* Public routes - No authentication required */}
         <Route path="/matrix-explanation" component={MatrixExplanation} />
-        <Route path="/hiveworld" component={HiveWorld} />
+        <Route path="/hiveworld" component={() => (
+          <MemberGuard requireActivation={true} redirectTo="/welcome">
+            <HiveWorld />
+          </MemberGuard>
+        )} />
         <Route path="/hiveworld/:id" component={BlogPost} />
         <Route path="/tokens" component={() => (
           <div className="container mx-auto px-4 py-8 max-w-7xl">

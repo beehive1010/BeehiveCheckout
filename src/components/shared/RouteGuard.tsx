@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useActiveAccount } from 'thirdweb/react';
-import { useNFTVerification } from '../hooks/useNFTVerification';
-import { useWallet } from '../hooks/useWallet';
-import { parseReferralFromUrl } from '../lib/web3';
+import { useNFTVerification } from '../../hooks/useNFTVerification';
+import { useWallet } from '../../hooks/useWallet';
+import { parseReferralFromUrl } from '../../lib/web3';
 
 interface RouteGuardProps {
   children: React.ReactNode;
