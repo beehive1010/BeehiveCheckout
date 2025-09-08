@@ -32,8 +32,8 @@ export default function TabBar() {
     }
   }, [walletAddress, location, setLocation]);
 
-  // Hide TabBar only on landing page, show for connected wallet users
-  if (location === '/' || !walletAddress) {
+  // Hide TabBar on landing page and welcome page, show for connected wallet users
+  if (location === '/' || location === '/welcome' || !walletAddress) {
     return null;
   }
 
