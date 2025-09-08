@@ -29,7 +29,7 @@ serve(async (req) => {
     )
 
     const requestBody = await req.json().catch(() => ({}))
-    const { transactionHash, level = 1, action, ...data } = requestBody
+    const { transactionHash, level = 1, action, referrerWallet, ...data } = requestBody
     const walletAddress = req.headers.get('x-wallet-address')?.toLowerCase()
 
     if (!walletAddress) {
@@ -97,7 +97,7 @@ serve(async (req) => {
       })
     }
 
-    const result = await activateMembershipSecure(supabase, walletAddress, transactionHash, level);
+    const result = await activateMembershipSecure(supabase, walletAddress, transactionHash, level, referrerWallet);
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -117,7 +117,7 @@ serve(async (req) => {
 })
 
 // 安全的会员激活函数 - 修复版
-async function activateMembershipSecure(supabase, walletAddress, transactionHash, level) {
+async function activateMembershipSecure(supabase, walletAddress, transactionHash, level, referrerWallet) {
   console.log(`🔒 开始安全激活流程: ${walletAddress}`);
 
   try {
@@ -260,66 +260,127 @@ async function activateMembershipSecure(supabase, walletAddress, transactionHash
     }
 
     // 5. 处理推荐关系 - 使用改进的矩阵安置算法
-    const referrerWallet = userData.referrer_wallet;
+    // Use referrerWallet from request if provided, otherwise use stored referrer
+    const effectiveReferrer = referrerWallet || userData.referrer_wallet;
+    console.log(`🔗 Referrer determination: Request=${referrerWallet}, Stored=${userData.referrer_wallet}, Effective=${effectiveReferrer}`);
     const ROOT_WALLET = '0x0000000000000000000000000000000000000001';
     
-    if (referrerWallet && referrerWallet !== ROOT_WALLET) {
-      console.log(`🔗 处理推荐关系: ${referrerWallet} -> ${walletAddress}`);
+    if (effectiveReferrer && effectiveReferrer !== ROOT_WALLET) {
+      console.log(`🔗 处理推荐关系: ${effectiveReferrer} -> ${walletAddress}`);
       
       // 检查推荐者是否为激活会员
       const { data: referrerMember } = await supabase
         .from('members')
         .select('wallet_address, current_level')
-        .eq('wallet_address', referrerWallet)
+        .eq('wallet_address', effectiveReferrer)
         .gt('current_level', 0)
         .single();
 
       if (referrerMember) {
-        // 使用改进的矩阵安置算法
-        const placementResult = await findOptimalMatrixPlacement(supabase, referrerWallet, walletAddress);
+        // 调用矩阵服务来进行3x3安置
+        console.log(`🔄 调用矩阵安置服务: ${effectiveReferrer} -> ${walletAddress}`);
         
-        if (placementResult.success) {
-          console.log(`✅ 找到最佳安置位置: Layer ${placementResult.layer}, Position ${placementResult.position}`);
-          
-          // 创建推荐关系记录
-          const { error: referralError } = await supabase
-            .from('referrals')
-            .insert({
-              referred_wallet: walletAddress,
-              referrer_wallet: referrerWallet,
-              placement_root: placementResult.rootWallet,
-              placement_layer: placementResult.layer,
-              placement_position: placementResult.position,
-              placement_path: `${placementResult.rootWallet}/${placementResult.layer}/${placementResult.position}`,
-              referral_type: placementResult.placementType
-            });
+        try {
+          // Call the matrix placement service
+          const matrixResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/matrix`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
+              'x-wallet-address': walletAddress
+            },
+            body: JSON.stringify({
+              action: 'place-member',
+              memberWallet: walletAddress,
+              referrerWallet: effectiveReferrer
+            })
+          });
 
-          if (referralError) {
-            console.warn('创建推荐关系失败，但会员激活成功:', referralError);
-          } else {
-            console.log(`✅ 推荐关系创建成功: ${referrerWallet} -> ${walletAddress}`);
+          if (matrixResponse.ok) {
+            const matrixResult = await matrixResponse.json();
             
-            // Update referrer's member record (simplified - just update timestamp)
-            await supabase
-              .from('members')
+            if (matrixResult.success) {
+              console.log(`✅ 矩阵安置成功: Layer ${matrixResult.placement?.layer}, Position ${matrixResult.placement?.position}`);
+              
+              // 创建推荐关系记录
+              const { error: referralError } = await supabase
+                .from('referrals')
+                .insert({
+                  referred_wallet: walletAddress,
+                  referrer_wallet: effectiveReferrer,
+                  placement_root: matrixResult.placement?.rootWallet || effectiveReferrer,
+                  placement_layer: matrixResult.placement?.layer || 1,
+                  placement_position: matrixResult.placement?.position || 'L',
+                  placement_path: `${matrixResult.placement?.rootWallet || effectiveReferrer}/${matrixResult.placement?.layer || 1}/${matrixResult.placement?.position || 'L'}`,
+                  referral_type: matrixResult.placement?.placementType || 'direct',
+                  status: 'active',
+                  created_at: currentTime
+                });
+
+              if (referralError) {
+                console.warn('创建推荐关系失败，但会员激活成功:', referralError);
+              } else {
+                console.log(`✅ 推荐关系创建成功: ${effectiveReferrer} -> ${walletAddress}`);
+                
+                // 触发Layer 1奖励 - 调用奖励服务
+                try {
+                  console.log(`🎁 触发Layer 1奖励: ${matrixResult.placement?.parentWallet || effectiveReferrer}`);
+                  
+                  const rewardResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/rewards`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
+                      'x-wallet-address': walletAddress
+                    },
+                    body: JSON.stringify({
+                      action: 'process-layer-reward',
+                      memberWallet: walletAddress,
+                      level: level,
+                      trigger: 'member-placement',
+                      rootWallet: matrixResult.placement?.rootWallet || effectiveReferrer,
+                      layer: matrixResult.placement?.layer || 1
+                    })
+                  });
+
+                  if (rewardResponse.ok) {
+                    const rewardResult = await rewardResponse.json();
+                    if (rewardResult.success) {
+                      console.log(`✅ Layer 1奖励触发成功: ${JSON.stringify(rewardResult.reward)}`);
+                    } else {
+                      console.warn('Layer 1奖励触发失败:', rewardResult.error);
+                    }
+                  } else {
+                    console.warn('Layer 1奖励服务调用失败');
+                  }
+                } catch (rewardError) {
+                  console.warn('Layer 1奖励触发异常:', rewardError);
+                }
+                
+                // Update referrer's member record (simplified - just update timestamp)
+                await supabase
+                  .from('members')
               .update({ 
                 updated_at: currentTime
               })
-              .eq('wallet_address', referrerWallet);
-            
-            console.log(`✅ 推荐人统计更新成功: ${referrerWallet}`);
-            
-            // 触发奖励系统
-            await triggerRewardSystem(supabase, placementResult, walletAddress, level);
+              .eq('wallet_address', effectiveReferrer);
+              }
+            } else {
+              console.warn('矩阵安置失败:', matrixResult.error);
+            }
+          } else {
+            const errorText = await matrixResponse.text();
+            console.warn('矩阵服务调用失败:', errorText);
           }
-        } else {
-          console.error('⚠️ 矩阵安置失败:', placementResult.error);
+        } catch (matrixError) {
+          console.warn('矩阵安置异常:', matrixError);
+          // Continue with activation even if matrix placement fails
         }
       } else {
-        console.warn(`⚠️ 推荐者 ${referrerWallet} 不是激活会员，跳过推荐关系创建`);
+        console.log(`⚠️ 推荐者不是激活会员，跳过推荐关系处理: ${effectiveReferrer}`);
       }
     } else {
-      console.log(`📝 无有效推荐者，跳过推荐关系创建`);
+      console.log('🔄 无推荐者，作为根节点处理');
     }
 
     // 6. 更新用户表的当前等级
