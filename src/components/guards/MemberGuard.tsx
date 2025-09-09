@@ -59,6 +59,9 @@ export function MemberGuard({
   const checkUserStatus = async () => {
     if (!walletAddress) return;
 
+    const startTime = performance.now();
+    console.log('⏱️ MemberGuard: Starting user status check for wallet:', walletAddress);
+    
     setIsLoading(true);
     setError(null);
 
@@ -137,6 +140,8 @@ export function MemberGuard({
       console.error('MemberGuard user status check error:', err);
       setError(err instanceof Error ? err.message : 'Failed to verify access');
     } finally {
+      const totalTime = performance.now() - startTime;
+      console.log(`⏱️ MemberGuard: User status check completed in ${totalTime.toFixed(2)}ms`);
       setIsLoading(false);
     }
   };

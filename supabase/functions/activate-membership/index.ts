@@ -55,10 +55,27 @@ serve(async (req) => {
         })
       }
 
+      // More strict activation check - require level > 0 AND proper activation flags
+      // is_active should be true for properly activated members
+      const hasValidLevel = memberData?.current_level > 0;
+      const hasActivationFlag = memberData?.is_active === true;
+      const isReallyActivated = hasValidLevel && hasActivationFlag;
+      
+      console.log(`🔍 Detailed member activation check:`, {
+        wallet: walletAddress,
+        current_level: memberData?.current_level,
+        is_active: memberData?.is_active,
+        is_activated: memberData?.is_activated,
+        hasValidLevel,
+        hasActivationFlag,
+        finalResult: isReallyActivated,
+        memberRecord: memberData
+      });
+
       return new Response(JSON.stringify({
         success: true,
         member: memberData,
-        isActivated: memberData?.current_level > 0 || false,
+        isActivated: isReallyActivated,
         currentLevel: memberData?.current_level || 0
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -121,15 +138,38 @@ async function activateMembershipSecure(supabase, walletAddress, transactionHash
   console.log(`🔒 开始安全激活流程: ${walletAddress}`);
 
   try {
-    // 1. 验证用户存在且有完整注册信息
-    const { data: userData, error: userError } = await supabase
+    // 1. 检查用户是否存在，如果不存在则自动注册
+    let { data: userData, error: userError } = await supabase
       .from('users')
       .select('wallet_address, referrer_wallet, username, email')
       .eq('wallet_address', walletAddress)
       .single();
 
     if (userError || !userData) {
-      throw new Error('用户不存在或注册信息不完整，无法激活会员身份');
+      console.log('🔧 用户不存在，自动创建用户记录...');
+      
+      // Auto-register user with basic information
+      const autoUsername = `user_${walletAddress.slice(-8)}`;
+      
+      const { data: newUserData, error: createUserError } = await supabase
+        .from('users')
+        .insert({
+          wallet_address: walletAddress,
+          username: autoUsername,
+          referrer_wallet: referrerWallet || null,
+          email: null,
+          created_at: new Date().toISOString(),
+        })
+        .select('wallet_address, referrer_wallet, username, email')
+        .single();
+
+      if (createUserError || !newUserData) {
+        console.error('❌ 自动注册用户失败:', createUserError);
+        throw new Error('用户不存在且自动注册失败，无法激活会员身份');
+      }
+      
+      userData = newUserData;
+      console.log(`✅ 自动注册用户成功: ${userData.username}`);
     }
 
     console.log(`✅ 用户验证成功: ${userData.username}`);
@@ -171,6 +211,8 @@ async function activateMembershipSecure(supabase, walletAddress, transactionHash
         referrer_wallet: userData.referrer_wallet,
         activation_rank: 1, // Set initial activation rank
         tier_level: 1, // Set initial tier level
+        is_active: true, // Mark as properly activated
+        is_activated: true, // Also set backup flag
         created_at: currentTime,
         updated_at: currentTime
       })
@@ -318,7 +360,21 @@ async function activateMembershipSecure(supabase, walletAddress, transactionHash
                 });
 
               if (referralError) {
-                console.warn('创建推荐关系失败，但会员激活成功:', referralError);
+                console.error('❌ 创建推荐关系失败，但会员激活成功:', {
+                  error: referralError,
+                  errorMessage: referralError.message,
+                  errorCode: referralError.code,
+                  referralData: {
+                    referred_wallet: walletAddress,
+                    referrer_wallet: effectiveReferrer,
+                    placement_root: matrixResult.placement?.rootWallet || effectiveReferrer,
+                    placement_layer: matrixResult.placement?.layer || 1,
+                    placement_position: matrixResult.placement?.position || 'L',
+                    placement_path: `${matrixResult.placement?.rootWallet || effectiveReferrer}/${matrixResult.placement?.layer || 1}/${matrixResult.placement?.position || 'L'}`,
+                    referral_type: matrixResult.placement?.placementType || 'direct',
+                    status: 'active'
+                  }
+                });
               } else {
                 console.log(`✅ 推荐关系创建成功: ${effectiveReferrer} -> ${walletAddress}`);
                 
@@ -366,18 +422,33 @@ async function activateMembershipSecure(supabase, walletAddress, transactionHash
               .eq('wallet_address', effectiveReferrer);
               }
             } else {
-              console.warn('矩阵安置失败:', matrixResult.error);
+              console.error('❌ 矩阵安置失败 - referrals记录将不会被创建:', {
+                error: matrixResult.error,
+                referrer: effectiveReferrer,
+                member: walletAddress,
+                reason: 'Matrix placement service returned success=false'
+              });
             }
           } else {
             const errorText = await matrixResponse.text();
-            console.warn('矩阵服务调用失败:', errorText);
+            console.error('❌ 矩阵服务调用失败 - referrals记录将不会被创建:', {
+              status: matrixResponse.status,
+              error: errorText,
+              referrer: effectiveReferrer,
+              member: walletAddress,
+              reason: 'Matrix placement API call failed'
+            });
           }
         } catch (matrixError) {
           console.warn('矩阵安置异常:', matrixError);
           // Continue with activation even if matrix placement fails
         }
       } else {
-        console.log(`⚠️ 推荐者不是激活会员，跳过推荐关系处理: ${effectiveReferrer}`);
+        console.error(`❌ 推荐者不是激活会员 - referrals记录将不会被创建:`, {
+          referrer: effectiveReferrer,
+          member: walletAddress,
+          reason: 'Referrer is not an activated member (current_level <= 0)'
+        });
       }
     } else {
       console.log('🔄 无推荐者，作为根节点处理');

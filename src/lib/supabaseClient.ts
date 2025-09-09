@@ -113,18 +113,31 @@ export const authService = {
   // Get member info via activate-membership Edge Function (check_existing) to bypass RLS
   async getMemberInfo(walletAddress: string) {
     try {
+      // Use fast database-only get-member-info instead of slow blockchain check_existing
       const result = await callEdgeFunction('activate-membership', {
-        transactionHash: 'check_existing',
-        level: 1
+        action: 'get-member-info'
       }, walletAddress);
       
       if (!result.success) {
         return { data: null, error: { message: result.error || result.message || 'Member not found' } };
       }
       
-      // Extract member data from the check_existing response
+      console.log('🔍 getMemberInfo API result:', {
+        success: result.success,
+        isActivated: result.isActivated,
+        currentLevel: result.currentLevel,
+        hasMemberData: !!result.member
+      });
+      
+      // Extract member data from the get-member-info response
       const memberData = result.member || null;
-      return { data: memberData, error: null };
+      // Also include the isActivated field from the API response
+      return { 
+        data: memberData, 
+        isActivated: result.isActivated,
+        currentLevel: result.currentLevel,
+        error: null 
+      };
     } catch (error: any) {
       console.error('Error getting member info:', error);
       return { data: null, error: { message: error.message } };

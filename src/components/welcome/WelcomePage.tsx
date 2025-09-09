@@ -58,9 +58,13 @@ export default function WelcomePage() {
   const checkUserStatus = async () => {
     if (!walletAddress) return;
 
+    const startTime = performance.now();
+    console.log('⏱️ Starting checkUserStatus for wallet:', walletAddress);
+    
     setIsLoading(true);
     try {
       // Check user status via Edge Function
+      const authStartTime = performance.now();
       const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/auth', {
         method: 'POST',
         headers: {
@@ -71,6 +75,8 @@ export default function WelcomePage() {
           action: 'get-user'
         })
       });
+      const authEndTime = performance.now();
+      console.log(`⏱️ Auth check took: ${(authEndTime - authStartTime).toFixed(2)}ms`);
 
       if (!response.ok) {
         throw new Error('Failed to check user status');
@@ -85,6 +91,7 @@ export default function WelcomePage() {
         let currentLevel = 0;
         
         try {
+          const memberStartTime = performance.now();
           console.log('🔍 Quick database check for membership activation...');
           
           // Fast database-only check using member-info Edge Function
@@ -98,6 +105,8 @@ export default function WelcomePage() {
               action: 'get-member-info'
             })
           });
+          const memberEndTime = performance.now();
+          console.log(`⏱️ Member check took: ${(memberEndTime - memberStartTime).toFixed(2)}ms`);
 
           if (memberResponse.ok) {
             const memberResult = await memberResponse.json();
@@ -122,6 +131,7 @@ export default function WelcomePage() {
 
         // Set state based on database check - avoid slow blockchain queries initially
         if (isActivated) {
+          const redirectStartTime = performance.now();
           setWelcomeState({
             showClaimComponent: false,
             userLevel: currentLevel,
@@ -131,6 +141,7 @@ export default function WelcomePage() {
           });
           
           console.log('✅ User is activated, redirecting to dashboard');
+          console.log(`⏱️ Total check time before redirect: ${(redirectStartTime - startTime).toFixed(2)}ms`);
           setLocation('/dashboard');
         } else {
           // User not activated in database - show claim component but don't block with blockchain check
@@ -178,6 +189,8 @@ export default function WelcomePage() {
         variant: 'destructive',
       });
     } finally {
+      const totalTime = performance.now() - startTime;
+      console.log(`⏱️ Total checkUserStatus time: ${totalTime.toFixed(2)}ms`);
       setIsLoading(false);
     }
   };

@@ -76,6 +76,47 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
 
     setIsProcessing(true);
 
+    // Check if user is registered before allowing NFT claim
+    try {
+      console.log('🔍 Checking user registration status...');
+      setCurrentStep('检查用户注册状态...');
+      
+      const userCheckResponse = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-address': account.address,
+        },
+        body: JSON.stringify({
+          action: 'get-user'
+        })
+      });
+
+      const userResult = await userCheckResponse.json();
+      
+      if (!userResult.success || userResult.action === 'not_found') {
+        console.log('❌ User not registered, cannot claim NFT');
+        toast({
+          title: "需要先注册",
+          description: "请先完成用户注册再申请NFT",
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+        return;
+      }
+      
+      console.log('✅ User registration verified');
+    } catch (error) {
+      console.error('❌ User registration check failed:', error);
+      toast({
+        title: "注册检查失败",
+        description: "无法验证用户注册状态，请刷新页面重试",
+        variant: "destructive",
+      });
+      setIsProcessing(false);
+      return;
+    }
+
     // Declare variables at function scope
     let claimTxResult: any = null;
     let backendProcessed = false;

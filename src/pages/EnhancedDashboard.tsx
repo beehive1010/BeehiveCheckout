@@ -90,9 +90,11 @@ interface MatrixPosition {
 // Load dashboard data using proper Supabase services
 const loadDashboardData = async (walletAddress: string) => {
   console.log('🔄 Loading dashboard data for:', walletAddress);
+  console.time('⏱️ Total dashboard load time');
   
   try {
     // Load all data concurrently using proper services
+    console.time('⏱️ API calls');
     const [
       memberResult,
       balanceResult,
@@ -104,6 +106,7 @@ const loadDashboardData = async (walletAddress: string) => {
       matrixService.getMatrixStats(walletAddress),
       rewardService.getClaimableRewards(walletAddress)
     ]);
+    console.timeEnd('⏱️ API calls');
 
     console.log('📊 Dashboard API results:', {
       member: memberResult.status === 'fulfilled' ? 'success' : 'failed',
@@ -114,6 +117,7 @@ const loadDashboardData = async (walletAddress: string) => {
 
     // Extract data from results
     const memberData = memberResult.status === 'fulfilled' ? memberResult.value.data : null;
+    const memberApiResponse = memberResult.status === 'fulfilled' ? memberResult.value : null; // Keep full API response
     const balanceData = balanceResult.status === 'fulfilled' ? balanceResult.value : null;
     const matrixData = matrixResult.status === 'fulfilled' ? matrixResult.value : null;
     const rewardsData = rewardResult.status === 'fulfilled' ? rewardResult.value : null;
@@ -131,6 +135,7 @@ const loadDashboardData = async (walletAddress: string) => {
 
     return {
       member: memberData,
+      memberApiResponse: memberApiResponse, // Include the full API response for isActivated field
       balance: balanceData?.balance || balanceData,
       matrix: {
         ...matrixData,
@@ -195,6 +200,9 @@ export default function EnhancedDashboard() {
   const loadComponentData = async () => {
     if (!walletAddress) return;
     
+    const startTime = performance.now();
+    console.log('⏱️ Starting dashboard data load for wallet:', walletAddress);
+    
     setIsLoading(true);
     setError(null);
     
@@ -205,6 +213,12 @@ export default function EnhancedDashboard() {
       const data = await loadDashboardData(walletAddress);
       
       console.log('✅ Dashboard data loaded:', data);
+      console.log('🔍 Member activation debug:', {
+        memberApiResponseExists: !!data?.memberApiResponse,
+        isActivatedValue: data?.memberApiResponse?.isActivated,
+        memberDataActivated: data?.member?.is_activated,
+        memberDataActive: data?.member?.is_active
+      });
 
       // Transform data to consistent format based on database structure
       setDashboardStats({
@@ -234,14 +248,20 @@ export default function EnhancedDashboard() {
           currentLevel: data?.member?.current_level || 1,
           activationRank: data?.member?.activation_rank,
           tierLevel: data?.member?.tier_level,
-          isActivated: data?.member?.is_activated || false,
+          // Use the API response's isActivated field instead of database's is_activated
+          isActivated: data?.memberApiResponse?.isActivated || false,
           activatedAt: data?.member?.activated_at,
           levelsOwned: Array.isArray(data?.member?.levels_owned) ? data?.member?.levels_owned : [data?.member?.current_level || 1]
         }
       });
       
+      const totalTime = performance.now() - startTime;
+      console.log(`⏱️ Dashboard data load completed in: ${totalTime.toFixed(2)}ms`);
+      
     } catch (err: any) {
+      const totalTime = performance.now() - startTime;
       console.error('❌ Dashboard load error:', err);
+      console.log(`⏱️ Dashboard load failed after: ${totalTime.toFixed(2)}ms`);
       setError(err.message || 'Failed to load dashboard data');
       
       // Set default data to prevent crashes
@@ -279,6 +299,8 @@ export default function EnhancedDashboard() {
       });
     } finally {
       setIsLoading(false);
+      const totalTime = performance.now() - startTime;
+      console.log(`⏱️ Dashboard component load completed in: ${totalTime.toFixed(2)}ms`);
     }
   };
 
