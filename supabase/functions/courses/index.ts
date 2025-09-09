@@ -32,7 +32,41 @@ serve(async (req) => {
     const path = url.pathname
     const walletAddress = req.headers.get('x-wallet-address')?.toLowerCase()
 
-    // 路由处理
+    // 新的 action 路由处理
+    if (req.method === 'POST') {
+      const requestBody = await req.json()
+      const { action } = requestBody
+
+      switch (action) {
+        case 'get-courses':
+          return await getCourses(supabase)
+        
+        case 'get-course-access':
+          if (!walletAddress) {
+            throw new Error('钱包地址缺失')
+          }
+          return await getCourseAccess(supabase, walletAddress)
+        
+        case 'purchase-course':
+          if (!walletAddress) {
+            throw new Error('钱包地址缺失')
+          }
+          const { courseId, bccAmount } = requestBody
+          return await purchaseCourse(supabase, walletAddress, courseId, bccAmount)
+        
+        case 'update-progress':
+          if (!walletAddress) {
+            throw new Error('钱包地址缺失')
+          }
+          const { courseId: progressCourseId, progress } = requestBody
+          return await updateCourseProgress(supabase, walletAddress, progressCourseId, progress)
+        
+        default:
+          throw new Error(`未知的操作: ${action}`)
+      }
+    }
+
+    // 兼容旧的 GET 路由
     if (path.includes('/api/courses') && req.method === 'GET') {
       return await getCourses(supabase)
     }
@@ -42,22 +76,6 @@ serve(async (req) => {
         throw new Error('钱包地址缺失')
       }
       return await getCourseAccess(supabase, walletAddress)
-    }
-    
-    if (path.includes('/api/purchase-course') && req.method === 'POST') {
-      if (!walletAddress) {
-        throw new Error('钱包地址缺失')
-      }
-      const { courseId, bccAmount } = await req.json()
-      return await purchaseCourse(supabase, walletAddress, courseId, bccAmount)
-    }
-    
-    if (path.includes('/api/course-progress') && req.method === 'POST') {
-      if (!walletAddress) {
-        throw new Error('钱包地址缺失')
-      }
-      const { courseId, progress } = await req.json()
-      return await updateCourseProgress(supabase, walletAddress, courseId, progress)
     }
 
     throw new Error('未找到对应的API端点')
