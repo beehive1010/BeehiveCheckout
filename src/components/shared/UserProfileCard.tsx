@@ -106,66 +106,65 @@ export default function UserProfileCard({
     );
   }
 
-  // Default variant
+  // Default variant - Optimized for mobile
   return (
     <Card className={`bg-secondary/30 border-border/30 ${className}`}>
-      <CardContent className="p-4">
-        {/* Mobile: Stack vertically, Desktop: Side by side */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0">
-          <div className="flex items-center space-x-3 sm:space-x-4">
-            {/* User Avatar - Responsive size */}
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-honey/10 to-honey/5 border-2 border-honey/20 flex items-center justify-center flex-shrink-0">
-              <User className="w-5 h-5 sm:w-8 sm:h-8 text-honey" />
+      <CardContent className="p-3 sm:p-4">
+        {/* Mobile-first responsive layout */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <div className="flex items-center space-x-3">
+            {/* Compact User Avatar */}
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-honey/10 to-honey/5 border-2 border-honey/20 flex items-center justify-center flex-shrink-0">
+              <User className="w-4 h-4 sm:w-5 sm:h-5 text-honey" />
             </div>
             
-            <div className="space-y-2 min-w-0 flex-1">
-              {/* Mobile: Stack username and level vertically, Desktop: Side by side */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                <div className="min-w-0">
-                  <p className="text-xs sm:text-sm text-muted-foreground mb-1">
-                    {t('userProfile.username') || 'Username'} :
+            <div className="flex-1 min-w-0">
+              {/* Mobile: Compact horizontal layout */}
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-muted-foreground mb-1">
+                    {t('userProfile.username') || 'Address'}
                   </p>
-                  <div className="bg-background px-3 py-1 rounded-full border border-border">
-                    <span className="text-xs sm:text-sm font-mono truncate block">
+                  <div className="bg-background px-2 py-1 rounded-lg border border-border">
+                    <span className="text-xs font-mono truncate block">
                       {formatAddress(walletAddress)}
                     </span>
                   </div>
                 </div>
                 
                 <div className="flex-shrink-0">
-                  <p className="text-xs sm:text-sm text-muted-foreground mb-1">
-                    {t('userProfile.level') || 'Level'} :
+                  <p className="text-xs text-muted-foreground mb-1">
+                    {t('userProfile.level') || 'Level'}
                   </p>
-                  <div className="bg-honey/10 px-3 py-1 rounded-full border border-honey/20 min-w-[60px] text-center">
-                    <span className="text-xs sm:text-sm font-semibold text-honey">
-                      {currentLevel || 1}
+                  <div className="bg-honey/10 px-2 py-1 rounded-lg border border-honey/20 min-w-[50px] text-center">
+                    <span className="text-xs font-semibold text-honey">
+                      L{currentLevel || 1}
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Stats row for mobile */}
+              {/* Mobile stats row */}
               {showStats && bccBalance && (
-                <div className="flex gap-2 sm:hidden">
-                  <Badge variant="outline" className="text-xs bg-green-500/10 text-green-400 border-green-500/30">
+                <div className="flex gap-2 mt-2 sm:hidden">
+                  <Badge variant="outline" className="text-xs bg-green-500/10 text-green-400 border-green-500/30 py-0 px-2">
                     <TrendingUp className="w-3 h-3 mr-1" />
-                    {bccBalance.transferable} BCC
+                    {bccBalance.transferable}
                   </Badge>
                 </div>
               )}
             </div>
           </div>
           
-          {/* User Center Button - Full width on mobile, compact on desktop */}
+          {/* Compact User Center Button */}
           {showUserCenter && (
             <Button 
               onClick={handleUserCenter}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 rounded-full w-full sm:w-auto text-sm sm:text-base"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg w-full sm:w-auto text-xs sm:text-sm font-medium shadow-sm"
               data-testid="button-user-center"
             >
-              <Settings className="w-4 h-4 mr-2 sm:mr-2" />
-              <span className="sm:hidden">{t('userProfile.userCenter') || 'User Center'}</span>
-              <span className="hidden sm:inline">{t('userProfile.userCenter') || 'User Center'}</span>
+              <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <span>{t('userProfile.userCenter') || 'User Center'}</span>
             </Button>
           )}
         </div>
