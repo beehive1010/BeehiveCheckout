@@ -183,34 +183,37 @@ async function getReferralLink(supabase, walletAddress) {
 
 async function getReferralStats(supabase, walletAddress) {
   try {
-    // Get referral link data
-    const { data: linkData } = await supabase
-      .from('referral_links')
-      .select('clicks, conversions')
-      .eq('referrer_wallet', walletAddress)
-      .single();
-
-    // Get direct referrals count
+    // Get direct referrals count (direct referrals)
     const { count: directReferrals } = await supabase
       .from('referrals')
       .select('*', { count: 'exact' })
       .eq('referrer_wallet', walletAddress)
-      .eq('layer', 1);
+      .eq('referral_type', 'direct');
 
-    // Get total team size
+    // Get total team size (all referrals under this user) 
     const { count: totalTeam } = await supabase
       .from('referrals')
       .select('*', { count: 'exact' })
       .eq('referrer_wallet', walletAddress);
 
+    // Get recent referrals for additional stats
+    const { data: recentReferrals } = await supabase
+      .from('referrals')
+      .select('referred_wallet, created_at, status')
+      .eq('referrer_wallet', walletAddress)
+      .order('created_at', { ascending: false })
+      .limit(10);
+
     return new Response(JSON.stringify({
       success: true,
       stats: {
-        clicks: linkData?.clicks || 0,
-        conversions: linkData?.conversions || 0,
+        clicks: 0, // No referral links table, so no click tracking
+        conversions: directReferrals || 0, // Use direct referrals as conversions
         direct_referrals: directReferrals || 0,
         total_team: totalTeam || 0,
-        conversion_rate: linkData?.clicks > 0 ? ((linkData.conversions || 0) / linkData.clicks * 100).toFixed(2) : '0.00'
+        conversion_rate: '0.00', // No click data available
+        recent_referrals: recentReferrals || [],
+        active_referrals: (recentReferrals?.filter(r => r.status === 'active') || []).length
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -232,6 +235,7 @@ async function getReferralStats(supabase, walletAddress) {
     });
   }
 }
+
 
 function generateLinkCode(walletAddress) {
   // Generate a unique link code based on wallet address + timestamp

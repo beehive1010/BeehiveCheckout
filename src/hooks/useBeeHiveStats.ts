@@ -37,17 +37,45 @@ export function useUserReferralStats() {
     queryKey: ['/api/stats/user-referrals', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
-      const response = await apiRequest('POST', '/api/dashboard/referral-stats', {
-        action: 'get-referral-stats',
-        timestamp: Date.now()
-      }, walletAddress);
+      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/referral-links', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-address': walletAddress,
+        },
+        body: JSON.stringify({
+          action: 'get-referral-stats'
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: Failed to fetch referral stats`);
+      }
+      
       const result = await response.json();
       
       if (!result.success) {
         throw new Error(result.error || 'Failed to fetch referral stats');
       }
       
-      return result.data;
+      // Map backend response to expected format
+      const stats = result.stats || {};
+      return {
+        directReferralCount: stats.direct_referrals || 0,
+        totalTeamCount: stats.total_team || 0,
+        totalReferrals: stats.direct_referrals || 0,
+        totalEarnings: '0',
+        monthlyEarnings: '0', 
+        pendingCommissions: '0',
+        nextPayout: 'TBD',
+        currentLevel: 1,
+        memberActivated: true,
+        matrixLevel: 1,
+        positionIndex: 1,
+        levelsOwned: [1],
+        downlineMatrix: [],
+        recentReferrals: []
+      };
     },
     enabled: !!walletAddress,
     staleTime: 5000,
