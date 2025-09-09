@@ -424,11 +424,3 @@ export async function getUSDCBalance(
   }
 }
 
-export function formatUSDCAmount(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 6
-  }).format(amount);
-}

@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Database } from '../types/database.types';
+import { Database } from '../types/database';
 
 // Environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL!;
@@ -511,10 +511,7 @@ export const rewardService = {
   // Create layer reward using database function
   async createLayerReward(payer_wallet: string, amount_usdt: number, nft_level: number, source_transaction_id: string) {
     const { data, error } = await supabase.rpc('create_layer_reward_claim', {
-      p_payer_wallet: payer_wallet,
-      p_amount_usdt: amount_usdt,
       p_nft_level: nft_level,
-      p_source_transaction_id: source_transaction_id,
       p_layer: nft_level, // Assuming layer matches NFT level
       p_root_wallet: payer_wallet,
       p_triggering_member_wallet: payer_wallet,
