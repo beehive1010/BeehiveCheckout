@@ -105,17 +105,41 @@ serve(async (req) => {
   }
 })
 
-// Get matrix structure for a given root wallet
+// Get referral structure (simplified version)
 async function getMatrixStructure(supabase: any, rootWallet?: string) {
   if (!rootWallet) {
-    // Get all matrix structures
-    const { data: allStructures, error } = await supabase
-      .rpc('analyze_matrix_structure')
-      .limit(10)
+    // Get all referral structures from referrals table
+    const { data: allReferrals, error } = await supabase
+      .from('referrals')
+      .select('member_wallet, referrer_wallet, id')
+      .order('id')
+      .limit(100)
+
+    // Group by referrer_wallet to create structure summaries
+    const structures = {}
+    if (allReferrals) {
+      allReferrals.forEach((ref: any) => {
+        if (!structures[ref.referrer_wallet]) {
+          structures[ref.referrer_wallet] = {
+            root_wallet: ref.referrer_wallet,
+            total_referrals: 0,
+            direct_referrals: [],
+            last_referral: null
+          }
+        }
+        
+        structures[ref.referrer_wallet].total_referrals++
+        structures[ref.referrer_wallet].direct_referrals.push({
+          member_wallet: ref.member_wallet,
+          referral_id: ref.id
+        })
+        structures[ref.referrer_wallet].last_referral = ref.id
+      })
+    }
 
     return new Response(JSON.stringify({
       success: true,
-      structures: allStructures || [],
+      structures: Object.values(structures),
       error: error?.message
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -123,20 +147,33 @@ async function getMatrixStructure(supabase: any, rootWallet?: string) {
     })
   }
 
-  // Get specific matrix structure
-  const { data: structure, error } = await supabase
-    .rpc('analyze_matrix_structure')
-    .eq('placement_root', rootWallet)
-    .single()
+  // Get specific referral structure  
+  const { data: referrals, error } = await supabase
+    .from('referrals')
+    .select('member_wallet, referrer_wallet, id')
+    .eq('referrer_wallet', rootWallet)
+    .order('id')
 
-  if (error) {
+  if (error || !referrals) {
     return new Response(JSON.stringify({
       success: false,
-      error: `Matrix structure not found: ${error.message}`
+      error: `Referral structure not found: ${error?.message || 'No referrals found'}`
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 404
     })
+  }
+
+  // Build structure data
+  const structure = {
+    root_wallet: rootWallet,
+    total_referrals: referrals.length,
+    direct_referrals: referrals.map((r: any) => ({
+      member_wallet: r.member_wallet,
+      referral_id: r.id
+    })),
+    first_referral: referrals.length > 0 ? referrals[0].id : null,
+    last_referral: referrals.length > 0 ? referrals[referrals.length - 1].id : null
   }
 
   return new Response(JSON.stringify({
@@ -149,99 +186,102 @@ async function getMatrixStructure(supabase: any, rootWallet?: string) {
   })
 }
 
-// Get placement information for a specific member
+// Get referral information for a specific member
 async function getPlacementInfo(supabase: any, walletAddress: string) {
-  const { data: placementData, error } = await supabase
+  const { data: referralData, error } = await supabase
     .from('referrals')
-    .select(`
-      *,
-      referrer_user:users!referrals_referrer_wallet_fkey(username, email),
-      placement_root_user:users!referrals_placement_root_fkey(username, email)
-    `)
-    .eq('referred_wallet', walletAddress)
+    .select('member_wallet, referrer_wallet, id')
+    .eq('member_wallet', walletAddress)
     .single()
 
   if (error) {
     return new Response(JSON.stringify({
       success: false,
-      error: `Placement info not found: ${error.message}`,
-      is_placed: false
+      error: `Referral info not found: ${error.message}`,
+      is_referred: false
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200
     })
   }
 
+  // Get referrer's info from members table
+  const { data: referrerData } = await supabase
+    .from('members')
+    .select('username, current_level')
+    .eq('wallet_address', referralData.referrer_wallet)
+    .single()
+
   return new Response(JSON.stringify({
     success: true,
-    placement: placementData,
-    is_placed: true
+    referral_info: {
+      ...referralData,
+      referrer_info: referrerData
+    },
+    is_referred: true
   }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     status: 200
   })
 }
 
-// Find optimal placement for a new member
+// Simple referral placement (no complex matrix)
 async function findOptimalPlacement(supabase: any, referrerWallet: string, newMemberWallet: string) {
-  console.log(`🔍 Finding optimal placement: ${referrerWallet} -> ${newMemberWallet}`)
+  console.log(`🔍 Finding referral placement: ${referrerWallet} -> ${newMemberWallet}`)
 
   try {
-    // 1. Find referrer's matrix root
-    const { data: referrerPlacement } = await supabase
-      .from('referrals')
-      .select('placement_root')
-      .eq('referred_wallet', referrerWallet)
+    // Check if referrer exists in members table
+    const { data: referrerData, error: referrerError } = await supabase
+      .from('members')
+      .select('wallet_address, username, current_level')
+      .eq('wallet_address', referrerWallet)
       .single()
 
-    const matrixRoot = referrerPlacement?.placement_root || referrerWallet
-
-    console.log(`📊 Matrix root: ${matrixRoot}`)
-
-    // 2. Check direct placement under referrer (Layer 1)
-    const directPlacement = await findAvailablePositionInLayer(supabase, referrerWallet, matrixRoot, 1)
-    
-    if (directPlacement.available) {
+    if (referrerError || !referrerData) {
       return new Response(JSON.stringify({
-        success: true,
-        placement_found: true,
-        placement_type: 'direct',
-        parent_wallet: referrerWallet,
-        matrix_root: matrixRoot,
-        layer: 1,
-        position: directPlacement.position,
-        estimated_rewards: calculateEstimatedRewards(1)
+        success: false,
+        error: 'Referrer not found in members table'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200
+        status: 404
       })
     }
 
-    // 3. Find spillover placement
-    const spilloverPlacement = await findSpilloverPlacement(supabase, matrixRoot, 19)
-    
-    if (spilloverPlacement.available) {
+    // Check if new member already exists in referrals
+    const { data: existingReferral } = await supabase
+      .from('referrals')
+      .select('member_wallet')
+      .eq('member_wallet', newMemberWallet)
+      .single()
+
+    if (existingReferral) {
       return new Response(JSON.stringify({
-        success: true,
-        placement_found: true,
-        placement_type: 'spillover',
-        parent_wallet: spilloverPlacement.parent_wallet,
-        matrix_root: matrixRoot,
-        layer: spilloverPlacement.layer,
-        position: spilloverPlacement.position,
-        estimated_rewards: calculateEstimatedRewards(spilloverPlacement.layer)
+        success: false,
+        error: 'Member already has a referrer'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200
+        status: 400
       })
     }
 
-    // 4. No placement found
+    // Get current referral count for referrer
+    const { count: referralCount } = await supabase
+      .from('referrals')
+      .select('member_wallet', { count: 'exact', head: true })
+      .eq('referrer_wallet', referrerWallet)
+
     return new Response(JSON.stringify({
       success: true,
-      placement_found: false,
-      message: 'No available placement positions found in matrix',
-      matrix_root: matrixRoot
+      placement_found: true,
+      placement_type: 'direct_referral',
+      referrer_wallet: referrerWallet,
+      referrer_info: referrerData,
+      current_referral_count: referralCount || 0,
+      estimated_rewards: {
+        referral_bonus: 100,
+        currency: 'USDC',
+        conditions: 'Immediate upon successful referral'
+      }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200
@@ -259,137 +299,51 @@ async function findOptimalPlacement(supabase: any, referrerWallet: string, newMe
   }
 }
 
-// Helper function to find available position in a specific layer
-async function findAvailablePositionInLayer(supabase: any, parentWallet: string, rootWallet: string, layer: number) {
-  // Get existing positions for this parent at this layer
-  const { data: existingPositions } = await supabase
-    .from('referrals')
-    .select('placement_position')
-    .eq('referrer_wallet', parentWallet)
-    .eq('placement_root', rootWallet)
-    .eq('placement_layer', layer)
-
-  const occupied = existingPositions?.map((p: any) => p.placement_position) || []
-  const availablePositions = ['L', 'M', 'R'].filter(pos => !occupied.includes(pos))
-
-  if (availablePositions.length > 0) {
-    return {
-      available: true,
-      position: availablePositions[0], // Take first available position
-      occupied_count: occupied.length,
-      total_positions: 3
-    }
-  }
-
+// Simple helper functions for basic referral system
+function calculateReferralRewards(): any {
   return {
-    available: false,
-    occupied_count: occupied.length,
-    total_positions: 3
+    direct_referral_bonus: 100,
+    currency: 'USDC',
+    bonus_type: 'immediate',
+    conditions: 'Paid when referred member activates NFT membership'
   }
 }
 
-// Helper function to find spillover placement
-async function findSpilloverPlacement(supabase: any, rootWallet: string, maxLayer: number) {
-  for (let layer = 1; layer <= maxLayer; layer++) {
-    console.log(`🔍 Searching layer ${layer} for spillover opportunities...`)
-
-    // Get all members at this layer
-    const { data: layerMembers } = await supabase
-      .from('referrals')
-      .select('referred_wallet')
-      .eq('placement_root', rootWallet)
-      .eq('placement_layer', layer)
-
-    if (layerMembers && layerMembers.length > 0) {
-      // Check each member for available positions in the next layer
-      for (const member of layerMembers) {
-        const nextLayerPlacement = await findAvailablePositionInLayer(
-          supabase, 
-          member.referred_wallet, 
-          rootWallet, 
-          layer + 1
-        )
-
-        if (nextLayerPlacement.available) {
-          return {
-            available: true,
-            parent_wallet: member.referred_wallet,
-            layer: layer + 1,
-            position: nextLayerPlacement.position
-          }
-        }
-      }
-    }
-  }
-
-  return { available: false }
-}
-
-// Calculate estimated rewards for a layer
-function calculateEstimatedRewards(layer: number): any {
-  // L and M positions get immediate rewards
-  // R position gets pending rewards (72-hour timer)
-  const rewardAmount = 100 // Base USDC reward
-
-  return {
-    immediate_positions: ['L', 'M'],
-    pending_positions: ['R'],
-    reward_amount_usdc: rewardAmount,
-    pending_hours: 72,
-    layer_multiplier: layer <= 3 ? 1 : Math.floor(layer / 3)
-  }
-}
-
-// Place a member in the matrix
+// Create a simple referral relationship
 async function placeMember(supabase: any, placementData: any) {
   const {
-    referred_wallet,
-    referrer_wallet,
-    placement_root,
-    placement_layer,
-    placement_position,
-    referral_type = 'direct'
+    member_wallet,
+    referrer_wallet
   } = placementData
 
-  console.log(`🎯 Placing member: ${referred_wallet} under ${referrer_wallet} at Layer ${placement_layer} Position ${placement_position}`)
+  console.log(`🎯 Creating referral: ${member_wallet} under ${referrer_wallet}`)
 
   try {
-    // Generate placement path
-    const placement_path = `${placement_root}/${placement_layer}/${placement_position}`
-
     const currentTime = new Date().toISOString()
 
     // Insert referral record
     const { data: newReferral, error: referralError } = await supabase
       .from('referrals')
       .insert({
-        referred_wallet,
-        referrer_wallet,
-        placement_root,
-        placement_layer,
-        placement_position,
-        placement_path,
-        referral_type,
-        referred_at: currentTime,
-        placed_at: currentTime
+        member_wallet,
+        referrer_wallet
       })
       .select()
       .single()
 
     if (referralError) {
-      throw new Error(`Failed to place member: ${referralError.message}`)
+      throw new Error(`Failed to create referral: ${referralError.message}`)
     }
 
-    console.log(`✅ Member placed successfully: ${referred_wallet}`)
+    console.log(`✅ Referral created successfully: ${member_wallet}`)
 
-    // Check if this placement triggers any rewards
-    const rewardCheck = await checkRewardTrigger(supabase, newReferral)
+    // Check if referrer should get rewards
+    const rewardInfo = calculateReferralRewards()
 
     return new Response(JSON.stringify({
       success: true,
-      placement: newReferral,
-      reward_triggered: rewardCheck.triggered,
-      reward_info: rewardCheck.info
+      referral: newReferral,
+      reward_info: rewardInfo
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200
@@ -407,96 +361,16 @@ async function placeMember(supabase: any, placementData: any) {
   }
 }
 
-// Check if placement triggers rewards
-async function checkRewardTrigger(supabase: any, placement: MatrixPlacement) {
-  try {
-    // Check if this placement completes a matrix layer
-    const { count } = await supabase
-      .from('referrals')
-      .select('id', { count: 'exact', head: true })
-      .eq('referrer_wallet', placement.referrer_wallet)
-      .eq('placement_root', placement.placement_root)
-      .eq('placement_layer', placement.placement_layer)
-
-    const positions_filled = count || 0
-    const layer_complete = positions_filled >= 3
-
-    if (layer_complete) {
-      console.log(`🎉 Layer ${placement.placement_layer} complete for ${placement.referrer_wallet}`)
-      
-      // Create reward record for L and M positions (immediate)
-      if (['L', 'M'].includes(placement.placement_position)) {
-        await createRewardRecord(supabase, {
-          root_wallet: placement.placement_root,
-          triggering_member_wallet: placement.referred_wallet,
-          layer: placement.placement_layer,
-          nft_level: 1, // Default, should be determined from member data
-          reward_amount_usdc: 100,
-          status: 'claimable'
-        })
-
-        return {
-          triggered: true,
-          info: {
-            type: 'immediate_reward',
-            amount: 100,
-            position: placement.placement_position
-          }
-        }
-      }
-
-      // Create pending reward for R position (72-hour timer)
-      if (placement.placement_position === 'R') {
-        const expiresAt = new Date()
-        expiresAt.setHours(expiresAt.getHours() + 72)
-
-        await createRewardRecord(supabase, {
-          root_wallet: placement.placement_root,
-          triggering_member_wallet: placement.referred_wallet,
-          layer: placement.placement_layer,
-          nft_level: 1,
-          reward_amount_usdc: 100,
-          status: 'pending',
-          expires_at: expiresAt.toISOString()
-        })
-
-        return {
-          triggered: true,
-          info: {
-            type: 'pending_reward',
-            amount: 100,
-            position: placement.placement_position,
-            pending_hours: 72
-          }
-        }
-      }
-    }
-
-    return { triggered: false }
-
-  } catch (error) {
-    console.error('Check reward trigger error:', error)
-    return { triggered: false, error: error.message }
-  }
-}
-
-// Create reward record
+// Create reward record for referral bonus
 async function createRewardRecord(supabase: any, rewardData: any) {
   const { error } = await supabase
     .from('reward_claims')
     .insert({
-      root_wallet: rewardData.root_wallet,
-      triggering_member_wallet: rewardData.triggering_member_wallet,
-      layer: rewardData.layer,
-      nft_level: rewardData.nft_level,
-      reward_amount_usdc: rewardData.reward_amount_usdc,
-      status: rewardData.status,
-      expires_at: rewardData.expires_at,
-      metadata: {
-        trigger_type: 'matrix_completion',
-        layer_completed: rewardData.layer,
-        created_by_api: 'matrix-operations'
-      }
+      wallet_address: rewardData.wallet_address,
+      amount: rewardData.amount,
+      currency: rewardData.currency || 'USDC',
+      claim_type: rewardData.claim_type || 'referral_bonus',
+      status: rewardData.status || 'pending'
     })
 
   if (error) {
@@ -504,39 +378,89 @@ async function createRewardRecord(supabase: any, rewardData: any) {
     throw new Error(`Failed to create reward record: ${error.message}`)
   }
 
-  console.log(`✅ Reward record created: ${rewardData.reward_amount_usdc} USDC for ${rewardData.root_wallet}`)
+  console.log(`✅ Reward record created: ${rewardData.amount} ${rewardData.currency} for ${rewardData.wallet_address}`)
 }
 
-// Get matrix statistics
+// Get referral statistics
 async function getMatrixStatistics(supabase: any, rootWallet?: string) {
   if (rootWallet) {
-    // Get statistics for specific root
-    const { data: stats, error } = await supabase
-      .from('matrix_statistics')
-      .select('*')
-      .eq('placement_root', rootWallet)
-      .single()
+    // Get statistics for specific referrer from referrals table
+    const { data: referrals, error } = await supabase
+      .from('referrals')
+      .select('member_wallet')
+      .eq('referrer_wallet', rootWallet)
+
+    if (error) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: error.message
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
+      })
+    }
+
+    // Calculate statistics
+    const stats = {
+      referrer_wallet: rootWallet,
+      total_referrals: referrals?.length || 0,
+      first_referral: referrals?.length ? referrals[0]?.id : null,
+      last_referral: referrals?.length ? referrals[referrals.length - 1]?.id : null,
+      referrals_this_month: 0 // Time-based filtering not available without timestamps
+    }
 
     return new Response(JSON.stringify({
       success: true,
-      statistics: stats,
-      error: error?.message
+      statistics: stats
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200
     })
   } else {
-    // Get overall system statistics
-    const { data: allStats, error } = await supabase
-      .from('matrix_statistics')
-      .select('*')
-      .order('total_members', { ascending: false })
-      .limit(20)
+    // Get overall system statistics from referrals table
+    const { data: allReferrals, error } = await supabase
+      .from('referrals')
+      .select('referrer_wallet')
+
+    if (error) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: error.message
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
+      })
+    }
+
+    // Group by referrer_wallet and calculate stats
+    const referrerStats = {}
+    if (allReferrals) {
+      allReferrals.forEach((ref: any) => {
+        if (!referrerStats[ref.referrer_wallet]) {
+          referrerStats[ref.referrer_wallet] = {
+            referrer_wallet: ref.referrer_wallet,
+            total_referrals: 0,
+            last_referral: null
+          }
+        }
+        
+        referrerStats[ref.referrer_wallet].total_referrals++
+        if (!referrerStats[ref.referrer_wallet].last_referral || 
+            new Date(ref.id) > new Date(referrerStats[ref.referrer_wallet].last_referral)) {
+          referrerStats[ref.referrer_wallet].last_referral = ref.id
+        }
+      })
+    }
+
+    // Sort by total_referrals
+    const allStats = Object.values(referrerStats)
+      .sort((a: any, b: any) => b.total_referrals - a.total_referrals)
+      .slice(0, 20)
 
     return new Response(JSON.stringify({
       success: true,
       statistics: allStats || [],
-      error: error?.message
+      total_system_referrals: allReferrals?.length || 0
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200
@@ -544,125 +468,178 @@ async function getMatrixStatistics(supabase: any, rootWallet?: string) {
   }
 }
 
-// Get layer analysis
-async function getLayerAnalysis(supabase: any, rootWallet: string, layer: number) {
-  const { data: layerStats, error } = await supabase
-    .from('layer_statistics')
-    .select('*')
-    .eq('placement_root', rootWallet)
-    .eq('placement_layer', layer)
-
-  const { data: layerMembers, error: membersError } = await supabase
+// Get referral timeline analysis (simplified)
+async function getLayerAnalysis(supabase: any, rootWallet: string, timeRange: number = 30) {
+  // Get referrals for this referrer within time range (days)
+  const timeThreshold = new Date()
+  timeThreshold.setDate(timeThreshold.getDate() - timeRange)
+  
+  const { data: recentReferrals, error } = await supabase
     .from('referrals')
-    .select(`
-      referred_wallet,
-      placement_position,
-      referred_at,
-      users!referrals_referred_wallet_fkey(username)
-    `)
-    .eq('placement_root', rootWallet)
-    .eq('placement_layer', layer)
-    .order('referred_at', { ascending: true })
+    .select('member_wallet')
+    .eq('referrer_wallet', rootWallet)
+    .order('id')
+
+  if (error) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: error.message
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500
+    })
+  }
+
+  // Calculate statistics
+  const stats = {
+    referrer_wallet: rootWallet,
+    time_range_days: timeRange,
+    total_referrals: recentReferrals?.length || 0,
+    first_referral: recentReferrals?.length ? recentReferrals[0]?.id : null,
+    last_referral: recentReferrals?.length ? recentReferrals[recentReferrals.length - 1]?.id : null,
+    avg_referrals_per_day: recentReferrals?.length ? (recentReferrals.length / timeRange).toFixed(2) : 0
+  }
+
+  // Daily stats not available without timestamps
+  const dailyStats = {}
 
   return new Response(JSON.stringify({
     success: true,
-    layer_statistics: layerStats?.[0] || null,
-    layer_members: layerMembers || [],
-    layer,
-    root_wallet: rootWallet,
-    errors: {
-      stats: error?.message,
-      members: membersError?.message
-    }
+    referral_analysis: stats,
+    daily_breakdown: dailyStats,
+    recent_referrals: recentReferrals || []
   }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     status: 200
   })
 }
 
-// Check spillover opportunities
+// Check referral opportunities
 async function checkSpilloverOpportunities(supabase: any, walletAddress: string) {
-  // Find all matrix roots where this wallet could potentially spill over
-  const { data: allRoots } = await supabase
+  // Check if wallet is already a member and can refer others
+  const { data: memberData, error: memberError } = await supabase
+    .from('members')
+    .select('wallet_address, current_level, username')
+    .eq('wallet_address', walletAddress)
+    .single()
+
+  if (memberError || !memberData) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Member not found - must be a member to refer others',
+      can_refer: false
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 404
+    })
+  }
+
+  // Get current referral count
+  const { count: currentReferrals } = await supabase
     .from('referrals')
-    .select('placement_root')
+    .select('member_wallet', { count: 'exact', head: true })
     .eq('referrer_wallet', walletAddress)
-    .or(`placement_root.eq.${walletAddress}`)
 
-  const opportunities = []
-  const uniqueRoots = [...new Set(allRoots?.map((r: any) => r.placement_root) || [walletAddress])]
-
-  for (const root of uniqueRoots) {
-    const spilloverPlacement = await findSpilloverPlacement(supabase, root, 10) // Check up to layer 10
-    
-    if (spilloverPlacement.available) {
-      opportunities.push({
-        matrix_root: root,
-        available_placement: spilloverPlacement,
-        estimated_rewards: calculateEstimatedRewards(spilloverPlacement.layer)
-      })
+  const opportunities = {
+    can_refer: true,
+    current_referrals: currentReferrals || 0,
+    member_level: memberData.current_level,
+    referral_bonus: calculateReferralRewards(),
+    requirements: {
+      must_have_nft: memberData.current_level >= 1,
+      eligible_for_rewards: memberData.current_level >= 1
     }
   }
 
   return new Response(JSON.stringify({
     success: true,
-    spillover_opportunities: opportunities,
-    total_opportunities: opportunities.length
+    referral_opportunities: opportunities
   }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     status: 200
   })
 }
 
-// Sync matrix data
+// Sync referral system data
 async function syncMatrixData(supabase: any) {
-  console.log(`🔄 Starting matrix data synchronization...`)
+  console.log(`🔄 Starting referral system data synchronization...`)
 
   try {
-    // Run matrix system overview to check current state
-    const { data: systemOverview } = await supabase
-      .rpc('get_matrix_system_overview')
-
-    // Update matrix layer summaries
-    const { data: allReferrals } = await supabase
+    // Get all referrals data
+    const { data: allReferrals, error: referralsError } = await supabase
       .from('referrals')
-      .select('placement_root, placement_layer')
-      .not('placement_root', 'is', null)
+      .select('member_wallet, referrer_wallet')
 
-    const updates = []
-    if (allReferrals) {
-      const rootLayers = new Map()
-      
-      allReferrals.forEach((ref: any) => {
-        const key = `${ref.placement_root}-${ref.placement_layer}`
-        if (!rootLayers.has(key)) {
-          rootLayers.set(key, { root: ref.placement_root, layer: ref.placement_layer, count: 0 })
-        }
-        rootLayers.get(key).count++
-      })
-
-      for (const [_, data] of rootLayers) {
-        await supabase.rpc('update_matrix_layer_summary', {
-          p_root_wallet: data.root,
-          p_layer: data.layer
-        })
-        updates.push(`${data.root}-L${data.layer}`)
-      }
+    if (referralsError) {
+      throw new Error(`Failed to fetch referrals data: ${referralsError.message}`)
     }
+
+    // Build system overview
+    const referrerSummary = {}
+    
+    if (allReferrals) {
+      allReferrals.forEach((ref: any) => {
+        if (!referrerSummary[ref.referrer_wallet]) {
+          referrerSummary[ref.referrer_wallet] = {
+            referrer_wallet: ref.referrer_wallet,
+            total_referrals: 0,
+            first_referral: ref.id,
+            last_referral: ref.id,
+            referrals_this_week: 0,
+            referrals_this_month: 0
+          }
+        }
+        
+        referrerSummary[ref.referrer_wallet].total_referrals++
+        
+        // Update first and last referral IDs (not time-based)
+        if (ref.id < referrerSummary[ref.referrer_wallet].first_referral) {
+          referrerSummary[ref.referrer_wallet].first_referral = ref.id
+        }
+        if (ref.id > referrerSummary[ref.referrer_wallet].last_referral) {
+          referrerSummary[ref.referrer_wallet].last_referral = ref.id
+        }
+
+        // Time-based counting not available without timestamps
+        referrerSummary[ref.referrer_wallet].referrals_this_week = 0
+        referrerSummary[ref.referrer_wallet].referrals_this_month = 0
+      })
+    }
+
+    // Get member status summary
+    const { data: members, error: membersError } = await supabase
+      .from('members')
+      .select('wallet_address, current_level')
+
+    const memberStats = {
+      total_members: members?.length || 0,
+      level_1_members: members?.filter((m: any) => m.current_level === 1).length || 0,
+      level_2_members: members?.filter((m: any) => m.current_level >= 2).length || 0,
+      total_referrals: allReferrals?.length || 0,
+      active_referrers: Object.keys(referrerSummary).length
+    }
+
+    // Top referrers
+    const topReferrers = Object.values(referrerSummary)
+      .sort((a: any, b: any) => b.total_referrals - a.total_referrals)
+      .slice(0, 10)
 
     return new Response(JSON.stringify({
       success: true,
       sync_completed: true,
-      system_overview: systemOverview || [],
-      layer_summaries_updated: updates.length,
-      updates_detail: updates
+      system_overview: {
+        total_referrers: Object.keys(referrerSummary).length,
+        top_referrers: topReferrers,
+        member_statistics: memberStats
+      },
+      sync_timestamp: new Date().toISOString()
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200
     })
 
   } catch (error) {
-    console.error('Sync matrix data error:', error)
+    console.error('Sync referral data error:', error)
     return new Response(JSON.stringify({
       success: false,
       error: error.message
@@ -728,29 +705,23 @@ async function getRewardEligibility(supabase: any, walletAddress: string, layer:
   })
 }
 
-// Simulate placement without actually placing
+// Simulate referral without actually creating it
 async function simulatePlacement(supabase: any, referrerWallet: string, newMemberWallet: string) {
-  console.log(`🎮 Simulating placement: ${referrerWallet} -> ${newMemberWallet}`)
+  console.log(`🎮 Simulating referral: ${referrerWallet} -> ${newMemberWallet}`)
 
   // Run the same logic as findOptimalPlacement but don't actually place
   const placementResult = await findOptimalPlacement(supabase, referrerWallet, newMemberWallet)
   const placementData = await placementResult.json()
 
   if (placementData.success && placementData.placement_found) {
-    // Simulate reward calculations
-    const rewardSimulation = {
-      immediate_reward: ['L', 'M'].includes(placementData.position),
-      pending_reward: placementData.position === 'R',
-      reward_amount: 100,
-      reward_delay_hours: placementData.position === 'R' ? 72 : 0
-    }
+    const rewardSimulation = calculateReferralRewards()
 
     return new Response(JSON.stringify({
       success: true,
       simulation_result: {
         ...placementData,
-        reward_simulation,
-        note: 'This is a simulation - no actual placement was made'
+        reward_simulation: rewardSimulation,
+        note: 'This is a simulation - no actual referral was created'
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

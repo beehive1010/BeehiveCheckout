@@ -79,7 +79,7 @@ export default function Rewards() {
       const { data, error: functionsError } = await supabase.functions.invoke('rewards', {
         body: { 
           wallet_address: walletAddress,
-          action: 'get_rewards_summary'
+          action: 'dashboard'
         }
       });
 
@@ -89,7 +89,25 @@ export default function Rewards() {
       }
 
       if (data?.success) {
-        setRewardsData(data.rewards);
+        // Map API response to frontend format
+        const apiData = data.data;
+        const mappedRewards: RewardsData = {
+          total: apiData.reward_summary?.total_claimed_usdc || 0,
+          thisMonth: 0, // API doesn't provide this, could be calculated if needed
+          lastMonth: 0, // API doesn't provide this
+          pending: apiData.reward_summary?.total_pending_usdc || 0,
+          claimable: apiData.reward_summary?.total_claimable_usdc || 0,
+          history: (apiData.recent_claims || []).map((claim: any) => ({
+            id: claim.id || claim.claim_id || 'unknown',
+            type: claim.trigger_type || 'reward',
+            amount: claim.reward_amount_usdc || 0,
+            currency: 'USDC',
+            date: claim.claimed_at || claim.created_at || 'Unknown',
+            status: claim.status || 'completed',
+            description: claim.description || `Layer ${claim.layer} reward`
+          }))
+        };
+        setRewardsData(mappedRewards);
       } else {
         throw new Error(data?.error || 'Failed to load rewards data');
       }
@@ -112,7 +130,7 @@ export default function Rewards() {
       const { data, error: functionsError } = await supabase.functions.invoke('rewards', {
         body: { 
           wallet_address: walletAddress,
-          action: 'claim_rewards'
+          action: 'claim-reward'
         }
       });
 

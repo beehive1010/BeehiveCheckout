@@ -122,18 +122,11 @@ serve(async (req) => {
 });
 
 async function getRewardClaims(req, supabaseClient) {
-  let requestData;
-  if (req.parsedBody) {
-    requestData = req.parsedBody;
-  } else {
-    try {
-      requestData = await req.json();
-    } catch {
-      requestData = {};
-    }
-  }
+  // Use already parsed body or URL parameters
+  const requestData = req.parsedBody || {};
+  const url = new URL(req.url);
   
-  const wallet_address = requestData.wallet_address || req.headers.get('x-wallet-address');
+  const wallet_address = (requestData.wallet_address || req.headers.get('x-wallet-address'))?.toLowerCase();
   const { status, layer } = requestData;
 
   if (!wallet_address) {
@@ -191,7 +184,8 @@ async function getRewardClaims(req, supabaseClient) {
 }
 
 async function claimReward(req, supabaseClient) {
-  const { claim_id, wallet_address } = await req.json();
+  const requestData = req.parsedBody || {};
+  const { claim_id, wallet_address } = requestData;
 
   if (!claim_id || !wallet_address) {
     return new Response(JSON.stringify({
@@ -355,7 +349,8 @@ async function runMaintenance(req, supabaseClient) {
 }
 
 async function getRewardDashboard(req, supabaseClient) {
-  const { wallet_address } = await req.json();
+  const requestData = req.parsedBody || {};
+  const wallet_address = (requestData.wallet_address || req.headers.get('x-wallet-address'))?.toLowerCase();
 
   if (!wallet_address) {
     return new Response(JSON.stringify({
@@ -436,7 +431,8 @@ async function getRewardDashboard(req, supabaseClient) {
 }
 
 async function getRewardNotifications(req, supabaseClient) {
-  const { wallet_address, is_read, limit = 50 } = await req.json();
+  const requestData = req.parsedBody || {};
+  const { wallet_address, is_read, limit = 50 } = requestData;
 
   if (!wallet_address) {
     return new Response(JSON.stringify({
@@ -491,7 +487,8 @@ async function getRewardNotifications(req, supabaseClient) {
 }
 
 async function withdrawRewardBalance(req, supabaseClient) {
-  const { wallet_address, amount_usdc, withdrawal_address } = await req.json();
+  const requestData = req.parsedBody || {};
+  const { wallet_address, amount_usdc, withdrawal_address } = requestData;
 
   if (!wallet_address || !amount_usdc) {
     return new Response(JSON.stringify({
@@ -547,10 +544,10 @@ async function getRewardBalance(req, supabaseClient) {
   
   // Handle both GET and POST requests
   if (req.method === 'GET') {
-    wallet_address = req.headers.get('x-wallet-address');
+    wallet_address = req.headers.get('x-wallet-address')?.toLowerCase();
   } else {
-    const body = req.parsedBody || await req.json();
-    wallet_address = body.wallet_address;
+    const body = req.parsedBody || {};
+    wallet_address = (body.wallet_address || req.headers.get('x-wallet-address'))?.toLowerCase();
   }
 
   if (!wallet_address) {
@@ -566,18 +563,21 @@ async function getRewardBalance(req, supabaseClient) {
     });
   }
 
-  // Get reward balance from view
-  const { data: balanceData, error } = await supabaseClient
-    .from('member_reward_balances')
+  // Get reward balance from user_balances table
+  const { data: balanceArray, error } = await supabaseClient
+    .from('user_balances')
     .select('*')
-    .eq('wallet_address', wallet_address)
-    .single();
+    .eq('wallet_address', wallet_address);
+    
+  const balanceData = balanceArray?.[0] || null;
 
   if (error) {
     console.error('Balance fetch error:', error);
     return new Response(JSON.stringify({
       success: false,
-      error: 'Failed to fetch balance'
+      error: 'Failed to fetch balance',
+      details: error.message,
+      wallet_address: wallet_address
     }), {
       headers: {
         ...corsHeaders,
@@ -591,13 +591,11 @@ async function getRewardBalance(req, supabaseClient) {
     success: true,
     data: balanceData || {
       wallet_address,
-      pending_balance_usdc: 0,
-      claimable_balance_usdc: 0,
-      total_withdrawn_usdc: 0,
-      pending_claims_count: 0,
-      claimable_claims_count: 0,
-      pending_claims_total_usdc: 0,
-      claimable_claims_total_usdc: 0
+      bcc_transferable: 0,
+      bcc_locked: 0,
+      usdt_earnings: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     }
   }), {
     headers: {
@@ -610,7 +608,8 @@ async function getRewardBalance(req, supabaseClient) {
 // New functions for enhanced reward management
 
 async function checkPendingRewards(req, supabaseClient) {
-  const { wallet_address } = await req.json();
+  const requestData = req.parsedBody || {};
+  const { wallet_address } = requestData;
 
   if (!wallet_address) {
     return new Response(JSON.stringify({
@@ -747,7 +746,8 @@ async function processExpiredRewards(req, supabaseClient) {
 }
 
 async function getRewardTimers(req, supabaseClient) {
-  const { wallet_address, timer_type } = await req.json();
+  const requestData = req.parsedBody || {};
+  const { wallet_address, timer_type } = requestData;
 
   if (!wallet_address) {
     return new Response(JSON.stringify({
@@ -828,7 +828,8 @@ async function getRewardTimers(req, supabaseClient) {
 }
 
 async function updateRewardStatus(req, supabaseClient) {
-  const { wallet_address, claim_id, new_status, admin_override } = await req.json();
+  const requestData = req.parsedBody || {};
+  const { wallet_address, claim_id, new_status, admin_override } = requestData;
 
   if (!wallet_address || !claim_id || !new_status) {
     return new Response(JSON.stringify({
@@ -972,8 +973,8 @@ async function getDashboardActivity(req, supabaseClient) {
     wallet_address = req.headers.get('x-wallet-address');
     limit = parseInt(new URL(req.url).searchParams.get('limit') || '10');
   } else {
-    const body = req.parsedBody || await req.json();
-    wallet_address = body.walletAddress || body.wallet_address;
+    const body = req.parsedBody || {};
+    wallet_address = body.walletAddress || body.wallet_address || req.headers.get('x-wallet-address');
     limit = body.limit || 10;
   }
 
