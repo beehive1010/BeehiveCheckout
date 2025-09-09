@@ -1,7 +1,7 @@
-import { Card, CardContent } from './ui/card';
-import { Badge } from './ui/badge';
+import { Card, CardContent } from '../ui/card';
+import { Badge } from '../ui/badge';
 import { Users, Building2, DollarSign } from 'lucide-react';
-import { useI18n } from '../contexts/I18nContext';
+import { useI18n } from '../../contexts/I18nContext';
 import styles from '../features/dashboard/styles/dashboard.module.css';
 
 interface UserStatsGridProps {

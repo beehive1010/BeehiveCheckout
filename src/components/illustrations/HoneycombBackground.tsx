@@ -1,5 +1,5 @@
 import React from 'react';
-import { useSpring, animated } from '@react-spring/web';
+import { useSpring, animated } from 'react-spring';
 import { useInView } from 'react-intersection-observer';
 
 interface HoneycombBackgroundProps {

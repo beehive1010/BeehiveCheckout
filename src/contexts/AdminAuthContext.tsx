@@ -27,7 +27,7 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         if (session?.user) {
           // Verify this is an admin user
           const { data: adminData, error } = await supabase
-            .from('admin_users')
+            .from('admins')
             .select('*')
             .eq('id', session.user.id)
             .eq('active', true)
@@ -67,7 +67,7 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         if (event === 'SIGNED_IN' && session?.user) {
           // Verify admin user
           const { data: adminData, error } = await supabase
-            .from('admin_users')
+            .from('admins')
             .select('*')
             .eq('id', session.user.id)
             .eq('active', true)
@@ -116,7 +116,7 @@ const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }
 
       // Verify this is an admin user
       const { data: adminData, error: adminError } = await supabase
-        .from('admin_users')
+        .from('admins')
         .select('*')
         .eq('id', data.user.id)
         .eq('active', true)

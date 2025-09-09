@@ -7,7 +7,7 @@ import { useToast } from '../hooks/use-toast';
 import { useLocation } from 'wouter';
 import { supabase } from '../lib/supabase';
 import { useWeb3 } from '../contexts/Web3Context';
-import { Eye, EyeOff, Mail, Key, Chrome, Facebook, Github } from 'lucide-react';
+import { Eye, EyeOff, Mail, Key } from 'lucide-react';
 
 export default function SupabaseAuth() {
   const { toast } = useToast();

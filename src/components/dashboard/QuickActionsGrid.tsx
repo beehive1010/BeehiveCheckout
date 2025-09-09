@@ -1,6 +1,6 @@
-import { Card, CardContent } from './ui/card';
+import { Card, CardContent } from '../ui/card';
 import { TrendingUp, Users, Gift, Star, ArrowRight } from 'lucide-react';
-import { useI18n } from '../contexts/I18nContext';
+import { useI18n } from '../../contexts/I18nContext';
 import { useLocation } from 'wouter';
 import styles from '../features/dashboard/styles/dashboard.module.css';
 

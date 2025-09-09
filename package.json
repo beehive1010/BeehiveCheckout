@@ -18,7 +18,12 @@
     "test:integration": "jest --testPathPattern=integration",
     "supabase:status": "supabase status",
     "db:generate": "supabase gen types typescript --project-id cvqibjcbfrwsgkvthccp > types/database.types.ts",
-    "functions:deploy": "supabase functions deploy --project-ref cvqibjcbfrwsgkvthccp"
+    "sync:types": "./scripts/sync-types.sh",
+    "functions:deploy": "supabase functions deploy --project-ref cvqibjcbfrwsgkvthccp",
+    "audit:functions": "echo '⚠️  psql not found. Use: Supabase Dashboard > SQL Editor or install postgresql-client'",
+    "audit:rls": "echo '⚠️  psql not found. Use: Supabase Dashboard > SQL Editor or install postgresql-client'",
+    "audit:help": "echo '📖 Audit Help: Open sql/ files in Supabase Dashboard SQL Editor to run audits'",
+    "debug:edge": "./scripts/debug-edge.sh"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -54,11 +59,14 @@
     "@supabase/supabase-js": "^2.57.2",
     "@tabler/icons-react": "^3.34.1",
     "@tanstack/react-query": "^5.60.5",
+    "@types/react-day-picker": "^5.2.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
     "drizzle-kit": "^0.31.4",
+    "drizzle-orm": "^0.44.5",
+    "drizzle-zod": "^0.8.3",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^11.13.1",
     "input-otp": "^1.4.2",
@@ -110,7 +118,7 @@
     "tailwindcss": "^3.4.17",
     "ts-jest": "^29.1.1",
     "typescript": "^5.6.3",
-    "vite": "^5.4.19"
+    "vite": "^5.4.20"
   },
   "engines": {
     "node": ">=20.0.0"

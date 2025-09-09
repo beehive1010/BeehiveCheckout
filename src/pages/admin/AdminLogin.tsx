@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Label } from '../../components/ui/label';
 import { useToast } from '../../hooks/use-toast';
 import { motion } from 'framer-motion';
-import HexagonIcon from '../../components/UI/HexagonIcon';
+import HexagonIcon from '../../components/shared/HexagonIcon';
 import { Shield, Lock, User } from 'lucide-react';
 
 export default function AdminLogin() {

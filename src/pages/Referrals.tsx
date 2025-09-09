@@ -1,6 +1,7 @@
 import { useWallet } from '../hooks/useWallet';
 import { useUserReferralStats } from '../hooks/useBeeHiveStats';
 import { useI18n } from '../contexts/I18nContext';
+import { useToast } from '../hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -16,12 +17,17 @@ export default function Referrals() {
   const { userData, walletAddress } = useWallet();
   const { data: userStats, isLoading: isLoadingUserStats } = useUserReferralStats();
   const { t } = useI18n();
+  const { toast } = useToast();
 
   const referralLink = `${window.location.origin}/welcome?ref=${walletAddress}`;
 
   const copyReferralLink = () => {
     navigator.clipboard.writeText(referralLink);
-    // You could add a toast notification here
+    toast({
+      title: "Copied!",
+      description: "Referral link copied to clipboard",
+      duration: 2000
+    });
   };
 
   return (
@@ -79,7 +85,7 @@ export default function Referrals() {
         {/* Matrix Visualization Tab */}
         <TabsContent value="matrix" className="space-y-6">
           <ReferralMatrixVisualization 
-            rootWallet={walletAddress}
+            rootWallet={walletAddress || ''}
             maxLayers={5}
           />
         </TabsContent>
@@ -104,7 +110,7 @@ export default function Referrals() {
               <CardContent className="p-4 sm:p-6 text-center">
                 <TrophyIcon className="w-6 h-6 sm:w-8 sm:h-8 text-honey mx-auto mb-2" />
                 <div className="text-xl sm:text-2xl font-bold text-honey">
-                  {userStats?.activeReferrals || 0}
+                  {userStats?.directReferralCount || 0}
                 </div>
                 <p className="text-sm text-muted-foreground">
                   {t('referrals.activeMembers') || 'Active Members'}
@@ -116,7 +122,7 @@ export default function Referrals() {
               <CardContent className="p-4 sm:p-6 text-center">
                 <ShareIcon className="w-6 h-6 sm:w-8 sm:h-8 text-honey mx-auto mb-2" />
                 <div className="text-xl sm:text-2xl font-bold text-honey">
-                  ${userStats?.totalEarnings || userStats?.totalRewardsEarned || 0}
+                  ${userStats?.totalEarnings || 0}
                 </div>
                 <p className="text-sm text-muted-foreground">
                   {t('referrals.totalEarnings') || 'Total Earnings'}
@@ -130,7 +136,7 @@ export default function Referrals() {
                   <span className="text-xs font-bold">3x3</span>
                 </div>
                 <div className="text-xl sm:text-2xl font-bold text-honey">
-                  {userStats?.matrixLayers || 1}
+                  {userStats?.matrixLevel || 1}
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Matrix Layers
@@ -189,7 +195,7 @@ export default function Referrals() {
 
         {/* Rewards Tab */}
         <TabsContent value="rewards" className="space-y-6">
-          <ClaimableRewardsCard />
+          <ClaimableRewardsCard walletAddress={walletAddress || ''} />
           
           {/* Additional Rewards Information */}
           <Card className="bg-secondary border-border">

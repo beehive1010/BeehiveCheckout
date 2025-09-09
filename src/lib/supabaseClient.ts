@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Database } from '../types/database';
+import type { Database } from '../../types/database.types';
 
 // Environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL!;
@@ -224,9 +224,9 @@ export const nftService = {
 // === ORDERS & PURCHASES ===
 export const orderService = {
   // Create order record
-  async createOrder(orderData: Database['public']['Tables']['orders']['Insert']) {
+  async createOrder(orderData: Database['public']['Tables']['bcc_purchase_orders']['Insert']) {
     return supabase
-      .from('orders')
+      .from('bcc_purchase_orders')
       .insert([{
         ...orderData,
         created_at: new Date().toISOString(),
@@ -238,7 +238,7 @@ export const orderService = {
   // Get user orders
   async getUserOrders(walletAddress: string, limit = 50) {
     return supabase
-      .from('orders')
+      .from('bcc_purchase_orders')
       .select('*')
       .ilike('wallet_address', walletAddress)
       .order('created_at', { ascending: false })
@@ -260,7 +260,7 @@ export const orderService = {
   // Update order status
   async updateOrderStatus(orderId: string, status: string, completedAt?: string) {
     return supabase
-      .from('orders')
+      .from('bcc_purchase_orders')
       .update({ 
         status, 
         completed_at: completedAt || null,

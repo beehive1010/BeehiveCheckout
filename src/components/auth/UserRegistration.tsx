@@ -45,8 +45,8 @@ export default function UserRegistration({
     setIsChecking(true);
     try {
       // Use Edge Function to check user existence
-      const { SupabaseApiClient } = await import('../../lib/supabase');
-      const apiClient = new SupabaseApiClient();
+      const { updatedApiClient } = await import('../../lib/apiClientUpdated');
+      const apiClient = updatedApiClient;
       
       const result = await apiClient.getUser(walletAddress);
       const exists = result.success && result.isRegistered;
@@ -119,8 +119,8 @@ export default function UserRegistration({
 
     try {
       // Use Edge Function for registration to bypass RLS
-      const { SupabaseApiClient } = await import('../../lib/supabase');
-      const apiClient = new SupabaseApiClient();
+      const { updatedApiClient } = await import('../../lib/apiClientUpdated');
+      const apiClient = updatedApiClient;
       
       const result = await apiClient.register(
         walletAddress,

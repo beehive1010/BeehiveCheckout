@@ -344,43 +344,7 @@ supabase functions deploy level-upgrade --project-ref cvqibjcbfrwsgkvthccp
 supabase functions deploy withdrawal-system --project-ref cvqibjcbfrwsgkvthccp
 ```
 
-### Environment Configuration
-```bash
-# Set environment variables for edge functions
-supabase secrets set THIRDWEB_ENGINE_URL="your_thirdweb_engine_url" --project-ref cvqibjcbfrwsgkvthccp
-supabase secrets set THIRDWEB_ACCESS_TOKEN="your_access_token" --project-ref cvqibjcbfrwsgkvthccp
-supabase secrets set THIRDWEB_BACKEND_WALLET="your_backend_wallet" --project-ref cvqibjcbfrwsgkvthccp
-```
 
-## Frontend Integration Guide
-
-### Component Usage
-```typescript
-// Main Dashboard Integration
-import ComprehensiveMemberDashboard from '@/components/dashboard/ComprehensiveMemberDashboard'
-
-// In your main App component
-function App() {
-  return (
-    <div>
-      <ComprehensiveMemberDashboard />
-    </div>
-  )
-}
-```
-
-### API Integration
-```typescript
-// Example API call to edge function
-const result = await callEdgeFunction('activate-membership', {
-  walletAddress: '0x...',
-  username: 'testuser',
-  email: 'test@example.com',
-  transactionHash: 'simulation',
-  network: 'simulation',
-  nftTokenId: 1
-}, walletAddress)
-```
 
 ## System Capabilities Summary
 

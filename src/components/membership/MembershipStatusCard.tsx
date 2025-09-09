@@ -1,10 +1,10 @@
-import { Card, CardContent } from './ui/card';
-import { Button } from './ui/button';
-import { Badge } from './ui/badge';
-import HexagonIcon from './UI/HexagonIcon';
-import { useI18n } from '../contexts/I18nContext';
+import { Card, CardContent } from '../ui/card';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
+import HexagonIcon from '../UI/HexagonIcon';
+import { useI18n } from '../../contexts/I18nContext';
 import { useLocation } from 'wouter';
-import { dashboardService } from '../features/dashboard/services/dashboard.client';
+import { dashboardService } from '../../api/dashboard/dashboard.client';
 import styles from '../features/dashboard/styles/dashboard.module.css';
 
 interface MembershipStatusCardProps {

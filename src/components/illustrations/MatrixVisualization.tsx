@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSpring, animated, useSpringValue } from '@react-spring/web';
+import { useSpring, animated, useSpringValue } from 'react-spring';
 import { useInView } from 'react-intersection-observer';
 
 interface MatrixNode {

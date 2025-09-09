@@ -83,7 +83,7 @@ class ServerWalletAPI {
     try {
       const response = await updatedApiClient.makeRequest(
         `${this.baseUrl}/balance?chain_id=${chainId}&token_address=${tokenAddress}`,
-        'GET'
+        { method: 'GET' }
       );
       return response;
     } catch (error) {
@@ -106,7 +106,7 @@ class ServerWalletAPI {
     try {
       const response = await updatedApiClient.makeRequest(
         `${this.baseUrl}/status`,
-        'GET'
+        { method: 'GET' }
       );
       return response;
     } catch (error) {
@@ -125,7 +125,7 @@ class ServerWalletAPI {
     try {
       const response = await updatedApiClient.makeRequest(
         `${this.baseUrl}/withdraw`,
-        'POST',
+        { method: 'POST' },
         withdrawalData
       );
       return response;
@@ -149,7 +149,7 @@ class ServerWalletAPI {
     try {
       const response = await updatedApiClient.makeRequest(
         `${this.baseUrl}/estimate-gas`,
-        'POST',
+        { method: 'POST' },
         withdrawalData
       );
       return response;
@@ -178,7 +178,7 @@ class ServerWalletAPI {
     try {
       const response = await updatedApiClient.makeRequest(
         `${this.baseUrl}/validate-signature`,
-        'POST',
+        { method: 'POST' },
         signatureData
       );
       return response;
@@ -220,7 +220,7 @@ class ServerWalletAPI {
 
       const response = await updatedApiClient.makeRequest(
         `${this.baseUrl}/withdrawals?${params.toString()}`,
-        'GET'
+        { method: 'GET' }
       );
       return response;
     } catch (error) {
@@ -248,7 +248,7 @@ class ServerWalletAPI {
     try {
       const response = await updatedApiClient.makeRequest(
         `${this.baseUrl}/supported-chains`,
-        'GET'
+        { method: 'GET' }
       );
       return response;
     } catch (error) {

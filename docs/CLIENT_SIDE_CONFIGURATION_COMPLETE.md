@@ -57,7 +57,7 @@ The Beehive Platform has been successfully configured as a **client-side only ap
 ### **Backend Infrastructure (Supabase)**
 - **Database:** PostgreSQL with Row-Level Security (RLS)
 - **Authentication:** Supabase Auth with Web3 wallet integration
-- **API:** 18 Edge Functions deployed to production
+- **API:** 32+ Edge Functions deployed to production
 - **Storage:** Supabase Storage for assets and files
 - **Real-time:** Supabase Realtime for live updates
 
@@ -65,33 +65,55 @@ The Beehive Platform has been successfully configured as a **client-side only ap
 
 ## 🚀 Deployed Edge Functions
 
-All critical edge functions have been deployed to production (`cvqibjcbfrwsgkvthccp`):
+All edge functions have been deployed to production (`cvqibjcbfrwsgkvthccp`):
 
 ### **Core System Functions**
 1. **`auth`** - Web3 wallet authentication and session management
-2. **`matrix`** - 3×3 referral matrix calculations and placement
-3. **`rewards`** - BCC token reward calculations and distribution
-4. **`balance`** - User balance and token management
-5. **`server-wallet`** - Automated transaction processing
+2. **`matrix`** - 3×3 referral matrix calculations and placement  
+3. **`matrix-operations`** - Advanced matrix operations and analytics
+4. **`rewards`** - BCC token reward calculations and distribution
+5. **`balance`** - User balance and token management
+6. **`balance-enhanced`** - Advanced balance calculations
+7. **`server-wallet`** - Automated transaction processing
 
-### **Multi-Chain Infrastructure**
-6. **`multi-chain-payment`** - Cross-chain payment processing
-7. **`nft-upgrades`** - NFT level progression and purchases
-8. **`bcc-purchase`** - BCC token purchase and allocation
+### **Membership & Activation**
+8. **`activate-membership`** - Member activation with NFT claims
+9. **`member-info`** - Member information and status
+10. **`member-management`** - Member lifecycle management
+11. **`level-upgrade`** - NFT level progression system
+
+### **Financial Operations**
+12. **`multi-chain-payment`** - Cross-chain payment processing
+13. **`nft-upgrades`** - NFT level progression and purchases
+14. **`bcc-purchase`** - BCC token purchase and allocation
+15. **`bcc-release-system`** - BCC token release mechanics
+16. **`withdrawal-system`** - USDT withdrawal processing
+
+### **Educational Platform**
+17. **`courses`** - Educational course management
+18. **`dashboard`** - User dashboard data aggregation
+
+### **Referral System**
+19. **`referral-links`** - Referral link generation and tracking
+20. **`process-rewards`** - Automated reward processing
 
 ### **Administrative Functions**
-9. **`admin`** - Administrative operations and controls
-10. **`admin-stats`** - System analytics and reporting
-11. **`admin-cleanup`** - Database maintenance and cleanup
-12. **`performance-monitor`** - System performance tracking
+21. **`admin`** - Administrative operations and controls
+22. **`admin-stats`** - System analytics and reporting
+23. **`admin-cleanup`** - Database maintenance and cleanup
+24. **`admin-fix-bcc`** - BCC token correction utilities
+25. **`performance-monitor`** - System performance tracking
 
-### **Automation & Maintenance**
-13. **`cron-timers`** - Automated timer and countdown management
-14. **`service-requests`** - Service request processing
-15. **`balance-enhanced`** - Advanced balance calculations
-16. **`admin-fix-bcc`** - BCC token correction utilities
-17. **`fix-activation-bcc`** - Activation BCC reward fixes
-18. **`fix-bcc-rewards`** - BCC reward calculation fixes
+### **Maintenance & Fixes**
+26. **`fix-activation-bcc`** - Activation BCC reward fixes
+27. **`fix-bcc-balance`** - BCC balance correction utilities
+28. **`fix-bcc-rewards`** - BCC reward calculation fixes
+29. **`data-fix`** - General data correction utilities
+30. **`debug-user`** - User debugging and diagnostics
+
+### **Automation & Scheduling**
+31. **`cron-timers`** - Automated timer and countdown management
+32. **`service-requests`** - Service request processing
 
 ---
 
@@ -158,7 +180,7 @@ supabase db generate-types typescript > types/database.types.ts
 - Comprehensive testing framework
 
 ### **✅ Deployment Ready**
-- 18 edge functions deployed to production
+- 32+ edge functions deployed to production
 - Database types generated and integrated
 - Multi-chain payment infrastructure active
 - Mobile-responsive UI components

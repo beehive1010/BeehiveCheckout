@@ -100,7 +100,7 @@ const navigationItems: NavItem[] = [
 
 export function ResponsiveLayout({ children, className }: ResponsiveLayoutProps) {
   const { t } = useI18n();
-  const { walletAddress, userData, isAdmin } = useWallet();
+  const { walletAddress, userData } = useWallet();
   const [location, setLocation] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [screenSize, setScreenSize] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');

@@ -50,7 +50,7 @@ interface DashboardStats {
     next_available_level?: number;
     direct_referrals: number;
     total_team_size: number;
-    matrix_positions: number;
+    total_referrals: number;
   };
   rewards: {
     total_earned_usdt: number;
@@ -441,8 +441,8 @@ export function EnhancedMemberDashboard({ className = "" }: EnhancedMemberDashbo
                   </div>
                 </div>
                 <div className="text-center pt-4 border-t">
-                  <div className="text-lg font-bold text-purple-400">{membership.matrix_positions}</div>
-                  <div className="text-sm text-muted-foreground">Matrix Positions</div>
+                  <div className="text-lg font-bold text-purple-400">{membership.total_referrals}</div>
+                  <div className="text-sm text-muted-foreground">Total Referrals</div>
                 </div>
               </CardContent>
             </Card>

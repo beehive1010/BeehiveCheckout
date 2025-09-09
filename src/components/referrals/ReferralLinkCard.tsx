@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Card, CardContent } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
+import { Card, CardContent } from '../ui/card';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 import { Share2, Copy } from 'lucide-react';
-import { useI18n } from '../contexts/I18nContext';
-import { useToast } from '../hooks/use-toast';
-import { dashboardService } from '../features/dashboard/services/dashboard.client';
+import { useI18n } from '../../contexts/I18nContext';
+import { useToast } from '../../hooks/use-toast';
+import { dashboardService } from '../../api/dashboard/dashboard.client';
 
 interface ReferralLinkCardProps {
   walletAddress: string;

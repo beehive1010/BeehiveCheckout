@@ -27,7 +27,14 @@
       "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions deploy auth --project-ref cvqibjcbfrwsgkvthccp)",
       "Bash(node:*)",
       "Bash(cat:*)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions deploy activate-membership --project-ref cvqibjcbfrwsgkvthccp --no-verify-jwt)"
+      "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions deploy activate-membership --project-ref cvqibjcbfrwsgkvthccp --no-verify-jwt)",
+      "Bash(npm run:*)",
+      "Bash(for hook in useWalletRedirect useMemberManagement)",
+      "Bash(do)",
+      "Bash(echo:*)",
+      "Bash(rg:*)",
+      "Bash(done)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

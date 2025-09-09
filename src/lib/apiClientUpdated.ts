@@ -118,7 +118,7 @@ export class UpdatedApiClient {
   }
 
   // Generic method for API calls with proper error handling
-  private async makeRequest<T>(
+  public async makeRequest<T>(
     endpoint: string,
     options: RequestInit = {},
     walletAddress?: string

@@ -122,7 +122,7 @@ export function NFTLevelUpgrade({
     onSuccess: (result) => {
       toast({
         title: "🎉 Upgrade Successful!",
-        description: result.message,
+        description: "Level upgrade completed successfully!",
         duration: 6000
       });
 
@@ -422,7 +422,7 @@ export function NFTLevelUpgrade({
       )}
 
       {/* No Upgrades Available */}
-      {(!eligibleUpgrades || eligibleUpgrades.length === 0) && currentLevel < 19 && (
+      {(!eligibleUpgrades || eligibleUpgrades.length === 0) && (currentLevel || 0) < 19 && (
         <Card className="border-yellow-500/20">
           <CardContent className="pt-6 text-center">
             <div className="space-y-4">

@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import ClaimMembershipButton from './membership/ClaimMembershipButton';
-import { useI18n } from '../contexts/I18nContext';
-import { useToast } from '../hooks/use-toast';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import ClaimMembershipButton from './ClaimMembershipButton';
+import { useI18n } from '../../contexts/I18nContext';
+import { useToast } from '../../hooks/use-toast';
 
 interface ActivationScreenProps {
   walletAddress: string;

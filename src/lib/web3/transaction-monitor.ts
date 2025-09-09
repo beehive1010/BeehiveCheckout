@@ -206,7 +206,7 @@ class TransactionMonitor {
       });
 
       // Get transaction receipt
-      const receipt = await rpcClient.request({
+      const receipt = await rpcClient({
         method: 'eth_getTransactionReceipt',
         params: [config.txHash]
       });
@@ -228,7 +228,7 @@ class TransactionMonitor {
       }
 
       // Get current block number
-      const currentBlock = await rpcClient.request({
+      const currentBlock = await rpcClient({
         method: 'eth_blockNumber',
         params: []
       });
@@ -248,7 +248,7 @@ class TransactionMonitor {
       }
 
       // Get transaction details
-      const tx = await rpcClient.request({
+      const tx = await rpcClient({
         method: 'eth_getTransactionByHash',
         params: [config.txHash]
       });
@@ -300,7 +300,7 @@ class TransactionMonitor {
         chain: chainConfig.chain
       });
 
-      const block = await rpcClient.request({
+      const block = await rpcClient({
         method: 'eth_getBlockByNumber',
         params: [`0x${blockNumber.toString(16)}`, false]
       });

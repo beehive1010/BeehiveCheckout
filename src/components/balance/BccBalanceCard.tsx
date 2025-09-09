@@ -104,7 +104,7 @@ export const BccBalanceCard: React.FC<BccBalanceCardProps> = ({
       case 'locked_rewards':
         return 'BCC earned from layer rewards, unlocks when claimed';
       case 'locked_level_unlock':
-        return `Will unlock when you reach Level ${memberLevel + 1}`;
+        return `Will unlock when you reach Level ${(memberLevel || 0) + 1}`;
       case 'pending_activation':
         return 'Will unlock when you activate your Level 1 membership';
       default:
@@ -168,7 +168,7 @@ export const BccBalanceCard: React.FC<BccBalanceCardProps> = ({
           </div>
 
           {/* Locked - Rewards */}
-          {balanceBreakdown.locked_rewards > 0 && (
+          {balanceBreakdown.lockedRewards > 0 && (
             <div className="flex items-center justify-between p-3 bg-card border rounded-lg">
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded-full">
@@ -183,7 +183,7 @@ export const BccBalanceCard: React.FC<BccBalanceCardProps> = ({
               </div>
               <div className="text-right">
                 <div className="font-semibold text-yellow-600 dark:text-yellow-400">
-                  {balanceBreakdown.locked_rewards.toLocaleString()} BCC
+                  {balanceBreakdown.lockedRewards.toLocaleString()} BCC
                 </div>
                 <div className="text-xs text-muted-foreground">
                   Locked
@@ -193,7 +193,7 @@ export const BccBalanceCard: React.FC<BccBalanceCardProps> = ({
           )}
 
           {/* Locked - Level Progression */}
-          {balanceBreakdown.locked_level_unlock > 0 && (
+          {balanceBreakdown.lockedLevel > 0 && (
             <div className="flex items-center justify-between p-3 bg-card border rounded-lg">
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-full">
@@ -202,13 +202,13 @@ export const BccBalanceCard: React.FC<BccBalanceCardProps> = ({
                 <div>
                   <div className="font-medium">Level Unlock</div>
                   <div className="text-xs text-muted-foreground">
-                    NFT Level {memberLevel + 1} reward
+                    NFT Level {(memberLevel || 0) + 1} reward
                   </div>
                 </div>
               </div>
               <div className="text-right">
                 <div className="font-semibold text-blue-600 dark:text-blue-400">
-                  {balanceBreakdown.locked_level_unlock.toLocaleString()} BCC
+                  {balanceBreakdown.lockedLevel.toLocaleString()} BCC
                 </div>
                 <div className="text-xs text-muted-foreground">
                   Locked
@@ -218,7 +218,7 @@ export const BccBalanceCard: React.FC<BccBalanceCardProps> = ({
           )}
 
           {/* Pending Activation */}
-          {balanceBreakdown.pending_activation > 0 && (
+          {balanceBreakdown.pendingActivation > 0 && (
             <div className="flex items-center justify-between p-3 bg-card border rounded-lg">
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-full">
@@ -233,7 +233,7 @@ export const BccBalanceCard: React.FC<BccBalanceCardProps> = ({
               </div>
               <div className="text-right">
                 <div className="font-semibold text-purple-600 dark:text-purple-400">
-                  {balanceBreakdown.pending_activation.toLocaleString()} BCC
+                  {balanceBreakdown.pendingActivation.toLocaleString()} BCC
                 </div>
                 <div className="text-xs text-muted-foreground">
                   Pending
