@@ -93,7 +93,7 @@ export function MemberGuard({
       
       try {
         // Use the same fast member-info check as WelcomePage
-        const memberResponse = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/activate-membership', {
+        const memberResponse = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/activate-membership?t=${Date.now()}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -106,12 +106,20 @@ export function MemberGuard({
 
         if (memberResponse.ok) {
           const memberResult = await memberResponse.json();
-          if (memberResult.success && memberResult.member) {
+          console.log('🛡️ MemberGuard: Member check result:', {
+            success: memberResult.success,
+            hasMember: !!memberResult.member,
+            isActivated: memberResult.isActivated,
+            currentLevel: memberResult.currentLevel
+          });
+          
+          // Use the same logic as Dashboard - check the isActivated field
+          if (memberResult.success && memberResult.isActivated) {
             isActivated = true;
-            membershipLevel = memberResult.member.current_level || 1;
+            membershipLevel = memberResult.currentLevel || memberResult.member?.current_level || 1;
             console.log('🛡️ MemberGuard: User is activated member', { isActivated, membershipLevel });
           } else {
-            console.log('🛡️ MemberGuard: User not activated in database');
+            console.log('🛡️ MemberGuard: User not activated - isActivated:', memberResult.isActivated);
           }
         }
       } catch (error) {
@@ -131,7 +139,8 @@ export function MemberGuard({
 
       // Auto-redirect non-activated users to welcome page if they try to access protected content
       if (requireActivation && !isActivated && redirectTo) {
-        console.log(`🛡️ MemberGuard: Redirecting unactivated user to ${redirectTo}`);
+        console.log(`🛡️ MemberGuard: Redirecting unactivated user from ${window.location.pathname} to ${redirectTo}`);
+        console.log(`🛡️ MemberGuard: Redirect reason - requireActivation: ${requireActivation}, isActivated: ${isActivated}`);
         setLocation(redirectTo);
         return;
       }

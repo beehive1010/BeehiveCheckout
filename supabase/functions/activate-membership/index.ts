@@ -55,11 +55,11 @@ serve(async (req) => {
         })
       }
 
-      // More strict activation check - require level > 0 AND proper activation flags
-      // is_active should be true for properly activated members
+      // Consistent activation check - require level > 0 (like Dashboard and auth service)
+      // Use the same logic as the auth service to prevent redirect loops
       const hasValidLevel = memberData?.current_level > 0;
-      const hasActivationFlag = memberData?.is_active === true;
-      const isReallyActivated = hasValidLevel && hasActivationFlag;
+      const hasActivationFlag = memberData?.is_active === true || memberData?.is_activated === true;
+      const isReallyActivated = hasValidLevel;
       
       console.log(`🔍 Detailed member activation check:`, {
         wallet: walletAddress,

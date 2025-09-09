@@ -95,7 +95,8 @@ export default function WelcomePage() {
           console.log('🔍 Quick database check for membership activation...');
           
           // Fast database-only check using member-info Edge Function
-          const memberResponse = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/activate-membership', {
+          // Add timestamp to prevent caching issues
+          const memberResponse = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/activate-membership?t=${Date.now()}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -110,10 +111,20 @@ export default function WelcomePage() {
 
           if (memberResponse.ok) {
             const memberResult = await memberResponse.json();
-            if (memberResult.success && memberResult.member) {
+            console.log('🔍 WelcomePage: Member check result:', {
+              success: memberResult.success,
+              hasMember: !!memberResult.member,
+              isActivated: memberResult.isActivated,
+              currentLevel: memberResult.currentLevel
+            });
+            
+            // Use the same logic as Dashboard and MemberGuard - check the isActivated field
+            if (memberResult.success && memberResult.isActivated) {
               isActivated = true;
-              currentLevel = memberResult.member.current_level || 1;
-              console.log('✅ Found activated member in database:', { isActivated, currentLevel });
+              currentLevel = memberResult.currentLevel || memberResult.member?.current_level || 1;
+              console.log('✅ WelcomePage: Found activated member:', { isActivated, currentLevel });
+            } else {
+              console.log('📋 WelcomePage: User not activated - isActivated:', memberResult.isActivated);
             }
           }
           
@@ -140,8 +151,9 @@ export default function WelcomePage() {
             needsSync: false,
           });
           
-          console.log('✅ User is activated, redirecting to dashboard');
-          console.log(`⏱️ Total check time before redirect: ${(redirectStartTime - startTime).toFixed(2)}ms`);
+          console.log('✅ WelcomePage: User is activated, redirecting to dashboard');
+          console.log(`⏱️ WelcomePage: Total check time before redirect: ${(redirectStartTime - startTime).toFixed(2)}ms`);
+          console.log(`🔄 WelcomePage: Redirecting from ${window.location.pathname} to /dashboard`);
           setLocation('/dashboard');
         } else {
           // User not activated in database - show claim component but don't block with blockchain check
