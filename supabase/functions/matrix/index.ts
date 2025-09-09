@@ -307,10 +307,10 @@ async function handlePlaceMember(supabase, walletAddress: string, data) {
       });
     }
 
-    // Use the existing stored procedure with enhanced logic
+    // Use the existing stored procedure with correct parameters
     const { data: placementResult, error: placementError } = await supabase.rpc('find_next_matrix_position', {
-      p_root_wallet: rootWallet,
-      p_new_member_wallet: memberWallet
+      p_layer: 1, // Start with layer 1
+      p_root_wallet: rootWallet
     });
 
     if (placementError) {
@@ -335,7 +335,7 @@ async function handlePlaceMember(supabase, walletAddress: string, data) {
       p_root_wallet: rootWallet,
       p_member_wallet: memberWallet,
       p_placer_wallet: placerWallet || walletAddress,
-      p_matrix_position: placementResult.position
+      p_placement_type: 'spillover'
     });
 
     if (memberPlacementError) {
@@ -356,7 +356,10 @@ async function handlePlaceMember(supabase, walletAddress: string, data) {
     }
 
     // Update matrix layer summary
-    await supabase.rpc('update_matrix_layer_summary', {});
+    await supabase.rpc('update_matrix_layer_summary', {
+      p_layer: 1,
+      p_root_wallet: rootWallet
+    });
 
     // Check if this placement triggers any spillover
     const spilloverResult = await processAutomaticSpillover(supabase, rootWallet, placementResult.layer);
@@ -411,13 +414,13 @@ async function handleFindOptimalPosition(supabase, walletAddress: string, data) 
       });
     }
 
-    // Get current matrix structure for the root
+    // Get current matrix structure for the root from the view
     const { data: matrixData, error } = await supabase
-      .from('matrix_positions')
+      .from('user_personal_matrix')
       .select('*')
       .eq('root_wallet', rootWallet)
       .order('layer')
-      .order('placement_order');
+      .order('position');
 
     if (error) {
       throw error;
@@ -505,19 +508,12 @@ async function handleGetDownline(supabase, walletAddress: string, data) {
     }
 
     let query = supabase
-      .from('matrix_positions')
-      .select(`
-        *,
-        members!inner(
-          username,
-          current_level,
-          created_at
-        )
-      `)
+      .from('user_personal_matrix')
+      .select('*')
       .eq('root_wallet', walletAddress)
-      .neq('wallet_address', walletAddress) // Exclude self
+      .neq('member_wallet', walletAddress) // Exclude self
       .order('layer')
-      .order('placement_order')
+      .order('position')
       .range(offset, offset + limit - 1);
 
     if (layer) {
@@ -581,9 +577,9 @@ async function handleGetUpline(supabase, walletAddress: string, data) {
 
     // Get the member's matrix positions (they can be in multiple matrices)
     const { data: memberPositions, error } = await supabase
-      .from('matrix_positions')
+      .from('user_personal_matrix')
       .select('*')
-      .eq('wallet_address', walletAddress);
+      .eq('member_wallet', walletAddress);
 
     if (error) {
       throw error;
@@ -951,7 +947,7 @@ function generateRPosition(layer: number, existingCount: number): string {
 async function processAutomaticSpillover(supabase, rootWallet: string, triggerLayer: number): Promise<any> {
   // Check if any positions in the trigger layer are ready to spillover
   const { data: layerData, error } = await supabase
-    .from('matrix_positions')
+    .from('user_personal_matrix')
     .select('*')
     .eq('root_wallet', rootWallet)
     .eq('layer', triggerLayer);
@@ -987,12 +983,9 @@ async function getUplineChain(supabase, startWallet: string, rootWallet: string)
 
   while (currentWallet && currentWallet !== rootWallet) {
     const { data: position, error } = await supabase
-      .from('matrix_positions')
-      .select(`
-        *,
-        members!inner(username, current_level)
-      `)
-      .eq('wallet_address', currentWallet)
+      .from('user_personal_matrix')
+      .select('*')
+      .eq('member_wallet', currentWallet)
       .eq('root_wallet', rootWallet)
       .single();
 

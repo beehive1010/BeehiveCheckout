@@ -333,8 +333,9 @@ async function activateMembershipSecure(supabase, walletAddress, transactionHash
             },
             body: JSON.stringify({
               action: 'place-member',
+              rootWallet: effectiveReferrer,
               memberWallet: walletAddress,
-              referrerWallet: effectiveReferrer
+              placerWallet: effectiveReferrer
             })
           });
 
