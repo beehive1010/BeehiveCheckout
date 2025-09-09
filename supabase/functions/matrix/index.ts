@@ -308,9 +308,8 @@ async function handlePlaceMember(supabase, walletAddress: string, data) {
     }
 
     // Use the existing stored procedure with correct parameters
-    const { data: placementResult, error: placementError } = await supabase.rpc('find_next_matrix_position', {
-      p_layer: 1, // Start with layer 1
-      p_root_wallet: rootWallet
+    const { data: placementResult, error: placementError } = await supabase.rpc('get_next_matrix_position', {
+      root_wallet: rootWallet
     });
 
     if (placementError) {
@@ -362,7 +361,7 @@ async function handlePlaceMember(supabase, walletAddress: string, data) {
     });
 
     // Check if this placement triggers any spillover
-    const spilloverResult = await processAutomaticSpillover(supabase, rootWallet, placementResult.layer);
+    const spilloverResult = await processAutomaticSpillover(supabase, rootWallet, placementResult?.[0]?.layer || 1);
 
     return new Response(JSON.stringify({
       success: true,
@@ -370,8 +369,8 @@ async function handlePlaceMember(supabase, walletAddress: string, data) {
       data: {
         placement_result: memberPlacementResult,
         spillover_info: spilloverResult,
-        position: placementResult.position,
-        layer: placementResult.layer,
+        position: placementResult?.[0]?.pos || 'L',
+        layer: placementResult?.[0]?.layer || 1,
         root_wallet: rootWallet,
         member_wallet: memberWallet
       }
