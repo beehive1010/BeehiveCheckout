@@ -448,32 +448,28 @@ export const rewardService = {
   // Get reward dashboard data using Edge Function
   async getRewardDashboard(walletAddress: string) {
     return callEdgeFunction('rewards', {
-      action: 'dashboard',
-      wallet_address: walletAddress
+      action: 'dashboard'
     }, walletAddress);
   },
 
   // Get claimable rewards using Edge Function
   async getClaimableRewards(walletAddress: string) {
     return callEdgeFunction('rewards', {
-      action: 'get-claims',
-      wallet_address: walletAddress
+      action: 'get-claims'
     }, walletAddress);
   },
 
   // Get reward balance using Edge Function
   async getRewardBalance(walletAddress: string) {
     return callEdgeFunction('rewards', {
-      action: 'get-balance',
-      wallet_address: walletAddress
+      action: 'get-balance'
     }, walletAddress);
   },
 
   // Get reward history using Edge Function
   async getRewardHistory(walletAddress: string, limit = 50) {
     return callEdgeFunction('rewards', {
-      action: 'get-claims',
-      wallet_address: walletAddress
+      action: 'get-claims'
     }, walletAddress);
   },
 
@@ -481,8 +477,7 @@ export const rewardService = {
   async claimReward(walletAddress: string, rewardId: string) {
     return callEdgeFunction('rewards', {
       action: 'claim-reward',
-      claim_id: rewardId,
-      wallet_address: walletAddress
+      reward_id: rewardId
     }, walletAddress);
   },
 
