@@ -8,6 +8,7 @@ import { useI18n } from '../../contexts/I18nContext';
 import { useLocation } from 'wouter';
 import { ERC5115ClaimComponent } from '../membership/ERC5115ClaimComponent';
 import { authService } from '../../lib/supabaseClient';
+import RegistrationModal from '../modals/RegistrationModal';
 
 interface WelcomeState {
   showClaimComponent: boolean;
@@ -15,6 +16,7 @@ interface WelcomeState {
   isActivated: boolean;
   hasOnChainNFT: boolean;
   needsSync: boolean;
+  showRegistrationModal: boolean;
 }
 
 export default function WelcomePage() {
@@ -30,10 +32,22 @@ export default function WelcomePage() {
     isActivated: false,
     hasOnChainNFT: false,
     needsSync: false,
+    showRegistrationModal: false,
   });
   
   const [isCheckingChain, setIsCheckingChain] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  
+  // Get referrer from URL parameters
+  const [referrerWallet, setReferrerWallet] = useState<string | undefined>();
+  
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const refParam = urlParams.get('ref');
+    if (refParam && refParam.startsWith('0x') && refParam.length === 42) {
+      setReferrerWallet(refParam);
+    }
+  }, []);
 
   useEffect(() => {
     if (walletAddress) {
@@ -63,38 +77,51 @@ export default function WelcomePage() {
       }
 
       const userResult = await response.json();
+      console.log('🔍 User check result:', { success: userResult.success, hasUser: !!userResult.user, action: userResult.action });
       
       if (userResult.success && userResult.user) {
-        // Additional check: verify membership activation from members table using Supabase client
+        // Quick database check first - avoid slow blockchain queries
         let isActivated = false;
         let currentLevel = 0;
         
         try {
-          console.log('🔍 Checking membership activation in members table...');
+          console.log('🔍 Quick database check for membership activation...');
           
-          // Use authService to check if user is an activated member
-          const { isActivated: memberActivated, memberData } = await authService.isActivatedMember(walletAddress);
+          // Fast database-only check using member-info Edge Function
+          const memberResponse = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/activate-membership', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-wallet-address': walletAddress,
+            },
+            body: JSON.stringify({
+              action: 'get-member-info'
+            })
+          });
+
+          if (memberResponse.ok) {
+            const memberResult = await memberResponse.json();
+            if (memberResult.success && memberResult.member) {
+              isActivated = true;
+              currentLevel = memberResult.member.current_level || 1;
+              console.log('✅ Found activated member in database:', { isActivated, currentLevel });
+            }
+          }
           
-          if (memberActivated && memberData) {
-            isActivated = true;
-            currentLevel = memberData.current_level || 1;
-            console.log('✅ User is activated member:', { isActivated, currentLevel, memberData });
-          } else {
-            console.log('📋 User not found in members table or not activated');
+          if (!isActivated) {
+            console.log('📋 User not found in members table - checking blockchain in background');
+            // Don't block UI - let user proceed to claim component
             isActivated = false;
             currentLevel = 0;
           }
         } catch (memberError) {
-          console.warn('⚠️ Member status check failed, using user data:', memberError);
-          // Fallback to user data if member check fails - users table doesn't have activation fields
-          isActivated = false; // Users table doesn't have is_activated field
-          currentLevel = 0; // Users table doesn't have current_level field
+          console.warn('⚠️ Quick member check failed:', memberError);
+          isActivated = false;
+          currentLevel = 0;
         }
 
-        // 检查链上NFT状态
-        if (!isActivated) {
-          await checkOnChainNFT();
-        } else {
+        // Set state based on database check - avoid slow blockchain queries initially
+        if (isActivated) {
           setWelcomeState({
             showClaimComponent: false,
             userLevel: currentLevel,
@@ -105,7 +132,42 @@ export default function WelcomePage() {
           
           console.log('✅ User is activated, redirecting to dashboard');
           setLocation('/dashboard');
+        } else {
+          // User not activated in database - show claim component but don't block with blockchain check
+          console.log('📋 User not activated - showing claim component');
+          setWelcomeState({
+            showClaimComponent: true,
+            userLevel: 0,
+            isActivated: false,
+            hasOnChainNFT: false,
+            needsSync: false,
+          });
+          
+          // Optional: Check blockchain in background (non-blocking)
+          // checkOnChainNFT();
         }
+      } else if (!userResult.success && userResult.action === 'not_found') {
+        // User doesn't exist - show registration modal
+        console.log('👤 User not found in database - showing registration modal');
+        setWelcomeState({
+          showClaimComponent: false,
+          userLevel: 0,
+          isActivated: false,
+          hasOnChainNFT: false,
+          needsSync: false,
+          showRegistrationModal: true,
+        });
+      } else {
+        // Handle other failure cases
+        console.warn('⚠️ Unexpected user check result:', userResult);
+        setWelcomeState({
+          showClaimComponent: true,
+          userLevel: 0,
+          isActivated: false,
+          hasOnChainNFT: false,
+          needsSync: false,
+          showRegistrationModal: false,
+        });
       }
 
     } catch (error) {
@@ -188,6 +250,13 @@ export default function WelcomePage() {
     } finally {
       setIsCheckingChain(false);
     }
+  };
+
+  const handleRegistrationComplete = async () => {
+    console.log('✅ Registration completed - refreshing user status');
+    setWelcomeState(prev => ({ ...prev, showRegistrationModal: false }));
+    // Refresh user status after registration
+    await checkUserStatus();
   };
 
   const handleClaimSuccess = async () => {
@@ -399,6 +468,15 @@ export default function WelcomePage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Registration Modal */}
+      <RegistrationModal
+        isOpen={welcomeState.showRegistrationModal}
+        onClose={() => setWelcomeState(prev => ({ ...prev, showRegistrationModal: false }))}
+        walletAddress={walletAddress || ''}
+        referrerWallet={referrerWallet}
+        onRegistrationComplete={handleRegistrationComplete}
+      />
     </div>
   );
 }

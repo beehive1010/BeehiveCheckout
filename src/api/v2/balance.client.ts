@@ -111,16 +111,38 @@ export const balanceV2Client = {
    * Get complete balance breakdown
    */
   async getBalanceBreakdown(walletAddress: string): Promise<BalanceBreakdown> {
-    const response = await apiRequest('POST', '/api/v2/balance/breakdown', {}, walletAddress);
-    return response.json();
+    try {
+      const response = await apiRequest('POST', '/api/balance/breakdown', { action: 'get-breakdown' }, walletAddress);
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get balance breakdown');
+      }
+
+      return result.data;
+    } catch (error) {
+      console.error('Balance breakdown fetch error:', error);
+      throw error;
+    }
   },
 
   /**
    * Get simple balance summary (for dashboard)
    */
   async getBalanceSummary(walletAddress: string): Promise<BalanceSummary> {
-    const response = await apiRequest('POST', '/api/v2/balance/summary', {}, walletAddress);
-    return response.json();
+    try {
+      const response = await apiRequest('POST', '/api/balance/summary', { action: 'get-balance' }, walletAddress);
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get balance summary');
+      }
+
+      return result.data;
+    } catch (error) {
+      console.error('Balance summary fetch error:', error);
+      throw error;
+    }
   },
 
   /**
@@ -132,12 +154,24 @@ export const balanceV2Client = {
     targetWalletAddress: string,
     walletAddress: string
   ): Promise<WithdrawalRequest> {
-    const response = await apiRequest('POST', '/api/v2/balance/withdraw', {
-      amount,
-      targetChain,
-      targetWalletAddress
-    }, walletAddress);
-    return response.json();
+    try {
+      const response = await apiRequest('POST', '/api/withdrawal-system/withdraw', {
+        action: 'request-withdrawal',
+        amount,
+        targetChain,
+        targetWalletAddress
+      }, walletAddress);
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to request withdrawal');
+      }
+
+      return result.data;
+    } catch (error) {
+      console.error('USDT withdrawal request error:', error);
+      throw error;
+    }
   },
 
   /**
@@ -151,8 +185,22 @@ export const balanceV2Client = {
       hasMore: boolean;
     };
   }> {
-    const response = await apiRequest('POST', '/api/v2/balance/withdrawals', { limit }, walletAddress);
-    return response.json();
+    try {
+      const response = await apiRequest('POST', '/api/withdrawal-system/history', {
+        action: 'get-history',
+        limit
+      }, walletAddress);
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get withdrawal history');
+      }
+
+      return result.data;
+    } catch (error) {
+      console.error('Withdrawal history fetch error:', error);
+      throw error;
+    }
   },
 
   /**
@@ -176,12 +224,24 @@ export const balanceV2Client = {
     };
     message: string;
   }> {
-    const response = await apiRequest('POST', '/api/v2/balance/spend-bcc', {
-      amount,
-      purpose,
-      bucketPreference
-    }, walletAddress);
-    return response.json();
+    try {
+      const response = await apiRequest('POST', '/api/bcc-purchase/spend', {
+        action: 'spend-bcc',
+        amount,
+        purpose,
+        bucketPreference
+      }, walletAddress);
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to spend BCC');
+      }
+
+      return result;
+    } catch (error) {
+      console.error('BCC spend error:', error);
+      throw error;
+    }
   },
 
   /**
@@ -211,19 +271,44 @@ export const balanceV2Client = {
     };
     message: string;
   }> {
-    const response = await apiRequest('POST', '/api/v2/balance/update-bcc', {
-      changes,
-      reason
-    }, walletAddress);
-    return response.json();
+    try {
+      const response = await apiRequest('POST', '/api/balance/update', {
+        action: 'update-bcc',
+        changes,
+        reason
+      }, walletAddress);
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update BCC balance');
+      }
+
+      return result;
+    } catch (error) {
+      console.error('BCC balance update error:', error);
+      throw error;
+    }
   },
 
   /**
    * Get global BCC pool statistics
    */
   async getGlobalBccPoolStats(): Promise<GlobalPoolStats> {
-    const response = await apiRequest('POST', '/api/v2/balance/global-pool', {});
-    return response.json();
+    try {
+      const response = await apiRequest('POST', '/api/balance/global-stats', { 
+        action: 'get-global-pool'
+      });
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get global BCC pool stats');
+      }
+
+      return result.data;
+    } catch (error) {
+      console.error('Global BCC pool stats fetch error:', error);
+      throw error;
+    }
   },
 
   /**
@@ -245,10 +330,24 @@ export const balanceV2Client = {
     };
     message: string;
   }> {
-    const params: any = { limit };
-    if (type) params.type = type;
-    
-    const response = await apiRequest('POST', '/api/v2/balance/activity', params, walletAddress);
-    return response.json();
+    try {
+      const params: any = { 
+        action: 'get-activity',
+        limit
+      };
+      if (type) params.type = type;
+      
+      const response = await apiRequest('POST', '/api/balance/activity', params, walletAddress);
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get balance activity');
+      }
+
+      return result.data;
+    } catch (error) {
+      console.error('Balance activity fetch error:', error);
+      throw error;
+    }
   }
 };

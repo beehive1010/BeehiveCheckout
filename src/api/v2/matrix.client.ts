@@ -311,17 +311,19 @@ export const matrixV2Client = {
     maxCapacity: number;
     fillPercentage: number;
   }> {
-    const response = await fetch(`/api/v2/matrix/next-positions/${rootWallet}`, {
-      headers: {
-        'Content-Type': 'application/json'
+    try {
+      const response = await apiRequest('POST', '/api/matrix/next-positions', { rootWallet }, rootWallet);
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get next positions');
       }
-    });
 
-    if (!response.ok) {
-      throw new Error(`Failed to get next positions: ${response.statusText}`);
+      return result.data;
+    } catch (error) {
+      console.error('Next positions fetch error:', error);
+      throw error;
     }
-
-    return response.json();
   },
 
   /**
@@ -337,59 +339,66 @@ export const matrixV2Client = {
       parentWallet: string;
     };
   }> {
-    const response = await fetch(`/api/v2/matrix/position/${memberWallet}/${rootWallet}`, {
-      headers: {
-        'Content-Type': 'application/json'
+    try {
+      const response = await apiRequest('POST', '/api/matrix/member-position', { 
+        memberWallet, 
+        rootWallet 
+      }, memberWallet);
+      const result = await response.json();
+      
+      if (!result.success) {
+        if (result.error?.includes('not found')) {
+          throw new Error('Member not found in this root\'s matrix');
+        }
+        throw new Error(result.error || 'Failed to get member position');
       }
-    });
 
-    if (!response.ok) {
-      if (response.status === 404) {
-        throw new Error('Member not found in this root\'s matrix');
-      }
-      throw new Error(`Failed to get member position: ${response.statusText}`);
+      return result.data;
+    } catch (error) {
+      console.error('Member position fetch error:', error);
+      throw error;
     }
-
-    return response.json();
   },
 
   /**
    * Get complete matrix summary for a root
    */
   async getMatrixSummary(rootWallet: string): Promise<MatrixSummaryResponse> {
-    const response = await fetch(`/api/v2/matrix/summary/${rootWallet}`, {
-      headers: {
-        'Content-Type': 'application/json'
+    try {
+      const response = await apiRequest('POST', '/api/matrix/summary', { rootWallet }, rootWallet);
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get matrix summary');
       }
-    });
 
-    if (!response.ok) {
-      throw new Error(`Failed to get matrix summary: ${response.statusText}`);
+      return result.data;
+    } catch (error) {
+      console.error('Matrix summary fetch error:', error);
+      throw error;
     }
-
-    return response.json();
   },
 
   /**
    * Get enhanced matrix summary with performance metrics
    */
   async getEnhancedMatrixSummary(rootWallet: string, forceRefresh: boolean = false): Promise<EnhancedMatrixSummaryResponse> {
-    const url = new URL(`/api/v2/matrix/enhanced-summary/${rootWallet}`, window.location.origin);
-    if (forceRefresh) {
-      url.searchParams.set('forceRefresh', 'true');
-    }
-
-    const response = await fetch(url.toString(), {
-      headers: {
-        'Content-Type': 'application/json'
+    try {
+      const response = await apiRequest('POST', '/api/matrix/enhanced-summary', { 
+        rootWallet,
+        forceRefresh 
+      }, rootWallet);
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get enhanced matrix summary');
       }
-    });
 
-    if (!response.ok) {
-      throw new Error(`Failed to get enhanced matrix summary: ${response.statusText}`);
+      return result.data;
+    } catch (error) {
+      console.error('Enhanced matrix summary fetch error:', error);
+      throw error;
     }
-
-    return response.json();
   },
 
   /**
@@ -401,19 +410,19 @@ export const matrixV2Client = {
     rootWallet: string;
     summary: MatrixSummaryResponse;
   }> {
-    const response = await fetch(`/api/v2/matrix/refresh-cache/${rootWallet}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Wallet-Address': walletAddress
+    try {
+      const response = await apiRequest('POST', '/api/matrix/refresh-cache', { rootWallet }, walletAddress);
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to refresh matrix cache');
       }
-    });
 
-    if (!response.ok) {
-      throw new Error(`Failed to refresh matrix cache: ${response.statusText}`);
+      return result;
+    } catch (error) {
+      console.error('Matrix cache refresh error:', error);
+      throw error;
     }
-
-    return response.json();
   },
 
   /**
@@ -429,16 +438,18 @@ export const matrixV2Client = {
     };
     timestamp: string;
   }> {
-    const response = await fetch(`/api/v2/matrix/health`, {
-      headers: {
-        'Content-Type': 'application/json'
+    try {
+      const response = await apiRequest('POST', '/api/matrix/health', {});
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get matrix health');
       }
-    });
 
-    if (!response.ok) {
-      throw new Error(`Failed to get matrix health: ${response.statusText}`);
+      return result.data;
+    } catch (error) {
+      console.error('Matrix health fetch error:', error);
+      throw error;
     }
-
-    return response.json();
   }
 };

@@ -183,6 +183,19 @@ async function getUser(supabase, walletAddress) {
     throw new Error(`获取用户失败: ${userError.message}`);
   }
 
+  // 检查用户是否为激活会员 - 快速数据库检查
+  const { data: memberData, error: memberError } = await supabase
+    .from('members')
+    .select('current_level')
+    .eq('wallet_address', walletAddress)
+    .single();
+  
+  // 如果用户在members表中存在且有等级，则视为激活会员
+  const isMember = !!memberData && memberData.current_level > 0;
+  const membershipLevel = memberData?.current_level || 0;
+  
+  console.log(`🔍 会员状态检查 ${walletAddress}: member=${!!memberData}, level=${membershipLevel}, error=${memberError?.code}`);
+
   // 隐藏根钱包地址
   const ROOT_WALLET = '0x0000000000000000000000000000000000000001';
   const sanitizedUser = {
@@ -195,6 +208,9 @@ async function getUser(supabase, walletAddress) {
     action: 'found',
     user: sanitizedUser,
     isRegistered: true, // 用户存在就表示已注册
+    isMember, // 关键：返回会员激活状态
+    membershipLevel,
+    canAccessReferrals: isMember, // 激活会员可访问推荐功能
     message: '用户信息获取成功'
   };
 }

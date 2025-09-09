@@ -147,7 +147,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       console.log('💰 Checking token balance and approval...');
       setCurrentStep('检查USDC余额...');
       
-      const PAYMENT_TOKEN_AMOUNT = BigInt("130000000"); // 130 USDC with 6 decimals
+      const PAYMENT_TOKEN_AMOUNT = BigInt("130000000000000000000"); // 130 tokens with 18 decimals (130 * 10^18)
       const finalAmount = PAYMENT_TOKEN_AMOUNT; // Use the predefined amount
       
       const usdcContract = getContract({
@@ -156,13 +156,13 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         chain: arbitrumSepolia
       });
 
-      console.log(`💳 Checking USDC balance for payment: ${finalAmount.toString()} units (130 USDC)`);
+      console.log(`💳 Checking token balance for payment: ${finalAmount.toString()} units (130 tokens with 18 decimals)`);
 
       // Check if approval is needed
       setCurrentStep('检查USDC授权...');
       
       // Always request approval for safety and gas estimation
-      console.log(`💰 Requesting token approval for ${finalAmount} USDC...`);
+      console.log(`💰 Requesting token approval for 130 tokens (${finalAmount.toString()} units with 18 decimals)...`);
       
       const approveTransaction = prepareContractCall({
         contract: usdcContract,

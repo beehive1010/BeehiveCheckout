@@ -23,7 +23,9 @@
       "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions deploy matrix --project-ref cvqibjcbfrwsgkvthccp)",
       "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions list --project-ref cvqibjcbfrwsgkvthccp)",
       "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions deploy matrix-operations --project-ref cvqibjcbfrwsgkvthccp)",
-      "Bash(/home/runner/workspace/fix_wallet_case_queries.sh:*)"
+      "Bash(/home/runner/workspace/fix_wallet_case_queries.sh:*)",
+      "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions deploy auth --project-ref cvqibjcbfrwsgkvthccp)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []

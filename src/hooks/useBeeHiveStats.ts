@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useWallet } from './useWallet';
 import { membershipLevels } from '../lib/config/membershipLevels';
+import { apiRequest } from '../lib/queryClient';
 
 interface UserReferralStats {
   directReferralCount: string | number;
@@ -36,18 +37,17 @@ export function useUserReferralStats() {
     queryKey: ['/api/stats/user-referrals', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
-      const response = await fetch(`/api/stats/user-referrals?t=${Date.now()}`, { 
-        headers: { 
-          'X-Wallet-Address': walletAddress,
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache'
-        }
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to fetch referral stats: ${response.status} ${response.statusText}`);
+      const response = await apiRequest('POST', '/api/dashboard/referral-stats', {
+        action: 'get-referral-stats',
+        timestamp: Date.now()
+      }, walletAddress);
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch referral stats');
       }
-      const data = await response.json();
-      return data;
+      
+      return result.data;
     },
     enabled: !!walletAddress,
     staleTime: 5000,

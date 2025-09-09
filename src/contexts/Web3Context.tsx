@@ -135,9 +135,36 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
           const result = await supabaseApi.getUser(account.address); // PRESERVE CASE
           
           if (result.success && result.user) {
-            // Check member status from API response
-            const isActiveMember = result.isMember || false;
-            const canAccessReferrals = result.canAccessReferrals || false;
+            // Quick member activation check using activate-membership Edge Function
+            let isActiveMember = result.isMember || false;
+            let canAccessReferrals = result.canAccessReferrals || false;
+            
+            // If auth function doesn't show member status, check members table directly
+            if (!isActiveMember) {
+              try {
+                const memberResponse = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/activate-membership', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'x-wallet-address': account.address,
+                  },
+                  body: JSON.stringify({
+                    action: 'get-member-info'
+                  })
+                });
+
+                if (memberResponse.ok) {
+                  const memberResult = await memberResponse.json();
+                  if (memberResult.success && memberResult.member) {
+                    isActiveMember = true;
+                    canAccessReferrals = true;
+                    console.log('🔍 Web3Context: Found activated member via member-info check');
+                  }
+                }
+              } catch (memberError) {
+                console.warn('⚠️ Web3Context: Member check failed:', memberError);
+              }
+            }
             setIsMember(isActiveMember);
             
             // Route based on membership status  

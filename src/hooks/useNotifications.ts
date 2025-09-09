@@ -27,16 +27,16 @@ export function useUnreadNotificationCount() {
     queryKey: ['/api/notifications/unread-count', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
-      const response = await fetch('/api/notifications/unread-count', {
-        headers: {
-          'X-Wallet-Address': walletAddress,
-          'Cache-Control': 'no-cache'
-        }
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch unread count');
+      const response = await apiRequest('POST', '/api/notifications/unread-count', { 
+        action: 'get-unread-count' 
+      }, walletAddress);
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch unread count');
       }
-      return response.json();
+      
+      return result.data;
     },
     enabled: !!walletAddress,
     staleTime: 2000,

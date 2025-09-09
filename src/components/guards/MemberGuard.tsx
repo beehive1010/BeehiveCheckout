@@ -84,11 +84,39 @@ export function MemberGuard({
         return;
       }
 
-      // Check if user is an activated member
-      const { isActivated } = await authService.isActivatedMember(walletAddress);
+      // Fast database check for membership activation - avoid blockchain queries
+      let isActivated = false;
+      let membershipLevel = 0;
       
-      // Get user membership level (assuming Level 1 if activated, 0 if not)
-      const membershipLevel = isActivated ? 1 : 0;
+      try {
+        // Use the same fast member-info check as WelcomePage
+        const memberResponse = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/activate-membership', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-wallet-address': walletAddress,
+          },
+          body: JSON.stringify({
+            action: 'get-member-info'
+          })
+        });
+
+        if (memberResponse.ok) {
+          const memberResult = await memberResponse.json();
+          if (memberResult.success && memberResult.member) {
+            isActivated = true;
+            membershipLevel = memberResult.member.current_level || 1;
+            console.log('🛡️ MemberGuard: User is activated member', { isActivated, membershipLevel });
+          } else {
+            console.log('🛡️ MemberGuard: User not activated in database');
+          }
+        }
+      } catch (error) {
+        console.warn('🛡️ MemberGuard: Fast member check failed:', error);
+        // Fallback to non-activated state
+        isActivated = false;
+        membershipLevel = 0;
+      }
 
       setUserStatus({
         isRegistered: true,
@@ -99,8 +127,9 @@ export function MemberGuard({
       });
 
       // Auto-redirect non-activated users to welcome page if they try to access protected content
-      if (requireActivation && !isActivated && redirectTo !== '/welcome') {
-        setLocation('/welcome');
+      if (requireActivation && !isActivated && redirectTo) {
+        console.log(`🛡️ MemberGuard: Redirecting unactivated user to ${redirectTo}`);
+        setLocation(redirectTo);
         return;
       }
 
