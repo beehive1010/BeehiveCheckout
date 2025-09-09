@@ -49,8 +49,8 @@ export const matrixService = {
     try {
       const result = await callEdgeFunction('matrix', {
         action: 'place-member',
-        memberWallet: memberWallet.toLowerCase(),
-        referrerWallet: referrerWallet.toLowerCase(),
+        memberWallet: memberWallet,
+        referrerWallet: referrerWallet,
         placementType: 'direct'
       }, walletAddress);
 
@@ -91,7 +91,7 @@ export const matrixService = {
     try {
       const result = await callEdgeFunction('matrix', {
         action: 'get-matrix',
-        rootWallet: rootWallet.toLowerCase(),
+        rootWallet: rootWallet,
         layer: options.layer,
         limit: options.limit || 1000
       }, walletAddress);
@@ -144,7 +144,7 @@ export const matrixService = {
     try {
       const result = await callEdgeFunction('matrix', {
         action: 'get-downline',
-        rootWallet: rootWallet.toLowerCase(),
+        rootWallet: rootWallet,
         layer
       }, walletAddress);
 
@@ -205,7 +205,7 @@ export const matrixService = {
     try {
       const result = await callEdgeFunction('matrix', {
         action: 'find-optimal-position',
-        referrerWallet: referrerWallet.toLowerCase()
+        referrerWallet: referrerWallet
       }, walletAddress);
 
       return result;
@@ -234,8 +234,8 @@ export const matrixService = {
     try {
       const result = await callEdgeFunction('matrix', {
         action: 'process-spillover',
-        memberWallet: memberWallet.toLowerCase(),
-        originalReferrer: originalReferrer.toLowerCase()
+        memberWallet: memberWallet,
+        originalReferrer: originalReferrer
       }, walletAddress);
 
       return result;
@@ -270,7 +270,7 @@ export const matrixService = {
       // Use the rewards Edge Function for layer rewards
       const result = await callEdgeFunction('rewards', {
         action: 'process-layer-reward',
-        memberWallet: memberWallet.toLowerCase(),
+        memberWallet: memberWallet,
         level,
         trigger: 'member-placement'
       }, walletAddress);
