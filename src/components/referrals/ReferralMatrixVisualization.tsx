@@ -76,50 +76,18 @@ const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = 
     try {
       setLoading(true);
 
-      // This would call a backend function to get matrix data
-      // For now, we'll simulate the data structure
-      const simulatedMatrix: MatrixData = {
+      // 使用真实的Supabase Edge Function获取矩阵数据
+      const matrixResult = await callEdgeFunction('matrix', {
+        action: 'get-matrix',
         rootWallet: effectiveRootWallet,
-        totalLayers: maxLayers,
-        totalMembers: 0,
-        members: []
-      };
+        maxLayers
+      }, walletAddress);
 
-      // Generate sample matrix data based on 3x3 structure
-      let totalMembers = 0;
-      for (let layer = 1; layer <= maxLayers; layer++) {
-        const positionsInLayer = Math.pow(3, layer);
-        
-        for (let position = 1; position <= positionsInLayer; position++) {
-          // Simulate some filled positions (not all layers will be full)
-          if (Math.random() > 0.3 || layer <= 2) {
-            simulatedMatrix.members.push({
-              walletAddress: `0x${Math.random().toString(16).substr(2, 40)}`,
-              username: `Member${totalMembers + 1}`,
-              level: Math.floor(Math.random() * 5) + 1,
-              layer,
-              position,
-              isActive: Math.random() > 0.2,
-              placedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-              downlineCount: Math.floor(Math.random() * 10)
-            });
-            totalMembers++;
-          }
-        }
+      if (matrixResult?.success) {
+        setMatrixData(matrixResult.data);
+      } else {
+        throw new Error(matrixResult?.error || '获取矩阵数据失败');
       }
-
-      simulatedMatrix.totalMembers = totalMembers;
-
-      // Add user's position if they're in the matrix
-      if (walletAddress && walletAddress !== effectiveRootWallet) {
-        simulatedMatrix.myPosition = {
-          layer: 2,
-          position: 1,
-          parent: effectiveRootWallet
-        };
-      }
-
-      setMatrixData(simulatedMatrix);
 
     } catch (error) {
       console.error('Failed to load matrix data:', error);

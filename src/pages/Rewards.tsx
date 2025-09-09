@@ -97,35 +97,7 @@ export default function Rewards() {
     } catch (err) {
       console.error('Rewards data fetch error:', err);
       setError(err instanceof Error ? err.message : 'Failed to load rewards');
-      
-      // Set fallback data for demonstration
-      setRewardsData({
-        total: 1250.50,
-        thisMonth: 320.15,
-        lastMonth: 245.80,
-        pending: 125.25,
-        claimable: 75.50,
-        history: [
-          {
-            id: '1',
-            type: 'referral',
-            amount: 50.00,
-            currency: 'USDT',
-            date: '2024-01-15',
-            status: 'completed',
-            description: 'Direct referral bonus'
-          },
-          {
-            id: '2',
-            type: 'matrix',
-            amount: 25.25,
-            currency: 'USDT',
-            date: '2024-01-12',
-            status: 'pending',
-            description: 'Matrix position reward'
-          }
-        ]
-      });
+      // 不使用mock数据，保持null状态以显示错误
     } finally {
       setIsLoading(false);
     }
