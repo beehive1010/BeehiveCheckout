@@ -468,16 +468,6 @@ async function activateMembershipSecure(supabase, walletAddress, transactionHash
               updated_at: currentTime
             })
             .eq('wallet_address', effectiveReferrer);
-          } else {
-            const errorText = await matrixResponse.text();
-            console.error('❌ 矩阵服务调用失败 - referrals记录将不会被创建:', {
-              status: matrixResponse.status,
-              error: errorText,
-              referrer: effectiveReferrer,
-              member: walletAddress,
-              reason: 'Matrix placement API call failed'
-            });
-          }
         } catch (matrixError) {
           console.warn('矩阵安置异常，创建基础推荐记录:', matrixError);
           
