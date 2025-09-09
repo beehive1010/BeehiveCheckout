@@ -227,7 +227,7 @@ export const orderService = {
     return supabase
       .from('orders')
       .select('*')
-      .eq('wallet_address', walletAddress.toLowerCase())
+      .ilike('wallet_address', walletAddress)
       .order('created_at', { ascending: false })
       .limit(limit);
   },
@@ -281,7 +281,7 @@ export const memberService = {
         ...updates,
         updated_at: new Date().toISOString(),
       })
-      .eq('wallet_address', walletAddress.toLowerCase())
+      .ilike('wallet_address', walletAddress)
       .select()
       .single();
   },
@@ -637,7 +637,7 @@ export const activationService = {
       const { data: memberData } = await supabase
         .from('members')
         .select('is_activated, current_level')
-        .eq('wallet_address', walletAddress.toLowerCase())
+        .ilike('wallet_address', walletAddress)
         .single();
 
       if (memberData?.is_activated) {
@@ -652,7 +652,7 @@ export const activationService = {
       const { data: userData } = await supabase
         .from('users')
         .select('wallet_address, username, referrer_wallet')
-        .eq('wallet_address', walletAddress.toLowerCase())
+        .ilike('wallet_address', walletAddress)
         .single();
 
       if (!userData) {
