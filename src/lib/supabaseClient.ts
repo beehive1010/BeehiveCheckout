@@ -448,14 +448,16 @@ export const rewardService = {
   // Get reward dashboard data using Edge Function
   async getRewardDashboard(walletAddress: string) {
     return callEdgeFunction('rewards', {
-      action: 'dashboard'
+      action: 'dashboard',
+      wallet_address: walletAddress
     }, walletAddress);
   },
 
   // Get claimable rewards using Edge Function
   async getClaimableRewards(walletAddress: string) {
     return callEdgeFunction('rewards', {
-      action: 'get-claims'
+      action: 'get-claims',
+      wallet_address: walletAddress
     }, walletAddress);
   },
 
