@@ -14,6 +14,7 @@ export default function Welcome() {
   const [referrerWallet, setReferrerWallet] = useState<string>('');
   const [referrerInfo, setReferrerInfo] = useState<{ username?: string; wallet: string } | null>(null);
   const [isLoadingReferrer, setIsLoadingReferrer] = useState(false);
+  const [isCheckingMembership, setIsCheckingMembership] = useState(false);
 
   // Get referrer from URL params and localStorage
   useEffect(() => {
@@ -63,10 +64,48 @@ export default function Welcome() {
     loadReferrerInfo();
   }, [referrerWallet]);
 
+  // Check if user is already an activated member and redirect to dashboard
+  useEffect(() => {
+    const checkMembershipStatus = async () => {
+      if (!account?.address) return;
+      
+      setIsCheckingMembership(true);
+      try {
+        console.log('🔍 Checking membership status for:', account.address);
+        const membershipResult = await authService.isActivatedMember(account.address);
+        console.log('📊 Membership result:', membershipResult);
+        
+        if (membershipResult.isActivated && membershipResult.memberData?.current_level >= 1) {
+          console.log('✅ User is already activated member - redirecting to dashboard');
+          setLocation('/dashboard');
+          return;
+        }
+      } catch (error) {
+        console.warn('⚠️ Failed to check membership status:', error);
+      } finally {
+        setIsCheckingMembership(false);
+      }
+    };
+
+    checkMembershipStatus();
+  }, [account?.address, setLocation]);
+
   const handleActivationComplete = () => {
     console.log('✅ NFT claim and activation completed - redirecting to dashboard');
     setLocation('/dashboard');
   };
+
+  // Show loading state while checking membership
+  if (isCheckingMembership) {
+    return (
+      <div className="min-h-screen bg-background py-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-4 border-honey border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Checking membership status...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background py-8">

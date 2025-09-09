@@ -16,7 +16,7 @@ interface ERC5115ClaimComponentProps {
   className?: string;
 }
 
-export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '' }: ERC5115ClaimComponentProps) {
+export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '' }: ERC5115ClaimComponentProps): JSX.Element {
   const account = useActiveAccount();
   const activeChain = useActiveWalletChain();
   const { toast } = useToast();
