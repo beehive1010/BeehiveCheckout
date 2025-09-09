@@ -115,6 +115,11 @@ const loadDashboardData = async (walletAddress: string) => {
       rewards: rewardResult.status === 'fulfilled' ? 'success' : 'failed'
     });
 
+    console.log('🔍 Raw memberResult:', memberResult);
+    if (memberResult.status === 'fulfilled') {
+      console.log('🔍 memberResult.value:', memberResult.value);
+    }
+
     // Extract data from results
     const memberData = memberResult.status === 'fulfilled' ? memberResult.value.data : null;
     const memberApiResponse = memberResult.status === 'fulfilled' ? memberResult.value : null; // Keep full API response
@@ -216,8 +221,10 @@ export default function EnhancedDashboard() {
       console.log('🔍 Member activation debug:', {
         memberApiResponseExists: !!data?.memberApiResponse,
         isActivatedValue: data?.memberApiResponse?.isActivated,
+        memberApiResponseFull: data?.memberApiResponse,
         memberDataActivated: data?.member?.is_activated,
-        memberDataActive: data?.member?.is_active
+        memberDataActive: data?.member?.is_active,
+        memberDataFull: data?.member
       });
 
       // Transform data to consistent format based on database structure
@@ -248,11 +255,25 @@ export default function EnhancedDashboard() {
           currentLevel: data?.member?.current_level || 1,
           activationRank: data?.member?.activation_rank,
           tierLevel: data?.member?.tier_level,
-          // Use the API response's isActivated field instead of database's is_activated
-          isActivated: data?.memberApiResponse?.isActivated || false,
+          // Use the API response's isActivated field, with fallback logic
+          isActivated: data?.memberApiResponse?.isActivated ?? 
+                       (data?.member?.is_active === true && (data?.member?.current_level || 0) > 0) ?? 
+                       false,
           activatedAt: data?.member?.activated_at,
           levelsOwned: Array.isArray(data?.member?.levels_owned) ? data?.member?.levels_owned : [data?.member?.current_level || 1]
         }
+      });
+
+      const finalIsActivated = data?.memberApiResponse?.isActivated ?? 
+                           (data?.member?.is_active === true && (data?.member?.current_level || 0) > 0) ?? 
+                           false;
+      
+      console.log('🔍 Final dashboard member state:', {
+        apiIsActivated: data?.memberApiResponse?.isActivated,
+        fallbackActivated: (data?.member?.is_active === true && (data?.member?.current_level || 0) > 0),
+        finalIsActivated: finalIsActivated,
+        memberIsActive: data?.member?.is_active,
+        memberCurrentLevel: data?.member?.current_level
       });
       
       const totalTime = performance.now() - startTime;

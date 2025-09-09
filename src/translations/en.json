@@ -554,6 +554,9 @@
       "cancel": "Cancel"
     },
     "claim": {
+      "checkingRegistration": "Checking registration status...",
+      "registrationCheckFailed": "Registration Check Failed",
+      "registrationCheckFailedDesc": "Unable to verify registration status. Please refresh and try again.",
       "success": {
         "title": "NFT Claimed Successfully!",
         "description": "The NFT has been minted to your wallet."

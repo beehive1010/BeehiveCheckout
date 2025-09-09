@@ -532,6 +532,9 @@
       "cancel": "取消"
     },
     "claim": {
+      "checkingRegistration": "检查注册状态中...",
+      "registrationCheckFailed": "注册状态检查失败",
+      "registrationCheckFailedDesc": "无法验证注册状态，请刷新页面重试。",
       "success": {
         "title": "NFT认领成功！",
         "description": "NFT已铸造到您的钱包。"

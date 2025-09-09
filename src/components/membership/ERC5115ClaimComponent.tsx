@@ -9,6 +9,8 @@ import { Badge } from '../ui/badge';
 import { useToast } from '../../hooks/use-toast';
 import { Loader2, Zap, Crown, Gift, Coins, Clock } from 'lucide-react';
 import { authService } from '../../lib/supabaseClient';
+import { useI18n } from '../../contexts/I18nContext';
+import RegistrationModal from '../modals/RegistrationModal';
 
 interface ERC5115ClaimComponentProps {
   onSuccess?: () => void;
@@ -20,9 +22,11 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
   const account = useActiveAccount();
   const activeChain = useActiveWalletChain();
   const { toast } = useToast();
+  const { t } = useI18n();
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentStep, setCurrentStep] = useState<string>('');
   const [fallbackChainId, setFallbackChainId] = useState<number | null>(null);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
 
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
   const PAYMENT_TOKEN_CONTRACT = "0x4470734620414168Aa1673A30849DB25E5886E2A";
@@ -61,6 +65,15 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
   // Get effective chainId using multiple sources
   const effectiveChainId = activeChain?.id || fallbackChainId;
 
+  const handleRegistrationComplete = () => {
+    console.log('✅ Registration completed - closing modal and retrying claim');
+    setShowRegistrationModal(false);
+    // After registration, automatically retry the claim process
+    setTimeout(() => {
+      handleClaimNFT();
+    }, 500);
+  };
+
   const handleClaimNFT = async () => {
     console.log('🎯 NFT Claim attempt started');
     console.log(`Wallet address: ${account?.address}`);
@@ -79,7 +92,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
     // Check if user is registered before allowing NFT claim
     try {
       console.log('🔍 Checking user registration status...');
-      setCurrentStep('检查用户注册状态...');
+      setCurrentStep(t('claim.checkingRegistration') || 'Checking registration status...');
       
       const userCheckResponse = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/auth', {
         method: 'POST',
@@ -94,23 +107,26 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
 
       const userResult = await userCheckResponse.json();
       
+      console.log('🔍 User registration check result:', {
+        success: userResult.success,
+        action: userResult.action,
+        hasUser: !!userResult.user,
+        userResult: userResult
+      });
+      
       if (!userResult.success || userResult.action === 'not_found') {
-        console.log('❌ User not registered, cannot claim NFT');
-        toast({
-          title: "需要先注册",
-          description: "请先完成用户注册再申请NFT",
-          variant: "destructive",
-        });
+        console.log('❌ User not registered, showing registration modal');
         setIsProcessing(false);
+        setShowRegistrationModal(true);
         return;
       }
       
-      console.log('✅ User registration verified');
+      console.log('✅ User registration verified - proceeding with NFT claim');
     } catch (error) {
       console.error('❌ User registration check failed:', error);
       toast({
-        title: "注册检查失败",
-        description: "无法验证用户注册状态，请刷新页面重试",
+        title: t('claim.registrationCheckFailed') || "Registration Check Failed",
+        description: t('claim.registrationCheckFailedDesc') || "Unable to verify registration status. Please refresh and try again.",
         variant: "destructive",
       });
       setIsProcessing(false);
@@ -510,6 +526,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
   };
 
   return (
+    <>
     <Card className={`bg-gradient-to-br from-honey/5 to-honey/15 border-honey/30 ${className}`}>
       <CardHeader className="text-center pb-4">
         <div className="flex items-center justify-center mb-3">
@@ -604,5 +621,15 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         </div>
       </CardContent>
     </Card>
+
+    {/* Registration Modal */}
+    <RegistrationModal
+      isOpen={showRegistrationModal}
+      onClose={() => setShowRegistrationModal(false)}
+      walletAddress={account?.address || ''}
+      referrerWallet={referrerWallet}
+      onRegistrationComplete={handleRegistrationComplete}
+    />
+    </>
   );
 }
