@@ -90,6 +90,9 @@ export default function WelcomePage() {
         let isActivated = false;
         let currentLevel = 0;
         
+        // Always run background chain check for state sync
+        setTimeout(() => checkOnChainNFTBackground(), 1000);
+        
         try {
           const memberStartTime = performance.now();
           console.log('🔍 Quick database check for membership activation...');
@@ -178,8 +181,9 @@ export default function WelcomePage() {
             needsSync: false,
           });
           
-          // Optional: Check blockchain in background (non-blocking)
-          // checkOnChainNFT();
+          // Check blockchain in background to sync chain state with database
+          console.log('🔗 Checking blockchain state in background...');
+          checkOnChainNFTBackground();
         }
       } else if (!userResult.success && userResult.action === 'not_found') {
         // User doesn't exist - show registration modal
@@ -220,6 +224,52 @@ export default function WelcomePage() {
   };
 
   // 检查链上NFT状态
+  // Background check that doesn't block UI
+  const checkOnChainNFTBackground = async () => {
+    if (!walletAddress) return;
+
+    try {
+      console.log('🔍 Background check: 检查链上NFT状态...');
+      
+      // 使用Supabase客户端调用激活函数
+      const { callEdgeFunction } = await import('../../lib/supabaseClient');
+      
+      const result = await callEdgeFunction('activate-membership', {
+        action: 'check_existing'
+      }, walletAddress);
+      
+      console.log('🔗 Background check result:', result);
+      
+      if (result.action === 'already_activated') {
+        console.log('✅ Background sync: User is already activated - updating UI');
+        // User has NFT and is activated - redirect to dashboard
+        setWelcomeState({
+          showClaimComponent: false,
+          userLevel: result.member.current_level,
+          isActivated: true,
+          hasOnChainNFT: true,
+          needsSync: false,
+        });
+        setLocation('/dashboard');
+      } else if (result.action === 'synced_from_chain') {
+        console.log('🔄 Background sync: Synced from chain - updating UI');
+        // 从链上同步了记录
+        setWelcomeState({
+          showClaimComponent: false,
+          userLevel: result.level,
+          isActivated: true,
+          hasOnChainNFT: true,
+          needsSync: false,
+        });
+        
+        setTimeout(() => setLocation('/dashboard'), 1000);
+      }
+    } catch (error) {
+      console.log('⚠️ Background NFT check failed (non-blocking):', error);
+      // Don't update UI state if background check fails
+    }
+  };
+
   const checkOnChainNFT = async () => {
     if (!walletAddress) return;
 
