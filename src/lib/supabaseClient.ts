@@ -464,14 +464,16 @@ export const rewardService = {
   // Get reward balance using Edge Function
   async getRewardBalance(walletAddress: string) {
     return callEdgeFunction('rewards', {
-      action: 'get-balance'
+      action: 'get-balance',
+      wallet_address: walletAddress
     }, walletAddress);
   },
 
   // Get reward history using Edge Function
   async getRewardHistory(walletAddress: string, limit = 50) {
     return callEdgeFunction('rewards', {
-      action: 'get-claims'
+      action: 'get-claims',
+      wallet_address: walletAddress
     }, walletAddress);
   },
 
@@ -479,7 +481,8 @@ export const rewardService = {
   async claimReward(walletAddress: string, rewardId: string) {
     return callEdgeFunction('rewards', {
       action: 'claim-reward',
-      reward_id: rewardId
+      claim_id: rewardId,
+      wallet_address: walletAddress
     }, walletAddress);
   },
 
