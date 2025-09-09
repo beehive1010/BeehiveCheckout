@@ -398,7 +398,22 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         if (claimError.code === -32005 || errorMessage.includes('rate limit')) {
           throw new Error(`❌ Rate Limited: Too many requests. Please wait a few minutes and try again. The network is currently busy.`);
         } else if (errorMessage.includes('Already claimed') || errorMessage.includes('quantity limit')) {
-          throw new Error(`❌ Already Claimed: Wallet ${account.address} has already claimed the Level 1 NFT. Each wallet can only claim once. Try with a different wallet.`);
+          // User already has NFT - this means they're already a member, redirect to dashboard
+          console.log('✅ User already has Level 1 NFT - redirecting to dashboard');
+          toast({
+            title: "🎉 Welcome Back!",
+            description: "You already have your Level 1 membership NFT. Redirecting to dashboard...",
+            variant: "default",
+            duration: 3000,
+          });
+          
+          // Call success handler to redirect to dashboard
+          if (onSuccess) {
+            setTimeout(() => {
+              onSuccess();
+            }, 1500);
+          }
+          return; // Exit the function without throwing error
         } else if (errorMessage.includes('Insufficient allowance') || errorMessage.includes('allowance')) {
           throw new Error(`❌ Insufficient Allowance: The approval for 130 USDC may have failed or expired. Required: approve contract ${NFT_CONTRACT} to spend 130 USDC from ${account.address}.`);
         } else if (errorMessage.includes('Insufficient balance') || errorMessage.includes('balance')) {
@@ -447,29 +462,30 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       }
 
       // Step 4: 等待区块链确认并安全激活会员身份
-      console.log('🚀 等待区块链确认并激活会员身份...');
-      setCurrentStep('等待区块链确认...');
-      
-      // 等待额外的确认时间以确保交易被完全确认
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      
-      let membershipActivationAttempts = 0;
-      const maxAttempts = 5;
-      
-      while (membershipActivationAttempts < maxAttempts && !membershipActivated) {
-        membershipActivationAttempts++;
-        console.log(`🔄 会员激活尝试 ${membershipActivationAttempts}/${maxAttempts}...`);
-        setCurrentStep(`验证交易并激活会员 (${membershipActivationAttempts}/${maxAttempts})...`);
+      if (claimTxResult?.transactionHash) {
+        console.log('🚀 等待区块链确认并激活会员身份...');
+        setCurrentStep('等待区块链确认...');
         
-        try {
-          const activateResponse = await fetch(`${API_BASE}/activate-membership`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-wallet-address': account.address
-            },
-            body: JSON.stringify({
-              transactionHash: claimTxResult?.transactionHash,
+        // 等待额外的确认时间以确保交易被完全确认
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        
+        let membershipActivationAttempts = 0;
+        const maxAttempts = 5;
+        
+        while (membershipActivationAttempts < maxAttempts && !membershipActivated) {
+          membershipActivationAttempts++;
+          console.log(`🔄 会员激活尝试 ${membershipActivationAttempts}/${maxAttempts}...`);
+          setCurrentStep(`验证交易并激活会员 (${membershipActivationAttempts}/${maxAttempts})...`);
+          
+          try {
+            const activateResponse = await fetch(`${API_BASE}/activate-membership`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-wallet-address': account.address
+              },
+              body: JSON.stringify({
+                transactionHash: claimTxResult.transactionHash,
               level: 1,
               paymentMethod: 'token_payment',
               paymentAmount: 130,
