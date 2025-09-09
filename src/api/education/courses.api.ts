@@ -5,13 +5,14 @@ export const coursesApi = {
   async getCourses() {
     try {
       // 使用 fetch 直接调用 courses edge function
-      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/courses/api/courses', {
-        method: 'GET',
+      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/courses', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
+        body: JSON.stringify({ action: 'get-courses' }),
       });
       
       if (!response.ok) {
@@ -96,14 +97,15 @@ export const coursesApi = {
 
   async getCourseAccess(walletAddress: string) {
     try {
-      const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/courses/api/course-access`, {
-        method: 'GET',
+      const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/courses`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           'x-wallet-address': walletAddress,
         },
+        body: JSON.stringify({ action: 'get-course-access' }),
       });
       
       if (!response.ok) {
@@ -124,7 +126,7 @@ export const coursesApi = {
         throw new Error('需要钱包地址');
       }
       
-      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/courses/api/purchase-course', {
+      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/courses', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -132,7 +134,7 @@ export const coursesApi = {
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           'x-wallet-address': walletAddress,
         },
-        body: JSON.stringify({ courseId, bccAmount }),
+        body: JSON.stringify({ action: 'purchase-course', courseId, bccAmount }),
       });
       
       const result = await response.json();
@@ -154,7 +156,7 @@ export const coursesApi = {
         throw new Error('需要钱包地址');
       }
       
-      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/courses/api/course-progress', {
+      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/courses', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -162,7 +164,7 @@ export const coursesApi = {
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           'x-wallet-address': walletAddress,
         },
-        body: JSON.stringify({ courseId, progress }),
+        body: JSON.stringify({ action: 'update-progress', courseId, progress }),
       });
       
       const result = await response.json();
