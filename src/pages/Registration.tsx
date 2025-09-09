@@ -113,8 +113,8 @@ export default function Registration() {
     queryFn: async () => {
       if (!referrerWallet || !walletAddress) return null;
       
-      // Check for self-referral (case-insensitive comparison)
-      if (referrerWallet.toLowerCase() === walletAddress.toLowerCase()) {
+      // Check for self-referral
+      if (referrerWallet === walletAddress) {
         throw new Error('You cannot refer yourself');
       }
       

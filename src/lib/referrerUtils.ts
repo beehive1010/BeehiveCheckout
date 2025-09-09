@@ -7,7 +7,7 @@ const ROOT_WALLET = '0x0000000000000000000000000000000000000001';
  * Check if a wallet address is the root/system wallet
  */
 export function isRootWallet(walletAddress?: string | null): boolean {
-  return walletAddress?.toLowerCase() === ROOT_WALLET.toLowerCase();
+  return walletAddress === ROOT_WALLET;
 }
 
 /**

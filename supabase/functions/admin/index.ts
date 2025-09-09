@@ -18,7 +18,7 @@ serve(async (req)=>{
   }
   try {
     const supabase = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '');
-    const walletAddress = req.headers.get('x-wallet-address')?.toLowerCase();
+    const walletAddress = req.headers.get('x-wallet-address');
     if (!walletAddress) {
       return new Response(JSON.stringify({
         error: 'Wallet address required'
@@ -209,7 +209,7 @@ async function handleSetMemberPending(supabase, walletAddress, data) {
     }
     const { data: result, error } = await supabase.rpc('set_member_activation_pending', {
       p_admin_wallet: walletAddress,
-      p_target_wallet: targetWallet.toLowerCase(),
+      p_target_wallet: targetWallet,
       p_pending_hours: parseInt(pendingHours),
       p_reason: reason
     });
@@ -228,7 +228,7 @@ async function handleSetMemberPending(supabase, walletAddress, data) {
     }
     const response = {
       success: true,
-      targetWallet: targetWallet.toLowerCase(),
+      targetWallet: targetWallet,
       pendingHours: result.pending_hours,
       expiresAt: result.expires_at,
       message: result.message
@@ -269,7 +269,7 @@ async function handleClearMemberPending(supabase, walletAddress, data) {
     }
     const { data: result, error } = await supabase.rpc('clear_member_activation_pending', {
       p_admin_wallet: walletAddress,
-      p_target_wallet: targetWallet.toLowerCase(),
+      p_target_wallet: targetWallet,
       p_reason: reason
     });
     if (error) throw error;
@@ -287,7 +287,7 @@ async function handleClearMemberPending(supabase, walletAddress, data) {
     }
     const response = {
       success: true,
-      targetWallet: targetWallet.toLowerCase(),
+      targetWallet: targetWallet,
       message: result.message
     };
     return new Response(JSON.stringify(response), {

@@ -76,7 +76,7 @@ serve(async (req) => {
 
     const url = new URL(req.url)
     const action = url.searchParams.get('action')
-    const walletAddress = req.headers.get('x-wallet-address')?.toLowerCase()
+    const walletAddress = req.headers.get('x-wallet-address')
     
     if (!walletAddress && !['list-members', 'system-stats'].includes(action || '')) {
       throw new Error('钱包地址缺失')

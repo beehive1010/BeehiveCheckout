@@ -29,7 +29,7 @@ serve(async (req) => {
     )
 
     const { action, ...data } = await req.json()
-    const walletAddress = req.headers.get('x-wallet-address')?.toLowerCase()
+    const walletAddress = req.headers.get('x-wallet-address')
 
     if (!walletAddress) {
       throw new Error('钱包地址缺失')
@@ -107,7 +107,7 @@ async function registerUser(supabase, walletAddress, data) {
   // 修复：正确处理推荐人参数，确保参数传递正确
   const inputReferrer = data.referrerWallet || data.referrer_wallet;
   if (inputReferrer && inputReferrer !== ROOT_WALLET) {
-    referrerWallet = inputReferrer.toLowerCase(); // 确保小写  
+    referrerWallet = inputReferrer; // 保持原始大小写  
     console.log(`📝 正在记录推荐人: ${inputReferrer} -> ${referrerWallet}`);
   } else {
     console.log(`📝 使用默认推荐人（根用户），输入推荐人: ${inputReferrer}`);

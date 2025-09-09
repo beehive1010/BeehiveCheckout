@@ -40,7 +40,7 @@ serve(async (req) => {
 
     const url = new URL(req.url)
     const action = url.searchParams.get('action')
-    const walletAddress = req.headers.get('x-wallet-address')?.toLowerCase()
+    const walletAddress = req.headers.get('x-wallet-address')
     
     console.log(`🔷 Matrix Operations Action: ${action} for wallet: ${walletAddress}`)
 

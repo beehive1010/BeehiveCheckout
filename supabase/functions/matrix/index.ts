@@ -34,7 +34,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const walletAddress = req.headers.get('x-wallet-address')?.toLowerCase();
+    const walletAddress = req.headers.get('x-wallet-address');
     let requestData;
 
     try {
@@ -119,22 +119,25 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
       });
     }
 
-    // Use members table to build matrix data (since matrix_positions doesn't exist)
+    // Use members table to build matrix data (case insensitive search)
     let query = supabase
       .from('members')
       .select('wallet_address, referrer_wallet, current_level, username, created_at')
-      .eq('referrer_wallet', targetRoot)
+      .ilike('referrer_wallet', targetRoot)
       .limit(limit);
 
-    // Also get referrals table data if it exists
+    // Also get referrals table data if it exists (case insensitive)
     let referralsQuery = supabase
       .from('referrals')
       .select(`
         member_wallet,
         referrer_wallet,
-        created_at
+        matrix_parent,
+        matrix_position,
+        matrix_layer,
+        matrix_root
       `)
-      .eq('referrer_wallet', targetRoot)
+      .or(`referrer_wallet.ilike.${targetRoot},matrix_parent.ilike.${targetRoot}`)
       .limit(limit);
 
     console.log('🔍 Executing members and referrals queries...');
@@ -164,26 +167,57 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
       console.warn('⚠️ Referrals query failed:', referralsResult);
     }
 
-    // Combine data to build matrix structure
-    const finalMatrixData = memberData.map((member, index) => {
-      // Find matching referral record for additional info
-      const referralRecord = referralData.find(r => r.member_wallet === member.wallet_address);
+    // Combine data to build matrix structure using referrals table matrix data
+    const finalMatrixData = [];
+    
+    // Process referrals data first (has matrix information)
+    referralData.forEach((referral, index) => {
+      const member = memberData.find(m => 
+        m.wallet_address.toLowerCase() === referral.member_wallet.toLowerCase()
+      );
       
-      return {
-        wallet_address: member.wallet_address,
-        root_wallet: targetRoot,
-        layer: 1, // For now, all direct referrals are layer 1
-        position: `${index + 1}`,
-        parent_wallet: member.referrer_wallet,
-        is_activated: true, // Assume activated since in members table
-        placement_order: index + 1,
-        created_at: referralRecord?.created_at || member.created_at,
-        members: {
-          current_level: member.current_level || 1,
-          is_activated: true, // Assume activated
-          username: member.username || null
-        }
-      };
+      if (member) {
+        finalMatrixData.push({
+          wallet_address: referral.member_wallet,
+          root_wallet: referral.matrix_root || targetRoot,
+          layer: referral.matrix_layer || 1,
+          position: referral.matrix_position || `${index + 1}`,
+          parent_wallet: referral.matrix_parent || referral.referrer_wallet,
+          is_activated: true, // Assume activated since in members table
+          placement_order: index + 1,
+          created_at: member.created_at,
+          members: {
+            current_level: member.current_level || 1,
+            is_activated: true, // Assume activated
+            username: member.username || null
+          }
+        });
+      }
+    });
+    
+    // Add members not in referrals table
+    memberData.forEach((member, index) => {
+      const alreadyProcessed = finalMatrixData.some(f => 
+        f.wallet_address.toLowerCase() === member.wallet_address.toLowerCase()
+      );
+      
+      if (!alreadyProcessed) {
+        finalMatrixData.push({
+          wallet_address: member.wallet_address,
+          root_wallet: targetRoot,
+          layer: 1, // Direct referrals are layer 1
+          position: `${index + 1}`,
+          parent_wallet: member.referrer_wallet,
+          is_activated: true, // Assume activated since in members table
+          placement_order: index + 1,
+          created_at: member.created_at,
+          members: {
+            current_level: member.current_level || 1,
+            is_activated: true, // Assume activated
+            username: member.username || null
+          }
+        });
+      }
     });
 
     console.log(`🎯 Final matrix data processed: ${finalMatrixData.length} members`);

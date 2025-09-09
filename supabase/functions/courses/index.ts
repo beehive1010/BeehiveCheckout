@@ -30,7 +30,7 @@ serve(async (req) => {
 
     const url = new URL(req.url)
     const path = url.pathname
-    const walletAddress = req.headers.get('x-wallet-address')?.toLowerCase()
+    const walletAddress = req.headers.get('x-wallet-address')
 
     // 新的 action 路由处理
     if (req.method === 'POST') {

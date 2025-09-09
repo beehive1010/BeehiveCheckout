@@ -126,7 +126,7 @@ async function getRewardClaims(req, supabaseClient) {
   const requestData = req.parsedBody || {};
   const url = new URL(req.url);
   
-  const wallet_address = (requestData.wallet_address || req.headers.get('x-wallet-address'))?.toLowerCase();
+  const wallet_address = (requestData.wallet_address || req.headers.get('x-wallet-address'));
   const { status, layer } = requestData;
 
   if (!wallet_address) {
@@ -350,7 +350,7 @@ async function runMaintenance(req, supabaseClient) {
 
 async function getRewardDashboard(req, supabaseClient) {
   const requestData = req.parsedBody || {};
-  const wallet_address = (requestData.wallet_address || req.headers.get('x-wallet-address'))?.toLowerCase();
+  const wallet_address = (requestData.wallet_address || req.headers.get('x-wallet-address'));
 
   if (!wallet_address) {
     return new Response(JSON.stringify({
@@ -544,10 +544,10 @@ async function getRewardBalance(req, supabaseClient) {
   
   // Handle both GET and POST requests
   if (req.method === 'GET') {
-    wallet_address = req.headers.get('x-wallet-address')?.toLowerCase();
+    wallet_address = req.headers.get('x-wallet-address');
   } else {
     const body = req.parsedBody || {};
-    wallet_address = (body.wallet_address || req.headers.get('x-wallet-address'))?.toLowerCase();
+    wallet_address = (body.wallet_address || req.headers.get('x-wallet-address'));
   }
 
   if (!wallet_address) {

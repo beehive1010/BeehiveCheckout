@@ -30,7 +30,7 @@ serve(async (req) => {
 
     const requestBody = await req.json().catch(() => ({}))
     const { transactionHash, level = 1, action, referrerWallet, ...data } = requestBody
-    const walletAddress = req.headers.get('x-wallet-address')?.toLowerCase()
+    const walletAddress = req.headers.get('x-wallet-address')
 
     if (!walletAddress) {
       throw new Error('钱包地址缺失')

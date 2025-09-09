@@ -26,7 +26,7 @@ serve(async (req) => {
       }
     )
 
-    const walletAddress = req.headers.get('x-wallet-address')?.toLowerCase()
+    const walletAddress = req.headers.get('x-wallet-address')
     
     if (!walletAddress) {
       throw new Error('钱包地址缺失')

@@ -43,7 +43,7 @@ serve(async (req) => {
       }
     }
 
-    const walletAddress = req.headers.get('x-wallet-address')?.toLowerCase();
+    const walletAddress = req.headers.get('x-wallet-address');
     
     if (!walletAddress) {
       return new Response(JSON.stringify({
