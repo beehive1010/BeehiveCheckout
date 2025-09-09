@@ -143,192 +143,79 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         console.warn('⚠️ Could not check NFT ownership:', ownershipError);
       }
 
-      // Step 1: Verify user has complete registration (username, email, referrer)
-      console.log('🔍 Verifying complete user registration...');
+      // Step 1: Check and approve tokens
+      console.log('💰 Checking token balance and approval...');
+      setCurrentStep('检查USDC余额...');
       
-      // Use authService instead of direct edge function call to handle errors gracefully
-      const { exists } = await authService.userExists(account.address);
-      if (!exists) {
-        console.warn('⚠️ User does not exist in database, but allowing claim to proceed');
-        // throw new Error('Please complete registration first with username, email, and referrer information');
-      }
-
-      const { data: userData, error: userError } = await authService.getUser(account.address);
-      console.log('📝 User data:', userData, userError);
-
-      // Check if user data was retrieved successfully - but don't block claim
-      if (!userData || userError) {
-        console.warn('❌ Failed to get user data but allowing claim to proceed:', userError);
-        // throw new Error('Please complete registration first with username, email, and referrer information');
-      }
-
-      // Verify user has complete registration data - but don't block if missing
-      if (userData) {
-        const expectedAutoGenPrefix = `user_${account.address.slice(-6)}`;
-        console.log('🔍 Registration validation details:');
-        console.log(`  - Username: "${userData.username}"`);
-        console.log(`  - Email: "${userData.email}"`);
-        console.log(`  - Expected auto-gen prefix: "${expectedAutoGenPrefix}"`);
-        console.log(`  - Is auto-generated username: ${userData.username?.startsWith(expectedAutoGenPrefix)}`);
-        console.log(`  - Has email: ${!!userData.email}`);
-        
-        const hasCompleteInfo = userData && 
-          userData.username && 
-          !userData.username.startsWith(expectedAutoGenPrefix) && // Not auto-generated username
-          userData.email; // Has email
-        
-        console.log(`🔍 Registration validation result: ${hasCompleteInfo}`);
-        
-        if (!hasCompleteInfo) {
-          console.warn('⚠️ Registration validation failed, but allowing claim to proceed');
-          console.log('🔧 Allowing NFT claim regardless of registration status');
-        } else {
-          console.log('✅ User has complete registration information');
-        }
-      } else {
-        console.warn('⚠️ No user data available, but allowing claim to proceed');
-      }
-
-      // Step 2: Approve and transfer tokens for NFT claim
-      console.log('🪙 Processing token payment for NFT claim...');
+      const PAYMENT_TOKEN_AMOUNT = BigInt("130000000"); // 130 USDC with 6 decimals
+      const finalAmount = PAYMENT_TOKEN_AMOUNT; // Use the predefined amount
       
-      // Get the token contract
-      const tokenContract = getContract({
+      const usdcContract = getContract({
         client,
         address: PAYMENT_TOKEN_CONTRACT,
         chain: arbitrumSepolia
       });
 
-      // Get the NFT contract  
-      const nftContract = getContract({
-        client,
-        address: NFT_CONTRACT,
-        chain: arbitrumSepolia
-      });
+      console.log(`💳 Checking USDC balance for payment: ${finalAmount.toString()} units (130 USDC)`);
 
-      // Amount to pay: 130 USDC total (100 for NFT + 30 platform fee)
+      // Check if approval is needed
+      setCurrentStep('检查USDC授权...');
       
-      // Use standard 18 decimals for this token contract - SIMPLIFIED
-      console.log('🔍 Using standard 18 decimals for payment token...');
-      const tokenDecimals = 18; // Standard ERC20 decimals
-      const decimalMultiplier = BigInt("1000000000000000000"); // 10^18
-      
-      console.log(`✅ Using 18-decimal USDC (standard ERC20)`);
-
-      // Skip balance check - the transaction will fail if insufficient balance
-      console.log('💰 Skipping balance check - transaction will validate balance on-chain');
-
-      // Approve tokens for NFT contract (the contract itself: 0x99265477249389469929CEA07c4a337af9e12cdA)
-      console.log('📝 Approving 130 USDC for NFT contract...');
-      
-      // CRITICAL: Use correct decimals for approval amount - FORCED FIX
-      const usdcAmount = BigInt("130") * decimalMultiplier; // 130 USDC with correct decimals
-      
-      // BACKUP: If dynamic detection failed, try common values
-      let finalAmount = usdcAmount;
-      
-      // Dynamic calculation based on detected decimals - PRIORITIZE 18 DECIMALS
-      if (tokenDecimals === 18) {
-        finalAmount = BigInt("130") * BigInt("1000000000000000000"); // 130 * 10^18
-        console.log("🔥 USING 18-DECIMAL USDC AMOUNT (STANDARD ERC20)");
-      } else if (tokenDecimals === 6) {
-        finalAmount = BigInt("130") * BigInt("1000000"); // 130 * 10^6 = 130000000
-        console.log("✅ Using 6-decimal USDC amount");
-      } else if (tokenDecimals === 8) {
-        finalAmount = BigInt("130") * BigInt("100000000"); // 130 * 10^8
-        console.log("🔄 Using 8-decimal USDC amount");
-      } else if (tokenDecimals === 10) {
-        finalAmount = BigInt("130") * BigInt("10000000000"); // 130 * 10^10
-        console.log("🔄 Using 10-decimal USDC amount");
-      } else if (tokenDecimals === 12) {
-        finalAmount = BigInt("130") * BigInt("1000000000000"); // 130 * 10^12
-        console.log("🔄 Using 12-decimal USDC amount");
-      } else {
-        // Fallback: calculate dynamically
-        finalAmount = BigInt("130") * (BigInt(10) ** BigInt(tokenDecimals));
-        console.log(`🔄 Using ${tokenDecimals}-decimal USDC amount`);
-      }
-      
-      // Safety check: if calculated amount seems too small, recalculate
-      if (finalAmount < BigInt("130000000")) {
-        console.log("⚠️ Amount seems too small, recalculating...");
-        finalAmount = BigInt("130") * (BigInt(10) ** BigInt(tokenDecimals));
-      }
-      
-      console.log(`📋 Final approving amount: ${finalAmount.toString()} wei`);
-      console.log(`📋 Decimals detected: ${tokenDecimals}`);
-      console.log(`📋 Calculated human readable: ${Number(finalAmount) / Number(BigInt(10 ** tokenDecimals))} USDC`);
-      console.log(`📋 Spender (NFT Contract): ${NFT_CONTRACT}`);
-      console.log(`📋 Token Contract: ${PAYMENT_TOKEN_CONTRACT}`);
+      // Always request approval for safety and gas estimation
+      console.log(`💰 Requesting token approval for ${finalAmount} USDC...`);
       
       const approveTransaction = prepareContractCall({
-        contract: tokenContract,
+        contract: usdcContract,
         method: "function approve(address spender, uint256 amount) returns (bool)",
-        params: [NFT_CONTRACT, finalAmount] // Approve NFT contract to spend 130 USDC
+        params: [NFT_CONTRACT, finalAmount]
       });
 
-      // Add retry logic for rate limiting
-      let approveTxResult: any = null;
-      let approveAttempts = 0;
-      const maxApproveAttempts = 3;
+      console.log('📝 Sending approval transaction...');
+      setCurrentStep('等待USDC授权...');
       
-      while (approveAttempts < maxApproveAttempts) {
+      // Send approval transaction with retry logic
+      let approvalAttempts = 0;
+      const maxApprovalAttempts = 3;
+      let approveTxResult: any = null;
+      
+      while (approvalAttempts < maxApprovalAttempts) {
         try {
           approveTxResult = await sendTransaction({
             transaction: approveTransaction,
             account
           });
+          console.log('✅ Approval transaction sent:', approveTxResult.transactionHash);
           break; // Success, exit retry loop
-        } catch (approveError: any) {
-          approveAttempts++;
-          console.log(`Approval attempt ${approveAttempts}/${maxApproveAttempts} failed:`, approveError);
+        } catch (approvalError: any) {
+          approvalAttempts++;
+          console.log(`Approval attempt ${approvalAttempts}/${maxApprovalAttempts} failed:`, approvalError);
           
-          if (approveError.code === -32005 || approveError.message?.includes('rate limit')) {
-            if (approveAttempts < maxApproveAttempts) {
-              console.log(`Rate limited, waiting ${approveAttempts * 2} seconds before retry...`);
-              await new Promise(resolve => setTimeout(resolve, approveAttempts * 2000));
+          if (approvalError.code === -32005 || approvalError.message?.includes('rate limit')) {
+            if (approvalAttempts < maxApprovalAttempts) {
+              console.log(`Rate limited, waiting ${approvalAttempts * 3} seconds before retry...`);
+              await new Promise(resolve => setTimeout(resolve, approvalAttempts * 3000));
               continue;
             }
           }
-          throw approveError; // Re-throw if not rate limiting or max attempts reached
+          
+          // Re-throw for other error handling
+          throw approvalError;
         }
       }
 
-      console.log('✅ Token approval transaction:', approveTxResult?.transactionHash);
-
-      // Wait for approval transaction to be confirmed
-      setCurrentStep('等待代币授权确认...');
-      const approvalReceipt = await waitForReceipt({
+      // Wait for approval confirmation
+      console.log('⏳ Waiting for approval confirmation...');
+      setCurrentStep('等待USDC授权确认...');
+      
+      await waitForReceipt({
         client,
         chain: arbitrumSepolia,
         transactionHash: approveTxResult?.transactionHash,
       });
       
-      console.log('✅ Token approval confirmed:', approvalReceipt.status);
+      console.log('✅ USDC approval confirmed');
 
-      // Verify allowance was set correctly
-      console.log('🔍 Verifying allowance...');
-      try {
-        const allowanceCheck = prepareContractCall({
-          contract: tokenContract,
-          method: "function allowance(address owner, address spender) view returns (uint256)",
-          params: [account.address, NFT_CONTRACT]
-        });
-        // Note: For read calls, we'd typically use readContract, but let's log what we expect
-        console.log(`📋 Expected allowance: 130000000 (130 USDC)`);
-        console.log(`📋 Spender: ${NFT_CONTRACT}`);
-        console.log(`📋 Owner: ${account.address}`);
-      } catch (allowanceError) {
-        console.warn('⚠️ Could not verify allowance:', allowanceError);
-      }
-
-      // Skip already claimed check - the transaction will fail if already claimed
-      console.log('🔍 Skipping already claimed check - transaction will validate on-chain');
-      
-      // Skip claim conditions check - rely on contract validation
-      console.log('🔍 Proceeding to claim - contract will validate conditions');
-
-      // Claim NFT using token payment
+      // Step 2: Claim NFT with token payment
       console.log('🎁 Claiming NFT with token payment...');
       setCurrentStep('正在铸造NFT...');
       
@@ -339,6 +226,12 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         pricePerToken: finalAmount, // 130 USDC in wei
         currency: PAYMENT_TOKEN_CONTRACT // Payment token address
       };
+      
+      const nftContract = getContract({
+        client,
+        address: NFT_CONTRACT,
+        chain: arbitrumSepolia
+      });
       
       const claimTransaction = prepareContractCall({
         contract: nftContract,
@@ -391,47 +284,6 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       });
       
       console.log('✅ NFT claim confirmed:', claimReceipt.status);
-      
-      } catch (claimError: any) {
-        console.error('❌ NFT claim failed:', claimError);
-        
-        // Provide specific error messages based on contract requirements
-        const errorMessage = claimError instanceof Error ? claimError.message : String(claimError);
-        
-        // Enhanced error messages based on transaction analysis
-        if (claimError.code === -32005 || errorMessage.includes('rate limit')) {
-          throw new Error(`❌ Rate Limited: Too many requests. Please wait a few minutes and try again. The network is currently busy.`);
-        } else if (errorMessage.includes('Already claimed') || errorMessage.includes('quantity limit')) {
-          // User already has NFT - this means they're already a member, redirect to dashboard
-          console.log('✅ User already has Level 1 NFT - redirecting to dashboard');
-          toast({
-            title: "🎉 Welcome Back!",
-            description: "You already have your Level 1 membership NFT. Redirecting to dashboard...",
-            variant: "default",
-            duration: 3000,
-          });
-          
-          // Call success handler to redirect to dashboard
-          if (onSuccess) {
-            setTimeout(() => {
-              onSuccess();
-            }, 1500);
-          }
-          return; // Exit the function without throwing error
-        } else if (errorMessage.includes('Insufficient allowance') || errorMessage.includes('allowance')) {
-          throw new Error(`❌ Insufficient Allowance: The approval for 130 USDC may have failed or expired. Required: approve contract ${NFT_CONTRACT} to spend 130 USDC from ${account.address}.`);
-        } else if (errorMessage.includes('Insufficient balance') || errorMessage.includes('balance')) {
-          throw new Error(`❌ Insufficient Balance: Wallet ${account.address} needs exactly 130 USDC to claim this NFT.`);
-        } else if (errorMessage.includes('Invalid price') || errorMessage.includes('price')) {
-          throw new Error('❌ Price Error: Invalid price specified for claim. Expected 130 USDC.');
-        } else if (errorMessage.includes('Invalid currency')) {
-          throw new Error('❌ Currency Error: Invalid payment currency specified.');
-        } else if (errorMessage.includes('revert') || errorMessage.includes('execution reverted')) {
-          throw new Error(`❌ Transaction Reverted: Check if you've already claimed, have sufficient balance (130 USDC), and proper allowance. Details: ${errorMessage}`);
-        } else {
-          throw new Error(`❌ Claim Failed: ${errorMessage}. Common causes: already claimed, insufficient balance/allowance, or contract configuration issues.`);
-        }
-      }
 
       // Step 3: Process the NFT purchase on backend
       console.log('📋 Processing NFT purchase on backend...');
@@ -510,12 +362,12 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
           console.warn(`⚠️ 会员激活错误 (尝试${membershipActivationAttempts}):`, activationError);
         }
         
-          // 如果没有激活成功且还有重试次数，等待再试
-          if (!membershipActivated && membershipActivationAttempts < maxAttempts) {
-            console.log('⏳ 等待10秒后重试激活...');
-            await new Promise(resolve => setTimeout(resolve, 10000));
-          }
+        // 如果没有激活成功且还有重试次数，等待再试
+        if (!membershipActivated && membershipActivationAttempts < maxAttempts) {
+          console.log('⏳ 等待10秒后重试激活...');
+          await new Promise(resolve => setTimeout(resolve, 10000));
         }
+      }
       } else {
         console.log('⚠️ No transaction hash available - skipping activation');
       }
@@ -551,10 +403,64 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       }
 
     } catch (error) {
-      console.error('❌ Token claim error:', error);
+      console.error('❌ NFT claim or processing error:', error);
+      
+      // Provide specific error messages based on contract requirements
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      // Enhanced error messages based on transaction analysis
+      if (errorMessage.includes('Rate Limited') || errorMessage.includes('rate limit')) {
+        // Already formatted error message, pass through
+        toast({
+          title: "Rate Limited",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return;
+      } else if (errorMessage.includes('Already claimed') || errorMessage.includes('quantity limit')) {
+        // User already has NFT - this means they're already a member, redirect to dashboard
+        console.log('✅ User already has Level 1 NFT - redirecting to dashboard');
+        toast({
+          title: "🎉 Welcome Back!",
+          description: "You already have your Level 1 membership NFT. Redirecting to dashboard...",
+          variant: "default",
+          duration: 3000,
+        });
+        
+        // Call success handler to redirect to dashboard
+        if (onSuccess) {
+          setTimeout(() => {
+            onSuccess();
+          }, 1500);
+        }
+        return; // Exit function, don't show error
+      } else if (errorMessage.includes('insufficient')) {
+        toast({
+          title: "Insufficient USDC Balance",
+          description: "You need 130 USDC to claim Level 1 NFT. Please add USDC to your wallet and try again.",
+          variant: "destructive",
+        });
+        return;
+      } else if (errorMessage.includes('allowance') || errorMessage.includes('approve')) {
+        toast({
+          title: "Token Approval Failed",
+          description: "Please ensure you approve the contract to spend 130 USDC and try again.",
+          variant: "destructive",
+        });
+        return;
+      } else if (errorMessage.includes('network') || errorMessage.includes('chain')) {
+        toast({
+          title: "Network Error",
+          description: "Please switch to Arbitrum Sepolia network and try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Generic error fallback
       toast({
-        title: "Claim failed",
-        description: error instanceof Error ? error.message : "Failed to claim NFT with tokens. Please try again.",
+        title: "Claim failed", 
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -587,115 +493,44 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
             <h3 className="font-semibold text-orange-400 mb-1">130 USDC</h3>
             <p className="text-xs text-muted-foreground">100 NFT + 30 platform fee</p>
           </div>
-          
-          <div className="text-center p-4 bg-gradient-to-br from-green-500/10 to-green-500/5 rounded-lg border border-green-500/20">
-            <Gift className="h-6 w-6 text-green-400 mx-auto mb-2" />
-            <h3 className="font-semibold text-green-400 mb-1">500 BCC</h3>
-            <p className="text-xs text-muted-foreground">Transferable tokens</p>
-          </div>
-          
-          <div className="text-center p-4 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20">
-            <Zap className="h-6 w-6 text-blue-400 mx-auto mb-2" />
-            <h3 className="font-semibold text-blue-400 mb-1">10,350 BCC</h3>
-            <p className="text-xs text-muted-foreground">Locked rewards</p>
-          </div>
-          
           <div className="text-center p-4 bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-lg border border-purple-500/20">
             <Crown className="h-6 w-6 text-purple-400 mx-auto mb-2" />
             <h3 className="font-semibold text-purple-400 mb-1">Level 1</h3>
-            <p className="text-xs text-muted-foreground">Membership access</p>
+            <p className="text-xs text-muted-foreground">Membership NFT</p>
+          </div>
+          <div className="text-center p-4 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20">
+            <Gift className="h-6 w-6 text-blue-400 mx-auto mb-2" />
+            <h3 className="font-semibold text-blue-400 mb-1">Matrix</h3>
+            <p className="text-xs text-muted-foreground">3×3 referral system</p>
+          </div>
+          <div className="text-center p-4 bg-gradient-to-br from-green-500/10 to-green-500/5 rounded-lg border border-green-500/20">
+            <Zap className="h-6 w-6 text-green-400 mx-auto mb-2" />
+            <h3 className="font-semibold text-green-400 mb-1">Instant</h3>
+            <p className="text-xs text-muted-foreground">Activation</p>
           </div>
         </div>
 
-        {/* Network Information */}
-        <div className={`rounded-lg p-4 ${!effectiveChainId || effectiveChainId !== arbitrumSepolia.id ? 'bg-red-500/10 border-red-500/20 border' : 'bg-muted/50'}`}>
-          <h4 className="font-medium text-honey mb-2 flex items-center">
-            🌐 Network Status
-            {(!effectiveChainId || effectiveChainId !== arbitrumSepolia.id) && <span className="ml-2 text-red-400 text-sm">⚠️ Network Issue</span>}
-          </h4>
-          <div className="space-y-2 text-sm text-muted-foreground">
-            <div className="flex justify-between">
-              <span>Current:</span>
-              <span className={`font-medium ${!effectiveChainId || effectiveChainId !== arbitrumSepolia.id ? 'text-red-400' : 'text-green-400'}`}>
-                {!effectiveChainId ? 'Not Detected ❌' : 
-                 effectiveChainId === arbitrumSepolia.id ? 'Arbitrum Sepolia ✅' : 
-                 `Network ID: ${effectiveChainId} ❌`}
-                {activeChain?.id && <span className="text-xs text-muted-foreground ml-1">(active)</span>}
-                {!activeChain?.id && fallbackChainId && <span className="text-xs text-muted-foreground ml-1">(fallback)</span>}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span>Required:</span>
-              <span className="text-foreground">Arbitrum Sepolia (Testnet)</span>
-            </div>
-            {(!effectiveChainId || effectiveChainId !== arbitrumSepolia.id) && (
-              <div className="mt-3 p-3 bg-red-500/10 rounded border border-red-500/20">
-                <p className="text-red-400 text-sm font-medium">
-                  {!effectiveChainId ? 
-                    '⚠️ Wallet network not detected - please reconnect your wallet' :
-                    '⚠️ Please switch to Arbitrum Sepolia network to claim your NFT'
-                  }
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {!effectiveChainId ?
-                    'Refresh the page and reconnect your wallet if the issue persists' :
-                    'Use your wallet\'s network switcher or add Arbitrum Sepolia if not available'
-                  }
-                </p>
-              </div>
-            )}
-            <div className="flex justify-between">
-              <span>NFT Standard:</span>
-              <span className="text-foreground">ERC-5115</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Token ID:</span>
-              <span className="text-foreground">1</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Payment:</span>
-              <span className="text-foreground">130 USDC</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Breakdown:</span>
-              <span className="text-foreground">100 NFT + 30 fee</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Token Contract:</span>
-              <span className="text-foreground font-mono text-xs">
-                {PAYMENT_TOKEN_CONTRACT?.slice(0, 8)}...{PAYMENT_TOKEN_CONTRACT?.slice(-6)}
-              </span>
-            </div>
-            {referrerWallet && (
-              <div className="flex justify-between">
-                <span>Referrer:</span>
-                <span className="text-foreground font-mono text-xs">
-                  {referrerWallet.slice(0, 8)}...{referrerWallet.slice(-6)}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Claim Button */}
-        <div className="pt-4">
+        {/* Claim Action */}
+        <div className="space-y-4">
           <Button 
             onClick={handleClaimNFT}
-            disabled={!account?.address || isProcessing}
-            className="w-full h-12 bg-gradient-to-r from-honey to-honey/80 hover:from-honey/90 hover:to-honey/70 text-honey-foreground font-semibold text-lg"
+            disabled={isProcessing || !account?.address}
+            className="w-full h-12 bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-background font-semibold text-lg shadow-lg"
+            data-testid="button-claim-nft"
           >
-            {isProcessing ? (
+            {!account?.address ? (
               <>
-                {currentStep.includes('等待') ? (
-                  <Clock className="mr-2 h-5 w-5 animate-pulse" />
-                ) : (
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                )}
+                <Crown className="mr-2 h-5 w-5" />
+                Connect Wallet to Claim NFT
+              </>
+            ) : isProcessing ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 {currentStep || 'Processing...'}
               </>
             ) : (
               <>
-                <Coins className="mr-2 h-5 w-5" />
+                <Crown className="mr-2 h-5 w-5" />
                 Claim Level 1 NFT (130 USDC)
               </>
             )}
