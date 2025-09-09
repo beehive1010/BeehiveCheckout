@@ -118,13 +118,25 @@ export default function WelcomePage() {
               currentLevel: memberResult.currentLevel
             });
             
-            // Use the same logic as Dashboard and MemberGuard - check the isActivated field
-            if (memberResult.success && memberResult.isActivated) {
+            // Use the same logic as Dashboard and MemberGuard - check the isActivated field with fallback
+            const apiActivated = memberResult.success && memberResult.isActivated;
+            const fallbackActivated = memberResult.success && memberResult.member?.current_level > 0;
+            
+            if (apiActivated || (!apiActivated && fallbackActivated)) {
               isActivated = true;
               currentLevel = memberResult.currentLevel || memberResult.member?.current_level || 1;
-              console.log('✅ WelcomePage: Found activated member:', { isActivated, currentLevel });
+              console.log('✅ WelcomePage: Found activated member:', { 
+                isActivated, 
+                currentLevel,
+                viaAPI: apiActivated,
+                viaFallback: fallbackActivated && !apiActivated
+              });
             } else {
-              console.log('📋 WelcomePage: User not activated - isActivated:', memberResult.isActivated);
+              console.log('📋 WelcomePage: User not activated', {
+                isActivated: memberResult.isActivated,
+                currentLevel: memberResult.currentLevel,
+                memberLevel: memberResult.member?.current_level
+              });
             }
           }
           

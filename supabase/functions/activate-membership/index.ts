@@ -341,10 +341,13 @@ async function activateMembershipSecure(supabase, walletAddress, transactionHash
           if (matrixResponse.ok) {
             const matrixResult = await matrixResponse.json();
             
+            // Try to create referral record regardless of matrix result
+            let referralCreated = false;
+            
             if (matrixResult.success) {
               console.log(`✅ 矩阵安置成功: Layer ${matrixResult.placement?.layer}, Position ${matrixResult.placement?.position}`);
               
-              // 创建推荐关系记录
+              // Create referral record with matrix placement data
               const { error: referralError } = await supabase
                 .from('referrals')
                 .insert({
@@ -360,75 +363,111 @@ async function activateMembershipSecure(supabase, walletAddress, transactionHash
                 });
 
               if (referralError) {
-                console.error('❌ 创建推荐关系失败，但会员激活成功:', {
-                  error: referralError,
-                  errorMessage: referralError.message,
-                  errorCode: referralError.code,
-                  referralData: {
-                    referred_wallet: walletAddress,
-                    referrer_wallet: effectiveReferrer,
-                    placement_root: matrixResult.placement?.rootWallet || effectiveReferrer,
-                    placement_layer: matrixResult.placement?.layer || 1,
-                    placement_position: matrixResult.placement?.position || 'L',
-                    placement_path: `${matrixResult.placement?.rootWallet || effectiveReferrer}/${matrixResult.placement?.layer || 1}/${matrixResult.placement?.position || 'L'}`,
-                    referral_type: matrixResult.placement?.placementType || 'direct',
-                    status: 'active'
-                  }
-                });
+                console.error('❌ 创建矩阵推荐关系失败:', referralError);
               } else {
-                console.log(`✅ 推荐关系创建成功: ${effectiveReferrer} -> ${walletAddress}`);
-                
-                // 触发Layer 1奖励 - 调用奖励服务
-                try {
-                  console.log(`🎁 触发Layer 1奖励: ${matrixResult.placement?.parentWallet || effectiveReferrer}`);
-                  
-                  const rewardResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/rewards`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
-                      'x-wallet-address': walletAddress
-                    },
-                    body: JSON.stringify({
-                      action: 'process-layer-reward',
-                      memberWallet: walletAddress,
-                      level: level,
-                      trigger: 'member-placement',
-                      rootWallet: matrixResult.placement?.rootWallet || effectiveReferrer,
-                      layer: matrixResult.placement?.layer || 1
-                    })
-                  });
+                console.log(`✅ 矩阵推荐关系创建成功: ${effectiveReferrer} -> ${walletAddress}`);
+                referralCreated = true;
+              }
+            }
+            
+            // If matrix placement failed or referral creation failed, create basic referral record
+            if (!referralCreated) {
+              console.log('⚠️ 矩阵安置失败，创建基础推荐记录...');
+              const { error: basicReferralError } = await supabase
+                .from('referrals')
+                .insert({
+                  referred_wallet: walletAddress,
+                  referrer_wallet: effectiveReferrer,
+                  placement_root: effectiveReferrer,
+                  placement_layer: 1,
+                  placement_position: 'L',
+                  placement_path: `${effectiveReferrer}/1/L`,
+                  referral_type: 'direct',
+                  status: 'pending_matrix_placement',
+                  created_at: currentTime
+                });
 
-                  if (rewardResponse.ok) {
-                    const rewardResult = await rewardResponse.json();
-                    if (rewardResult.success) {
-                      console.log(`✅ Layer 1奖励触发成功: ${JSON.stringify(rewardResult.reward)}`);
-                    } else {
-                      console.warn('Layer 1奖励触发失败:', rewardResult.error);
-                    }
-                  } else {
-                    console.warn('Layer 1奖励服务调用失败');
-                  }
-                } catch (rewardError) {
-                  console.warn('Layer 1奖励触发异常:', rewardError);
-                }
+              if (basicReferralError) {
+                console.error('❌ 创建基础推荐关系也失败:', basicReferralError);
+              } else {
+                console.log(`✅ 基础推荐关系创建成功: ${effectiveReferrer} -> ${walletAddress}`);
+              }
+            }
+            
+            // If matrix service call itself failed, still create basic referral record
+          } else {
+            const errorText = await matrixResponse.text();
+            console.error('❌ 矩阵服务调用失败，创建基础推荐记录:', {
+              status: matrixResponse.status,
+              error: errorText,
+              referrer: effectiveReferrer,
+              member: walletAddress
+            });
+            
+            // Create basic referral record when matrix service fails
+            const { error: basicReferralError } = await supabase
+              .from('referrals')
+              .insert({
+                referred_wallet: walletAddress,
+                referrer_wallet: effectiveReferrer,
+                placement_root: effectiveReferrer,
+                placement_layer: 1,
+                placement_position: 'L',
+                placement_path: `${effectiveReferrer}/1/L`,
+                referral_type: 'direct',
+                status: 'pending_matrix_placement',
+                created_at: currentTime
+              });
+
+            if (basicReferralError) {
+              console.error('❌ 创建基础推荐关系失败:', basicReferralError);
+            } else {
+              console.log(`✅ 基础推荐关系创建成功 (Matrix服务失败时): ${effectiveReferrer} -> ${walletAddress}`);
+            }
+          }
+          
+          // Trigger rewards for successful referral creation
+          try {
+            console.log(`🎁 触发Layer 1奖励: ${effectiveReferrer}`);
                 
-                // Update referrer's member record (simplified - just update timestamp)
-                await supabase
-                  .from('members')
-              .update({ 
-                updated_at: currentTime
+            const rewardResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/rewards`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
+                'x-wallet-address': walletAddress
+              },
+              body: JSON.stringify({
+                action: 'process-layer-reward',
+                memberWallet: walletAddress,
+                level: level,
+                trigger: 'member-placement',
+                rootWallet: effectiveReferrer,
+                layer: 1
               })
-              .eq('wallet_address', effectiveReferrer);
+            });
+
+            if (rewardResponse.ok) {
+              const rewardResult = await rewardResponse.json();
+              if (rewardResult.success) {
+                console.log(`✅ Layer 1奖励触发成功: ${JSON.stringify(rewardResult.reward)}`);
+              } else {
+                console.warn('Layer 1奖励触发失败:', rewardResult.error);
               }
             } else {
-              console.error('❌ 矩阵安置失败 - referrals记录将不会被创建:', {
-                error: matrixResult.error,
-                referrer: effectiveReferrer,
-                member: walletAddress,
-                reason: 'Matrix placement service returned success=false'
-              });
+              console.warn('Layer 1奖励服务调用失败');
             }
+          } catch (rewardError) {
+            console.warn('Layer 1奖励触发异常:', rewardError);
+          }
+          
+          // Update referrer's member record (simplified - just update timestamp)
+          await supabase
+            .from('members')
+            .update({ 
+              updated_at: currentTime
+            })
+            .eq('wallet_address', effectiveReferrer);
           } else {
             const errorText = await matrixResponse.text();
             console.error('❌ 矩阵服务调用失败 - referrals记录将不会被创建:', {
@@ -440,8 +479,28 @@ async function activateMembershipSecure(supabase, walletAddress, transactionHash
             });
           }
         } catch (matrixError) {
-          console.warn('矩阵安置异常:', matrixError);
-          // Continue with activation even if matrix placement fails
+          console.warn('矩阵安置异常，创建基础推荐记录:', matrixError);
+          
+          // Create basic referral record when matrix service has exception
+          const { error: basicReferralError } = await supabase
+            .from('referrals')
+            .insert({
+              referred_wallet: walletAddress,
+              referrer_wallet: effectiveReferrer,
+              placement_root: effectiveReferrer,
+              placement_layer: 1,
+              placement_position: 'L',
+              placement_path: `${effectiveReferrer}/1/L`,
+              referral_type: 'direct',
+              status: 'pending_matrix_placement',
+              created_at: currentTime
+            });
+
+          if (basicReferralError) {
+            console.error('❌ 创建基础推荐关系失败 (异常时):', basicReferralError);
+          } else {
+            console.log(`✅ 基础推荐关系创建成功 (异常时): ${effectiveReferrer} -> ${walletAddress}`);
+          }
         }
       } else {
         console.error(`❌ 推荐者不是激活会员 - referrals记录将不会被创建:`, {

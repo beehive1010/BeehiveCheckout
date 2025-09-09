@@ -113,13 +113,25 @@ export function MemberGuard({
             currentLevel: memberResult.currentLevel
           });
           
-          // Use the same logic as Dashboard - check the isActivated field
-          if (memberResult.success && memberResult.isActivated) {
+          // Use the same logic as Dashboard - check the isActivated field with fallback
+          const apiActivated = memberResult.success && memberResult.isActivated;
+          const fallbackActivated = memberResult.success && memberResult.member?.current_level > 0;
+          
+          if (apiActivated || (!apiActivated && fallbackActivated)) {
             isActivated = true;
             membershipLevel = memberResult.currentLevel || memberResult.member?.current_level || 1;
-            console.log('🛡️ MemberGuard: User is activated member', { isActivated, membershipLevel });
+            console.log('🛡️ MemberGuard: User is activated member', { 
+              isActivated, 
+              membershipLevel,
+              viaAPI: apiActivated,
+              viaFallback: fallbackActivated && !apiActivated
+            });
           } else {
-            console.log('🛡️ MemberGuard: User not activated - isActivated:', memberResult.isActivated);
+            console.log('🛡️ MemberGuard: User not activated', {
+              isActivated: memberResult.isActivated,
+              currentLevel: memberResult.currentLevel,
+              memberLevel: memberResult.member?.current_level
+            });
           }
         }
       } catch (error) {
