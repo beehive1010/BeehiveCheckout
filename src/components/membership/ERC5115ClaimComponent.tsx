@@ -510,10 +510,11 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
           console.warn(`⚠️ 会员激活错误 (尝试${membershipActivationAttempts}):`, activationError);
         }
         
-        // 如果没有激活成功且还有重试次数，等待再试
-        if (!membershipActivated && membershipActivationAttempts < maxAttempts) {
-          console.log('⏳ 等待10秒后重试激活...');
-          await new Promise(resolve => setTimeout(resolve, 10000));
+          // 如果没有激活成功且还有重试次数，等待再试
+          if (!membershipActivated && membershipActivationAttempts < maxAttempts) {
+            console.log('⏳ 等待10秒后重试激活...');
+            await new Promise(resolve => setTimeout(resolve, 10000));
+          }
         }
       } else {
         console.log('⚠️ No transaction hash available - skipping activation');
