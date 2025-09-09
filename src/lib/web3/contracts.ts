@@ -150,16 +150,16 @@ export const merchantNFTContracts = {
   }),
 };
 
-// Legacy single contracts for backward compatibility (Alpha Centauri defaults)
-export const bbcMembershipContract = bbcMembershipContracts.alphaCentauri;
-export const bccTokenContract = bccTokenContracts.alphaCentauri;
-export const merchantNFTContract = merchantNFTContracts.alphaCentauri;
+// Legacy single contracts for backward compatibility (Arbitrum Sepolia defaults for testing)
+export const bbcMembershipContract = bbcMembershipContracts.arbitrumSepolia;
+export const bccTokenContract = bccTokenContracts.arbitrumSepolia;
+export const merchantNFTContract = merchantNFTContracts.arbitrumSepolia;
 
-// USDT contract for Alpha Centauri (default)
+// USDT contract for Arbitrum Sepolia (default for testing)
 export const usdtContract = getContract({
   client,
-  address: contractAddresses.USDT.alphaCentauri,
-  chain: alphaCentauri,
+  address: contractAddresses.USDT.arbitrumSepolia,
+  chain: arbitrumSepolia,
 });
 
 // Helper function to get contract by chain ID

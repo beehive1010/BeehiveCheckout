@@ -37,20 +37,20 @@ export const supportedChains = [
 
 // Chain utilities
 export function getChainById(chainId: number | string | undefined) {
-  if (!chainId) return ethereum; // Return default chain
+  if (!chainId) return arbitrumSepolia; // Return test chain as default
   
   const id = typeof chainId === 'string' ? parseInt(chainId) : chainId;
-  if (isNaN(id)) return ethereum; // Return default chain
+  if (isNaN(id)) return arbitrumSepolia; // Return test chain as default
   
-  const foundChain = supportedChains.find(chain => chain?.id === id);
-  return foundChain || ethereum; // Always return a valid chain
+  const foundChain = supportedChains.find(chain => chain && chain.id === id);
+  return foundChain || arbitrumSepolia; // Return test chain if not found
 }
 
 // Enhanced chain validation
 export function validateChain(chain: any) {
-  if (!chain) return false;
-  if (typeof chain.id === 'undefined') return false;
-  if (!chain.name) return false;
+  if (!chain || typeof chain !== 'object') return false;
+  if (typeof chain.id === 'undefined' || chain.id === null) return false;
+  if (!chain.name || typeof chain.name !== 'string') return false;
   return true;
 }
 
@@ -116,7 +116,10 @@ export const chainMetadata = {
 
 // Get chain metadata by ID
 export function getChainMetadata(chainId: number) {
-  return chainMetadata[chainId as keyof typeof chainMetadata] || chainMetadata[ethereum.id];
+  if (!chainId || typeof chainId !== 'number') {
+    return chainMetadata[arbitrumSepolia.id];
+  }
+  return chainMetadata[chainId as keyof typeof chainMetadata] || chainMetadata[arbitrumSepolia.id];
 }
 
 // Check if chain is testnet

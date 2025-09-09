@@ -262,19 +262,41 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         params: [NFT_CONTRACT, finalAmount] // Approve NFT contract to spend 130 USDC
       });
 
-      const approveTxResult = await sendTransaction({
-        transaction: approveTransaction,
-        account
-      });
+      // Add retry logic for rate limiting
+      let approveTxResult: any = null;
+      let approveAttempts = 0;
+      const maxApproveAttempts = 3;
+      
+      while (approveAttempts < maxApproveAttempts) {
+        try {
+          approveTxResult = await sendTransaction({
+            transaction: approveTransaction,
+            account
+          });
+          break; // Success, exit retry loop
+        } catch (approveError: any) {
+          approveAttempts++;
+          console.log(`Approval attempt ${approveAttempts}/${maxApproveAttempts} failed:`, approveError);
+          
+          if (approveError.code === -32005 || approveError.message?.includes('rate limit')) {
+            if (approveAttempts < maxApproveAttempts) {
+              console.log(`Rate limited, waiting ${approveAttempts * 2} seconds before retry...`);
+              await new Promise(resolve => setTimeout(resolve, approveAttempts * 2000));
+              continue;
+            }
+          }
+          throw approveError; // Re-throw if not rate limiting or max attempts reached
+        }
+      }
 
-      console.log('✅ Token approval transaction:', approveTxResult.transactionHash);
+      console.log('✅ Token approval transaction:', approveTxResult?.transactionHash);
 
       // Wait for approval transaction to be confirmed
       setCurrentStep('等待代币授权确认...');
       const approvalReceipt = await waitForReceipt({
         client,
         chain: arbitrumSepolia,
-        transactionHash: approveTxResult.transactionHash,
+        transactionHash: approveTxResult?.transactionHash,
       });
       
       console.log('✅ Token approval confirmed:', approvalReceipt.status);
@@ -327,31 +349,55 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         ]
       });
 
-      let claimTxResult;
-      try {
-        claimTxResult = await sendTransaction({
-          transaction: claimTransaction,
-          account
-        });
-        console.log('🎉 NFT claim transaction:', claimTxResult.transactionHash);
+      let claimTxResult: any = null;
+      let claimAttempts = 0;
+      const maxClaimAttempts = 3;
+      
+      while (claimAttempts < maxClaimAttempts) {
+        try {
+          claimTxResult = await sendTransaction({
+            transaction: claimTransaction,
+            account
+          });
+          console.log('🎉 NFT claim transaction:', claimTxResult.transactionHash);
+          break; // Success, exit retry loop
+        } catch (claimError: any) {
+          claimAttempts++;
+          console.log(`Claim attempt ${claimAttempts}/${maxClaimAttempts} failed:`, claimError);
+          
+          if (claimError.code === -32005 || claimError.message?.includes('rate limit')) {
+            if (claimAttempts < maxClaimAttempts) {
+              console.log(`Rate limited, waiting ${claimAttempts * 3} seconds before retry...`);
+              await new Promise(resolve => setTimeout(resolve, claimAttempts * 3000));
+              continue;
+            }
+          }
+          
+          // Re-throw for other error handling
+          throw claimError;
+        }
+      }
 
-        // Wait for NFT claim transaction to be confirmed
-        setCurrentStep('等待NFT铸造确认...');
-        const claimReceipt = await waitForReceipt({
-          client,
-          chain: arbitrumSepolia,
-          transactionHash: claimTxResult.transactionHash,
-        });
-        
-        console.log('✅ NFT claim confirmed:', claimReceipt.status);
-      } catch (claimError) {
+      // Wait for NFT claim transaction to be confirmed
+      setCurrentStep('等待NFT铸造确认...');
+      const claimReceipt = await waitForReceipt({
+        client,
+        chain: arbitrumSepolia,
+        transactionHash: claimTxResult?.transactionHash,
+      });
+      
+      console.log('✅ NFT claim confirmed:', claimReceipt.status);
+      
+      } catch (claimError: any) {
         console.error('❌ NFT claim failed:', claimError);
         
         // Provide specific error messages based on contract requirements
         const errorMessage = claimError instanceof Error ? claimError.message : String(claimError);
         
         // Enhanced error messages based on transaction analysis
-        if (errorMessage.includes('Already claimed') || errorMessage.includes('quantity limit')) {
+        if (claimError.code === -32005 || errorMessage.includes('rate limit')) {
+          throw new Error(`❌ Rate Limited: Too many requests. Please wait a few minutes and try again. The network is currently busy.`);
+        } else if (errorMessage.includes('Already claimed') || errorMessage.includes('quantity limit')) {
           throw new Error(`❌ Already Claimed: Wallet ${account.address} has already claimed the Level 1 NFT. Each wallet can only claim once. Try with a different wallet.`);
         } else if (errorMessage.includes('Insufficient allowance') || errorMessage.includes('allowance')) {
           throw new Error(`❌ Insufficient Allowance: The approval for 130 USDC may have failed or expired. Required: approve contract ${NFT_CONTRACT} to spend 130 USDC from ${account.address}.`);
@@ -383,7 +429,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
           body: JSON.stringify({
             action: 'process-upgrade',
             level: 1,
-            transactionHash: claimTxResult.transactionHash,
+            transactionHash: claimTxResult?.transactionHash,
             paymentMethod: 'token_payment',
             payment_amount_usdc: 130 // 130 USDC (100 NFT + 30 platform fee)
           })
@@ -423,7 +469,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
               'x-wallet-address': account.address
             },
             body: JSON.stringify({
-              transactionHash: claimTxResult.transactionHash,
+              transactionHash: claimTxResult?.transactionHash,
               level: 1,
               paymentMethod: 'token_payment',
               paymentAmount: 130,
