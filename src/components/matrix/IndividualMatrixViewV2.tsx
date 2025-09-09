@@ -429,11 +429,101 @@ export default function IndividualMatrixViewV2({ walletAddress, rootUser }: Indi
           </Button>
         </div>
 
-        {/* Enhanced Matrix Visualization */}
+        {/* Enhanced L-M-R Matrix Visualization */}
         {currentLayer && (
           <div className="bg-gradient-to-br from-background to-muted/20 rounded-lg p-6 border border-honey/10">
             {currentLayer.members.length > 0 ? (
-              renderPaginatedMembers(currentLayer.members, currentPage)
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Left Leg */}
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <Badge variant="outline" className="bg-green-500/10 border-green-500/30 text-green-400">
+                      LEFT LEG ({currentLayer.leftLeg?.length || 0})
+                    </Badge>
+                  </div>
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {currentLayer.leftLeg && currentLayer.leftLeg.length > 0 ? (
+                      currentLayer.leftLeg.slice(0, 8).map((member, index) => (
+                        <div key={member.walletAddress} className="cursor-pointer" onClick={() => handleMemberClick(member)}>
+                          {renderMatrixPosition(member, index, 'L')}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-6 text-muted-foreground text-sm">
+                        <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        No members yet
+                      </div>
+                    )}
+                    {currentLayer.leftLeg && currentLayer.leftLeg.length > 8 && (
+                      <div className="text-center p-3 border border-dashed border-muted rounded-lg">
+                        <span className="text-sm text-muted-foreground">
+                          +{currentLayer.leftLeg.length - 8} more members
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Middle Leg */}
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <Badge variant="outline" className="bg-blue-500/10 border-blue-500/30 text-blue-400">
+                      MIDDLE LEG ({currentLayer.middleLeg?.length || 0})
+                    </Badge>
+                  </div>
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {currentLayer.middleLeg && currentLayer.middleLeg.length > 0 ? (
+                      currentLayer.middleLeg.slice(0, 8).map((member, index) => (
+                        <div key={member.walletAddress} className="cursor-pointer" onClick={() => handleMemberClick(member)}>
+                          {renderMatrixPosition(member, index, 'M')}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-6 text-muted-foreground text-sm">
+                        <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        No members yet
+                      </div>
+                    )}
+                    {currentLayer.middleLeg && currentLayer.middleLeg.length > 8 && (
+                      <div className="text-center p-3 border border-dashed border-muted rounded-lg">
+                        <span className="text-sm text-muted-foreground">
+                          +{currentLayer.middleLeg.length - 8} more members
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Leg */}
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <Badge variant="outline" className="bg-purple-500/10 border-purple-500/30 text-purple-400">
+                      RIGHT LEG ({currentLayer.rightLeg?.length || 0})
+                    </Badge>
+                  </div>
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {currentLayer.rightLeg && currentLayer.rightLeg.length > 0 ? (
+                      currentLayer.rightLeg.slice(0, 8).map((member, index) => (
+                        <div key={member.walletAddress} className="cursor-pointer" onClick={() => handleMemberClick(member)}>
+                          {renderMatrixPosition(member, index, 'R')}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-6 text-muted-foreground text-sm">
+                        <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        No members yet
+                      </div>
+                    )}
+                    {currentLayer.rightLeg && currentLayer.rightLeg.length > 8 && (
+                      <div className="text-center p-3 border border-dashed border-muted rounded-lg">
+                        <span className="text-sm text-muted-foreground">
+                          +{currentLayer.rightLeg.length - 8} more members
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             ) : (
               <div className="text-center py-12">
                 <div className="w-24 h-24 rounded-full border-2 border-dashed border-honey/30 mx-auto mb-6 flex items-center justify-center bg-honey/5">
@@ -443,7 +533,7 @@ export default function IndividualMatrixViewV2({ walletAddress, rootUser }: Indi
                   No members in Layer {currentViewLayer} yet
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Capacity: {getMaxMembersForLayer(currentViewLayer)} members • Max 9 per page
+                  Capacity: {getMaxMembersForLayer(currentViewLayer)} members across L-M-R legs
                 </p>
               </div>
             )}
