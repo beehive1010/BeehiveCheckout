@@ -76,6 +76,11 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
 
     setIsProcessing(true);
 
+    // Declare variables at function scope
+    let claimTxResult: any = null;
+    let backendProcessed = false;
+    let membershipActivated = false;
+
     try {
       // Step 0: Check network - must be on Arbitrum Sepolia
       console.log('🌐 Checking network...');
@@ -349,7 +354,6 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         ]
       });
 
-      let claimTxResult: any = null;
       let claimAttempts = 0;
       const maxClaimAttempts = 3;
       
@@ -431,8 +435,6 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
 
       // Step 3: Process the NFT purchase on backend
       console.log('📋 Processing NFT purchase on backend...');
-      let backendProcessed = false;
-      let membershipActivated = false;
       
       try {
         const claimResponse = await fetch(`${API_BASE}/nft-upgrades`, {
@@ -444,7 +446,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
           body: JSON.stringify({
             action: 'process-upgrade',
             level: 1,
-            transactionHash: claimTxResult?.transactionHash,
+            transactionHash: claimTxResult?.transactionHash || '',
             paymentMethod: 'token_payment',
             payment_amount_usdc: 130 // 130 USDC (100 NFT + 30 platform fee)
           })
@@ -485,12 +487,12 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
                 'x-wallet-address': account.address
               },
               body: JSON.stringify({
-                transactionHash: claimTxResult.transactionHash,
-              level: 1,
-              paymentMethod: 'token_payment',
-              paymentAmount: 130,
-              referrerWallet: referrerWallet
-            })
+                transactionHash: claimTxResult?.transactionHash,
+                level: 1,
+                paymentMethod: 'token_payment',
+                paymentAmount: 130,
+                referrerWallet: referrerWallet
+              })
           });
 
           if (activateResponse.ok) {
@@ -508,11 +510,14 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
           console.warn(`⚠️ 会员激活错误 (尝试${membershipActivationAttempts}):`, activationError);
         }
         
-        // 如果没有激活成功且还有重试次数，等待再试
-        if (!membershipActivated && membershipActivationAttempts < maxAttempts) {
-          console.log('⏳ 等待10秒后重试激活...');
-          await new Promise(resolve => setTimeout(resolve, 10000));
+          // 如果没有激活成功且还有重试次数，等待再试
+          if (!membershipActivated && membershipActivationAttempts < maxAttempts) {
+            console.log('⏳ 等待10秒后重试激活...');
+            await new Promise(resolve => setTimeout(resolve, 10000));
+          }
         }
+      } else {
+        console.log('⚠️ No transaction hash available - skipping activation');
       }
 
       // Show success message if NFT was claimed successfully
