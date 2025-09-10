@@ -20,6 +20,7 @@ import { useToast } from '../ui/toast-system';
 import { LoadingSpinner, CenteredSpinner } from '../ui/loading-spinner';
 import { FadeTransition, ScaleTransition, StaggeredList } from '../ui/transitions';
 import { cn } from '../../lib/utils';
+import { useI18n } from '../../contexts/I18nContext';
 
 interface MatrixPosition {
   id: string;
@@ -232,7 +233,7 @@ export const MatrixVisualization: React.FC<MatrixVisualizationProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <Layers className="h-5 w-5 text-honey" />
-          <span>3×3 Matrix Network</span>
+          <span>{t('referrals.matrixSystem.title')}</span>
         </CardTitle>
         <CardDescription>
           Your referral matrix structure and layer rewards
