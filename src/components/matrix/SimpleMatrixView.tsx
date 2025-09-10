@@ -316,7 +316,7 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
           </div>
           <div className="bg-purple-500/5 rounded-lg p-3 border border-purple-500/20">
             <div className="text-xl font-bold text-purple-400">{currentData.right.length}</div>
-            <div className="text-xs text-muted-foreground">Right Leg</div>
+            <div className="text-xs text-muted-foreground">{t('referrals.matrixPosition.rightPosition')}</div>
           </div>
         </div>
         </>
