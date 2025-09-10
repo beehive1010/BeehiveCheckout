@@ -7,8 +7,10 @@ import { authService } from '../lib/supabaseClient';
 import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Users, User, Crown } from 'lucide-react';
+import { useI18n } from '../contexts/I18nContext';
 
 export default function Welcome() {
+  const { t } = useI18n();
   const [, setLocation] = useLocation();
   const account = useActiveAccount();
   const [referrerWallet, setReferrerWallet] = useState<string>('');
@@ -110,19 +112,18 @@ export default function Welcome() {
           <Card className="border-red-500/50 bg-red-500/5">
             <CardContent className="pt-6 text-center">
               <div className="text-red-400 text-6xl mb-4">🚫</div>
-              <h2 className="text-xl font-bold text-red-400 mb-2">Referral Link Required</h2>
+              <h2 className="text-xl font-bold text-red-400 mb-2">{t('welcome.referralRequired.title')}</h2>
               <p className="text-muted-foreground mb-4">
-                You need a valid referral link to access Beehive Community. 
-                Please ask an existing member to share their referral link with you.
+                {t('welcome.referralRequired.description')}
               </p>
               <div className="p-3 bg-red-500/10 rounded-lg border border-red-500/30 text-sm text-red-400">
-                💡 Referral links look like: <br/>
+                {t('welcome.referralRequired.example')}<br/>
                 <code className="bg-background/50 px-2 py-1 rounded text-xs mt-1 inline-block">
                   /welcome?ref=0x123...abc
                 </code>
               </div>
               <div className="mt-4 text-xs text-muted-foreground">
-                Existing members can generate referral links from their dashboard.
+                {t('welcome.referralRequired.howToGet')}
               </div>
             </CardContent>
           </Card>
@@ -137,7 +138,7 @@ export default function Welcome() {
       <div className="min-h-screen bg-background py-8 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin h-8 w-8 border-4 border-honey border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Checking membership status...</p>
+          <p className="text-muted-foreground">{t('welcome.checkingMembership')}</p>
         </div>
       </div>
     );
