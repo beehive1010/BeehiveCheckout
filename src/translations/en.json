@@ -497,6 +497,20 @@
     },
     "upgradeRewards": {
       "description": "Track upgrade rewards from your matrix layers. You have 72 hours to upgrade when members purchase higher level NFTs."
+    },
+    "matrixPosition": {
+      "left": "Left",
+      "middle": "Middle", 
+      "right": "Right",
+      "leftPosition": "Left Position",
+      "middlePosition": "Middle Position",
+      "rightPosition": "Right Position",
+      "position1": "Position 1",
+      "position2": "Position 2",
+      "position3": "Position 3",
+      "yourPosition": "Your Position",
+      "available": "Available",
+      "occupied": "Occupied"
     }
   },
   "me": {
