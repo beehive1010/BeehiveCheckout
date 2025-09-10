@@ -570,6 +570,16 @@
       "yourPosition": "ตำแหน่งของคุณ",
       "available": "ว่าง",
       "occupied": "ถูกใช้งาน"
+    },
+    "matrixSystem": {
+      "title": "เครือข่ายเมทริกซ์ 3×3",
+      "matrixTree": "ต้นไม้เมทริกซ์ 3×3",
+      "enhancedMatrixTree": "ต้นไม้เมทริกซ์ 3×3 ที่ปรับปรุง",
+      "layer": "ชั้น",
+      "layers": "L1-L19",
+      "matrixInformation": "ข้อมูลเมทริกซ์",
+      "yourMatrixTree": "ต้นไม้เมทริกซ์ 3×3 ของคุณ",
+      "matrixNetworkLayer": "เครือข่ายเมทริกซ์ 3×3 - ชั้น {{layer}}"
     }
   },
   "hiveworld": {
