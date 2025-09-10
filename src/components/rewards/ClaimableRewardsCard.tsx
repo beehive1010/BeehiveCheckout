@@ -52,7 +52,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
     enabled: !!walletAddress,
     refetchInterval: 30000, // Refresh every 30 seconds
     queryFn: async () => {
-      // Get claimable and pending rewards from layer_rewards table
+      // Get claimable and pending rewards from layer_rewards table with matrix position info
       const { data: layerRewards, error } = await supabase
         .from('layer_rewards')
         .select(`
@@ -72,6 +72,21 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
         .eq('is_claimed', false)
         .order('created_at', { ascending: false });
 
+      // Get matrix position information for all rewards at once
+      const matrixPositions = new Map();
+      if (layerRewards && layerRewards.length > 0) {
+        const payerWallets = [...new Set(layerRewards.map(r => r.payer_wallet))];
+        const { data: matrixInfo } = await supabase
+          .from('individual_matrix_placements')
+          .select('matrix_owner, member_wallet, layer_in_owner_matrix, position_in_layer')
+          .eq('matrix_owner', walletAddress)
+          .in('member_wallet', payerWallets);
+        
+        matrixInfo?.forEach(info => {
+          matrixPositions.set(`${info.member_wallet}-${info.layer_in_owner_matrix}`, info.position_in_layer);
+        });
+      }
+
       if (error) {
         throw new Error(`Failed to fetch rewards: ${error.message}`);
       }
@@ -83,12 +98,15 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
       let totalPending = 0;
 
       layerRewards?.forEach(reward => {
+        const positionKey = `${reward.payer_wallet}-${reward.layer}`;
+        const position = matrixPositions.get(positionKey) || '?';
+        
         const transformedReward: ClaimableReward = {
           id: reward.id,
           rewardAmount: reward.amount_usdt || 0,
           triggerLevel: reward.layer,
           payoutLayer: reward.layer,
-          matrixPosition: `Layer ${reward.layer}`,
+          matrixPosition: `Layer ${reward.layer} (${position})`,
           sourceWallet: reward.payer_wallet || '',
           status: reward.reward_type === 'layer_reward' ? 'confirmed' : 'pending',
           createdAt: reward.created_at,

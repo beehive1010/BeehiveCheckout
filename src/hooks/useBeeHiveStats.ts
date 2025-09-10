@@ -43,7 +43,7 @@ export function useUserReferralStats() {
       const { count: directReferrals } = await supabase
         .from('members')
         .select('*', { count: 'exact', head: true })
-        .eq('referrer_address', walletAddress);
+        .eq('referrer_wallet', walletAddress);
 
       // Get total team count from matrix placements
       const { count: totalTeam } = await supabase
@@ -71,7 +71,7 @@ export function useUserReferralStats() {
       const { data: recentReferralsData } = await supabase
         .from('members')
         .select('wallet_address, created_at, current_level')
-        .eq('referrer_address', walletAddress)
+        .eq('referrer_wallet', walletAddress)
         .order('created_at', { ascending: false })
         .limit(5);
 

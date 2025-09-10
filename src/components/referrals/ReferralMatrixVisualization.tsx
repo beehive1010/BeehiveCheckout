@@ -84,34 +84,66 @@ const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = 
           member_wallet,
           layer_in_owner_matrix,
           position_in_layer,
-          placed_at,
-          members!member_wallet (
-            current_level,
-            activation_rank
-          ),
-          users!member_wallet (
-            username
-          )
+          placed_at
         `)
         .eq('matrix_owner', effectiveRootWallet)
         .order('layer_in_owner_matrix')
         .order('position_in_layer');
+
+      // Get additional member info separately
+      const memberWallets = matrixPlacements?.map(p => p.member_wallet) || [];
+      let memberInfo = new Map();
+      let userInfo = new Map();
+
+      if (memberWallets.length > 0) {
+        // Get member data
+        const { data: membersData } = await supabase
+          .from('members')
+          .select('wallet_address, current_level, activation_rank')
+          .in('wallet_address', memberWallets);
+
+        // Get user data  
+        const { data: usersData } = await supabase
+          .from('users')
+          .select('wallet_address, username')
+          .in('wallet_address', memberWallets);
+
+        membersData?.forEach(member => {
+          memberInfo.set(member.wallet_address, member);
+        });
+
+        usersData?.forEach(user => {
+          userInfo.set(user.wallet_address, user);
+        });
+      }
 
       if (error) {
         throw new Error(`Failed to load matrix data: ${error.message}`);
       }
 
       // Transform data to MatrixMember format
-      const members: MatrixMember[] = matrixPlacements?.map(placement => ({
-        walletAddress: placement.member_wallet,
-        username: placement.users?.username,
-        level: placement.members?.current_level || 1,
-        layer: placement.layer_in_owner_matrix,
-        position: parseInt(placement.position_in_layer || '0'),
-        isActive: (placement.members?.current_level || 0) > 0,
-        placedAt: placement.placed_at,
-        downlineCount: 0 // TODO: Calculate downline count
-      })) || [];
+      const members: MatrixMember[] = matrixPlacements?.map(placement => {
+        // Convert position from L/M/R to 1/2/3 for internal use
+        let positionNumber = 0;
+        if (placement.position_in_layer === 'L') positionNumber = 1;
+        else if (placement.position_in_layer === 'M') positionNumber = 2;
+        else if (placement.position_in_layer === 'R') positionNumber = 3;
+        else positionNumber = parseInt(placement.position_in_layer || '0');
+
+        const member = memberInfo.get(placement.member_wallet);
+        const user = userInfo.get(placement.member_wallet);
+
+        return {
+          walletAddress: placement.member_wallet,
+          username: user?.username,
+          level: member?.current_level || 1,
+          layer: placement.layer_in_owner_matrix,
+          position: positionNumber,
+          isActive: (member?.current_level || 0) > 0,
+          placedAt: placement.placed_at,
+          downlineCount: 0 // TODO: Calculate downline count
+        };
+      }) || [];
 
       // Create matrix data structure
       const totalLayers = Math.max(...members.map(m => m.layer), 0);
