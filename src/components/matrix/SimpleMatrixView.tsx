@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, Users, Trophy } from 'lucide-react';
 import { matrixService } from '@/lib/supabaseClient';
+import { useI18n } from '@/contexts/I18nContext';
 
 interface MatrixMember {
   walletAddress: string;
