@@ -70,17 +70,42 @@ serve(async (req)=>{
 });
 async function handleGetBalance(supabase, walletAddress) {
   try {
-    // Get user balance
-    const { data: balanceData, error: balanceError } = await supabase.from('user_balances').select('*').eq('wallet_address', walletAddress).single();
+    // CRITICAL: Verify user is registered before returning balance data
+    console.log(`🔍 Verifying user registration for balance query: ${walletAddress}`);
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('wallet_address')
+      .ilike('wallet_address', walletAddress)
+      .single();
+
+    if (userError || !userData) {
+      console.error(`❌ Balance query denied - user not registered: ${walletAddress}`);
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'User must be registered before accessing balance information. Please complete registration first.',
+        balance: null
+      }), {
+        status: 403,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+    
+    console.log(`✅ User registration verified for balance query: ${walletAddress}`);
+
+    // Get user balance - use case insensitive search
+    const { data: balanceData, error: balanceError } = await supabase.from('user_balances').select('*').ilike('wallet_address', walletAddress).single();
     if (balanceError && balanceError.code !== 'PGRST116') {
       throw balanceError;
     }
-    // Get pending rewards (unclaimed rewards)
-    const { data: pendingRewards, error: rewardsError } = await supabase.from('layer_rewards').select('amount_usdt').eq('recipient_wallet', walletAddress).eq('is_claimed', false);
+    // Get pending rewards (unclaimed rewards) - case insensitive
+    const { data: pendingRewards, error: rewardsError } = await supabase.from('layer_rewards').select('amount_usdt').ilike('recipient_wallet', walletAddress).eq('is_claimed', false);
     if (rewardsError) throw rewardsError;
     const pendingRewardAmount = pendingRewards?.reduce((sum, reward)=>sum + parseFloat(reward.amount_usdt), 0) || 0;
-    // Get recent BCC purchase orders
-    const { data: recentPurchases, error: purchaseError } = await supabase.from('bcc_purchase_orders').select('amount_bcc, status, created_at').eq('buyer_wallet', walletAddress).order('created_at', {
+    // Get recent BCC purchase orders - case insensitive
+    const { data: recentPurchases, error: purchaseError } = await supabase.from('bcc_purchase_orders').select('amount_bcc, status, created_at').ilike('buyer_wallet', walletAddress).order('created_at', {
       ascending: false
     }).limit(5);
     if (purchaseError) throw purchaseError;

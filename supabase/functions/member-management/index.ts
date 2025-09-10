@@ -533,10 +533,11 @@ async function syncMemberData(supabase: any, walletAddress: string) {
 
     // Check if member record exists and is consistent with membership
     if (membershipData?.activated_at) {
+      console.log(`🔍 Checking member record consistency for: ${walletAddress}`);
       const { data: memberData, error: memberError } = await supabase
         .from('members')
         .select('*')
-        .eq('wallet_address', walletAddress)
+        .ilike('wallet_address', walletAddress)
         .single()
 
       if (memberError && memberError.code === 'PGRST116') {
@@ -567,11 +568,11 @@ async function syncMemberData(supabase: any, walletAddress: string) {
       }
     }
 
-    // Check balance records
+    // Check balance records - only for verified registered users
     const { data: balanceData, error: balanceError } = await supabase
       .from('user_balances')
       .select('*')
-      .eq('wallet_address', walletAddress)
+      .ilike('wallet_address', walletAddress)
       .single()
 
     if (balanceError) {

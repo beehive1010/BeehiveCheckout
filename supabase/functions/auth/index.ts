@@ -110,16 +110,16 @@ async function registerUser(supabase, walletAddress, data) {
   // 修复：正确处理推荐人参数，确保参数传递正确
   const inputReferrer = data.referrerWallet || data.referrer_wallet;
   if (inputReferrer && inputReferrer !== ROOT_WALLET) {
-    // 验证推荐人是否为激活会员
+    // 验证推荐人是否为激活会员 - CRITICAL: This ensures chain sync only happens for registered users with valid referrers
     const referrerValidation = await validateReferrer(supabase, inputReferrer);
     if (!referrerValidation.isValid) {
-      throw new Error(`Invalid referrer: ${referrerValidation.error}`);
+      throw new Error(`Invalid referrer: ${referrerValidation.error} - Chain synchronization requires valid activated member as referrer`);
     }
     
     referrerWallet = inputReferrer; // 保持原始大小写  
     console.log(`📝 推荐人验证通过，正在记录: ${inputReferrer} -> ${referrerWallet}`);
   } else {
-    throw new Error('Valid referrer is required for registration');
+    throw new Error('Valid activated member referrer is required for registration before any chain synchronization can occur');
   }
   
   console.log(`🔍 最终推荐人地址: ${referrerWallet}`);
@@ -257,7 +257,8 @@ async function validateReferrer(supabase, referrerWallet) {
     };
   }
   
-  // 检查推荐人是否为激活会员（必须在members表中且current_level > 0）
+  // CRITICAL: 检查推荐人是否为激活会员（必须在members表中且current_level > 0）
+  // This is essential for chain synchronization - only activated members can refer new users
   const { data: memberData, error: memberError } = await supabase
     .from('members')
     .select('current_level, wallet_address')
@@ -269,7 +270,7 @@ async function validateReferrer(supabase, referrerWallet) {
     return {
       success: false,
       isValid: false,
-      error: 'Referrer is not an activated member (must have Level 1+ membership)'
+      error: 'Referrer is not an activated member (must have Level 1+ membership). Chain sync and activation require activated member referrers only.'
     };
   }
   

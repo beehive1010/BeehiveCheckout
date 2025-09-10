@@ -139,11 +139,26 @@ async function activateNftLevel1Membership(supabase, walletAddress, transactionH
   console.log(`🔒 Starting NFT Level 1 activation process: ${walletAddress}`);
 
   try {
+    // 0. CRITICAL: Check if user is registered first
+    console.log(`🔍 Checking if user is registered: ${walletAddress}`);
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('wallet_address, referrer_wallet, username, email')
+      .ilike('wallet_address', walletAddress)
+      .single();
+
+    if (userError || !userData) {
+      console.error(`❌ User not registered: ${walletAddress}`, userError);
+      throw new Error(`User must be registered first. Please complete user registration before activating membership.`);
+    }
+    
+    console.log(`✅ User registration verified: ${walletAddress}`);
+
     // 1. Check if already an activated member
     const { data: existingMember } = await supabase
       .from('members')
       .select('wallet_address, current_level, activation_rank')
-      .eq('wallet_address', walletAddress)
+      .ilike('wallet_address', walletAddress)
       .single();
 
     if (existingMember && existingMember.current_level > 0) {
@@ -168,6 +183,10 @@ async function activateNftLevel1Membership(supabase, walletAddress, transactionH
       console.log(`🎮 Demo or check mode, skipping blockchain verification: ${transactionHash}`);
     }
 
+    // 2.5. Use referrer from user registration if not provided
+    const finalReferrerWallet = referrerWallet || userData.referrer_wallet || '0x0000000000000000000000000000000000000001';
+    console.log(`📝 Using referrer wallet: ${finalReferrerWallet}`);
+    
     // 3. Call unified database activation function
     console.log(`🔄 Calling database activation function: activate_nft_level1_membership`);
     
@@ -175,7 +194,7 @@ async function activateNftLevel1Membership(supabase, walletAddress, transactionH
       'activate_nft_level1_membership',
       {
         p_wallet_address: walletAddress,
-        p_referrer_wallet: referrerWallet || '0x0000000000000000000000000000000000000001',
+        p_referrer_wallet: finalReferrerWallet,
         p_transaction_hash: transactionHash
       }
     );
@@ -329,11 +348,28 @@ async function verifyNFTClaimTransaction(transactionHash: string, walletAddress:
 async function checkExistingNFTAndSync(supabase, walletAddress: string, level: number) {
   console.log(`🔍 检查用户 ${walletAddress} 是否已拥有 Level ${level} NFT`);
   
+  try {
+    // CRITICAL: First check if user is registered
+    console.log(`🔍 Checking if user is registered before NFT sync: ${walletAddress}`);
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('wallet_address, referrer_wallet, username, email')
+      .ilike('wallet_address', walletAddress)
+      .single();
+
+    if (userError || !userData) {
+      console.error(`❌ Cannot sync NFT - user not registered: ${walletAddress}`, userError);
+      return {
+        hasNFT: false,
+        error: 'User must be registered before NFT synchronization can occur. Please complete user registration first.'
+      };
+    }
+    
+    console.log(`✅ User registration verified for NFT sync: ${walletAddress}`);
+  
   const ARBITRUM_SEPOLIA_RPC = 'https://sepolia-rollup.arbitrum.io/rpc';
   const NFT_CONTRACT = '0x2Cb47141485754371c24Efcc65d46Ccf004f769a';
   const TOKEN_ID = level;
-  
-  try {
     // 1. 检查链上NFT余额
     const balanceResponse = await fetch(ARBITRUM_SEPOLIA_RPC, {
       method: 'POST',
@@ -365,7 +401,7 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
     const { data: existingMember } = await supabase
       .from('members')
       .select('wallet_address, current_level, activation_rank')
-      .eq('wallet_address', walletAddress)
+      .ilike('wallet_address', walletAddress)
       .single();
     
     if (existingMember && existingMember.current_level > 0) {
@@ -402,16 +438,8 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
     // 3. 如果链上有NFT但数据库缺少完整的activation记录，则补充记录
     console.log(`🔧 链上有NFT但缺少完整的activation记录，开始同步...`);
     
-    // 验证用户存在
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('wallet_address, referrer_wallet, username, email')
-      .eq('wallet_address', walletAddress)
-      .single();
-    
-    if (userError || !userData) {
-      throw new Error('用户不存在，无法同步会员记录');
-    }
+    // userData already verified at the beginning of this function
+    console.log(`✅ User data already verified for sync: ${userData.wallet_address}`);
     
     // 如果members记录不存在，先创建它
     if (!existingMember) {
@@ -422,7 +450,7 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
         .insert({
           wallet_address: walletAddress,
           current_level: level,
-          levels_owned: [level],
+          levels_owned: [level], // FIXED: Single level array, no duplicates
           has_pending_rewards: false,
           referrer_wallet: userData.referrer_wallet,
           activation_rank: 1,
@@ -468,7 +496,7 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
     const { data: updatedMember } = await supabase
       .from('members')
       .select('wallet_address, current_level, activation_rank')
-      .eq('wallet_address', walletAddress)
+      .ilike('wallet_address', walletAddress)
       .single();
     
     return {
