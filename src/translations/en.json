@@ -336,8 +336,18 @@
       "whatsapp": "WhatsApp"
     },
     "stats": {
-      "totalRewards": "Total Rewards",
+      "directReferrals": "Direct Referrals",
+      "teamSize": "Team Size",
+      "totalEarnings": "Total Earnings",
       "bccBalance": "BCC Balance",
+      "thisMonth": "This Month",
+      "totalMembers": "Total Members",
+      "allTime": "All Time",
+      "matrixNetwork": "Matrix Network",
+      "networkGrowth": "Network Growth",
+      "teamPerformance": "Team Performance",
+      "layerProgress": "Layer Progress",
+      "totalRewards": "Total Rewards",
       "bccLocked": "BCC Locked",
       "nftsOwned": "NFTs Owned"
     },
@@ -419,6 +429,7 @@
     "showAll": "Show all {{count}} notifications"
   },
   "referrals": {
+    "title": "Referral System",
     "activated": "Activated",
     "copy": "Copy", 
     "linkDescription": "Share this link to earn rewards when people join through your referral",
@@ -497,6 +508,49 @@
     },
     "upgradeRewards": {
       "description": "Track upgrade rewards from your matrix layers. You have 72 hours to upgrade when members purchase higher level NFTs."
+    },
+    "matrixVisualization": {
+      "title": "Matrix Visualization",
+      "lmrLayout": "L-M-R Layout",
+      "leftPosition": "Left Position",
+      "middlePosition": "Middle Position",
+      "rightPosition": "Right Position",
+      "matrixTree": "Matrix Tree",
+      "placement": "Placement",
+      "spillover": "Spillover",
+      "autoPlacement": "Auto Placement",
+      "position": "Position",
+      "layer": "Layer",
+      "level": "Level",
+      "empty": "Empty",
+      "filled": "Filled",
+      "viewDetails": "View Details",
+      "expand": "Expand",
+      "collapse": "Collapse"
+    },
+    "networkStats": {
+      "title": "Network Statistics",
+      "directReferrals": "Direct Referrals Count",
+      "totalTeamSize": "Total Team Size",
+      "maxLayer": "Max Layer",
+      "activeMembers": "Active Members",
+      "recentActivity": "Recent Activity",
+      "teamGrowth": "Team Growth",
+      "performance": "Performance",
+      "thisWeek": "This Week",
+      "thisMonth": "This Month",
+      "allTime": "All Time"
+    },
+    "matrixPosition": {
+      "left": "Left",
+      "middle": "Middle",
+      "right": "Right",
+      "position1": "Position 1",
+      "position2": "Position 2",
+      "position3": "Position 3",
+      "yourPosition": "Your Position",
+      "available": "Available",
+      "occupied": "Occupied"
     }
   },
   "me": {
