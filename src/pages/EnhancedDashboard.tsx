@@ -37,6 +37,7 @@ import {
   User,
   Network
 } from 'lucide-react';
+import MatrixLMRVisualization from '../components/matrix/MatrixLMRVisualization';
 
 // Data interfaces based on database types
 interface DashboardStats {
@@ -561,65 +562,8 @@ export default function EnhancedDashboard() {
               </div>
             </div>
 
-            {/* Matrix Layers Visualization */}
-            {dashboardStats.matrix.layers.map((layer, index) => (
-              <div key={layer.layer} className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-muted-foreground">
-                    Layer {layer.layer}
-                  </h4>
-                  <Badge variant="outline" className="text-xs">
-                    {layer.filledPositions}/{layer.totalPositions}
-                  </Badge>
-                </div>
-                
-                {/* Matrix Grid */}
-                <div className={`grid gap-2 ${
-                  layer.layer === 1 ? 'grid-cols-3' : 
-                  layer.layer === 2 ? 'grid-cols-3' : 
-                  'grid-cols-6'
-                }`}>
-                  {layer.positions.slice(0, layer.layer === 1 ? 3 : layer.layer === 2 ? 9 : 12).map((position) => (
-                    <div
-                      key={position.position}
-                      className={`
-                        aspect-square rounded-lg border-2 flex items-center justify-center text-xs
-                        ${position.memberWallet 
-                          ? 'border-green-400 bg-green-400/10 text-green-400' 
-                          : 'border-gray-500 bg-gray-500/10 text-gray-400'
-                        }
-                      `}
-                    >
-                      {position.memberWallet ? (
-                        <div className="text-center">
-                          <div className="font-mono text-xs">
-                            {position.memberWallet.slice(-4)}
-                          </div>
-                          {position.level && (
-                            <div className="text-xs opacity-60">
-                              L{position.level}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="text-center">
-                          <div className="text-xs opacity-60">
-                            {position.position}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  {layer.layer === 3 && layer.positions.length > 12 && (
-                    <div className="col-span-6 text-center">
-                      <Badge variant="outline" className="text-xs">
-                        +{layer.positions.length - 12} more positions
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
+            {/* Matrix L-M-R Visualization */}
+            <MatrixLMRVisualization layers={dashboardStats.matrix.layers} />
 
             {dashboardStats.matrix.layers.length === 0 && (
               <div className="text-center py-8">
