@@ -84,24 +84,12 @@ const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = 
           member_wallet,
           layer_in_owner_matrix,
           position_in_layer,
-<<<<<<< HEAD
           placed_at
-=======
-          placed_at,
-          members!member_wallet (
-            current_level,
-            activation_rank
-          ),
-          users!member_wallet (
-            username
-          )
->>>>>>> origin/api
         `)
         .eq('matrix_owner', effectiveRootWallet)
         .order('layer_in_owner_matrix')
         .order('position_in_layer');
 
-<<<<<<< HEAD
       // Get additional member info separately
       const memberWallets = matrixPlacements?.map(p => p.member_wallet) || [];
       let memberInfo = new Map();
@@ -156,23 +144,6 @@ const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = 
           downlineCount: 0 // TODO: Calculate downline count
         };
       }) || [];
-=======
-      if (error) {
-        throw new Error(`Failed to load matrix data: ${error.message}`);
-      }
-
-      // Transform data to MatrixMember format
-      const members: MatrixMember[] = matrixPlacements?.map(placement => ({
-        walletAddress: placement.member_wallet,
-        username: placement.users?.username,
-        level: placement.members?.current_level || 1,
-        layer: placement.layer_in_owner_matrix,
-        position: parseInt(placement.position_in_layer || '0'),
-        isActive: (placement.members?.current_level || 0) > 0,
-        placedAt: placement.placed_at,
-        downlineCount: 0 // TODO: Calculate downline count
-      })) || [];
->>>>>>> origin/api
 
       // Create matrix data structure
       const totalLayers = Math.max(...members.map(m => m.layer), 0);
