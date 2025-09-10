@@ -512,6 +512,16 @@
       "yourPosition": "Posisi Anda",
       "available": "Tersedia",
       "occupied": "Diduduki"
+    },
+    "matrixSystem": {
+      "title": "Rangkaian Matrix 3×3",
+      "matrixTree": "Pokok Matrix 3×3",
+      "enhancedMatrixTree": "Pokok Matrix 3×3 Dipertingkat",
+      "layer": "Lapisan",
+      "layers": "L1-L19",
+      "matrixInformation": "Maklumat Matrix",
+      "yourMatrixTree": "Pokok Matrix 3×3 Anda",
+      "matrixNetworkLayer": "Rangkaian Matrix 3×3 - Lapisan {{layer}}"
     }
   },
   "hiveworld": {
