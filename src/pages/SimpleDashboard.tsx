@@ -44,22 +44,45 @@ export default function SimpleDashboard() {
   }, [walletAddress]);
 
   const loadSimpleData = async () => {
+    if (!walletAddress) {
+      console.log('❌ No wallet address available for data loading');
+      setLoading(false);
+      return;
+    }
+    
+    console.log('🔄 Loading simple dashboard data for:', walletAddress);
     try {
       const [balanceResult, matrixResult] = await Promise.allSettled([
         balanceService.getUserBalance(walletAddress),
         matrixService.getMatrixStats(walletAddress)
       ]);
+      
+      console.log('📊 Simple dashboard API results:', {
+        balance: balanceResult.status === 'fulfilled' ? 'success' : 'failed',
+        matrix: matrixResult.status === 'fulfilled' ? 'success' : 'failed'
+      });
 
       const balance = balanceResult.status === 'fulfilled' ? balanceResult.value.data : null;
       const matrix = matrixResult.status === 'fulfilled' ? matrixResult.value.data : null;
+      
+      console.log('💰 Balance data:', balance);
+      console.log('🌐 Matrix data:', matrix);
 
-      setData({
-        bccBalance: balance?.totalBcc || 0,
+      const dashboardData = {
+        bccBalance: balance?.bcc_total || balance?.totalBcc || 0,
         referralCount: matrix?.directReferrals || 0,
-        totalEarnings: balance?.totalUsdtEarned || 0
-      });
+        totalEarnings: balance?.usdc_total_earned || balance?.totalUsdtEarned || 0
+      };
+      
+      console.log('📈 Final dashboard data:', dashboardData);
+      setData(dashboardData);
     } catch (error) {
-      console.error('Failed to load dashboard data:', error);
+      console.error('❌ Failed to load simple dashboard data:', error);
+      toast({
+        title: "数据加载失败",
+        description: "请刷新页面重试",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
