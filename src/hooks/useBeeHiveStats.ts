@@ -56,7 +56,7 @@ export function useUserReferralStats() {
         .from('members')
         .select('current_level, levels_owned, activation_rank')
         .eq('wallet_address', walletAddress)
-        .single();
+        .maybeSingle();
 
       // Get total earnings from layer rewards
       const { data: rewardsData } = await supabase
