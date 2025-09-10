@@ -7,6 +7,9 @@ SELECT '=== BEFORE CLEANUP ===' as status;
 SELECT 'users' as table_name, count(*) as count FROM users
 UNION ALL SELECT 'members', count(*) FROM members
 UNION ALL SELECT 'referrals', count(*) FROM referrals
+UNION ALL SELECT 'membership', count(*) FROM membership
+UNION ALL SELECT 'platform_fees', count(*) FROM platform_fees
+UNION ALL SELECT 'bcc_transactions', count(*) FROM bcc_transactions
 UNION ALL SELECT 'individual_matrix_placements', count(*) FROM individual_matrix_placements
 UNION ALL SELECT 'layer_rewards', count(*) FROM layer_rewards
 UNION ALL SELECT 'user_balances', count(*) FROM user_balances  
@@ -38,15 +41,24 @@ DELETE FROM individual_matrix_placements
 WHERE matrix_owner != '0x0000000000000000000000000000000000000001'
    OR member_wallet != '0x0000000000000000000000000000000000000001';
 
--- 6. referrals (依赖 members via member_wallet) 
-DELETE FROM referrals 
-WHERE member_wallet != '0x0000000000000000000000000000000000000001';
+-- 6. referrals (清理所有非root相关) 
+DELETE FROM referrals;
 
--- 7. members (依赖 users)
+-- 7. membership (依赖 members)
+DELETE FROM membership 
+WHERE wallet_address != '0x0000000000000000000000000000000000000001';
+
+-- 8. platform_fees (清理所有非root相关)
+DELETE FROM platform_fees;
+
+-- 9. bcc_transactions (清理所有非root相关)
+DELETE FROM bcc_transactions;
+
+-- 10. members (依赖 users)
 DELETE FROM members 
 WHERE wallet_address != '0x0000000000000000000000000000000000000001';
 
--- 8. users (基础表)
+-- 11. users (基础表)
 DELETE FROM users 
 WHERE wallet_address != '0x0000000000000000000000000000000000000001';
 
@@ -55,6 +67,9 @@ SELECT '=== AFTER CLEANUP ===' as status;
 SELECT 'users' as table_name, count(*) as count FROM users
 UNION ALL SELECT 'members', count(*) FROM members
 UNION ALL SELECT 'referrals', count(*) FROM referrals  
+UNION ALL SELECT 'membership', count(*) FROM membership
+UNION ALL SELECT 'platform_fees', count(*) FROM platform_fees
+UNION ALL SELECT 'bcc_transactions', count(*) FROM bcc_transactions
 UNION ALL SELECT 'individual_matrix_placements', count(*) FROM individual_matrix_placements
 UNION ALL SELECT 'layer_rewards', count(*) FROM layer_rewards
 UNION ALL SELECT 'user_balances', count(*) FROM user_balances

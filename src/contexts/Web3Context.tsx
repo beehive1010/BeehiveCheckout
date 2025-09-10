@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ThirdwebProvider, useActiveAccount, useActiveWallet, useActiveWalletChain, useConnect } from 'thirdweb/react';
 import { client, supportedChains } from '../lib/web3';
 import { inAppWallet, createWallet } from 'thirdweb/wallets';
+import { createSponsoredInAppWallet, connectWithGasSponsorship, gasSponsorshipUtils } from '../lib/web3/enhanced-wallets';
 import { supabase, supabaseApi } from '../lib/supabase';
 import { useLocation } from 'wouter';
 
@@ -21,6 +22,12 @@ interface Web3ContextType {
   recordWalletConnection: () => Promise<void>;
   checkMembershipStatus: () => Promise<void>;
   signOut: () => Promise<void>;
+  gasSponsorship: {
+    enabled: boolean;
+    eligible: boolean;
+    config: any;
+  } | null;
+  checkGasSponsorshipEligibility: () => Promise<void>;
 }
 
 const Web3Context = createContext<Web3ContextType | undefined>(undefined);
@@ -37,49 +44,81 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
   const [supabaseUser, setSupabaseUser] = useState<any>(null);
   const [isMember, setIsMember] = useState(false);
   const [referrerWallet, setReferrerWallet] = useState<string | null>(null);
+  const [gasSponsorship, setGasSponsorship] = useState<{
+    enabled: boolean;
+    eligible: boolean;
+    config: any;
+  } | null>(null);
 
-  // Connect with InAppWallet (includes all authentication methods)
+  // Enhanced wallet connection with gas sponsorship support
   const connectWallet = async () => {
     try {
-      const wallet = inAppWallet({
-        auth: {
-          options: [
-            'email', 
-            'google', 
-            'apple', 
-            'facebook',
-            'discord',
-            'farcaster',
-            'telegram',
-            // External wallets
-            'wallet'  // This enables MetaMask, WalletConnect, etc.
-          ],
-          mode: 'popup',
-        },
-        metadata: {
-          name: "Beehive Platform",
-          description: "Web3 Membership and Learning Platform",
-          logoUrl: "https://beehive-lifestyle.io/logo.png",
-          url: "https://beehive-lifestyle.io",
-        },
-        // Custom styling & branding
-        styling: {
-          theme: 'dark',
-          accentColor: '#F59E0B', // Honey color
-        },
-        hideThirdwebBranding: true, // Hide "Powered by Thirdweb"
-      });
+      // Use enhanced sponsored wallet instead of basic InAppWallet
+      const result = await connectWithGasSponsorship('sponsored-inapp', activeChain);
       
-      await connect({ 
-        client,
-        wallet,
-        chains: supportedChains,
-      });
-      
-      console.log('🔗 InAppWallet connection initiated (all methods available)');
+      if (result.success && result.wallet && result.account) {
+        // Update gas sponsorship status
+        setGasSponsorship(result.gasSponsorship);
+        
+        console.log('🔗 Enhanced sponsored wallet connected:', {
+          address: result.account.address,
+          gasSponsorship: result.gasSponsorship
+        });
+      } else {
+        // Fallback to basic wallet connection
+        console.log('⚠️ Gas sponsorship unavailable, using basic wallet');
+        const wallet = createSponsoredInAppWallet(activeChain);
+        
+        await connect({ 
+          client,
+          wallet,
+          chains: supportedChains,
+        });
+        
+        console.log('🔗 Basic InAppWallet connection initiated (fallback)');
+      }
     } catch (error) {
-      console.error('Failed to connect InAppWallet:', error);
-      throw error;
+      console.error('Failed to connect enhanced wallet:', error);
+      // Ultimate fallback to original wallet
+      try {
+        const wallet = inAppWallet({
+          auth: {
+            options: [
+              'email', 
+              'google', 
+              'apple', 
+              'facebook',
+              'discord',
+              'farcaster',
+              'telegram',
+              'wallet'
+            ],
+            mode: 'popup',
+          },
+          metadata: {
+            name: "Beehive Platform",
+            description: "Web3 Membership and Learning Platform",
+            logoUrl: "https://beehive-lifestyle.io/logo.png",
+            url: "https://beehive-lifestyle.io",
+          },
+          styling: {
+            theme: 'dark',
+            accentColor: '#F59E0B',
+          },
+          hideThirdwebBranding: true,
+        });
+        
+        await connect({ 
+          client,
+          wallet,
+          chains: supportedChains,
+        });
+        
+        console.log('🔗 Fallback InAppWallet connected');
+      } catch (fallbackError) {
+        console.error('All wallet connection methods failed:', fallbackError);
+        throw fallbackError;
+      }
     }
   };
 
@@ -245,6 +284,40 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Check gas sponsorship eligibility for current wallet and chain
+  const checkGasSponsorshipEligibility = async () => {
+    try {
+      if (!account?.address || !activeChain?.id) {
+        setGasSponsorship(null);
+        return;
+      }
+
+      const eligibility = await gasSponsorshipUtils.checkSponsorshipEligibility(
+        account.address,
+        activeChain.id
+      );
+
+      const config = gasSponsorshipUtils.getGasConfig(activeChain.id);
+
+      setGasSponsorship({
+        enabled: gasSponsorshipUtils.isSponsorshipAvailable(activeChain.id),
+        eligible: eligibility.eligible,
+        config: config
+      });
+
+      console.log('⛽ Gas sponsorship status updated:', {
+        chain: activeChain.id,
+        enabled: gasSponsorshipUtils.isSponsorshipAvailable(activeChain.id),
+        eligible: eligibility.eligible,
+        dailyUsed: eligibility.dailyUsed,
+        dailyLimit: eligibility.dailyLimit
+      });
+    } catch (error) {
+      console.error('Failed to check gas sponsorship eligibility:', error);
+      setGasSponsorship(null);
+    }
+  };
+
   // Sign out (wallet-based auth)
   const signOut = async () => {
     try {
@@ -362,6 +435,15 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isConnected, isSupabaseAuthenticated, account?.address]);
 
+  // Check gas sponsorship eligibility when wallet or chain changes
+  useEffect(() => {
+    if (isConnected && account?.address && activeChain?.id) {
+      checkGasSponsorshipEligibility();
+    } else {
+      setGasSponsorship(null);
+    }
+  }, [isConnected, account?.address, activeChain?.id]);
+
   const value = {
     client,
     account,
@@ -378,6 +460,8 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
     recordWalletConnection,
     checkMembershipStatus,
     signOut,
+    gasSponsorship,
+    checkGasSponsorshipEligibility,
   };
 
   return (

@@ -31,7 +31,9 @@
     "ipv4:status": "./scripts/supabase-ipv4-management.sh status",
     "ipv4:enable": "./scripts/supabase-ipv4-management.sh enable",
     "ipv4:disable": "./scripts/supabase-ipv4-management.sh disable",
-    "ipv4:info": "./scripts/supabase-ipv4-management.sh info"
+    "ipv4:info": "./scripts/supabase-ipv4-management.sh info",
+    "db:cleanup": "psql \"postgresql://postgres:bee8881941@db.cvqibjcbfrwsgkvthccp.supabase.co:5432/postgres\" -f sql/cleanup_ultimate.sql",
+    "db:reset": "npm run db:cleanup && echo '🚀 Database reset completed - only root user preserved'"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

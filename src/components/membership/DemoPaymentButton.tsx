@@ -44,66 +44,40 @@ export default function DemoPaymentButton({
       // Step 1: Simulate payment processing
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Step 2: Check if user is registered, register if needed
+      // Step 2: Call our new NFT Level 1 activation function directly
       setDemoState('verifying');
-      console.log('🔍 Checking user registration...');
+      console.log('🎯 Activating NFT Level 1 membership with complete workflow...');
       
-      const userCheckResponse = await fetch('/api/auth/user', {
-        headers: {
-          'X-Wallet-Address': account.address,
-        },
-      });
-
-      const isUserRegistered = userCheckResponse.ok;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       
-      if (!isUserRegistered) {
-        console.log('📝 Registering user for demo...');
-        const registerResponse = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Wallet-Address': account.address,
-          },
-          body: JSON.stringify({
-            walletAddress: account.address,
-            email: `demo-${Date.now()}@beehive.demo`,
-            username: `demo_user_${Date.now()}`,
-            secondaryPasswordHash: 'demo_hash',
-            preferredLanguage: 'en',
-            isCompanyDirectReferral: true,
-            referralCode: '001122'
-          }),
-        });
-
-        if (!registerResponse.ok) {
-          throw new Error('Failed to register user');
-        }
-        console.log('✅ User registered successfully');
-      }
-      
-      // Step 3: Activate membership with demo payment
-      console.log('💰 Simulating 130 USDT payment...');
-      
-      const membershipResponse = await fetch('/api/membership/activate', {
+      const activationResponse = await fetch(`${supabaseUrl}/rest/v1/rpc/activate_nft_level1_membership`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Wallet-Address': account.address,
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'Prefer': 'return=representation'
         },
         body: JSON.stringify({
-          level: 1,
-          txHash: `demo_payment_${Date.now()}`,
-          priceUSDT: 130
+          p_wallet_address: account.address,
+          p_referrer_wallet: '0x0000000000000000000000000000000000000001', // Root as referrer for demo
+          p_transaction_hash: `demo_nft_claim_${Date.now()}`
         }),
       });
 
-      if (!membershipResponse.ok) {
-        const errorData = await membershipResponse.json();
-        throw new Error(errorData.error || 'Failed to activate membership');
+      if (!activationResponse.ok) {
+        const errorText = await activationResponse.text();
+        console.error('Activation failed:', errorText);
+        throw new Error(`Failed to activate NFT Level 1 membership: ${errorText}`);
       }
 
-      const membershipData = await membershipResponse.json();
-      console.log('✅ Membership activated:', membershipData);
+      const activationResult = await activationResponse.json();
+      console.log('✅ NFT Level 1 activation result:', activationResult);
+      
+      if (!activationResult.success) {
+        throw new Error(activationResult.error || 'NFT Level 1 activation failed');
+      }
       
       // Step 3: Claim Level 1 NFT via thirdweb Engine
       setDemoState('claiming');
@@ -137,16 +111,23 @@ export default function DemoPaymentButton({
         description: 'Demo payment of 130 USDT processed and Level 1 NFT claimed!',
       });
       
-      // Emit success events
+      // Emit success events with activation result data
       membershipEventEmitter.emit({
         type: 'MEMBERSHIP_PERSISTED',
         payload: {
           walletAddress: account.address,
           level: 1,
-          orderId: `demo_${Date.now()}`,
+          orderId: activationResult.membership_id,
           activated: true,
           previousLevel: 0,
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          activationRank: activationResult.activation_rank,
+          platformFee: activationResult.platform_fee_usdc,
+          rewardTriggered: {
+            root: activationResult.matrix_root,
+            amount: activationResult.reward_amount_usdc,
+            status: activationResult.reward_status
+          }
         }
       });
       

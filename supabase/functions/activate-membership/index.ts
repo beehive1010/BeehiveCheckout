@@ -7,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-console.log(`🚀 修复版会员激活函数启动成功!`)
+console.log(`🚀 Fixed membership activation function started successfully!`)
 
 serve(async (req) => {
   // Handle CORS
@@ -33,7 +33,7 @@ serve(async (req) => {
     const walletAddress = req.headers.get('x-wallet-address')
 
     if (!walletAddress) {
-      throw new Error('钱包地址缺失')
+      throw new Error('Wallet address missing')
     }
 
     // Handle member info query action
@@ -83,38 +83,39 @@ serve(async (req) => {
       })
     }
 
-    // 特殊情况：检查现有NFT而非验证新交易
+    // Special case: checking existing NFT rather than verifying new transaction
     const isCheckingExisting = transactionHash === 'check_existing';
     
     if (!transactionHash || (!isCheckingExisting && !transactionHash)) {
-      throw new Error('NFT claim交易哈希缺失，无法验证')
+      throw new Error('NFT claim transaction hash missing, unable to verify')
     }
 
-    console.log(`🔐 安全激活会员: ${walletAddress}, 交易: ${transactionHash}`);
+    console.log(`🔐 Secure membership activation: ${walletAddress}, transaction: ${transactionHash}`);
 
-    // 首先检查用户是否已经拥有链上NFT
+    // First check if user already owns on-chain NFT
     const existingNFTCheck = await checkExistingNFTAndSync(supabase, walletAddress, level);
     if (existingNFTCheck.hasNFT) {
-      console.log(`✅ 用户已拥有Level ${level} NFT，返回现有记录`);
+      console.log(`✅ User already owns Level ${level} NFT, returning existing record`);
       return new Response(JSON.stringify(existingNFTCheck), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       })
     }
 
-    // 如果是检查现有NFT的请求且链上没有NFT，直接返回
+    // If checking existing NFT request and no NFT on chain, return directly
     if (isCheckingExisting) {
       return new Response(JSON.stringify({
         success: false,
         hasNFT: false,
-        message: '链上未检测到NFT'
+        message: 'No NFT detected on chain'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       })
     }
 
-    const result = await activateMembershipSecure(supabase, walletAddress, transactionHash, level, referrerWallet);
+    // Use the new unified NFT Level 1 activation function
+    const result = await activateNftLevel1Membership(supabase, walletAddress, transactionHash, level, referrerWallet);
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -122,7 +123,7 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    console.error('会员激活错误:', error)
+    console.error('Membership activation error:', error)
     return new Response(JSON.stringify({ 
       success: false,
       error: error.message 
@@ -133,48 +134,12 @@ serve(async (req) => {
   }
 })
 
-// 安全的会员激活函数 - 修复版
-async function activateMembershipSecure(supabase, walletAddress, transactionHash, level, referrerWallet) {
-  console.log(`🔒 开始安全激活流程: ${walletAddress}`);
+// Use new unified NFT Level 1 activation function
+async function activateNftLevel1Membership(supabase, walletAddress, transactionHash, level, referrerWallet) {
+  console.log(`🔒 Starting NFT Level 1 activation process: ${walletAddress}`);
 
   try {
-    // 1. 检查用户是否存在，如果不存在则自动注册
-    let { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('wallet_address, referrer_wallet, username, email')
-      .eq('wallet_address', walletAddress)
-      .single();
-
-    if (userError || !userData) {
-      console.log('🔧 用户不存在，自动创建用户记录...');
-      
-      // Auto-register user with basic information
-      const autoUsername = `user_${walletAddress.slice(-8)}`;
-      
-      const { data: newUserData, error: createUserError } = await supabase
-        .from('users')
-        .insert({
-          wallet_address: walletAddress,
-          username: autoUsername,
-          referrer_wallet: referrerWallet || null,
-          email: null,
-          created_at: new Date().toISOString(),
-        })
-        .select('wallet_address, referrer_wallet, username, email')
-        .single();
-
-      if (createUserError || !newUserData) {
-        console.error('❌ 自动注册用户失败:', createUserError);
-        throw new Error('用户不存在且自动注册失败，无法激活会员身份');
-      }
-      
-      userData = newUserData;
-      console.log(`✅ 自动注册用户成功: ${userData.username}`);
-    }
-
-    console.log(`✅ 用户验证成功: ${userData.username}`);
-
-    // 2. 检查是否已经是激活会员
+    // 1. Check if already an activated member
     const { data: existingMember } = await supabase
       .from('members')
       .select('wallet_address, current_level, activation_rank')
@@ -186,358 +151,72 @@ async function activateMembershipSecure(supabase, walletAddress, transactionHash
         success: true,
         action: 'already_activated',
         member: existingMember,
-        message: '会员身份已激活'
+        message: 'Membership already activated'
       };
     }
 
-    // 3. 验证NFT claim交易
-    console.log(`🔍 验证区块链交易: ${transactionHash}`);
-    
-    const isValidTransaction = await verifyNFTClaimTransaction(transactionHash, walletAddress, level);
-    if (!isValidTransaction) {
-      throw new Error('区块链交易验证失败 - 交易无效或未确认');
-    }
-    console.log(`✅ 区块链交易验证成功: ${transactionHash}`);
-
-    // 4. 创建members记录
-    const currentTime = new Date().toISOString();
-    const { data: newMember, error: memberError } = await supabase
-      .from('members')
-      .insert({
-        wallet_address: walletAddress,
-        current_level: level,
-        levels_owned: [level],
-        has_pending_rewards: false,
-        referrer_wallet: userData.referrer_wallet,
-        activation_rank: 1, // Set initial activation rank
-        tier_level: 1, // Set initial tier level
-        is_active: true, // Mark as properly activated
-        is_activated: true, // Also set backup flag
-        created_at: currentTime,
-        updated_at: currentTime
-      })
-      .select()
-      .single();
-
-    if (memberError) {
-      console.error('创建会员记录失败:', memberError);
-      throw new Error(`会员激活失败: ${memberError.message}`);
-    }
-
-    console.log(`✅ 会员记录创建成功: ${walletAddress}`);
-
-    // 4.5. 初始化BCC余额 - 新激活会员奖励
-    try {
-      const initialBccLocked = 10450; // 锁仓BCC
-      const initialBccTransferable = 500; // 初始可转账BCC
-      const level1UnlockBonus = 100; // Level 1 激活解锁奖励
+    // 2. Verify NFT claim transaction (if not demo transaction)
+    if (!transactionHash.startsWith('demo_') && transactionHash !== 'check_existing') {
+      console.log(`🔍 Verifying blockchain transaction: ${transactionHash}`);
       
-      // 计算最终余额: 锁仓减少100，可转账增加100
-      const finalBccLocked = initialBccLocked - level1UnlockBonus;
-      const finalBccTransferable = initialBccTransferable + level1UnlockBonus;
-      
-      console.log(`💰 分配BCC余额: ${finalBccLocked} 锁仓 + ${finalBccTransferable} 可转账`);
-      
-      // 创建或更新用户余额记录
-      const { data: existingBalance } = await supabase
-        .from('user_balances')
-        .select('wallet_address')
-        .eq('wallet_address', walletAddress)
-        .single();
-
-      if (existingBalance) {
-        // 更新现有余额
-        await supabase
-          .from('user_balances')
-          .update({
-            bcc_transferable: finalBccTransferable,
-            bcc_locked: finalBccLocked,
-            updated_at: currentTime
-          })
-          .eq('wallet_address', walletAddress);
-        console.log(`✅ BCC余额更新成功: ${walletAddress}`);
-      } else {
-        // 创建新的余额记录
-        await supabase
-          .from('user_balances')
-          .insert({
-            wallet_address: walletAddress,
-            bcc_transferable: finalBccTransferable,
-            bcc_locked: finalBccLocked,
-            bcc_restricted: 0,
-            total_usdt_earned: 0,
-            pending_rewards_usdt: 0,
-            created_at: currentTime,
-            updated_at: currentTime
-          });
-        console.log(`✅ BCC余额初始化成功: ${walletAddress}`);
+      const isValidTransaction = await verifyNFTClaimTransaction(transactionHash, walletAddress, level);
+      if (!isValidTransaction) {
+        throw new Error('Blockchain transaction verification failed - transaction invalid or unconfirmed');
       }
-
-      // 记录BCC交易日志
-      await supabase
-        .from('bcc_transactions')
-        .insert({
-          wallet_address: walletAddress,
-          amount: finalBccTransferable + finalBccLocked,
-          balance_type: 'activation_reward',
-          transaction_type: 'reward',
-          purpose: `Level ${level} 会员激活奖励: ${finalBccLocked} 锁仓 + ${finalBccTransferable} 可转账`,
-          status: 'completed',
-          created_at: currentTime,
-          processed_at: currentTime,
-          metadata: {
-            initial_locked: initialBccLocked,
-            initial_transferable: initialBccTransferable,
-            unlock_bonus: level1UnlockBonus,
-            final_locked: finalBccLocked,
-            final_transferable: finalBccTransferable,
-            activation_level: level
-          }
-        });
-        
-      console.log(`✅ BCC交易记录创建成功: ${walletAddress}`);
-    } catch (bccError) {
-      console.error('BCC余额分配失败:', bccError);
-      // 不要因为BCC分配失败而回滚整个激活过程，只记录错误
-    }
-
-    // 5. 处理推荐关系 - 使用改进的矩阵安置算法
-    // Use referrerWallet from request if provided, otherwise use stored referrer
-    const effectiveReferrer = referrerWallet || userData.referrer_wallet;
-    console.log(`🔗 Referrer determination: Request=${referrerWallet}, Stored=${userData.referrer_wallet}, Effective=${effectiveReferrer}`);
-    const ROOT_WALLET = '0x0000000000000000000000000000000000000001';
-    
-    if (effectiveReferrer && effectiveReferrer !== ROOT_WALLET) {
-      console.log(`🔗 处理推荐关系: ${effectiveReferrer} -> ${walletAddress}`);
-      
-      // 检查推荐者是否为激活会员
-      const { data: referrerMember } = await supabase
-        .from('members')
-        .select('wallet_address, current_level')
-        .eq('wallet_address', effectiveReferrer)
-        .gt('current_level', 0)
-        .single();
-
-      if (referrerMember) {
-        // 调用矩阵服务来进行3x3安置
-        console.log(`🔄 调用矩阵安置服务: ${effectiveReferrer} -> ${walletAddress}`);
-        
-        try {
-          // Call the matrix placement service
-          const matrixResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/matrix`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
-              'x-wallet-address': walletAddress
-            },
-            body: JSON.stringify({
-              action: 'place-member',
-              rootWallet: effectiveReferrer,
-              memberWallet: walletAddress,
-              placerWallet: effectiveReferrer
-            })
-          });
-
-          if (matrixResponse.ok) {
-            const matrixResult = await matrixResponse.json();
-            
-            // Try to create referral record regardless of matrix result
-            let referralCreated = false;
-            
-            if (matrixResult.success) {
-              console.log(`✅ 矩阵安置成功: Layer ${matrixResult.placement?.layer}, Position ${matrixResult.placement?.position}`);
-              
-              // Create referral record with matrix placement data
-              const { error: referralError } = await supabase
-                .from('referrals')
-                .insert({
-                  referred_wallet: walletAddress,
-                  referrer_wallet: effectiveReferrer,
-                  placement_root: matrixResult.placement?.rootWallet || effectiveReferrer,
-                  placement_layer: matrixResult.placement?.layer || 1,
-                  placement_position: matrixResult.placement?.position || 'L',
-                  placement_path: `${matrixResult.placement?.rootWallet || effectiveReferrer}/${matrixResult.placement?.layer || 1}/${matrixResult.placement?.position || 'L'}`,
-                  referral_type: matrixResult.placement?.placementType || 'direct',
-                  status: 'active',
-                  created_at: currentTime
-                });
-
-              if (referralError) {
-                console.error('❌ 创建矩阵推荐关系失败:', referralError);
-              } else {
-                console.log(`✅ 矩阵推荐关系创建成功: ${effectiveReferrer} -> ${walletAddress}`);
-                referralCreated = true;
-              }
-            }
-            
-            // If matrix placement failed or referral creation failed, create basic referral record
-            if (!referralCreated) {
-              console.log('⚠️ 矩阵安置失败，创建基础推荐记录...');
-              const { error: basicReferralError } = await supabase
-                .from('referrals')
-                .insert({
-                  referred_wallet: walletAddress,
-                  referrer_wallet: effectiveReferrer,
-                  placement_root: effectiveReferrer,
-                  placement_layer: 1,
-                  placement_position: 'L',
-                  placement_path: `${effectiveReferrer}/1/L`,
-                  referral_type: 'direct',
-                  status: 'pending_matrix_placement',
-                  created_at: currentTime
-                });
-
-              if (basicReferralError) {
-                console.error('❌ 创建基础推荐关系也失败:', basicReferralError);
-              } else {
-                console.log(`✅ 基础推荐关系创建成功: ${effectiveReferrer} -> ${walletAddress}`);
-              }
-            }
-            
-            // If matrix service call itself failed, still create basic referral record
-          } else {
-            const errorText = await matrixResponse.text();
-            console.error('❌ 矩阵服务调用失败，创建基础推荐记录:', {
-              status: matrixResponse.status,
-              error: errorText,
-              referrer: effectiveReferrer,
-              member: walletAddress
-            });
-            
-            // Create basic referral record when matrix service fails
-            const { error: basicReferralError } = await supabase
-              .from('referrals')
-              .insert({
-                referred_wallet: walletAddress,
-                referrer_wallet: effectiveReferrer,
-                placement_root: effectiveReferrer,
-                placement_layer: 1,
-                placement_position: 'L',
-                placement_path: `${effectiveReferrer}/1/L`,
-                referral_type: 'direct',
-                status: 'pending_matrix_placement',
-                created_at: currentTime
-              });
-
-            if (basicReferralError) {
-              console.error('❌ 创建基础推荐关系失败:', basicReferralError);
-            } else {
-              console.log(`✅ 基础推荐关系创建成功 (Matrix服务失败时): ${effectiveReferrer} -> ${walletAddress}`);
-            }
-          }
-          
-          // Trigger Layer rewards based on activated NFT level
-          try {
-            console.log(`🎁 触发Layer ${level}奖励基于Level ${level} NFT激活: ${effectiveReferrer}`);
-            
-            // Only trigger Layer X rewards when Level X NFT is activated
-            // This implements the core business rule: Layer 1 rewards only trigger on Level 1 NFT activation, etc.
-            const rewardResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/rewards`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
-                'x-wallet-address': walletAddress
-              },
-              body: JSON.stringify({
-                action: 'process-level-activation-rewards',
-                memberWallet: walletAddress,
-                activatedLevel: level, // Level of NFT being activated
-                trigger: 'nft-level-activation',
-                rootWallet: effectiveReferrer
-              })
-            });
-
-            if (rewardResponse.ok) {
-              const rewardResult = await rewardResponse.json();
-              if (rewardResult.success) {
-                console.log(`✅ Level ${level} NFT激活奖励触发成功: ${JSON.stringify(rewardResult.rewards)}`);
-              } else {
-                console.warn(`Level ${level} NFT激活奖励触发失败:`, rewardResult.error);
-              }
-            } else {
-              console.warn(`Level ${level} NFT激活奖励服务调用失败`);
-            }
-          } catch (rewardError) {
-            console.warn(`Level ${level} NFT激活奖励触发异常:`, rewardError);
-          }
-          
-          // Update referrer's member record (simplified - just update timestamp)
-          await supabase
-            .from('members')
-            .update({ 
-              updated_at: currentTime
-            })
-            .eq('wallet_address', effectiveReferrer);
-        } catch (matrixError) {
-          console.warn('矩阵安置异常，创建基础推荐记录:', matrixError);
-          
-          // Create basic referral record when matrix service has exception
-          const { error: basicReferralError } = await supabase
-            .from('referrals')
-            .insert({
-              referred_wallet: walletAddress,
-              referrer_wallet: effectiveReferrer,
-              placement_root: effectiveReferrer,
-              placement_layer: 1,
-              placement_position: 'L',
-              placement_path: `${effectiveReferrer}/1/L`,
-              referral_type: 'direct',
-              status: 'pending_matrix_placement',
-              created_at: currentTime
-            });
-
-          if (basicReferralError) {
-            console.error('❌ 创建基础推荐关系失败 (异常时):', basicReferralError);
-          } else {
-            console.log(`✅ 基础推荐关系创建成功 (异常时): ${effectiveReferrer} -> ${walletAddress}`);
-          }
-        }
-      } else {
-        console.error(`❌ 推荐者不是激活会员 - referrals记录将不会被创建:`, {
-          referrer: effectiveReferrer,
-          member: walletAddress,
-          reason: 'Referrer is not an activated member (current_level <= 0)'
-        });
-      }
+      console.log(`✅ Blockchain transaction verification successful: ${transactionHash}`);
     } else {
-      console.log('🔄 无推荐者，作为根节点处理');
+      console.log(`🎮 Demo or check mode, skipping blockchain verification: ${transactionHash}`);
     }
 
-    // 6. 更新用户表的当前等级
-    const { error: userUpdateError } = await supabase
-      .from('users')
-      .update({ 
-        current_level: level,
-        updated_at: currentTime
-      })
-      .eq('wallet_address', walletAddress);
-
-    if (userUpdateError) {
-      console.warn('更新用户等级失败:', userUpdateError);
-    }
-
-    console.log(`🎉 会员激活完成: ${walletAddress} -> Level ${level}`);
+    // 3. Call unified database activation function
+    console.log(`🔄 Calling database activation function: activate_nft_level1_membership`);
     
+    const { data: activationResult, error: activationError } = await supabase.rpc(
+      'activate_nft_level1_membership',
+      {
+        p_wallet_address: walletAddress,
+        p_referrer_wallet: referrerWallet || '0x0000000000000000000000000000000000000001',
+        p_transaction_hash: transactionHash
+      }
+    );
+
+    if (activationError) {
+      console.error('❌ Database activation function call failed:', activationError);
+      throw new Error(`Activation failed: ${activationError.message}`);
+    }
+
+    if (!activationResult || !activationResult.success) {
+      const errorMessage = activationResult?.message || 'Unknown activation error';
+      console.error('❌ Activation function returned failure:', errorMessage);
+      throw new Error(`Activation failed: ${errorMessage}`);
+    }
+
+    console.log(`✅ NFT Level 1 activation successful:`, activationResult);
+
     return {
       success: true,
       action: 'activated',
-      member: newMember,
+      member: activationResult.member_data,
       transactionHash: transactionHash,
       level: level,
-      message: `Level ${level} 会员身份激活成功`
+      message: `Level ${level} membership activation successful`,
+      activationDetails: {
+        membershipCreated: activationResult.membership_created,
+        platformFeeAdded: activationResult.platform_fee_added,
+        rewardTriggered: activationResult.reward_triggered,
+        referralCreated: activationResult.referral_created
+      }
     };
 
   } catch (error) {
-    console.error('安全激活会员身份错误:', error);
-    throw new Error(`激活失败: ${error.message}`);
+    console.error('NFT Level 1 activation error:', error);
+    throw new Error(`Activation failed: ${error.message}`);
   }
 }
 
-// 验证NFT claim交易的区块链验证函数
+// Blockchain verification function for NFT claim transactions
 async function verifyNFTClaimTransaction(transactionHash: string, walletAddress: string, expectedLevel: number) {
-  console.log(`🔗 开始验证交易: ${transactionHash}`);
+  console.log(`🔗 Starting transaction verification: ${transactionHash}`);
   
   const ARBITRUM_SEPOLIA_RPC = 'https://sepolia-rollup.arbitrum.io/rpc';
   const NFT_CONTRACT = '0x2Cb47141485754371c24Efcc65d46Ccf004f769a';
@@ -690,18 +369,38 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
       .single();
     
     if (existingMember && existingMember.current_level > 0) {
-      console.log(`✅ 数据库记录已存在且已激活`);
-      return {
-        success: true,
-        hasNFT: true,
-        action: 'already_synced',
-        member: existingMember,
-        message: `Level ${level} 会员身份已激活（链上验证）`
-      };
+      console.log(`✅ 数据库members记录已存在且已激活，但需要检查完整的activation记录`);
+      
+      // 检查是否存在完整的membership和referrals记录
+      const { data: membershipRecord } = await supabase
+        .from('membership')
+        .select('id')
+        .eq('wallet_address', walletAddress)
+        .single();
+        
+      const { data: referralRecord } = await supabase
+        .from('referrals')
+        .select('id')
+        .eq('member_wallet', walletAddress)
+        .single();
+      
+      if (membershipRecord && referralRecord) {
+        console.log(`✅ 完整的activation记录已存在`);
+        return {
+          success: true,
+          hasNFT: true,
+          action: 'already_synced',
+          member: existingMember,
+          message: `Level ${level} 会员身份已激活（链上验证）`
+        };
+      } else {
+        console.log(`🔧 members记录存在但缺少membership/referrals记录，需要补充完整激活流程`);
+        // 继续执行完整的同步流程以创建缺失的记录
+      }
     }
     
-    // 3. 如果链上有NFT但数据库缺少记录，则补充记录
-    console.log(`🔧 链上有NFT但数据库缺少记录，开始同步...`);
+    // 3. 如果链上有NFT但数据库缺少完整的activation记录，则补充记录
+    console.log(`🔧 链上有NFT但缺少完整的activation记录，开始同步...`);
     
     // 验证用户存在
     const { data: userData, error: userError } = await supabase
@@ -714,96 +413,77 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
       throw new Error('用户不存在，无法同步会员记录');
     }
     
-    // 创建会员记录
-    const currentTime = new Date().toISOString();
-    const { data: newMember, error: memberError } = await supabase
-      .from('members')
-      .insert({
-        wallet_address: walletAddress,
-        current_level: level,
-        levels_owned: [level],
-        has_pending_rewards: false,
-        referrer_wallet: userData.referrer_wallet,
-        activation_rank: 1,
-        tier_level: 1,
-        created_at: currentTime,
-        updated_at: currentTime
-      })
-      .select()
-      .single();
-    
-    if (memberError) {
-      console.error('同步会员记录失败:', memberError);
-      throw new Error(`同步会员记录失败: ${memberError.message}`);
-    }
-    
-    console.log(`✅ 链上NFT数据同步完成: ${walletAddress} -> Level ${level}`);
-
-    // 同步时也需要分配BCC余额
-    try {
-      const initialBccLocked = 10450;
-      const initialBccTransferable = 500;
-      const level1UnlockBonus = 100;
-      
-      const finalBccLocked = initialBccLocked - level1UnlockBonus;
-      const finalBccTransferable = initialBccTransferable + level1UnlockBonus;
-      
-      console.log(`💰 同步时分配BCC余额: ${finalBccLocked} 锁仓 + ${finalBccTransferable} 可转账`);
-      
-      // 检查是否已有余额记录
-      const { data: existingBalance } = await supabase
-        .from('user_balances')
-        .select('wallet_address')
-        .eq('wallet_address', walletAddress)
+    // 如果members记录不存在，先创建它
+    if (!existingMember) {
+      console.log(`📝 创建members记录...`);
+      const currentTime = new Date().toISOString();
+      const { data: newMember, error: memberError } = await supabase
+        .from('members')
+        .insert({
+          wallet_address: walletAddress,
+          current_level: level,
+          levels_owned: [level],
+          has_pending_rewards: false,
+          referrer_wallet: userData.referrer_wallet,
+          activation_rank: 1,
+          tier_level: 1,
+          created_at: currentTime,
+          updated_at: currentTime
+        })
+        .select()
         .single();
-
-      if (!existingBalance) {
-        await supabase
-          .from('user_balances')
-          .insert({
-            wallet_address: walletAddress,
-            bcc_transferable: finalBccTransferable,
-            bcc_locked: finalBccLocked,
-            bcc_restricted: 0,
-            total_usdt_earned: 0,
-            pending_rewards_usdt: 0,
-            created_at: currentTime,
-            updated_at: currentTime
-          });
-        
-        // 记录交易日志
-        await supabase
-          .from('bcc_transactions')
-          .insert({
-            wallet_address: walletAddress,
-            amount: finalBccTransferable + finalBccLocked,
-            balance_type: 'activation_reward',
-            transaction_type: 'reward',
-            purpose: `Level ${level} 会员同步奖励: ${finalBccLocked} 锁仓 + ${finalBccTransferable} 可转账`,
-            status: 'completed',
-            created_at: currentTime,
-            processed_at: currentTime,
-            metadata: {
-              sync_type: 'chain_to_db',
-              activation_level: level
-            }
-          });
-          
-        console.log(`✅ 同步时BCC余额分配成功: ${walletAddress}`);
-      } else {
-        console.log(`ℹ️ BCC余额记录已存在，跳过分配`);
+      
+      if (memberError) {
+        console.error('同步会员记录失败:', memberError);
+        throw new Error(`同步会员记录失败: ${memberError.message}`);
       }
-    } catch (bccError) {
-      console.error('同步时BCC余额分配失败:', bccError);
+      console.log(`✅ 新members记录创建完成`);
     }
+    
+    // 使用完整的activation函数来创建missing的membership和referrals记录
+    console.log(`🚀 调用完整的activation函数来补充缺失的记录...`);
+    const { data: activationResult, error: activationError } = await supabase.rpc(
+      'activate_nft_level1_membership',
+      {
+        p_wallet_address: walletAddress,
+        p_referrer_wallet: userData.referrer_wallet || '0x0000000000000000000000000000000000000001',
+        p_transaction_hash: `chain_sync_${Date.now()}`
+      }
+    );
+
+    if (activationError) {
+      console.error('❌ 完整激活同步失败:', activationError);
+      throw new Error(`激活同步失败: ${activationError.message}`);
+    }
+
+    if (!activationResult || !activationResult.success) {
+      const errorMessage = activationResult?.message || '激活同步返回失败';
+      console.error('❌ 激活同步函数返回失败:', errorMessage);
+      throw new Error(`激活同步失败: ${errorMessage}`);
+    }
+    
+    console.log(`✅ 链上NFT完整数据同步完成: ${walletAddress} -> Level ${level}`);
+
+    // 获取最新的members记录
+    const { data: updatedMember } = await supabase
+      .from('members')
+      .select('wallet_address, current_level, activation_rank')
+      .eq('wallet_address', walletAddress)
+      .single();
     
     return {
       success: true,
       hasNFT: true,
       action: 'synced_from_chain',
-      member: newMember,
+      member: updatedMember,
       level: level,
-      message: `Level ${level} 会员身份已同步（基于链上NFT）`
+      message: `Level ${level} 会员身份已同步（基于链上NFT和完整激活流程）`,
+      activationDetails: {
+        membershipCreated: activationResult.membership_created,
+        platformFeeAdded: activationResult.platform_fee_added,
+        rewardTriggered: activationResult.reward_triggered,
+        referralCreated: activationResult.referral_created
+      }
     };
     
   } catch (error) {
@@ -812,305 +492,4 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
   }
 }
 
-// 🎯 改进的矩阵安置算法 - 3x3矩阵系统
-async function findOptimalMatrixPlacement(supabase, referrerWallet: string, newMemberWallet: string) {
-  console.log(`🔍 开始矩阵安置算法: ${referrerWallet} -> ${newMemberWallet}`);
-  
-  try {
-    // 1. 查找推荐人的根矩阵
-    const rootWallet = await findMatrixRoot(supabase, referrerWallet);
-    console.log(`📊 矩阵根用户: ${rootWallet}`);
-    
-    // 2. 尝试在推荐人直接下级找位置
-    let placement = await findAvailablePosition(supabase, referrerWallet, rootWallet, 1);
-    
-    if (placement.found) {
-      return {
-        success: true,
-        parentWallet: referrerWallet,
-        rootWallet: rootWallet,
-        layer: 1,
-        position: placement.position,
-        placementType: 'direct'
-      };
-    }
-    
-    // 3. 使用溢出算法找最佳位置
-    const spilloverPlacement = await findSpilloverPosition(supabase, referrerWallet, rootWallet);
-    
-    if (spilloverPlacement.found) {
-      return {
-        success: true,
-        parentWallet: spilloverPlacement.parentWallet,
-        rootWallet: rootWallet,
-        layer: spilloverPlacement.layer,
-        position: spilloverPlacement.position,
-        placementType: 'spillover'
-      };
-    }
-    
-    throw new Error('无法找到可用的矩阵位置');
-    
-  } catch (error) {
-    console.error('矩阵安置算法错误:', error);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
-
-// 查找矩阵根用户
-async function findMatrixRoot(supabase, walletAddress: string): Promise<string> {
-  const { data: referralData } = await supabase
-    .from('referrals')
-    .select('root_wallet')
-    .eq('member_wallet', walletAddress)
-    .single();
-    
-  if (referralData?.root_wallet) {
-    return referralData.root_wallet;
-  }
-  
-  return walletAddress;
-}
-
-// 查找可用位置 - 正确的矩阵结构 (Layer n = 3^n 个位置)
-async function findAvailablePosition(supabase, parentWallet: string, rootWallet: string, layer: number) {
-  // 计算该层的总位置数: 3^layer
-  const totalPositions = Math.pow(3, layer);
-  const matrixPositions = Array.from({ length: totalPositions }, (_, i) => (i + 1).toString());
-  
-  console.log(`📊 Layer ${layer} 总位置数: ${totalPositions}`);
-  
-  const { data: occupiedPositions } = await supabase
-    .from('referrals')
-    .select('position')
-    .eq('parent_wallet', parentWallet)
-    .eq('root_wallet', rootWallet)
-    .eq('layer', layer);
-    
-  const occupied = occupiedPositions?.map(p => p.position) || [];
-  console.log(`📍 父级 ${parentWallet} Layer ${layer} 已占用位置 (${occupied.length}/${totalPositions}):`, occupied);
-  
-  // 按照 L → M → R 优先级查找可用位置
-  for (const position of matrixPositions) {
-    if (!occupied.includes(position)) {
-      console.log(`✅ 找到可用位置: Layer ${layer}, Position ${position}`);
-      return { found: true, position };
-    }
-  }
-  
-  console.log(`❌ Layer ${layer} 已满，无可用位置`);
-  return { found: false };
-}
-
-// 溢出安置算法 - 广度优先搜索
-async function findSpilloverPosition(supabase, originalReferrer: string, rootWallet: string) {
-  console.log(`🌊 开始溢出算法搜索...`);
-  
-  const maxLayer = 19;
-  let currentLayer = 1;
-  
-  while (currentLayer <= maxLayer) {
-    console.log(`🔍 搜索第 ${currentLayer} 层...`);
-    
-    const { data: layerMembers } = await supabase
-      .from('referrals')
-      .select('member_wallet')
-      .eq('root_wallet', rootWallet)
-      .eq('layer', currentLayer);
-    
-    if (layerMembers && layerMembers.length > 0) {
-      for (const member of layerMembers) {
-        const placement = await findAvailablePosition(supabase, member.member_wallet, rootWallet, currentLayer + 1);
-        
-        if (placement.found) {
-          console.log(`✅ 溢出安置成功: Layer ${currentLayer + 1}, Parent: ${member.member_wallet}`);
-          return {
-            found: true,
-            parentWallet: member.member_wallet,
-            layer: currentLayer + 1,
-            position: placement.position
-          };
-        }
-      }
-    }
-    
-    currentLayer++;
-  }
-  
-  return { found: false };
-}
-
-// 🎁 奖励触发系统
-async function triggerRewardSystem(supabase, placementResult: any, newMemberWallet: string, level: number) {
-  console.log(`🎁 检查奖励触发: ${newMemberWallet} 安置到 Layer ${placementResult.layer}`);
-  
-  try {
-    // 检查新安置是否完成了某个矩阵
-    const matrixCompleted = await checkMatrixCompletion(supabase, placementResult.parentWallet, placementResult.rootWallet, placementResult.layer);
-    
-    if (matrixCompleted.isComplete) {
-      console.log(`🎉 矩阵完成! Layer ${placementResult.layer} 已满`);
-      
-      // 检查奖励资格
-      const eligibilityCheck = await checkRewardEligibility(supabase, placementResult.parentWallet, placementResult.layer);
-      
-      if (eligibilityCheck.isEligible) {
-        await createRewardRecord(supabase, {
-          rootWallet: placementResult.rootWallet,
-          triggeringMemberWallet: newMemberWallet,
-          layer: placementResult.layer,
-          nftLevel: level,
-          rewardAmountUsdc: calculateRewardAmount(placementResult.layer, level)
-        });
-        
-        console.log(`✅ 奖励记录创建成功: Layer ${placementResult.layer}`);
-      } else {
-        console.log(`⏳ 奖励资格不满足: ${eligibilityCheck.reason}`);
-      }
-    }
-    
-  } catch (error) {
-    console.error('奖励触发系统错误:', error);
-  }
-}
-
-// 检查矩阵完成状态 - 修正版
-async function checkMatrixCompletion(supabase, parentWallet: string, rootWallet: string, layer: number) {
-  // 计算该层的总位置数: 3^layer
-  const maxPositions = Math.pow(3, layer);
-  
-  const { data: positions, count } = await supabase
-    .from('referrals')
-    .select('position', { count: 'exact' })
-    .eq('parent_wallet', parentWallet)
-    .eq('root_wallet', rootWallet)
-    .eq('layer', layer);
-    
-  const currentCount = count || 0;
-  const isComplete = currentCount >= maxPositions;
-  
-  console.log(`📊 矩阵检查: Layer ${layer}, 当前 ${currentCount}/${maxPositions}, 完成: ${isComplete}`);
-  
-  return {
-    isComplete,
-    currentCount,
-    maxPositions
-  };
-}
-
-// 检查奖励资格 - 包含Level 2特殊限制
-async function checkRewardEligibility(supabase, memberWallet: string, layer: number) {
-  try {
-    // 获取成员数据
-    const { data: memberData } = await supabase
-      .from('members')
-      .select('current_level')
-      .eq('wallet_address', memberWallet)
-      .single();
-      
-    if (!memberData) {
-      return {
-        isEligible: false,
-        reason: '成员数据不存在'
-      };
-    }
-    
-    // 计算直接推荐数量
-    const { count: directReferrals } = await supabase
-      .from('referrals')
-      .select('*', { count: 'exact' })
-      .eq('referrer_wallet', memberWallet);
-    const memberLevel = memberData.current_level || 0;
-    
-    // 基本要求：必须有NFT等级才能获得奖励
-    if (memberLevel < 1) {
-      return {
-        isEligible: false,
-        reason: '成员未激活或无NFT等级'
-      };
-    }
-    
-    // Layer 1 Right slot (位置3) 特殊限制：需要Level 2
-    if (layer === 1) {
-      // 这里需要检查具体位置，但简化处理，假设Layer 1都需要Level 2
-      if (memberLevel < 2) {
-        return {
-          isEligible: false,
-          reason: 'Layer 1奖励需要升级到Level 2'
-        };
-      }
-    }
-    
-    // Level 2升级的特殊限制：需要3个直推
-    if (memberLevel === 1 && directReferrals < 3) {
-      return {
-        isEligible: false,
-        reason: `Level 2需要3个直推，当前只有 ${directReferrals} 个`
-      };
-    }
-    
-    // 奖励资格：根用户必须持有≥该层级的NFT
-    // 这里简化处理，实际应该检查triggering member的level
-    
-    return {
-      isEligible: true,
-      directReferrals,
-      memberLevel
-    };
-    
-  } catch (error) {
-    return {
-      isEligible: false,
-      reason: `资格检查错误: ${error.message}`
-    };
-  }
-}
-
-// 创建奖励记录
-async function createRewardRecord(supabase, rewardData: any) {
-  const expiresAt = new Date();
-  expiresAt.setHours(expiresAt.getHours() + 72);
-  
-  const { error } = await supabase
-    .from('reward_claims')
-    .insert({
-      root_wallet: rewardData.rootWallet,
-      triggering_member_wallet: rewardData.triggeringMemberWallet,
-      layer: rewardData.layer,
-      nft_level: rewardData.nftLevel,
-      reward_amount_usdc: rewardData.rewardAmountUsdc,
-      status: 'pending',
-      expires_at: expiresAt.toISOString(),
-      metadata: {
-        trigger_type: 'matrix_completion',
-        layer_completed: rewardData.layer
-      }
-    });
-    
-  if (error) {
-    throw new Error(`创建奖励记录失败: ${error.message}`);
-  }
-}
-
-// 计算奖励金额 - 基于NFT价格
-function calculateRewardAmount(layer: number, nftLevel: number): number {
-  // Layer Reward = 该层级的NFT价格
-  // Level 1: 100 USDC, Level 2: 150 USDC, Level 3: 200 USDC...
-  // 每级增加50 USDC，最高Level 19: 1000 USDC
-  
-  let nftPrice: number;
-  if (nftLevel === 1) {
-    nftPrice = 100; // Level 1特殊价格
-  } else if (nftLevel <= 19) {
-    nftPrice = 100 + (nftLevel - 1) * 50; // Level 2-19: 150, 200, 250...1000
-  } else {
-    nftPrice = 1000; // 超过Level 19的固定价格
-  }
-  
-  console.log(`💰 奖励计算: Layer ${layer}, NFT Level ${nftLevel} = ${nftPrice} USDC`);
-  
-  return nftPrice;
-}
+// Note: Matrix placement and reward logic now handled by activate_nft_level1_membership() database function
