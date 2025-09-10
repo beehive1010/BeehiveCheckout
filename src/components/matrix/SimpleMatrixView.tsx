@@ -12,20 +12,30 @@ interface SimpleMatrixViewProps {
 const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, rootUser }) => {
   const [currentLayer, setCurrentLayer] = useState(1);
 
-  // Mock data structure - replace with real API data later
-  const mockLayersData = {
-    1: {
-      left: [
-        { walletAddress: '0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab', username: 'User1', level: 1, isActive: true },
-      ],
-      middle: [
-        { walletAddress: '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0', username: 'Admin', level: 1, isActive: true },
-      ],
-      right: []
-    },
-    2: { left: [], middle: [], right: [] },
-    3: { left: [], middle: [], right: [] }
+  // Create mock data for all 19 layers
+  const createMockLayerData = () => {
+    const data: any = {};
+    for (let i = 1; i <= 19; i++) {
+      if (i === 1) {
+        // Layer 1 has some members
+        data[i] = {
+          left: [
+            { walletAddress: '0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab', username: 'User1', level: 1, isActive: true },
+          ],
+          middle: [
+            { walletAddress: '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0', username: 'Admin', level: 1, isActive: true },
+          ],
+          right: []
+        };
+      } else {
+        // Other layers are empty for now
+        data[i] = { left: [], middle: [], right: [] };
+      }
+    }
+    return data;
   };
+
+  const mockLayersData = createMockLayerData();
 
   const currentData = mockLayersData[currentLayer as keyof typeof mockLayersData] || { left: [], middle: [], right: [] };
 
@@ -66,32 +76,70 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
       
       <CardContent className="space-y-6">
         {/* Layer Navigation */}
-        <div className="flex items-center justify-between">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentLayer(Math.max(1, currentLayer - 1))}
-            disabled={currentLayer <= 1}
-            className="border-honey/30 text-honey hover:bg-honey hover:text-black"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Previous Layer
-          </Button>
-          
-          <Badge variant="outline" className="text-lg px-4 py-2">
-            Layer {currentLayer}
-          </Badge>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentLayer(Math.min(19, currentLayer + 1))}
-            disabled={currentLayer >= 19}
-            className="border-honey/30 text-honey hover:bg-honey hover:text-black"
-          >
-            Next Layer
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentLayer(Math.max(1, currentLayer - 1))}
+              disabled={currentLayer <= 1}
+              className="border-honey/30 text-honey hover:bg-honey hover:text-black"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </Button>
+            
+            <div className="text-center">
+              <Badge variant="outline" className="text-lg px-4 py-2">
+                Layer {currentLayer} / 19
+              </Badge>
+              <div className="text-xs text-muted-foreground mt-1">
+                Max capacity: {Math.pow(3, currentLayer)} positions
+              </div>
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentLayer(Math.min(19, currentLayer + 1))}
+              disabled={currentLayer >= 19}
+              className="border-honey/30 text-honey hover:bg-honey hover:text-black"
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Layer Quick Navigation */}
+          <div className="flex flex-wrap justify-center gap-1">
+            {Array.from({ length: 19 }, (_, i) => {
+              const layerNum = i + 1;
+              const isActive = layerNum === currentLayer;
+              const layerData = mockLayersData[layerNum];
+              const memberCount = (layerData?.left?.length || 0) + (layerData?.middle?.length || 0) + (layerData?.right?.length || 0);
+              
+              return (
+                <Button
+                  key={layerNum}
+                  variant={isActive ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setCurrentLayer(layerNum)}
+                  className={`h-8 w-10 text-xs ${
+                    isActive 
+                      ? 'bg-honey text-black' 
+                      : memberCount > 0 
+                        ? 'border-honey/30 text-honey hover:bg-honey/20' 
+                        : 'border-muted text-muted-foreground'
+                  }`}
+                >
+                  {layerNum}
+                  {memberCount > 0 && (
+                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full" />
+                  )}
+                </Button>
+              );
+            })}
+          </div>
         </div>
 
         {/* L-M-R Matrix Display */}
