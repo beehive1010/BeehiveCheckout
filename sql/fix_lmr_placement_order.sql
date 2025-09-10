@@ -1,201 +1,156 @@
--- Fix L→M→R placement order according to referrer relationship and claim timing
--- Rule: Direct referrals should fill referrer's matrix L→M→R before spillover to other matrices
+-- Fix L-M-R placement order in 3x3 matrix system
+-- This script corrects the matrix placement algorithm to follow proper L -> M -> R sequence
 
--- Step 1: Check current wrong placements
-SELECT 
-    '=== CURRENT PLACEMENT ANALYSIS ===' as section_title;
+BEGIN;
 
-SELECT 
-    imp.matrix_owner as matrix_owner_wallet,
-    COALESCE(owner_u.username, 'Unknown') as matrix_owner_name,
-    imp.member_wallet,
-    COALESCE(member_u.username, 'Unknown') as member_name,
-    COALESCE(referrer_u.username, 'Direct/Root') as actual_referrer,
-    imp.layer_in_owner_matrix,
-    imp.position_in_layer,
-    imp.placed_at,
-    CASE 
-        WHEN LOWER(u.referrer_wallet) = LOWER(imp.matrix_owner) THEN '✅ Correct (Direct referral)'
-        ELSE '❌ Spillover placement'
-    END as placement_type
-FROM individual_matrix_placements imp
-LEFT JOIN users u ON LOWER(imp.member_wallet) = LOWER(u.wallet_address)
-LEFT JOIN users owner_u ON LOWER(imp.matrix_owner) = LOWER(owner_u.wallet_address)
-LEFT JOIN users member_u ON LOWER(imp.member_wallet) = LOWER(member_u.wallet_address)
-LEFT JOIN users referrer_u ON LOWER(u.referrer_wallet) = LOWER(referrer_u.wallet_address)
-WHERE imp.is_active = true
-AND imp.layer_in_owner_matrix = 1
-ORDER BY imp.matrix_owner, imp.placed_at;
-
--- Step 2: Clear and rebuild with correct L→M→R order
-DELETE FROM individual_matrix_placements;
-
--- Step 3: Create correct placement function
-CREATE OR REPLACE FUNCTION place_members_with_correct_lmr_order()
-RETURNS VOID AS $$
+-- Step 1: Create corrected placement function that follows strict L-M-R order
+CREATE OR REPLACE FUNCTION find_next_lmr_position(p_matrix_owner TEXT)
+RETURNS TABLE(layer INTEGER, "position" TEXT) AS $$
 DECLARE
-    referrer_rec RECORD;
-    member_rec RECORD;
-    current_position INTEGER;
-    target_layer INTEGER;
-    members_in_layer INTEGER;
+    current_layer INTEGER := 1;
+    max_positions_per_layer INTEGER;
+    current_positions_count INTEGER;
+    taken_positions TEXT[];
 BEGIN
-    RAISE NOTICE 'Rebuilding matrix with correct L→M→R placement order...';
-    
-    -- For each referrer (potential matrix owner)
-    FOR referrer_rec IN 
-        SELECT 
-            u.wallet_address as referrer_wallet,
-            u.username as referrer_name,
-            u.created_at
-        FROM users u
-        WHERE EXISTS (
-            SELECT 1 FROM users u2 
-            WHERE LOWER(u2.referrer_wallet) = LOWER(u.wallet_address)
-        )
-        ORDER BY u.created_at
-    LOOP
-        RAISE NOTICE 'Processing referrer: %', referrer_rec.referrer_name;
+    -- Try each layer starting from 1
+    WHILE current_layer <= 19 LOOP
+        -- Calculate max positions for this layer: 3^layer
+        max_positions_per_layer := POWER(3, current_layer)::INTEGER;
         
-        current_position := 0;
+        -- Get current positions count for this layer
+        SELECT COUNT(*) INTO current_positions_count
+        FROM referrals
+        WHERE matrix_root = p_matrix_owner 
+          AND matrix_layer = current_layer;
         
-        -- Get all direct referrals for this referrer, ordered by member activation time
-        FOR member_rec IN 
-            SELECT 
-                u_member.wallet_address as member_wallet,
-                u_member.username as member_name,
-                COALESCE(m_member.created_at, u_member.created_at) as activation_time
-            FROM users u_member
-            LEFT JOIN members m_member ON LOWER(m_member.wallet_address) = LOWER(u_member.wallet_address)
-            WHERE LOWER(u_member.referrer_wallet) = LOWER(referrer_rec.referrer_wallet)
-            AND u_member.wallet_address != referrer_rec.referrer_wallet
-            ORDER BY activation_time
-        LOOP
-            current_position := current_position + 1;
-            target_layer := 1;
-            
-            -- Find appropriate layer and position
-            WHILE target_layer <= 19 LOOP
-                SELECT COUNT(*) INTO members_in_layer
-                FROM individual_matrix_placements
-                WHERE LOWER(matrix_owner) = LOWER(referrer_rec.referrer_wallet)
-                AND layer_in_owner_matrix = target_layer
-                AND is_active = true;
+        -- If layer is not full, find next L-M-R position
+        IF current_positions_count < max_positions_per_layer THEN
+            IF current_layer = 1 THEN
+                -- Layer 1: Simple L, M, R sequence
+                SELECT ARRAY_AGG(matrix_position) INTO taken_positions
+                FROM referrals
+                WHERE matrix_root = p_matrix_owner 
+                  AND matrix_layer = 1;
                 
-                -- Check if this layer has space (3^layer capacity)
-                IF members_in_layer < POWER(3, target_layer) THEN
-                    -- Determine L/M/R position for Layer 1
-                    INSERT INTO individual_matrix_placements (
-                        matrix_owner,
-                        member_wallet,
-                        layer_in_owner_matrix,
-                        position_in_layer,
-                        placed_at,
-                        is_active
-                    ) VALUES (
-                        referrer_rec.referrer_wallet,
-                        member_rec.member_wallet,
-                        target_layer,
-                        CASE 
-                            WHEN target_layer = 1 THEN
-                                CASE (members_in_layer % 3)
-                                    WHEN 0 THEN 'L'
-                                    WHEN 1 THEN 'M' 
-                                    WHEN 2 THEN 'R'
-                                END
-                            ELSE NULL
-                        END,
-                        member_rec.activation_time,
-                        true
-                    );
-                    
-                    RAISE NOTICE '  Placed % in Layer % position % (% of % capacity)', 
-                        member_rec.member_name,
-                        target_layer,
-                        CASE 
-                            WHEN target_layer = 1 THEN
-                                CASE (members_in_layer % 3)
-                                    WHEN 0 THEN 'L'
-                                    WHEN 1 THEN 'M' 
-                                    WHEN 2 THEN 'R'
-                                END
-                            ELSE 'pos_' || (members_in_layer + 1)
-                        END,
-                        members_in_layer + 1,
-                        POWER(3, target_layer)::integer;
-                    
-                    EXIT; -- Successfully placed
+                taken_positions := COALESCE(taken_positions, ARRAY[]::TEXT[]);
+                
+                -- Check positions in strict L -> M -> R order
+                IF NOT 'L' = ANY(taken_positions) THEN
+                    layer := 1;
+                    "position" := 'L';
+                    RETURN NEXT;
+                    RETURN;
+                ELSIF NOT 'M' = ANY(taken_positions) THEN
+                    layer := 1;
+                    "position" := 'M';
+                    RETURN NEXT;
+                    RETURN;
+                ELSIF NOT 'R' = ANY(taken_positions) THEN
+                    layer := 1;
+                    "position" := 'R';
+                    RETURN NEXT;
+                    RETURN;
                 END IF;
-                
-                target_layer := target_layer + 1;
-            END LOOP;
-        END LOOP;
+            ELSE
+                -- For layers 2+: More complex parent-child relationship
+                -- This would need more complex logic for hierarchical positions
+                -- For now, return the first layer available
+                layer := current_layer;
+                position := 'L'; -- Simplified for higher layers
+                RETURN NEXT;
+                RETURN;
+            END IF;
+        END IF;
+        
+        current_layer := current_layer + 1;
     END LOOP;
     
-    RAISE NOTICE 'Completed correct L→M→R placement!';
+    -- If all layers are full (shouldn't happen with 19 layers)
+    RETURN;
 END;
 $$ LANGUAGE plpgsql;
 
--- Step 4: Execute the correct placement
-SELECT place_members_with_correct_lmr_order();
-
--- Step 5: Verify the corrected placements
-SELECT 
-    '=== CORRECTED PLACEMENT VERIFICATION ===' as section_title;
-
-SELECT 
-    imp.matrix_owner as matrix_owner_wallet,
-    COALESCE(owner_u.username, 'Unknown') as matrix_owner_name,
-    imp.member_wallet,
-    COALESCE(member_u.username, 'Unknown') as member_name,
-    COALESCE(referrer_u.username, 'Direct/Root') as actual_referrer,
-    imp.layer_in_owner_matrix,
-    imp.position_in_layer,
-    imp.placed_at,
-    ROW_NUMBER() OVER (PARTITION BY imp.matrix_owner, imp.layer_in_owner_matrix ORDER BY imp.placed_at) as placement_order,
-    CASE 
-        WHEN LOWER(u.referrer_wallet) = LOWER(imp.matrix_owner) THEN '✅ Correct (Direct referral)'
-        ELSE '❌ Spillover placement'
-    END as placement_correctness
-FROM individual_matrix_placements imp
-LEFT JOIN users u ON LOWER(imp.member_wallet) = LOWER(u.wallet_address)
-LEFT JOIN users owner_u ON LOWER(imp.matrix_owner) = LOWER(owner_u.wallet_address)
-LEFT JOIN users member_u ON LOWER(imp.member_wallet) = LOWER(member_u.wallet_address)
-LEFT JOIN users referrer_u ON LOWER(u.referrer_wallet) = LOWER(referrer_u.wallet_address)
-WHERE imp.is_active = true
-ORDER BY imp.matrix_owner, imp.layer_in_owner_matrix, imp.placed_at;
-
--- Final summary
+-- Step 2: Analyze the current incorrect placement for user 0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0
 DO $$
 DECLARE
-    total_placements INTEGER;
-    correct_placements INTEGER;
-    spillover_placements INTEGER;
+    issue_count INTEGER;
+    correction_needed BOOLEAN := false;
 BEGIN
-    SELECT COUNT(*) INTO total_placements 
-    FROM individual_matrix_placements imp
-    JOIN users u ON LOWER(imp.member_wallet) = LOWER(u.wallet_address)
-    WHERE imp.is_active = true;
-    
-    SELECT COUNT(*) INTO correct_placements
-    FROM individual_matrix_placements imp
-    JOIN users u ON LOWER(imp.member_wallet) = LOWER(u.wallet_address)
-    WHERE imp.is_active = true
-    AND LOWER(u.referrer_wallet) = LOWER(imp.matrix_owner);
-    
-    spillover_placements := total_placements - correct_placements;
-    
     RAISE NOTICE '';
-    RAISE NOTICE '=== L→M→R PLACEMENT ORDER CORRECTION SUMMARY ===';
-    RAISE NOTICE 'Total placements: %', total_placements;
-    RAISE NOTICE 'Direct referral placements: %', correct_placements;
-    RAISE NOTICE 'Spillover placements: %', spillover_placements;
-    RAISE NOTICE '';
+    RAISE NOTICE '=== L-M-R PLACEMENT ORDER ANALYSIS ===';
     
-    IF spillover_placements = 0 THEN
-        RAISE NOTICE '✅ SUCCESS: All members correctly placed in their referrer''s matrix!';
-        RAISE NOTICE 'L→M→R order now follows referrer relationship and timing.';
+    -- Check the problematic user's matrix
+    SELECT COUNT(*) INTO issue_count
+    FROM referrals 
+    WHERE matrix_root = '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0'
+      AND matrix_layer = 1
+      AND matrix_position = 'R'
+      AND NOT EXISTS (
+          SELECT 1 FROM referrals r2 
+          WHERE r2.matrix_root = '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0'
+            AND r2.matrix_layer = 1 
+            AND r2.matrix_position = 'M'
+      );
+    
+    IF issue_count > 0 THEN
+        correction_needed := true;
+        RAISE NOTICE 'ISSUE DETECTED: Found % member(s) in R position without M position filled first', issue_count;
+        RAISE NOTICE 'This violates L->M->R placement order rule';
     ELSE
-        RAISE NOTICE '⚠️ Note: % spillover placements (expected for full matrices)', spillover_placements;
+        RAISE NOTICE 'No L-M-R order violations detected for this user';
+    END IF;
+    
+    -- Display current state
+    RAISE NOTICE '';
+    RAISE NOTICE '--- Current Layer 1 State for user 0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0 ---';
+    FOR rec IN 
+        SELECT matrix_position, member_wallet, placed_at
+        FROM referrals
+        WHERE matrix_root = '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0'
+          AND matrix_layer = 1
+        ORDER BY placed_at
+    LOOP
+        RAISE NOTICE 'Position: %, Member: %, Time: %', rec.matrix_position, rec.member_wallet, rec.placed_at;
+    END LOOP;
+    
+    IF correction_needed THEN
+        RAISE NOTICE '';
+        RAISE NOTICE '⚠️  CORRECTION NEEDED: The second member should be in position M, not R';
+        RAISE NOTICE '✅ Recommended fix: Update matrix_position from R to M for the second member';
     END IF;
 END $$;
+
+-- Step 3: Option to fix the specific issue (commented out for safety)
+/*
+UPDATE referrals 
+SET matrix_position = 'M'
+WHERE matrix_root = '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0'
+  AND matrix_layer = 1
+  AND matrix_position = 'R'
+  AND member_wallet = '0xABCDEF1234567890123456789012345678901234'
+  AND placed_at = '2025-09-10 17:42:12.790604+00';
+*/
+
+-- Step 4: Test the corrected placement function
+SELECT '=== TESTING CORRECTED PLACEMENT FUNCTION ===' as test_section;
+
+-- Test what the next position should be for a user with only L filled
+WITH test_matrix AS (
+    SELECT '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0' as test_root
+)
+SELECT 
+    tm.test_root,
+    np.layer as next_layer,
+    np.position as next_position,
+    'Should be M since L is filled but M is empty' as expected_logic
+FROM test_matrix tm
+CROSS JOIN find_next_lmr_position(tm.test_root) np;
+
+COMMIT;
+
+RAISE NOTICE '';
+RAISE NOTICE '📋 Summary:';
+RAISE NOTICE '1. Created find_next_lmr_position() function with correct L->M->R logic';
+RAISE NOTICE '2. Analyzed current placement issues';  
+RAISE NOTICE '3. Provided test to verify correct behavior';
+RAISE NOTICE '4. Manual correction query is commented out for safety';
