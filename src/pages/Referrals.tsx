@@ -86,7 +86,7 @@ export default function Referrals() {
         <TabsContent value="matrix" className="space-y-6">
           <ReferralMatrixVisualization 
             rootWallet={walletAddress || ''}
-            maxLayers={5}
+            maxLayers={19}
           />
         </TabsContent>
 
