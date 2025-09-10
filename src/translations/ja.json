@@ -562,6 +562,16 @@
       "yourPosition": "あなたのポジション",
       "available": "利用可能",
       "occupied": "占有済み"
+    },
+    "matrixSystem": {
+      "title": "3×3マトリックスネットワーク",
+      "matrixTree": "3×3マトリックスツリー",
+      "enhancedMatrixTree": "拡張3×3マトリックスツリー",
+      "layer": "レイヤー",
+      "layers": "L1-L19",
+      "matrixInformation": "マトリックス情報",
+      "yourMatrixTree": "あなたの3×3マトリックスツリー",
+      "matrixNetworkLayer": "3×3マトリックスネットワーク - レイヤー{{layer}}"
     }
   },
   "hiveworld": {

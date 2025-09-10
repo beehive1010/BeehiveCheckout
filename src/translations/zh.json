@@ -439,6 +439,16 @@
       "yourPosition": "您的位置",
       "available": "可用",
       "occupied": "已占用"
+    },
+    "matrixSystem": {
+      "title": "3×3矩阵网络",
+      "matrixTree": "3×3矩阵树",
+      "enhancedMatrixTree": "增强版3×3矩阵树",
+      "layer": "层级",
+      "layers": "L1-L19",
+      "matrixInformation": "矩阵信息",
+      "yourMatrixTree": "您的3×3矩阵树",
+      "matrixNetworkLayer": "3×3矩阵网络 - 第{{layer}}层"
     }
   },
   "nft": {
