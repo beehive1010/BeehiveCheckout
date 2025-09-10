@@ -34,7 +34,7 @@ serve(async (req) => {
 
     const { action, rewardId, walletAddress, level } = await req.json() as RewardProcessingRequest
 
-    console.log(`< Reward Processing Action: ${action}`)
+    console.log(`<ï¿½ Reward Processing Action: ${action}`)
 
     let response: RewardProcessingResponse
 
@@ -85,12 +85,12 @@ serve(async (req) => {
 
 // Claim a specific reward
 async function claimReward(supabase: any, rewardId: string, walletAddress: string): Promise<RewardProcessingResponse> {
-  console.log(`=° Claiming reward: ${rewardId} for ${walletAddress}`)
+  console.log(`=ï¿½ Claiming reward: ${rewardId} for ${walletAddress}`)
 
   try {
     // 1. Get reward details and verify ownership
     const { data: reward, error: rewardError } = await supabase
-      .from('layer_reward_claims')
+      .from('reward_claims')
       .select('*')
       .eq('id', rewardId)
       .eq('root_wallet', walletAddress.toLowerCase())
@@ -169,7 +169,7 @@ async function claimReward(supabase: any, rewardId: string, walletAddress: strin
 
 // Process expired rewards and handle rollups
 async function processExpiredRewards(supabase: any): Promise<RewardProcessingResponse> {
-  console.log('ð Processing expired rewards...')
+  console.log('ï¿½ Processing expired rewards...')
 
   try {
     // Get all expired pending/claimable rewards
@@ -191,7 +191,7 @@ async function processExpiredRewards(supabase: any): Promise<RewardProcessingRes
       }
     }
 
-    console.log(`=Ë Found ${expiredRewards.length} expired rewards`)
+    console.log(`=ï¿½ Found ${expiredRewards.length} expired rewards`)
 
     let rewardsRolledUp = 0
     let rewardsExpired = 0
@@ -354,7 +354,7 @@ async function rollupExpiredRewards(supabase: any, walletAddress?: string): Prom
 
 // Process a single expired reward (rollup or forfeit)
 async function processExpiredReward(supabase: any, reward: any): Promise<{rolledUp: boolean}> {
-  console.log(`¡ Processing expired reward: ${reward.id}`)
+  console.log(`ï¿½ Processing expired reward: ${reward.id}`)
 
   try {
     // Find next qualified upline member
@@ -404,7 +404,7 @@ async function processExpiredReward(supabase: any, reward: any): Promise<{rolled
       return { rolledUp: true }
 
     } else {
-      console.log(`=¸ No qualified upline found, forfeiting reward`)
+      console.log(`=ï¿½ No qualified upline found, forfeiting reward`)
 
       // Mark as forfeited
       await supabase
@@ -493,7 +493,7 @@ async function findNextQualifiedUpline(supabase: any, currentRoot: string, requi
 
 // Update user USDC balance
 async function updateUserUSDCBalance(supabase: any, walletAddress: string, amount: number): Promise<void> {
-  console.log(`=° Adding ${amount} USDC to ${walletAddress}`)
+  console.log(`=ï¿½ Adding ${amount} USDC to ${walletAddress}`)
 
   try {
     // Get current balance
