@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import UserProfileCard from '../components/shared/UserProfileCard';
 import { UsersIcon, ShareIcon, TrophyIcon } from '@heroicons/react/24/outline';
 import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
-import ReferralMatrixVisualization from '../components/referrals/ReferralMatrixVisualization';
+import DrillDownMatrixView from '../components/matrix/DrillDownMatrixView';
 import { Link } from 'wouter';
 import styles from '../styles/referrals/referrals.module.css';
 
@@ -84,9 +84,9 @@ export default function Referrals() {
 
         {/* Matrix Visualization Tab */}
         <TabsContent value="matrix" className="space-y-6">
-          <ReferralMatrixVisualization 
-            rootWallet={walletAddress || ''}
-            maxLayers={19}
+          <DrillDownMatrixView 
+            rootWalletAddress={walletAddress || ''}
+            rootUser={{username: userData?.username, currentLevel: userData?.currentLevel}}
           />
         </TabsContent>
 

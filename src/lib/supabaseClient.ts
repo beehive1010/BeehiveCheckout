@@ -683,11 +683,54 @@ export const rewardService = {
 
 // === BALANCE MANAGEMENT ===
 export const balanceService = {
-  // Get user balance using Edge Function
+  // Get user balance using direct database queries for real data
   async getUserBalance(walletAddress: string) {
-    return callEdgeFunction('balance', {
-      action: 'get-balance',
-    }, walletAddress);
+    try {
+      console.log('🔍 Getting balance for wallet:', walletAddress);
+      
+      // Get user balance from user_balances table
+      const { data: balanceData, error: balanceError } = await supabase
+        .from('user_balances')
+        .select('*')
+        .ilike('wallet_address', walletAddress)
+        .single();
+
+      if (balanceError && balanceError.code !== 'PGRST116') {
+        console.error('❌ Error fetching balance:', balanceError);
+        throw balanceError;
+      }
+
+      console.log('💰 Raw balance data:', balanceData);
+
+      // If no balance record exists, create default one or return defaults
+      if (!balanceData) {
+        console.log('📝 No balance record found, returning defaults');
+        return {
+          success: true,
+          data: {
+            wallet_address: walletAddress,
+            bcc_transferable: 0,
+            bcc_locked: 0,
+            bcc_total: 0,
+            usdc_claimable: 0,
+            usdc_total_earned: 0,
+            last_updated: new Date().toISOString()
+          }
+        };
+      }
+
+      return {
+        success: true,
+        data: balanceData
+      };
+    } catch (error) {
+      console.error('❌ Failed to get user balance:', error);
+      return {
+        success: false,
+        error,
+        data: null
+      };
+    }
   },
 
   // Get balance breakdown using Edge Function

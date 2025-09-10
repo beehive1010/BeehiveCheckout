@@ -128,7 +128,7 @@ const ComprehensiveMemberDashboard: React.FC = () => {
         .from('members')
         .select('current_level, levels_owned, activation_rank, tier_level')
         .eq('wallet_address', walletAddress!)
-        .single();
+        .maybeSingle();
 
       if (memberError) {
         console.error('Member data error:', memberError);
@@ -167,7 +167,7 @@ const ComprehensiveMemberDashboard: React.FC = () => {
         .from('user_balances')
         .select('bcc_transferable, bcc_restricted, bcc_locked, total_usdt_earned')
         .eq('wallet_address', walletAddress!)
-        .single();
+        .maybeSingle();
 
       if (balanceError) {
         console.error('Balance data error:', balanceError);
