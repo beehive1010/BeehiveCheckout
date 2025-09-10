@@ -243,7 +243,7 @@ class AutomatedWithdrawalProcessor {
           webhookUrl: config.webhookUrl
         };
 
-        let confirmationProgress = 85;
+        const confirmationProgress = 85;
         
         await transactionMonitor.startMonitoring(
           monitoringConfig,

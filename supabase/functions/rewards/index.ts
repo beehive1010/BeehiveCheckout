@@ -93,6 +93,8 @@ serve(async (req) => {
         return await getRewardTimers(req, supabaseClient);
       case 'update-reward-status':
         return await updateRewardStatus(req, supabaseClient);
+      case 'process-level-activation-rewards':
+        return await processLevelActivationRewards(req, supabaseClient);
       default:
         return new Response(JSON.stringify({
           success: false,
@@ -1041,5 +1043,213 @@ async function getDashboardActivity(req, supabaseClient) {
       },
       status: 500
     });
+  }
+}
+
+// NEW: Process Level Activation Rewards - Core Business Logic
+async function processLevelActivationRewards(req, supabaseClient) {
+  const requestData = req.parsedBody || {};
+  const { memberWallet, activatedLevel, rootWallet } = requestData;
+
+  if (!memberWallet || !activatedLevel) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'memberWallet and activatedLevel required'
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      },
+      status: 400
+    });
+  }
+
+  try {
+    console.log(`🎁 Processing Level ${activatedLevel} NFT activation rewards for ${memberWallet}`);
+
+    // CORE BUSINESS RULE: Layer X rewards only trigger when Level X NFT is activated
+    // Find all positions where this member is placed that match the activated level
+    const { data: memberPositions, error: positionError } = await supabaseClient
+      .from('referrals')
+      .select(`
+        member_wallet,
+        matrix_root,
+        matrix_layer,
+        matrix_position,
+        referrer_wallet
+      `)
+      .eq('member_wallet', memberWallet);
+
+    if (positionError) {
+      throw new Error(`Failed to fetch member positions: ${positionError.message}`);
+    }
+
+    console.log(`📍 Found ${memberPositions?.length || 0} matrix positions for member`);
+
+    const rewardsCreated = [];
+
+    // Process rewards for each position where Layer = Activated Level
+    for (const position of memberPositions || []) {
+      // KEY RULE: Only create Layer X reward when Level X NFT is activated
+      if (position.matrix_layer === activatedLevel) {
+        console.log(`✅ Creating Layer ${position.matrix_layer} reward for Level ${activatedLevel} NFT activation`);
+        
+        // Get matrix root's member data to check qualification
+        const { data: rootMemberData } = await supabaseClient
+          .from('members')
+          .select('current_level')
+          .eq('wallet_address', position.matrix_root)
+          .single();
+
+        // Calculate reward amount based on NFT level price
+        const rewardAmount = calculateNFTLevelReward(activatedLevel);
+        
+        // Determine reward status based on business rules
+        let rewardStatus = 'pending';
+        let rewardRule = 'Matrix root must own >= NFT level being activated';
+        
+        // Check if matrix root qualifies for immediate claimability
+        const rootLevel = rootMemberData?.current_level || 0;
+        
+        if (position.matrix_layer === 1 && position.matrix_position === 'R') {
+          // Special rule: Layer 1 R position requires Level 2+
+          rewardStatus = rootLevel >= 2 ? 'claimable' : 'pending';
+          rewardRule = 'Layer 1 R position requires Level 2+ matrix root';
+        } else {
+          // General rule: Root must own >= activated level
+          rewardStatus = rootLevel >= activatedLevel ? 'claimable' : 'pending';
+        }
+
+        // Create reward record
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 72);
+
+        const { data: newReward, error: rewardError } = await supabaseClient
+          .from('reward_claims')
+          .insert({
+            root_wallet: position.matrix_root,
+            triggering_member_wallet: memberWallet,
+            layer: position.matrix_layer,
+            nft_level: activatedLevel,
+            reward_amount_usdc: rewardAmount,
+            status: rewardStatus,
+            expires_at: expiresAt.toISOString(),
+            metadata: {
+              reward_type: 'Layer Reward',
+              matrix_layer: position.matrix_layer,
+              matrix_position: position.matrix_position,
+              nft_level_activated: activatedLevel,
+              matrix_root_level: rootLevel,
+              reward_rule: rewardRule,
+              activation_scenario: `Member activated Level ${activatedLevel} NFT in Layer ${position.matrix_layer}`
+            }
+          })
+          .select()
+          .single();
+
+        if (rewardError) {
+          console.error(`❌ Failed to create reward:`, rewardError);
+        } else {
+          rewardsCreated.push(newReward);
+          console.log(`✅ Created Layer ${position.matrix_layer} reward: ${rewardAmount} USDC (${rewardStatus})`);
+        }
+      } else {
+        console.log(`⏩ Skipping Layer ${position.matrix_layer} - doesn't match Level ${activatedLevel} NFT activation`);
+      }
+    }
+
+    // Update user reward balances
+    if (rewardsCreated.length > 0) {
+      await updateUserRewardBalances(supabaseClient, rewardsCreated);
+    }
+
+    return new Response(JSON.stringify({
+      success: true,
+      message: `Level ${activatedLevel} NFT activation processed`,
+      data: {
+        activated_level: activatedLevel,
+        rewards_created: rewardsCreated.length,
+        rewards: rewardsCreated.map(r => ({
+          root_wallet: r.root_wallet,
+          layer: r.layer,
+          amount_usdc: r.reward_amount_usdc,
+          status: r.status
+        }))
+      }
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
+
+  } catch (error) {
+    console.error('Process level activation rewards error:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Failed to process level activation rewards',
+      details: error.message
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      },
+      status: 500
+    });
+  }
+}
+
+// Calculate NFT Level reward amount based on pricing structure
+function calculateNFTLevelReward(nftLevel) {
+  if (nftLevel === 1) {
+    return 100.00; // Level 1 special price
+  } else if (nftLevel <= 19) {
+    return 100 + (nftLevel - 1) * 50; // Level 2-19: 150, 200, 250...1000
+  } else {
+    return 1000; // Max price for Level 19+
+  }
+}
+
+// Update user reward balances after creating new rewards
+async function updateUserRewardBalances(supabaseClient, newRewards) {
+  try {
+    // Group rewards by root_wallet
+    const rewardsByRoot = newRewards.reduce((acc, reward) => {
+      const root = reward.root_wallet;
+      if (!acc[root]) {
+        acc[root] = { claimable: 0, pending: 0 };
+      }
+      
+      if (reward.status === 'claimable') {
+        acc[root].claimable += parseFloat(reward.reward_amount_usdc);
+      } else if (reward.status === 'pending') {
+        acc[root].pending += parseFloat(reward.reward_amount_usdc);
+      }
+      
+      return acc;
+    }, {});
+
+    // Update each user's balance
+    for (const [rootWallet, amounts] of Object.entries(rewardsByRoot)) {
+      const { error } = await supabaseClient
+        .from('user_reward_balances')
+        .upsert({
+          wallet_address: rootWallet,
+          usdc_claimable: amounts.claimable,
+          usdc_pending: amounts.pending,
+          usdc_claimed: 0
+        }, { 
+          onConflict: 'wallet_address',
+          ignoreDuplicates: false 
+        });
+
+      if (error) {
+        console.error(`❌ Failed to update balance for ${rootWallet}:`, error);
+      } else {
+        console.log(`✅ Updated reward balance: ${rootWallet} (+${amounts.claimable} claimable, +${amounts.pending} pending)`);
+      }
+    }
+  } catch (error) {
+    console.error('Update user reward balances error:', error);
   }
 }

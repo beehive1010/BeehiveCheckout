@@ -23,9 +23,15 @@
     "audit:functions": "psql \"postgresql://postgres:bee8881941@db.cvqibjcbfrwsgkvthccp.supabase.co:5432/postgres\" -f sql/audit_functions.sql",
     "audit:rls": "psql \"postgresql://postgres:bee8881941@db.cvqibjcbfrwsgkvthccp.supabase.co:5432/postgres\" -f sql/rls_test_matrix.sql",
     "audit:patches": "psql \"postgresql://postgres:bee8881941@db.cvqibjcbfrwsgkvthccp.supabase.co:5432/postgres\" -f sql/security_patches.sql",
+    "fix:referrals": "psql \"postgresql://postgres:bee8881941@db.cvqibjcbfrwsgkvthccp.supabase.co:5432/postgres\" -f sql/fix_referrals_policy.sql",
+    "fix:recording": "psql \"postgresql://postgres:bee8881941@db.cvqibjcbfrwsgkvthccp.supabase.co:5432/postgres\" -f sql/fix_referrals_insert_policies.sql",
     "audit:help": "echo '📖 Audit Help: Open sql/ files in Supabase Dashboard SQL Editor to run audits' && echo '📋 Quick Start: cat AUDIT_QUICK_START.md'",
     "install:psql": "./scripts/install-psql.sh",
-    "debug:edge": "./scripts/debug-edge.sh"
+    "debug:edge": "./scripts/debug-edge.sh",
+    "ipv4:status": "./scripts/supabase-ipv4-management.sh status",
+    "ipv4:enable": "./scripts/supabase-ipv4-management.sh enable",
+    "ipv4:disable": "./scripts/supabase-ipv4-management.sh disable",
+    "ipv4:info": "./scripts/supabase-ipv4-management.sh info"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

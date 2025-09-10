@@ -54,7 +54,7 @@ export default function DemoPaymentButton({
         },
       });
 
-      let isUserRegistered = userCheckResponse.ok;
+      const isUserRegistered = userCheckResponse.ok;
       
       if (!isUserRegistered) {
         console.log('📝 Registering user for demo...');

@@ -16,31 +16,79 @@ export type Database = {
     Tables: {
       admin_actions: {
         Row: {
-          action_data: Json | null
           action_type: string
+          activated_at: string | null
+          activation_rank: number
+          activation_tier: number | null
           admin_wallet: string
+          bcc_locked_amount: number | null
+          claim_status: string
+          claim_transaction_hash: string | null
+          claimed_at: string | null
           created_at: string | null
+          expires_at: string | null
           id: string
-          reason: string | null
+          member_created: boolean | null
+          member_created_at: string | null
+          metadata: Json | null
+          nft_level: number
+          nft_verified: boolean | null
+          payment_verified: boolean | null
+          platform_activation_fee: number | null
+          profile_completed: boolean | null
           target_wallet: string | null
+          tier_multiplier: number | null
+          updated_at: string | null
         }
         Insert: {
-          action_data?: Json | null
           action_type: string
+          activated_at?: string | null
+          activation_rank?: number
+          activation_tier?: number | null
           admin_wallet: string
+          bcc_locked_amount?: number | null
+          claim_status?: string
+          claim_transaction_hash?: string | null
+          claimed_at?: string | null
           created_at?: string | null
+          expires_at?: string | null
           id?: string
-          reason?: string | null
+          member_created?: boolean | null
+          member_created_at?: string | null
+          metadata?: Json | null
+          nft_level?: number
+          nft_verified?: boolean | null
+          payment_verified?: boolean | null
+          platform_activation_fee?: number | null
+          profile_completed?: boolean | null
           target_wallet?: string | null
+          tier_multiplier?: number | null
+          updated_at?: string | null
         }
         Update: {
-          action_data?: Json | null
           action_type?: string
+          activated_at?: string | null
+          activation_rank?: number
+          activation_tier?: number | null
           admin_wallet?: string
+          bcc_locked_amount?: number | null
+          claim_status?: string
+          claim_transaction_hash?: string | null
+          claimed_at?: string | null
           created_at?: string | null
+          expires_at?: string | null
           id?: string
-          reason?: string | null
+          member_created?: boolean | null
+          member_created_at?: string | null
+          metadata?: Json | null
+          nft_level?: number
+          nft_verified?: boolean | null
+          payment_verified?: boolean | null
+          platform_activation_fee?: number | null
+          profile_completed?: boolean | null
           target_wallet?: string | null
+          tier_multiplier?: number | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -56,6 +104,55 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "admin_actions_target_wallet_fkey"
+            columns: ["target_wallet"]
+            isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "admin_actions_target_wallet_fkey"
+            columns: ["target_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "admin_actions_target_wallet_fkey"
+            columns: ["target_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "admin_actions_target_wallet_fkey"
+            columns: ["target_wallet"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "admin_actions_target_wallet_fkey"
+            columns: ["target_wallet"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "admin_actions_target_wallet_fkey"
+            columns: ["target_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "admin_actions_target_wallet_fkey"
+            columns: ["target_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
           },
           {
             foreignKeyName: "admin_actions_target_wallet_fkey"
@@ -571,6 +668,55 @@ export type Database = {
             foreignKeyName: "countdown_timers_wallet_address_fkey"
             columns: ["wallet_address"]
             isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "countdown_timers_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "countdown_timers_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "countdown_timers_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "countdown_timers_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "countdown_timers_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "countdown_timers_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "countdown_timers_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
             referencedRelation: "members"
             referencedColumns: ["wallet_address"]
           },
@@ -905,6 +1051,65 @@ export type Database = {
         }
         Relationships: []
       }
+      individual_matrix_placements: {
+        Row: {
+          id: string
+          is_active: boolean | null
+          layer_in_owner_matrix: number
+          matrix_owner: string
+          member_wallet: string
+          placed_at: string | null
+          position_in_layer: string | null
+        }
+        Insert: {
+          id?: string
+          is_active?: boolean | null
+          layer_in_owner_matrix: number
+          matrix_owner: string
+          member_wallet: string
+          placed_at?: string | null
+          position_in_layer?: string | null
+        }
+        Update: {
+          id?: string
+          is_active?: boolean | null
+          layer_in_owner_matrix?: number
+          matrix_owner?: string
+          member_wallet?: string
+          placed_at?: string | null
+          position_in_layer?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "individual_matrix_placements_matrix_owner_fkey"
+            columns: ["matrix_owner"]
+            isOneToOne: false
+            referencedRelation: "admin_list"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "individual_matrix_placements_matrix_owner_fkey"
+            columns: ["matrix_owner"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "individual_matrix_placements_member_wallet_fkey"
+            columns: ["member_wallet"]
+            isOneToOne: false
+            referencedRelation: "admin_list"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "individual_matrix_placements_member_wallet_fkey"
+            columns: ["member_wallet"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["wallet_address"]
+          },
+        ]
+      }
       layer_rewards: {
         Row: {
           amount_bcc: number | null
@@ -953,8 +1158,106 @@ export type Database = {
             foreignKeyName: "layer_rewards_payer_wallet_fkey"
             columns: ["payer_wallet"]
             isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "layer_rewards_payer_wallet_fkey"
+            columns: ["payer_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "layer_rewards_payer_wallet_fkey"
+            columns: ["payer_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "layer_rewards_payer_wallet_fkey"
+            columns: ["payer_wallet"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "layer_rewards_payer_wallet_fkey"
+            columns: ["payer_wallet"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "layer_rewards_payer_wallet_fkey"
+            columns: ["payer_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "layer_rewards_payer_wallet_fkey"
+            columns: ["payer_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "layer_rewards_payer_wallet_fkey"
+            columns: ["payer_wallet"]
+            isOneToOne: false
             referencedRelation: "members"
             referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "layer_rewards_recipient_wallet_fkey"
+            columns: ["recipient_wallet"]
+            isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "layer_rewards_recipient_wallet_fkey"
+            columns: ["recipient_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "layer_rewards_recipient_wallet_fkey"
+            columns: ["recipient_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "layer_rewards_recipient_wallet_fkey"
+            columns: ["recipient_wallet"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "layer_rewards_recipient_wallet_fkey"
+            columns: ["recipient_wallet"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "layer_rewards_recipient_wallet_fkey"
+            columns: ["recipient_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "layer_rewards_recipient_wallet_fkey"
+            columns: ["recipient_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
           },
           {
             foreignKeyName: "layer_rewards_recipient_wallet_fkey"
@@ -1058,8 +1361,106 @@ export type Database = {
             foreignKeyName: "matrix_activity_log_member_wallet_fkey"
             columns: ["member_wallet"]
             isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "matrix_activity_log_member_wallet_fkey"
+            columns: ["member_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "matrix_activity_log_member_wallet_fkey"
+            columns: ["member_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "matrix_activity_log_member_wallet_fkey"
+            columns: ["member_wallet"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "matrix_activity_log_member_wallet_fkey"
+            columns: ["member_wallet"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "matrix_activity_log_member_wallet_fkey"
+            columns: ["member_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "matrix_activity_log_member_wallet_fkey"
+            columns: ["member_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "matrix_activity_log_member_wallet_fkey"
+            columns: ["member_wallet"]
+            isOneToOne: false
             referencedRelation: "members"
             referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "matrix_activity_log_root_wallet_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "matrix_activity_log_root_wallet_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "matrix_activity_log_root_wallet_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "matrix_activity_log_root_wallet_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "matrix_activity_log_root_wallet_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "matrix_activity_log_root_wallet_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "matrix_activity_log_root_wallet_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
           },
           {
             foreignKeyName: "matrix_activity_log_root_wallet_fkey"
@@ -1072,82 +1473,57 @@ export type Database = {
       }
       matrix_layer_summary: {
         Row: {
-          active_members: number
-          filled_positions: number
+          category: string
+          created_at: string
+          description: string
           id: string
-          last_updated: string
+          image_url: string | null
+          is_active: boolean
           layer: number
-          layer_completion_rate: number | null
+          metadata: Json | null
+          price_bcc: number
+          price_usdt: number
           root_wallet: string
-          total_positions: number
+          supply_available: number | null
+          supply_total: number | null
+          title: string
+          updated_at: string
         }
         Insert: {
-          active_members?: number
-          filled_positions?: number
+          category: string
+          created_at?: string
+          description: string
           id?: string
-          last_updated?: string
+          image_url?: string | null
+          is_active?: boolean
           layer: number
-          layer_completion_rate?: number | null
+          metadata?: Json | null
+          price_bcc: number
+          price_usdt: number
           root_wallet: string
-          total_positions?: number
+          supply_available?: number | null
+          supply_total?: number | null
+          title: string
+          updated_at?: string
         }
         Update: {
-          active_members?: number
-          filled_positions?: number
+          category?: string
+          created_at?: string
+          description?: string
           id?: string
-          last_updated?: string
+          image_url?: string | null
+          is_active?: boolean
           layer?: number
-          layer_completion_rate?: number | null
+          metadata?: Json | null
+          price_bcc?: number
+          price_usdt?: number
           root_wallet?: string
-          total_positions?: number
+          supply_available?: number | null
+          supply_total?: number | null
+          title?: string
+          updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "matrix_layer_summary_root_wallet_fkey"
-            columns: ["root_wallet"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["wallet_address"]
-          },
-        ]
-      }
-      matrix_stats: {
-        Row: {
-          available_positions: number
-          filled_positions: number
-          id: number
-          last_updated: string | null
-          layer_number: number
-          root_wallet: string
-          total_positions: number
-        }
-        Insert: {
-          available_positions?: number
-          filled_positions?: number
-          id?: number
-          last_updated?: string | null
-          layer_number: number
-          root_wallet: string
-          total_positions?: number
-        }
-        Update: {
-          available_positions?: number
-          filled_positions?: number
-          id?: number
-          last_updated?: string | null
-          layer_number?: number
-          root_wallet?: string
-          total_positions?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_matrix_stats_root"
-            columns: ["root_wallet"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["wallet_address"]
-          },
-        ]
+        Relationships: []
       }
       member_activation_tiers: {
         Row: {
@@ -1202,6 +1578,55 @@ export type Database = {
           wallet_address?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "member_requirements_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: true
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "member_requirements_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: true
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "member_requirements_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: true
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "member_requirements_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: true
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "member_requirements_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: true
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "member_requirements_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: true
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "member_requirements_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: true
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
+          },
           {
             foreignKeyName: "member_requirements_wallet_address_fkey"
             columns: ["wallet_address"]
@@ -1360,8 +1785,106 @@ export type Database = {
             foreignKeyName: "membership_referrer_wallet_fkey"
             columns: ["referrer_wallet"]
             isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "membership_referrer_wallet_fkey"
+            columns: ["referrer_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "membership_referrer_wallet_fkey"
+            columns: ["referrer_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "membership_referrer_wallet_fkey"
+            columns: ["referrer_wallet"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "membership_referrer_wallet_fkey"
+            columns: ["referrer_wallet"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "membership_referrer_wallet_fkey"
+            columns: ["referrer_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "membership_referrer_wallet_fkey"
+            columns: ["referrer_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "membership_referrer_wallet_fkey"
+            columns: ["referrer_wallet"]
+            isOneToOne: false
             referencedRelation: "members"
             referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "membership_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "membership_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "membership_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "membership_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "membership_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "membership_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "membership_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
           },
           {
             foreignKeyName: "membership_wallet_address_fkey"
@@ -1672,6 +2195,55 @@ export type Database = {
             foreignKeyName: "referral_links_referrer_wallet_fkey"
             columns: ["referrer_wallet"]
             isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "referral_links_referrer_wallet_fkey"
+            columns: ["referrer_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "referral_links_referrer_wallet_fkey"
+            columns: ["referrer_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "referral_links_referrer_wallet_fkey"
+            columns: ["referrer_wallet"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "referral_links_referrer_wallet_fkey"
+            columns: ["referrer_wallet"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "referral_links_referrer_wallet_fkey"
+            columns: ["referrer_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "referral_links_referrer_wallet_fkey"
+            columns: ["referrer_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "referral_links_referrer_wallet_fkey"
+            columns: ["referrer_wallet"]
+            isOneToOne: false
             referencedRelation: "members"
             referencedColumns: ["wallet_address"]
           },
@@ -1745,6 +2317,55 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "referrals_member_wallet_fkey"
+            columns: ["member_wallet"]
+            isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "referrals_member_wallet_fkey"
+            columns: ["member_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "referrals_member_wallet_fkey"
+            columns: ["member_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "referrals_member_wallet_fkey"
+            columns: ["member_wallet"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "referrals_member_wallet_fkey"
+            columns: ["member_wallet"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "referrals_member_wallet_fkey"
+            columns: ["member_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "referrals_member_wallet_fkey"
+            columns: ["member_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
           },
           {
             foreignKeyName: "referrals_member_wallet_fkey"
@@ -1826,6 +2447,55 @@ export type Database = {
             foreignKeyName: "reward_claims_rolled_up_to_wallet_fkey"
             columns: ["rolled_up_to_wallet"]
             isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_rolled_up_to_wallet_fkey"
+            columns: ["rolled_up_to_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "reward_claims_rolled_up_to_wallet_fkey"
+            columns: ["rolled_up_to_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_rolled_up_to_wallet_fkey"
+            columns: ["rolled_up_to_wallet"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_rolled_up_to_wallet_fkey"
+            columns: ["rolled_up_to_wallet"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_rolled_up_to_wallet_fkey"
+            columns: ["rolled_up_to_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "reward_claims_rolled_up_to_wallet_fkey"
+            columns: ["rolled_up_to_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_rolled_up_to_wallet_fkey"
+            columns: ["rolled_up_to_wallet"]
+            isOneToOne: false
             referencedRelation: "members"
             referencedColumns: ["wallet_address"]
           },
@@ -1833,8 +2503,106 @@ export type Database = {
             foreignKeyName: "reward_claims_root_wallet_fkey"
             columns: ["root_wallet"]
             isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_root_wallet_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "reward_claims_root_wallet_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_root_wallet_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_root_wallet_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_root_wallet_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "reward_claims_root_wallet_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_root_wallet_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
             referencedRelation: "members"
             referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "reward_claims_triggering_member_wallet_fkey"
+            columns: ["triggering_member_wallet"]
+            isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_triggering_member_wallet_fkey"
+            columns: ["triggering_member_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "reward_claims_triggering_member_wallet_fkey"
+            columns: ["triggering_member_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_triggering_member_wallet_fkey"
+            columns: ["triggering_member_wallet"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_triggering_member_wallet_fkey"
+            columns: ["triggering_member_wallet"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_triggering_member_wallet_fkey"
+            columns: ["triggering_member_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "reward_claims_triggering_member_wallet_fkey"
+            columns: ["triggering_member_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
           },
           {
             foreignKeyName: "reward_claims_triggering_member_wallet_fkey"
@@ -1905,6 +2673,55 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "reward_claims_dashboard"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reward_notifications_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_notifications_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "reward_notifications_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_notifications_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_notifications_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_notifications_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "reward_notifications_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
           },
           {
             foreignKeyName: "reward_notifications_wallet_address_fkey"
@@ -2302,6 +3119,55 @@ export type Database = {
             foreignKeyName: "usdt_withdrawals_wallet_address_fkey"
             columns: ["wallet_address"]
             isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "usdt_withdrawals_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "usdt_withdrawals_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "usdt_withdrawals_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "usdt_withdrawals_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "usdt_withdrawals_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "usdt_withdrawals_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "usdt_withdrawals_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
             referencedRelation: "members"
             referencedColumns: ["wallet_address"]
           },
@@ -2406,6 +3272,55 @@ export type Database = {
             foreignKeyName: "user_notifications_wallet_address_fkey"
             columns: ["wallet_address"]
             isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "user_notifications_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "user_notifications_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "user_notifications_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "user_notifications_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "user_notifications_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "user_notifications_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "user_notifications_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
             referencedRelation: "members"
             referencedColumns: ["wallet_address"]
           },
@@ -2489,6 +3404,55 @@ export type Database = {
             foreignKeyName: "user_wallet_connections_wallet_address_fkey"
             columns: ["wallet_address"]
             isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "user_wallet_connections_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "user_wallet_connections_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "user_wallet_connections_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "user_wallet_connections_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "user_wallet_connections_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "user_wallet_connections_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "user_wallet_connections_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
             referencedRelation: "members"
             referencedColumns: ["wallet_address"]
           },
@@ -2538,6 +3502,55 @@ export type Database = {
           user_wallet?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "user_withdrawal_limits_user_wallet_fkey"
+            columns: ["user_wallet"]
+            isOneToOne: true
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "user_withdrawal_limits_user_wallet_fkey"
+            columns: ["user_wallet"]
+            isOneToOne: true
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "user_withdrawal_limits_user_wallet_fkey"
+            columns: ["user_wallet"]
+            isOneToOne: true
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "user_withdrawal_limits_user_wallet_fkey"
+            columns: ["user_wallet"]
+            isOneToOne: true
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "user_withdrawal_limits_user_wallet_fkey"
+            columns: ["user_wallet"]
+            isOneToOne: true
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "user_withdrawal_limits_user_wallet_fkey"
+            columns: ["user_wallet"]
+            isOneToOne: true
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "user_withdrawal_limits_user_wallet_fkey"
+            columns: ["user_wallet"]
+            isOneToOne: true
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
+          },
           {
             foreignKeyName: "user_withdrawal_limits_user_wallet_fkey"
             columns: ["user_wallet"]
@@ -2755,6 +3768,159 @@ export type Database = {
         }
         Relationships: []
       }
+      all_member_matrices: {
+        Row: {
+          direct_referrals: number | null
+          matrix_depth: number | null
+          matrix_root: string | null
+          root_username: string | null
+          spillover_members: number | null
+          total_matrix_members: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_wallet_address_fkey"
+            columns: ["matrix_root"]
+            isOneToOne: true
+            referencedRelation: "admin_list"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "members_wallet_address_fkey"
+            columns: ["matrix_root"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["wallet_address"]
+          },
+        ]
+      }
+      comprehensive_matrix_analysis: {
+        Row: {
+          layer1_member: string | null
+          layer1_member_username: string | null
+          matrix_owner: string | null
+          matrix_owner_username: string | null
+          placement_type: string | null
+          position_in_main_matrix: number | null
+          position_in_main_matrix_position: string | null
+          reward_per_level1_activation_usdc: number | null
+        }
+        Relationships: []
+      }
+      corrected_individual_matrices: {
+        Row: {
+          layer_in_owner_matrix: number | null
+          matrix_owner: string | null
+          matrix_owner_username: string | null
+          member_level: number | null
+          member_original_referrer: string | null
+          member_original_referrer_username: string | null
+          member_username: string | null
+          member_wallet: string | null
+          placed_at: string | null
+          position_in_layer: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "individual_matrix_placements_matrix_owner_fkey"
+            columns: ["matrix_owner"]
+            isOneToOne: false
+            referencedRelation: "admin_list"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "individual_matrix_placements_matrix_owner_fkey"
+            columns: ["matrix_owner"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "individual_matrix_placements_member_wallet_fkey"
+            columns: ["member_wallet"]
+            isOneToOne: false
+            referencedRelation: "admin_list"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "individual_matrix_placements_member_wallet_fkey"
+            columns: ["member_wallet"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "members_referrer_wallet_fkey"
+            columns: ["member_original_referrer"]
+            isOneToOne: false
+            referencedRelation: "admin_list"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "members_referrer_wallet_fkey"
+            columns: ["member_original_referrer"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["wallet_address"]
+          },
+        ]
+      }
+      corrected_individual_rewards: {
+        Row: {
+          claim_status: string | null
+          layer1_reward_potential_usdc: number | null
+          matrix_owner: string | null
+          matrix_owner_level: number | null
+          matrix_owner_username: string | null
+          total_matrix_members: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "individual_matrix_placements_matrix_owner_fkey"
+            columns: ["matrix_owner"]
+            isOneToOne: false
+            referencedRelation: "admin_list"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "individual_matrix_placements_matrix_owner_fkey"
+            columns: ["matrix_owner"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["wallet_address"]
+          },
+        ]
+      }
+      corrected_matrix_stats: {
+        Row: {
+          available_positions: number | null
+          fill_percentage: number | null
+          filled_positions: number | null
+          l_positions: number | null
+          layer_in_owner_matrix: number | null
+          m_positions: number | null
+          matrix_owner: string | null
+          matrix_owner_username: string | null
+          max_positions_for_layer: number | null
+          r_positions: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "individual_matrix_placements_matrix_owner_fkey"
+            columns: ["matrix_owner"]
+            isOneToOne: false
+            referencedRelation: "admin_list"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "individual_matrix_placements_matrix_owner_fkey"
+            columns: ["matrix_owner"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["wallet_address"]
+          },
+        ]
+      }
       courses_overview: {
         Row: {
           active_enrollments: number | null
@@ -2794,6 +3960,175 @@ export type Database = {
           },
         ]
       }
+      detailed_spillover_analysis: {
+        Row: {
+          layer1_member: string | null
+          layer1_member_username: string | null
+          matrix_root: string | null
+          matrix_root_username: string | null
+          spillover_date: string | null
+          spillover_matrix_layer: number | null
+          spillover_member: string | null
+          spillover_member_username: string | null
+          spillover_original_referrer: string | null
+          spillover_original_referrer_username: string | null
+          spillover_position: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_referrer_wallet_fkey"
+            columns: ["spillover_original_referrer"]
+            isOneToOne: false
+            referencedRelation: "admin_list"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "members_referrer_wallet_fkey"
+            columns: ["spillover_original_referrer"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "members_wallet_address_fkey"
+            columns: ["matrix_root"]
+            isOneToOne: true
+            referencedRelation: "admin_list"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "members_wallet_address_fkey"
+            columns: ["layer1_member"]
+            isOneToOne: true
+            referencedRelation: "admin_list"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "members_wallet_address_fkey"
+            columns: ["matrix_root"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "members_wallet_address_fkey"
+            columns: ["layer1_member"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "referrals_member_wallet_fkey"
+            columns: ["spillover_member"]
+            isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "referrals_member_wallet_fkey"
+            columns: ["spillover_member"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "referrals_member_wallet_fkey"
+            columns: ["spillover_member"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "referrals_member_wallet_fkey"
+            columns: ["spillover_member"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "referrals_member_wallet_fkey"
+            columns: ["spillover_member"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "referrals_member_wallet_fkey"
+            columns: ["spillover_member"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "referrals_member_wallet_fkey"
+            columns: ["spillover_member"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "referrals_member_wallet_fkey"
+            columns: ["spillover_member"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["wallet_address"]
+          },
+        ]
+      }
+      individual_matrix_rewards: {
+        Row: {
+          matrix_depth: number | null
+          matrix_root: string | null
+          min_level_required_to_claim_all: number | null
+          potential_layer1_rewards_usdc: number | null
+          potential_layer2_rewards_usdc: number | null
+          root_username: string | null
+          total_matrix_members: number | null
+          total_potential_rewards_usdc: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_wallet_address_fkey"
+            columns: ["matrix_root"]
+            isOneToOne: true
+            referencedRelation: "admin_list"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "members_wallet_address_fkey"
+            columns: ["matrix_root"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["wallet_address"]
+          },
+        ]
+      }
+      layer1_member_stats: {
+        Row: {
+          layer1_members_details: string | null
+          matrix_root: string | null
+          matrix_root_username: string | null
+          total_layer1_members: number | null
+          total_potential_rewards: number | null
+          total_spillovers_under_layer1: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "members_wallet_address_fkey"
+            columns: ["matrix_root"]
+            isOneToOne: true
+            referencedRelation: "admin_list"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "members_wallet_address_fkey"
+            columns: ["matrix_root"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["wallet_address"]
+          },
+        ]
+      }
       marketplace_nfts: {
         Row: {
           advertiser_username: string | null
@@ -2815,6 +4150,42 @@ export type Database = {
         }
         Relationships: []
       }
+      matrix_dashboard_view: {
+        Row: {
+          available_positions: number | null
+          category: string | null
+          fill_percentage: number | null
+          filled_positions: number | null
+          l_positions: number | null
+          last_updated: string | null
+          layer_number: number | null
+          m_positions: number | null
+          nft_price: number | null
+          nft_title: string | null
+          r_positions: number | null
+          reward_eligibility: string | null
+          root_current_level: number | null
+          root_username: string | null
+          root_wallet: string | null
+          total_positions: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_matrix_root_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "admin_list"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "referrals_matrix_root_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["wallet_address"]
+          },
+        ]
+      }
       matrix_reward_summary: {
         Row: {
           layer: number | null
@@ -2826,6 +4197,33 @@ export type Database = {
         }
         Relationships: []
       }
+      matrix_stats: {
+        Row: {
+          available_positions: number | null
+          filled_positions: number | null
+          id: number | null
+          last_updated: string | null
+          layer_number: number | null
+          root_wallet: string | null
+          total_positions: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_matrix_root_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "admin_list"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "referrals_matrix_root_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["wallet_address"]
+          },
+        ]
+      }
       matrix_structure: {
         Row: {
           activation_rank: number | null
@@ -2834,6 +4232,7 @@ export type Database = {
           matrix_parent: string | null
           matrix_position: string | null
           matrix_root: string | null
+          matrix_type: string | null
           member_username: string | null
           member_wallet: string | null
           parent_username: string | null
@@ -2841,53 +4240,45 @@ export type Database = {
           referrer_wallet: string | null
           root_username: string | null
         }
+        Relationships: []
+      }
+      member_layer1_analysis: {
+        Row: {
+          joined_date: string | null
+          layer1_member: string | null
+          layer1_member_level: number | null
+          layer1_member_username: string | null
+          matrix_root: string | null
+          matrix_root_username: string | null
+          potential_rewards_usdc: number | null
+          spillover_count: number | null
+        }
         Relationships: [
           {
-            foreignKeyName: "referrals_matrix_parent_fkey"
-            columns: ["matrix_parent"]
-            isOneToOne: false
+            foreignKeyName: "members_wallet_address_fkey"
+            columns: ["matrix_root"]
+            isOneToOne: true
             referencedRelation: "admin_list"
             referencedColumns: ["wallet_address"]
           },
           {
-            foreignKeyName: "referrals_matrix_parent_fkey"
-            columns: ["matrix_parent"]
-            isOneToOne: false
+            foreignKeyName: "members_wallet_address_fkey"
+            columns: ["layer1_member"]
+            isOneToOne: true
+            referencedRelation: "admin_list"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "members_wallet_address_fkey"
+            columns: ["matrix_root"]
+            isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["wallet_address"]
           },
           {
-            foreignKeyName: "referrals_matrix_root_fkey"
-            columns: ["matrix_root"]
-            isOneToOne: false
-            referencedRelation: "admin_list"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "referrals_matrix_root_fkey"
-            columns: ["matrix_root"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "referrals_member_wallet_fkey"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "referrals_referrer_fkey"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "admin_list"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "referrals_referrer_fkey"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
+            foreignKeyName: "members_wallet_address_fkey"
+            columns: ["layer1_member"]
+            isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["wallet_address"]
           },
@@ -2904,6 +4295,55 @@ export type Database = {
           wallet_address: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "member_requirements_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: true
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "member_requirements_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: true
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "member_requirements_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: true
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "member_requirements_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: true
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "member_requirements_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: true
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "member_requirements_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: true
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "member_requirements_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: true
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
+          },
           {
             foreignKeyName: "member_requirements_wallet_address_fkey"
             columns: ["wallet_address"]
@@ -2982,6 +4422,55 @@ export type Database = {
             foreignKeyName: "reward_claims_rolled_up_to_wallet_fkey"
             columns: ["rolled_up_to_wallet"]
             isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_rolled_up_to_wallet_fkey"
+            columns: ["rolled_up_to_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "reward_claims_rolled_up_to_wallet_fkey"
+            columns: ["rolled_up_to_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_rolled_up_to_wallet_fkey"
+            columns: ["rolled_up_to_wallet"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_rolled_up_to_wallet_fkey"
+            columns: ["rolled_up_to_wallet"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_rolled_up_to_wallet_fkey"
+            columns: ["rolled_up_to_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "reward_claims_rolled_up_to_wallet_fkey"
+            columns: ["rolled_up_to_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_rolled_up_to_wallet_fkey"
+            columns: ["rolled_up_to_wallet"]
+            isOneToOne: false
             referencedRelation: "members"
             referencedColumns: ["wallet_address"]
           },
@@ -2989,8 +4478,106 @@ export type Database = {
             foreignKeyName: "reward_claims_root_wallet_fkey"
             columns: ["root_wallet"]
             isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_root_wallet_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "reward_claims_root_wallet_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_root_wallet_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_root_wallet_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_root_wallet_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "reward_claims_root_wallet_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_root_wallet_fkey"
+            columns: ["root_wallet"]
+            isOneToOne: false
             referencedRelation: "members"
             referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "reward_claims_triggering_member_wallet_fkey"
+            columns: ["triggering_member_wallet"]
+            isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_triggering_member_wallet_fkey"
+            columns: ["triggering_member_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "reward_claims_triggering_member_wallet_fkey"
+            columns: ["triggering_member_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_triggering_member_wallet_fkey"
+            columns: ["triggering_member_wallet"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_triggering_member_wallet_fkey"
+            columns: ["triggering_member_wallet"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "reward_claims_triggering_member_wallet_fkey"
+            columns: ["triggering_member_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "reward_claims_triggering_member_wallet_fkey"
+            columns: ["triggering_member_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
           },
           {
             foreignKeyName: "reward_claims_triggering_member_wallet_fkey"
@@ -3067,6 +4654,55 @@ export type Database = {
             foreignKeyName: "layer_rewards_recipient_wallet_fkey"
             columns: ["recipient_wallet"]
             isOneToOne: false
+            referencedRelation: "all_member_matrices"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "layer_rewards_recipient_wallet_fkey"
+            columns: ["recipient_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "layer_rewards_recipient_wallet_fkey"
+            columns: ["recipient_wallet"]
+            isOneToOne: false
+            referencedRelation: "detailed_spillover_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "layer_rewards_recipient_wallet_fkey"
+            columns: ["recipient_wallet"]
+            isOneToOne: false
+            referencedRelation: "individual_matrix_rewards"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "layer_rewards_recipient_wallet_fkey"
+            columns: ["recipient_wallet"]
+            isOneToOne: false
+            referencedRelation: "layer1_member_stats"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "layer_rewards_recipient_wallet_fkey"
+            columns: ["recipient_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["layer1_member"]
+          },
+          {
+            foreignKeyName: "layer_rewards_recipient_wallet_fkey"
+            columns: ["recipient_wallet"]
+            isOneToOne: false
+            referencedRelation: "member_layer1_analysis"
+            referencedColumns: ["matrix_root"]
+          },
+          {
+            foreignKeyName: "layer_rewards_recipient_wallet_fkey"
+            columns: ["recipient_wallet"]
+            isOneToOne: false
             referencedRelation: "members"
             referencedColumns: ["wallet_address"]
           },
@@ -3114,7 +4750,7 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: {
           layer_distribution: Json
-          placement_root: string
+          matrix_root_wallet: string
           position_distribution: Json
           root_username: string
           total_members: number
@@ -3267,6 +4903,28 @@ export type Database = {
           value: number
         }[]
       }
+      get_member_layer1_details: {
+        Args: { target_wallet: string }
+        Returns: {
+          layer1_member_level: number
+          layer1_member_username: string
+          layer1_member_wallet: string
+          potential_rewards_usdc: number
+          spillover_count: number
+          spillover_members: string
+        }[]
+      }
+      get_member_matrix: {
+        Args: { target_member_wallet: string }
+        Returns: {
+          matrix_layer: number
+          matrix_position: string
+          matrix_root: string
+          member_username: string
+          member_wallet: string
+          referrer_wallet: string
+        }[]
+      }
       get_nft_fee_breakdown: {
         Args: { p_level: number }
         Returns: {
@@ -3348,6 +5006,14 @@ export type Database = {
       safe_round: {
         Args: { places: number; val: number }
         Returns: number
+      }
+      simulate_layer2_activation: {
+        Args: { member_wallet: string }
+        Returns: {
+          activation_scenario: string
+          reward_amount_usdc: number
+          reward_recipient: string
+        }[]
       }
       toggle_activation_pending_global: {
         Args: { p_admin_wallet: string; p_enabled: boolean; p_reason?: string }

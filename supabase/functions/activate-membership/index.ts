@@ -427,10 +427,12 @@ async function activateMembershipSecure(supabase, walletAddress, transactionHash
             }
           }
           
-          // Trigger rewards for successful referral creation
+          // Trigger Layer rewards based on activated NFT level
           try {
-            console.log(`🎁 触发Layer 1奖励: ${effectiveReferrer}`);
-                
+            console.log(`🎁 触发Layer ${level}奖励基于Level ${level} NFT激活: ${effectiveReferrer}`);
+            
+            // Only trigger Layer X rewards when Level X NFT is activated
+            // This implements the core business rule: Layer 1 rewards only trigger on Level 1 NFT activation, etc.
             const rewardResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/rewards`, {
               method: 'POST',
               headers: {
@@ -439,27 +441,26 @@ async function activateMembershipSecure(supabase, walletAddress, transactionHash
                 'x-wallet-address': walletAddress
               },
               body: JSON.stringify({
-                action: 'process-layer-reward',
+                action: 'process-level-activation-rewards',
                 memberWallet: walletAddress,
-                level: level,
-                trigger: 'member-placement',
-                rootWallet: effectiveReferrer,
-                layer: 1
+                activatedLevel: level, // Level of NFT being activated
+                trigger: 'nft-level-activation',
+                rootWallet: effectiveReferrer
               })
             });
 
             if (rewardResponse.ok) {
               const rewardResult = await rewardResponse.json();
               if (rewardResult.success) {
-                console.log(`✅ Layer 1奖励触发成功: ${JSON.stringify(rewardResult.reward)}`);
+                console.log(`✅ Level ${level} NFT激活奖励触发成功: ${JSON.stringify(rewardResult.rewards)}`);
               } else {
-                console.warn('Layer 1奖励触发失败:', rewardResult.error);
+                console.warn(`Level ${level} NFT激活奖励触发失败:`, rewardResult.error);
               }
             } else {
-              console.warn('Layer 1奖励服务调用失败');
+              console.warn(`Level ${level} NFT激活奖励服务调用失败`);
             }
           } catch (rewardError) {
-            console.warn('Layer 1奖励触发异常:', rewardError);
+            console.warn(`Level ${level} NFT激活奖励触发异常:`, rewardError);
           }
           
           // Update referrer's member record (simplified - just update timestamp)

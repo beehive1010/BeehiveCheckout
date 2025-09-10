@@ -35,7 +35,8 @@
       "Bash(rg:*)",
       "Bash(done)",
       "Bash(grep:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(./scripts/supabase-ipv4-management.sh status:*)"
     ],
     "deny": [],
     "ask": []
