@@ -20,12 +20,12 @@ import {
 } from 'lucide-react';
 
 interface SimpleDashboardData {
-  bccTransferable: number;
-  bccLocked: number;
-  directReferrals: number;
-  maxLayer: number;
-  totalRewards: number;
-  claimableRewards: number;
+  bccBalance: number;        // BCC总余额
+  bccLocked: number;         // BCC锁仓
+  directReferrals: number;   // 直推人数
+  maxLayer: number;          // 最大安置层级
+  totalRewards: number;      // 总奖励
+  pendingRewards: number;    // 奖金提醒余额
 }
 
 export default function SimpleDashboard() {
@@ -34,12 +34,12 @@ export default function SimpleDashboard() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [data, setData] = useState<SimpleDashboardData>({
-    bccTransferable: 0,
+    bccBalance: 0,
     bccLocked: 0,
     directReferrals: 0,
     maxLayer: 0,
     totalRewards: 0,
-    claimableRewards: 0
+    pendingRewards: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -75,12 +75,12 @@ export default function SimpleDashboard() {
       console.log('🌐 Matrix data:', matrix);
 
       const dashboardData = {
-        bccTransferable: balance?.bcc_transferable || 0,
-        bccLocked: balance?.bcc_locked || 0,
-        directReferrals: matrix?.directReferrals || 0,
-        maxLayer: matrix?.maxLayer || 0,
-        totalRewards: balance?.usdc_total_earned || balance?.totalUsdtEarned || 0,
-        claimableRewards: balance?.usdc_claimable || balance?.availableRewards || 0
+        bccBalance: balance?.bcc_total_initial || 0,     // BCC总余额
+        bccLocked: balance?.bcc_locked || 0,             // BCC锁仓
+        directReferrals: matrix?.directReferrals || 0,   // 直推人数
+        maxLayer: matrix?.maxLayer || 0,                 // 最大安置层级
+        totalRewards: balance?.usdc_claimed_total || 0,  // 总奖励
+        pendingRewards: balance?.usdc_pending || 0       // 奖金提醒余额
       };
       
       console.log('📈 Final dashboard data:', dashboardData);
@@ -146,16 +146,16 @@ export default function SimpleDashboard() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center">
-                  <div className="text-xl font-bold text-green-400 mb-1">
-                    {data.bccTransferable}
+                  <div className="text-xl font-bold text-honey mb-1">
+                    {data.bccBalance}
                   </div>
-                  <div className="text-xs text-muted-foreground">可转账</div>
+                  <div className="text-xs text-muted-foreground">BCC余额</div>
                 </div>
                 <div className="text-center">
                   <div className="text-xl font-bold text-orange-400 mb-1">
                     {data.bccLocked}
                   </div>
-                  <div className="text-xs text-muted-foreground">锁仓</div>
+                  <div className="text-xs text-muted-foreground">BCC锁仓</div>
                 </div>
               </div>
             </CardContent>
@@ -179,7 +179,7 @@ export default function SimpleDashboard() {
                   <div className="text-xl font-bold text-purple-400 mb-1">
                     {data.maxLayer}
                   </div>
-                  <div className="text-xs text-muted-foreground">最大层级</div>
+                  <div className="text-xs text-muted-foreground">最大安置层级</div>
                 </div>
               </div>
             </CardContent>
@@ -202,9 +202,9 @@ export default function SimpleDashboard() {
               </div>
               <div className="text-center">
                 <div className="text-xl font-bold text-yellow-400 mb-1">
-                  ${data.claimableRewards}
+                  ${data.pendingRewards}
                 </div>
-                <div className="text-xs text-muted-foreground">可提取余额</div>
+                <div className="text-xs text-muted-foreground">奖金提醒余额</div>
               </div>
             </div>
           </CardContent>
