@@ -144,7 +144,7 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
       <CardHeader>
         <CardTitle className="text-honey flex items-center space-x-2">
           <Trophy className="h-5 w-5" />
-          <span>3×3 Matrix Network - Layer {currentLayer}</span>
+          <span>{t('referrals.matrixSystem.matrixNetworkLayer', { layer: currentLayer })}</span>
         </CardTitle>
       </CardHeader>
       

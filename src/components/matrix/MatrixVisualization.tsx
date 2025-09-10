@@ -83,6 +83,7 @@ export const MatrixVisualization: React.FC<MatrixVisualizationProps> = ({
   walletAddress,
   className
 }) => {
+  const { t } = useI18n();
   const [activeLayer, setActiveLayer] = useState(1);
   const [showEmptyPositions, setShowEmptyPositions] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
