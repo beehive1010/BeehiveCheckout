@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, Users, Trophy } from 'lucide-react';
 import { matrixService } from '@/lib/supabaseClient';
+import { useI18n } from '@/contexts/I18nContext';
 
 interface MatrixMember {
   walletAddress: string;
@@ -26,6 +27,7 @@ interface SimpleMatrixViewProps {
 }
 
 const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, rootUser }) => {
+  const { t } = useI18n();
   const [currentLayer, setCurrentLayer] = useState(1);
   const [matrixData, setMatrixData] = useState<{ [key: number]: MatrixLayerData }>({});
   const [loading, setLoading] = useState(false);
@@ -306,15 +308,15 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
         <div className="grid grid-cols-3 gap-4 text-center pt-4 border-t border-border">
           <div className="bg-green-500/5 rounded-lg p-3 border border-green-500/20">
             <div className="text-xl font-bold text-green-400">{currentData.left.length}</div>
-            <div className="text-xs text-muted-foreground">Left Leg</div>
+            <div className="text-xs text-muted-foreground">{t('referrals.matrixPosition.leftPosition')}</div>
           </div>
           <div className="bg-blue-500/5 rounded-lg p-3 border border-blue-500/20">
             <div className="text-xl font-bold text-blue-400">{currentData.middle.length}</div>
-            <div className="text-xs text-muted-foreground">Middle Leg</div>
+            <div className="text-xs text-muted-foreground">{t('referrals.matrixPosition.middlePosition')}</div>
           </div>
           <div className="bg-purple-500/5 rounded-lg p-3 border border-purple-500/20">
             <div className="text-xl font-bold text-purple-400">{currentData.right.length}</div>
-            <div className="text-xs text-muted-foreground">Right Leg</div>
+            <div className="text-xs text-muted-foreground">{t('referrals.matrixPosition.rightPosition')}</div>
           </div>
         </div>
         </>

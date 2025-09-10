@@ -548,7 +548,21 @@
     "subtitle": "ネットワークを構築し、紹介システムで報酬を獲得しましょう",
     "totalEarnings": "総収益",
     "totalReferrals": "総紹介数",
-    "yourLink": "あなたの紹介リンク"
+    "yourLink": "あなたの紹介リンク",
+    "matrixPosition": {
+      "left": "左",
+      "middle": "中央",
+      "right": "右",
+      "leftPosition": "左ポジション",
+      "middlePosition": "中央ポジション",
+      "rightPosition": "右ポジション",
+      "position1": "ポジション1",
+      "position2": "ポジション2",
+      "position3": "ポジション3",
+      "yourPosition": "あなたのポジション",
+      "available": "利用可能",
+      "occupied": "占有済み"
+    }
   },
   "hiveworld": {
     "title": "ハイブワールド - あなたのマトリックス",

@@ -75,15 +75,15 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
           <div className="grid grid-cols-3 gap-3 mb-3">
             <div className="text-center">
               <div className="text-lg font-bold text-green-400">{layer.members.filter((m: any) => m.position === 'L').length}</div>
-              <div className="text-xs text-muted-foreground">Left</div>
+              <div className="text-xs text-muted-foreground">{t('referrals.matrixPosition.left')}</div>
             </div>
             <div className="text-center">
               <div className="text-lg font-bold text-blue-400">{layer.members.filter((m: any) => m.position === 'M').length}</div>
-              <div className="text-xs text-muted-foreground">Middle</div>
+              <div className="text-xs text-muted-foreground">{t('referrals.matrixPosition.middle')}</div>
             </div>
             <div className="text-center">
               <div className="text-lg font-bold text-purple-400">{layer.members.filter((m: any) => m.position === 'R').length}</div>
-              <div className="text-xs text-muted-foreground">Right</div>
+              <div className="text-xs text-muted-foreground">{t('referrals.matrixPosition.right')}</div>
             </div>
           </div>
 
