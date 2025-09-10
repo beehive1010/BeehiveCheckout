@@ -594,7 +594,21 @@
     "subtitle": "네트워크를 구축하고 추천 시스템을 통해 보상을 받으세요",
     "totalEarnings": "총 수익",
     "totalReferrals": "총 추천",
-    "yourLink": "추천 링크"
+    "yourLink": "추천 링크",
+    "matrixPosition": {
+      "left": "왼쪽",
+      "middle": "가운데",
+      "right": "오른쪽",
+      "leftPosition": "왼쪽 포지션",
+      "middlePosition": "가운데 포지션",
+      "rightPosition": "오른쪽 포지션",
+      "position1": "포지션 1",
+      "position2": "포지션 2",
+      "position3": "포지션 3",
+      "yourPosition": "당신의 포지션",
+      "available": "사용 가능",
+      "occupied": "점유됨"
+    }
   },
   "hiveworld": {
     "blogs": {
