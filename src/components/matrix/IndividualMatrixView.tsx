@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, Users, Trophy, Eye, ArrowLeft } from 'lucide-react';
+import { useI18n } from '@/contexts/I18nContext';
 
 interface MatrixMember {
   walletAddress: string;
@@ -33,6 +34,7 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
   walletAddress: string;
   rootUser?: { username: string; currentLevel: number };
 }) {
+  const { t } = useI18n();
   const [currentViewLayer, setCurrentViewLayer] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [drillDownMember, setDrillDownMember] = useState<MatrixMember | null>(null);
@@ -158,7 +160,7 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
         <CardHeader>
           <CardTitle className="text-honey flex items-center space-x-2">
             <Trophy className="h-5 w-5" />
-            <span>Your 3×3 Matrix Tree (L1-L19)</span>
+            <span>{t('referrals.matrixSystem.yourMatrixTree')} ({t('referrals.matrixSystem.layers')})</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -181,7 +183,7 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
         <CardHeader>
           <CardTitle className="text-honey flex items-center space-x-2">
             <Trophy className="h-5 w-5" />
-            <span>Your 3×3 Matrix Tree (L1-L19)</span>
+            <span>{t('referrals.matrixSystem.yourMatrixTree')} ({t('referrals.matrixSystem.layers')})</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -417,7 +419,7 @@ export default function IndividualMatrixView({ walletAddress, rootUser }: {
         <CardTitle className="text-honey flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Trophy className="h-5 w-5" />
-            <span>Your 3×3 Matrix Tree</span>
+            <span>{t('referrals.matrixSystem.yourMatrixTree')}</span>
             {rootUser && (
               <Badge variant="outline" className="border-honey text-honey">
                 {rootUser.username} • L{rootUser.currentLevel}
