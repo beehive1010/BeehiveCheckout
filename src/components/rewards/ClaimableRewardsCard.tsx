@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Gift, DollarSign, CheckCircle, ExternalLink, Loader2, ArrowUpLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { supabase } from '@/lib/supabase';
 import { useWeb3 } from '@/contexts/Web3Context';
 
 interface ClaimableReward {
@@ -48,29 +48,91 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
 
   // Fetch claimable rewards
   const { data: rewardsData, isLoading } = useQuery<ClaimableRewardsResponse>({
-    queryKey: ['/api/rewards/claimable'],
+    queryKey: ['/api/rewards/claimable', walletAddress],
     enabled: !!walletAddress,
     refetchInterval: 30000, // Refresh every 30 seconds
     queryFn: async () => {
-      const response = await fetch('/api/rewards/claimable', {
-        headers: {
-          'X-Wallet-Address': walletAddress!,
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch claimable rewards');
+      // Get claimable and pending rewards from layer_rewards table
+      const { data: layerRewards, error } = await supabase
+        .from('layer_rewards')
+        .select(`
+          id,
+          amount_usdt,
+          layer,
+          reward_type,
+          is_claimed,
+          payer_wallet,
+          created_at,
+          countdown_timers (
+            end_time,
+            is_active
+          )
+        `)
+        .eq('recipient_wallet', walletAddress)
+        .eq('is_claimed', false)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw new Error(`Failed to fetch rewards: ${error.message}`);
       }
-      return response.json();
+
+      // Separate claimable and pending rewards
+      const claimableRewards: ClaimableReward[] = [];
+      const pendingRewards: ClaimableReward[] = [];
+      let totalClaimable = 0;
+      let totalPending = 0;
+
+      layerRewards?.forEach(reward => {
+        const transformedReward: ClaimableReward = {
+          id: reward.id,
+          rewardAmount: reward.amount_usdt || 0,
+          triggerLevel: reward.layer,
+          payoutLayer: reward.layer,
+          matrixPosition: `Layer ${reward.layer}`,
+          sourceWallet: reward.payer_wallet || '',
+          status: reward.reward_type === 'layer_reward' ? 'confirmed' : 'pending',
+          createdAt: reward.created_at,
+          expiresAt: reward.countdown_timers?.[0]?.end_time || undefined
+        };
+
+        if (reward.reward_type === 'layer_reward') {
+          claimableRewards.push(transformedReward);
+          totalClaimable += transformedReward.rewardAmount;
+        } else if (reward.reward_type === 'pending_layer_reward') {
+          pendingRewards.push(transformedReward);
+          totalPending += transformedReward.rewardAmount;
+        }
+      });
+
+      return {
+        claimableRewards,
+        pendingRewards,
+        totalClaimable,
+        totalPending
+      };
     },
   });
 
-  // Automated claim mutation using Thirdweb Engine
+  // Automated claim mutation using Supabase function
   const claimRewardMutation = useMutation({
     mutationFn: async (rewardId: string): Promise<ClaimResponse> => {
-      return await apiRequest('/api/rewards/claim', 'POST', {
-        rewardId,
-        recipientAddress: walletAddress,
+      const { data, error } = await supabase.rpc('claim_reward_to_balance', {
+        p_claim_id: rewardId,
+        p_wallet_address: walletAddress
       });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (!data?.success) {
+        throw new Error(data?.error || 'Failed to claim reward');
+      }
+
+      return {
+        success: true,
+        message: `Successfully claimed ${data.amount} USDT`
+      };
     },
     onMutate: (rewardId) => {
       setClaimingRewards(prev => [...prev, rewardId]);
@@ -109,10 +171,23 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
   // Withdraw mutation for withdrawing claimed rewards to wallet
   const withdrawMutation = useMutation({
     mutationFn: async (amount: number): Promise<ClaimResponse> => {
-      return await apiRequest('/api/rewards/withdraw', 'POST', {
-        amount,
-        recipientAddress: walletAddress,
+      const { data, error } = await supabase.rpc('withdraw_reward_balance', {
+        p_wallet_address: walletAddress,
+        p_amount: amount
       });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (!data?.success) {
+        throw new Error(data?.error || 'Failed to withdraw rewards');
+      }
+
+      return {
+        success: true,
+        message: `Successfully initiated withdrawal of ${amount} USDT`
+      };
     },
     onMutate: () => {
       setIsWithdrawing(true);

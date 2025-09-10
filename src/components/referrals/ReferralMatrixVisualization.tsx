@@ -16,7 +16,7 @@ import {
   UserPlus
 } from 'lucide-react';
 import { useWallet } from '@/hooks/useWallet';
-import { callEdgeFunction } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabase';
 import { toast } from 'react-hot-toast';
 import { useI18n } from '@/contexts/I18nContext';
 
@@ -77,18 +77,58 @@ const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = 
     try {
       setLoading(true);
 
-      // 使用真实的Supabase Edge Function获取矩阵数据
-      const matrixResult = await callEdgeFunction('matrix', {
-        action: 'get-matrix',
-        rootWallet: effectiveRootWallet,
-        maxLayers
-      }, walletAddress || undefined);
+      // Get matrix data from individual_matrix_placements table
+      const { data: matrixPlacements, error } = await supabase
+        .from('individual_matrix_placements')
+        .select(`
+          member_wallet,
+          layer_in_owner_matrix,
+          position_in_layer,
+          placed_at,
+          members!member_wallet (
+            current_level,
+            activation_rank
+          ),
+          users!member_wallet (
+            username
+          )
+        `)
+        .eq('matrix_owner', effectiveRootWallet)
+        .order('layer_in_owner_matrix')
+        .order('position_in_layer');
 
-      if (matrixResult?.success) {
-        setMatrixData(matrixResult.data);
-      } else {
-        throw new Error(matrixResult?.error || '获取矩阵数据失败');
+      if (error) {
+        throw new Error(`Failed to load matrix data: ${error.message}`);
       }
+
+      // Transform data to MatrixMember format
+      const members: MatrixMember[] = matrixPlacements?.map(placement => ({
+        walletAddress: placement.member_wallet,
+        username: placement.users?.username,
+        level: placement.members?.current_level || 1,
+        layer: placement.layer_in_owner_matrix,
+        position: parseInt(placement.position_in_layer || '0'),
+        isActive: (placement.members?.current_level || 0) > 0,
+        placedAt: placement.placed_at,
+        downlineCount: 0 // TODO: Calculate downline count
+      })) || [];
+
+      // Create matrix data structure
+      const totalLayers = Math.max(...members.map(m => m.layer), 0);
+      const totalMembers = members.length;
+
+      const matrixData: MatrixData = {
+        rootWallet: effectiveRootWallet,
+        members,
+        totalLayers,
+        totalMembers,
+        myPosition: members.find(m => m.walletAddress === walletAddress) ? {
+          layer: members.find(m => m.walletAddress === walletAddress)!.layer,
+          position: members.find(m => m.walletAddress === walletAddress)!.position
+        } : undefined
+      };
+
+      setMatrixData(matrixData);
 
     } catch (error) {
       console.error('Failed to load matrix data:', error);
