@@ -4,6 +4,8 @@
     "referrals": "推荐",
     "rewards": "奖励",
     "tasks": "任务",
+    "nfts": "NFT",
+    "membership": "会员",
     "marketplace": "市场",
     "education": "教育",
     "discover": "发现",
@@ -19,6 +21,36 @@
     "loading": "加载中...",
     "error": "错误",
     "success": "成功"
+  },
+  "dashboard": {
+    "welcomeBack": "欢迎回来, {username}!",
+    "welcomeMember": "欢迎回来, 会员!",
+    "buildNetwork": "让我们一起建设您的蜂巢网络",
+    "upgrade": "升级",
+    "bccBalance": "BCC余额",
+    "bccLocked": "BCC锁仓",
+    "referralNetwork": "推荐网络",
+    "directReferrals": "直推人数",
+    "maxLayer": "最大安置层级",
+    "rewardCenter": "奖励中心",
+    "totalRewards": "总奖励",
+    "pendingRewards": "奖金提醒余额",
+    "shareReferral": "分享推荐链接",
+    "shareDescription": "分享您的链接邀请朋友加入，赚取推荐奖励",
+    "copyLink": "复制链接",
+    "linkCopied": "链接已复制到剪贴板！",
+    "quickNavigation": "快捷导航",
+    "viewMatrix": "查看矩阵",
+    "claimRewards": "领取奖励",
+    "inviteTip": "💡 邀请朋友加入即可解锁更多功能和奖励",
+    "errors": {
+      "dataLoadFailed": "数据加载失败",
+      "refreshToRetry": "请刷新页面重试"
+    },
+    "success": {
+      "copied": "已复制！",
+      "linkCopiedToClipboard": "推荐链接已复制到剪贴板"
+    }
   },
   "wallet": {
     "connect": "连接钱包",

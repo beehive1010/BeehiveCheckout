@@ -18,6 +18,7 @@ import {
   Award,
   ArrowRight
 } from 'lucide-react';
+import UserProfile from '../components/dashboard/UserProfile';
 
 interface SimpleDashboardData {
   bccBalance: number;        // BCC总余额
@@ -75,12 +76,12 @@ export default function SimpleDashboard() {
       console.log('🌐 Matrix data:', matrix);
 
       const dashboardData = {
-        bccBalance: balance?.bcc_total_initial || 0,     // BCC总余额
-        bccLocked: balance?.bcc_locked || 0,             // BCC锁仓
-        directReferrals: matrix?.directReferrals || 0,   // 直推人数
-        maxLayer: matrix?.maxLayer || 0,                 // 最大安置层级
-        totalRewards: balance?.usdc_claimed_total || 0,  // 总奖励
-        pendingRewards: balance?.usdc_pending || 0       // 奖金提醒余额
+        bccBalance: (balance?.bcc_total_initial || balance?.bcc_total || (balance?.bcc_transferable || 0) + (balance?.bcc_locked || 0)),
+        bccLocked: balance?.bcc_locked || 0,
+        directReferrals: matrix?.directReferrals || 0,
+        maxLayer: matrix?.maxLayer || 0,
+        totalRewards: (balance?.usdc_claimed_total || balance?.usdc_total_earned || 0),
+        pendingRewards: (balance?.usdc_pending || balance?.usdc_claimable || 0)
       };
       
       console.log('📈 Final dashboard data:', dashboardData);
@@ -88,8 +89,8 @@ export default function SimpleDashboard() {
     } catch (error) {
       console.error('❌ Failed to load simple dashboard data:', error);
       toast({
-        title: "数据加载失败",
-        description: "请刷新页面重试",
+        title: t('dashboard.errors.dataLoadFailed'),
+        description: t('dashboard.errors.refreshToRetry'),
         variant: "destructive"
       });
     } finally {
@@ -101,8 +102,8 @@ export default function SimpleDashboard() {
     const referralLink = `${window.location.origin}/register?ref=${walletAddress}`;
     navigator.clipboard.writeText(referralLink);
     toast({
-      title: "已复制！",
-      description: "推荐链接已复制到剪贴板",
+      title: t('dashboard.success.copied'),
+      description: t('dashboard.success.linkCopiedToClipboard'),
       duration: 2000
     });
   };
@@ -125,13 +126,16 @@ export default function SimpleDashboard() {
       <Navigation />
       
       <div className="container mx-auto px-4 py-8 max-w-2xl">
+        {/* 用户资料卡片 */}
+        <UserProfile className="mb-8" />
+
         {/* 欢迎信息 */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-honey mb-2">
-            欢迎回来, {userData?.username || '会员'}!
+            {userData?.username ? t('dashboard.welcomeBack', { username: userData.username }) : t('dashboard.welcomeMember')}
           </h1>
           <p className="text-muted-foreground">
-            让我们一起建设您的蜂巢网络
+            {t('dashboard.buildNetwork')}
           </p>
         </div>
 
@@ -142,20 +146,20 @@ export default function SimpleDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-4">
                 <DollarSign className="h-8 w-8 text-honey" />
-                <h3 className="text-lg font-semibold text-honey">BCC 余额</h3>
+                <h3 className="text-lg font-semibold text-honey">{t('dashboard.bccBalance')}</h3>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center">
                   <div className="text-xl font-bold text-honey mb-1">
                     {data.bccBalance}
                   </div>
-                  <div className="text-xs text-muted-foreground">BCC余额</div>
+                  <div className="text-xs text-muted-foreground">{t('dashboard.bccBalance')}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-xl font-bold text-orange-400 mb-1">
                     {data.bccLocked}
                   </div>
-                  <div className="text-xs text-muted-foreground">BCC锁仓</div>
+                  <div className="text-xs text-muted-foreground">{t('dashboard.bccLocked')}</div>
                 </div>
               </div>
             </CardContent>
@@ -166,20 +170,20 @@ export default function SimpleDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-4">
                 <Users className="h-8 w-8 text-blue-400" />
-                <h3 className="text-lg font-semibold text-blue-400">推荐网络</h3>
+                <h3 className="text-lg font-semibold text-blue-400">{t('dashboard.referralNetwork')}</h3>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center">
                   <div className="text-xl font-bold text-blue-400 mb-1">
                     {data.directReferrals}
                   </div>
-                  <div className="text-xs text-muted-foreground">直推人数</div>
+                  <div className="text-xs text-muted-foreground">{t('dashboard.directReferrals')}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-xl font-bold text-purple-400 mb-1">
                     {data.maxLayer}
                   </div>
-                  <div className="text-xs text-muted-foreground">最大安置层级</div>
+                  <div className="text-xs text-muted-foreground">{t('dashboard.maxLayer')}</div>
                 </div>
               </div>
             </CardContent>
@@ -191,20 +195,20 @@ export default function SimpleDashboard() {
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-4">
               <Award className="h-8 w-8 text-green-400" />
-              <h3 className="text-lg font-semibold text-green-400">奖励中心</h3>
+              <h3 className="text-lg font-semibold text-green-400">{t('dashboard.rewardCenter')}</h3>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center">
                 <div className="text-xl font-bold text-green-400 mb-1">
                   ${data.totalRewards}
                 </div>
-                <div className="text-xs text-muted-foreground">总奖励</div>
+                <div className="text-xs text-muted-foreground">{t('dashboard.totalRewards')}</div>
               </div>
               <div className="text-center">
                 <div className="text-xl font-bold text-yellow-400 mb-1">
                   ${data.pendingRewards}
                 </div>
-                <div className="text-xs text-muted-foreground">奖金提醒余额</div>
+                <div className="text-xs text-muted-foreground">{t('dashboard.pendingRewards')}</div>
               </div>
             </div>
           </CardContent>
@@ -215,10 +219,10 @@ export default function SimpleDashboard() {
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-4">
               <Share2 className="h-5 w-5 text-honey" />
-              <h3 className="text-lg font-semibold text-honey">分享推荐链接</h3>
+              <h3 className="text-lg font-semibold text-honey">{t('dashboard.shareReferral')}</h3>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
-              分享您的链接邀请朋友加入，赚取推荐奖励
+              {t('dashboard.shareDescription')}
             </p>
             <div className="bg-background/50 rounded-lg p-3 mb-4 border border-border/50">
               <div className="text-xs font-mono break-all text-honey">
@@ -230,7 +234,7 @@ export default function SimpleDashboard() {
               className="w-full bg-honey hover:bg-honey/90 text-black font-semibold"
             >
               <Copy className="h-4 w-4 mr-2" />
-              复制链接
+              {t('dashboard.copyLink')}
             </Button>
           </CardContent>
         </Card>
@@ -243,9 +247,9 @@ export default function SimpleDashboard() {
           >
             <CardContent className="p-6 text-center">
               <Users className="h-8 w-8 text-blue-400 mx-auto mb-3 group-hover:scale-110 transition-transform" />
-              <div className="font-semibold mb-2">推荐网络</div>
+              <div className="font-semibold mb-2">{t('dashboard.referralNetwork')}</div>
               <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                查看矩阵 <ArrowRight className="h-3 w-3" />
+                {t('dashboard.viewMatrix')} <ArrowRight className="h-3 w-3" />
               </div>
             </CardContent>
           </Card>
@@ -256,9 +260,9 @@ export default function SimpleDashboard() {
           >
             <CardContent className="p-6 text-center">
               <Award className="h-8 w-8 text-green-400 mx-auto mb-3 group-hover:scale-110 transition-transform" />
-              <div className="font-semibold mb-2">奖励中心</div>
+              <div className="font-semibold mb-2">{t('dashboard.rewardCenter')}</div>
               <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                领取奖励 <ArrowRight className="h-3 w-3" />
+                {t('dashboard.claimRewards')} <ArrowRight className="h-3 w-3" />
               </div>
             </CardContent>
           </Card>
@@ -266,7 +270,7 @@ export default function SimpleDashboard() {
 
         {/* 底部提示 */}
         <div className="text-center mt-8 text-sm text-muted-foreground">
-          <p>💡 邀请朋友加入即可解锁更多功能和奖励</p>
+          <p>{t('dashboard.inviteTip')}</p>
         </div>
       </div>
     </div>

@@ -28,6 +28,7 @@ import Registration from "@/pages/Registration";
 import MatrixExplanation from "@/pages/MatrixExplanation";
 import Welcome from "@/pages/Welcome";
 import Tasks from "@/pages/Tasks";
+import Membership from "@/pages/Membership";
 import TokenPurchase from "@/pages/TokenPurchase";
 import SupabaseAuth from "@/pages/SupabaseAuth";
 import AuthCallback from "@/pages/AuthCallback";
@@ -247,9 +248,14 @@ function Router() {
             <DashboardPageV2Simple />
           </MemberGuard>
         )} />
-        <Route path="/tasks" component={() => (
+        <Route path="/tasks" component={() => {
+          const [location, navigate] = useLocation();
+          navigate('/membership', { replace: true });
+          return null;
+        }} />
+        <Route path="/membership" component={() => (
           <MemberGuard requireActivation={true} redirectTo="/welcome">
-            <Tasks />
+            <Membership />
           </MemberGuard>
         )} />
         <Route path="/token-purchase" component={TokenPurchase} />
