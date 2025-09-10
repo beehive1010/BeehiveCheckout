@@ -48,12 +48,13 @@ interface ReferralMatrixVisualizationProps {
   maxLayers?: number;
 }
 
-const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = ({ 
-  rootWallet,
-  maxLayers = 19 
-}) => {
+export default function ReferralMatrixVisualization({ 
+  rootWallet, 
+  maxLayers = 5 
+}: ReferralMatrixVisualizationProps) {
   const { walletAddress, isConnected } = useWallet();
   const { t } = useI18n();
+  
   const [loading, setLoading] = useState(false);
   const [matrixData, setMatrixData] = useState<MatrixData | null>(null);
   const [selectedLayer, setSelectedLayer] = useState(1);
@@ -90,6 +91,10 @@ const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = 
         .order('layer_in_owner_matrix')
         .order('position_in_layer');
 
+      if (error) {
+        throw new Error(`Failed to load matrix data: ${error.message}`);
+      }
+
       // Get additional member info separately
       const memberWallets = matrixPlacements?.map(p => p.member_wallet) || [];
       let memberInfo = new Map();
@@ -115,10 +120,6 @@ const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = 
         usersData?.forEach(user => {
           userInfo.set(user.wallet_address, user);
         });
-      }
-
-      if (error) {
-        throw new Error(`Failed to load matrix data: ${error.message}`);
       }
 
       // Transform data to MatrixMember format
@@ -205,7 +206,6 @@ const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = 
 
   const handleMemberClick = (member: MatrixMember) => {
     setSelectedMember(member);
-    // 可以在这里添加查看该用户下级的逻辑
     toast.success(`查看 ${member.username || member.walletAddress.slice(0, 8)} 的详细信息`);
   };
 
@@ -229,6 +229,7 @@ const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = 
           minWidth: `${80 * zoomLevel}px`,
           minHeight: `${60 * zoomLevel}px`,
         }}
+        onClick={() => member && handleMemberClick(member)}
       >
         {isEmpty ? (
           <div className="text-center text-muted-foreground">
@@ -301,9 +302,10 @@ const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = 
     const positionGroups = positions.map(pos => ({
       position: pos,
       members: layerMembers.filter(m => {
-        if (pos === 'L') return m.position >= 1 && m.position <= Math.pow(3, selectedLayer-1);
-        if (pos === 'M') return m.position > Math.pow(3, selectedLayer-1) && m.position <= Math.pow(3, selectedLayer-1) * 2;
-        return m.position > Math.pow(3, selectedLayer-1) * 2;
+        if (pos === 'L') return m.position === 1;
+        if (pos === 'M') return m.position === 2;
+        if (pos === 'R') return m.position === 3;
+        return false;
       })
     }));
 
@@ -311,43 +313,21 @@ const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = 
       <div className="space-y-6">
         <div className="text-center">
           <Badge variant="outline" className="text-lg px-4 py-2">
-            Layer {selectedLayer} ({layerMembers.length}/{Math.pow(3, selectedLayer)})
+            Layer {selectedLayer} ({layerMembers.length} members)
           </Badge>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-3 gap-8">
           {positionGroups.map(group => (
-            <div key={group.position} className="space-y-4">
-              <div className="text-center">
-                <Badge 
-                  variant="outline" 
-                  className={`
-                    ${group.position === 'L' ? 'border-green-400 text-green-400' : 
-                      group.position === 'M' ? 'border-blue-400 text-blue-400' : 
-                      'border-purple-400 text-purple-400'}
-                  `}
-                >
-                  {group.position === 'L' ? 'LEFT LEG' : 
-                   group.position === 'M' ? 'MIDDLE LEG' : 
-                   'RIGHT LEG'} ({group.members.length})
-                </Badge>
-                <div className="text-sm text-muted-foreground mt-1">
-                  {group.members.length} members
-                </div>
+            <div key={group.position} className="text-center">
+              <div className="text-sm font-medium mb-4 text-muted-foreground">
+                {group.position === 'L' ? 'LEFT' : group.position === 'M' ? 'MIDDLE' : 'RIGHT'}
               </div>
-              
-              <div className="grid grid-cols-1 gap-3">
-                {group.members.slice(0, 6).map(member => (
-                  <div key={member.walletAddress} className="cursor-pointer" onClick={() => handleMemberClick(member)}>
-                    {renderMatrixNode(member, selectedLayer, member.position)}
-                  </div>
-                ))}
-                {group.members.length > 6 && (
-                  <div className="text-center p-3 border-2 border-dashed border-muted rounded-lg">
-                    <div className="text-sm text-muted-foreground">
-                      +{group.members.length - 6} more members
-                    </div>
-                  </div>
+              <div className="space-y-3">
+                {group.members.length > 0 ? (
+                  group.members.map(member => renderMatrixNode(member, selectedLayer, member.position))
+                ) : (
+                  renderMatrixNode(null, selectedLayer, group.position === 'L' ? 1 : group.position === 'M' ? 2 : 3)
                 )}
               </div>
             </div>
@@ -357,94 +337,109 @@ const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = 
     );
   };
 
-  const renderGridView = () => {
-    if (!matrixData) return null;
-
+  if (loading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {matrixData.members
-          .filter(m => m.layer <= selectedLayer)
-          .map(member => renderMatrixNode(member, member.layer, member.position))
-        }
-      </div>
-    );
-  };
-
-  const renderStats = () => {
-    if (!matrixData) return null;
-
-    const layerStats = [];
-    for (let layer = 1; layer <= maxLayers; layer++) {
-      const layerMembers = matrixData.members.filter(m => m.layer === layer);
-      const maxPositions = Math.pow(3, layer);
-      const fillPercentage = (layerMembers.length / maxPositions) * 100;
-
-      layerStats.push(
-        <div key={layer} className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span>Layer {layer}</span>
-            <span>{layerMembers.length}/{maxPositions}</span>
-          </div>
-          <div className="w-full bg-muted rounded-full h-2">
-            <div 
-              className="bg-honey h-2 rounded-full transition-all duration-300"
-              style={{ width: `${fillPercentage}%` }}
-            />
-          </div>
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto mb-4"></div>
+          <p className="text-muted-foreground">{t('membershipSystem.matrix.loading')}</p>
         </div>
-      );
-    }
-
-    return layerStats;
-  };
-
-  if (!isConnected) {
-    return (
-      <Card>
-        <CardContent className="p-8 text-center">
-          <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold mb-2">{t('membershipSystem.wallet.connectTitle')}</h2>
-          <p className="text-muted-foreground">
-            {t('membershipSystem.matrix.connectDescription')}
-          </p>
-        </CardContent>
-      </Card>
+      </div>
     );
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6">
-      {/* Header Controls */}
+    <div className="space-y-6">
+      {/* Header */}
       <Card>
         <CardHeader>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              {t('membershipSystem.matrix.title')}
-              {matrixData && (
-                <Badge variant="secondary">
-                  {t('membershipSystem.matrix.stats.totalMembers', { count: matrixData.totalMembers })}
-                </Badge>
-              )}
-            </CardTitle>
-            
+          <CardTitle className="flex items-center gap-2 text-honey">
+            <Users className="h-5 w-5" />
+            {t('membershipSystem.matrix.title')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {matrixData && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="text-center p-3 bg-honey/10 rounded-lg">
+                <div className="text-2xl font-bold text-honey">{matrixData.totalMembers}</div>
+                <div className="text-sm text-muted-foreground">{t('membershipSystem.matrix.stats.totalMembers')}</div>
+              </div>
+              <div className="text-center p-3 bg-purple-500/10 rounded-lg">
+                <div className="text-2xl font-bold text-purple-500">{matrixData.totalLayers}</div>
+                <div className="text-sm text-muted-foreground">{t('membershipSystem.matrix.stats.totalLayers')}</div>
+              </div>
+              <div className="text-center p-3 bg-green-500/10 rounded-lg">
+                <div className="text-2xl font-bold text-green-500">
+                  {matrixData.members.filter(m => m.isActive).length}
+                </div>
+                <div className="text-sm text-muted-foreground">{t('membershipSystem.matrix.stats.activeMembers')}</div>
+              </div>
+              <div className="text-center p-3 bg-blue-500/10 rounded-lg">
+                <div className="text-2xl font-bold text-blue-500">
+                  {matrixData.myPosition ? `L${matrixData.myPosition.layer}` : 'N/A'}
+                </div>
+                <div className="text-sm text-muted-foreground">{t('membershipSystem.matrix.stats.myPosition')}</div>
+              </div>
+            </div>
+          )}
+
+          {/* Referral Link Section */}
+          <div className="bg-secondary rounded-lg p-4 mb-6">
+            <h3 className="text-sm font-semibold mb-2">{t('membershipSystem.matrix.referralLink.title')}</h3>
+            <div className="flex gap-2">
+              <input 
+                type="text" 
+                value={referralLink} 
+                readOnly 
+                className="flex-1 px-3 py-2 text-sm bg-background border rounded-md"
+              />
+              <Button onClick={copyReferralLink} variant="outline" size="sm">
+                <Copy className="h-4 w-4" />
+              </Button>
+              <Button onClick={shareReferralLink} variant="outline" size="sm">
+                <Share className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Controls */}
+          <div className="flex flex-wrap items-center gap-4 mb-6">
+            <div className="flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              <span className="text-sm">{t('membershipSystem.matrix.controls.viewMode')}:</span>
+              <Button
+                variant={viewMode === 'layer' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('layer')}
+              >
+                {t('membershipSystem.matrix.controls.layerView')}
+              </Button>
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+              >
+                {t('membershipSystem.matrix.controls.gridView')}
+              </Button>
+            </div>
+
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setZoomLevel(Math.max(0.5, zoomLevel - 0.25))}
+                onClick={() => setZoomLevel(Math.max(0.5, zoomLevel - 0.1))}
               >
                 <ZoomOut className="h-4 w-4" />
               </Button>
-              
+              <span className="text-sm">{Math.round(zoomLevel * 100)}%</span>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setZoomLevel(Math.min(2, zoomLevel + 0.25))}
+                onClick={() => setZoomLevel(Math.min(2, zoomLevel + 0.1))}
               >
                 <ZoomIn className="h-4 w-4" />
               </Button>
-              
               <Button
                 variant="outline"
                 size="sm"
@@ -452,133 +447,67 @@ const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = 
               >
                 <RotateCcw className="h-4 w-4" />
               </Button>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setViewMode(viewMode === 'layer' ? 'grid' : 'layer')}
-              >
-                <Eye className="h-4 w-4" />
-                {viewMode === 'layer' ? 'Grid View' : 'Layer View'}
-              </Button>
             </div>
           </div>
-        </CardHeader>
+        </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Matrix Visualization */}
-        <div className="lg:col-span-3">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium">{t('membershipSystem.matrix.controls.viewLayer')}</label>
-                  <select
-                    value={selectedLayer}
-                    onChange={(e) => setSelectedLayer(Number(e.target.value))}
-                    className="px-2 py-1 border rounded text-sm"
+      {/* Matrix Visualization */}
+      {matrixData && viewMode === 'layer' && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>{t('membershipSystem.matrix.visualization.title')}</CardTitle>
+              <div className="flex items-center gap-2">
+                {Array.from({ length: Math.min(matrixData.totalLayers, maxLayers) }, (_, i) => i + 1).map(layer => (
+                  <Button
+                    key={layer}
+                    variant={selectedLayer === layer ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedLayer(layer)}
                   >
-                    {Array.from({ length: maxLayers }, (_, i) => i + 1).map(layer => (
-                      <option key={layer} value={layer}>
-                        {t('membershipSystem.matrix.visualization.layerNumber', { layer })}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {matrixData?.myPosition && (
-                  <Badge variant="secondary">
-                    {t('membershipSystem.matrix.stats.yourPosition', { layer: matrixData.myPosition.layer, position: matrixData.myPosition.position })}
-                  </Badge>
-                )}
+                    L{layer}
+                  </Button>
+                ))}
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-auto max-h-[600px]">
-                {viewMode === 'layer' ? renderLayerView() : renderGridView()}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {renderLayerView()}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Selected Member Details */}
+      {selectedMember && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('membershipSystem.matrix.memberDetails.title')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">{t('membershipSystem.matrix.memberDetails.wallet')}</label>
+                <p className="text-sm text-muted-foreground font-mono">{selectedMember.walletAddress}</p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Statistics & Controls */}
-        <div className="space-y-6">
-          {/* Layer Statistics */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">{t('membershipSystem.matrix.layerFillStatus')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {renderStats()}
-            </CardContent>
-          </Card>
-
-          {/* Referral Link */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">{t('membershipSystem.matrix.referralLink.title')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={referralLink}
-                  readOnly
-                  className="flex-1 px-2 py-1 text-xs bg-muted border rounded"
-                />
-                <Button size="sm" variant="outline" onClick={copyReferralLink}>
-                  <Copy className="h-3 w-3" />
-                </Button>
+              <div>
+                <label className="text-sm font-medium">{t('membershipSystem.matrix.memberDetails.username')}</label>
+                <p className="text-sm text-muted-foreground">{selectedMember.username || 'N/A'}</p>
               </div>
-              
-              <Button
-                onClick={shareReferralLink}
-                className="w-full"
-                size="sm"
-              >
-                <Share className="h-4 w-4 mr-2" />
-                {t('membershipSystem.matrix.referralLink.share')}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Quick Stats */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">{t('membershipSystem.matrix.quickStats.title')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              {matrixData && (
-                <>
-                  <div className="flex justify-between">
-                    <span>{t('membershipSystem.matrix.quickStats.totalMembers')}</span>
-                    <span className="font-semibold">{matrixData.totalMembers}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>{t('membershipSystem.matrix.quickStats.activeLayers')}</span>
-                    <span className="font-semibold">
-                      {Math.max(...matrixData.members.map(m => m.layer))}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>{t('membershipSystem.matrix.quickStats.yourDirectRefs')}</span>
-                    <span className="font-semibold">
-                      {matrixData.members.filter(m => m.layer === 1).length}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>{t('membershipSystem.matrix.quickStats.matrixDepth')}</span>
-                    <span className="font-semibold">{t('membershipSystem.matrix.quickStats.layersCount', { count: maxLayers })}</span>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+              <div>
+                <label className="text-sm font-medium">{t('membershipSystem.matrix.memberDetails.level')}</label>
+                <p className="text-sm text-muted-foreground">Level {selectedMember.level}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium">{t('membershipSystem.matrix.memberDetails.position')}</label>
+                <p className="text-sm text-muted-foreground">
+                  Layer {selectedMember.layer}, Position {selectedMember.position === 1 ? 'L' : selectedMember.position === 2 ? 'M' : 'R'}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
-};
-
-export default ReferralMatrixVisualization;
+}
