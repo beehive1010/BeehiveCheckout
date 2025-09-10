@@ -38,7 +38,8 @@
       "Bash(npx eslint:*)",
       "Bash(./scripts/supabase-ipv4-management.sh status:*)",
       "Bash(./check_db_integrity.sh:*)",
-      "Bash(__NEW_LINE__ echo \"\")"
+      "Bash(__NEW_LINE__ echo \"\")",
+      "Bash(PGPASSWORD:*)"
     ],
     "deny": [],
     "ask": []

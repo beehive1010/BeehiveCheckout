@@ -279,17 +279,17 @@ export default function ReferralMatrixVisualization({
           
           <div className="flex justify-center items-center gap-8">
             <div className="text-center">
-              <div className="text-sm font-medium mb-2 text-muted-foreground">LEFT</div>
+              <div className="text-sm font-medium mb-2 text-muted-foreground">{t('referrals.matrixPosition.left').toUpperCase()}</div>
               {renderMatrixNode(leftMember || null, selectedLayer, 1)}
             </div>
             
             <div className="text-center">
-              <div className="text-sm font-medium mb-2 text-muted-foreground">MIDDLE</div>
+              <div className="text-sm font-medium mb-2 text-muted-foreground">{t('referrals.matrixPosition.middle').toUpperCase()}</div>
               {renderMatrixNode(middleMember || null, selectedLayer, 2)}
             </div>
             
             <div className="text-center">
-              <div className="text-sm font-medium mb-2 text-muted-foreground">RIGHT</div>
+              <div className="text-sm font-medium mb-2 text-muted-foreground">{t('referrals.matrixPosition.right').toUpperCase()}</div>
               {renderMatrixNode(rightMember || null, selectedLayer, 3)}
             </div>
           </div>
