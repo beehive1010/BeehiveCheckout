@@ -556,7 +556,21 @@
     "subtitle": "สร้างเครือข่ายของคุณและรับรางวัลผ่านระบบการแนะนำของเรา",
     "totalEarnings": "รายได้ทั้งหมด",
     "totalReferrals": "การแนะนำทั้งหมด",
-    "yourLink": "ลิงค์การแนะนำของคุณ"
+    "yourLink": "ลิงค์การแนะนำของคุณ",
+    "matrixPosition": {
+      "left": "ซ้าย",
+      "middle": "กลาง",
+      "right": "ขวา",
+      "leftPosition": "ตำแหน่งซ้าย",
+      "middlePosition": "ตำแหน่งกลาง",
+      "rightPosition": "ตำแหน่งขวา",
+      "position1": "ตำแหน่ง 1",
+      "position2": "ตำแหน่ง 2",
+      "position3": "ตำแหน่ง 3",
+      "yourPosition": "ตำแหน่งของคุณ",
+      "available": "ว่าง",
+      "occupied": "ถูกใช้งาน"
+    }
   },
   "hiveworld": {
     "blogs": {

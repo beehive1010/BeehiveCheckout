@@ -498,7 +498,21 @@
     "subtitle": "Bina rangkaian anda dan dapatkan ganjaran melalui sistem rujukan kami",
     "totalEarnings": "Jumlah Pendapatan",
     "totalReferrals": "Jumlah Rujukan",
-    "yourLink": "Pautan Rujukan Anda"
+    "yourLink": "Pautan Rujukan Anda",
+    "matrixPosition": {
+      "left": "Kiri",
+      "middle": "Tengah",
+      "right": "Kanan",
+      "leftPosition": "Posisi Kiri",
+      "middlePosition": "Posisi Tengah",
+      "rightPosition": "Posisi Kanan",
+      "position1": "Posisi 1",
+      "position2": "Posisi 2",
+      "position3": "Posisi 3",
+      "yourPosition": "Posisi Anda",
+      "available": "Tersedia",
+      "occupied": "Diduduki"
+    }
   },
   "hiveworld": {
     "blogs": {
