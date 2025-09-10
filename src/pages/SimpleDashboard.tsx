@@ -16,7 +16,8 @@ import {
   Copy,
   Share2,
   Award,
-  ArrowRight
+  ArrowRight,
+  Plus
 } from 'lucide-react';
 import UserProfile from '../components/dashboard/UserProfile';
 
@@ -148,7 +149,7 @@ export default function SimpleDashboard() {
                 <DollarSign className="h-8 w-8 text-honey" />
                 <h3 className="text-lg font-semibold text-honey">{t('dashboard.bccBalance')}</h3>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="text-center">
                   <div className="text-xl font-bold text-honey mb-1">
                     {data.bccBalance}
@@ -162,6 +163,17 @@ export default function SimpleDashboard() {
                   <div className="text-xs text-muted-foreground">{t('dashboard.bccLocked')}</div>
                 </div>
               </div>
+              
+              {/* Top Up Button */}
+              <Button 
+                onClick={() => setLocation('/tokens')}
+                className="w-full bg-honey/10 hover:bg-honey/20 text-honey border border-honey/30"
+                variant="outline"
+                data-testid="button-topup"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                {t('dashboard.topUp')}
+              </Button>
             </CardContent>
           </Card>
 
