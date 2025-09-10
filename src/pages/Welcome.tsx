@@ -149,10 +149,10 @@ export default function Welcome() {
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-4">
-            Welcome to Beehive Community
+            {t('welcome.title')}
           </h1>
           <p className="text-xl text-muted-foreground mb-2">
-            Activate your Level 1 membership by claiming your ERC-5115 NFT
+            {t('welcome.subtitle')}
           </p>
           
           {/* Referrer Information Card - Always show since referrer is required */}
@@ -161,11 +161,11 @@ export default function Welcome() {
               <div className="flex items-center justify-center space-x-3">
                 <Users className="h-5 w-5 text-honey" />
                 <div className="text-center">
-                  <p className="text-sm text-muted-foreground mb-1">Referred by:</p>
+                  <p className="text-sm text-muted-foreground mb-1">{t('welcome.referredBy')}:</p>
                   {isLoadingReferrer ? (
                     <div className="flex items-center justify-center space-x-2">
                       <div className="animate-spin h-4 w-4 border-2 border-honey border-t-transparent rounded-full"></div>
-                      <span className="text-sm text-honey">Loading...</span>
+                      <span className="text-sm text-honey">{t('common.loading')}</span>
                     </div>
                   ) : (
                     <div className="space-y-1">
@@ -186,7 +186,7 @@ export default function Welcome() {
               <div className="mt-3 text-center">
                 <div className="flex items-center justify-center space-x-1 text-xs text-honey/80">
                   <Crown className="h-3 w-3" />
-                  <span>You'll be placed in their 3×3 matrix system</span>
+                  <span>{t('welcome.matrixPlacement')}</span>
                 </div>
               </div>
             </CardContent>
@@ -199,12 +199,11 @@ export default function Welcome() {
         />
         
         <div className="mt-8 text-center text-sm text-muted-foreground space-y-2">
-          <p className="mb-2">🎯 Connect your wallet and claim your NFT to activate Level 1 membership</p>
-          <p>⚡ This will enable access to the 3x3 referral matrix and BCC reward system</p>
+          <p className="mb-2">{t('welcome.instructions.step1')}</p>
+          <p>{t('welcome.instructions.step2')}</p>
           <div className="p-3 bg-secondary/50 rounded-lg mt-4">
             <p className="text-xs text-honey/90">
-              💡 <strong>Matrix Placement:</strong> You'll be automatically placed in the first available slot in your referrer's matrix tree, 
-              following the 3×3 structure (Layer 1→2→3...). This determines your position for earning layer rewards.
+              {t('welcome.matrixPlacementInfo')}
             </p>
           </div>
         </div>

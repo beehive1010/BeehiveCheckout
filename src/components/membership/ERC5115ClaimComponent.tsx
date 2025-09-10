@@ -90,8 +90,8 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
     // Validate referrer requirements
     if (!referrerWallet) {
       toast({
-        title: "Referrer Required",
-        description: "You must use a valid referral link to claim your NFT. Please ask an existing member for a referral link.",
+        title: t('claim.referrerRequired'),
+        description: t('claim.referrerRequiredDesc'),
         variant: "destructive",
       });
       return;
@@ -100,8 +100,8 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
     // Prevent self-referral (compare in lowercase but preserve original case)
     if (referrerWallet.toLowerCase() === account.address.toLowerCase()) {
       toast({
-        title: "Self-Referral Not Allowed",
-        description: "You cannot refer yourself. Please use a referral link from another member.",
+        title: t('claim.selfReferralNotAllowed'),
+        description: t('claim.selfReferralNotAllowedDesc'),
         variant: "destructive",
       });
       return;
@@ -144,7 +144,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       console.log('✅ User registration verified - now validating referrer...');
       
       // Validate referrer exists and is a registered member
-      setCurrentStep('Validating referrer...');
+      setCurrentStep(t('claim.validatingReferrer'));
       
       const referrerCheckResponse = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/auth', {
         method: 'POST',
@@ -166,8 +166,8 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         const errorMessage = referrerResult.error || 'Referrer is not a registered member';
         console.log('❌ Referrer validation failed:', errorMessage);
         toast({
-          title: "Invalid Referrer",
-          description: `${errorMessage}. Please use a referral link from a registered member.`,
+          title: t('claim.invalidReferrer'),
+          description: `${errorMessage}. ${t('claim.useValidReferrer')}`,
           variant: "destructive",
         });
         setIsProcessing(false);

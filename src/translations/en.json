@@ -185,6 +185,8 @@
       "referrerRequired": "A valid referral link is required to register"
     },
     "success": "Registration Successful!",
+    "welcomeBack": "Welcome Back!",
+    "accountExists": "Account already exists, no need to register again",
     "welcomeMessage": "Your profile has been created. You can now activate your membership.",
     "failed": "Registration Failed",
     "unknownError": "Please try again or contact support if the problem persists.",
@@ -557,6 +559,15 @@
       "checkingRegistration": "Checking registration status...",
       "registrationCheckFailed": "Registration Check Failed",
       "registrationCheckFailedDesc": "Unable to verify registration status. Please refresh and try again.",
+      "referrerRequired": "Referrer Required",
+      "referrerRequiredDesc": "You must use a valid referral link to claim your NFT. Please ask an existing member for a referral link.",
+      "selfReferralNotAllowed": "Self-Referral Not Allowed",
+      "selfReferralNotAllowedDesc": "You cannot refer yourself. Please use a referral link from another member.",
+      "validatingReferrer": "Validating referrer...",
+      "invalidReferrer": "Invalid Referrer",
+      "useValidReferrer": "Please use a referral link from a registered member.",
+      "validationFailed": "Validation Failed",
+      "validationFailedDesc": "Unable to verify registration or referrer status. Please refresh and try again.",
       "success": {
         "title": "NFT Claimed Successfully!",
         "description": "The NFT has been minted to your wallet."
@@ -797,9 +808,24 @@
     "trending": "Trending"
   },
   "welcome": {
-    "title": "Welcome to Beehive! 🎉",
-    "subtitle": "Start Your BeeHive Journey - Learn, Play & Earn in Web3 by Purchasing Your Membership NFT",
+    "title": "Welcome to Beehive Community",
+    "subtitle": "Activate your Level 1 membership by claiming your ERC-5115 NFT",
     "description": "Complete your membership by purchasing your Level 1 Warrior NFT. This unlocks all platform features and starts your Web3 journey!",
+    "checkingMembership": "Checking membership status...",
+    "checkingChain": "Checking on-chain NFT status...",
+    "referredBy": "Referred by",
+    "matrixPlacement": "You'll be placed in their 3×3 matrix system",
+    "matrixPlacementInfo": "💡 Matrix Placement: You'll be automatically placed in the first available slot in your referrer's matrix tree, following the 3×3 structure (Layer 1→2→3...). This determines your position for earning layer rewards.",
+    "instructions": {
+      "step1": "🎯 Connect your wallet and claim your NFT to activate Level 1 membership",
+      "step2": "⚡ This will enable access to the 3x3 referral matrix and BCC reward system"
+    },
+    "referralRequired": {
+      "title": "Referral Link Required",
+      "description": "You need a valid referral link to access Beehive Community. Please ask an existing member to share their referral link with you.",
+      "example": "💡 Referral links look like:",
+      "howToGet": "Existing members can generate referral links from their dashboard."
+    },
     "referral": {
       "rewards": "Referral Rewards: Earn 100% rewards on each level when NFTs are purchased in your network"
     },

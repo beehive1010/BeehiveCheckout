@@ -97,8 +97,8 @@ export default function RegistrationModal({
       }
 
       toast({
-        title: isExisting ? '欢迎回来' : t('registration.success'),
-        description: isExisting ? '账户已存在，无需重复注册' : t('registration.welcomeMessage'),
+        title: isExisting ? t('registration.welcomeBack') : t('registration.success'),
+        description: isExisting ? t('registration.accountExists') : t('registration.welcomeMessage'),
       });
 
       // Clear form and close modal

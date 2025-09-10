@@ -102,90 +102,39 @@
     }
   },
   "footer": {
-    "platform": {
-      "title": "プラットフォーム",
-      "membership": "メンバーシップレベル",
-      "rewards": "報酬システム",
-      "nfts": "NFTマーケットプレイス",
-      "education": "教育センター"
-    },
-    "resources": {
-      "title": "リソース",
-      "whitepaper": "ホワイトペーパー",
-      "documentation": "ドキュメント",
-      "tutorials": "チュートリアル",
-      "faq": "よくある質問"
-    },
-    "community": {
-      "title": "コミュニティ",
-      "discord": "Discord",
-      "telegram": "Telegram",
-      "twitter": "Twitter",
-      "medium": "Medium"
-    },
-    "legal": {
-      "title": "法的事項",
-      "privacy": "プライバシーポリシー",
-      "terms": "利用規約",
-      "cookies": "Cookieポリシー",
-      "disclaimer": "免責事項"
-    },
-    "newsletter": {
-      "title": "最新情報を受け取る",
-      "description": "新機能、報酬、コミュニティイベントの最新情報を受け取る",
-      "placeholder": "メールアドレスを入力",
-      "button": "購読",
-      "disclaimer": "お客様のプライバシーを尊重し、情報を共有することはありません"
-    },
-    "brand": {
-      "tagline": "Web3メンバーシップ＆学習プラットフォーム"
-    },
-    "copyright": {
-      "rights": "すべての権利を保有。",
-      "blockchain": "ブロックチェーン技術による"
-    },
-    "backToTop": "トップに戻る"
+    "description": "ブロックチェーン報酬付きのWeb3メンバーシップ＆学習プラットフォーム。",
+    "platform": "プラットフォーム",
+    "support": "サポート",
+    "helpCenter": "ヘルプセンター",
+    "documentation": "ドキュメント",
+    "contact": "お問い合わせ",
+    "status": "ステータス",
+    "legal": "法的事項",
+    "privacy": "プライバシーポリシー",
+    "terms": "利用規約",
+    "cookies": "Cookieポリシー",
+    "copyright": "© 2024 Beehive. All rights reserved."
   },
   "dashboard": {
-    "welcome": "おかえりなさい",
+    "welcome": {
+      "title": "Beehiveへようこそ! 🎉",
+      "subtitle": "レベル1ウォリアーNFTを購入してメンバーシップを完了してください。すべてのプラットフォーム機能が解放され、Web3の旅が始まります！",
+      "referral": {
+        "rewards": "紹介報酬：ネットワークでNFTが購入されたとき、各レベルで100%の報酬を獲得"
+      }
+    },
     "nftRequired": {
-      "title": "Beehiveへようこそ！🎉",
-      "description": "レベル1ウォリアーNFTを購入してメンバーシップを完了してください。これにより、マトリックス内のポジションがアクティブになり、Web3の旅が始まります。",
-      "requiredNft": "レベル1ウォリアーNFT",
-      "nftDescription": "メンバーシップをアクティブにするための一回限りの購入",
-      "level1Warrior": "レベル1ウォリアー",
-      "tokenId": "トークンID：0",
-      "price": "価格",
-      "priceAmount": "130 USDT",
-      "benefitsTitle": "解放される機能：",
-      "benefits": {
-        "dashboard": "完全なダッシュボードアクセス",
-        "tasks": "タスクとNFTマーケットプレイス",
-        "education": "教育センター",
-        "discover": "Web3 Dappsを発見",
-        "tokens": "BCCトークンシステム",
-        "matrix": "HiveWorldマトリックスシステム"
-      },
-      "premiumTitle": "プレミアムメンバーシップ",
-      "premiumDescription": "レベル1 NFTメンバーシップをアクティブ化し、マトリックスでポジションを取り、報酬を獲得し始めましょう。",
-      "supportText": "ブロックチェーン技術によって支えられた安全なWeb3決済",
-      "purchaseSuccess": {
-        "title": "メンバーシップがアクティブ化されました！",
-        "description": "レベル1 NFTが購入され、メンバーシップがアクティブになりました。"
-      },
-      "purchaseError": {
-        "title": "購入に失敗しました",
-        "description": "NFTの購入に失敗しました。もう一度お試しください。"
-      },
-      "getButton": "メンバーシップを購入"
+      "level1Membership": "レベル1メンバーシップ",
+      "bumblebeeNFT": "Bumblebee NFT",
+      "levelOne": "レベル1",
+      "benefits": "特典",
+      "accessTasks": "タスク＆マーケットアクセス",
+      "referralRewards": "紹介報酬",
+      "nftClaiming": "NFT請求",
+      "premiumContent": "プレミアムコンテンツ"
     },
     "activation": {
-      "title": "Beehiveへようこそ",
-      "description": "ブロックチェーンベースの報酬を備えたWeb3メンバーシップと学習プラットフォーム。始めるにはレベル1メンバーシップをアクティブ化してください！",
-      "membershipLevel": "メンバーシップレベル",
-      "price": "価格",
-      "priceLevel1": "130 USDT",
-      "activationNote": "アクティベート後、タスク、教育、ハイブワールドを含むすべてのメンバー機能にアクセスできます。",
+      "activationNote": "既存のNFTをアクティベートするにはクリック",
       "success": {
         "title": "メンバーシップがアクティベートされました！",
         "description": "Beehiveへようこそ！すべてのメンバー機能にアクセスできるようになりました。"
@@ -200,13 +149,6 @@
       "level": "レベル",
       "nextLevel": "次のレベル",
       "progress": "進捗"
-    },
-    "welcome": {
-      "title": "Beehiveへようこそ! 🎉",
-      "subtitle": "レベル1ウォリアーNFTを購入してメンバーシップを完了してください。すべてのプラットフォーム機能が解放され、Web3の旅が始まります！",
-      "referral": {
-        "rewards": "紹介報酬：ネットワークでNFTが購入されたとき、各レベルで100%の報酬を獲得"
-      }
     },
     "quickActions": {
       "tasks": {
@@ -226,17 +168,6 @@
     "recentActivities": "最近のアクティビティ",
     "referralDescription": "紹介リンクをシェアして紹介報酬を獲得",
     "referrals": "紹介",
-    "activation": {
-      "activationNote": "既存のNFTをアクティベートするにはクリック",
-      "success": {
-        "title": "メンバーシップがアクティベートされました！",
-        "description": "Beehiveへようこそ！すべてのメンバー機能にアクセスできるようになりました。"
-      },
-      "error": {
-        "title": "アクティベーション失敗",
-        "description": "メンバーシップをアクティベートできませんでした。再試行するかサポートにお問い合わせください。"
-      }
-    },
     "activateLevel1": "レベル1メンバーシップをアクティベート",
     "activating": "アクティベート中...",
     "activationNote": "アクティベート後、タスク、教育、ハイブワールドを含むすべてのメンバー機能にアクセスできます。",
@@ -282,10 +213,13 @@
       "whatsapp": "WhatsApp"
     },
     "stats": {
-      "totalRewards": "総報酬",
-      "bccBalance": "BCC 残高",
-      "bccLocked": "BCC ロック済み",
-      "nftsOwned": "所有 NFT"
+      "directReferrals": "直接紹介",
+      "teamSize": "チームサイズ",
+      "totalEarnings": "総収益",
+      "bccBalance": "BCC残高",
+      "thisMonth": "今月",
+      "totalMembers": "総メンバー数",
+      "allTime": "全期間"
     },
     "tokenPurchase": {
       "bccDescription": "プラットフォームで使用するBeehive Crypto Coinを購入",
@@ -313,15 +247,6 @@
       "title": "下位マトリックス",
       "placement": "配置"
     },
-    "stats": {
-      "directReferrals": "直接紹介",
-      "teamSize": "チームサイズ",
-      "totalEarnings": "総収益",
-      "bccBalance": "BCC残高",
-      "thisMonth": "今月",
-      "totalMembers": "総メンバー数",
-      "allTime": "全期間"
-    },
     "actions": {
       "upgradeLevel": "レベルアップ",
       "upgradeDescription": "次のメンバーシップレベルを購入",
@@ -331,16 +256,6 @@
       "nftDescription": "BCCでマーチャントNFTを請求",
       "learnEarn": "学習＆獲得",
       "educationDescription": "プレミアムコースにアクセス"
-    },
-    "nftRequired": {
-      "level1Membership": "レベル1メンバーシップ",
-      "bumblebeeNFT": "Bumblebee NFT",
-      "levelOne": "レベル1",
-      "benefits": "特典",
-      "accessTasks": "タスク＆マーケットアクセス",
-      "referralRewards": "紹介報酬",
-      "nftClaiming": "NFT請求",
-      "premiumContent": "プレミアムコンテンツ"
     },
     "registrationExpiry": {
       "warning": "登録がまもなく期限切れになります！続行するにはメンバーシップを有効にしてください："
@@ -505,21 +420,17 @@
   },
   "discover": {
     "title": "発見",
-    "subtitle": "Web3 DAppsとサービスを探索",
+    "subtitle": "Beehiveエコシステムからの洞察、チュートリアル、最新ニュースを発見",
     "noPosts": "記事が見つかりません",
     "readMore": "詳しく読む",
     "searchPlaceholder": "記事を検索...",
-    "subtitle": "Beehiveエコシステムからの洞察、チュートリアル、最新ニュースを発見",
     "search": {
       "placeholder": "パートナーを検索...",
       "recent": "最近",
       "trending": "トレンド",
       "clear": "クリア"
     },
-    "featured": {
-      "title": "Beehive特集",
-      "viewAll": "すべて表示"
-    },
+    "featured": "特集",
     "categories": {
       "title": "カテゴリー",
       "all": "すべて",
@@ -556,7 +467,19 @@
       "title": "最新ニュース",
       "subtitle": "Web3の最新動向を把握",
       "readMore": "続きを読む",
-      "minutes": "分で読める"
+      "minutes": "分で読める",
+      "matrix30": {
+        "title": "Matrix 3.0リリース - 報酬強化",
+        "description": "改善された報酬配布とより高速な処理時間を備えたアップグレードされたマトリックスシステムを体験"
+      },
+      "bridge": {
+        "title": "マルチチェーンブリッジ統合",
+        "description": "新しいブリッジ技術により複数のブロックチェーン間でアセットをシームレスに転送"
+      },
+      "education": {
+        "title": "新しいWeb3認定プログラム",
+        "description": "ブロックチェーン開発とDeFiプロトコルの高度な認定コースが利用可能"
+      }
     },
     "dapps": {
       "beehive": "BeeHiveメンバーシップ",
@@ -611,25 +534,6 @@
         "certificates": "証明書"
       }
     },
-    "news": {
-      "title": "最新ニュース",
-      "subtitle": "Web3の最新動向を把握",
-      "readMore": "続きを読む",
-      "minutes": "分で読める",
-      "matrix30": {
-        "title": "Matrix 3.0リリース - 報酬強化",
-        "description": "改善された報酬配布とより高速な処理時間を備えたアップグレードされたマトリックスシステムを体験"
-      },
-      "bridge": {
-        "title": "マルチチェーンブリッジ統合",
-        "description": "新しいブリッジ技術により複数のブロックチェーン間でアセットをシームレスに転送"
-      },
-      "education": {
-        "title": "新しいWeb3認定プログラム",
-        "description": "ブロックチェーン開発とDeFiプロトコルの高度な認定コースが利用可能"
-      }
-    },
-    "featured": "特集",
     "trending": "トレンド"
   },
   "referrals": {
@@ -804,8 +708,8 @@
     }
   },
   "welcome": {
-    "title": "Beehiveへようこそ！🎉",
-    "subtitle": "レベル1戦士NFTを購入してメンバーシップを完了してください。これにより、すべてのプラットフォーム機能がアンロックされ、Web3の旅が始まります！",
+    "title": "Beehiveコミュニティへようこそ",
+    "subtitle": "ERC-5115 NFTを請求してレベル1メンバーシップをアクティベートしてください",
     "nft": {
       "title": "レベル1戦士NFT",
       "description": "ブロックチェーン上でのメンバーシップ証明",
@@ -834,7 +738,22 @@
       "title": "購入失敗",
       "description": "購入でエラーが発生しました。再試行してください。"
     },
-    "supportText": "複数のブロックチェーンでの安全な支払い、即時NFT配送"
+    "supportText": "複数のブロックチェーンでの安全な支払い、即時NFT配送",
+    "checkingMembership": "メンバーシップステータスを確認中...",
+    "checkingChain": "オンチェーンNFTステータスを確認中...",
+    "referredBy": "紹介者",
+    "matrixPlacement": "あなたは彼らの3×3マトリックスシステムに配置されます",
+    "matrixPlacementInfo": "💡 マトリックス配置：あなたは紹介者のマトリックスツリーの最初の利用可能なスロットに自動的に配置され、3×3構造（レイヤー1→2→3...）に従います。これがレイヤー報酬を受け取るための位置を決定します。",
+    "instructions": {
+      "step1": "🎯 ウォレットを接続してNFTを請求し、レベル1メンバーシップをアクティベートしてください",
+      "step2": "⚡ これにより、3x3紹介マトリックスとBCC報酬システムへのアクセスが有効になります"
+    },
+    "referralRequired": {
+      "title": "紹介リンクが必要",
+      "description": "Beehiveコミュニティにアクセスするには、有効な紹介リンクが必要です。既存のメンバーに紹介リンクを共有してもらってください。",
+      "example": "💡 紹介リンクは次のようになります：",
+      "howToGet": "既存のメンバーはダッシュボードから紹介リンクを生成できます。"
+    }
   },
   "tokenPurchase": {
     "title": "トークン購入",
@@ -920,20 +839,6 @@
       "claimed": "使用準備完了",
       "serviceActivated": "サービス有効化済み"
     }
-  },
-  "footer": {
-    "description": "ブロックチェーン報酬付きのWeb3メンバーシップ＆学習プラットフォーム。",
-    "platform": "プラットフォーム",
-    "support": "サポート",
-    "helpCenter": "ヘルプセンター",
-    "documentation": "ドキュメント",
-    "contact": "お問い合わせ",
-    "status": "ステータス",
-    "legal": "法的事項",
-    "privacy": "プライバシーポリシー",
-    "terms": "利用規約",
-    "cookies": "Cookieポリシー",
-    "copyright": "© 2024 Beehive. All rights reserved."
   },
   "blogpost": {
     "linkCopied": {
@@ -1025,5 +930,20 @@
         "description": "メンバーシップ購入を完了できませんでした。再試行してください。"
       }
     }
+  },
+  "registration": {
+    "welcomeBack": "おかえりなさい！",
+    "accountExists": "アカウントは既に存在します。再度登録する必要はありません"
+  },
+  "claim": {
+    "referrerRequired": "紹介者が必要",
+    "referrerRequiredDesc": "NFTを請求するには、有効な紹介リンクを使用する必要があります。既存のメンバーに紹介リンクを求めてください。",
+    "selfReferralNotAllowed": "自己紹介は許可されていません",
+    "selfReferralNotAllowedDesc": "自分自身を紹介することはできません。他のメンバーの紹介リンクを使用してください。",
+    "validatingReferrer": "紹介者を検証中...",
+    "invalidReferrer": "無効な紹介者",
+    "useValidReferrer": "登録済みメンバーの紹介リンクを使用してください。",
+    "validationFailed": "検証に失敗しました",
+    "validationFailedDesc": "登録または紹介者ステータスを確認できません。リフレッシュして再試行してください。"
   }
 }

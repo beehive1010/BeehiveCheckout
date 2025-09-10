@@ -382,19 +382,18 @@ export function WelcomePage() {
                 <Card className="max-w-md mx-auto border-red-500/50 bg-red-500/5">
                     <CardContent className="pt-6 text-center">
                         <div className="text-red-400 text-6xl mb-4">🚫</div>
-                        <h2 className="text-xl font-bold text-red-400 mb-2">Referral Link Required</h2>
+                        <h2 className="text-xl font-bold text-red-400 mb-2">{t('welcome.referralRequired.title')}</h2>
                         <p className="text-muted-foreground mb-4">
-                            You need a valid referral link to access Beehive Community. 
-                            Please ask an existing member to share their referral link with you.
+                            {t('welcome.referralRequired.description')}
                         </p>
                         <div className="p-3 bg-red-500/10 rounded-lg border border-red-500/30 text-sm text-red-400">
-                            💡 Referral links look like: <br/>
+                            {t('welcome.referralRequired.example')}<br/>
                             <code className="bg-background/50 px-2 py-1 rounded text-xs mt-1 inline-block">
                                 /welcome?ref=0x123...abc
                             </code>
                         </div>
                         <div className="mt-4 text-xs text-muted-foreground">
-                            Existing members can generate referral links from their dashboard.
+                            {t('welcome.referralRequired.howToGet')}
                         </div>
                     </CardContent>
                 </Card>
@@ -410,7 +409,7 @@ export function WelcomePage() {
                         <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-honey"/>
                         <p className="text-honey">
                             {isCheckingChain
-                                ? '🔍 检查链上NFT状态...'
+                                ? t('welcome.checkingChain')
                                 : (t('welcome.checkingStatus') || 'Checking status...')
                             }
                         </p>
@@ -430,7 +429,7 @@ export function WelcomePage() {
                     </div>
                 </div>
                 <h1 className="text-3xl font-bold mb-2 text-honey">
-                    {t('welcome.title') || 'Welcome to Beehive'}
+                    {t('welcome.title')}
                 </h1>
                 <p className="text-lg text-muted-foreground">
                     {t('welcome.subtitle') || 'Claim your Level 1 NFT to unlock membership benefits'}

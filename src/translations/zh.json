@@ -52,7 +52,9 @@
     "usernameFormat": "用户名只能包含字母、数字和下划线",
     "emailInvalid": "请输入有效的邮箱地址",
     "usernameExists": "用户名已存在",
-    "emailExists": "邮箱已注册"
+    "emailExists": "邮箱已注册",
+    "welcomeBack": "欢迎回来！",
+    "accountExists": "账户已存在，无需重复注册"
   },
   "landing": {
     "hero": {
@@ -134,90 +136,33 @@
     }
   },
   "footer": {
-    "platform": {
-      "title": "平台",
-      "membership": "会员级别",
-      "rewards": "奖励系统",
-      "nfts": "NFT市场",
-      "education": "教育中心"
-    },
-    "resources": {
-      "title": "资源",
-      "whitepaper": "白皮书",
-      "documentation": "文档",
-      "tutorials": "教程",
-      "faq": "常见问题"
-    },
-    "community": {
-      "title": "社区",
-      "discord": "Discord",
-      "telegram": "Telegram",
-      "twitter": "Twitter",
-      "medium": "Medium"
-    },
-    "legal": {
-      "title": "法律",
-      "privacy": "隐私政策",
-      "terms": "服务条款",
-      "cookies": "Cookie政策",
-      "disclaimer": "免责声明"
-    },
-    "newsletter": {
-      "title": "保持更新",
-      "description": "获取有关新功能、奖励和社区活动的最新更新",
-      "placeholder": "输入您的邮箱地址",
-      "button": "订阅",
-      "disclaimer": "我们尊重您的隐私，绝不分享您的信息"
-    },
-    "brand": {
-      "tagline": "Web3会员和学习平台"
-    },
-    "copyright": {
-      "rights": "版权所有。",
-      "blockchain": "由区块链技术驱动"
-    },
-    "backToTop": "返回顶部"
+    "description": "基于区块链奖励的Web3会员和学习平台。",
+    "platform": "平台",
+    "support": "支持",
+    "helpCenter": "帮助中心",
+    "documentation": "文档",
+    "contact": "联系我们",
+    "status": "状态",
+    "legal": "法律",
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "cookies": "Cookie政策",
+    "copyright": "© 2024 Beehive. 版权所有。"
   },
   "dashboard": {
     "welcome": "欢迎回来",
     "nftRequired": {
-      "title": "欢迎来到蜂巢！🎉",
-      "description": "通过购买您的1级战士NFT来完成会员资格。这将激活您在矩阵中的位置并开始您的Web3之旅。",
-      "requiredNft": "1级战士NFT",
-      "nftDescription": "一次性购买以激活您的会员资格",
-      "level1Warrior": "1级战士",
-      "tokenId": "代币ID：0",
-      "price": "价格",
-      "priceAmount": "130 USDT",
-      "benefitsTitle": "您将解锁的功能：",
-      "benefits": {
-        "dashboard": "完整仪表板访问权限",
-        "tasks": "任务和NFT市场",
-        "education": "教育中心",
-        "discover": "发现Web3应用",
-        "tokens": "BCC代币系统",
-        "matrix": "蜂巢世界矩阵系统"
-      },
-      "premiumTitle": "高级会员",
-      "premiumDescription": "激活您的1级NFT会员资格，在矩阵中获得位置，并开始获得奖励。",
-      "supportText": "由区块链技术驱动的安全Web3支付",
-      "purchaseSuccess": {
-        "title": "会员已激活！",
-        "description": "您的1级NFT已购买，您的会员资格现已激活。"
-      },
-      "purchaseError": {
-        "title": "购买失败",
-        "description": "购买NFT失败。请重试。"
-      },
-      "getButton": "购买会员资格"
+      "level1Membership": "一级会员",
+      "bumblebeeNFT": "大黄蜂NFT",
+      "levelOne": "等级1",
+      "benefits": "福利",
+      "accessTasks": "访问任务和市场",
+      "referralRewards": "推荐奖励",
+      "nftClaiming": "NFT领取",
+      "premiumContent": "优质内容"
     },
     "activation": {
-      "title": "欢迎来到蜂巢",
-      "description": "基于区块链奖励的Web3会员和学习平台。激活您的1级会员资格即可开始！",
-      "membershipLevel": "会员级别",
-      "price": "价格",
-      "priceLevel1": "130 USDT",
-      "activationNote": "激活后，您将可以访问所有会员功能，包括任务、教育和蜂巢世界。",
+      "activationNote": "点击激活您现有的NFT",
       "success": {
         "title": "会员已激活！",
         "description": "欢迎来到蜂巢！您现在可以访问所有会员功能。"
@@ -251,17 +196,6 @@
     "recentActivities": "最近活动",
     "referralDescription": "分享此链接以获得推荐奖励",
     "referrals": "推荐",
-    "activation": {
-      "activationNote": "点击激活您现有的NFT",
-      "success": {
-        "title": "会员已激活！",
-        "description": "欢迎来到蜂巢！您现在可以访问所有会员功能。"
-      },
-      "error": {
-        "title": "激活失败",
-        "description": "无法激活您的会员资格。请重试或联系支持。"
-      }
-    },
     "activateLevel1": "激活1级会员",
     "activating": "激活中...",
     "activationNote": "激活后，您将可以访问所有会员功能，包括任务、教育和蜂巢世界。",
@@ -311,10 +245,13 @@
       "whatsapp": "WhatsApp"
     },
     "stats": {
-      "totalRewards": "总奖励",
-      "bccBalance": "BCC 余额",
-      "bccLocked": "BCC 已锁定",
-      "nftsOwned": "拥有的 NFT"
+      "directReferrals": "直推人数",
+      "teamSize": "团队规模",
+      "totalEarnings": "总收益",
+      "bccBalance": "BCC余额",
+      "thisMonth": "本月",
+      "totalMembers": "总成员数",
+      "allTime": "历史总计"
     },
     "tokenPurchase": {
       "bccDescription": "购买Beehive加密币以便在平台上使用",
@@ -345,15 +282,6 @@
       "title": "下线矩阵",
       "placement": "布局"
     },
-    "stats": {
-      "directReferrals": "直推人数",
-      "teamSize": "团队规模",
-      "totalEarnings": "总收益",
-      "bccBalance": "BCC余额",
-      "thisMonth": "本月",
-      "totalMembers": "总成员数",
-      "allTime": "历史总计"
-    },
     "actions": {
       "upgradeLevel": "升级等级",
       "upgradeDescription": "购买下一个会员等级",
@@ -363,16 +291,6 @@
       "nftDescription": "使用BCC领取商户NFT",
       "learnEarn": "学习赚取",
       "educationDescription": "访问优质课程"
-    },
-    "nftRequired": {
-      "level1Membership": "一级会员",
-      "bumblebeeNFT": "大黄蜂NFT",
-      "levelOne": "等级1",
-      "benefits": "福利",
-      "accessTasks": "访问任务和市场",
-      "referralRewards": "推荐奖励",
-      "nftClaiming": "NFT领取",
-      "premiumContent": "优质内容"
     },
     "registrationExpiry": {
       "warning": "注册即将到期！激活会员资格以继续："
@@ -494,16 +412,53 @@
     "yourBalance": "您的余额"
   },
   "me": {
-    "title": "用户中心",
-    "profile": {
-      "levelMember": "第{{level}}级会员",
-      "member": "会员",
-      "defaultEmail": "member@beehive.app"
+    "title": "个人资料和设置",
+    "editProfile": "编辑个人资料",
+    "status": {
+      "active": "活跃",
+      "memberSince": "会员开始于"
     },
-    "tabs": {
-      "learn": "学习",
-      "referrals": "推荐",
-      "settings": "设置"
+    "balances": {
+      "usdt": "USDT余额",
+      "bccTransferable": "BCC（可转移）",
+      "bccRestricted": "BCC（受限制）",
+      "cth": "CTH代币"
+    },
+    "learning": {
+      "title": "学习进度",
+      "coursesCompleted": "完成的课程",
+      "studyHours": "学习时间",
+      "certificates": "获得的证书"
+    },
+    "referral": {
+      "title": "推荐表现",
+      "directReferrals": "直接推荐",
+      "totalTeamSize": "团队总规模",
+      "totalEarnings": "总收益",
+      "thisMonth": "本月"
+    },
+    "directReferrals": "直接推荐",
+    "indirectReferrals": "团队推荐",
+    "noReferralData": "暂无推荐数据",
+    "referrals": "推荐",
+    "referralStats": "推荐统计",
+    "rewards": "奖励",
+    "subtitle": "查看您的统计数据、余额和账户详情",
+    "totalEarnings": "总收益",
+    "totalReferrals": "总推荐数",
+    "settings": {
+      "title": "账户设置",
+      "language": "语言",
+      "languageDescription": "选择您的首选语言",
+      "notifications": "邮件通知",
+      "notificationsDescription": "接收有关奖励和活动的更新",
+      "twoFactor": "双因素身份验证",
+      "twoFactorDescription": "为您的账户添加额外安全性",
+      "enabled": "已启用",
+      "disabled": "已禁用",
+      "enable2FA": "启用双因素验证",
+      "changePassword": "更改密码",
+      "deactivateAccount": "停用账户"
     }
   },
   "tasks": {
@@ -660,10 +615,7 @@
       "clear": "清除"
     },
     "searchPlaceholder": "搜索合作伙伴...",
-    "featured": {
-      "title": "Beehive精选",
-      "viewAll": "查看全部"
-    },
+    "featured": "精选",
     "categories": {
       "title": "类别",
       "all": "全部",
@@ -700,7 +652,19 @@
       "title": "最新动态",
       "subtitle": "了解Web3最新发展",
       "readMore": "阅读更多",
-      "minutes": "分钟阅读"
+      "minutes": "分钟阅读",
+      "matrix30": {
+        "title": "Matrix 3.0发布 - 增强奖励",
+        "description": "体验我们升级的矩阵系统，改进的奖励分配和更快的处理时间"
+      },
+      "bridge": {
+        "title": "多链桥接集成",
+        "description": "使用我们的新桥接技术在多个区块链之间无缝转移资产"
+      },
+      "education": {
+        "title": "新Web3认证项目",
+        "description": "现在提供区块链开发和DeFi协议的高级认证课程"
+      }
     },
     "dapps": {
       "beehive": "BeeHive会员",
@@ -755,25 +719,6 @@
         "certificates": "证书"
       }
     },
-    "news": {
-      "title": "最新动态",
-      "subtitle": "了解Web3最新发展",
-      "readMore": "阅读更多",
-      "minutes": "分钟阅读",
-      "matrix30": {
-        "title": "Matrix 3.0发布 - 增强奖励",
-        "description": "体验我们升级的矩阵系统，改进的奖励分配和更快的处理时间"
-      },
-      "bridge": {
-        "title": "多链桥接集成",
-        "description": "使用我们的新桥接技术在多个区块链之间无缝转移资产"
-      },
-      "education": {
-        "title": "新Web3认证项目",
-        "description": "现在提供区块链开发和DeFi协议的高级认证课程"
-      }
-    },
-    "featured": "精选",
     "trending": "热门"
   },
   "hiveworld": {
@@ -834,7 +779,6 @@
       },
       "noPosts": "未找到文章",
       "readMore": "阅读更多",
-      "searchPlaceholder": "搜索文章...",
       "posts": {
         "1": {
           "title": "Web3会员系统的未来",
@@ -864,59 +808,9 @@
       }
     }
   },
-  "me": {
-    "title": "个人资料和设置",
-    "editProfile": "编辑个人资料",
-    "status": {
-      "active": "活跃",
-      "memberSince": "会员开始于"
-    },
-    "balances": {
-      "usdt": "USDT余额",
-      "bccTransferable": "BCC（可转移）",
-      "bccRestricted": "BCC（受限制）",
-      "cth": "CTH代币"
-    },
-    "learning": {
-      "title": "学习进度",
-      "coursesCompleted": "完成的课程",
-      "studyHours": "学习时间",
-      "certificates": "获得的证书"
-    },
-    "referral": {
-      "title": "推荐表现",
-      "directReferrals": "直接推荐",
-      "totalTeamSize": "团队总规模",
-      "totalEarnings": "总收益",
-      "thisMonth": "本月"
-    },
-    "directReferrals": "直接推荐",
-    "indirectReferrals": "团队推荐",
-    "noReferralData": "暂无推荐数据",
-    "referrals": "推荐",
-    "referralStats": "推荐统计",
-    "rewards": "奖励",
-    "subtitle": "查看您的统计数据、余额和账户详情",
-    "totalEarnings": "总收益",
-    "totalReferrals": "总推荐数",
-    "settings": {
-      "title": "账户设置",
-      "language": "语言",
-      "languageDescription": "选择您的首选语言",
-      "notifications": "邮件通知",
-      "notificationsDescription": "接收有关奖励和活动的更新",
-      "twoFactor": "双因素身份验证",
-      "twoFactorDescription": "为您的账户添加额外安全性",
-      "enabled": "已启用",
-      "disabled": "已禁用",
-      "enable2FA": "启用双因素验证",
-      "changePassword": "更改密码",
-      "deactivateAccount": "停用账户"
-    }
-  },
   "welcome": {
-    "title": "欢迎来到蜂巢！🎉",
-    "subtitle": "开启BeeHive边学边玩边赚之旅 - 从购买会员NFT开始探索Web3新世界",
+    "title": "欢迎来到蜂巢社区",
+    "subtitle": "通过申领ERC-5115 NFT激活您的1级会员",
     "description": "通过购买您的1级勇士NFT来完成您的会员。这将解锁所有平台功能并开始您的Web3旅程！",
     "referral": {
       "rewards": "推荐奖励：您网络中购买NFT时，每个级别可获得100%奖励"
@@ -952,7 +846,22 @@
       "title": "购买失败",
       "description": "您的购买出现错误。请重试。"
     },
-    "supportText": "跨多个区块链的安全支付，即时NFT交付"
+    "supportText": "跨多个区块链的安全支付，即时NFT交付",
+    "checkingMembership": "正在检查会员状态...",
+    "checkingChain": "正在检查链上NFT状态...",
+    "referredBy": "推荐人",
+    "matrixPlacement": "您将被放置在他们的3×3矩阵系统中",
+    "matrixPlacementInfo": "💡 矩阵放置：您将自动放置在推荐人矩阵树的第一个可用位置，遵循3×3结构（层级1→2→3...）。这决定了您获得层级奖励的位置。",
+    "instructions": {
+      "step1": "🎯 连接您的钱包并申领NFT以激活1级会员",
+      "step2": "⚡ 这将启用对3x3推荐矩阵和BCC奖励系统的访问"
+    },
+    "referralRequired": {
+      "title": "需要推荐链接",
+      "description": "您需要有效的推荐链接才能访问蜂巢社区。请要求现有会员与您分享推荐链接。",
+      "example": "💡 推荐链接如下所示：",
+      "howToGet": "现有会员可以从他们的仪表板生成推荐链接。"
+    }
   },
   "tokenPurchase": {
     "title": "代币购买",
@@ -1038,20 +947,6 @@
       "claimed": "准备使用",
       "serviceActivated": "服务已激活"
     }
-  },
-  "footer": {
-    "description": "基于区块链奖励的Web3会员和学习平台。",
-    "platform": "平台",
-    "support": "支持",
-    "helpCenter": "帮助中心",
-    "documentation": "文档",
-    "contact": "联系我们",
-    "status": "状态",
-    "legal": "法律",
-    "privacy": "隐私政策",
-    "terms": "服务条款",
-    "cookies": "Cookie政策",
-    "copyright": "© 2024 Beehive. 版权所有。"
   },
   "blogpost": {
     "linkCopied": {
@@ -1236,5 +1131,16 @@
       "profileImageUpdatedDescription": "您的头像已成功上传。",
       "uploadFailed": "上传失败"
     }
+  },
+  "claim": {
+    "referrerRequired": "需要推荐人",
+    "referrerRequiredDesc": "您必须使用有效的推荐链接来申领您的NFT。请向现有会员索取推荐链接。",
+    "selfReferralNotAllowed": "不允许自我推荐",
+    "selfReferralNotAllowedDesc": "您不能推荐自己。请使用其他会员的推荐链接。",
+    "validatingReferrer": "正在验证推荐人...",
+    "invalidReferrer": "无效推荐人",
+    "useValidReferrer": "请使用已注册会员的推荐链接。",
+    "validationFailed": "验证失败",
+    "validationFailedDesc": "无法验证注册或推荐人状态。请刷新后重试。"
   }
 }
