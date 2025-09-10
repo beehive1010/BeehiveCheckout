@@ -75,47 +75,58 @@ export default function Rewards() {
       setIsLoading(true);
       setError(null);
 
-      // Call Supabase Edge Function for rewards data
-      const { data, error: functionsError } = await supabase.functions.invoke('rewards', {
-        body: { 
-          wallet_address: walletAddress,
-          action: 'dashboard'
-        }
+      // Get all rewards for this wallet from layer_rewards table
+      const { data: rewardsData, error: rewardsError } = await supabase
+        .from('layer_rewards')
+        .select('*')
+        .eq('recipient_wallet', walletAddress)
+        .order('created_at', { ascending: false });
+
+      if (rewardsError) {
+        console.error('Rewards data error:', rewardsError);
+        throw new Error(`Failed to fetch rewards: ${rewardsError.message}`);
+      }
+
+      // Calculate totals
+      const claimedRewards = rewardsData?.filter(r => r.is_claimed) || [];
+      const pendingRewards = rewardsData?.filter(r => r.reward_type === 'pending_layer_reward') || [];
+      const claimableRewards = rewardsData?.filter(r => r.reward_type === 'layer_reward' && !r.is_claimed) || [];
+
+      const totalEarned = claimedRewards.reduce((sum, r) => sum + (r.amount_usdt || 0), 0);
+      const totalPending = pendingRewards.reduce((sum, r) => sum + (r.amount_usdt || 0), 0);
+      const totalClaimable = claimableRewards.reduce((sum, r) => sum + (r.amount_usdt || 0), 0);
+
+      // Calculate this month's earnings
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      const thisMonthRewards = claimedRewards.filter(r => {
+        const claimedDate = new Date(r.claimed_at || r.created_at);
+        return claimedDate.getMonth() === currentMonth && claimedDate.getFullYear() === currentYear;
       });
+      const thisMonthTotal = thisMonthRewards.reduce((sum, r) => sum + (r.amount_usdt || 0), 0);
 
-      if (functionsError) {
-        console.error('Supabase Edge Function Error [rewards]:', functionsError);
-        throw new Error(`Function call failed: ${functionsError.message}`);
-      }
-
-      if (data?.success) {
-        // Map API response to frontend format
-        const apiData = data.data;
-        const mappedRewards: RewardsData = {
-          total: apiData.reward_summary?.total_claimed_usdc || 0,
-          thisMonth: 0, // API doesn't provide this, could be calculated if needed
-          lastMonth: 0, // API doesn't provide this
-          pending: apiData.reward_summary?.total_pending_usdc || 0,
-          claimable: apiData.reward_summary?.total_claimable_usdc || 0,
-          history: (apiData.recent_claims || []).map((claim: any) => ({
-            id: claim.id || claim.claim_id || 'unknown',
-            type: claim.trigger_type || 'reward',
-            amount: claim.reward_amount_usdc || 0,
-            currency: 'USDC',
-            date: claim.claimed_at || claim.created_at || 'Unknown',
-            status: claim.status || 'completed',
-            description: claim.description || `Layer ${claim.layer} reward`
-          }))
-        };
-        setRewardsData(mappedRewards);
-      } else {
-        throw new Error(data?.error || 'Failed to load rewards data');
-      }
+      const mappedRewards: RewardsData = {
+        total: totalEarned,
+        thisMonth: thisMonthTotal,
+        lastMonth: 0, // Could be calculated if needed
+        pending: totalPending,
+        claimable: totalClaimable,
+        history: rewardsData?.slice(0, 10).map((reward) => ({
+          id: reward.id,
+          type: reward.reward_type || 'layer_reward',
+          amount: reward.amount_usdt || 0,
+          currency: 'USDC',
+          date: reward.claimed_at || reward.created_at || 'Unknown',
+          status: reward.is_claimed ? 'completed' : (reward.reward_type === 'pending_layer_reward' ? 'pending' : 'failed'),
+          description: `Layer ${reward.layer} reward`
+        })) || []
+      };
+      
+      setRewardsData(mappedRewards);
 
     } catch (err) {
       console.error('Rewards data fetch error:', err);
       setError(err instanceof Error ? err.message : 'Failed to load rewards');
-      // 不使用mock数据，保持null状态以显示错误
     } finally {
       setIsLoading(false);
     }
@@ -127,21 +138,20 @@ export default function Rewards() {
     try {
       setIsLoading(true);
       
-      const { data, error: functionsError } = await supabase.functions.invoke('rewards', {
-        body: { 
-          wallet_address: walletAddress,
-          action: 'claim-reward'
-        }
+      // Use the database function to claim pending rewards
+      const { data, error } = await supabase.rpc('claim_pending_rewards', {
+        p_wallet_address: walletAddress
       });
 
-      if (functionsError) {
-        throw new Error(`Failed to claim rewards: ${functionsError.message}`);
+      if (error) {
+        console.error('Claim rewards error:', error);
+        throw new Error(`Failed to claim rewards: ${error.message}`);
       }
 
       if (data?.success) {
         toast({
           title: "Rewards Claimed!",
-          description: `Successfully claimed ${rewardsData.claimable} USDT`,
+          description: `Successfully claimed ${data.amount_claimed || rewardsData.claimable} USDT`,
         });
         
         // Reload data

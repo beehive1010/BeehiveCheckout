@@ -123,20 +123,38 @@ const ComprehensiveMemberDashboard: React.FC = () => {
 
   const loadMemberStats = async () => {
     try {
-      const result = await callEdgeFunction('activate-membership', {
-        action: 'get-member-info'
-      }, walletAddress!);
+      // Get member data from database
+      const { data: memberData, error: memberError } = await supabase
+        .from('members')
+        .select('current_level, levels_owned, activation_rank, tier_level')
+        .eq('wallet_address', walletAddress!)
+        .single();
 
-      if (result.success && result.member) {
-        setMemberStats({
-          currentLevel: result.member.current_level || 0,
-          levelsOwned: result.member.levels_owned || [],
-          activationRank: result.member.activation_rank || 0,
-          tier: result.member.tier_level || 1,
-          directReferrals: 0, // Would be loaded from backend
-          totalDownline: 0    // Would be loaded from backend
-        });
+      if (memberError) {
+        console.error('Member data error:', memberError);
+        return;
       }
+
+      // Get referral counts
+      const { count: directReferrals } = await supabase
+        .from('members')
+        .select('*', { count: 'exact', head: true })
+        .eq('referrer_address', walletAddress!);
+
+      // Get total downline from matrix placements
+      const { count: totalDownline } = await supabase
+        .from('individual_matrix_placements')
+        .select('*', { count: 'exact', head: true })
+        .eq('matrix_owner', walletAddress!);
+
+      setMemberStats({
+        currentLevel: memberData?.current_level || 0,
+        levelsOwned: memberData?.levels_owned || [],
+        activationRank: memberData?.activation_rank || 0,
+        tier: memberData?.tier_level || 1,
+        directReferrals: directReferrals || 0,
+        totalDownline: totalDownline || 0
+      });
     } catch (error) {
       console.error('Failed to load member stats:', error);
     }
@@ -144,19 +162,31 @@ const ComprehensiveMemberDashboard: React.FC = () => {
 
   const loadBalanceInfo = async () => {
     try {
-      const result = await callEdgeFunction('bcc-release-system', {
-        action: 'get_balance',
-        walletAddress: walletAddress!
-      }, walletAddress!);
+      // Get balance data from user_balances table
+      const { data: balanceData, error: balanceError } = await supabase
+        .from('user_balances')
+        .select('bcc_transferable, bcc_restricted, bcc_locked, total_usdt_earned')
+        .eq('wallet_address', walletAddress!)
+        .single();
 
-      if (result.success && result.balanceDetails) {
+      if (balanceError) {
+        console.error('Balance data error:', balanceError);
+        // Set default values if no balance record exists
         setBalanceInfo({
-          usdc: 0, // Would be loaded from user_balances table
-          bccTransferable: result.balanceDetails.transferable,
-          bccLocked: result.balanceDetails.locked,
-          totalEarned: result.balanceDetails.totalEarned
+          usdc: 0,
+          bccTransferable: 0,
+          bccLocked: 0,
+          totalEarned: 0
         });
+        return;
       }
+
+      setBalanceInfo({
+        usdc: balanceData?.total_usdt_earned || 0,
+        bccTransferable: balanceData?.bcc_transferable || 0,
+        bccLocked: balanceData?.bcc_locked || 0,
+        totalEarned: balanceData?.total_usdt_earned || 0
+      });
     } catch (error) {
       console.error('Failed to load balance info:', error);
     }
@@ -164,21 +194,49 @@ const ComprehensiveMemberDashboard: React.FC = () => {
 
   const loadPendingRewards = async () => {
     try {
-      const result = await callEdgeFunction('process-rewards', {
-        action: 'check_pending',
-        walletAddress: walletAddress!
-      }, walletAddress!);
+      // Get pending and claimable rewards from layer_rewards table
+      const { data: rewardsData, error: rewardsError } = await supabase
+        .from('layer_rewards')
+        .select(`
+          id,
+          amount_usdt,
+          layer,
+          reward_type,
+          is_claimed,
+          created_at,
+          countdown_timers (
+            end_time,
+            is_active
+          )
+        `)
+        .eq('recipient_wallet', walletAddress!)
+        .in('reward_type', ['layer_reward', 'pending_layer_reward'])
+        .eq('is_claimed', false)
+        .order('created_at', { ascending: false });
 
-      if (result.success && result.pendingRewards) {
-        setPendingRewards(result.pendingRewards.map((reward: any) => ({
-          id: reward.id,
-          amount: reward.reward_amount,
-          level: reward.nft_level,
-          hoursLeft: reward.hoursLeft,
-          canClaim: reward.canClaim,
-          status: reward.status
-        })));
+      if (rewardsError) {
+        console.error('Rewards data error:', rewardsError);
+        return;
       }
+
+      // Transform rewards data
+      const transformedRewards = rewardsData?.map((reward: any) => {
+        const countdownTimer = reward.countdown_timers?.[0];
+        const hoursLeft = countdownTimer?.end_time 
+          ? Math.max(0, Math.floor((new Date(countdownTimer.end_time).getTime() - Date.now()) / (1000 * 60 * 60)))
+          : 0;
+
+        return {
+          id: reward.id,
+          amount: reward.amount_usdt,
+          level: reward.layer,
+          hoursLeft,
+          canClaim: reward.reward_type === 'layer_reward',
+          status: reward.reward_type === 'layer_reward' ? 'claimable' as const : 'pending' as const
+        };
+      }) || [];
+
+      setPendingRewards(transformedRewards);
     } catch (error) {
       console.error('Failed to load pending rewards:', error);
     }
@@ -240,17 +298,23 @@ const ComprehensiveMemberDashboard: React.FC = () => {
     try {
       setLoading(true);
       
-      const result = await callEdgeFunction('process-rewards', {
-        action: 'claim_reward',
-        rewardId,
-        walletAddress
-      }, walletAddress);
+      // Use the database function to claim rewards
+      const { data, error } = await supabase.rpc('claim_reward_to_balance', {
+        p_claim_id: rewardId,
+        p_wallet_address: walletAddress
+      });
 
-      if (result.success) {
-        toast.success(`Successfully claimed ${result.claimedAmount} USDC!`);
+      if (error) {
+        console.error('Claim reward error:', error);
+        toast.error('Failed to claim reward');
+        return;
+      }
+
+      if (data?.success) {
+        toast.success(`Successfully claimed ${data.amount} USDC!`);
         await loadDashboardData();
       } else {
-        toast.error(result.error || 'Failed to claim reward');
+        toast.error(data?.error || 'Failed to claim reward');
       }
 
     } catch (error) {
