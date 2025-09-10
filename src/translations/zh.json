@@ -251,7 +251,11 @@
       "bccBalance": "BCC余额",
       "thisMonth": "本月",
       "totalMembers": "总成员数",
-      "allTime": "历史总计"
+      "allTime": "历史总计",
+      "matrixNetwork": "矩阵网络",
+      "networkGrowth": "网络增长",
+      "teamPerformance": "团队表现",
+      "layerProgress": "层级进展"
     },
     "tokenPurchase": {
       "bccDescription": "购买Beehive加密币以便在平台上使用",
@@ -313,6 +317,7 @@
     "showAll": "显示全部 {{count}} 条通知"
   },
   "referrals": {
+    "title": "推荐系统",
     "rewardStructure": {
       "title": "蜂巢奖励结构",
       "globalMatrix": "全球矩阵系统",
@@ -391,6 +396,49 @@
     "yourLink": "您的推荐链接",
     "upgradeRewards": {
       "description": "跟踪您矩阵层的升级奖励。当成员购买更高级别的NFT时，您有72小时的时间升级。"
+    },
+    "matrixVisualization": {
+      "title": "矩阵可视化",
+      "lmrLayout": "左-中-右布局",
+      "leftPosition": "左侧位置",
+      "middlePosition": "中间位置", 
+      "rightPosition": "右侧位置",
+      "matrixTree": "矩阵树",
+      "placement": "位置安置",
+      "spillover": "溢出",
+      "autoPlacement": "自动安置",
+      "position": "位置",
+      "layer": "层级",
+      "level": "级别",
+      "empty": "空位",
+      "filled": "已占",
+      "viewDetails": "查看详情",
+      "expand": "展开",
+      "collapse": "收起"
+    },
+    "networkStats": {
+      "title": "网络统计",
+      "directReferrals": "直接推荐人数",
+      "totalTeamSize": "团队总人数",
+      "maxLayer": "最大层级",
+      "activeMembers": "活跃成员",
+      "recentActivity": "最近活动",
+      "teamGrowth": "团队增长",
+      "performance": "表现",
+      "thisWeek": "本周",
+      "thisMonth": "本月",
+      "allTime": "历史总计"
+    },
+    "matrixPosition": {
+      "left": "左",
+      "middle": "中",
+      "right": "右",
+      "position1": "位置1",
+      "position2": "位置2", 
+      "position3": "位置3",
+      "yourPosition": "您的位置",
+      "available": "可用",
+      "occupied": "已占用"
     }
   },
   "nft": {
