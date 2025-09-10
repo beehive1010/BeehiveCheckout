@@ -27,6 +27,7 @@ interface SimpleMatrixViewProps {
 }
 
 const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, rootUser }) => {
+  const { t } = useI18n();
   const [currentLayer, setCurrentLayer] = useState(1);
   const [matrixData, setMatrixData] = useState<{ [key: number]: MatrixLayerData }>({});
   const [loading, setLoading] = useState(false);
