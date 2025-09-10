@@ -84,17 +84,34 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({
       
       try {
         // Load transaction history
-        const { data: transactionData, error: transactionError } = await transactionService.getTransactionHistory(walletAddress);
-        
-        if (transactionError) {
-          throw new Error(transactionError.message || 'Failed to load transactions');
-        }
+        const { data: transactionData, error: transactionError, partialData } = await transactionService.getTransactionHistory(walletAddress);
         
         setTransactions(transactionData || []);
         
-        // Load transaction statistics
-        const statsData = await transactionService.getTransactionStats(walletAddress);
-        setStats(statsData);
+        // Show warning for partial data but don't fail completely
+        if (transactionError && partialData) {
+          toast({
+            title: 'Partial data loaded',
+            description: 'Some transaction data could not be loaded, but showing available transactions.',
+            variant: 'warning'
+          });
+        } else if (transactionError && !partialData) {
+          throw new Error(transactionError.message || 'Failed to load transactions');
+        }
+        
+        // Load transaction statistics - make it non-blocking
+        try {
+          const statsData = await transactionService.getTransactionStats(walletAddress);
+          setStats(statsData);
+        } catch (statsError: any) {
+          console.error('Error loading stats:', statsError);
+          // Keep default stats on error, don't fail the whole component
+          toast({
+            title: 'Statistics unavailable',
+            description: 'Transaction statistics could not be loaded.',
+            variant: 'warning'
+          });
+        }
         
       } catch (error: any) {
         console.error('Error loading transactions:', error);
@@ -344,11 +361,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({
 
         {/* Transaction List */}
         <div className="space-y-3">
-          {isLoading ? (
-            <div className="text-center py-8">
-              <LoadingSpinner size="lg" />
-            </div>
-          ) : filteredTransactions.length === 0 ? (
+          {filteredTransactions.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No transactions found</p>

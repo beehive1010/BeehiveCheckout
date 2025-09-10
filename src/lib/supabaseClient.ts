@@ -749,78 +749,63 @@ export const transactionService = {
     }
 
     // Get reward claims from reward_claims table
-    const { data: rewards, error: rewardsError } = await supabase
-      .from('reward_claims')
-      .select(`
-        id,
-        claimer_wallet,
-        amount,
-        currency,
-        status,
-        created_at,
-        claimed_at,
-        layer,
-        reward_type
-      `)
-      .eq('claimer_wallet', walletAddress)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+    try {
+      const { data: rewards, error: rewardsError } = await supabase
+        .from('reward_claims')
+        .select(`
+          id,
+          claimer_wallet,
+          amount,
+          currency,
+          status,
+          created_at,
+          claimed_at,
+          matrix_layer,
+          reward_type
+        `)
+        .eq('claimer_wallet', walletAddress)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
 
-    if (rewardsError) {
-      console.error('Error fetching rewards:', rewardsError);
-      // Continue with orders only if rewards fail
-    }
-
-    // Transform and combine transactions
-    const transactions = [];
-
-    // Transform orders to transaction format
-    if (orders) {
-      orders.forEach(order => {
-        transactions.push({
-          id: `order_${order.id}`,
-          type: 'nft_purchase' as const,
-          category: 'debit' as const,
-          amount: order.total_amount,
-          currency: order.currency as 'USDT' | 'USDC',
-          status: order.status as 'pending' | 'completed' | 'failed' | 'cancelled',
-          title: `NFT Level ${order.metadata?.level || 'Unknown'} Purchase`,
-          description: `Purchased membership NFT Level ${order.metadata?.level || 'Unknown'}`,
-          created_at: order.created_at,
-          completed_at: order.completed_at,
-          transaction_hash: order.transaction_hash,
-          network: order.network,
-          metadata: order.metadata
+      if (rewardsError) {
+        console.error('Error fetching rewards:', rewardsError);
+        hasErrors = true;
+        errors.push('Failed to load reward history');
+      } else if (rewards) {
+        // Transform reward claims to transaction format
+        rewards.forEach(reward => {
+          transactions.push({
+            id: `reward_${reward.id}`,
+            type: 'reward_claim' as const,
+            category: 'credit' as const,
+            amount: reward.amount,
+            currency: reward.currency as 'USDT' | 'USDC' | 'BCC',
+            status: reward.status as 'pending' | 'completed' | 'failed' | 'cancelled',
+            title: `Layer ${reward.matrix_layer} Reward ${reward.status === 'completed' ? 'Claimed' : 'Pending'}`,
+            description: `${reward.reward_type || 'Matrix'} reward from layer ${reward.matrix_layer}`,
+            created_at: reward.created_at,
+            completed_at: reward.claimed_at,
+            metadata: { 
+              layer: reward.matrix_layer, 
+              reward_type: reward.reward_type 
+            }
+          });
         });
-      });
-    }
-
-    // Transform reward claims to transaction format
-    if (rewards) {
-      rewards.forEach(reward => {
-        transactions.push({
-          id: `reward_${reward.id}`,
-          type: 'reward_claim' as const,
-          category: 'credit' as const,
-          amount: reward.amount,
-          currency: reward.currency as 'USDT' | 'USDC' | 'BCC',
-          status: reward.status as 'pending' | 'completed' | 'failed' | 'cancelled',
-          title: `Layer ${reward.layer} Reward ${reward.status === 'completed' ? 'Claimed' : 'Pending'}`,
-          description: `${reward.reward_type || 'Matrix'} reward from layer ${reward.layer}`,
-          created_at: reward.created_at,
-          completed_at: reward.claimed_at,
-          metadata: { 
-            layer: reward.layer, 
-            reward_type: reward.reward_type 
-          }
-        });
-      });
+      }
+    } catch (error) {
+      console.error('Error in rewards query:', error);
+      hasErrors = true;
+      errors.push('Failed to load reward history');
     }
 
     // Sort combined transactions by date
     transactions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-    return { data: transactions.slice(0, limit), error: null };
+    return { 
+      data: transactions.slice(0, limit), 
+      error: hasErrors ? { message: errors.join(', ') } : null,
+      partialData: hasErrors && transactions.length > 0
+    };
   },
 
   // Get transaction statistics
@@ -828,9 +813,9 @@ export const transactionService = {
     try {
       // Get total spent on NFTs
       const { data: ordersData } = await supabase
-        .from('orders')
+        .from('bcc_purchase_orders')
         .select('total_amount, status')
-        .eq('buyer_wallet', walletAddress)
+        .eq('wallet_address', walletAddress)
         .eq('status', 'completed');
 
       const totalSpent = ordersData?.reduce((sum, order) => sum + order.total_amount, 0) || 0;
@@ -846,9 +831,9 @@ export const transactionService = {
 
       // Get transaction counts
       const { count: totalTransactions } = await supabase
-        .from('orders')
+        .from('bcc_purchase_orders')
         .select('*', { count: 'exact', head: true })
-        .eq('buyer_wallet', walletAddress);
+        .eq('wallet_address', walletAddress);
 
       const { count: rewardTransactions } = await supabase
         .from('reward_claims')
