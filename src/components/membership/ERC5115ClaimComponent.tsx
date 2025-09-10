@@ -87,9 +87,29 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       return;
     }
 
+    // Validate referrer requirements
+    if (!referrerWallet) {
+      toast({
+        title: "Referrer Required",
+        description: "You must use a valid referral link to claim your NFT. Please ask an existing member for a referral link.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Prevent self-referral (compare in lowercase but preserve original case)
+    if (referrerWallet.toLowerCase() === account.address.toLowerCase()) {
+      toast({
+        title: "Self-Referral Not Allowed",
+        description: "You cannot refer yourself. Please use a referral link from another member.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsProcessing(true);
 
-    // Check if user is registered before allowing NFT claim
+    // Check if user is registered and validate referrer before allowing NFT claim
     try {
       console.log('🔍 Checking user registration status...');
       setCurrentStep(t('claim.checkingRegistration') || 'Checking registration status...');
@@ -121,12 +141,45 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         return;
       }
       
-      console.log('✅ User registration verified - proceeding with NFT claim');
+      console.log('✅ User registration verified - now validating referrer...');
+      
+      // Validate referrer exists and is a registered member
+      setCurrentStep('Validating referrer...');
+      
+      const referrerCheckResponse = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-address': account.address,
+        },
+        body: JSON.stringify({
+          action: 'validate-referrer',
+          referrerWallet: referrerWallet
+        })
+      });
+
+      const referrerResult = await referrerCheckResponse.json();
+      
+      console.log('🔍 Referrer validation result:', referrerResult);
+      
+      if (!referrerResult.success || !referrerResult.isValid) {
+        const errorMessage = referrerResult.error || 'Referrer is not a registered member';
+        console.log('❌ Referrer validation failed:', errorMessage);
+        toast({
+          title: "Invalid Referrer",
+          description: `${errorMessage}. Please use a referral link from a registered member.`,
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+        return;
+      }
+      
+      console.log('✅ Referrer validation passed - proceeding with NFT claim');
     } catch (error) {
-      console.error('❌ User registration check failed:', error);
+      console.error('❌ User/referrer validation failed:', error);
       toast({
-        title: t('claim.registrationCheckFailed') || "Registration Check Failed",
-        description: t('claim.registrationCheckFailedDesc') || "Unable to verify registration status. Please refresh and try again.",
+        title: t('claim.validationFailed') || "Validation Failed",
+        description: t('claim.validationFailedDesc') || "Unable to verify registration or referrer status. Please refresh and try again.",
         variant: "destructive",
       });
       setIsProcessing(false);

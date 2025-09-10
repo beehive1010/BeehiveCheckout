@@ -15,21 +15,28 @@ export default function Welcome() {
   const [referrerInfo, setReferrerInfo] = useState<{ username?: string; wallet: string } | null>(null);
   const [isLoadingReferrer, setIsLoadingReferrer] = useState(false);
   const [isCheckingMembership, setIsCheckingMembership] = useState(false);
+  const [noReferrerError, setNoReferrerError] = useState(false);
 
   // Get referrer from URL params and localStorage
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const ref = urlParams.get('ref');
-    if (ref) {
+    if (ref && ref.startsWith('0x') && ref.length === 42) {
       setReferrerWallet(ref);
       referralService.handleReferralParameter();
+      setNoReferrerError(false);
       console.log('🔗 Referrer detected from URL:', ref);
     } else {
       // Check localStorage for stored referrer
       const storedReferrer = referralService.getReferrerWallet();
-      if (storedReferrer) {
+      if (storedReferrer && storedReferrer.startsWith('0x') && storedReferrer.length === 42) {
         setReferrerWallet(storedReferrer);
+        setNoReferrerError(false);
         console.log('🔗 Referrer loaded from storage:', storedReferrer);
+      } else {
+        // No valid referrer found
+        setNoReferrerError(true);
+        console.log('❌ No valid referrer found');
       }
     }
   }, []);
@@ -95,6 +102,35 @@ export default function Welcome() {
     setLocation('/dashboard');
   };
 
+  // Show error if no referrer is provided
+  if (noReferrerError) {
+    return (
+      <div className="min-h-screen bg-background py-8 flex items-center justify-center">
+        <div className="container mx-auto px-4 max-w-md">
+          <Card className="border-red-500/50 bg-red-500/5">
+            <CardContent className="pt-6 text-center">
+              <div className="text-red-400 text-6xl mb-4">🚫</div>
+              <h2 className="text-xl font-bold text-red-400 mb-2">Referral Link Required</h2>
+              <p className="text-muted-foreground mb-4">
+                You need a valid referral link to access Beehive Community. 
+                Please ask an existing member to share their referral link with you.
+              </p>
+              <div className="p-3 bg-red-500/10 rounded-lg border border-red-500/30 text-sm text-red-400">
+                💡 Referral links look like: <br/>
+                <code className="bg-background/50 px-2 py-1 rounded text-xs mt-1 inline-block">
+                  /welcome?ref=0x123...abc
+                </code>
+              </div>
+              <div className="mt-4 text-xs text-muted-foreground">
+                Existing members can generate referral links from their dashboard.
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   // Show loading state while checking membership
   if (isCheckingMembership) {
     return (
@@ -118,44 +154,42 @@ export default function Welcome() {
             Activate your Level 1 membership by claiming your ERC-5115 NFT
           </p>
           
-          {/* Referrer Information Card */}
-          {referrerWallet && (
-            <Card className="max-w-md mx-auto mt-4 border-honey/30 bg-honey/5">
-              <CardContent className="pt-4">
-                <div className="flex items-center justify-center space-x-3">
-                  <Users className="h-5 w-5 text-honey" />
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground mb-1">Referred by:</p>
-                    {isLoadingReferrer ? (
-                      <div className="flex items-center justify-center space-x-2">
-                        <div className="animate-spin h-4 w-4 border-2 border-honey border-t-transparent rounded-full"></div>
-                        <span className="text-sm text-honey">Loading...</span>
+          {/* Referrer Information Card - Always show since referrer is required */}
+          <Card className="max-w-md mx-auto mt-4 border-honey/30 bg-honey/5">
+            <CardContent className="pt-4">
+              <div className="flex items-center justify-center space-x-3">
+                <Users className="h-5 w-5 text-honey" />
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground mb-1">Referred by:</p>
+                  {isLoadingReferrer ? (
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="animate-spin h-4 w-4 border-2 border-honey border-t-transparent rounded-full"></div>
+                      <span className="text-sm text-honey">Loading...</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      {referrerInfo?.username && (
+                        <Badge variant="outline" className="bg-honey/10 text-honey border-honey/30">
+                          <User className="h-3 w-3 mr-1" />
+                          {referrerInfo.username}
+                        </Badge>
+                      )}
+                      <div className="font-mono text-xs text-muted-foreground">
+                        {referrerWallet.slice(0, 8)}...{referrerWallet.slice(-6)}
                       </div>
-                    ) : (
-                      <div className="space-y-1">
-                        {referrerInfo?.username && (
-                          <Badge variant="outline" className="bg-honey/10 text-honey border-honey/30">
-                            <User className="h-3 w-3 mr-1" />
-                            {referrerInfo.username}
-                          </Badge>
-                        )}
-                        <div className="font-mono text-xs text-muted-foreground">
-                          {referrerWallet.slice(0, 8)}...{referrerWallet.slice(-6)}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
-                
-                <div className="mt-3 text-center">
-                  <div className="flex items-center justify-center space-x-1 text-xs text-honey/80">
-                    <Crown className="h-3 w-3" />
-                    <span>You'll be placed in their 3×3 matrix system</span>
-                  </div>
+              </div>
+              
+              <div className="mt-3 text-center">
+                <div className="flex items-center justify-center space-x-1 text-xs text-honey/80">
+                  <Crown className="h-3 w-3" />
+                  <span>You'll be placed in their 3×3 matrix system</span>
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
         
         <ERC5115ClaimComponent 
@@ -166,14 +200,12 @@ export default function Welcome() {
         <div className="mt-8 text-center text-sm text-muted-foreground space-y-2">
           <p className="mb-2">🎯 Connect your wallet and claim your NFT to activate Level 1 membership</p>
           <p>⚡ This will enable access to the 3x3 referral matrix and BCC reward system</p>
-          {referrerWallet && (
-            <div className="p-3 bg-secondary/50 rounded-lg mt-4">
-              <p className="text-xs text-honey/90">
-                💡 <strong>Matrix Placement:</strong> You'll be automatically placed in the first available slot in your referrer's matrix tree, 
-                following the 3×3 structure (Layer 1→2→3...). This determines your position for earning layer rewards.
-              </p>
-            </div>
-          )}
+          <div className="p-3 bg-secondary/50 rounded-lg mt-4">
+            <p className="text-xs text-honey/90">
+              💡 <strong>Matrix Placement:</strong> You'll be automatically placed in the first available slot in your referrer's matrix tree, 
+              following the 3×3 structure (Layer 1→2→3...). This determines your position for earning layer rewards.
+            </p>
+          </div>
         </div>
       </div>
     </div>
