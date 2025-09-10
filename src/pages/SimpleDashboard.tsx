@@ -20,9 +20,12 @@ import {
 } from 'lucide-react';
 
 interface SimpleDashboardData {
-  bccBalance: number;
-  referralCount: number;
-  totalEarnings: number;
+  bccTransferable: number;
+  bccLocked: number;
+  directReferrals: number;
+  maxLayer: number;
+  totalRewards: number;
+  claimableRewards: number;
 }
 
 export default function SimpleDashboard() {
@@ -31,9 +34,12 @@ export default function SimpleDashboard() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [data, setData] = useState<SimpleDashboardData>({
-    bccBalance: 0,
-    referralCount: 0,
-    totalEarnings: 0
+    bccTransferable: 0,
+    bccLocked: 0,
+    directReferrals: 0,
+    maxLayer: 0,
+    totalRewards: 0,
+    claimableRewards: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -69,9 +75,12 @@ export default function SimpleDashboard() {
       console.log('🌐 Matrix data:', matrix);
 
       const dashboardData = {
-        bccBalance: balance?.bcc_total || balance?.totalBcc || 0,
-        referralCount: matrix?.directReferrals || 0,
-        totalEarnings: balance?.usdc_total_earned || balance?.totalUsdtEarned || 0
+        bccTransferable: balance?.bcc_transferable || 0,
+        bccLocked: balance?.bcc_locked || 0,
+        directReferrals: matrix?.directReferrals || 0,
+        maxLayer: matrix?.maxLayer || 0,
+        totalRewards: balance?.usdc_total_earned || balance?.totalUsdtEarned || 0,
+        claimableRewards: balance?.usdc_claimable || balance?.availableRewards || 0
       };
       
       console.log('📈 Final dashboard data:', dashboardData);
@@ -127,37 +136,79 @@ export default function SimpleDashboard() {
         </div>
 
         {/* 主要数据卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          {/* BCC余额卡片 */}
           <Card className="bg-gradient-to-br from-honey/10 to-honey/5 border-honey/20">
-            <CardContent className="p-6 text-center">
-              <DollarSign className="h-8 w-8 text-honey mx-auto mb-3" />
-              <div className="text-2xl font-bold text-honey mb-1">
-                {data.bccBalance}
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <DollarSign className="h-8 w-8 text-honey" />
+                <h3 className="text-lg font-semibold text-honey">BCC 余额</h3>
               </div>
-              <div className="text-sm text-muted-foreground">BCC 余额</div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center">
+                  <div className="text-xl font-bold text-green-400 mb-1">
+                    {data.bccTransferable}
+                  </div>
+                  <div className="text-xs text-muted-foreground">可转账</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-orange-400 mb-1">
+                    {data.bccLocked}
+                  </div>
+                  <div className="text-xs text-muted-foreground">锁仓</div>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
+          {/* 推荐网络卡片 */}
           <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
-            <CardContent className="p-6 text-center">
-              <Users className="h-8 w-8 text-blue-400 mx-auto mb-3" />
-              <div className="text-2xl font-bold text-blue-400 mb-1">
-                {data.referralCount}
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Users className="h-8 w-8 text-blue-400" />
+                <h3 className="text-lg font-semibold text-blue-400">推荐网络</h3>
               </div>
-              <div className="text-sm text-muted-foreground">推荐人数</div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
-            <CardContent className="p-6 text-center">
-              <Award className="h-8 w-8 text-green-400 mx-auto mb-3" />
-              <div className="text-2xl font-bold text-green-400 mb-1">
-                ${data.totalEarnings}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center">
+                  <div className="text-xl font-bold text-blue-400 mb-1">
+                    {data.directReferrals}
+                  </div>
+                  <div className="text-xs text-muted-foreground">直推人数</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-purple-400 mb-1">
+                    {data.maxLayer}
+                  </div>
+                  <div className="text-xs text-muted-foreground">最大层级</div>
+                </div>
               </div>
-              <div className="text-sm text-muted-foreground">总收益</div>
             </CardContent>
           </Card>
         </div>
+
+        {/* 奖励卡片 */}
+        <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20 mb-8">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Award className="h-8 w-8 text-green-400" />
+              <h3 className="text-lg font-semibold text-green-400">奖励中心</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center">
+                <div className="text-xl font-bold text-green-400 mb-1">
+                  ${data.totalRewards}
+                </div>
+                <div className="text-xs text-muted-foreground">总奖励</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl font-bold text-yellow-400 mb-1">
+                  ${data.claimableRewards}
+                </div>
+                <div className="text-xs text-muted-foreground">可提取余额</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* 推荐链接 */}
         <Card className="mb-8 border-honey/20 bg-gradient-to-r from-honey/5 to-yellow-400/5">
