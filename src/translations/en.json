@@ -511,6 +511,16 @@
       "yourPosition": "Your Position",
       "available": "Available",
       "occupied": "Occupied"
+    },
+    "matrixSystem": {
+      "title": "3×3 Matrix Network",
+      "matrixTree": "3×3 Matrix Tree",
+      "enhancedMatrixTree": "Enhanced 3×3 Matrix Tree",
+      "layer": "Layer",
+      "layers": "L1-L19",
+      "matrixInformation": "Matrix Information",
+      "yourMatrixTree": "Your 3×3 Matrix Tree",
+      "matrixNetworkLayer": "3×3 Matrix Network - Layer {{layer}}"
     }
   },
   "me": {
