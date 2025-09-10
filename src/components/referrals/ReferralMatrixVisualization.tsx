@@ -58,8 +58,9 @@ const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = 
   const [matrixData, setMatrixData] = useState<MatrixData | null>(null);
   const [selectedLayer, setSelectedLayer] = useState(1);
   const [zoomLevel, setZoomLevel] = useState(1);
-  const [viewMode, setViewMode] = useState<'tree' | 'grid'>('tree');
+  const [viewMode, setViewMode] = useState<'layer' | 'grid'>('layer');
   const [referralLink, setReferralLink] = useState('');
+  const [selectedMember, setSelectedMember] = useState<MatrixMember | null>(null);
 
   const effectiveRootWallet = rootWallet || walletAddress;
 
@@ -81,7 +82,7 @@ const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = 
         action: 'get-matrix',
         rootWallet: effectiveRootWallet,
         maxLayers
-      }, walletAddress);
+      }, walletAddress || undefined);
 
       if (matrixResult?.success) {
         setMatrixData(matrixResult.data);
@@ -128,6 +129,12 @@ const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = 
     } else {
       copyReferralLink();
     }
+  };
+
+  const handleMemberClick = (member: MatrixMember) => {
+    setSelectedMember(member);
+    // 可以在这里添加查看该用户下级的逻辑
+    toast.success(`查看 ${member.username || member.walletAddress.slice(0, 8)} 的详细信息`);
   };
 
   const renderMatrixNode = (member: MatrixMember | null, layer: number, position: number) => {
@@ -178,37 +185,93 @@ const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = 
     );
   };
 
-  const renderTreeView = () => {
+  const renderLayerView = () => {
     if (!matrixData) return null;
 
-    const layers = [];
+    const layerMembers = matrixData.members.filter(m => m.layer === selectedLayer);
     
-    for (let layer = 0; layer <= selectedLayer; layer++) {
-      const layerMembers = matrixData.members.filter(m => m.layer === layer);
-      const positionsInLayer = layer === 0 ? 1 : Math.pow(3, layer);
-      
-      const layerNodes = [];
-      for (let position = 1; position <= positionsInLayer; position++) {
-        const member = layerMembers.find(m => m.position === position);
-        layerNodes.push(renderMatrixNode(member || null, layer, position));
-      }
+    // 对于Layer 1，显示L、M、R三个位置
+    if (selectedLayer === 1) {
+      const leftMember = layerMembers.find(m => m.position === 1);
+      const middleMember = layerMembers.find(m => m.position === 2);
+      const rightMember = layerMembers.find(m => m.position === 3);
 
-      layers.push(
-        <div key={layer} className="flex flex-wrap justify-center gap-2 mb-4">
-          <div className="text-center w-full mb-2">
-            <Badge variant="outline">
-              {layer === 0 ? t('membershipSystem.matrix.visualization.layerRoot') : t('membershipSystem.matrix.visualization.layerNumber', { layer })} 
-              ({layerMembers.length}/{positionsInLayer})
+      return (
+        <div className="space-y-6">
+          <div className="text-center">
+            <Badge variant="outline" className="text-lg px-4 py-2">
+              Layer {selectedLayer} ({layerMembers.length}/3)
             </Badge>
           </div>
-          <div className="flex flex-wrap justify-center gap-2">
-            {layerNodes}
+          
+          <div className="flex justify-center items-center gap-8">
+            <div className="text-center">
+              <div className="text-sm font-medium mb-2 text-muted-foreground">LEFT</div>
+              {renderMatrixNode(leftMember || null, selectedLayer, 1)}
+            </div>
+            
+            <div className="text-center">
+              <div className="text-sm font-medium mb-2 text-muted-foreground">MIDDLE</div>
+              {renderMatrixNode(middleMember || null, selectedLayer, 2)}
+            </div>
+            
+            <div className="text-center">
+              <div className="text-sm font-medium mb-2 text-muted-foreground">RIGHT</div>
+              {renderMatrixNode(rightMember || null, selectedLayer, 3)}
+            </div>
           </div>
         </div>
       );
     }
 
-    return <div className="space-y-4">{layers}</div>;
+    // 对于更高层级，按L-M-R模式分组显示
+    const positions = ['L', 'M', 'R'];
+    const positionGroups = positions.map(pos => ({
+      position: pos,
+      members: layerMembers.filter(m => {
+        if (pos === 'L') return m.position >= 1 && m.position <= Math.pow(3, selectedLayer-1);
+        if (pos === 'M') return m.position > Math.pow(3, selectedLayer-1) && m.position <= Math.pow(3, selectedLayer-1) * 2;
+        return m.position > Math.pow(3, selectedLayer-1) * 2;
+      })
+    }));
+
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <Badge variant="outline" className="text-lg px-4 py-2">
+            Layer {selectedLayer} ({layerMembers.length}/{Math.pow(3, selectedLayer)})
+          </Badge>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {positionGroups.map(group => (
+            <div key={group.position} className="space-y-4">
+              <div className="text-center">
+                <Badge variant="secondary">{group.position} Branch</Badge>
+                <div className="text-sm text-muted-foreground mt-1">
+                  {group.members.length} members
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-3">
+                {group.members.slice(0, 6).map(member => (
+                  <div key={member.walletAddress} className="cursor-pointer" onClick={() => handleMemberClick(member)}>
+                    {renderMatrixNode(member, selectedLayer, member.position)}
+                  </div>
+                ))}
+                {group.members.length > 6 && (
+                  <div className="text-center p-3 border-2 border-dashed border-muted rounded-lg">
+                    <div className="text-sm text-muted-foreground">
+                      +{group.members.length - 6} more members
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   const renderGridView = () => {
@@ -310,10 +373,10 @@ const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = 
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setViewMode(viewMode === 'tree' ? 'grid' : 'tree')}
+                onClick={() => setViewMode(viewMode === 'layer' ? 'grid' : 'layer')}
               >
                 <Eye className="h-4 w-4" />
-                {viewMode === 'tree' ? t('membershipSystem.matrix.controls.gridView') : t('membershipSystem.matrix.controls.treeView')}
+                {viewMode === 'layer' ? 'Grid View' : 'Layer View'}
               </Button>
             </div>
           </div>
@@ -350,7 +413,7 @@ const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = 
             </CardHeader>
             <CardContent>
               <div className="overflow-auto max-h-[600px]">
-                {viewMode === 'tree' ? renderTreeView() : renderGridView()}
+                {viewMode === 'layer' ? renderLayerView() : renderGridView()}
               </div>
             </CardContent>
           </Card>
