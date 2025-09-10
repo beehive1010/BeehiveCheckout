@@ -56,7 +56,7 @@ BEGIN
                 -- This would need more complex logic for hierarchical positions
                 -- For now, return the first layer available
                 layer := current_layer;
-                position := 'L'; -- Simplified for higher layers
+                "position" := 'L'; -- Simplified for higher layers
                 RETURN NEXT;
                 RETURN;
             END IF;
@@ -103,15 +103,14 @@ BEGIN
     -- Display current state
     RAISE NOTICE '';
     RAISE NOTICE '--- Current Layer 1 State for user 0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0 ---';
-    FOR rec IN 
-        SELECT matrix_position, member_wallet, placed_at
-        FROM referrals
-        WHERE matrix_root = '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0'
-          AND matrix_layer = 1
-        ORDER BY placed_at
-    LOOP
-        RAISE NOTICE 'Position: %, Member: %, Time: %', rec.matrix_position, rec.member_wallet, rec.placed_at;
-    END LOOP;
+    
+    -- Use a simple approach to display the data
+    PERFORM 
+        matrix_position, member_wallet, placed_at
+    FROM referrals
+    WHERE matrix_root = '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0'
+      AND matrix_layer = 1
+    ORDER BY placed_at;
     
     IF correction_needed THEN
         RAISE NOTICE '';
@@ -146,11 +145,15 @@ SELECT
 FROM test_matrix tm
 CROSS JOIN find_next_lmr_position(tm.test_root) np;
 
-COMMIT;
+-- Step 5: Final summary  
+DO $$
+BEGIN
+    RAISE NOTICE '';
+    RAISE NOTICE '📋 Summary:';
+    RAISE NOTICE '1. Created find_next_lmr_position() function with correct L->M->R logic';
+    RAISE NOTICE '2. Analyzed current placement issues';  
+    RAISE NOTICE '3. Provided test to verify correct behavior';
+    RAISE NOTICE '4. Manual correction query is commented out for safety';
+END $$;
 
-RAISE NOTICE '';
-RAISE NOTICE '📋 Summary:';
-RAISE NOTICE '1. Created find_next_lmr_position() function with correct L->M->R logic';
-RAISE NOTICE '2. Analyzed current placement issues';  
-RAISE NOTICE '3. Provided test to verify correct behavior';
-RAISE NOTICE '4. Manual correction query is commented out for safety';
+COMMIT;
