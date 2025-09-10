@@ -608,6 +608,16 @@
       "yourPosition": "당신의 포지션",
       "available": "사용 가능",
       "occupied": "점유됨"
+    },
+    "matrixSystem": {
+      "title": "3×3 매트릭스 네트워크",
+      "matrixTree": "3×3 매트릭스 트리",
+      "enhancedMatrixTree": "향상된 3×3 매트릭스 트리",
+      "layer": "레이어",
+      "layers": "L1-L19",
+      "matrixInformation": "매트릭스 정보",
+      "yourMatrixTree": "당신의 3×3 매트릭스 트리",
+      "matrixNetworkLayer": "3×3 매트릭스 네트워크 - 레이어 {{layer}}"
     }
   },
   "hiveworld": {
