@@ -181,7 +181,7 @@
     "cookies": "Cookie政策",
     "copyright": "© 2024 Beehive. 版权所有。"
   },
-  "dashboard": {
+  "dashboardOld": {
     "welcome": "欢迎回来",
     "nftRequired": {
       "level1Membership": "一级会员",

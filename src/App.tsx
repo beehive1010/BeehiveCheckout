@@ -248,11 +248,15 @@ function Router() {
             <DashboardPageV2Simple />
           </MemberGuard>
         )} />
-        <Route path="/tasks" component={() => {
-          const [location, navigate] = useLocation();
-          navigate('/membership', { replace: true });
-          return null;
-        }} />
+        <Route path="/tasks">
+          {() => {
+            const [, setLocation] = useLocation();
+            React.useEffect(() => {
+              setLocation('/membership', { replace: true });
+            }, [setLocation]);
+            return null;
+          }}
+        </Route>
         <Route path="/membership" component={() => (
           <MemberGuard requireActivation={true} redirectTo="/welcome">
             <Membership />
