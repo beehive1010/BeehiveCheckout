@@ -238,7 +238,10 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
             })}
           </div>
         </div>
+        )}
 
+        {!loading && !error && (
+        <>
         {/* L-M-R Matrix Display */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Left Leg */}
@@ -314,6 +317,8 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
             <div className="text-xs text-muted-foreground">Right Leg</div>
           </div>
         </div>
+        </>
+        )}
       </CardContent>
     </Card>
   );
