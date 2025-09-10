@@ -12,7 +12,7 @@ import { Toaster as HotToaster } from "react-hot-toast";
 // Refactored pages with clean architecture
 import LandingPage from "@/pages/LandingPage";
 import DashboardPageV2Simple from "@/pages/DashboardPageV2Simple";
-import EnhancedDashboard from "@/pages/EnhancedDashboard";
+import SimpleDashboard from "@/pages/SimpleDashboard";
 // Force cache refresh
 import Education from "@/pages/Education";
 import HiveWorld from "@/pages/HiveWorld";
@@ -108,7 +108,7 @@ function SmartHomePage() {
   }
   
   if (isFullyActivated) {
-    return <EnhancedDashboard />;
+    return <SimpleDashboard />;
   }
 
   // Fallback to landing page
@@ -239,7 +239,7 @@ function Router() {
         {/* Main app routes - Protected with wallet connection and Level 1 NFT requirement */}
         <Route path="/dashboard" component={() => (
           <MemberGuard requireActivation={true} redirectTo="/welcome">
-            <EnhancedDashboard />
+            <SimpleDashboard />
           </MemberGuard>
         )} />
         <Route path="/dashboard/simple" component={() => (
