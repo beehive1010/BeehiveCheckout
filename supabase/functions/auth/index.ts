@@ -45,6 +45,9 @@ serve(async (req) => {
       case 'get-user':
         result = await getUser(supabase, walletAddress);
         break;
+      case 'validate-referrer':
+        result = await validateReferrer(supabase, data.referrerWallet);
+        break;
       // activate-membership功能已移除 - 只能通过NFT claim验证后激活
       default:
         throw new Error(`未知操作: ${action}`);
@@ -68,7 +71,7 @@ serve(async (req) => {
 async function registerUser(supabase, walletAddress, data) {
   console.log(`👤 注册用户: ${walletAddress}`);
   
-  // 检查用户是否已存在
+  // 检查用户是否已存在（使用大小写不敏感查询）
   const { data: existingUser } = await supabase
     .from('users')
     .select(`
@@ -81,7 +84,7 @@ async function registerUser(supabase, walletAddress, data) {
       created_at,
       updated_at
     `)
-    .eq('wallet_address', walletAddress)
+    .ilike('wallet_address', walletAddress)
     .single();
 
   if (existingUser) {
@@ -107,13 +110,24 @@ async function registerUser(supabase, walletAddress, data) {
   // 修复：正确处理推荐人参数，确保参数传递正确
   const inputReferrer = data.referrerWallet || data.referrer_wallet;
   if (inputReferrer && inputReferrer !== ROOT_WALLET) {
+    // 验证推荐人是否为激活会员
+    const referrerValidation = await validateReferrer(supabase, inputReferrer);
+    if (!referrerValidation.isValid) {
+      throw new Error(`Invalid referrer: ${referrerValidation.error}`);
+    }
+    
     referrerWallet = inputReferrer; // 保持原始大小写  
-    console.log(`📝 正在记录推荐人: ${inputReferrer} -> ${referrerWallet}`);
+    console.log(`📝 推荐人验证通过，正在记录: ${inputReferrer} -> ${referrerWallet}`);
   } else {
-    console.log(`📝 使用默认推荐人（根用户），输入推荐人: ${inputReferrer}`);
+    throw new Error('Valid referrer is required for registration');
   }
   
   console.log(`🔍 最终推荐人地址: ${referrerWallet}`);
+
+  // 确保不能自我推荐（比较时使用小写，但存储保持原始大小写）
+  if (referrerWallet.toLowerCase() === walletAddress.toLowerCase()) {
+    throw new Error('Self-referral is not allowed');
+  }
 
   // 生成用户名（如果未提供）
   let username = data.username;
@@ -155,7 +169,7 @@ async function registerUser(supabase, walletAddress, data) {
 async function getUser(supabase, walletAddress) {
   console.log(`👤 获取用户: ${walletAddress}`);
 
-  // 只从users表获取基本信息
+  // 只从users表获取基本信息（使用大小写不敏感查询）
   const { data: userData, error: userError } = await supabase
     .from('users')
     .select(`
@@ -168,7 +182,7 @@ async function getUser(supabase, walletAddress) {
       created_at,
       updated_at
     `)
-    .eq('wallet_address', walletAddress)
+    .ilike('wallet_address', walletAddress)
     .single();
 
   if (userError) {
@@ -183,11 +197,11 @@ async function getUser(supabase, walletAddress) {
     throw new Error(`获取用户失败: ${userError.message}`);
   }
 
-  // 检查用户是否为激活会员 - 快速数据库检查
+  // 检查用户是否为激活会员 - 快速数据库检查（使用大小写不敏感查询）
   const { data: memberData, error: memberError } = await supabase
     .from('members')
     .select('current_level')
-    .eq('wallet_address', walletAddress)
+    .ilike('wallet_address', walletAddress)
     .single();
   
   // 如果用户在members表中存在且有等级，则视为激活会员
@@ -212,6 +226,64 @@ async function getUser(supabase, walletAddress) {
     membershipLevel,
     canAccessReferrals: isMember, // 激活会员可访问推荐功能
     message: '用户信息获取成功'
+  };
+}
+
+// 验证推荐人是否为激活会员
+async function validateReferrer(supabase, referrerWallet) {
+  console.log(`🔍 验证推荐人: ${referrerWallet}`);
+  
+  if (!referrerWallet) {
+    return {
+      success: false,
+      isValid: false,
+      error: 'Referrer wallet address is required'
+    };
+  }
+  
+  // 首先检查推荐人是否为已注册用户（使用小写比较但保持原始大小写）
+  const { data: userData, error: userError } = await supabase
+    .from('users')
+    .select('wallet_address, username')
+    .ilike('wallet_address', referrerWallet) // 使用 ilike 进行大小写不敏感查询
+    .single();
+  
+  if (userError || !userData) {
+    console.log(`❌ 推荐人未注册: ${referrerWallet}`);
+    return {
+      success: false,
+      isValid: false,
+      error: 'Referrer is not a registered user'
+    };
+  }
+  
+  // 检查推荐人是否为激活会员（必须在members表中且current_level > 0）
+  const { data: memberData, error: memberError } = await supabase
+    .from('members')
+    .select('current_level, wallet_address')
+    .ilike('wallet_address', referrerWallet) // 使用 ilike 进行大小写不敏感查询
+    .single();
+  
+  if (memberError || !memberData || memberData.current_level < 1) {
+    console.log(`❌ 推荐人不是激活会员: ${referrerWallet}, level: ${memberData?.current_level || 0}`);
+    return {
+      success: false,
+      isValid: false,
+      error: 'Referrer is not an activated member (must have Level 1+ membership)'
+    };
+  }
+  
+  console.log(`✅ 推荐人验证通过: ${referrerWallet}, level: ${memberData.current_level}`);
+  
+  return {
+    success: true,
+    isValid: true,
+    referrer: {
+      wallet_address: userData.wallet_address, // 返回数据库中的原始大小写地址
+      username: userData.username,
+      current_level: memberData.current_level
+    },
+    message: 'Referrer is a valid activated member'
   };
 }
 

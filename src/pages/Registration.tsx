@@ -64,6 +64,7 @@ export default function Registration() {
   
   // Get referrer from URL parameters
   const [referrerWallet, setReferrerWallet] = useState<string | null>(null);
+  const [noReferrerError, setNoReferrerError] = useState(false);
   
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -71,6 +72,10 @@ export default function Registration() {
     if (refParam && refParam.startsWith('0x') && refParam.length === 42) {
       // Keep original case as specified - wallet addresses must be case-preserved
       setReferrerWallet(refParam);
+      setNoReferrerError(false);
+    } else {
+      // No valid referrer found - set error state
+      setNoReferrerError(true);
     }
   }, []);
 
@@ -113,24 +118,35 @@ export default function Registration() {
     queryFn: async () => {
       if (!referrerWallet || !walletAddress) return null;
       
-      // Check for self-referral
-      if (referrerWallet === walletAddress) {
+      // Check for self-referral (compare in lowercase but preserve original case)
+      if (referrerWallet.toLowerCase() === walletAddress.toLowerCase()) {
         throw new Error('You cannot refer yourself');
       }
       
       try {
-        const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/auth?action=validate-referrer&address=${referrerWallet}`, {
-          headers: { 'x-wallet-address': walletAddress }
+        const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/auth', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-wallet-address': walletAddress
+          },
+          body: JSON.stringify({
+            action: 'validate-referrer',
+            referrerWallet: referrerWallet
+          })
         });
         
         if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('Referrer not found - they must be registered first');
-          }
-          throw new Error('Invalid referrer');
+          throw new Error('Failed to validate referrer');
         }
         
-        return response.json();
+        const result = await response.json();
+        
+        if (!result.success || !result.isValid) {
+          throw new Error(result.error || 'Referrer is not a valid activated member');
+        }
+        
+        return result;
       } catch (error: any) {
         console.warn('Referrer validation failed:', error.message);
         throw error;
@@ -153,6 +169,15 @@ export default function Registration() {
       return;
     }
 
+    // Check if referrer is required and valid
+    if (!referrerWallet) {
+      toast({
+        title: 'Referrer Required',
+        description: 'You must use a valid referral link to register. Please ask an existing member for a referral link.',
+        variant: 'destructive'
+      });
+      return;
+    }
 
     // Validate referrer if provided
     if (referrerWallet && referrerError) {
@@ -216,7 +241,7 @@ export default function Registration() {
       return (
         <div className="flex items-center text-sm text-green-400">
           <Check className="h-4 w-4 mr-2" />
-          Valid referrer: {referrerValidation.username || referrerWallet.slice(0, 8) + '...'}
+          Valid referrer: {referrerValidation.referrer?.username || referrerWallet.slice(0, 8) + '...'} (Level {referrerValidation.referrer?.current_level})
         </div>
       );
     }
@@ -228,6 +253,30 @@ export default function Registration() {
       </div>
     );
   };
+
+  // Show error if no referrer is provided
+  if (noReferrerError) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-secondary border-border border-red-500/50">
+          <CardContent className="pt-6 text-center">
+            <div className="text-red-400 text-6xl mb-4">🚫</div>
+            <h2 className="text-xl font-bold text-red-400 mb-2">Referral Required</h2>
+            <p className="text-muted-foreground mb-4">
+              You need a valid referral link to join Beehive Community. 
+              Please ask an existing member to share their referral link with you.
+            </p>
+            <div className="p-3 bg-red-500/10 rounded-lg border border-red-500/30 text-sm text-red-400">
+              💡 Referral links look like: <br/>
+              <code className="bg-background/50 px-2 py-1 rounded text-xs">
+                /registration?ref=0x123...abc
+              </code>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Show loading screen while checking if user already exists
   if (isCheckingExistingUser) {
@@ -256,16 +305,14 @@ export default function Registration() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Referrer Status */}
-            {referrerWallet && (
-              <div className="p-3 bg-muted rounded-lg">
-                <div className="flex items-center mb-2">
-                  <Users className="h-4 w-4 mr-2 text-honey" />
-                  <span className="text-sm font-medium">Referral Status</span>
-                </div>
-                {getReferrerStatus()}
+            {/* Referrer Status - Always show since referrer is required */}
+            <div className="p-3 bg-muted rounded-lg">
+              <div className="flex items-center mb-2">
+                <Users className="h-4 w-4 mr-2 text-honey" />
+                <span className="text-sm font-medium">Referral Status</span>
               </div>
-            )}
+              {getReferrerStatus()}
+            </div>
 
             {/* Username */}
             <div className="space-y-2">
@@ -315,11 +362,13 @@ export default function Registration() {
 
             <Button
               type="submit"
-              disabled={registerMutation.isPending || (!!referrerWallet && (isValidatingReferrer || !!referrerError))}
+              disabled={registerMutation.isPending || !referrerWallet || (!!referrerWallet && (isValidatingReferrer || !!referrerError))}
               className="w-full bg-honey text-secondary hover:bg-honey/90"
               data-testid="button-register"
             >
-              {registerMutation.isPending ? 'Registering...' : 'Register & Join Beehive'}
+              {registerMutation.isPending ? 'Registering...' : 
+               !referrerWallet ? 'Referral Link Required' :
+               'Register & Join Beehive'}
             </Button>
           </form>
           

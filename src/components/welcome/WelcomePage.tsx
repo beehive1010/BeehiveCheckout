@@ -40,12 +40,18 @@ export function WelcomePage() {
 
     // Get referrer from URL parameters
     const [referrerWallet, setReferrerWallet] = useState<string | undefined>();
+    const [noReferrerError, setNoReferrerError] = useState(false);
 
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         const refParam = urlParams.get('ref');
         if (refParam && refParam.startsWith('0x') && refParam.length === 42) {
             setReferrerWallet(refParam);
+            setNoReferrerError(false);
+        } else {
+            // Check if user is coming from a direct link without referrer
+            setNoReferrerError(true);
+            console.log('❌ No valid referrer found in URL');
         }
     }, []);
 
@@ -368,6 +374,33 @@ export function WelcomePage() {
             setLocation('/dashboard');
         }, 1000);
     };
+
+    // Show error if no referrer is provided
+    if (noReferrerError) {
+        return (
+            <div className="container mx-auto px-4 py-8">
+                <Card className="max-w-md mx-auto border-red-500/50 bg-red-500/5">
+                    <CardContent className="pt-6 text-center">
+                        <div className="text-red-400 text-6xl mb-4">🚫</div>
+                        <h2 className="text-xl font-bold text-red-400 mb-2">Referral Link Required</h2>
+                        <p className="text-muted-foreground mb-4">
+                            You need a valid referral link to access Beehive Community. 
+                            Please ask an existing member to share their referral link with you.
+                        </p>
+                        <div className="p-3 bg-red-500/10 rounded-lg border border-red-500/30 text-sm text-red-400">
+                            💡 Referral links look like: <br/>
+                            <code className="bg-background/50 px-2 py-1 rounded text-xs mt-1 inline-block">
+                                /welcome?ref=0x123...abc
+                            </code>
+                        </div>
+                        <div className="mt-4 text-xs text-muted-foreground">
+                            Existing members can generate referral links from their dashboard.
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
     if (isLoading || isCheckingChain) {
         return (
