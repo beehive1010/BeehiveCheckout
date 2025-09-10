@@ -50,7 +50,7 @@ interface ReferralMatrixVisualizationProps {
 
 const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = ({ 
   rootWallet,
-  maxLayers = 5 
+  maxLayers = 19 
 }) => {
   const { walletAddress, isConnected } = useWallet();
   const { t } = useI18n();
@@ -247,7 +247,18 @@ const ReferralMatrixVisualization: React.FC<ReferralMatrixVisualizationProps> = 
           {positionGroups.map(group => (
             <div key={group.position} className="space-y-4">
               <div className="text-center">
-                <Badge variant="secondary">{group.position} Branch</Badge>
+                <Badge 
+                  variant="outline" 
+                  className={`
+                    ${group.position === 'L' ? 'border-green-400 text-green-400' : 
+                      group.position === 'M' ? 'border-blue-400 text-blue-400' : 
+                      'border-purple-400 text-purple-400'}
+                  `}
+                >
+                  {group.position === 'L' ? 'LEFT LEG' : 
+                   group.position === 'M' ? 'MIDDLE LEG' : 
+                   'RIGHT LEG'} ({group.members.length})
+                </Badge>
                 <div className="text-sm text-muted-foreground mt-1">
                   {group.members.length} members
                 </div>
