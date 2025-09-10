@@ -321,7 +321,9 @@ export default function ReferralMatrixVisualization({
           {positionGroups.map(group => (
             <div key={group.position} className="text-center">
               <div className="text-sm font-medium mb-4 text-muted-foreground">
-                {group.position === 'L' ? 'LEFT' : group.position === 'M' ? 'MIDDLE' : 'RIGHT'}
+                {group.position === 'L' ? t('referrals.matrixPosition.left').toUpperCase() : 
+                 group.position === 'M' ? t('referrals.matrixPosition.middle').toUpperCase() : 
+                 t('referrals.matrixPosition.right').toUpperCase()}
               </div>
               <div className="space-y-3">
                 {group.members.length > 0 ? (
@@ -501,7 +503,7 @@ export default function ReferralMatrixVisualization({
               <div>
                 <label className="text-sm font-medium">{t('membershipSystem.matrix.memberDetails.position')}</label>
                 <p className="text-sm text-muted-foreground">
-                  Layer {selectedMember.layer}, Position {selectedMember.position === 1 ? 'L' : selectedMember.position === 2 ? 'M' : 'R'}
+                  Layer {selectedMember.layer}, Position {selectedMember.position === 1 ? t('referrals.matrixPosition.left') : selectedMember.position === 2 ? t('referrals.matrixPosition.middle') : t('referrals.matrixPosition.right')}
                 </p>
               </div>
             </div>
