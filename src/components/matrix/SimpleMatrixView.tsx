@@ -1,8 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, Users, Trophy } from 'lucide-react';
+import { matrixService } from '@/lib/supabaseClient';
+
+interface MatrixMember {
+  walletAddress: string;
+  username?: string;
+  level: number;
+  isActive: boolean;
+  layer: number;
+  position: string;
+}
+
+interface MatrixLayerData {
+  left: MatrixMember[];
+  middle: MatrixMember[];
+  right: MatrixMember[];
+}
 
 interface SimpleMatrixViewProps {
   walletAddress: string;
@@ -11,33 +27,89 @@ interface SimpleMatrixViewProps {
 
 const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, rootUser }) => {
   const [currentLayer, setCurrentLayer] = useState(1);
+  const [matrixData, setMatrixData] = useState<{ [key: number]: MatrixLayerData }>({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Create mock data for all 19 layers
-  const createMockLayerData = () => {
-    const data: any = {};
-    for (let i = 1; i <= 19; i++) {
-      if (i === 1) {
-        // Layer 1 has some members
-        data[i] = {
-          left: [
-            { walletAddress: '0x479ABda60F8c62a7C3fba411ab948a8BE0E616Ab', username: 'User1', level: 1, isActive: true },
-          ],
-          middle: [
-            { walletAddress: '0x380Fd6A57Fc2DF6F10B8920002e4acc7d57d61c0', username: 'Admin', level: 1, isActive: true },
-          ],
-          right: []
-        };
-      } else {
-        // Other layers are empty for now
-        data[i] = { left: [], middle: [], right: [] };
+  // Load matrix data from Supabase
+  useEffect(() => {
+    const loadMatrixData = async () => {
+      if (!walletAddress) return;
+      
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // Get matrix tree data
+        const result = await matrixService.getMatrixTree(walletAddress);
+        
+        if (result.success && result.matrix) {
+          const organizedData: { [key: number]: MatrixLayerData } = {};
+          
+          // Initialize all 19 layers
+          for (let i = 1; i <= 19; i++) {
+            organizedData[i] = { left: [], middle: [], right: [] };
+          }
+          
+          // Organize referrals by layer and position
+          result.matrix.forEach((referral: any) => {
+            if (!referral.matrix_layer || !referral.matrix_position) return;
+            
+            const layer = referral.matrix_layer;
+            const position = referral.matrix_position;
+            
+            const member: MatrixMember = {
+              walletAddress: referral.member_wallet,
+              username: referral.member_info?.username || `User${referral.member_wallet.slice(-4)}`,
+              level: 1, // You can get this from members table if needed
+              isActive: referral.is_active,
+              layer: layer,
+              position: position
+            };
+            
+            // Distribute to L-M-R based on position
+            // In 3x3 matrix: positions are typically ordered sequentially
+            // We'll map them to L-M-R columns
+            if (organizedData[layer]) {
+              const positionNumber = parseInt(position) || 0;
+              if (positionNumber % 3 === 1) {
+                organizedData[layer].left.push(member);
+              } else if (positionNumber % 3 === 2) {
+                organizedData[layer].middle.push(member);
+              } else {
+                organizedData[layer].right.push(member);
+              }
+            }
+          });
+          
+          setMatrixData(organizedData);
+        } else {
+          // Initialize empty matrix if no data
+          const emptyData: { [key: number]: MatrixLayerData } = {};
+          for (let i = 1; i <= 19; i++) {
+            emptyData[i] = { left: [], middle: [], right: [] };
+          }
+          setMatrixData(emptyData);
+        }
+      } catch (error: any) {
+        console.error('Error loading matrix data:', error);
+        setError(error.message || 'Failed to load matrix data');
+        
+        // Initialize empty matrix on error
+        const emptyData: { [key: number]: MatrixLayerData } = {};
+        for (let i = 1; i <= 19; i++) {
+          emptyData[i] = { left: [], middle: [], right: [] };
+        }
+        setMatrixData(emptyData);
+      } finally {
+        setLoading(false);
       }
-    }
-    return data;
-  };
+    };
 
-  const mockLayersData = createMockLayerData();
+    loadMatrixData();
+  }, [walletAddress]);
 
-  const currentData = mockLayersData[currentLayer as keyof typeof mockLayersData] || { left: [], middle: [], right: [] };
+  const currentData = matrixData[currentLayer] || { left: [], middle: [], right: [] };
 
   const renderMemberCard = (member: any) => (
     <div key={member.walletAddress} className="bg-background border border-honey/20 rounded-lg p-3 text-center">
@@ -75,7 +147,32 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
       </CardHeader>
       
       <CardContent className="space-y-6">
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto mb-2"></div>
+            <div className="text-sm text-muted-foreground">Loading matrix data...</div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-8">
+            <div className="text-red-400 mb-2">⚠️ Error loading matrix data</div>
+            <div className="text-xs text-muted-foreground">{error}</div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-3"
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </Button>
+          </div>
+        )}
+
         {/* Layer Navigation */}
+        {!loading && !error && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <Button
@@ -115,7 +212,7 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
             {Array.from({ length: 19 }, (_, i) => {
               const layerNum = i + 1;
               const isActive = layerNum === currentLayer;
-              const layerData = mockLayersData[layerNum];
+              const layerData = matrixData[layerNum];
               const memberCount = (layerData?.left?.length || 0) + (layerData?.middle?.length || 0) + (layerData?.right?.length || 0);
               
               return (
@@ -141,7 +238,10 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
             })}
           </div>
         </div>
+        )}
 
+        {!loading && !error && (
+        <>
         {/* L-M-R Matrix Display */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Left Leg */}
@@ -217,6 +317,8 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
             <div className="text-xs text-muted-foreground">Right Leg</div>
           </div>
         </div>
+        </>
+        )}
       </CardContent>
     </Card>
   );

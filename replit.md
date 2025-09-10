@@ -10,6 +10,16 @@ The platform serves as a complete ecosystem where users can join through wallet-
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+### 2025-09-10: Referrals Translation Enhancement
+- Supplemented comprehensive Chinese translations for referrals and matrix system
+- Added matrix visualization translations (左-中-右布局, 矩阵树, 位置安置 etc.)
+- Added network statistics translations (直接推荐人数, 团队总人数, 最大层级 etc.)  
+- Added matrix positioning translations (左/中/右, 位置1/2/3, 可用/已占用 etc.)
+- Enhanced dashboard matrix network statistics translations
+- Completed referrals section Chinese localization for 3×3 matrix system
+
 ## System Architecture
 
 ### Frontend Architecture

@@ -406,11 +406,68 @@ export const matrixService = {
     return query.order('created_at', { ascending: true });
   },
 
-  // Get matrix statistics using Edge Function
+  // Get matrix statistics using direct database queries for real data
   async getMatrixStats(walletAddress: string) {
-    return callEdgeFunction('matrix', {
-      action: 'get-matrix-stats'
-    }, walletAddress);
+    try {
+      // Get direct referrals count (layer 1 referrals) - use ilike for case-insensitive matching
+      const { count: directReferralsCount } = await supabase
+        .from('referrals')
+        .select('*', { count: 'exact', head: true })
+        .ilike('parent_wallet', walletAddress)
+        .eq('layer', 1);
+
+      // Get total team size (all referrals) - use ilike for case-insensitive matching
+      const { count: totalTeamSize } = await supabase
+        .from('referrals')
+        .select('*', { count: 'exact', head: true })
+        .ilike('root_wallet', walletAddress);
+
+      // Get max layer - use ilike for case-insensitive matching
+      const { data: maxLayerData } = await supabase
+        .from('referrals')
+        .select('layer')
+        .ilike('root_wallet', walletAddress)
+        .order('layer', { ascending: false })
+        .limit(1);
+
+      const maxLayer = maxLayerData?.[0]?.layer || 0;
+
+      // Get recent activity (last 10 referrals) - use ilike for case-insensitive matching
+      const { data: recentActivity } = await supabase
+        .from('referrals')
+        .select(`
+          member_wallet,
+          created_at,
+          layer,
+          position,
+          is_active
+        `)
+        .ilike('root_wallet', walletAddress)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      return {
+        success: true,
+        data: {
+          directReferrals: directReferralsCount || 0,
+          totalTeamSize: totalTeamSize || 0,
+          maxLayer: maxLayer,
+          recentActivity: recentActivity || []
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching matrix stats:', error);
+      return {
+        success: false,
+        error: error,
+        data: {
+          directReferrals: 0,
+          totalTeamSize: 0,
+          maxLayer: 0,
+          recentActivity: []
+        }
+      };
+    }
   },
 
   // Create referral record (usually handled by matrix placement)
@@ -465,11 +522,81 @@ export const rewardService = {
     }, walletAddress);
   },
 
-  // Get claimable rewards using Edge Function
+  // Get claimable rewards using direct database queries for real data
   async getClaimableRewards(walletAddress: string) {
-    return callEdgeFunction('rewards', {
-      action: 'get-claims'
-    }, walletAddress);
+    try {
+      // Get all reward claims for statistics
+      const { data: allRewards, error: allError } = await supabase
+        .from('reward_claims')
+        .select(`
+          id,
+          reward_amount_usdc,
+          status,
+          created_at,
+          expires_at,
+          claimed_at,
+          layer,
+          nft_level,
+          root_wallet
+        `)
+        .ilike('root_wallet', walletAddress)
+        .order('created_at', { ascending: false });
+
+      if (allError) throw allError;
+
+      // Get claimable rewards (pending and available)
+      const claimableRewards = allRewards?.filter(r => ['pending', 'available'].includes(r.status)) || [];
+      const pendingRewards = allRewards?.filter(r => r.status === 'pending') || [];
+      const availableRewards = allRewards?.filter(r => r.status === 'available') || [];
+      const claimedRewards = allRewards?.filter(r => r.status === 'completed') || [];
+
+      // Calculate total claimed amount (ensure numeric conversion)
+      const totalClaimed = claimedRewards.reduce((sum, reward) => sum + Number(reward.reward_amount_usdc || 0), 0);
+      const totalPending = pendingRewards.reduce((sum, reward) => sum + Number(reward.reward_amount_usdc || 0), 0);
+      const totalAvailable = availableRewards.reduce((sum, reward) => sum + Number(reward.reward_amount_usdc || 0), 0);
+
+      return { 
+        success: true, 
+        claimable: claimableRewards,
+        pending: pendingRewards,
+        available: availableRewards,
+        claimed: claimedRewards,
+        totalClaimed: totalClaimed,
+        totalPending: totalPending,
+        totalAvailable: totalAvailable,
+        stats: {
+          totalClaimed: totalClaimed,
+          totalPending: totalPending,
+          totalAvailable: totalAvailable,
+          claimableCount: claimableRewards.length,
+          pendingCount: pendingRewards.length,
+          availableCount: availableRewards.length,
+          claimedCount: claimedRewards.length
+        }
+      };
+    } catch (error: any) {
+      console.error('Error fetching claimable rewards:', error);
+      return { 
+        success: false, 
+        error: error.message, 
+        claimable: [], 
+        pending: [], 
+        available: [],
+        claimed: [],
+        totalClaimed: 0,
+        totalPending: 0,
+        totalAvailable: 0,
+        stats: {
+          totalClaimed: 0,
+          totalPending: 0,
+          totalAvailable: 0,
+          claimableCount: 0,
+          pendingCount: 0,
+          availableCount: 0,
+          claimedCount: 0
+        }
+      };
+    }
   },
 
   // Get reward balance using Edge Function
@@ -685,6 +812,174 @@ export const activationService = {
         eligible: false,
         reason: 'Error checking eligibility',
         data: null
+      };
+    }
+  },
+};
+
+// === TRANSACTION HISTORY ===
+export const transactionService = {
+  // Get transaction history for a wallet
+  async getTransactionHistory(walletAddress: string, limit = 50, offset = 0) {
+    const transactions = [];
+    let hasErrors = false;
+    const errors = [];
+
+    // Get NFT purchases from bcc_purchase_orders table
+    try {
+      const { data: orders, error: ordersError } = await supabase
+        .from('bcc_purchase_orders')
+        .select(`
+          id,
+          wallet_address,
+          total_amount,
+          currency,
+          status,
+          created_at,
+          completed_at,
+          transaction_hash,
+          network,
+          metadata
+        `)
+        .eq('wallet_address', walletAddress)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      if (ordersError) {
+        console.error('Error fetching orders:', ordersError);
+        hasErrors = true;
+        errors.push('Failed to load purchase history');
+      } else if (orders) {
+        // Transform orders to transaction format
+        orders.forEach(order => {
+          transactions.push({
+            id: `order_${order.id}`,
+            type: 'nft_purchase' as const,
+            category: 'debit' as const,
+            amount: order.total_amount,
+            currency: order.currency as 'USDT' | 'USDC',
+            status: order.status as 'pending' | 'completed' | 'failed' | 'cancelled',
+            title: `NFT Level ${order.metadata?.level || 'Unknown'} Purchase`,
+            description: `Purchased membership NFT Level ${order.metadata?.level || 'Unknown'}`,
+            created_at: order.created_at,
+            completed_at: order.completed_at,
+            transaction_hash: order.transaction_hash,
+            network: order.network,
+            metadata: order.metadata
+          });
+        });
+      }
+    } catch (error) {
+      console.error('Error in orders query:', error);
+      hasErrors = true;
+      errors.push('Failed to load purchase history');
+    }
+
+    // Get reward claims from reward_claims table
+    try {
+      const { data: rewards, error: rewardsError } = await supabase
+        .from('reward_claims')
+        .select(`
+          id,
+          claimer_wallet,
+          amount,
+          currency,
+          status,
+          created_at,
+          claimed_at,
+          matrix_layer,
+          reward_type
+        `)
+        .ilike('claimer_wallet', walletAddress)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      if (rewardsError) {
+        console.error('Error fetching rewards:', rewardsError);
+        hasErrors = true;
+        errors.push('Failed to load reward history');
+      } else if (rewards) {
+        // Transform reward claims to transaction format
+        rewards.forEach(reward => {
+          transactions.push({
+            id: `reward_${reward.id}`,
+            type: 'reward_claim' as const,
+            category: 'credit' as const,
+            amount: reward.amount,
+            currency: reward.currency as 'USDT' | 'USDC' | 'BCC',
+            status: reward.status as 'pending' | 'completed' | 'failed' | 'cancelled',
+            title: `Layer ${reward.matrix_layer} Reward ${reward.status === 'completed' ? 'Claimed' : 'Pending'}`,
+            description: `${reward.reward_type || 'Matrix'} reward from layer ${reward.matrix_layer}`,
+            created_at: reward.created_at,
+            completed_at: reward.claimed_at,
+            metadata: { 
+              layer: reward.matrix_layer, 
+              reward_type: reward.reward_type 
+            }
+          });
+        });
+      }
+    } catch (error) {
+      console.error('Error in rewards query:', error);
+      hasErrors = true;
+      errors.push('Failed to load reward history');
+    }
+
+    // Sort combined transactions by date
+    transactions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    return { 
+      data: transactions.slice(0, limit), 
+      error: hasErrors ? { message: errors.join(', ') } : null,
+      partialData: hasErrors && transactions.length > 0
+    };
+  },
+
+  // Get transaction statistics
+  async getTransactionStats(walletAddress: string) {
+    try {
+      // Get total spent on NFTs
+      const { data: ordersData } = await supabase
+        .from('bcc_purchase_orders')
+        .select('total_amount, status')
+        .eq('wallet_address', walletAddress)
+        .eq('status', 'completed');
+
+      const totalSpent = ordersData?.reduce((sum, order) => sum + order.total_amount, 0) || 0;
+
+      // Get total rewards claimed
+      const { data: rewardsData } = await supabase
+        .from('reward_claims')
+        .select('amount, status')
+        .ilike('claimer_wallet', walletAddress)
+        .eq('status', 'completed');
+
+      const totalRewards = rewardsData?.reduce((sum, reward) => sum + reward.amount, 0) || 0;
+
+      // Get transaction counts
+      const { count: totalTransactions } = await supabase
+        .from('bcc_purchase_orders')
+        .select('*', { count: 'exact', head: true })
+        .eq('wallet_address', walletAddress);
+
+      const { count: rewardTransactions } = await supabase
+        .from('reward_claims')
+        .select('*', { count: 'exact', head: true })
+        .ilike('claimer_wallet', walletAddress);
+
+      return {
+        totalSpent,
+        totalRewards,
+        totalTransactions: (totalTransactions || 0) + (rewardTransactions || 0),
+        netEarnings: totalRewards - totalSpent
+      };
+    } catch (error) {
+      console.error('Error fetching transaction stats:', error);
+      return {
+        totalSpent: 0,
+        totalRewards: 0,
+        totalTransactions: 0,
+        netEarnings: 0
       };
     }
   },

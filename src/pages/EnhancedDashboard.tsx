@@ -240,17 +240,17 @@ export default function EnhancedDashboard() {
           pendingRewards: data?.rewards?.pending?.length || 0
         },
         matrix: {
-          directReferrals: data?.member?.total_direct_referrals || 0,
-          totalTeamSize: data?.member?.total_team_size || 0,
-          maxLayer: data?.member?.max_layer || 0,
+          directReferrals: data?.matrix?.data?.directReferrals || data?.matrix?.directReferrals || 0,
+          totalTeamSize: data?.matrix?.data?.totalTeamSize || data?.matrix?.totalTeamSize || 0,
+          maxLayer: data?.matrix?.data?.maxLayer || data?.matrix?.maxLayer || 0,
           layers: data?.matrix?.layers || [],
-          recentActivity: data?.matrix?.recentActivity || []
+          recentActivity: data?.matrix?.data?.recentActivity || data?.matrix?.recentActivity || []
         },
         rewards: {
           claimableRewards: data?.rewards?.claimable || [],
           pendingRewards: data?.rewards?.pending || [],
-          totalClaimed: data?.rewards?.totalClaimed || 0,
-          totalPending: data?.rewards?.pending?.length || 0
+          totalClaimed: data?.rewards?.totalClaimed || data?.rewards?.stats?.totalClaimed || 0,
+          totalPending: data?.rewards?.pending?.length || data?.rewards?.stats?.pendingCount || 0
         },
         member: {
           currentLevel: data?.member?.current_level || 1,
