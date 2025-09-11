@@ -44,7 +44,9 @@
       "Bash(python3:*)",
       "Bash(./deploy-edge-functions.sh:*)",
       "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions deploy notifications --project-ref cvqibjcbfrwsgkvthccp)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase projects list)",
+      "Bash(export PGPASSWORD=bee8881941)"
     ],
     "deny": [],
     "ask": []

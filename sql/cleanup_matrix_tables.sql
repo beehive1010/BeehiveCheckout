@@ -1,86 +1,139 @@
--- 清理所有matrix相关的表和视图
--- 保留root用户相关数据
+-- ========================================
+-- Matrix系统清理脚本
+-- 删除不需要的表和views，保留核心功能
+-- ========================================
 
-BEGIN;
+-- 分析需求：
+-- ✅ 保留：referrals表 (supabase/functions和前端组件都在使用)
+-- ✅ 保留：spillover_matrix表 (supabase/functions需要)
+-- ✅ 保留：members表 (基础数据)
+-- ❌ 删除：不必要的views和表
 
--- 显示清理前统计
-SELECT '=== BEFORE MATRIX CLEANUP ===' as status;
+-- ========================================
+-- 第一步：删除多余的Views
+-- ========================================
 
--- 检查所有matrix相关表的数据
-SELECT 'matrix_stats' as table_name, count(*) as count FROM matrix_stats
-UNION ALL SELECT 'matrix_structure', count(*) FROM matrix_structure
-UNION ALL SELECT 'matrix_activity_log', count(*) FROM matrix_activity_log
-UNION ALL SELECT 'reward_records', count(*) FROM reward_records
-UNION ALL SELECT 'reward_rollups', count(*) FROM reward_rollups
-UNION ALL SELECT 'roll_up_rewards', count(*) FROM roll_up_rewards
-UNION ALL SELECT 'user_reward_balances', count(*) FROM user_reward_balances
-UNION ALL SELECT 'membership', count(*) FROM membership
-UNION ALL SELECT 'member_activation_tiers', count(*) FROM member_activation_tiers
-UNION ALL SELECT 'reward_notifications', count(*) FROM reward_notifications;
+-- 删除多余的统计views (保留核心功能即可)
+DROP VIEW IF EXISTS comprehensive_matrix_analysis CASCADE;
+DROP VIEW IF EXISTS matrix_structure CASCADE;
+DROP VIEW IF EXISTS direct_referrals_stats CASCADE;
+DROP VIEW IF EXISTS total_team_stats CASCADE;
+DROP VIEW IF EXISTS vacant_positions CASCADE;
 
--- 清理所有matrix相关数据表 (保留root用户数据)
+-- 保留matrix_completion_status view (显示L-M-R完成情况)
+-- 这个view在前端组件中有用
 
--- 1. 清理matrix_activity_log
-DELETE FROM matrix_activity_log 
-WHERE wallet_address != '0x0000000000000000000000000000000000000001';
+SELECT '已删除多余的统计views' as step_1;
 
--- 2. 清理matrix_structure  
-DELETE FROM matrix_structure
-WHERE root_wallet != '0x0000000000000000000000000000000000000001';
+-- ========================================
+-- 第二步：删除多余的Tables (谨慎删除)
+-- ========================================
 
--- 3. 清理matrix_stats (保留root的统计)
-DELETE FROM matrix_stats
-WHERE root_wallet != '0x0000000000000000000000000000000000000001';
+-- 删除activation_rewards表 (如果不需要奖励功能)
+-- DROP TABLE IF EXISTS activation_rewards CASCADE;
 
--- 4. 清理reward相关表
-DELETE FROM reward_records
-WHERE wallet_address != '0x0000000000000000000000000000000000000001';
+-- 删除可能不需要的表
+DROP TABLE IF EXISTS matrix_activity_log CASCADE;
+DROP TABLE IF EXISTS matrix_layer_summary CASCADE;
 
-DELETE FROM reward_rollups
-WHERE root_wallet != '0x0000000000000000000000000000000000000001';
+-- 保留重要的表：
+-- ✅ referrals (核心矩阵数据)
+-- ✅ spillover_matrix (Edge Functions需要)  
+-- ✅ members (基础会员数据)
+-- ✅ referral_links (推荐链接)
+-- ✅ course_activations (课程激活)
+-- ✅ member_activation_tiers (会员激活层级)
+-- ✅ activation_rewards (奖励系统，如果需要的话)
 
-DELETE FROM roll_up_rewards  
-WHERE root_wallet != '0x0000000000000000000000000000000000000001';
+SELECT '已删除多余的表' as step_2;
 
--- 5. 清理user_reward_balances (保留root的余额)
-DELETE FROM user_reward_balances
-WHERE wallet_address != '0x0000000000000000000000000000000000000001';
+-- ========================================
+-- 第三步：创建简化的必要Views
+-- ========================================
 
--- 6. 清理membership
-DELETE FROM membership
-WHERE wallet_address != '0x0000000000000000000000000000000000000001';
+-- 创建简化的矩阵完成状态view (前端需要)
+CREATE OR REPLACE VIEW matrix_layer_status AS
+SELECT 
+    matrix_root,
+    matrix_layer,
+    COUNT(CASE WHEN matrix_position = 'L' THEN 1 END) as left_count,
+    COUNT(CASE WHEN matrix_position = 'M' THEN 1 END) as middle_count,
+    COUNT(CASE WHEN matrix_position = 'R' THEN 1 END) as right_count,
+    COUNT(*) as total_members,
+    POWER(3, matrix_layer) as max_capacity
+FROM referrals
+WHERE matrix_root IS NOT NULL
+GROUP BY matrix_root, matrix_layer
+ORDER BY matrix_root, matrix_layer;
 
--- 7. 清理member_activation_tiers
-DELETE FROM member_activation_tiers
-WHERE wallet_address != '0x0000000000000000000000000000000000000001';
+-- 创建简化的团队统计view
+CREATE OR REPLACE VIEW team_stats AS
+SELECT 
+    matrix_root,
+    COUNT(DISTINCT member_wallet) as total_team_size,
+    MAX(matrix_layer) as max_layer
+FROM referrals
+WHERE matrix_root IS NOT NULL
+GROUP BY matrix_root;
 
--- 8. 清理reward_notifications
-DELETE FROM reward_notifications
-WHERE wallet_address != '0x0000000000000000000000000000000000000001';
+SELECT '已创建简化的必要views' as step_3;
 
--- 显示清理后统计
-SELECT '=== AFTER MATRIX CLEANUP ===' as status;
+-- ========================================
+-- 第四步：清理referrals表的多余字段 (可选)
+-- ========================================
 
-SELECT 'matrix_stats' as table_name, count(*) as count FROM matrix_stats
-UNION ALL SELECT 'matrix_structure', count(*) FROM matrix_structure
-UNION ALL SELECT 'matrix_activity_log', count(*) FROM matrix_activity_log  
-UNION ALL SELECT 'reward_records', count(*) FROM reward_records
-UNION ALL SELECT 'reward_rollups', count(*) FROM reward_rollups
-UNION ALL SELECT 'roll_up_rewards', count(*) FROM roll_up_rewards
-UNION ALL SELECT 'user_reward_balances', count(*) FROM user_reward_balances
-UNION ALL SELECT 'membership', count(*) FROM membership
-UNION ALL SELECT 'member_activation_tiers', count(*) FROM member_activation_tiers
-UNION ALL SELECT 'reward_notifications', count(*) FROM reward_notifications;
+-- 移除我们添加的额外字段，保持表结构简洁
+-- 但保留核心的matrix字段
+ALTER TABLE referrals DROP COLUMN IF EXISTS is_direct_referral;
+ALTER TABLE referrals DROP COLUMN IF EXISTS is_spillover_placed;
+ALTER TABLE referrals DROP COLUMN IF EXISTS direct_referrer_wallet;
 
--- 显示保留的数据
-SELECT '=== PRESERVED ROOT DATA ===' as status;
-SELECT 'matrix_stats' as source, root_wallet FROM matrix_stats WHERE root_wallet = '0x0000000000000000000000000000000000000001'
-UNION ALL
-SELECT 'user_reward_balances', wallet_address FROM user_reward_balances WHERE wallet_address = '0x0000000000000000000000000000000000000001'
-UNION ALL  
-SELECT 'member_activation_tiers', wallet_address FROM member_activation_tiers WHERE wallet_address = '0x0000000000000000000000000000000000000001';
+-- 保留的核心字段：
+-- ✅ member_wallet
+-- ✅ referrer_wallet  
+-- ✅ matrix_root
+-- ✅ matrix_layer
+-- ✅ matrix_position
+-- ✅ matrix_parent
+-- ✅ is_active
+-- ✅ placed_at
 
-COMMIT;
+SELECT '已清理referrals表多余字段' as step_4;
 
-SELECT '🧹 ALL MATRIX TABLES CLEANED' as result;
-SELECT 'System completely reset - only root user data remains' as message;
+-- ========================================
+-- 第五步：验证核心功能
+-- ========================================
+
+-- 验证Edge Functions需要的表和字段存在
+SELECT 'referrals表验证' as check_type, 
+       COUNT(*) as record_count,
+       COUNT(DISTINCT matrix_root) as roots,
+       MIN(matrix_layer) as min_layer,
+       MAX(matrix_layer) as max_layer
+FROM referrals;
+
+-- 验证spillover_matrix表存在
+SELECT 'spillover_matrix表验证' as check_type,
+       COUNT(*) as record_count
+FROM spillover_matrix;
+
+-- 验证创建的views
+SELECT 'matrix_layer_status view验证' as check_type,
+       COUNT(*) as record_count
+FROM matrix_layer_status;
+
+-- 显示保留的表
+SELECT 'REMAINING_TABLES' as type, tablename as name 
+FROM pg_tables 
+WHERE schemaname = 'public' 
+AND tablename IN ('referrals', 'spillover_matrix', 'members', 'referral_links', 'activation_rewards')
+ORDER BY name;
+
+-- 显示保留的views
+SELECT 'REMAINING_VIEWS' as type, viewname as name
+FROM pg_views 
+WHERE schemaname = 'public'
+AND viewname IN ('matrix_layer_status', 'team_stats', 'matrix_completion_status')
+ORDER BY name;
+
+SELECT '========== 清理完成 ==========' as status;

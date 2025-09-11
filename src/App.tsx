@@ -22,6 +22,7 @@ import Referrals from "@/pages/Referrals";
 import Rewards from "@/pages/Rewards";
 import Discover from "@/pages/Discover";
 import NotificationsPage from "@/pages/NotificationsPage";
+import MatrixTestPage from "@/pages/MatrixTestPage";
 
 // Additional pages  
 import Registration from "@/pages/Registration";
@@ -310,6 +311,7 @@ function Router() {
         
         {/* Public routes - No authentication required */}
         <Route path="/matrix-explanation" component={MatrixExplanation} />
+        <Route path="/matrix-test" component={MatrixTestPage} />
         <Route path="/hiveworld" component={() => (
           <MemberGuard requireActivation={true} redirectTo="/welcome">
             <HiveWorld />
