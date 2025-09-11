@@ -19,7 +19,7 @@ export function useUserRewards() {
   });
 }
 
-// 待领取奖励hook
+// 待领取奖励hook - 使用新的Layer-Level匹配逻辑
 export function useClaimableRewards() {
   const { walletAddress } = useWallet();
 
@@ -27,13 +27,19 @@ export function useClaimableRewards() {
     queryKey: ['/api/rewards/claimable', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
-      const response = await updatedApiClient.getClaimableRewards(walletAddress);
       
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch claimable rewards');
+      // 直接调用Supabase RPC函数获取Layer-Level匹配的奖励
+      const { supabase } = await import('../lib/supabaseClient');
+      const { data, error } = await supabase
+        .rpc('get_claimable_rewards_by_wallet', { 
+          p_wallet_address: walletAddress 
+        });
+      
+      if (error) {
+        throw new Error(error.message || 'Failed to fetch claimable rewards');
       }
       
-      return response.data;
+      return data || [];
     },
     enabled: !!walletAddress,
     staleTime: 3000,
