@@ -832,6 +832,126 @@ export const matrixService = {
       };
     }
   },
+
+  // === NOTIFICATIONS SYSTEM ===
+
+  // Get user notifications
+  async getUserNotifications(walletAddress: string, limit: number = 20) {
+    try {
+      const { data, error } = await supabase
+        .rpc('get_user_notifications', { 
+          p_wallet_address: walletAddress,
+          p_limit: limit
+        });
+
+      if (error) throw error;
+
+      return {
+        success: true,
+        data: data || []
+      };
+    } catch (error) {
+      console.error('Error fetching user notifications:', error);
+      return {
+        success: false,
+        data: []
+      };
+    }
+  },
+
+  // Mark notification as read
+  async markNotificationAsRead(notificationId: string) {
+    try {
+      const { error } = await supabase
+        .from('user_notifications')
+        .update({ is_read: true, read_at: new Date().toISOString() })
+        .eq('id', notificationId);
+
+      if (error) throw error;
+
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      return {
+        success: false,
+        error: error
+      };
+    }
+  },
+
+  // Create custom notification
+  async createNotification(
+    walletAddress: string, 
+    title: string, 
+    message: string, 
+    type: string = 'info',
+    category: string = 'general',
+    priority: number = 1,
+    metadata: object = {}
+  ) {
+    try {
+      const { data, error } = await supabase
+        .rpc('create_notification', { 
+          p_wallet_address: walletAddress,
+          p_title: title,
+          p_message: message,
+          p_type: type,
+          p_category: category,
+          p_priority: priority,
+          p_metadata: metadata
+        });
+
+      if (error) throw error;
+
+      return {
+        success: true,
+        notificationId: data
+      };
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      return {
+        success: false,
+        error: error
+      };
+    }
+  },
+
+  // Process complete member level upgrade with notifications
+  async processMemberLevelUpgradeWithNotifications(walletAddress: string, newLevel: number) {
+    try {
+      const { data, error } = await supabase
+        .rpc('process_member_level_upgrade_with_notifications', { 
+          p_wallet_address: walletAddress,
+          p_new_level: newLevel
+        });
+
+      if (error) throw error;
+
+      const result = data?.[0];
+      return {
+        success: result?.upgrade_success || false,
+        bccReleased: result?.bcc_released || 0,
+        bccRemainingLocked: result?.bcc_remaining_locked || 0,
+        notificationsCreated: result?.notifications_created || 0,
+        message: result?.upgrade_message || '',
+        nftPrice: this.calculateNFTPrice(newLevel),
+        expectedBCCRelease: this.calculateNFTPrice(newLevel)
+      };
+    } catch (error) {
+      console.error('Error processing member level upgrade with notifications:', error);
+      return {
+        success: false,
+        bccReleased: 0,
+        bccRemainingLocked: 0,
+        notificationsCreated: 0,
+        message: `Error: ${error}`,
+        nftPrice: 0,
+        expectedBCCRelease: 0
+      };
+    }
+  },
 };
 
 // === REWARDS MANAGEMENT ===
