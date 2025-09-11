@@ -38,6 +38,7 @@ import {
 import ClaimableRewardsCardV2 from '../components/rewards/ClaimableRewardsCardV2';
 import SimpleMatrixView from '../components/matrix/SimpleMatrixView';
 import { MatrixNetworkStatsV2 } from '../components/matrix/MatrixNetworkStatsV2';
+import MatrixLayerStats from '../components/matrix/MatrixLayerStats';
 import NFTLevelUpgrade from '../components/NFTLevelUpgrade';
 import { useToast } from '../hooks/use-toast';
 
@@ -366,6 +367,9 @@ export default function Me() {
 
         {/* Matrix Tree Tab */}
         <TabsContent value="matrix" className="space-y-6">
+          <MatrixLayerStats 
+            walletAddress={walletAddress || ''}
+          />
           <SimpleMatrixView 
             walletAddress={walletAddress || ''} 
             rootUser={{
