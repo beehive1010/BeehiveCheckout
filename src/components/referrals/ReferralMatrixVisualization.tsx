@@ -78,18 +78,16 @@ export default function ReferralMatrixVisualization({
     try {
       setLoading(true);
 
-      // Get matrix data from individual_matrix_placements table
+      // Get referral data from users table (fallback since individual_matrix_placements doesn't exist)
       const { data: matrixPlacements, error } = await supabase
-        .from('individual_matrix_placements')
+        .from('users')
         .select(`
-          member_wallet,
-          layer_in_owner_matrix,
-          position_in_layer,
-          placed_at
+          wallet_address,
+          username,
+          created_at
         `)
-        .eq('matrix_owner', effectiveRootWallet)
-        .order('layer_in_owner_matrix')
-        .order('position_in_layer');
+        .eq('referrer_wallet', effectiveRootWallet)
+        .order('created_at');
 
       if (error) {
         throw new Error(`Failed to load matrix data: ${error.message}`);
