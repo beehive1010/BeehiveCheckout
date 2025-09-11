@@ -266,7 +266,7 @@ export default function Membership() {
           if (rewardResult.success) {
             console.log(`🎁 Layer rewards distributed: ${rewardResult.distributions.length} entries created`);
             
-            // 显示奖励分发结果
+            // Show reward distribution results
             const claimableCount = rewardResult.distributions.filter(d => d.status === 'claimable').length;
             const pendingCount = rewardResult.distributions.filter(d => d.status === 'pending').length;
             
