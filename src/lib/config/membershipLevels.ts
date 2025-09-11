@@ -1,14 +1,21 @@
+// 导入数据库服务
+import { getMembershipLevelsFromDB, getMembershipLevelFromDB, formatPriceWithCurrency } from '../services/membershipPricing';
+
 export interface MembershipLevel {
   level: number;
   slug: string;
   i18nKey: string;
-  priceUSDT: number; // Total price (NFT price + platform fee)
-  nftPriceUSDT: number; // NFT price portion (what sponsor receives as reward)
-  platformFeeUSDT: number; // Platform fee portion
+  priceUSDT: number; // Total price (NFT price + platform fee) - fallback value
+  nftPriceUSDT: number; // NFT price portion (what sponsor receives as reward) - fallback value
+  platformFeeUSDT: number; // Platform fee portion - fallback value
   badgeTheme: string;
   benefitsKeys: string[];
   titleEn: string;
   titleZh: string;
+  // 添加动态价格字段
+  dynamicPriceUSDT?: number; // 从数据库获取的实际价格
+  bccRelease?: number; // 从数据库获取的BCC释放数量
+  unlockLayer?: number; // 从数据库获取的解锁层级
 }
 
 export const membershipLevels: MembershipLevel[] = [
@@ -257,3 +264,62 @@ export const getMaxLevel = (): number => {
 export const validateLevel = (level: number): boolean => {
   return level >= 1 && level <= 19 && membershipLevels.some(l => l.level === level);
 };
+
+/**
+ * 获取带有数据库价格的会员级别列表
+ */
+export async function getMembershipLevelsWithDynamicPricing(): Promise<MembershipLevel[]> {
+  try {
+    console.log('🔄 Loading membership levels with dynamic pricing from database...');
+    
+    const dbLevels = await getMembershipLevelsFromDB();
+    const dbLevelMap = new Map(dbLevels.map(level => [level.level, level]));
+    
+    const levelsWithDynamicPricing = membershipLevels.map(level => {
+      const dbLevel = dbLevelMap.get(level.level);
+      if (dbLevel) {
+        return {
+          ...level,
+          dynamicPriceUSDT: dbLevel.price_usdc, // 价格以分为单位存储
+          bccRelease: dbLevel.bcc_release,
+          unlockLayer: dbLevel.unlock_layer
+        };
+      }
+      return level; // 如果数据库中没有，使用硬编码价格
+    });
+    
+    console.log('✅ Loaded membership levels with dynamic pricing:', levelsWithDynamicPricing);
+    return levelsWithDynamicPricing;
+  } catch (error) {
+    console.error('❌ Failed to load dynamic pricing, using fallback prices:', error);
+    return membershipLevels; // 失败时返回硬编码价格
+  }
+}
+
+/**
+ * 获取特定级别的实际价格 (优先使用数据库价格)
+ */
+export async function getMembershipPrice(level: number): Promise<number> {
+  try {
+    const dbLevel = await getMembershipLevelFromDB(level);
+    if (dbLevel) {
+      return dbLevel.price_usdc;
+    }
+    
+    // 回退到硬编码价格
+    const fallbackLevel = getMembershipLevel(level);
+    return fallbackLevel?.priceUSDT || 0;
+  } catch (error) {
+    console.error(`❌ Failed to get price for level ${level}:`, error);
+    const fallbackLevel = getMembershipLevel(level);
+    return fallbackLevel?.priceUSDT || 0;
+  }
+}
+
+/**
+ * 获取格式化的会员价格显示
+ */
+export async function getFormattedMembershipPrice(level: number): Promise<string> {
+  const price = await getMembershipPrice(level);
+  return formatPriceWithCurrency(price);
+}
