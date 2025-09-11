@@ -48,7 +48,10 @@
     "level2Requirements": {
       "title": "Level 2解锁条件",
       "needLevel1": "您需要先达到Level 1",
-      "needReferrals": "Level 2需要超过3个直推人数 (当前: {current}个)"
+      "needReferrals": "Level 2需要超过3个直推人数 (当前: {current}个)",
+      "directReferralsOnly": "只计算通过您的推荐链接直接注册的用户",
+      "excludesSpillover": "不包括矩阵安置的溢出用户",
+      "howToInvite": "如何邀请：分享您的推荐链接让朋友通过您的链接注册"
     },
     "errors": {
       "dataLoadFailed": "数据加载失败",

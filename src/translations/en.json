@@ -48,7 +48,10 @@
     "level2Requirements": {
       "title": "Level 2 Requirements",
       "needLevel1": "You need to reach Level 1 first",
-      "needReferrals": "Level 2 requires more than 3 direct referrals (current: {current})"
+      "needReferrals": "Level 2 requires more than 3 direct referrals (current: {current})",
+      "directReferralsOnly": "Only counts users who registered directly through your referral link",
+      "excludesSpillover": "Excludes spillover users from matrix placement",
+      "howToInvite": "How to invite: Share your referral link and have friends register through your link"
     },
     "errors": {
       "dataLoadFailed": "Data loading failed",

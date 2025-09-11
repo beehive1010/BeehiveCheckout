@@ -30,13 +30,14 @@ export default function Membership() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  // Fetch user's direct referrals count for Level 2 condition
+  // Fetch user's direct referrals count for Level 2 condition (from referrals table)
   const { data: directReferralsCount } = useQuery({
     queryKey: ['/direct-referrals', walletAddress],
     enabled: !!walletAddress,
     queryFn: async () => {
       try {
-        return await matrixService.countDirectReferrals(walletAddress!);
+        const { getDirectReferralCount } = await import('../lib/services/directReferralService');
+        return await getDirectReferralCount(walletAddress!);
       } catch (error) {
         console.error('Failed to fetch direct referrals:', error);
         return 0;
@@ -175,7 +176,7 @@ export default function Membership() {
       return;
     }
 
-    // Special condition for Level 2: Must have Level 1 AND more than 3 direct referrals
+    // Special condition for Level 2: Must have Level 1 AND more than 3 direct referrals (from referrals table)
     if (level === 2) {
       if (!currentLevel || currentLevel < 1) {
         toast({
@@ -186,11 +187,29 @@ export default function Membership() {
         return;
       }
       
-      const referrals = directReferralsCount || 0;
-      if (referrals <= 3) {
+      // Use detailed direct referral check
+      try {
+        const { checkLevel2DirectReferralRequirement } = await import('../lib/services/directReferralService');
+        const referralCheck = await checkLevel2DirectReferralRequirement(walletAddress);
+        
+        if (!referralCheck.qualified) {
+          toast({
+            title: t('membership.level2Requirements.title'),
+            description: `${referralCheck.message}\n\n💡 提示：只计算通过您的推荐链接直接注册的用户，不包括矩阵安置的溢出用户`,
+            variant: "destructive",
+            duration: 10000 // 延长显示时间以便用户阅读完整信息
+          });
+          return;
+        }
+        
+        // 显示成功的直推检查信息
+        console.log(`✅ Level 2 direct referral check passed: ${referralCheck.message}`);
+        
+      } catch (error) {
+        console.error('❌ Error checking Level 2 referral requirements:', error);
         toast({
-          title: t('membership.level2Requirements.title'),
-          description: t('membership.level2Requirements.needReferrals', { current: referrals }),
+          title: '检查直推要求时出错',
+          description: '无法验证您的直推用户数量，请稍后重试',
           variant: "destructive"
         });
         return;
@@ -318,7 +337,7 @@ export default function Membership() {
     if (!currentLevel) return 'locked';
     if (level <= currentLevel) return 'owned';
     
-    // Special logic for Level 2: requires Level 1 + direct referrals > 3
+    // Special logic for Level 2: requires Level 1 + direct referrals > 3 (from referrals table)
     if (level === 2) {
       if (currentLevel >= 1 && (directReferralsCount || 0) > 3) {
         return 'available';

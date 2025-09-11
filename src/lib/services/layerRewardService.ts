@@ -43,21 +43,12 @@ async function getUserCurrentLevel(walletAddress: string): Promise<number> {
 }
 
 /**
- * 获取用户的直推人数
+ * 获取用户的直推人数（基于 referrals 表）
  */
 async function getUserDirectReferrals(walletAddress: string): Promise<number> {
   try {
-    const { data, error } = await supabase
-      .from('members')
-      .select('referrer_wallet')
-      .eq('referrer_wallet', walletAddress);
-
-    if (error) {
-      console.error('❌ Error fetching direct referrals:', error);
-      return 0;
-    }
-
-    return data?.length || 0;
+    const { getDirectReferralCount } = await import('./directReferralService');
+    return await getDirectReferralCount(walletAddress);
   } catch (error) {
     console.error('❌ Failed to get direct referrals:', error);
     return 0;
