@@ -204,7 +204,10 @@ export function Notifications() {
                     </p>
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                        {notification.createdAt && !isNaN(new Date(notification.createdAt).getTime())
+                          ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })
+                          : 'Recently'
+                        }
                       </span>
                       {notification.amount && (
                         <span className="text-xs font-medium text-honey">
