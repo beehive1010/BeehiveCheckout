@@ -123,13 +123,27 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
 
       // Process spillover matrix data
       const totalTeamSize = spilloverData?.length || 0;
-      const activatedMembers = spilloverData?.filter(m => m.members?.current_level > 0).length || 0;
-      const maxDepth = Math.max(...(spilloverData?.map(m => m.matrix_layer) || [1]));
+      
+      // Get member activation data separately since we can't use foreign keys
+      const memberWallets = spilloverData?.map((m: any) => m.member_wallet) || [];
+      const { data: membersData } = await supabase
+        .from('members')
+        .select('wallet_address, current_level')
+        .in('wallet_address', memberWallets);
+
+      const { data: usersData } = await supabase
+        .from('users')
+        .select('wallet_address, username')
+        .in('wallet_address', memberWallets);
+
+      const activatedMembers = membersData?.filter(m => m.current_level > 0).length || 0;
+      const maxDepth = Math.max(...(spilloverData?.map((m: any) => m.matrix_layer || 1) || [1]));
       
       // Calculate layer distribution
       const layerDistribution: { [key: number]: number } = {};
-      spilloverData?.forEach(member => {
-        layerDistribution[member.matrix_layer] = (layerDistribution[member.matrix_layer] || 0) + 1;
+      spilloverData?.forEach((member: any) => {
+        const layer = member.matrix_layer || 1;
+        layerDistribution[layer] = (layerDistribution[layer] || 0) + 1;
       });
 
       const formattedStats = {
@@ -140,23 +154,28 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
           layer_distribution: layerDistribution
         },
         overall: {
-          network_strength: totalTeamSize * 10 // Simple calculation
+          network_strength: totalTeamSize * 10 + activatedMembers * 5
         }
       };
 
       setMatrixStats(formattedStats);
       
       // Format recent members
-      const recentMembers = spilloverData?.slice(0, 10).map((member: any) => ({
-        member_wallet: member.member_wallet,
-        member_name: member.users?.username || 'Unknown',
-        layer: member.matrix_layer,
-        position: member.matrix_position,
-        placement_type: 'spillover', // Will need logic to determine direct vs spillover
-        placed_at: member.placed_at,
-        is_active: member.is_active,
-        member_level: member.members?.current_level || 0
-      })) || [];
+      const recentMembers = spilloverData?.slice(0, 10).map((member: any) => {
+        const userData = usersData?.find(u => u.wallet_address === member.member_wallet);
+        const memberData = membersData?.find(m => m.wallet_address === member.member_wallet);
+        
+        return {
+          member_wallet: member.member_wallet,
+          member_name: userData?.username || 'Unknown',
+          layer: member.matrix_layer || 1,
+          position: member.matrix_position || 'L',
+          placement_type: 'spillover',
+          placed_at: member.placed_at || member.created_at,
+          is_active: member.is_active !== false,
+          member_level: memberData?.current_level || 0
+        };
+      }) || [];
       
       setReferrals(recentMembers);
 
