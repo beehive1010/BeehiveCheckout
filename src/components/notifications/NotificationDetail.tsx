@@ -338,10 +338,16 @@ export default function NotificationDetail({
               <Calendar className="w-4 h-4 text-blue-400" />
               <span className="text-gray-300">{t('notifications.created')}:</span>
               <span className="text-white">
-                {format(new Date(notification.createdAt), 'PPP p')}
+                {notification.createdAt && !isNaN(new Date(notification.createdAt).getTime()) 
+                  ? format(new Date(notification.createdAt), 'PPP p')
+                  : t('notifications.time.recently')
+                }
               </span>
               <span className="text-gray-400">
-                ({formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })})
+                ({notification.createdAt && !isNaN(new Date(notification.createdAt).getTime()) 
+                  ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })
+                  : t('notifications.time.recently')
+                })
               </span>
             </div>
             
