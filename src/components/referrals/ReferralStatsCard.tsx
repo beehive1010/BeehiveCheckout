@@ -39,46 +39,8 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
     try {
       setLoading(true);
       
-      // Try spillover_matrix first, then fall back to other tables
-      let spilloverData = null;
-      let spilloverError = null;
-
-      // First try spillover_matrix
-      const { data: spilloverResult, error: spilloverErr } = await supabase
-        .from('spillover_matrix')
-        .select(`
-          member_wallet,
-          matrix_layer,
-          matrix_position,
-          placed_at,
-          is_active
-        `)
-        .eq('matrix_root', walletAddress)
-        .eq('is_active', true)
-        .order('placed_at', { ascending: false });
-
-      if (spilloverErr) {
-        console.warn('spillover_matrix table not available:', spilloverErr);
-        
-        // Try detailed_spillover_analysis as suggested by the error
-        const { data: analysisResult, error: analysisErr } = await supabase
-          .from('detailed_spillover_analysis')
-          .select('*')
-          .eq('matrix_root', walletAddress)
-          .order('created_at', { ascending: false });
-
-        if (analysisErr) {
-          console.warn('detailed_spillover_analysis not available:', analysisErr);
-          spilloverError = analysisErr;
-        } else {
-          spilloverData = analysisResult;
-        }
-      } else {
-        spilloverData = spilloverResult;
-      }
-
-      if (!spilloverData || spilloverError) {
-        console.warn('Matrix data not available, using basic referrals fallback');
+      // Use basic referrals approach to avoid table relationship issues
+      console.log('Loading referral data using basic users table approach');
         // Fallback to basic referrals data from users table
         const { data: basicReferrals } = await supabase
           .from('users')
