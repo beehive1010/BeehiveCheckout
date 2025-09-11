@@ -39,17 +39,38 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
     try {
       setLoading(true);
       
-      const [statsResult, referralsResult] = await Promise.all([
-        matrixService.getMatrixStats(walletAddress),
-        matrixService.getReferrals(walletAddress)
-      ]);
+      // 使用新的推荐数据获取函数
+      const { supabase } = await import('../../lib/supabaseClient');
+      const { data: referralData, error } = await supabase
+        .rpc('get_user_referral_data', { 
+          p_wallet_address: walletAddress 
+        });
 
-      if (statsResult.data) {
-        setMatrixStats(statsResult.data);
+      if (error) {
+        throw new Error(error.message);
       }
 
-      if (referralsResult.data) {
-        setReferrals(referralsResult.data);
+      if (referralData?.[0]) {
+        const data = referralData[0];
+        
+        // 格式化为组件期望的数据结构
+        const formattedStats = {
+          as_root: data.matrix_stats?.as_root || {
+            total_team_size: 0,
+            activated_members: 0,
+            max_depth: 0,
+            layer_distribution: {}
+          },
+          overall: {
+            network_strength: data.overall_stats?.network_strength || 0
+          }
+        };
+
+        setMatrixStats(formattedStats);
+        
+        // 设置推荐列表数据
+        const recentMembers = data.matrix_stats?.recent_members || [];
+        setReferrals(recentMembers);
       }
 
     } catch (error) {
@@ -191,17 +212,22 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
             </h4>
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {referrals.slice(0, 5).map((referral: any) => (
-                <div key={referral.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                <div key={referral.member_wallet} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="text-xs">
                       L{referral.layer}
                     </Badge>
+                    <Badge variant="outline" className={`text-xs ${
+                      referral.placement_type === 'direct' ? 'bg-green-500/10 text-green-600' : 'bg-blue-500/10 text-blue-600'
+                    }`}>
+                      {referral.placement_type === 'direct' ? 'Direct' : 'Spillover'}
+                    </Badge>
                     <div>
                       <p className="font-medium text-sm">
-                        {referral.member_info?.username || formatAddress(referral.member_wallet)}
+                        {referral.member_name || formatAddress(referral.member_wallet)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {referral.position} • {new Date(referral.created_at).toLocaleDateString()}
+                        {referral.position} • Level {referral.member_level || 0} • {new Date(referral.placed_at).toLocaleDateString()}
                       </p>
                     </div>
                   </div>

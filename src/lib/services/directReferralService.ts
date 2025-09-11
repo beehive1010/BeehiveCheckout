@@ -8,18 +8,18 @@ export async function getDirectReferralCount(referrerWallet: string): Promise<nu
   try {
     console.log(`🔍 Fetching direct referrals for wallet: ${referrerWallet}`);
     
+    // 使用新的数据库函数获取直推人数
     const { data, error } = await supabase
-      .from('referrals')
-      .select('id', { count: 'exact' })
-      .eq('referrer_wallet', referrerWallet)
-      .eq('is_active', true);
+      .rpc('get_direct_referral_count', { 
+        p_wallet_address: referrerWallet 
+      });
 
     if (error) {
       console.error('❌ Error fetching direct referrals:', error);
       throw error;
     }
 
-    const count = data?.length || 0;
+    const count = data || 0;
     console.log(`✅ Direct referral count for ${referrerWallet}: ${count}`);
     
     return count;
@@ -69,29 +69,33 @@ export async function checkLevel2DirectReferralRequirement(walletAddress: string
  */
 export async function getDirectReferralDetails(referrerWallet: string): Promise<Array<{
   memberWallet: string;
-  placedAt: string;
-  isActive: boolean;
+  memberName: string;
+  referredAt: string;
+  isActivated: boolean;
+  memberLevel: number;
   activationRank: number | null;
 }>> {
   try {
+    // 使用新的直推关系视图
     const { data, error } = await supabase
-      .from('referrals')
-      .select(`
-        member_wallet,
-        placed_at,
-        is_active,
-        activation_rank
-      `)
+      .from('direct_referrals_view')
+      .select('*')
       .eq('referrer_wallet', referrerWallet)
-      .eq('is_active', true)
-      .order('placed_at', { ascending: false });
+      .order('referred_at', { ascending: false });
 
     if (error) {
       console.error('❌ Error fetching referral details:', error);
       throw error;
     }
 
-    return data || [];
+    return (data || []).map(item => ({
+      memberWallet: item.member_wallet,
+      memberName: item.member_name,
+      referredAt: item.referred_at,
+      isActivated: item.is_activated,
+      memberLevel: item.member_level || 0,
+      activationRank: item.activation_rank
+    }));
   } catch (error) {
     console.error('❌ Failed to get referral details:', error);
     return [];
