@@ -118,19 +118,39 @@
     "shareDescription": "Kongsi pautan anda untuk menjemput rakan dan peroleh ganjaran rujukan",
     "copyLink": "Salin Pautan",
     "linkCopied": "Pautan disalin ke papan klip!",
+    "quickNavigation": "Navigasi Pantas",
     "viewMatrix": "Lihat Matrix",
     "claimRewards": "Tuntut Ganjaran",
     "inviteTip": "💡 Jemput rakan untuk membuka kunci lebih banyak ciri dan ganjaran",
     "topUp": "Tambah Nilai",
+    "level2Requirements": {
+      "title": "Keperluan Tahap 2",
+      "needLevel1": "Anda perlu mencapai Tahap 1 dahulu",
+      "needReferrals": "Tahap 2 memerlukan lebih daripada 3 rujukan langsung (semasa: {current})"
+    },
     "errors": {
       "dataLoadFailed": "Gagal memuat data",
-      "refreshToRetry": "Sila muat semula halaman untuk cuba lagi"
+      "refreshToRetry": "Sila muat semula halaman untuk cuba lagi",
+      "loadError": "Ralat Memuat",
+      "retry": "Cuba Lagi"
     },
     "success": {
       "copied": "Disalin!",
-      "linkCopiedToClipboard": "Pautan rujukan disalin ke papan klip"
-    }
-  },
+      "linkCopiedToClipboard": "Pautan rujukan disalin ke papan klip",
+      "refreshed": "Data Dimuat Semula",
+      "dataUpdated": "Data papan pemuka telah dikemas kini"
+    },
+    "refresh": "Muat Semula",
+    "refreshing": "Memuatkan...",
+    "loadingData": "Memuat",
+    "lastUpdated": "Kemas kini terakhir",
+    "totalTeamSize": "Saiz Pasukan Keseluruhan",
+    "claimableRewards": "Ganjaran Yang Boleh Dituntut",
+    "activitiesWillAppear": "Aktiviti anda akan muncul di sini semasa anda berinteraksi dengan platform",
+    "noActivities": "Tiada aktiviti terkini",
+    "recentActivities": "Aktiviti Terkini",
+    "referralDescription": "Kongsi pautan ini untuk mendapat ganjaran rujukan",
+    "referrals": "Rujukan",
   "footer": {
     "description": "Platform keahlian dan pembelajaran Web3 dengan ganjaran blockchain.",
     "platform": "Platform",
@@ -185,8 +205,36 @@
     "welcomeBack": "Selamat Kembali!",
     "accountExists": "Akaun sudah wujud, tidak perlu mendaftar lagi"
   },
-  "dashboard": {
     "nftRequired": {
+      "title": "Selamat Datang ke Beehive! 🎉",
+      "description": "Lengkapkan keahlian anda dengan membeli Level 1 Warrior NFT. Ini mengaktifkan kedudukan anda dalam matrix dan memulakan perjalanan Web3 anda.",
+      "requiredNft": "Level 1 Warrior NFT",
+      "nftDescription": "Pembelian sekali sahaja untuk mengaktifkan keahlian anda",
+      "level1Warrior": "Level 1 Warrior",
+      "tokenId": "Token ID: 0",
+      "price": "Harga",
+      "priceAmount": "130 USDT",
+      "benefitsTitle": "Apa Yang Akan Anda Buka:",
+      "benefits": {
+        "dashboard": "Akses Dashboard Penuh",
+        "tasks": "Tugas & Pasar NFT",
+        "education": "Pusat Pendidikan",
+        "discover": "Temui Web3 Dapps",
+        "tokens": "Sistem Token BCC",
+        "matrix": "Sistem Matrix HiveWorld"
+      },
+      "premiumTitle": "Keahlian Premium",
+      "premiumDescription": "Aktifkan keahlian Level 1 NFT anda dan ambil kedudukan dalam matrix, dan mula memperoleh ganjaran.",
+      "supportText": "Pembayaran Web3 yang selamat dikuasakan oleh teknologi blockchain",
+      "purchaseSuccess": {
+        "title": "Keahlian Diaktifkan!",
+        "description": "Level 1 NFT anda telah dibeli dan keahlian anda kini aktif."
+      },
+      "purchaseError": {
+        "title": "Pembelian Gagal",
+        "description": "Gagal membeli NFT. Sila cuba lagi."
+      },
+      "getButton": "Beli Keahlian",
       "level1Membership": "Keahlian Tahap 1",
       "bumblebeeNFT": "Bumblebee NFT",
       "levelOne": "Tahap 1",
@@ -197,57 +245,25 @@
       "premiumContent": "Kandungan Premium"
     },
     "activation": {
-      "activationNote": "Klik untuk mengaktifkan NFT sedia ada anda",
+      "title": "Selamat Datang ke Beehive",
+      "description": "Platform keahlian dan pembelajaran Web3 dengan ganjaran berasaskan blockchain. Aktifkan keahlian Tahap 1 anda untuk bermula!",
+      "membershipLevel": "Tahap Keahlian",
+      "price": "Harga",
+      "priceLevel1": "130 USDT",
+      "activationNote": "Selepas pengaktifan, anda akan mempunyai akses kepada semua ciri ahli termasuk Tugas, Pendidikan, dan HiveWorld.",
       "success": {
         "title": "Keahlian Diaktifkan!",
         "description": "Selamat datang ke Beehive! Anda kini mempunyai akses kepada semua ciri ahli."
       },
       "error": {
         "title": "Pengaktifan Gagal",
-        "description": "Sila cuba lagi atau hubungi sokongan."
+        "description": "Tidak dapat mengaktifkan keahlian anda. Sila cuba lagi atau hubungi sokongan."
       }
-    },
-    "welcome": {
-      "title": "Selamat Datang ke Beehive! 🎉",
-      "subtitle": "Lengkapkan keahlian anda dengan membeli Level 1 Warrior NFT. Ini akan membuka kunci semua ciri platform dan memulakan perjalanan Web3 anda!",
-      "referral": {
-        "rewards": "Ganjaran Rujukan: Dapatkan 100% ganjaran pada setiap tahap apabila NFT dibeli dalam rangkaian anda"
-      },
-      "nft": {
-        "title": "Level 1 Warrior NFT",
-        "description": "Kelayakan keahlian anda di blockchain",
-        "tokenId": "Token ID: 0",
-        "price": "Harga",
-        "priceAmount": "130 USDT"
-      },
-      "benefits": {
-        "title": "Apa Yang Akan Anda Buka:",
-        "dashboard": "Akses Dashboard Penuh",
-        "tasks": "Tugas & Pasar NFT",
-        "education": "Pusat Pendidikan",
-        "discover": "Temui Web3 DApps",
-        "tokens": "Ganjaran Token BCC",
-        "hiveworld": "Sistem Matrix HiveWorld"
-      },
-      "premium": {
-        "title": "💎 Keahlian Premium",
-        "description": "Beli Level 1 Warrior NFT anda untuk 130 USDT dengan sokongan pembayaran multi-rantai!"
-      },
-      "success": {
-        "title": "Pembelian Berjaya!",
-        "description": "Keahlian Level 1 anda telah diaktifkan. Selamat datang ke Beehive!"
-      },
-      "error": {
-        "title": "Pembelian Gagal",
-        "description": "Terdapat ralat dengan pembelian anda. Sila cuba lagi."
-      },
-      "supportText": "Menghadapi masalah? Hubungi pasukan sokongan kami untuk bantuan."
     },
     "membershipLevel": "Tahap Keahlian",
     "price": "Harga",
-    "activateLevel1": "Aktifkan Keahlian Tahap 1",
+    "activateLevel1": "Aktifkan Level 1 Bumblebees (BBC) NFT",
     "activating": "Mengaktifkan...",
-    "activationNote": "Selepas pengaktifan, anda akan mempunyai akses kepada semua ciri ahli termasuk Tugas, Pendidikan, dan HiveWorld.",
     "status": {
       "active": "Aktif"
     },
@@ -256,6 +272,11 @@
       "bccLocked": "BCC (Terkunci)"
     },
     "quickActions": {
+      "tokens": {
+        "title": "Beli Token",
+        "description": "Beli token BCC dan CTH merentasi pelbagai rantai",
+        "stat": "Baki:"
+      },
       "tasks": {
         "description": "Semak imbas dan tuntut NFT pedagang dengan token BCC anda"
       },
@@ -267,18 +288,11 @@
       }
     },
     "recentActivity": "Aktiviti Terkini",
-    "activitiesWillAppear": "Aktiviti anda akan muncul di sini semasa anda berinteraksi dengan platform",
-    "bccLocked": "BCC Terkunci",
-    "noActivities": "Tiada aktiviti terkini",
-    "recentActivities": "Aktiviti Terkini",
-    "referralDescription": "Kongsi pautan ini untuk mendapat ganjaran rujukan",
-    "referrals": "Rujukan",
     "member": "Ahli",
     "userCentre": "Pusat Pengguna",
     "verifying": "Mengesahkan pemilikan NFT...",
     "nftVerified": "NFT Disahkan",
     "reward": "Ganjaran",
-    "bccBalance": "Baki BCC",
     "nfts": "NFTs",
     "accountOverview": "Gambaran Keseluruhan Akaun",
     "userAvatar": "Avatar Pengguna",
@@ -299,9 +313,12 @@
       "title": "Pautan Rujukan",
       "show": "Tunjuk",
       "hide": "Sembunyikan",
+      "copy": "Salin Pautan Rujukan",
       "copied": "Pautan Disalin!",
       "copiedDesc": "Pautan rujukan telah disalin ke papan keratan"
     },
+    "shareToEarn": "Kongsi pautan anda untuk memperoleh komisen daripada rujukan anda",
+    "referralLinkCopied": "Pautan rujukan disalin",
     "social": {
       "twitter": "Twitter",
       "telegram": "Telegram",
@@ -314,7 +331,14 @@
       "bccBalance": "Baki BCC",
       "thisMonth": "Bulan Ini",
       "totalMembers": "Jumlah Ahli",
-      "allTime": "Sepanjang Masa"
+      "allTime": "Sepanjang Masa",
+      "matrixNetwork": "Rangkaian Matrix",
+      "networkGrowth": "Pertumbuhan Rangkaian",
+      "teamPerformance": "Prestasi Pasukan",
+      "layerProgress": "Kemajuan Lapisan",
+      "totalRewards": "Jumlah Ganjaran",
+      "bccLocked": "BCC Terkunci",
+      "nftsOwned": "NFT Dimiliki"
     },
     "tokenPurchase": {
       "bccDescription": "Beli Beehive Crypto Coins untuk kegunaan platform",
@@ -336,6 +360,9 @@
       "loading": "Memuatkan data rangkaian...",
       "noReferrals": "Tiada data rujukan",
       "shareMessage": "Kongsikan pautan rujukan anda untuk mengembangkan rangkaian"
+    },
+    "downlineNetwork": {
+      "title": "Rangkaian Downline Anda"
     },
     "downlineMatrix": {
       "title": "Matriks Downline",

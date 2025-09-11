@@ -118,19 +118,39 @@
     "shareDescription": "링크를 공유하여 친구를 초대하고 추천 보상을 받으세요",
     "copyLink": "링크 복사",
     "linkCopied": "링크가 클립보드에 복사되었습니다!",
+    "quickNavigation": "빠른 탐색",
     "viewMatrix": "매트릭스 보기",
     "claimRewards": "보상 받기",
     "inviteTip": "💡 친구를 초대하여 더 많은 기능과 보상을 잠금 해제하세요",
     "topUp": "충전",
+    "level2Requirements": {
+      "title": "레벨 2 요구사항",
+      "needLevel1": "먼저 레벨 1에 도달해야 합니다",
+      "needReferrals": "레벨 2는 3명 이상의 직접 추천이 필요합니다 (현재: {current})"
+    },
     "errors": {
       "dataLoadFailed": "데이터 로드 실패",
-      "refreshToRetry": "페이지를 새로고침하여 다시 시도해 주세요"
+      "refreshToRetry": "페이지를 새로고침하여 다시 시도해 주세요",
+      "loadError": "로딩 오류",
+      "retry": "다시 시도"
     },
     "success": {
       "copied": "복사됨!",
-      "linkCopiedToClipboard": "추천 링크가 클립보드에 복사됨"
-    }
-  },
+      "linkCopiedToClipboard": "추천 링크가 클립보드에 복사됨",
+      "refreshed": "데이터 새로고침됨",
+      "dataUpdated": "대시보드 데이터가 업데이트되었습니다"
+    },
+    "refresh": "새로고침",
+    "refreshing": "새로고침 중...",
+    "loadingData": "로딩 중",
+    "lastUpdated": "마지막 업데이트",
+    "totalTeamSize": "총 팀 크기",
+    "claimableRewards": "클레임 가능한 보상",
+    "activitiesWillAppear": "플랫폼과 상호 작용할 때 활동이 여기에 나타납니다",
+    "noActivities": "최근 활동 없음",
+    "recentActivities": "최근 활동",
+    "referralDescription": "추천 보상을 받으려면 이 링크를 공유하세요",
+    "referrals": "추천",
   "footer": {
     "description": "블록체인 기반 보상이 있는 Web3 멤버십 및 학습 플랫폼",
     "platform": "플랫폼",
@@ -191,8 +211,36 @@
     "welcomeBack": "돌아오신 것을 환영합니다!",
     "accountExists": "계정이 이미 존재합니다. 다시 등록할 필요가 없습니다"
   },
-  "dashboard": {
     "nftRequired": {
+      "title": "Beehive에 오신 것을 환영합니다! 🎉",
+      "description": "Level 1 Warrior NFT를 구매하여 멤버십을 완료하세요. 이는 매트릭스에서 당신의 위치를 활성화하고 Web3 여정을 시작합니다.",
+      "requiredNft": "Level 1 Warrior NFT",
+      "nftDescription": "멤버십을 활성화하기 위한 일회성 구매",
+      "level1Warrior": "Level 1 Warrior",
+      "tokenId": "Token ID: 0",
+      "price": "가격",
+      "priceAmount": "130 USDT",
+      "benefitsTitle": "잠금 해제할 내용:",
+      "benefits": {
+        "dashboard": "전체 대시보드 액세스",
+        "tasks": "작업 & NFT 마켓플레이스",
+        "education": "교육 센터",
+        "discover": "Web3 DApps 탐색",
+        "tokens": "BCC 토큰 시스템",
+        "matrix": "HiveWorld 매트릭스 시스템"
+      },
+      "premiumTitle": "프리미엄 멤버십",
+      "premiumDescription": "Level 1 NFT 멤버십을 활성화하고 매트릭스에서 위치를 잡아 보상 획득을 시작하세요.",
+      "supportText": "블록체인 기술로 구동되는 안전한 Web3 결제",
+      "purchaseSuccess": {
+        "title": "멤버십 활성화됨!",
+        "description": "Level 1 NFT가 구매되었고 멤버십이 활성화되었습니다."
+      },
+      "purchaseError": {
+        "title": "구매 실패",
+        "description": "NFT 구매에 실패했습니다. 다시 시도해 주세요."
+      },
+      "getButton": "멤버십 구매",
       "level1Membership": "레벨 1 멤버십",
       "bumblebeeNFT": "Bumblebee NFT",
       "levelOne": "레벨 1",
@@ -203,57 +251,25 @@
       "premiumContent": "프리미엄 컨텐츠"
     },
     "activation": {
-      "activationNote": "기존 NFT를 활성화하려면 클릭하세요",
+      "title": "Beehive에 오신 것을 환영합니다",
+      "description": "블록체인 기반 보상이 있는 Web3 멤버십 및 학습 플랫폼. 시작하려면 레벨 1 멤버십을 활성화하세요!",
+      "membershipLevel": "멤버십 레벨",
+      "price": "가격",
+      "priceLevel1": "130 USDT",
+      "activationNote": "활성화 후 작업, 교육, HiveWorld를 포함한 모든 회원 기능에 액세스할 수 있습니다.",
       "success": {
         "title": "멤버십 활성화됨!",
         "description": "Beehive에 오신 것을 환영합니다! 이제 모든 회원 기능에 액세스할 수 있습니다."
       },
       "error": {
         "title": "활성화 실패",
-        "description": "다시 시도하거나 지원팀에 문의하세요."
+        "description": "멤버십을 활성화할 수 없습니다. 다시 시도하거나 지원팀에 문의하세요."
       }
-    },
-    "welcome": {
-      "title": "Beehive에 오신 것을 환영합니다! 🎉",
-      "subtitle": "Level 1 Warrior NFT를 구매하여 멤버십을 완료하세요. 모든 플랫폼 기능이 잠금 해제되고 Web3 여정이 시작됩니다!",
-      "referral": {
-        "rewards": "추천 보상: 네트워크에서 NFT 구매 시 각 레벨에서 100% 보상 획득"
-      },
-      "nft": {
-        "title": "Level 1 Warrior NFT",
-        "description": "블록체인상의 멤버십 자격증명",
-        "tokenId": "Token ID: 0",
-        "price": "가격",
-        "priceAmount": "130 USDT"
-      },
-      "benefits": {
-        "title": "잠금 해제할 내용:",
-        "dashboard": "전체 대시보드 액세스",
-        "tasks": "작업 & NFT 마켓플레이스",
-        "education": "교육 센터",
-        "discover": "Web3 DApps 탐색",
-        "tokens": "BCC 토큰 보상",
-        "hiveworld": "하이브월드 매트릭스 시스템"
-      },
-      "premium": {
-        "title": "💎 프리미엄 멤버십",
-        "description": "멀티체인 결제를 지원하는 130 USDT로 Level 1 Warrior NFT를 구매하세요!"
-      },
-      "success": {
-        "title": "구매 성공!",
-        "description": "Level 1 멤버십이 활성화되었습니다. Beehive에 오신 것을 환영합니다!"
-      },
-      "error": {
-        "title": "구매 실패",
-        "description": "구매 중 오류가 발생했습니다. 다시 시도해 주세요."
-      },
-      "supportText": "문제가 있으신가요? 도움이 필요하시면 지원팀에 연락하세요."
     },
     "membershipLevel": "멤버십 레벨",
     "price": "가격",
-    "activateLevel1": "레벨 1 멤버십 활성화",
+    "activateLevel1": "Level 1 Bumblebees (BBC) NFT 활성화",
     "activating": "활성화 중...",
-    "activationNote": "활성화 후 작업, 교육, HiveWorld를 포함한 모든 회원 기능에 액세스할 수 있습니다.",
     "status": {
       "active": "활성"
     },
@@ -262,6 +278,11 @@
       "bccLocked": "BCC (잠김)"
     },
     "quickActions": {
+      "tokens": {
+        "title": "토큰 구매",
+        "description": "여러 체인에서 BCC와 CTH 토큰 구매",
+        "stat": "잔액:"
+      },
       "tasks": {
         "description": "BCC 토큰으로 판매자 NFT를 탐색하고 클레임하세요"
       },
@@ -273,18 +294,11 @@
       }
     },
     "recentActivity": "최근 활동",
-    "activitiesWillAppear": "플랫폼과 상호 작용할 때 활동이 여기에 나타납니다",
-    "bccLocked": "BCC 잠김",
-    "noActivities": "최근 활동 없음",
-    "recentActivities": "최근 활동",
-    "referralDescription": "추천 보상을 받으려면 이 링크를 공유하세요",
-    "referrals": "추천",
     "member": "회원",
     "userCentre": "사용자 센터",
     "verifying": "NFT 소유권 확인 중...",
     "nftVerified": "NFT 검증됨",
     "reward": "보상",
-    "bccBalance": "BCC 잔액",
     "nfts": "NFTs",
     "accountOverview": "계정 개요",
     "userAvatar": "사용자 아바타",
@@ -305,9 +319,12 @@
       "title": "추천 링크",
       "show": "표시",
       "hide": "숨기기",
+      "copy": "추천 링크 복사",
       "copied": "링크 복사됨!",
       "copiedDesc": "추천 링크가 클립보드에 복사되었습니다"
     },
+    "shareToEarn": "추천을 통한 커미션을 받으려면 링크를 공유하세요",
+    "referralLinkCopied": "추천 링크 복사됨",
     "social": {
       "twitter": "Twitter",
       "telegram": "Telegram",
@@ -320,7 +337,14 @@
       "bccBalance": "BCC 잔액",
       "thisMonth": "이번 달",
       "totalMembers": "총 회원 수",
-      "allTime": "전체 기간"
+      "allTime": "전체 기간",
+      "matrixNetwork": "매트릭스 네트워크",
+      "networkGrowth": "네트워크 성장",
+      "teamPerformance": "팀 성과",
+      "layerProgress": "레이어 진행률",
+      "totalRewards": "총 보상",
+      "bccLocked": "BCC 잠김",
+      "nftsOwned": "보유 NFT"
     },
     "tokenPurchase": {
       "bccDescription": "플랫폼 사용을 위한 Beehive 암호화폐 구매",
@@ -342,6 +366,9 @@
       "loading": "네트워크 데이터 로딩 중...",
       "noReferrals": "추천 데이터가 없습니다",
       "shareMessage": "추천 링크를 공유하여 네트워크를 성장시키세요"
+    },
+    "downlineNetwork": {
+      "title": "다운라인 네트워크"
     },
     "downlineMatrix": {
       "title": "다운라인 매트릭스",

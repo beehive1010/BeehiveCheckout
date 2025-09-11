@@ -21,36 +21,6 @@
     "back": "戻る",
     "copied": "コピーしました！"
   },
-  "dashboard": {
-    "welcomeBack": "おかえりなさい、{username}さん！",
-    "welcomeMember": "おかえりなさい、メンバー様！",
-    "buildNetwork": "一緒にハイブネットワークを構築しましょう",
-    "upgrade": "アップグレード",
-    "bccBalance": "BCC残高",
-    "bccLocked": "ロックされたBCC",
-    "referralNetwork": "紹介ネットワーク",
-    "directReferrals": "直接紹介",
-    "maxLayer": "最大レイヤー",
-    "rewardCenter": "報酬センター",
-    "totalRewards": "総報酬",
-    "pendingRewards": "保留中の報酬",
-    "shareReferral": "紹介リンクをシェア",
-    "shareDescription": "リンクをシェアして友達を招待し、紹介報酬を獲得しましょう",
-    "copyLink": "リンクをコピー",
-    "linkCopied": "リンクがクリップボードにコピーされました！",
-    "viewMatrix": "マトリックスを表示",
-    "claimRewards": "報酬を受け取る",
-    "inviteTip": "💡 友達を招待してより多くの機能と報酬をアンロックしましょう",
-    "topUp": "チャージ",
-    "errors": {
-      "dataLoadFailed": "データの読み込みに失敗しました",
-      "refreshToRetry": "ページを更新して再試行してください"
-    },
-    "success": {
-      "copied": "コピーしました！",
-      "linkCopiedToClipboard": "紹介リンクがクリップボードにコピーされました"
-    }
-  },
   "wallet": {
     "connect": "ウォレット接続",
     "disconnect": "切断",
