@@ -84,7 +84,7 @@ export default function Membership() {
         t('benefits.enhanced.referralBonuses'),
         t('benefits.enhanced.advancedFeatures'),
         t('benefits.enhanced.tokenId2'),
-        '需要: Level 1 + 直推人数>3人'
+        t('membership.level2Requirements.needLevel1AndReferrals')
       ],
       icon: Star,
       color: 'text-blue-600',
@@ -136,17 +136,17 @@ export default function Membership() {
         price,
         platformFee: 0,
         benefits: [
-          level <= 5 ? `Gold Bee Tier ${level - 2}` : 
-          level <= 10 ? `Platinum Bee Tier ${level - 5}` :
-          level <= 15 ? `Diamond Bee Tier ${level - 10}` :
-          `Master Bee Tier ${level - 15}`,
-          `Enhanced matrix rewards (Layer 1-${Math.min(19, level * 2)})`,
-          `Bonus multiplier x${Math.min(10, level * 0.5)}`,
-          level >= 5 ? 'VIP status benefits' : 'Premium benefits',
-          level >= 10 ? 'Exclusive merchant NFTs' : 'Enhanced features',
-          level >= 15 ? 'Platform governance rights' : 'Priority support',
-          level >= 18 ? 'Founder status recognition' : 'Elite member status',
-          `Token ID: ${level}`
+          level <= 5 ? t('benefits.goldBee.tier', { tier: level - 2 }) : 
+          level <= 10 ? t('benefits.platinumBee.tier', { tier: level - 5 }) :
+          level <= 15 ? t('benefits.diamondBee.tier', { tier: level - 10 }) :
+          t('benefits.masterBee.tier', { tier: level - 15 }),
+          t('benefits.enhancedMatrix', { maxLayer: Math.min(19, level * 2) }),
+          t('benefits.bonusMultiplier', { multiplier: Math.min(10, level * 0.5) }),
+          level >= 5 ? t('benefits.vipStatus') : t('benefits.premium'),
+          level >= 10 ? t('benefits.exclusiveMerchant') : t('benefits.enhancedFeatures'),
+          level >= 15 ? t('benefits.governance') : t('benefits.prioritySupport'),
+          level >= 18 ? t('benefits.founderStatus') : t('benefits.eliteStatus'),
+          t('benefits.tokenId', { level })
         ].filter(Boolean),
         icon: getIcon(),
         ...colors,
@@ -512,12 +512,12 @@ export default function Membership() {
                           </span>
                         ) : (
                           <span className="text-orange-600 font-medium">
-                            ❌ 未达标：{directReferralsCount || 0}/3+ 人 (还需 {Math.max(1, 4 - (directReferralsCount || 0))} 人)
+                            {t('membership.statusNotQualified', { count: directReferralsCount || 0, needed: Math.max(1, 4 - (directReferralsCount || 0)) })}
                           </span>
                         )}
                       </div>
                       <div className="text-xs text-muted-foreground/80">
-                        💡 只计算推荐链接直接注册的用户
+                        {t('membership.directRegisterTip')}
                       </div>
                     </div>
                   )}
@@ -526,7 +526,7 @@ export default function Membership() {
                   <div className="space-y-4">
                     <h4 className="font-bold text-lg text-foreground mb-4 flex items-center gap-2">
                       <Award className="h-5 w-5 text-honey" />
-                      专属权益
+                      {t('membership.exclusiveBenefits')}
                     </h4>
                     <ul className="space-y-3">
                       {membership.benefits.slice(0, 4).map((benefit, index) => (
@@ -549,7 +549,7 @@ export default function Membership() {
                         data-testid={`button-owned-${membership.level}`}
                       >
                         <CheckCircle className="h-5 w-5 mr-3" />
-                        已购买成功
+                        {t('membership.purchaseSuccess')}
                       </Button>
                     ) : status === 'available' ? (
                       <Button 
@@ -565,12 +565,12 @@ export default function Membership() {
                         {claimState.level === membership.level && claimState.loading ? (
                           <>
                             <Loader2 className="h-5 w-5 mr-3 animate-spin" />
-                            处理中...
+                            {t('membership.processing')}
                           </>
                         ) : (
                           <>
                             <ArrowRight className="h-5 w-5 mr-3 transition-transform duration-200 group-hover:translate-x-1" />
-                            立即购买 ${totalPrice}
+                            {t('membership.unlockNow', { price: totalPrice })}
                           </>
                         )}
                       </Button>
@@ -581,7 +581,7 @@ export default function Membership() {
                         data-testid={`button-locked-${membership.level}`}
                       >
                         <Lock className="h-5 w-5 mr-3" />
-                        暂未解锁
+                        {t('membership.notUnlocked')}
                       </Button>
                     )}
                   </div>
