@@ -126,7 +126,10 @@
     "level2Requirements": {
       "title": "레벨 2 요구사항",
       "needLevel1": "먼저 레벨 1에 도달해야 합니다",
-      "needReferrals": "레벨 2는 3명 이상의 직접 추천이 필요합니다 (현재: {current})"
+      "needReferrals": "레벨 2는 3명 이상의 직접 추천이 필요합니다 (현재: {current}명)",
+      "directReferralsOnly": "추천 링크를 통해 직접 등록한 사용자만 계산됩니다",
+      "excludesSpillover": "매트릭스 배치의 스필오버 사용자는 제외됩니다",
+      "howToInvite": "초대 방법: 추천 링크를 공유하여 친구들이 당신의 링크를 통해 등록하도록 하세요"
     },
     "errors": {
       "dataLoadFailed": "데이터 로드 실패",

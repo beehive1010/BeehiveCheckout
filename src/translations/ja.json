@@ -118,8 +118,54 @@
     "copyright": "© 2024 Beehive. All rights reserved."
   },
   "dashboard": {
-    "activitiesWillAppear": "プラットフォームでのやり取りに応じて、アクティビティがここに表示されます",
+    "welcomeBack": "おかえりなさい、{username}さん！",
+    "welcomeMember": "おかえりなさい、メンバーさん！",
+    "buildNetwork": "一緒にあなたのハイブネットワークを構築しましょう",
+    "upgrade": "アップグレード",
+    "bccBalance": "BCC残高",
     "bccLocked": "BCC（ロック済み）",
+    "referralNetwork": "紹介ネットワーク",
+    "directReferrals": "直接紹介",
+    "maxLayer": "最大レイヤー",
+    "rewardCenter": "報酬センター",
+    "totalRewards": "総報酬",
+    "pendingRewards": "保留中の報酬",
+    "shareReferral": "紹介リンクを共有",
+    "shareDescription": "リンクを共有して友達を招待し、紹介報酬を獲得しましょう",
+    "copyLink": "リンクをコピー",
+    "linkCopied": "リンクがクリップボードにコピーされました！",
+    "quickNavigation": "クイックナビゲーション",
+    "viewMatrix": "マトリックスを表示",
+    "claimRewards": "報酬を受け取る",
+    "inviteTip": "💡 友達を招待してより多くの機能と報酬をアンロックしましょう",
+    "topUp": "チャージ",
+    "totalTeamSize": "総チームサイズ",
+    "claimableRewards": "受け取り可能な報酬",
+    "level2Requirements": {
+      "title": "レベル2の要件",
+      "needLevel1": "まずレベル1に到達する必要があります",
+      "needReferrals": "レベル2には3人以上の直接紹介が必要です（現在: {current}人）",
+      "directReferralsOnly": "あなたの紹介リンクで直接登録したユーザーのみがカウントされます",
+      "excludesSpillover": "マトリックス配置のスピルオーバーユーザーは除外されます",
+      "howToInvite": "招待方法：紹介リンクを共有して友達があなたのリンクから登録するようにしてください"
+    },
+    "errors": {
+      "dataLoadFailed": "データの読み込みに失敗しました",
+      "refreshToRetry": "ページを更新して再試行してください",
+      "loadError": "読み込みエラー",
+      "retry": "再試行"
+    },
+    "success": {
+      "copied": "コピーしました！",
+      "linkCopiedToClipboard": "紹介リンクがクリップボードにコピーされました",
+      "refreshed": "データが更新されました",
+      "dataUpdated": "ダッシュボードデータが更新されました"
+    },
+    "refresh": "更新",
+    "refreshing": "更新中...",
+    "loadingData": "読み込み中",
+    "lastUpdated": "最終更新",
+    "activitiesWillAppear": "プラットフォームでのやり取りに応じて、アクティビティがここに表示されます",
     "noActivities": "最近のアクティビティはありません",
     "recentActivities": "最近のアクティビティ",
     "referralDescription": "紹介リンクをシェアして紹介報酬を獲得",
@@ -308,6 +354,113 @@
       "members": "メンバー",
       "upgraded": "アップグレード済み",
       "placements": "配置"
+    },
+    "membershipLevel": "メンバーシップレベル",
+    "activateLevel1": "レベル1バンブルビー（BBC）NFTをアクティベート",
+    "activating": "アクティベート中...",
+    "status": {
+      "active": "アクティブ"
+    },
+    "balances": {
+      "bccFree": "BCC（自由）",
+      "bccLocked": "BCC（ロック済み）"
+    },
+    "quickActions": {
+      "tokens": {
+        "title": "トークンを購入",
+        "description": "複数のチェーンでBCCとCTHトークンを購入",
+        "stat": "残高："
+      },
+      "tasks": {
+        "description": "BCCトークンでマーチャントNFTを閲覧・請求"
+      },
+      "education": {
+        "description": "コースと学習資料にアクセス"
+      },
+      "hiveworld": {
+        "description": "紹介マトリックスと報酬を表示"
+      }
+    },
+    "recentActivity": "最近のアクティビティ",
+    "member": "メンバー",
+    "userCentre": "ユーザーセンター",
+    "verifying": "NFT所有権を確認中...",
+    "nftVerified": "NFT確認済み",
+    "reward": "報酬",
+    "nfts": "NFTs",
+    "accountOverview": "アカウント概要",
+    "userAvatar": "ユーザーアバター",
+    "levelText": "レベル {{level}}",
+    "priceLevel1": "130 USDT",
+    "activity": {
+      "rewardReceived": "報酬受領",
+      "fromReferralUpgrade": "紹介アップグレードから",
+      "rewardAmount": "+{{amount}} 報酬",
+      "nftClaimed": "NFT請求済み",
+      "merchantNft": "マーチャントNFT購入済み",
+      "bccDeduction": "-{{amount}} BCC",
+      "newReferral": "新しい紹介",
+      "userJoined": "ユーザーがあなたのネットワークに参加",
+      "activeStatus": "アクティブ"
+    },
+    "referralLink": {
+      "title": "紹介リンク",
+      "show": "表示",
+      "hide": "隠す",
+      "copy": "紹介リンクをコピー",
+      "copied": "リンクをコピーしました！",
+      "copiedDesc": "紹介リンクがクリップボードにコピーされました"
+    },
+    "shareToEarn": "紹介からコミッションを獲得するためにリンクをシェア",
+    "referralLinkCopied": "紹介リンクをコピーしました",
+    "social": {
+      "twitter": "Twitter",
+      "telegram": "Telegram",
+      "whatsapp": "WhatsApp"
+    },
+    "stats": {
+      "directReferrals": "直接紹介",
+      "teamSize": "チームサイズ",
+      "totalEarnings": "総収益",
+      "bccBalance": "BCC残高",
+      "thisMonth": "今月",
+      "totalMembers": "総メンバー数",
+      "allTime": "全期間",
+      "matrixNetwork": "マトリックスネットワーク",
+      "networkGrowth": "ネットワーク成長",
+      "teamPerformance": "チームパフォーマンス",
+      "layerProgress": "レイヤー進行",
+      "totalRewards": "総報酬",
+      "bccLocked": "BCC（ロック済み）",
+      "nftsOwned": "所有NFT"
+    },
+    "tokenPurchase": {
+      "bccDescription": "プラットフォームで使用するBeehive Crypto Coinを購入",
+      "cthDescription": "Alpha Centauriエコシステム用のCTHトークンを購入",
+      "topUpDescription": "Beehiveエコシステムに参加するためのBCCおよびCTHトークンを購入"
+    },
+    "globalStats": {
+      "title": "グローバル統計",
+      "totalMembers": "総メンバー数",
+      "totalRewardsPaid": "支払い済み総報酬",
+      "pendingRewards": "保留中の報酬",
+      "highestLevel": "最高レベル",
+      "membersByLevel": "レベル別メンバー",
+      "members": "メンバー"
+    },
+    "uplineNetwork": {
+      "title": "上位ネットワーク",
+      "earnings": "収益",
+      "loading": "ネットワークデータを読み込み中...",
+      "noReferrals": "紹介データがありません",
+      "shareMessage": "ネットワークを成長させるために紹介リンクをシェア"
+    },
+    "downlineNetwork": {
+      "title": "あなたの下位ネットワーク"
+    },
+    "downlineMatrix": {
+      "title": "下位マトリックス",
+      "placement": "配置"
     }
   },
   "notifications": {
