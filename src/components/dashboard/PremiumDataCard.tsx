@@ -69,7 +69,7 @@ export default function PremiumDataCard({
           {action && (
             <Button 
               onClick={action.onClick}
-              className={`w-full h-11 sm:h-12 bg-gradient-to-r ${gradientFrom} ${gradientTo} hover:opacity-90 text-black font-bold text-sm sm:text-base rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl`}
+              className={`w-full h-11 sm:h-12 bg-gradient-to-r ${gradientFrom.replace('/20', '/60')} ${gradientTo.replace('/20', '/60')} hover:opacity-90 text-white font-bold text-sm sm:text-base rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl border-0 shadow-lg`}
               data-testid={action.testId}
             >
               {action.icon && <action.icon className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 transition-transform duration-200 group-hover:rotate-90" />}
