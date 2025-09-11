@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { useToast } from '../hooks/use-toast';
-import { Crown, Shield, Star, Zap, Gift, Lock, CheckCircle, Loader2, ArrowRight, Users } from 'lucide-react';
+import { Crown, Shield, Star, Zap, Gift, Lock, CheckCircle, Loader2, ArrowRight, Users, Award } from 'lucide-react';
 import MembershipBadge from '../components/membership/MembershipBadge';
 import { getMembershipLevel } from '../lib/config/membershipLevels';
 
@@ -205,8 +205,8 @@ export default function Membership() {
     setClaimState({ level, loading: true, error: null });
 
     try {
-      // Import upgrade service
-      const { upgradeService } = await import('../lib/supabaseClient');
+      // Import NFT service
+      const { nftService } = await import('../lib/supabaseClient');
 
       toast({
         title: t('membership.claiming.started', { level }),
@@ -217,7 +217,7 @@ export default function Membership() {
       const transactionHash = `0x${Date.now().toString(16)}${Math.random().toString(16).slice(2, 10)}`;
 
       // Call real Supabase API using working service
-      const result = await upgradeService.processNFTUpgrade(walletAddress, {
+      const result = await nftService.processNFTUpgrade(walletAddress, {
         level,
         transactionHash,
         payment_amount_usdc: totalPrice,
@@ -510,17 +510,18 @@ export default function Membership() {
         <div className="absolute inset-0 bg-gradient-to-r from-honey/10 via-orange-500/10 to-honey/10 rounded-3xl blur-xl"></div>
         <div className="relative p-8 bg-gradient-to-br from-white/90 via-white/95 to-white/90 dark:from-gray-900/90 dark:via-gray-800/95 dark:to-gray-900/90 rounded-3xl border border-white/20 dark:border-gray-700/30 backdrop-blur-lg shadow-2xl">
           <div className="text-center space-y-6">
-          <div className="flex items-center justify-center gap-2">
-            <Users className="h-6 w-6 text-honey" />
-            <h3 className="text-xl font-bold text-foreground">{t('membership.progressInfo.title')}</h3>
-          </div>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            {t('membership.progressInfo.description')}
-          </p>
-          <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-            <span>• {t('membership.progressInfo.sequential')}</span>
-            <span>• {t('membership.progressInfo.rewards')}</span>
-            <span>• {t('membership.progressInfo.benefits')}</span>
+            <div className="flex items-center justify-center gap-2">
+              <Users className="h-6 w-6 text-honey" />
+              <h3 className="text-xl font-bold text-foreground">{t('membership.progressInfo.title')}</h3>
+            </div>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              {t('membership.progressInfo.description')}
+            </p>
+            <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
+              <span>• {t('membership.progressInfo.sequential')}</span>
+              <span>• {t('membership.progressInfo.rewards')}</span>
+              <span>• {t('membership.progressInfo.benefits')}</span>
+            </div>
           </div>
         </div>
       </div>
