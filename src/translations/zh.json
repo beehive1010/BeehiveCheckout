@@ -399,6 +399,49 @@
     }
   },
   "footer": {
+    "platform": {
+      "title": "平台",
+      "membership": "会员级别",
+      "rewards": "奖励系统",
+      "nfts": "NFT市场",
+      "education": "教育中心"
+    },
+    "resources": {
+      "title": "资源",
+      "whitepaper": "白皮书",
+      "documentation": "文档",
+      "tutorials": "教程",
+      "faq": "常见问题"
+    },
+    "community": {
+      "title": "社区",
+      "discord": "Discord",
+      "telegram": "Telegram",
+      "twitter": "Twitter",
+      "medium": "Medium"
+    },
+    "legal": {
+      "title": "法律",
+      "privacy": "隐私政策",
+      "terms": "服务条款",
+      "cookies": "Cookie政策",
+      "disclaimer": "免责声明"
+    },
+    "newsletter": {
+      "title": "保持更新",
+      "description": "获取关于新功能、奖励和社区活动的最新更新",
+      "placeholder": "输入您的邮箱地址",
+      "button": "订阅",
+      "disclaimer": "我们尊重您的隐私，绝不分享您的信息"
+    },
+    "brand": {
+      "tagline": "Web3会员和学习平台"
+    },
+    "copyright": {
+      "rights": "版权所有。",
+      "blockchain": "由区块链技术驱动"
+    },
+    "backToTop": "返回顶部",
     "description": "基于区块链奖励的Web3会员和学习平台。",
     "platform": "平台",
     "support": "支持",
@@ -411,6 +454,72 @@
     "terms": "服务条款",
     "cookies": "Cookie政策",
     "copyright": "© 2024 Beehive. 版权所有。"
+  },
+  "ads": {
+    "title": "广告NFT",
+    "description": "用您的BCC代币认领广告NFT以解锁推广服务",
+    "nftCenter": "NFT中心",
+    "manageNfts": "管理您的NFT",
+    "browseNfts": "浏览广告NFT",
+    "exploreServices": "探索可用的推广服务和DApp合作伙伴关系",
+    "claimNft": "认领NFT",
+    "soldOut": "售罄",
+    "claiming": "认领中...",
+    "confirmClaim": "确认认领",
+    "bccRequired": "需要BCC",
+    "available": "可用",
+    "cost": "费用",
+    "bucketSelection": "选择使用哪个BCC桶来认领此广告NFT",
+    "transferableBcc": "可转移BCC",
+    "restrictedBcc": "受限BCC",
+    "claim": {
+      "success": {
+        "title": "NFT认领成功！",
+        "description": "您的广告NFT已被认领，BCC代币已锁定。"
+      },
+      "error": {
+        "title": "认领失败",
+        "description": "认领广告NFT失败"
+      }
+    },
+    "burn": {
+      "title": "NFT燃烧成功！",
+      "description": "服务代码：{code}",
+      "error": {
+        "title": "燃烧失败",
+        "description": "NFT燃烧失败"
+      }
+    },
+    "status": {
+      "active": "活跃",
+      "used": "已使用",
+      "burned": "已燃烧",
+      "claimed": "准备使用",
+      "serviceActivated": "服务已激活"
+    },
+    "nftCenter": {
+      "title": "NFT中心",
+      "description": "管理您的广告NFT，查看锁定的BCC数量，并激活推广服务",
+      "backToTasks": "返回任务",
+      "noNfts": {
+        "title": "未找到NFT",
+        "description": "您还没有任何广告NFT",
+        "browse": "浏览广告NFT"
+      },
+      "useNft": "使用NFT服务",
+      "activating": "激活中...",
+      "activeCode": "活跃代码",
+      "serviceStatus": "服务状态",
+      "currentStatus": "当前状态",
+      "activatedOn": "激活于",
+      "readyToActivate": "准备激活",
+      "bccLocked": "BCC锁定",
+      "bucketUsed": "使用的桶",
+      "warning": {
+        "title": "重要",
+        "description": "使用此NFT将永久燃烧NFT和其中锁定的{amount} BCC代币。作为回报，您将收到激活{service}推广服务的服务代码。此操作无法撤销。"
+      }
+    }
   },
   "notifications": {
     "title": "通知",
@@ -626,7 +735,48 @@
     }
   },
   "tasks": {
-    "title": "任务中心",
+    "title": "任务和市场",
+    "pageTitle": "任务",
+    "categories": {
+      "membership": "会员",
+      "advertisement": "广告"
+    },
+    "membership": {
+      "title": "大黄蜂会员NFT",
+      "description": "具有多链支持的USDT支付的真实会员级别",
+      "level": "级别",
+      "usdt": "USDT",
+      "status": {
+        "owned": "已拥有",
+        "available": "可用",
+        "locked": "锁定"
+      },
+      "getStarted": "开始",
+      "upgradeNow": "立即升级",
+      "lockedMessage": "请先完成之前的级别"
+    },
+    "advertisement": {
+      "title": "广告NFT收藏",
+      "description": "可用BCC代币认领的独家商户NFT",
+      "noNfts": "目前没有可用的广告NFT。",
+      "loading": "加载NFT中..."
+    },
+    "availableBalance": "可用余额",
+    "restrictedFirst": "将首先使用受限BCC",
+    "restrictedBCC": "受限蜂巢加密币",
+    "transferableBCC": "可转移蜂巢加密币",
+    "claim": "认领",
+    "claiming": "认领中...",
+    "insufficientBCC": "BCC不足",
+    "claimModal": {
+      "title": "认领NFT",
+      "price": "价格",
+      "availableRestricted": "可用（受限）",
+      "availableTransferable": "可用（可转移）",
+      "confirmation": "将首先使用受限BCC。继续认领此NFT？",
+      "confirm": "确认认领",
+      "cancel": "取消"
+    },
     "subtitle": "浏览商户NFT，认领有价值的奖励",
     "search": "搜索NFT...",
     "filters": {
@@ -654,6 +804,15 @@
       "checkingRegistration": "检查注册状态中...",
       "registrationCheckFailed": "注册状态检查失败",
       "registrationCheckFailedDesc": "无法验证注册状态，请刷新页面重试。",
+      "referrerRequired": "需要推荐人",
+      "referrerRequiredDesc": "您必须使用有效的推荐链接来认领您的NFT。请向现有会员索取推荐链接。",
+      "selfReferralNotAllowed": "不允许自我推荐",
+      "selfReferralNotAllowedDesc": "您不能推荐自己。请使用其他会员的推荐链接。",
+      "validatingReferrer": "验证推荐人中...",
+      "invalidReferrer": "无效推荐人",
+      "useValidReferrer": "请使用已注册会员的推荐链接。",
+      "validationFailed": "验证失败",
+      "validationFailedDesc": "无法验证注册或推荐人状态。请刷新并重试。",
       "success": {
         "title": "NFT认领成功！",
         "description": "NFT已铸造到您的钱包。"
@@ -1077,6 +1236,16 @@
   },
   "nftCenter": {
     "title": "NFT中心",
+    "description": "管理您的广告NFT，查看锁定的BCC数量，并激活推广服务",
+    "backToTasks": "返回任务",
+    "noNfts": {
+      "title": "未找到NFT",
+      "description": "您还没有任何广告NFT",
+      "browseButton": "浏览广告NFT"
+    },
+    "dialog": {
+      "title": "广告NFT详情和服务管理"
+    },
     "subtitle": "管理您的商户NFT收藏",
     "tabs": {
       "available": "可用",
@@ -1110,6 +1279,23 @@
       "burned": "已焚烧",
       "claimed": "准备使用",
       "serviceActivated": "服务已激活"
+    }
+  },
+  "userProfile": {
+    "username": "用户名",
+    "level": "级别",
+    "userCenter": "用户中心",
+    "center": "中心"
+  },
+  "rewardHistory": {
+    "upgradeReward": "升级奖励（待定）",
+    "rollupReward": "汇总奖励",
+    "completed": "已完成",
+    "expired": "已过期",
+    "noRewards": "暂无奖励历史",
+    "linkCopied": {
+      "title": "链接已复制！",
+      "description": "您的推荐链接已复制到剪贴板。"
     }
   },
   "blogpost": {
