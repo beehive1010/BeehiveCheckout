@@ -53,12 +53,16 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
             organizedData[i] = { left: [], middle: [], right: [] };
           }
           
-          // Organize referrals by layer and position
-          result.matrix.forEach((referral: any) => {
-            if (!referral.matrix_layer || !referral.matrix_position) return;
-            
-            const layer = referral.matrix_layer;
-            const position = referral.matrix_position;
+          // Organize referrals by layer and position - filter for this wallet as matrix_root
+          result.matrix
+            .filter((referral: any) => 
+              referral.matrix_root?.toLowerCase() === walletAddress.toLowerCase() &&
+              referral.matrix_layer && 
+              referral.matrix_position
+            )
+            .forEach((referral: any) => {
+              const layer = referral.matrix_layer;
+              const position = referral.matrix_position;
             
             const member: MatrixMember = {
               walletAddress: referral.member_wallet,
@@ -69,17 +73,19 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
               position: position
             };
             
-            // Distribute to L-M-R based on position
-            // In 3x3 matrix: positions are typically ordered sequentially
-            // We'll map them to L-M-R columns
+            // Distribute to L-M-R based on position - use proper mapping
             if (organizedData[layer]) {
-              const positionNumber = parseInt(position) || 0;
-              if (positionNumber % 3 === 1) {
+              const pos = String(position).toLowerCase();
+              
+              if (['l', '1', 'left'].includes(pos)) {
                 organizedData[layer].left.push(member);
-              } else if (positionNumber % 3 === 2) {
+              } else if (['m', '2', 'middle', 'center'].includes(pos)) {
                 organizedData[layer].middle.push(member);
-              } else {
+              } else if (['r', '3', 'right'].includes(pos)) {
                 organizedData[layer].right.push(member);
+              } else {
+                // Default to left if position is unclear
+                organizedData[layer].left.push(member);
               }
             }
           });
