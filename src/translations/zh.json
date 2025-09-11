@@ -655,6 +655,35 @@
       "available": "可用",
       "occupied": "已占用"
     },
+    "copied": {
+      "title": "已复制！",
+      "description": "推荐链接已复制到剪贴板"
+    },
+    "tabs": {
+      "matrix": "3x3矩阵",
+      "stats": "统计数据",
+      "rewards": "奖励"
+    },
+    "legacySystem": "传统系统（对比用）",
+    "matrixLayers": "矩阵层级",
+    "recentActivity": "最近推荐活动",
+    "recentlyJoined": "最近加入",
+    "activated": "已激活",
+    "rewardSystemInfo": "奖励系统信息",
+    "matrixRewardsTitle": "矩阵奖励",
+    "bccTokenRewardsTitle": "BCC代币奖励",
+    "rewards": {
+      "level1Direct": "一级直推：每次推荐30美元USDC",
+      "level2Matrix": "二级矩阵：每个位置10美元USDC",
+      "spilloverBonuses": "溢出奖励：额外奖励",
+      "claimWindow": "72小时领取窗口"
+    },
+    "bccRewards": {
+      "transferable": "可转移BCC：立即使用",
+      "locked": "锁定BCC：分层释放",
+      "multipliers": "层级倍数：1.0x, 0.5x, 0.25x, 0.125x",
+      "upgrades": "等级升级解锁更多BCC"
+    },
     "matrixSystem": {
       "title": "3×3矩阵网络",
       "matrixTree": "3×3矩阵树",
@@ -1947,7 +1976,33 @@
       "system_update": "系统更新",
       "security_alert": "安全提醒",
       "payment_received": "收到付款"
+      ,"upgrade_reminder": "升级提醒",
+      "countdown_warning": "倒计时警告",
+      "matrix_placement": "矩阵位置",
+      "notification": "通知"
     },
+    "new": "新",
+    "actionRequired": "需要操作",
+    "archived": "已归档",
+    "message": "消息",
+    "amount": "金额",
+    "matrixInfo": "矩阵信息",
+    "level": "级别",
+    "levelValue": "级别 {level}",
+    "layer": "层级",
+    "layerValue": "层级 {layer}",
+    "position": "位置",
+    "positionValue": "位置 {position}",
+    "relatedMembers": "相关成员",
+    "triggeredBy": "触发者",
+    "relatedMember": "相关成员",
+    "timing": "时间信息",
+    "created": "创建时间",
+    "expires": "过期时间",
+    "emailSent": "邮件发送时间",
+    "additionalInfo": "附加信息",
+    "takeAction": "执行操作",
+    "delete": "删除",
     "time": {
       "recently": "最近",
       "expires": "过期时间"

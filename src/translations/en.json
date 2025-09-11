@@ -575,6 +575,35 @@
       "available": "Available",
       "occupied": "Occupied"
     },
+    "copied": {
+      "title": "Copied!",
+      "description": "Referral link copied to clipboard"
+    },
+    "tabs": {
+      "matrix": "3x3 Matrix",
+      "stats": "Statistics",
+      "rewards": "Rewards"
+    },
+    "legacySystem": "Legacy System (For Comparison)",
+    "matrixLayers": "Matrix Layers",
+    "recentActivity": "Recent Referral Activity",
+    "recentlyJoined": "Recently joined",
+    "activated": "Activated",
+    "rewardSystemInfo": "Reward System Information",
+    "matrixRewardsTitle": "Matrix Rewards",
+    "bccTokenRewardsTitle": "BCC Token Rewards",
+    "rewards": {
+      "level1Direct": "Level 1 Direct: $30 USDC per referral",
+      "level2Matrix": "Level 2 Matrix: $10 USDC per position",
+      "spilloverBonuses": "Spillover Bonuses: Additional rewards",
+      "claimWindow": "72-hour claim window"
+    },
+    "bccRewards": {
+      "transferable": "Transferable BCC: Immediate use",
+      "locked": "Locked BCC: Tier-based release",
+      "multipliers": "Tier multipliers: 1.0x, 0.5x, 0.25x, 0.125x",
+      "upgrades": "Level upgrades unlock more BCC"
+    },
     "matrixSystem": {
       "title": "3×3 Matrix Network",
       "matrixTree": "3×3 Matrix Tree",
@@ -1961,7 +1990,33 @@
       "system_update": "System Update",
       "security_alert": "Security Alert",
       "payment_received": "Payment Received"
+      ,"upgrade_reminder": "Upgrade Reminder",
+      "countdown_warning": "Countdown Warning",
+      "matrix_placement": "Matrix Placement",
+      "notification": "Notification"
     },
+    "new": "New",
+    "actionRequired": "Action Required",
+    "archived": "Archived",
+    "message": "Message",
+    "amount": "Amount",
+    "matrixInfo": "Matrix Information",
+    "level": "Level",
+    "levelValue": "Level {level}",
+    "layer": "Layer",
+    "layerValue": "Layer {layer}",
+    "position": "Position",
+    "positionValue": "Position {position}",
+    "relatedMembers": "Related Members",
+    "triggeredBy": "Triggered by",
+    "relatedMember": "Related member",
+    "timing": "Timing",
+    "created": "Created",
+    "expires": "Expires",
+    "emailSent": "Email sent",
+    "additionalInfo": "Additional Information",
+    "takeAction": "Take Action",
+    "delete": "Delete",
     "time": {
       "recently": "Recently",
       "expires": "Expires"

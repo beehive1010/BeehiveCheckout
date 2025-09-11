@@ -1,6 +1,6 @@
 import React from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { callEdgeFunction } from '../../lib/supabaseClient';
+import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +23,7 @@ import {
   MapPin
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
+import { useI18n } from '@/contexts/I18nContext';
 
 interface Notification {
   id: string;
@@ -65,6 +66,7 @@ export default function NotificationDetail({
   onUpdate,
   compact = false 
 }: NotificationDetailProps) {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
 
   // Mutations
@@ -133,13 +135,13 @@ export default function NotificationDetail({
   const getPriorityBadge = () => {
     switch (notification.priority) {
       case 'urgent':
-        return <Badge className="bg-red-500 text-white">Urgent</Badge>;
+        return <Badge className="bg-red-500 text-white">{t('notifications.priority.urgent')}</Badge>;
       case 'high':
-        return <Badge className="bg-orange-500 text-white">High Priority</Badge>;
+        return <Badge className="bg-orange-500 text-white">{t('notifications.priority.high')}</Badge>;
       case 'normal':
-        return <Badge variant="secondary">Normal</Badge>;
+        return <Badge variant="secondary">{t('notifications.priority.normal')}</Badge>;
       case 'low':
-        return <Badge variant="outline">Low Priority</Badge>;
+        return <Badge variant="outline">{t('notifications.priority.low')}</Badge>;
       default:
         return null;
     }
@@ -148,23 +150,23 @@ export default function NotificationDetail({
   const getTypeLabel = () => {
     switch (notification.type) {
       case 'member_activated':
-        return 'Member Activation';
+        return t('notifications.types.membership_activation');
       case 'level_upgraded':
-        return 'Level Upgrade';
+        return t('notifications.types.level_unlock');
       case 'upgrade_reminder':
-        return 'Upgrade Reminder';
+        return t('notifications.types.upgrade_reminder');
       case 'countdown_warning':
-        return 'Countdown Warning';
+        return t('notifications.types.countdown_warning');
       case 'reward_received':
-        return 'Reward Received';
+        return t('notifications.types.reward_claim');
       case 'referral_joined':
-        return 'New Referral';
+        return t('notifications.types.referral_bonus');
       case 'matrix_placement':
-        return 'Matrix Placement';
+        return t('notifications.types.matrix_placement');
       case 'system_announcement':
-        return 'System Announcement';
+        return t('notifications.types.system_update');
       default:
-        return 'Notification';
+        return t('notifications.types.notification');
     }
   };
 
@@ -193,7 +195,7 @@ export default function NotificationDetail({
                 </CardTitle>
                 {!notification.isRead && (
                   <Badge variant="secondary" className="bg-blue-500/20 text-blue-400">
-                    New
+                    {t('notifications.new')}
                   </Badge>
                 )}
               </div>
@@ -204,12 +206,12 @@ export default function NotificationDetail({
                 </Badge>
                 {notification.actionRequired && (
                   <Badge className="bg-yellow-500/20 text-yellow-400">
-                    Action Required
+                    {t('notifications.actionRequired')}
                   </Badge>
                 )}
                 {notification.isArchived && (
                   <Badge variant="outline" className="text-gray-500">
-                    Archived
+                    {t('notifications.archived')}
                   </Badge>
                 )}
               </div>
@@ -232,7 +234,7 @@ export default function NotificationDetail({
       <CardContent className="space-y-6">
         {/* Message */}
         <div>
-          <h4 className="text-sm font-medium text-gray-300 mb-2">Message</h4>
+          <h4 className="text-sm font-medium text-gray-300 mb-2">{t('notifications.message')}</h4>
           <p className="text-white leading-relaxed">
             {notification.message}
           </p>
@@ -244,7 +246,7 @@ export default function NotificationDetail({
             <div className="flex items-center gap-2">
               <DollarSign className="w-5 h-5 text-green-400" />
               <span className="text-green-400 font-medium">
-                Amount: {notification.amount} {notification.amountType}
+                {t('notifications.amount')}: {notification.amount} {notification.amountType}
               </span>
             </div>
           </div>
@@ -253,16 +255,16 @@ export default function NotificationDetail({
         {/* Matrix Information */}
         {(notification.level || notification.layer || notification.position) && (
           <div>
-            <h4 className="text-sm font-medium text-gray-300 mb-3">Matrix Information</h4>
+            <h4 className="text-sm font-medium text-gray-300 mb-3">{t('notifications.matrixInfo')}</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {notification.level && (
                 <div className="bg-gray-800/50 rounded-lg p-3">
                   <div className="flex items-center gap-2">
                     <Target className="w-4 h-4 text-blue-400" />
-                    <span className="text-sm text-gray-300">Level</span>
+                    <span className="text-sm text-gray-300">{t('notifications.level')}</span>
                   </div>
                   <p className="text-white font-medium mt-1">
-                    Level {notification.level}
+                    {t('notifications.levelValue', { level: notification.level })}
                   </p>
                 </div>
               )}
@@ -271,10 +273,10 @@ export default function NotificationDetail({
                 <div className="bg-gray-800/50 rounded-lg p-3">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-purple-400" />
-                    <span className="text-sm text-gray-300">Layer</span>
+                    <span className="text-sm text-gray-300">{t('notifications.layer')}</span>
                   </div>
                   <p className="text-white font-medium mt-1">
-                    Layer {notification.layer}
+                    {t('notifications.layerValue', { layer: notification.layer })}
                   </p>
                 </div>
               )}
@@ -283,10 +285,10 @@ export default function NotificationDetail({
                 <div className="bg-gray-800/50 rounded-lg p-3">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-yellow-400" />
-                    <span className="text-sm text-gray-300">Position</span>
+                    <span className="text-sm text-gray-300">{t('notifications.position')}</span>
                   </div>
                   <p className="text-white font-medium mt-1">
-                    Position {notification.position}
+                    {t('notifications.positionValue', { position: notification.position })}
                   </p>
                 </div>
               )}
@@ -297,12 +299,12 @@ export default function NotificationDetail({
         {/* Related Wallets */}
         {(notification.triggerWallet || notification.relatedWallet) && (
           <div>
-            <h4 className="text-sm font-medium text-gray-300 mb-3">Related Members</h4>
+            <h4 className="text-sm font-medium text-gray-300 mb-3">{t('notifications.relatedMembers')}</h4>
             <div className="space-y-2">
               {notification.triggerWallet && (
                 <div className="flex items-center gap-2 text-sm">
                   <User className="w-4 h-4 text-blue-400" />
-                  <span className="text-gray-300">Triggered by:</span>
+                  <span className="text-gray-300">{t('notifications.triggeredBy')}:</span>
                   <code className="bg-gray-800 px-2 py-1 rounded text-blue-400">
                     {notification.triggerWallet.slice(0, 6)}...{notification.triggerWallet.slice(-4)}
                   </code>
@@ -312,7 +314,7 @@ export default function NotificationDetail({
               {notification.relatedWallet && (
                 <div className="flex items-center gap-2 text-sm">
                   <User className="w-4 h-4 text-purple-400" />
-                  <span className="text-gray-300">Related member:</span>
+                  <span className="text-gray-300">{t('notifications.relatedMember')}:</span>
                   <code className="bg-gray-800 px-2 py-1 rounded text-purple-400">
                     {notification.relatedWallet.slice(0, 6)}...{notification.relatedWallet.slice(-4)}
                   </code>
@@ -324,11 +326,11 @@ export default function NotificationDetail({
 
         {/* Timing Information */}
         <div>
-          <h4 className="text-sm font-medium text-gray-300 mb-3">Timing</h4>
+          <h4 className="text-sm font-medium text-gray-300 mb-3">{t('notifications.timing')}</h4>
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm">
               <Calendar className="w-4 h-4 text-blue-400" />
-              <span className="text-gray-300">Created:</span>
+              <span className="text-gray-300">{t('notifications.created')}:</span>
               <span className="text-white">
                 {format(new Date(notification.createdAt), 'PPP p')}
               </span>
@@ -340,7 +342,7 @@ export default function NotificationDetail({
             {notification.expiresAt && (
               <div className="flex items-center gap-2 text-sm">
                 <Clock className="w-4 h-4 text-yellow-400" />
-                <span className="text-gray-300">Expires:</span>
+                <span className="text-gray-300">{t('notifications.expires')}:</span>
                 <span className="text-yellow-400">
                   {format(new Date(notification.expiresAt), 'PPP p')}
                 </span>
@@ -353,7 +355,7 @@ export default function NotificationDetail({
             {notification.emailSent && notification.emailSentAt && (
               <div className="flex items-center gap-2 text-sm">
                 <Bell className="w-4 h-4 text-green-400" />
-                <span className="text-gray-300">Email sent:</span>
+                <span className="text-gray-300">{t('notifications.emailSent')}:</span>
                 <span className="text-green-400">
                   {format(new Date(notification.emailSentAt), 'PPP p')}
                 </span>
@@ -365,7 +367,7 @@ export default function NotificationDetail({
         {/* Metadata */}
         {notification.metadata && Object.keys(notification.metadata).length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-gray-300 mb-3">Additional Information</h4>
+            <h4 className="text-sm font-medium text-gray-300 mb-3">{t('notifications.additionalInfo')}</h4>
             <div className="bg-gray-800/50 rounded-lg p-3">
               <pre className="text-sm text-gray-300 whitespace-pre-wrap">
                 {JSON.stringify(notification.metadata, null, 2)}
@@ -386,7 +388,7 @@ export default function NotificationDetail({
                 data-testid="take-action-button"
               >
                 <ExternalLink className="w-4 h-4 mr-2" />
-                {notification.actionType || 'Take Action'}
+                {notification.actionType || t('notifications.takeAction')}
               </Button>
             )}
             
@@ -398,7 +400,7 @@ export default function NotificationDetail({
                 data-testid="mark-read-button"
               >
                 <Eye className="w-4 h-4 mr-2" />
-                Mark as Read
+                {t('notifications.actions.markAsRead')}
               </Button>
             )}
           </div>
@@ -412,7 +414,7 @@ export default function NotificationDetail({
                 data-testid="archive-button"
               >
                 <Archive className="w-4 h-4 mr-2" />
-                Archive
+                {t('notifications.actions.archive')}
               </Button>
             )}
             
@@ -423,7 +425,7 @@ export default function NotificationDetail({
               data-testid="delete-button"
             >
               <Trash2 className="w-4 h-4 mr-2" />
-              Delete
+              {t('notifications.actions.delete')}
             </Button>
           </div>
         </div>
