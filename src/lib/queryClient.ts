@@ -92,7 +92,7 @@ export async function apiRequest(
     else if (url.includes('stats')) action = 'get-stats';
     else action = 'get-dashboard-data';
   } else if (url.includes('/notifications/')) {
-    functionName = 'notifications';
+    functionName = 'notification';
     if (url.includes('stats')) action = 'get-notification-stats';
     else if (url.includes('read')) action = 'mark-read';
     else if (url.includes('archive')) action = 'archive';
