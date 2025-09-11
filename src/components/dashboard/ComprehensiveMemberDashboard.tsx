@@ -141,11 +141,11 @@ const ComprehensiveMemberDashboard: React.FC = () => {
         .select('*', { count: 'exact', head: true })
         .eq('referrer_wallet', walletAddress!);
 
-      // Get total downline from matrix placements
+      // Get total downline from direct referrals (fallback since matrix placements table doesn't exist)
       const { count: totalDownline } = await supabase
-        .from('individual_matrix_placements')
+        .from('users')
         .select('*', { count: 'exact', head: true })
-        .eq('matrix_owner', walletAddress!);
+        .eq('referrer_wallet', walletAddress!);
 
       setMemberStats({
         currentLevel: memberData?.current_level || 0,
