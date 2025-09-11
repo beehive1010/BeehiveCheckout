@@ -64,6 +64,17 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
       
       let result = value || key;
       
+      // Debug logging for specific translation issue
+      if (key === 'dashboard.topUp' && (!value || value === key)) {
+        console.warn('Translation issue for dashboard.topUp:', {
+          key,
+          language,
+          value,
+          dashboardSection: translations[language]?.dashboard,
+          topUpKey: translations[language]?.dashboard?.topUp
+        });
+      }
+      
       // Ensure we always return a string, never an object
       if (typeof result === 'object') {
         console.warn('Translation returned object instead of string for key:', key, result);
