@@ -262,7 +262,10 @@ export default function NotificationPopup({
                       )}
                       
                       <span className="text-gray-400 text-xs">
-                        {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                        {notification.createdAt && !isNaN(new Date(notification.createdAt).getTime())
+                          ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })
+                          : 'Recently'
+                        }
                       </span>
                     </div>
                     
@@ -296,7 +299,7 @@ export default function NotificationPopup({
                     </div>
                   </div>
                   
-                  {notification.expiresAt && (
+                  {notification.expiresAt && !isNaN(new Date(notification.expiresAt).getTime()) && (
                     <div className="mt-2 flex items-center gap-1 text-yellow-400 text-xs">
                       <Clock className="w-3 h-3" />
                       <span>
