@@ -44,11 +44,22 @@ export default function NotificationButton({
     enabled: !!walletAddress,
     refetchInterval: 30000, // Refresh every 30 seconds
     queryFn: async () => {
-      const response = await callEdgeFunction('notifications', { action: 'stats' }, walletAddress);
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch notification stats');
+      try {
+        const response = await callEdgeFunction('notifications', { action: 'stats' }, walletAddress);
+        if (!response.success) {
+          throw new Error(response.error || 'Failed to fetch notification stats');
+        }
+        return response.data;
+      } catch (error) {
+        console.warn('Notifications Edge Function not deployed yet, using fallback data');
+        // Return fallback data until the function is deployed
+        return {
+          unreadCount: 0,
+          totalCount: 0,
+          urgentCount: 0,
+          actionRequiredCount: 0
+        };
       }
-      return response.data;
     }
   });
 

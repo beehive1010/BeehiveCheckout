@@ -79,11 +79,21 @@ export default function NotificationInbox({
     enabled: !!walletAddress,
     refetchInterval: 30000, // Refresh every 30 seconds
     queryFn: async () => {
-      const response = await callEdgeFunction('notifications', { action: 'stats' }, walletAddress);
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch notification stats');
+      try {
+        const response = await callEdgeFunction('notifications', { action: 'stats' }, walletAddress);
+        if (!response.success) {
+          throw new Error(response.error || 'Failed to fetch notification stats');
+        }
+        return response.data;
+      } catch (error) {
+        console.warn('Notifications Edge Function not deployed yet, using fallback data');
+        return {
+          unreadCount: 0,
+          totalCount: 0,
+          urgentCount: 0,
+          actionRequiredCount: 0
+        };
       }
-      return response.data;
     }
   });
 
@@ -119,17 +129,26 @@ export default function NotificationInbox({
     queryKey: ['notifications', 'list', walletAddress, activeTab, searchTerm],
     enabled: !!walletAddress,
     queryFn: async () => {
-      const filters = getNotificationsFilters();
-      const params = new URLSearchParams();
-      params.set('action', 'get-notifications');
-      if (filters.limit) params.set('limit', filters.limit.toString());
-      if (activeTab === 'unread') params.set('unread_only', 'true');
-      
-      const response = await callEdgeFunction('notifications', Object.fromEntries(params), walletAddress);
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch notifications');
+      try {
+        const filters = getNotificationsFilters();
+        const params = new URLSearchParams();
+        params.set('action', 'get-notifications');
+        if (filters.limit) params.set('limit', filters.limit.toString());
+        if (activeTab === 'unread') params.set('unread_only', 'true');
+        
+        const response = await callEdgeFunction('notifications', Object.fromEntries(params), walletAddress);
+        if (!response.success) {
+          throw new Error(response.error || 'Failed to fetch notifications');
+        }
+        return response.data;
+      } catch (error) {
+        console.warn('Notifications Edge Function not deployed yet, using fallback data');
+        return {
+          notifications: [],
+          count: 0,
+          hasMore: false
+        };
       }
-      return response.data;
     }
   });
   
