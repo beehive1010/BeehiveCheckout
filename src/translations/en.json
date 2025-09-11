@@ -1955,5 +1955,33 @@
       "recently": "Recently",
       "expires": "Expires"
     }
+  },
+  "loading": {
+    "membershipLevels": "Loading membership levels...",
+    "data": "Loading data...",
+    "processing": "Processing...",
+    "please_wait": "Please wait..."
+  },
+  "error": {
+    "loadMembershipLevels": "Failed to load membership levels",
+    "loadData": "Failed to load data",
+    "tryRefresh": "Please try refreshing the page",
+    "generic": "An error occurred"
+  },
+  "benefits": {
+    "basic": {
+      "platformFeatures": "Access to basic platform features",
+      "matrixEntry": "Entry to 3×3 matrix system", 
+      "learningMaterials": "Basic learning materials",
+      "communityAccess": "Community access",
+      "tokenId1": "Token ID: 1"
+    },
+    "enhanced": {
+      "matrixRewards": "Enhanced matrix rewards",
+      "premiumContent": "Premium learning content", 
+      "referralBonuses": "Direct referral bonuses",
+      "advancedFeatures": "Advanced features access",
+      "tokenId2": "Token ID: 2"
+    }
   }
 }
