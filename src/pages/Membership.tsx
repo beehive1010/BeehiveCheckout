@@ -272,26 +272,26 @@ export default function Membership() {
             
             if (claimableCount > 0 || pendingCount > 0) {
               toast({
-                title: '🎁 层级奖励已分发',
-                description: `创建了 ${claimableCount} 个可领取奖励和 ${pendingCount} 个待处理奖励`,
+                title: t('membership.rewards.distributed'),
+                description: t('membership.rewards.distributionResult', { claimableCount, pendingCount }),
                 duration: 8000
               });
             }
           } else {
             console.error('❌ Layer reward distribution failed:', rewardResult.error);
             toast({
-              title: '⚠️ 奖励分发警告',
-              description: '会员升级成功，但奖励分发遇到问题',
+              title: t('membership.rewards.distributionWarning'),
+              description: t('membership.rewards.distributionIssue'),
               variant: 'destructive',
               duration: 6000
             });
           }
         } catch (rewardError) {
           console.error('❌ Layer reward distribution error:', rewardError);
-          // 不影响主要流程，只显示警告
+          // Does not affect main flow, only show warning
           toast({
-            title: '⚠️ 奖励分发警告', 
-            description: '会员升级成功，但奖励分发遇到问题',
+            title: t('membership.rewards.distributionWarning'), 
+            description: t('membership.rewards.distributionIssue'),
             variant: 'destructive',
             duration: 6000
           });
@@ -465,7 +465,7 @@ export default function Membership() {
                         {status === 'owned' && (
                           <div className="flex items-center gap-2 text-emerald-600">
                             <CheckCircle className="h-5 w-5" />
-                            <span className="text-sm font-semibold">已拥有</span>
+                            <span className="text-sm font-semibold">{t('membership.status.owned')}</span>
                           </div>
                         )}
                       </div>
