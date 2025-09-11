@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { callEdgeFunction } from '../../lib/supabaseClient';
 import type { NotificationStats } from '../../types/notification';
+import { useI18n } from '../../contexts/I18nContext';
 import { 
   Popover,
   PopoverContent,
@@ -31,6 +32,7 @@ export default function NotificationButton({
   showCompactInbox = true,
   className = ''
 }: NotificationButtonProps) {
+  const { t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
   const [, navigate] = useLocation();
 
@@ -85,7 +87,7 @@ export default function NotificationButton({
         ) : (
           <Bell className="w-4 h-4 mr-2" />
         )}
-        Notifications
+        {t('nav.notifications')}
         {hasUnread && (
           <Badge 
             variant="destructive" 
@@ -149,7 +151,7 @@ export default function NotificationButton({
                   size="sm"
                   data-testid="view-all-notifications"
                 >
-                  View All Notifications ({stats.totalCount})
+                  {t('notifications.viewAll')} ({stats.totalCount})
                 </Button>
               </div>
             )}
