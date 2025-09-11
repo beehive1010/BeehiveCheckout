@@ -30,20 +30,20 @@
 }
 
 .premium-icon {
-  @apply h-8 w-8 transition-all duration-300 group-hover:scale-110;
+  @apply h-6 w-6 sm:h-8 sm:w-8 transition-all duration-300 group-hover:scale-110;
 }
 
 /* Premium Data Display */
 .premium-data-grid-2 {
-  @apply grid grid-cols-2 gap-6;
+  @apply grid grid-cols-2 gap-3 sm:gap-6;
 }
 
 .premium-data-item {
-  @apply text-center p-4 rounded-2xl backdrop-blur-sm border border-opacity-20;
+  @apply text-center p-3 sm:p-4 rounded-xl sm:rounded-2xl backdrop-blur-sm border border-opacity-20;
 }
 
 .premium-data-value {
-  @apply text-3xl font-bold mb-2;
+  @apply text-2xl sm:text-3xl font-bold mb-2;
 }
 
 .premium-data-label {
@@ -52,7 +52,7 @@
 
 /* Premium Button Styles */
 .premium-button {
-  @apply w-full h-12 font-bold text-base rounded-2xl transition-all duration-300 
+  @apply w-full h-11 sm:h-12 font-bold text-sm sm:text-base rounded-xl sm:rounded-2xl transition-all duration-300 
          transform hover:scale-105 hover:shadow-xl text-black;
 }
 
@@ -153,11 +153,11 @@
 .referral-link-background {
   @apply relative bg-gradient-to-br from-gray-50/90 to-gray-100/90 
          dark:from-gray-800/90 dark:to-gray-900/90 backdrop-blur-sm 
-         rounded-2xl p-4 border border-orange-400/20;
+         rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-orange-400/20;
 }
 
 .referral-link-text {
-  @apply text-sm font-mono break-all text-orange-400 font-medium;
+  @apply text-xs sm:text-sm font-mono break-all text-orange-400 font-medium;
 }
 
 /* Quick Navigation */
@@ -174,16 +174,16 @@
 }
 
 .quick-nav-description {
-  @apply text-xs text-muted-foreground flex items-center justify-center gap-1;
+  @apply text-xs text-muted-foreground flex items-center justify-center gap-1 px-2;
 }
 
 /* Welcome Section */
 .welcome-container {
-  @apply text-center mb-8;
+  @apply mb-6 sm:mb-8;
 }
 
 .welcome-title {
-  @apply text-3xl font-bold text-orange-400 mb-2;
+  @apply text-xl sm:text-2xl lg:text-3xl font-bold text-orange-400 mb-2;
 }
 
 .welcome-subtitle {
@@ -196,17 +196,17 @@
 }
 
 .dashboard-content {
-  @apply container mx-auto px-4 py-8 max-w-2xl;
+  @apply container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-full sm:max-w-2xl;
 }
 
 .dashboard-grid-2 {
-  @apply grid grid-cols-1 md:grid-cols-2 gap-6 mb-8;
+  @apply grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8;
 }
 
 .dashboard-grid-nav {
-  @apply grid grid-cols-2 gap-4;
+  @apply grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4;
 }
 
 .dashboard-footer {
-  @apply text-center mt-8 text-sm text-muted-foreground;
+  @apply text-center mt-6 sm:mt-8 text-xs sm:text-sm text-muted-foreground px-2;
 }

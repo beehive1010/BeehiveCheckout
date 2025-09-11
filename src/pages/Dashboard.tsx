@@ -391,36 +391,39 @@ export default function Dashboard() {
       
       <div className="dashboard-content">
         {/* 用户资料卡片 */}
-        <UserProfile className="mb-8" />
+        <UserProfile className="mb-6 sm:mb-8" />
 
         {/* 欢迎信息和刷新按钮 */}
         <div className="welcome-container">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="welcome-title">
-                {userData?.username ? t('dashboard.welcomeBack', { username: userData.username }) : t('dashboard.welcomeMember')}
-              </h1>
-              <p className="welcome-subtitle">
-                {t('dashboard.buildNetwork')}
-              </p>
+          <div className="text-center sm:text-left mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+              <div className="flex-1">
+                <h1 className="welcome-title">
+                  {userData?.username ? t('dashboard.welcomeBack', { username: userData.username }) : t('dashboard.welcomeMember')}
+                </h1>
+                <p className="welcome-subtitle text-sm sm:text-base">
+                  {t('dashboard.buildNetwork')}
+                </p>
+              </div>
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-honey/10 hover:bg-honey/20 border border-honey/30 rounded-lg sm:rounded-xl text-honey transition-colors disabled:opacity-50 min-h-[44px] text-sm sm:text-sm"
+                data-testid="button-refresh"
+              >
+                <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                <span className="font-medium">
+                  {refreshing ? t('dashboard.refreshing') : t('dashboard.refresh')}
+                </span>
+              </button>
             </div>
-            <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="flex items-center gap-2 px-4 py-2 bg-honey/10 hover:bg-honey/20 border border-honey/30 rounded-xl text-honey transition-colors disabled:opacity-50"
-            >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-              <span className="text-sm font-medium">
-                {refreshing ? t('dashboard.refreshing') : t('dashboard.refresh')}
-              </span>
-            </button>
           </div>
           
           {/* 数据状态指示器 */}
           {(loadingState.balance || loadingState.matrix || loadingState.rewards) && (
-            <div className="flex items-center gap-3 p-3 bg-honey/5 border border-honey/20 rounded-lg mb-4">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-honey"></div>
-              <span className="text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 sm:gap-3 p-3 bg-honey/5 border border-honey/20 rounded-lg mb-4">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-honey flex-shrink-0"></div>
+              <span className="text-xs sm:text-sm text-muted-foreground">
                 {t('dashboard.loadingData')}
                 {loadingState.balance && ' 余额'}
                 {loadingState.matrix && ' 网络'}
@@ -431,23 +434,24 @@ export default function Dashboard() {
 
           {/* 错误状态 */}
           {error && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-lg mb-4">
-              <div className="flex items-center gap-2">
-                <span className="text-red-600 text-sm font-medium">{t('dashboard.errors.loadError')}</span>
+            <div className="p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                <span className="text-red-600 text-xs sm:text-sm font-medium">{t('dashboard.errors.loadError')}</span>
                 <button
                   onClick={handleRefresh}
-                  className="text-red-600 hover:text-red-700 text-sm underline"
+                  className="text-red-600 hover:text-red-700 text-xs sm:text-sm underline text-left sm:text-right"
+                  data-testid="button-retry"
                 >
                   {t('dashboard.errors.retry')}
                 </button>
               </div>
-              <p className="text-red-600 text-xs mt-1">{error}</p>
+              <p className="text-red-600 text-xs mt-1 break-words">{error}</p>
             </div>
           )}
 
           {/* 最后更新时间 */}
           {data.lastUpdated && (
-            <p className="text-xs text-muted-foreground mb-6">
+            <p className="text-xs text-muted-foreground mb-4 sm:mb-6 text-center sm:text-left">
               {t('dashboard.lastUpdated')}: {new Date(data.lastUpdated).toLocaleString()}
             </p>
           )}
@@ -499,7 +503,7 @@ export default function Dashboard() {
             { value: `$${data.totalRewards.toFixed(2)}`, label: t('dashboard.totalRewards'), color: 'text-green-400' },
             { value: `$${data.claimableRewards.toFixed(2)}`, label: t('dashboard.claimableRewards'), color: 'text-yellow-400' }
           ]}
-          className="mb-8"
+          className="mb-6 sm:mb-8"
         />
 
         {/* 推荐链接卡片 */}
@@ -509,7 +513,7 @@ export default function Dashboard() {
           referralLink={`${window.location.origin}/register?ref=${walletAddress}`}
           onCopyLink={copyReferralLink}
           copyButtonText={t('dashboard.copyLink')}
-          className="mb-8"
+          className="mb-6 sm:mb-8"
         />
 
         {/* 快捷导航 */}
