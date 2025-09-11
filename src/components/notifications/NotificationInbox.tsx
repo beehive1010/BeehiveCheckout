@@ -86,7 +86,7 @@ export default function NotificationInbox({
         }
         return response.data;
       } catch (error) {
-        console.warn('Notifications Edge Function not deployed yet, using fallback data');
+        console.warn('Notification Edge Function not deployed yet, using fallback data');
         return {
           unreadCount: 0,
           totalCount: 0,
@@ -142,7 +142,7 @@ export default function NotificationInbox({
         }
         return response.data;
       } catch (error) {
-        console.warn('Notifications Edge Function not deployed yet, using fallback data');
+        console.warn('Notification Edge Function not deployed yet, using fallback data');
         return {
           notifications: [],
           count: 0,

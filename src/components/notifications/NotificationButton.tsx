@@ -51,7 +51,7 @@ export default function NotificationButton({
         }
         return response.data;
       } catch (error) {
-        console.warn('Notifications Edge Function not deployed yet, using fallback data');
+        console.warn('Notification Edge Function not deployed yet, using fallback data');
         // Return fallback data until the function is deployed
         return {
           unreadCount: 0,
