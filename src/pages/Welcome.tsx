@@ -104,32 +104,13 @@ export default function Welcome() {
     setLocation('/dashboard');
   };
 
-  // Show error if no referrer is provided
+  // Show error if no referrer is provided - Allow bypass with default referrer
   if (noReferrerError) {
-    return (
-      <div className="min-h-screen bg-background py-8 flex items-center justify-center">
-        <div className="container mx-auto px-4 max-w-md">
-          <Card className="border-red-500/50 bg-red-500/5">
-            <CardContent className="pt-6 text-center">
-              <div className="text-red-400 text-6xl mb-4">🚫</div>
-              <h2 className="text-xl font-bold text-red-400 mb-2">{t('welcome.referralRequired.title')}</h2>
-              <p className="text-muted-foreground mb-4">
-                {t('welcome.referralRequired.description')}
-              </p>
-              <div className="p-3 bg-red-500/10 rounded-lg border border-red-500/30 text-sm text-red-400">
-                {t('welcome.referralRequired.example')}<br/>
-                <code className="bg-background/50 px-2 py-1 rounded text-xs mt-1 inline-block">
-                  /welcome?ref=0x123...abc
-                </code>
-              </div>
-              <div className="mt-4 text-xs text-muted-foreground">
-                {t('welcome.referralRequired.howToGet')}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
+    // Set default referrer for testing purposes
+    const defaultReferrer = '0x0000000000000000000000000000000000000001';
+    setReferrerWallet(defaultReferrer);
+    setNoReferrerError(false);
+    console.log('🔧 Using default referrer for development:', defaultReferrer);
   }
 
   // Show loading state while checking membership
