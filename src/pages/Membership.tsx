@@ -75,7 +75,7 @@ export default function Membership() {
     // Level 2: Silver Bee (特殊条件：Level 1 + 直推人数>3人)
     {
       level: 2,
-      price: 260,
+      price: 150,
       platformFee: 0,
       benefits: [
         'Enhanced matrix rewards',

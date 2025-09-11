@@ -261,7 +261,7 @@ export default function Dashboard() {
 
       // 合并数据
       const dashboardData: SimpleDashboardData = {
-        bccBalance: results.balance?.bccTotal || 0,
+        bccBalance: results.balance?.bccTransferable || 0,
         bccLocked: results.balance?.bccLocked || 0,
         bccTransferable: results.balance?.bccTransferable || 0,
         directReferrals: results.matrix?.directReferrals || 0,
