@@ -191,11 +191,12 @@ export default function NFTs() {
       if (purchaseError) throw purchaseError;
 
       // Update user BCC balance (lock the BCC instead of subtracting)
+      const currentTransferable = bccBalance?.transferable || 0;
       const { error: balanceError } = await supabase
         .from('user_balances')
         .update({ 
-          bcc_transferable: bccBalance - nft.price_bcc,
-          bcc_locked: (bccBalance - nft.price_bcc), // Lock the BCC amount
+          bcc_transferable: currentTransferable - nft.price_bcc,
+          bcc_locked: (bccBalance?.locked || 0) + nft.price_bcc, // Add to locked amount
           updated_at: new Date().toISOString()
         })
         .eq('wallet_address', walletAddress);
@@ -286,7 +287,7 @@ export default function NFTs() {
                 <span>BCC Balance</span>
               </div>
               <div className="text-lg font-bold text-green-400">
-                {bccBalance.toFixed(2)} BCC
+                {(bccBalance?.transferable || 0).toFixed(2)} BCC
               </div>
             </div>
           </div>

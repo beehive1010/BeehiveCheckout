@@ -901,7 +901,7 @@ async function updateRewardStatus(req, supabaseClient) {
             });
         }
         // Update the reward status
-        const updateData = {
+        const updateData: any = {
             status: new_status,
             updated_at: new Date().toISOString()
         };
@@ -1284,7 +1284,7 @@ async function updateUserRewardBalances(supabaseClient, newRewards) {
             return acc;
         }, {});
         // Update each user's balance
-        for (const [rootWallet, amounts] of Object.entries(rewardsByRoot)){
+        for (const [rootWallet, amounts] of Object.entries(rewardsByRoot) as [string, {claimable: number, pending: number}][]){
             const { error } = await supabaseClient.from('user_reward_balances').upsert({
                 wallet_address: rootWallet,
                 usdc_claimable: amounts.claimable,
