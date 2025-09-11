@@ -392,10 +392,7 @@ export const matrixService = {
   async getReferrals(rootWallet: string, layer?: number) {
     let query = supabase
       .from('referrals')
-      .select(`
-        *,
-        member_info:users!referrals_member_wallet_fkey(wallet_address, username)
-      `)
+      .select('*')
       .eq('matrix_root', rootWallet)
       .eq('is_active', true);
 
@@ -518,11 +515,7 @@ export const matrixService = {
   async getSpilloverMatrix(rootWallet: string, layer?: number) {
     let query = supabase
       .from('spillover_matrix')
-      .select(`
-        *,
-        member_info:users!spillover_matrix_member_wallet_fkey(wallet_address, username),
-        referrer_info:users!spillover_matrix_referrer_wallet_fkey(wallet_address, username)
-      `)
+      .select('*')
       .eq('matrix_root', rootWallet)
       .eq('is_active', true);
 
@@ -538,10 +531,7 @@ export const matrixService = {
   async getOriginalReferrals(rootWallet: string, layer?: number) {
     let query = supabase
       .from('referrals')
-      .select(`
-        *,
-        member_info:users!referrals_member_wallet_fkey(wallet_address, username)
-      `)
+      .select('*')
       .eq('matrix_root', rootWallet)
       .eq('is_active', true);
 
