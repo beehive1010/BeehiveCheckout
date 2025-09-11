@@ -45,6 +45,8 @@
     "claimRewards": "Claim Rewards",
     "inviteTip": "💡 Invite friends to unlock more features and rewards",
     "topUp": "Top Up",
+    "totalTeamSize": "Total Team Size",
+    "claimableRewards": "Claimable Rewards",
     "level2Requirements": {
       "title": "Level 2 Requirements",
       "needLevel1": "You need to reach Level 1 first",
@@ -69,8 +71,6 @@
     "refreshing": "Refreshing...",
     "loadingData": "Loading",
     "lastUpdated": "Last updated",
-    "totalTeamSize": "Total Team Size",
-    "claimableRewards": "Claimable Rewards",
     "activitiesWillAppear": "Your activities will appear here as you interact with the platform",
     "noActivities": "No recent activities",
     "recentActivities": "Recent Activities",
