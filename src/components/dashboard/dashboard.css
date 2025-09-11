@@ -2,7 +2,11 @@
 
 /* Premium Card Base Styles */
 .premium-card-base {
-  @apply relative transition-all duration-500 hover:-translate-y-1;
+  @apply relative transition-all duration-500;
+}
+
+.premium-card-base:hover {
+  @apply -translate-y-1;
 }
 
 .premium-card-glow {
@@ -11,9 +15,12 @@
 
 .premium-card-content {
   @apply relative border-0 bg-gradient-to-br from-white/95 to-white/95 
-         dark:from-gray-900/95 dark:to-gray-900/95 
          backdrop-blur-xl rounded-3xl shadow-2xl transition-all duration-500 
          overflow-hidden;
+}
+
+.dark .premium-card-content {
+  @apply from-gray-900/95 to-gray-900/95;
 }
 
 /* Premium Icon Container */
@@ -22,7 +29,11 @@
 }
 
 .premium-icon-glow {
-  @apply absolute inset-0 rounded-2xl blur-md group-hover:blur-lg transition-all duration-300;
+  @apply absolute inset-0 rounded-2xl blur-md transition-all duration-300;
+}
+
+.group:hover .premium-icon-glow {
+  @apply blur-lg;
 }
 
 .premium-icon-background {
@@ -30,7 +41,11 @@
 }
 
 .premium-icon {
-  @apply h-6 w-6 sm:h-8 sm:w-8 transition-all duration-300 group-hover:scale-110;
+  @apply h-6 w-6 sm:h-8 sm:w-8 transition-all duration-300;
+}
+
+.group:hover .premium-icon {
+  @apply scale-110;
 }
 
 /* Premium Data Display */
@@ -53,7 +68,11 @@
 /* Premium Button Styles */
 .premium-button {
   @apply w-full h-11 sm:h-12 font-bold text-sm sm:text-base rounded-xl sm:rounded-2xl transition-all duration-300 
-         transform hover:scale-105 hover:shadow-xl text-black;
+         transform text-black;
+}
+
+.premium-button:hover {
+  @apply scale-105 shadow-xl;
 }
 
 .premium-button-icon {
@@ -66,19 +85,22 @@
 }
 
 .honey-glow {
-  @apply from-orange-400/20 via-orange-500/20 to-orange-400/20;
+  background: linear-gradient(to right, rgb(251 146 60 / 0.2), rgb(249 115 22 / 0.2), rgb(251 146 60 / 0.2));
 }
 
 .honey-icon-gradient {
-  @apply from-orange-400/30 to-orange-500/30;
+  background: linear-gradient(to right, rgb(251 146 60 / 0.3), rgb(249 115 22 / 0.3));
 }
 
 .honey-icon-bg {
-  @apply from-orange-400/20 to-orange-500/20;
+  background: linear-gradient(to right, rgb(251 146 60 / 0.2), rgb(249 115 22 / 0.2));
 }
 
 .honey-text {
-  @apply from-orange-400 via-orange-500 to-orange-400;
+  background: linear-gradient(to right, rgb(251 146 60), rgb(249 115 22), rgb(251 146 60));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
 }
 
 .blue-gradient {
@@ -86,19 +108,22 @@
 }
 
 .blue-glow {
-  @apply from-blue-500/20 via-purple-500/20 to-blue-500/20;
+  background: linear-gradient(to right, rgb(59 130 246 / 0.2), rgb(168 85 247 / 0.2), rgb(59 130 246 / 0.2));
 }
 
 .blue-icon-gradient {
-  @apply from-blue-500/30 to-purple-500/30;
+  background: linear-gradient(to right, rgb(59 130 246 / 0.3), rgb(168 85 247 / 0.3));
 }
 
 .blue-icon-bg {
-  @apply from-blue-500/20 to-purple-500/20;
+  background: linear-gradient(to right, rgb(59 130 246 / 0.2), rgb(168 85 247 / 0.2));
 }
 
 .blue-text {
-  @apply from-blue-400 via-purple-400 to-blue-400;
+  background: linear-gradient(to right, rgb(96 165 250), rgb(196 181 253), rgb(96 165 250));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
 }
 
 .green-gradient {
@@ -106,19 +131,22 @@
 }
 
 .green-glow {
-  @apply from-green-500/20 via-emerald-500/20 to-green-500/20;
+  background: linear-gradient(to right, rgb(34 197 94 / 0.2), rgb(16 185 129 / 0.2), rgb(34 197 94 / 0.2));
 }
 
 .green-icon-gradient {
-  @apply from-green-500/30 to-emerald-500/30;
+  background: linear-gradient(to right, rgb(34 197 94 / 0.3), rgb(16 185 129 / 0.3));
 }
 
 .green-icon-bg {
-  @apply from-green-500/20 to-emerald-500/20;
+  background: linear-gradient(to right, rgb(34 197 94 / 0.2), rgb(16 185 129 / 0.2));
 }
 
 .green-text {
-  @apply from-green-400 via-emerald-400 to-green-400;
+  background: linear-gradient(to right, rgb(74 222 128), rgb(52 211 153), rgb(74 222 128));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
 }
 
 .yellow-gradient {
@@ -126,19 +154,22 @@
 }
 
 .yellow-glow {
-  @apply from-orange-400/20 via-yellow-400/20 to-orange-400/20;
+  background: linear-gradient(to right, rgb(251 146 60 / 0.2), rgb(250 204 21 / 0.2), rgb(251 146 60 / 0.2));
 }
 
 .yellow-icon-gradient {
-  @apply from-orange-400/30 to-yellow-400/30;
+  background: linear-gradient(to right, rgb(251 146 60 / 0.3), rgb(250 204 21 / 0.3));
 }
 
 .yellow-icon-bg {
-  @apply from-orange-400/20 to-yellow-400/20;
+  background: linear-gradient(to right, rgb(251 146 60 / 0.2), rgb(250 204 21 / 0.2));
 }
 
 .yellow-text {
-  @apply from-orange-400 via-yellow-400 to-orange-400;
+  background: linear-gradient(to right, rgb(251 146 60), rgb(250 204 21), rgb(251 146 60));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
 }
 
 /* Referral Link Display */
@@ -152,8 +183,11 @@
 
 .referral-link-background {
   @apply relative bg-gradient-to-br from-gray-50/90 to-gray-100/90 
-         dark:from-gray-800/90 dark:to-gray-900/90 backdrop-blur-sm 
-         rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-orange-400/20;
+         backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-orange-400/20;
+}
+
+.dark .referral-link-background {
+  @apply from-gray-800/90 to-gray-900/90;
 }
 
 .referral-link-text {
@@ -162,11 +196,23 @@
 
 /* Quick Navigation */
 .quick-nav-card {
-  @apply cursor-pointer hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-colors;
+  @apply cursor-pointer transition-colors;
+}
+
+.quick-nav-card:hover {
+  @apply bg-gray-100/50;
+}
+
+.dark .quick-nav-card:hover {
+  @apply bg-gray-800/50;
 }
 
 .quick-nav-icon {
-  @apply h-8 w-8 mx-auto mb-3 group-hover:scale-110 transition-transform;
+  @apply h-8 w-8 mx-auto mb-3 transition-transform;
+}
+
+.group:hover .quick-nav-icon {
+  @apply scale-110;
 }
 
 .quick-nav-title {
