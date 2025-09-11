@@ -1,6 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { corsHeaders } from '../_shared/cors.ts'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-wallet-address',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS, PUT, DELETE',
+}
 
 interface LevelUpgradeRequest {
   action: 'upgrade_level' | 'check_requirements' | 'get_pricing' | 'verify_transaction'
@@ -117,7 +122,7 @@ serve(async (req) => {
 
     const { action, walletAddress, targetLevel, transactionHash, network } = await req.json() as LevelUpgradeRequest
 
-    console.log(`<™ Level Upgrade Action: ${action} for ${walletAddress}`)
+    console.log(`<ï¿½ Level Upgrade Action: ${action} for ${walletAddress}`)
 
     let response: LevelUpgradeResponse
 
@@ -174,7 +179,7 @@ async function processLevelUpgrade(
   transactionHash?: string, 
   network?: string
 ): Promise<LevelUpgradeResponse> {
-  console.log(`=€ Processing Level ${targetLevel} upgrade for ${walletAddress}`)
+  console.log(`=ï¿½ Processing Level ${targetLevel} upgrade for ${walletAddress}`)
 
   try {
     // 1. Get current member data
@@ -237,16 +242,30 @@ async function processLevelUpgrade(
       })
       .eq('wallet_address', walletAddress.toLowerCase())
 
-    // 5. Process BCC unlock
-    const bccResult = await unlockBCCForLevelUpgrade(supabase, walletAddress, targetLevel, memberData)
+    // 5. Process NFT purchase with Layer-Level matching rewards
+    const { data: nftPurchaseResult, error: nftError } = await supabase
+      .rpc('process_nft_purchase_rewards', {
+        p_member_wallet: walletAddress.toLowerCase(),
+        p_purchased_level: targetLevel
+      })
+
+    if (nftError) {
+      console.error('NFT purchase processing failed:', nftError)
+      return {
+        success: false,
+        action: 'upgrade_level',
+        message: 'Failed to process NFT purchase rewards',
+        error: nftError.message
+      }
+    }
+
+    const purchaseResult = nftPurchaseResult?.[0] || {}
+    console.log(`âœ… NFT purchase processed: ${purchaseResult.member_bcc_released} BCC released, ${purchaseResult.matrix_rewards_triggered} matrix rewards triggered`)
     
-    // 6. Process pending rewards that can now be claimed
+    // 6. Process pending rewards that can now be claimed (fallback)
     const pendingResult = await processPendingRewardsForUpgrade(supabase, walletAddress, targetLevel)
 
-    // 7. Trigger new layer rewards if applicable
-    const newRewardsResult = await triggerLayerRewardsForUpgrade(supabase, walletAddress, targetLevel)
-
-    // 8. Log the upgrade
+    // 7. Log the upgrade
     await supabase
       .from('audit_logs')
       .insert({
@@ -257,9 +276,11 @@ async function processLevelUpgrade(
           toLevel: targetLevel,
           transactionHash,
           network,
-          bccUnlocked: bccResult.bccUnlocked,
-          pendingRewardsClaimed: pendingResult.claimed,
-          newPendingRewards: newRewardsResult.created
+          bccUnlocked: purchaseResult.member_bcc_released || 0,
+          matrixRewardsTriggered: purchaseResult.matrix_rewards_triggered || 0,
+          availableRewards: purchaseResult.available_rewards || 0,
+          pendingRewards: purchaseResult.pending_rewards || 0,
+          totalRewardAmount: purchaseResult.total_reward_amount || 0
         }
       })
 
@@ -272,11 +293,14 @@ async function processLevelUpgrade(
       targetLevel,
       upgradeResult: {
         newLevel: targetLevel,
-        bccUnlocked: bccResult.bccUnlocked || 0,
-        pendingRewardsClaimed: pendingResult.claimed || 0,
-        newPendingRewards: newRewardsResult.created || 0
+        bccUnlocked: purchaseResult.member_bcc_released || 0,
+        bccRemaining: purchaseResult.member_bcc_remaining || 0,
+        matrixRewardsTriggered: purchaseResult.matrix_rewards_triggered || 0,
+        availableRewards: purchaseResult.available_rewards || 0,
+        pendingRewards: purchaseResult.pending_rewards || 0,
+        totalRewardAmount: purchaseResult.total_reward_amount || 0
       },
-      message: `Successfully upgraded to Level ${targetLevel}! ${bccResult.bccUnlocked || 0} BCC unlocked.`
+      message: `Successfully upgraded to Level ${targetLevel}! ${purchaseResult.member_bcc_released || 0} BCC unlocked, ${purchaseResult.matrix_rewards_triggered || 0} matrix rewards triggered.`
     }
 
   } catch (error) {
@@ -428,7 +452,7 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
 
 // Get level pricing information
 async function getLevelPricing(walletAddress: string, maxLevel?: number): Promise<LevelUpgradeResponse> {
-  console.log(`=° Getting level pricing for ${walletAddress} up to Level ${maxLevel || 19}`)
+  console.log(`=ï¿½ Getting level pricing for ${walletAddress} up to Level ${maxLevel || 19}`)
 
   try {
     const pricing = []
@@ -609,7 +633,7 @@ async function unlockBCCForLevelUpgrade(supabase: any, walletAddress: string, ta
 
 // Process pending rewards that can now be claimed
 async function processPendingRewardsForUpgrade(supabase: any, walletAddress: string, newLevel: number): Promise<{claimed: number}> {
-  console.log(`< Processing pending rewards for Level ${newLevel} upgrade`)
+  console.log(`<ï¿½ Processing pending rewards for Level ${newLevel} upgrade`)
 
   try {
     // Call the reward processing system
@@ -636,7 +660,7 @@ async function processPendingRewardsForUpgrade(supabase: any, walletAddress: str
 
 // Trigger layer rewards for upgrade
 async function triggerLayerRewardsForUpgrade(supabase: any, walletAddress: string, newLevel: number): Promise<{created: number}> {
-  console.log(`=€ Triggering layer rewards for Level ${newLevel} upgrade`)
+  console.log(`=ï¿½ Triggering layer rewards for Level ${newLevel} upgrade`)
 
   try {
     // This would integrate with matrix system to check for newly triggered rewards

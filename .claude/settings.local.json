@@ -41,7 +41,8 @@
       "Bash(__NEW_LINE__ echo \"\")",
       "Bash(PGPASSWORD:*)",
       "Bash(for:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(./deploy-edge-functions.sh:*)"
     ],
     "deny": [],
     "ask": []

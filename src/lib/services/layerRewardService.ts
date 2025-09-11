@@ -26,7 +26,7 @@ async function getUserCurrentLevel(walletAddress: string): Promise<number> {
   try {
     const { data, error } = await supabase
       .from('members')
-      .select('current_nft_level')
+      .select('current_level')
       .eq('wallet_address', walletAddress)
       .single();
 
@@ -35,7 +35,7 @@ async function getUserCurrentLevel(walletAddress: string): Promise<number> {
       return 0;
     }
 
-    return data?.current_nft_level || 0;
+    return data?.current_level || 0;
   } catch (error) {
     console.error('❌ Failed to get user level:', error);
     return 0;
@@ -87,13 +87,13 @@ async function checkLayer1SpecialRules(walletAddress: string, requiredLevel: num
  */
 async function getMatrixUplines(memberWallet: string): Promise<Array<{ wallet: string; layer: number }>> {
   try {
-    // 查询该用户的矩阵结构，获取上级信息
+    // 查询该用户的spillover matrix结构，获取上级信息
     const { data, error } = await supabase
-      .from('matrix_members')
+      .from('spillover_matrix')
       .select(`
         matrix_root,
         matrix_layer,
-        matrix_placement_id
+        matrix_position
       `)
       .eq('member_wallet', memberWallet)
       .order('matrix_layer', { ascending: true });
