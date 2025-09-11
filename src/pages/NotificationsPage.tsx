@@ -168,9 +168,9 @@ export default function NotificationsPage() {
         </Card>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           {/* Notification List */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 order-2 lg:order-1">
             <NotificationInbox
               walletAddress={walletAddress}
               onNotificationClick={handleNotificationClick}
@@ -179,9 +179,9 @@ export default function NotificationsPage() {
           </div>
           
           {/* Detail Panel */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 order-1 lg:order-2">
             {selectedNotification ? (
-              <div className="sticky top-4">
+              <div className="lg:sticky lg:top-4">
                 <NotificationDetail
                   notification={selectedNotification}
                   onClose={handleCloseDetail}
@@ -192,11 +192,11 @@ export default function NotificationsPage() {
                 />
               </div>
             ) : (
-              <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border-yellow-500/20 h-96">
+              <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border-yellow-500/20 h-64 lg:h-96 hidden lg:block">
                 <CardContent className="flex items-center justify-center h-full">
                   <div className="text-center">
-                    <Bell className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-400">
+                    <Bell className="w-8 h-8 lg:w-12 lg:h-12 text-gray-600 mx-auto mb-2 lg:mb-4" />
+                    <p className="text-gray-400 text-sm lg:text-base">
                       {t('notificationsPage.detail.selectNotification')}
                     </p>
                   </div>
