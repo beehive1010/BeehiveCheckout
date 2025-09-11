@@ -45,6 +45,12 @@
     "claimRewards": "Claim Rewards",
     "inviteTip": "💡 Invite friends to unlock more features and rewards",
     "topUp": "Top Up",
+    "directReferrals": "Direct Referrals",
+    "level2Requirements": {
+      "title": "Level 2 Requirements",
+      "needLevel1": "You need to reach Level 1 first",
+      "needReferrals": "Level 2 requires more than 3 direct referrals (current: {current})"
+    },
     "errors": {
       "dataLoadFailed": "Data load failed",
       "refreshToRetry": "Please refresh page to retry"

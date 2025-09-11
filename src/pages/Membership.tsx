@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useI18n } from '../contexts/I18nContext';
 import { useWallet } from '../hooks/useWallet';
+import { useQuery } from '@tanstack/react-query';
+import { matrixService } from '../lib/supabaseClient';
 import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -27,6 +29,20 @@ export default function Membership() {
   const { walletAddress, bccBalance, currentLevel } = useWallet();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+
+  // Fetch user's direct referrals count for Level 2 condition
+  const { data: directReferralsCount } = useQuery({
+    queryKey: ['/direct-referrals', walletAddress],
+    enabled: !!walletAddress,
+    queryFn: async () => {
+      try {
+        return await matrixService.countDirectReferrals(walletAddress!);
+      } catch (error) {
+        console.error('Failed to fetch direct referrals:', error);
+        return 0;
+      }
+    }
+  });
   const [claimState, setClaimState] = useState<{
     level: number | null;
     loading: boolean;
@@ -37,111 +53,105 @@ export default function Membership() {
     error: null
   });
 
-  // Define membership levels with progressive pricing and benefits
+  // Define all 19 membership levels with progressive pricing and benefits
   const membershipLevels: MembershipLevel[] = [
+    // Level 1: Bronze Bee
     {
       level: 1,
-      price: 100,
-      platformFee: 30,
+      price: 130,
+      platformFee: 0,
       benefits: [
         'Access to basic platform features',
         'Entry to 3×3 matrix system',
         'Basic learning materials',
-        'Community access'
+        'Community access',
+        'Token ID: 1'
       ],
       icon: Shield,
       color: 'text-emerald-600',
       bgColor: 'bg-emerald-50 dark:bg-emerald-950',
       borderColor: 'border-emerald-200 dark:border-emerald-800'
     },
+    // Level 2: Silver Bee (特殊条件：Level 1 + 直推人数>3人)
     {
       level: 2,
-      price: 150,
+      price: 260,
+      platformFee: 0,
       benefits: [
         'Enhanced matrix rewards',
         'Premium learning content',
         'Direct referral bonuses',
-        'Advanced features access'
+        'Advanced features access',
+        'Token ID: 2',
+        '需要: Level 1 + 直推人数>3人'
       ],
       icon: Star,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50 dark:bg-blue-950',
       borderColor: 'border-blue-200 dark:border-blue-800'
     },
-    {
-      level: 3,
-      price: 200,
-      benefits: [
-        'Higher referral rewards',
-        'Exclusive content access',
-        'Priority support',
-        'Special community perks'
-      ],
-      icon: Crown,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50 dark:bg-purple-950',
-      borderColor: 'border-purple-200 dark:border-purple-800'
-    },
-    {
-      level: 5,
-      price: 300,
-      benefits: [
-        'VIP status benefits',
-        'Maximum matrix potential',
-        'Exclusive events access',
-        'Leadership opportunities'
-      ],
-      icon: Zap,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50 dark:bg-orange-950',
-      borderColor: 'border-orange-200 dark:border-orange-800',
-      isSpecial: true
-    },
-    {
-      level: 10,
-      price: 550,
-      benefits: [
-        'Elite member status',
-        'Maximum earnings potential',
-        'Exclusive merchant NFTs',
-        'Platform governance rights'
-      ],
-      icon: Gift,
-      color: 'text-honey',
-      bgColor: 'bg-honey/10 dark:bg-honey/20',
-      borderColor: 'border-honey/30',
-      isSpecial: true
-    },
-    {
-      level: 15,
-      price: 800,
-      benefits: [
-        'Platinum membership tier',
-        'Ultimate reward multipliers',
-        'Exclusive investment opportunities',
-        'Advisory board eligibility'
-      ],
-      icon: Crown,
-      color: 'text-platinum-600',
-      bgColor: 'bg-gray-50 dark:bg-gray-950',
-      borderColor: 'border-gray-200 dark:border-gray-800',
-      isSpecial: true
-    },
-    {
-      level: 19,
-      price: 1000,
-      benefits: [
-        'Ultimate membership level',
-        'Maximum platform benefits',
-        'Lifetime rewards eligibility',
-        'Founder status recognition'
-      ],
-      icon: Crown,
-      color: 'text-golden-600',
-      bgColor: 'bg-yellow-50 dark:bg-yellow-950',
-      borderColor: 'border-yellow-200 dark:border-yellow-800',
-      isSpecial: true
-    }
+    // Levels 3-19: Progressive pricing and features
+    ...Array.from({ length: 17 }, (_, i) => {
+      const level = i + 3;
+      const basePrice = 130;
+      const price = Math.pow(2, level - 1) * basePrice; // Exponential pricing
+      
+      // Icon progression
+      const getIcon = () => {
+        if (level <= 5) return Crown;
+        if (level <= 10) return Zap;
+        if (level <= 15) return Gift;
+        return Crown;
+      };
+      
+      // Color progression
+      const getColors = () => {
+        if (level <= 5) return {
+          color: 'text-purple-600',
+          bgColor: 'bg-purple-50 dark:bg-purple-950',
+          borderColor: 'border-purple-200 dark:border-purple-800'
+        };
+        if (level <= 10) return {
+          color: 'text-orange-600',
+          bgColor: 'bg-orange-50 dark:bg-orange-950',
+          borderColor: 'border-orange-200 dark:border-orange-800'
+        };
+        if (level <= 15) return {
+          color: 'text-honey',
+          bgColor: 'bg-honey/10 dark:bg-honey/20',
+          borderColor: 'border-honey/30'
+        };
+        return {
+          color: 'text-golden-600',
+          bgColor: 'bg-yellow-50 dark:bg-yellow-950',
+          borderColor: 'border-yellow-200 dark:border-yellow-800'
+        };
+      };
+      
+      const colors = getColors();
+      
+      return {
+        level,
+        price,
+        platformFee: 0,
+        benefits: [
+          level <= 5 ? `Gold Bee Tier ${level - 2}` : 
+          level <= 10 ? `Platinum Bee Tier ${level - 5}` :
+          level <= 15 ? `Diamond Bee Tier ${level - 10}` :
+          `Master Bee Tier ${level - 15}`,
+          `Enhanced matrix rewards (Layer 1-${Math.min(19, level * 2)})`,
+          `Bonus multiplier x${Math.min(10, level * 0.5)}`,
+          level >= 5 ? 'VIP status benefits' : 'Premium benefits',
+          level >= 10 ? 'Exclusive merchant NFTs' : 'Enhanced features',
+          level >= 15 ? 'Platform governance rights' : 'Priority support',
+          level >= 18 ? 'Founder status recognition' : 'Elite member status',
+          `Token ID: ${level}`
+        ].filter(Boolean),
+        icon: getIcon(),
+        ...colors,
+        isSpecial: level >= 5 && (level % 5 === 0 || level >= 15)
+      };
+    })
   ];
 
   // Real NFT claim function using Supabase API
@@ -165,6 +175,28 @@ export default function Membership() {
       return;
     }
 
+    // Special condition for Level 2: Must have Level 1 AND more than 3 direct referrals
+    if (level === 2) {
+      if (!currentLevel || currentLevel < 1) {
+        toast({
+          title: t('membership.level2Requirements.title'),
+          description: t('membership.level2Requirements.needLevel1'),
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      const referrals = directReferralsCount || 0;
+      if (referrals <= 3) {
+        toast({
+          title: t('membership.level2Requirements.title'),
+          description: t('membership.level2Requirements.needReferrals', { current: referrals }),
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
     const membershipConfig = membershipLevels.find(m => m.level === level);
     if (!membershipConfig) return;
 
@@ -173,9 +205,8 @@ export default function Membership() {
     setClaimState({ level, loading: true, error: null });
 
     try {
-      // Import API client
-      const { SupabaseApiClient } = await import('../lib/supabase-original');
-      const apiClient = new SupabaseApiClient();
+      // Import upgrade service
+      const { upgradeService } = await import('../lib/supabaseClient');
 
       toast({
         title: t('membership.claiming.started', { level }),
@@ -185,14 +216,14 @@ export default function Membership() {
       // Generate a transaction hash for this claim (in real app, this would come from blockchain)
       const transactionHash = `0x${Date.now().toString(16)}${Math.random().toString(16).slice(2, 10)}`;
 
-      // Call real Supabase API
-      const result = await apiClient.processUpgrade(
-        walletAddress,
+      // Call real Supabase API using working service
+      const result = await upgradeService.processNFTUpgrade(walletAddress, {
         level,
-        'token_payment', // payment method
-        transactionHash, // transaction hash
-        'arbitrum-sepolia' // network
-      );
+        transactionHash,
+        payment_amount_usdc: totalPrice,
+        paymentMethod: 'token_payment',
+        network: 'arbitrum-sepolia'
+      });
 
       if (result.success) {
         toast({
@@ -203,7 +234,7 @@ export default function Membership() {
 
         console.log(`✅ Level ${level} claim successful:`, result);
         
-        // Refresh the page data
+        // Refresh the page data using React Query instead of full reload
         setTimeout(() => {
           window.location.reload();
         }, 2000);
@@ -242,6 +273,15 @@ export default function Membership() {
   const getLevelStatus = (level: number) => {
     if (!currentLevel) return 'locked';
     if (level <= currentLevel) return 'owned';
+    
+    // Special logic for Level 2: requires Level 1 + direct referrals > 3
+    if (level === 2) {
+      if (currentLevel >= 1 && (directReferralsCount || 0) > 3) {
+        return 'available';
+      }
+      return 'locked';
+    }
+    
     if (level === currentLevel + 1) return 'available';
     return 'locked';
   };
@@ -271,6 +311,7 @@ export default function Membership() {
           <div className="text-left">
             <p className="text-sm text-muted-foreground">{t('membership.currentLevel')}</p>
             <p className="text-2xl font-bold text-honey">Level {currentLevel || 1}</p>
+            <p className="text-xs text-muted-foreground">{t('membership.directReferrals')}: {directReferralsCount || 0}</p>
           </div>
         </div>
       </div>

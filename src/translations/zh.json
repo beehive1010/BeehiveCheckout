@@ -44,6 +44,12 @@
     "claimRewards": "领取奖励",
     "inviteTip": "💡 邀请朋友加入即可解锁更多功能和奖励",
     "topUp": "充值",
+    "directReferrals": "直推人数",
+    "level2Requirements": {
+      "title": "Level 2解锁条件",
+      "needLevel1": "您需要先达到Level 1",
+      "needReferrals": "Level 2需要超过3个直推人数 (当前: {current}个)"
+    },
     "errors": {
       "dataLoadFailed": "数据加载失败",
       "refreshToRetry": "请刷新页面重试"
