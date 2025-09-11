@@ -195,21 +195,21 @@ export default function Membership() {
         if (!referralCheck.qualified) {
           toast({
             title: t('membership.level2Requirements.title'),
-            description: `${referralCheck.detailedStatus}\n\n${referralCheck.message}\n\n💡 提示：只计算通过您的推荐链接直接注册的用户，不包括矩阵安置的溢出用户\n\n📋 如何达标：分享您的推荐链接让更多朋友注册`,
+            description: `${referralCheck.detailedStatus}\n\n${referralCheck.message}\n\n💡 ${t('membership.level2Requirements.tip')}\n\n📋 ${t('membership.level2Requirements.howTo')}`,
             variant: "destructive",
-            duration: 12000 // 延长显示时间以便用户阅读完整信息
+            duration: 12000 // Extended display time for full information
           });
           return;
         }
         
-        // 显示成功的直推检查信息
+        // Show successful direct referral check info
         console.log(`✅ Level 2 direct referral check passed: ${referralCheck.message}`);
         
       } catch (error) {
         console.error('❌ Error checking Level 2 referral requirements:', error);
         toast({
-          title: '检查直推要求时出错',
-          description: '无法验证您的直推用户数量，请稍后重试',
+          title: t('membership.errors.checkReferralError'),
+          description: t('membership.errors.verificationFailed'),
           variant: "destructive"
         });
         return;
@@ -253,7 +253,7 @@ export default function Membership() {
 
         console.log(`✅ Level ${level} claim successful:`, result);
         
-        // 触发层级奖励分发
+        // Trigger layer reward distribution
         try {
           const { distributeLayerRewards } = await import('../lib/services/layerRewardService');
           const rewardResult = await distributeLayerRewards(
