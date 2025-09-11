@@ -213,41 +213,41 @@ export default function NotificationsPage() {
 
         {/* Quick Actions */}
         <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border-yellow-500/20">
-          <CardHeader>
-            <CardTitle className="text-yellow-400">{t('notificationsPage.quickActions.title')}</CardTitle>
+          <CardHeader className="p-4 lg:p-6">
+            <CardTitle className="text-yellow-400 text-lg lg:text-xl">{t('notificationsPage.quickActions.title')}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <CardContent className="p-4 lg:p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
               <Button
                 variant="outline"
-                className="h-16 flex flex-col items-center justify-center gap-2"
+                className="h-14 lg:h-16 flex flex-col items-center justify-center gap-1 lg:gap-2 text-sm lg:text-base"
                 data-testid="quick-action-urgent"
               >
-                <Badge className="bg-red-500">
+                <Badge className="bg-red-500 text-xs lg:text-sm">
                   {stats?.urgentCount || 0}
                 </Badge>
-                <span>{t('notificationsPage.quickActions.urgentNotifications')}</span>
+                <span className="text-center leading-tight">{t('notificationsPage.quickActions.urgentNotifications')}</span>
               </Button>
               
               <Button
                 variant="outline"
-                className="h-16 flex flex-col items-center justify-center gap-2"
+                className="h-14 lg:h-16 flex flex-col items-center justify-center gap-1 lg:gap-2 text-sm lg:text-base"
                 data-testid="quick-action-action-required"
               >
-                <Badge className="bg-yellow-500 text-black">
+                <Badge className="bg-yellow-500 text-black text-xs lg:text-sm">
                   {stats?.actionRequiredCount || 0}
                 </Badge>
-                <span>{t('notificationsPage.quickActions.actionRequired')}</span>
+                <span className="text-center leading-tight">{t('notificationsPage.quickActions.actionRequired')}</span>
               </Button>
               
               <Button
                 variant="outline"
-                className="h-16 flex flex-col items-center justify-center gap-2"
+                className="h-14 lg:h-16 flex flex-col items-center justify-center gap-1 lg:gap-2 text-sm lg:text-base sm:col-span-2 lg:col-span-1"
                 onClick={() => navigate('/dashboard/matrix')}
                 data-testid="quick-action-matrix"
               >
-                <Bell className="w-5 h-5" />
-                <span>{t('notificationsPage.quickActions.matrixDashboard')}</span>
+                <Bell className="w-4 h-4 lg:w-5 lg:h-5" />
+                <span className="text-center leading-tight">{t('notificationsPage.quickActions.matrixDashboard')}</span>
               </Button>
             </div>
           </CardContent>
