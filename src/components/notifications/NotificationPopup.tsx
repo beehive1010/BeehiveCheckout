@@ -60,11 +60,11 @@ export default function NotificationPopup({
   // Fetch only unread urgent and high priority notifications
   const { data: notifications = [] } = useQuery<Notification[]>({
     queryKey: ['/api/notifications', 'popup', walletAddress],
-    queryParams: {
-      isRead: false,
+    queryFn: () => apiRequest('/api/notifications?' + new URLSearchParams({
+      isRead: 'false',
       priority: 'urgent,high', // Filter for urgent and high priority
-      limit: maxNotifications,
-    },
+      limit: maxNotifications.toString(),
+    })),
     enabled: !!walletAddress && isVisible,
     refetchInterval: 30000, // Refresh every 30 seconds
   });

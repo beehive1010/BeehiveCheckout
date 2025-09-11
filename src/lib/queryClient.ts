@@ -27,11 +27,14 @@ function getWalletAddress(): string | null {
 
 // Direct Supabase Edge Function caller
 export async function apiRequest(
-  method: string,
   url: string,
-  data?: unknown | undefined,
-  walletAddress?: string,
+  options?: {
+    method?: string;
+    data?: unknown;
+    walletAddress?: string;
+  }
 ): Promise<Response> {
+  const { method = 'GET', data, walletAddress } = options || {};
   // Get wallet address from session storage
   const addressToUse = walletAddress || getWalletAddress();
   
@@ -88,6 +91,12 @@ export async function apiRequest(
     if (url.includes('activity')) action = 'get-activity';
     else if (url.includes('stats')) action = 'get-stats';
     else action = 'get-dashboard-data';
+  } else if (url.includes('/notifications/')) {
+    functionName = 'notifications';
+    if (url.includes('stats')) action = 'get-notification-stats';
+    else if (url.includes('read')) action = 'mark-read';
+    else if (url.includes('archive')) action = 'archive';
+    else action = 'get-notifications';
   }
   
   try {
@@ -161,7 +170,10 @@ export const getQueryFn: <T>(options: {
     
     try {
       // Use apiRequest to handle Supabase calls
-      const res = await apiRequest('GET', url, undefined, walletAddress || undefined);
+      const res = await apiRequest(url, { 
+        method: 'GET', 
+        walletAddress: walletAddress || undefined 
+      });
       return await res.json();
     } catch (error: any) {
       if (unauthorizedBehavior === "returnNull" && error.status === 401) {
