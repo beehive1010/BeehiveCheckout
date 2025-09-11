@@ -28,6 +28,14 @@ export interface Notification {
   updatedAt: string;
   // Additional fields from Edge Function response
   source?: 'user' | 'reward';
+  // i18n support
+  i18n?: {
+    [languageCode: string]: {
+      title?: string;
+      message?: string;
+      actionType?: string;
+    };
+  };
 }
 
 export interface NotificationStats {
