@@ -140,113 +140,169 @@ export default function SimpleDashboard() {
           </p>
         </div>
 
-        {/* 主要数据卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          {/* BCC余额卡片 */}
-          <Card className="bg-gradient-to-br from-honey/10 to-honey/5 border-honey/20">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <DollarSign className="h-8 w-8 text-honey" />
-                <h3 className="text-lg font-semibold text-honey">{t('dashboard.bccBalance')}</h3>
-              </div>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="text-center">
-                  <div className="text-xl font-bold text-honey mb-1">
-                    {data.bccBalance}
+        {/* Premium 主要数据卡片 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* Premium BCC余额卡片 */}
+          <div className="group relative transition-all duration-500 hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-honey/20 via-orange-500/20 to-honey/20 rounded-3xl blur-lg group-hover:blur-xl"></div>
+            <Card className="relative border-0 bg-gradient-to-br from-white/95 via-white/98 to-white/95 dark:from-gray-900/95 dark:via-gray-800/98 dark:to-gray-900/95 backdrop-blur-xl rounded-3xl shadow-2xl transition-all duration-500 group-hover:shadow-3xl overflow-hidden">
+              <CardContent className="p-8">
+                {/* 头部图标和标题 */}
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-honey/30 to-orange-500/30 rounded-2xl blur-md group-hover:blur-lg transition-all duration-300"></div>
+                    <div className="relative p-4 rounded-2xl bg-gradient-to-br from-honey/20 to-orange-500/20 backdrop-blur-sm">
+                      <DollarSign className="h-8 w-8 text-honey transition-all duration-300 group-hover:scale-110" />
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground">{t('dashboard.bccBalance')}</div>
+                  <h3 className="text-xl font-bold bg-gradient-to-r from-honey via-orange-500 to-honey bg-clip-text text-transparent">
+                    {t('dashboard.bccBalance')}
+                  </h3>
                 </div>
-                <div className="text-center">
-                  <div className="text-xl font-bold text-orange-400 mb-1">
-                    {data.bccLocked}
+                
+                {/* 数据展示 */}
+                <div className="grid grid-cols-2 gap-6 mb-6">
+                  <div className="text-center p-4 rounded-2xl bg-gradient-to-br from-honey/10 to-orange-500/10 border border-honey/20 backdrop-blur-sm">
+                    <div className="text-3xl font-bold text-honey mb-2">
+                      {data.bccBalance}
+                    </div>
+                    <div className="text-sm font-medium text-muted-foreground">{t('dashboard.bccBalance')}</div>
                   </div>
-                  <div className="text-xs text-muted-foreground">{t('dashboard.bccLocked')}</div>
+                  <div className="text-center p-4 rounded-2xl bg-gradient-to-br from-orange-400/10 to-red-400/10 border border-orange-400/20 backdrop-blur-sm">
+                    <div className="text-3xl font-bold text-orange-400 mb-2">
+                      {data.bccLocked}
+                    </div>
+                    <div className="text-sm font-medium text-muted-foreground">{t('dashboard.bccLocked')}</div>
+                  </div>
                 </div>
+                
+                {/* Premium Button */}
+                <Button 
+                  onClick={() => setLocation('/tokens')}
+                  className="w-full h-12 bg-gradient-to-r from-honey via-orange-500 to-honey hover:from-honey/90 hover:via-orange-500/90 hover:to-honey/90 text-black font-bold text-base rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl shadow-honey/30"
+                  data-testid="button-topup"
+                >
+                  <Plus className="h-5 w-5 mr-3 transition-transform duration-200 group-hover:rotate-90" />
+                  {t('dashboard.topUp')}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Premium 推荐网络卡片 */}
+          <div className="group relative transition-all duration-500 hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-blue-500/20 rounded-3xl blur-lg group-hover:blur-xl"></div>
+            <Card className="relative border-0 bg-gradient-to-br from-white/95 via-white/98 to-white/95 dark:from-gray-900/95 dark:via-gray-800/98 dark:to-gray-900/95 backdrop-blur-xl rounded-3xl shadow-2xl transition-all duration-500 group-hover:shadow-3xl overflow-hidden">
+              <CardContent className="p-8">
+                {/* 头部图标和标题 */}
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/30 to-purple-500/30 rounded-2xl blur-md group-hover:blur-lg transition-all duration-300"></div>
+                    <div className="relative p-4 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-sm">
+                      <Users className="h-8 w-8 text-blue-400 transition-all duration-300 group-hover:scale-110" />
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
+                    {t('dashboard.referralNetwork')}
+                  </h3>
+                </div>
+                
+                {/* 数据展示 */}
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="text-center p-4 rounded-2xl bg-gradient-to-br from-blue-500/10 to-blue-600/10 border border-blue-500/20 backdrop-blur-sm">
+                    <div className="text-3xl font-bold text-blue-400 mb-2">
+                      {data.directReferrals}
+                    </div>
+                    <div className="text-sm font-medium text-muted-foreground">{t('dashboard.directReferrals')}</div>
+                  </div>
+                  <div className="text-center p-4 rounded-2xl bg-gradient-to-br from-purple-500/10 to-purple-600/10 border border-purple-500/20 backdrop-blur-sm">
+                    <div className="text-3xl font-bold text-purple-400 mb-2">
+                      {data.maxLayer}
+                    </div>
+                    <div className="text-sm font-medium text-muted-foreground">{t('dashboard.maxLayer')}</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Premium 奖励卡片 */}
+        <div className="group relative transition-all duration-500 hover:-translate-y-1 mb-8">
+          <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 via-emerald-500/20 to-green-500/20 rounded-3xl blur-lg group-hover:blur-xl"></div>
+          <Card className="relative border-0 bg-gradient-to-br from-white/95 via-white/98 to-white/95 dark:from-gray-900/95 dark:via-gray-800/98 dark:to-gray-900/95 backdrop-blur-xl rounded-3xl shadow-2xl transition-all duration-500 group-hover:shadow-3xl overflow-hidden">
+            <CardContent className="p-8">
+              {/* 头部图标和标题 */}
+              <div className="flex items-center gap-4 mb-6">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-green-500/30 to-emerald-500/30 rounded-2xl blur-md group-hover:blur-lg transition-all duration-300"></div>
+                  <div className="relative p-4 rounded-2xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 backdrop-blur-sm">
+                    <Award className="h-8 w-8 text-green-400 transition-all duration-300 group-hover:scale-110" />
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 bg-clip-text text-transparent">
+                  {t('dashboard.rewardCenter')}
+                </h3>
               </div>
               
-              {/* Top Up Button */}
-              <Button 
-                onClick={() => setLocation('/tokens')}
-                className="w-full bg-honey/10 hover:bg-honey/20 text-honey border border-honey/30"
-                variant="outline"
-                data-testid="button-topup"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                {t('dashboard.topUp')}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* 推荐网络卡片 */}
-          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Users className="h-8 w-8 text-blue-400" />
-                <h3 className="text-lg font-semibold text-blue-400">{t('dashboard.referralNetwork')}</h3>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center">
-                  <div className="text-xl font-bold text-blue-400 mb-1">
-                    {data.directReferrals}
+              {/* 数据展示 */}
+              <div className="grid grid-cols-2 gap-6">
+                <div className="text-center p-4 rounded-2xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 backdrop-blur-sm">
+                  <div className="text-3xl font-bold text-green-400 mb-2">
+                    ${data.totalRewards}
                   </div>
-                  <div className="text-xs text-muted-foreground">{t('dashboard.directReferrals')}</div>
+                  <div className="text-sm font-medium text-muted-foreground">{t('dashboard.totalRewards')}</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-xl font-bold text-purple-400 mb-1">
-                    {data.maxLayer}
+                <div className="text-center p-4 rounded-2xl bg-gradient-to-br from-yellow-400/10 to-amber-400/10 border border-yellow-400/20 backdrop-blur-sm">
+                  <div className="text-3xl font-bold text-yellow-400 mb-2">
+                    ${data.pendingRewards}
                   </div>
-                  <div className="text-xs text-muted-foreground">{t('dashboard.maxLayer')}</div>
+                  <div className="text-sm font-medium text-muted-foreground">{t('dashboard.pendingRewards')}</div>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* 奖励卡片 */}
-        <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20 mb-8">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Award className="h-8 w-8 text-green-400" />
-              <h3 className="text-lg font-semibold text-green-400">{t('dashboard.rewardCenter')}</h3>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center">
-                <div className="text-xl font-bold text-green-400 mb-1">
-                  ${data.totalRewards}
+        {/* Premium 推荐链接卡片 */}
+        <div className="group relative transition-all duration-500 hover:-translate-y-1 mb-8">
+          <div className="absolute inset-0 bg-gradient-to-br from-honey/20 via-yellow-400/20 to-honey/20 rounded-3xl blur-lg group-hover:blur-xl"></div>
+          <Card className="relative border-0 bg-gradient-to-br from-white/95 via-white/98 to-white/95 dark:from-gray-900/95 dark:via-gray-800/98 dark:to-gray-900/95 backdrop-blur-xl rounded-3xl shadow-2xl transition-all duration-500 group-hover:shadow-3xl overflow-hidden">
+            <CardContent className="p-8">
+              {/* 头部图标和标题 */}
+              <div className="flex items-center gap-4 mb-6">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-honey/30 to-yellow-400/30 rounded-2xl blur-md group-hover:blur-lg transition-all duration-300"></div>
+                  <div className="relative p-4 rounded-2xl bg-gradient-to-br from-honey/20 to-yellow-400/20 backdrop-blur-sm">
+                    <Share2 className="h-8 w-8 text-honey transition-all duration-300 group-hover:scale-110" />
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground">{t('dashboard.totalRewards')}</div>
+                <h3 className="text-xl font-bold bg-gradient-to-r from-honey via-yellow-400 to-honey bg-clip-text text-transparent">
+                  {t('dashboard.shareReferral')}
+                </h3>
               </div>
-              <div className="text-center">
-                <div className="text-xl font-bold text-yellow-400 mb-1">
-                  ${data.pendingRewards}
+              
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                {t('dashboard.shareDescription')}
+              </p>
+              
+              {/* 推荐链接展示 */}
+              <div className="relative mb-6">
+                <div className="absolute inset-0 bg-gradient-to-r from-honey/10 to-yellow-400/10 rounded-2xl blur-sm"></div>
+                <div className="relative bg-gradient-to-br from-gray-50/90 to-gray-100/90 dark:from-gray-800/90 dark:to-gray-900/90 backdrop-blur-sm rounded-2xl p-4 border border-honey/20">
+                  <div className="text-sm font-mono break-all text-honey font-medium">
+                    {`${window.location.origin}/register?ref=${walletAddress}`}
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground">{t('dashboard.pendingRewards')}</div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 推荐链接 */}
-        <Card className="mb-8 border-honey/20 bg-gradient-to-r from-honey/5 to-yellow-400/5">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Share2 className="h-5 w-5 text-honey" />
-              <h3 className="text-lg font-semibold text-honey">{t('dashboard.shareReferral')}</h3>
-            </div>
-            <p className="text-sm text-muted-foreground mb-4">
-              {t('dashboard.shareDescription')}
-            </p>
-            <div className="bg-background/50 rounded-lg p-3 mb-4 border border-border/50">
-              <div className="text-xs font-mono break-all text-honey">
-                {`${window.location.origin}/register?ref=${walletAddress}`}
-              </div>
-            </div>
-            <Button 
-              onClick={copyReferralLink} 
-              className="w-full bg-honey hover:bg-honey/90 text-black font-semibold"
-            >
-              <Copy className="h-4 w-4 mr-2" />
-              {t('dashboard.copyLink')}
+              
+              {/* Premium 复制按钮 */}
+              <Button 
+                onClick={copyReferralLink} 
+                className="w-full h-12 bg-gradient-to-r from-honey via-yellow-400 to-honey hover:from-honey/90 hover:via-yellow-400/90 hover:to-honey/90 text-black font-bold text-base rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl shadow-honey/30"
+              >
+                <Copy className="h-5 w-5 mr-3 transition-transform duration-200 group-hover:rotate-12" />
+                {t('dashboard.copyLink')}
             </Button>
           </CardContent>
         </Card>

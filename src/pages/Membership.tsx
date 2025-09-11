@@ -305,142 +305,211 @@ export default function Membership() {
           {t('membership.subtitle')}
         </p>
         
-        {/* Current Level Display */}
-        <div className="flex items-center justify-center gap-4 p-6 bg-gradient-to-r from-honey/10 to-orange-500/10 rounded-2xl border border-honey/30 max-w-md mx-auto">
-          <MembershipBadge level={currentLevel || 1} />
-          <div className="text-left">
-            <p className="text-sm text-muted-foreground">{t('membership.currentLevel')}</p>
-            <p className="text-2xl font-bold text-honey">Level {currentLevel || 1}</p>
-            <p className="text-xs text-muted-foreground">{t('membership.directReferrals')}: {directReferralsCount || 0}</p>
+        {/* Current Level Display - Premium Design */}
+        <div className="relative max-w-lg mx-auto">
+          <div className="absolute inset-0 bg-gradient-to-r from-honey/20 via-orange-500/20 to-honey/20 rounded-3xl blur-xl"></div>
+          <div className="relative flex items-center justify-center gap-6 p-8 bg-gradient-to-br from-white/90 via-white/95 to-white/90 dark:from-gray-900/90 dark:via-gray-800/95 dark:to-gray-900/90 rounded-3xl border border-white/20 dark:border-gray-700/30 backdrop-blur-lg shadow-2xl">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-honey/30 to-orange-500/30 rounded-full blur-md"></div>
+              <MembershipBadge level={currentLevel || 1} />
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-medium text-muted-foreground/80 mb-1">{t('membership.currentLevel')}</p>
+              <p className="text-3xl font-bold bg-gradient-to-r from-honey via-orange-500 to-honey bg-clip-text text-transparent">
+                Level {currentLevel || 1}
+              </p>
+              <p className="text-sm text-muted-foreground/70 mt-1">
+                <span className="inline-flex items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  {t('membership.directReferrals')}: <span className="font-semibold text-honey">{directReferralsCount || 0}</span>
+                </span>
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Membership Levels Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Premium Membership Levels Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {membershipLevels.map((membership) => {
           const status = getLevelStatus(membership.level);
           const totalPrice = membership.price + (membership.platformFee || 0);
           const Icon = membership.icon;
           
           return (
-            <Card 
+            <div 
               key={membership.level}
-              className={`relative transition-all duration-300 hover:shadow-lg ${membership.bgColor} ${membership.borderColor} ${
-                membership.isSpecial ? 'ring-2 ring-honey/20' : ''
-              } ${status === 'owned' ? 'opacity-75' : ''}`}
+              className={`group relative transition-all duration-500 hover:-translate-y-2 ${
+                status === 'owned' ? 'opacity-80' : ''
+              }`}
               data-testid={`card-membership-level-${membership.level}`}
             >
+              {/* Background Glow Effect */}
+              <div className={`absolute inset-0 rounded-3xl transition-all duration-500 ${
+                membership.isSpecial 
+                  ? 'bg-gradient-to-br from-honey/20 via-orange-500/20 to-honey/20 blur-xl group-hover:blur-2xl group-hover:scale-105' 
+                  : 'bg-gradient-to-br from-gray-200/20 via-gray-300/20 to-gray-200/20 dark:from-gray-700/20 dark:via-gray-600/20 dark:to-gray-700/20 blur-lg group-hover:blur-xl group-hover:scale-102'
+              }`}></div>
+              
+              {/* Special Featured Badge */}
               {membership.isSpecial && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-honey text-black font-semibold px-3 py-1">
-                    {t('membership.featured')}
-                  </Badge>
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-20">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-honey/50 to-orange-500/50 rounded-full blur-md"></div>
+                    <Badge className="relative bg-gradient-to-r from-honey via-orange-500 to-honey text-black font-bold px-4 py-2 text-sm shadow-lg">
+                      ✨ {t('membership.featured')}
+                    </Badge>
+                  </div>
                 </div>
               )}
-              
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-3 rounded-full ${membership.bgColor}`}>
-                      <Icon className={`h-6 w-6 ${membership.color}`} />
-                    </div>
-                    <div>
-                      <CardTitle className="text-xl font-bold">
-                        Level {membership.level}
-                      </CardTitle>
-                      {status === 'owned' && (
-                        <div className="flex items-center gap-1 text-emerald-600">
-                          <CheckCircle className="h-4 w-4" />
-                          <span className="text-sm font-medium">Owned</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {status === 'locked' && (
-                    <Lock className="h-5 w-5 text-muted-foreground" />
-                  )}
-                </div>
-              </CardHeader>
 
-              <CardContent className="space-y-4">
-                {/* Price */}
-                <div className="text-center p-4 bg-background/50 rounded-lg">
-                  <div className="text-3xl font-bold text-foreground">
-                    ${membership.price}
-                    {membership.platformFee && (
-                      <span className="text-lg text-muted-foreground"> + ${membership.platformFee}</span>
+              {/* Main Card */}
+              <Card className={`relative z-10 overflow-hidden border-0 bg-gradient-to-br from-white/95 via-white/98 to-white/95 dark:from-gray-900/95 dark:via-gray-800/98 dark:to-gray-900/95 backdrop-blur-xl rounded-3xl shadow-2xl transition-all duration-500 ${
+                membership.isSpecial 
+                  ? 'ring-2 ring-honey/30 shadow-honey/20' 
+                  : 'shadow-gray-200/50 dark:shadow-gray-800/50'
+              } group-hover:shadow-3xl`}>
+                
+                {/* Premium Header */}
+                <CardHeader className="relative p-8 pb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                      {/* Icon with Glow */}
+                      <div className="relative">
+                        <div className={`absolute inset-0 rounded-2xl transition-all duration-300 ${
+                          membership.isSpecial 
+                            ? 'bg-gradient-to-r from-honey/30 to-orange-500/30 blur-md group-hover:blur-lg' 
+                            : 'bg-gradient-to-r from-gray-300/30 to-gray-400/30 dark:from-gray-600/30 dark:to-gray-700/30 blur-sm group-hover:blur-md'
+                        }`}></div>
+                        <div className={`relative p-4 rounded-2xl ${
+                          membership.isSpecial 
+                            ? 'bg-gradient-to-br from-honey/20 to-orange-500/20' 
+                            : membership.bgColor
+                        } backdrop-blur-sm`}>
+                          <Icon className={`h-8 w-8 ${membership.color} transition-all duration-300 group-hover:scale-110`} />
+                        </div>
+                      </div>
+                      
+                      {/* Level Title */}
+                      <div>
+                        <CardTitle className={`text-2xl font-bold mb-1 ${
+                          membership.isSpecial 
+                            ? 'bg-gradient-to-r from-honey via-orange-500 to-honey bg-clip-text text-transparent' 
+                            : 'text-foreground'
+                        }`}>
+                          Level {membership.level}
+                        </CardTitle>
+                        {status === 'owned' && (
+                          <div className="flex items-center gap-2 text-emerald-600">
+                            <CheckCircle className="h-5 w-5" />
+                            <span className="text-sm font-semibold">已拥有</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {status === 'locked' && (
+                      <div className="p-2 rounded-full bg-gray-100 dark:bg-gray-800">
+                        <Lock className="h-5 w-5 text-muted-foreground" />
+                      </div>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {membership.platformFee ? `Total: $${totalPrice} USDC` : '$USDC'}
-                  </p>
-                </div>
 
-                {/* Benefits */}
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-foreground">Benefits:</h4>
-                  <ul className="space-y-2">
-                    {membership.benefits.map((benefit, index) => (
-                      <li key={index} className="flex items-start gap-2 text-sm">
-                        <CheckCircle className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-muted-foreground">{benefit}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                  {/* Premium Price Display */}
+                  <div className={`text-center p-6 rounded-2xl ${
+                    membership.isSpecial 
+                      ? 'bg-gradient-to-br from-honey/10 via-orange-500/10 to-honey/10 border border-honey/20' 
+                      : 'bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 border border-gray-200/50 dark:border-gray-700/50'
+                  } backdrop-blur-sm transition-all duration-300 group-hover:scale-105`}>
+                    <div className={`text-4xl font-bold mb-2 ${
+                      membership.isSpecial 
+                        ? 'bg-gradient-to-r from-honey via-orange-500 to-honey bg-clip-text text-transparent' 
+                        : 'text-foreground'
+                    }`}>
+                      ${membership.price}
+                    </div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      USDC Payment
+                    </p>
+                  </div>
+                </CardHeader>
 
-                {/* Action Button */}
-                <div className="pt-4">
-                  {status === 'owned' ? (
-                    <Button 
-                      disabled 
-                      className="w-full bg-emerald-100 text-emerald-700 hover:bg-emerald-100"
-                      data-testid={`button-owned-${membership.level}`}
-                    >
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      {t('membership.owned')}
-                    </Button>
-                  ) : status === 'available' ? (
-                    <Button 
-                      onClick={() => handleClaimLevel(membership.level)}
-                      disabled={claimState.loading}
-                      className="w-full bg-honey hover:bg-honey/90 text-black font-semibold"
-                      data-testid={`button-claim-${membership.level}`}
-                    >
-                      {claimState.level === membership.level && claimState.loading ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          {t('membership.claiming.inProgress')}
-                        </>
-                      ) : (
-                        <>
-                          <ArrowRight className="h-4 w-4 mr-2" />
-                          {t('membership.claim')} ${totalPrice}
-                        </>
-                      )}
-                    </Button>
-                  ) : (
-                    <Button 
-                      disabled 
-                      className="w-full bg-muted text-muted-foreground"
-                      data-testid={`button-locked-${membership.level}`}
-                    >
-                      <Lock className="h-4 w-4 mr-2" />
-                      {t('membership.locked')}
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                <CardContent className="p-8 pt-4 space-y-6">
+                  {/* Premium Benefits */}
+                  <div className="space-y-4">
+                    <h4 className="font-bold text-lg text-foreground mb-4 flex items-center gap-2">
+                      <Award className="h-5 w-5 text-honey" />
+                      专属权益
+                    </h4>
+                    <ul className="space-y-3">
+                      {membership.benefits.slice(0, 4).map((benefit, index) => (
+                        <li key={index} className="flex items-start gap-3 text-sm group/benefit">
+                          <div className="p-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 transition-all duration-200 group-hover/benefit:scale-110">
+                            <CheckCircle className="h-3 w-3 text-emerald-500" />
+                          </div>
+                          <span className="text-muted-foreground font-medium leading-relaxed">{benefit}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Premium Action Button */}
+                  <div className="pt-6">
+                    {status === 'owned' ? (
+                      <Button 
+                        disabled 
+                        className="w-full h-14 bg-gradient-to-r from-emerald-100 to-emerald-200 dark:from-emerald-900/50 dark:to-emerald-800/50 text-emerald-700 dark:text-emerald-400 hover:from-emerald-200 hover:to-emerald-300 dark:hover:from-emerald-800/50 dark:hover:to-emerald-700/50 font-bold text-base rounded-2xl border border-emerald-200 dark:border-emerald-800"
+                        data-testid={`button-owned-${membership.level}`}
+                      >
+                        <CheckCircle className="h-5 w-5 mr-3" />
+                        已购买成功
+                      </Button>
+                    ) : status === 'available' ? (
+                      <Button 
+                        onClick={() => handleClaimLevel(membership.level)}
+                        disabled={claimState.loading}
+                        className={`w-full h-14 font-bold text-base rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl ${
+                          membership.isSpecial 
+                            ? 'bg-gradient-to-r from-honey via-orange-500 to-honey hover:from-honey/90 hover:via-orange-500/90 hover:to-honey/90 text-black shadow-honey/30' 
+                            : 'bg-gradient-to-r from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white shadow-gray-800/30'
+                        }`}
+                        data-testid={`button-claim-${membership.level}`}
+                      >
+                        {claimState.level === membership.level && claimState.loading ? (
+                          <>
+                            <Loader2 className="h-5 w-5 mr-3 animate-spin" />
+                            处理中...
+                          </>
+                        ) : (
+                          <>
+                            <ArrowRight className="h-5 w-5 mr-3 transition-transform duration-200 group-hover:translate-x-1" />
+                            立即购买 ${totalPrice}
+                          </>
+                        )}
+                      </Button>
+                    ) : (
+                      <Button 
+                        disabled 
+                        className="w-full h-14 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 text-muted-foreground font-semibold text-base rounded-2xl border border-gray-200 dark:border-gray-700"
+                        data-testid={`button-locked-${membership.level}`}
+                      >
+                        <Lock className="h-5 w-5 mr-3" />
+                        暂未解锁
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           );
         })}
       </div>
 
-      {/* Info Section */}
-      <div className="mt-12 p-6 bg-gradient-to-r from-honey/5 to-orange-500/5 rounded-2xl border border-honey/20">
-        <div className="text-center space-y-4">
+      {/* Premium Info Section */}
+      <div className="mt-16 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-honey/10 via-orange-500/10 to-honey/10 rounded-3xl blur-xl"></div>
+        <div className="relative p-8 bg-gradient-to-br from-white/90 via-white/95 to-white/90 dark:from-gray-900/90 dark:via-gray-800/95 dark:to-gray-900/90 rounded-3xl border border-white/20 dark:border-gray-700/30 backdrop-blur-lg shadow-2xl">
+          <div className="text-center space-y-6">
           <div className="flex items-center justify-center gap-2">
             <Users className="h-6 w-6 text-honey" />
             <h3 className="text-xl font-bold text-foreground">{t('membership.progressInfo.title')}</h3>
