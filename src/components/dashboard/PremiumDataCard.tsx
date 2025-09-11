@@ -41,11 +41,11 @@ export default function PremiumDataCard({
       <Card className="relative border-0 bg-gradient-to-br from-white/95 via-white/98 to-white/95 dark:from-gray-900/95 dark:via-gray-800/98 dark:to-gray-900/95 backdrop-blur-xl rounded-3xl shadow-2xl transition-all duration-500 group-hover:shadow-3xl overflow-hidden">
         <CardContent className="p-4 sm:p-6 lg:p-8">
           {/* 头部图标和标题 */}
-          <div className="flex items-center gap-4 mb-6">
+          <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
             <div className="relative">
               <div className={`absolute inset-0 bg-gradient-to-r ${gradientFrom} ${gradientTo} rounded-2xl blur-md group-hover:blur-lg transition-all duration-300`}></div>
-              <div className={`relative p-4 rounded-2xl bg-gradient-to-br ${gradientFrom} ${gradientTo} backdrop-blur-sm`}>
-                <Icon className={`h-8 w-8 ${iconColor} transition-all duration-300 group-hover:scale-110`} />
+              <div className={`relative p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-br ${gradientFrom} ${gradientTo} backdrop-blur-sm`}>
+                <Icon className={`h-6 w-6 sm:h-8 sm:w-8 ${iconColor} transition-all duration-300 group-hover:scale-110`} />
               </div>
             </div>
             <h3 className={`text-lg sm:text-xl font-bold bg-gradient-to-r ${iconColor} bg-clip-text text-transparent`}>
@@ -69,10 +69,10 @@ export default function PremiumDataCard({
           {action && (
             <Button 
               onClick={action.onClick}
-              className={`w-full h-12 bg-gradient-to-r ${gradientFrom} ${gradientTo} hover:opacity-90 text-black font-bold text-base rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl`}
+              className={`w-full h-11 sm:h-12 bg-gradient-to-r ${gradientFrom} ${gradientTo} hover:opacity-90 text-black font-bold text-sm sm:text-base rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl`}
               data-testid={action.testId}
             >
-              {action.icon && <action.icon className="h-5 w-5 mr-3 transition-transform duration-200 group-hover:rotate-90" />}
+              {action.icon && <action.icon className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 transition-transform duration-200 group-hover:rotate-90" />}
               {action.label}
             </Button>
           )}
