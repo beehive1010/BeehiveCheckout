@@ -315,8 +315,13 @@ export const NotificationSystem: React.FC<NotificationSystemProps> = ({ classNam
             </p>
 
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>{new Date(notification.created_at).toLocaleString()}</span>
-              {notification.expires_at && (
+              <span>
+                {notification.created_at && !isNaN(new Date(notification.created_at).getTime())
+                  ? new Date(notification.created_at).toLocaleString()
+                  : 'Recently'
+                }
+              </span>
+              {notification.expires_at && !isNaN(new Date(notification.expires_at).getTime()) && (
                 <span className="text-orange-600 dark:text-orange-400">
                   Expires: {new Date(notification.expires_at).toLocaleDateString()}
                 </span>
