@@ -1031,5 +1031,1242 @@
     "useValidReferrer": "등록된 회원의 추천 링크를 사용하세요.",
     "validationFailed": "검증 실패",
     "validationFailedDesc": "등록 또는 추천인 상태를 확인할 수 없습니다. 새로고침 후 다시 시도하세요."
+  },
+  "membership": {
+    "title": "멤버십 레벨",
+    "subtitle": "멤버십을 업그레이드하여 독점 혜택과 더 높은 보상을 잠금 해제",
+    "currentLevel": "현재 레벨",
+    "featured": "추천",
+    "owned": "소유됨",
+    "claim": "클레임",
+    "locked": "잠김",
+    "progressInfo": {
+      "title": "점진적 멤버십 시스템",
+      "description": "멤버십 레벨은 순차적으로 클레임해야 합니다. 각 레벨은 향상된 혜택, 증가된 보상 및 독점 플랫폼 기능을 잠금 해제합니다.",
+      "sequential": "순차적 업그레이드 필요",
+      "rewards": "향상된 보상 배율",
+      "benefits": "독점 혜택 및 기능"
+    },
+    "errors": {
+      "walletRequired": "지갑 필요",
+      "connectWallet": "먼저 지갑을 연결하세요",
+      "levelLocked": "레벨 잠김",
+      "previousLevelRequired": "레벨 {nextLevel}을 클레임하기 전에 레벨 {level} NFT를 소유해야 합니다",
+      "claimFailed": "클레임 실패",
+      "sequentialUpgrade": "먼저 레벨 {nextLevel}로 업그레이드해야 합니다. 레벨을 건너뛸 수 없습니다.",
+      "alreadyOwned": "이미 레벨 {level} NFT를 소유하고 있습니다. 각 레벨은 한 번만 구매할 수 있습니다.",
+      "level2Requirements": "레벨 2는 3명의 활성 직접 추천이 필요합니다. 먼저 더 많은 멤버를 초대하세요.",
+      "missingPrerequisites": "필수 조건 레벨이 누락되었습니다. 먼저 낮은 레벨을 완료하세요."
+    },
+    "claiming": {
+      "started": "레벨 {level} 클레임 시작",
+      "processing": "${price} USDC의 NFT 클레임 처리 중",
+      "inProgress": "클레임 중...",
+      "success": "🎉 레벨 {level} NFT 클레임 완료!",
+      "successDescription": "레벨 {level} 클레임이 성공적으로 처리되었습니다. ${price} BCC 보상을 획득했습니다!"
+    },
+    "purchase": {
+      "button": "멤버십 잠금 해제 - 130 USDT",
+      "connectWallet": "구매를 위해 지갑 연결",
+      "selectChain": "결제 체인 선택",
+      "selectChainDescription": "레벨 {level} 멤버십 결제에 사용할 블록체인을 선택하세요",
+      "payWithGas": "{symbol}로 가스 수수료 지불",
+      "approving": "USDT 승인 중...",
+      "preparing": "준비 중...",
+      "paying": "결제 처리 중...",
+      "verifying": "거래 확인 중...",
+      "finalizing": "멤버십 완료 중...",
+      "completed": "✅ 멤버십이 활성화되었습니다!",
+      "retry": "구매 재시도",
+      "success": {
+        "title": "멤버십이 활성화되었습니다!",
+        "description": "Beehive에 오신 것을 환영합니다! 레벨 1 멤버십이 활성화되었습니다."
+      },
+      "error": {
+        "title": "구매 실패",
+        "description": "멤버십 구매를 완료할 수 없습니다. 다시 시도하세요."
+      }
+    },
+    "levels": {
+      "title": "멤버십 레벨",
+      "subtitle": "레벨을 선택하여 독점 혜택을 잠금 해제",
+      "currentLevel": "현재 레벨",
+      "priceUSDT": "USDT",
+      "benefits": "주요 혜택",
+      "owned": "소유됨",
+      "selected": "선택됨",
+      "activated": "활성화됨",
+      "higherLevelOwned": "더 높은 레벨이 활성화됨",
+      "selectionInfo": "구매 버튼을 클릭하여 이 멤버십 레벨을 획득하세요"
+    },
+    "level": {
+      "1": {
+        "title": "전사",
+        "subtitle": "전사 • 상승을 시작 • $130 USDT"
+      },
+      "2": {
+        "title": "브론즈",
+        "subtitle": "브론즈 • 헌신 증명 • $130 USDT"
+      },
+      "3": {
+        "title": "실버",
+        "subtitle": "실버 • 떠오르는 스타 • $160 USDT"
+      },
+      "4": {
+        "title": "골드",
+        "subtitle": "골드 • 엘리트 지위 • $240 USDT"
+      },
+      "5": {
+        "title": "플래티넘",
+        "subtitle": "플래티넘 • 뛰어난 멤버 • $400 USDT"
+      },
+      "6": {
+        "title": "다이아몬드",
+        "subtitle": "다이아몬드 • 명성 있는 순위 • $720 USDT"
+      },
+      "7": {
+        "title": "마스터",
+        "subtitle": "마스터 • 숙련된 실무자 • $1,360 USDT"
+      },
+      "8": {
+        "title": "그랜드마스터",
+        "subtitle": "그랜드마스터 • 최고 숙련도 • $2,640 USDT"
+      },
+      "9": {
+        "title": "엘리트",
+        "subtitle": "엘리트 • 예외적 우수성 • $5,200 USDT"
+      },
+      "10": {
+        "title": "수프림",
+        "subtitle": "수프림 • 빛나는 성취 • $10,320 USDT"
+      },
+      "11": {
+        "title": "레전드",
+        "subtitle": "레전드 • 신화적 힘 • $20,560 USDT"
+      },
+      "12": {
+        "title": "미스티컬",
+        "subtitle": "미스티컬 • 고대의 지혜 • $41,040 USDT"
+      },
+      "13": {
+        "title": "불멸",
+        "subtitle": "불멸 • 영원한 존재 • $82,000 USDT"
+      },
+      "14": {
+        "title": "천상",
+        "subtitle": "천상 • 신성한 승천 • $163,920 USDT"
+      },
+      "15": {
+        "title": "초월",
+        "subtitle": "초월 • 필멸자 영역 너머 • $327,760 USDT"
+      },
+      "16": {
+        "title": "신성",
+        "subtitle": "신성 • 신과 같은 힘 • $655,440 USDT"
+      },
+      "17": {
+        "title": "우주",
+        "subtitle": "우주 • 우주의 힘 • $1,310,800 USDT"
+      },
+      "18": {
+        "title": "유니버설",
+        "subtitle": "유니버설 • 무한한 숙련도 • $2,621,520 USDT"
+      },
+      "19": {
+        "title": "신화 피크",
+        "subtitle": "신화 피크 • 궁극의 정점 • $1,000,000 USDT"
+      }
+    },
+    "benefits": {
+      "l1": {
+        "basic": "기본 플랫폼 액세스",
+        "education": "교육 콘텐츠 액세스",
+        "rewards": "추천 보상 자격"
+      },
+      "l2": {
+        "enhanced": "향상된 보상 배율",
+        "bonus": "레벨 2 보너스 기능",
+        "network": "확장된 네트워크 액세스"
+      },
+      "l3": {
+        "advanced": "고급 거래 도구",
+        "exclusive": "독점 멤버 이벤트",
+        "priority": "우선 고객 지원"
+      },
+      "l4": {
+        "premium": "프리미엄 콘텐츠 라이브러리",
+        "mentorship": "멘토십 기회",
+        "tools": "전문 거래 도구"
+      },
+      "l5": {
+        "elite": "엘리트 멤버 지위",
+        "leadership": "리더십 개발",
+        "insights": "시장 인사이트 액세스"
+      },
+      "l6": {
+        "mastery": "마스터 레벨 리소스",
+        "networking": "VIP 네트워킹 이벤트",
+        "rewards": "향상된 보상률"
+      },
+      "l7": {
+        "expert": "전문가 레벨 인증",
+        "community": "비공개 커뮤니티 액세스",
+        "alpha": "알파 투자 기회"
+      },
+      "l8": {
+        "legendary": "레전드 지위 특권",
+        "influence": "플랫폼 영향력 투표",
+        "opportunities": "독점 기회"
+      },
+      "l9": {
+        "mastery": "완전한 시스템 숙련도",
+        "inner_circle": "내부 서클 멤버십",
+        "exclusive": "초독점 혜택"
+      },
+      "l10": {
+        "grandmaster": "그랜드마스터 인정",
+        "authority": "플랫폼 권위 역할",
+        "legacy": "레거시 프로그램 액세스"
+      },
+      "l11": {
+        "wisdom": "지혜 위원회 멤버",
+        "cosmic": "우주 레벨 보상",
+        "transcendent": "초월적 혜택"
+      },
+      "l12": {
+        "oracle": "오라클 고문 역할",
+        "foresight": "시장 예측 도구",
+        "divine": "신성 등급 특권"
+      },
+      "l13": {
+        "immortal": "불멸 지위 혜택",
+        "eternal": "영원한 보상 스트림",
+        "infinite": "무한한 성장 잠재력"
+      },
+      "l14": {
+        "celestial": "천상 등급 액세스",
+        "heavenly": "천국의 보상률",
+        "ascended": "승천 멤버 특권"
+      },
+      "l15": {
+        "divine": "신성한 권위 지위",
+        "godlike": "신과 같은 영향력",
+        "ultimate": "궁극적 플랫폼 액세스"
+      },
+      "l16": {
+        "supreme": "최고 사령관 역할",
+        "omnipotent": "전능한 결정권",
+        "sovereign": "주권 멤버 권리"
+      },
+      "l17": {
+        "transcendent": "초월적 존재",
+        "beyond": "정상적인 한계를 넘어서",
+        "unlimited": "무제한 가능성"
+      },
+      "l18": {
+        "absolute": "절대적 권력 액세스",
+        "perfection": "완벽 등급 혜택",
+        "apex": "정점 프레데터 지위"
+      },
+      "l19": {
+        "mythical": "신화적 전설 지위",
+        "peak": "피크 성능 등급",
+        "legendary": "레전드 창립자 특권"
+      }
+    },
+    "activationSuccess": "멤버십 활성화 성공!",
+    "nftActivationFailed": "NFT 활성화에 실패했습니다. 다시 시도하세요.",
+    "walletNotConnected": "먼저 지갑을 연결하세요"
+  },
+  "dashboard": {
+    "welcomeBack": "돌아오신 것을 환영합니다, {username}님!",
+    "welcomeMember": "돌아오신 것을 환영합니다, 멤버님!",
+    "buildNetwork": "함께 당신의 하이브 네트워크를 구축해요",
+    "upgrade": "업그레이드",
+    "bccBalance": "BCC 잔고",
+    "bccLocked": "BCC 잠김",
+    "referralNetwork": "추천 네트워크",
+    "directReferrals": "직접 추천",
+    "maxLayer": "최대 레이어",
+    "rewardCenter": "보상 센터",
+    "totalRewards": "총 보상",
+    "pendingRewards": "대기 중인 보상",
+    "shareReferral": "추천 링크 공유",
+    "shareDescription": "링크를 공유하여 친구를 초대하고 추천 보상을 획득하세요",
+    "copyLink": "링크 복사",
+    "linkCopied": "링크가 클립보드에 복사되었습니다!",
+    "quickNavigation": "빠른 탐색",
+    "viewMatrix": "매트릭스 보기",
+    "claimRewards": "보상 클레임",
+    "inviteTip": "💡 친구를 초대하여 더 많은 기능과 보상을 잠금 해제하세요",
+    "topUp": "충전",
+    "level2Requirements": {
+      "title": "레벨 2 요구사항",
+      "needLevel1": "먼저 레벨 1에 도달해야 합니다",
+      "needReferrals": "레벨 2는 3명 이상의 직접 추천이 필요합니다 (현재: {current}명)",
+      "directReferralsOnly": "추천 링크를 통해 직접 등록한 사용자만 계산됩니다",
+      "excludesSpillover": "매트릭스 배치의 스필오버 사용자는 제외됩니다",
+      "howToInvite": "초대 방법: 추천 링크를 공유하여 친구들이 당신의 링크를 통해 등록하도록 하세요"
+    },
+    "errors": {
+      "dataLoadFailed": "데이터 로딩 실패",
+      "refreshToRetry": "새로고침 후 다시 시도하세요",
+      "loadError": "로딩 오류",
+      "retry": "재시도"
+    },
+    "success": {
+      "copied": "복사됨!",
+      "linkCopiedToClipboard": "추천 링크가 클립보드에 복사됨",
+      "refreshed": "데이터 새로고침됨",
+      "dataUpdated": "대시보드 데이터가 업데이트됨"
+    },
+    "refresh": "새로고침",
+    "refreshing": "새로고침 중...",
+    "loadingData": "로딩 중",
+    "lastUpdated": "마지막 업데이트",
+    "totalTeamSize": "총 팀 크기",
+    "claimableRewards": "클레임 가능한 보상",
+    "activitiesWillAppear": "플랫폼과 상호작용하면 여기에 활동이 표시됩니다",
+    "noActivities": "최근 활동 없음",
+    "recentActivities": "최근 활동",
+    "referralDescription": "이 링크를 공유하여 추천 보상을 획득하세요",
+    "referrals": "추천",
+    "nftRequired": {
+      "title": "Beehive에 오신 것을 환영합니다! 🎉",
+      "description": "레벨 1 워리어 NFT를 구매하여 멤버십을 완료하세요. 이것은 매트릭스에서 당신의 위치를 활성화하고 Web3 여정을 시작합니다.",
+      "requiredNft": "레벨 1 워리어 NFT",
+      "nftDescription": "멤버십을 활성화하기 위한 일회성 구매",
+      "level1Warrior": "레벨 1 워리어",
+      "tokenId": "토큰 ID: 0",
+      "price": "가격",
+      "priceAmount": "130 USDT",
+      "benefitsTitle": "잠금 해제될 것들:",
+      "benefits": {
+        "dashboard": "전체 대시보드 액세스",
+        "tasks": "작업 및 NFT 마켓플레이스",
+        "education": "교육 센터",
+        "discover": "Web3 DApps 발견",
+        "tokens": "BCC 토큰 시스템",
+        "matrix": "하이브월드 매트릭스 시스템"
+      },
+      "premiumTitle": "프리미엄 멤버십",
+      "premiumDescription": "레벨 1 NFT 멤버십을 활성화하고 매트릭스에서 위치를 차지하며 보상 획득을 시작하세요.",
+      "supportText": "블록체인 기술로 구동되는 안전한 Web3 결제",
+      "purchaseSuccess": {
+        "title": "멤버십이 활성화되었습니다!",
+        "description": "레벨 1 NFT가 구매되었고 멤버십이 활성화되었습니다."
+      },
+      "purchaseError": {
+        "title": "구매 실패",
+        "description": "NFT 구매에 실패했습니다. 다시 시도하세요."
+      },
+      "getButton": "멤버십 구매"
+    },
+    "activation": {
+      "title": "Beehive에 오신 것을 환영합니다",
+      "description": "블록체인 기반 보상이 있는 Web3 멤버십 및 학습 플랫폼. 레벨 1 멤버십을 활성화하여 시작하세요!",
+      "membershipLevel": "멤버십 레벨",
+      "price": "가격",
+      "priceLevel1": "130 USDT",
+      "activationNote": "활성화 후 작업, 교육, 하이브월드를 포함한 모든 멤버 기능에 액세스할 수 있습니다.",
+      "success": {
+        "title": "멤버십이 활성화되었습니다!",
+        "description": "Beehive에 오신 것을 환영합니다! 이제 모든 멤버 기능에 액세스할 수 있습니다."
+      },
+      "error": {
+        "title": "활성화 실패",
+        "description": "멤버십을 활성화할 수 없습니다. 다시 시도하거나 지원팀에 문의하세요."
+      }
+    },
+    "membershipLevel": "멤버십 레벨",
+    "activateLevel1": "레벨 1 범블비(BBC) NFT 활성화",
+    "activating": "활성화 중...",
+    "status": {
+      "active": "활성"
+    },
+    "balances": {
+      "bccFree": "BCC (자유)",
+      "bccLocked": "BCC (잠김)"
+    },
+    "quickActions": {
+      "tokens": {
+        "title": "토큰 구매",
+        "description": "여러 체인에서 BCC 및 CTH 토큰 구매",
+        "stat": "잔고:"
+      },
+      "tasks": {
+        "description": "BCC 토큰으로 판매자 NFT 탐색 및 클레임"
+      },
+      "education": {
+        "description": "코스 및 학습 자료에 액세스"
+      },
+      "hiveworld": {
+        "description": "추천 매트릭스 및 보상 보기"
+      }
+    },
+    "recentActivity": "최근 활동",
+    "member": "멤버",
+    "userCentre": "사용자 센터",
+    "verifying": "NFT 소유권 확인 중...",
+    "nftVerified": "NFT 확인됨",
+    "reward": "보상",
+    "nfts": "NFTs",
+    "accountOverview": "계정 개요",
+    "userAvatar": "사용자 아바타",
+    "levelText": "레벨 {{level}}",
+    "priceLevel1": "130 USDT",
+    "activity": {
+      "rewardReceived": "보상 수령",
+      "fromReferralUpgrade": "추천 업그레이드로부터",
+      "rewardAmount": "+{{amount}} 보상",
+      "nftClaimed": "NFT 클레임됨",
+      "merchantNft": "판매자 NFT 구매됨",
+      "bccDeduction": "-{{amount}} BCC",
+      "newReferral": "새로운 추천",
+      "userJoined": "사용자가 네트워크에 참여함",
+      "activeStatus": "활성"
+    },
+    "referralLink": {
+      "title": "추천 링크",
+      "show": "표시",
+      "hide": "숨김",
+      "copy": "추천 링크 복사",
+      "copied": "링크 복사됨!",
+      "copiedDesc": "추천 링크가 클립보드에 복사됨"
+    },
+    "shareToEarn": "링크를 공유하여 추천으로부터 수수료를 획득하세요",
+    "referralLinkCopied": "추천 링크 복사됨",
+    "social": {
+      "twitter": "Twitter",
+      "telegram": "Telegram",
+      "whatsapp": "WhatsApp"
+    },
+    "stats": {
+      "directReferrals": "직접 추천",
+      "teamSize": "팀 크기",
+      "totalEarnings": "총 수익",
+      "bccBalance": "BCC 잔고",
+      "thisMonth": "이번 달",
+      "totalMembers": "총 멤버",
+      "allTime": "전체 기간",
+      "matrixNetwork": "매트릭스 네트워크",
+      "networkGrowth": "네트워크 성장",
+      "teamPerformance": "팀 성과",
+      "layerProgress": "레이어 진행",
+      "totalRewards": "총 보상",
+      "nftsOwned": "소유한 NFT"
+    },
+    "tokenPurchase": {
+      "bccDescription": "플랫폼 사용을 위한 Beehive 암호화폐 구매",
+      "cthDescription": "Alpha Centauri 생태계용 CTH 토큰 구매",
+      "topUpDescription": "Beehive 생태계에 참여하기 위한 BCC 및 CTH 토큰 구매"
+    },
+    "globalStats": {
+      "title": "글로벌 통계",
+      "totalMembers": "총 멤버",
+      "totalRewardsPaid": "지급된 총 보상",
+      "pendingRewards": "대기 중인 보상",
+      "highestLevel": "최고 레벨",
+      "membersByLevel": "레벨별 멤버",
+      "members": "멤버"
+    },
+    "uplineNetwork": {
+      "title": "업라인 네트워크",
+      "earnings": "수익",
+      "loading": "네트워크 데이터 로딩 중...",
+      "noReferrals": "추천 데이터 없음",
+      "shareMessage": "추천 링크를 공유하여 네트워크를 성장시키세요"
+    },
+    "downlineNetwork": {
+      "title": "당신의 다운라인 네트워크"
+    },
+    "downlineMatrix": {
+      "title": "다운라인 매트릭스",
+      "placement": "배치"
+    },
+    "actions": {
+      "upgradeLevel": "레벨 업그레이드",
+      "upgradeDescription": "다음 멤버십 레벨 구매",
+      "viewReferrals": "추천 보기",
+      "referralsDescription": "추천 네트워크 관리",
+      "claimNFT": "NFT 클레임",
+      "nftDescription": "BCC로 판매자 NFT 클레임",
+      "learnEarn": "학습 및 수익",
+      "educationDescription": "프리미엄 코스에 액세스"
+    },
+    "registrationExpiry": {
+      "warning": "등록이 곧 만료됩니다! 계속하려면 멤버십을 활성화하세요:"
+    },
+    "layer": {
+      "name": "레이어",
+      "members": "멤버",
+      "upgraded": "업그레이드됨",
+      "placements": "배치"
+    }
+  },
+  "registration": {
+    "title": "등록 완료",
+    "subtitle": "Beehive 프로필 설정",
+    "walletAddress": "지갑 주소",
+    "email": "이메일 주소",
+    "emailPlaceholder": "이메일을 입력하세요",
+    "username": "사용자명",
+    "usernamePlaceholder": "사용자명을 선택하세요",
+    "secondaryPassword": "보조 비밀번호",
+    "passwordPlaceholder": "안전한 비밀번호를 만드세요",
+    "confirmPassword": "비밀번호 확인",
+    "confirmPasswordPlaceholder": "비밀번호를 확인하세요",
+    "referrer": "업라인 추천인",
+    "register": "등록 완료",
+    "registering": "처리 중...",
+    "agreement": "등록하면 서비스 약관 및 개인정보 보호정책에 동의하는 것입니다",
+    "noReferrerInfo": {
+      "title": "추천 링크 필요",
+      "description": "Beehive에 가입하려면 기존 멤버의 추천 링크가 필요합니다. 이는 3×3 매트릭스 시스템에서 업라인에 연결합니다.",
+      "getLink": "시작하려면 Beehive 멤버에게 추천 링크를 요청하세요."
+    },
+    "errors": {
+      "emailRequired": "이메일 주소가 필요합니다",
+      "emailInvalid": "유효한 이메일 주소를 입력하세요",
+      "usernameRequired": "사용자명이 필요합니다",
+      "usernameTooShort": "사용자명은 최소 3자 이상이어야 합니다",
+      "passwordRequired": "보조 비밀번호가 필요합니다",
+      "passwordTooShort": "비밀번호는 최소 6자 이상이어야 합니다",
+      "passwordMismatch": "비밀번호가 일치하지 않습니다",
+      "referrerRequired": "등록하려면 유효한 추천 링크가 필요합니다"
+    },
+    "success": "등록 성공!",
+    "welcomeBack": "다시 오신 것을 환영합니다!",
+    "accountExists": "계정이 이미 존재합니다. 다시 등록할 필요가 없습니다",
+    "welcomeMessage": "프로필이 생성되었습니다. 이제 멤버십을 활성화할 수 있습니다.",
+    "failed": "등록 실패",
+    "unknownError": "다시 시도하거나 문제가 지속되면 지원팀에 문의하세요.",
+    "error": {
+      "title": "등록 실패",
+      "description": "다시 시도하거나 문제가 지속되면 지원팀에 문의하세요."
+    },
+    "walletRequired": {
+      "title": "지갑 연결 필요",
+      "description": "등록을 완료하려면 먼저 지갑을 연결하세요."
+    }
+  },
+  "education": {
+    "title": "교육 센터",
+    "subtitle": "블록체인, DeFi, Web3 기술 학습",
+    "allLevels": "모든 레벨",
+    "filterByLevel": "레벨별 필터",
+    "insufficientBalance": "잔고 부족",
+    "insufficientBalanceDesc": "이 코스를 구매하기에 충분한 BCC가 없습니다",
+    "level": "레벨",
+    "levelRequiredDesc": "이 코스는 더 높은 멤버십 레벨이 필요합니다",
+    "noCourses": "이용 가능한 코스 없음",
+    "purchaseError": "구매 실패",
+    "purchaseErrorDesc": "코스 구매에 실패했습니다. 다시 시도하세요.",
+    "purchaseSuccess": "구매 성공",
+    "purchaseSuccessDesc": "코스가 라이브러리에 추가되었습니다",
+    "searchPlaceholder": "코스 검색...",
+    "search": {
+      "placeholder": "코스, 주제 또는 강사 검색..."
+    },
+    "filters": {
+      "category": "카테고리",
+      "allCategories": "모든 카테고리",
+      "level": "레벨",
+      "allLevels": "모든 레벨",
+      "type": "유형",
+      "allTypes": "모든 유형",
+      "payment": "결제",
+      "allCourses": "모든 코스",
+      "onlineZoom": "온라인 (Zoom)",
+      "videoLessons": "비디오 레슨",
+      "freeCourses": "무료 코스",
+      "paidBCC": "유료 (BCC)"
+    },
+    "progress": {
+      "title": "학습 진행",
+      "subtitle": "교육 여정 추적",
+      "completed": "완료됨",
+      "inProgress": "진행 중",
+      "hours": "시간",
+      "label": "진행",
+      "coursesCompleted": "완료된 코스",
+      "hoursLearned": "학습 시간"
+    },
+    "free": "무료",
+    "levelRequired": "필요 레벨",
+    "duration": "소요 시간",
+    "completed": "완료됨",
+    "continue": "학습 계속",
+    "startFree": "코스 시작",
+    "purchase": "코스 구매",
+    "enrolling": "등록 중...",
+    "insufficientBCC": "BCC 부족",
+    "courseType": {
+      "online": "라이브 온라인",
+      "video": "자기 주도 비디오"
+    },
+    "buttons": {
+      "viewDetails": "세부사항 보기",
+      "claimFree": "무료 코스 클레임",
+      "purchaseCourse": "코스 구매",
+      "completed": "완료됨",
+      "continue": "계속",
+      "getAccess": "액세스 획득",
+      "enrollNow": "지금 등록",
+      "startLearning": "학습 시작",
+      "enrolled": "등록됨",
+      "levelRequired": "레벨 필요"
+    },
+    "status": {
+      "clickToView": "세부사항을 보고 등록하려면 클릭",
+      "enrolled": "등록됨",
+      "available": "이용 가능",
+      "requiresUpgrade": "레벨 {level} 필요",
+      "requiresBCC": "{amount} BCC 필요"
+    },
+    "courseDetails": {
+      "overview": "코스 개요",
+      "curriculum": "커리큘럼",
+      "lessons": "레슨",
+      "instructor": "강사",
+      "requirements": "요구사항",
+      "whatYouLearn": "학습 내용",
+      "courseContent": "코스 콘텐츠",
+      "zoomDetails": "Zoom 회의 세부사항",
+      "meetingId": "회의 ID",
+      "password": "비밀번호",
+      "joinLink": "회의 참가"
+    },
+    "lessons": {
+      "lesson": "레슨",
+      "unlock": "레슨 잠금 해제",
+      "unlocking": "잠금 해제 중...",
+      "watch": "레슨 시청",
+      "completed": "완료됨",
+      "locked": "잠김",
+      "free": "무료",
+      "progress": "진행: {percent}%"
+    },
+    "enroll": {
+      "success": {
+        "title": "등록 성공!",
+        "description": "이제 이 코스에 액세스할 수 있습니다."
+      },
+      "error": {
+        "title": "등록 실패",
+        "description": "코스에 등록할 수 없습니다. 다시 시도하세요."
+      }
+    },
+    "errors": {
+      "courseNotFound": "코스를 찾을 수 없음",
+      "loadingError": "코스 데이터 로딩 실패",
+      "accessDenied": "액세스 거부 - 레벨 또는 BCC 부족",
+      "networkError": "네트워크 오류 - 다시 시도하세요"
+    }
+  },
+  "discover": {
+    "title": "발견",
+    "subtitle": "Web3 DApps 및 서비스 탐색",
+    "searchPlaceholder": "파트너 검색...",
+    "search": {
+      "placeholder": "DApps, 프로토콜 또는 서비스 검색...",
+      "recent": "최근",
+      "trending": "트렌딩",
+      "clear": "지우기"
+    },
+    "featured": {
+      "title": "Beehive 추천",
+      "viewAll": "전체 보기"
+    },
+    "categories": {
+      "title": "카테고리",
+      "all": "전체",
+      "defi": "DeFi",
+      "nft": "NFT",
+      "gamefi": "GameFi",
+      "dao": "DAO",
+      "bridge": "브리지",
+      "lending": "대출",
+      "dex": "DEX",
+      "yield": "수익률",
+      "insurance": "보험",
+      "social": "소셜",
+      "tools": "도구",
+      "education": "교육"
+    },
+    "trending": {
+      "title": "지금 트렌딩",
+      "subtitle": "생태계에서 인기 있는 DApps",
+      "users": "사용자",
+      "tvl": "TVL",
+      "volume": "24시간 거래량"
+    },
+    "ecosystem": {
+      "title": "BeeHive 생태계",
+      "subtitle": "네이티브 플랫폼 서비스 및 도구",
+      "membership": {
+        "title": "멤버십 시스템",
+        "subtitle": "워리어부터 미스틱 피크까지 19레벨 진행",
+        "levels": "19 레벨",
+        "members": "활성 멤버"
+      },
+      "matrix": {
+        "title": "3×3 매트릭스",
+        "subtitle": "분산화된 추천 및 보상 시스템",
+        "structure": "자동 배치",
+        "rewards": "즉시 보상"
+      },
+      "education": {
+        "title": "교육 허브",
+        "subtitle": "Web3 학습 및 스킬 개발",
+        "courses": "코스",
+        "certificates": "인증서"
+      }
+    },
+    "networks": {
+      "title": "지원 네트워크",
+      "subtitle": "멀티체인 생태계 지원"
+    },
+    "stats": {
+      "title": "플랫폼 통계",
+      "totalValue": "총 잠금 가치",
+      "transactions": "총 거래",
+      "users": "활성 사용자",
+      "protocols": "통합 프로토콜"
+    },
+    "news": {
+      "title": "최신 뉴스",
+      "subtitle": "Web3 개발의 최신 소식 받아보기",
+      "readMore": "더 읽기",
+      "minutes": "분 읽기",
+      "matrix30": {
+        "title": "Matrix 3.0 출시 - 강화된 보상",
+        "description": "개선된 보상 분배와 더 빠른 처리 시간을 갖춘 업그레이드된 매트릭스 시스템을 경험하세요"
+      },
+      "bridge": {
+        "title": "멀티체인 브리지 통합",
+        "description": "새로운 브리지 기술로 여러 블록체인 간에 자산을 원활하게 전송하세요"
+      },
+      "education": {
+        "title": "새로운 Web3 인증 프로그램",
+        "description": "블록체인 개발 및 DeFi 프로토콜을 위한 고급 인증 코스가 이제 이용 가능합니다"
+      }
+    },
+    "dapps": {
+      "beehive": "Beehive 플랫폼",
+      "beehiveDesc": "19레벨 진행, 3×3 매트릭스 보상, 교육 생태계를 갖춘 Web3 멤버십 플랫폼",
+      "uniswap": "Uniswap",
+      "uniswapDesc": "토큰 스왑 및 유동성 제공을 위한 주요 분산형 거래소",
+      "opensea": "OpenSea",
+      "openseaDesc": "디지털 자산 구매, 판매, 거래를 위한 세계 최대 NFT 마켓플레이스",
+      "compound": "Compound",
+      "compoundDesc": "암호화폐 자산으로 이자를 얻기 위한 알고리즘 머니 마켓 프로토콜",
+      "matrixRewards": "매트릭스 보상",
+      "matrixRewardsDesc": "추천 네트워크를 통해 수동적 소득을 얻는 Beehive의 3×3 매트릭스 시스템",
+      "pancakeswap": "PancakeSwap",
+      "pancakeswapDesc": "파밍, 풀, 복권 기능이 있는 BSC 체인의 인기 DEX",
+      "axieinfinity": "Axie Infinity",
+      "axieinfinityDesc": "플레이어가 Axie라고 불리는 판타지 생물과 전투, 번식, 거래하는 플레이-투-언 게임"
+    },
+    "chains": {
+      "ethereum": "Ethereum",
+      "polygon": "Polygon",
+      "arbitrum": "Arbitrum",
+      "optimism": "Optimism",
+      "bsc": "BSC",
+      "avalanche": "Avalanche"
+    },
+    "featured": "추천",
+    "trending": "트렌딩"
+  },
+  "common": {
+    "cancel": "취소",
+    "confirm": "확인",
+    "close": "닫기",
+    "save": "저장",
+    "loading": "로딩 중...",
+    "error": "오류",
+    "success": "성공",
+    "back": "뒤로"
+  },
+  "welcome": {
+    "title": "Beehive 커뮤니티에 오신 것을 환영합니다",
+    "subtitle": "ERC-5115 NFT를 클레임하여 레벨 1 멤버십 활성화",
+    "description": "레벨 1 워리어 NFT를 구매하여 멤버십을 완료하세요. 이는 모든 플랫폼 기능을 잠금 해제하고 Web3 여정을 시작합니다!",
+    "checkingMembership": "멤버십 상태 확인 중...",
+    "checkingChain": "온체인 NFT 상태 확인 중...",
+    "referredBy": "추천인",
+    "matrixPlacement": "당신은 그들의 3×3 매트릭스 시스템에 배치됩니다",
+    "matrixPlacementInfo": "💡 매트릭스 배치: 당신은 3×3 구조(레이어 1→2→3...)에 따라 추천인의 매트릭스 트리에서 첫 번째 사용 가능한 슬롯에 자동으로 배치됩니다. 이는 레이어 보상을 얻기 위한 위치를 결정합니다.",
+    "instructions": {
+      "step1": "🎯 지갑을 연결하고 NFT를 클레임하여 레벨 1 멤버십을 활성화하세요",
+      "step2": "⚡ 이는 3x3 추천 매트릭스 및 BCC 보상 시스템에 대한 액세스를 활성화합니다"
+    },
+    "referralRequired": {
+      "title": "추천 링크 필요",
+      "description": "Beehive 커뮤니티에 액세스하려면 유효한 추천 링크가 필요합니다. 기존 멤버에게 추천 링크를 공유해달라고 요청하세요.",
+      "example": "💡 추천 링크는 다음과 같습니다:",
+      "howToGet": "기존 멤버는 대시보드에서 추천 링크를 생성할 수 있습니다."
+    },
+    "referral": {
+      "rewards": "추천 보상: 네트워크에서 NFT가 구매될 때 각 레벨에서 100% 보상 획득"
+    },
+    "button": {
+      "unlock": "멤버십 혜택 잠금 해제 - 130 USDT"
+    },
+    "nft": {
+      "title": "레벨 1 워리어 NFT",
+      "description": "블록체인상의 멤버십 자격증명",
+      "tokenId": "토큰 ID: 1",
+      "price": "가격",
+      "priceAmount": "130 USDT"
+    },
+    "benefits": {
+      "title": "잠금 해제될 것들:",
+      "dashboard": "전체 대시보드 액세스",
+      "tasks": "작업 및 NFT 마켓플레이스",
+      "education": "교육 센터",
+      "discover": "Web3 DApps 발견",
+      "tokens": "BCC 토큰 보상",
+      "hiveworld": "하이브월드 매트릭스 시스템"
+    },
+    "premium": {
+      "title": "💎 프리미엄 멤버십",
+      "description": "멀티체인 결제 지원으로 130 USDT에 레벨 1 워리어 NFT를 구매하세요!"
+    },
+    "success": {
+      "title": "구매 성공!",
+      "description": "레벨 1 멤버십이 활성화되었습니다. Beehive에 오신 것을 환영합니다!"
+    },
+    "error": {
+      "title": "구매 실패",
+      "description": "구매 중 오류가 발생했습니다. 다시 시도하세요."
+    },
+    "supportText": "여러 블록체인에서의 안전한 결제와 즉시 NFT 전달"
+  },
+  "tokenPurchase": {
+    "title": "토큰 구매",
+    "description": "1토큰 = 0.01 USDT로 여러 체인에서 BCC 및 CTH 토큰 구매",
+    "testnet": {
+      "warning": "테스트넷 안내: Universal Bridge는 현재 테스트넷을 지원하지 않습니다.",
+      "note": "테스트 목적으로 결제가 시뮬레이션될 수 있습니다. 실제 결제는 메인넷 배포가 필요합니다."
+    },
+    "connectWallet": {
+      "title": "지갑 연결",
+      "description": "BCC 및 CTH 토큰을 구매하기 위해 지갑을 연결하세요"
+    },
+    "form": {
+      "tokenType": "토큰 유형",
+      "paymentChain": "결제 체인",
+      "tokenAmount": "토큰 수량",
+      "enterAmount": "토큰 수량 입력",
+      "totalCost": "총 비용: ${amount} USDT"
+    },
+    "tokens": {
+      "bcc": {
+        "name": "BCC (Beehive Crypto Coin)",
+        "title": "BCC 토큰",
+        "description": "마켓플레이스 구매 및 보상을 위한 전송 가능한 유틸리티 토큰",
+        "uses": {
+          "marketplace": "NFT 마켓플레이스에서 사용",
+          "education": "교육 코스 액세스",
+          "advertisement": "광고 NFT"
+        }
+      },
+      "cth": {
+        "name": "CTH (Centauri Honey)",
+        "title": "CTH 토큰",
+        "description": "Alpha Centauri 체인 거래를 위한 네이티브 가스 토큰",
+        "uses": {
+          "gas": "네트워크 가스 수수료",
+          "operations": "체인 운영",
+          "transactions": "거래 비용"
+        }
+      }
+    },
+    "buttons": {
+      "creating": "구매 생성 중...",
+      "purchase": "{amount} {token} 토큰 구매",
+      "cancelPayment": "결제 취소"
+    },
+    "payment": {
+      "title": "결제 완료",
+      "description": "{tokenAmount} {tokenType} 토큰을 받기 위해 ${amount} USDT 지불"
+    },
+    "balances": {
+      "title": "토큰 잔고",
+      "bccTotal": "BCC 총계:",
+      "transferable": "전송 가능:",
+      "restricted": "제한됨:",
+      "cthBalance": "CTH 잔고:",
+      "noBalances": "잔고를 찾을 수 없음"
+    },
+    "history": {
+      "title": "최근 구매",
+      "noPurchases": "아직 구매가 없습니다"
+    },
+    "messages": {
+      "purchaseCreated": "구매 생성됨",
+      "readyToPurchase": "{amount} {token} 토큰 구매 준비 완료",
+      "error": "오류",
+      "createFailed": "구매 생성 실패",
+      "tokensAirdropped": "토큰이 에어드롭되었습니다! 🪂",
+      "tokensAdded": "{amount} {token} 토큰이 지갑에 추가되었습니다",
+      "confirmFailed": "구매 확인 실패",
+      "walletNotConnected": "지갑이 연결되지 않음",
+      "connectToPurchase": "토큰을 구매하려면 지갑을 연결하세요",
+      "invalidAmount": "유효하지 않은 수량",
+      "enterValidAmount": "유효한 토큰 수량을 입력하세요"
+    }
+  },
+  "nft": {
+    "claimError": "클레임 실패",
+    "claimErrorDesc": "NFT 클레임에 실패했습니다. 다시 시도하세요.",
+    "claimNow": "NFT 클레임",
+    "claimSuccess": "NFT 클레임 성공",
+    "claimSuccessDesc": "NFT가 클레임되어 컬렉션에 추가되었습니다",
+    "confirmAndClaim": "확인 후 클레임",
+    "confirmClaim": "NFT 클레임 확인",
+    "confirmClaimDesc": "이 독점 NFT를 클레임하려고 합니다. 이 작업은 되돌릴 수 없습니다.",
+    "connectWallet": "지갑 연결",
+    "connectWalletDesc": "NFT를 클레임하려면 지갑을 연결하세요",
+    "insufficientBalance": "잔고 부족",
+    "insufficientBalanceDesc": "이 NFT를 클레임하기에 충분한 토큰이 없습니다",
+    "price": "가격",
+    "subtitle": "파트너의 독점 NFT 발견 및 클레임",
+    "title": "NFT 센터",
+    "yourBalance": "잔고"
+  },
+  "nftCenter": {
+    "title": "NFT 센터",
+    "description": "광고 NFT를 관리하고 잠긴 BCC 수량을 보며 프로모션 서비스를 활성화하세요",
+    "backToTasks": "작업으로 돌아가기",
+    "noNfts": {
+      "title": "NFT를 찾을 수 없음",
+      "description": "아직 광고 NFT가 없습니다",
+      "browseButton": "광고 NFT 탐색"
+    },
+    "dialog": {
+      "title": "광고 NFT 세부사항 및 서비스 관리"
+    }
+  },
+  "userProfile": {
+    "username": "사용자명",
+    "level": "레벨",
+    "userCenter": "사용자 센터",
+    "center": "센터"
+  },
+  "rewardHistory": {
+    "upgradeReward": "업그레이드 보상 (대기 중)",
+    "rollupReward": "롤업 보상",
+    "completed": "완료됨",
+    "expired": "만료됨",
+    "noRewards": "아직 보상 기록이 없습니다",
+    "linkCopied": {
+      "title": "링크 복사됨!",
+      "description": "추천 링크가 클립보드에 복사되었습니다."
+    }
+  },
+  "me": {
+    "title": "프로필 및 설정",
+    "directReferrals": "직접 추천",
+    "editProfile": "프로필 편집",
+    "indirectReferrals": "팀 추천",
+    "noReferralData": "추천 데이터 없음",
+    "referrals": "추천",
+    "referralStats": "추천 통계",
+    "rewards": "보상",
+    "subtitle": "통계, 잔고, 계정 세부사항 보기",
+    "totalEarnings": "총 수익",
+    "totalReferrals": "총 추천 수",
+    "status": {
+      "active": "활성",
+      "memberSince": "멤버 시작일"
+    },
+    "balances": {
+      "usdt": "USDT 잔고",
+      "bccTransferable": "Beehive 암호화폐 (전송 가능)",
+      "bccRestricted": "Beehive 암호화폐 (제한됨)",
+      "cth": "Centauri Honey (CTH)"
+    },
+    "learning": {
+      "title": "학습 진행",
+      "coursesCompleted": "완료된 코스",
+      "studyHours": "학습 시간",
+      "certificates": "획득한 인증서"
+    },
+    "referral": {
+      "title": "추천 성과",
+      "directReferrals": "직접 추천",
+      "totalTeamSize": "총 팀 크기",
+      "totalEarnings": "총 수익",
+      "thisMonth": "이번 달"
+    },
+    "settings": {
+      "title": "계정 설정",
+      "language": "언어",
+      "languageDescription": "선호 언어를 선택하세요",
+      "notifications": "이메일 알림",
+      "notificationsDescription": "보상 및 활동에 대한 업데이트 수신",
+      "twoFactor": "이중 인증",
+      "twoFactorDescription": "계정에 추가 보안 추가",
+      "enabled": "활성화됨",
+      "disabled": "비활성화됨",
+      "enable2FA": "2FA 활성화",
+      "changePassword": "비밀번호 변경",
+      "deactivateAccount": "계정 비활성화"
+    }
+  },
+  "footer": {
+    "platform": {
+      "title": "플랫폼",
+      "membership": "멤버십 레벨",
+      "rewards": "보상 시스템",
+      "nfts": "NFT 마켓플레이스",
+      "education": "교육 센터"
+    },
+    "resources": {
+      "title": "리소스",
+      "whitepaper": "백서",
+      "documentation": "문서",
+      "tutorials": "튜토리얼",
+      "faq": "FAQ"
+    },
+    "community": {
+      "title": "커뮤니티",
+      "discord": "Discord",
+      "telegram": "Telegram",
+      "twitter": "Twitter",
+      "medium": "Medium"
+    },
+    "legal": {
+      "title": "법적 고지",
+      "privacy": "개인정보 보호정책",
+      "terms": "서비스 약관",
+      "cookies": "쿠키 정책",
+      "disclaimer": "면책조항"
+    },
+    "newsletter": {
+      "title": "최신 정보 받기",
+      "description": "새로운 기능, 보상 및 커뮤니티 이벤트에 대한 최신 업데이트 받기",
+      "placeholder": "이메일 주소를 입력하세요",
+      "button": "구독",
+      "disclaimer": "우리는 귀하의 개인정보를 존중하며 절대 공유하지 않습니다"
+    },
+    "brand": {
+      "tagline": "Web3 멤버십 및 학습 플랫폼"
+    },
+    "copyright": {
+      "rights": "모든 권리 보유.",
+      "blockchain": "블록체인 기술로 구동"
+    },
+    "backToTop": "맨 위로",
+    "description": "블록체인 기반 보상이 있는 Web3 멤버십 및 학습 플랫폼.",
+    "platform": "플랫폼",
+    "support": "지원",
+    "helpCenter": "도움말 센터",
+    "documentation": "문서",
+    "contact": "문의하기",
+    "status": "상태",
+    "legal": "법적 고지",
+    "privacy": "개인정보 보호정책",
+    "terms": "서비스 약관",
+    "cookies": "쿠키 정책",
+    "copyright": "© 2024 Beehive. 모든 권리 보유."
+  },
+  "membershipSystem": {
+    "wallet": {
+      "connectTitle": "지갑 연결",
+      "connectDescription": "멤버십 시스템에 액세스하려면 지갑을 연결하세요"
+    },
+    "activation": {
+      "title": "멤버십 활성화",
+      "description": "커뮤니티에 가입하고 보상 획득을 시작하세요",
+      "steps": {
+        "details": "세부사항",
+        "payment": "결제",
+        "confirm": "확인",
+        "complete": "완료"
+      },
+      "form": {
+        "username": "사용자명 *",
+        "usernamePlaceholder": "사용자명을 입력하세요",
+        "email": "이메일 *",
+        "emailPlaceholder": "이메일을 입력하세요",
+        "referrer": "추천인 지갑 (선택사항)",
+        "referrerPlaceholder": "0x... (추천인이 있는 경우)",
+        "continueToPayment": "결제로 계속",
+        "continueToConfirmation": "확인으로 계속",
+        "back": "뒤로",
+        "activateMembership": "멤버십 활성화",
+        "activating": "활성화 중..."
+      },
+      "payment": {
+        "cost": "멤버십 비용: 130 USDC",
+        "nftCost": "• 레벨 1 NFT에 100 USDC",
+        "activationFee": "• 활성화 수수료 30 USDC",
+        "networkLabel": "네트워크 선택",
+        "networks": {
+          "simulation": "시뮬레이션",
+          "testnet": "테스트넷",
+          "mainnet": "메인넷"
+        },
+        "transactionHashLabel": "거래 해시 *",
+        "transactionHashPlaceholder": "0x... (NFT 구매의 거래 해시)",
+        "transactionHashHelper": "먼저 NFT 구매를 완료한 후 거래 해시를 붙여넣으세요"
+      },
+      "confirm": {
+        "summaryTitle": "활성화 요약",
+        "username": "사용자명",
+        "email": "이메일",
+        "network": "네트워크",
+        "nftLevel": "NFT 레벨",
+        "level1": "레벨 1",
+        "referrer": "추천인"
+      },
+      "success": {
+        "welcomeTitle": "커뮤니티에 오신 것을 환영합니다!",
+        "welcomeDescription": "멤버십이 성공적으로 활성화되었습니다. 이제 모든 멤버 기능에 액세스할 수 있습니다.",
+        "continueToDashboard": "대시보드로 계속",
+        "activated": "멤버십이 성공적으로 활성화되었습니다!"
+      },
+      "errors": {
+        "fillRequiredFields": "모든 필수 필드를 입력하세요",
+        "transactionHashRequired": "블록체인 활성화를 위한 거래 해시를 제공하세요",
+        "activationFailed": "활성화 실패",
+        "tryAgain": "활성화에 실패했습니다. 다시 시도하세요.",
+        "loadStatusFailed": "활성화 상태 로딩 실패"
+      }
+    },
+    "dashboard": {
+      "title": "멤버 대시보드 - 레벨 {{level}}",
+      "labels": {
+        "currentLevel": "현재 레벨",
+        "activationRank": "활성화 순위",
+        "memberTier": "멤버 등급",
+        "directReferrals": "직접 추천"
+      },
+      "balance": {
+        "title": "BCC 잔고",
+        "transferable": "전송 가능 BCC",
+        "locked": "잠긴 BCC",
+        "totalEarned": "총 획득"
+      }
+    },
+    "rewards": {
+      "pendingTitle": "대기 중인 보상 ({{count}})",
+      "rewardDescription": "레벨 {{level}} 보상 • {{hours}}시간 남음",
+      "status": {
+        "claimable": "클레임 가능",
+        "pending": "대기 중"
+      },
+      "actions": {
+        "claim": "클레임"
+      },
+      "success": {
+        "claimed": "{{amount}} USDC를 성공적으로 클레임했습니다!"
+      },
+      "errors": {
+        "claimFailed": "보상 클레임 실패"
+      },
+      "quickActions": {
+        "title": "빠른 작업",
+        "upgrade": "레벨 {{level}}로 업그레이드",
+        "withdraw": "빠른 출금 $100 USDC",
+        "claimRewards": "{{count}}개 보상 클레임"
+      },
+      "levelProgress": {
+        "title": "레벨 진행",
+        "readyToUpgrade": "레벨 {{level}}로 업그레이드 준비 완료!",
+        "completeRequirements": "레벨 {{level}}를 잠금 해제하기 위해 요구사항을 완료하세요"
+      }
+    },
+    "matrix": {
+      "title": "추천 매트릭스",
+      "connectDescription": "추천 매트릭스를 보려면 지갑을 연결하세요",
+      "layerFillStatus": "레이어 채움 상태",
+      "stats": {
+        "totalMembers": "{{count}}명의 멤버",
+        "yourPosition": "당신은 레이어 {{layer}}, 위치 {{position}}에 있습니다",
+        "directRefs": "직접 추천",
+        "matrixDepth": "매트릭스 깊이"
+      },
+      "visualization": {
+        "layerRoot": "루트",
+        "layerNumber": "레이어 {{layer}}",
+        "available": "사용 가능",
+        "member": "멤버",
+        "you": "당신",
+        "active": "활성",
+        "inactive": "비활성"
+      },
+      "controls": {
+        "viewLayer": "레이어 보기:",
+        "zoomIn": "확대",
+        "zoomOut": "축소",
+        "reset": "리셋",
+        "treeView": "트리",
+        "gridView": "그리드"
+      },
+      "referralLink": {
+        "title": "추천 링크",
+        "copy": "복사",
+        "share": "링크 공유"
+      },
+      "quickStats": {
+        "title": "빠른 통계",
+        "totalMembers": "총 멤버:",
+        "activeLayers": "활성 레이어:",
+        "yourDirectRefs": "직접 추천:",
+        "matrixDepth": "매트릭스 깊이:",
+        "layersCount": "{{count}}개 레이어"
+      },
+      "share": {
+        "title": "커뮤니티 가입",
+        "text": "이 놀라운 커뮤니티에 가입하고 보상 획득을 시작하세요!"
+      },
+      "errors": {
+        "loadFailed": "매트릭스 데이터 로딩 실패",
+        "copyFailed": "링크 복사 실패"
+      },
+      "success": {
+        "linkCopied": "추천 링크가 클립보드에 복사되었습니다!"
+      }
+    },
+    "upgrade": {
+      "title": "레벨 업그레이드",
+      "cost": "업그레이드 비용",
+      "bccUnlock": "BCC 잠금 해제",
+      "requirements": {
+        "notMet": "요구사항 미충족",
+        "directReferrals": "직접 추천: {{current}}/{{required}} 필요"
+      },
+      "maxLevel": {
+        "title": "최대 레벨 도달!",
+        "description": "레벨 {{level}} 도달을 축하합니다!"
+      },
+      "buttons": {
+        "upgrade": "레벨 {{level}}로 업그레이드",
+        "upgrading": "업그레이드 중..."
+      }
+    },
+    "withdrawal": {
+      "title": "출금 한도",
+      "dailyLimit": "일일 한도",
+      "monthlyLimit": "월간 한도",
+      "used": "사용됨:",
+      "remaining": "남음:"
+    }
+  },
+  "connectWallet": {
+    "title": "지갑 연결",
+    "description": "멤버십 시스템에 액세스하려면 지갑을 연결하세요"
+  },
+  "tabs": {
+    "overview": "개요",
+    "rewards": "보상",
+    "upgrade": "업그레이드",
+    "matrix": "매트릭스",
+    "withdraw": "출금"
   }
 }

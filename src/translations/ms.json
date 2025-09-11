@@ -935,5 +935,611 @@
     "useValidReferrer": "Sila gunakan pautan rujukan daripada ahli berdaftar.",
     "validationFailed": "Pengesahan Gagal",
     "validationFailedDesc": "Tidak dapat mengesahkan status pendaftaran atau perujuk. Sila muat semula dan cuba lagi."
+  },
+  "membership": {
+    "title": "Tahap Keahlian",
+    "subtitle": "Naik taraf keahlian anda untuk membuka manfaat eksklusif dan ganjaran yang lebih tinggi",
+    "currentLevel": "Tahap Semasa",
+    "featured": "Ditampilkan",
+    "owned": "Dimiliki",
+    "claim": "Tuntut",
+    "locked": "Dikunci",
+    "progressInfo": {
+      "title": "Sistem Keahlian Progresif",
+      "description": "Tahap keahlian mesti dituntut secara berurutan. Setiap tahap membuka manfaat yang dipertingkatkan, ganjaran yang meningkat, dan ciri platform eksklusif.",
+      "sequential": "Naik taraf berurutan diperlukan",
+      "rewards": "Pengganda ganjaran dipertingkatkan",
+      "benefits": "Manfaat & ciri eksklusif"
+    },
+    "errors": {
+      "walletRequired": "Dompet Diperlukan",
+      "connectWallet": "Sila sambung dompet anda terlebih dahulu",
+      "levelLocked": "Tahap Dikunci",
+      "previousLevelRequired": "Anda mesti memiliki NFT Tahap {level} sebelum menuntut Tahap {nextLevel}",
+      "claimFailed": "Tuntutan Gagal",
+      "sequentialUpgrade": "Anda mesti naik taraf ke Tahap {nextLevel} terlebih dahulu. Anda tidak boleh melangkau tahap.",
+      "alreadyOwned": "Anda sudah memiliki NFT Tahap {level}. Setiap tahap hanya boleh dibeli sekali.",
+      "level2Requirements": "Tahap 2 memerlukan 3 rujukan langsung yang aktif. Sila jemput lebih ramai ahli terlebih dahulu.",
+      "missingPrerequisites": "Tahap prasyarat hilang. Sila lengkapkan tahap yang lebih rendah terlebih dahulu."
+    },
+    "claiming": {
+      "started": "Tuntutan Tahap {level} dimulakan",
+      "processing": "Memproses tuntutan NFT ${price} USDC",
+      "inProgress": "Menuntut...",
+      "success": "🎉 NFT Tahap {level} berjaya dituntut!",
+      "successDescription": "Tuntutan Tahap {level} berjaya diproses. Anda memperoleh ${price} ganjaran BCC!"
+    },
+    "purchase": {
+      "button": "Buka Kunci Keahlian - 130 USDT",
+      "connectWallet": "Sambung dompet untuk pembelian",
+      "selectChain": "Pilih rantai pembayaran",
+      "selectChainDescription": "Pilih blockchain untuk digunakan untuk pembayaran keahlian Tahap {level}",
+      "payWithGas": "Bayar yuran gas dengan {symbol}",
+      "approving": "Meluluskan USDT...",
+      "preparing": "Menyediakan...",
+      "paying": "Memproses pembayaran...",
+      "verifying": "Mengesahkan transaksi...",
+      "finalizing": "Menyelesaikan keahlian...",
+      "completed": "✅ Keahlian diaktifkan!",
+      "retry": "Cuba beli semula",
+      "success": {
+        "title": "Keahlian Diaktifkan!",
+        "description": "Selamat datang ke Beehive! Keahlian Tahap 1 anda telah diaktifkan."
+      },
+      "error": {
+        "title": "Pembelian Gagal",
+        "description": "Tidak dapat melengkapkan pembelian keahlian. Sila cuba lagi."
+      }
+    },
+    "activationSuccess": "Pengaktifan keahlian berjaya!",
+    "nftActivationFailed": "Pengaktifan NFT gagal. Sila cuba lagi.",
+    "walletNotConnected": "Sila sambung dompet anda terlebih dahulu"
+  },
+  "dashboard": {
+    "welcomeBack": "Selamat kembali, {username}!",
+    "welcomeMember": "Selamat kembali, Ahli!",
+    "buildNetwork": "Mari bina rangkaian Hive anda bersama",
+    "upgrade": "Naik Taraf",
+    "bccBalance": "Baki BCC",
+    "bccLocked": "BCC Dikunci",
+    "referralNetwork": "Rangkaian Rujukan",
+    "directReferrals": "Rujukan Langsung",
+    "maxLayer": "Lapisan Maksimum",
+    "rewardCenter": "Pusat Ganjaran",
+    "totalRewards": "Jumlah Ganjaran",
+    "pendingRewards": "Ganjaran Belum Selesai",
+    "shareReferral": "Kongsi Pautan Rujukan",
+    "shareDescription": "Kongsi pautan untuk menjemput rakan dan peroleh ganjaran rujukan",
+    "copyLink": "Salin Pautan",
+    "linkCopied": "Pautan disalin ke papan keratan!",
+    "quickNavigation": "Navigasi Pantas",
+    "viewMatrix": "Lihat Matriks",
+    "claimRewards": "Tuntut Ganjaran",
+    "inviteTip": "💡 Jemput rakan untuk membuka lebih banyak ciri dan ganjaran",
+    "topUp": "Isi Semula"
+  },
+  "registration": {
+    "title": "Lengkapkan Pendaftaran",
+    "subtitle": "Sediakan profil Beehive anda",
+    "walletAddress": "Alamat Dompet",
+    "email": "Alamat E-mel",
+    "emailPlaceholder": "Masukkan e-mel anda",
+    "username": "Nama Pengguna",
+    "usernamePlaceholder": "Pilih nama pengguna",
+    "secondaryPassword": "Kata Laluan Sekunder",
+    "passwordPlaceholder": "Cipta kata laluan yang selamat",
+    "confirmPassword": "Sahkan Kata Laluan",
+    "confirmPasswordPlaceholder": "Sahkan kata laluan anda",
+    "referrer": "Perujuk Upline",
+    "register": "Lengkapkan Pendaftaran",
+    "registering": "Memproses...",
+    "agreement": "Dengan mendaftar, anda bersetuju dengan Terma Perkhidmatan dan Dasar Privasi kami",
+    "noReferrerInfo": {
+      "title": "Pautan Rujukan Diperlukan",
+      "description": "Untuk menyertai Beehive, anda memerlukan pautan rujukan daripada ahli sedia ada. Ini menghubungkan anda dengan upline dalam sistem matriks 3×3 kami.",
+      "getLink": "Sila minta pautan rujukan daripada ahli Beehive untuk bermula."
+    },
+    "errors": {
+      "emailRequired": "Alamat e-mel diperlukan",
+      "emailInvalid": "Sila masukkan alamat e-mel yang sah",
+      "usernameRequired": "Nama pengguna diperlukan",
+      "usernameTooShort": "Nama pengguna mesti sekurang-kurangnya 3 aksara",
+      "passwordRequired": "Kata laluan sekunder diperlukan",
+      "passwordTooShort": "Kata laluan mesti sekurang-kurangnya 6 aksara",
+      "passwordMismatch": "Kata laluan tidak sepadan",
+      "referrerRequired": "Pautan rujukan yang sah diperlukan untuk pendaftaran"
+    },
+    "success": "Pendaftaran berjaya!",
+    "welcomeBack": "Selamat kembali!",
+    "accountExists": "Akaun sudah wujud, tidak perlu mendaftar semula",
+    "welcomeMessage": "Profil anda telah dicipta. Anda kini boleh mengaktifkan keahlian anda.",
+    "failed": "Pendaftaran gagal",
+    "unknownError": "Sila cuba lagi atau hubungi sokongan jika masalah berterusan.",
+    "error": {
+      "title": "Pendaftaran Gagal",
+      "description": "Sila cuba lagi atau hubungi sokongan jika masalah berterusan."
+    },
+    "walletRequired": {
+      "title": "Sambungan Dompet Diperlukan",
+      "description": "Sila sambung dompet anda terlebih dahulu untuk melengkapkan pendaftaran."
+    }
+  },
+  "education": {
+    "title": "Pusat Pendidikan",
+    "subtitle": "Belajar blockchain, DeFi, dan teknologi Web3",
+    "allLevels": "Semua Tahap",
+    "filterByLevel": "Tapis mengikut tahap",
+    "insufficientBalance": "Baki tidak mencukupi",
+    "insufficientBalanceDesc": "Anda tidak mempunyai BCC yang mencukupi untuk membeli kursus ini",
+    "level": "Tahap",
+    "levelRequiredDesc": "Kursus ini memerlukan tahap keahlian yang lebih tinggi",
+    "noCourses": "Tiada kursus tersedia",
+    "purchaseError": "Pembelian gagal",
+    "purchaseErrorDesc": "Gagal membeli kursus. Sila cuba lagi.",
+    "purchaseSuccess": "Pembelian berjaya",
+    "purchaseSuccessDesc": "Kursus telah ditambah ke perpustakaan anda",
+    "searchPlaceholder": "Cari kursus...",
+    "search": {
+      "placeholder": "Cari kursus, topik, atau pengajar..."
+    },
+    "filters": {
+      "category": "Kategori",
+      "allCategories": "Semua Kategori",
+      "level": "Tahap",
+      "allLevels": "Semua Tahap",
+      "type": "Jenis",
+      "allTypes": "Semua Jenis",
+      "payment": "Pembayaran",
+      "allCourses": "Semua Kursus",
+      "onlineZoom": "Dalam Talian (Zoom)",
+      "videoLessons": "Pelajaran Video",
+      "freeCourses": "Kursus Percuma",
+      "paidBCC": "Berbayar (BCC)"
+    },
+    "free": "Percuma",
+    "levelRequired": "Tahap Diperlukan",
+    "duration": "Tempoh",
+    "completed": "Selesai",
+    "continue": "Teruskan pembelajaran",
+    "startFree": "Mula kursus",
+    "purchase": "Beli kursus",
+    "enrolling": "Mendaftar...",
+    "insufficientBCC": "BCC tidak mencukupi"
+  },
+  "discover": {
+    "title": "Terokai",
+    "subtitle": "Terokai DApps dan perkhidmatan Web3",
+    "searchPlaceholder": "Cari rakan kongsi...",
+    "search": {
+      "placeholder": "Cari DApps, protokol, atau perkhidmatan...",
+      "recent": "Terkini",
+      "trending": "Trend",
+      "clear": "Kosongkan"
+    },
+    "featured": {
+      "title": "Pilihan Beehive",
+      "viewAll": "Lihat semua"
+    },
+    "categories": {
+      "title": "Kategori",
+      "all": "Semua",
+      "defi": "DeFi",
+      "nft": "NFT",
+      "gamefi": "GameFi",
+      "dao": "DAO",
+      "bridge": "Bridge",
+      "lending": "Pinjaman",
+      "dex": "DEX",
+      "yield": "Hasil",
+      "insurance": "Insurans",
+      "social": "Sosial",
+      "tools": "Alat",
+      "education": "Pendidikan"
+    }
+  },
+  "welcome": {
+    "title": "Selamat datang ke komuniti Beehive",
+    "subtitle": "Tuntut NFT ERC-5115 untuk mengaktifkan keahlian Tahap 1",
+    "description": "Beli NFT Warrior Tahap 1 untuk melengkapkan keahlian anda. Ini membuka semua ciri platform dan memulakan perjalanan Web3 anda!",
+    "checkingMembership": "Memeriksa status keahlian...",
+    "checkingChain": "Memeriksa status NFT on-chain...",
+    "referredBy": "Dirujuk oleh",
+    "matrixPlacement": "Anda akan ditempatkan dalam sistem matriks 3×3 mereka",
+    "matrixPlacementInfo": "💡 Penempatan Matriks: Anda akan ditempatkan secara automatik dalam slot pertama yang tersedia dalam pokok matriks perujuk anda, mengikut struktur 3×3 (lapisan 1→2→3...). Ini menentukan kedudukan anda untuk memperoleh ganjaran lapisan.",
+    "instructions": {
+      "step1": "🎯 Sambung dompet anda dan tuntut NFT untuk mengaktifkan keahlian Tahap 1",
+      "step2": "⚡ Ini mengaktifkan akses kepada matriks rujukan 3x3 dan sistem ganjaran BCC"
+    },
+    "referralRequired": {
+      "title": "Pautan Rujukan Diperlukan",
+      "description": "Anda memerlukan pautan rujukan yang sah untuk mengakses komuniti Beehive. Sila minta ahli sedia ada untuk berkongsi pautan rujukan dengan anda.",
+      "example": "💡 Pautan rujukan kelihatan seperti:",
+      "howToGet": "Ahli sedia ada boleh menjana pautan rujukan daripada papan pemuka mereka."
+    },
+    "referral": {
+      "rewards": "Ganjaran Rujukan: Peroleh ganjaran 100% pada setiap tahap apabila NFT dibeli dalam rangkaian anda"
+    },
+    "button": {
+      "unlock": "Buka Kunci Manfaat Keahlian - 130 USDT"
+    },
+    "nft": {
+      "title": "NFT Warrior Tahap 1",
+      "description": "Kelayakan keahlian anda di blockchain",
+      "tokenId": "ID Token: 1",
+      "price": "Harga",
+      "priceAmount": "130 USDT"
+    },
+    "benefits": {
+      "title": "Yang akan dibuka:",
+      "dashboard": "Akses papan pemuka penuh",
+      "tasks": "Tugas & Pasar NFT",
+      "education": "Pusat Pendidikan",
+      "discover": "Terokai DApps Web3",
+      "tokens": "Ganjaran Token BCC",
+      "hiveworld": "Sistem Matriks Hiveworld"
+    },
+    "premium": {
+      "title": "💎 Keahlian Premium",
+      "description": "Beli NFT Warrior Tahap 1 untuk 130 USDT dengan sokongan pembayaran multi-rantai!"
+    },
+    "success": {
+      "title": "Pembelian Berjaya!",
+      "description": "Keahlian Tahap 1 telah diaktifkan. Selamat datang ke Beehive!"
+    },
+    "error": {
+      "title": "Pembelian Gagal",
+      "description": "Ralat berlaku semasa pembelian. Sila cuba lagi."
+    },
+    "supportText": "Pembayaran selamat dan penghantaran NFT segera di pelbagai blockchain"
+  },
+  "nft": {
+    "claimError": "Tuntutan gagal",
+    "claimErrorDesc": "Gagal menuntut NFT. Sila cuba lagi.",
+    "claimNow": "Tuntut NFT",
+    "claimSuccess": "Tuntutan NFT berjaya",
+    "claimSuccessDesc": "NFT anda telah dituntut dan ditambah ke koleksi",
+    "confirmAndClaim": "Sahkan dan Tuntut",
+    "confirmClaim": "Sahkan Tuntutan NFT",
+    "confirmClaimDesc": "Anda akan menuntut NFT eksklusif ini. Tindakan ini tidak boleh dibuat asal.",
+    "connectWallet": "Sambung Dompet",
+    "connectWalletDesc": "Sila sambung dompet anda untuk menuntut NFT",
+    "insufficientBalance": "Baki tidak mencukupi",
+    "insufficientBalanceDesc": "Anda tidak mempunyai token yang mencukupi untuk menuntut NFT ini",
+    "price": "Harga",
+    "subtitle": "Terokai dan tuntut NFT eksklusif daripada rakan kongsi",
+    "title": "Pusat NFT",
+    "yourBalance": "Baki anda"
+  },
+  "nftCenter": {
+    "title": "Pusat NFT",
+    "description": "Urus NFT iklan anda, lihat jumlah BCC yang dikunci, dan aktifkan perkhidmatan promosi",
+    "backToTasks": "Kembali ke Tugas",
+    "noNfts": {
+      "title": "Tiada NFT ditemui",
+      "description": "Anda belum mempunyai NFT iklan",
+      "browseButton": "Layari NFT Iklan"
+    },
+    "dialog": {
+      "title": "Butiran NFT Iklan dan Pengurusan Perkhidmatan"
+    }
+  },
+  "userProfile": {
+    "username": "Nama Pengguna",
+    "level": "Tahap",
+    "userCenter": "Pusat Pengguna",
+    "center": "Pusat"
+  },
+  "rewardHistory": {
+    "upgradeReward": "Ganjaran Naik Taraf (Tertunda)",
+    "rollupReward": "Ganjaran Rollup",
+    "completed": "Selesai",
+    "expired": "Tamat tempoh",
+    "noRewards": "Belum ada sejarah ganjaran",
+    "linkCopied": {
+      "title": "Pautan disalin!",
+      "description": "Pautan rujukan anda telah disalin ke papan keratan."
+    }
+  },
+  "me": {
+    "title": "Profil & Tetapan",
+    "directReferrals": "Rujukan Langsung",
+    "editProfile": "Edit Profil",
+    "indirectReferrals": "Rujukan Pasukan",
+    "noReferralData": "Tiada data rujukan",
+    "referrals": "Rujukan",
+    "referralStats": "Statistik Rujukan",
+    "rewards": "Ganjaran",
+    "subtitle": "Lihat statistik, baki, dan butiran akaun",
+    "totalEarnings": "Jumlah Pendapatan",
+    "totalReferrals": "Jumlah Rujukan",
+    "status": {
+      "active": "Aktif",
+      "memberSince": "Ahli sejak"
+    },
+    "balances": {
+      "usdt": "Baki USDT",
+      "bccTransferable": "Beehive Crypto Coin (Boleh dipindah)",
+      "bccRestricted": "Beehive Crypto Coin (Terhad)",
+      "cth": "Centauri Honey (CTH)"
+    },
+    "learning": {
+      "title": "Kemajuan Pembelajaran",
+      "coursesCompleted": "Kursus Selesai",
+      "studyHours": "Jam Belajar",
+      "certificates": "Sijil Diperoleh"
+    },
+    "referral": {
+      "title": "Prestasi Rujukan",
+      "directReferrals": "Rujukan Langsung",
+      "totalTeamSize": "Jumlah Saiz Pasukan",
+      "totalEarnings": "Jumlah Pendapatan",
+      "thisMonth": "Bulan Ini"
+    },
+    "settings": {
+      "title": "Tetapan Akaun",
+      "language": "Bahasa",
+      "languageDescription": "Pilih bahasa pilihan anda",
+      "notifications": "Pemberitahuan E-mel",
+      "notificationsDescription": "Terima kemas kini tentang ganjaran dan aktiviti",
+      "twoFactor": "Pengesahan Dua Faktor",
+      "twoFactorDescription": "Tambah keselamatan tambahan pada akaun anda",
+      "enabled": "Diaktifkan",
+      "disabled": "Dilumpuhkan",
+      "enable2FA": "Aktifkan 2FA",
+      "changePassword": "Tukar Kata Laluan",
+      "deactivateAccount": "Nyahaktif Akaun"
+    }
+  },
+  "footer": {
+    "platform": {
+      "title": "Platform",
+      "membership": "Tahap Keahlian",
+      "rewards": "Sistem Ganjaran",
+      "nfts": "Pasar NFT",
+      "education": "Pusat Pendidikan"
+    },
+    "resources": {
+      "title": "Sumber",
+      "whitepaper": "Kertas Putih",
+      "documentation": "Dokumentasi",
+      "tutorials": "Tutorial",
+      "faq": "Soalan Lazim"
+    },
+    "community": {
+      "title": "Komuniti",
+      "discord": "Discord",
+      "telegram": "Telegram",
+      "twitter": "Twitter",
+      "medium": "Medium"
+    },
+    "legal": {
+      "title": "Undang-undang",
+      "privacy": "Dasar Privasi",
+      "terms": "Terma Perkhidmatan",
+      "cookies": "Dasar Kuki",
+      "disclaimer": "Penafian"
+    },
+    "newsletter": {
+      "title": "Kekal Dikemas Kini",
+      "description": "Dapatkan kemas kini terkini tentang ciri baharu, ganjaran, dan acara komuniti",
+      "placeholder": "Masukkan alamat e-mel anda",
+      "button": "Langgan",
+      "disclaimer": "Kami menghormati privasi anda dan tidak akan berkongsi maklumat anda"
+    },
+    "brand": {
+      "tagline": "Platform Keahlian dan Pembelajaran Web3"
+    },
+    "copyright": {
+      "rights": "Hak cipta terpelihara.",
+      "blockchain": "Dikuasakan oleh teknologi blockchain"
+    },
+    "backToTop": "Kembali ke atas",
+    "description": "Platform Keahlian dan Pembelajaran Web3 dengan ganjaran berasaskan blockchain.",
+    "platform": "Platform",
+    "support": "Sokongan",
+    "helpCenter": "Pusat Bantuan",
+    "documentation": "Dokumentasi",
+    "contact": "Hubungi Kami",
+    "status": "Status",
+    "legal": "Undang-undang",
+    "privacy": "Dasar Privasi",
+    "terms": "Terma Perkhidmatan",
+    "cookies": "Dasar Kuki",
+    "copyright": "© 2024 Beehive. Hak cipta terpelihara."
+  },
+  "membershipSystem": {
+    "wallet": {
+      "connectTitle": "Sambung Dompet",
+      "connectDescription": "Sambung dompet anda untuk mengakses sistem keahlian"
+    },
+    "activation": {
+      "title": "Aktifkan Keahlian Anda",
+      "description": "Sertai komuniti dan mula memperoleh ganjaran",
+      "steps": {
+        "details": "Butiran",
+        "payment": "Pembayaran",
+        "confirm": "Sahkan",
+        "complete": "Selesai"
+      },
+      "form": {
+        "username": "Nama Pengguna *",
+        "usernamePlaceholder": "Masukkan nama pengguna anda",
+        "email": "E-mel *",
+        "emailPlaceholder": "Masukkan e-mel anda",
+        "referrer": "Dompet Perujuk (pilihan)",
+        "referrerPlaceholder": "0x... (jika anda mempunyai perujuk)",
+        "continueToPayment": "Teruskan ke Pembayaran",
+        "continueToConfirmation": "Teruskan ke Pengesahan",
+        "back": "Kembali",
+        "activateMembership": "Aktifkan Keahlian",
+        "activating": "Mengaktifkan..."
+      },
+      "payment": {
+        "cost": "Kos Keahlian: 130 USDC",
+        "nftCost": "• 100 USDC untuk NFT Tahap 1",
+        "activationFee": "• 30 USDC yuran pengaktifan",
+        "networkLabel": "Pilih Rangkaian",
+        "networks": {
+          "simulation": "Simulasi",
+          "testnet": "Testnet",
+          "mainnet": "Mainnet"
+        },
+        "transactionHashLabel": "Hash Transaksi *",
+        "transactionHashPlaceholder": "0x... (hash transaksi pembelian NFT)",
+        "transactionHashHelper": "Sila lengkapkan pembelian NFT terlebih dahulu, kemudian tampalkan hash transaksi"
+      },
+      "confirm": {
+        "summaryTitle": "Ringkasan Pengaktifan",
+        "username": "Nama Pengguna",
+        "email": "E-mel",
+        "network": "Rangkaian",
+        "nftLevel": "Tahap NFT",
+        "level1": "Tahap 1",
+        "referrer": "Perujuk"
+      },
+      "success": {
+        "welcomeTitle": "Selamat datang ke komuniti!",
+        "welcomeDescription": "Keahlian anda telah berjaya diaktifkan. Anda kini mempunyai akses kepada semua ciri ahli.",
+        "continueToDashboard": "Teruskan ke Papan Pemuka",
+        "activated": "Keahlian berjaya diaktifkan!"
+      },
+      "errors": {
+        "fillRequiredFields": "Sila isi semua medan yang diperlukan",
+        "transactionHashRequired": "Sila berikan hash transaksi untuk pengaktifan blockchain",
+        "activationFailed": "Pengaktifan gagal",
+        "tryAgain": "Pengaktifan gagal. Sila cuba lagi.",
+        "loadStatusFailed": "Gagal memuatkan status pengaktifan"
+      }
+    },
+    "dashboard": {
+      "title": "Papan Pemuka Ahli - Tahap {{level}}",
+      "labels": {
+        "currentLevel": "Tahap Semasa",
+        "activationRank": "Pangkat Pengaktifan",
+        "memberTier": "Peringkat Ahli",
+        "directReferrals": "Rujukan Langsung"
+      },
+      "balance": {
+        "title": "Baki BCC",
+        "transferable": "BCC Boleh Dipindah",
+        "locked": "BCC Dikunci",
+        "totalEarned": "Jumlah Diperoleh"
+      }
+    },
+    "rewards": {
+      "pendingTitle": "Ganjaran Tertunda ({{count}})",
+      "rewardDescription": "Ganjaran Tahap {{level}} • {{hours}} jam lagi",
+      "status": {
+        "claimable": "Boleh dituntut",
+        "pending": "Tertunda"
+      },
+      "actions": {
+        "claim": "Tuntut"
+      },
+      "success": {
+        "claimed": "Berjaya menuntut {{amount}} USDC!"
+      },
+      "errors": {
+        "claimFailed": "Gagal menuntut ganjaran"
+      },
+      "quickActions": {
+        "title": "Tindakan Pantas",
+        "upgrade": "Naik taraf ke Tahap {{level}}",
+        "withdraw": "Pengeluaran Pantas $100 USDC",
+        "claimRewards": "Tuntut {{count}} ganjaran"
+      },
+      "levelProgress": {
+        "title": "Kemajuan Tahap",
+        "readyToUpgrade": "Sedia untuk naik taraf ke Tahap {{level}}!",
+        "completeRequirements": "Lengkapkan keperluan untuk membuka Tahap {{level}}"
+      }
+    },
+    "matrix": {
+      "title": "Matriks Rujukan",
+      "connectDescription": "Sambung dompet anda untuk melihat matriks rujukan",
+      "layerFillStatus": "Status Pengisian Lapisan",
+      "stats": {
+        "totalMembers": "{{count}} ahli",
+        "yourPosition": "Anda berada di lapisan {{layer}}, kedudukan {{position}}",
+        "directRefs": "Rujukan Langsung",
+        "matrixDepth": "Kedalaman Matriks"
+      },
+      "visualization": {
+        "layerRoot": "Akar",
+        "layerNumber": "Lapisan {{layer}}",
+        "available": "Tersedia",
+        "member": "Ahli",
+        "you": "Anda",
+        "active": "Aktif",
+        "inactive": "Tidak aktif"
+      },
+      "controls": {
+        "viewLayer": "Lihat lapisan:",
+        "zoomIn": "Zum masuk",
+        "zoomOut": "Zum keluar",
+        "reset": "Set semula",
+        "treeView": "Pokok",
+        "gridView": "Grid"
+      },
+      "referralLink": {
+        "title": "Pautan Rujukan Anda",
+        "copy": "Salin",
+        "share": "Kongsi Pautan"
+      },
+      "quickStats": {
+        "title": "Statistik Pantas",
+        "totalMembers": "Jumlah Ahli:",
+        "activeLayers": "Lapisan Aktif:",
+        "yourDirectRefs": "Rujukan Langsung Anda:",
+        "matrixDepth": "Kedalaman Matriks:",
+        "layersCount": "{{count}} lapisan"
+      },
+      "share": {
+        "title": "Sertai Komuniti",
+        "text": "Sertai komuniti yang menakjubkan ini dan mula memperoleh ganjaran!"
+      },
+      "errors": {
+        "loadFailed": "Gagal memuatkan data matriks",
+        "copyFailed": "Gagal menyalin pautan"
+      },
+      "success": {
+        "linkCopied": "Pautan rujukan disalin ke papan keratan!"
+      }
+    },
+    "upgrade": {
+      "title": "Naik Taraf Tahap",
+      "cost": "Kos Naik Taraf",
+      "bccUnlock": "Buka Kunci BCC",
+      "requirements": {
+        "notMet": "Keperluan tidak dipenuhi",
+        "directReferrals": "Rujukan langsung: {{current}}/{{required}} diperlukan"
+      },
+      "maxLevel": {
+        "title": "Mencapai Tahap Maksimum!",
+        "description": "Tahniah kerana mencapai Tahap {{level}}!"
+      },
+      "buttons": {
+        "upgrade": "Naik taraf ke Tahap {{level}}",
+        "upgrading": "Menaik taraf..."
+      }
+    },
+    "withdrawal": {
+      "title": "Had Pengeluaran",
+      "dailyLimit": "Had Harian",
+      "monthlyLimit": "Had Bulanan",
+      "used": "Digunakan:",
+      "remaining": "Baki:"
+    }
+  },
+  "connectWallet": {
+    "title": "Sambung Dompet",
+    "description": "Sambung dompet anda untuk mengakses sistem keahlian"
+  },
+  "tabs": {
+    "overview": "Gambaran Keseluruhan",
+    "rewards": "Ganjaran",
+    "upgrade": "Naik Taraf",
+    "matrix": "Matriks",
+    "withdraw": "Keluarkan"
   }
 }
