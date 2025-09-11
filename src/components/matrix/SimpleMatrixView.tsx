@@ -58,8 +58,8 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
           
           // Organize referrals by layer and position
           referralsData.forEach((referral: any) => {
-            const layer = referral.layer;
-            const position = referral.position;
+            const layer = referral.matrix_layer;
+            const position = referral.matrix_position;
             
             const member: MatrixMember = {
               walletAddress: referral.member_wallet,

@@ -46,7 +46,7 @@ const MatrixLayerStats: React.FC<MatrixLayerStatsProps> = ({
       // 从referrals表获取matrix数据
       const { data: referralsData, error } = await supabase
         .from('referrals')
-        .select('layer, position, member_wallet')
+        .select('matrix_layer, matrix_position, member_wallet')
         .eq('matrix_root', walletAddress);
       
       if (!error && referralsData) {
@@ -54,10 +54,10 @@ const MatrixLayerStats: React.FC<MatrixLayerStatsProps> = ({
         
         // 创建完整的19层统计
         for (let layer = 1; layer <= 19; layer++) {
-          const layerMembers = referralsData.filter(r => r.layer === layer);
-          const leftMembers = layerMembers.filter(r => r.position === 'L').length;
-          const middleMembers = layerMembers.filter(r => r.position === 'M').length;
-          const rightMembers = layerMembers.filter(r => r.position === 'R').length;
+          const layerMembers = referralsData.filter(r => r.matrix_layer === layer);
+          const leftMembers = layerMembers.filter(r => r.matrix_position === 'L').length;
+          const middleMembers = layerMembers.filter(r => r.matrix_position === 'M').length;
+          const rightMembers = layerMembers.filter(r => r.matrix_position === 'R').length;
           const totalMembers = layerMembers.length;
           const maxCapacity = Math.pow(3, layer);
           const fillPercentage = maxCapacity > 0 ? (totalMembers / maxCapacity) * 100 : 0;

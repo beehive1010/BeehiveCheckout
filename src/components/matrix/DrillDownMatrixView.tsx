@@ -64,27 +64,27 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
       if (result && result.length > 0) {
         // Find layer 1 members under this member as matrix_root
         const directReferrals = result.filter((ref: any) => 
-          ref.matrix_root?.toLowerCase() === walletAddress.toLowerCase() && 
-          ref.layer === 1 // Layer 1 under this root
+          ref.matrix_root === walletAddress && 
+          ref.matrix_layer === 1 // Layer 1 under this root
         );
 
         console.log(`🔍 Matrix data for ${walletAddress}:`, {
           totalMatrix: result.length,
           directReferrals: directReferrals.length,
-          directReferralPositions: directReferrals.map(r => `${r.position}`)
+          directReferralPositions: directReferrals.map(r => `${r.matrix_position}`)
         });
 
         // Group by position
         const leftMembers = directReferrals
-          .filter((ref: any) => ref.position === 'L')
+          .filter((ref: any) => ref.matrix_position === 'L')
           .map(transformToMatrixMember);
         
         const middleMembers = directReferrals
-          .filter((ref: any) => ref.position === 'M')
+          .filter((ref: any) => ref.matrix_position === 'M')
           .map(transformToMatrixMember);
         
         const rightMembers = directReferrals
-          .filter((ref: any) => ref.position === 'R')
+          .filter((ref: any) => ref.matrix_position === 'R')
           .map(transformToMatrixMember);
 
         // Create current member info
@@ -141,7 +141,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
   };
 
   const transformToMatrixMember = (referral: any): MatrixMember => {
-    const normalizedPosition: 'L' | 'M' | 'R' = referral.position;
+    const normalizedPosition: 'L' | 'M' | 'R' = referral.matrix_position;
     
     return {
       walletAddress: referral.member_wallet,
