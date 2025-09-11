@@ -294,7 +294,7 @@ export default function NotificationInbox({
                         <p className="text-xs text-gray-500 mt-1">
                           {notification.createdAt && !isNaN(new Date(notification.createdAt).getTime()) 
                             ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })
-                            : 'Recently'
+                            : t('notifications.recently')
                           }
                         </p>
                       </div>
@@ -476,7 +476,7 @@ export default function NotificationInbox({
                                     <span>
                                       {notification.createdAt && !isNaN(new Date(notification.createdAt).getTime()) 
                                         ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })
-                                        : 'Recently'
+                                        : t('notifications.recently')
                                       }
                                     </span>
                                     
