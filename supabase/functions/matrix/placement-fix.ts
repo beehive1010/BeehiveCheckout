@@ -40,13 +40,14 @@ async function findNextAvailablePosition(supabase: any, rootWallet: string): Pro
         };
       }
       
-      // 检查 individual_matrix_placements 表中的占用情况
+      // 检查 spillover_matrix 表中的占用情况
       const { data: existingPlacements, error: placementsError } = await supabase
-        .from('individual_matrix_placements')
-        .select('id, wallet_address')
-        .ilike('matrix_owner', rootWallet)
-        .eq('layer', layer)
-        .eq('position', position)
+        .from('spillover_matrix')
+        .select('id, member_wallet')
+        .ilike('matrix_root', rootWallet)
+        .eq('matrix_layer', layer)
+        .eq('matrix_position', position)
+        .eq('is_active', true)
         .limit(1);
       
       if (placementsError) {
@@ -208,14 +209,15 @@ async function verifyPlacement(
       return false;
     }
     
-    // 检查 individual_matrix_placements 表
+    // 检查 spillover_matrix 表
     const { data: placementData, error: placementError } = await supabase
-      .from('individual_matrix_placements')
-      .select('wallet_address')
-      .ilike('matrix_owner', rootWallet)
-      .eq('layer', layer)
-      .eq('position', position)
-      .ilike('wallet_address', memberWallet)
+      .from('spillover_matrix')
+      .select('member_wallet')
+      .ilike('matrix_root', rootWallet)
+      .eq('matrix_layer', layer)
+      .eq('matrix_position', position)
+      .ilike('member_wallet', memberWallet)
+      .eq('is_active', true)
       .single();
     
     if (placementError && placementError.code !== 'PGRST116') {

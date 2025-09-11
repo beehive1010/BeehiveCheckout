@@ -60,12 +60,12 @@ serve(async (req) => {
       .delete()
       .or(`recipient_wallet.neq.0x0000000000000000000000000000000000000001,payer_wallet.neq.0x0000000000000000000000000000000000000001`)
 
-    // 5. individual_matrix_placements (depends on users via member_wallet)
-    console.log('Cleaning individual_matrix_placements...')
+    // 5. spillover_matrix (depends on users via member_wallet)
+    console.log('Cleaning spillover_matrix...')
     const { error: matrixError } = await supabase
-      .from('individual_matrix_placements')
+      .from('spillover_matrix')
       .delete()
-      .or(`matrix_owner.neq.0x0000000000000000000000000000000000000001,member_wallet.neq.0x0000000000000000000000000000000000000001`)
+      .or(`matrix_root.neq.0x0000000000000000000000000000000000000001,member_wallet.neq.0x0000000000000000000000000000000000000001`)
 
     // 6. referrals (depends on members via member_wallet)
     console.log('Cleaning referrals...')

@@ -14,46 +14,51 @@ interface AdvertisementNFT {
   id: string;
   title: string;
   description: string;
-  image_url: string;
+  image_url: string | null;
   price_usdt: number;
   price_bcc: number;
   category: string;
-  advertiser_wallet?: string;
-  click_url?: string;
+  advertiser_wallet: string | null;
+  click_url: string | null;
   impressions_target: number;
   impressions_current: number;
   is_active: boolean;
   starts_at: string;
-  ends_at?: string;
+  ends_at: string | null;
   metadata: any;
   created_at: string;
+  updated_at: string;
 }
 
 interface MerchantNFT {
   id: string;
   title: string;
   description: string;
-  image_url: string;
+  image_url: string | null;
   price_usdt: number;
   price_bcc: number;
   category: string;
-  supply_total?: number;
-  supply_available?: number;
+  supply_total: number | null;
+  supply_available: number | null;
   is_active: boolean;
-  creator_wallet?: string;
+  creator_wallet: string | null;
   metadata: any;
   created_at: string;
+  updated_at: string;
 }
 
 interface NFTPurchase {
   id: string;
   buyer_wallet: string;
   nft_id: string;
-  nft_type: 'advertisement' | 'merchant';
-  amount_paid: number;
-  currency: string;
-  transaction_hash: string;
-  created_at: string;
+  nft_type: string;
+  payment_method: string;
+  price_bcc: number | null;
+  price_usdt: number;
+  purchased_at: string;
+  status: string;
+  transaction_hash: string | null;
+  metadata: any;
 }
 
 export default function NFTs() {
@@ -155,10 +160,11 @@ export default function NFTs() {
     }
 
     // Check BCC balance
-    if (bccBalance < nft.price_bcc) {
+    const currentBCC = bccBalance?.transferable || 0;
+    if (currentBCC < nft.price_bcc) {
       toast({
         title: "Insufficient BCC",
-        description: `You need ${nft.price_bcc} BCC to purchase this NFT (current: ${bccBalance} BCC)`,
+        description: `You need ${nft.price_bcc} BCC to purchase this NFT (current: ${currentBCC} BCC)`,
         variant: "destructive"
       });
       return;
@@ -355,7 +361,7 @@ export default function NFTs() {
                 <Card key={nft.id} className="group hover:shadow-lg transition-all duration-200 border-blue-500/20 hover:border-blue-500/40">
                   <CardHeader className="pb-3">
                     <img 
-                      src={nft.image_url} 
+                      src={nft.image_url || '/placeholder-nft.jpg'} 
                       alt={nft.title}
                       className="w-full h-48 object-cover rounded-lg mb-3"
                     />
@@ -438,7 +444,7 @@ export default function NFTs() {
                 <Card key={nft.id} className="group hover:shadow-lg transition-all duration-200 border-purple-500/20 hover:border-purple-500/40">
                   <CardHeader className="pb-3">
                     <img 
-                      src={nft.image_url} 
+                      src={nft.image_url || '/placeholder-nft.jpg'} 
                       alt={nft.title}
                       className="w-full h-48 object-cover rounded-lg mb-3"
                     />
@@ -554,8 +560,8 @@ export default function NFTs() {
                       <p className="text-sm text-muted-foreground line-clamp-2">{nft.description}</p>
                       
                       <div className="text-xs text-muted-foreground space-y-1">
-                        <div>Purchased: {new Date(purchase.created_at).toLocaleDateString()}</div>
-                        <div>Paid: {purchase.amount_paid} {purchase.currency}</div>
+                        <div>Purchased: {new Date(purchase.purchased_at).toLocaleDateString()}</div>
+                        <div>Paid: {purchase.price_usdt} USDT</div>
                         <div>Type: {purchase.nft_type}</div>
                       </div>
 

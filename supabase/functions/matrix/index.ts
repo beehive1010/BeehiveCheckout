@@ -1,5 +1,8 @@
-// Beehive Platform - Matrix Management Edge Function
-// Handles 3x3 matrix spillover, placement, and 19-layer tree structure with L-M-R positioning
+// =============================================
+// Beehive Platform - Matrix Management Edge Function (FIXED)
+// Handles 3x3 spillover matrix, placement, and 19-layer tree structure with L-M-R positioning
+// Compatible with new recursive 3x3 spillover referral system
+// =============================================
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -8,6 +11,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-wallet-address',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
 };
+
+// =============================================
+// INTERFACES AND TYPES
+// =============================================
 
 // MatrixPosition interface for type safety
 interface MatrixPosition {
@@ -20,6 +27,18 @@ interface MatrixPosition {
   placement_order: number;
   created_at: string;
 }
+
+interface PlacementResult {
+  success: boolean;
+  layer: number;
+  position: string;
+  error?: string;
+  conflictDetected?: boolean;
+}
+
+// =============================================
+// MAIN SERVE HANDLER
+// =============================================
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -53,6 +72,8 @@ serve(async (req) => {
     }
 
     const { action } = requestData;
+
+    console.log(`🔷 Matrix Operations Action: ${action} for wallet: ${walletAddress}`);
 
     switch (action) {
       case 'get-matrix':
@@ -97,6 +118,148 @@ serve(async (req) => {
   }
 });
 
+// =============================================
+// MATRIX PLACEMENT FIXING FUNCTIONS
+// =============================================
+
+// 修复的位置查找算法 - 严格检查位置占用
+async function findNextAvailablePosition(supabase: any, rootWallet: string): Promise<PlacementResult> {
+  console.log(`🔍 Finding next available position for root: ${rootWallet}`);
+  
+  // 从第1层开始检查
+  for (let layer = 1; layer <= 19; layer++) {
+    console.log(`📊 Checking layer ${layer}...`);
+    
+    // L-M-R 严格顺序检查
+    const positions = ['L', 'M', 'R'];
+    
+    for (const position of positions) {
+      // 检查 referrals 表中的占用情况
+      const { data: existingReferrals, error: referralsError } = await supabase
+        .from('referrals')
+        .select('id, member_wallet')
+        .ilike('matrix_root', rootWallet)
+        .eq('matrix_layer', layer)
+        .eq('matrix_position', position)
+        .limit(1);
+      
+      if (referralsError) {
+        console.error(`❌ Error checking referrals: ${referralsError.message}`);
+        return {
+          success: false,
+          layer: 0,
+          position: '',
+          error: `Database error: ${referralsError.message}`
+        };
+      }
+      
+      // 检查 spillover_matrix 表中的占用情况
+      const { data: existingPlacements, error: placementsError } = await supabase
+        .from('spillover_matrix')
+        .select('id, member_wallet')
+        .ilike('matrix_root', rootWallet)
+        .eq('matrix_layer', layer)
+        .eq('matrix_position', position)
+        .eq('is_active', true)
+        .limit(1);
+      
+      if (placementsError) {
+        console.error(`❌ Error checking placements: ${placementsError.message}`);
+        return {
+          success: false,
+          layer: 0,
+          position: '',
+          error: `Database error: ${placementsError.message}`
+        };
+      }
+      
+      // 如果两个表都显示该位置空闲，则可以使用
+      const isOccupied = (existingReferrals?.length > 0) || (existingPlacements?.length > 0);
+      
+      if (!isOccupied) {
+        console.log(`✅ Found available position: Layer ${layer}, Position ${position}`);
+        return {
+          success: true,
+          layer: layer,
+          position: position
+        };
+      } else {
+        console.log(`❌ Position occupied: Layer ${layer}, Position ${position}`);
+      }
+    }
+  }
+  
+  return {
+    success: false,
+    layer: 0,
+    position: '',
+    error: 'All 19 layers are full'
+  };
+}
+
+// 修复的安全放置函数 - 带冲突检测和回滚
+async function safelyPlaceMember(
+  supabase: any, 
+  rootWallet: string, 
+  memberWallet: string, 
+  layer: number, 
+  position: string
+): Promise<PlacementResult> {
+  console.log(`🔒 Safely placing member ${memberWallet} at Layer ${layer}, Position ${position} for root ${rootWallet}`);
+  
+  try {
+    // 使用数据库RPC函数进行安全放置
+    const { data: placementResult, error: placementError } = await supabase.rpc(
+      'safe_matrix_placement',
+      {
+        p_root_wallet: rootWallet,
+        p_member_wallet: memberWallet,
+        p_layer: layer,
+        p_position: position
+      }
+    );
+    
+    if (placementError) {
+      console.error(`❌ Placement failed: ${placementError.message}`);
+      return {
+        success: false,
+        layer: layer,
+        position: position,
+        error: `Placement failed: ${placementError.message}`
+      };
+    }
+    
+    if (!placementResult?.success) {
+      return {
+        success: false,
+        layer: layer,
+        position: position,
+        error: placementResult?.error || 'Unknown placement error'
+      };
+    }
+    
+    console.log(`✅ Member placed successfully: ${memberWallet} -> Layer ${layer}, Position ${position}`);
+    return {
+      success: true,
+      layer: layer,
+      position: position
+    };
+    
+  } catch (error) {
+    console.error(`❌ Safe placement error: ${error.message}`);
+    return {
+      success: false,
+      layer: layer,
+      position: position,
+      error: `Safe placement error: ${error.message}`
+    };
+  }
+}
+
+// =============================================
+// MAIN HANDLER FUNCTIONS (FIXED)
+// =============================================
+
 async function handleGetMatrix(supabase, walletAddress: string, data) {
   try {
     console.log('🎯 Matrix request data:', data);
@@ -119,14 +282,14 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
       });
     }
 
-    // Use members table to build matrix data (case insensitive search)
-    let query = supabase
+    // ✅ FIXED: Use correct tables - referrals and spillover_matrix
+    let membersQuery = supabase
       .from('members')
       .select('wallet_address, referrer_wallet, current_level, username, created_at')
       .ilike('referrer_wallet', targetRoot)
       .limit(limit);
 
-    // Also get referrals table data if it exists (case insensitive)
+    // ✅ FIXED: Query referrals table with correct fields
     let referralsQuery = supabase
       .from('referrals')
       .select(`
@@ -135,21 +298,40 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
         matrix_parent,
         matrix_position,
         matrix_layer,
-        matrix_root
+        matrix_root,
+        created_at
       `)
       .or(`referrer_wallet.ilike.${targetRoot},matrix_parent.ilike.${targetRoot}`)
       .limit(limit);
 
-    console.log('🔍 Executing members and referrals queries...');
+    // ✅ FIXED: Query spillover_matrix table for spillover positions
+    let spilloverQuery = supabase
+      .from('spillover_matrix')
+      .select(`
+        member_wallet,
+        matrix_root,
+        matrix_parent,
+        matrix_position,
+        matrix_layer,
+        is_active,
+        placed_at
+      `)
+      .ilike('matrix_root', targetRoot)
+      .eq('is_active', true)
+      .limit(limit);
+
+    console.log('🔍 Executing queries: members, referrals, spillover_matrix...');
     
-    // Execute both queries in parallel
-    const [membersResult, referralsResult] = await Promise.allSettled([
-      query,
-      referralsQuery
+    // Execute all queries in parallel
+    const [membersResult, referralsResult, spilloverResult] = await Promise.allSettled([
+      membersQuery,
+      referralsQuery,
+      spilloverQuery
     ]);
 
     let memberData = [];
     let referralData = [];
+    let spilloverData = [];
 
     // Process members query result
     if (membersResult.status === 'fulfilled' && !membersResult.value.error) {
@@ -167,10 +349,18 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
       console.warn('⚠️ Referrals query failed:', referralsResult);
     }
 
-    // Combine data to build matrix structure using referrals table matrix data
+    // Process spillover query result
+    if (spilloverResult.status === 'fulfilled' && !spilloverResult.value.error) {
+      spilloverData = spilloverResult.value.data || [];
+      console.log(`✅ Spillover query successful: ${spilloverData.length} spillover positions found`);
+    } else {
+      console.warn('⚠️ Spillover query failed:', spilloverResult);
+    }
+
+    // ✅ FIXED: Combine data to build matrix structure using both tables
     const finalMatrixData = [];
     
-    // Process referrals data first (has matrix information)
+    // Process referrals data first (original positions)
     referralData.forEach((referral, index) => {
       const member = memberData.find(m => 
         m.wallet_address.toLowerCase() === referral.member_wallet.toLowerCase()
@@ -183,19 +373,54 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
           layer: referral.matrix_layer || 1,
           position: referral.matrix_position || `${index + 1}`,
           parent_wallet: referral.matrix_parent || referral.referrer_wallet,
-          is_activated: true, // Assume activated since in members table
+          is_activated: true,
           placement_order: index + 1,
-          created_at: member.created_at,
+          created_at: referral.created_at || member.created_at,
           members: {
             current_level: member.current_level || 1,
-            is_activated: true, // Assume activated
+            is_activated: true,
             username: member.username || null
-          }
+          },
+          source: 'referrals'
         });
       }
     });
     
-    // Add members not in referrals table
+    // Process spillover data (spillover positions)
+    spilloverData.forEach((spillover, index) => {
+      // Check if already added from referrals
+      const alreadyProcessed = finalMatrixData.some(f => 
+        f.wallet_address.toLowerCase() === spillover.member_wallet.toLowerCase() &&
+        f.layer === spillover.matrix_layer
+      );
+      
+      if (!alreadyProcessed) {
+        const member = memberData.find(m => 
+          m.wallet_address.toLowerCase() === spillover.member_wallet.toLowerCase()
+        );
+        
+        if (member) {
+          finalMatrixData.push({
+            wallet_address: spillover.member_wallet,
+            root_wallet: spillover.matrix_root,
+            layer: spillover.matrix_layer,
+            position: spillover.matrix_position,
+            parent_wallet: spillover.matrix_parent,
+            is_activated: spillover.is_active,
+            placement_order: referralData.length + index + 1,
+            created_at: spillover.placed_at,
+            members: {
+              current_level: member.current_level || 1,
+              is_activated: spillover.is_active,
+              username: member.username || null
+            },
+            source: 'spillover'
+          });
+        }
+      }
+    });
+    
+    // Add remaining members not in either table (direct referrals only)
     memberData.forEach((member, index) => {
       const alreadyProcessed = finalMatrixData.some(f => 
         f.wallet_address.toLowerCase() === member.wallet_address.toLowerCase()
@@ -208,14 +433,15 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
           layer: 1, // Direct referrals are layer 1
           position: `${index + 1}`,
           parent_wallet: member.referrer_wallet,
-          is_activated: true, // Assume activated since in members table
+          is_activated: true,
           placement_order: index + 1,
           created_at: member.created_at,
           members: {
             current_level: member.current_level || 1,
-            is_activated: true, // Assume activated
+            is_activated: true,
             username: member.username || null
-          }
+          },
+          source: 'direct'
         });
       }
     });
@@ -238,9 +464,10 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
       level: member.members?.current_level || 1,
       layer: member.layer,
       position: member.placement_order,
-      isActive: true, // Assume all members are active
+      isActive: true,
       placedAt: member.created_at,
-      downlineCount: 0 // This would need calculation from layer stats
+      downlineCount: 0,
+      source: member.source || 'unknown'
     }));
 
     return new Response(JSON.stringify({
@@ -250,6 +477,9 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
         members: formattedMembers,
         totalLayers: Math.max(...(finalMatrixData?.map(m => m.layer) || [0])),
         totalMembers: finalMatrixData?.length || 0,
+        referralMembers: referralData.length,
+        spilloverMembers: spilloverData.length,
+        directMembers: finalMatrixData.filter(m => m.source === 'direct').length,
         // Keep original detailed data for advanced usage
         matrix_data: matrixTree,
         layer_statistics: layerStats,
@@ -307,19 +537,15 @@ async function handlePlaceMember(supabase, walletAddress: string, data) {
       });
     }
 
-    // Use the existing stored procedure with correct parameters
-    const { data: placementResult, error: placementError } = await supabase.rpc('get_next_matrix_position', {
-      root_wallet: rootWallet
-    });
+    console.log(`🎯 Placing member ${memberWallet} in matrix for root ${rootWallet}`);
 
-    if (placementError) {
-      throw placementError;
-    }
+    // ✅ FIXED: Use our enhanced placement algorithm
+    const positionResult = await findNextAvailablePosition(supabase, rootWallet);
 
-    if (!placementResult?.success) {
+    if (!positionResult.success) {
       return new Response(JSON.stringify({
         success: false,
-        error: placementResult?.error || 'Failed to find matrix position'
+        error: positionResult.error || 'Failed to find available position'
       }), {
         headers: {
           ...corsHeaders,
@@ -329,22 +555,19 @@ async function handlePlaceMember(supabase, walletAddress: string, data) {
       });
     }
 
-    // Now place the member using the found position
-    const { data: memberPlacementResult, error: memberPlacementError } = await supabase.rpc('place_member_in_matrix', {
-      p_root_wallet: rootWallet,
-      p_member_wallet: memberWallet,
-      p_placer_wallet: placerWallet || walletAddress,
-      p_placement_type: 'spillover'
-    });
+    // ✅ FIXED: Use safe placement function
+    const placementResult = await safelyPlaceMember(
+      supabase, 
+      rootWallet, 
+      memberWallet, 
+      positionResult.layer, 
+      positionResult.position
+    );
 
-    if (memberPlacementError) {
-      throw memberPlacementError;
-    }
-
-    if (!memberPlacementResult?.success) {
+    if (!placementResult.success) {
       return new Response(JSON.stringify({
         success: false,
-        error: memberPlacementResult?.error || 'Failed to place member in matrix'
+        error: placementResult.error || 'Failed to place member in matrix'
       }), {
         headers: {
           ...corsHeaders,
@@ -353,24 +576,18 @@ async function handlePlaceMember(supabase, walletAddress: string, data) {
         status: 400
       });
     }
-
-    // Update matrix layer summary
-    await supabase.rpc('update_matrix_layer_summary', {
-      p_layer: 1,
-      p_root_wallet: rootWallet
-    });
 
     // Check if this placement triggers any spillover
-    const spilloverResult = await processAutomaticSpillover(supabase, rootWallet, placementResult?.[0]?.layer || 1);
+    const spilloverResult = await processAutomaticSpillover(supabase, rootWallet, placementResult.layer);
 
     return new Response(JSON.stringify({
       success: true,
       message: 'Member placed successfully in matrix',
       data: {
-        placement_result: memberPlacementResult,
+        placement_result: placementResult,
         spillover_info: spilloverResult,
-        position: placementResult?.[0]?.pos || 'L',
-        layer: placementResult?.[0]?.layer || 1,
+        position: placementResult.position,
+        layer: placementResult.layer,
         root_wallet: rootWallet,
         member_wallet: memberWallet
       }
@@ -413,27 +630,44 @@ async function handleFindOptimalPosition(supabase, walletAddress: string, data) 
       });
     }
 
-    // Get current matrix structure for the root from the view
-    const { data: matrixData, error } = await supabase
-      .from('user_personal_matrix')
-      .select('*')
-      .eq('root_wallet', rootWallet)
-      .order('layer')
-      .order('position');
+    // ✅ FIXED: Use corrected position finding algorithm
+    const optimalPosition = await findNextAvailablePosition(supabase, rootWallet);
 
-    if (error) {
-      throw error;
+    if (!optimalPosition.success) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: optimalPosition.error || 'No available positions found'
+      }), {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        },
+        status: 400
+      });
     }
 
-    // Find optimal position using L-M-R priority filling algorithm
-    const optimalPosition = findOptimalLMRPosition(matrixData || []);
+    // ✅ FIXED: Get current matrix size from both tables
+    const { count: referralCount } = await supabase
+      .from('referrals')
+      .select('*', { count: 'exact', head: true })
+      .ilike('matrix_root', rootWallet);
+
+    const { count: spilloverCount } = await supabase
+      .from('spillover_matrix')
+      .select('*', { count: 'exact', head: true })
+      .ilike('matrix_root', rootWallet)
+      .eq('is_active', true);
 
     return new Response(JSON.stringify({
       success: true,
       data: {
         optimal_position: optimalPosition,
-        current_matrix_size: matrixData?.length || 0,
-        recommendation: optimalPosition.recommendation
+        current_matrix_size: {
+          referrals: referralCount || 0,
+          spillover: spilloverCount || 0,
+          total: (referralCount || 0) + (spilloverCount || 0)
+        },
+        recommendation: `Place at Layer ${optimalPosition.layer}, Position ${optimalPosition.position}`
       }
     }), {
       headers: {
@@ -506,36 +740,69 @@ async function handleGetDownline(supabase, walletAddress: string, data) {
       });
     }
 
-    let query = supabase
-      .from('user_personal_matrix')
+    // ✅ FIXED: Query both referrals and spillover_matrix tables
+    let referralsQuery = supabase
+      .from('referrals')
       .select('*')
-      .eq('root_wallet', walletAddress)
+      .ilike('matrix_root', walletAddress)
       .neq('member_wallet', walletAddress) // Exclude self
-      .order('layer')
-      .order('position')
+      .order('matrix_layer')
+      .order('created_at')
+      .range(offset, offset + limit - 1);
+
+    let spilloverQuery = supabase
+      .from('spillover_matrix')
+      .select('*')
+      .ilike('matrix_root', walletAddress)
+      .neq('member_wallet', walletAddress) // Exclude self
+      .eq('is_active', true)
+      .order('matrix_layer')
+      .order('placed_at')
       .range(offset, offset + limit - 1);
 
     if (layer) {
-      query = query.eq('layer', layer);
+      referralsQuery = referralsQuery.eq('matrix_layer', layer);
+      spilloverQuery = spilloverQuery.eq('matrix_layer', layer);
     }
 
-    const { data: downlineData, error } = await query;
+    const [referralsResult, spilloverResult] = await Promise.allSettled([
+      referralsQuery,
+      spilloverQuery
+    ]);
 
-    if (error) {
-      throw error;
+    let downlineData = [];
+
+    // Combine results from both tables
+    if (referralsResult.status === 'fulfilled' && referralsResult.value.data) {
+      downlineData.push(...referralsResult.value.data.map(item => ({ ...item, source: 'referrals' })));
     }
+
+    if (spilloverResult.status === 'fulfilled' && spilloverResult.value.data) {
+      downlineData.push(...spilloverResult.value.data.map(item => ({ ...item, source: 'spillover' })));
+    }
+
+    // Remove duplicates based on member_wallet and layer
+    const uniqueDownline = downlineData.filter((item, index, self) =>
+      index === self.findIndex(other => 
+        other.member_wallet === item.member_wallet && other.matrix_layer === item.matrix_layer
+      )
+    );
 
     // Group by layers and calculate statistics
-    const layerGroups = groupByLayer(downlineData || []);
-    const downlineStats = calculateDownlineStats(downlineData || []);
+    const layerGroups = groupByLayer(uniqueDownline || []);
+    const downlineStats = calculateDownlineStats(uniqueDownline || []);
 
     return new Response(JSON.stringify({
       success: true,
       data: {
-        downline_members: downlineData || [],
+        downline_members: uniqueDownline || [],
         layer_groups: layerGroups,
         statistics: downlineStats,
-        total_downline: downlineData?.length || 0
+        total_downline: uniqueDownline?.length || 0,
+        sources: {
+          referrals: downlineData.filter(item => item.source === 'referrals').length,
+          spillover: downlineData.filter(item => item.source === 'spillover').length
+        }
       }
     }), {
       headers: {
@@ -574,28 +841,42 @@ async function handleGetUpline(supabase, walletAddress: string, data) {
       });
     }
 
-    // Get the member's matrix positions (they can be in multiple matrices)
-    const { data: memberPositions, error } = await supabase
-      .from('user_personal_matrix')
-      .select('*')
-      .eq('member_wallet', walletAddress);
+    // ✅ FIXED: Get member's matrix positions from both tables
+    const [referralsResult, spilloverResult] = await Promise.allSettled([
+      supabase
+        .from('referrals')
+        .select('*')
+        .ilike('member_wallet', walletAddress),
+      supabase
+        .from('spillover_matrix')
+        .select('*')
+        .ilike('member_wallet', walletAddress)
+        .eq('is_active', true)
+    ]);
 
-    if (error) {
-      throw error;
+    const memberPositions = [];
+
+    if (referralsResult.status === 'fulfilled' && referralsResult.value.data) {
+      memberPositions.push(...referralsResult.value.data.map(item => ({ ...item, source: 'referrals' })));
+    }
+
+    if (spilloverResult.status === 'fulfilled' && spilloverResult.value.data) {
+      memberPositions.push(...spilloverResult.value.data.map(item => ({ ...item, source: 'spillover' })));
     }
 
     const uplineData = [];
 
-    // For each matrix the member is in, get their upline chain
+    // For each matrix position, get upline chain
     for (const position of memberPositions || []) {
-      if (position.parent_wallet) {
-        // Get upline chain up to root
-        const uplineChain = await getUplineChain(supabase, position.parent_wallet, position.root_wallet);
+      if (position.matrix_parent || position.referrer_wallet) {
+        const parentWallet = position.matrix_parent || position.referrer_wallet;
+        const uplineChain = await getUplineChain(supabase, parentWallet, position.matrix_root);
         uplineData.push({
-          matrix_root: position.root_wallet,
-          member_position: position.position,
-          member_layer: position.layer,
-          upline_chain: uplineChain
+          matrix_root: position.matrix_root,
+          member_position: position.matrix_position,
+          member_layer: position.matrix_layer,
+          upline_chain: uplineChain,
+          source: position.source
         });
       }
     }
@@ -640,23 +921,37 @@ async function handleGetMatrixStats(supabase, walletAddress: string, data) {
       });
     }
 
-    // Get matrix statistics using members table (user as referrer)  
+    // ✅ FIXED: Get matrix statistics using correct tables
     console.log(`🔍 Getting matrix stats for wallet: ${walletAddress}`);
-    const { data: matrixStats, error: statsError } = await supabase
-      .from('members')
-      .select('wallet_address, referrer_wallet, current_level, created_at')
-      .eq('referrer_wallet', walletAddress);
+    
+    // Get referrals data
+    const { data: referralsStats, error: referralsError } = await supabase
+      .from('referrals')
+      .select('member_wallet, referrer_wallet, matrix_layer, created_at')
+      .ilike('referrer_wallet', walletAddress);
 
-    if (statsError) {
-      console.error('❌ Matrix stats query error:', statsError);
-      throw new Error(`Matrix stats query failed: ${statsError.message}`);
+    if (referralsError) {
+      console.error('❌ Referrals stats query error:', referralsError);
+      throw new Error(`Referrals stats query failed: ${referralsError.message}`);
     }
 
-    // Get member's own referrer info (user as member)
+    // Get spillover data
+    const { data: spilloverStats, error: spilloverError } = await supabase
+      .from('spillover_matrix')
+      .select('member_wallet, matrix_root, matrix_layer, placed_at')
+      .ilike('matrix_root', walletAddress)
+      .eq('is_active', true);
+
+    if (spilloverError) {
+      console.error('❌ Spillover stats query error:', spilloverError);
+      throw new Error(`Spillover stats query failed: ${spilloverError.message}`);
+    }
+
+    // Get member's own info
     const { data: memberInfo, error: memberError } = await supabase
       .from('members')
       .select('wallet_address, referrer_wallet, current_level, created_at')
-      .eq('wallet_address', walletAddress)
+      .ilike('wallet_address', walletAddress)
       .single();
 
     if (memberError && memberError.code !== 'PGRST116') {
@@ -664,25 +959,30 @@ async function handleGetMatrixStats(supabase, walletAddress: string, data) {
       throw new Error(`Member info query failed: ${memberError.message}`);
     }
 
-    // First log the actual structure to see what fields are available
-    console.log('🔍 Members table structure sample:', JSON.stringify(matrixStats?.[0], null, 2));
-    console.log('🔍 Member info structure:', JSON.stringify(memberInfo, null, 2));
+    console.log(`✅ Found ${referralsStats?.length || 0} referrals and ${spilloverStats?.length || 0} spillover positions`);
 
-    console.log(`✅ Found ${matrixStats?.length || 0} direct referrals`);
-    console.log(`✅ Member info:`, memberInfo ? 'Found' : 'Not found');
-
-    // Convert data to matrix format for calculations - simplified without is_activated field
-    const rootMatrixData = (matrixStats || []).map((member, index) => ({
-      wallet_address: member.wallet_address,
-      layer: 1, // Direct referrals are layer 1
-      is_activated: true, // Assume activated since they're in members table
-      created_at: member.created_at
-    }));
+    // Convert data to matrix format for calculations
+    const rootMatrixData = [
+      ...(referralsStats || []).map((item, index) => ({
+        wallet_address: item.member_wallet,
+        layer: item.matrix_layer || 1,
+        is_activated: true,
+        created_at: item.created_at,
+        source: 'referrals'
+      })),
+      ...(spilloverStats || []).map((item, index) => ({
+        wallet_address: item.member_wallet,
+        layer: item.matrix_layer,
+        is_activated: true,
+        created_at: item.placed_at,
+        source: 'spillover'
+      }))
+    ];
 
     const memberMatrixData = memberInfo ? [{
       root_wallet: memberInfo.referrer_wallet,
       layer: 1,
-      is_activated: true, // Assume activated
+      is_activated: true,
       created_at: memberInfo.created_at
     }] : [];
 
@@ -691,11 +991,16 @@ async function handleGetMatrixStats(supabase, walletAddress: string, data) {
       as_root: calculateRootMatrixStats(rootMatrixData),
       as_member: calculateMemberMatrixStats(memberMatrixData),
       overall: calculateOverallMatrixStats(rootMatrixData, memberMatrixData),
-      direct_referrals: (matrixStats || []).length,
-      activated_referrals: (matrixStats || []).length, // Assume all are activated
+      direct_referrals: (referralsStats || []).filter(r => (r.matrix_layer || 1) === 1).length,
+      spillover_positions: (spilloverStats || []).length,
+      total_team_size: rootMatrixData.length,
       member_level: memberInfo?.current_level || 0,
       has_referrer: !!memberInfo?.referrer_wallet,
-      referrer_wallet: memberInfo?.referrer_wallet || null
+      referrer_wallet: memberInfo?.referrer_wallet || null,
+      sources_breakdown: {
+        referrals: (referralsStats || []).length,
+        spillover: (spilloverStats || []).length
+      }
     };
 
     return new Response(JSON.stringify({
@@ -723,7 +1028,9 @@ async function handleGetMatrixStats(supabase, walletAddress: string, data) {
   }
 }
 
-// Helper Functions for Matrix Logic
+// =============================================
+// HELPER FUNCTIONS FOR MATRIX LOGIC
+// =============================================
 
 function buildMatrixTree(matrixData: MatrixPosition[]): any {
   const tree = {};
@@ -783,8 +1090,9 @@ function calculateLayerStatistics(matrixData: MatrixPosition[]): any {
     }
     
     layerStats[layer].filled_positions++;
-    // Assume all members in the system are activated
-    layerStats[layer].activated_members++;
+    if (member.is_activated) {
+      layerStats[layer].activated_members++;
+    }
     
     // Count L-M-R distribution
     if (member.position.startsWith('L') || member.position === 'L') {
@@ -808,7 +1116,6 @@ function calculateLayerStatistics(matrixData: MatrixPosition[]): any {
 }
 
 function calculateSpilloverAnalysis(matrixData: MatrixPosition[]): any {
-  // Analyze spillover patterns and potential optimizations
   const analysis = {
     spillover_opportunities: [],
     bottlenecks: [],
@@ -827,7 +1134,7 @@ function calculateSpilloverAnalysis(matrixData: MatrixPosition[]): any {
         layer: layerNum,
         next_layer: layerNum + 1,
         current_fill_rate: stats.fill_rate,
-        spillover_potential: stats.filled_positions * 3 // Each member can spawn 3 in next layer
+        spillover_potential: stats.filled_positions * 3
       });
     }
     
@@ -850,108 +1157,33 @@ function calculateSpilloverAnalysis(matrixData: MatrixPosition[]): any {
   return analysis;
 }
 
-function findOptimalLMRPosition(matrixData: MatrixPosition[]): any {
-  // Implement L-M-R priority filling algorithm
-  const layerCapacity = {};
-  const layerCounts = {};
-  
-  // Count existing positions per layer
-  matrixData.forEach(member => {
-    const layer = member.layer;
-    if (!layerCounts[layer]) {
-      layerCounts[layer] = { L: 0, M: 0, R: 0, total: 0 };
-    }
-    
-    if (member.position.startsWith('L') || member.position === 'L') {
-      layerCounts[layer].L++;
-    } else if (member.position.startsWith('M') || member.position === 'M') {
-      layerCounts[layer].M++;
-    } else if (member.position.startsWith('R') || member.position === 'R') {
-      layerCounts[layer].R++;
-    }
-    layerCounts[layer].total++;
-  });
+async function processAutomaticSpillover(supabase, rootWallet: string, triggerLayer: number): Promise<any> {
+  // ✅ FIXED: Check spillover readiness using both tables
+  const [referralsResult, spilloverResult] = await Promise.allSettled([
+    supabase
+      .from('referrals')
+      .select('*')
+      .ilike('matrix_root', rootWallet)
+      .eq('matrix_layer', triggerLayer),
+    supabase
+      .from('spillover_matrix')
+      .select('*')
+      .ilike('matrix_root', rootWallet)
+      .eq('matrix_layer', triggerLayer)
+      .eq('is_active', true)
+  ]);
 
-  // Find the first available position following L -> M -> R priority
-  for (let layer = 1; layer <= 19; layer++) {
-    const maxCapacity = Math.pow(3, layer);
-    const currentCount = layerCounts[layer]?.total || 0;
-    
-    if (currentCount < maxCapacity) {
-      const counts = layerCounts[layer] || { L: 0, M: 0, R: 0, total: 0 };
-      const layerCapacityPerBranch = Math.pow(3, layer - 1);
-      
-      // Check L branch first
-      if (counts.L < layerCapacityPerBranch) {
-        return {
-          layer,
-          position: generateLPosition(layer, counts.L),
-          branch: 'L',
-          recommendation: 'Optimal L-branch placement'
-        };
-      }
-      
-      // Then M branch
-      if (counts.M < layerCapacityPerBranch) {
-        return {
-          layer,
-          position: generateMPosition(layer, counts.M),
-          branch: 'M',
-          recommendation: 'Optimal M-branch placement'
-        };
-      }
-      
-      // Finally R branch
-      if (counts.R < layerCapacityPerBranch) {
-        return {
-          layer,
-          position: generateRPosition(layer, counts.R),
-          branch: 'R',
-          recommendation: 'Optimal R-branch placement'
-        };
-      }
-    }
+  let layerData = [];
+  
+  if (referralsResult.status === 'fulfilled' && referralsResult.value.data) {
+    layerData.push(...referralsResult.value.data);
+  }
+  
+  if (spilloverResult.status === 'fulfilled' && spilloverResult.value.data) {
+    layerData.push(...spilloverResult.value.data);
   }
 
-  return {
-    layer: null,
-    position: null,
-    branch: null,
-    recommendation: 'Matrix is full (19 layers completed)'
-  };
-}
-
-function generateLPosition(layer: number, existingCount: number): string {
-  if (layer === 1) return 'L';
-  
-  // Generate sub-positions like L.L, L.M, L.R, L.L.L, etc.
-  const basePositions = ['L', 'M', 'R'];
-  const positionsPerSubLevel = Math.pow(3, layer - 2);
-  const subLevel = Math.floor(existingCount / positionsPerSubLevel) + 1;
-  const positionInSubLevel = existingCount % positionsPerSubLevel;
-  
-  return `L.${'LMR'[Math.floor(positionInSubLevel / Math.pow(3, layer - 3))]}`;
-}
-
-function generateMPosition(layer: number, existingCount: number): string {
-  if (layer === 1) return 'M';
-  return `M.${'LMR'[existingCount % 3]}`;
-}
-
-function generateRPosition(layer: number, existingCount: number): string {
-  if (layer === 1) return 'R';
-  return `R.${'LMR'[existingCount % 3]}`;
-}
-
-async function processAutomaticSpillover(supabase, rootWallet: string, triggerLayer: number): Promise<any> {
-  // Check if any positions in the trigger layer are ready to spillover
-  const { data: layerData, error } = await supabase
-    .from('user_personal_matrix')
-    .select('*')
-    .eq('root_wallet', rootWallet)
-    .eq('layer', triggerLayer);
-
-  if (error || !layerData) {
+  if (!layerData || layerData.length === 0) {
     return { spillover_processed: false, reason: 'No data for trigger layer' };
   }
 
@@ -960,7 +1192,6 @@ async function processAutomaticSpillover(supabase, rootWallet: string, triggerLa
   const fillRate = (layerData.length / maxCapacity) * 100;
 
   if (fillRate >= 80) { // Trigger spillover at 80% capacity
-    // Process spillover logic here
     return {
       spillover_processed: true,
       trigger_layer: triggerLayer,
@@ -981,19 +1212,39 @@ async function getUplineChain(supabase, startWallet: string, rootWallet: string)
   let currentWallet = startWallet;
 
   while (currentWallet && currentWallet !== rootWallet) {
-    const { data: position, error } = await supabase
-      .from('user_personal_matrix')
-      .select('*')
-      .eq('member_wallet', currentWallet)
-      .eq('root_wallet', rootWallet)
-      .single();
+    // ✅ FIXED: Search in both referrals and spillover_matrix tables
+    const [referralResult, spilloverResult] = await Promise.allSettled([
+      supabase
+        .from('referrals')
+        .select('*')
+        .ilike('member_wallet', currentWallet)
+        .ilike('matrix_root', rootWallet)
+        .single(),
+      supabase
+        .from('spillover_matrix')
+        .select('*')
+        .ilike('member_wallet', currentWallet)
+        .ilike('matrix_root', rootWallet)
+        .eq('is_active', true)
+        .single()
+    ]);
 
-    if (error || !position) {
+    let position = null;
+
+    if (referralResult.status === 'fulfilled' && referralResult.value.data) {
+      position = referralResult.value.data;
+      position.source = 'referrals';
+    } else if (spilloverResult.status === 'fulfilled' && spilloverResult.value.data) {
+      position = spilloverResult.value.data;
+      position.source = 'spillover';
+    }
+
+    if (!position) {
       break;
     }
 
     uplineChain.push(position);
-    currentWallet = position.parent_wallet;
+    currentWallet = position.matrix_parent || position.referrer_wallet;
   }
 
   return uplineChain;
@@ -1001,7 +1252,7 @@ async function getUplineChain(supabase, startWallet: string, rootWallet: string)
 
 function groupByLayer(data: any[]): any {
   return data.reduce((acc, item) => {
-    const layer = item.layer;
+    const layer = item.matrix_layer || item.layer;
     if (!acc[layer]) {
       acc[layer] = [];
     }
@@ -1013,10 +1264,10 @@ function groupByLayer(data: any[]): any {
 function calculateDownlineStats(data: any[]): any {
   return {
     total_members: data.length,
-    activated_members: data.length, // Assume all are activated
-    layers_depth: Math.max(...data.map(m => m.layer), 0),
+    activated_members: data.filter(m => m.is_activated || m.is_active).length,
+    layers_depth: Math.max(...data.map(m => m.matrix_layer || m.layer), 0),
     recent_additions: data.filter(m => {
-      const createdDate = new Date(m.created_at);
+      const createdDate = new Date(m.created_at || m.placed_at);
       const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       return createdDate > sevenDaysAgo;
     }).length
@@ -1026,10 +1277,14 @@ function calculateDownlineStats(data: any[]): any {
 function calculateRootMatrixStats(data: any[]): any {
   return {
     total_team_size: data.length,
-    activated_members: data.length, // Assume all are activated
+    activated_members: data.filter(m => m.is_activated).length,
     max_depth: Math.max(...data.map(m => m.layer), 0),
     layer_distribution: data.reduce((acc, m) => {
       acc[m.layer] = (acc[m.layer] || 0) + 1;
+      return acc;
+    }, {}),
+    sources_breakdown: data.reduce((acc, m) => {
+      acc[m.source] = (acc[m.source] || 0) + 1;
       return acc;
     }, {})
   };
@@ -1040,7 +1295,7 @@ function calculateMemberMatrixStats(data: any[]): any {
     matrices_joined: data.length,
     average_layer: data.length > 0 ? data.reduce((sum, m) => sum + m.layer, 0) / data.length : 0,
     highest_layer: Math.max(...data.map(m => m.layer), 0),
-    activated_positions: data.length // Assume all are activated
+    activated_positions: data.filter(m => m.is_activated).length
   };
 }
 
@@ -1053,10 +1308,9 @@ function calculateOverallMatrixStats(rootData: any[], memberData: any[]): any {
 }
 
 function calculateNetworkStrength(rootData: any[], memberData: any[]): number {
-  // Calculate a composite score based on team size, depth, and activation rates
   const teamSize = rootData.length;
   const maxDepth = Math.max(...rootData.map(m => m.layer), 0);
-  const activationRate = rootData.length > 0 ? 1.0 : 0; // Assume 100% activation rate
+  const activationRate = rootData.length > 0 ? rootData.filter(m => m.is_activated).length / rootData.length : 0;
   
   return Math.round((teamSize * 0.4 + maxDepth * 0.3 + activationRate * 100 * 0.3) * 10) / 10;
 }

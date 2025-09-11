@@ -114,21 +114,21 @@ export function useUserMatrixStats() {
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
       
-      // Get matrix placements by layer
+      // Get matrix placements by layer using referrals table
       const { data: matrixData } = await supabase
-        .from('individual_matrix_placements')
-        .select('layer_in_owner_matrix, position_in_layer, member_wallet')
-        .eq('matrix_owner', walletAddress)
-        .order('layer_in_owner_matrix');
+        .from('referrals')
+        .select('matrix_layer, matrix_position, member_wallet')
+        .eq('matrix_root', walletAddress)
+        .order('matrix_layer');
 
       // Group by layer and count
       const layerStats = matrixData?.reduce((acc, placement) => {
-        const layer = placement.layer_in_owner_matrix;
+        const layer = placement.matrix_layer;
         if (!acc[layer]) {
           acc[layer] = { members: 0, positions: [] };
         }
         acc[layer].members++;
-        acc[layer].positions.push(placement.position_in_layer);
+        acc[layer].positions.push(placement.matrix_position);
         return acc;
       }, {} as Record<number, { members: number; positions: string[] }>) || {};
 

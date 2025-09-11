@@ -241,19 +241,19 @@ async function claimReward(req, supabaseClient) {
             });
         }
         
-        // 3. Get matrix position for Layer 1 R position check (using case-insensitive)
+        // 3. Get matrix position for Layer 1 R position check (using spillover_matrix table)
         const { data: matrixPositionArray } = await supabaseClient
-            .from('individual_matrix_placements')
-            .select('position_in_layer')
-            .ilike('matrix_owner', reward.recipient_wallet.toLowerCase())
+            .from('spillover_matrix')
+            .select('matrix_position')
+            .ilike('matrix_root', reward.recipient_wallet.toLowerCase())
             .ilike('member_wallet', reward.payer_wallet.toLowerCase())
-            .eq('layer_in_owner_matrix', reward.layer)
+            .eq('matrix_layer', reward.layer)
             .eq('is_active', true);
             
         const matrixPosition = matrixPositionArray?.[0] || null;
         
         // 4. CRITICAL BUSINESS RULE: Layer 1 R position special rule
-        if (reward.layer === 1 && matrixPosition?.position_in_layer === 'R') {
+        if (reward.layer === 1 && matrixPosition?.matrix_position === 'R') {
             const { data: memberArray, error: memberError } = await supabaseClient
                 .from('members')
                 .select('current_level')
@@ -1045,15 +1045,17 @@ async function processLevelActivationRewards(req, supabaseClient) {
         }
         console.log(`📍 Found ${memberPositions?.length || 0} matrix positions for member`);
         const rewardsCreated = [];
-        // Process rewards for each position where Layer = Activated Level
+        // Process rewards for each position - CORRECTED LOGIC
         for (const position of memberPositions || []){
-            // KEY RULE: Only create Layer X reward when Level X NFT is activated
-            if (position.matrix_layer === activatedLevel) {
-                console.log(`✅ Creating Layer ${position.matrix_layer} reward for Level ${activatedLevel} NFT activation`);
+            // ✅ CORRECT RULE: Only Layer X root gets reward when Layer X member activates Level X NFT
+            // Layer 2 member activating Level 2 NFT → only Layer 2 root gets reward
+            if (activatedLevel === position.matrix_layer) {
+                console.log(`✅ Creating Layer ${position.matrix_layer} reward for Level ${activatedLevel} NFT activation (Layer ${position.matrix_layer} member activated matching Level ${activatedLevel})`);
                 // Get matrix root's member data to check qualification
                 const { data: rootMemberData } = await supabaseClient.from('members').select('current_level').eq('wallet_address', position.matrix_root).single();
-                // Calculate reward amount based on NFT level price
-                const rewardAmount = calculateNFTLevelReward(activatedLevel);
+                // ✅ CORRECTED: Calculate reward amount based on the LAYER being rewarded, not the activated level
+                // Layer 2 root gets Layer 2 reward amount when member activates Level 2+ NFT
+                const rewardAmount = calculateNFTLevelReward(position.matrix_layer);
                 // Determine reward status based on business rules
                 let rewardStatus = 'pending';
                 let rewardRule = 'Matrix root must own >= NFT level being activated';
@@ -1064,8 +1066,10 @@ async function processLevelActivationRewards(req, supabaseClient) {
                     rewardStatus = rootLevel >= 2 ? 'claimable' : 'pending';
                     rewardRule = 'Layer 1 R position requires Level 2+ matrix root';
                 } else {
-                    // General rule: Root must own >= activated level
-                    rewardStatus = rootLevel >= activatedLevel ? 'claimable' : 'pending';
+                    // ✅ CORRECT RULE: Layer X root must own Level >= X to claim Layer X reward
+                    // Layer 2 root needs Level >= 2 to claim when Layer 2 member activates Level 2
+                    rewardStatus = rootLevel >= position.matrix_layer ? 'claimable' : 'pending';
+                    rewardRule = `Layer ${position.matrix_layer} root must own Level >= ${position.matrix_layer} to claim reward`;
                 }
                 // Create reward record
                 const expiresAt = new Date();
@@ -1085,7 +1089,7 @@ async function processLevelActivationRewards(req, supabaseClient) {
                         nft_level_activated: activatedLevel,
                         matrix_root_level: rootLevel,
                         reward_rule: rewardRule,
-                        activation_scenario: `Member activated Level ${activatedLevel} NFT in Layer ${position.matrix_layer}`
+                        activation_scenario: `Layer ${position.matrix_layer} member activated Level ${activatedLevel} NFT, triggering Layer ${position.matrix_layer} root reward`
                     }
                 }).select().single();
                 if (rewardError) {
@@ -1095,7 +1099,7 @@ async function processLevelActivationRewards(req, supabaseClient) {
                     console.log(`✅ Created Layer ${position.matrix_layer} reward: ${rewardAmount} USDC (${rewardStatus})`);
                 }
             } else {
-                console.log(`⏩ Skipping Layer ${position.matrix_layer} - doesn't match Level ${activatedLevel} NFT activation`);
+                console.log(`⏩ Skipping Layer ${position.matrix_layer} - Member activated Level ${activatedLevel} but is in Layer ${position.matrix_layer} (Layer ≠ Level)`);
             }
         }
         // Update user reward balances
