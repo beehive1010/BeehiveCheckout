@@ -118,14 +118,42 @@
     "copyright": "© 2024 Beehive. All rights reserved."
   },
   "dashboard": {
-    "welcome": {
-      "title": "Beehiveへようこそ! 🎉",
-      "subtitle": "レベル1ウォリアーNFTを購入してメンバーシップを完了してください。すべてのプラットフォーム機能が解放され、Web3の旅が始まります！",
-      "referral": {
-        "rewards": "紹介報酬：ネットワークでNFTが購入されたとき、各レベルで100%の報酬を獲得"
-      }
-    },
+    "activitiesWillAppear": "プラットフォームでのやり取りに応じて、アクティビティがここに表示されます",
+    "bccLocked": "BCC（ロック済み）",
+    "noActivities": "最近のアクティビティはありません",
+    "recentActivities": "最近のアクティビティ",
+    "referralDescription": "紹介リンクをシェアして紹介報酬を獲得",
+    "referrals": "紹介",
     "nftRequired": {
+      "title": "Beehiveへようこそ！🎉",
+      "description": "レベル1ウォーリアーNFTを購入してメンバーシップを完了してください。これによりマトリックス内のポジションがアクティブになり、Web3ジャーニーが始まります。",
+      "requiredNft": "レベル1ウォーリアーNFT",
+      "nftDescription": "メンバーシップをアクティブにするための一回限りの購入",
+      "level1Warrior": "レベル1ウォーリアー",
+      "tokenId": "トークンID: 0",
+      "price": "価格",
+      "priceAmount": "130 USDT",
+      "benefitsTitle": "アンロックされる内容：",
+      "benefits": {
+        "dashboard": "完全なダッシュボードアクセス",
+        "tasks": "タスク＆NFTマーケットプレイス",
+        "education": "教育センター",
+        "discover": "Web3 Dappsの発見",
+        "tokens": "BCCトークンシステム",
+        "matrix": "ハイブワールドマトリックスシステム"
+      },
+      "premiumTitle": "プレミアムメンバーシップ",
+      "premiumDescription": "レベル1 NFTメンバーシップをアクティベートしてマトリックス内でポジションを取り、報酬を獲得し始めましょう。",
+      "supportText": "ブロックチェーン技術により保護された安全なWeb3決済",
+      "purchaseSuccess": {
+        "title": "メンバーシップがアクティベートされました！",
+        "description": "レベル1 NFTが購入され、メンバーシップがアクティブになりました。"
+      },
+      "purchaseError": {
+        "title": "購入失敗",
+        "description": "NFTの購入に失敗しました。再試行してください。"
+      },
+      "getButton": "メンバーシップを購入",
       "level1Membership": "レベル1メンバーシップ",
       "bumblebeeNFT": "Bumblebee NFT",
       "levelOne": "レベル1",
@@ -136,41 +164,24 @@
       "premiumContent": "プレミアムコンテンツ"
     },
     "activation": {
-      "activationNote": "既存のNFTをアクティベートするにはクリック",
+      "title": "Beehiveへようこそ",
+      "description": "ブロックチェーンベースの報酬を備えたWeb3メンバーシップ学習プラットフォーム。レベル1メンバーシップをアクティベートして始めましょう！",
+      "membershipLevel": "メンバーシップレベル",
+      "price": "価格",
+      "priceLevel1": "130 USDT",
+      "activationNote": "アクティベート後、タスク、教育、ハイブワールドを含むすべてのメンバー機能にアクセスできます。",
       "success": {
         "title": "メンバーシップがアクティベートされました！",
         "description": "Beehiveへようこそ！すべてのメンバー機能にアクセスできるようになりました。"
       },
       "error": {
-        "title": "アクティベーション失敗",
+        "title": "アクティベート失敗",
         "description": "メンバーシップをアクティベートできませんでした。再試行するかサポートにお問い合わせください。"
       }
     },
-    "membership": {
-      "title": "メンバーシップ状況",
-      "level": "レベル",
-      "nextLevel": "次のレベル",
-      "progress": "進捗"
-    },
-    "quickActions": {
-      "tasks": {
-        "description": "マーチャントNFTを閲覧・請求してBCCトークンを獲得"
-      },
-      "education": {
-        "description": "コースと学習素材にアクセス"
-      },
-      "hiveworld": {
-        "description": "紹介マトリックスと報酬を確認"
-      }
-    },
-    "recentActivity": "最近のアクティビティ",
-    "activitiesWillAppear": "プラットフォームとインタラクトすると、あなたのアクティビティがここに表示されます",
-    "bccLocked": "BCCロック済み",
-    "noActivities": "最近のアクティビティなし",
-    "recentActivities": "最近のアクティビティ",
-    "referralDescription": "紹介リンクをシェアして紹介報酬を獲得",
-    "referrals": "紹介",
-    "activateLevel1": "レベル1メンバーシップをアクティベート",
+    "membershipLevel": "メンバーシップレベル",
+    "price": "価格",
+    "activateLevel1": "レベル1バンブルビー（BBC）NFTをアクティベート",
     "activating": "アクティベート中...",
     "activationNote": "アクティベート後、タスク、教育、ハイブワールドを含むすべてのメンバー機能にアクセスできます。",
     "status": {
@@ -180,6 +191,23 @@
       "bccFree": "BCC（自由）",
       "bccLocked": "BCC（ロック済み）"
     },
+    "quickActions": {
+      "tokens": {
+        "title": "トークンを購入",
+        "description": "複数のチェーンでBCCとCTHトークンを購入",
+        "stat": "残高："
+      },
+      "tasks": {
+        "description": "BCCトークンでマーチャントNFTを閲覧・請求"
+      },
+      "education": {
+        "description": "コースと学習資料にアクセス"
+      },
+      "hiveworld": {
+        "description": "紹介マトリックスと報酬を表示"
+      }
+    },
+    "recentActivity": "最近のアクティビティ",
     "member": "メンバー",
     "userCentre": "ユーザーセンター",
     "verifying": "NFT所有権を確認中...",
@@ -206,9 +234,13 @@
       "title": "紹介リンク",
       "show": "表示",
       "hide": "非表示",
+      "copy": "紹介リンクをコピー",
       "copied": "リンクをコピーしました！",
       "copiedDesc": "紹介リンクがクリップボードにコピーされました"
     },
+    "shareToEarn": "紹介からコミッションを獲得するためにリンクをシェア",
+    "copyLink": "リンクをコピー",
+    "referralLinkCopied": "紹介リンクをコピーしました",
     "social": {
       "twitter": "Twitter",
       "telegram": "Telegram",
@@ -221,7 +253,14 @@
       "bccBalance": "BCC残高",
       "thisMonth": "今月",
       "totalMembers": "総メンバー数",
-      "allTime": "全期間"
+      "allTime": "全期間",
+      "matrixNetwork": "マトリックスネットワーク",
+      "networkGrowth": "ネットワーク成長",
+      "teamPerformance": "チームパフォーマンス",
+      "layerProgress": "レイヤー進捗",
+      "totalRewards": "総報酬",
+      "bccLocked": "BCC（ロック済み）",
+      "nftsOwned": "所有NFT"
     },
     "tokenPurchase": {
       "bccDescription": "プラットフォームで使用するBeehive Crypto Coinを購入",
@@ -240,10 +279,12 @@
     "uplineNetwork": {
       "title": "上位ネットワーク",
       "earnings": "収益",
-      "level": "レベル",
-      "directReferrals": "直接紹介",
-      "totalTeam": "総チーム",
-      "monthlyEarnings": "月間収益"
+      "loading": "ネットワークデータを読み込み中...",
+      "noReferrals": "紹介データがありません",
+      "shareMessage": "ネットワークを成長させるために紹介リンクをシェア"
+    },
+    "downlineNetwork": {
+      "title": "あなたの下位ネットワーク"
     },
     "downlineMatrix": {
       "title": "下位マトリックス",
