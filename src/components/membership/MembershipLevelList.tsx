@@ -58,7 +58,7 @@ export default function MembershipLevelList({
       <div className={`space-y-6 ${className}`}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading membership levels...</p>
+          <p className="text-muted-foreground">{t('loading.membershipLevels')}</p>
         </div>
       </div>
     );
@@ -69,8 +69,8 @@ export default function MembershipLevelList({
     return (
       <div className={`space-y-6 ${className}`}>
         <div className="text-center">
-          <p className="text-red-500 mb-2">Failed to load membership levels</p>
-          <p className="text-muted-foreground text-sm">Please try refreshing the page</p>
+          <p className="text-red-500 mb-2">{t('error.loadMembershipLevels')}</p>
+          <p className="text-muted-foreground text-sm">{t('error.tryRefresh')}</p>
         </div>
       </div>
     );

@@ -62,11 +62,11 @@ export default function Membership() {
       price: 130,
       platformFee: 0,
       benefits: [
-        'Access to basic platform features',
-        'Entry to 3×3 matrix system',
-        'Basic learning materials',
-        'Community access',
-        'Token ID: 1'
+        t('benefits.basic.platformFeatures'),
+        t('benefits.basic.matrixEntry'),
+        t('benefits.basic.learningMaterials'),
+        t('benefits.basic.communityAccess'),
+        t('benefits.basic.tokenId1')
       ],
       icon: Shield,
       color: 'text-emerald-600',
@@ -79,11 +79,11 @@ export default function Membership() {
       price: 150,
       platformFee: 0,
       benefits: [
-        'Enhanced matrix rewards',
-        'Premium learning content',
-        'Direct referral bonuses',
-        'Advanced features access',
-        'Token ID: 2',
+        t('benefits.enhanced.matrixRewards'),
+        t('benefits.enhanced.premiumContent'),
+        t('benefits.enhanced.referralBonuses'),
+        t('benefits.enhanced.advancedFeatures'),
+        t('benefits.enhanced.tokenId2'),
         '需要: Level 1 + 直推人数>3人'
       ],
       icon: Star,
