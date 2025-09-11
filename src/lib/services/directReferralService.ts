@@ -8,21 +8,22 @@ export async function getDirectReferralCount(referrerWallet: string): Promise<nu
   try {
     console.log(`🔍 Fetching direct referrals for wallet: ${referrerWallet}`);
     
-    // 使用新的数据库函数获取直推人数
-    const { data, error } = await supabase
-      .rpc('get_direct_referral_count', { 
-        p_wallet_address: referrerWallet 
-      });
+    // Count users who have this wallet as their referrer
+    const { count, error } = await supabase
+      .from('users')
+      .select('*', { count: 'exact', head: true })
+      .eq('referrer_wallet', referrerWallet)
+      .neq('wallet_address', '0x0000000000000000000000000000000000000001');
 
     if (error) {
       console.error('❌ Error fetching direct referrals:', error);
       throw error;
     }
 
-    const count = data || 0;
-    console.log(`✅ Direct referral count for ${referrerWallet}: ${count}`);
+    const directCount = count || 0;
+    console.log(`✅ Direct referral count for ${referrerWallet}: ${directCount}`);
     
-    return count;
+    return directCount;
   } catch (error) {
     console.error('❌ Failed to get direct referral count:', error);
     return 0;

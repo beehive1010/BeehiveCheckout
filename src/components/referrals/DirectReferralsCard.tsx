@@ -48,27 +48,44 @@ const DirectReferralsCard: React.FC<DirectReferralsCardProps> = ({
     setError(null);
 
     try {
-      // 获取直推用户数据
-      const { data: referralData, error } = await supabase
-        .rpc('get_user_referral_data', { 
-          p_wallet_address: walletAddress 
-        });
+      // Get direct referrals from users table (people who used this wallet's referral link)
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select(`
+          wallet_address,
+          username,
+          created_at,
+          referrer_wallet
+        `)
+        .eq('referrer_wallet', walletAddress)
+        .neq('wallet_address', '0x0000000000000000000000000000000000000001')
+        .order('created_at', { ascending: false });
 
-      if (error) {
-        throw new Error(error.message);
+      if (usersError) {
+        throw new Error(usersError.message);
       }
 
-      if (referralData?.[0]?.direct_referrals?.referrals_list) {
-        const referralsList = referralData[0].direct_referrals.referrals_list;
-        setDirectReferrals(referralsList.map((item: any) => ({
-          memberWallet: item.member_wallet,
-          memberName: item.member_name,
-          referredAt: item.referred_at,
-          isActivated: item.is_activated,
-          memberLevel: item.member_level || 0,
-          activationRank: item.activation_rank
-        })));
-      }
+      // Get activation status from members table
+      const walletAddresses = usersData?.map(u => u.wallet_address) || [];
+      const { data: membersData } = await supabase
+        .from('members')
+        .select('wallet_address, current_level, activation_rank')
+        .in('wallet_address', walletAddresses);
+
+      // Combine user and member data
+      const referralsList = usersData?.map((user: any) => {
+        const memberData = membersData?.find(m => m.wallet_address === user.wallet_address);
+        return {
+          memberWallet: user.wallet_address,
+          memberName: user.username,
+          referredAt: user.created_at,
+          isActivated: !!memberData,
+          memberLevel: memberData?.current_level || 0,
+          activationRank: memberData?.activation_rank || null
+        };
+      }) || [];
+
+      setDirectReferrals(referralsList);
 
     } catch (error: any) {
       console.error('Error loading direct referrals:', error);
