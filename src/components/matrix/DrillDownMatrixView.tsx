@@ -55,35 +55,34 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
     setError(null);
 
     try {
-      // Get matrix tree data for this specific member as root
-      // This will show their individual 19-layer matrix structure
-      const result = await matrixService.getMatrixTree(walletAddress);
+      // 使用新的spillover matrix获取实际的matrix数据（已经应用滑落逻辑和奖励规则）
+      const result = await matrixService.getSpilloverMatrix(walletAddress);
       
-      if (result.success && result.matrix) {
-        // Find layer 1 referrals under this member as matrix_root (L-M-R positions)
-        // Each member becomes a matrix root with their own 19-layer structure
-        const directReferrals = result.matrix.filter((ref: any) => 
+      if (result.data && result.data.length > 0) {
+        // Find layer 1 members under this member as matrix_root in spillover matrix
+        // This shows the actual reward-triggering matrix with spillover applied
+        const directReferrals = result.data.filter((ref: any) => 
           ref.matrix_root?.toLowerCase() === walletAddress.toLowerCase() && 
-          ref.matrix_layer === 1 // Layer 1 under this root
+          ref.matrix_layer === 1 // Layer 1 under this root in spillover matrix
         );
 
-        console.log(`🔍 Matrix data for ${walletAddress}:`, {
-          totalMatrix: result.matrix.length,
+        console.log(`🔍 Spillover Matrix data for ${walletAddress}:`, {
+          totalSpilloverMatrix: result.data.length,
           directReferrals: directReferrals.length,
-          directReferralPositions: directReferrals.map(r => r.matrix_position)
+          directReferralPositions: directReferrals.map(r => `${r.matrix_position}${r.original_layer !== r.matrix_layer ? `(滑落自L${r.original_layer})` : ''}`)
         });
 
-        // Group by position - standardize to handle both numeric (1,2,3) and letter (L,M,R) formats
+        // Group by position - spillover matrix uses L/M/R format
         const leftMembers = directReferrals
-          .filter((ref: any) => ['L', '1', 'l', 'left'].includes(String(ref.matrix_position).toLowerCase()))
+          .filter((ref: any) => ref.matrix_position === 'L')
           .map(transformToMatrixMember);
         
         const middleMembers = directReferrals
-          .filter((ref: any) => ['M', '2', 'm', 'middle', 'center'].includes(String(ref.matrix_position).toLowerCase()))
+          .filter((ref: any) => ref.matrix_position === 'M')
           .map(transformToMatrixMember);
         
         const rightMembers = directReferrals
-          .filter((ref: any) => ['R', '3', 'r', 'right'].includes(String(ref.matrix_position).toLowerCase()))
+          .filter((ref: any) => ref.matrix_position === 'R')
           .map(transformToMatrixMember);
 
         // Create current member info
@@ -140,25 +139,21 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
   };
 
   const transformToMatrixMember = (referral: any): MatrixMember => {
-    // Normalize position to L/M/R format
-    let normalizedPosition: 'L' | 'M' | 'R' = 'L';
-    const pos = String(referral.matrix_position).toLowerCase();
+    // Spillover matrix already uses L/M/R format
+    const normalizedPosition: 'L' | 'M' | 'R' = referral.matrix_position;
     
-    if (['l', '1', 'left'].includes(pos)) {
-      normalizedPosition = 'L';
-    } else if (['m', '2', 'middle', 'center'].includes(pos)) {
-      normalizedPosition = 'M';
-    } else if (['r', '3', 'right'].includes(pos)) {
-      normalizedPosition = 'R';
-    }
-
+    // Check if this member was moved due to spillover
+    const wasSpillover = referral.original_layer !== referral.matrix_layer;
+    const spilloverInfo = wasSpillover ? ` (滑落自Layer${referral.original_layer})` : '';
+    
     return {
       walletAddress: referral.member_wallet,
-      username: referral.member_info?.username || `User${referral.member_wallet.slice(-4)}`,
+      username: (referral.member_info?.username || `User${referral.member_wallet.slice(-4)}`) + spilloverInfo,
       level: 1,
       isActive: referral.is_active,
       layer: navigationPath.length + 1,
-      position: normalizedPosition
+      position: normalizedPosition,
+      placedAt: referral.placed_at
     };
   };
 

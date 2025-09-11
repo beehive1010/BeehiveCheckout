@@ -43,46 +43,42 @@ const MatrixLayerStats: React.FC<MatrixLayerStatsProps> = ({
     setError(null);
 
     try {
-      // 获取该用户作为matrix_root的所有推荐数据
-      const result = await matrixService.getMatrixTree(walletAddress);
+      // 使用新的spillover matrix服务获取实际的matrix数据（已经应用滑落逻辑）
+      const spilloverResult = await matrixService.getSpilloverMatrixStats(walletAddress);
       
-      if (result.success && result.matrix) {
+      if (spilloverResult.success && spilloverResult.data.layerStats) {
+        // 使用数据库函数返回的层级统计
+        const dbLayerStats = spilloverResult.data.layerStats;
         const stats: LayerStats[] = [];
         
-        // 分析每一层的数据 (1-19层)
+        // 创建完整的19层统计
         for (let layer = 1; layer <= 19; layer++) {
-          const layerData = result.matrix.filter((ref: any) => 
-            ref.matrix_root?.toLowerCase() === walletAddress.toLowerCase() && 
-            ref.matrix_layer === layer
-          );
-
-          const leftMembers = layerData.filter((ref: any) => 
-            ['L', '1', 'l', 'left'].includes(String(ref.matrix_position).toLowerCase())
-          ).length;
-
-          const middleMembers = layerData.filter((ref: any) => 
-            ['M', '2', 'm', 'middle', 'center'].includes(String(ref.matrix_position).toLowerCase())
-          ).length;
-
-          const rightMembers = layerData.filter((ref: any) => 
-            ['R', '3', 'r', 'right'].includes(String(ref.matrix_position).toLowerCase())
-          ).length;
-
-          const totalMembers = layerData.length;
-          const activeMembers = layerData.filter((ref: any) => ref.is_active).length;
-          const maxCapacity = Math.pow(3, layer); // 3^layer
-          const fillPercentage = (totalMembers / maxCapacity) * 100;
-
-          stats.push({
-            layer,
-            totalMembers,
-            leftMembers,
-            middleMembers,
-            rightMembers,
-            maxCapacity,
-            fillPercentage,
-            activeMembers
-          });
+          const dbStat = dbLayerStats.find((stat: any) => stat.layer_num === layer);
+          
+          if (dbStat) {
+            stats.push({
+              layer,
+              totalMembers: Number(dbStat.current_count),
+              leftMembers: Number(dbStat.l_count),
+              middleMembers: Number(dbStat.m_count), 
+              rightMembers: Number(dbStat.r_count),
+              maxCapacity: Number(dbStat.max_capacity),
+              fillPercentage: Number(dbStat.fill_percentage),
+              activeMembers: Number(dbStat.current_count) // spillover matrix中的都是活跃会员
+            });
+          } else {
+            // 没有数据的层级
+            stats.push({
+              layer,
+              totalMembers: 0,
+              leftMembers: 0,
+              middleMembers: 0,
+              rightMembers: 0,
+              maxCapacity: Math.pow(3, layer),
+              fillPercentage: 0,
+              activeMembers: 0
+            });
+          }
         }
 
         setLayerStats(stats);
@@ -104,8 +100,8 @@ const MatrixLayerStats: React.FC<MatrixLayerStatsProps> = ({
         setLayerStats(emptyStats);
       }
     } catch (error: any) {
-      console.error('Error loading layer stats:', error);
-      setError(error.message || 'Failed to load layer statistics');
+      console.error('Error loading spillover matrix stats:', error);
+      setError(error.message || 'Failed to load spillover matrix statistics');
     } finally {
       setLoading(false);
     }

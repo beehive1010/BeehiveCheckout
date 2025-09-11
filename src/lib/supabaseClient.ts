@@ -511,6 +511,227 @@ export const matrixService = {
 
     return count || 0;
   },
+
+  // === NEW SPILLOVER MATRIX SUPPORT ===
+  
+  // Get spillover matrix data (actual matrix with capacity limits)
+  async getSpilloverMatrix(rootWallet: string, layer?: number) {
+    let query = supabase
+      .from('spillover_matrix')
+      .select(`
+        *,
+        member_info:users!spillover_matrix_member_wallet_fkey(wallet_address, username),
+        referrer_info:users!spillover_matrix_referrer_wallet_fkey(wallet_address, username)
+      `)
+      .eq('matrix_root', rootWallet)
+      .eq('is_active', true);
+
+    if (layer) {
+      query = query.eq('matrix_layer', layer);
+    }
+
+    return query.order('matrix_layer', { ascending: true })
+                .order('placed_at', { ascending: true });
+  },
+
+  // Get original referral relationships (before spillover)
+  async getOriginalReferrals(rootWallet: string, layer?: number) {
+    let query = supabase
+      .from('referrals')
+      .select(`
+        *,
+        member_info:users!referrals_member_wallet_fkey(wallet_address, username)
+      `)
+      .eq('matrix_root', rootWallet)
+      .eq('is_active', true);
+
+    if (layer) {
+      query = query.eq('matrix_layer', layer);
+    }
+
+    return query.order('matrix_layer', { ascending: true })
+                .order('placed_at', { ascending: true });
+  },
+
+  // Get spillover matrix statistics using new functions
+  async getSpilloverMatrixStats(walletAddress: string) {
+    try {
+      // Use the new PostgreSQL function for layer statistics
+      const { data: layerStats } = await supabase
+        .rpc('get_matrix_layer_stats', { p_matrix_root: walletAddress });
+
+      // Get total members in spillover matrix
+      const { count: totalSpilloverMembers } = await supabase
+        .from('spillover_matrix')
+        .select('*', { count: 'exact', head: true })
+        .ilike('matrix_root', walletAddress);
+
+      // Get members with spillover
+      const { count: spilloverCount } = await supabase
+        .from('spillover_matrix')
+        .select('*', { count: 'exact', head: true })
+        .ilike('matrix_root', walletAddress)
+        .neq('matrix_layer', 'original_layer');
+
+      return {
+        success: true,
+        data: {
+          layerStats: layerStats || [],
+          totalSpilloverMembers: totalSpilloverMembers || 0,
+          spilloverCount: spilloverCount || 0
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching spillover matrix stats:', error);
+      return {
+        success: false,
+        error: error,
+        data: {
+          layerStats: [],
+          totalSpilloverMembers: 0,
+          spilloverCount: 0
+        }
+      };
+    }
+  },
+
+  // Get member position in spillover matrix
+  async getMemberSpilloverPosition(memberWallet: string, matrixRoot: string) {
+    try {
+      const { data: position } = await supabase
+        .rpc('get_member_spillover_position', { 
+          p_member_wallet: memberWallet, 
+          p_matrix_root: matrixRoot 
+        });
+
+      return {
+        success: true,
+        data: position?.[0] || null
+      };
+    } catch (error) {
+      console.error('Error fetching member spillover position:', error);
+      return {
+        success: false,
+        error: error,
+        data: null
+      };
+    }
+  },
+
+  // Compare original vs spillover matrix
+  async getMatrixComparison(rootWallet: string) {
+    try {
+      // Get original referrals
+      const originalResult = await this.getOriginalReferrals(rootWallet);
+      
+      // Get spillover matrix
+      const spilloverResult = await this.getSpilloverMatrix(rootWallet);
+
+      return {
+        success: true,
+        data: {
+          original: originalResult.data || [],
+          spillover: spilloverResult.data || [],
+          originalCount: originalResult.data?.length || 0,
+          spilloverCount: spilloverResult.data?.length || 0
+        }
+      };
+    } catch (error) {
+      console.error('Error comparing matrices:', error);
+      return {
+        success: false,
+        error: error,
+        data: {
+          original: [],
+          spillover: [],
+          originalCount: 0,
+          spilloverCount: 0
+        }
+      };
+    }
+  },
+
+  // Trigger matrix rewards for new member
+  async triggerMatrixRewards(newMemberWallet: string) {
+    try {
+      const { data, error } = await supabase
+        .rpc('trigger_matrix_rewards_on_join', { 
+          p_new_member_wallet: newMemberWallet 
+        });
+
+      if (error) throw error;
+
+      return {
+        success: true,
+        data: data
+      };
+    } catch (error) {
+      console.error('Error triggering matrix rewards:', error);
+      return {
+        success: false,
+        error: error
+      };
+    }
+  },
+
+  // Calculate NFT price according to MarketingPlan
+  // Level 1: 100 USDC, Level 2: 150 USDC, ..., Level 19: 1000 USDC
+  // Formula: 50 + (level * 50)
+  calculateNFTPrice(level: number): number {
+    if (level < 1 || level > 19) return 0;
+    return 50 + (level * 50);
+  },
+
+  // Trigger matrix rewards when member reaches new level (according to MarketingPlan)
+  async triggerMatrixRewardsOnLevelUp(memberWallet: string, newLevel: number) {
+    try {
+      // This should call the updated reward function that uses NFT prices
+      const { data, error } = await supabase
+        .rpc('trigger_matrix_rewards_on_level_up', { 
+          p_member_wallet: memberWallet,
+          p_new_level: newLevel
+        });
+
+      if (error) throw error;
+
+      return {
+        success: true,
+        data: data,
+        rewardAmount: this.calculateNFTPrice(newLevel)
+      };
+    } catch (error) {
+      console.error('Error triggering matrix rewards on level up:', error);
+      return {
+        success: false,
+        error: error,
+        rewardAmount: 0
+      };
+    }
+  },
+
+  // Check Layer 1 Right position special reward conditions
+  async checkLayer1RightReward(newMemberWallet: string, matrixRoot: string) {
+    try {
+      const { data, error } = await supabase
+        .rpc('trigger_layer1_right_reward', { 
+          p_new_member_wallet: newMemberWallet,
+          p_matrix_root: matrixRoot
+        });
+
+      if (error) throw error;
+
+      return {
+        success: true,
+        data: data
+      };
+    } catch (error) {
+      console.error('Error checking Layer 1 Right reward:', error);
+      return {
+        success: false,
+        error: error
+      };
+    }
+  },
 };
 
 // === REWARDS MANAGEMENT ===
