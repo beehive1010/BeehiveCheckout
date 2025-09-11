@@ -503,12 +503,12 @@ export default function Membership() {
                     <div className="mb-6 p-4 rounded-2xl border border-honey/20 bg-gradient-to-r from-honey/5 to-orange-500/5">
                       <div className="flex items-center gap-2 mb-2">
                         <Users className="h-4 w-4 text-honey" />
-                        <span className="font-semibold text-honey">直推要求</span>
+                        <span className="font-semibold text-honey">{t('membership.directReferralRequirement')}</span>
                       </div>
                       <div className="text-sm text-muted-foreground mb-2">
                         {(directReferralsCount || 0) > 3 ? (
                           <span className="text-emerald-600 font-medium">
-                            ✅ 已达标：{directReferralsCount}/3+ 人 (超出 {(directReferralsCount || 0) - 3} 人)
+                            {t('membership.qualifiedStatus', { count: directReferralsCount, excess: (directReferralsCount || 0) - 3 })}
                           </span>
                         ) : (
                           <span className="text-orange-600 font-medium">
