@@ -479,13 +479,14 @@ export const matrixService = {
     position: string;
     layer: number;
     placement_type: string;
+    referrer_wallet?: string;
   }) {
     return supabase
       .from('referrals')
       .insert([{
         ...referralData,
         is_active: true,
-        created_at: new Date().toISOString(),
+        referrer_wallet: referralData.referrer_wallet || referralData.placer_wallet,
       }])
       .select()
       .single();
@@ -648,29 +649,27 @@ export const rewardService = {
     }, walletAddress);
   },
 
-  // Create layer reward using database function
+  // Create layer reward using Edge Function
   async createLayerReward(payer_wallet: string, amount_usdt: number, nft_level: number, source_transaction_id: string) {
-    const { data, error } = await supabase.rpc('create_layer_reward_claim', {
-      p_nft_level: nft_level,
-      p_layer: nft_level, // Assuming layer matches NFT level
-      p_root_wallet: payer_wallet,
-      p_triggering_member_wallet: payer_wallet,
-      p_transaction_hash: source_transaction_id
-    });
-
-    return { data, error };
+    return callEdgeFunction('rewards', {
+      action: 'create-layer-reward',
+      nft_level,
+      layer: nft_level,
+      root_wallet: payer_wallet,
+      triggering_member_wallet: payer_wallet,
+      transaction_hash: source_transaction_id
+    }, payer_wallet);
   },
 
-  // Distribute layer rewards using database function
+  // Distribute layer rewards using Edge Function
   async distributeLayerRewards(payer_wallet: string, amount_usdt: number, nft_level: number, source_transaction_id: string) {
-    const { data, error } = await supabase.rpc('distribute_layer_rewards', {
-      p_payer_wallet: payer_wallet,
-      p_amount_usdt: amount_usdt,
-      p_nft_level: nft_level,
-      p_source_transaction_id: source_transaction_id
-    });
-
-    return { data, error };
+    return callEdgeFunction('rewards', {
+      action: 'distribute-layer-rewards',
+      payer_wallet,
+      amount_usdt,
+      nft_level,
+      source_transaction_id
+    }, payer_wallet);
   },
 
   // Check pending rewards using Edge Function
@@ -765,14 +764,13 @@ export const activationService = {
     referrerWallet?: string;
   }) {
     // Use the comprehensive activation function that handles NFT, member creation, matrix placement, and rewards
-    const { data, error } = await supabase.rpc('activate_member_with_nft_claim', {
-      p_wallet_address: walletAddress,
-      p_transaction_hash: activationData.transactionHash,
-      p_payment_method: activationData.paymentMethod,
-      p_nft_type: `level_${activationData.nftLevel}`
-    });
-
-    return { data, error };
+    return callEdgeFunction('membership', {
+      action: 'activate-member-with-nft-claim',
+      wallet_address: walletAddress,
+      transaction_hash: activationData.transactionHash,
+      payment_method: activationData.paymentMethod,
+      nft_type: `level_${activationData.nftLevel}`
+    }, walletAddress);
   },
 
   // Process NFT upgrade using Edge Function
@@ -790,24 +788,22 @@ export const activationService = {
     }, walletAddress);
   },
 
-  // Process activation rewards using database function
+  // Process activation rewards using Edge Function
   async processActivationRewards(walletAddress: string, nftLevel: number) {
-    const { data, error } = await supabase.rpc('process_activation_rewards', {
-      p_new_member_wallet: walletAddress,
-      p_activation_level: nftLevel,
-      p_tx_hash: `activation_${walletAddress}_${Date.now()}`
-    });
-
-    return { data, error };
+    return callEdgeFunction('rewards', {
+      action: 'process-activation-rewards',
+      new_member_wallet: walletAddress,
+      activation_level: nftLevel,
+      tx_hash: `activation_${walletAddress}_${Date.now()}`
+    }, walletAddress);
   },
 
-  // Activate member with tier rewards using database function
+  // Activate member with tier rewards using Edge Function
   async activateMemberWithTierRewards(walletAddress: string) {
-    const { data, error } = await supabase.rpc('activate_member_with_tier_rewards', {
-      p_wallet_address: walletAddress
-    });
-
-    return { data, error };
+    return callEdgeFunction('membership', {
+      action: 'activate-member-with-tier-rewards',
+      wallet_address: walletAddress
+    }, walletAddress);
   },
 
   // Check if member can be activated (has all requirements)
@@ -816,11 +812,11 @@ export const activationService = {
       // Check if user is already activated
       const { data: memberData } = await supabase
         .from('members')
-        .select('is_activated, current_level')
+        .select('current_level')
         .ilike('wallet_address', walletAddress)
         .single();
 
-      if (memberData?.is_activated) {
+      if (memberData?.current_level && memberData.current_level > 0) {
         return {
           eligible: false,
           reason: 'Member is already activated',
@@ -863,54 +859,46 @@ export const activationService = {
 // === TRANSACTION HISTORY ===
 export const transactionService = {
   // Get transaction history for a wallet
-  async getTransactionHistory(walletAddress: string, limit = 50, offset = 0) {
-    const transactions = [];
+  async getTransactionHistory(walletAddress: string, limit = 50, offset = 0): Promise<{
+    success: boolean;
+    data: any[];
+    errors: string[];
+    hasErrors: boolean;
+  }> {
+    const transactions: any[] = [];
     let hasErrors = false;
-    const errors = [];
+    const errors: string[] = [];
 
-    // Get NFT purchases from bcc_purchase_orders table
+    // Get NFT purchases from orders table using Edge Function fallback
     try {
-      const { data: orders, error: ordersError } = await supabase
-        .from('bcc_purchase_orders')
-        .select(`
-          id,
-          wallet_address,
-          total_amount,
-          currency,
-          status,
-          created_at,
-          completed_at,
-          transaction_hash,
-          network,
-          metadata
-        `)
-        .eq('wallet_address', walletAddress)
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1);
+      const orderResult = await callEdgeFunction('transactions', {
+        action: 'get-orders',
+        wallet_address: walletAddress,
+        limit,
+        offset
+      }, walletAddress);
 
-      if (ordersError) {
-        console.error('Error fetching orders:', ordersError);
-        hasErrors = true;
-        errors.push('Failed to load purchase history');
-      } else if (orders) {
-        // Transform orders to transaction format
-        orders.forEach(order => {
+      if (orderResult.success && orderResult.data) {
+        orderResult.data.forEach((order: any) => {
           transactions.push({
-            id: `order_${order.id}`,
+            id: `order_${order.id || Date.now()}`,
             type: 'nft_purchase' as const,
             category: 'debit' as const,
-            amount: order.total_amount,
-            currency: order.currency as 'USDT' | 'USDC',
-            status: order.status as 'pending' | 'completed' | 'failed' | 'cancelled',
-            title: `NFT Level ${order.metadata?.level || 'Unknown'} Purchase`,
-            description: `Purchased membership NFT Level ${order.metadata?.level || 'Unknown'}`,
-            created_at: order.created_at,
+            amount: order.total_amount || order.amount || 0,
+            currency: (order.currency || 'USDT') as 'USDT' | 'USDC',
+            status: (order.status || 'pending') as 'pending' | 'completed' | 'failed' | 'cancelled',
+            title: `NFT Level ${order.metadata?.level || order.level || 'Unknown'} Purchase`,
+            description: `Purchased membership NFT Level ${order.metadata?.level || order.level || 'Unknown'}`,
+            created_at: order.created_at || new Date().toISOString(),
             completed_at: order.completed_at,
             transaction_hash: order.transaction_hash,
-            network: order.network,
+            network: order.network || 'arbitrum-sepolia',
             metadata: order.metadata
           });
         });
+      } else {
+        hasErrors = true;
+        errors.push('Failed to load purchase history');
       }
     } catch (error) {
       console.error('Error in orders query:', error);
@@ -918,42 +906,27 @@ export const transactionService = {
       errors.push('Failed to load purchase history');
     }
 
-    // Get reward claims from reward_claims table
+    // Get reward claims using Edge Function fallback
     try {
-      const { data: rewards, error: rewardsError } = await supabase
-        .from('reward_claims')
-        .select(`
-          id,
-          claimer_wallet,
-          amount,
-          currency,
-          status,
-          created_at,
-          claimed_at,
-          matrix_layer,
-          reward_type
-        `)
-        .ilike('claimer_wallet', walletAddress)
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1);
+      const rewardResult = await callEdgeFunction('transactions', {
+        action: 'get-rewards',
+        wallet_address: walletAddress,
+        limit,
+        offset
+      }, walletAddress);
 
-      if (rewardsError) {
-        console.error('Error fetching rewards:', rewardsError);
-        hasErrors = true;
-        errors.push('Failed to load reward history');
-      } else if (rewards) {
-        // Transform reward claims to transaction format
-        rewards.forEach(reward => {
+      if (rewardResult.success && rewardResult.data) {
+        rewardResult.data.forEach((reward: any) => {
           transactions.push({
-            id: `reward_${reward.id}`,
+            id: `reward_${reward.id || Date.now()}`,
             type: 'reward_claim' as const,
             category: 'credit' as const,
-            amount: reward.amount,
-            currency: reward.currency as 'USDT' | 'USDC' | 'BCC',
-            status: reward.status as 'pending' | 'completed' | 'failed' | 'cancelled',
-            title: `Layer ${reward.matrix_layer} Reward ${reward.status === 'completed' ? 'Claimed' : 'Pending'}`,
-            description: `${reward.reward_type || 'Matrix'} reward from layer ${reward.matrix_layer}`,
-            created_at: reward.created_at,
+            amount: reward.amount || 0,
+            currency: (reward.currency || 'USDT') as 'USDT' | 'USDC' | 'BCC',
+            status: (reward.status || 'pending') as 'pending' | 'completed' | 'failed' | 'cancelled',
+            title: `Layer ${reward.matrix_layer || 1} Reward ${reward.status === 'completed' ? 'Claimed' : 'Pending'}`,
+            description: `${reward.reward_type || 'Matrix'} reward from layer ${reward.matrix_layer || 1}`,
+            created_at: reward.created_at || new Date().toISOString(),
             completed_at: reward.claimed_at,
             metadata: { 
               layer: reward.matrix_layer, 
@@ -961,6 +934,9 @@ export const transactionService = {
             }
           });
         });
+      } else {
+        hasErrors = true;
+        errors.push('Failed to load reward history');
       }
     } catch (error) {
       console.error('Error in rewards query:', error);
@@ -971,33 +947,38 @@ export const transactionService = {
     // Sort combined transactions by date
     transactions.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-    return { 
-      data: transactions.slice(0, limit), 
-      error: hasErrors ? { message: errors.join(', ') } : null,
-      partialData: hasErrors && transactions.length > 0
+    return {
+      success: !hasErrors,
+      data: sortedTransactions,
+      errors,
+      hasErrors
     };
   },
 
   // Get transaction statistics
   async getTransactionStats(walletAddress: string) {
     try {
-      // Get total spent on NFTs
-      const { data: ordersData } = await supabase
-        .from('bcc_purchase_orders')
-        .select('total_amount, status')
-        .eq('wallet_address', walletAddress)
-        .eq('status', 'completed');
+      // Get statistics using Edge Function fallback
+      const statsResult = await callEdgeFunction('transactions', {
+        action: 'get-stats',
+        wallet_address: walletAddress
+      }, walletAddress);
 
-      const totalSpent = ordersData?.reduce((sum, order) => sum + order.total_amount, 0) || 0;
+      if (statsResult.success && statsResult.data) {
+        return {
+          success: true,
+          data: {
+            totalSpent: statsResult.data.totalSpent || 0,
+            totalRewards: statsResult.data.totalRewards || 0,
+            totalTransactions: statsResult.data.totalTransactions || 0,
+            rewardTransactions: statsResult.data.rewardTransactions || 0
+          }
+        };
+      }
 
-      // Get total rewards claimed
-      const { data: rewardsData } = await supabase
-        .from('reward_claims')
-        .select('amount, status')
-        .ilike('claimer_wallet', walletAddress)
-        .eq('status', 'completed');
-
-      const totalRewards = rewardsData?.reduce((sum, reward) => sum + reward.amount, 0) || 0;
+      // Fallback to default values
+      const totalSpent = 0;
+      const totalRewards = 0;
 
       // Get transaction counts
       const { count: totalTransactions } = await supabase
