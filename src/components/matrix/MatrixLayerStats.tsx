@@ -306,8 +306,13 @@ const MatrixLayerStats: React.FC<MatrixLayerStatsProps> = ({
 
         {/* 帮助文本 */}
         <div className="text-center text-sm text-muted-foreground bg-muted/20 rounded-lg p-3">
-          <p>每层最大容量: 3^层数 | L-M-R 表示左-中-右位置</p>
-          <p className="text-xs mt-1">递归式1×3矩阵结构，每个会员都有自己的19层矩阵</p>
+          <p>💡 <strong>递归推荐树</strong>: 每个会员都有自己独立的19层矩阵</p>
+          <p className="text-xs mt-1">
+            📈 推荐链示例: A→B→C→D→E | A看到: B(L1),C(L2),D(L3),E(L4) | B看到: C(L1),D(L2),E(L3)
+          </p>
+          <p className="text-xs mt-1">
+            🎯 滑落机制: 当某层满员时(3^层数)，新成员自动滑落到下一层的可用位置
+          </p>
         </div>
       </CardContent>
     </Card>
