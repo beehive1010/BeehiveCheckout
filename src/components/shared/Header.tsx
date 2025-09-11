@@ -27,18 +27,18 @@ export default function Header() {
           </Link>
 
           {/* Right Side Content */}
-          <div className="flex items-center space-x-2 md:space-x-4">
+          <div className="flex items-center space-x-1 md:space-x-4">
             {/* Notifications - only show for connected users */}
             {walletAddress && (
               <>
                 <NotificationButton walletAddress={walletAddress} />
-                <div className="w-px h-6 bg-border"></div>
+                <div className="hidden md:block w-px h-6 bg-border"></div>
               </>
             )}
             
-            {/* Language Switcher */}
+            {/* Language Switcher - compact on mobile */}
             <LanguageSwitcher />
-            <div className="w-px h-6 bg-border"></div>
+            <div className="hidden md:block w-px h-6 bg-border"></div>
             
             {/* Wallet Connection */}
             <ConnectButton
@@ -54,10 +54,10 @@ export default function Header() {
               }}
               connectButton={{
                 label: t('header.connectWallet'),
-                className: "btn-honey text-sm px-4 py-2 font-medium hover:scale-105 transition-all duration-300"
+                className: "btn-honey text-xs md:text-sm px-2 md:px-4 py-2 font-medium hover:scale-105 transition-all duration-300"
               }}
               detailsButton={{
-                className: "btn-honey text-sm px-4 py-2 font-medium hover:scale-105 transition-all duration-300"
+                className: "btn-honey text-xs md:text-sm px-2 md:px-4 py-2 font-medium hover:scale-105 transition-all duration-300"
               }}
               data-testid="button-connect-wallet"
             />

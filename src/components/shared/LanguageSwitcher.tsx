@@ -1,11 +1,24 @@
 import { useI18n } from '../../contexts/I18nContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Button } from '../ui/button';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function LanguageSwitcher() {
   const { language, setLanguage, languages } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const getLanguageFlag = (code: string) => {
     const flags = {
@@ -55,15 +68,15 @@ export default function LanguageSwitcher() {
       </div>
 
       {/* Mobile Version */}
-      <div className="block sm:hidden">
+      <div className="block sm:hidden" ref={dropdownRef}>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setIsOpen(!isOpen)}
-          className="w-10 h-10 p-0 bg-secondary hover:bg-muted"
+          className="w-8 h-8 p-0 bg-transparent hover:bg-muted/50"
           data-testid="button-language-mobile"
         >
-          <span className="text-lg">{getLanguageFlag(language)}</span>
+          <span className="text-sm">{getLanguageFlag(language)}</span>
         </Button>
         
         {isOpen && (
