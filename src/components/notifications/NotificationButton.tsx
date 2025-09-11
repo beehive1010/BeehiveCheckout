@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { callEdgeFunction } from '../../lib/supabaseClient';
 import { 
   Popover,
   PopoverContent,
@@ -11,7 +12,7 @@ import {
   Bell, 
   BellRing
 } from 'lucide-react';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 import NotificationInbox from './NotificationInbox';
 
 interface NotificationStats {
@@ -35,13 +36,20 @@ export default function NotificationButton({
   className = ''
 }: NotificationButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [, navigate] = useNavigate();
+  const [, navigate] = useLocation();
 
   // Fetch notification stats
   const { data: stats } = useQuery<NotificationStats>({
-    queryKey: ['/api/notifications/stats'],
+    queryKey: ['notifications', 'stats', walletAddress],
     enabled: !!walletAddress,
     refetchInterval: 30000, // Refresh every 30 seconds
+    queryFn: async () => {
+      const response = await callEdgeFunction('notifications', { action: 'stats' }, walletAddress);
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to fetch notification stats');
+      }
+      return response.data;
+    }
   });
 
   const handleViewAll = () => {

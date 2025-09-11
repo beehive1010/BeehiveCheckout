@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { callEdgeFunction } from '../../lib/supabaseClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -75,8 +75,16 @@ export default function NotificationInbox({
 
   // Fetch notification stats
   const { data: stats } = useQuery<NotificationStats>({
-    queryKey: ['/api/notifications/stats'],
+    queryKey: ['notifications', 'stats', walletAddress],
     enabled: !!walletAddress,
+    refetchInterval: 30000, // Refresh every 30 seconds
+    queryFn: async () => {
+      const response = await callEdgeFunction('notifications', { action: 'stats' }, walletAddress);
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to fetch notification stats');
+      }
+      return response.data;
+    }
   });
 
   // Fetch notifications with filters
@@ -107,57 +115,80 @@ export default function NotificationInbox({
     return filters;
   };
 
-  const { data: notifications = [], isLoading } = useQuery<Notification[]>({
-    queryKey: ['/api/notifications', activeTab, walletAddress],
-    queryParams: getNotificationsFilters(),
+  const { data: notificationsData, isLoading } = useQuery({
+    queryKey: ['notifications', 'list', walletAddress, activeTab, searchTerm],
     enabled: !!walletAddress,
+    queryFn: async () => {
+      const filters = getNotificationsFilters();
+      const params = new URLSearchParams();
+      params.set('action', 'get-notifications');
+      if (filters.limit) params.set('limit', filters.limit.toString());
+      if (activeTab === 'unread') params.set('unread_only', 'true');
+      
+      const response = await callEdgeFunction('notifications', Object.fromEntries(params), walletAddress);
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to fetch notifications');
+      }
+      return response.data;
+    }
   });
+  
+  const notifications = notificationsData?.notifications || [];
 
   // Mark as read mutation
   const markAsReadMutation = useMutation({
-    mutationFn: (notificationId: string) =>
-      apiRequest(`/api/notifications/${notificationId}/read`, {
-        method: 'PATCH',
-      }),
+    mutationFn: async ({ notificationId, source }: { notificationId: string, source?: string }) => {
+      const params = new URLSearchParams();
+      params.set('action', 'mark-read');
+      params.set('id', notificationId);
+      if (source) params.set('source', source);
+      
+      const response = await callEdgeFunction('notifications', Object.fromEntries(params), walletAddress);
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to mark notification as read');
+      }
+      return response.data;
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
   });
 
   // Mark all as read mutation
   const markAllAsReadMutation = useMutation({
-    mutationFn: () =>
-      apiRequest('/api/notifications/read-all', {
-        method: 'PATCH',
-      }),
+    mutationFn: async () => {
+      const response = await callEdgeFunction('notifications', { action: 'mark-all-read' }, walletAddress);
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to mark all notifications as read');
+      }
+      return response.data;
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
   });
 
-  // Archive mutation
+  // Archive mutation (placeholder - not implemented in Edge Function yet)
   const archiveMutation = useMutation({
-    mutationFn: (notificationId: string) =>
-      apiRequest(`/api/notifications/${notificationId}/archive`, {
-        method: 'PATCH',
-      }),
+    mutationFn: async (notificationId: string) => {
+      // TODO: Implement archive functionality in Edge Function
+      console.log('Archive not yet implemented:', notificationId);
+      throw new Error('Archive functionality not yet implemented');
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
   });
 
-  // Delete mutation
+  // Delete mutation (placeholder - not implemented in Edge Function yet)
   const deleteMutation = useMutation({
-    mutationFn: (notificationId: string) =>
-      apiRequest(`/api/notifications/${notificationId}`, {
-        method: 'DELETE',
-      }),
+    mutationFn: async (notificationId: string) => {
+      // TODO: Implement delete functionality in Edge Function
+      console.log('Delete not yet implemented:', notificationId);
+      throw new Error('Delete functionality not yet implemented');
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
   });
 
@@ -198,7 +229,10 @@ export default function NotificationInbox({
   // Handle notification click
   const handleNotificationClick = (notification: Notification) => {
     if (!notification.isRead) {
-      markAsReadMutation.mutate(notification.id);
+      markAsReadMutation.mutate({ 
+        notificationId: notification.id, 
+        source: (notification as any).source || 'user' 
+      });
     }
     
     if (notification.actionUrl) {
@@ -489,7 +523,10 @@ export default function NotificationInbox({
                                       variant="ghost"
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        markAsReadMutation.mutate(notification.id);
+                                        markAsReadMutation.mutate({ 
+                                          notificationId: notification.id, 
+                                          source: (notification as any).source || 'user' 
+                                        });
                                       }}
                                       data-testid={`mark-read-button-${notification.id}`}
                                     >

@@ -1,11 +1,14 @@
 import { useI18n } from '../../contexts/I18nContext';
+import { useWallet } from '../../hooks/useWallet';
 import LanguageSwitcher from './LanguageSwitcher';
+import NotificationButton from '../notifications/NotificationButton';
 import { Link } from 'wouter';
 import { ConnectButton } from 'thirdweb/react';
 import { client, supportedChains, wallets } from '../../lib/web3';
 
 export default function Header() {
   const { t } = useI18n();
+  const { walletAddress } = useWallet();
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -25,6 +28,14 @@ export default function Header() {
 
           {/* Right Side Content */}
           <div className="flex items-center space-x-2 md:space-x-4">
+            {/* Notifications - only show for connected users */}
+            {walletAddress && (
+              <>
+                <NotificationButton walletAddress={walletAddress} />
+                <div className="w-px h-6 bg-border"></div>
+              </>
+            )}
+            
             {/* Language Switcher */}
             <LanguageSwitcher />
             <div className="w-px h-6 bg-border"></div>

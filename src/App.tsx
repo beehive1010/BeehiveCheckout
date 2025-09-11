@@ -21,6 +21,7 @@ import NFTCenter from "@/pages/NFTCenter";
 import Referrals from "@/pages/Referrals";
 import Rewards from "@/pages/Rewards";
 import Discover from "@/pages/Discover";
+import NotificationsPage from "@/pages/NotificationsPage";
 
 // Additional pages  
 import Registration from "@/pages/Registration";
@@ -281,6 +282,11 @@ function Router() {
         <Route path="/rewards" component={() => (
           <MemberGuard requireActivation={true} redirectTo="/welcome">
             <Rewards />
+          </MemberGuard>
+        )} />
+        <Route path="/notifications" component={() => (
+          <MemberGuard requireActivation={true} redirectTo="/welcome">
+            <NotificationsPage />
           </MemberGuard>
         )} />
         <Route path="/me" component={() => (
