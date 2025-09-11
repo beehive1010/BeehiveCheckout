@@ -64,15 +64,19 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
       
       let result = value || key;
       
-      // Debug logging for specific translation issue
-      if (key === 'dashboard.topUp' && (!value || value === key)) {
-        console.warn('Translation issue for dashboard.topUp:', {
-          key,
-          language,
-          value,
-          dashboardSection: translations[language]?.dashboard,
-          topUpKey: translations[language]?.dashboard?.topUp
-        });
+      // Force reload for dashboard.topUp if missing
+      if (key === 'dashboard.topUp' && !value) {
+        // Direct access to ensure translation works
+        const directValue = translations[language]?.dashboard?.topUp;
+        if (directValue) {
+          result = directValue;
+        } else if (language !== 'en') {
+          // Fallback to English
+          const englishValue = translations.en?.dashboard?.topUp;
+          if (englishValue) {
+            result = englishValue;
+          }
+        }
       }
       
       // Ensure we always return a string, never an object
