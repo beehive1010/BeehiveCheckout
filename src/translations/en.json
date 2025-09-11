@@ -1908,5 +1908,52 @@
     "upgrade": "Upgrade",
     "matrix": "Matrix",
     "withdraw": "Withdraw"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "tabs": {
+      "all": "All",
+      "unread": "Unread",
+      "urgent": "Urgent",
+      "action": "Action Required",
+      "archived": "Archived"
+    },
+    "search": {
+      "placeholder": "Search notifications..."
+    },
+    "empty": {
+      "all": "No notifications to display",
+      "unread": "No unread notifications",
+      "urgent": "No urgent notifications", 
+      "action": "No actions required",
+      "archived": "No archived notifications"
+    },
+    "actions": {
+      "markAsRead": "Mark as Read",
+      "markAllAsRead": "Mark All as Read",
+      "archive": "Archive",
+      "viewDetails": "View Details",
+      "takeAction": "Take Action"
+    },
+    "priority": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High", 
+      "urgent": "Urgent"
+    },
+    "types": {
+      "level_unlock": "Level Unlocked",
+      "reward_claim": "Reward Available",
+      "membership_activation": "Membership Activated",
+      "referral_bonus": "Referral Bonus",
+      "withdrawal_completed": "Withdrawal Completed",
+      "system_update": "System Update",
+      "security_alert": "Security Alert",
+      "payment_received": "Payment Received"
+    },
+    "time": {
+      "recently": "Recently",
+      "expires": "Expires"
+    }
   }
 }
