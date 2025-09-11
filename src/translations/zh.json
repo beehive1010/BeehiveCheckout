@@ -1894,5 +1894,52 @@
     "upgrade": "升级",
     "matrix": "矩阵",
     "withdraw": "提取"
+  },
+  "notifications": {
+    "title": "通知",
+    "tabs": {
+      "all": "全部",
+      "unread": "未读",
+      "urgent": "紧急",
+      "action": "需要操作",
+      "archived": "已归档"
+    },
+    "search": {
+      "placeholder": "搜索通知..."
+    },
+    "empty": {
+      "all": "暂无通知",
+      "unread": "暂无未读通知",
+      "urgent": "暂无紧急通知", 
+      "action": "暂无需要操作的通知",
+      "archived": "暂无已归档通知"
+    },
+    "actions": {
+      "markAsRead": "标记为已读",
+      "markAllAsRead": "全部标记为已读",
+      "archive": "归档",
+      "viewDetails": "查看详情",
+      "takeAction": "执行操作"
+    },
+    "priority": {
+      "low": "低",
+      "normal": "普通",
+      "high": "高", 
+      "urgent": "紧急"
+    },
+    "types": {
+      "level_unlock": "等级解锁",
+      "reward_claim": "奖励可领取",
+      "membership_activation": "会员已激活",
+      "referral_bonus": "推荐奖励",
+      "withdrawal_completed": "提取已完成",
+      "system_update": "系统更新",
+      "security_alert": "安全提醒",
+      "payment_received": "收到付款"
+    },
+    "time": {
+      "recently": "最近",
+      "expires": "过期时间"
+    }
   }
 }

@@ -25,6 +25,7 @@ import {
   Search
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { useI18n } from '../../contexts/I18nContext';
 
 // Types now imported from shared types file
 
@@ -39,6 +40,7 @@ export default function NotificationInbox({
   onNotificationClick,
   compact = false 
 }: NotificationInboxProps) {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const queryClient = useQueryClient();
