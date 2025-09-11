@@ -1979,6 +1979,29 @@
       "referralBonuses": "直接推荐奖励",
       "advancedFeatures": "高级功能访问权限",
       "tokenId2": "代币ID: 2"
-    }
+    },
+    "goldBee": {
+      "tier": "黄金蜂巢 {tier}阶"
+    },
+    "platinumBee": {
+      "tier": "铂金蜂巢 {tier}阶"
+    },
+    "diamondBee": {
+      "tier": "钻石蜂巢 {tier}阶"
+    },
+    "masterBee": {
+      "tier": "大师蜂巢 {tier}阶"
+    },
+    "enhancedMatrix": "增强矩阵奖励（第1-{maxLayer}层）",
+    "bonusMultiplier": "奖励倍数 x{multiplier}",
+    "vipStatus": "VIP身份权益",
+    "premium": "高级权益",
+    "exclusiveMerchant": "独家商户NFT",
+    "enhancedFeatures": "增强功能",
+    "governance": "平台治理权限",
+    "prioritySupport": "优先支持",
+    "founderStatus": "创始人身份认可",
+    "eliteStatus": "精英会员身份",
+    "tokenId": "代币ID: {level}"
   }
 }

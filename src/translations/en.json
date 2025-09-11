@@ -1993,6 +1993,29 @@
       "referralBonuses": "Direct referral bonuses",
       "advancedFeatures": "Advanced features access",
       "tokenId2": "Token ID: 2"
-    }
+    },
+    "goldBee": {
+      "tier": "Gold Bee Tier {tier}"
+    },
+    "platinumBee": {
+      "tier": "Platinum Bee Tier {tier}"
+    },
+    "diamondBee": {
+      "tier": "Diamond Bee Tier {tier}"
+    },
+    "masterBee": {
+      "tier": "Master Bee Tier {tier}"
+    },
+    "enhancedMatrix": "Enhanced matrix rewards (Layer 1-{maxLayer})",
+    "bonusMultiplier": "Bonus multiplier x{multiplier}",
+    "vipStatus": "VIP status benefits",
+    "premium": "Premium benefits",
+    "exclusiveMerchant": "Exclusive merchant NFTs",
+    "enhancedFeatures": "Enhanced features",
+    "governance": "Platform governance rights",
+    "prioritySupport": "Priority support",
+    "founderStatus": "Founder status recognition",
+    "eliteStatus": "Elite member status",
+    "tokenId": "Token ID: {level}"
   }
 }
