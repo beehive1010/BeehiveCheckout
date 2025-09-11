@@ -58,7 +58,7 @@ export default function NotificationPopup({
   const queryClient = useQueryClient();
 
   // Fetch only unread urgent and high priority notifications
-  const { data: notifications = [] } = useQuery<Notification[]>({
+  const { data: notificationsData } = useQuery({
     queryKey: ['/api/notifications', 'popup', walletAddress],
     queryFn: async () => {
       const response = await apiRequest('/api/notifications?' + new URLSearchParams({
@@ -71,6 +71,11 @@ export default function NotificationPopup({
     enabled: !!walletAddress && isVisible,
     refetchInterval: 30000, // Refresh every 30 seconds
   });
+
+  // Extract notifications array from response
+  const notifications = Array.isArray(notificationsData) 
+    ? notificationsData 
+    : (notificationsData?.notifications || notificationsData?.data || []);
 
   // Filter out dismissed notifications
   const visibleNotifications = notifications.filter(
