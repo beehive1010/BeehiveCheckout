@@ -24,9 +24,7 @@ const serveProcess = spawn('npx', [
   '-s',          // Single Page Application mode
   'dist',        // Directory to serve
   '-l',          // Listen port
-  '5000',        // Port number
-  '--host',      // Host option
-  '0.0.0.0'      // Allow external connections
+  '5000'         // Port number (serve binds to 0.0.0.0 by default in production)
 ], {
   stdio: 'inherit',
   shell: true
