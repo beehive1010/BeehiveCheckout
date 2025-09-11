@@ -39,7 +39,8 @@
       "Bash(./scripts/supabase-ipv4-management.sh status:*)",
       "Bash(./check_db_integrity.sh:*)",
       "Bash(__NEW_LINE__ echo \"\")",
-      "Bash(PGPASSWORD:*)"
+      "Bash(PGPASSWORD:*)",
+      "Bash(for:*)"
     ],
     "deny": [],
     "ask": []
