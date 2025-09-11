@@ -77,26 +77,42 @@ export async function getDirectReferralDetails(referrerWallet: string): Promise<
   activationRank: number | null;
 }>> {
   try {
-    // 使用新的直推关系视图
-    const { data, error } = await supabase
-      .from('direct_referrals_view')
-      .select('*')
+    // Get direct referrals from users table
+    const { data: usersData, error: usersError } = await supabase
+      .from('users')
+      .select('wallet_address, username, created_at')
       .eq('referrer_wallet', referrerWallet)
-      .order('referred_at', { ascending: false });
+      .neq('wallet_address', '0x0000000000000000000000000000000000000001')
+      .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('❌ Error fetching referral details:', error);
-      throw error;
+    if (usersError) {
+      console.error('❌ Error fetching referral details:', usersError);
+      throw usersError;
     }
 
-    return (data || []).map(item => ({
-      memberWallet: item.member_wallet,
-      memberName: item.member_name,
-      referredAt: item.referred_at,
-      isActivated: item.is_activated,
-      memberLevel: item.member_level || 0,
-      activationRank: item.activation_rank
-    }));
+    if (!usersData || usersData.length === 0) {
+      return [];
+    }
+
+    // Get activation status from members table
+    const walletAddresses = usersData.map(u => u.wallet_address);
+    const { data: membersData } = await supabase
+      .from('members')
+      .select('wallet_address, current_level, activation_rank')
+      .in('wallet_address', walletAddresses);
+
+    // Combine data
+    return usersData.map(user => {
+      const memberData = membersData?.find(m => m.wallet_address === user.wallet_address);
+      return {
+        memberWallet: user.wallet_address,
+        memberName: user.username || 'Unknown',
+        referredAt: user.created_at,
+        isActivated: !!memberData,
+        memberLevel: memberData?.current_level || 0,
+        activationRank: memberData?.activation_rank || null
+      };
+    });
   } catch (error) {
     console.error('❌ Failed to get referral details:', error);
     return [];
