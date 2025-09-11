@@ -214,22 +214,23 @@ export default function RewardsDashboard({ className }: RewardsDashboardProps) {
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <Badge variant="secondary">
-                            {t('rewards.layer')} {reward.layer}
+                            Layer {reward.layer}
                           </Badge>
                           <Badge className="bg-honey text-black">
-                            {reward.reward_type}
+                            Level {reward.nft_level} NFT
+                          </Badge>
+                          <Badge variant="outline" className="text-green-600">
+                            {reward.reward_type || 'Layer Reward'}
                           </Badge>
                         </div>
                         <p className="font-semibold">
-                          {formatCurrency(reward.amount_usdt, 'USDT')}
-                          {reward.amount_bcc && (
-                            <span className="ml-2">
-                              + {formatCurrency(reward.amount_bcc, 'BCC')}
-                            </span>
-                          )}
+                          {formatCurrency(reward.reward_amount_usdc, 'USDT')}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {t('rewards.from')}: {reward.payer_wallet?.slice(0, 6)}...{reward.payer_wallet?.slice(-4)}
+                          From: {reward.trigger_info?.trigger_member_name || 'Member'}
+                        </p>
+                        <p className="text-xs text-green-600">
+                          💡 {reward.trigger_info?.trigger_member_name} purchased Level {reward.nft_level} NFT at Layer {reward.layer} ({reward.trigger_info?.layer_position})
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {new Date(reward.created_at).toLocaleDateString()}
