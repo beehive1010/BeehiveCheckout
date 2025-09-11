@@ -271,9 +271,29 @@
     "emailPlaceholder": "输入您的邮箱",
     "username": "用户名",
     "usernamePlaceholder": "选择一个用户名",
-    "referrer": "推荐人",
+    "secondaryPassword": "二级密码",
+    "passwordPlaceholder": "创建安全密码",
+    "confirmPassword": "确认密码",
+    "confirmPasswordPlaceholder": "确认您的密码",
+    "referrer": "上线推荐人",
     "register": "完成注册",
     "registering": "处理中...",
+    "agreement": "注册即表示您同意我们的服务条款和隐私政策",
+    "noReferrerInfo": {
+      "title": "需要推荐链接",
+      "description": "要加入蜂巢，您需要来自现有成员的推荐链接。这将您连接到我们3×3矩阵系统中的上线。",
+      "getLink": "请向蜂巢成员索取推荐链接以开始。"
+    },
+    "errors": {
+      "emailRequired": "邮箱地址是必需的",
+      "emailInvalid": "请输入有效的邮箱地址",
+      "usernameRequired": "用户名是必需的",
+      "usernameTooShort": "用户名必须至少3个字符",
+      "passwordRequired": "二级密码是必需的",
+      "passwordTooShort": "密码必须至少6个字符",
+      "passwordMismatch": "密码不匹配",
+      "referrerRequired": "注册需要有效的推荐链接"
+    },
     "optional": "可选",
     "referredBy": "推荐人",
     "nextSteps": "下一步",
@@ -289,7 +309,15 @@
     "usernameExists": "用户名已存在",
     "emailExists": "邮箱已注册",
     "welcomeBack": "欢迎回来！",
-    "accountExists": "账户已存在，无需重复注册"
+    "accountExists": "账户已存在，无需重复注册",
+    "error": {
+      "title": "注册失败",
+      "description": "请重试或联系支持，如果问题持续存在。"
+    },
+    "walletRequired": {
+      "title": "需要钱包连接",
+      "description": "请先连接您的钱包以完成注册。"
+    }
   },
   "landing": {
     "hero": {
@@ -1278,5 +1306,200 @@
     "useValidReferrer": "请使用已注册会员的推荐链接。",
     "validationFailed": "验证失败",
     "validationFailedDesc": "无法验证注册或推荐人状态。请刷新后重试。"
+  },
+  "membershipSystem": {
+    "wallet": {
+      "connectTitle": "连接您的钱包",
+      "connectDescription": "请连接您的钱包以访问会员系统"
+    },
+    "activation": {
+      "title": "激活您的会员资格",
+      "description": "加入社区并开始获得奖励",
+      "steps": {
+        "details": "详情",
+        "payment": "支付",
+        "confirm": "确认",
+        "complete": "完成"
+      },
+      "form": {
+        "username": "用户名 *",
+        "usernamePlaceholder": "输入您的用户名",
+        "email": "邮箱 *",
+        "emailPlaceholder": "输入您的邮箱",
+        "referrer": "推荐人钱包（可选）",
+        "referrerPlaceholder": "0x...（如果您有推荐人）",
+        "continueToPayment": "继续支付",
+        "continueToConfirmation": "继续确认",
+        "back": "返回",
+        "activateMembership": "激活会员资格",
+        "activating": "激活中..."
+      },
+      "payment": {
+        "cost": "会员费用：130 USDC",
+        "nftCost": "• 100 USDC 用于1级NFT",
+        "activationFee": "• 30 USDC 激活费",
+        "networkLabel": "选择网络",
+        "networks": {
+          "simulation": "模拟",
+          "testnet": "测试网",
+          "mainnet": "主网"
+        },
+        "transactionHashLabel": "交易哈希 *",
+        "transactionHashPlaceholder": "0x...（NFT购买的交易哈希）",
+        "transactionHashHelper": "先完成NFT购买，然后粘贴交易哈希"
+      },
+      "confirm": {
+        "summaryTitle": "激活摘要",
+        "username": "用户名",
+        "email": "邮箱",
+        "network": "网络",
+        "nftLevel": "NFT级别",
+        "level1": "1级",
+        "referrer": "推荐人"
+      },
+      "success": {
+        "welcomeTitle": "欢迎加入社区！",
+        "welcomeDescription": "您的会员资格已成功激活。现在您可以访问所有会员功能。",
+        "continueToDashboard": "继续到仪表板",
+        "activated": "会员资格激活成功！"
+      },
+      "errors": {
+        "fillRequiredFields": "请填写所有必填字段",
+        "transactionHashRequired": "请提供区块链激活的交易哈希",
+        "activationFailed": "激活失败",
+        "tryAgain": "激活失败。请重试。",
+        "loadStatusFailed": "无法加载激活状态"
+      }
+    },
+    "dashboard": {
+      "title": "会员仪表板 - {{level}}级",
+      "labels": {
+        "currentLevel": "当前级别",
+        "activationRank": "激活排名",
+        "memberTier": "会员等级",
+        "directReferrals": "直接推荐"
+      },
+      "balance": {
+        "title": "BCC余额",
+        "transferable": "可转移BCC",
+        "locked": "锁定BCC",
+        "totalEarned": "总收益"
+      }
+    },
+    "rewards": {
+      "pendingTitle": "待处理奖励（{{count}}）",
+      "rewardDescription": "{{level}}级奖励 • 剩余{{hours}}小时",
+      "status": {
+        "claimable": "可领取",
+        "pending": "待处理"
+      },
+      "actions": {
+        "claim": "领取"
+      },
+      "success": {
+        "claimed": "成功领取{{amount}} USDC！"
+      },
+      "errors": {
+        "claimFailed": "领取奖励失败"
+      },
+      "quickActions": {
+        "title": "快速操作",
+        "upgrade": "升级到{{level}}级",
+        "withdraw": "快速提取$100 USDC",
+        "claimRewards": "领取{{count}}个奖励"
+      },
+      "levelProgress": {
+        "title": "级别进度",
+        "readyToUpgrade": "准备升级到{{level}}级！",
+        "completeRequirements": "完成要求以解锁{{level}}级"
+      }
+    },
+    "matrix": {
+      "title": "推荐矩阵",
+      "connectDescription": "连接您的钱包以查看推荐矩阵",
+      "layerFillStatus": "层级填充状态",
+      "stats": {
+        "totalMembers": "{{count}}个成员",
+        "yourPosition": "您在第{{layer}}层，第{{position}}位",
+        "directRefs": "直接推荐",
+        "matrixDepth": "矩阵深度"
+      },
+      "visualization": {
+        "layerRoot": "根",
+        "layerNumber": "第{{layer}}层",
+        "available": "可用",
+        "member": "成员",
+        "you": "您",
+        "active": "活跃",
+        "inactive": "非活跃"
+      },
+      "controls": {
+        "viewLayer": "查看层级：",
+        "zoomIn": "放大",
+        "zoomOut": "缩小",
+        "reset": "重置",
+        "treeView": "树形",
+        "gridView": "网格"
+      },
+      "referralLink": {
+        "title": "您的推荐链接",
+        "copy": "复制",
+        "share": "分享链接"
+      },
+      "quickStats": {
+        "title": "快速统计",
+        "totalMembers": "总成员数：",
+        "activeLayers": "活跃层级：",
+        "yourDirectRefs": "您的直接推荐：",
+        "matrixDepth": "矩阵深度：",
+        "layersCount": "{{count}}层"
+      },
+      "share": {
+        "title": "加入社区",
+        "text": "加入我这个令人惊叹的社区，开始获得奖励！"
+      },
+      "errors": {
+        "loadFailed": "加载矩阵数据失败",
+        "copyFailed": "复制链接失败"
+      },
+      "success": {
+        "linkCopied": "推荐链接已复制到剪贴板！"
+      }
+    },
+    "upgrade": {
+      "title": "级别升级",
+      "cost": "升级费用",
+      "bccUnlock": "BCC解锁",
+      "requirements": {
+        "notMet": "要求未满足",
+        "directReferrals": "直接推荐：{{current}}/{{required}}必需"
+      },
+      "maxLevel": {
+        "title": "已达到最高级别！",
+        "description": "恭喜您达到{{level}}级！"
+      },
+      "buttons": {
+        "upgrade": "升级到{{level}}级",
+        "upgrading": "升级中..."
+      }
+    },
+    "withdrawal": {
+      "title": "提取限额",
+      "dailyLimit": "每日限额",
+      "monthlyLimit": "每月限额",
+      "used": "已使用：",
+      "remaining": "剩余："
+    }
+  },
+  "connectWallet": {
+    "title": "连接您的钱包",
+    "description": "请连接您的钱包以访问会员系统"
+  },
+  "tabs": {
+    "overview": "概览",
+    "rewards": "奖励",
+    "upgrade": "升级",
+    "matrix": "矩阵",
+    "withdraw": "提取"
   }
 }
