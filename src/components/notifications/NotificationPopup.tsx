@@ -72,15 +72,24 @@ export default function NotificationPopup({
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  // Extract notifications array from response
-  const notifications = Array.isArray(notificationsData) 
-    ? notificationsData 
-    : (notificationsData?.notifications || notificationsData?.data || []);
+  // Extract notifications array from response with safe fallback
+  const notifications = React.useMemo(() => {
+    if (!notificationsData) return [];
+    if (Array.isArray(notificationsData)) return notificationsData;
+    if (Array.isArray(notificationsData.notifications)) return notificationsData.notifications;
+    if (Array.isArray(notificationsData.data)) return notificationsData.data;
+    if (Array.isArray(notificationsData.result)) return notificationsData.result;
+    console.warn('NotificationPopup: Expected array but got:', notificationsData);
+    return [];
+  }, [notificationsData]);
 
   // Filter out dismissed notifications
-  const visibleNotifications = notifications.filter(
-    notification => !dismissedIds.has(notification.id)
-  );
+  const visibleNotifications = React.useMemo(() => {
+    if (!Array.isArray(notifications)) return [];
+    return notifications.filter(notification => 
+      notification && notification.id && !dismissedIds.has(notification.id)
+    );
+  }, [notifications, dismissedIds]);
 
   // Mark as read mutation
   const markAsReadMutation = useMutation({
