@@ -300,7 +300,7 @@ function Router() {
           </MemberGuard>
         )} />
         <Route path="/admin-nft-manager" component={AdminNFTManager} />
-        <Route path="/admin-nfts" component={AdminNFTs} />
+        <Route path="/admin" component={AdminNFTs} />
         
         {/* Public routes - No authentication required */}
         <Route path="/matrix-explanation" component={MatrixExplanation} />
