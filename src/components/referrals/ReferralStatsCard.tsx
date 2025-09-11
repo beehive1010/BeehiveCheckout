@@ -39,51 +39,85 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
     try {
       setLoading(true);
       
-      // Get spillover matrix data for this wallet as matrix root
-      const { data: spilloverData, error: spilloverError } = await supabase
+      // Try spillover_matrix first, then fall back to other tables
+      let spilloverData = null;
+      let spilloverError = null;
+
+      // First try spillover_matrix
+      const { data: spilloverResult, error: spilloverErr } = await supabase
         .from('spillover_matrix')
         .select(`
           member_wallet,
           matrix_layer,
           matrix_position,
           placed_at,
-          is_active,
-          users:member_wallet(username),
-          members:member_wallet(current_level)
+          is_active
         `)
         .eq('matrix_root', walletAddress)
         .eq('is_active', true)
         .order('placed_at', { ascending: false });
 
-      if (spilloverError) {
-        console.warn('Spillover matrix error (table may not exist):', spilloverError);
-        // Fallback to basic referrals data
+      if (spilloverErr) {
+        console.warn('spillover_matrix table not available:', spilloverErr);
+        
+        // Try detailed_spillover_analysis as suggested by the error
+        const { data: analysisResult, error: analysisErr } = await supabase
+          .from('detailed_spillover_analysis')
+          .select('*')
+          .eq('matrix_root', walletAddress)
+          .order('created_at', { ascending: false });
+
+        if (analysisErr) {
+          console.warn('detailed_spillover_analysis not available:', analysisErr);
+          spilloverError = analysisErr;
+        } else {
+          spilloverData = analysisResult;
+        }
+      } else {
+        spilloverData = spilloverResult;
+      }
+
+      if (!spilloverData || spilloverError) {
+        console.warn('Matrix data not available, using basic referrals fallback');
+        // Fallback to basic referrals data from users table
         const { data: basicReferrals } = await supabase
           .from('users')
           .select('wallet_address, username, created_at')
           .eq('referrer_wallet', walletAddress)
           .limit(10);
 
+        // Get activation status for the referrals
+        const walletAddresses = basicReferrals?.map(u => u.wallet_address) || [];
+        const { data: membersData } = await supabase
+          .from('members')
+          .select('wallet_address, current_level')
+          .in('wallet_address', walletAddresses);
+
+        const activatedCount = membersData?.filter(m => m.current_level > 0).length || 0;
+
         setMatrixStats({
           as_root: {
             total_team_size: basicReferrals?.length || 0,
-            activated_members: 0,
+            activated_members: activatedCount,
             max_depth: 1,
             layer_distribution: { 1: basicReferrals?.length || 0 }
           },
-          overall: { network_strength: 0 }
+          overall: { network_strength: (basicReferrals?.length || 0) * 5 }
         });
 
-        setReferrals(basicReferrals?.map((user: any) => ({
-          member_wallet: user.wallet_address,
-          member_name: user.username,
-          layer: 1,
-          position: 'L',
-          placement_type: 'direct',
-          placed_at: user.created_at,
-          is_active: false,
-          member_level: 0
-        })) || []);
+        setReferrals(basicReferrals?.map((user: any) => {
+          const memberData = membersData?.find(m => m.wallet_address === user.wallet_address);
+          return {
+            member_wallet: user.wallet_address,
+            member_name: user.username,
+            layer: 1,
+            position: 'L',
+            placement_type: 'direct',
+            placed_at: user.created_at,
+            is_active: !!memberData,
+            member_level: memberData?.current_level || 0
+          };
+        }) || []);
         return;
       }
 
