@@ -51,7 +51,12 @@
       "needReferrals": "Level 2需要超过3个直推人数 (当前: {current}个)",
       "directReferralsOnly": "只计算通过您的推荐链接直接注册的用户",
       "excludesSpillover": "不包括矩阵安置的溢出用户",
-      "howToInvite": "如何邀请：分享您的推荐链接让朋友通过您的链接注册"
+      "howToInvite": "如何邀请：分享您的推荐链接让朋友通过您的链接注册",
+      "statusMet": "已达标：{current}/{required}+ 人 (超出 {excess} 人)",
+      "statusNotMet": "未达标：{current}/{required}+ 人 (还需 {shortage} 人)",
+      "howToReach": "如何达标：分享您的推荐链接让更多朋友注册",
+      "directReferralRequirement": "直推要求",
+      "onlyCountsDirect": "只计算推荐链接直接注册的用户"
     },
     "errors": {
       "dataLoadFailed": "数据加载失败",

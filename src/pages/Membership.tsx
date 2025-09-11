@@ -195,9 +195,9 @@ export default function Membership() {
         if (!referralCheck.qualified) {
           toast({
             title: t('membership.level2Requirements.title'),
-            description: `${referralCheck.message}\n\n💡 提示：只计算通过您的推荐链接直接注册的用户，不包括矩阵安置的溢出用户`,
+            description: `${referralCheck.detailedStatus}\n\n${referralCheck.message}\n\n💡 提示：只计算通过您的推荐链接直接注册的用户，不包括矩阵安置的溢出用户\n\n📋 如何达标：分享您的推荐链接让更多朋友注册`,
             variant: "destructive",
-            duration: 10000 // 延长显示时间以便用户阅读完整信息
+            duration: 12000 // 延长显示时间以便用户阅读完整信息
           });
           return;
         }
@@ -498,6 +498,30 @@ export default function Membership() {
                 </CardHeader>
 
                 <CardContent className="p-8 pt-4 space-y-6">
+                  {/* Level 2 Special Requirements Display */}
+                  {membership.level === 2 && currentLevel === 1 && (
+                    <div className="mb-6 p-4 rounded-2xl border border-honey/20 bg-gradient-to-r from-honey/5 to-orange-500/5">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Users className="h-4 w-4 text-honey" />
+                        <span className="font-semibold text-honey">直推要求</span>
+                      </div>
+                      <div className="text-sm text-muted-foreground mb-2">
+                        {(directReferralsCount || 0) > 3 ? (
+                          <span className="text-emerald-600 font-medium">
+                            ✅ 已达标：{directReferralsCount}/3+ 人 (超出 {(directReferralsCount || 0) - 3} 人)
+                          </span>
+                        ) : (
+                          <span className="text-orange-600 font-medium">
+                            ❌ 未达标：{directReferralsCount || 0}/3+ 人 (还需 {Math.max(1, 4 - (directReferralsCount || 0))} 人)
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground/80">
+                        💡 只计算推荐链接直接注册的用户
+                      </div>
+                    </div>
+                  )}
+
                   {/* Premium Benefits */}
                   <div className="space-y-4">
                     <h4 className="font-bold text-lg text-foreground mb-4 flex items-center gap-2">
