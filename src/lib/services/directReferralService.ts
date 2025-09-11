@@ -38,11 +38,20 @@ export async function checkLevel2DirectReferralRequirement(walletAddress: string
   currentCount: number;
   requiredCount: number;
   message: string;
+  detailedStatus: string;
 }> {
   const requiredCount = 3;
   const currentCount = await getDirectReferralCount(walletAddress);
   
   const qualified = currentCount > requiredCount;
+  const shortage = Math.max(0, requiredCount + 1 - currentCount); // 需要多少人才能达标
+  
+  let detailedStatus = '';
+  if (qualified) {
+    detailedStatus = `✅ 直推人数已达标：${currentCount}/${requiredCount}+ (超出 ${currentCount - requiredCount} 人)`;
+  } else {
+    detailedStatus = `❌ 直推人数未达标：${currentCount}/${requiredCount}+ (还需 ${shortage} 人)`;
+  }
   
   return {
     qualified,
@@ -50,7 +59,8 @@ export async function checkLevel2DirectReferralRequirement(walletAddress: string
     requiredCount,
     message: qualified 
       ? `您有 ${currentCount} 个直推用户，满足 Level 2 解锁条件`
-      : `Level 2 需要超过 ${requiredCount} 个直推用户 (当前: ${currentCount}个)`
+      : `Level 2 需要超过 ${requiredCount} 个直推用户 (当前: ${currentCount}个，还需: ${shortage}人)`,
+    detailedStatus
   };
 }
 
