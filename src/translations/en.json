@@ -4,6 +4,8 @@
     "referrals": "Referrals",
     "rewards": "Rewards",
     "tasks": "Tasks",
+    "nfts": "NFTs",
+    "membership": "Membership",
     "marketplace": "Marketplace",
     "education": "Education",
     "discover": "Discover",
@@ -20,6 +22,53 @@
     "error": "Error",
     "success": "Success",
     "back": "Back"
+  },
+  "dashboard": {
+    "welcomeBack": "Welcome back, {username}!",
+    "welcomeMember": "Welcome back, Member!",
+    "buildNetwork": "Let's build your hive network together",
+    "upgrade": "Upgrade",
+    "bccBalance": "BCC Balance",
+    "bccLocked": "BCC Locked",
+    "referralNetwork": "Referral Network",
+    "directReferrals": "Direct Referrals",
+    "maxLayer": "Max Layer",
+    "rewardCenter": "Reward Center",
+    "totalRewards": "Total Rewards",
+    "pendingRewards": "Pending Rewards",
+    "shareReferral": "Share Referral Link",
+    "shareDescription": "Share your link to invite friends and earn referral rewards",
+    "copyLink": "Copy Link",
+    "linkCopied": "Link copied to clipboard!",
+    "quickNavigation": "Quick Navigation",
+    "viewMatrix": "View Matrix",
+    "claimRewards": "Claim Rewards",
+    "inviteTip": "💡 Invite friends to unlock more features and rewards",
+    "topUp": "Top Up",
+    "directReferrals": "Direct Referrals",
+    "level2Requirements": {
+      "title": "Level 2 Requirements",
+      "needLevel1": "You need to reach Level 1 first",
+      "needReferrals": "Level 2 requires more than 3 direct referrals (current: {current})"
+    },
+    "errors": {
+      "dataLoadFailed": "Data loading failed",
+      "refreshToRetry": "Please refresh to retry",
+      "loadError": "Loading Error",
+      "retry": "Retry"
+    },
+    "success": {
+      "copied": "Copied!",
+      "linkCopiedToClipboard": "Referral link copied to clipboard",
+      "refreshed": "Data Refreshed",
+      "dataUpdated": "Dashboard data has been updated"
+    },
+    "refresh": "Refresh",
+    "refreshing": "Refreshing...",
+    "loadingData": "Loading",
+    "lastUpdated": "Last updated",
+    "totalTeamSize": "Total Team Size",
+    "claimableRewards": "Claimable Rewards"
   },
   "wallet": {
     "connect": "Connect Wallet",
@@ -643,6 +692,40 @@
         "title": "Claim Failed",
         "description": "Unable to claim NFT. Please check your balance and try again."
       }
+    }
+  },
+  "membership": {
+    "title": "Membership Levels",
+    "subtitle": "Upgrade your membership to unlock exclusive benefits and higher rewards",
+    "currentLevel": "Current Level",
+    "featured": "Featured",
+    "owned": "Owned",
+    "claim": "Claim for",
+    "locked": "Locked",
+    "progressInfo": {
+      "title": "Progressive Membership System",
+      "description": "Membership levels must be claimed sequentially. Each level unlocks enhanced benefits, increased rewards, and exclusive platform features.",
+      "sequential": "Sequential upgrades required",
+      "rewards": "Enhanced reward multipliers",
+      "benefits": "Exclusive benefits & features"
+    },
+    "errors": {
+      "walletRequired": "Wallet Required",
+      "connectWallet": "Please connect your wallet first",
+      "levelLocked": "Level Locked",
+      "previousLevelRequired": "You must own Level {level} NFT before claiming Level {nextLevel}",
+      "claimFailed": "Claim Failed",
+      "sequentialUpgrade": "You must upgrade to Level {nextLevel} first. Cannot skip levels.",
+      "alreadyOwned": "You already own Level {level} NFT. Each level can only be purchased once.",
+      "level2Requirements": "Level 2 requires 3 active direct referrals. Invite more members first.",
+      "missingPrerequisites": "Missing prerequisite levels. Please complete lower levels first."
+    },
+    "claiming": {
+      "started": "Level {level} Claim Started",
+      "processing": "Processing NFT claim for ${price} USDC",
+      "inProgress": "Claiming...",
+      "success": "🎉 Level {level} NFT Claimed!",
+      "successDescription": "Successfully processed claim for Level {level}. Earned ${price} BCC reward!"
     }
   },
   "education": {

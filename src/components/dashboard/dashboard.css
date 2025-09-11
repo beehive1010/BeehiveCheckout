@@ -1,0 +1,212 @@
+/* Dashboard Premium Style System */
+
+/* Premium Card Base Styles */
+.premium-card-base {
+  @apply relative transition-all duration-500 hover:-translate-y-1;
+}
+
+.premium-card-glow {
+  @apply absolute inset-0 rounded-3xl blur-lg;
+}
+
+.premium-card-content {
+  @apply relative border-0 bg-gradient-to-br from-white/95 to-white/95 
+         dark:from-gray-900/95 dark:to-gray-900/95 
+         backdrop-blur-xl rounded-3xl shadow-2xl transition-all duration-500 
+         overflow-hidden;
+}
+
+/* Premium Icon Container */
+.premium-icon-container {
+  @apply relative;
+}
+
+.premium-icon-glow {
+  @apply absolute inset-0 rounded-2xl blur-md group-hover:blur-lg transition-all duration-300;
+}
+
+.premium-icon-background {
+  @apply relative p-4 rounded-2xl backdrop-blur-sm;
+}
+
+.premium-icon {
+  @apply h-8 w-8 transition-all duration-300 group-hover:scale-110;
+}
+
+/* Premium Data Display */
+.premium-data-grid-2 {
+  @apply grid grid-cols-2 gap-6;
+}
+
+.premium-data-item {
+  @apply text-center p-4 rounded-2xl backdrop-blur-sm border border-opacity-20;
+}
+
+.premium-data-value {
+  @apply text-3xl font-bold mb-2;
+}
+
+.premium-data-label {
+  @apply text-sm font-medium text-muted-foreground;
+}
+
+/* Premium Button Styles */
+.premium-button {
+  @apply w-full h-12 font-bold text-base rounded-2xl transition-all duration-300 
+         transform hover:scale-105 hover:shadow-xl text-black;
+}
+
+.premium-button-icon {
+  @apply h-5 w-5 mr-3 transition-transform duration-200;
+}
+
+/* Color Variations */
+.honey-gradient {
+  @apply bg-gradient-to-r from-orange-400 via-orange-500 to-orange-400;
+}
+
+.honey-glow {
+  @apply from-orange-400/20 via-orange-500/20 to-orange-400/20;
+}
+
+.honey-icon-gradient {
+  @apply from-orange-400/30 to-orange-500/30;
+}
+
+.honey-icon-bg {
+  @apply from-orange-400/20 to-orange-500/20;
+}
+
+.honey-text {
+  @apply from-orange-400 via-orange-500 to-orange-400;
+}
+
+.blue-gradient {
+  @apply bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500;
+}
+
+.blue-glow {
+  @apply from-blue-500/20 via-purple-500/20 to-blue-500/20;
+}
+
+.blue-icon-gradient {
+  @apply from-blue-500/30 to-purple-500/30;
+}
+
+.blue-icon-bg {
+  @apply from-blue-500/20 to-purple-500/20;
+}
+
+.blue-text {
+  @apply from-blue-400 via-purple-400 to-blue-400;
+}
+
+.green-gradient {
+  @apply bg-gradient-to-r from-green-500 via-emerald-500 to-green-500;
+}
+
+.green-glow {
+  @apply from-green-500/20 via-emerald-500/20 to-green-500/20;
+}
+
+.green-icon-gradient {
+  @apply from-green-500/30 to-emerald-500/30;
+}
+
+.green-icon-bg {
+  @apply from-green-500/20 to-emerald-500/20;
+}
+
+.green-text {
+  @apply from-green-400 via-emerald-400 to-green-400;
+}
+
+.yellow-gradient {
+  @apply bg-gradient-to-r from-orange-400 via-yellow-400 to-orange-400;
+}
+
+.yellow-glow {
+  @apply from-orange-400/20 via-yellow-400/20 to-orange-400/20;
+}
+
+.yellow-icon-gradient {
+  @apply from-orange-400/30 to-yellow-400/30;
+}
+
+.yellow-icon-bg {
+  @apply from-orange-400/20 to-yellow-400/20;
+}
+
+.yellow-text {
+  @apply from-orange-400 via-yellow-400 to-orange-400;
+}
+
+/* Referral Link Display */
+.referral-link-container {
+  @apply relative mb-6;
+}
+
+.referral-link-glow {
+  @apply absolute inset-0 bg-gradient-to-r from-orange-400/10 to-yellow-400/10 rounded-2xl blur-sm;
+}
+
+.referral-link-background {
+  @apply relative bg-gradient-to-br from-gray-50/90 to-gray-100/90 
+         dark:from-gray-800/90 dark:to-gray-900/90 backdrop-blur-sm 
+         rounded-2xl p-4 border border-orange-400/20;
+}
+
+.referral-link-text {
+  @apply text-sm font-mono break-all text-orange-400 font-medium;
+}
+
+/* Quick Navigation */
+.quick-nav-card {
+  @apply cursor-pointer hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-colors;
+}
+
+.quick-nav-icon {
+  @apply h-8 w-8 mx-auto mb-3 group-hover:scale-110 transition-transform;
+}
+
+.quick-nav-title {
+  @apply font-semibold mb-2;
+}
+
+.quick-nav-description {
+  @apply text-xs text-muted-foreground flex items-center justify-center gap-1;
+}
+
+/* Welcome Section */
+.welcome-container {
+  @apply text-center mb-8;
+}
+
+.welcome-title {
+  @apply text-3xl font-bold text-orange-400 mb-2;
+}
+
+.welcome-subtitle {
+  @apply text-muted-foreground;
+}
+
+/* Dashboard Layout */
+.dashboard-container {
+  @apply min-h-screen bg-background;
+}
+
+.dashboard-content {
+  @apply container mx-auto px-4 py-8 max-w-2xl;
+}
+
+.dashboard-grid-2 {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-6 mb-8;
+}
+
+.dashboard-grid-nav {
+  @apply grid grid-cols-2 gap-4;
+}
+
+.dashboard-footer {
+  @apply text-center mt-8 text-sm text-muted-foreground;
+}

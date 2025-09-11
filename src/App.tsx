@@ -11,10 +11,9 @@ import { Toaster as HotToaster } from "react-hot-toast";
 
 // Refactored pages with clean architecture
 import LandingPage from "@/pages/LandingPage";
-import DashboardPageV2Simple from "@/pages/DashboardPageV2Simple";
-import SimpleDashboard from "@/pages/SimpleDashboard";
+import Dashboard from "@/pages/Dashboard";
 // Force cache refresh
-import Education from "@/pages/Education";
+import  Education from "@/pages/Education";
 import HiveWorld from "@/pages/HiveWorld";
 import Me from "@/pages/Me";
 import ProfileSettings from "@/pages/ProfileSettings";
@@ -28,6 +27,7 @@ import Registration from "@/pages/Registration";
 import MatrixExplanation from "@/pages/MatrixExplanation";
 import Welcome from "@/pages/Welcome";
 import Tasks from "@/pages/Tasks";
+import Membership from "@/pages/Membership";
 import TokenPurchase from "@/pages/TokenPurchase";
 import SupabaseAuth from "@/pages/SupabaseAuth";
 import AuthCallback from "@/pages/AuthCallback";
@@ -44,7 +44,6 @@ const CourseDetails = () => <div>Course Details - Coming Soon</div>;
 const BlogPost = () => <div>Blog Post - Coming Soon</div>;
 const AdvertisementNFTs = () => <div>Advertisement NFTs - Coming Soon</div>;
 const AdminNFTManager = () => <div>Admin NFT Manager - Coming Soon</div>;
-const TokenPurchasePage = () => <div>Token Purchase - Coming Soon</div>;
 const NotFound = () => <div className="text-center py-12"><h1 className="text-honey text-2xl">Page Not Found</h1></div>;
 
 // Admin components
@@ -108,7 +107,7 @@ function SmartHomePage() {
   }
   
   if (isFullyActivated) {
-    return <SimpleDashboard />;
+    return <Dashboard />;
   }
 
   // Fallback to landing page
@@ -239,17 +238,21 @@ function Router() {
         {/* Main app routes - Protected with wallet connection and Level 1 NFT requirement */}
         <Route path="/dashboard" component={() => (
           <MemberGuard requireActivation={true} redirectTo="/welcome">
-            <SimpleDashboard />
+            <Dashboard />
           </MemberGuard>
         )} />
-        <Route path="/dashboard/simple" component={() => (
+        <Route path="/tasks">
+          {() => {
+            const [, setLocation] = useLocation();
+            React.useEffect(() => {
+              setLocation('/membership', { replace: true });
+            }, [setLocation]);
+            return null;
+          }}
+        </Route>
+        <Route path="/membership" component={() => (
           <MemberGuard requireActivation={true} redirectTo="/welcome">
-            <DashboardPageV2Simple />
-          </MemberGuard>
-        )} />
-        <Route path="/tasks" component={() => (
-          <MemberGuard requireActivation={true} redirectTo="/welcome">
-            <Tasks />
+            <Membership />
           </MemberGuard>
         )} />
         <Route path="/token-purchase" component={TokenPurchase} />

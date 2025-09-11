@@ -90,6 +90,47 @@
       "button": "지금 Beehive 가입"
     }
   },
+  "common": {
+    "cancel": "취소",
+    "confirm": "확인",
+    "close": "닫기",
+    "save": "저장",
+    "loading": "로딩 중...",
+    "error": "오류",
+    "success": "성공",
+    "back": "뒤로",
+    "copied": "복사됨!"
+  },
+  "dashboard": {
+    "welcomeBack": "다시 오신 것을 환영합니다, {username}!",
+    "welcomeMember": "다시 오신 것을 환영합니다, 회원님!",
+    "buildNetwork": "함께 하이브 네트워크를 구축해 봅시다",
+    "upgrade": "업그레이드",
+    "bccBalance": "BCC 잔액",
+    "bccLocked": "잠긴 BCC",
+    "referralNetwork": "추천 네트워크",
+    "directReferrals": "직접 추천",
+    "maxLayer": "최대 레이어",
+    "rewardCenter": "보상 센터",
+    "totalRewards": "총 보상",
+    "pendingRewards": "대기 중인 보상",
+    "shareReferral": "추천 링크 공유",
+    "shareDescription": "링크를 공유하여 친구를 초대하고 추천 보상을 받으세요",
+    "copyLink": "링크 복사",
+    "linkCopied": "링크가 클립보드에 복사되었습니다!",
+    "viewMatrix": "매트릭스 보기",
+    "claimRewards": "보상 받기",
+    "inviteTip": "💡 친구를 초대하여 더 많은 기능과 보상을 잠금 해제하세요",
+    "topUp": "충전",
+    "errors": {
+      "dataLoadFailed": "데이터 로드 실패",
+      "refreshToRetry": "페이지를 새로고침하여 다시 시도해 주세요"
+    },
+    "success": {
+      "copied": "복사됨!",
+      "linkCopiedToClipboard": "추천 링크가 클립보드에 복사됨"
+    }
+  },
   "footer": {
     "description": "블록체인 기반 보상이 있는 Web3 멤버십 및 학습 플랫폼",
     "platform": "플랫폼",

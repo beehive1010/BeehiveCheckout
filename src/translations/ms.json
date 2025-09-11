@@ -90,6 +90,47 @@
       "button": "Sertai Beehive Sekarang"
     }
   },
+  "common": {
+    "cancel": "Batal",
+    "confirm": "Sahkan",
+    "close": "Tutup",
+    "save": "Simpan",
+    "loading": "Memuat...",
+    "error": "Ralat",
+    "success": "Berjaya",
+    "back": "Kembali",
+    "copied": "Disalin!"
+  },
+  "dashboard": {
+    "welcomeBack": "Selamat kembali, {username}!",
+    "welcomeMember": "Selamat kembali, Ahli!",
+    "buildNetwork": "Mari bina rangkaian sarang anda bersama",
+    "upgrade": "Naik Taraf",
+    "bccBalance": "Baki BCC",
+    "bccLocked": "BCC Terkunci",
+    "referralNetwork": "Rangkaian Rujukan",
+    "directReferrals": "Rujukan Langsung",
+    "maxLayer": "Lapisan Maksimum",
+    "rewardCenter": "Pusat Ganjaran",
+    "totalRewards": "Jumlah Ganjaran",
+    "pendingRewards": "Ganjaran Tertunda",
+    "shareReferral": "Kongsi Pautan Rujukan",
+    "shareDescription": "Kongsi pautan anda untuk menjemput rakan dan peroleh ganjaran rujukan",
+    "copyLink": "Salin Pautan",
+    "linkCopied": "Pautan disalin ke papan klip!",
+    "viewMatrix": "Lihat Matrix",
+    "claimRewards": "Tuntut Ganjaran",
+    "inviteTip": "💡 Jemput rakan untuk membuka kunci lebih banyak ciri dan ganjaran",
+    "topUp": "Tambah Nilai",
+    "errors": {
+      "dataLoadFailed": "Gagal memuat data",
+      "refreshToRetry": "Sila muat semula halaman untuk cuba lagi"
+    },
+    "success": {
+      "copied": "Disalin!",
+      "linkCopiedToClipboard": "Pautan rujukan disalin ke papan klip"
+    }
+  },
   "footer": {
     "description": "Platform keahlian dan pembelajaran Web3 dengan ganjaran blockchain.",
     "platform": "Platform",

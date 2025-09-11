@@ -4707,6 +4707,13 @@ export type Database = {
           placement_position: string
         }[]
       }
+      find_next_lmr_position: {
+        Args: { p_matrix_owner: string }
+        Returns: {
+          layer: number
+          position: string
+        }[]
+      }
       find_next_qualified_upline: {
         Args: { member_wallet: string; required_level: number }
         Returns: string

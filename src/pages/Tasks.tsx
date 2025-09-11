@@ -8,9 +8,7 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useToast } from '../hooks/use-toast';
-import { Crown, Megaphone, Package, ArrowRight, Star, TestTube, Shield, CreditCard, Loader2 } from 'lucide-react';
-import MembershipBadge from '../components/membership/MembershipBadge';
-import { getMembershipLevel } from '../lib/config/membershipLevels';
+import { Crown, Megaphone, Package, ArrowRight, Star, Loader2 } from 'lucide-react';
 import AdvertisementNFTGrid from '../components/nfts/AdvertisementNFTGrid';
 import MyNFTGrid from '../components/nfts/MyNFTGrid';
 

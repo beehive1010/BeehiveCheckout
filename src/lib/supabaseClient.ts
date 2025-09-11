@@ -396,14 +396,14 @@ export const matrixService = {
         *,
         member_info:users!referrals_member_wallet_fkey(wallet_address, username)
       `)
-      .eq('root_wallet', rootWallet)
+      .eq('matrix_root', rootWallet)
       .eq('is_active', true);
 
     if (layer) {
-      query = query.eq('layer', layer);
+      query = query.eq('matrix_layer', layer);
     }
 
-    return query.order('created_at', { ascending: true });
+    return query.order('placed_at', { ascending: true });
   },
 
   // Get matrix statistics using direct database queries for real data
@@ -413,37 +413,37 @@ export const matrixService = {
       const { count: directReferralsCount } = await supabase
         .from('referrals')
         .select('*', { count: 'exact', head: true })
-        .ilike('parent_wallet', walletAddress)
-        .eq('layer', 1);
+        .ilike('matrix_parent', walletAddress)
+        .eq('matrix_layer', 1);
 
       // Get total team size (all referrals) - use ilike for case-insensitive matching
       const { count: totalTeamSize } = await supabase
         .from('referrals')
         .select('*', { count: 'exact', head: true })
-        .ilike('root_wallet', walletAddress);
+        .ilike('matrix_root', walletAddress);
 
       // Get max layer - use ilike for case-insensitive matching
       const { data: maxLayerData } = await supabase
         .from('referrals')
-        .select('layer')
-        .ilike('root_wallet', walletAddress)
-        .order('layer', { ascending: false })
+        .select('matrix_layer')
+        .ilike('matrix_root', walletAddress)
+        .order('matrix_layer', { ascending: false })
         .limit(1);
 
-      const maxLayer = maxLayerData?.[0]?.layer || 0;
+      const maxLayer = maxLayerData?.[0]?.matrix_layer || 0;
 
       // Get recent activity (last 10 referrals) - use ilike for case-insensitive matching
       const { data: recentActivity } = await supabase
         .from('referrals')
         .select(`
           member_wallet,
-          created_at,
-          layer,
-          position,
+          placed_at,
+          matrix_layer,
+          matrix_position,
           is_active
         `)
-        .ilike('root_wallet', walletAddress)
-        .order('created_at', { ascending: false })
+        .ilike('matrix_root', walletAddress)
+        .order('placed_at', { ascending: false })
         .limit(10);
 
       return {
