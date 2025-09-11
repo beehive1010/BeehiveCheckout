@@ -60,11 +60,14 @@ export default function NotificationPopup({
   // Fetch only unread urgent and high priority notifications
   const { data: notifications = [] } = useQuery<Notification[]>({
     queryKey: ['/api/notifications', 'popup', walletAddress],
-    queryFn: () => apiRequest('/api/notifications?' + new URLSearchParams({
-      isRead: 'false',
-      priority: 'urgent,high', // Filter for urgent and high priority
-      limit: maxNotifications.toString(),
-    })),
+    queryFn: async () => {
+      const response = await apiRequest('/api/notifications?' + new URLSearchParams({
+        isRead: 'false',
+        priority: 'urgent,high', // Filter for urgent and high priority
+        limit: maxNotifications.toString(),
+      }));
+      return await response.json();
+    },
     enabled: !!walletAddress && isVisible,
     refetchInterval: 30000, // Refresh every 30 seconds
   });
@@ -76,10 +79,12 @@ export default function NotificationPopup({
 
   // Mark as read mutation
   const markAsReadMutation = useMutation({
-    mutationFn: (notificationId: string) =>
-      apiRequest(`/api/notifications/${notificationId}/read`, {
+    mutationFn: async (notificationId: string) => {
+      const response = await apiRequest(`/api/notifications/${notificationId}/read`, {
         method: 'PATCH',
-      }),
+      });
+      return await response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
     },

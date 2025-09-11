@@ -71,10 +71,12 @@ export default function NotificationDetail({
 
   // Mutations
   const markAsReadMutation = useMutation({
-    mutationFn: () =>
-      apiRequest(`/api/notifications/${notification.id}/read`, {
+    mutationFn: async () => {
+      const response = await apiRequest(`/api/notifications/${notification.id}/read`, {
         method: 'PATCH',
-      }),
+      });
+      return await response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
       queryClient.invalidateQueries({ queryKey: ['/api/notifications/stats'] });
@@ -83,10 +85,12 @@ export default function NotificationDetail({
   });
 
   const archiveMutation = useMutation({
-    mutationFn: () =>
-      apiRequest(`/api/notifications/${notification.id}/archive`, {
+    mutationFn: async () => {
+      const response = await apiRequest(`/api/notifications/${notification.id}/archive`, {
         method: 'PATCH',
-      }),
+      });
+      return await response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
       queryClient.invalidateQueries({ queryKey: ['/api/notifications/stats'] });
@@ -96,10 +100,12 @@ export default function NotificationDetail({
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () =>
-      apiRequest(`/api/notifications/${notification.id}`, {
+    mutationFn: async () => {
+      const response = await apiRequest(`/api/notifications/${notification.id}`, {
         method: 'DELETE',
-      }),
+      });
+      return await response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
       queryClient.invalidateQueries({ queryKey: ['/api/notifications/stats'] });
