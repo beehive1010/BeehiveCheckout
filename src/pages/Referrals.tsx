@@ -26,8 +26,8 @@ export default function Referrals() {
   const copyReferralLink = () => {
     navigator.clipboard.writeText(referralLink);
     toast({
-      title: "Copied!",
-      description: "Referral link copied to clipboard",
+      title: t('referrals.copied.title') || "Copied!",
+      description: t('referrals.copied.description') || "Referral link copied to clipboard",
       duration: 2000
     });
   };
@@ -79,9 +79,9 @@ export default function Referrals() {
       {/* Main Content with Tabs */}
       <Tabs defaultValue="matrix" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="matrix">3x3 Matrix</TabsTrigger>
-          <TabsTrigger value="stats">Statistics</TabsTrigger>
-          <TabsTrigger value="rewards">Rewards</TabsTrigger>
+          <TabsTrigger value="matrix">{t('referrals.tabs.matrix') || '3x3 Matrix'}</TabsTrigger>
+          <TabsTrigger value="stats">{t('referrals.tabs.stats') || 'Statistics'}</TabsTrigger>
+          <TabsTrigger value="rewards">{t('referrals.tabs.rewards') || 'Rewards'}</TabsTrigger>
         </TabsList>
 
         {/* Matrix Visualization Tab */}
@@ -112,7 +112,7 @@ export default function Referrals() {
           
           {/* Legacy Stats Cards for Comparison */}
           <div className="border-t pt-6">
-            <h3 className="text-lg font-semibold text-honey mb-4">Legacy System (For Comparison)</h3>
+            <h3 className="text-lg font-semibold text-honey mb-4">{t('referrals.legacySystem') || 'Legacy System (For Comparison)'}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             <Card className="bg-secondary border-border">
               <CardContent className="p-4 sm:p-6 text-center">
@@ -159,7 +159,7 @@ export default function Referrals() {
                   {userStats?.matrixLevel || 1}
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Matrix Layers
+                  {t('referrals.matrixLayers') || 'Matrix Layers'}
                 </p>
               </CardContent>
             </Card>
@@ -196,11 +196,11 @@ export default function Referrals() {
                           {referral.walletAddress?.slice(0, 8)}...{referral.walletAddress?.slice(-6)}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {referral.joinedAt ? new Date(referral.joinedAt).toLocaleDateString() : 'Recently joined'}
+                          {referral.joinedAt ? new Date(referral.joinedAt).toLocaleDateString() : t('referrals.recentlyJoined') || 'Recently joined'}
                         </p>
                       </div>
                       <Badge variant={referral.activated ? 'default' : 'secondary'} className="self-start sm:self-center">
-                        {referral.activated ? 'Activated' : 'Pending'}
+                        {referral.activated ? t('referrals.activated') || 'Activated' : t('referrals.pending') || 'Pending'}
                       </Badge>
                     </div>
                   ))}
@@ -223,27 +223,27 @@ export default function Referrals() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrophyIcon className="w-5 h-5 text-honey" />
-                Reward System Information
+                {t('referrals.rewardSystemInfo') || 'Reward System Information'}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-semibold mb-3">Matrix Rewards</h4>
+                  <h4 className="font-semibold mb-3">{t('referrals.matrixRewardsTitle') || 'Matrix Rewards'}</h4>
                   <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Level 1 Direct: $30 USDC per referral</li>
-                    <li>• Level 2 Matrix: $10 USDC per position</li>
-                    <li>• Spillover Bonuses: Additional rewards</li>
-                    <li>• 72-hour claim window</li>
+                    <li>• {t('referrals.rewards.level1Direct') || 'Level 1 Direct: $30 USDC per referral'}</li>
+                    <li>• {t('referrals.rewards.level2Matrix') || 'Level 2 Matrix: $10 USDC per position'}</li>
+                    <li>• {t('referrals.rewards.spilloverBonuses') || 'Spillover Bonuses: Additional rewards'}</li>
+                    <li>• {t('referrals.rewards.claimWindow') || '72-hour claim window'}</li>
                   </ul>
                 </div>
                 <div>
-                  <h4 className="font-semibold mb-3">BCC Token Rewards</h4>
+                  <h4 className="font-semibold mb-3">{t('referrals.bccTokenRewardsTitle') || 'BCC Token Rewards'}</h4>
                   <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Transferable BCC: Immediate use</li>
-                    <li>• Locked BCC: Tier-based release</li>
-                    <li>• Tier multipliers: 1.0x, 0.5x, 0.25x, 0.125x</li>
-                    <li>• Level upgrades unlock more BCC</li>
+                    <li>• {t('referrals.bccRewards.transferable') || 'Transferable BCC: Immediate use'}</li>
+                    <li>• {t('referrals.bccRewards.locked') || 'Locked BCC: Tier-based release'}</li>
+                    <li>• {t('referrals.bccRewards.multipliers') || 'Tier multipliers: 1.0x, 0.5x, 0.25x, 0.125x'}</li>
+                    <li>• {t('referrals.bccRewards.upgrades') || 'Level upgrades unlock more BCC'}</li>
                   </ul>
                 </div>
               </div>

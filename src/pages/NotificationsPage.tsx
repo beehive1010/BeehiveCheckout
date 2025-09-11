@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useI18n } from '@/contexts/I18nContext';
+import { useWallet } from '@/hooks/useWallet';
 import NotificationInbox from '@/components/notifications/NotificationInbox';
 import NotificationDetail from '@/components/notifications/NotificationDetail';
 import NotificationPopup from '@/components/notifications/NotificationPopup';
@@ -61,9 +62,7 @@ export default function NotificationsPage() {
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const { t } = useI18n();
-
-  // Get wallet address from context/auth (you'll need to implement this)
-  const walletAddress = "0x1234567890123456789012345678901234567890"; // Replace with actual wallet address
+  const { walletAddress } = useWallet();
 
   // Fetch notification stats
   const { data: stats } = useQuery<NotificationStats>({
