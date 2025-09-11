@@ -1674,7 +1674,29 @@
         "title": "Purchase Failed",
         "description": "Unable to complete membership purchase. Please try again."
       }
-    }
+    },
+    "status": {
+      "owned": "Owned"
+    },
+    "level2Requirements": {
+      "title": "Level 2 Requirements Not Met",
+      "tip": "Tip: Only users directly registered through your referral link count, excluding spillover users from matrix placement",
+      "howTo": "How to qualify: Share your referral link to get more friends to register"
+    },
+    "errors": {
+      "checkReferralError": "Error checking referral requirements",
+      "verificationFailed": "Unable to verify your direct referral count, please try again later"
+    },
+    "rewards": {
+      "distributed": "🎁 Layer Rewards Distributed",
+      "distributionResult": "Created {claimableCount} claimable rewards and {pendingCount} pending rewards",
+      "distributionWarning": "⚠️ Reward Distribution Warning",
+      "distributionIssue": "Membership upgrade successful, but reward distribution encountered issues"
+    },
+    "directReferralRequirement": "Direct Referral Requirement",
+    "qualifiedStatus": "✅ Qualified: {count}/3+ people (excess {excess} people)",
+    "statusNotQualified": "❌ Not qualified: {count}/4 people (need {needed} more)",
+    "directRegisterTip": "Only direct registrations through your referral link count"
   },
   "notificationsPage": {
     "title": "Notifications",
