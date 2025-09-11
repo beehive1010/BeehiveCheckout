@@ -78,7 +78,7 @@ export default function NotificationPreview({
                   <p className="text-xs text-gray-400 mt-1 line-clamp-2">
                     {notification.message || 'No message'}
                   </p>
-                  {notification.created_at && (
+                  {notification.created_at && !isNaN(new Date(notification.created_at).getTime()) && (
                     <p className="text-xs text-gray-500 mt-1">
                       {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                     </p>
