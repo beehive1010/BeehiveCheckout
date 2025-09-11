@@ -45,11 +45,11 @@ export function useUserReferralStats() {
         .select('*', { count: 'exact', head: true })
         .eq('referrer_wallet', walletAddress);
 
-      // Get total team count from matrix placements
+      // Get total team count from direct referrals (fallback since matrix table doesn't exist)
       const { count: totalTeam } = await supabase
-        .from('individual_matrix_placements')
+        .from('users')
         .select('*', { count: 'exact', head: true })
-        .eq('matrix_owner', walletAddress);
+        .eq('referrer_wallet', walletAddress);
 
       // Get member's current level and info
       const { data: memberData } = await supabase

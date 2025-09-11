@@ -39,107 +39,48 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
     try {
       setLoading(true);
       
-      // Use basic referrals approach to avoid table relationship issues
-      console.log('Loading referral data using basic users table approach');
-        // Fallback to basic referrals data from users table
-        const { data: basicReferrals } = await supabase
-          .from('users')
-          .select('wallet_address, username, created_at')
-          .eq('referrer_wallet', walletAddress)
-          .limit(10);
+      // Get basic referrals data from users table (most reliable approach)
+      const { data: basicReferrals } = await supabase
+        .from('users')
+        .select('wallet_address, username, created_at')
+        .eq('referrer_wallet', walletAddress)
+        .limit(10);
 
-        // Get activation status for the referrals
-        const walletAddresses = basicReferrals?.map(u => u.wallet_address) || [];
-        const { data: membersData } = await supabase
-          .from('members')
-          .select('wallet_address, current_level')
-          .in('wallet_address', walletAddresses);
-
-        const activatedCount = membersData?.filter(m => m.current_level > 0).length || 0;
-
-        setMatrixStats({
-          as_root: {
-            total_team_size: basicReferrals?.length || 0,
-            activated_members: activatedCount,
-            max_depth: 1,
-            layer_distribution: { 1: basicReferrals?.length || 0 }
-          },
-          overall: { network_strength: (basicReferrals?.length || 0) * 5 }
-        });
-
-        setReferrals(basicReferrals?.map((user: any) => {
-          const memberData = membersData?.find(m => m.wallet_address === user.wallet_address);
-          return {
-            member_wallet: user.wallet_address,
-            member_name: user.username,
-            layer: 1,
-            position: 'L',
-            placement_type: 'direct',
-            placed_at: user.created_at,
-            is_active: !!memberData,
-            member_level: memberData?.current_level || 0
-          };
-        }) || []);
-        return;
-      }
-
-      // Process spillover matrix data
-      const totalTeamSize = spilloverData?.length || 0;
-      
-      // Get member activation data separately since we can't use foreign keys
-      const memberWallets = spilloverData?.map((m: any) => m.member_wallet) || [];
+      // Get activation status for the referrals
+      const walletAddresses = basicReferrals?.map(u => u.wallet_address) || [];
       const { data: membersData } = await supabase
         .from('members')
         .select('wallet_address, current_level')
-        .in('wallet_address', memberWallets);
+        .in('wallet_address', walletAddresses);
 
-      const { data: usersData } = await supabase
-        .from('users')
-        .select('wallet_address, username')
-        .in('wallet_address', memberWallets);
+      const activatedCount = membersData?.filter(m => m.current_level > 0).length || 0;
+      const totalReferrals = basicReferrals?.length || 0;
 
-      const activatedMembers = membersData?.filter(m => m.current_level > 0).length || 0;
-      const maxDepth = Math.max(...(spilloverData?.map((m: any) => m.matrix_layer || 1) || [1]));
-      
-      // Calculate layer distribution
-      const layerDistribution: { [key: number]: number } = {};
-      spilloverData?.forEach((member: any) => {
-        const layer = member.matrix_layer || 1;
-        layerDistribution[layer] = (layerDistribution[layer] || 0) + 1;
+      setMatrixStats({
+        as_root: {
+          total_team_size: totalReferrals,
+          activated_members: activatedCount,
+          max_depth: totalReferrals > 0 ? 1 : 0,
+          layer_distribution: { 1: totalReferrals }
+        },
+        overall: { 
+          network_strength: totalReferrals * 5 + activatedCount * 10 
+        }
       });
 
-      const formattedStats = {
-        as_root: {
-          total_team_size: totalTeamSize,
-          activated_members: activatedMembers,
-          max_depth: maxDepth,
-          layer_distribution: layerDistribution
-        },
-        overall: {
-          network_strength: totalTeamSize * 10 + activatedMembers * 5
-        }
-      };
-
-      setMatrixStats(formattedStats);
-      
-      // Format recent members
-      const recentMembers = spilloverData?.slice(0, 10).map((member: any) => {
-        const userData = usersData?.find(u => u.wallet_address === member.member_wallet);
-        const memberData = membersData?.find(m => m.wallet_address === member.member_wallet);
-        
+      setReferrals(basicReferrals?.map((user: any) => {
+        const memberData = membersData?.find(m => m.wallet_address === user.wallet_address);
         return {
-          member_wallet: member.member_wallet,
-          member_name: userData?.username || 'Unknown',
-          layer: member.matrix_layer || 1,
-          position: member.matrix_position || 'L',
-          placement_type: 'spillover',
-          placed_at: member.placed_at || member.created_at,
-          is_active: member.is_active !== false,
+          member_wallet: user.wallet_address,
+          member_name: user.username || 'Unknown',
+          layer: 1,
+          position: 'L',
+          placement_type: 'direct',
+          placed_at: user.created_at,
+          is_active: !!memberData,
           member_level: memberData?.current_level || 0
         };
-      }) || [];
-      
-      setReferrals(recentMembers);
+      }) || []);
 
     } catch (error) {
       console.error('Failed to load referral data:', error);
