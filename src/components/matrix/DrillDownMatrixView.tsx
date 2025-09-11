@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronRight, Users, Trophy, ArrowLeft, Home } from 'lucide-react';
-import { matrixService } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { useI18n } from '@/contexts/I18nContext';
 
 interface MatrixMember {
@@ -55,34 +55,36 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
     setError(null);
 
     try {
-      // 使用新的spillover matrix获取实际的matrix数据（已经应用滑落逻辑和奖励规则）
-      const result = await matrixService.getSpilloverMatrix(walletAddress);
+      // 直接从referrals表获取矩阵数据
+      const { data: result, error } = await supabase
+        .from('referrals')
+        .select('*')
+        .eq('matrix_root', walletAddress);
       
-      if (result.data && result.data.length > 0) {
-        // Find layer 1 members under this member as matrix_root in spillover matrix
-        // This shows the actual reward-triggering matrix with spillover applied
-        const directReferrals = result.data.filter((ref: any) => 
+      if (result && result.length > 0) {
+        // Find layer 1 members under this member as matrix_root
+        const directReferrals = result.filter((ref: any) => 
           ref.matrix_root?.toLowerCase() === walletAddress.toLowerCase() && 
-          ref.matrix_layer === 1 // Layer 1 under this root in spillover matrix
+          ref.layer === 1 // Layer 1 under this root
         );
 
-        console.log(`🔍 Spillover Matrix data for ${walletAddress}:`, {
-          totalSpilloverMatrix: result.data.length,
+        console.log(`🔍 Matrix data for ${walletAddress}:`, {
+          totalMatrix: result.length,
           directReferrals: directReferrals.length,
-          directReferralPositions: directReferrals.map(r => `${r.matrix_position}${r.original_layer !== r.matrix_layer ? `(滑落自L${r.original_layer})` : ''}`)
+          directReferralPositions: directReferrals.map(r => `${r.position}`)
         });
 
-        // Group by position - spillover matrix uses L/M/R format
+        // Group by position
         const leftMembers = directReferrals
-          .filter((ref: any) => ref.matrix_position === 'L')
+          .filter((ref: any) => ref.position === 'L')
           .map(transformToMatrixMember);
         
         const middleMembers = directReferrals
-          .filter((ref: any) => ref.matrix_position === 'M')
+          .filter((ref: any) => ref.position === 'M')
           .map(transformToMatrixMember);
         
         const rightMembers = directReferrals
-          .filter((ref: any) => ref.matrix_position === 'R')
+          .filter((ref: any) => ref.position === 'R')
           .map(transformToMatrixMember);
 
         // Create current member info
@@ -139,21 +141,16 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
   };
 
   const transformToMatrixMember = (referral: any): MatrixMember => {
-    // Spillover matrix already uses L/M/R format
-    const normalizedPosition: 'L' | 'M' | 'R' = referral.matrix_position;
-    
-    // Check if this member was moved due to spillover
-    const wasSpillover = referral.original_layer !== referral.matrix_layer;
-    const spilloverInfo = wasSpillover ? ` (滑落自Layer${referral.original_layer})` : '';
+    const normalizedPosition: 'L' | 'M' | 'R' = referral.position;
     
     return {
       walletAddress: referral.member_wallet,
-      username: (referral.member_info?.username || `User${referral.member_wallet.slice(-4)}`) + spilloverInfo,
+      username: `User${referral.member_wallet.slice(-4)}`,
       level: 1,
-      isActive: referral.is_active,
+      isActive: true,
       layer: navigationPath.length + 1,
       position: normalizedPosition,
-      placedAt: referral.placed_at
+      placedAt: referral.created_at
     };
   };
 

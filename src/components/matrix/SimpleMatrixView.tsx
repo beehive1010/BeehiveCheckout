@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, Users, Trophy } from 'lucide-react';
-import { matrixService } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { useI18n } from '@/contexts/I18nContext';
 
 interface MatrixMember {
@@ -42,10 +42,13 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
       setError(null);
       
       try {
-        // Get matrix tree data
-        const result = await matrixService.getMatrixTree(walletAddress);
+        // Get matrix data from referrals table
+        const { data: referralsData, error } = await supabase
+          .from('referrals')
+          .select('*')
+          .eq('matrix_root', walletAddress);
         
-        if (result.success && result.matrix) {
+        if (!error && referralsData) {
           const organizedData: { [key: number]: MatrixLayerData } = {};
           
           // Initialize all 19 layers
@@ -53,22 +56,16 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
             organizedData[i] = { left: [], middle: [], right: [] };
           }
           
-          // Organize referrals by layer and position - filter for this wallet as matrix_root
-          result.matrix
-            .filter((referral: any) => 
-              referral.matrix_root?.toLowerCase() === walletAddress.toLowerCase() &&
-              referral.matrix_layer && 
-              referral.matrix_position
-            )
-            .forEach((referral: any) => {
-              const layer = referral.matrix_layer;
-              const position = referral.matrix_position;
+          // Organize referrals by layer and position
+          referralsData.forEach((referral: any) => {
+            const layer = referral.layer;
+            const position = referral.position;
             
             const member: MatrixMember = {
               walletAddress: referral.member_wallet,
-              username: referral.member_info?.username || `User${referral.member_wallet.slice(-4)}`,
-              level: 1, // You can get this from members table if needed
-              isActive: referral.is_active,
+              username: `User${referral.member_wallet.slice(-4)}`,
+              level: 1,
+              isActive: true,
               layer: layer,
               position: position
             };

@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Users, Trophy, Target, Layers } from 'lucide-react';
-import { matrixService } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { useI18n } from '@/contexts/I18nContext';
 
 interface LayerStats {
@@ -43,45 +43,35 @@ const MatrixLayerStats: React.FC<MatrixLayerStatsProps> = ({
     setError(null);
 
     try {
-      // 使用新的spillover matrix服务获取实际的matrix数据（已经应用滑落逻辑）
-      const { supabase } = await import('@/lib/supabaseClient');
-      const spilloverResult = await supabase.rpc('get_spillover_matrix_summary', {
-        p_root_wallet: walletAddress
-      });
+      // 从referrals表获取matrix数据
+      const { data: referralsData, error } = await supabase
+        .from('referrals')
+        .select('layer, position, member_wallet')
+        .eq('matrix_root', walletAddress);
       
-      if (!spilloverResult.error && spilloverResult.data) {
-        // 使用数据库函数返回的层级统计
-        const dbLayerStats = spilloverResult.data;
+      if (!error && referralsData) {
         const stats: LayerStats[] = [];
         
         // 创建完整的19层统计
         for (let layer = 1; layer <= 19; layer++) {
-          const dbStat = dbLayerStats.find((stat: any) => stat.layer_num === layer);
+          const layerMembers = referralsData.filter(r => r.layer === layer);
+          const leftMembers = layerMembers.filter(r => r.position === 'L').length;
+          const middleMembers = layerMembers.filter(r => r.position === 'M').length;
+          const rightMembers = layerMembers.filter(r => r.position === 'R').length;
+          const totalMembers = layerMembers.length;
+          const maxCapacity = Math.pow(3, layer);
+          const fillPercentage = maxCapacity > 0 ? (totalMembers / maxCapacity) * 100 : 0;
           
-          if (dbStat) {
-            stats.push({
-              layer,
-              totalMembers: Number(dbStat.current_count),
-              leftMembers: Number(dbStat.l_count),
-              middleMembers: Number(dbStat.m_count), 
-              rightMembers: Number(dbStat.r_count),
-              maxCapacity: Number(dbStat.max_capacity),
-              fillPercentage: Number(dbStat.fill_percentage),
-              activeMembers: Number(dbStat.current_count) // spillover matrix中的都是活跃会员
-            });
-          } else {
-            // 没有数据的层级
-            stats.push({
-              layer,
-              totalMembers: 0,
-              leftMembers: 0,
-              middleMembers: 0,
-              rightMembers: 0,
-              maxCapacity: Math.pow(3, layer),
-              fillPercentage: 0,
-              activeMembers: 0
-            });
-          }
+          stats.push({
+            layer,
+            totalMembers,
+            leftMembers,
+            middleMembers,
+            rightMembers,
+            maxCapacity,
+            fillPercentage,
+            activeMembers: totalMembers // 假设所有成员都是活跃的
+          });
         }
 
         setLayerStats(stats);
