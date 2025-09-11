@@ -364,7 +364,7 @@ export default function NotificationDetail({
               </div>
             )}
             
-            {notification.emailSent && notification.emailSentAt && (
+            {notification.emailSent && notification.emailSentAt && !isNaN(new Date(notification.emailSentAt).getTime()) && (
               <div className="flex items-center gap-2 text-sm">
                 <Bell className="w-4 h-4 text-green-400" />
                 <span className="text-gray-300">{t('notifications.emailSent')}:</span>
