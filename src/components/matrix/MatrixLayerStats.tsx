@@ -44,11 +44,14 @@ const MatrixLayerStats: React.FC<MatrixLayerStatsProps> = ({
 
     try {
       // 使用新的spillover matrix服务获取实际的matrix数据（已经应用滑落逻辑）
-      const spilloverResult = await matrixService.getSpilloverMatrixStats(walletAddress);
+      const { supabase } = await import('@/lib/supabaseClient');
+      const spilloverResult = await supabase.rpc('get_spillover_matrix_summary', {
+        p_root_wallet: walletAddress
+      });
       
-      if (spilloverResult.success && spilloverResult.data.layerStats) {
+      if (!spilloverResult.error && spilloverResult.data) {
         // 使用数据库函数返回的层级统计
-        const dbLayerStats = spilloverResult.data.layerStats;
+        const dbLayerStats = spilloverResult.data;
         const stats: LayerStats[] = [];
         
         // 创建完整的19层统计
