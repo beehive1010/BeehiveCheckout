@@ -10,6 +10,8 @@ import UserProfileCard from '../components/shared/UserProfileCard';
 import { UsersIcon, ShareIcon, TrophyIcon } from '@heroicons/react/24/outline';
 import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
 import DrillDownMatrixView from '../components/matrix/DrillDownMatrixView';
+import DirectReferralsCard from '../components/referrals/DirectReferralsCard';
+import ReferralStatsCard from '../components/referrals/ReferralStatsCard';
 import { Link } from 'wouter';
 import styles from '../styles/referrals/referrals.module.css';
 
@@ -92,8 +94,26 @@ export default function Referrals() {
 
         {/* Statistics Tab */}
         <TabsContent value="stats" className="space-y-6">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {/* New Referral Components with Correct Data */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <DirectReferralsCard 
+              walletAddress={walletAddress || ''}
+              className="h-fit"
+            />
+            <ReferralStatsCard 
+              className="h-fit"
+              onViewMatrix={() => {
+                // Switch to matrix tab when view matrix is clicked
+                const matrixTab = document.querySelector('[value="matrix"]') as HTMLElement;
+                matrixTab?.click();
+              }}
+            />
+          </div>
+          
+          {/* Legacy Stats Cards for Comparison */}
+          <div className="border-t pt-6">
+            <h3 className="text-lg font-semibold text-honey mb-4">Legacy System (For Comparison)</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             <Card className="bg-secondary border-border">
               <CardContent className="p-4 sm:p-6 text-center">
                 <UsersIcon className="w-6 h-6 sm:w-8 sm:h-8 text-honey mx-auto mb-2" />
@@ -143,6 +163,7 @@ export default function Referrals() {
                 </p>
               </CardContent>
             </Card>
+          </div>
           </div>
 
           {/* Recent Activity */}
