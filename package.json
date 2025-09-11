@@ -78,7 +78,6 @@
     "drizzle-orm": "^0.44.5",
     "drizzle-zod": "^0.8.3",
     "embla-carousel-react": "^8.6.0",
-    "express": "^5.1.0",
     "framer-motion": "^11.13.1",
     "input-otp": "^1.4.2",
     "lottie-react": "^2.4.1",
