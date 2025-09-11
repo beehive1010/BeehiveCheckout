@@ -20,7 +20,8 @@
     "save": "保存",
     "loading": "加载中...",
     "error": "错误",
-    "success": "成功"
+    "success": "成功",
+    "back": "返回"
   },
   "dashboard": {
     "welcomeBack": "欢迎回来, {username}!",
@@ -31,10 +32,10 @@
     "bccLocked": "BCC锁仓",
     "referralNetwork": "推荐网络",
     "directReferrals": "直推人数",
-    "maxLayer": "最大安置层级",
+    "maxLayer": "最大层级",
     "rewardCenter": "奖励中心",
     "totalRewards": "总奖励",
-    "pendingRewards": "奖金提醒余额",
+    "pendingRewards": "待处理奖励",
     "shareReferral": "分享推荐链接",
     "shareDescription": "分享您的链接邀请朋友加入，赚取推荐奖励",
     "copyLink": "复制链接",
@@ -44,7 +45,6 @@
     "claimRewards": "领取奖励",
     "inviteTip": "💡 邀请朋友加入即可解锁更多功能和奖励",
     "topUp": "充值",
-    "directReferrals": "直推人数",
     "level2Requirements": {
       "title": "Level 2解锁条件",
       "needLevel1": "您需要先达到Level 1",
@@ -67,7 +67,185 @@
     "loadingData": "加载中",
     "lastUpdated": "最后更新",
     "totalTeamSize": "团队总人数",
-    "claimableRewards": "可领取奖励"
+    "claimableRewards": "可领取奖励",
+    "activitiesWillAppear": "您与平台交互时，活动记录将显示在这里",
+    "noActivities": "暂无最近活动",
+    "recentActivities": "最近活动",
+    "referralDescription": "分享此链接以获得推荐奖励",
+    "referrals": "推荐",
+    "nftRequired": {
+      "title": "欢迎来到蜂巢！🎉",
+      "description": "通过购买您的1级勇士NFT来完成您的会员资格。这将激活您在矩阵中的位置并开始您的Web3旅程。",
+      "requiredNft": "1级勇士NFT",
+      "nftDescription": "一次性购买以激活您的会员资格",
+      "level1Warrior": "1级勇士",
+      "tokenId": "代币ID: 0",
+      "price": "价格",
+      "priceAmount": "130 USDT",
+      "benefitsTitle": "您将解锁:",
+      "benefits": {
+        "dashboard": "完整仪表板访问",
+        "tasks": "任务和NFT市场",
+        "education": "教育中心",
+        "discover": "发现Web3 DApps",
+        "tokens": "BCC代币系统",
+        "matrix": "蜂巢世界矩阵系统"
+      },
+      "premiumTitle": "高级会员",
+      "premiumDescription": "激活您的1级NFT会员资格，在矩阵中占位，并开始获得奖励。",
+      "supportText": "由区块链技术支持的安全Web3支付",
+      "purchaseSuccess": {
+        "title": "会员已激活！",
+        "description": "您的1级NFT已购买，会员资格现已激活。"
+      },
+      "purchaseError": {
+        "title": "购买失败",
+        "description": "购买NFT失败。请重试。"
+      },
+      "getButton": "购买会员"
+    },
+    "activation": {
+      "title": "欢迎来到蜂巢",
+      "description": "基于区块链奖励的Web3会员和学习平台。激活您的1级会员以开始！",
+      "membershipLevel": "会员级别",
+      "price": "价格",
+      "priceLevel1": "130 USDT",
+      "activationNote": "激活后，您将可以访问所有会员功能，包括任务、教育和蜂巢世界。",
+      "success": {
+        "title": "会员已激活！",
+        "description": "欢迎来到蜂巢！您现在可以访问所有会员功能。"
+      },
+      "error": {
+        "title": "激活失败",
+        "description": "无法激活您的会员资格。请重试或联系支持。"
+      }
+    },
+    "membershipLevel": "会员级别",
+    "activateLevel1": "激活1级大黄蜂(BBC) NFT",
+    "activating": "激活中...",
+    "status": {
+      "active": "活跃"
+    },
+    "balances": {
+      "bccFree": "BCC (自由)",
+      "bccLocked": "BCC (锁定)"
+    },
+    "quickActions": {
+      "tokens": {
+        "title": "购买代币",
+        "description": "跨多链购买BCC和CTH代币",
+        "stat": "余额:"
+      },
+      "tasks": {
+        "description": "浏览并用您的BCC代币领取商户NFT"
+      },
+      "education": {
+        "description": "访问课程和学习材料"
+      },
+      "hiveworld": {
+        "description": "查看您的推荐矩阵和奖励"
+      }
+    },
+    "recentActivity": "最近活动",
+    "member": "会员",
+    "userCentre": "用户中心",
+    "verifying": "验证NFT所有权中...",
+    "nftVerified": "NFT已验证",
+    "reward": "奖励",
+    "nfts": "NFTs",
+    "accountOverview": "账户概览",
+    "userAvatar": "用户头像",
+    "levelText": "级别 {{level}}",
+    "priceLevel1": "130 USDT",
+    "activity": {
+      "rewardReceived": "收到奖励",
+      "fromReferralUpgrade": "来自推荐升级",
+      "rewardAmount": "+{{amount}} 奖励",
+      "nftClaimed": "NFT已领取",
+      "merchantNft": "商户NFT已购买",
+      "bccDeduction": "-{{amount}} BCC",
+      "newReferral": "新推荐",
+      "userJoined": "用户加入您的网络",
+      "activeStatus": "活跃"
+    },
+    "referralLink": {
+      "title": "推荐链接",
+      "show": "显示",
+      "hide": "隐藏",
+      "copy": "复制推荐链接",
+      "copied": "链接已复制！",
+      "copiedDesc": "推荐链接已复制到剪贴板"
+    },
+    "shareToEarn": "分享您的链接从推荐中赚取佣金",
+    "referralLinkCopied": "推荐链接已复制",
+    "social": {
+      "twitter": "Twitter",
+      "telegram": "Telegram", 
+      "whatsapp": "WhatsApp"
+    },
+    "stats": {
+      "directReferrals": "直推人数",
+      "teamSize": "团队规模",
+      "totalEarnings": "总收益",
+      "bccBalance": "BCC余额",
+      "thisMonth": "本月",
+      "totalMembers": "总成员数",
+      "allTime": "历史总计",
+      "matrixNetwork": "矩阵网络",
+      "networkGrowth": "网络增长",
+      "teamPerformance": "团队表现",
+      "layerProgress": "层级进展",
+      "totalRewards": "总奖励",
+      "bccLocked": "BCC锁定",
+      "nftsOwned": "拥有的NFT"
+    },
+    "tokenPurchase": {
+      "bccDescription": "购买蜂巢加密币用于平台使用",
+      "cthDescription": "购买CTH代币用于Alpha Centauri生态系统",
+      "topUpDescription": "购买BCC和CTH代币参与蜂巢生态系统"
+    },
+    "globalStats": {
+      "title": "全球统计",
+      "totalMembers": "总会员数",
+      "totalRewardsPaid": "已支付的总奖励",
+      "pendingRewards": "待处理奖励",
+      "highestLevel": "最高级别",
+      "membersByLevel": "按级别统计会员",
+      "members": "会员"
+    },
+    "uplineNetwork": {
+      "title": "上线网络",
+      "earnings": "收益",
+      "loading": "加载网络数据中...",
+      "noReferrals": "暂无推荐数据",
+      "shareMessage": "分享您的推荐链接以发展您的网络"
+    },
+    "downlineNetwork": {
+      "title": "您的下线网络"
+    },
+    "downlineMatrix": {
+      "title": "下线矩阵",
+      "placement": "位置"
+    },
+    "actions": {
+      "upgradeLevel": "升级级别",
+      "upgradeDescription": "购买下一个会员级别",
+      "viewReferrals": "查看推荐",
+      "referralsDescription": "管理您的推荐网络",
+      "claimNFT": "领取NFT",
+      "nftDescription": "用BCC领取商户NFT",
+      "learnEarn": "学习赚取",
+      "educationDescription": "访问优质课程"
+    },
+    "registrationExpiry": {
+      "warning": "注册即将到期！激活会员资格以继续:"
+    },
+    "layer": {
+      "name": "层级",
+      "members": "成员",
+      "upgraded": "已升级",
+      "placements": "位置"
+    }
   },
   "wallet": {
     "connect": "连接钱包",
@@ -197,163 +375,6 @@
     "terms": "服务条款",
     "cookies": "Cookie政策",
     "copyright": "© 2024 Beehive. 版权所有。"
-  },
-  "dashboardOld": {
-    "welcome": "欢迎回来",
-    "nftRequired": {
-      "level1Membership": "一级会员",
-      "bumblebeeNFT": "大黄蜂NFT",
-      "levelOne": "等级1",
-      "benefits": "福利",
-      "accessTasks": "访问任务和市场",
-      "referralRewards": "推荐奖励",
-      "nftClaiming": "NFT领取",
-      "premiumContent": "优质内容"
-    },
-    "activation": {
-      "activationNote": "点击激活您现有的NFT",
-      "success": {
-        "title": "会员已激活！",
-        "description": "欢迎来到蜂巢！您现在可以访问所有会员功能。"
-      },
-      "error": {
-        "title": "激活失败",
-        "description": "无法激活您的会员资格。请重试或联系支持。"
-      }
-    },
-    "membership": {
-      "title": "会员状态",
-      "level": "等级",
-      "nextLevel": "下一等级",
-      "progress": "进度"
-    },
-    "quickActions": {
-      "tasks": {
-        "description": "浏览和认领商户NFT以获得BCC代币"
-      },
-      "education": {
-        "description": "访问课程和学习材料"
-      },
-      "hiveworld": {
-        "description": "查看推荐矩阵和奖励"
-      }
-    },
-    "recentActivity": "最近活动",
-    "activitiesWillAppear": "当您与平台交互时，您的活动将显示在此处",
-    "bccLocked": "BCC 已锁定",
-    "noActivities": "暂无最近活动",
-    "recentActivities": "最近活动",
-    "referralDescription": "分享此链接以获得推荐奖励",
-    "referrals": "推荐",
-    "activateLevel1": "激活1级会员",
-    "activating": "激活中...",
-    "activationNote": "激活后，您将可以访问所有会员功能，包括任务、教育和蜂巢世界。",
-    "status": {
-      "active": "活跃"
-    },
-    "balances": {
-      "bccFree": "BCC（自由）",
-      "bccLocked": "BCC（锁定）"
-    },
-    "member": "会员",
-    "userCentre": "用户中心",
-    "verifying": "正在验证NFT所有权...",
-    "nftVerified": "NFT已验证",
-    "reward": "奖励",
-    "bccBalance": "BCC余额",
-    "nfts": "NFTs",
-    "accountOverview": "账户概览",
-    "userAvatar": "用户头像",
-    "levelText": "等级 {{level}}",
-    "priceLevel1": "130 USDT",
-    "activity": {
-      "rewardReceived": "收到奖励",
-      "fromReferralUpgrade": "来自推荐升级",
-      "rewardAmount": "+{{amount}} 奖励",
-      "nftClaimed": "NFT已认领",
-      "merchantNft": "商户NFT已购买",
-      "bccDeduction": "-{{amount}} BCC",
-      "newReferral": "新推荐",
-      "userJoined": "用户加入您的网络",
-      "activeStatus": "活跃"
-    },
-    "referralLink": {
-      "title": "推荐链接",
-      "show": "显示",
-      "hide": "隐藏",
-      "copy": "复制推荐链接",
-      "copied": "链接已复制！",
-      "copiedDesc": "推荐链接已复制到剪贴板"
-    },
-    "shareToEarn": "分享您的链接，从推荐中赚取佣金",
-    "copyLink": "复制链接",
-    "referralLinkCopied": "推荐链接已复制",
-    "social": {
-      "twitter": "Twitter",
-      "telegram": "Telegram",
-      "whatsapp": "WhatsApp"
-    },
-    "stats": {
-      "directReferrals": "直推人数",
-      "teamSize": "团队规模",
-      "totalEarnings": "总收益",
-      "bccBalance": "BCC余额",
-      "thisMonth": "本月",
-      "totalMembers": "总成员数",
-      "allTime": "历史总计",
-      "matrixNetwork": "矩阵网络",
-      "networkGrowth": "网络增长",
-      "teamPerformance": "团队表现",
-      "layerProgress": "层级进展"
-    },
-    "tokenPurchase": {
-      "bccDescription": "购买Beehive加密币以便在平台上使用",
-      "cthDescription": "购买CTH代币用于Alpha Centauri生态系统",
-      "topUpDescription": "购买BCC和CTH代币以参与Beehive生态系统"
-    },
-    "globalStats": {
-      "title": "全球统计",
-      "totalMembers": "总会员数",
-      "totalRewardsPaid": "已支付的总奖励",
-      "pendingRewards": "待处理奖励",
-      "highestLevel": "最高级别",
-      "membersByLevel": "按级别统计会员",
-      "members": "会员"
-    },
-    "uplineNetwork": {
-      "title": "上线网络",
-      "earnings": "收益",
-      "level": "级别",
-      "directReferrals": "直接推荐",
-      "totalTeam": "总团队",
-      "monthlyEarnings": "月收益"
-    },
-    "downlineNetwork": {
-      "title": "您的下级网络"
-    },
-    "downlineMatrix": {
-      "title": "下线矩阵",
-      "placement": "布局"
-    },
-    "actions": {
-      "upgradeLevel": "升级等级",
-      "upgradeDescription": "购买下一个会员等级",
-      "viewReferrals": "查看推荐",
-      "referralsDescription": "管理您的推荐网络",
-      "claimNFT": "领取NFT",
-      "nftDescription": "使用BCC领取商户NFT",
-      "learnEarn": "学习赚取",
-      "educationDescription": "访问优质课程"
-    },
-    "registrationExpiry": {
-      "warning": "注册即将到期！激活会员资格以继续："
-    },
-    "layer": {
-      "name": "层级",
-      "members": "成员",
-      "upgraded": "已升级",
-      "placements": "推荐"
-    }
   },
   "notifications": {
     "title": "通知",
