@@ -732,6 +732,106 @@ export const matrixService = {
       };
     }
   },
+
+  // === BCC LOCKED RELEASE SYSTEM ===
+
+  // Calculate BCC release amount for level upgrade
+  calculateBCCReleaseAmount(fromLevel: number, toLevel: number): number {
+    if (fromLevel >= toLevel || fromLevel < 1 || toLevel > 19) return 0;
+    
+    let totalRelease = 0;
+    for (let level = fromLevel + 1; level <= toLevel; level++) {
+      totalRelease += this.calculateNFTPrice(level);
+    }
+    return totalRelease;
+  },
+
+  // Release BCC on level upgrade
+  async releaseBCCOnLevelUp(walletAddress: string, newLevel: number) {
+    try {
+      const { data, error } = await supabase
+        .rpc('release_bcc_on_level_up', { 
+          p_wallet_address: walletAddress,
+          p_new_level: newLevel
+        });
+
+      if (error) throw error;
+
+      return {
+        success: data?.[0]?.success || false,
+        bccReleased: data?.[0]?.bcc_released || 0,
+        bccRemainingLocked: data?.[0]?.bcc_remaining_locked || 0,
+        message: data?.[0]?.message || ''
+      };
+    } catch (error) {
+      console.error('Error releasing BCC on level up:', error);
+      return {
+        success: false,
+        bccReleased: 0,
+        bccRemainingLocked: 0,
+        message: `Error: ${error}`
+      };
+    }
+  },
+
+  // Process complete member level upgrade (Matrix rewards + BCC release)
+  async processMemberLevelUpgrade(walletAddress: string, newLevel: number) {
+    try {
+      const { data, error } = await supabase
+        .rpc('process_member_level_upgrade', { 
+          p_wallet_address: walletAddress,
+          p_new_level: newLevel
+        });
+
+      if (error) throw error;
+
+      const result = data?.[0];
+      return {
+        success: result?.upgrade_success || false,
+        matrixRewardsTriggered: result?.matrix_rewards_triggered || false,
+        bccReleased: result?.bcc_released || 0,
+        bccRemainingLocked: result?.bcc_remaining_locked || 0,
+        message: result?.upgrade_message || '',
+        nftPrice: this.calculateNFTPrice(newLevel),
+        expectedBCCRelease: this.calculateNFTPrice(newLevel) // Same as NFT price
+      };
+    } catch (error) {
+      console.error('Error processing member level upgrade:', error);
+      return {
+        success: false,
+        matrixRewardsTriggered: false,
+        bccReleased: 0,
+        bccRemainingLocked: 0,
+        message: `Error: ${error}`,
+        nftPrice: 0,
+        expectedBCCRelease: 0
+      };
+    }
+  },
+
+  // Get BCC release history for a user
+  async getBCCReleaseHistory(walletAddress: string, limit: number = 10) {
+    try {
+      const { data, error } = await supabase
+        .rpc('get_bcc_release_history', { 
+          p_wallet_address: walletAddress,
+          p_limit: limit
+        });
+
+      if (error) throw error;
+
+      return {
+        success: true,
+        data: data || []
+      };
+    } catch (error) {
+      console.error('Error fetching BCC release history:', error);
+      return {
+        success: false,
+        data: []
+      };
+    }
+  },
 };
 
 // === REWARDS MANAGEMENT ===

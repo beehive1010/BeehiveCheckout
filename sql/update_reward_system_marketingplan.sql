@@ -53,32 +53,32 @@ BEGIN
     ),
     reward_calculation AS (
         SELECT 
-            p_matrix_root as recipient_wallet,
-            COALESCE(u.username, 'Member_' || RIGHT(p_matrix_root, 4)) as recipient_name,
-            'Level ' || p_new_member_level || ' Achievement Reward (Layer ' || mp.matrix_layer || ')' as reward_type,
-            mp.matrix_layer as reward_layer,
+            p_matrix_root as calc_recipient_wallet,
+            COALESCE(u.username, 'Member_' || RIGHT(p_matrix_root, 4)) as calc_recipient_name,
+            'Level ' || p_new_member_level || ' Achievement Reward (Layer ' || mp.matrix_layer || ')' as calc_reward_type,
+            mp.matrix_layer as calc_reward_layer,
             -- 奖励 = 新成员达到级别的NFT价格
-            get_nft_price(p_new_member_level) as amount,
+            get_nft_price(p_new_member_level) as calc_amount,
             -- 检查是否需要进入pending状态
             CASE 
                 WHEN matrix_root_level >= p_new_member_level THEN false  -- 合格，立即可领取
                 ELSE true  -- 不合格，进入pending状态
-            END as is_pending,
+            END as calc_is_pending,
             CASE 
                 WHEN matrix_root_level >= p_new_member_level THEN ''
                 ELSE 'Root member level (' || matrix_root_level || ') < required level (' || p_new_member_level || '), reward pending for 72 hours'
-            END as pending_reason
+            END as calc_pending_reason
         FROM member_position mp
         LEFT JOIN users u ON u.wallet_address = p_matrix_root
     )
     SELECT 
-        recipient_wallet,
-        recipient_name,
-        reward_type,
-        reward_layer,
-        amount,
-        is_pending,
-        pending_reason
+        calc_recipient_wallet,
+        calc_recipient_name,
+        calc_reward_type,
+        calc_reward_layer,
+        calc_amount,
+        calc_is_pending,
+        calc_pending_reason
     FROM reward_calculation;
 END;
 $$ LANGUAGE plpgsql;
