@@ -90,11 +90,11 @@ export default function Membership() {
       bgColor: 'bg-blue-50 dark:bg-blue-950',
       borderColor: 'border-blue-200 dark:border-blue-800'
     },
-    // Levels 3-19: Progressive pricing and features
+    // Levels 3-19: Linear incremental pricing
     ...Array.from({ length: 17 }, (_, i) => {
       const level = i + 3;
-      const basePrice = 130;
-      const price = Math.pow(2, level - 1) * basePrice; // Exponential pricing
+      // Linear pricing: Level 3=$200, then +$50 for each subsequent level
+      const price = level === 3 ? 200 : 200 + (50 * (level - 3));
       
       // Icon progression
       const getIcon = () => {
