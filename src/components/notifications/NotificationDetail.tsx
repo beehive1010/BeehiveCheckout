@@ -351,7 +351,7 @@ export default function NotificationDetail({
               </span>
             </div>
             
-            {notification.expiresAt && (
+            {notification.expiresAt && !isNaN(new Date(notification.expiresAt).getTime()) && (
               <div className="flex items-center gap-2 text-sm">
                 <Clock className="w-4 h-4 text-yellow-400" />
                 <span className="text-gray-300">{t('notifications.expires')}:</span>
