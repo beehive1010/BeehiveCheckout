@@ -259,7 +259,7 @@ export default function Membership() {
           const rewardResult = await distributeLayerRewards(
             walletAddress, 
             level, 
-            membershipConfig.price, // NFT价格作为奖励
+            membershipConfig.price, // NFT price as reward
             transactionHash
           );
           
