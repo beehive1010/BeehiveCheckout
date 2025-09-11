@@ -26,11 +26,12 @@ import Discover from "@/pages/Discover";
 import Registration from "@/pages/Registration";
 import MatrixExplanation from "@/pages/MatrixExplanation";
 import Welcome from "@/pages/Welcome";
-import Tasks from "@/pages/Tasks";
+import NFTs from "@/pages/NFTs";
 import Membership from "@/pages/Membership";
 import TokenPurchase from "@/pages/TokenPurchase";
 import SupabaseAuth from "@/pages/SupabaseAuth";
 import AuthCallback from "@/pages/AuthCallback";
+import AdminNFTs from "@/pages/AdminNFTs";
 
 // Import proper Header and Navigation components
 import Header from "@/components/shared/Header";
@@ -241,15 +242,16 @@ function Router() {
             <Dashboard />
           </MemberGuard>
         )} />
-        <Route path="/tasks">
-          {() => {
-            const [, setLocation] = useLocation();
-            React.useEffect(() => {
-              setLocation('/membership', { replace: true });
-            }, [setLocation]);
-            return null;
-          }}
-        </Route>
+        <Route path="/tasks" component={() => (
+          <MemberGuard requireActivation={true} redirectTo="/welcome">
+            <NFTs />
+          </MemberGuard>
+        )} />
+        <Route path="/nfts" component={() => (
+          <MemberGuard requireActivation={true} redirectTo="/welcome">
+            <NFTs />
+          </MemberGuard>
+        )} />
         <Route path="/membership" component={() => (
           <MemberGuard requireActivation={true} redirectTo="/welcome">
             <Membership />
@@ -298,6 +300,7 @@ function Router() {
           </MemberGuard>
         )} />
         <Route path="/admin-nft-manager" component={AdminNFTManager} />
+        <Route path="/admin-nfts" component={AdminNFTs} />
         
         {/* Public routes - No authentication required */}
         <Route path="/matrix-explanation" component={MatrixExplanation} />
