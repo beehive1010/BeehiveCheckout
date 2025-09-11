@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -66,7 +67,8 @@ export default function NotificationsPage() {
 
   // Fetch notification stats
   const { data: stats } = useQuery<NotificationStats>({
-    queryKey: ['/api/notifications/stats'],
+    queryKey: ['/api/notifications/stats', walletAddress],
+    queryFn: () => apiRequest('/api/notifications/stats'),
     enabled: !!walletAddress,
   });
 
