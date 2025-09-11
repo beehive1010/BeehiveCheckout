@@ -80,8 +80,8 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
     
     if (!account?.address) {
       toast({
-        title: "Wallet not connected",
-        description: "Please connect your wallet to claim your NFT",
+        title: t('claim.walletNotConnected'),
+        description: t('claim.connectWalletToClaimNFT'),
         variant: "destructive",
       });
       return;
@@ -255,7 +255,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
 
       // Step 1: Check and approve tokens
       console.log('💰 Checking token balance and approval...');
-      setCurrentStep('检查USDC余额...');
+      setCurrentStep(t('claim.checkingBalance'));
       
       const PAYMENT_TOKEN_AMOUNT = BigInt("130000000000000000000"); // 130 tokens with 18 decimals (130 * 10^18)
       const finalAmount = PAYMENT_TOKEN_AMOUNT; // Use the predefined amount
@@ -269,7 +269,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       console.log(`💳 Checking token balance for payment: ${finalAmount.toString()} units (130 tokens with 18 decimals)`);
 
       // Check if approval is needed
-      setCurrentStep('检查USDC授权...');
+      setCurrentStep(t('claim.checkingApproval'));
       
       // Always request approval for safety and gas estimation
       console.log(`💰 Requesting token approval for 130 tokens (${finalAmount.toString()} units with 18 decimals)...`);
@@ -281,7 +281,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       });
 
       console.log('📝 Sending approval transaction...');
-      setCurrentStep('等待USDC授权...');
+      setCurrentStep(t('claim.waitingApproval'));
       
       // Send approval transaction with retry logic
       let approvalAttempts = 0;
@@ -315,7 +315,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
 
       // Wait for approval confirmation
       console.log('⏳ Waiting for approval confirmation...');
-      setCurrentStep('等待USDC授权确认...');
+      setCurrentStep(t('claim.waitingApprovalConfirmation'));
       
       await waitForReceipt({
         client,
@@ -327,7 +327,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
 
       // Step 2: Claim NFT with token payment
       console.log('🎁 Claiming NFT with token payment...');
-      setCurrentStep('正在铸造NFT...');
+      setCurrentStep(t('claim.mintingNFT'));
       
       // Prepare allowlist proof (empty for public claims)
       const allowlistProof = {
@@ -386,7 +386,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       }
 
       // Wait for NFT claim transaction to be confirmed
-      setCurrentStep('等待NFT铸造确认...');
+      setCurrentStep(t('claim.waitingNFTConfirmation'));
       const claimReceipt = await waitForReceipt({
         client,
         chain: arbitrumSepolia,
@@ -428,7 +428,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       // Step 4: 等待区块链确认并安全激活会员身份
       if (claimTxResult?.transactionHash) {
         console.log('🚀 等待区块链确认并激活会员身份...');
-        setCurrentStep('等待区块链确认...');
+        setCurrentStep(t('claim.waitingBlockchainConfirmation'));
         
         // 等待额外的确认时间以确保交易被完全确认
         await new Promise(resolve => setTimeout(resolve, 5000));
@@ -439,7 +439,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         while (membershipActivationAttempts < maxAttempts && !membershipActivated) {
           membershipActivationAttempts++;
           console.log(`🔄 会员激活尝试 ${membershipActivationAttempts}/${maxAttempts}...`);
-          setCurrentStep(`验证交易并激活会员 (${membershipActivationAttempts}/${maxAttempts})...`);
+          setCurrentStep(`${t('claim.verifyingAndActivating')} (${membershipActivationAttempts}/${maxAttempts})...`);
           
           try {
             const activateResponse = await fetch(`${API_BASE}/activate-membership`, {
@@ -483,23 +483,23 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       }
 
       // Show success message if NFT was claimed successfully
-      let successMessage = "Your Level 1 NFT has been claimed successfully!";
+      let successMessage = t('claim.nftClaimedSuccessfully');
       let shouldNavigate = true;
       
       if (backendProcessed && membershipActivated) {
-        successMessage = "Your Level 1 NFT has been claimed and membership activated! Redirecting to dashboard...";
+        successMessage = t('claim.nftClaimedAndActivated');
       } else if (membershipActivated) {
-        successMessage = "Your Level 1 NFT has been claimed and membership activated! (Backend processing may need manual completion) Redirecting to dashboard...";
+        successMessage = t('claim.nftClaimedActivatedWithBackendPending');
       } else if (backendProcessed) {
-        successMessage = "Your Level 1 NFT has been claimed and processed! (Membership activation pending) Redirecting to dashboard...";
+        successMessage = t('claim.nftClaimedProcessedActivationPending');
       } else {
         // Neither backend processing nor membership activation worked
-        successMessage = "Your Level 1 NFT claim succeeded on blockchain! Backend processing is slow - you may need to refresh or check your membership status in a few minutes.";
+        successMessage = t('claim.nftClaimedBlockchainSuccess');
         shouldNavigate = true; // Still navigate to dashboard since NFT claim succeeded
       }
 
       toast({
-        title: "🎉 NFT Claimed Successfully!",
+        title: t('claim.nftClaimedTitle'),
         description: successMessage,
         variant: "default",
         duration: 6000, // Show longer for important message
@@ -522,7 +522,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       if (errorMessage.includes('Rate Limited') || errorMessage.includes('rate limit')) {
         // Already formatted error message, pass through
         toast({
-          title: "Rate Limited",
+          title: t('claim.rateLimited'),
           description: errorMessage,
           variant: "destructive",
         });
@@ -531,8 +531,8 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         // User already has NFT - this means they're already a member, redirect to dashboard
         console.log('✅ User already has Level 1 NFT - redirecting to dashboard');
         toast({
-          title: "🎉 Welcome Back!",
-          description: "You already have your Level 1 membership NFT. Redirecting to dashboard...",
+          title: t('claim.welcomeBack'),
+          description: t('claim.alreadyHaveNFT'),
           variant: "default",
           duration: 3000,
         });
@@ -546,22 +546,22 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         return; // Exit function, don't show error
       } else if (errorMessage.includes('insufficient')) {
         toast({
-          title: "Insufficient USDC Balance",
-          description: "You need 130 USDC to claim Level 1 NFT. Please add USDC to your wallet and try again.",
+          title: t('claim.insufficientBalance'),
+          description: t('claim.need130USDC'),
           variant: "destructive",
         });
         return;
       } else if (errorMessage.includes('allowance') || errorMessage.includes('approve')) {
         toast({
-          title: "Token Approval Failed",
-          description: "Please ensure you approve the contract to spend 130 USDC and try again.",
+          title: t('claim.tokenApprovalFailed'),
+          description: t('claim.ensureApproval130USDC'),
           variant: "destructive",
         });
         return;
       } else if (errorMessage.includes('network') || errorMessage.includes('chain')) {
         toast({
-          title: "Network Error",
-          description: "Please switch to Arbitrum Sepolia network and try again.",
+          title: t('claim.networkError'),
+          description: t('claim.switchToArbitrumSepolia'),
           variant: "destructive",
         });
         return;
@@ -569,7 +569,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       
       // Generic error fallback
       toast({
-        title: "Claim failed", 
+        title: t('claim.claimFailed'), 
         description: errorMessage,
         variant: "destructive",
       });
@@ -589,10 +589,10 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
           </Badge>
         </div>
         <CardTitle className="text-2xl text-honey mb-2">
-          Claim Your Level 1 Membership NFT
+          {t('claim.claimLevel1NFT')}
         </CardTitle>
         <p className="text-muted-foreground">
-          Claim your unique ERC-5115 NFT (Token ID 1) to activate Level 1 membership
+          {t('claim.claimUniqueNFTDesc')}
         </p>
       </CardHeader>
 
@@ -632,17 +632,17 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
             {!account?.address ? (
               <>
                 <Crown className="mr-2 h-5 w-5" />
-                Connect Wallet to Claim NFT
+                {t('claim.connectWalletToClaimNFT')}
               </>
             ) : isProcessing ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                {currentStep || 'Processing...'}
+                {currentStep || t('claim.processing')}
               </>
             ) : (
               <>
                 <Crown className="mr-2 h-5 w-5" />
-                Claim Level 1 NFT (130 USDC)
+                {t('claim.claimLevel1NFT130USDC')}
               </>
             )}
           </Button>
@@ -659,7 +659,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
                 <span className="text-muted-foreground">{currentStep}</span>
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                ⚠️ 请勿关闭页面或断开钱包连接
+                {t('claim.doNotClosePageWarning')}
               </div>
             </div>
           )}
@@ -667,10 +667,10 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
 
         {/* Additional Information */}
         <div className="text-center text-xs text-muted-foreground pt-2 space-y-1">
-          <p>🪙 130 USDC payment required (100 NFT + 30 platform activation fee)</p>
-          <p>🎯 Instant membership activation upon successful claim</p>
-          <p>🔗 NFT will be minted to your connected wallet address</p>
-          <p>⚡ Two transactions: Token approval + NFT minting</p>
+          <p>{t('claim.paymentRequired')}</p>
+          <p>{t('claim.instantActivation')}</p>
+          <p>{t('claim.nftMintedToWallet')}</p>
+          <p>{t('claim.twoTransactions')}</p>
         </div>
       </CardContent>
     </Card>
