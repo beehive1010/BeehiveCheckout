@@ -1941,5 +1941,33 @@
       "recently": "最近",
       "expires": "过期时间"
     }
+  },
+  "loading": {
+    "membershipLevels": "正在加载会员级别...",
+    "data": "正在加载数据...",
+    "processing": "处理中...",
+    "please_wait": "请稍候..."
+  },
+  "error": {
+    "loadMembershipLevels": "无法加载会员级别",
+    "loadData": "无法加载数据",
+    "tryRefresh": "请尝试刷新页面",
+    "generic": "发生错误"
+  },
+  "benefits": {
+    "basic": {
+      "platformFeatures": "访问基本平台功能",
+      "matrixEntry": "进入3×3矩阵系统", 
+      "learningMaterials": "基础学习材料",
+      "communityAccess": "社区访问权限",
+      "tokenId1": "代币ID: 1"
+    },
+    "enhanced": {
+      "matrixRewards": "增强的矩阵奖励",
+      "premiumContent": "高级学习内容", 
+      "referralBonuses": "直接推荐奖励",
+      "advancedFeatures": "高级功能访问权限",
+      "tokenId2": "代币ID: 2"
+    }
   }
 }
