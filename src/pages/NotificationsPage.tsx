@@ -101,53 +101,57 @@ export default function NotificationsPage() {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <Card className="bg-gradient-to-r from-gray-900 to-gray-800 border-yellow-500/20">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+          <CardHeader className="p-4 lg:p-6">
+            <div className="flex flex-col space-y-4 lg:space-y-0 lg:flex-row lg:items-center lg:justify-between">
+              {/* Top Row - Back Button and Title */}
+              <div className="flex items-center gap-2 lg:gap-4">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={handleBackToDashboard}
                   data-testid="back-to-dashboard"
+                  className="p-1 lg:p-2"
                 >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  {t('notificationsPage.backToDashboard')}
+                  <ArrowLeft className="w-4 h-4 lg:mr-2" />
+                  <span className="hidden lg:inline">{t('notificationsPage.backToDashboard')}</span>
                 </Button>
                 
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-yellow-500/20 rounded-full">
-                    <Bell className="w-6 h-6 text-yellow-400" />
+                <div className="flex items-center gap-2 lg:gap-3">
+                  <div className="p-1.5 lg:p-2 bg-yellow-500/20 rounded-full">
+                    <Bell className="w-5 h-5 lg:w-6 lg:h-6 text-yellow-400" />
                   </div>
                   <div>
-                    <CardTitle className="text-white text-2xl">
+                    <CardTitle className="text-white text-lg lg:text-2xl">
                       {t('notificationsPage.title')}
                     </CardTitle>
-                    <p className="text-gray-400 mt-1">
+                    <p className="text-gray-400 mt-1 text-sm lg:text-base hidden lg:block">
                       {t('notificationsPage.subtitle')}
                     </p>
                   </div>
                 </div>
               </div>
               
-              <div className="flex items-center gap-4">
+              {/* Stats and Settings */}
+              <div className="flex items-center justify-between lg:gap-4">
+                {/* Stats - Mobile: Horizontal scroll, Desktop: Normal */}
                 {stats && (
-                  <div className="flex items-center gap-4">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-white">{stats.totalCount}</p>
-                      <p className="text-sm text-gray-400">{t('notificationsPage.stats.total')}</p>
+                  <div className="flex items-center gap-3 lg:gap-4 overflow-x-auto lg:overflow-visible">
+                    <div className="text-center flex-shrink-0">
+                      <p className="text-lg lg:text-2xl font-bold text-white">{stats.totalCount}</p>
+                      <p className="text-xs lg:text-sm text-gray-400">{t('notificationsPage.stats.total')}</p>
                     </div>
                     
                     {stats.unreadCount > 0 && (
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-yellow-400">{stats.unreadCount}</p>
-                        <p className="text-sm text-gray-400">{t('notificationsPage.stats.unread')}</p>
+                      <div className="text-center flex-shrink-0">
+                        <p className="text-lg lg:text-2xl font-bold text-yellow-400">{stats.unreadCount}</p>
+                        <p className="text-xs lg:text-sm text-gray-400">{t('notificationsPage.stats.unread')}</p>
                       </div>
                     )}
                     
                     {stats.urgentCount > 0 && (
-                      <div className="text-center">
-                        <p className="text-2xl font-bold text-red-400">{stats.urgentCount}</p>
-                        <p className="text-sm text-gray-400">{t('notificationsPage.stats.urgent')}</p>
+                      <div className="text-center flex-shrink-0">
+                        <p className="text-lg lg:text-2xl font-bold text-red-400">{stats.urgentCount}</p>
+                        <p className="text-xs lg:text-sm text-gray-400">{t('notificationsPage.stats.urgent')}</p>
                       </div>
                     )}
                   </div>
@@ -158,9 +162,10 @@ export default function NotificationsPage() {
                   size="sm"
                   onClick={() => setShowSettings(true)}
                   data-testid="notification-settings"
+                  className="flex-shrink-0"
                 >
-                  <Settings className="w-4 h-4 mr-2" />
-                  {t('notificationsPage.settings')}
+                  <Settings className="w-4 h-4 lg:mr-2" />
+                  <span className="hidden lg:inline">{t('notificationsPage.settings')}</span>
                 </Button>
               </div>
             </div>
@@ -168,9 +173,9 @@ export default function NotificationsPage() {
         </Card>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
           {/* Notification List */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 order-2 lg:order-1">
             <NotificationInbox
               walletAddress={walletAddress}
               onNotificationClick={handleNotificationClick}
@@ -179,9 +184,9 @@ export default function NotificationsPage() {
           </div>
           
           {/* Detail Panel */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 order-1 lg:order-2">
             {selectedNotification ? (
-              <div className="sticky top-4">
+              <div className="lg:sticky lg:top-4">
                 <NotificationDetail
                   notification={selectedNotification}
                   onClose={handleCloseDetail}
@@ -192,11 +197,11 @@ export default function NotificationsPage() {
                 />
               </div>
             ) : (
-              <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border-yellow-500/20 h-96">
+              <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border-yellow-500/20 h-64 lg:h-96 hidden lg:block">
                 <CardContent className="flex items-center justify-center h-full">
                   <div className="text-center">
-                    <Bell className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-400">
+                    <Bell className="w-8 h-8 lg:w-12 lg:h-12 text-gray-600 mx-auto mb-2 lg:mb-4" />
+                    <p className="text-gray-400 text-sm lg:text-base">
                       {t('notificationsPage.detail.selectNotification')}
                     </p>
                   </div>
