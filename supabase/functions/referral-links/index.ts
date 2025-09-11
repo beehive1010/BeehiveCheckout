@@ -75,7 +75,7 @@ async function createReferralLink(supabase, walletAddress) {
       return new Response(JSON.stringify({
         success: true,
         message: 'Referral link already exists',
-        link: `${Deno.env.get('FRONTEND_URL') || 'https://beehive-lifestyle.io'}/register?ref=${existingLink.link_code}`,
+        link: `${Deno.env.get('FRONTEND_URL') || 'https://beehive-lifestyle.io'}/welcome?ref=${existingLink.link_code}`,
         link_code: existingLink.link_code,
         created_at: existingLink.created_at
       }), {
@@ -111,7 +111,7 @@ async function createReferralLink(supabase, walletAddress) {
       });
     }
 
-    const fullLink = `${Deno.env.get('FRONTEND_URL') || 'https://beehive-lifestyle.io'}/register?ref=${linkCode}`;
+    const fullLink = `${Deno.env.get('FRONTEND_URL') || 'https://beehive-lifestyle.io'}/welcome?ref=${linkCode}`;
     
     console.log(`✅ Referral link created: ${fullLink}`);
 
@@ -156,7 +156,7 @@ async function getReferralLink(supabase, walletAddress) {
       });
     }
 
-    const fullLink = `${Deno.env.get('FRONTEND_URL') || 'https://beehive-lifestyle.io'}/register?ref=${linkData.link_code}`;
+    const fullLink = `${Deno.env.get('FRONTEND_URL') || 'https://beehive-lifestyle.io'}/welcome?ref=${linkData.link_code}`;
 
     return new Response(JSON.stringify({
       success: true,

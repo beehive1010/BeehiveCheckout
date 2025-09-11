@@ -317,7 +317,7 @@ export default function Dashboard() {
   }, [refreshing, loadDashboardData, t, toast]);
 
   const copyReferralLink = () => {
-    const referralLink = `${window.location.origin}/register?ref=${walletAddress}`;
+    const referralLink = `${window.location.origin}/welcome?ref=${walletAddress}`;
     navigator.clipboard.writeText(referralLink);
     toast({
       title: t('dashboard.success.copied'),
@@ -510,7 +510,7 @@ export default function Dashboard() {
         <ReferralLinkCard
           title={t('dashboard.shareReferral')}
           description={t('dashboard.shareDescription')}
-          referralLink={`${window.location.origin}/register?ref=${walletAddress}`}
+          referralLink={`${window.location.origin}/welcome?ref=${walletAddress}`}
           onCopyLink={copyReferralLink}
           copyButtonText={t('dashboard.copyLink')}
           className="mb-6 sm:mb-8"

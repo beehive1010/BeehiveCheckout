@@ -42,7 +42,7 @@ export const dashboardService = {
 
   // Generate referral link
   generateReferralLink(walletAddress: string): string {
-    return `https://beehive-lifestyle.io/register?ref=${walletAddress}`;
+    return `https://beehive-lifestyle.io/welcome?ref=${walletAddress}`;
   },
 
   // Social sharing URLs
