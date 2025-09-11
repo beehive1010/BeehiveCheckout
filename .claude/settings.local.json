@@ -40,7 +40,8 @@
       "Bash(./check_db_integrity.sh:*)",
       "Bash(__NEW_LINE__ echo \"\")",
       "Bash(PGPASSWORD:*)",
-      "Bash(for:*)"
+      "Bash(for:*)",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []
