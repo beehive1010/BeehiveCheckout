@@ -499,16 +499,45 @@
     "title": "Referral System",
     "activated": "Activated",
     "copy": "Copy", 
-    "linkDescription": "Share this link to earn rewards when people join through your referral",
+    "linkDescription": "Share this link to earn rewards when people join through your referral and activate membership",
     "matrixLevel": "Matrix Level",
     "matrixView": "Your Matrix Network",
-    "noReferrals": "No referrals yet. Start sharing your link!",
+    "noReferrals": "No referrals yet. Start sharing your link to build your 3x3 matrix!",
     "pending": "Pending",
     "recentReferrals": "Recent Referrals",
-    "subtitle": "Build your network and earn rewards through our referral system",
+    "subtitle": "Build your 3x3 matrix network and earn rewards through referrals",
     "totalEarnings": "Total Earnings",
     "totalReferrals": "Total Referrals", 
     "yourLink": "Your Referral Link",
+    "copied": {
+      "title": "Copied!",
+      "description": "Referral link copied to clipboard"
+    },
+    "tabs": {
+      "matrix": "3x3 Matrix",
+      "stats": "Statistics",
+      "rewards": "Rewards"
+    },
+    "legacySystem": "Legacy System (For Comparison)",
+    "activeMembers": "Active Members",
+    "matrixLayers": "Matrix Layers",
+    "recentActivity": "Recent Referral Activity",
+    "recentlyJoined": "Recently joined",
+    "rewardSystemInfo": "Reward System Information",
+    "matrixRewardsTitle": "Matrix Rewards",
+    "bccTokenRewardsTitle": "BCC Token Rewards",
+    "rewards": {
+      "level1Direct": "Level 1 Direct: $30 USDC per referral",
+      "level2Matrix": "Level 2 Matrix: $10 USDC per position",
+      "spilloverBonuses": "Spillover Bonuses: Additional rewards",
+      "claimWindow": "72-hour claim window"
+    },
+    "bccRewards": {
+      "transferable": "Transferable BCC: Immediate use",
+      "locked": "Locked BCC: Tier-based release",
+      "multipliers": "Tier multipliers: 1.0x, 0.5x, 0.25x, 0.125x",
+      "upgrades": "Level upgrades unlock more BCC"
+    },
     "rewardStructure": {
       "title": "BeeHive Reward Structure",
       "globalMatrix": "Global Matrix System",

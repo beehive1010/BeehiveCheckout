@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useWallet } from './useWallet';
 import { membershipLevels } from '../lib/config/membershipLevels';
 import { apiRequest } from '../lib/queryClient';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../lib/supabaseClient';
 
 interface UserReferralStats {
   directReferralCount: string | number;

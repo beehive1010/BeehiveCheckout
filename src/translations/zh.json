@@ -580,6 +580,47 @@
   },
   "referrals": {
     "title": "推荐系统",
+    "activated": "已激活",
+    "copy": "复制",
+    "linkDescription": "分享此链接，当有人通过您的推荐加入并激活会员身份时获得奖励",
+    "matrixLevel": "矩阵级别",
+    "matrixView": "您的矩阵网络",
+    "noReferrals": "暂无推荐！开始分享您的链接以建立3x3矩阵！",
+    "pending": "待处理",
+    "recentReferrals": "最近推荐",
+    "subtitle": "通过推荐建立您的3x3矩阵网络并获得奖励",
+    "totalEarnings": "总收益",
+    "totalReferrals": "总推荐数",
+    "yourLink": "您的推荐链接",
+    "copied": {
+      "title": "已复制！",
+      "description": "推荐链接已复制到剪贴板"
+    },
+    "tabs": {
+      "matrix": "3x3矩阵",
+      "stats": "统计",
+      "rewards": "奖励"
+    },
+    "legacySystem": "旧系统（供比较）",
+    "activeMembers": "活跃成员",
+    "matrixLayers": "矩阵层级",
+    "recentActivity": "最近推荐活动",
+    "recentlyJoined": "最近加入",
+    "rewardSystemInfo": "奖励系统信息",
+    "matrixRewardsTitle": "矩阵奖励",
+    "bccTokenRewardsTitle": "BCC代币奖励",
+    "rewards": {
+      "level1Direct": "1级直接：每推荐$30 USDC",
+      "level2Matrix": "2级矩阵：每位置$10 USDC",
+      "spilloverBonuses": "溢出奖励：额外奖励",
+      "claimWindow": "72小时认领窗口"
+    },
+    "bccRewards": {
+      "transferable": "可转移BCC：立即使用",
+      "locked": "锁定BCC：分层释放",
+      "multipliers": "层级倍数：1.0x, 0.5x, 0.25x, 0.125x",
+      "upgrades": "级别升级解锁更多BCC"
+    },
     "rewardStructure": {
       "title": "蜂巢奖励结构",
       "globalMatrix": "全球矩阵系统",

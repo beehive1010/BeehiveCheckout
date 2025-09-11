@@ -62,11 +62,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
           reward_type,
           is_claimed,
           payer_wallet,
-          created_at,
-          countdown_timers (
-            end_time,
-            is_active
-          )
+          created_at
         `)
         .eq('recipient_wallet', walletAddress)
         .eq('is_claimed', false)
