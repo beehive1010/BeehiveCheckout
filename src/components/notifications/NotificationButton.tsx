@@ -45,7 +45,7 @@ export default function NotificationButton({
     refetchInterval: 30000, // Refresh every 30 seconds
     queryFn: async () => {
       try {
-        const response = await callEdgeFunction('notifications', { action: 'stats' }, walletAddress);
+        const response = await callEdgeFunction('notification', { action: 'stats' }, walletAddress);
         if (!response.success) {
           throw new Error(response.error || 'Failed to fetch notification stats');
         }

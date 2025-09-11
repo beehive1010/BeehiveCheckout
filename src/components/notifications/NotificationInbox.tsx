@@ -80,7 +80,7 @@ export default function NotificationInbox({
     refetchInterval: 30000, // Refresh every 30 seconds
     queryFn: async () => {
       try {
-        const response = await callEdgeFunction('notifications', { action: 'stats' }, walletAddress);
+        const response = await callEdgeFunction('notification', { action: 'stats' }, walletAddress);
         if (!response.success) {
           throw new Error(response.error || 'Failed to fetch notification stats');
         }
@@ -136,7 +136,7 @@ export default function NotificationInbox({
         if (filters.limit) params.set('limit', filters.limit.toString());
         if (activeTab === 'unread') params.set('unread_only', 'true');
         
-        const response = await callEdgeFunction('notifications', Object.fromEntries(params), walletAddress);
+        const response = await callEdgeFunction('notification', Object.fromEntries(params), walletAddress);
         if (!response.success) {
           throw new Error(response.error || 'Failed to fetch notifications');
         }
@@ -162,7 +162,7 @@ export default function NotificationInbox({
       params.set('id', notificationId);
       if (source) params.set('source', source);
       
-      const response = await callEdgeFunction('notifications', Object.fromEntries(params), walletAddress);
+      const response = await callEdgeFunction('notification', Object.fromEntries(params), walletAddress);
       if (!response.success) {
         throw new Error(response.error || 'Failed to mark notification as read');
       }
@@ -176,7 +176,7 @@ export default function NotificationInbox({
   // Mark all as read mutation
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
-      const response = await callEdgeFunction('notifications', { action: 'mark-all-read' }, walletAddress);
+      const response = await callEdgeFunction('notification', { action: 'mark-all-read' }, walletAddress);
       if (!response.success) {
         throw new Error(response.error || 'Failed to mark all notifications as read');
       }
