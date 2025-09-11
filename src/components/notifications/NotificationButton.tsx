@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { callEdgeFunction } from '../../lib/supabaseClient';
+import type { NotificationStats } from '../../types/notification';
 import { 
   Popover,
   PopoverContent,
@@ -13,14 +14,9 @@ import {
   BellRing
 } from 'lucide-react';
 import { useLocation } from 'wouter';
-import NotificationInbox from './NotificationInbox';
+import NotificationPreview from './NotificationPreview';
 
-interface NotificationStats {
-  unreadCount: number;
-  totalCount: number;
-  urgentCount: number;
-  actionRequiredCount: number;
-}
+// NotificationStats now imported from shared types
 
 interface NotificationButtonProps {
   walletAddress: string;
@@ -139,13 +135,12 @@ export default function NotificationButton({
           data-testid="notification-popover"
         >
           <div className="max-h-96 overflow-hidden">
-            <NotificationInbox
+            <NotificationPreview
               walletAddress={walletAddress}
               onNotificationClick={handleNotificationClick}
-              compact={true}
             />
             
-            {stats && stats.totalCount > 5 && (
+            {stats && stats.totalCount > 0 && (
               <div className="p-3 border-t border-gray-700">
                 <Button
                   onClick={handleViewAll}

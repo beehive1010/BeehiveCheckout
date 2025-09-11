@@ -134,7 +134,7 @@ export default function NFTs() {
         .from('nft_purchases')
         .select('*')
         .eq('buyer_wallet', walletAddress)
-        .order('created_at', { ascending: false });
+        .order('purchased_at', { ascending: false });
 
       if (error) throw error;
       setMyPurchases(data || []);

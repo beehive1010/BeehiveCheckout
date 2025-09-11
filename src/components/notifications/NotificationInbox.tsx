@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { callEdgeFunction } from '../../lib/supabaseClient';
+import type { Notification, NotificationStats } from '../../types/notification';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,38 +26,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
-interface Notification {
-  id: string;
-  recipientWallet: string;
-  title: string;
-  message: string;
-  type: string;
-  triggerWallet?: string;
-  relatedWallet?: string;
-  amount?: number;
-  amountType?: 'USDT' | 'BCC';
-  level?: number;
-  layer?: number;
-  position?: 'L' | 'M' | 'R';
-  priority: 'low' | 'normal' | 'high' | 'urgent';
-  actionRequired: boolean;
-  actionType?: string;
-  actionUrl?: string;
-  expiresAt?: string;
-  isRead: boolean;
-  isArchived: boolean;
-  emailSent: boolean;
-  metadata?: any;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface NotificationStats {
-  unreadCount: number;
-  totalCount: number;
-  urgentCount: number;
-  actionRequiredCount: number;
-}
+// Types now imported from shared types file
 
 interface NotificationInboxProps {
   walletAddress: string;
@@ -98,7 +68,7 @@ export default function NotificationInbox({
   });
 
   // Fetch notifications with filters
-  const getNotificationsFilters = () => {
+  const getNotificationsFilters = useCallback(() => {
     const filters: any = {};
     
     switch (activeTab) {
@@ -123,7 +93,7 @@ export default function NotificationInbox({
     }
     
     return filters;
-  };
+  }, [activeTab, compact]);
 
   const { data: notificationsData, isLoading } = useQuery({
     queryKey: ['notifications', 'list', walletAddress, activeTab, searchTerm],
@@ -320,7 +290,10 @@ export default function NotificationInbox({
                           {notification.message}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                          {notification.createdAt && !isNaN(new Date(notification.createdAt).getTime()) 
+                            ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })
+                            : 'Recently'
+                          }
                         </p>
                       </div>
                       {notification.actionRequired && (
@@ -499,7 +472,10 @@ export default function NotificationInbox({
                                   
                                   <div className="flex flex-wrap gap-4 text-sm text-gray-400">
                                     <span>
-                                      {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                                      {notification.createdAt && !isNaN(new Date(notification.createdAt).getTime()) 
+                                        ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })
+                                        : 'Recently'
+                                      }
                                     </span>
                                     
                                     {notification.amount && notification.amountType && (
@@ -512,7 +488,7 @@ export default function NotificationInbox({
                                       <span>Level {notification.level}</span>
                                     )}
                                     
-                                    {notification.expiresAt && (
+                                    {notification.expiresAt && !isNaN(new Date(notification.expiresAt).getTime()) && (
                                       <span className="text-yellow-400">
                                         Expires {formatDistanceToNow(new Date(notification.expiresAt), { addSuffix: true })}
                                       </span>

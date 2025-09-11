@@ -323,8 +323,8 @@ async function getNFTAnalytics(supabaseClient: any) {
     // Get NFT sales data
     const { data: salesData, error: salesError } = await supabaseClient
       .from('nft_purchases')
-      .select('nft_id, amount_bcc, created_at')
-      .order('created_at', { ascending: false });
+      .select('nft_id, price_bcc, purchased_at')
+      .order('purchased_at', { ascending: false });
 
     if (salesError) throw salesError;
 
@@ -341,13 +341,13 @@ async function getNFTAnalytics(supabaseClient: any) {
         acc[sale.nft_id] = { count: 0, revenue: 0 };
       }
       acc[sale.nft_id].count += 1;
-      acc[sale.nft_id].revenue += sale.amount_bcc;
+      acc[sale.nft_id].revenue += sale.price_bcc;
       return acc;
     }, {}) || {};
 
     // Total metrics
     const totalSales = salesData?.length || 0;
-    const totalRevenue = salesData?.reduce((sum: number, sale: any) => sum + sale.amount_bcc, 0) || 0;
+    const totalRevenue = salesData?.reduce((sum: number, sale: any) => sum + sale.price_bcc, 0) || 0;
     const activeNFTs = nftData?.filter((nft: any) => nft.active).length || 0;
 
     return new Response(JSON.stringify({
