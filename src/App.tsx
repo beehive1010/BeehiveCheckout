@@ -53,7 +53,7 @@ const AdminDashboard = () => <div>Admin Dashboard - Coming Soon</div>;
 const AdminUsers = () => <div>Admin Users - Coming Soon</div>;
 const AdminUserManagement = () => <div>Admin User Management - Coming Soon</div>;
 const AdminReferrals = () => <div>Admin Referrals - Coming Soon</div>;
-const AdminNFTs = () => <div>Admin NFTs - Coming Soon</div>;
+const AdminNFTsPlaceholder = () => <div>Admin NFTs - Coming Soon</div>;
 const AdminContracts = () => <div>Admin Contracts - Coming Soon</div>;
 const AdminContractDetail = () => <div>Admin Contract Detail - Coming Soon</div>;
 const AdminContractDeploy = () => <div>Admin Contract Deploy - Coming Soon</div>;
@@ -149,7 +149,7 @@ function Router() {
         <Route path="/admin/nfts" component={() => (
           <AdminRouteGuard requiredPermission="nfts.read">
             <AdminLayout>
-              <AdminNFTs />
+              <AdminNFTsPlaceholder />
             </AdminLayout>
           </AdminRouteGuard>
         )} />
