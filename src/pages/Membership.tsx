@@ -234,10 +234,54 @@ export default function Membership() {
 
         console.log(`✅ Level ${level} claim successful:`, result);
         
+        // 触发层级奖励分发
+        try {
+          const { distributeLayerRewards } = await import('../lib/services/layerRewardService');
+          const rewardResult = await distributeLayerRewards(
+            walletAddress, 
+            level, 
+            membershipConfig.price, // NFT价格作为奖励
+            transactionHash
+          );
+          
+          if (rewardResult.success) {
+            console.log(`🎁 Layer rewards distributed: ${rewardResult.distributions.length} entries created`);
+            
+            // 显示奖励分发结果
+            const claimableCount = rewardResult.distributions.filter(d => d.status === 'claimable').length;
+            const pendingCount = rewardResult.distributions.filter(d => d.status === 'pending').length;
+            
+            if (claimableCount > 0 || pendingCount > 0) {
+              toast({
+                title: '🎁 层级奖励已分发',
+                description: `创建了 ${claimableCount} 个可领取奖励和 ${pendingCount} 个待处理奖励`,
+                duration: 8000
+              });
+            }
+          } else {
+            console.error('❌ Layer reward distribution failed:', rewardResult.error);
+            toast({
+              title: '⚠️ 奖励分发警告',
+              description: '会员升级成功，但奖励分发遇到问题',
+              variant: 'destructive',
+              duration: 6000
+            });
+          }
+        } catch (rewardError) {
+          console.error('❌ Layer reward distribution error:', rewardError);
+          // 不影响主要流程，只显示警告
+          toast({
+            title: '⚠️ 奖励分发警告', 
+            description: '会员升级成功，但奖励分发遇到问题',
+            variant: 'destructive',
+            duration: 6000
+          });
+        }
+        
         // Refresh the page data using React Query instead of full reload
         setTimeout(() => {
           window.location.reload();
-        }, 2000);
+        }, 3000);
       } else {
         throw new Error(result.error || 'Claim processing failed');
       }
