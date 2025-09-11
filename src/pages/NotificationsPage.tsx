@@ -256,58 +256,62 @@ export default function NotificationsPage() {
 
       {/* Settings Dialog */}
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
-        <DialogContent className="bg-gray-900 border-yellow-500/20">
+        <DialogContent className="bg-gray-900 border-yellow-500/20 max-w-md mx-auto max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-yellow-400">{t('notificationsPage.settingsDialog.title')}</DialogTitle>
+            <DialogTitle className="text-yellow-400 text-lg lg:text-xl">{t('notificationsPage.settingsDialog.title')}</DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-4">
-            <div className="space-y-4">
-              <h4 className="text-white font-medium">{t('notificationsPage.settingsDialog.emailNotifications')}</h4>
-              <div className="space-y-2">
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" defaultChecked className="rounded" />
-                  <span className="text-gray-300">{t('notificationsPage.settingsDialog.memberActivations')}</span>
+          <div className="space-y-4 lg:space-y-6">
+            <div className="space-y-3 lg:space-y-4">
+              <h4 className="text-white font-medium text-sm lg:text-base">{t('notificationsPage.settingsDialog.emailNotifications')}</h4>
+              <div className="space-y-2 lg:space-y-3">
+                <label className="flex items-center gap-2 lg:gap-3 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="rounded w-4 h-4" />
+                  <span className="text-gray-300 text-sm lg:text-base">{t('notificationsPage.settingsDialog.memberActivations')}</span>
                 </label>
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" defaultChecked className="rounded" />
-                  <span className="text-gray-300">{t('notificationsPage.settingsDialog.levelUpgrades')}</span>
+                <label className="flex items-center gap-2 lg:gap-3 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="rounded w-4 h-4" />
+                  <span className="text-gray-300 text-sm lg:text-base">{t('notificationsPage.settingsDialog.levelUpgrades')}</span>
                 </label>
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" defaultChecked className="rounded" />
-                  <span className="text-gray-300">{t('notificationsPage.settingsDialog.upgradeReminders')}</span>
+                <label className="flex items-center gap-2 lg:gap-3 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="rounded w-4 h-4" />
+                  <span className="text-gray-300 text-sm lg:text-base">{t('notificationsPage.settingsDialog.upgradeReminders')}</span>
                 </label>
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" defaultChecked className="rounded" />
-                  <span className="text-gray-300">{t('notificationsPage.settingsDialog.rewardNotifications')}</span>
-                </label>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <h4 className="text-white font-medium">{t('notificationsPage.settingsDialog.pushNotifications')}</h4>
-              <div className="space-y-2">
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" defaultChecked className="rounded" />
-                  <span className="text-gray-300">{t('notificationsPage.settingsDialog.urgentNotifications')}</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" defaultChecked className="rounded" />
-                  <span className="text-gray-300">{t('notificationsPage.settingsDialog.highPriorityOnly')}</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input type="checkbox" className="rounded" />
-                  <span className="text-gray-300">{t('notificationsPage.settingsDialog.allNotifications')}</span>
+                <label className="flex items-center gap-2 lg:gap-3 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="rounded w-4 h-4" />
+                  <span className="text-gray-300 text-sm lg:text-base">{t('notificationsPage.settingsDialog.rewardNotifications')}</span>
                 </label>
               </div>
             </div>
             
-            <div className="flex justify-end gap-2 pt-4">
-              <Button variant="outline" onClick={() => setShowSettings(false)}>
+            <div className="space-y-3 lg:space-y-4">
+              <h4 className="text-white font-medium text-sm lg:text-base">{t('notificationsPage.settingsDialog.pushNotifications')}</h4>
+              <div className="space-y-2 lg:space-y-3">
+                <label className="flex items-center gap-2 lg:gap-3 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="rounded w-4 h-4" />
+                  <span className="text-gray-300 text-sm lg:text-base">{t('notificationsPage.settingsDialog.urgentNotifications')}</span>
+                </label>
+                <label className="flex items-center gap-2 lg:gap-3 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="rounded w-4 h-4" />
+                  <span className="text-gray-300 text-sm lg:text-base">{t('notificationsPage.settingsDialog.highPriorityOnly')}</span>
+                </label>
+                <label className="flex items-center gap-2 lg:gap-3 cursor-pointer">
+                  <input type="checkbox" className="rounded w-4 h-4" />
+                  <span className="text-gray-300 text-sm lg:text-base">{t('notificationsPage.settingsDialog.allNotifications')}</span>
+                </label>
+              </div>
+            </div>
+            
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 lg:gap-3 pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowSettings(false)}
+                className="w-full sm:w-auto"
+              >
                 {t('notificationsPage.settingsDialog.cancel')}
               </Button>
               <Button 
-                className="bg-yellow-500 hover:bg-yellow-600 text-black"
+                className="bg-yellow-500 hover:bg-yellow-600 text-black w-full sm:w-auto"
                 onClick={() => setShowSettings(false)}
               >
                 {t('notificationsPage.settingsDialog.saveSettings')}
