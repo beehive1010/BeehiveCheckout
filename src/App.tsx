@@ -31,7 +31,7 @@ import Membership from "@/pages/Membership";
 import TokenPurchase from "@/pages/TokenPurchase";
 import SupabaseAuth from "@/pages/SupabaseAuth";
 import AuthCallback from "@/pages/AuthCallback";
-import AdminNFTs from "@/pages/AdminNFTs";
+import AdminNFTsPage from "@/pages/AdminNFTs";
 
 // Import proper Header and Navigation components
 import Header from "@/components/shared/Header";
@@ -300,7 +300,7 @@ function Router() {
           </MemberGuard>
         )} />
         <Route path="/admin-nft-manager" component={AdminNFTManager} />
-        <Route path="/admin" component={AdminNFTs} />
+        <Route path="/admin" component={AdminNFTsPage} />
         
         {/* Public routes - No authentication required */}
         <Route path="/matrix-explanation" component={MatrixExplanation} />
