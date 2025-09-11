@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent } from '@/components/ui/card';
+import { useI18n } from '@/contexts/I18nContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -53,6 +54,7 @@ export default function NotificationPopup({
   onNotificationClick,
   className = ''
 }: NotificationPopupProps) {
+  const { t } = useI18n();
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [isVisible, setIsVisible] = useState(true);
   const queryClient = useQueryClient();
@@ -264,7 +266,7 @@ export default function NotificationPopup({
                       <span className="text-gray-400 text-xs">
                         {notification.createdAt && !isNaN(new Date(notification.createdAt).getTime())
                           ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })
-                          : 'Recently'
+                          : t('notifications.time.recently')
                         }
                       </span>
                     </div>
