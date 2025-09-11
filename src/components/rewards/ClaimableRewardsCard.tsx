@@ -72,18 +72,12 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
         .eq('is_claimed', false)
         .order('created_at', { ascending: false });
 
-      // Get matrix position information for all rewards at once
+      // Simplified matrix position handling (removed dependency on non-existent table)
       const matrixPositions = new Map();
       if (layerRewards && layerRewards.length > 0) {
-        const payerWallets = [...new Set(layerRewards.map(r => r.payer_wallet))];
-        const { data: matrixInfo } = await supabase
-          .from('individual_matrix_placements')
-          .select('matrix_owner, member_wallet, layer_in_owner_matrix, position_in_layer')
-          .eq('matrix_owner', walletAddress)
-          .in('member_wallet', payerWallets);
-        
-        matrixInfo?.forEach(info => {
-          matrixPositions.set(`${info.member_wallet}-${info.layer_in_owner_matrix}`, info.position_in_layer);
+        // Set default positions since individual_matrix_placements table doesn't exist
+        layerRewards.forEach(reward => {
+          matrixPositions.set(`${reward.payer_wallet}-${reward.layer}`, 'L');
         });
       }
 
