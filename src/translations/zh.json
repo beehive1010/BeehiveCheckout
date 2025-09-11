@@ -21,7 +21,9 @@
     "loading": "加载中...",
     "error": "错误",
     "success": "成功",
-    "back": "返回"
+    "back": "返回",
+    "active": "活跃",
+    "pending": "待处理"
   },
   "dashboard": {
     "welcomeBack": "欢迎回来, {username}!",
@@ -621,6 +623,15 @@
       "multipliers": "层级倍数：1.0x, 0.5x, 0.25x, 0.125x",
       "upgrades": "级别升级解锁更多BCC"
     },
+    "team_overview": "团队概览",
+    "view_matrix": "查看矩阵",
+    "total_team": "总团队",
+    "active_members": "活跃成员",
+    "max_layers": "最大层级",
+    "network_strength": "网络强度",
+    "layer_progress": "层级进度",
+    "recent_referrals": "最近推荐",
+    "share_link": "分享推荐链接",
     "rewardStructure": {
       "title": "蜂巢奖励结构",
       "globalMatrix": "全球矩阵系统",

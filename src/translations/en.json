@@ -21,7 +21,9 @@
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
-    "back": "Back"
+    "back": "Back",
+    "active": "Active",
+    "pending": "Pending"
   },
   "dashboard": {
     "welcomeBack": "Welcome back, {username}!",
@@ -538,6 +540,15 @@
       "multipliers": "Tier multipliers: 1.0x, 0.5x, 0.25x, 0.125x",
       "upgrades": "Level upgrades unlock more BCC"
     },
+    "team_overview": "Team Overview",
+    "view_matrix": "View Matrix",
+    "total_team": "Total Team",
+    "active_members": "Active Members",
+    "max_layers": "Max Layers",
+    "network_strength": "Network Strength",
+    "layer_progress": "Layer Progress",
+    "recent_referrals": "Recent Referrals",
+    "share_link": "Share Referral Link",
     "rewardStructure": {
       "title": "BeeHive Reward Structure",
       "globalMatrix": "Global Matrix System",

@@ -12,7 +12,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import { useWallet } from '../../hooks/useWallet';
-import { matrixService } from '../../lib/supabaseClient';
+import { supabase } from '../../lib/supabaseClient';
 import { useI18n } from '../../contexts/I18nContext';
 
 interface ReferralStatsCardProps {
