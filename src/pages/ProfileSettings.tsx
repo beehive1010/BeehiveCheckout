@@ -65,16 +65,16 @@ export default function ProfileSettings() {
 
       if (response.ok) {
         toast({
-          title: "Profile Updated",
-          description: "Your profile settings have been saved successfully."
+          title: t('profileSettings.profileUpdated'),
+          description: t('profileSettings.profileUpdatedDesc')
         });
       } else {
         throw new Error('Failed to update profile');
       }
     } catch (error) {
       toast({
-        title: "Update Failed",
-        description: "There was an error updating your profile. Please try again.",
+        title: t('profileSettings.updateFailed'),
+        description: t('profileSettings.updateFailedDesc'),
         variant: "destructive"
       });
     }
@@ -95,9 +95,9 @@ export default function ProfileSettings() {
           className="border-honey text-honey hover:bg-honey hover:text-secondary"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Profile
+          {t('common.backToProfile')}
         </Button>
-        <h1 className="text-2xl font-bold text-honey">Profile Settings</h1>
+        <h1 className="text-2xl font-bold text-honey">{t('profileSettings.title')}</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -108,26 +108,26 @@ export default function ProfileSettings() {
             <CardHeader>
               <CardTitle className="text-honey flex items-center gap-2">
                 <User className="w-5 h-5" />
-                Profile Information
+                {t('profileSettings.profileInformation')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Profile Image Upload */}
               <div className="space-y-2">
-                <Label>Profile Image</Label>
+                <Label>{t('profileSettings.profileImage')}</Label>
                 <FileUpload
                   uploadType="profile-image"
                   maxSizeMB={5}
                   showPreview={true}
                   onUploadComplete={(data) => {
                     toast({
-                      title: "Profile Image Updated",
-                      description: "Your profile image has been uploaded successfully."
+                      title: t('profileSettings.profileImageUpdated'),
+                      description: t('profileSettings.profileImageUpdatedDesc')
                     });
                   }}
                   onUploadError={(error) => {
                     toast({
-                      title: "Upload Failed",
+                      title: t('profileSettings.uploadFailed'),
                       description: error,
                       variant: "destructive"
                     });
@@ -137,35 +137,35 @@ export default function ProfileSettings() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="username">{t('profileSettings.username')}</Label>
                 <Input
                   id="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter your username"
+                  placeholder={t('profileSettings.enterUsername')}
                   className="bg-background border-border"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="email">Email (Optional)</Label>
+                <Label htmlFor="email">{t('profileSettings.email')}</Label>
                 <Input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
+                  placeholder={t('profileSettings.enterEmail')}
                   className="bg-background border-border"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="bio">Bio</Label>
+                <Label htmlFor="bio">{t('profileSettings.bio')}</Label>
                 <textarea
                   id="bio"
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  placeholder="Tell us about yourself..."
+                  placeholder={t('profileSettings.bioPlaceholder')}
                   className="w-full min-h-[100px] px-3 py-2 bg-background border border-border rounded-md resize-none text-sm"
                   maxLength={500}
                 />
@@ -175,7 +175,7 @@ export default function ProfileSettings() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="language">Language</Label>
+                <Label htmlFor="language">{t('profileSettings.language')}</Label>
                 <Select value={language} onValueChange={setLanguage}>
                   <SelectTrigger className="bg-background border-border">
                     <SelectValue />
@@ -197,15 +197,15 @@ export default function ProfileSettings() {
             <CardHeader>
               <CardTitle className="text-honey flex items-center gap-2">
                 <Bell className="w-5 h-5" />
-                Notification Settings
+                {t('profileSettings.notificationSettings')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <Label>Email Notifications</Label>
+                  <Label>{t('profileSettings.emailNotifications')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    Receive important updates via email
+                    {t('profileSettings.emailNotificationsDesc')}
                   </p>
                 </div>
                 <Switch 
@@ -216,9 +216,9 @@ export default function ProfileSettings() {
               
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <Label>Push Notifications</Label>
+                  <Label>{t('profileSettings.pushNotifications')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    Receive real-time notifications in the app
+                    {t('profileSettings.pushNotificationsDesc')}
                   </p>
                 </div>
                 <Switch 
@@ -229,9 +229,9 @@ export default function ProfileSettings() {
               
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <Label>Reward Notifications</Label>
+                  <Label>{t('profileSettings.rewardNotifications')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    Get notified when you receive rewards
+                    {t('profileSettings.rewardNotificationsDesc')}
                   </p>
                 </div>
                 <Switch 
@@ -242,9 +242,9 @@ export default function ProfileSettings() {
               
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <Label>Referral Notifications</Label>
+                  <Label>{t('profileSettings.referralNotifications')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    Get notified about new referrals and team activities
+                    {t('profileSettings.referralNotificationsDesc')}
                   </p>
                 </div>
                 <Switch 
@@ -260,32 +260,32 @@ export default function ProfileSettings() {
             <CardHeader>
               <CardTitle className="text-honey flex items-center gap-2">
                 <Shield className="w-5 h-5" />
-                Privacy Settings
+                {t('profileSettings.privacySettings')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label>Profile Visibility</Label>
+                <Label>{t('profileSettings.profileVisibility')}</Label>
                 <Select value={profileVisibility} onValueChange={setProfileVisibility}>
                   <SelectTrigger className="bg-background border-border">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="public">Public</SelectItem>
-                    <SelectItem value="team">Team Members Only</SelectItem>
-                    <SelectItem value="private">Private</SelectItem>
+                    <SelectItem value="public">{t('profileSettings.public')}</SelectItem>
+                    <SelectItem value="team">{t('profileSettings.teamMembersOnly')}</SelectItem>
+                    <SelectItem value="private">{t('profileSettings.private')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-sm text-muted-foreground">
-                  Control who can view your profile information
+                  {t('profileSettings.profileVisibilityDesc')}
                 </p>
               </div>
               
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <Label>Show Earnings</Label>
+                  <Label>{t('profileSettings.showEarnings')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    Display your earnings publicly
+                    {t('profileSettings.showEarningsDesc')}
                   </p>
                 </div>
                 <Switch 
@@ -296,9 +296,9 @@ export default function ProfileSettings() {
               
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <Label>Show Referral Count</Label>
+                  <Label>{t('profileSettings.showReferralCount')}</Label>
                   <p className="text-sm text-muted-foreground">
-                    Display your referral statistics
+                    {t('profileSettings.showReferralCountDesc')}
                   </p>
                 </div>
                 <Switch 
@@ -314,7 +314,7 @@ export default function ProfileSettings() {
         <div className="space-y-6">
           <Card className="bg-secondary border-border">
             <CardHeader>
-              <CardTitle className="text-honey">Account Summary</CardTitle>
+              <CardTitle className="text-honey">{t('profileSettings.accountSummary')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="text-center">
@@ -325,19 +325,19 @@ export default function ProfileSettings() {
                   {username || formatAddress(walletAddress || '')}
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Level {currentLevel} Member
+                  {t('profileSettings.levelMember', { level: currentLevel })}
                 </p>
               </div>
               
               <div className="pt-4 border-t border-border/50">
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Wallet:</span>
+                    <span className="text-muted-foreground">{t('profileSettings.wallet')}:</span>
                     <span className="font-mono">{formatAddress(walletAddress || '')}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Member Since:</span>
-                    <span>Recently Joined</span>
+                    <span className="text-muted-foreground">{t('profileSettings.memberSince')}:</span>
+                    <span>{t('profileSettings.recentlyJoined')}</span>
                   </div>
                 </div>
               </div>
@@ -350,7 +350,7 @@ export default function ProfileSettings() {
               className="bg-honey text-secondary hover:bg-honey/90"
             >
               <Save className="w-4 h-4 mr-2" />
-              Save Changes
+              {t('profileSettings.saveChanges')}
             </Button>
             
             <Button
@@ -358,7 +358,7 @@ export default function ProfileSettings() {
               variant="outline"
               className="border-border text-muted-foreground hover:bg-secondary"
             >
-              Cancel
+              {t('common.cancel')}
             </Button>
           </div>
         </div>

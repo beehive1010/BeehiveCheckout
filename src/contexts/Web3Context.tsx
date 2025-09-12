@@ -3,7 +3,7 @@ import { ThirdwebProvider, useActiveAccount, useActiveWallet, useActiveWalletCha
 import { client, supportedChains } from '../lib/web3';
 import { inAppWallet, createWallet } from 'thirdweb/wallets';
 import { createSponsoredInAppWallet, connectWithGasSponsorship, gasSponsorshipUtils } from '../lib/web3/enhanced-wallets';
-import { supabase, supabaseApi } from '../lib/supabase';
+import { supabase, supabaseApi, authService } from '../lib/supabase';
 import { useLocation } from 'wouter';
 
 interface Web3ContextType {
@@ -171,7 +171,7 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
         
         try {
           // Check if user is a member - only members can access dashboard
-          const result = await supabaseApi.getUser(account.address); // PRESERVE CASE
+          const result = await authService.getUser(account.address); // PRESERVE CASE
           
           if (result.success && result.user) {
             // Quick member activation check using activate-membership Edge Function
