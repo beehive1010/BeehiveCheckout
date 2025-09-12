@@ -159,15 +159,15 @@ export default function RegistrationModal({
       }
 
       toast({
-        title: result.action === 'existing_user' ? t('registration.welcomeBack') : t('registration.success'),
-        description: result.message,
+        title: result.user_existed ? t('registration.welcomeBack') : t('registration.success'),
+        description: result.message || 'Registration completed successfully',
         duration: 4000,
       });
 
-      if (result.activation_sequence !== undefined) {
+      if (result.member_created) {
         toast({
-          title: t('registration.activationSequence'),
-          description: t('registration.activationSequenceMessage', { sequence: result.activation_sequence }),
+          title: t('registration.memberCreated') || 'Member Record Created',
+          description: t('registration.memberCreatedMessage') || 'Your member profile has been set up',
           duration: 4000,
         });
       }
