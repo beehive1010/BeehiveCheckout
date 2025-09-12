@@ -189,13 +189,12 @@ async function getUser(supabase, walletAddress) {
     const { data: directReferrals } = await supabase
       .from('referrals')
       .select('member_wallet')
-      .eq('referrer_wallet', walletAddress)
-      .eq('is_direct_referral', true);
+      .eq('referrer_wallet', walletAddress);
 
     const { data: matrixMembers } = await supabase
       .from('referrals')
-      .select('member_wallet')
-      .eq('matrix_root_wallet', walletAddress);
+      .select('member_wallet')  
+      .eq('matrix_root', walletAddress);
 
     referralStats = {
       direct_referrals: directReferrals?.length || 0,
