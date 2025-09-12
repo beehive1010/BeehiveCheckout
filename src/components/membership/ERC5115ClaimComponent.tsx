@@ -3,6 +3,7 @@ import { useActiveAccount, useActiveWalletChain } from 'thirdweb/react';
 import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from 'thirdweb';
 import { arbitrumSepolia } from 'thirdweb/chains';
 import { createThirdwebClient } from 'thirdweb';
+import { importWithRetry, importThirdwebTransaction } from '../../utils/moduleLoader';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -32,6 +33,29 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
   
   // Use the custom hook for level management
   const { levelInfo, isLoading: isLevelLoading, refetch: refetchLevel, getLevelName, formatPrice } = useNFTLevelClaim(targetLevel);
+  
+  // Enhanced transaction wrapper with retry logic
+  const sendTransactionWithRetry = async (transaction: unknown, account: unknown, description: string = 'transaction') => {
+    return importWithRetry(
+      async () => {
+        console.log(`📤 Sending ${description}...`);
+        return await sendTransaction({
+          transaction,
+          account
+        });
+      },
+      {
+        maxRetries: 3,
+        retryDelay: 2000,
+        onRetry: (attempt, error) => {
+          console.log(`🔄 Retrying ${description} (attempt ${attempt}/3)...`);
+          if (error.message?.includes('eth_getTransactionCount')) {
+            console.log('🎯 Detected eth_getTransactionCount error - network retry in progress');
+          }
+        }
+      }
+    );
+  };
 
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
   const PAYMENT_TOKEN_CONTRACT = "0x4470734620414168Aa1673A30849DB25E5886E2A";
@@ -46,9 +70,14 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
     levelInfo: levelInfo
   });
 
-  // Initialize Thirdweb client
+  // Initialize Thirdweb client with error handling
   const client = createThirdwebClient({
-    clientId: THIRDWEB_CLIENT_ID
+    clientId: THIRDWEB_CLIENT_ID,
+    config: {
+      rpc: {
+        batchRequests: false, // Disable batching to avoid some loading issues
+      }
+    }
   });
 
   // Enhanced chain detection using multiple sources
@@ -359,22 +388,38 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       console.log('📝 Sending approval transaction...');
       setCurrentStep(t('claim.waitingApproval'));
       
-      // Send approval transaction with retry logic
+      // Send approval transaction with retry logic and better error handling
       let approvalAttempts = 0;
       const maxApprovalAttempts = 3;
       let approveTxResult: any = null;
       
       while (approvalAttempts < maxApprovalAttempts) {
         try {
-          approveTxResult = await sendTransaction({
-            transaction: approveTransaction,
-            account
-          });
+          console.log(`📝 Approval attempt ${approvalAttempts + 1}/${maxApprovalAttempts}`);
+          
+          approveTxResult = await sendTransactionWithRetry(
+            approveTransaction, 
+            account, 
+            'USDC approval transaction'
+          );
           console.log('✅ Approval transaction sent:', approveTxResult.transactionHash);
           break; // Success, exit retry loop
         } catch (approvalError: any) {
           approvalAttempts++;
-          console.log(`Approval attempt ${approvalAttempts}/${maxApprovalAttempts} failed:`, approvalError);
+          console.error(`❌ Approval attempt ${approvalAttempts}/${maxApprovalAttempts} failed:`, {
+            error: approvalError,
+            message: approvalError.message,
+            name: approvalError.name,
+            code: approvalError.code
+          });
+          
+          // Enhanced error detection for thirdweb issues
+          if (approvalError.message?.includes('Failed to fetch dynamically imported module') || 
+              approvalError.message?.includes('eth_getTransactionCount') ||
+              approvalError.message?.includes('Network configuration error')) {
+            console.error('🚨 Thirdweb dynamic import or network error detected');
+            throw new Error('Network module loading error. Please refresh the page and ensure you have a stable internet connection.');
+          }
           
           if (approvalError.code === -32005 || approvalError.message?.includes('rate limit')) {
             if (approvalAttempts < maxApprovalAttempts) {
@@ -479,10 +524,11 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       
       while (claimAttempts < maxClaimAttempts) {
         try {
-          claimTxResult = await sendTransaction({
-            transaction: claimTransaction,
-            account
-          });
+          claimTxResult = await sendTransactionWithRetry(
+            claimTransaction,
+            account,
+            `NFT claim transaction for ${getLevelName(levelInfo.tokenId)}`
+          );
           console.log('🎉 NFT claim transaction:', claimTxResult.transactionHash);
           break; // Success, exit retry loop
         } catch (claimError: any) {
@@ -494,6 +540,15 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
             data: claimError.data,
             reason: claimError.reason
           });
+          
+          // Enhanced error detection for thirdweb issues  
+          if (claimError.message?.includes('Failed to fetch dynamically imported module') || 
+              claimError.message?.includes('eth_getTransactionCount') ||
+              claimError.message?.includes('Network configuration error') ||
+              claimError.message?.includes('Network module loading error')) {
+            console.error('🚨 Thirdweb dynamic import or network error detected during claim');
+            throw new Error('Network module loading error during NFT claim. Please refresh the page and try again with a stable internet connection.');
+          }
           
           if (claimError.code === -32005 || claimError.message?.includes('rate limit')) {
             if (claimAttempts < maxClaimAttempts) {
@@ -511,7 +566,9 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
             contractAddress: NFT_CONTRACT,
             paymentToken: PAYMENT_TOKEN_CONTRACT,
             amount: finalAmount.toString(),
-            networkId: effectiveChainId
+            networkId: effectiveChainId,
+            level: levelInfo.tokenId,
+            levelName: getLevelName(levelInfo.tokenId)
           });
           
           // Re-throw for other error handling

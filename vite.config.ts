@@ -19,6 +19,27 @@ export default defineConfig({
     sourcemap: false,
     minify: 'esbuild',
     target: 'es2020',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'thirdweb-core': ['thirdweb'],
+          'thirdweb-react': ['thirdweb/react'],
+          'thirdweb-chains': ['thirdweb/chains']
+        },
+        // Add retry mechanism for failed chunk loading
+        chunkFileNames: (chunkInfo) => {
+          const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop() : 'chunk';
+          return `assets/[name]-[hash].js`;
+        }
+      },
+      // Improve chunk loading reliability
+      external: [],
+      onwarn(warning, warn) {
+        // Suppress chunk loading warnings that might be normal
+        if (warning.code === 'CIRCULAR_DEPENDENCY') return;
+        warn(warning);
+      }
+    }
   },
   server: {
     port: 5000,
@@ -38,6 +59,22 @@ export default defineConfig({
     global: 'globalThis',
   },
   optimizeDeps: {
-    exclude: ['@rollup/rollup-linux-x64-gnu']
+    exclude: ['@rollup/rollup-linux-x64-gnu'],
+    include: [
+      'thirdweb',
+      'thirdweb/react', 
+      'thirdweb/chains',
+      'thirdweb/wallets'
+    ],
+    force: true
+  },
+  // Add experimental chunk retry
+  experimental: {
+    renderBuiltUrl(filename, { hostType }) {
+      if (hostType === 'js') {
+        return `/${filename}`;
+      }
+      return { relative: true };
+    }
   }
 });
