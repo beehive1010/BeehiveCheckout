@@ -93,7 +93,25 @@ export async function getDirectReferralDetails(referrerWallet: string): Promise<
   activationRank: number | null;
 }>> {
   try {
-    // Get direct referrals from users table
+    console.log(`🔍 Fetching detailed referral info for: ${referrerWallet}`);
+    
+    // Try to get data from referrals table first (contains matrix placement info)
+    const { data: referralData, error: referralError } = await supabase
+      .from('referrals')
+      .select(`
+        member_wallet,
+        referrer_wallet,
+        placed_at,
+        is_active
+      `)
+      .eq('referrer_wallet', referrerWallet)
+      .order('placed_at', { ascending: false });
+
+    if (referralError) {
+      console.error('❌ Error fetching from referrals table:', referralError);
+    }
+
+    // Get user info and member info 
     const { data: usersData, error: usersError } = await supabase
       .from('users')
       .select('wallet_address, username, created_at')
@@ -102,11 +120,12 @@ export async function getDirectReferralDetails(referrerWallet: string): Promise<
       .order('created_at', { ascending: false });
 
     if (usersError) {
-      console.error('❌ Error fetching referral details:', usersError);
-      throw usersError;
+      console.error('❌ Error fetching user details (fallback):', usersError);
+      return [];
     }
 
     if (!usersData || usersData.length === 0) {
+      console.log('📭 No direct referrals found');
       return [];
     }
 
@@ -117,14 +136,18 @@ export async function getDirectReferralDetails(referrerWallet: string): Promise<
       .select('wallet_address, current_level, activation_rank')
       .in('wallet_address', walletAddresses);
 
+    console.log(`✅ Found ${usersData.length} direct referrals, ${membersData?.length || 0} activated`);
+
     // Combine data
     return usersData.map(user => {
       const memberData = membersData?.find(m => m.wallet_address === user.wallet_address);
+      const referralInfo = referralData?.find(r => r.member_wallet === user.wallet_address);
+      
       return {
         memberWallet: user.wallet_address,
         memberName: user.username || 'Unknown',
-        referredAt: user.created_at,
-        isActivated: !!memberData,
+        referredAt: referralInfo?.placed_at || user.created_at,
+        isActivated: !!memberData && memberData.current_level > 0,
         memberLevel: memberData?.current_level || 0,
         activationRank: memberData?.activation_rank || null
       };
