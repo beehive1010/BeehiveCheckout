@@ -59,7 +59,7 @@ export default function TabBar() {
                   >
                     {isHomeTab ? (
                       // Special elevated home tab
-                      (<div className="relative flex flex-col items-center">
+                      <div className="relative flex flex-col items-center">
                         <div className={`
                           relative p-3 rounded-2xl transition-all duration-300 transform
                           ${isActive 
@@ -82,10 +82,10 @@ export default function TabBar() {
                         `}>
                           {String(t(item.labelKey))}
                         </span>
-                      </div>)
+                      </div>
                     ) : (
                       // Regular tabs with modern styling
-                      (<div className="flex flex-col items-center relative">
+                      <div className="flex flex-col items-center relative">
                         <div className={`
                           relative p-2 rounded-xl transition-all duration-300
                           ${isActive 
@@ -119,7 +119,7 @@ export default function TabBar() {
                         {isActive && (
                           <div className="absolute -bottom-1 w-1 h-1 bg-honey rounded-full"></div>
                         )}
-                      </div>)
+                      </div>
                     )}
                   </button>
                 </Link>
