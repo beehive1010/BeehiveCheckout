@@ -294,3 +294,52 @@ async function validateReferrer(supabase, referrerWallet) {
     message: 'Referrer is a valid activated member'
   };
 }
+
+// 更新用户资料函数 - 使用新的数据库结构
+async function updateUserProfile(supabase, walletAddress, data) {
+  console.log(`👤 更新用户资料: ${walletAddress}`);
+  
+  try {
+    // 更新用户基本信息
+    const { error: userUpdateError } = await supabase
+      .from('users')
+      .update({
+        username: data.username,
+        email: data.email,
+        bio: data.bio,
+        updated_at: new Date().toISOString()
+      })
+      .ilike('wallet_address', walletAddress);
+
+    if (userUpdateError) {
+      console.error('更新用户信息错误:', userUpdateError);
+      throw new Error(`更新用户信息失败: ${userUpdateError.message}`);
+    }
+
+    // 获取更新后的用户信息
+    const { data: updatedUser } = await supabase
+      .from('users')
+      .select(`
+        wallet_address,
+        username,
+        email,
+        bio,
+        created_at,
+        updated_at
+      `)
+      .ilike('wallet_address', walletAddress)
+      .single();
+
+    console.log(`✅ 用户资料更新成功: ${walletAddress}`);
+    
+    return {
+      success: true,
+      user: updatedUser,
+      message: '资料更新成功'
+    };
+
+  } catch (error) {
+    console.error('更新资料过程错误:', error);
+    throw error;
+  }
+}
