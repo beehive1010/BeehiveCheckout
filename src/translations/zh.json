@@ -319,7 +319,28 @@
     "walletRequired": {
       "title": "需要钱包连接",
       "description": "请先连接您的钱包以完成注册。"
-    }
+    },
+    "referrerValidationFailed": "推荐人验证失败",
+    "referrerNotActiveMember": "推荐人不是激活的会员",
+    "checkUserError": "检查用户状态出错",
+    "invalidReferrer": "无效的推荐人",
+    "memberCreated": "会员记录已创建",
+    "memberCreatedMessage": "您的会员资料已设置完成",
+    "registrationError": "注册错误",
+    "registrationErrorOccurred": "发生了注册错误",
+    "validating": "验证中",
+    "validationFailed": "验证失败",
+    "referrerValidated": "推荐人已验证",
+    "directReferrals": "直推人数",
+    "teamMembers": "团队成员",
+    "nextStep1": "完成NFT申领以激活会员身份",
+    "nextStep2": "开始推荐朋友建立您的矩阵网络",
+    "nextStep3": "赚取BCC奖励和升级到更高级别",
+    "matrixAdvantages": "矩阵系统优势",
+    "matrixFeature1": "3×3强制矩阵系统确保公平分配",
+    "matrixFeature2": "溢出机制让您从上级的推荐中受益",
+    "matrixFeature3": "多层级奖励系统最大化收益潜力",
+    "matrixFeature4": "透明的区块链记录保证奖励分配"
   },
   "landing": {
     "hero": {
