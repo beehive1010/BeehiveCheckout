@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { useToast } from '../../hooks/use-toast';
 import { Loader2, Zap, Crown, Gift, Coins, Clock } from 'lucide-react';
-import { authService } from '../../lib/supabase';
+import { authService, supabase } from '../../lib/supabase';
 import { useI18n } from '../../contexts/I18nContext';
 import RegistrationModal from '../modals/RegistrationModal';
 
@@ -114,18 +114,18 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       console.log('🔍 Checking user registration status...');
       setCurrentStep(t('claim.checkingRegistration') || 'Checking registration status...');
       
-      const userCheckResponse = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-wallet-address': account.address,
-        },
-        body: JSON.stringify({
-          action: 'get-user'
-        })
-      });
-
-      const userResult = await userCheckResponse.json();
+      // Use direct database query instead of Edge Function
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('wallet_address', account.address)
+        .single();
+      
+      const userResult = {
+        success: !userError,
+        user: userData,
+        action: userData ? 'found' : 'not_found'
+      };
       
       console.log('🔍 User registration check result:', {
         success: userResult.success,
@@ -146,19 +146,19 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       // Validate referrer exists and is a registered member
       setCurrentStep(t('claim.validatingReferrer'));
       
-      const referrerCheckResponse = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-wallet-address': account.address,
-        },
-        body: JSON.stringify({
-          action: 'validate-referrer',
-          referrerWallet: referrerWallet
-        })
-      });
-
-      const referrerResult = await referrerCheckResponse.json();
+      // Check if referrer exists in members table (activated member)
+      const { data: referrerData, error: referrerError } = await supabase
+        .from('members')
+        .select('wallet_address, current_level')
+        .eq('wallet_address', referrerWallet)
+        .single();
+      
+      const referrerResult = {
+        success: !referrerError && referrerData,
+        isValid: !referrerError && referrerData && referrerData.current_level > 0,
+        referrer: referrerData,
+        error: referrerError?.message
+      };
       
       console.log('🔍 Referrer validation result:', referrerResult);
       

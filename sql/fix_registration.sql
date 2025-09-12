@@ -12,6 +12,7 @@ DECLARE
     v_result JSON;
     v_user_exists BOOLEAN := FALSE;
     v_member_exists BOOLEAN := FALSE;
+    v_activation_sequence INTEGER;
 BEGIN
     -- Check if user already exists
     SELECT EXISTS(SELECT 1 FROM users WHERE wallet_address = p_wallet_address) INTO v_user_exists;
@@ -23,7 +24,6 @@ BEGIN
             wallet_address, 
             username, 
             email, 
-            referrer_wallet,
             role,
             created_at,
             updated_at
@@ -31,7 +31,6 @@ BEGIN
             p_wallet_address,
             COALESCE(p_username, 'User_' || RIGHT(p_wallet_address, 6)),
             p_email,
-            p_referrer_wallet,
             'member',
             NOW(),
             NOW()
@@ -41,28 +40,28 @@ BEGIN
         UPDATE users SET
             username = COALESCE(p_username, username),
             email = COALESCE(p_email, email),
-            referrer_wallet = COALESCE(p_referrer_wallet, referrer_wallet),
             updated_at = NOW()
         WHERE wallet_address = p_wallet_address;
     END IF;
     
     -- If member doesn't exist and has referrer, create basic member record
     IF NOT v_member_exists AND p_referrer_wallet IS NOT NULL THEN
+        -- Get next activation sequence
+        SELECT COALESCE(MAX(activation_sequence), 0) + 1 
+        INTO v_activation_sequence 
+        FROM members;
+        
         INSERT INTO members (
             wallet_address,
             current_level,
-            levels_owned,
-            has_pending_rewards,
             referrer_wallet,
-            activation_time,
-            updated_at
+            activation_sequence,
+            activation_time
         ) VALUES (
             p_wallet_address,
             0,  -- Not activated yet
-            '[]'::jsonb,
-            FALSE,
             p_referrer_wallet,
-            NOW(),
+            v_activation_sequence,
             NOW()
         );
     END IF;
