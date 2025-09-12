@@ -1,6 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
-import { corsHeaders } from '../_shared/cors.ts'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-wallet-address, x-admin-token',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
+};
+
 
 interface RewardProcessingRequest {
   action: 'claim_reward' | 'process_expired' | 'check_pending' | 'rollup_expired'
@@ -227,7 +233,8 @@ async function processExpiredRewards(supabase: any): Promise<RewardProcessingRes
 
 // Check pending rewards for a specific wallet
 async function checkPendingRewards(supabase: any, walletAddress: string): Promise<RewardProcessingResponse> {
-  console.log(`= Checking pending rewards for: ${walletAddress}`)
+  console.log(`=
+ Checking pending rewards for: ${walletAddress}`)
 
   try {
     // Get all pending rewards for the wallet
@@ -438,7 +445,8 @@ async function processExpiredReward(supabase: any, reward: any): Promise<{rolled
 
 // Find next qualified upline member
 async function findNextQualifiedUpline(supabase: any, currentRoot: string, requiredLevel: number): Promise<string | null> {
-  console.log(`= Finding next qualified upline for ${currentRoot}, level ${requiredLevel}`)
+  console.log(`=
+ Finding next qualified upline for ${currentRoot}, level ${requiredLevel}`)
 
   try {
     // Find the referrer of the current root

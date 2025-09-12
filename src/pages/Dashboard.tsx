@@ -6,7 +6,7 @@ import { useToast } from '../hooks/use-toast';
 import Navigation from '../components/shared/Navigation';
 import { 
   supabase
-} from '../lib/supabaseClient';
+} from '../lib/supabase';
 import { 
   Users, 
   DollarSign,
@@ -121,24 +121,23 @@ export default function Dashboard() {
       
       // 并行查询直推人数和总团队人数
       const [directReferralsResult, totalTeamResult, maxLayerResult] = await Promise.allSettled([
-        // 查询直推人数 (第一层)
+        // 查询直推人数 - 从members表查询referrer_wallet
         supabase
-          .from('referrals')
+          .from('members')
           .select('*', { count: 'exact', head: true })
-          .ilike('matrix_parent', walletAddress)
-          .eq('matrix_layer', 1),
+          .eq('referrer_wallet', walletAddress),
         
-        // 查询总团队人数
-        supabase
-          .from('referrals')
-          .select('*', { count: 'exact', head: true })
-          .ilike('matrix_root', walletAddress),
+        // 查询总团队人数 - 使用get_matrix_downline RPC函数
+        supabase.rpc('get_matrix_downline', { 
+          p_root_wallet: walletAddress, 
+          p_max_depth: 19 
+        }),
         
         // 查询最大层级
         supabase
           .from('referrals')
           .select('matrix_layer')
-          .ilike('matrix_root', walletAddress)
+          .ilike('matrix_root_wallet', walletAddress)
           .order('matrix_layer', { ascending: false })
           .limit(1)
       ]);
@@ -147,8 +146,8 @@ export default function Dashboard() {
         ? (directReferralsResult.value.count || 0) 
         : 0;
 
-      const totalTeamSize = totalTeamResult.status === 'fulfilled' 
-        ? (totalTeamResult.value.count || 0) 
+      const totalTeamSize = totalTeamResult.status === 'fulfilled' && totalTeamResult.value.data
+        ? (totalTeamResult.value.data.length || 0) 
         : 0;
 
       const maxLayer = maxLayerResult.status === 'fulfilled' && maxLayerResult.value.data?.[0]
@@ -178,18 +177,18 @@ export default function Dashboard() {
     try {
       console.log('🏆 Fetching reward data from database for:', walletAddress);
       
-      // 查询奖励统计
+      // 查询奖励统计 - 使用正确的layer_rewards表
       const { data: rewardData, error: rewardError } = await supabase
-        .from('reward_claims')
+        .from('layer_rewards')
         .select(`
           id,
-          reward_amount_usdc,
+          reward_amount,
           status,
           created_at,
           expires_at,
           claimed_at
         `)
-        .ilike('root_wallet', walletAddress)
+        .ilike('reward_recipient_wallet', walletAddress)
         .order('created_at', { ascending: false });
 
       if (rewardError) {
@@ -201,13 +200,13 @@ export default function Dashboard() {
 
       if (rewardData) {
         // 计算各种奖励统计
-        const claimedRewards = rewardData.filter(r => r.status === 'completed');
+        const claimedRewards = rewardData.filter(r => r.status === 'claimed');
         const pendingRewards = rewardData.filter(r => r.status === 'pending');
-        const availableRewards = rewardData.filter(r => r.status === 'available');
+        const availableRewards = rewardData.filter(r => r.status === 'claimable');
 
-        const totalClaimed = claimedRewards.reduce((sum, reward) => sum + Number(reward.reward_amount_usdc || 0), 0);
-        const totalPending = pendingRewards.reduce((sum, reward) => sum + Number(reward.reward_amount_usdc || 0), 0);
-        const totalAvailable = availableRewards.reduce((sum, reward) => sum + Number(reward.reward_amount_usdc || 0), 0);
+        const totalClaimed = claimedRewards.reduce((sum, reward) => sum + Number(reward.reward_amount || 0), 0);
+        const totalPending = pendingRewards.reduce((sum, reward) => sum + Number(reward.reward_amount || 0), 0);
+        const totalAvailable = availableRewards.reduce((sum, reward) => sum + Number(reward.reward_amount || 0), 0);
 
         console.log('🏆 Calculated reward stats:', { totalClaimed, totalPending, totalAvailable });
 
@@ -351,7 +350,7 @@ export default function Dashboard() {
     const rewardSubscription = supabase
       .channel('reward_changes')
       .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'reward_claims', filter: `root_wallet=ilike.${walletAddress}` },
+        { event: '*', schema: 'public', table: 'layer_rewards', filter: `reward_recipient_wallet=ilike.${walletAddress}` },
         (payload: any) => {
           console.log('🏆 Rewards updated:', payload);
           loadRewardData();
@@ -425,9 +424,9 @@ export default function Dashboard() {
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-honey flex-shrink-0"></div>
               <span className="text-xs sm:text-sm text-muted-foreground">
                 {t('dashboard.loadingData')}
-                {loadingState.balance && ' 余额'}
-                {loadingState.matrix && ' 网络'}
-                {loadingState.rewards && ' 奖励'}
+                {loadingState.balance && ` ${t('dashboard.balance')}`}
+                {loadingState.matrix && ` ${t('dashboard.network')}`}
+                {loadingState.rewards && ` ${t('dashboard.rewards')}`}
               </span>
             </div>
           )}

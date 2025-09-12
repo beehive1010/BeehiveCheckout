@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronRight, Users, Trophy, ArrowLeft, Home } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabase';
 import { useI18n } from '@/contexts/I18nContext';
 
 interface MatrixMember {
@@ -55,43 +55,58 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
     setError(null);
 
     try {
-      // 直接从referrals表获取矩阵数据
+      // 使用database function获取矩阵数据，或者fallback到view
       const { data: result, error } = await supabase
-        .from('referrals')
+        .from('matrix_structure_view')
         .select('*')
-        .eq('matrix_root', walletAddress);
+        .eq('root_wallet', walletAddress);
       
       if (result && result.length > 0) {
-        // Find layer 1 members under this member as matrix_root
-        const directReferrals = result.filter((ref: any) => 
-          ref.matrix_root === walletAddress && 
-          ref.matrix_layer === 1 // Layer 1 under this root
-        );
+        // matrix_structure_view provides L, M, R positions directly
+        const matrixRow = result[0]; // Should be one row per root
 
-        console.log(`🔍 Matrix data for ${walletAddress}:`, {
-          totalMatrix: result.length,
-          directReferrals: directReferrals.length,
-          directReferralPositions: directReferrals.map(r => `${r.matrix_position}`)
-        });
+        console.log(`🔍 Matrix data for ${walletAddress}:`, matrixRow);
 
-        // Group by position
-        const leftMembers = directReferrals
-          .filter((ref: any) => ref.matrix_position === 'L')
-          .map(transformToMatrixMember);
+        // Extract L, M, R members from the view
+        const leftMembers = matrixRow.l_wallet ? [{
+          walletAddress: matrixRow.l_wallet,
+          username: matrixRow.l_username || `User${matrixRow.l_wallet.slice(-4)}`,
+          level: matrixRow.l_level || 1,
+          isActive: true,
+          layer: 1,
+          position: 'L' as const,
+          placedAt: new Date().toISOString()
+        }] : [];
         
-        const middleMembers = directReferrals
-          .filter((ref: any) => ref.matrix_position === 'M')
-          .map(transformToMatrixMember);
+        const middleMembers = matrixRow.m_wallet ? [{
+          walletAddress: matrixRow.m_wallet,
+          username: matrixRow.m_username || `User${matrixRow.m_wallet.slice(-4)}`,
+          level: matrixRow.m_level || 1,
+          isActive: true,
+          layer: 1,
+          position: 'M' as const,
+          placedAt: new Date().toISOString()
+        }] : [];
         
-        const rightMembers = directReferrals
-          .filter((ref: any) => ref.matrix_position === 'R')
-          .map(transformToMatrixMember);
+        const rightMembers = matrixRow.r_wallet ? [{
+          walletAddress: matrixRow.r_wallet,
+          username: matrixRow.r_username || `User${matrixRow.r_wallet.slice(-4)}`,
+          level: matrixRow.r_level || 1,
+          isActive: true,
+          layer: 1,
+          position: 'R' as const,
+          placedAt: new Date().toISOString()
+        }] : [];
 
         // Create current member info
         const currentMember: MatrixMember = {
           walletAddress: walletAddress,
-          username: isRoot ? (rootUser?.username || `User${walletAddress.slice(-4)}`) : `User${walletAddress.slice(-4)}`,
-          level: isRoot ? (rootUser?.currentLevel || 1) : 1,
+          username: isRoot 
+            ? (rootUser?.username || matrixRow.root_username || `User${walletAddress.slice(-4)}`) 
+            : (matrixRow.root_username || `User${walletAddress.slice(-4)}`),
+          level: isRoot 
+            ? (rootUser?.currentLevel || matrixRow.root_level || 1) 
+            : (matrixRow.root_level || 1),
           isActive: true,
           layer: navigationPath.length,
           position: navigationPath.length > 0 ? (navigationPath[navigationPath.length - 1].position || 'L') : 'L'
@@ -140,19 +155,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
     }
   };
 
-  const transformToMatrixMember = (referral: any): MatrixMember => {
-    const normalizedPosition: 'L' | 'M' | 'R' = referral.matrix_position;
-    
-    return {
-      walletAddress: referral.member_wallet,
-      username: `User${referral.member_wallet.slice(-4)}`,
-      level: 1,
-      isActive: true,
-      layer: navigationPath.length + 1,
-      position: normalizedPosition,
-      placedAt: referral.created_at
-    };
-  };
+  // transformToMatrixMember function no longer needed as we use matrix_structure_view
 
   const handleMemberClick = async (member: MatrixMember) => {
     if (!member.walletAddress) return;

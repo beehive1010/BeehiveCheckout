@@ -7,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-console.log(`简化的Auth函数启动成功!`)
+console.log(`更新的Auth函数启动成功! - 使用新的数据库结构`)
 
 serve(async (req) => {
   // Handle CORS
@@ -48,7 +48,6 @@ serve(async (req) => {
       case 'validate-referrer':
         result = await validateReferrer(supabase, data.referrerWallet);
         break;
-      // activate-membership功能已移除 - 只能通过NFT claim验证后激活
       default:
         throw new Error(`未知操作: ${action}`);
     }
@@ -67,118 +66,78 @@ serve(async (req) => {
   }
 })
 
-// 简单的用户注册函数
+// 用户注册函数 - 使用新的数据库流程
 async function registerUser(supabase, walletAddress, data) {
   console.log(`👤 注册用户: ${walletAddress}`);
   
-  // 检查用户是否已存在（使用大小写不敏感查询）
-  const { data: existingUser } = await supabase
-    .from('users')
-    .select(`
-      wallet_address,
-      referrer_wallet,
-      username,
-      email,
-      is_upgraded,
-      upgrade_timer_enabled,
-      created_at,
-      updated_at
-    `)
-    .ilike('wallet_address', walletAddress)
-    .single();
+  try {
+    // 使用数据库函数处理完整的用户注册流程
+    const { data: registrationResult, error } = await supabase.rpc('process_user_registration', {
+      p_wallet_address: walletAddress,
+      p_username: data.username || `user_${walletAddress.slice(-6)}`,
+      p_referrer_wallet: data.referrerWallet || data.referrer_wallet
+    });
 
-  if (existingUser) {
-    // 隐藏根钱包地址
-    const ROOT_WALLET = '0x0000000000000000000000000000000000000001';
-    const sanitizedUser = {
-      ...existingUser,
-      referrer_wallet: existingUser?.referrer_wallet === ROOT_WALLET ? null : existingUser?.referrer_wallet,
-    };
+    if (error) {
+      console.error('用户注册错误:', error);
+      throw new Error(`注册失败: ${error.message}`);
+    }
 
+    const result = typeof registrationResult === 'string' ? JSON.parse(registrationResult) : registrationResult;
+    
+    if (!result.success) {
+      throw new Error(result.message);
+    }
+
+    // 获取创建的用户信息
+    const { data: userData } = await supabase
+      .from('users')
+      .select(`
+        wallet_address,
+        username,
+        created_at
+      `)
+      .eq('wallet_address', walletAddress)
+      .single();
+
+    const { data: memberData } = await supabase
+      .from('members')
+      .select(`
+        activation_sequence,
+        current_level,
+        referrer_wallet,
+        created_at
+      `)
+      .eq('wallet_address', walletAddress)
+      .single();
+
+    console.log(`✅ 用户注册成功: ${walletAddress}, sequence: ${result.activation_sequence}`);
+    
     return {
       success: true,
-      action: 'exists',
-      user: sanitizedUser,
-      message: '用户已存在'
+      action: result.action,
+      user: userData,
+      member: memberData,
+      activation_sequence: result.activation_sequence,
+      message: result.action === 'existing_user' ? '用户已存在' : '用户注册成功 - 请申领NFT激活会员身份'
     };
+
+  } catch (error) {
+    console.error('注册过程错误:', error);
+    throw error;
   }
-
-  // 处理推荐人信息（只记录在users表，不操作members/referrals表）
-  const ROOT_WALLET = '0x0000000000000000000000000000000000000001';
-  let referrerWallet = ROOT_WALLET;
-  
-  // 修复：正确处理推荐人参数，确保参数传递正确
-  const inputReferrer = data.referrerWallet || data.referrer_wallet;
-  if (inputReferrer && inputReferrer !== ROOT_WALLET) {
-    // 验证推荐人是否为激活会员 - CRITICAL: This ensures chain sync only happens for registered users with valid referrers
-    const referrerValidation = await validateReferrer(supabase, inputReferrer);
-    if (!referrerValidation.isValid) {
-      throw new Error(`Invalid referrer: ${referrerValidation.error} - Chain synchronization requires valid activated member as referrer`);
-    }
-    
-    referrerWallet = inputReferrer; // 保持原始大小写  
-    console.log(`📝 推荐人验证通过，正在记录: ${inputReferrer} -> ${referrerWallet}`);
-  } else {
-    throw new Error('Valid activated member referrer is required for registration before any chain synchronization can occur');
-  }
-  
-  console.log(`🔍 最终推荐人地址: ${referrerWallet}`);
-
-  // 确保不能自我推荐（比较时使用小写，但存储保持原始大小写）
-  if (referrerWallet.toLowerCase() === walletAddress.toLowerCase()) {
-    throw new Error('Self-referral is not allowed');
-  }
-
-  // 生成用户名（如果未提供）
-  let username = data.username;
-  if (!username) {
-    const timestamp = Date.now();
-    username = `user_${walletAddress.slice(-6)}_${timestamp}_${Math.random().toString(36).slice(2, 6)}`;
-  }
-
-  // 创建用户记录
-  const { data: newUser, error: userError } = await supabase
-    .from('users')
-    .insert({
-      wallet_address: walletAddress,
-      referrer_wallet: referrerWallet,
-      username: username,
-      email: data.email || null,
-      is_upgraded: false,
-      upgrade_timer_enabled: false
-    })
-    .select()
-    .single();
-
-  if (userError) {
-    console.error('用户创建错误:', userError);
-    throw new Error(`注册失败: ${userError.message}`);
-  }
-
-  console.log(`✅ 用户注册成功: ${walletAddress}`);
-  
-  return {
-    success: true,
-    action: 'created',
-    user: newUser,
-    message: '用户注册成功 - 请申领Level 1 NFT激活会员身份'
-  };
 }
 
-// 简单的获取用户函数
+// 获取用户函数 - 使用新的数据库结构
 async function getUser(supabase, walletAddress) {
   console.log(`👤 获取用户: ${walletAddress}`);
 
-  // 只从users表获取基本信息（使用大小写不敏感查询）
+  // 获取用户基本信息
   const { data: userData, error: userError } = await supabase
     .from('users')
     .select(`
       wallet_address,
-      referrer_wallet,
       username,
-      email,
-      is_upgraded,
-      upgrade_timer_enabled,
       created_at,
       updated_at
     `)
@@ -190,46 +149,77 @@ async function getUser(supabase, walletAddress) {
       return {
         success: false,
         action: 'not_found',
-        isRegistered: false, // 用户不存在，未注册
+        isRegistered: false,
         message: '用户不存在'
       };
     }
     throw new Error(`获取用户失败: ${userError.message}`);
   }
 
-  // 检查用户是否为激活会员 - 快速数据库检查（使用大小写不敏感查询）
-  const { data: memberData, error: memberError } = await supabase
+  // 获取会员信息（如果存在）
+  const { data: memberData } = await supabase
     .from('members')
-    .select('current_level')
+    .select(`
+      activation_sequence,
+      current_level,
+      referrer_wallet,
+      created_at
+    `)
     .ilike('wallet_address', walletAddress)
     .single();
-  
-  // 如果用户在members表中存在且有等级，则视为激活会员
-  const isMember = !!memberData && memberData.current_level > 0;
-  const membershipLevel = memberData?.current_level || 0;
-  
-  console.log(`🔍 会员状态检查 ${walletAddress}: member=${!!memberData}, level=${membershipLevel}, error=${memberError?.code}`);
 
-  // 隐藏根钱包地址
-  const ROOT_WALLET = '0x0000000000000000000000000000000000000001';
-  const sanitizedUser = {
-    ...userData,
-    referrer_wallet: userData?.referrer_wallet === ROOT_WALLET ? null : userData?.referrer_wallet,
-  };
+  // 获取用户余额信息
+  const { data: balanceData } = await supabase
+    .from('user_balances')
+    .select(`
+      available_balance,
+      total_earned,
+      bcc_balance,
+      last_updated
+    `)
+    .eq('wallet_address', walletAddress)
+    .single();
+
+  // 如果是会员，获取推荐统计
+  let referralStats = null;
+  if (memberData) {
+    const { data: directReferrals } = await supabase
+      .from('referrals')
+      .select('member_wallet')
+      .eq('referrer_wallet', walletAddress)
+      .eq('is_direct_referral', true);
+
+    const { data: matrixMembers } = await supabase
+      .from('referrals')
+      .select('member_wallet')
+      .eq('matrix_root_wallet', walletAddress);
+
+    referralStats = {
+      direct_referrals: directReferrals?.length || 0,
+      matrix_members: matrixMembers?.length || 0
+    };
+  }
+
+  const isMember = !!memberData && memberData.current_level > 0;
+  
+  console.log(`🔍 用户状态: member=${!!memberData}, level=${memberData?.current_level || 0}`);
 
   return {
     success: true,
     action: 'found',
-    user: sanitizedUser,
-    isRegistered: true, // 用户存在就表示已注册
-    isMember, // 关键：返回会员激活状态
-    membershipLevel,
-    canAccessReferrals: isMember, // 激活会员可访问推荐功能
+    user: userData,
+    member: memberData,
+    balance: balanceData,
+    referral_stats: referralStats,
+    isRegistered: true,
+    isMember,
+    membershipLevel: memberData?.current_level || 0,
+    canAccessReferrals: isMember,
     message: '用户信息获取成功'
   };
 }
 
-// 验证推荐人是否为激活会员
+// 验证推荐人函数 - 使用新的数据库结构
 async function validateReferrer(supabase, referrerWallet) {
   console.log(`🔍 验证推荐人: ${referrerWallet}`);
   
@@ -241,11 +231,11 @@ async function validateReferrer(supabase, referrerWallet) {
     };
   }
   
-  // 首先检查推荐人是否为已注册用户（使用小写比较但保持原始大小写）
+  // 检查推荐人是否为已注册用户
   const { data: userData, error: userError } = await supabase
     .from('users')
     .select('wallet_address, username')
-    .ilike('wallet_address', referrerWallet) // 使用 ilike 进行大小写不敏感查询
+    .ilike('wallet_address', referrerWallet)
     .single();
   
   if (userError || !userData) {
@@ -257,12 +247,11 @@ async function validateReferrer(supabase, referrerWallet) {
     };
   }
   
-  // CRITICAL: 检查推荐人是否为激活会员（必须在members表中且current_level > 0）
-  // This is essential for chain synchronization - only activated members can refer new users
+  // 检查推荐人是否为激活会员
   const { data: memberData, error: memberError } = await supabase
     .from('members')
-    .select('current_level, wallet_address')
-    .ilike('wallet_address', referrerWallet) // 使用 ilike 进行大小写不敏感查询
+    .select('current_level, activation_sequence, wallet_address')
+    .ilike('wallet_address', referrerWallet)
     .single();
   
   if (memberError || !memberData || memberData.current_level < 1) {
@@ -270,26 +259,35 @@ async function validateReferrer(supabase, referrerWallet) {
     return {
       success: false,
       isValid: false,
-      error: 'Referrer is not an activated member (must have Level 1+ membership). Chain sync and activation require activated member referrers only.'
+      error: 'Referrer is not an activated member (must have Level 1+ membership)'
     };
   }
   
-  console.log(`✅ 推荐人验证通过: ${referrerWallet}, level: ${memberData.current_level}`);
+  // 获取推荐人的推荐统计
+  const { data: directReferrals } = await supabase
+    .from('referrals')
+    .select('member_wallet')
+    .eq('referrer_wallet', referrerWallet)
+    .eq('is_direct_referral', true);
+
+  const { data: matrixMembers } = await supabase
+    .from('referrals')
+    .select('member_wallet')
+    .eq('matrix_root_wallet', referrerWallet);
+  
+  console.log(`✅ 推荐人验证通过: ${referrerWallet}, level: ${memberData.current_level}, 直推: ${directReferrals?.length || 0}`);
   
   return {
     success: true,
     isValid: true,
     referrer: {
-      wallet_address: userData.wallet_address, // 返回数据库中的原始大小写地址
+      wallet_address: userData.wallet_address,
       username: userData.username,
-      current_level: memberData.current_level
+      current_level: memberData.current_level,
+      activation_sequence: memberData.activation_sequence,
+      direct_referrals_count: directReferrals?.length || 0,
+      matrix_members_count: matrixMembers?.length || 0
     },
     message: 'Referrer is a valid activated member'
   };
 }
-
-// 
-// ⚠️ SECURITY: activate-membership功能已禁用
-// 只能通过NFT claim transaction验证后才能激活会员身份
-// 绝对不允许空插入members表
-//

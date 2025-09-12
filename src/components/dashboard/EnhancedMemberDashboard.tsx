@@ -32,7 +32,8 @@ import {
 import { useI18n } from '../../contexts/I18nContext';
 import { useWallet } from '../../hooks/useWallet';
 import CountdownTimer from '../rewards/CountdownTimer';
-import { typedApiClient } from '../../lib/apiClient';
+import { PendingRewardsTimer } from '../rewards/PendingRewardsTimer';
+import { supabase } from '../../lib/supabase';
 
 interface DashboardStats {
   user: {
@@ -88,34 +89,52 @@ export function EnhancedMemberDashboard({ className = "" }: EnhancedMemberDashbo
   const { walletAddress, userData } = useWallet();
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Fetch comprehensive dashboard data
+  // Fetch comprehensive dashboard data using new auth function
   const { data: dashboardStats, isLoading, error, refetch } = useQuery({
-    queryKey: ['/api/dashboard/enhanced-stats', walletAddress],
+    queryKey: ['/dashboard/enhanced-stats', walletAddress],
     enabled: !!walletAddress,
     refetchInterval: 30000, // Refresh every 30 seconds
     queryFn: async (): Promise<DashboardStats> => {
-      const response = await fetch('/api/dashboard/enhanced-stats', {
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/auth`, {
+        method: 'POST',
         headers: {
-          'X-Wallet-Address': walletAddress!,
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabase.supabaseKey}`,
+          'x-wallet-address': walletAddress!,
         },
+        body: JSON.stringify({
+          action: 'get-dashboard-stats'
+        })
       });
       
       if (!response.ok) {
         throw new Error('Failed to fetch dashboard stats');
       }
       
-      return response.json();
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch dashboard stats');
+      }
+      
+      return result.data;
     },
   });
 
-  // Fetch active countdown timers
-  const { data: activeTimers } = useQuery({
-    queryKey: ['/api/rewards/timers', walletAddress],
-    enabled: !!walletAddress,
-    refetchInterval: 5000, // Update timers every 5 seconds
+  // Matrix view state
+  const [matrixData, setMatrixData] = useState<any>(null);
+  
+  // Fetch Matrix view data for team tab
+  const { data: matrixView } = useQuery({
+    queryKey: ['/matrix/1x3-view', walletAddress],
+    enabled: !!walletAddress && activeTab === 'team',
     queryFn: async () => {
-      const response = await typedApiClient.getPendingRewards(walletAddress!);
-      return response.data?.pending_rewards || [];
+      const { data, error } = await supabase.rpc('get_1x3_matrix_view', {
+        p_wallet_address: walletAddress!,
+        p_levels: 3
+      });
+
+      if (error) throw error;
+      return data;
     },
   });
 
@@ -133,7 +152,7 @@ export function EnhancedMemberDashboard({ className = "" }: EnhancedMemberDashbo
     return (
       <Card className={className}>
         <CardContent className="pt-6 text-center">
-          <p className="text-muted-foreground">Please connect your wallet to view your dashboard</p>
+          <p className="text-muted-foreground">{t('dashboard.connectWallet')}</p>
         </CardContent>
       </Card>
     );
@@ -163,9 +182,9 @@ export function EnhancedMemberDashboard({ className = "" }: EnhancedMemberDashbo
       <Card className={`border-destructive/20 ${className}`}>
         <CardContent className="pt-6 text-center">
           <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
-          <p className="text-destructive">Failed to load dashboard data</p>
+          <p className="text-destructive">{t('dashboard.loadError')}</p>
           <Button variant="outline" onClick={() => refetch()} className="mt-4">
-            Retry
+            {t('common.retry')}
           </Button>
         </CardContent>
       </Card>
@@ -230,7 +249,7 @@ export function EnhancedMemberDashboard({ className = "" }: EnhancedMemberDashbo
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Earned</p>
+                <p className="text-sm font-medium text-muted-foreground">{t('dashboard.totalEarned')}</p>
                 <p className="text-2xl font-bold text-honey">${rewards.total_earned_usdt}</p>
                 <p className="text-xs text-green-400">USDT</p>
               </div>
@@ -243,9 +262,9 @@ export function EnhancedMemberDashboard({ className = "" }: EnhancedMemberDashbo
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Team Size</p>
+                <p className="text-sm font-medium text-muted-foreground">{t('dashboard.teamSize')}</p>
                 <p className="text-2xl font-bold text-blue-400">{membership.total_team_size}</p>
-                <p className="text-xs text-blue-400">{membership.direct_referrals} direct</p>
+                <p className="text-xs text-blue-400">{membership.direct_referrals} {t('dashboard.direct')}</p>
               </div>
               <Users className="h-8 w-8 text-blue-400" />
             </div>
@@ -279,30 +298,14 @@ export function EnhancedMemberDashboard({ className = "" }: EnhancedMemberDashbo
         </Card>
       </div>
 
-      {/* Active Countdown Timers */}
-      {activeTimers && activeTimers.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-honey flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Active Countdown Timers
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {activeTimers.slice(0, 4).map((timer: any) => (
-              <CountdownTimer
-                key={timer.id}
-                endTime={timer.expires_at}
-                title={`Layer ${timer.layer} Reward`}
-                description={`Upgrade to Level ${timer.required_level} to claim this reward`}
-                rewardAmount={timer.amount}
-                canUpgrade={timer.can_upgrade}
-                onUpgrade={() => handleUpgrade(timer.required_level)}
-                variant="detailed"
-                urgencyColors={true}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Pending Rewards Timer */}
+      <PendingRewardsTimer 
+        walletAddress={walletAddress}
+        onRewardClaimable={(rewardId) => {
+          console.log('Reward now claimable:', rewardId);
+          refetch(); // Refresh dashboard stats when reward becomes claimable
+        }}
+      />
 
       {/* Detailed Analytics Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
@@ -451,19 +454,53 @@ export function EnhancedMemberDashboard({ className = "" }: EnhancedMemberDashbo
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-honey">
                   <Network className="h-5 w-5" />
-                  Matrix Performance
+                  {t('dashboard.matrixPerformance')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center">
-                  <div className="text-sm text-muted-foreground mb-4">
-                    Matrix visualization and performance metrics would go here
+                {matrixView && matrixView.length > 0 ? (
+                  <div className="space-y-4">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-honey mb-2">
+                        {t('dashboard.matrixRoots', { count: matrixView.length })}
+                      </div>
+                      <div className="text-xs text-muted-foreground mb-4">
+                        {t('dashboard.showingLevels', { levels: 3 })}
+                      </div>
+                    </div>
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {matrixView.slice(0, 5).map((root: any, index: number) => (
+                        <div key={root.wallet_address} className="flex items-center justify-between p-2 bg-honey/5 rounded">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs">
+                              L{root.current_level}
+                            </Badge>
+                            <span className="text-sm font-medium">
+                              {root.username || `${root.wallet_address.slice(0, 6)}...`}
+                            </span>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {root.total_downline} {t('dashboard.downline')}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <Button variant="outline" className="w-full">
+                      <BarChart3 className="mr-2 h-4 w-4" />
+                      {t('dashboard.viewDetailedMatrix')}
+                    </Button>
                   </div>
-                  <Button variant="outline" className="w-full">
-                    <BarChart3 className="mr-2 h-4 w-4" />
-                    View Detailed Matrix
-                  </Button>
-                </div>
+                ) : (
+                  <div className="text-center">
+                    <div className="text-sm text-muted-foreground mb-4">
+                      {t('dashboard.noMatrixData')}
+                    </div>
+                    <Button variant="outline" className="w-full">
+                      <BarChart3 className="mr-2 h-4 w-4" />
+                      {t('dashboard.viewDetailedMatrix')}
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

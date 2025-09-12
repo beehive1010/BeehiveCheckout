@@ -79,7 +79,7 @@ export default function Rewards() {
       const { data: rewardsData, error: rewardsError } = await supabase
         .from('layer_rewards')
         .select('*')
-        .eq('recipient_wallet', walletAddress)
+        .eq('reward_recipient_wallet', walletAddress)
         .order('created_at', { ascending: false });
 
       if (rewardsError) {
@@ -87,14 +87,14 @@ export default function Rewards() {
         throw new Error(`Failed to fetch rewards: ${rewardsError.message}`);
       }
 
-      // Calculate totals
-      const claimedRewards = rewardsData?.filter(r => r.is_claimed) || [];
-      const pendingRewards = rewardsData?.filter(r => r.reward_type === 'pending_layer_reward') || [];
-      const claimableRewards = rewardsData?.filter(r => r.reward_type === 'layer_reward' && !r.is_claimed) || [];
+      // Calculate totals based on status field
+      const claimedRewards = rewardsData?.filter(r => r.status === 'claimed') || [];
+      const pendingRewards = rewardsData?.filter(r => r.status === 'pending') || [];
+      const claimableRewards = rewardsData?.filter(r => r.status === 'claimable') || [];
 
-      const totalEarned = claimedRewards.reduce((sum, r) => sum + (r.amount_usdt || 0), 0);
-      const totalPending = pendingRewards.reduce((sum, r) => sum + (r.amount_usdt || 0), 0);
-      const totalClaimable = claimableRewards.reduce((sum, r) => sum + (r.amount_usdt || 0), 0);
+      const totalEarned = claimedRewards.reduce((sum, r) => sum + (r.reward_amount || 0), 0);
+      const totalPending = pendingRewards.reduce((sum, r) => sum + (r.reward_amount || 0), 0);
+      const totalClaimable = claimableRewards.reduce((sum, r) => sum + (r.reward_amount || 0), 0);
 
       // Calculate this month's earnings
       const currentMonth = new Date().getMonth();
@@ -103,7 +103,7 @@ export default function Rewards() {
         const claimedDate = new Date(r.claimed_at || r.created_at);
         return claimedDate.getMonth() === currentMonth && claimedDate.getFullYear() === currentYear;
       });
-      const thisMonthTotal = thisMonthRewards.reduce((sum, r) => sum + (r.amount_usdt || 0), 0);
+      const thisMonthTotal = thisMonthRewards.reduce((sum, r) => sum + (r.reward_amount || 0), 0);
 
       const mappedRewards: RewardsData = {
         total: totalEarned,

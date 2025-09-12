@@ -5,9 +5,9 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
-import { Loader2, User, Mail, Users, Crown, Gift } from 'lucide-react';
+import { Loader2, User, Mail, Users, Crown, Gift, AlertCircle } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
-import { authService } from '../../lib/supabaseClient';
+import { supabase } from '../../lib/supabase';
 import { useI18n } from '../../contexts/I18nContext';
 
 interface RegistrationModalProps {
@@ -33,6 +33,15 @@ export default function RegistrationModal({
     email: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [referrerInfo, setReferrerInfo] = useState<any>(null);
+  const [validatingReferrer, setValidatingReferrer] = useState(false);
+
+  // 验证推荐人
+  useEffect(() => {
+    if (isOpen && referrerWallet) {
+      validateReferrer();
+    }
+  }, [isOpen, referrerWallet]);
 
   // Check if user already exists when modal opens
   useEffect(() => {
@@ -41,17 +50,66 @@ export default function RegistrationModal({
     }
   }, [isOpen, walletAddress]);
 
+  const validateReferrer = async () => {
+    if (!referrerWallet) return;
+    
+    setValidatingReferrer(true);
+    try {
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/auth`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabase.supabaseKey}`,
+          'x-wallet-address': walletAddress,
+        },
+        body: JSON.stringify({
+          action: 'validate-referrer',
+          referrerWallet: referrerWallet
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success && result.isValid) {
+        setReferrerInfo(result.referrer);
+      } else {
+        throw new Error(result.error || t('registration.invalidReferrer'));
+      }
+    } catch (error: any) {
+      console.error(t('registration.referrerValidationFailed'), error);
+      toast({
+        title: t('registration.referrerValidationFailed'),
+        description: error.message || t('registration.referrerNotActiveMember'),
+        variant: 'destructive',
+      });
+    } finally {
+      setValidatingReferrer(false);
+    }
+  };
+
   const checkUserExists = async () => {
     try {
-      const { exists } = await authService.userExists(walletAddress);
-      if (exists) {
-        // User already exists, close modal and notify parent
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/auth`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabase.supabaseKey}`,
+          'x-wallet-address': walletAddress,
+        },
+        body: JSON.stringify({
+          action: 'get-user'
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success && result.isRegistered) {
         onClose();
         onRegistrationComplete();
         return;
       }
     } catch (error) {
-      console.error('Error checking user existence:', error);
+      console.error(t('registration.checkUserError'), error);
     }
   };
 
@@ -70,6 +128,10 @@ export default function RegistrationModal({
       newErrors.email = t('registration.emailInvalid');
     }
 
+    if (!referrerWallet) {
+      newErrors.referrer = t('registration.referrerRequired');
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -84,44 +146,51 @@ export default function RegistrationModal({
     setIsLoading(true);
 
     try {
-      // Register user with Supabase
-      const { data, error, isExisting } = await authService.registerUser(
-        walletAddress,
-        formData.username.trim(),
-        formData.email.trim() || undefined,
-        referrerWallet
-      );
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/auth`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabase.supabaseKey}`,
+          'x-wallet-address': walletAddress,
+        },
+        body: JSON.stringify({
+          action: 'register',
+          username: formData.username.trim(),
+          email: formData.email.trim() || undefined,
+          referrerWallet: referrerWallet
+        })
+      });
 
-      if (error) {
-        throw new Error(error.message);
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || result.message || t('registration.failed'));
       }
 
       toast({
-        title: isExisting ? t('registration.welcomeBack') : t('registration.success'),
-        description: isExisting ? t('registration.accountExists') : t('registration.welcomeMessage'),
+        title: result.action === 'existing_user' ? t('registration.welcomeBack') : t('registration.success'),
+        description: result.message,
+        duration: 4000,
       });
 
-      // Clear form and close modal
+      if (result.activation_sequence !== undefined) {
+        toast({
+          title: t('registration.activationSequence'),
+          description: t('registration.activationSequenceMessage', { sequence: result.activation_sequence }),
+          duration: 4000,
+        });
+      }
+
       setFormData({ username: '', email: '' });
       onClose();
       onRegistrationComplete();
 
     } catch (error: any) {
-      console.error('Registration error:', error);
+      console.error(t('registration.registrationError'), error);
       
-      let errorMessage = t('registration.unknownError');
-      
-      if (error.message.includes('username')) {
-        errorMessage = t('registration.usernameExists');
-      } else if (error.message.includes('email')) {
-        errorMessage = t('registration.emailExists');
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
       toast({
         title: t('registration.failed'),
-        description: errorMessage,
+        description: error.message || t('registration.registrationErrorOccurred'),
         variant: 'destructive',
       });
     } finally {
@@ -164,12 +233,32 @@ export default function RegistrationModal({
                 </div>
                 
                 {referrerWallet && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">{t('registration.referredBy')}</span>
-                    <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/30">
-                      <Users className="w-3 h-3 mr-1" />
-                      {formatAddress(referrerWallet)}
-                    </Badge>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">{t('registration.referredBy')}</span>
+                      {validatingReferrer ? (
+                        <Badge variant="outline" className="bg-gray-100">
+                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                          {t('registration.validating')}
+                        </Badge>
+                      ) : referrerInfo ? (
+                        <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30">
+                          <Users className="w-3 h-3 mr-1" />
+                          {referrerInfo.username} (Level {referrerInfo.current_level})
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/30">
+                          <AlertCircle className="w-3 h-3 mr-1" />
+                          {t('registration.validationFailed')}
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    {referrerInfo && (
+                      <div className="text-xs text-muted-foreground bg-green-50 p-2 rounded">
+                        ✅ {t('registration.referrerValidated')}: {referrerInfo.direct_referrals_count}{t('registration.directReferrals')}, {referrerInfo.matrix_members_count}{t('registration.teamMembers')}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -207,10 +296,17 @@ export default function RegistrationModal({
               )}
             </div>
 
+            {errors.referrer && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-600">{errors.referrer}</p>
+              </div>
+            )}
+            </div>
+
             <Button
               type="submit"
               className="w-full bg-honey hover:bg-honey/90"
-              disabled={isLoading}
+              disabled={isLoading || validatingReferrer || !referrerInfo}
             >
               {isLoading ? (
                 <>
@@ -234,12 +330,34 @@ export default function RegistrationModal({
                 <p className="text-sm font-medium text-honey">
                   {t('registration.nextSteps')}
                 </p>
-                <p className="text-xs text-honey/80 mt-1">
-                  {t('registration.activationInfo')}
-                </p>
+                <ul className="text-xs text-honey/80 mt-1 space-y-1">
+                  <li>• {t('registration.nextStep1')}</li>
+                  <li>• {t('registration.nextStep2')}</li>
+                  <li>• {t('registration.nextStep3')}</li>
+                </ul>
               </div>
             </div>
           </div>
+
+          {/* Matrix System Info */}
+          {referrerInfo && (
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-start gap-3">
+                <Crown className="h-5 w-5 text-blue-600 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-blue-600">
+                    {t('registration.matrixAdvantages')}
+                  </p>
+                  <ul className="text-xs text-blue-600/80 mt-1 space-y-1">
+                    <li>• {t('registration.matrixFeature1')}</li>
+                    <li>• {t('registration.matrixFeature2')}</li>
+                    <li>• {t('registration.matrixFeature3')}</li>
+                    <li>• {t('registration.matrixFeature4')}</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

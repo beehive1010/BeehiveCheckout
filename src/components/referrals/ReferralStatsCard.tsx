@@ -12,7 +12,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import { useWallet } from '../../hooks/useWallet';
-import { supabase } from '../../lib/supabaseClient';
+import { supabase } from '../../lib/supabase';
 import { useI18n } from '../../contexts/I18nContext';
 
 interface ReferralStatsCardProps {
@@ -39,48 +39,82 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
     try {
       setLoading(true);
       
-      // Get basic referrals data from users table (most reliable approach)
-      const { data: basicReferrals } = await supabase
-        .from('users')
-        .select('wallet_address, username, created_at')
-        .eq('referrer_wallet', walletAddress)
-        .limit(10);
+      // Use database functions for more accurate data
+      const [matrixStatsResult, matrixDownlineResult] = await Promise.allSettled([
+        supabase.rpc('get_matrix_stats', { p_root_wallet: walletAddress }),
+        supabase.rpc('get_matrix_downline', { p_root_wallet: walletAddress, p_max_depth: 3 })
+      ]);
 
-      // Get activation status for the referrals
-      const walletAddresses = basicReferrals?.map(u => u.wallet_address) || [];
-      const { data: membersData } = await supabase
-        .from('members')
-        .select('wallet_address, current_level')
-        .in('wallet_address', walletAddresses);
+      // Extract stats data
+      let statsData = null;
+      if (matrixStatsResult.status === 'fulfilled' && matrixStatsResult.value.data) {
+        statsData = matrixStatsResult.value.data;
+      }
 
-      const activatedCount = membersData?.filter(m => m.current_level > 0).length || 0;
-      const totalReferrals = basicReferrals?.length || 0;
+      // Extract downline data
+      let downlineData = [];
+      if (matrixDownlineResult.status === 'fulfilled' && matrixDownlineResult.value.data) {
+        downlineData = matrixDownlineResult.value.data;
+      }
 
-      setMatrixStats({
-        as_root: {
-          total_team_size: totalReferrals,
-          activated_members: activatedCount,
-          max_depth: totalReferrals > 0 ? 1 : 0,
-          layer_distribution: { 1: totalReferrals }
-        },
-        overall: { 
-          network_strength: totalReferrals * 5 + activatedCount * 10 
-        }
-      });
+      // Process matrix stats
+      if (statsData) {
+        setMatrixStats(statsData);
+      } else {
+        // Fallback: Get basic referrals data from members table
+        const { data: basicReferrals } = await supabase
+          .from('members')
+          .select('wallet_address, activation_time, current_level')
+          .eq('referrer_wallet', walletAddress)
+          .limit(10);
 
-      setReferrals(basicReferrals?.map((user: any) => {
-        const memberData = membersData?.find(m => m.wallet_address === user.wallet_address);
-        return {
-          member_wallet: user.wallet_address,
-          member_name: user.username || 'Unknown',
+        const activatedCount = basicReferrals?.filter(m => m.current_level > 0).length || 0;
+        const totalReferrals = basicReferrals?.length || 0;
+
+        setMatrixStats({
+          as_root: {
+            total_team_size: totalReferrals,
+            activated_members: activatedCount,
+            max_depth: totalReferrals > 0 ? 1 : 0,
+            layer_distribution: { 1: totalReferrals }
+          },
+          overall: { 
+            network_strength: totalReferrals * 5 + activatedCount * 10 
+          }
+        });
+      }
+
+      // Process downline referrals
+      if (downlineData && downlineData.length > 0) {
+        setReferrals(downlineData.slice(0, 10).map((member: any) => ({
+          member_wallet: member.wallet_address || member.member_wallet,
+          member_name: member.username || `User${(member.wallet_address || member.member_wallet).slice(-4)}`,
+          layer: member.depth_level || 1,
+          position: member.matrix_position || 'L',
+          placement_type: member.is_direct_referral ? 'direct' : 'spillover',
+          placed_at: member.activation_date || member.placed_at,
+          is_active: member.current_level > 0 || member.is_active,
+          member_level: member.current_level || 1
+        })));
+      } else {
+        // Fallback to basic members query
+        const { data: basicReferrals } = await supabase
+          .from('members')
+          .select('wallet_address, activation_time, current_level')
+          .eq('referrer_wallet', walletAddress)
+          .limit(10);
+
+        setReferrals(basicReferrals?.map((member: any) => ({
+          member_wallet: member.wallet_address,
+          member_name: `User${member.wallet_address.slice(-4)}`,
           layer: 1,
           position: 'L',
           placement_type: 'direct',
-          placed_at: user.created_at,
-          is_active: !!memberData,
-          member_level: memberData?.current_level || 0
-        };
-      }) || []);
+          placed_at: member.activation_time,
+          is_active: member.current_level > 0,
+          member_level: member.current_level || 0
+        })) || []);
+      }
 
     } catch (error) {
       console.error('Failed to load referral data:', error);

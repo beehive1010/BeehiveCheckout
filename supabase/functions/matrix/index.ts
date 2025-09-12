@@ -1,7 +1,7 @@
 // =============================================
-// Beehive Platform - Matrix Management Edge Function (FIXED)
-// Handles 3x3 spillover matrix, placement, and 19-layer tree structure with L-M-R positioning
-// Compatible with new recursive 3x3 spillover referral system
+// Beehive Platform - Comprehensive Matrix Management Edge Function
+// Handles 3x3 spillover matrix, placement, 19-layer tree structure, and referral operations
+// Consolidates matrix and matrix-operations functionality
 // =============================================
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -16,7 +16,6 @@ const corsHeaders = {
 // INTERFACES AND TYPES
 // =============================================
 
-// MatrixPosition interface for type safety
 interface MatrixPosition {
   wallet_address: string;
   root_wallet: string;
@@ -54,28 +53,34 @@ serve(async (req) => {
     );
 
     const walletAddress = req.headers.get('x-wallet-address');
+    const url = new URL(req.url);
+    
     let requestData;
+    let action;
 
-    try {
-      requestData = await req.json();
-    } catch {
-      return new Response(JSON.stringify({
-        success: false,
-        error: 'Invalid JSON payload'
-      }), {
-        status: 400,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
-      });
+    // Handle both POST with JSON body and GET with query params
+    if (req.method === 'POST') {
+      try {
+        requestData = await req.json();
+        action = requestData.action;
+      } catch {
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'Invalid JSON payload'
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    } else {
+      action = url.searchParams.get('action');
+      requestData = Object.fromEntries(url.searchParams.entries());
     }
-
-    const { action } = requestData;
 
     console.log(`🔷 Matrix Operations Action: ${action} for wallet: ${walletAddress}`);
 
     switch (action) {
+      // Advanced Matrix Operations (3x3 Spillover System)
       case 'get-matrix':
         return await handleGetMatrix(supabase, walletAddress, requestData);
       case 'place-member':
@@ -90,16 +95,44 @@ serve(async (req) => {
         return await handleFindOptimalPosition(supabase, walletAddress, requestData);
       case 'process-spillover':
         return await handleProcessSpillover(supabase, walletAddress, requestData);
+      
+      // Simple Referral Operations
+      case 'get-matrix-structure':
+        return await getMatrixStructure(supabase, walletAddress || requestData.rootWallet);
+      case 'get-placement-info':
+        return await getPlacementInfo(supabase, walletAddress!);
+      case 'find-optimal-placement':
+        const referrerWallet = requestData.referrer_wallet || requestData.referrerWallet;
+        if (!referrerWallet) {
+          throw new Error('Referrer wallet required for placement search');
+        }
+        return await findOptimalPlacement(supabase, referrerWallet, walletAddress!);
+      case 'get-matrix-statistics':
+        return await getMatrixStatistics(supabase, walletAddress);
+      case 'get-layer-analysis':
+        const layer = parseInt(requestData.layer || '1');
+        return await getLayerAnalysis(supabase, walletAddress, layer);
+      case 'check-spillover-opportunities':
+        return await checkSpilloverOpportunities(supabase, walletAddress!);
+      case 'sync-matrix-data':
+        return await syncMatrixData(supabase);
+      case 'get-reward-eligibility':
+        const checkLayer = parseInt(requestData.layer || '1');
+        return await getRewardEligibility(supabase, walletAddress!, checkLayer);
+      case 'simulate-placement':
+        const simReferrer = requestData.referrer_wallet || requestData.referrerWallet;
+        if (!simReferrer) {
+          throw new Error('Referrer wallet required for simulation');
+        }
+        return await simulatePlacement(supabase, simReferrer, walletAddress!);
+      
       default:
         return new Response(JSON.stringify({
           success: false,
           error: 'Invalid action'
         }), {
           status: 400,
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json'
-          }
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
     }
   } catch (error) {
@@ -109,32 +142,25 @@ serve(async (req) => {
       error: 'Internal server error',
       message: error.message
     }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json'
-      },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500
     });
   }
 });
 
 // =============================================
-// MATRIX PLACEMENT FIXING FUNCTIONS
+// ADVANCED MATRIX FUNCTIONS (3x3 Spillover System)
 // =============================================
 
-// 修复的位置查找算法 - 严格检查位置占用
 async function findNextAvailablePosition(supabase: any, rootWallet: string): Promise<PlacementResult> {
   console.log(`🔍 Finding next available position for root: ${rootWallet}`);
   
-  // 从第1层开始检查
   for (let layer = 1; layer <= 19; layer++) {
     console.log(`📊 Checking layer ${layer}...`);
     
-    // L-M-R 严格顺序检查
     const positions = ['L', 'M', 'R'];
     
     for (const position of positions) {
-      // 检查 referrals 表中的占用情况
       const { data: existingReferrals, error: referralsError } = await supabase
         .from('referrals')
         .select('id, member_wallet')
@@ -153,28 +179,7 @@ async function findNextAvailablePosition(supabase: any, rootWallet: string): Pro
         };
       }
       
-      // 检查 spillover_matrix 表中的占用情况
-      const { data: existingPlacements, error: placementsError } = await supabase
-        .from('spillover_matrix')
-        .select('id, member_wallet')
-        .ilike('matrix_root', rootWallet)
-        .eq('matrix_layer', layer)
-        .eq('matrix_position', position)
-        .eq('is_active', true)
-        .limit(1);
-      
-      if (placementsError) {
-        console.error(`❌ Error checking placements: ${placementsError.message}`);
-        return {
-          success: false,
-          layer: 0,
-          position: '',
-          error: `Database error: ${placementsError.message}`
-        };
-      }
-      
-      // 如果两个表都显示该位置空闲，则可以使用
-      const isOccupied = (existingReferrals?.length > 0) || (existingPlacements?.length > 0);
+      const isOccupied = (existingReferrals?.length > 0);
       
       if (!isOccupied) {
         console.log(`✅ Found available position: Layer ${layer}, Position ${position}`);
@@ -197,7 +202,6 @@ async function findNextAvailablePosition(supabase: any, rootWallet: string): Pro
   };
 }
 
-// 修复的安全放置函数 - 带冲突检测和回滚
 async function safelyPlaceMember(
   supabase: any, 
   rootWallet: string, 
@@ -208,7 +212,6 @@ async function safelyPlaceMember(
   console.log(`🔒 Safely placing member ${memberWallet} at Layer ${layer}, Position ${position} for root ${rootWallet}`);
   
   try {
-    // 使用数据库RPC函数进行安全放置
     const { data: placementResult, error: placementError } = await supabase.rpc(
       'safe_matrix_placement',
       {
@@ -256,10 +259,6 @@ async function safelyPlaceMember(
   }
 }
 
-// =============================================
-// MAIN HANDLER FUNCTIONS (FIXED)
-// =============================================
-
 async function handleGetMatrix(supabase, walletAddress: string, data) {
   try {
     console.log('🎯 Matrix request data:', data);
@@ -275,65 +274,39 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
         error: 'Wallet address required'
       }), {
         status: 400,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    // ✅ FIXED: Use correct tables - referrals and spillover_matrix
     let membersQuery = supabase
       .from('members')
-      .select('wallet_address, referrer_wallet, current_level, username, created_at')
+      .select('wallet_address, referrer_wallet, current_level, activation_time')
       .ilike('referrer_wallet', targetRoot)
       .limit(limit);
 
-    // ✅ FIXED: Query referrals table with correct fields
     let referralsQuery = supabase
       .from('referrals')
       .select(`
         member_wallet,
         referrer_wallet,
-        matrix_parent,
         matrix_position,
         matrix_layer,
-        matrix_root,
-        created_at
-      `)
-      .or(`referrer_wallet.ilike.${targetRoot},matrix_parent.ilike.${targetRoot}`)
-      .limit(limit);
-
-    // ✅ FIXED: Query spillover_matrix table for spillover positions
-    let spilloverQuery = supabase
-      .from('spillover_matrix')
-      .select(`
-        member_wallet,
-        matrix_root,
-        matrix_parent,
-        matrix_position,
-        matrix_layer,
-        is_active,
+        matrix_root_wallet,
         placed_at
       `)
-      .ilike('matrix_root', targetRoot)
-      .eq('is_active', true)
+      .or(`referrer_wallet.ilike.${targetRoot},matrix_root_wallet.ilike.${targetRoot}`)
       .limit(limit);
 
-    console.log('🔍 Executing queries: members, referrals, spillover_matrix...');
+    console.log('🔍 Executing queries: members, referrals...');
     
-    // Execute all queries in parallel
-    const [membersResult, referralsResult, spilloverResult] = await Promise.allSettled([
+    const [membersResult, referralsResult] = await Promise.allSettled([
       membersQuery,
-      referralsQuery,
-      spilloverQuery
+      referralsQuery
     ]);
 
     let memberData = [];
     let referralData = [];
-    let spilloverData = [];
 
-    // Process members query result
     if (membersResult.status === 'fulfilled' && !membersResult.value.error) {
       memberData = membersResult.value.data || [];
       console.log(`✅ Members query successful: ${memberData.length} members found`);
@@ -341,7 +314,6 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
       console.warn('⚠️ Members query failed:', membersResult);
     }
 
-    // Process referrals query result
     if (referralsResult.status === 'fulfilled' && !referralsResult.value.error) {
       referralData = referralsResult.value.data || [];
       console.log(`✅ Referrals query successful: ${referralData.length} referrals found`);
@@ -349,15 +321,6 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
       console.warn('⚠️ Referrals query failed:', referralsResult);
     }
 
-    // Process spillover query result
-    if (spilloverResult.status === 'fulfilled' && !spilloverResult.value.error) {
-      spilloverData = spilloverResult.value.data || [];
-      console.log(`✅ Spillover query successful: ${spilloverData.length} spillover positions found`);
-    } else {
-      console.warn('⚠️ Spillover query failed:', spilloverResult);
-    }
-
-    // ✅ FIXED: Combine data to build matrix structure using both tables
     const finalMatrixData = [];
     
     // Process referrals data first (original positions)
@@ -369,13 +332,13 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
       if (member) {
         finalMatrixData.push({
           wallet_address: referral.member_wallet,
-          root_wallet: referral.matrix_root || targetRoot,
+          root_wallet: referral.matrix_root_wallet || targetRoot,
           layer: referral.matrix_layer || 1,
           position: referral.matrix_position || `${index + 1}`,
-          parent_wallet: referral.matrix_parent || referral.referrer_wallet,
+          parent_wallet: referral.referrer_wallet,
           is_activated: true,
           placement_order: index + 1,
-          created_at: referral.created_at || member.created_at,
+          created_at: referral.placed_at || member.activation_time,
           members: {
             current_level: member.current_level || 1,
             is_activated: true,
@@ -386,39 +349,7 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
       }
     });
     
-    // Process spillover data (spillover positions)
-    spilloverData.forEach((spillover, index) => {
-      // Check if already added from referrals
-      const alreadyProcessed = finalMatrixData.some(f => 
-        f.wallet_address.toLowerCase() === spillover.member_wallet.toLowerCase() &&
-        f.layer === spillover.matrix_layer
-      );
-      
-      if (!alreadyProcessed) {
-        const member = memberData.find(m => 
-          m.wallet_address.toLowerCase() === spillover.member_wallet.toLowerCase()
-        );
-        
-        if (member) {
-          finalMatrixData.push({
-            wallet_address: spillover.member_wallet,
-            root_wallet: spillover.matrix_root,
-            layer: spillover.matrix_layer,
-            position: spillover.matrix_position,
-            parent_wallet: spillover.matrix_parent,
-            is_activated: spillover.is_active,
-            placement_order: referralData.length + index + 1,
-            created_at: spillover.placed_at,
-            members: {
-              current_level: member.current_level || 1,
-              is_activated: spillover.is_active,
-              username: member.username || null
-            },
-            source: 'spillover'
-          });
-        }
-      }
-    });
+    // Note: spillover_matrix table does not exist in current database
     
     // Add remaining members not in either table (direct referrals only)
     memberData.forEach((member, index) => {
@@ -435,7 +366,7 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
           parent_wallet: member.referrer_wallet,
           is_activated: true,
           placement_order: index + 1,
-          created_at: member.created_at,
+          created_at: member.activation_time,
           members: {
             current_level: member.current_level || 1,
             is_activated: true,
@@ -448,16 +379,10 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
 
     console.log(`🎯 Final matrix data processed: ${finalMatrixData.length} members`);
 
-    // Build matrix tree structure
     const matrixTree = buildMatrixTree(finalMatrixData || []);
-
-    // Calculate layer statistics
     const layerStats = calculateLayerStatistics(finalMatrixData || []);
-
-    // Calculate spillover information
     const spilloverAnalysis = calculateSpilloverAnalysis(finalMatrixData || []);
 
-    // Format data for frontend compatibility
     const formattedMembers = (finalMatrixData || []).map(member => ({
       walletAddress: member.wallet_address,
       username: member.members?.username || null,
@@ -478,18 +403,14 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
         totalLayers: Math.max(...(finalMatrixData?.map(m => m.layer) || [0])),
         totalMembers: finalMatrixData?.length || 0,
         referralMembers: referralData.length,
-        spilloverMembers: spilloverData.length,
+        spilloverMembers: 0, // spillover_matrix table does not exist
         directMembers: finalMatrixData.filter(m => m.source === 'direct').length,
-        // Keep original detailed data for advanced usage
         matrix_data: matrixTree,
         layer_statistics: layerStats,
         spillover_analysis: spilloverAnalysis
       }
     }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json'
-      }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
     console.error('❌ Get matrix error:', error);
@@ -511,10 +432,7 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
       message: errorMessage,
       details: errorDetails
     }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json'
-      },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500
     });
   }
@@ -530,16 +448,12 @@ async function handlePlaceMember(supabase, walletAddress: string, data) {
         error: 'Missing required parameters: walletAddress, rootWallet, memberWallet'
       }), {
         status: 400,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
     console.log(`🎯 Placing member ${memberWallet} in matrix for root ${rootWallet}`);
 
-    // ✅ FIXED: Use our enhanced placement algorithm
     const positionResult = await findNextAvailablePosition(supabase, rootWallet);
 
     if (!positionResult.success) {
@@ -547,15 +461,11 @@ async function handlePlaceMember(supabase, walletAddress: string, data) {
         success: false,
         error: positionResult.error || 'Failed to find available position'
       }), {
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400
       });
     }
 
-    // ✅ FIXED: Use safe placement function
     const placementResult = await safelyPlaceMember(
       supabase, 
       rootWallet, 
@@ -569,15 +479,11 @@ async function handlePlaceMember(supabase, walletAddress: string, data) {
         success: false,
         error: placementResult.error || 'Failed to place member in matrix'
       }), {
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400
       });
     }
 
-    // Check if this placement triggers any spillover
     const spilloverResult = await processAutomaticSpillover(supabase, rootWallet, placementResult.layer);
 
     return new Response(JSON.stringify({
@@ -592,10 +498,7 @@ async function handlePlaceMember(supabase, walletAddress: string, data) {
         member_wallet: memberWallet
       }
     }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json'
-      }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
     console.error('Place member error:', error);
@@ -604,10 +507,7 @@ async function handlePlaceMember(supabase, walletAddress: string, data) {
       error: 'Failed to place member in matrix',
       details: error.message
     }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json'
-      },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500
     });
   }
@@ -623,14 +523,10 @@ async function handleFindOptimalPosition(supabase, walletAddress: string, data) 
         error: 'Missing required parameters'
       }), {
         status: 400,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    // ✅ FIXED: Use corrected position finding algorithm
     const optimalPosition = await findNextAvailablePosition(supabase, rootWallet);
 
     if (!optimalPosition.success) {
@@ -638,25 +534,18 @@ async function handleFindOptimalPosition(supabase, walletAddress: string, data) 
         success: false,
         error: optimalPosition.error || 'No available positions found'
       }), {
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400
       });
     }
 
-    // ✅ FIXED: Get current matrix size from both tables
     const { count: referralCount } = await supabase
       .from('referrals')
       .select('*', { count: 'exact', head: true })
-      .ilike('matrix_root', rootWallet);
+      .ilike('matrix_root_wallet', rootWallet);
 
-    const { count: spilloverCount } = await supabase
-      .from('spillover_matrix')
-      .select('*', { count: 'exact', head: true })
-      .ilike('matrix_root', rootWallet)
-      .eq('is_active', true);
+    // spillover_matrix table does not exist
+    const spilloverCount = 0;
 
     return new Response(JSON.stringify({
       success: true,
@@ -664,16 +553,13 @@ async function handleFindOptimalPosition(supabase, walletAddress: string, data) 
         optimal_position: optimalPosition,
         current_matrix_size: {
           referrals: referralCount || 0,
-          spillover: spilloverCount || 0,
-          total: (referralCount || 0) + (spilloverCount || 0)
+          spillover: spilloverCount,
+          total: (referralCount || 0) + spilloverCount
         },
         recommendation: `Place at Layer ${optimalPosition.layer}, Position ${optimalPosition.position}`
       }
     }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json'
-      }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
     console.error('Find optimal position error:', error);
@@ -682,10 +568,7 @@ async function handleFindOptimalPosition(supabase, walletAddress: string, data) 
       error: 'Failed to find optimal position',
       details: error.message
     }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json'
-      },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500
     });
   }
@@ -702,10 +585,7 @@ async function handleProcessSpillover(supabase, walletAddress: string, data) {
       message: 'Spillover processing completed',
       data: spilloverResult
     }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json'
-      }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
     console.error('Process spillover error:', error);
@@ -714,10 +594,7 @@ async function handleProcessSpillover(supabase, walletAddress: string, data) {
       error: 'Failed to process spillover',
       details: error.message
     }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json'
-      },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500
     });
   }
@@ -733,62 +610,39 @@ async function handleGetDownline(supabase, walletAddress: string, data) {
         error: 'Wallet address required'
       }), {
         status: 400,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    // ✅ FIXED: Query both referrals and spillover_matrix tables
     let referralsQuery = supabase
       .from('referrals')
       .select('*')
       .ilike('matrix_root', walletAddress)
-      .neq('member_wallet', walletAddress) // Exclude self
+      .neq('member_wallet', walletAddress)
       .order('matrix_layer')
       .order('created_at')
       .range(offset, offset + limit - 1);
 
-    let spilloverQuery = supabase
-      .from('spillover_matrix')
-      .select('*')
-      .ilike('matrix_root', walletAddress)
-      .neq('member_wallet', walletAddress) // Exclude self
-      .eq('is_active', true)
-      .order('matrix_layer')
-      .order('placed_at')
-      .range(offset, offset + limit - 1);
-
     if (layer) {
       referralsQuery = referralsQuery.eq('matrix_layer', layer);
-      spilloverQuery = spilloverQuery.eq('matrix_layer', layer);
     }
 
-    const [referralsResult, spilloverResult] = await Promise.allSettled([
-      referralsQuery,
-      spilloverQuery
+    const [referralsResult] = await Promise.allSettled([
+      referralsQuery
     ]);
 
     let downlineData = [];
 
-    // Combine results from both tables
     if (referralsResult.status === 'fulfilled' && referralsResult.value.data) {
       downlineData.push(...referralsResult.value.data.map(item => ({ ...item, source: 'referrals' })));
     }
 
-    if (spilloverResult.status === 'fulfilled' && spilloverResult.value.data) {
-      downlineData.push(...spilloverResult.value.data.map(item => ({ ...item, source: 'spillover' })));
-    }
-
-    // Remove duplicates based on member_wallet and layer
     const uniqueDownline = downlineData.filter((item, index, self) =>
       index === self.findIndex(other => 
         other.member_wallet === item.member_wallet && other.matrix_layer === item.matrix_layer
       )
     );
 
-    // Group by layers and calculate statistics
     const layerGroups = groupByLayer(uniqueDownline || []);
     const downlineStats = calculateDownlineStats(uniqueDownline || []);
 
@@ -801,14 +655,11 @@ async function handleGetDownline(supabase, walletAddress: string, data) {
         total_downline: uniqueDownline?.length || 0,
         sources: {
           referrals: downlineData.filter(item => item.source === 'referrals').length,
-          spillover: downlineData.filter(item => item.source === 'spillover').length
+          spillover: 0 // spillover_matrix table does not exist
         }
       }
     }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json'
-      }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
     console.error('Get downline error:', error);
@@ -817,10 +668,7 @@ async function handleGetDownline(supabase, walletAddress: string, data) {
       error: 'Failed to fetch downline data',
       details: error.message
     }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json'
-      },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500
     });
   }
@@ -834,24 +682,15 @@ async function handleGetUpline(supabase, walletAddress: string, data) {
         error: 'Wallet address required'
       }), {
         status: 400,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    // ✅ FIXED: Get member's matrix positions from both tables
-    const [referralsResult, spilloverResult] = await Promise.allSettled([
+    const [referralsResult] = await Promise.allSettled([
       supabase
         .from('referrals')
         .select('*')
-        .ilike('member_wallet', walletAddress),
-      supabase
-        .from('spillover_matrix')
-        .select('*')
         .ilike('member_wallet', walletAddress)
-        .eq('is_active', true)
     ]);
 
     const memberPositions = [];
@@ -860,13 +699,8 @@ async function handleGetUpline(supabase, walletAddress: string, data) {
       memberPositions.push(...referralsResult.value.data.map(item => ({ ...item, source: 'referrals' })));
     }
 
-    if (spilloverResult.status === 'fulfilled' && spilloverResult.value.data) {
-      memberPositions.push(...spilloverResult.value.data.map(item => ({ ...item, source: 'spillover' })));
-    }
-
     const uplineData = [];
 
-    // For each matrix position, get upline chain
     for (const position of memberPositions || []) {
       if (position.matrix_parent || position.referrer_wallet) {
         const parentWallet = position.matrix_parent || position.referrer_wallet;
@@ -885,10 +719,7 @@ async function handleGetUpline(supabase, walletAddress: string, data) {
       success: true,
       data: uplineData
     }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json'
-      }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
     console.error('Get upline error:', error);
@@ -897,10 +728,7 @@ async function handleGetUpline(supabase, walletAddress: string, data) {
       error: 'Failed to fetch upline data',
       details: error.message
     }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json'
-      },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500
     });
   }
@@ -914,17 +742,12 @@ async function handleGetMatrixStats(supabase, walletAddress: string, data) {
         error: 'Wallet address required'
       }), {
         status: 400,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    // ✅ FIXED: Get matrix statistics using correct tables
     console.log(`🔍 Getting matrix stats for wallet: ${walletAddress}`);
     
-    // Get referrals data
     const { data: referralsStats, error: referralsError } = await supabase
       .from('referrals')
       .select('member_wallet, referrer_wallet, matrix_layer, created_at')
@@ -935,22 +758,13 @@ async function handleGetMatrixStats(supabase, walletAddress: string, data) {
       throw new Error(`Referrals stats query failed: ${referralsError.message}`);
     }
 
-    // Get spillover data
-    const { data: spilloverStats, error: spilloverError } = await supabase
-      .from('spillover_matrix')
-      .select('member_wallet, matrix_root, matrix_layer, placed_at')
-      .ilike('matrix_root', walletAddress)
-      .eq('is_active', true);
+    // Note: spillover_matrix table does not exist
+    const spilloverStats = [];
+    console.log(`✅ Spillover stats: 0 positions (table does not exist)`);
 
-    if (spilloverError) {
-      console.error('❌ Spillover stats query error:', spilloverError);
-      throw new Error(`Spillover stats query failed: ${spilloverError.message}`);
-    }
-
-    // Get member's own info
     const { data: memberInfo, error: memberError } = await supabase
       .from('members')
-      .select('wallet_address, referrer_wallet, current_level, created_at')
+      .select('wallet_address, referrer_wallet, current_level, activation_time')
       .ilike('wallet_address', walletAddress)
       .single();
 
@@ -961,13 +775,12 @@ async function handleGetMatrixStats(supabase, walletAddress: string, data) {
 
     console.log(`✅ Found ${referralsStats?.length || 0} referrals and ${spilloverStats?.length || 0} spillover positions`);
 
-    // Convert data to matrix format for calculations
     const rootMatrixData = [
       ...(referralsStats || []).map((item, index) => ({
         wallet_address: item.member_wallet,
         layer: item.matrix_layer || 1,
         is_activated: true,
-        created_at: item.created_at,
+        created_at: item.activation_time,
         source: 'referrals'
       })),
       ...(spilloverStats || []).map((item, index) => ({
@@ -983,10 +796,9 @@ async function handleGetMatrixStats(supabase, walletAddress: string, data) {
       root_wallet: memberInfo.referrer_wallet,
       layer: 1,
       is_activated: true,
-      created_at: memberInfo.created_at
+      created_at: memberInfo.activation_time
     }] : [];
 
-    // Calculate comprehensive statistics
     const stats = {
       as_root: calculateRootMatrixStats(rootMatrixData),
       as_member: calculateMemberMatrixStats(memberMatrixData),
@@ -1007,10 +819,7 @@ async function handleGetMatrixStats(supabase, walletAddress: string, data) {
       success: true,
       data: stats
     }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json'
-      }
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (error) {
     console.error('Get matrix stats error:', error);
@@ -1019,13 +828,532 @@ async function handleGetMatrixStats(supabase, walletAddress: string, data) {
       error: 'Failed to fetch matrix statistics',
       details: error.message
     }), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json'
-      },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500
     });
   }
+}
+
+// =============================================
+// SIMPLE REFERRAL OPERATIONS
+// =============================================
+
+async function getMatrixStructure(supabase: any, rootWallet?: string) {
+  if (!rootWallet) {
+    const { data: allReferrals, error } = await supabase
+      .from('referrals')
+      .select('member_wallet, referrer_wallet, id')
+      .order('id')
+      .limit(100);
+
+    const structures = {};
+    if (allReferrals) {
+      allReferrals.forEach((ref: any) => {
+        if (!structures[ref.referrer_wallet]) {
+          structures[ref.referrer_wallet] = {
+            root_wallet: ref.referrer_wallet,
+            total_referrals: 0,
+            direct_referrals: [],
+            last_referral: null
+          };
+        }
+        
+        structures[ref.referrer_wallet].total_referrals++;
+        structures[ref.referrer_wallet].direct_referrals.push({
+          member_wallet: ref.member_wallet,
+          referral_id: ref.id
+        });
+        structures[ref.referrer_wallet].last_referral = ref.id;
+      });
+    }
+
+    return new Response(JSON.stringify({
+      success: true,
+      structures: Object.values(structures),
+      error: error?.message
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200
+    });
+  }
+
+  const { data: referrals, error } = await supabase
+    .from('referrals')
+    .select('member_wallet, referrer_wallet, id')
+    .eq('referrer_wallet', rootWallet)
+    .order('id');
+
+  if (error || !referrals) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: `Referral structure not found: ${error?.message || 'No referrals found'}`
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 404
+    });
+  }
+
+  const structure = {
+    root_wallet: rootWallet,
+    total_referrals: referrals.length,
+    direct_referrals: referrals.map((r: any) => ({
+      member_wallet: r.member_wallet,
+      referral_id: r.id
+    })),
+    first_referral: referrals.length > 0 ? referrals[0].id : null,
+    last_referral: referrals.length > 0 ? referrals[referrals.length - 1].id : null
+  };
+
+  return new Response(JSON.stringify({
+    success: true,
+    structure,
+    root_wallet: rootWallet
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    status: 200
+  });
+}
+
+async function getPlacementInfo(supabase: any, walletAddress: string) {
+  const { data: referralData, error } = await supabase
+    .from('referrals')
+    .select('member_wallet, referrer_wallet, id')
+    .eq('member_wallet', walletAddress)
+    .single();
+
+  if (error) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: `Referral info not found: ${error.message}`,
+      is_referred: false
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200
+    });
+  }
+
+  const { data: referrerData } = await supabase
+    .from('members')
+    .select('username, current_level')
+    .eq('wallet_address', referralData.referrer_wallet)
+    .single();
+
+  return new Response(JSON.stringify({
+    success: true,
+    referral_info: {
+      ...referralData,
+      referrer_info: referrerData
+    },
+    is_referred: true
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    status: 200
+  });
+}
+
+async function findOptimalPlacement(supabase: any, referrerWallet: string, newMemberWallet: string) {
+  console.log(`🔍 Finding referral placement: ${referrerWallet} -> ${newMemberWallet}`);
+
+  try {
+    const { data: referrerData, error: referrerError } = await supabase
+      .from('members')
+      .select('wallet_address, username, current_level')
+      .eq('wallet_address', referrerWallet)
+      .single();
+
+    if (referrerError || !referrerData) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Referrer not found in members table'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 404
+      });
+    }
+
+    const { data: existingReferral } = await supabase
+      .from('referrals')
+      .select('member_wallet')
+      .eq('member_wallet', newMemberWallet)
+      .single();
+
+    if (existingReferral) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Member already has a referrer'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400
+      });
+    }
+
+    const { count: referralCount } = await supabase
+      .from('referrals')
+      .select('member_wallet', { count: 'exact', head: true })
+      .eq('referrer_wallet', referrerWallet);
+
+    return new Response(JSON.stringify({
+      success: true,
+      placement_found: true,
+      placement_type: 'direct_referral',
+      referrer_wallet: referrerWallet,
+      referrer_info: referrerData,
+      current_referral_count: referralCount || 0,
+      estimated_rewards: {
+        referral_bonus: 100,
+        currency: 'USDC',
+        conditions: 'Immediate upon successful referral'
+      }
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200
+    });
+
+  } catch (error) {
+    console.error('Find optimal placement error:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: error.message
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500
+    });
+  }
+}
+
+function calculateReferralRewards(): any {
+  return {
+    direct_referral_bonus: 100,
+    currency: 'USDC',
+    bonus_type: 'immediate',
+    conditions: 'Paid when referred member activates NFT membership'
+  };
+}
+
+async function getMatrixStatistics(supabase: any, rootWallet?: string) {
+  if (rootWallet) {
+    const { data: referrals, error } = await supabase
+      .from('referrals')
+      .select('member_wallet')
+      .eq('referrer_wallet', rootWallet);
+
+    if (error) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: error.message
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
+      });
+    }
+
+    const stats = {
+      referrer_wallet: rootWallet,
+      total_referrals: referrals?.length || 0,
+      first_referral: referrals?.length ? referrals[0]?.id : null,
+      last_referral: referrals?.length ? referrals[referrals.length - 1]?.id : null,
+      referrals_this_month: 0
+    };
+
+    return new Response(JSON.stringify({
+      success: true,
+      statistics: stats
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200
+    });
+  } else {
+    const { data: allReferrals, error } = await supabase
+      .from('referrals')
+      .select('referrer_wallet');
+
+    if (error) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: error.message
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
+      });
+    }
+
+    const referrerStats = {};
+    if (allReferrals) {
+      allReferrals.forEach((ref: any) => {
+        if (!referrerStats[ref.referrer_wallet]) {
+          referrerStats[ref.referrer_wallet] = {
+            referrer_wallet: ref.referrer_wallet,
+            total_referrals: 0,
+            last_referral: null
+          };
+        }
+        
+        referrerStats[ref.referrer_wallet].total_referrals++;
+        if (!referrerStats[ref.referrer_wallet].last_referral || 
+            new Date(ref.id) > new Date(referrerStats[ref.referrer_wallet].last_referral)) {
+          referrerStats[ref.referrer_wallet].last_referral = ref.id;
+        }
+      });
+    }
+
+    const allStats = Object.values(referrerStats)
+      .sort((a: any, b: any) => b.total_referrals - a.total_referrals)
+      .slice(0, 20);
+
+    return new Response(JSON.stringify({
+      success: true,
+      statistics: allStats || [],
+      total_system_referrals: allReferrals?.length || 0
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200
+    });
+  }
+}
+
+async function getLayerAnalysis(supabase: any, rootWallet: string, timeRange: number = 30) {
+  const timeThreshold = new Date();
+  timeThreshold.setDate(timeThreshold.getDate() - timeRange);
+  
+  const { data: recentReferrals, error } = await supabase
+    .from('referrals')
+    .select('member_wallet')
+    .eq('referrer_wallet', rootWallet)
+    .order('id');
+
+  if (error) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: error.message
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500
+    });
+  }
+
+  const stats = {
+    referrer_wallet: rootWallet,
+    time_range_days: timeRange,
+    total_referrals: recentReferrals?.length || 0,
+    first_referral: recentReferrals?.length ? recentReferrals[0]?.id : null,
+    last_referral: recentReferrals?.length ? recentReferrals[recentReferrals.length - 1]?.id : null,
+    avg_referrals_per_day: recentReferrals?.length ? (recentReferrals.length / timeRange).toFixed(2) : 0
+  };
+
+  const dailyStats = {};
+
+  return new Response(JSON.stringify({
+    success: true,
+    referral_analysis: stats,
+    daily_breakdown: dailyStats,
+    recent_referrals: recentReferrals || []
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    status: 200
+  });
+}
+
+async function checkSpilloverOpportunities(supabase: any, walletAddress: string) {
+  const { data: memberData, error: memberError } = await supabase
+    .from('members')
+    .select('wallet_address, current_level, username')
+    .eq('wallet_address', walletAddress)
+    .single();
+
+  if (memberError || !memberData) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Member not found - must be a member to refer others',
+      can_refer: false
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 404
+    });
+  }
+
+  const { count: currentReferrals } = await supabase
+    .from('referrals')
+    .select('member_wallet', { count: 'exact', head: true })
+    .eq('referrer_wallet', walletAddress);
+
+  const opportunities = {
+    can_refer: true,
+    current_referrals: currentReferrals || 0,
+    member_level: memberData.current_level,
+    referral_bonus: calculateReferralRewards(),
+    requirements: {
+      must_have_nft: memberData.current_level >= 1,
+      eligible_for_rewards: memberData.current_level >= 1
+    }
+  };
+
+  return new Response(JSON.stringify({
+    success: true,
+    referral_opportunities: opportunities
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    status: 200
+  });
+}
+
+async function syncMatrixData(supabase: any) {
+  console.log(`🔄 Starting referral system data synchronization...`);
+
+  try {
+    const { data: allReferrals, error: referralsError } = await supabase
+      .from('referrals')
+      .select('member_wallet, referrer_wallet');
+
+    if (referralsError) {
+      throw new Error(`Failed to fetch referrals data: ${referralsError.message}`);
+    }
+
+    const referrerSummary = {};
+    
+    if (allReferrals) {
+      allReferrals.forEach((ref: any) => {
+        if (!referrerSummary[ref.referrer_wallet]) {
+          referrerSummary[ref.referrer_wallet] = {
+            referrer_wallet: ref.referrer_wallet,
+            total_referrals: 0,
+            first_referral: ref.id,
+            last_referral: ref.id,
+            referrals_this_week: 0,
+            referrals_this_month: 0
+          };
+        }
+        
+        referrerSummary[ref.referrer_wallet].total_referrals++;
+        
+        if (ref.id < referrerSummary[ref.referrer_wallet].first_referral) {
+          referrerSummary[ref.referrer_wallet].first_referral = ref.id;
+        }
+        if (ref.id > referrerSummary[ref.referrer_wallet].last_referral) {
+          referrerSummary[ref.referrer_wallet].last_referral = ref.id;
+        }
+
+        referrerSummary[ref.referrer_wallet].referrals_this_week = 0;
+        referrerSummary[ref.referrer_wallet].referrals_this_month = 0;
+      });
+    }
+
+    const { data: members, error: membersError } = await supabase
+      .from('members')
+      .select('wallet_address, current_level');
+
+    const memberStats = {
+      total_members: members?.length || 0,
+      level_1_members: members?.filter((m: any) => m.current_level === 1).length || 0,
+      level_2_members: members?.filter((m: any) => m.current_level >= 2).length || 0,
+      total_referrals: allReferrals?.length || 0,
+      active_referrers: Object.keys(referrerSummary).length
+    };
+
+    const topReferrers = Object.values(referrerSummary)
+      .sort((a: any, b: any) => b.total_referrals - a.total_referrals)
+      .slice(0, 10);
+
+    return new Response(JSON.stringify({
+      success: true,
+      sync_completed: true,
+      system_overview: {
+        total_referrers: Object.keys(referrerSummary).length,
+        top_referrers: topReferrers,
+        member_statistics: memberStats
+      },
+      sync_timestamp: new Date().toISOString()
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200
+    });
+
+  } catch (error) {
+    console.error('Sync referral data error:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: error.message
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500
+    });
+  }
+}
+
+async function getRewardEligibility(supabase: any, walletAddress: string, layer: number) {
+  const { data: memberData } = await supabase
+    .from('members')
+    .select('current_level, referrer_wallet')
+    .eq('wallet_address', walletAddress)
+    .single();
+
+  if (!memberData) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Member not found',
+      eligible: false
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 404
+    });
+  }
+
+  const { count: directReferrals } = await supabase
+    .from('referrals')
+    .select('id', { count: 'exact', head: true })
+    .eq('referrer_wallet', walletAddress)
+    .eq('placement_layer', 1);
+
+  const eligibilityChecks = {
+    has_nft: memberData.current_level >= 1,
+    has_level_2: memberData.current_level >= 2,
+    direct_referrals_count: directReferrals || 0,
+    needs_direct_referrals: memberData.current_level === 1 && (directReferrals || 0) < 3,
+    layer_requirement_met: layer === 1 ? memberData.current_level >= 2 : true
+  };
+
+  const isEligible = eligibilityChecks.has_nft && 
+                    (!eligibilityChecks.needs_direct_referrals) && 
+                    eligibilityChecks.layer_requirement_met;
+
+  return new Response(JSON.stringify({
+    success: true,
+    eligible: isEligible,
+    member_level: memberData.current_level,
+    eligibility_checks: eligibilityChecks,
+    requirements: {
+      layer_1_reward: 'Requires Level 2 NFT',
+      level_2_upgrade: 'Requires 3 direct referrals',
+      general: 'Must have activated NFT membership'
+    }
+  }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    status: 200
+  });
+}
+
+async function simulatePlacement(supabase: any, referrerWallet: string, newMemberWallet: string) {
+  console.log(`🎮 Simulating referral: ${referrerWallet} -> ${newMemberWallet}`);
+
+  const placementResult = await findOptimalPlacement(supabase, referrerWallet, newMemberWallet);
+  const placementData = await placementResult.json();
+
+  if (placementData.success && placementData.placement_found) {
+    const rewardSimulation = calculateReferralRewards();
+
+    return new Response(JSON.stringify({
+      success: true,
+      simulation_result: {
+        ...placementData,
+        reward_simulation: rewardSimulation,
+        note: 'This is a simulation - no actual referral was created'
+      }
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200
+    });
+  }
+
+  return placementResult;
 }
 
 // =============================================
@@ -1043,7 +1371,6 @@ function buildMatrixTree(matrixData: MatrixPosition[]): any {
     layers[member.layer].push(member);
   });
 
-  // Sort each layer by position priority (L, M, R, then sub-positions)
   Object.keys(layers).forEach(layer => {
     layers[layer].sort((a, b) => {
       return comparePositions(a.position, b.position);
@@ -1094,7 +1421,6 @@ function calculateLayerStatistics(matrixData: MatrixPosition[]): any {
       layerStats[layer].activated_members++;
     }
     
-    // Count L-M-R distribution
     if (member.position.startsWith('L') || member.position === 'L') {
       layerStats[layer].l_positions++;
     } else if (member.position.startsWith('M') || member.position === 'M') {
@@ -1104,10 +1430,9 @@ function calculateLayerStatistics(matrixData: MatrixPosition[]): any {
     }
   });
 
-  // Calculate max capacity and fill rates for each layer
   Object.keys(layerStats).forEach(layer => {
     const layerNum = parseInt(layer);
-    const maxCapacity = Math.pow(3, layerNum); // 3^layer positions
+    const maxCapacity = Math.pow(3, layerNum);
     layerStats[layer].max_capacity = maxCapacity;
     layerStats[layer].fill_rate = (layerStats[layer].filled_positions / maxCapacity) * 100;
   });
@@ -1128,7 +1453,6 @@ function calculateSpilloverAnalysis(matrixData: MatrixPosition[]): any {
     const stats = layerStats[layer];
     const layerNum = parseInt(layer);
     
-    // Identify spillover opportunities
     if (stats.fill_rate > 80 && layerNum < 19) {
       analysis.spillover_opportunities.push({
         layer: layerNum,
@@ -1138,7 +1462,6 @@ function calculateSpilloverAnalysis(matrixData: MatrixPosition[]): any {
       });
     }
     
-    // Identify bottlenecks (uneven L-M-R distribution)
     const imbalance = Math.max(stats.l_positions, stats.m_positions, stats.r_positions) - 
                      Math.min(stats.l_positions, stats.m_positions, stats.r_positions);
     if (imbalance > 2) {
@@ -1158,19 +1481,12 @@ function calculateSpilloverAnalysis(matrixData: MatrixPosition[]): any {
 }
 
 async function processAutomaticSpillover(supabase, rootWallet: string, triggerLayer: number): Promise<any> {
-  // ✅ FIXED: Check spillover readiness using both tables
-  const [referralsResult, spilloverResult] = await Promise.allSettled([
+  const [referralsResult] = await Promise.allSettled([
     supabase
       .from('referrals')
       .select('*')
-      .ilike('matrix_root', rootWallet)
-      .eq('matrix_layer', triggerLayer),
-    supabase
-      .from('spillover_matrix')
-      .select('*')
-      .ilike('matrix_root', rootWallet)
+      .ilike('matrix_root_wallet', rootWallet)
       .eq('matrix_layer', triggerLayer)
-      .eq('is_active', true)
   ]);
 
   let layerData = [];
@@ -1178,20 +1494,15 @@ async function processAutomaticSpillover(supabase, rootWallet: string, triggerLa
   if (referralsResult.status === 'fulfilled' && referralsResult.value.data) {
     layerData.push(...referralsResult.value.data);
   }
-  
-  if (spilloverResult.status === 'fulfilled' && spilloverResult.value.data) {
-    layerData.push(...spilloverResult.value.data);
-  }
 
   if (!layerData || layerData.length === 0) {
     return { spillover_processed: false, reason: 'No data for trigger layer' };
   }
 
-  // Calculate if layer is ready for spillover (when approaching capacity)
   const maxCapacity = Math.pow(3, triggerLayer);
   const fillRate = (layerData.length / maxCapacity) * 100;
 
-  if (fillRate >= 80) { // Trigger spillover at 80% capacity
+  if (fillRate >= 80) {
     return {
       spillover_processed: true,
       trigger_layer: triggerLayer,
@@ -1212,20 +1523,12 @@ async function getUplineChain(supabase, startWallet: string, rootWallet: string)
   let currentWallet = startWallet;
 
   while (currentWallet && currentWallet !== rootWallet) {
-    // ✅ FIXED: Search in both referrals and spillover_matrix tables
-    const [referralResult, spilloverResult] = await Promise.allSettled([
+    const [referralResult] = await Promise.allSettled([
       supabase
         .from('referrals')
         .select('*')
         .ilike('member_wallet', currentWallet)
-        .ilike('matrix_root', rootWallet)
-        .single(),
-      supabase
-        .from('spillover_matrix')
-        .select('*')
-        .ilike('member_wallet', currentWallet)
-        .ilike('matrix_root', rootWallet)
-        .eq('is_active', true)
+        .ilike('matrix_root_wallet', rootWallet)
         .single()
     ]);
 
@@ -1234,9 +1537,6 @@ async function getUplineChain(supabase, startWallet: string, rootWallet: string)
     if (referralResult.status === 'fulfilled' && referralResult.value.data) {
       position = referralResult.value.data;
       position.source = 'referrals';
-    } else if (spilloverResult.status === 'fulfilled' && spilloverResult.value.data) {
-      position = spilloverResult.value.data;
-      position.source = 'spillover';
     }
 
     if (!position) {
@@ -1244,7 +1544,7 @@ async function getUplineChain(supabase, startWallet: string, rootWallet: string)
     }
 
     uplineChain.push(position);
-    currentWallet = position.matrix_parent || position.referrer_wallet;
+    currentWallet = position.referrer_wallet;
   }
 
   return uplineChain;
