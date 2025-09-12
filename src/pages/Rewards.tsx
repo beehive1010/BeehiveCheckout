@@ -113,12 +113,12 @@ export default function Rewards() {
         claimable: totalClaimable,
         history: rewardsData?.slice(0, 10).map((reward) => ({
           id: reward.id,
-          type: reward.reward_type || 'layer_reward',
-          amount: reward.amount_usdt || 0,
+          type: reward.status || 'layer_reward',
+          amount: reward.reward_amount || 0,
           currency: 'USDC',
           date: reward.claimed_at || reward.created_at || 'Unknown',
-          status: reward.is_claimed ? 'completed' : (reward.reward_type === 'pending_layer_reward' ? 'pending' : 'failed'),
-          description: `Layer ${reward.layer} reward`
+          status: reward.status === 'claimed' ? 'completed' : reward.status as 'pending' | 'completed' | 'failed',
+          description: `Layer ${reward.triggering_nft_level} reward`
         })) || []
       };
       
@@ -138,9 +138,10 @@ export default function Rewards() {
     try {
       setIsLoading(true);
       
-      // Use the database function to claim pending rewards
-      const { data, error } = await supabase.rpc('claim_pending_rewards', {
-        p_wallet_address: walletAddress
+      // Use the database function to claim layer rewards
+      const { data, error } = await supabase.rpc('claim_layer_reward', {
+        p_member_wallet: walletAddress,
+        p_reward_id: null // Will claim all claimable rewards
       });
 
       if (error) {
@@ -150,8 +151,8 @@ export default function Rewards() {
 
       if (data?.success) {
         toast({
-          title: "Rewards Claimed!",
-          description: `Successfully claimed ${data.amount_claimed || rewardsData.claimable} USDT`,
+          title: t('rewards.claimSuccess'),
+          description: t('rewards.claimSuccessDescription', { amount: data.amount_claimed || rewardsData.claimable }),
         });
         
         // Reload data
@@ -163,8 +164,8 @@ export default function Rewards() {
     } catch (err) {
       console.error('Claim rewards error:', err);
       toast({
-        title: "Claim Failed",
-        description: err instanceof Error ? err.message : "Failed to claim rewards",
+        title: t('rewards.claimFailed'),
+        description: err instanceof Error ? err.message : t('rewards.claimFailedDescription'),
         variant: "destructive"
       });
     } finally {
@@ -176,7 +177,7 @@ export default function Rewards() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <RefreshCw className="h-8 w-8 animate-spin text-honey" />
-        <div className="text-muted-foreground">Loading rewards data...</div>
+        <div className="text-muted-foreground">{t('rewards.loading')}</div>
       </div>
     );
   }
@@ -184,10 +185,10 @@ export default function Rewards() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <div className="text-red-500">Error: {error}</div>
+        <div className="text-red-500">{t('rewards.error')}: {error}</div>
         <Button onClick={loadRewardsData} variant="outline">
           <RefreshCw className="h-4 w-4 mr-2" />
-          Retry
+          {t('common.retry')}
         </Button>
       </div>
     );
@@ -204,11 +205,11 @@ export default function Rewards() {
           className="text-muted-foreground hover:text-honey"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
-          Back
+          {t('common.back')}
         </Button>
         <div>
-          <h1 className="text-2xl font-bold text-honey">Rewards</h1>
-          <p className="text-sm text-muted-foreground">Track and claim your earnings</p>
+          <h1 className="text-2xl font-bold text-honey">{t('nav.rewards')}</h1>
+          <p className="text-sm text-muted-foreground">{t('rewards.subtitle')}</p>
         </div>
       </div>
 
@@ -218,7 +219,7 @@ export default function Rewards() {
           <CardContent className="p-4 text-center">
             <DollarSign className="h-6 w-6 text-green-400 mx-auto mb-2" />
             <div className="text-lg font-bold text-green-400">${rewardsData?.total || 0}</div>
-            <div className="text-xs text-muted-foreground">Total Earned</div>
+            <div className="text-xs text-muted-foreground">{t('rewards.totalEarned')}</div>
           </CardContent>
         </Card>
 
@@ -226,7 +227,7 @@ export default function Rewards() {
           <CardContent className="p-4 text-center">
             <TrendingUp className="h-6 w-6 text-blue-400 mx-auto mb-2" />
             <div className="text-lg font-bold text-blue-400">${rewardsData?.thisMonth || 0}</div>
-            <div className="text-xs text-muted-foreground">This Month</div>
+            <div className="text-xs text-muted-foreground">{t('rewards.thisMonth')}</div>
           </CardContent>
         </Card>
 
@@ -234,7 +235,7 @@ export default function Rewards() {
           <CardContent className="p-4 text-center">
             <Timer className="h-6 w-6 text-yellow-400 mx-auto mb-2" />
             <div className="text-lg font-bold text-yellow-400">${rewardsData?.pending || 0}</div>
-            <div className="text-xs text-muted-foreground">Pending</div>
+            <div className="text-xs text-muted-foreground">{t('rewards.pending')}</div>
           </CardContent>
         </Card>
 
@@ -242,7 +243,7 @@ export default function Rewards() {
           <CardContent className="p-4 text-center">
             <Gift className="h-6 w-6 text-honey mx-auto mb-2" />
             <div className="text-lg font-bold text-honey">${rewardsData?.claimable || 0}</div>
-            <div className="text-xs text-muted-foreground">Claimable</div>
+            <div className="text-xs text-muted-foreground">{t('rewards.claimable')}</div>
           </CardContent>
         </Card>
       </div>
@@ -252,7 +253,7 @@ export default function Rewards() {
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Gift className="h-5 w-5 text-honey" />
-            Quick Actions
+            {t('rewards.quickActions')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -263,11 +264,11 @@ export default function Rewards() {
               className="bg-honey hover:bg-honey/90 text-black font-semibold"
             >
               <Gift className="h-4 w-4 mr-2" />
-              Claim Available (${rewardsData?.claimable || 0})
+              {t('rewards.claimAvailable', { amount: rewardsData?.claimable || 0 })}
             </Button>
             <Button variant="outline" className="border-honey/30 text-honey hover:bg-honey/10">
               <BarChart3 className="h-4 w-4 mr-2" />
-              View Analytics
+              {t('rewards.viewAnalytics')}
             </Button>
             <Button 
               onClick={loadRewardsData}
@@ -275,7 +276,7 @@ export default function Rewards() {
               className="border-honey/30 text-honey hover:bg-honey/10"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
+              {t('common.refresh')}
             </Button>
           </div>
         </CardContent>
@@ -286,7 +287,7 @@ export default function Rewards() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Award className="h-5 w-5 text-green-400" />
-            Recent Rewards
+            {t('rewards.recentRewards')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -321,7 +322,7 @@ export default function Rewards() {
             </div>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              No rewards history available
+              {t('rewards.noHistory')}
             </div>
           )}
         </CardContent>
