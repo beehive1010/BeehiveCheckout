@@ -62,24 +62,29 @@ export function useUserReferralStats() {
       // Get total earnings from layer rewards using exact matching
       const { data: rewardsData } = await supabase
         .from('layer_rewards')
-        .select('amount_usdt')
-        .eq('recipient_wallet', walletAddress)
-        .eq('is_claimed', true);
+        .select('reward_amount')
+        .eq('reward_recipient_wallet', walletAddress)
+        .eq('status', 'claimed');
 
-      const totalEarnings = rewardsData?.reduce((sum, reward) => sum + (reward.amount_usdt || 0), 0) || 0;
+      const totalEarnings = rewardsData?.reduce((sum, reward) => sum + (reward.reward_amount || 0), 0) || 0;
 
       // Get recent referrals with activation status using exact matching
       const { data: recentReferralsData } = await supabase
-        .from('members')
-        .select('wallet_address, created_at, current_level')
+        .from('referrals')
+        .select(`
+          member_wallet,
+          created_at,
+          members!inner(current_level)
+        `)
         .eq('referrer_wallet', walletAddress)
+        .eq('is_direct_referral', true)
         .order('created_at', { ascending: false })
         .limit(5);
 
-      const recentReferrals = recentReferralsData?.map(member => ({
-        walletAddress: member.wallet_address,
-        joinedAt: member.created_at,
-        activated: member.current_level > 0
+      const recentReferrals = recentReferralsData?.map(referral => ({
+        walletAddress: referral.member_wallet,
+        joinedAt: referral.created_at,
+        activated: (referral.members as any)?.current_level > 0
       })) || [];
 
       return {
