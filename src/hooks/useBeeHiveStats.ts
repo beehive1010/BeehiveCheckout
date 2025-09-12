@@ -84,7 +84,7 @@ export function useUserReferralStats() {
 
       const recentReferrals = recentReferralsData?.map(referral => ({
         walletAddress: referral.member_wallet,
-        joinedAt: referral.created_at,
+        joinedAt: referral.placed_at,
         activated: (referral.members as any)?.current_level > 0
       })) || [];
 
