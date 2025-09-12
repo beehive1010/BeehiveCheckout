@@ -88,7 +88,19 @@ export const authService = {
         return { data: null, error: { message: result.error || 'User not found' } };
       }
 
-      return { data: result.user, error: null };
+      // Return the complete result with all properties (isMember, canAccessReferrals, etc.)
+      return { 
+        data: {
+          ...result.user,
+          isMember: result.isMember,
+          membershipLevel: result.membershipLevel,
+          canAccessReferrals: result.isMember || false,
+          member: result.member,
+          balance: result.balance,
+          referral_stats: result.referral_stats
+        }, 
+        error: null 
+      };
     } catch (error: any) {
       console.error('Error getting user:', error);
       return { data: null, error: { message: error.message } };
