@@ -114,11 +114,11 @@ export function useUserMatrixStats() {
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
       
-      // Get matrix placements by layer using referrals table with case-insensitive query
+      // Get matrix placements by layer using referrals table with exact matching
       const { data: matrixData } = await supabase
         .from('referrals')
         .select('matrix_layer, matrix_position, member_wallet')
-        .ilike('matrix_root', walletAddress)
+        .eq('matrix_root', walletAddress)
         .order('matrix_layer');
 
       // Group by layer and count
