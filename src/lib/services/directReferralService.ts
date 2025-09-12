@@ -111,11 +111,11 @@ export async function getDirectReferralDetails(referrerWallet: string): Promise<
       console.error('❌ Error fetching from referrals table:', referralError);
     }
 
-    // Get user info and member info using case-insensitive query
+    // Get user info and member info using exact matching
     const { data: usersData, error: usersError } = await supabase
       .from('users')
       .select('wallet_address, username, created_at')
-      .ilike('referrer_wallet', referrerWallet)
+      .eq('referrer_wallet', referrerWallet)
       .neq('wallet_address', '0x0000000000000000000000000000000000000001')
       .order('created_at', { ascending: false });
 
