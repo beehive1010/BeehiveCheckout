@@ -74,12 +74,12 @@ export function useUserReferralStats() {
         .from('referrals')
         .select(`
           member_wallet,
-          created_at,
+          placed_at,
           members!inner(current_level)
         `)
         .eq('referrer_wallet', walletAddress)
         .eq('is_direct_referral', true)
-        .order('created_at', { ascending: false })
+        .order('placed_at', { ascending: false })
         .limit(5);
 
       const recentReferrals = recentReferralsData?.map(referral => ({
