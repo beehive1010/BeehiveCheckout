@@ -41,7 +41,9 @@ interface DataLoadState {
 }
 
 export default function Dashboard() {
-  const { userData, walletAddress } = useWallet();
+  const { userData, walletAddress: originalWalletAddress } = useWallet();
+  // Temporary: Use test wallet for debugging if no wallet connected
+  const walletAddress = originalWalletAddress || '0xF9e54564D273531F97F95291BAF0C3d74F337937';
   const { t } = useI18n();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -80,7 +82,7 @@ export default function Dashboard() {
       const { data: balanceData, error: balanceError } = await supabase
         .from('user_balances')
         .select('*')
-        .ilike('wallet_address', walletAddress)
+        .eq('wallet_address', walletAddress)
         .single();
 
       if (balanceError && balanceError.code !== 'PGRST116') {
