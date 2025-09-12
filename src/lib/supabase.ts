@@ -16,6 +16,9 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
 // Legacy export alias for compatibility
 export const supabaseApi = supabase
 
+// Re-export authService from legacy supabaseClient for compatibility
+export { authService } from './supabaseClient'
+
 // Database functions that exist in the current schema
 export const dbFunctions = {
   // Working functions from database.types.ts
