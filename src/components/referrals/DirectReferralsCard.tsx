@@ -56,14 +56,14 @@ const DirectReferralsCard: React.FC<DirectReferralsCardProps> = ({
         .from('referrals')
         .select(`
           member_wallet,
-          created_at,
+          placed_at,
           referrer_wallet,
           is_direct_referral
         `)
         .eq('referrer_wallet', walletAddress)
         .eq('is_direct_referral', true)
         .neq('member_wallet', '0x0000000000000000000000000000000000000001')
-        .order('created_at', { ascending: false });
+        .order('placed_at', { ascending: false });
 
       if (referralsError) {
         console.error('❌ Referrals query error:', referralsError);
