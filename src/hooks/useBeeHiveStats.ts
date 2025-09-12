@@ -41,9 +41,10 @@ export function useUserReferralStats() {
       
       // Get direct referrals count using exact matching
       const { count: directReferrals } = await supabase
-        .from('members')
+        .from('referrals')
         .select('*', { count: 'exact', head: true })
-        .eq('referrer_wallet', walletAddress);
+        .eq('referrer_wallet', walletAddress)
+        .eq('is_direct_referral', true);
 
       // Get total team count from direct referrals using exact matching
       const { count: totalTeam } = await supabase
@@ -97,9 +98,9 @@ export function useUserReferralStats() {
         nextPayout: 'TBD',
         currentLevel: memberData?.current_level || 1,
         memberActivated: (memberData?.current_level || 0) > 0,
-        matrixLevel: memberData?.levels_owned?.length || 1,
-        positionIndex: 1,
-        levelsOwned: memberData?.levels_owned || [1],
+        matrixLevel: memberData?.current_level || 1,
+        positionIndex: memberData?.activation_sequence || 1,
+        levelsOwned: [memberData?.current_level || 1],
         downlineMatrix: [], // TODO: Calculate downline matrix stats
         recentReferrals
       };
