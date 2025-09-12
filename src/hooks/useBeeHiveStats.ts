@@ -39,39 +39,39 @@ export function useUserReferralStats() {
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
       
-      // Get direct referrals count
+      // Get direct referrals count using case-insensitive query
       const { count: directReferrals } = await supabase
         .from('members')
         .select('*', { count: 'exact', head: true })
-        .eq('referrer_wallet', walletAddress);
+        .ilike('referrer_wallet', walletAddress);
 
-      // Get total team count from direct referrals (fallback since matrix table doesn't exist)
+      // Get total team count from direct referrals using case-insensitive query
       const { count: totalTeam } = await supabase
         .from('users')
         .select('*', { count: 'exact', head: true })
-        .eq('referrer_wallet', walletAddress);
+        .ilike('referrer_wallet', walletAddress);
 
-      // Get member's current level and info
+      // Get member's current level and info using case-insensitive query
       const { data: memberData } = await supabase
         .from('members')
         .select('current_level, levels_owned, activation_rank')
-        .eq('wallet_address', walletAddress)
+        .ilike('wallet_address', walletAddress)
         .maybeSingle();
 
-      // Get total earnings from layer rewards
+      // Get total earnings from layer rewards using case-insensitive query
       const { data: rewardsData } = await supabase
         .from('layer_rewards')
         .select('amount_usdt')
-        .eq('recipient_wallet', walletAddress)
+        .ilike('recipient_wallet', walletAddress)
         .eq('is_claimed', true);
 
       const totalEarnings = rewardsData?.reduce((sum, reward) => sum + (reward.amount_usdt || 0), 0) || 0;
 
-      // Get recent referrals with activation status
+      // Get recent referrals with activation status using case-insensitive query
       const { data: recentReferralsData } = await supabase
         .from('members')
         .select('wallet_address, created_at, current_level')
-        .eq('referrer_wallet', walletAddress)
+        .ilike('referrer_wallet', walletAddress)
         .order('created_at', { ascending: false })
         .limit(5);
 
@@ -114,11 +114,11 @@ export function useUserMatrixStats() {
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
       
-      // Get matrix placements by layer using referrals table
+      // Get matrix placements by layer using referrals table with case-insensitive query
       const { data: matrixData } = await supabase
         .from('referrals')
         .select('matrix_layer, matrix_position, member_wallet')
-        .eq('matrix_root', walletAddress)
+        .ilike('matrix_root', walletAddress)
         .order('matrix_layer');
 
       // Group by layer and count

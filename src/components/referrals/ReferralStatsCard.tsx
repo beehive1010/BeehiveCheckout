@@ -297,7 +297,7 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
           <Button 
             className="w-full bg-honey hover:bg-honey/90 text-black"
             onClick={() => {
-              const referralLink = `${window.location.origin}?ref=${walletAddress}`;
+              const referralLink = `${window.location.origin}/welcome?ref=${walletAddress}`;
               navigator.clipboard.writeText(referralLink);
             }}
           >
