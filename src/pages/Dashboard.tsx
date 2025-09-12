@@ -188,7 +188,7 @@ export default function Dashboard() {
           expires_at,
           claimed_at
         `)
-        .ilike('reward_recipient_wallet', walletAddress)
+        .eq('reward_recipient_wallet', walletAddress)
         .order('created_at', { ascending: false });
 
       if (rewardError) {

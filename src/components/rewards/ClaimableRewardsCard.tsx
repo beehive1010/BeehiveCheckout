@@ -57,15 +57,14 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
         .from('layer_rewards')
         .select(`
           id,
-          amount_usdt,
-          layer,
-          reward_type,
-          is_claimed,
-          payer_wallet,
+          reward_amount,
+          matrix_layer,
+          status,
+          triggering_member_wallet,
           created_at
         `)
-        .eq('recipient_wallet', walletAddress)
-        .eq('is_claimed', false)
+        .eq('reward_recipient_wallet', walletAddress)
+        .eq('status', 'claimable')
         .order('created_at', { ascending: false });
 
       // Simplified matrix position handling (removed dependency on non-existent table)
@@ -73,7 +72,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
       if (layerRewards && layerRewards.length > 0) {
         // Set default positions since individual_matrix_placements table doesn't exist
         layerRewards.forEach(reward => {
-          matrixPositions.set(`${reward.payer_wallet}-${reward.layer}`, 'L');
+          matrixPositions.set(`${reward.triggering_member_wallet}-${reward.matrix_layer}`, 'L');
         });
       }
 
@@ -88,19 +87,19 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
       let totalPending = 0;
 
       layerRewards?.forEach(reward => {
-        const positionKey = `${reward.payer_wallet}-${reward.layer}`;
+        const positionKey = `${reward.triggering_member_wallet}-${reward.matrix_layer}`;
         const position = matrixPositions.get(positionKey) || '?';
         
         const transformedReward: ClaimableReward = {
           id: reward.id,
-          rewardAmount: reward.amount_usdt || 0,
-          triggerLevel: reward.layer,
-          payoutLayer: reward.layer,
-          matrixPosition: `Layer ${reward.layer} (${position})`,
-          sourceWallet: reward.payer_wallet || '',
-          status: reward.reward_type === 'layer_reward' ? 'confirmed' : 'pending',
+          rewardAmount: reward.reward_amount || 0,
+          triggerLevel: reward.matrix_layer,
+          payoutLayer: reward.matrix_layer,
+          matrixPosition: `Layer ${reward.matrix_layer} (${position})`,
+          sourceWallet: reward.triggering_member_wallet || '',
+          status: reward.status === 'claimable' ? 'confirmed' : 'pending',
           createdAt: reward.created_at,
-          expiresAt: reward.countdown_timers?.[0]?.end_time || undefined
+          expiresAt: reward.expires_at || undefined
         };
 
         if (reward.reward_type === 'layer_reward') {
