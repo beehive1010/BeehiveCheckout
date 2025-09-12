@@ -8,7 +8,7 @@ CREATE OR REPLACE FUNCTION activate_nft_level1_membership(
 RETURNS JSON AS $$
 DECLARE
     v_membership_id UUID;
-    v_activation_rank BIGINT;
+    v_activation_sequence BIGINT;
     v_platform_fee NUMERIC := 30.00;
     v_reward_amount NUMERIC := 100.00;
     v_matrix_root VARCHAR(42);
@@ -26,12 +26,12 @@ BEGIN
     
     RAISE NOTICE 'Ensured user exists for wallet: %', p_wallet_address;
     
-    -- 1. 获取下一个activation_rank
-    SELECT COALESCE(MAX(activation_rank), 0) + 1 
-    INTO v_activation_rank 
+    -- 1. 获取下一个activation_sequence
+    SELECT COALESCE(MAX(activation_sequence), 0) + 1 
+    INTO v_activation_sequence 
     FROM membership;
     
-    RAISE NOTICE 'Assigned activation_rank: %', v_activation_rank;
+    RAISE NOTICE 'Assigned activation_sequence: %', v_activation_sequence;
     
     -- 2. 创建membership记录
     INSERT INTO membership (
@@ -46,7 +46,7 @@ BEGIN
         payment_verified,
         nft_verified,
         member_created_at,
-        activation_rank,
+        activation_sequence,
         activation_tier,
         bcc_locked_amount,
         platform_activation_fee,
@@ -65,7 +65,7 @@ BEGIN
         true,
         true,
         NOW(),
-        v_activation_rank,
+        v_activation_sequence,
         1,
         100.00,
         v_platform_fee,
@@ -82,12 +82,11 @@ BEGIN
         current_level,
         levels_owned,
         has_pending_rewards,
-        created_at,
+        activation_time,
         updated_at,
-        activation_rank,
+        activation_sequence,
         bcc_locked_initial,
         bcc_locked_remaining,
-        tier_level,
         referrer_wallet
     ) VALUES (
         p_wallet_address,
@@ -96,10 +95,9 @@ BEGIN
         false,
         NOW(),
         NOW(),
-        v_activation_rank,
+        v_activation_sequence,
         100.00,
         100.00,
-        1,
         p_referrer_wallet
     ) ON CONFLICT (wallet_address) 
     DO UPDATE SET
@@ -109,7 +107,7 @@ BEGIN
             ELSE members.levels_owned || '[1]'::jsonb
         END,
         updated_at = NOW(),
-        activation_rank = COALESCE(members.activation_rank, v_activation_rank),
+        activation_sequence = COALESCE(members.activation_sequence, v_activation_sequence),
         tier_level = COALESCE(members.tier_level, 1),
         referrer_wallet = COALESCE(members.referrer_wallet, p_referrer_wallet);
         
@@ -245,7 +243,7 @@ BEGIN
     v_result := json_build_object(
         'success', true,
         'membership_id', v_membership_id,
-        'activation_rank', v_activation_rank,
+        'activation_sequence', v_activation_sequence,
         'platform_fee_usdc', v_platform_fee,
         'matrix_root', v_matrix_root,
         'reward_id', v_reward_id,

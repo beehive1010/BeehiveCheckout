@@ -98,7 +98,7 @@ async function registerUser(supabase, walletAddress, data) {
       .select(`
         wallet_address,
         username,
-        created_at
+        activation_time
       `)
       .eq('wallet_address', walletAddress)
       .single();
@@ -109,7 +109,7 @@ async function registerUser(supabase, walletAddress, data) {
         activation_sequence,
         current_level,
         referrer_wallet,
-        created_at
+        activation_time
       `)
       .eq('wallet_address', walletAddress)
       .single();
@@ -141,10 +141,10 @@ async function getUser(supabase, walletAddress) {
     .select(`
       wallet_address,
       username,
-      created_at,
+      activation_time,
       updated_at
     `)
-    .ilike('wallet_address', walletAddress)
+    .eq('wallet_address', walletAddress)
     .single();
 
   if (userError) {
@@ -166,9 +166,9 @@ async function getUser(supabase, walletAddress) {
       activation_sequence,
       current_level,
       referrer_wallet,
-      created_at
+      activation_time
     `)
-    .ilike('wallet_address', walletAddress)
+    .eq('wallet_address', walletAddress)
     .single();
 
   // 获取用户余额信息
@@ -237,7 +237,7 @@ async function validateReferrer(supabase, referrerWallet) {
   const { data: userData, error: userError } = await supabase
     .from('users')
     .select('wallet_address, username')
-    .ilike('wallet_address', referrerWallet)
+    .eq('wallet_address', referrerWallet)
     .single();
   
   if (userError || !userData) {
@@ -253,7 +253,7 @@ async function validateReferrer(supabase, referrerWallet) {
   const { data: memberData, error: memberError } = await supabase
     .from('members')
     .select('current_level, activation_sequence, wallet_address')
-    .ilike('wallet_address', referrerWallet)
+    .eq('wallet_address', referrerWallet)
     .single();
   
   if (memberError || !memberData || memberData.current_level < 1) {
@@ -308,7 +308,7 @@ async function updateUserProfile(supabase, walletAddress, data) {
         bio: data.bio,
         updated_at: new Date().toISOString()
       })
-      .ilike('wallet_address', walletAddress);
+      .eq('wallet_address', walletAddress);
 
     if (userUpdateError) {
       console.error('更新用户信息错误:', userUpdateError);
@@ -323,10 +323,10 @@ async function updateUserProfile(supabase, walletAddress, data) {
         username,
         email,
         bio,
-        created_at,
+        activation_time,
         updated_at
       `)
-      .ilike('wallet_address', walletAddress)
+      .eq('wallet_address', walletAddress)
       .single();
 
     console.log(`✅ 用户资料更新成功: ${walletAddress}`);

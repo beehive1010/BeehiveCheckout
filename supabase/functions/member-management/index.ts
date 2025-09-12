@@ -11,22 +11,21 @@ console.log(`👥 Member Management API启动成功!`)
 
 interface MemberInfo {
   wallet_address: string;
-  activation_rank?: number;
+  activation_sequence?: number;
   bcc_locked_initial?: number;
   bcc_locked_remaining?: number;
   current_level: number;
   has_pending_rewards: boolean;
   levels_owned: any[];
   referrer_wallet?: string;
-  tier_level?: number;
-  created_at: string;
+  activation_time: string;
   updated_at: string;
 }
 
 interface MembershipInfo {
   wallet_address: string;
   activated_at?: string;
-  activation_rank: number;
+  activation_sequence: number;
   activation_tier?: number;
   bcc_locked_amount?: number;
   claim_status: string;
@@ -163,7 +162,7 @@ async function getMemberInfo(supabase: any, walletAddress: string) {
     success: true,
     member: memberData,
     currentLevel: memberData?.current_level || 0,
-    hasActivated: !!memberData?.activation_rank
+    hasActivated: !!memberData?.activation_sequence
   }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     status: 200
@@ -271,17 +270,16 @@ async function listMembers(supabase: any, limit: number, offset: number, tier?: 
     .from('members')
     .select(`
       wallet_address,
-      activation_rank,
+      activation_sequence,
       current_level,
-      tier_level,
-      created_at,
+      activation_time,
       users!members_wallet_address_fkey(username, email)
     `)
-    .order('activation_rank', { ascending: true })
+    .order('activation_sequence', { ascending: true })
     .range(offset, offset + limit - 1)
 
   if (tier) {
-    query = query.eq('tier_level', parseInt(tier))
+    query = query.eq('current_level', parseInt(tier))
   }
 
   const { data: members, error: membersError } = await query
@@ -321,11 +319,11 @@ async function getMemberStats(supabase: any, walletAddress: string) {
   // Get reward statistics
   const { data: rewardStats, error: rewardError } = await supabase
     .from('layer_rewards')
-    .select('amount_usdt, is_claimed, created_at')
-    .eq('recipient_wallet', walletAddress)
+    .select('reward_amount, is_claimed, created_at')
+    .eq('reward_recipient_wallet', walletAddress)
 
   const directReferrals = referralStats?.length || 0
-  const totalRewards = rewardStats?.reduce((sum: number, reward: any) => sum + (reward.amount_usdt || 0), 0) || 0
+  const totalRewards = rewardStats?.reduce((sum: number, reward: any) => sum + (reward.reward_amount || 0), 0) || 0
   const claimedRewards = rewardStats?.filter((r: any) => r.is_claimed)?.length || 0
 
   return new Response(JSON.stringify({
@@ -381,7 +379,7 @@ async function buildReferralTree(supabase: any, walletAddress: string, currentDe
   // Get member info
   const { data: memberInfo } = await supabase
     .from('members')
-    .select('current_level, activation_rank')
+    .select('current_level, activation_sequence')
     .eq('wallet_address', walletAddress)
     .single()
 
@@ -411,7 +409,7 @@ async function buildReferralTree(supabase: any, walletAddress: string, currentDe
     username: userInfo?.username,
     email: userInfo?.email,
     current_level: memberInfo?.current_level || 0,
-    activation_rank: memberInfo?.activation_rank,
+    activation_sequence: memberInfo?.activation_sequence,
     direct_referrals_count: referrals?.length || 0,
     children,
     depth: currentDepth
@@ -455,8 +453,7 @@ async function updateMemberInfo(supabase: any, walletAddress: string, updateData
     'bcc_locked_remaining',
     'current_level',
     'has_pending_rewards',
-    'levels_owned',
-    'tier_level'
+    'levels_owned'
   ]
 
   // Filter update data to only allowed fields
@@ -537,7 +534,7 @@ async function syncMemberData(supabase: any, walletAddress: string) {
       const { data: memberData, error: memberError } = await supabase
         .from('members')
         .select('*')
-        .ilike('wallet_address', walletAddress)
+        .eq('wallet_address', walletAddress)
         .single()
 
       if (memberError && memberError.code === 'PGRST116') {
@@ -548,13 +545,12 @@ async function syncMemberData(supabase: any, walletAddress: string) {
           .from('members')
           .insert({
             wallet_address: walletAddress,
-            activation_rank: membershipData.activation_rank,
+            activation_sequence: membershipData.activation_sequence,
             current_level: membershipData.nft_level,
             referrer_wallet: membershipData.referrer_wallet,
-            tier_level: membershipData.activation_tier,
             levels_owned: [membershipData.nft_level],
             has_pending_rewards: false,
-            created_at: membershipData.activated_at,
+            activation_time: membershipData.activated_at,
             updated_at: new Date().toISOString()
           })
           .select()
@@ -572,7 +568,7 @@ async function syncMemberData(supabase: any, walletAddress: string) {
     const { data: balanceData, error: balanceError } = await supabase
       .from('user_balances')
       .select('*')
-      .ilike('wallet_address', walletAddress)
+      .eq('wallet_address', walletAddress)
       .single()
 
     if (balanceError) {

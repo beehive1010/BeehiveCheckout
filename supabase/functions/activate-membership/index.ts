@@ -1,6 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
+// 正确的数据库接口定义
+interface MemberInfo {
+  wallet_address: string;
+  activation_sequence?: number;
+  current_level: number;
+  has_pending_rewards: boolean;
+  levels_owned: any[];
+  referrer_wallet?: string;
+  activation_time: string;
+  updated_at: string;
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-wallet-address',
@@ -144,7 +156,7 @@ async function activateNftLevel1Membership(supabase, walletAddress, transactionH
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('wallet_address, referrer_wallet, username, email')
-      .ilike('wallet_address', walletAddress)
+      .eq('wallet_address', walletAddress)
       .single();
 
     if (userError || !userData) {
@@ -157,8 +169,8 @@ async function activateNftLevel1Membership(supabase, walletAddress, transactionH
     // 1. Check if already an activated member
     const { data: existingMember } = await supabase
       .from('members')
-      .select('wallet_address, current_level, activation_rank')
-      .ilike('wallet_address', walletAddress)
+      .select('wallet_address, current_level, activation_sequence')
+      .eq('wallet_address', walletAddress)
       .single();
 
     if (existingMember && existingMember.current_level > 0) {
@@ -354,7 +366,7 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('wallet_address, referrer_wallet, username, email')
-      .ilike('wallet_address', walletAddress)
+      .eq('wallet_address', walletAddress)
       .single();
 
     if (userError || !userData) {
@@ -400,8 +412,8 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
     // 2. 检查数据库中是否已有对应的会员记录
     const { data: existingMember } = await supabase
       .from('members')
-      .select('wallet_address, current_level, activation_rank')
-      .ilike('wallet_address', walletAddress)
+      .select('wallet_address, current_level, activation_sequence')
+      .eq('wallet_address', walletAddress)
       .single();
     
     if (existingMember && existingMember.current_level > 0) {
@@ -453,9 +465,8 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
           levels_owned: [level], // FIXED: Single level array, no duplicates
           has_pending_rewards: false,
           referrer_wallet: userData.referrer_wallet,
-          activation_rank: 1,
-          tier_level: 1,
-          created_at: currentTime,
+          activation_sequence: 1,
+          activation_time: currentTime,
           updated_at: currentTime
         })
         .select()
@@ -495,8 +506,8 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
     // 获取最新的members记录
     const { data: updatedMember } = await supabase
       .from('members')
-      .select('wallet_address, current_level, activation_rank')
-      .ilike('wallet_address', walletAddress)
+      .select('wallet_address, current_level, activation_sequence')
+      .eq('wallet_address', walletAddress)
       .single();
     
     return {
