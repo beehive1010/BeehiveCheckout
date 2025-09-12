@@ -67,11 +67,11 @@ export function useUserReferralStats() {
 
       const totalEarnings = rewardsData?.reduce((sum, reward) => sum + (reward.amount_usdt || 0), 0) || 0;
 
-      // Get recent referrals with activation status using case-insensitive query
+      // Get recent referrals with activation status using exact matching
       const { data: recentReferralsData } = await supabase
         .from('members')
         .select('wallet_address, created_at, current_level')
-        .ilike('referrer_wallet', walletAddress)
+        .eq('referrer_wallet', walletAddress)
         .order('created_at', { ascending: false })
         .limit(5);
 
