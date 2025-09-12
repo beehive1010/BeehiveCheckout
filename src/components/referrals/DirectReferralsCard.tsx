@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
-import { Progress } from '../ui/progress';
 import { 
   Users, 
   Trophy, 
@@ -137,9 +136,6 @@ const DirectReferralsCard: React.FC<DirectReferralsCardProps> = ({
   const totalReferrals = directReferrals.length;
   const activatedReferrals = directReferrals.filter(r => r.isActivated).length;
   const activationRate = totalReferrals > 0 ? Math.round((activatedReferrals / totalReferrals) * 100) : 0;
-  const level2Requirement = 3; // Need >3 direct referrals for Level 2
-  const level2Progress = Math.min((totalReferrals / (level2Requirement + 1)) * 100, 100);
-  const level2Qualified = totalReferrals > level2Requirement;
 
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -227,32 +223,6 @@ const DirectReferralsCard: React.FC<DirectReferralsCardProps> = ({
           </div>
         </div>
 
-        {/* Level 2 Qualification Progress */}
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <h4 className="font-medium text-honey">Level 2 Qualification</h4>
-            <Badge 
-              variant={level2Qualified ? 'default' : 'outline'}
-              className={level2Qualified ? 'bg-green-600 text-white' : 'text-orange-600 border-orange-600'}
-            >
-              {level2Qualified ? '✅ Qualified' : `Need ${level2Requirement + 1 - totalReferrals} more`}
-            </Badge>
-          </div>
-          
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Direct referrals needed for Level 2</span>
-              <span>{totalReferrals}/{level2Requirement + 1}</span>
-            </div>
-            <Progress 
-              value={level2Progress} 
-              className="h-2"
-            />
-            <div className="text-xs text-muted-foreground">
-              💡 Level 2 requires more than {level2Requirement} direct referrals
-            </div>
-          </div>
-        </div>
 
         {/* Referrals List */}
         {directReferrals.length > 0 ? (

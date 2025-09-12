@@ -10,7 +10,7 @@ import UserProfileCard from '../components/shared/UserProfileCard';
 import { UsersIcon, ShareIcon, TrophyIcon } from '@heroicons/react/24/outline';
 import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
 import DrillDownMatrixView from '../components/matrix/DrillDownMatrixView';
-import DirectReferralsCard from '../components/referrals/DirectReferralsCard';
+import ReferralsStats from '../components/referrals/ReferralsStats';
 import ReferralStatsCard from '../components/referrals/ReferralStatsCard';
 import { Link } from 'wouter';
 import styles from '../styles/referrals/referrals.module.css';
@@ -94,12 +94,13 @@ export default function Referrals() {
 
         {/* Statistics Tab */}
         <TabsContent value="stats" className="space-y-6">
-          {/* New Referral Components with Correct Data */}
+          {/* Referrals Statistics from Database Views */}
+          <ReferralsStats 
+            walletAddress={walletAddress || ''}
+            className="mb-6"
+          />
+          
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <DirectReferralsCard 
-              walletAddress={walletAddress || ''}
-              className="h-fit"
-            />
             <ReferralStatsCard 
               className="h-fit"
               onViewMatrix={() => {
