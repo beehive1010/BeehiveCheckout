@@ -98,7 +98,7 @@ async function registerUser(supabase, walletAddress, data) {
       .select(`
         wallet_address,
         username,
-        activation_time
+        created_at
       `)
       .eq('wallet_address', walletAddress)
       .single();
@@ -141,7 +141,7 @@ async function getUser(supabase, walletAddress) {
     .select(`
       wallet_address,
       username,
-      activation_time,
+      created_at,
       updated_at
     `)
     .eq('wallet_address', walletAddress)
@@ -323,7 +323,7 @@ async function updateUserProfile(supabase, walletAddress, data) {
         username,
         email,
         bio,
-        activation_time,
+        created_at,
         updated_at
       `)
       .eq('wallet_address', walletAddress)
