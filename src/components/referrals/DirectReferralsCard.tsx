@@ -48,7 +48,10 @@ const DirectReferralsCard: React.FC<DirectReferralsCardProps> = ({
     setError(null);
 
     try {
+      console.log(`🔍 Loading direct referrals for wallet: ${walletAddress}`);
+
       // Get direct referrals from users table (people who used this wallet's referral link)
+      // Using ilike for case-insensitive matching as required by database
       const { data: usersData, error: usersError } = await supabase
         .from('users')
         .select(`
@@ -57,38 +60,56 @@ const DirectReferralsCard: React.FC<DirectReferralsCardProps> = ({
           created_at,
           referrer_wallet
         `)
-        .eq('referrer_wallet', walletAddress)
+        .ilike('referrer_wallet', walletAddress)
         .neq('wallet_address', '0x0000000000000000000000000000000000000001')
         .order('created_at', { ascending: false });
 
       if (usersError) {
+        console.error('❌ Users query error:', usersError);
         throw new Error(usersError.message);
       }
 
+      console.log(`📊 Found ${usersData?.length || 0} users with referrer_wallet matching ${walletAddress}`);
+
       // Get activation status from members table
       const walletAddresses = usersData?.map(u => u.wallet_address) || [];
-      const { data: membersData } = await supabase
-        .from('members')
-        .select('wallet_address, current_level, activation_rank')
-        .in('wallet_address', walletAddresses);
+      
+      let membersData = [];
+      if (walletAddresses.length > 0) {
+        const { data: memberResults, error: membersError } = await supabase
+          .from('members')
+          .select('wallet_address, current_level, activation_rank, created_at')
+          .in('wallet_address', walletAddresses);
+
+        if (membersError) {
+          console.error('⚠️ Members query error:', membersError);
+          // Continue without member data
+        } else {
+          membersData = memberResults || [];
+          console.log(`👥 Found ${membersData.length} corresponding members`);
+        }
+      }
 
       // Combine user and member data
       const referralsList = usersData?.map((user: any) => {
-        const memberData = membersData?.find(m => m.wallet_address === user.wallet_address);
+        const memberData = membersData?.find(m => 
+          m.wallet_address.toLowerCase() === user.wallet_address.toLowerCase()
+        );
         return {
           memberWallet: user.wallet_address,
-          memberName: user.username,
+          memberName: user.username || `User${user.wallet_address.slice(-4)}`,
           referredAt: user.created_at,
-          isActivated: !!memberData,
+          isActivated: !!memberData && memberData.current_level > 0,
           memberLevel: memberData?.current_level || 0,
           activationRank: memberData?.activation_rank || null
         };
       }) || [];
 
+      console.log(`✅ Processed ${referralsList.length} direct referrals`);
       setDirectReferrals(referralsList);
 
     } catch (error: any) {
-      console.error('Error loading direct referrals:', error);
+      console.error('❌ Error loading direct referrals:', error);
       setError(error.message || 'Failed to load direct referrals');
     } finally {
       setLoading(false);
@@ -107,7 +128,7 @@ const DirectReferralsCard: React.FC<DirectReferralsCardProps> = ({
   };
 
   const shareReferralLink = () => {
-    const referralLink = `${window.location.origin}?ref=${walletAddress}`;
+    const referralLink = `${window.location.origin}/welcome?ref=${walletAddress}`;
     navigator.clipboard.writeText(referralLink);
     // TODO: Add toast notification
   };
