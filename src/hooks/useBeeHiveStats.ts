@@ -51,11 +51,11 @@ export function useUserReferralStats() {
         .select('*', { count: 'exact', head: true })
         .eq('referrer_wallet', walletAddress);
 
-      // Get member's current level and info using case-insensitive query
+      // Get member's current level and info using exact matching
       const { data: memberData } = await supabase
         .from('members')
         .select('current_level, levels_owned, activation_rank')
-        .ilike('wallet_address', walletAddress)
+        .eq('wallet_address', walletAddress)
         .maybeSingle();
 
       // Get total earnings from layer rewards using case-insensitive query
