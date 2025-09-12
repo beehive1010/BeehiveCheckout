@@ -1,0 +1,388 @@
+# 常用业务场景测试
+# Common Business Scenarios Testing
+
+@baseUrl = https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1
+@apiKey = YOUR_SUPABASE_ANON_KEY_HERE
+@serviceKey = YOUR_SUPABASE_SERVICE_ROLE_KEY_HERE
+
+### Test Data
+@newMember = 0x4Cc359f21A99497CB78cb7902Ac44643Af41DD71
+@referrer = 0x2C84e7DC65209730C067827b49AC7d5A1d25C8dC
+@existingMember = 0x0B9b9F8c7b1f7c5b0a6b5b4b3b2b1b0b9b8b7b6b63
+
+###############################################
+# 🎯 场景1: 新会员完整注册流程
+# Scenario 1: Complete New Member Registration Flow
+###############################################
+
+### Step 1: 检查推荐人是否存在
+GET {{baseUrl}}/member-management/info?wallet={{referrer}}
+Authorization: Bearer {{apiKey}}
+
+### Step 2: 注册新会员
+POST {{baseUrl}}/member-management/register
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{newMember}}",
+  "referrer_wallet": "{{referrer}}",
+  "email": "newmember@beehive.test",
+  "username": "newuser001"
+}
+
+### Step 3: 验证注册结果
+GET {{baseUrl}}/member-management/info?wallet={{newMember}}
+Authorization: Bearer {{apiKey}}
+
+### Step 4: 检查矩阵安置状态
+GET {{baseUrl}}/matrix/status?wallet={{newMember}}
+Authorization: Bearer {{apiKey}}
+
+### Step 5: 查看推荐关系
+GET {{baseUrl}}/member-management/referrals?wallet={{referrer}}
+Authorization: Bearer {{apiKey}}
+
+###############################################
+# 🎁 场景2: 会员升级与奖励完整流程
+# Scenario 2: Complete Member Upgrade & Reward Flow
+###############################################
+
+### Step 1: 检查升级前状态
+GET {{baseUrl}}/member-management/level?wallet={{existingMember}}
+Authorization: Bearer {{apiKey}}
+
+### Step 2: 升级会员到Level 1
+POST {{baseUrl}}/member-management/upgrade-level
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{existingMember}}",
+  "new_level": 1,
+  "payment_confirmed": true
+}
+
+### Step 3: 触发升级奖励
+POST {{baseUrl}}/upgrade-rewards/trigger
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "upgraded_member": "{{existingMember}}",
+  "new_level": 1
+}
+
+### Step 4: 检查奖励状态
+GET {{baseUrl}}/upgrade-rewards/status?wallet_address={{existingMember}}
+Authorization: Bearer {{apiKey}}
+
+### Step 5: 查看活跃计时器
+GET {{baseUrl}}/upgrade-rewards/timers
+Authorization: Bearer {{apiKey}}
+
+### Step 6: 批量检查待定奖励
+POST {{baseUrl}}/upgrade-rewards/batch-check
+Authorization: Bearer {{serviceKey}}
+
+###############################################
+# 🏗️ 场景3: 矩阵结构分析与管理
+# Scenario 3: Matrix Structure Analysis & Management
+###############################################
+
+### Step 1: 查看矩阵根的完整结构
+GET {{baseUrl}}/matrix/tree?root={{referrer}}&layer=5
+Authorization: Bearer {{apiKey}}
+
+### Step 2: 检查矩阵完成状态
+GET {{baseUrl}}/matrix/completion?root={{referrer}}
+Authorization: Bearer {{apiKey}}
+
+### Step 3: 查找空缺位置
+GET {{baseUrl}}/matrix/vacant?root={{referrer}}
+Authorization: Bearer {{apiKey}}
+
+### Step 4: 获取矩阵统计信息
+GET {{baseUrl}}/matrix/stats?wallet={{referrer}}
+Authorization: Bearer {{apiKey}}
+
+### Step 5: 验证矩阵结构完整性
+POST {{baseUrl}}/matrix/validate
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "matrix_root": "{{referrer}}"
+}
+
+###############################################
+# 💰 场景4: 奖励申请与管理流程
+# Scenario 4: Reward Claiming & Management Flow
+###############################################
+
+### Step 1: 查看用户余额
+GET {{baseUrl}}/rewards/user
+Authorization: Bearer {{apiKey}}
+x-wallet-address: {{referrer}}
+
+### Step 2: 获取可申请奖励列表
+GET {{baseUrl}}/rewards/claimable
+Authorization: Bearer {{apiKey}}
+x-wallet-address: {{referrer}}
+
+### Step 3: 检查待定奖励
+POST {{baseUrl}}/rewards/pending
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{referrer}}"
+}
+
+### Step 4: 查看奖励通知
+POST {{baseUrl}}/rewards/notifications
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{referrer}}",
+  "is_read": false
+}
+
+### Step 5: 获取奖励仪表板数据
+POST {{baseUrl}}/rewards/dashboard
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{referrer}}"
+}
+
+###############################################
+# 🔐 场景5: 用户认证与权限验证
+# Scenario 5: User Authentication & Permission Verification
+###############################################
+
+### Step 1: 钱包连接认证
+POST {{baseUrl}}/auth/connect
+Content-Type: application/json
+
+{
+  "wallet_address": "{{existingMember}}",
+  "signature": "0x1234567890abcdef",
+  "message": "beehive_auth_2025"
+}
+
+### Step 2: 检查用户状态
+GET {{baseUrl}}/auth/status?wallet={{existingMember}}
+Authorization: Bearer {{apiKey}}
+
+### Step 3: 验证会员权限
+POST {{baseUrl}}/auth/check-member
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{existingMember}}",
+  "required_level": 1
+}
+
+### Step 4: 检查管理员权限
+POST {{baseUrl}}/auth/check-admin
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{referrer}}"
+}
+
+### Step 5: 获取用户会话信息
+GET {{baseUrl}}/auth/session
+Authorization: Bearer {{apiKey}}
+x-wallet-address: {{existingMember}}
+
+###############################################
+# 📊 场景6: 系统监控与健康检查
+# Scenario 6: System Monitoring & Health Checks
+###############################################
+
+### Step 1: 升级奖励系统统计
+GET {{baseUrl}}/upgrade-rewards/status?wallet_address=system_stats
+Authorization: Bearer {{apiKey}}
+
+### Step 2: 奖励系统维护
+POST {{baseUrl}}/rewards/maintenance
+Authorization: Bearer {{serviceKey}}
+
+### Step 3: 处理过期奖励
+POST {{baseUrl}}/rewards/process-expired-rewards
+Authorization: Bearer {{serviceKey}}
+
+### Step 4: 检查系统活跃计时器
+GET {{baseUrl}}/upgrade-rewards/timers
+Authorization: Bearer {{apiKey}}
+
+### Step 5: 获取会员活动记录
+GET {{baseUrl}}/member-management/activity?wallet={{existingMember}}&limit=10
+Authorization: Bearer {{apiKey}}
+
+###############################################
+# 🎯 场景7: R位置考核完整流程
+# Scenario 7: Complete R Position Qualification Flow
+###############################################
+
+### Step 1: 创建需要考核的R位置奖励
+POST {{baseUrl}}/upgrade-rewards/trigger
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "upgraded_member": "{{existingMember}}",
+  "new_level": 1
+}
+
+### Step 2: 查看创建的计时器
+GET {{baseUrl}}/upgrade-rewards/timers?wallet_address={{referrer}}
+Authorization: Bearer {{apiKey}}
+
+### Step 3: 升级Root到Level 2 (模拟考核通过)
+POST {{baseUrl}}/member-management/upgrade-level
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{referrer}}",
+  "new_level": 2,
+  "payment_confirmed": true
+}
+
+### Step 4: 检查特定计时器的考核状态
+POST {{baseUrl}}/upgrade-rewards/check-qualification
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "timer_id": "replace-with-actual-timer-uuid"
+}
+
+### Step 5: 验证奖励已被批准
+GET {{baseUrl}}/upgrade-rewards/status?wallet_address={{existingMember}}
+Authorization: Bearer {{apiKey}}
+
+###############################################
+# 🔄 场景8: 批量数据处理与同步
+# Scenario 8: Batch Data Processing & Synchronization
+###############################################
+
+### Step 1: 批量检查所有待定奖励
+POST {{baseUrl}}/upgrade-rewards/batch-check
+Authorization: Bearer {{serviceKey}}
+
+### Step 2: 批量更新会员信息
+POST {{baseUrl}}/member-management/batch-update
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "operations": [
+    {
+      "wallet_address": "{{existingMember}}",
+      "operation": "activate"
+    }
+  ]
+}
+
+### Step 3: 批量矩阵操作
+POST {{baseUrl}}/matrix/batch-update
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "operations": [
+    {
+      "type": "validate",
+      "matrix_root": "{{referrer}}"
+    }
+  ]
+}
+
+### Step 4: 系统范围的数据同步
+POST {{baseUrl}}/admin/sync-data
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "sync_types": ["rewards", "matrix", "members"]
+}
+
+###############################################
+# ❌ 场景9: 错误处理与异常恢复
+# Scenario 9: Error Handling & Exception Recovery
+###############################################
+
+### Step 1: 测试无效钱包地址
+GET {{baseUrl}}/member-management/info?wallet=invalid_address
+Authorization: Bearer {{apiKey}}
+
+### Step 2: 测试不存在的会员
+GET {{baseUrl}}/upgrade-rewards/status?wallet_address=0x0000000000000000000000000000000000000000
+Authorization: Bearer {{apiKey}}
+
+### Step 3: 测试无效奖励ID
+POST {{baseUrl}}/rewards/claim
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "claim_id": "00000000-0000-0000-0000-000000000000",
+  "wallet_address": "{{existingMember}}"
+}
+
+### Step 4: 测试权限不足
+POST {{baseUrl}}/upgrade-rewards/trigger
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "upgraded_member": "{{existingMember}}",
+  "new_level": 1
+}
+
+### Step 5: 测试服务不可用场景
+GET {{baseUrl}}/non-existent-endpoint
+Authorization: Bearer {{apiKey}}
+
+###############################################
+# 📈 场景10: 性能与压力测试
+# Scenario 10: Performance & Stress Testing
+###############################################
+
+### Step 1: 并发查询用户状态
+GET {{baseUrl}}/member-management/info?wallet={{existingMember}}
+Authorization: Bearer {{apiKey}}
+
+### Step 2: 并发查询奖励状态
+GET {{baseUrl}}/upgrade-rewards/status?wallet_address={{existingMember}}
+Authorization: Bearer {{apiKey}}
+
+### Step 3: 并发查询矩阵状态
+GET {{baseUrl}}/matrix/status?wallet={{existingMember}}
+Authorization: Bearer {{apiKey}}
+
+### Step 4: 大数据量查询
+GET {{baseUrl}}/matrix/tree?root={{referrer}}&layer=19
+Authorization: Bearer {{apiKey}}
+
+### Step 5: 复杂计算操作
+POST {{baseUrl}}/matrix/advanced-search
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "search_criteria": {
+    "matrix_layer": [1, 2, 3, 4, 5],
+    "is_active": true,
+    "has_referrals": true
+  },
+  "limit": 1000
+}

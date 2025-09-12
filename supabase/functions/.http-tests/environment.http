@@ -1,0 +1,230 @@
+# 环境变量配置文件
+# Beehive Platform Environment Configuration
+
+###############################################
+# 🌍 基础环境配置 - Basic Environment Settings
+###############################################
+
+### 生产环境 - Production Environment
+@prodBaseUrl = https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1
+@prodApiKey = YOUR_PRODUCTION_ANON_KEY_HERE
+@prodServiceKey = YOUR_PRODUCTION_SERVICE_ROLE_KEY_HERE
+
+### 开发环境 - Development Environment  
+@devBaseUrl = http://127.0.0.1:54321/functions/v1
+@devApiKey = YOUR_DEVELOPMENT_ANON_KEY_HERE
+@devServiceKey = YOUR_DEVELOPMENT_SERVICE_ROLE_KEY_HERE
+
+### 测试环境 - Testing Environment
+@testBaseUrl = https://test-project.supabase.co/functions/v1
+@testApiKey = YOUR_TEST_ANON_KEY_HERE
+@testServiceKey = YOUR_TEST_SERVICE_ROLE_KEY_HERE
+
+###############################################
+# 🎯 当前使用环境 - Current Active Environment
+###############################################
+
+# 切换这里的配置来改变测试环境
+@baseUrl = {{prodBaseUrl}}
+@apiKey = {{prodApiKey}}
+@serviceKey = {{prodServiceKey}}
+
+###############################################
+# 👥 测试用户数据 - Test User Data
+###############################################
+
+### 主要测试钱包 - Primary Test Wallets
+@adminWallet = 0x2C84e7DC65209730C067827b49AC7d5A1d25C8dC
+@testUser1 = 0x0B9b9F8c7b1f7c5b0a6b5b4b3b2b1b0b9b8b7b6b63
+@testUser2 = 0x310053286b025De2a0816faEcBCaeB61B5f17aa1
+@testUser3 = 0x4Cc359f21A99497CB78cb7902Ac44643Af41DD71
+
+### 测试邮箱 - Test Email Addresses
+@adminEmail = admin@beehive.test
+@testEmail1 = user1@beehive.test
+@testEmail2 = user2@beehive.test
+
+### 测试用户名 - Test Usernames
+@testUsername1 = testuser1
+@testUsername2 = testuser2
+
+###############################################
+# 🔑 API密钥测试 - API Key Testing
+###############################################
+
+### 测试API密钥有效性 - Test API Key Validity
+GET {{baseUrl}}/auth/status
+Authorization: Bearer {{apiKey}}
+
+### 测试服务角色密钥 - Test Service Role Key
+POST {{baseUrl}}/admin/health-check
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "check_type": "api_key_validation"
+}
+
+###############################################
+# 🏗️ 数据库连接测试 - Database Connection Testing
+###############################################
+
+### 测试数据库连接 - Test Database Connection
+GET {{baseUrl}}/member-management/info?wallet={{testUser1}}
+Authorization: Bearer {{apiKey}}
+
+### 测试RPC函数调用 - Test RPC Function Calls
+POST {{baseUrl}}/upgrade-rewards/status
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testUser1}}"
+}
+
+###############################################
+# ⚡ 性能测试配置 - Performance Testing Configuration
+###############################################
+
+### 性能测试参数 - Performance Test Parameters
+@concurrentUsers = 10
+@requestTimeout = 30000
+@testDuration = 60
+
+### 负载测试端点 - Load Testing Endpoints
+@loadTestEndpoint = {{baseUrl}}/rewards/user
+@stressTestEndpoint = {{baseUrl}}/upgrade-rewards/status
+
+###############################################
+# 🔧 功能开关 - Feature Flags
+###############################################
+
+### 功能标志 - Feature Flags
+@enableRewardSystem = true
+@enableMatrixSystem = true
+@enableUpgradeRewards = true
+@enableTwoFactorAuth = false
+@enableEmailNotifications = true
+
+###############################################
+# 📊 监控和日志配置 - Monitoring & Logging Configuration
+###############################################
+
+### 日志级别 - Log Levels
+@logLevel = debug
+@enableVerboseLogging = true
+@enablePerformanceLogging = true
+
+### 监控端点 - Monitoring Endpoints
+@healthCheckEndpoint = {{baseUrl}}/admin/health
+@metricsEndpoint = {{baseUrl}}/admin/metrics
+
+###############################################
+# 🚀 部署相关配置 - Deployment Configuration
+###############################################
+
+### 部署环境 - Deployment Environment
+@deploymentEnvironment = production
+@deploymentRegion = us-east-1
+@deploymentVersion = 1.0.0
+
+### Edge Function配置 - Edge Function Configuration
+@edgeFunctionTimeout = 30000
+@edgeFunctionMemoryLimit = 256
+
+###############################################
+# 🎮 测试场景数据 - Test Scenario Data
+###############################################
+
+### 升级奖励测试数据 - Upgrade Reward Test Data
+@upgradeTestLevel = 1
+@upgradeRewardAmount = 100
+@testTimerDuration = 30
+
+### 矩阵测试数据 - Matrix Test Data
+@maxMatrixLayer = 19
+@matrixPositions = ["L", "M", "R"]
+@testMatrixRoot = {{testUser1}}
+
+### 认证测试数据 - Authentication Test Data
+@testSignature = 0x1234567890abcdef
+@testMessage = beehive_auth_message_2025
+@testNonce = 12345
+
+###############################################
+# 🌐 第三方服务配置 - Third-party Service Configuration
+###############################################
+
+### 区块链相关 - Blockchain Configuration
+@ethereumRpcUrl = https://eth-mainnet.alchemyapi.io/v2/your-key
+@polygonRpcUrl = https://polygon-mainnet.alchemyapi.io/v2/your-key
+@bscRpcUrl = https://bsc-dataseed.binance.org
+
+### 通知服务 - Notification Services
+@emailServiceProvider = sendgrid
+@smsServiceProvider = twilio
+@pushNotificationService = firebase
+
+###############################################
+# 🔒 安全配置 - Security Configuration
+###############################################
+
+### 安全测试 - Security Testing
+@maxLoginAttempts = 5
+@sessionTimeout = 3600
+@passwordMinLength = 8
+@twoFactorCodeLength = 6
+
+### CORS配置 - CORS Configuration
+@allowedOrigins = ["https://beehive.io", "https://app.beehive.io"]
+@allowedMethods = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+@allowedHeaders = ["authorization", "content-type", "x-wallet-address"]
+
+###############################################
+# 📧 通知模板 - Notification Templates
+###############################################
+
+### 邮件模板ID - Email Template IDs
+@welcomeEmailTemplate = welcome_template_v1
+@rewardNotificationTemplate = reward_notification_v1
+@upgradeConfirmationTemplate = upgrade_confirmation_v1
+
+### 推送通知模板 - Push Notification Templates
+@rewardClaimedNotification = reward_claimed_v1
+@levelUpgradeNotification = level_upgrade_v1
+
+###############################################
+# 📱 移动应用配置 - Mobile App Configuration
+###############################################
+
+### 移动应用 - Mobile Application
+@iosAppId = com.beehive.ios
+@androidAppId = com.beehive.android
+@appVersion = 1.0.0
+
+### 深度链接 - Deep Links
+@appScheme = beehive://
+@universalLinkDomain = app.beehive.io
+
+###############################################
+# 🎯 A/B测试配置 - A/B Testing Configuration
+###############################################
+
+### A/B测试变体 - A/B Test Variants
+@variantA = classic_ui
+@variantB = modern_ui
+@testSplitRatio = 50
+
+###############################################
+# 📈 分析和追踪 - Analytics & Tracking
+###############################################
+
+### 分析服务 - Analytics Services
+@googleAnalyticsId = GA-XXXXXXXX
+@mixpanelProjectId = your-mixpanel-id
+@amplitudeApiKey = your-amplitude-key
+
+### 事件追踪 - Event Tracking
+@trackUserRegistration = true
+@trackRewardClaims = true
+@trackLevelUpgrades = true

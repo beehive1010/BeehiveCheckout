@@ -1,0 +1,222 @@
+# 矩阵系统API测试
+# Beehive Matrix System API Tests
+
+@baseUrl = https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1
+@apiKey = YOUR_SUPABASE_ANON_KEY_HERE
+@serviceKey = YOUR_SUPABASE_SERVICE_ROLE_KEY_HERE
+
+### Environment Variables
+@testWallet = 0x2C84e7DC65209730C067827b49AC7d5A1d25C8dC
+@testReferrer = 0x0B9b9F8c7b1f7c5b0a6b5b4b3b2b1b0b9b8b7b6b63
+@testMember = 0x310053286b025De2a0816faEcBCaeB61B5f17aa1
+
+###############################################
+# 1. 矩阵信息查询 - Matrix Information
+###############################################
+
+### GET Matrix Status
+GET {{baseUrl}}/matrix/status?wallet={{testWallet}}
+Authorization: Bearer {{apiKey}}
+
+### POST Matrix Information
+POST {{baseUrl}}/matrix/info
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}"
+}
+
+###############################################
+# 2. 矩阵安置 - Matrix Placement
+###############################################
+
+### POST Place Member in Matrix
+POST {{baseUrl}}/matrix/place
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "member_wallet": "{{testMember}}",
+  "referrer_wallet": "{{testReferrer}}",
+  "preferred_position": "L"
+}
+
+### POST Spillover Placement
+POST {{baseUrl}}/matrix/spillover
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "member_wallet": "{{testMember}}",
+  "matrix_root": "{{testWallet}}"
+}
+
+###############################################
+# 3. 矩阵结构查询 - Matrix Structure
+###############################################
+
+### GET Matrix Tree Structure
+GET {{baseUrl}}/matrix/tree?root={{testWallet}}&layer=3
+Authorization: Bearer {{apiKey}}
+
+### POST Matrix Layer Information
+POST {{baseUrl}}/matrix/layer-info
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "matrix_root": "{{testWallet}}",
+  "layer": 1
+}
+
+###############################################
+# 4. 矩阵统计 - Matrix Statistics
+###############################################
+
+### GET Matrix Statistics
+GET {{baseUrl}}/matrix/stats?wallet={{testWallet}}
+Authorization: Bearer {{apiKey}}
+
+### POST Team Statistics
+POST {{baseUrl}}/matrix/team-stats
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}"
+}
+
+###############################################
+# 5. 矩阵完成状态 - Matrix Completion Status
+###############################################
+
+### GET Matrix Completion Status
+GET {{baseUrl}}/matrix/completion?root={{testWallet}}
+Authorization: Bearer {{apiKey}}
+
+### POST Layer Completion Check
+POST {{baseUrl}}/matrix/check-completion
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "matrix_root": "{{testWallet}}",
+  "layer": 1
+}
+
+###############################################
+# 6. 空缺位置查询 - Vacant Positions
+###############################################
+
+### GET Vacant Positions
+GET {{baseUrl}}/matrix/vacant?root={{testWallet}}
+Authorization: Bearer {{apiKey}}
+
+### POST Find Next Available Position
+POST {{baseUrl}}/matrix/next-position
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "matrix_root": "{{testWallet}}",
+  "preferred_position": "L"
+}
+
+###############################################
+# 7. 矩阵历史记录 - Matrix History
+###############################################
+
+### GET Matrix Activity History
+GET {{baseUrl}}/matrix/history?wallet={{testWallet}}&limit=20
+Authorization: Bearer {{apiKey}}
+
+### POST Matrix Placement History
+POST {{baseUrl}}/matrix/placement-history
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "member_wallet": "{{testMember}}"
+}
+
+###############################################
+# 8. 矩阵验证 - Matrix Validation
+###############################################
+
+### POST Validate Matrix Structure
+POST {{baseUrl}}/matrix/validate
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "matrix_root": "{{testWallet}}"
+}
+
+### POST Fix Matrix Inconsistencies
+POST {{baseUrl}}/matrix/fix-structure
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "matrix_root": "{{testWallet}}",
+  "dry_run": true
+}
+
+###############################################
+# 9. 矩阵搜索 - Matrix Search
+###############################################
+
+### GET Search Matrix Members
+GET {{baseUrl}}/matrix/search?query={{testMember}}
+Authorization: Bearer {{apiKey}}
+
+### POST Advanced Matrix Search
+POST {{baseUrl}}/matrix/advanced-search
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "search_criteria": {
+    "matrix_layer": 1,
+    "matrix_position": "L",
+    "is_active": true
+  }
+}
+
+###############################################
+# 10. 批量矩阵操作 - Batch Matrix Operations
+###############################################
+
+### POST Batch Matrix Update
+POST {{baseUrl}}/matrix/batch-update
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "operations": [
+    {
+      "type": "activate",
+      "member_wallet": "{{testMember}}"
+    }
+  ]
+}
+
+###############################################
+# 11. 矩阵导出 - Matrix Export
+###############################################
+
+### GET Export Matrix Data
+GET {{baseUrl}}/matrix/export?root={{testWallet}}&format=json
+Authorization: Bearer {{apiKey}}
+
+### POST Export Matrix Report
+POST {{baseUrl}}/matrix/generate-report
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "matrix_root": "{{testWallet}}",
+  "report_type": "summary",
+  "include_inactive": false
+}

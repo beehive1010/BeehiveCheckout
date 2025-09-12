@@ -1,0 +1,138 @@
+# 升级奖励系统API测试
+# Beehive Member Upgrade Rewards System API Tests
+
+@baseUrl = https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1
+@apiKey = YOUR_SUPABASE_ANON_KEY_HERE
+@serviceKey = YOUR_SUPABASE_SERVICE_ROLE_KEY_HERE
+
+### Environment Variables (update these)
+@testWallet = 0x2C84e7DC65209730C067827b49AC7d5A1d25C8dC
+@testWallet2 = 0x0B9b9F8c7b1f7c5b0a6b5b4b3b2b1b0b9b8b7b6b63
+
+###############################################
+# 1. 触发会员升级奖励 - Trigger Member Upgrade Rewards
+###############################################
+
+### POST Trigger Level 1 Upgrade Rewards
+POST {{baseUrl}}/upgrade-rewards/trigger
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "upgraded_member": "{{testWallet}}",
+  "new_level": 1
+}
+
+### POST Trigger Level 2 Upgrade Rewards
+POST {{baseUrl}}/upgrade-rewards/trigger
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "upgraded_member": "{{testWallet2}}",
+  "new_level": 2
+}
+
+###############################################
+# 2. 查看奖励状态 - Get Reward Status
+###############################################
+
+### GET Reward Status (Query Parameter)
+GET {{baseUrl}}/upgrade-rewards/status?wallet_address={{testWallet}}
+Authorization: Bearer {{apiKey}}
+
+### POST Reward Status (Request Body)
+POST {{baseUrl}}/upgrade-rewards/status
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}"
+}
+
+### GET Reward Status with Header
+GET {{baseUrl}}/upgrade-rewards/status
+Authorization: Bearer {{apiKey}}
+x-wallet-address: {{testWallet}}
+
+###############################################
+# 3. 检查R位置考核 - Check R Position Qualification
+###############################################
+
+### POST Check R Position Qualification
+# Note: Replace timer_uuid with actual UUID from database
+POST {{baseUrl}}/upgrade-rewards/check-qualification
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "timer_id": "replace-with-actual-timer-uuid"
+}
+
+###############################################
+# 4. 批量检查待定奖励 - Batch Check Pending Rewards
+###############################################
+
+### POST Batch Check All Pending Rewards
+POST {{baseUrl}}/upgrade-rewards/batch-check
+Authorization: Bearer {{serviceKey}}
+
+###############################################
+# 5. 获取奖励计时器 - Get Reward Timers
+###############################################
+
+### GET All Reward Timers
+GET {{baseUrl}}/upgrade-rewards/timers
+Authorization: Bearer {{apiKey}}
+
+### GET Reward Timers for Specific Wallet
+GET {{baseUrl}}/upgrade-rewards/timers?wallet_address={{testWallet}}
+Authorization: Bearer {{apiKey}}
+
+### POST Reward Timers for Specific Wallet
+POST {{baseUrl}}/upgrade-rewards/timers
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}"
+}
+
+###############################################
+# 6. 错误测试 - Error Testing
+###############################################
+
+### POST Trigger without required parameters
+POST {{baseUrl}}/upgrade-rewards/trigger
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "new_level": 1
+}
+
+### GET Status without wallet address
+GET {{baseUrl}}/upgrade-rewards/status
+Authorization: Bearer {{apiKey}}
+
+### POST Check qualification without timer ID
+POST {{baseUrl}}/upgrade-rewards/check-qualification
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{}
+
+###############################################
+# 7. 无效动作测试 - Invalid Action Testing
+###############################################
+
+### GET Invalid action
+GET {{baseUrl}}/upgrade-rewards/invalid-action
+Authorization: Bearer {{apiKey}}
+
+###############################################
+# 8. OPTIONS请求测试 - CORS Testing
+###############################################
+
+### OPTIONS Request for CORS
+OPTIONS {{baseUrl}}/upgrade-rewards/trigger

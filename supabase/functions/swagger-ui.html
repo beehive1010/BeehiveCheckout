@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐝 Beehive Platform API Documentation</title>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css" />
+    <link rel="icon" type="image/png" href="https://unpkg.com/swagger-ui-dist@5.9.0/favicon-32x32.png" sizes="32x32" />
+    <style>
+        html {
+            box-sizing: border-box;
+            overflow: -moz-scrollbars-vertical;
+            overflow-y: scroll;
+        }
+
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+
+        body {
+            margin: 0;
+            background: #fafafa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .swagger-ui .topbar {
+            background-color: #1976d2;
+            border-bottom: 1px solid #d3d3d3;
+        }
+
+        .swagger-ui .topbar .download-url-wrapper {
+            display: none;
+        }
+
+        .custom-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 2rem 1rem;
+            margin-bottom: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .custom-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        .custom-header p {
+            margin: 1rem 0 0 0;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .api-selector {
+            background: white;
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .api-selector select {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            border: 2px solid #1976d2;
+            border-radius: 4px;
+            background: white;
+            color: #1976d2;
+            cursor: pointer;
+            min-width: 200px;
+        }
+
+        .api-selector select:focus {
+            outline: none;
+            border-color: #0d47a1;
+        }
+
+        .api-info {
+            background: #f8f9fa;
+            border-left: 4px solid #1976d2;
+            padding: 1rem;
+            margin: 1rem;
+            border-radius: 4px;
+        }
+
+        .api-info h3 {
+            margin: 0 0 0.5rem 0;
+            color: #1976d2;
+        }
+
+        .api-info p {
+            margin: 0;
+            color: #666;
+        }
+
+        /* 自定义Swagger UI样式 */
+        .swagger-ui .scheme-container {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            margin: 1rem 0;
+            padding: 1rem;
+        }
+
+        .swagger-ui .btn.authorize {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+
+        .swagger-ui .btn.authorize:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 1rem;
+            margin: 1rem;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="custom-header">
+        <h1>🐝 Beehive Platform</h1>
+        <p>Complete API Documentation & Interactive Testing</p>
+    </div>
+
+    <div class="api-selector">
+        <label for="api-select" style="margin-right: 1rem; font-weight: bold;">选择API规范:</label>
+        <select id="api-select" onchange="loadSwaggerSpec()">
+            <option value="beehive-api.swagger.yaml">🌟 完整平台API (推荐)</option>
+            <option value="upgrade-rewards/swagger.yaml">🎁 升级奖励系统API</option>
+        </select>
+    </div>
+
+    <div class="api-info" id="api-info">
+        <h3>🌟 Beehive Platform Complete API</h3>
+        <p>包含所有主要功能模块的完整API文档：会员管理、矩阵系统、奖励系统、认证系统等。</p>
+    </div>
+
+    <div class="loading" id="loading">
+        正在加载API文档...
+    </div>
+
+    <div id="swagger-ui"></div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-standalone-preset.js"></script>
+    <script>
+        let ui;
+        
+        const apiInfo = {
+            'beehive-api.swagger.yaml': {
+                title: '🌟 Beehive Platform Complete API',
+                description: '包含所有主要功能模块的完整API文档：会员管理、矩阵系统、奖励系统、认证系统等。'
+            },
+            'upgrade-rewards/swagger.yaml': {
+                title: '🎁 升级奖励系统API',
+                description: '专门针对会员升级奖励系统的详细API文档，包含L-M-R位置奖励规则和考核机制。'
+            }
+        };
+
+        function loadSwaggerSpec() {
+            const select = document.getElementById('api-select');
+            const selectedSpec = select.value;
+            const info = apiInfo[selectedSpec];
+            
+            // 更新API信息
+            const infoDiv = document.getElementById('api-info');
+            infoDiv.innerHTML = `
+                <h3>${info.title}</h3>
+                <p>${info.description}</p>
+            `;
+            
+            // 显示加载状态
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('swagger-ui').innerHTML = '';
+            
+            // 销毁现有的Swagger UI实例
+            if (ui) {
+                ui = null;
+            }
+            
+            // 加载新的Swagger规范
+            try {
+                ui = SwaggerUIBundle({
+                    url: selectedSpec,
+                    dom_id: '#swagger-ui',
+                    deepLinking: true,
+                    presets: [
+                        SwaggerUIBundle.presets.apis,
+                        SwaggerUIStandalonePreset
+                    ],
+                    plugins: [
+                        SwaggerUIBundle.plugins.DownloadUrl
+                    ],
+                    layout: "StandaloneLayout",
+                    validatorUrl: null,
+                    tryItOutEnabled: true,
+                    requestInterceptor: (request) => {
+                        // 添加CORS头部
+                        request.headers['Content-Type'] = 'application/json';
+                        return request;
+                    },
+                    onComplete: () => {
+                        document.getElementById('loading').style.display = 'none';
+                        console.log('Swagger UI loaded successfully');
+                    },
+                    onFailure: (error) => {
+                        document.getElementById('loading').style.display = 'none';
+                        document.getElementById('swagger-ui').innerHTML = `
+                            <div class="error">
+                                <h3>❌ 加载API规范失败</h3>
+                                <p>错误信息: ${error.message}</p>
+                                <p>请检查文件路径是否正确: <code>${selectedSpec}</code></p>
+                            </div>
+                        `;
+                        console.error('Failed to load Swagger spec:', error);
+                    }
+                });
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('swagger-ui').innerHTML = `
+                    <div class="error">
+                        <h3>❌ 初始化Swagger UI失败</h3>
+                        <p>错误信息: ${error.message}</p>
+                    </div>
+                `;
+                console.error('Failed to initialize Swagger UI:', error);
+            }
+        }
+
+        // 页面加载完成后自动加载默认API规范
+        window.addEventListener('load', () => {
+            loadSwaggerSpec();
+        });
+
+        // 添加一些实用功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 添加快捷键支持
+            document.addEventListener('keydown', function(e) {
+                // Ctrl+R 刷新API文档
+                if (e.ctrlKey && e.key === 'r') {
+                    e.preventDefault();
+                    loadSwaggerSpec();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

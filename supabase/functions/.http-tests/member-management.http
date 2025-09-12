@@ -1,0 +1,311 @@
+# 会员管理系统API测试
+# Beehive Member Management System API Tests
+
+@baseUrl = https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1
+@apiKey = YOUR_SUPABASE_ANON_KEY_HERE
+@serviceKey = YOUR_SUPABASE_SERVICE_ROLE_KEY_HERE
+
+### Environment Variables
+@testWallet = 0x2C84e7DC65209730C067827b49AC7d5A1d25C8dC
+@testReferrer = 0x0B9b9F8c7b1f7c5b0a6b5b4b3b2b1b0b9b8b7b6b63
+@testEmail = test@example.com
+
+###############################################
+# 1. 会员注册 - Member Registration
+###############################################
+
+### POST Register New Member
+POST {{baseUrl}}/member-management/register
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "referrer_wallet": "{{testReferrer}}",
+  "email": "{{testEmail}}",
+  "username": "testuser",
+  "profile_data": {
+    "display_name": "Test User",
+    "bio": "Test member bio"
+  }
+}
+
+### POST Register with Referral Link
+POST {{baseUrl}}/member-management/register-with-link
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "referral_link": "beehive.io/ref/ABC123",
+  "email": "{{testEmail}}"
+}
+
+###############################################
+# 2. 会员信息查询 - Member Information
+###############################################
+
+### GET Member Info
+GET {{baseUrl}}/member-management/info?wallet={{testWallet}}
+Authorization: Bearer {{apiKey}}
+
+### POST Member Profile
+POST {{baseUrl}}/member-management/profile
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}"
+}
+
+### GET Member Statistics
+GET {{baseUrl}}/member-management/stats?wallet={{testWallet}}
+Authorization: Bearer {{apiKey}}
+
+###############################################
+# 3. 会员等级管理 - Member Level Management
+###############################################
+
+### GET Member Level Info
+GET {{baseUrl}}/member-management/level?wallet={{testWallet}}
+Authorization: Bearer {{apiKey}}
+
+### POST Upgrade Member Level
+POST {{baseUrl}}/member-management/upgrade-level
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "new_level": 2,
+  "payment_confirmed": true
+}
+
+### POST Check Upgrade Requirements
+POST {{baseUrl}}/member-management/check-upgrade-requirements
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "target_level": 2
+}
+
+###############################################
+# 4. 会员状态管理 - Member Status Management
+###############################################
+
+### POST Activate Member
+POST {{baseUrl}}/member-management/activate
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}"
+}
+
+### POST Deactivate Member
+POST {{baseUrl}}/member-management/deactivate
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "reason": "violation_of_terms"
+}
+
+### POST Suspend Member
+POST {{baseUrl}}/member-management/suspend
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "suspension_reason": "pending_investigation",
+  "duration_days": 30
+}
+
+###############################################
+# 5. 推荐关系管理 - Referral Management
+###############################################
+
+### GET Member Referrals
+GET {{baseUrl}}/member-management/referrals?wallet={{testWallet}}
+Authorization: Bearer {{apiKey}}
+
+### POST Direct Referrals List
+POST {{baseUrl}}/member-management/direct-referrals
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "include_inactive": false
+}
+
+### GET Referral Tree
+GET {{baseUrl}}/member-management/referral-tree?wallet={{testWallet}}&depth=5
+Authorization: Bearer {{apiKey}}
+
+###############################################
+# 6. 会员资料更新 - Member Profile Updates
+###############################################
+
+### POST Update Profile
+POST {{baseUrl}}/member-management/update-profile
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "profile_updates": {
+    "display_name": "Updated Name",
+    "email": "newemail@example.com",
+    "bio": "Updated bio",
+    "social_links": {
+      "twitter": "@username",
+      "telegram": "@username"
+    }
+  }
+}
+
+### POST Update Contact Info
+POST {{baseUrl}}/member-management/update-contact
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "email": "newemail@example.com",
+  "phone": "+1234567890",
+  "preferred_communication": "email"
+}
+
+###############################################
+# 7. 会员搜索 - Member Search
+###############################################
+
+### GET Search Members
+GET {{baseUrl}}/member-management/search?query=test&limit=10
+Authorization: Bearer {{apiKey}}
+
+### POST Advanced Member Search
+POST {{baseUrl}}/member-management/advanced-search
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "search_criteria": {
+    "level": 1,
+    "is_active": true,
+    "registration_date_from": "2024-01-01",
+    "has_referrals": true
+  },
+  "limit": 20,
+  "offset": 0
+}
+
+###############################################
+# 8. 会员验证 - Member Verification
+###############################################
+
+### POST Verify Member Identity
+POST {{baseUrl}}/member-management/verify-identity
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "verification_documents": ["kyc_document_url"],
+  "verification_level": "basic"
+}
+
+### GET Verification Status
+GET {{baseUrl}}/member-management/verification-status?wallet={{testWallet}}
+Authorization: Bearer {{apiKey}}
+
+###############################################
+# 9. 批量会员操作 - Batch Member Operations
+###############################################
+
+### POST Batch Update Members
+POST {{baseUrl}}/member-management/batch-update
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "operations": [
+    {
+      "wallet_address": "{{testWallet}}",
+      "operation": "activate"
+    }
+  ]
+}
+
+### POST Bulk Import Members
+POST {{baseUrl}}/member-management/bulk-import
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "members": [
+    {
+      "wallet_address": "{{testWallet}}",
+      "email": "{{testEmail}}",
+      "referrer_wallet": "{{testReferrer}}"
+    }
+  ]
+}
+
+###############################################
+# 10. 会员活动记录 - Member Activity Logs
+###############################################
+
+### GET Member Activity
+GET {{baseUrl}}/member-management/activity?wallet={{testWallet}}&limit=20
+Authorization: Bearer {{apiKey}}
+
+### POST Log Member Action
+POST {{baseUrl}}/member-management/log-activity
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "activity_type": "profile_update",
+  "activity_data": {
+    "field_updated": "email",
+    "old_value": "old@example.com",
+    "new_value": "new@example.com"
+  }
+}
+
+###############################################
+# 11. 会员权限管理 - Member Permission Management
+###############################################
+
+### GET Member Permissions
+GET {{baseUrl}}/member-management/permissions?wallet={{testWallet}}
+Authorization: Bearer {{apiKey}}
+
+### POST Grant Permission
+POST {{baseUrl}}/member-management/grant-permission
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "permission": "admin_access",
+  "granted_by": "admin_wallet_address"
+}
+
+### POST Revoke Permission
+POST {{baseUrl}}/member-management/revoke-permission
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "permission": "admin_access",
+  "revoked_by": "admin_wallet_address"
+}

@@ -1,0 +1,1110 @@
+openapi: 3.0.3
+info:
+  title: Beehive Platform API
+  description: |
+    # 🐝 Beehive Platform Complete API Documentation
+
+    ## 🚀 平台概述
+    Beehive是一个基于区块链的多层级会员管理和奖励分发平台，提供完整的矩阵系统、奖励管理、会员管理等功能。
+
+    ## 🏗️ 主要功能模块
+    - **👥 会员管理系统**: 注册、升级、状态管理
+    - **🏗️ 矩阵系统**: L-M-R三元矩阵结构管理
+    - **💰 奖励系统**: 多层级奖励分发和申请
+    - **🎁 升级奖励**: 基于矩阵位置的升级奖励
+    - **🔐 认证系统**: 钱包连接和权限管理
+    - **⏰ 计时器系统**: 倒计时和自动化任务
+
+    ## 🔑 认证说明
+    所有API都需要Supabase认证：
+    - **匿名密钥**: 用于一般查询操作
+    - **服务角色密钥**: 用于管理员操作和数据修改
+
+  version: "2.0.0"
+  contact:
+    name: Beehive Platform Team
+    url: https://beehive.io
+    email: dev@beehive.io
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1
+    description: Production Server
+  - url: http://127.0.0.1:54321/functions/v1
+    description: Local Development Server
+
+security:
+  - ApiKeyAuth: []
+  - ServiceRoleAuth: []
+
+paths:
+  # ===========================================
+  # 🎁 升级奖励系统 - Upgrade Rewards System
+  # ===========================================
+  /upgrade-rewards/trigger:
+    post:
+      summary: 🎁 触发会员升级奖励
+      description: 触发指定会员的升级奖励处理，根据递归矩阵位置分配奖励
+      operationId: triggerUpgradeRewards
+      tags:
+        - 升级奖励系统
+      security:
+        - ServiceRoleAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TriggerUpgradeRequest'
+      responses:
+        '200':
+          description: 升级奖励处理成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TriggerUpgradeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /upgrade-rewards/status:
+    get:
+      summary: 📊 查看升级奖励状态
+      operationId: getUpgradeRewardStatus
+      tags:
+        - 升级奖励系统
+      parameters:
+        - name: wallet_address
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/WalletAddress'
+      responses:
+        '200':
+          description: 获取奖励状态成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RewardStatusResponse'
+
+  /upgrade-rewards/batch-check:
+    post:
+      summary: 🔄 批量检查待定奖励
+      operationId: batchCheckPendingRewards
+      tags:
+        - 升级奖励系统
+      security:
+        - ServiceRoleAuth: []
+      responses:
+        '200':
+          description: 批量检查完成
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchCheckResponse'
+
+  # ===========================================
+  # 💰 通用奖励系统 - General Rewards System
+  # ===========================================
+  /rewards/user:
+    get:
+      summary: 💳 获取用户奖励余额
+      operationId: getUserRewardBalance
+      tags:
+        - 通用奖励系统
+      parameters:
+        - name: x-wallet-address
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/WalletAddress'
+      responses:
+        '200':
+          description: 获取余额成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserBalanceResponse'
+
+  /rewards/claimable:
+    get:
+      summary: 🎯 获取可申请奖励
+      operationId: getClaimableRewards
+      tags:
+        - 通用奖励系统
+      parameters:
+        - name: x-wallet-address
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/WalletAddress'
+      responses:
+        '200':
+          description: 获取可申请奖励成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClaimableRewardsResponse'
+
+  /rewards/claim:
+    post:
+      summary: ✅ 申请奖励
+      operationId: claimReward
+      tags:
+        - 通用奖励系统
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClaimRewardRequest'
+      responses:
+        '200':
+          description: 奖励申请成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClaimRewardResponse'
+
+  /rewards/dashboard:
+    post:
+      summary: 📊 奖励仪表板
+      operationId: getRewardDashboard
+      tags:
+        - 通用奖励系统
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletAddressRequest'
+      responses:
+        '200':
+          description: 获取仪表板数据成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RewardDashboardResponse'
+
+  # ===========================================
+  # 👥 会员管理系统 - Member Management System
+  # ===========================================
+  /member-management/register:
+    post:
+      summary: 📝 注册新会员
+      operationId: registerMember
+      tags:
+        - 会员管理系统
+      security:
+        - ServiceRoleAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterMemberRequest'
+      responses:
+        '200':
+          description: 会员注册成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterMemberResponse'
+
+  /member-management/info:
+    get:
+      summary: 👤 获取会员信息
+      operationId: getMemberInfo
+      tags:
+        - 会员管理系统
+      parameters:
+        - name: wallet
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/WalletAddress'
+      responses:
+        '200':
+          description: 获取会员信息成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberInfoResponse'
+
+  /member-management/upgrade-level:
+    post:
+      summary: ⬆️ 升级会员等级
+      operationId: upgradeMemberLevel
+      tags:
+        - 会员管理系统
+      security:
+        - ServiceRoleAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpgradeLevelRequest'
+      responses:
+        '200':
+          description: 等级升级成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpgradeLevelResponse'
+
+  /member-management/referrals:
+    get:
+      summary: 👨‍👩‍👧‍👦 获取推荐关系
+      operationId: getMemberReferrals
+      tags:
+        - 会员管理系统
+      parameters:
+        - name: wallet
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/WalletAddress'
+      responses:
+        '200':
+          description: 获取推荐关系成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferralsResponse'
+
+  # ===========================================
+  # 🏗️ 矩阵系统 - Matrix System
+  # ===========================================
+  /matrix/status:
+    get:
+      summary: 🌳 查看矩阵状态
+      operationId: getMatrixStatus
+      tags:
+        - 矩阵系统
+      parameters:
+        - name: wallet
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/WalletAddress'
+      responses:
+        '200':
+          description: 获取矩阵状态成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MatrixStatusResponse'
+
+  /matrix/place:
+    post:
+      summary: 📍 矩阵安置
+      operationId: placeInMatrix
+      tags:
+        - 矩阵系统
+      security:
+        - ServiceRoleAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaceInMatrixRequest'
+      responses:
+        '200':
+          description: 矩阵安置成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaceInMatrixResponse'
+
+  /matrix/completion:
+    get:
+      summary: ✅ 矩阵完成状态
+      operationId: getMatrixCompletion
+      tags:
+        - 矩阵系统
+      parameters:
+        - name: root
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/WalletAddress'
+      responses:
+        '200':
+          description: 获取矩阵完成状态成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MatrixCompletionResponse'
+
+  /matrix/stats:
+    get:
+      summary: 📈 矩阵统计信息
+      operationId: getMatrixStats
+      tags:
+        - 矩阵系统
+      parameters:
+        - name: wallet
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/WalletAddress'
+      responses:
+        '200':
+          description: 获取矩阵统计成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MatrixStatsResponse'
+
+  # ===========================================
+  # 🔐 认证系统 - Authentication System
+  # ===========================================
+  /auth/connect:
+    post:
+      summary: 🔗 钱包连接认证
+      operationId: connectWallet
+      tags:
+        - 认证系统
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConnectWalletRequest'
+      responses:
+        '200':
+          description: 钱包连接成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectWalletResponse'
+
+  /auth/status:
+    get:
+      summary: 👤 检查用户状态
+      operationId: checkUserStatus
+      tags:
+        - 认证系统
+      parameters:
+        - name: wallet
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/WalletAddress'
+      responses:
+        '200':
+          description: 获取用户状态成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserStatusResponse'
+
+  /auth/verify:
+    post:
+      summary: ✅ 验证签名
+      operationId: verifySignature
+      tags:
+        - 认证系统
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifySignatureRequest'
+      responses:
+        '200':
+          description: 签名验证成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifySignatureResponse'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Supabase匿名API密钥
+    ServiceRoleAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Supabase服务角色密钥
+
+  schemas:
+    # ===========================================
+    # 🔧 基础数据类型 - Basic Data Types
+    # ===========================================
+    WalletAddress:
+      type: string
+      pattern: '^0x[a-fA-F0-9]{40}$'
+      description: 以太坊钱包地址
+      example: "0x2C84e7DC65209730C067827b49AC7d5A1d25C8dC"
+
+    WalletAddressRequest:
+      type: object
+      required:
+        - wallet_address
+      properties:
+        wallet_address:
+          $ref: '#/components/schemas/WalletAddress'
+
+    # ===========================================
+    # 🎁 升级奖励系统相关Schema
+    # ===========================================
+    TriggerUpgradeRequest:
+      type: object
+      required:
+        - upgraded_member
+      properties:
+        upgraded_member:
+          $ref: '#/components/schemas/WalletAddress'
+        new_level:
+          type: integer
+          minimum: 1
+          maximum: 19
+          default: 1
+          description: 升级到的新等级
+
+    TriggerUpgradeResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            upgraded_member:
+              $ref: '#/components/schemas/WalletAddress'
+            new_level:
+              type: integer
+            summary:
+              type: string
+            total_rewards:
+              type: integer
+            immediate_rewards:
+              type: integer
+            pending_rewards:
+              type: integer
+            timers_created:
+              type: integer
+
+    RewardStatusResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            upgraded_member:
+              $ref: '#/components/schemas/WalletAddress'
+            summary:
+              $ref: '#/components/schemas/RewardSummary'
+            rewards:
+              type: array
+              items:
+                $ref: '#/components/schemas/RewardRecord'
+            active_timers:
+              type: array
+              items:
+                $ref: '#/components/schemas/TimerRecord'
+
+    RewardSummary:
+      type: object
+      properties:
+        total_rewards:
+          type: integer
+        approved_rewards:
+          type: integer
+        pending_rewards:
+          type: integer
+        total_approved_amount:
+          type: number
+          format: float
+        total_pending_amount:
+          type: number
+          format: float
+        active_timers:
+          type: integer
+
+    RewardRecord:
+      type: object
+      properties:
+        reward_id:
+          type: string
+          format: uuid
+        recipient_wallet:
+          $ref: '#/components/schemas/WalletAddress'
+        matrix_position:
+          type: string
+          enum: ["L", "M", "R"]
+        amount_usdt:
+          type: number
+          format: float
+        status:
+          type: string
+          enum: ["approved", "pending"]
+        status_chinese:
+          type: string
+        qualification_check:
+          type: boolean
+        timer_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    TimerRecord:
+      type: object
+      properties:
+        timer_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        end_time:
+          type: string
+          format: date-time
+        is_active:
+          type: boolean
+
+    BatchCheckResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            checked_count:
+              type: integer
+            approved_count:
+              type: integer
+            still_pending:
+              type: integer
+
+    # ===========================================
+    # 💰 通用奖励系统相关Schema
+    # ===========================================
+    UserBalanceResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            wallet_address:
+              $ref: '#/components/schemas/WalletAddress'
+            usdc_claimable:
+              type: number
+              format: float
+            usdc_pending:
+              type: number
+              format: float
+            usdc_claimed_total:
+              type: number
+              format: float
+            bcc_transferable:
+              type: number
+              format: float
+            bcc_locked:
+              type: number
+              format: float
+
+    ClaimableRewardsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClaimableReward'
+
+    ClaimableReward:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        amount_usdt:
+          type: number
+          format: float
+        layer:
+          type: integer
+        status:
+          type: string
+        from_member:
+          $ref: '#/components/schemas/WalletAddress'
+        created_at:
+          type: string
+          format: date-time
+
+    ClaimRewardRequest:
+      type: object
+      required:
+        - claim_id
+        - wallet_address
+      properties:
+        claim_id:
+          type: string
+          format: uuid
+        wallet_address:
+          $ref: '#/components/schemas/WalletAddress'
+
+    ClaimRewardResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        reward:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            amount_usdt:
+              type: number
+              format: float
+            layer:
+              type: integer
+            claimed_at:
+              type: string
+              format: date-time
+
+    RewardDashboardResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            wallet_address:
+              $ref: '#/components/schemas/WalletAddress'
+            reward_summary:
+              type: object
+              properties:
+                total_claimed_usdc:
+                  type: number
+                  format: float
+                total_pending_usdc:
+                  type: number
+                  format: float
+                total_claimable_usdc:
+                  type: number
+                  format: float
+                total_claims:
+                  type: integer
+
+    # ===========================================
+    # 👥 会员管理系统相关Schema
+    # ===========================================
+    RegisterMemberRequest:
+      type: object
+      required:
+        - wallet_address
+        - referrer_wallet
+      properties:
+        wallet_address:
+          $ref: '#/components/schemas/WalletAddress'
+        referrer_wallet:
+          $ref: '#/components/schemas/WalletAddress'
+        email:
+          type: string
+          format: email
+        username:
+          type: string
+        profile_data:
+          type: object
+          additionalProperties: true
+
+    RegisterMemberResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        member:
+          $ref: '#/components/schemas/MemberInfo'
+
+    MemberInfo:
+      type: object
+      properties:
+        wallet_address:
+          $ref: '#/components/schemas/WalletAddress'
+        current_level:
+          type: integer
+        is_active:
+          type: boolean
+        referrer_wallet:
+          $ref: '#/components/schemas/WalletAddress'
+        registration_date:
+          type: string
+          format: date-time
+        email:
+          type: string
+          format: email
+
+    MemberInfoResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/MemberInfo'
+
+    UpgradeLevelRequest:
+      type: object
+      required:
+        - wallet_address
+        - new_level
+      properties:
+        wallet_address:
+          $ref: '#/components/schemas/WalletAddress'
+        new_level:
+          type: integer
+          minimum: 1
+          maximum: 19
+        payment_confirmed:
+          type: boolean
+
+    UpgradeLevelResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            wallet_address:
+              $ref: '#/components/schemas/WalletAddress'
+            old_level:
+              type: integer
+            new_level:
+              type: integer
+            upgraded_at:
+              type: string
+              format: date-time
+
+    ReferralsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            direct_referrals:
+              type: array
+              items:
+                $ref: '#/components/schemas/ReferralInfo'
+            total_team_size:
+              type: integer
+
+    ReferralInfo:
+      type: object
+      properties:
+        wallet_address:
+          $ref: '#/components/schemas/WalletAddress'
+        current_level:
+          type: integer
+        is_active:
+          type: boolean
+        registration_date:
+          type: string
+          format: date-time
+
+    # ===========================================
+    # 🏗️ 矩阵系统相关Schema
+    # ===========================================
+    MatrixStatusResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            wallet_address:
+              $ref: '#/components/schemas/WalletAddress'
+            matrix_positions:
+              type: array
+              items:
+                $ref: '#/components/schemas/MatrixPosition'
+
+    MatrixPosition:
+      type: object
+      properties:
+        matrix_root:
+          $ref: '#/components/schemas/WalletAddress'
+        matrix_layer:
+          type: integer
+        matrix_position:
+          type: string
+          enum: ["L", "M", "R"]
+        is_active:
+          type: boolean
+        placed_at:
+          type: string
+          format: date-time
+
+    PlaceInMatrixRequest:
+      type: object
+      required:
+        - member_wallet
+        - referrer_wallet
+      properties:
+        member_wallet:
+          $ref: '#/components/schemas/WalletAddress'
+        referrer_wallet:
+          $ref: '#/components/schemas/WalletAddress'
+        preferred_position:
+          type: string
+          enum: ["L", "M", "R"]
+          description: 首选位置
+
+    PlaceInMatrixResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        placement:
+          type: object
+          properties:
+            member_wallet:
+              $ref: '#/components/schemas/WalletAddress'
+            matrix_root:
+              $ref: '#/components/schemas/WalletAddress'
+            matrix_layer:
+              type: integer
+            matrix_position:
+              type: string
+              enum: ["L", "M", "R"]
+            placed_at:
+              type: string
+              format: date-time
+
+    MatrixCompletionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            matrix_root:
+              $ref: '#/components/schemas/WalletAddress'
+            layers:
+              type: array
+              items:
+                $ref: '#/components/schemas/LayerCompletion'
+
+    LayerCompletion:
+      type: object
+      properties:
+        layer:
+          type: integer
+        left_count:
+          type: integer
+        middle_count:
+          type: integer
+        right_count:
+          type: integer
+        total_members:
+          type: integer
+        max_capacity:
+          type: integer
+        is_complete:
+          type: boolean
+
+    MatrixStatsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            total_team_size:
+              type: integer
+            max_layer:
+              type: integer
+            active_members:
+              type: integer
+
+    # ===========================================
+    # 🔐 认证系统相关Schema
+    # ===========================================
+    ConnectWalletRequest:
+      type: object
+      required:
+        - wallet_address
+        - signature
+        - message
+      properties:
+        wallet_address:
+          $ref: '#/components/schemas/WalletAddress'
+        signature:
+          type: string
+          pattern: '^0x[a-fA-F0-9]+$'
+        message:
+          type: string
+
+    ConnectWalletResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        session:
+          type: object
+          properties:
+            wallet_address:
+              $ref: '#/components/schemas/WalletAddress'
+            session_token:
+              type: string
+            expires_at:
+              type: string
+              format: date-time
+
+    UserStatusResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            wallet_address:
+              $ref: '#/components/schemas/WalletAddress'
+            is_registered:
+              type: boolean
+            is_active:
+              type: boolean
+            current_level:
+              type: integer
+            permissions:
+              type: array
+              items:
+                type: string
+
+    VerifySignatureRequest:
+      type: object
+      required:
+        - wallet_address
+        - signature
+        - message
+      properties:
+        wallet_address:
+          $ref: '#/components/schemas/WalletAddress'
+        signature:
+          type: string
+          pattern: '^0x[a-fA-F0-9]+$'
+        message:
+          type: string
+
+    VerifySignatureResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        valid:
+          type: boolean
+        message:
+          type: string
+
+    # ===========================================
+    # 🔧 通用错误响应Schema
+    # ===========================================
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+        details:
+          type: string
+          nullable: true
+
+  responses:
+    BadRequest:
+      description: 请求参数错误
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Unauthorized:
+      description: 认证失败
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InternalServerError:
+      description: 服务器内部错误
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+tags:
+  - name: 升级奖励系统
+    description: |
+      🎁 基于递归矩阵位置的会员升级奖励系统
+      - L-M位置立即奖励，R位置需考核
+      - 30天考核期管理
+      - 自动化奖励分发
+  - name: 通用奖励系统
+    description: |
+      💰 通用奖励管理和申请系统
+      - 余额查询和管理
+      - 奖励申请和处理
+      - 奖励历史和通知
+  - name: 会员管理系统
+    description: |
+      👥 完整的会员生命周期管理
+      - 注册和激活
+      - 等级升级
+      - 推荐关系管理
+  - name: 矩阵系统
+    description: |
+      🏗️ L-M-R三元矩阵结构管理
+      - 矩阵安置和溢出
+      - 完成状态监控
+      - 矩阵统计分析
+  - name: 认证系统
+    description: |
+      🔐 基于钱包签名的认证系统
+      - 钱包连接验证
+      - 签名验证
+      - 权限管理
+
+externalDocs:
+  description: 完整平台文档
+  url: https://docs.beehive.io

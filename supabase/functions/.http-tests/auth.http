@@ -1,0 +1,221 @@
+# 认证系统API测试
+# Beehive Authentication System API Tests
+
+@baseUrl = https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1
+@apiKey = YOUR_SUPABASE_ANON_KEY_HERE
+@serviceKey = YOUR_SUPABASE_SERVICE_ROLE_KEY_HERE
+
+### Environment Variables
+@testWallet = 0x2C84e7DC65209730C067827b49AC7d5A1d25C8dC
+@testSignature = 0xsignature_here
+@testMessage = test_message_here
+
+###############################################
+# 1. 钱包连接认证 - Wallet Connection Authentication
+###############################################
+
+### POST Connect Wallet
+POST {{baseUrl}}/auth/connect
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "signature": "{{testSignature}}",
+  "message": "{{testMessage}}"
+}
+
+### POST Verify Wallet Signature
+POST {{baseUrl}}/auth/verify
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "signature": "{{testSignature}}",
+  "message": "{{testMessage}}"
+}
+
+###############################################
+# 2. 会话管理 - Session Management
+###############################################
+
+### POST Create Session
+POST {{baseUrl}}/auth/session
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}"
+}
+
+### GET Get Session Info
+GET {{baseUrl}}/auth/session
+Authorization: Bearer {{apiKey}}
+x-wallet-address: {{testWallet}}
+
+### DELETE Logout Session
+DELETE {{baseUrl}}/auth/session
+Authorization: Bearer {{apiKey}}
+x-wallet-address: {{testWallet}}
+
+###############################################
+# 3. 用户状态检查 - User Status Check
+###############################################
+
+### GET Check User Status
+GET {{baseUrl}}/auth/status?wallet={{testWallet}}
+Authorization: Bearer {{apiKey}}
+
+### POST User Registration Check
+POST {{baseUrl}}/auth/check-registration
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}"
+}
+
+###############################################
+# 4. 权限验证 - Permission Verification
+###############################################
+
+### POST Check Admin Permissions
+POST {{baseUrl}}/auth/check-admin
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}"
+}
+
+### POST Check Member Permissions
+POST {{baseUrl}}/auth/check-member
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "required_level": 1
+}
+
+###############################################
+# 5. 令牌刷新 - Token Refresh
+###############################################
+
+### POST Refresh Token
+POST {{baseUrl}}/auth/refresh
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}"
+}
+
+###############################################
+# 6. 安全验证 - Security Verification
+###############################################
+
+### POST Two-Factor Authentication Setup
+POST {{baseUrl}}/auth/2fa/setup
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "secret": "backup_secret_code"
+}
+
+### POST Verify 2FA Code
+POST {{baseUrl}}/auth/2fa/verify
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "code": "123456"
+}
+
+###############################################
+# 7. 登录历史 - Login History
+###############################################
+
+### GET Login History
+GET {{baseUrl}}/auth/history?wallet={{testWallet}}
+Authorization: Bearer {{apiKey}}
+
+### POST Record Login Attempt
+POST {{baseUrl}}/auth/log-login
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "success": true,
+  "ip_address": "192.168.1.1",
+  "user_agent": "Mozilla/5.0..."
+}
+
+###############################################
+# 8. 安全设置 - Security Settings
+###############################################
+
+### GET Security Settings
+GET {{baseUrl}}/auth/security-settings
+Authorization: Bearer {{apiKey}}
+x-wallet-address: {{testWallet}}
+
+### POST Update Security Settings
+POST {{baseUrl}}/auth/security-settings
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "settings": {
+    "two_factor_enabled": true,
+    "login_notifications": true,
+    "security_emails": true
+  }
+}
+
+###############################################
+# 9. 密码重置 - Password Reset (for email accounts)
+###############################################
+
+### POST Request Password Reset
+POST {{baseUrl}}/auth/reset-password
+Content-Type: application/json
+
+{
+  "email": "user@example.com"
+}
+
+### POST Confirm Password Reset
+POST {{baseUrl}}/auth/reset-password/confirm
+Content-Type: application/json
+
+{
+  "token": "reset_token_here",
+  "new_password": "new_secure_password"
+}
+
+###############################################
+# 10. 账户锁定 - Account Locking
+###############################################
+
+### POST Lock Account
+POST {{baseUrl}}/auth/lock-account
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "reason": "security_violation"
+}
+
+### POST Unlock Account
+POST {{baseUrl}}/auth/unlock-account
+Authorization: Bearer {{serviceKey}}
+Content-Type: application/json
+
+{
+  "wallet_address": "{{testWallet}}",
+  "admin_signature": "admin_signature_here"
+}
