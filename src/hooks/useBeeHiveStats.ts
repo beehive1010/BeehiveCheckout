@@ -47,14 +47,15 @@ export function useUserReferralStats() {
 
       // Get total team count from direct referrals using exact matching
       const { count: totalTeam } = await supabase
-        .from('users')
+        .from('referrals')
         .select('*', { count: 'exact', head: true })
-        .eq('referrer_wallet', walletAddress);
+        .eq('referrer_wallet', walletAddress)
+        .eq('is_direct_referral', true);
 
       // Get member's current level and info using exact matching
       const { data: memberData } = await supabase
         .from('members')
-        .select('current_level, levels_owned, activation_rank')
+        .select('current_level, activation_sequence')
         .eq('wallet_address', walletAddress)
         .maybeSingle();
 

@@ -115,11 +115,11 @@ const DirectReferralsCard: React.FC<DirectReferralsCardProps> = ({
         );
         return {
           memberWallet: referral.member_wallet,
-          memberName: user.username || `User${user.wallet_address.slice(-4)}`,
-          referredAt: user.created_at,
+          memberName: userData?.username || `User${referral.member_wallet.slice(-4)}`,
+          referredAt: referral.created_at,
           isActivated: !!memberData && memberData.current_level > 0,
           memberLevel: memberData?.current_level || 0,
-          activationRank: memberData?.activation_rank || null
+          activationRank: memberData?.activation_sequence || null
         };
       }) || [];
 
