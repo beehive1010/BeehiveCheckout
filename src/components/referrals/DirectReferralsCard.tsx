@@ -50,35 +50,36 @@ const DirectReferralsCard: React.FC<DirectReferralsCardProps> = ({
     try {
       console.log(`🔍 Loading direct referrals for wallet: ${walletAddress}`);
 
-      // Get direct referrals from users table (people who used this wallet's referral link)
+      // Get direct referrals from referrals table (people who used this wallet's referral link)
       // Using exact matching to avoid RLS issues
-      const { data: usersData, error: usersError } = await supabase
-        .from('users')
+      const { data: referralsData, error: referralsError } = await supabase
+        .from('referrals')
         .select(`
-          wallet_address,
-          username,
+          member_wallet,
           created_at,
-          referrer_wallet
+          referrer_wallet,
+          is_direct_referral
         `)
         .eq('referrer_wallet', walletAddress)
-        .neq('wallet_address', '0x0000000000000000000000000000000000000001')
+        .eq('is_direct_referral', true)
+        .neq('member_wallet', '0x0000000000000000000000000000000000000001')
         .order('created_at', { ascending: false });
 
-      if (usersError) {
-        console.error('❌ Users query error:', usersError);
-        throw new Error(usersError.message);
+      if (referralsError) {
+        console.error('❌ Referrals query error:', referralsError);
+        throw new Error(referralsError.message);
       }
 
-      console.log(`📊 Found ${usersData?.length || 0} users with referrer_wallet matching ${walletAddress}`);
+      console.log(`📊 Found ${referralsData?.length || 0} referrals with referrer_wallet matching ${walletAddress}`);
 
-      // Get activation status from members table
-      const walletAddresses = usersData?.map(u => u.wallet_address) || [];
+      // Get user names and member info
+      const walletAddresses = referralsData?.map(r => r.member_wallet) || [];
       
       let membersData = [];
       if (walletAddresses.length > 0) {
         const { data: memberResults, error: membersError } = await supabase
           .from('members')
-          .select('wallet_address, current_level, activation_rank, created_at')
+          .select('wallet_address, current_level, activation_sequence, activation_time')
           .in('wallet_address', walletAddresses);
 
         if (membersError) {
