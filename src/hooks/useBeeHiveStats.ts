@@ -153,11 +153,11 @@ export function useUserRewardStats() {
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
       
-      // Get all rewards for this wallet using case-insensitive query
+      // Get all rewards for this wallet using exact matching
       const { data: rewardsData } = await supabase
         .from('layer_rewards')
         .select('*')
-        .ilike('recipient_wallet', walletAddress);
+        .eq('recipient_wallet', walletAddress);
 
       const claimableRewards = rewardsData?.filter(r => r.reward_type === 'layer_reward' && !r.is_claimed) || [];
       const pendingRewards = rewardsData?.filter(r => r.reward_type === 'pending_layer_reward') || [];
