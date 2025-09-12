@@ -75,7 +75,7 @@ export function useUserReferralStats() {
         .select(`
           member_wallet,
           placed_at,
-          members!inner(current_level)
+          members!fk_referrals_member_to_members(current_level)
         `)
         .eq('referrer_wallet', walletAddress)
         .eq('is_direct_referral', true)

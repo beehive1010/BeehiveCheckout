@@ -199,19 +199,14 @@ const ComprehensiveMemberDashboard: React.FC = () => {
         .from('layer_rewards')
         .select(`
           id,
-          amount_usdt,
-          layer,
-          reward_type,
-          is_claimed,
+          reward_amount,
+          matrix_layer,
+          status,
           created_at,
-          countdown_timers (
-            end_time,
-            is_active
-          )
+          expires_at
         `)
-        .eq('recipient_wallet', walletAddress!)
-        .in('reward_type', ['layer_reward', 'pending_layer_reward'])
-        .eq('is_claimed', false)
+        .eq('reward_recipient_wallet', walletAddress!)
+        .in('status', ['claimable', 'pending'])
         .order('created_at', { ascending: false });
 
       if (rewardsError) {
@@ -221,17 +216,16 @@ const ComprehensiveMemberDashboard: React.FC = () => {
 
       // Transform rewards data
       const transformedRewards = rewardsData?.map((reward: any) => {
-        const countdownTimer = reward.countdown_timers?.[0];
-        const hoursLeft = countdownTimer?.end_time 
-          ? Math.max(0, Math.floor((new Date(countdownTimer.end_time).getTime() - Date.now()) / (1000 * 60 * 60)))
+        const hoursLeft = reward.expires_at 
+          ? Math.max(0, Math.floor((new Date(reward.expires_at).getTime() - Date.now()) / (1000 * 60 * 60)))
           : 0;
 
         return {
           id: reward.id,
-          amount: reward.amount_usdt,
-          level: reward.layer,
+          amount: reward.reward_amount,
+          level: reward.matrix_layer,
           hoursLeft,
-          canClaim: reward.reward_type === 'layer_reward',
+          canClaim: reward.status === 'claimable',
           status: reward.reward_type === 'layer_reward' ? 'claimable' as const : 'pending' as const
         };
       }) || [];
