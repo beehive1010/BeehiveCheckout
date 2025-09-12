@@ -51,7 +51,7 @@ const DirectReferralsCard: React.FC<DirectReferralsCardProps> = ({
       console.log(`🔍 Loading direct referrals for wallet: ${walletAddress}`);
 
       // Get direct referrals from users table (people who used this wallet's referral link)
-      // Using ilike for case-insensitive matching as required by database
+      // Using exact matching to avoid RLS issues
       const { data: usersData, error: usersError } = await supabase
         .from('users')
         .select(`
@@ -60,7 +60,7 @@ const DirectReferralsCard: React.FC<DirectReferralsCardProps> = ({
           created_at,
           referrer_wallet
         `)
-        .ilike('referrer_wallet', walletAddress)
+        .eq('referrer_wallet', walletAddress)
         .neq('wallet_address', '0x0000000000000000000000000000000000000001')
         .order('created_at', { ascending: false });
 
