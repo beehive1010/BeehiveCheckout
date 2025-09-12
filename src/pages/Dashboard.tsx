@@ -350,7 +350,7 @@ export default function Dashboard() {
     const rewardSubscription = supabase
       .channel('reward_changes')
       .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'layer_rewards', filter: `reward_recipient_wallet=ilike.${walletAddress}` },
+        { event: '*', schema: 'public', table: 'layer_rewards', filter: `reward_recipient_wallet=eq.${walletAddress}` },
         (payload: any) => {
           console.log('🏆 Rewards updated:', payload);
           loadRewardData();
