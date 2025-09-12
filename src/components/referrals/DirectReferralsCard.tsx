@@ -116,7 +116,7 @@ const DirectReferralsCard: React.FC<DirectReferralsCardProps> = ({
         return {
           memberWallet: referral.member_wallet,
           memberName: userData?.username || `User${referral.member_wallet.slice(-4)}`,
-          referredAt: referral.created_at,
+          referredAt: referral.placed_at,
           isActivated: !!memberData && memberData.current_level > 0,
           memberLevel: memberData?.current_level || 0,
           activationRank: memberData?.activation_sequence || null
