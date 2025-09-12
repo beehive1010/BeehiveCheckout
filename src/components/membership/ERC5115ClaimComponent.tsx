@@ -11,14 +11,16 @@ import { Loader2, Zap, Crown, Gift, Coins, Clock } from 'lucide-react';
 import { authService, supabase } from '../../lib/supabase';
 import { useI18n } from '../../contexts/I18nContext';
 import RegistrationModal from '../modals/RegistrationModal';
+import { useNFTLevelClaim } from '../../hooks/useNFTLevelClaim';
 
 interface ERC5115ClaimComponentProps {
   onSuccess?: () => void;
   referrerWallet?: string;
   className?: string;
+  targetLevel?: number; // Optional target level, if not provided will auto-detect next level
 }
 
-export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '' }: ERC5115ClaimComponentProps): JSX.Element {
+export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '', targetLevel }: ERC5115ClaimComponentProps): JSX.Element {
   const account = useActiveAccount();
   const activeChain = useActiveWalletChain();
   const { toast } = useToast();
@@ -27,11 +29,22 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
   const [currentStep, setCurrentStep] = useState<string>('');
   const [fallbackChainId, setFallbackChainId] = useState<number | null>(null);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  
+  // Use the custom hook for level management
+  const { levelInfo, isLoading: isLevelLoading, refetch: refetchLevel, getLevelName, formatPrice } = useNFTLevelClaim(targetLevel);
 
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
   const PAYMENT_TOKEN_CONTRACT = "0x4470734620414168Aa1673A30849DB25E5886E2A";
   const NFT_CONTRACT = "0x2Cb47141485754371c24Efcc65d46Ccf004f769a";
   const THIRDWEB_CLIENT_ID = import.meta.env.VITE_THIRDWEB_CLIENT_ID;
+
+  console.log('🔧 Contract Configuration:', {
+    paymentToken: PAYMENT_TOKEN_CONTRACT,
+    nftContract: NFT_CONTRACT,
+    network: arbitrumSepolia.id,
+    thirdwebClientId: THIRDWEB_CLIENT_ID ? 'Set' : 'Missing',
+    levelInfo: levelInfo
+  });
 
   // Initialize Thirdweb client
   const client = createThirdwebClient({
@@ -66,8 +79,10 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
   const effectiveChainId = activeChain?.id || fallbackChainId;
 
   const handleRegistrationComplete = () => {
-    console.log('✅ Registration completed - closing modal and retrying claim');
+    console.log('✅ Registration completed - closing modal and refreshing level info');
     setShowRegistrationModal(false);
+    // Refresh level information after registration
+    refetchLevel();
     // After registration, automatically retry the claim process
     setTimeout(() => {
       handleClaimNFT();
@@ -230,11 +245,56 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       }
       
       // Verify network is correct (using finalChainId which could be from fallback)
-      console.log(`🔍 Final chainId for verification: ${finalChainId}`);
+      console.log(`🔍 Network verification details:`, {
+        finalChainId: finalChainId,
+        requiredChainId: arbitrumSepolia.id,
+        arbitrumSepoliaInfo: {
+          id: arbitrumSepolia.id,
+          name: arbitrumSepolia.name,
+          rpc: arbitrumSepolia.rpc
+        },
+        isCorrectNetwork: finalChainId === arbitrumSepolia.id
+      });
+      
       if (finalChainId !== arbitrumSepolia.id) {
-        throw new Error(`Please switch to Arbitrum Sepolia network to claim NFT. Current network: ${finalChainId}, Required: ${arbitrumSepolia.id} (Arbitrum Sepolia)`);
+        throw new Error(`Please switch to Arbitrum Sepolia network to claim NFT. Current network: ${finalChainId}, Required: ${arbitrumSepolia.id} (Arbitrum Sepolia). Expected network name: ${arbitrumSepolia.name}`);
       }
       console.log('✅ Network check passed - on Arbitrum Sepolia');
+
+      // Step 0.1: Validate contracts are accessible
+      console.log('🔍 Validating contract accessibility...');
+      try {
+        const tokenContract = getContract({
+          client,
+          address: PAYMENT_TOKEN_CONTRACT,
+          chain: arbitrumSepolia
+        });
+        
+        const nftContractTest = getContract({
+          client,
+          address: NFT_CONTRACT,
+          chain: arbitrumSepolia
+        });
+        
+        console.log('✅ Contracts initialized successfully');
+        console.log('📋 Token contract:', PAYMENT_TOKEN_CONTRACT);
+        console.log('🎭 NFT contract:', NFT_CONTRACT);
+        
+        // Try to call a simple read function to test contract accessibility
+        try {
+          // Most thirdweb contracts have a 'totalSupply' function
+          const testCall = prepareContractCall({
+            contract: nftContractTest,
+            method: "function totalSupply() view returns (uint256)"
+          });
+          console.log('📊 Contract read test prepared successfully');
+        } catch (readTestError) {
+          console.warn('⚠️ Contract read test failed (might be normal):', readTestError);
+        }
+      } catch (contractError) {
+        console.error('❌ Contract initialization failed:', contractError);
+        throw new Error(`Contract initialization failed: ${contractError}`);
+      }
 
       // Step 0.5: Check if user already owns the NFT
       console.log('🔍 Checking if user already owns NFT...');
@@ -257,8 +317,9 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       console.log('💰 Checking token balance and approval...');
       setCurrentStep(t('claim.checkingBalance'));
       
-      const PAYMENT_TOKEN_AMOUNT = BigInt("130000000000000000000"); // 130 tokens with 18 decimals (130 * 10^18)
-      const finalAmount = PAYMENT_TOKEN_AMOUNT; // Use the predefined amount
+      // Use dynamic pricing from levelInfo
+      const finalAmount = levelInfo.priceInWei;
+      console.log(`💳 Using dynamic pricing for ${getLevelName(levelInfo.tokenId)}: ${formatPrice(levelInfo.priceInUSDC)} USDC (${finalAmount.toString()} wei)`);
       
       const usdcContract = getContract({
         client,
@@ -266,13 +327,28 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         chain: arbitrumSepolia
       });
 
-      console.log(`💳 Checking token balance for payment: ${finalAmount.toString()} units (130 tokens with 18 decimals)`);
+      console.log(`💳 Checking token balance for payment: ${finalAmount.toString()} units (${formatPrice(levelInfo.priceInUSDC)} USDC with 18 decimals)`);
+      
+      // Check user's token balance
+      try {
+        const balanceResult = await fetch(`https://sepolia.arbiscan.io/api?module=account&action=tokenbalance&contractaddress=${PAYMENT_TOKEN_CONTRACT}&address=${account.address}&tag=latest`);
+        const balanceData = await balanceResult.json();
+        console.log('💰 User token balance check:', {
+          balance: balanceData.result,
+          required: finalAmount.toString(),
+          hasEnough: BigInt(balanceData.result || '0') >= finalAmount,
+          level: levelInfo.tokenId,
+          priceUSDC: levelInfo.priceInUSDC
+        });
+      } catch (balanceError) {
+        console.warn('⚠️ Could not check token balance via API:', balanceError);
+      }
 
       // Check if approval is needed
       setCurrentStep(t('claim.checkingApproval'));
       
       // Always request approval for safety and gas estimation
-      console.log(`💰 Requesting token approval for 130 tokens (${finalAmount.toString()} units with 18 decimals)...`);
+      console.log(`💰 Requesting token approval for ${formatPrice(levelInfo.priceInUSDC)} USDC (${finalAmount.toString()} units with 18 decimals) for ${getLevelName(levelInfo.tokenId)}...`);
       
       const approveTransaction = prepareContractCall({
         contract: usdcContract,
@@ -329,13 +405,15 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       console.log('🎁 Claiming NFT with token payment...');
       setCurrentStep(t('claim.mintingNFT'));
       
-      // Prepare allowlist proof (empty for public claims)
+      // Prepare allowlist proof (empty for public claims) - using thirdweb format
       const allowlistProof = {
         proof: [], // Empty array for public claims
-        quantityLimitPerWallet: BigInt(1), // Limit 1 per wallet
-        pricePerToken: finalAmount, // 130 USDC in wei
+        quantityLimitPerWallet: BigInt(0), // 0 for no limit in public claims
+        pricePerToken: finalAmount, // 130 USDC in wei  
         currency: PAYMENT_TOKEN_CONTRACT // Payment token address
       };
+      
+      console.log('🎫 Allowlist proof structure:', allowlistProof);
       
       const nftContract = getContract({
         client,
@@ -343,19 +421,58 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         chain: arbitrumSepolia
       });
       
-      const claimTransaction = prepareContractCall({
-        contract: nftContract,
-        method: "function claim(address _receiver, uint256 _tokenId, uint256 _quantity, address _currency, uint256 _pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) _allowlistProof, bytes _data) payable",
-        params: [
-          account.address, // _receiver
-          BigInt(1), // _tokenId (Level 1)
-          BigInt(1), // _quantity
-          PAYMENT_TOKEN_CONTRACT, // _currency
-          finalAmount, // _pricePerToken (130 USDC in wei)
-          allowlistProof, // _allowlistProof
-          "0x" // _data (empty bytes)
-        ]
+      console.log('🎯 Preparing claim transaction with params:', {
+        receiver: account.address,
+        tokenId: levelInfo.tokenId,
+        quantity: 1,
+        currency: PAYMENT_TOKEN_CONTRACT,
+        pricePerToken: finalAmount.toString(),
+        level: getLevelName(levelInfo.tokenId),
+        priceUSDC: formatPrice(levelInfo.priceInUSDC),
+        allowlistProof: allowlistProof,
+        data: "0x"
       });
+
+      // Try the standard thirdweb NFT Drop claim function signature
+      let claimTransaction;
+      try {
+        // First try the standard thirdweb NFT Drop signature
+        claimTransaction = prepareContractCall({
+          contract: nftContract,
+          method: "function claim(address _receiver, uint256 _quantity, address _currency, uint256 _pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) _allowlistProof, bytes _data) payable",
+          params: [
+            account.address, // _receiver
+            BigInt(1), // _quantity
+            PAYMENT_TOKEN_CONTRACT, // _currency
+            finalAmount, // _pricePerToken (dynamic based on level)
+            allowlistProof, // _allowlistProof
+            "0x" // _data (empty bytes)
+          ]
+        });
+        console.log('✅ Using standard NFT Drop claim signature');
+      } catch (methodError) {
+        console.warn('⚠️ Standard claim signature failed, trying with tokenId:', methodError);
+        try {
+          // Fallback to signature with tokenId parameter
+          claimTransaction = prepareContractCall({
+            contract: nftContract,
+            method: "function claim(address _receiver, uint256 _tokenId, uint256 _quantity, address _currency, uint256 _pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) _allowlistProof, bytes _data) payable",
+            params: [
+              account.address, // _receiver
+              BigInt(levelInfo.tokenId), // _tokenId (dynamic level)
+              BigInt(1), // _quantity
+              PAYMENT_TOKEN_CONTRACT, // _currency
+              finalAmount, // _pricePerToken (dynamic based on level)
+              allowlistProof, // _allowlistProof
+              "0x" // _data (empty bytes)
+            ]
+          });
+          console.log('✅ Using claim signature with tokenId');
+        } catch (fallbackError) {
+          console.error('❌ Both claim signatures failed:', fallbackError);
+          throw new Error(`Contract claim function not found or incompatible: ${fallbackError.message}`);
+        }
+      }
 
       let claimAttempts = 0;
       const maxClaimAttempts = 3;
@@ -370,7 +487,13 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
           break; // Success, exit retry loop
         } catch (claimError: any) {
           claimAttempts++;
-          console.log(`Claim attempt ${claimAttempts}/${maxClaimAttempts} failed:`, claimError);
+          console.error(`❌ Claim attempt ${claimAttempts}/${maxClaimAttempts} failed:`, {
+            error: claimError,
+            message: claimError.message,
+            code: claimError.code,
+            data: claimError.data,
+            reason: claimError.reason
+          });
           
           if (claimError.code === -32005 || claimError.message?.includes('rate limit')) {
             if (claimAttempts < maxClaimAttempts) {
@@ -379,6 +502,17 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
               continue;
             }
           }
+          
+          // Log detailed error information for debugging
+          console.error('🚨 Detailed claim error analysis:', {
+            errorType: typeof claimError,
+            errorString: String(claimError),
+            errorStack: claimError.stack,
+            contractAddress: NFT_CONTRACT,
+            paymentToken: PAYMENT_TOKEN_CONTRACT,
+            amount: finalAmount.toString(),
+            networkId: effectiveChainId
+          });
           
           // Re-throw for other error handling
           throw claimError;
@@ -407,10 +541,10 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
           },
           body: JSON.stringify({
             action: 'process-upgrade',
-            level: 1,
+            level: levelInfo.tokenId,
             transactionHash: claimTxResult?.transactionHash || '',
             paymentMethod: 'token_payment',
-            payment_amount_usdc: 130 // 130 USDC (100 NFT + 30 platform fee)
+            payment_amount_usdc: levelInfo.priceInUSDC
           })
         });
 
@@ -450,9 +584,9 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
               },
               body: JSON.stringify({
                 transactionHash: claimTxResult?.transactionHash,
-                level: 1,
+                level: levelInfo.tokenId,
                 paymentMethod: 'token_payment',
-                paymentAmount: 130,
+                paymentAmount: levelInfo.priceInUSDC,
                 referrerWallet: referrerWallet
               })
           });
@@ -589,11 +723,22 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
           </Badge>
         </div>
         <CardTitle className="text-2xl text-honey mb-2">
-          {t('claim.claimLevel1NFT')}
+          {isLevelLoading ? t('loading') || 'Loading...' : `Claim ${getLevelName(levelInfo.tokenId)} NFT`}
         </CardTitle>
         <p className="text-muted-foreground">
-          {t('claim.claimUniqueNFTDesc')}
+          {isLevelLoading ? 'Loading membership info...' : 
+           levelInfo.currentLevel > 0 ? 
+           `Current Level: ${levelInfo.currentLevel} | Next: ${getLevelName(levelInfo.tokenId)}` :
+           'Claim your first membership NFT to join the BEEHIVE community'
+          }
         </p>
+        
+        {/* Level progress indicator */}
+        {!isLevelLoading && levelInfo.currentLevel > 0 && (
+          <div className="mt-2 px-3 py-1 bg-honey/10 rounded-full text-xs text-honey border border-honey/20">
+            Upgrading from Level {levelInfo.currentLevel} to {getLevelName(levelInfo.tokenId)}
+          </div>
+        )}
       </CardHeader>
 
       <CardContent className="space-y-6">
@@ -601,12 +746,18 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="text-center p-4 bg-gradient-to-br from-orange-500/10 to-orange-500/5 rounded-lg border border-orange-500/20">
             <Coins className="h-6 w-6 text-orange-400 mx-auto mb-2" />
-            <h3 className="font-semibold text-orange-400 mb-1">130 USDC</h3>
-            <p className="text-xs text-muted-foreground">100 NFT + 30 platform fee</p>
+            <h3 className="font-semibold text-orange-400 mb-1">
+              {isLevelLoading ? '...' : `${formatPrice(levelInfo.priceInUSDC)} USDC`}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {isLevelLoading ? 'Loading...' : `${getLevelName(levelInfo.tokenId)} Price`}
+            </p>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-lg border border-purple-500/20">
             <Crown className="h-6 w-6 text-purple-400 mx-auto mb-2" />
-            <h3 className="font-semibold text-purple-400 mb-1">Level 1</h3>
+            <h3 className="font-semibold text-purple-400 mb-1">
+              {isLevelLoading ? '...' : getLevelName(levelInfo.tokenId)}
+            </h3>
             <p className="text-xs text-muted-foreground">Membership NFT</p>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20">
@@ -625,14 +776,24 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         <div className="space-y-4">
           <Button 
             onClick={handleClaimNFT}
-            disabled={isProcessing || !account?.address}
-            className="w-full h-12 bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-background font-semibold text-lg shadow-lg"
+            disabled={isProcessing || !account?.address || isLevelLoading || !levelInfo.canClaim}
+            className="w-full h-12 bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-background font-semibold text-lg shadow-lg disabled:opacity-50"
             data-testid="button-claim-nft"
           >
             {!account?.address ? (
               <>
                 <Crown className="mr-2 h-5 w-5" />
                 {t('claim.connectWalletToClaimNFT')}
+              </>
+            ) : isLevelLoading ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Loading level info...
+              </>
+            ) : !levelInfo.canClaim ? (
+              <>
+                <Crown className="mr-2 h-5 w-5" />
+                {levelInfo.isMaxLevel ? 'Max Level Reached' : 'Cannot Claim This Level'}
               </>
             ) : isProcessing ? (
               <>
@@ -642,7 +803,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
             ) : (
               <>
                 <Crown className="mr-2 h-5 w-5" />
-                {t('claim.claimLevel1NFT130USDC')}
+                {`Claim ${getLevelName(levelInfo.tokenId)} - ${formatPrice(levelInfo.priceInUSDC)} USDC`}
               </>
             )}
           </Button>

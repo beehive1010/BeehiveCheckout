@@ -181,6 +181,7 @@ export default function Welcome() {
         <ERC5115ClaimComponent 
           onSuccess={handleActivationComplete}
           referrerWallet={referrerWallet}
+          targetLevel={1} // Welcome page always shows Level 1 for new users
         />
         
         <div className="mt-8 text-center text-sm text-muted-foreground space-y-2">

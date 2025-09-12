@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useI18n } from '../contexts/I18nContext';
 import { useWallet } from '../hooks/useWallet';
 import { useQuery } from '@tanstack/react-query';
@@ -10,6 +10,7 @@ import { useToast } from '../hooks/use-toast';
 import { Crown, Shield, Star, Zap, Gift, Lock, CheckCircle, Loader2, ArrowRight, Users, Award } from 'lucide-react';
 import MembershipBadge from '../components/membership/MembershipBadge';
 import { getMembershipLevel } from '../lib/config/membershipLevels';
+import { ERC5115ClaimComponent } from '../components/membership/ERC5115ClaimComponent';
 
 interface MembershipLevel {
   level: number;
@@ -28,6 +29,31 @@ export default function Membership() {
   const { walletAddress, bccBalance, currentLevel } = useWallet();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [userReferrer, setUserReferrer] = useState<string>('');
+
+  // Fetch user's referrer from members table
+  useEffect(() => {
+    const fetchUserReferrer = async () => {
+      if (!walletAddress) return;
+      
+      try {
+        const { supabase } = await import('../lib/supabase');
+        const { data: memberData } = await supabase
+          .from('members')
+          .select('referrer_wallet')
+          .eq('wallet_address', walletAddress)
+          .single();
+        
+        if (memberData?.referrer_wallet) {
+          setUserReferrer(memberData.referrer_wallet);
+        }
+      } catch (error) {
+        console.warn('Failed to fetch user referrer:', error);
+      }
+    };
+
+    fetchUserReferrer();
+  }, [walletAddress]);
 
   // Fetch user's direct referrals count for Level 2 condition (from referrals table)
   const { data: directReferralsCount } = useQuery({
@@ -390,6 +416,42 @@ export default function Membership() {
           </div>
         </div>
       </div>
+
+      {/* Direct NFT Claim Section - Using Dynamic ERC5115ClaimComponent */}
+      {walletAddress && currentLevel > 0 && currentLevel < 19 && userReferrer && (
+        <div className="mb-12">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-foreground mb-2 flex items-center justify-center gap-2">
+              <Zap className="h-6 w-6 text-honey" />
+              {t('membership.quickUpgrade') || 'Quick NFT Upgrade'}
+            </h2>
+            <p className="text-muted-foreground">
+              {t('membership.nftClaimDescription') || 'Use blockchain NFT claiming to upgrade your membership level instantly'}
+            </p>
+            <div className="mt-2 text-xs text-honey/80">
+              {t('membership.nftClaimNote') || 'This uses the same smart contract as the welcome page with automatic level detection'}
+            </div>
+          </div>
+          
+          <div className="max-w-4xl mx-auto">
+            <ERC5115ClaimComponent 
+              onSuccess={() => {
+                toast({
+                  title: t('membership.upgradeSuccess') || 'Upgrade Successful!',
+                  description: t('membership.upgradeSuccessDescription') || 'Your membership has been upgraded successfully',
+                  duration: 5000
+                });
+                // Refresh the page to update level display
+                setTimeout(() => {
+                  window.location.reload();
+                }, 2000);
+              }}
+              referrerWallet={userReferrer} // Use user's original referrer for upgrades
+              // No targetLevel specified - will auto-detect next level
+            />
+          </div>
+        </div>
+      )}
 
       {/* Premium Membership Levels Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
