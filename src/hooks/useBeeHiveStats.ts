@@ -39,17 +39,17 @@ export function useUserReferralStats() {
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
       
-      // Get direct referrals count using case-insensitive query
+      // Get direct referrals count using exact matching
       const { count: directReferrals } = await supabase
         .from('members')
         .select('*', { count: 'exact', head: true })
-        .ilike('referrer_wallet', walletAddress);
+        .eq('referrer_wallet', walletAddress);
 
-      // Get total team count from direct referrals using case-insensitive query
+      // Get total team count from direct referrals using exact matching
       const { count: totalTeam } = await supabase
         .from('users')
         .select('*', { count: 'exact', head: true })
-        .ilike('referrer_wallet', walletAddress);
+        .eq('referrer_wallet', walletAddress);
 
       // Get member's current level and info using case-insensitive query
       const { data: memberData } = await supabase
