@@ -146,25 +146,16 @@ export default function RegistrationModal({
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/auth`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.supabaseKey}`,
-          'x-wallet-address': walletAddress,
-        },
-        body: JSON.stringify({
-          action: 'register',
-          username: formData.username.trim(),
-          email: formData.email.trim() || undefined,
-          referrerWallet: referrerWallet
-        })
+      // Use direct database RPC function instead of Edge Function
+      const { data: result, error: rpcError } = await supabase.rpc('register_user_simple', {
+        p_wallet_address: walletAddress,
+        p_username: formData.username.trim(),
+        p_email: formData.email.trim() || null,
+        p_referrer_wallet: referrerWallet
       });
 
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || result.message || t('registration.failed'));
+      if (rpcError || !result?.success) {
+        throw new Error(result?.error || rpcError?.message || t('registration.failed'));
       }
 
       toast({

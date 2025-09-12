@@ -47,7 +47,8 @@
       "Bash(sed:*)",
       "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase projects list)",
       "Bash(export PGPASSWORD=bee8881941)",
-      "Bash(./scripts/supabase-ipv4-management.sh:*)"
+      "Bash(./scripts/supabase-ipv4-management.sh:*)",
+      "Bash(./deploy-auth.sh:*)"
     ],
     "deny": [],
     "ask": []

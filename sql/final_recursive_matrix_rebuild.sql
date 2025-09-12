@@ -15,7 +15,7 @@ AND users.referrer_wallet IS NOT NULL
 AND (members.referrer_wallet IS NULL OR members.referrer_wallet != users.referrer_wallet);
 
 -- 为在users表中有推荐关系但在members表中缺失的用户添加members记录
-INSERT INTO members (wallet_address, referrer_wallet, current_level, levels_owned, created_at)
+INSERT INTO members (wallet_address, referrer_wallet, current_level, levels_owned, activation_time)
 SELECT 
     u.wallet_address,
     u.referrer_wallet,
