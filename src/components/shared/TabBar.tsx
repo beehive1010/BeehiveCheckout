@@ -21,7 +21,7 @@ const tabItems: TabItem[] = [
 ];
 
 export default function TabBar() {
-  const { isActivated, walletAddress } = useWallet();
+  const { walletAddress } = useWallet();
   const { t } = useI18n();
   const [location, setLocation] = useLocation();
 
