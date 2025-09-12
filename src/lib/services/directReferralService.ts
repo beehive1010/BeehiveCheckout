@@ -23,7 +23,7 @@ export async function getDirectReferralCount(referrerWallet: string): Promise<nu
       const { count, error: usersError } = await supabase
         .from('users')
         .select('*', { count: 'exact', head: true })
-        .ilike('referrer_wallet', referrerWallet)
+        .eq('referrer_wallet', referrerWallet)
         .neq('wallet_address', '0x0000000000000000000000000000000000000001');
       
       if (usersError) {
