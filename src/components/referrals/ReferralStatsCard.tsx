@@ -61,11 +61,11 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
       if (statsData) {
         setMatrixStats(statsData);
       } else {
-        // Fallback: Get basic referrals data from members table using case-insensitive query
+        // Fallback: Get basic referrals data from members table using exact matching
         const { data: basicReferrals } = await supabase
           .from('members')
           .select('wallet_address, activation_time, current_level')
-          .ilike('referrer_wallet', walletAddress)
+          .eq('referrer_wallet', walletAddress)
           .limit(10);
 
         const activatedCount = basicReferrals?.filter(m => m.current_level > 0).length || 0;
@@ -97,11 +97,11 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
           member_level: member.current_level || 1
         })));
       } else {
-        // Fallback to basic members query using case-insensitive query
+        // Fallback to basic members query using exact matching
         const { data: basicReferrals } = await supabase
           .from('members')
           .select('wallet_address, activation_time, current_level')
-          .ilike('referrer_wallet', walletAddress)
+          .eq('referrer_wallet', walletAddress)
           .limit(10);
 
         setReferrals(basicReferrals?.map((member: any) => ({
