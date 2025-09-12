@@ -8,11 +8,11 @@ export async function getDirectReferralCount(referrerWallet: string): Promise<nu
   try {
     console.log(`🔍 Fetching direct referrals from matrix_stats for wallet: ${referrerWallet}`);
     
-    // Use matrix_stats view to get direct referral count (bypasses RLS issues) with case-insensitive query
+    // Use matrix_stats view to get direct referral count (bypasses RLS issues) with exact matching
     const { data, error } = await supabase
       .from('matrix_stats')
       .select('direct_referrals_count')
-      .ilike('member_wallet', referrerWallet)
+      .eq('member_wallet', referrerWallet)
       .single();
 
     if (error) {
