@@ -516,6 +516,8 @@
     "networkError": "Network Error",
     "switchToArbitrumSepolia": "Please switch to Arbitrum Sepolia network and try again.",
     "claimFailed": "Claim failed",
+    "insufficientGasFunds": "⛽ Insufficient Gas Funds",
+    "needETHForGas": "You need ETH on Arbitrum Sepolia network to pay for transaction gas fees. Please add some ETH to your wallet first.",
     "claimLevel1NFT": "Claim Your Level 1 Membership NFT",
     "claimUniqueNFTDesc": "Claim your unique ERC-5115 NFT (Token ID 1) to activate Level 1 membership",
     "processing": "Processing...",

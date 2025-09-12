@@ -591,6 +591,8 @@
     "networkError": "网络错误",
     "switchToArbitrumSepolia": "请切换到Arbitrum Sepolia网络后重试。",
     "claimFailed": "认领失败",
+    "insufficientGasFunds": "⛽ 燃料费不足",
+    "needETHForGas": "您需要在Arbitrum Sepolia网络上有ETH来支付交易燃料费。请先向钱包添加一些ETH。",
     "claimLevel1NFT": "认领您的1级会员NFT",
     "claimUniqueNFTDesc": "认领您独特的ERC-5115 NFT（代币ID 1）以激活1级会员身份",
     "processing": "处理中...",

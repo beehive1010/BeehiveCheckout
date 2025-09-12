@@ -413,6 +413,12 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
             code: approvalError.code
           });
           
+          // Check for insufficient gas funds first
+          if (approvalError.code === -32000 && (approvalError.message?.includes('insufficient funds for gas') || approvalError.message?.includes('have 0 want'))) {
+            console.error('💸 Insufficient gas funds detected during approval');
+            throw new Error('Insufficient ETH for gas fees. You need ETH on Arbitrum Sepolia network to pay for transaction fees. Please add some ETH to your wallet first.');
+          }
+          
           // Enhanced error detection for thirdweb issues
           if (approvalError.message?.includes('Failed to fetch dynamically imported module') || 
               approvalError.message?.includes('eth_getTransactionCount') ||
@@ -540,6 +546,12 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
             data: claimError.data,
             reason: claimError.reason
           });
+          
+          // Check for insufficient gas funds first
+          if (claimError.code === -32000 && (claimError.message?.includes('insufficient funds for gas') || claimError.message?.includes('have 0 want'))) {
+            console.error('💸 Insufficient gas funds detected during NFT claim');
+            throw new Error('Insufficient ETH for gas fees. You need ETH on Arbitrum Sepolia network to pay for transaction fees. Please add some ETH to your wallet first.');
+          }
           
           // Enhanced error detection for thirdweb issues  
           if (claimError.message?.includes('Failed to fetch dynamically imported module') || 
@@ -708,9 +720,20 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       
       // Provide specific error messages based on contract requirements
       const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorCode = (error as any)?.code;
       
       // Enhanced error messages based on transaction analysis
-      if (errorMessage.includes('Rate Limited') || errorMessage.includes('rate limit')) {
+      if (errorCode === -32000 && (errorMessage.includes('insufficient funds for gas') || errorMessage.includes('have 0 want'))) {
+        // Insufficient gas funds for transaction
+        console.log('💸 Insufficient gas funds detected');
+        toast({
+          title: t('claim.insufficientGasFunds'),
+          description: t('claim.needETHForGas'),
+          variant: "destructive",
+          duration: 8000,
+        });
+        return;
+      } else if (errorMessage.includes('Rate Limited') || errorMessage.includes('rate limit')) {
         // Already formatted error message, pass through
         toast({
           title: t('claim.rateLimited'),
@@ -735,6 +758,14 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
           }, 1500);
         }
         return; // Exit function, don't show error
+      } else if (errorMessage.includes('Insufficient ETH for gas fees') || errorMessage.includes('insufficient funds for gas')) {
+        toast({
+          title: t('claim.insufficientGasFunds'),
+          description: t('claim.needETHForGas'),
+          variant: "destructive",
+          duration: 8000,
+        });
+        return;
       } else if (errorMessage.includes('insufficient')) {
         toast({
           title: t('claim.insufficientBalance'),
