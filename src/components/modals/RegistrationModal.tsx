@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
-import { Loader2, User, Mail, Users, Crown, Gift, AlertCircle } from 'lucide-react';
-import { useToast } from '../../hooks/use-toast';
-import { supabase } from '../../lib/supabase';
+import { Loader2, User, Users, Crown, Gift, AlertCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast.ts';
+import { supabase } from '@/lib/supabase.ts';
 import { useI18n } from '../../contexts/I18nContext';
 
 interface RegistrationModalProps {

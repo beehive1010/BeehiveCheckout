@@ -711,7 +711,11 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       // Always call success handler since NFT claim was successful on blockchain
       // User can manually activate or refresh if backend is slow
       if (onSuccess && shouldNavigate) {
-        console.log('🔄 Navigating to dashboard - NFT claim successful on blockchain');
+        if (levelInfo.tokenId === 1) {
+          console.log('🎯 Level 1 NFT claim successful - activating membership and redirecting to dashboard');
+        } else {
+          console.log('🔄 Level', levelInfo.tokenId, 'NFT claim successful - navigating to dashboard');
+        }
         onSuccess();
       }
 

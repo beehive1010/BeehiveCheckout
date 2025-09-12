@@ -38,15 +38,22 @@ export interface NFTLevelInfo {
 export function useNFTLevelClaim(targetLevel?: number) {
   const account = useActiveAccount();
   const [isLoading, setIsLoading] = useState(false);
-  const [levelInfo, setLevelInfo] = useState<NFTLevelInfo>({
-    currentLevel: 0,
-    nextClaimableLevel: 1,
-    priceInUSDC: 130,
-    priceInWei: BigInt("130000000000000000000"), // 130 * 10^18
-    tokenId: 1,
-    canClaim: true,
-    isMaxLevel: false
-  });
+  // Initialize with target level if provided, otherwise default to Level 1
+  const initializeState = () => {
+    const initialLevel = targetLevel || 1;
+    const initialPrice = LEVEL_PRICING[initialLevel as keyof typeof LEVEL_PRICING] || 130;
+    return {
+      currentLevel: 0,
+      nextClaimableLevel: initialLevel,
+      priceInUSDC: initialPrice,
+      priceInWei: BigInt(initialPrice) * BigInt("1000000000000000000"), // Convert to wei
+      tokenId: initialLevel,
+      canClaim: true, // New users can always claim their target level
+      isMaxLevel: false
+    };
+  };
+
+  const [levelInfo, setLevelInfo] = useState<NFTLevelInfo>(initializeState());
 
   // Helper function to convert USDC to wei (18 decimals)
   const usdcToWei = (usdcAmount: number): bigint => {
@@ -101,7 +108,21 @@ export function useNFTLevelClaim(targetLevel?: number) {
       const priceInWei = usdcToWei(priceInUSDC);
 
       // Check if user can claim this level
-      const canClaim = nextLevel > currentLevel && nextLevel <= 19;
+      let canClaim: boolean;
+      if (targetLevel) {
+        // When targeting a specific level (e.g., Welcome page targeting Level 1)
+        if (targetLevel === 1) {
+          // Level 1 is special - it activates membership
+          // Only allow claiming if user doesn't have Level 1 yet
+          canClaim = currentLevel < 1 && targetLevel <= 19;
+        } else {
+          // Other target levels: allow if user doesn't have that level yet
+          canClaim = currentLevel < targetLevel && targetLevel <= 19;
+        }
+      } else {
+        // Auto-progression: allow claiming next level
+        canClaim = nextLevel > currentLevel && nextLevel <= 19;
+      }
       const isMaxLevel = currentLevel >= 19;
 
       setLevelInfo({
@@ -121,25 +142,47 @@ export function useNFTLevelClaim(targetLevel?: number) {
         priceInWei: priceInWei.toString(),
         tokenId: nextLevel,
         canClaim,
-        isMaxLevel
+        isMaxLevel,
+        targetLevel,
+        debugInfo: {
+          hasTargetLevel: !!targetLevel,
+          isLevel1Special: targetLevel === 1,
+          claimLogic: targetLevel ? 
+            (targetLevel === 1 ? 
+              `Level 1 (special): currentLevel(${currentLevel}) < 1 = ${currentLevel < 1}` :
+              `currentLevel(${currentLevel}) < targetLevel(${targetLevel}) = ${currentLevel < targetLevel}`) :
+            `nextLevel(${nextLevel}) > currentLevel(${currentLevel}) = ${nextLevel > currentLevel}`
+        }
       });
 
     } catch (error) {
       console.error('❌ Error fetching user level:', error);
-      // Fallback to level 1
+      // Fallback to level 1 or target level
+      const fallbackLevel = targetLevel || 1;
+      const fallbackPrice = LEVEL_PRICING[fallbackLevel as keyof typeof LEVEL_PRICING] || 130;
       setLevelInfo({
         currentLevel: 0,
-        nextClaimableLevel: 1,
-        priceInUSDC: 130,
-        priceInWei: BigInt("130000000000000000000"),
-        tokenId: 1,
-        canClaim: true,
+        nextClaimableLevel: fallbackLevel,
+        priceInUSDC: fallbackPrice,
+        priceInWei: usdcToWei(fallbackPrice),
+        tokenId: fallbackLevel,
+        canClaim: true, // Always allow claiming on error (for new users)
         isMaxLevel: false
+      });
+      console.log('🔄 Using fallback level info:', {
+        fallbackLevel,
+        fallbackPrice,
+        targetLevel
       });
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Reset state when targetLevel changes
+  useEffect(() => {
+    setLevelInfo(initializeState());
+  }, [targetLevel]);
 
   // Refresh level info when account changes
   useEffect(() => {

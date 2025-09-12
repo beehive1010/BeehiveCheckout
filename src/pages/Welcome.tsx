@@ -80,17 +80,20 @@ export default function Welcome() {
       
       setIsCheckingMembership(true);
       try {
-        console.log('🔍 Checking membership status for:', account.address);
+        console.log('🔍 Welcome page: Checking membership status for:', account.address);
         const membershipResult = await authService.isActivatedMember(account.address);
-        console.log('📊 Membership result:', membershipResult);
+        console.log('📊 Welcome page: Membership result:', membershipResult);
         
         if (membershipResult.isActivated && membershipResult.memberData?.current_level >= 1) {
-          console.log('✅ User is already activated member - redirecting to dashboard');
+          console.log('✅ Welcome page: User already has Level', membershipResult.memberData.current_level, '- redirecting to dashboard');
           setLocation('/dashboard');
           return;
         }
+        
+        console.log('🎯 Welcome page: User is not activated (Level', membershipResult.memberData?.current_level || 0, ') - showing claim interface');
       } catch (error) {
-        console.warn('⚠️ Failed to check membership status:', error);
+        console.warn('⚠️ Welcome page: Failed to check membership status:', error);
+        // Continue showing welcome page on error - let user try to claim
       } finally {
         setIsCheckingMembership(false);
       }
@@ -100,8 +103,13 @@ export default function Welcome() {
   }, [account?.address, setLocation]);
 
   const handleActivationComplete = () => {
-    console.log('✅ NFT claim and activation completed - redirecting to dashboard');
-    setLocation('/dashboard');
+    console.log('✅ Level 1 NFT claim and activation completed - redirecting to dashboard');
+    
+    // Add small delay to ensure database updates are processed
+    setTimeout(() => {
+      console.log('🔄 Redirecting to dashboard after Level 1 activation...');
+      setLocation('/dashboard');
+    }, 1500); // 1.5 second delay
   };
 
   // Handle default referrer when no valid referrer is found
