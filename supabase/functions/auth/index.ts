@@ -48,6 +48,9 @@ serve(async (req) => {
       case 'validate-referrer':
         result = await validateReferrer(supabase, data.referrerWallet);
         break;
+      case 'update-profile':
+        result = await updateUserProfile(supabase, walletAddress, data);
+        break;
       default:
         throw new Error(`未知操作: ${action}`);
     }
