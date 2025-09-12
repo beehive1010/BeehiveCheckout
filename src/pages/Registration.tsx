@@ -11,6 +11,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '../lib/queryClient';
 import { Check, AlertCircle, User, Mail, Users } from 'lucide-react';
 import { authService } from '../lib/supabaseClient';
+import { referralService } from '../api/landing/referral.client';
 
 export default function Registration() {
   const { t } = useI18n();
@@ -62,7 +63,7 @@ export default function Registration() {
   // Loading state for user existence check
   const [isCheckingExistingUser, setIsCheckingExistingUser] = useState(true);
   
-  // Get referrer from URL parameters
+  // Get referrer from URL parameters and localStorage
   const [referrerWallet, setReferrerWallet] = useState<string | null>(null);
   const [noReferrerError, setNoReferrerError] = useState(false);
   
@@ -72,10 +73,21 @@ export default function Registration() {
     if (refParam && refParam.startsWith('0x') && refParam.length === 42) {
       // Keep original case as specified - wallet addresses must be case-preserved
       setReferrerWallet(refParam);
+      referralService.handleReferralParameter(); // Store to localStorage
       setNoReferrerError(false);
+      console.log('🔗 Referrer detected from URL:', refParam);
     } else {
-      // No valid referrer found - set error state
-      setNoReferrerError(true);
+      // Check localStorage for stored referrer
+      const storedReferrer = referralService.getReferrerWallet();
+      if (storedReferrer && storedReferrer.startsWith('0x') && storedReferrer.length === 42) {
+        setReferrerWallet(storedReferrer);
+        setNoReferrerError(false);
+        console.log('🔗 Referrer loaded from storage:', storedReferrer);
+      } else {
+        // No valid referrer found - set error state
+        setNoReferrerError(true);
+        console.log('❌ No valid referrer found');
+      }
     }
   }, []);
 
@@ -205,7 +217,8 @@ export default function Registration() {
       
       // Add a small delay to show the success message
       setTimeout(() => {
-        setLocation('/welcome');
+        // Redirect with referrer parameter to preserve referrer info on Welcome page
+        setLocation(`/welcome?ref=${encodeURIComponent(referrerWallet)}`);
       }, 1500);
     } catch (error: any) {
       toast({

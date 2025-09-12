@@ -107,9 +107,11 @@ export default function Welcome() {
   // Handle default referrer when no valid referrer is found
   useEffect(() => {
     if (noReferrerError && !referrerWallet) {
-      // Set default referrer for testing purposes
+      // Set default referrer for testing purposes and store it
       const defaultReferrer = '0x0000000000000000000000000000000000000001';
       setReferrerWallet(defaultReferrer);
+      // Store the default referrer to localStorage so Registration can access it
+      localStorage.setItem('beehive-referrer', defaultReferrer);
       setNoReferrerError(false);
       console.log('🔧 Using default referrer for development:', defaultReferrer);
     }
