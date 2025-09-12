@@ -1,27 +1,43 @@
 import { supabase } from '../supabase';
 
 /**
- * 获取用户的直接推荐人数（基于 referrals 表）
+ * 获取用户的直接推荐人数（基于 matrix_stats 视图）
  * 只计算通过该用户推荐链接直接注册的用户，不包括矩阵安置的溢出用户
  */
 export async function getDirectReferralCount(referrerWallet: string): Promise<number> {
   try {
-    console.log(`🔍 Fetching direct referrals for wallet: ${referrerWallet}`);
+    console.log(`🔍 Fetching direct referrals from matrix_stats for wallet: ${referrerWallet}`);
     
-    // Count users who have this wallet as their referrer
-    const { count, error } = await supabase
-      .from('users')
-      .select('*', { count: 'exact', head: true })
-      .eq('referrer_wallet', referrerWallet)
-      .neq('wallet_address', '0x0000000000000000000000000000000000000001');
+    // Use matrix_stats view to get direct referral count (bypasses RLS issues)
+    const { data, error } = await supabase
+      .from('matrix_stats')
+      .select('direct_referrals_count')
+      .eq('member_wallet', referrerWallet)
+      .single();
 
     if (error) {
-      console.error('❌ Error fetching direct referrals:', error);
-      throw error;
+      console.error('❌ Error fetching from matrix_stats:', error);
+      // Fallback to users table query if matrix_stats fails
+      console.log('🔄 Falling back to users table...');
+      
+      const { count, error: usersError } = await supabase
+        .from('users')
+        .select('*', { count: 'exact', head: true })
+        .eq('referrer_wallet', referrerWallet)
+        .neq('wallet_address', '0x0000000000000000000000000000000000000001');
+      
+      if (usersError) {
+        console.error('❌ Fallback users query also failed:', usersError);
+        return 0;
+      }
+      
+      const directCount = count || 0;
+      console.log(`✅ Direct referral count (fallback) for ${referrerWallet}: ${directCount}`);
+      return directCount;
     }
 
-    const directCount = count || 0;
-    console.log(`✅ Direct referral count for ${referrerWallet}: ${directCount}`);
+    const directCount = data?.direct_referrals_count || 0;
+    console.log(`✅ Direct referral count from matrix_stats for ${referrerWallet}: ${directCount}`);
     
     return directCount;
   } catch (error) {
