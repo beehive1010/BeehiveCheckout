@@ -215,8 +215,8 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
               console.log('⏳ User authenticated but not a member, redirecting to welcome');
               setLocation('/welcome');
             }
-          } else if (result.success && !result.user) {
-            // User doesn't exist yet - redirect to registration page
+          } else if (!result.data && !result.error) {
+            // User doesn't exist yet - redirect to registration page  
             console.log('👤 User not found, redirecting to registration...');
             setIsMember(false);
             setLocation('/register');
