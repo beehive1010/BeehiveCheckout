@@ -8,6 +8,8 @@ import { I18nProvider } from "./contexts/I18nContext";
 import { AdminAuthProvider } from "./contexts/AdminAuthContext";
 import { ThemeProvider } from "next-themes";
 import { Toaster as HotToaster } from "react-hot-toast";
+import { setupGlobalChunkErrorHandler, preloadThirdwebModules } from "@/utils/moduleLoader";
+import { useEffect } from "react";
 
 // Refactored pages with clean architecture
 import LandingPage from "@/pages/LandingPage";
@@ -341,6 +343,18 @@ function App() {
   const isLandingPage = location === '/';
   const isAdminPage = location.startsWith('/admin/');
   const isMatrixPage = location === '/matrix-explanation';
+
+  // Initialize global error handling and module preloading
+  useEffect(() => {
+    console.log('🔧 Setting up global chunk error handler...');
+    setupGlobalChunkErrorHandler();
+    
+    // Preload thirdweb modules to prevent loading issues
+    console.log('🚀 Starting thirdweb module preloading...');
+    preloadThirdwebModules().catch(error => {
+      console.warn('⚠️ Thirdweb preloading failed (non-critical):', error);
+    });
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
