@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useI18n } from '../contexts/I18nContext';
 import { useWallet } from '../hooks/useWallet';
 import { useQuery } from '@tanstack/react-query';
-import { matrixService } from '../lib/supabaseClient';
 import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
