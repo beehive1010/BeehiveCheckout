@@ -18,6 +18,7 @@ import UserProfile from '../components/dashboard/UserProfile';
 import PremiumDataCard from '../components/dashboard/PremiumDataCard';
 import ReferralLinkCard from '../components/dashboard/ReferralLinkCard';
 import QuickNavigationCard from '../components/dashboard/QuickNavigationCard';
+import WalletDebugInfo from '../components/debug/WalletDebugInfo';
 import '../components/dashboard/dashboard.css';
 
 interface SimpleDashboardData {
@@ -389,6 +390,9 @@ export default function Dashboard() {
       <Navigation />
       
       <div className="dashboard-content">
+        {/* Debug信息 */}
+        <WalletDebugInfo />
+        
         {/* 用户资料卡片 */}
         <UserProfile className="mb-6 sm:mb-8" />
 
