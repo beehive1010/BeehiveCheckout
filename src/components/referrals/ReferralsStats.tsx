@@ -1,0 +1,310 @@
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
+import { Badge } from '../ui/badge';
+import { 
+  Users, 
+  Trophy, 
+  UserCheck, 
+  Layers,
+  Target,
+  Award,
+  TrendingUp,
+  DollarSign
+} from 'lucide-react';
+import { supabase } from '../../lib/supabaseClient';
+import { useI18n } from '../../contexts/I18nContext';
+
+interface ReferralsStatsProps {
+  walletAddress: string;
+  className?: string;
+}
+
+interface ReferrerStatsData {
+  wallet_address: string;
+  activation_sequence: number;
+  username: string;
+  current_level: number;
+  direct_referrals: number;
+  spillover_count: number;
+  total_team_size: number;
+  max_layer: number;
+  l_position_filled: boolean;
+  m_position_filled: boolean;
+  r_position_filled: boolean;
+  layer1_filled_count: number;
+  next_vacant_position: string;
+  referrer_category: string;
+}
+
+interface RewardsOverviewData {
+  wallet_address: string;
+  total_rewards_count: number;
+  pending_rewards_count: number;
+  claimable_rewards_count: number;
+  claimed_rewards_count: number;
+  total_amount_usdt: number;
+  pending_amount_usdt: number;
+  claimable_amount_usdt: number;
+  claimed_amount_usdt: number;
+  latest_reward_time: string;
+  latest_claim_time: string;
+}
+
+export default function ReferralsStats({ walletAddress, className }: ReferralsStatsProps) {
+  const { t } = useI18n();
+
+  const { data: referrerStats, isLoading: isLoadingStats } = useQuery<ReferrerStatsData>({
+    queryKey: ['referrer-stats', walletAddress],
+    enabled: !!walletAddress,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('referrer_stats')
+        .select('*')
+        .eq('wallet_address', walletAddress)
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const { data: rewardsOverview, isLoading: isLoadingRewards } = useQuery<RewardsOverviewData>({
+    queryKey: ['member-rewards-overview', walletAddress],
+    enabled: !!walletAddress,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('member_rewards_overview_v2')
+        .select('*')
+        .eq('wallet_address', walletAddress)
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const loading = isLoadingStats || isLoadingRewards;
+
+  if (loading) {
+    return (
+      <Card className={className}>
+        <CardContent className="p-6">
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-honey mx-auto mb-2"></div>
+            <p className="text-muted-foreground">Loading referral statistics...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!referrerStats) {
+    return (
+      <Card className={className}>
+        <CardContent className="p-6">
+          <div className="text-center py-8">
+            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+            <p className="text-muted-foreground">No referral statistics available</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const matrixPositionsFilled = [
+    referrerStats.l_position_filled,
+    referrerStats.m_position_filled,
+    referrerStats.r_position_filled
+  ].filter(Boolean).length;
+
+  return (
+    <div className={`space-y-6 ${className}`}>
+      {/* Overview Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Direct Referrals */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Users className="h-8 w-8 text-blue-500" />
+              <div>
+                <div className="text-2xl font-bold text-blue-400">
+                  {referrerStats.direct_referrals}
+                </div>
+                <div className="text-xs text-muted-foreground">Direct Referrals</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Total Team Size */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <TrendingUp className="h-8 w-8 text-green-500" />
+              <div>
+                <div className="text-2xl font-bold text-green-400">
+                  {referrerStats.total_team_size}
+                </div>
+                <div className="text-xs text-muted-foreground">Total Team Size</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Max Layer */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Layers className="h-8 w-8 text-purple-500" />
+              <div>
+                <div className="text-2xl font-bold text-purple-400">
+                  {referrerStats.max_layer}
+                </div>
+                <div className="text-xs text-muted-foreground">Max Layer</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Matrix Positions */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Target className="h-8 w-8 text-orange-500" />
+              <div>
+                <div className="text-2xl font-bold text-orange-400">
+                  {matrixPositionsFilled}/3
+                </div>
+                <div className="text-xs text-muted-foreground">Layer 1 Positions</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Detailed Stats Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Matrix Status */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-honey" />
+              Matrix Status
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span>Layer 1 Positions Filled</span>
+                <Badge variant={matrixPositionsFilled === 3 ? 'default' : 'outline'}>
+                  {matrixPositionsFilled}/3
+                </Badge>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className={`text-center p-2 rounded border ${referrerStats.l_position_filled ? 'bg-green-100 border-green-300 text-green-800' : 'bg-gray-100 border-gray-300'}`}>
+                  L {referrerStats.l_position_filled ? '✓' : '○'}
+                </div>
+                <div className={`text-center p-2 rounded border ${referrerStats.m_position_filled ? 'bg-green-100 border-green-300 text-green-800' : 'bg-gray-100 border-gray-300'}`}>
+                  M {referrerStats.m_position_filled ? '✓' : '○'}
+                </div>
+                <div className={`text-center p-2 rounded border ${referrerStats.r_position_filled ? 'bg-green-100 border-green-300 text-green-800' : 'bg-gray-100 border-gray-300'}`}>
+                  R {referrerStats.r_position_filled ? '✓' : '○'}
+                </div>
+              </div>
+              {referrerStats.next_vacant_position && (
+                <div className="text-sm text-muted-foreground">
+                  Next vacant: <span className="font-medium">{referrerStats.next_vacant_position}</span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Rewards Overview */}
+        {rewardsOverview && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Award className="h-5 w-5 text-honey" />
+                Rewards Overview
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span>Total Rewards</span>
+                  <span className="font-medium">{rewardsOverview.total_rewards_count}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Claimable</span>
+                  <Badge variant="default" className="bg-green-600">
+                    {rewardsOverview.claimable_rewards_count}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Pending</span>
+                  <Badge variant="outline" className="text-orange-600 border-orange-600">
+                    {rewardsOverview.pending_rewards_count}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Claimed</span>
+                  <span className="text-muted-foreground">{rewardsOverview.claimed_rewards_count}</span>
+                </div>
+              </div>
+              
+              <div className="border-t pt-2">
+                <div className="flex justify-between items-center">
+                  <span className="flex items-center gap-1">
+                    <DollarSign className="h-4 w-4" />
+                    Total Earned
+                  </span>
+                  <span className="font-bold text-green-600">
+                    ${(rewardsOverview.total_amount_usdt || 0).toFixed(2)}
+                  </span>
+                </div>
+                {rewardsOverview.claimable_amount_usdt > 0 && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span>Available to Claim</span>
+                    <span className="font-medium text-green-600">
+                      ${(rewardsOverview.claimable_amount_usdt || 0).toFixed(2)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Category and Spillover Info */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <UserCheck className="h-5 w-5 text-honey" />
+            Additional Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <div className="text-sm text-muted-foreground">Referrer Category</div>
+              <Badge variant="outline" className="mt-1">
+                {referrerStats.referrer_category || 'Standard'}
+              </Badge>
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground">Spillover Count</div>
+              <div className="text-lg font-medium">{referrerStats.spillover_count}</div>
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground">Activation Sequence</div>
+              <div className="text-lg font-medium">#{referrerStats.activation_sequence}</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
