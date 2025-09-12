@@ -76,7 +76,9 @@ const DirectReferralsCard: React.FC<DirectReferralsCardProps> = ({
       const walletAddresses = referralsData?.map(r => r.member_wallet) || [];
       
       let membersData = [];
+      let usersData = [];
       if (walletAddresses.length > 0) {
+        // Get member info
         const { data: memberResults, error: membersError } = await supabase
           .from('members')
           .select('wallet_address, current_level, activation_sequence, activation_time')
@@ -84,20 +86,35 @@ const DirectReferralsCard: React.FC<DirectReferralsCardProps> = ({
 
         if (membersError) {
           console.error('⚠️ Members query error:', membersError);
-          // Continue without member data
         } else {
           membersData = memberResults || [];
           console.log(`👥 Found ${membersData.length} corresponding members`);
         }
+        
+        // Get user names
+        const { data: userResults, error: usersError } = await supabase
+          .from('users')
+          .select('wallet_address, username')
+          .in('wallet_address', walletAddresses);
+
+        if (usersError) {
+          console.error('⚠️ Users query error:', usersError);
+        } else {
+          usersData = userResults || [];
+          console.log(`👤 Found ${usersData.length} corresponding users`);
+        }
       }
 
-      // Combine user and member data
-      const referralsList = usersData?.map((user: any) => {
+      // Combine referral, user and member data
+      const referralsList = referralsData?.map((referral: any) => {
+        const userData = usersData?.find(u => 
+          u.wallet_address.toLowerCase() === referral.member_wallet.toLowerCase()
+        );
         const memberData = membersData?.find(m => 
-          m.wallet_address.toLowerCase() === user.wallet_address.toLowerCase()
+          m.wallet_address.toLowerCase() === referral.member_wallet.toLowerCase()
         );
         return {
-          memberWallet: user.wallet_address,
+          memberWallet: referral.member_wallet,
           memberName: user.username || `User${user.wallet_address.slice(-4)}`,
           referredAt: user.created_at,
           isActivated: !!memberData && memberData.current_level > 0,
