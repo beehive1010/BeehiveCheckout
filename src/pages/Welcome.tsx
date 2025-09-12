@@ -104,14 +104,16 @@ export default function Welcome() {
     setLocation('/dashboard');
   };
 
-  // Show error if no referrer is provided - Allow bypass with default referrer
-  if (noReferrerError) {
-    // Set default referrer for testing purposes
-    const defaultReferrer = '0x0000000000000000000000000000000000000001';
-    setReferrerWallet(defaultReferrer);
-    setNoReferrerError(false);
-    console.log('🔧 Using default referrer for development:', defaultReferrer);
-  }
+  // Handle default referrer when no valid referrer is found
+  useEffect(() => {
+    if (noReferrerError && !referrerWallet) {
+      // Set default referrer for testing purposes
+      const defaultReferrer = '0x0000000000000000000000000000000000000001';
+      setReferrerWallet(defaultReferrer);
+      setNoReferrerError(false);
+      console.log('🔧 Using default referrer for development:', defaultReferrer);
+    }
+  }, [noReferrerError, referrerWallet]);
 
   // Show loading state while checking membership
   if (isCheckingMembership) {
