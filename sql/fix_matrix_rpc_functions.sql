@@ -16,14 +16,14 @@ RETURNS TABLE (
     member_username VARCHAR(50),
     member_level INTEGER,
     matrix_layer INTEGER,
-    matrix_position VARCHAR(1),
+    matrix_position CHAR(1),
     referrer_wallet VARCHAR(42),
     is_direct_referral BOOLEAN,
     depth_level INTEGER,
     path_from_root TEXT,
     total_earned DECIMAL(18,6),
     available_balance DECIMAL(18,6),
-    placed_at TIMESTAMP WITH TIME ZONE
+    placed_at TIMESTAMP
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
