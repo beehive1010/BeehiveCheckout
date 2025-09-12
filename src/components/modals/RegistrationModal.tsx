@@ -301,7 +301,6 @@ export default function RegistrationModal({
                 <p className="text-sm text-red-600">{errors.referrer}</p>
               </div>
             )}
-            </div>
 
             <Button
               type="submit"

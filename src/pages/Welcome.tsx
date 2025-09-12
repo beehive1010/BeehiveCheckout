@@ -3,7 +3,7 @@ import { ERC5115ClaimComponent } from '../components/membership/ERC5115ClaimComp
 import { useLocation } from 'wouter';
 import { useActiveAccount } from 'thirdweb/react';
 import { referralService } from '../api/landing/referral.client';
-import { authService } from '../lib/supabaseClient';
+import { authService } from '../lib/supabase';
 import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Users, User, Crown } from 'lucide-react';

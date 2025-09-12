@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { useToast } from '../../hooks/use-toast';
 import { Loader2, Zap, Crown, Gift, Coins, Clock } from 'lucide-react';
-import { authService } from '../../lib/supabaseClient';
+import { authService } from '../../lib/supabase';
 import { useI18n } from '../../contexts/I18nContext';
 import RegistrationModal from '../modals/RegistrationModal';
 
