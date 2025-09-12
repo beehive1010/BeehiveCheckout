@@ -1263,6 +1263,14 @@
     "title": "欢迎来到蜂巢社区",
     "subtitle": "通过申领ERC-5115 NFT激活您的1级会员",
     "description": "通过购买您的1级勇士NFT来完成您的会员。这将解锁所有平台功能并开始您的Web3旅程！",
+    "checkingMembership": "正在检查会员状态...",
+    "referredBy": "推荐人",
+    "matrixPlacement": "您将被放置在他们的3×3矩阵系统中",
+    "matrixPlacementInfo": "💡 矩阵放置：您将自动被放置在推荐人矩阵树的第一个可用位置，遵循3×3结构（层次1→2→3...）。这决定了您获得层级奖励的位置。",
+    "instructions": {
+      "step1": "🎯 连接您的钱包并申领NFT以激活1级会员",
+      "step2": "⚡ 这将启用3x3推荐矩阵和BCC奖励系统的访问权限"
+    },
     "referral": {
       "rewards": "推荐奖励：您网络中购买NFT时，每个级别可获得100%奖励"
     },
