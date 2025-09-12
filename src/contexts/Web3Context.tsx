@@ -173,10 +173,10 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
           // Check if user is a member - only members can access dashboard
           const result = await authService.getUser(account.address); // PRESERVE CASE
           
-          if (result.success && result.user) {
+          if (result.data && !result.error) {
             // Quick member activation check using activate-membership Edge Function
-            let isActiveMember = result.isMember || false;
-            let canAccessReferrals = result.canAccessReferrals || false;
+            let isActiveMember = result.data.isMember || false;
+            let canAccessReferrals = result.data.canAccessReferrals || false;
             
             // If auth function doesn't show member status, check members table directly
             if (!isActiveMember) {
