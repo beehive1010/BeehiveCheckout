@@ -2236,5 +2236,65 @@
   "common": {
     "backToProfile": "返回个人资料",
     "cancel": "取消"
+  },
+  "membership": {
+    "title": "会员等级",
+    "subtitle": "解锁更高等级和专属权益",
+    "currentLevel": "当前等级",
+    "directReferrals": "直接推荐",
+    "featured": "精选",
+    "exclusiveBenefits": "专属权益",
+    "purchaseSuccess": "购买成功",
+    "processing": "处理中...",
+    "notUnlocked": "未解锁",
+    "directReferralRequirement": "直推要求",
+    "directRegisterTip": "💡 直推是指通过您的推荐链接注册的用户",
+    "status": {
+      "owned": "已拥有",
+      "available": "可购买",
+      "locked": "已锁定"
+    },
+    "qualifiedStatus": "✅ 已达标：{count}个推荐（超出{excess}个）",
+    "statusNotQualified": "❌ 未达标：需要{needed}个推荐（当前{count}个）",
+    "unlockNow": "立即解锁 ${price}",
+    "level2Requirements": {
+      "title": "等级2要求",
+      "needLevel1": "您需要先获得等级1会员资格",
+      "needLevel1AndReferrals": "需要等级1 + 3个以上直推",
+      "tip": "直推是指通过您的推荐链接注册的用户",
+      "howTo": "分享您的推荐链接邀请更多用户，解锁等级2"
+    },
+    "errors": {
+      "walletRequired": "需要连接钱包",
+      "connectWallet": "请连接您的钱包以继续",
+      "levelLocked": "等级锁定",
+      "previousLevelRequired": "您必须先拥有等级{level}才能升级到等级{nextLevel}",
+      "checkReferralError": "推荐验证错误",
+      "verificationFailed": "验证推荐要求失败",
+      "claimFailed": "等级{level}申领失败",
+      "sequentialUpgrade": "您必须先升级到等级{nextLevel}",
+      "alreadyOwned": "您已拥有等级{level}",
+      "level2Requirements": "等级2需要3个以上直推",
+      "missingPrerequisites": "缺少必需的先决条件"
+    },
+    "claiming": {
+      "started": "申领等级{level}",
+      "processing": "正在处理${price}的申领...",
+      "success": "等级{level}申领成功！",
+      "successDescription": "成功申领等级{level}会员资格，花费${price}"
+    },
+    "rewards": {
+      "distributed": "奖励已分发",
+      "distributionResult": "创建了{claimableCount}个可申领、{pendingCount}个待处理的奖励",
+      "distributionWarning": "奖励分发问题",
+      "distributionIssue": "奖励可能会延迟，但您的会员资格已激活"
+    },
+    "progressInfo": {
+      "title": "会员进度",
+      "description": "逐步解锁更高等级",
+      "sequential": "需要顺序升级",
+      "rewards": "每个等级的矩阵奖励",
+      "benefits": "专属权益和特权"
+    }
   }
 }

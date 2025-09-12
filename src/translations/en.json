@@ -2229,5 +2229,65 @@
   "common": {
     "backToProfile": "Back to Profile",
     "cancel": "Cancel"
+  },
+  "membership": {
+    "title": "Membership Levels",
+    "subtitle": "Unlock higher levels and exclusive benefits",
+    "currentLevel": "Current Level",
+    "directReferrals": "Direct Referrals",
+    "featured": "Featured",
+    "exclusiveBenefits": "Exclusive Benefits",
+    "purchaseSuccess": "Purchase Successful",
+    "processing": "Processing...",
+    "notUnlocked": "Not Unlocked",
+    "directReferralRequirement": "Direct Referral Requirement",
+    "directRegisterTip": "💡 Direct register means users who registered using your referral link",
+    "status": {
+      "owned": "Owned",
+      "available": "Available", 
+      "locked": "Locked"
+    },
+    "qualifiedStatus": "✅ Qualified: {count} referrals (Excess: {excess})",
+    "statusNotQualified": "❌ Not Qualified: {count}/{needed} referrals needed",
+    "unlockNow": "Unlock Now ${price}",
+    "level2Requirements": {
+      "title": "Level 2 Requirements",
+      "needLevel1": "You need Level 1 membership first", 
+      "needLevel1AndReferrals": "Level 1 + 3+ Direct Referrals Required",
+      "tip": "Direct referrals are users who registered using your referral link",
+      "howTo": "Share your referral link to invite more users and unlock Level 2"
+    },
+    "errors": {
+      "walletRequired": "Wallet Required",
+      "connectWallet": "Please connect your wallet to continue",
+      "levelLocked": "Level Locked",
+      "previousLevelRequired": "You must own Level {level} before upgrading to Level {nextLevel}",
+      "checkReferralError": "Referral Check Error",
+      "verificationFailed": "Failed to verify referral requirements",
+      "claimFailed": "Claim Failed for Level {level}",
+      "sequentialUpgrade": "You must upgrade to Level {nextLevel} first",
+      "alreadyOwned": "You already own Level {level}",
+      "level2Requirements": "Level 2 requires 3+ direct referrals",
+      "missingPrerequisites": "Missing required prerequisites"
+    },
+    "claiming": {
+      "started": "Claiming Level {level}",
+      "processing": "Processing claim for ${price}...",
+      "success": "Level {level} Claimed!",
+      "successDescription": "Successfully claimed Level {level} membership for ${price}"
+    },
+    "rewards": {
+      "distributed": "Rewards Distributed",
+      "distributionResult": "{claimableCount} claimable, {pendingCount} pending rewards created",
+      "distributionWarning": "Reward Distribution Issue", 
+      "distributionIssue": "Rewards may be delayed, but your membership is active"
+    },
+    "progressInfo": {
+      "title": "Membership Progress",
+      "description": "Unlock higher levels step by step",
+      "sequential": "Sequential upgrades required",
+      "rewards": "Matrix rewards at each level",
+      "benefits": "Exclusive benefits and perks"
+    }
   }
 }
