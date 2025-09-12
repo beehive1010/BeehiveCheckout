@@ -58,11 +58,11 @@ export function useUserReferralStats() {
         .eq('wallet_address', walletAddress)
         .maybeSingle();
 
-      // Get total earnings from layer rewards using case-insensitive query
+      // Get total earnings from layer rewards using exact matching
       const { data: rewardsData } = await supabase
         .from('layer_rewards')
         .select('amount_usdt')
-        .ilike('recipient_wallet', walletAddress)
+        .eq('recipient_wallet', walletAddress)
         .eq('is_claimed', true);
 
       const totalEarnings = rewardsData?.reduce((sum, reward) => sum + (reward.amount_usdt || 0), 0) || 0;
