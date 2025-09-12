@@ -7,6 +7,7 @@ import { Clock, Gift, DollarSign, CheckCircle, ExternalLink, Loader2, ArrowUpLef
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
 import { useWeb3 } from '@/contexts/Web3Context';
+import { apiRequest } from '@/lib/queryClient';
 
 interface ClaimableReward {
   id: string;
@@ -123,10 +124,15 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
   // Automated claim mutation using Thirdweb Engine
   const claimRewardMutation = useMutation({
     mutationFn: async (rewardId: string): Promise<ClaimResponse> => {
-      return await apiRequest('/api/rewards/claim', 'POST', {
-        rewardId,
-        recipientAddress: walletAddress,
+      const response = await apiRequest('/api/rewards/claim', {
+        method: 'POST',
+        data: {
+          rewardId,
+          recipientAddress: walletAddress,
+        },
+        walletAddress
       });
+      return await response.json();
     },
     onMutate: (rewardId) => {
       setClaimingRewards(prev => [...prev, rewardId]);
@@ -165,10 +171,15 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
   // Withdraw mutation for withdrawing claimed rewards to wallet
   const withdrawMutation = useMutation({
     mutationFn: async (amount: number): Promise<ClaimResponse> => {
-      return await apiRequest('/api/rewards/withdraw', 'POST', {
-        amount,
-        recipientAddress: walletAddress,
+      const response = await apiRequest('/api/rewards/withdraw', {
+        method: 'POST',
+        data: {
+          amount,
+          recipientAddress: walletAddress,
+        },
+        walletAddress
       });
+      return await response.json();
     },
     onMutate: () => {
       setIsWithdrawing(true);
