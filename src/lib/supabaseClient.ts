@@ -164,22 +164,46 @@ export const authService = {
         level: 1
       }, walletAddress);
       
-      if (!result.success) {
-        return { isActivated: false, memberData: null, error: { message: result.error || result.message } };
+      const memberData = result.member || null;
+      
+      // Enhanced activation check: consider both on-chain NFT and database membership
+      let isActivated = false;
+      
+      if (result.success && (result.hasNFT || (memberData?.current_level > 0))) {
+        isActivated = true;
+      } else if (!result.success) {
+        // If edge function fails, fallback to direct database check
+        console.log('🔄 Edge function failed, checking database directly...');
+        try {
+          const { data: fallbackMember } = await this.supabase
+            .from('members')
+            .select('current_level, wallet_address, activation_time')
+            .eq('wallet_address', walletAddress)
+            .single();
+          
+          if (fallbackMember && fallbackMember.current_level > 0) {
+            console.log('✅ Found membership in database fallback check');
+            isActivated = true;
+            // Use fallback member data if edge function member data is null
+            if (!memberData) {
+              result.member = fallbackMember;
+            }
+          }
+        } catch (dbError) {
+          console.warn('Database fallback check failed:', dbError);
+        }
       }
       
-      const memberData = result.member || null;
-      const isActivated = result.hasNFT || (memberData?.current_level > 0) || false;
-      
-      console.log(`🔍 Member activation status for ${walletAddress}:`, { 
+      console.log(`🔍 Enhanced member activation status for ${walletAddress}:`, { 
         isActivated, 
-        level: memberData?.current_level,
-        hasNFT: result.hasNFT 
+        level: memberData?.current_level || result.member?.current_level,
+        hasNFT: result.hasNFT,
+        edgeFunctionSuccess: result.success
       });
       
       return { 
         isActivated, 
-        memberData, 
+        memberData: memberData || result.member, 
         error: null 
       };
     } catch (error: any) {

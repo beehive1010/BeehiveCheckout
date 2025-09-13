@@ -114,12 +114,32 @@ serve(async (req) => {
       })
     }
 
-    // If checking existing NFT request and no NFT on chain, return directly
+    // If checking existing NFT request and no NFT on chain, check database membership
     if (isCheckingExisting) {
+      // Check if user has membership in database even without on-chain NFT
+      const { data: memberData, error: memberError } = await supabase
+        .from('members')
+        .select('*')
+        .eq('wallet_address', walletAddress)
+        .single();
+      
+      if (!memberError && memberData && memberData.current_level > 0) {
+        console.log(`✅ User has database membership Level ${memberData.current_level}, even without on-chain NFT`);
+        return new Response(JSON.stringify({
+          success: true,
+          hasNFT: true,
+          member: memberData,
+          message: 'Membership found in database'
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        })
+      }
+      
       return new Response(JSON.stringify({
         success: false,
         hasNFT: false,
-        message: 'No NFT detected on chain'
+        message: 'No NFT detected on chain and no database membership'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
