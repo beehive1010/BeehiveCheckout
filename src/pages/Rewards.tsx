@@ -8,6 +8,7 @@ import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
 import { useToast } from '../hooks/use-toast';
 import { supabase } from '../lib/supabase';
+import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
 import { 
   User, 
   Award, 
@@ -278,6 +279,41 @@ export default function Rewards() {
               <RefreshCw className="h-4 w-4 mr-2" />
               {t('common.refresh')}
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ClaimableRewardsCard - moved from Referrals page */}
+      <ClaimableRewardsCard walletAddress={walletAddress || ''} />
+
+      {/* Reward System Information - moved from Referrals page */}
+      <Card className="bg-secondary border-border">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Gift className="h-5 w-5 text-honey" />
+            {t('rewards.rewardSystemInfo') || 'Reward System Information'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-semibold mb-3">{t('rewards.matrixRewardsTitle') || 'Matrix Rewards'}</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• {t('rewards.level1Direct') || 'Level 1 Direct: $30 USDC per referral'}</li>
+                <li>• {t('rewards.level2Matrix') || 'Level 2 Matrix: $10 USDC per position'}</li>
+                <li>• {t('rewards.spilloverBonuses') || 'Spillover Bonuses: Additional rewards'}</li>
+                <li>• {t('rewards.claimWindow') || '72-hour claim window'}</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-3">{t('rewards.bccTokenRewardsTitle') || 'BCC Token Rewards'}</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• {t('rewards.bccTransferable') || 'Transferable BCC: Immediate use'}</li>
+                <li>• {t('rewards.bccLocked') || 'Locked BCC: Tier-based release'}</li>
+                <li>• {t('rewards.bccMultipliers') || 'Tier multipliers: 1.0x, 0.5x, 0.25x, 0.125x'}</li>
+                <li>• {t('rewards.bccUpgrades') || 'Level upgrades unlock more BCC'}</li>
+              </ul>
+            </div>
           </div>
         </CardContent>
       </Card>

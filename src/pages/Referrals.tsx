@@ -8,7 +8,6 @@ import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import UserProfileCard from '../components/shared/UserProfileCard';
 import { UsersIcon, ShareIcon, TrophyIcon } from '@heroicons/react/24/outline';
-import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
 import DrillDownMatrixView from '../components/matrix/DrillDownMatrixView';
 import ReferralsStats from '../components/referrals/ReferralsStats';
 import ReferralStatsCard from '../components/referrals/ReferralStatsCard';
@@ -78,10 +77,9 @@ export default function Referrals() {
 
       {/* Main Content with Tabs */}
       <Tabs defaultValue="matrix" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="matrix">{t('referrals.tabs.matrix') || '3x3 Matrix'}</TabsTrigger>
           <TabsTrigger value="stats">{t('referrals.tabs.stats') || 'Statistics'}</TabsTrigger>
-          <TabsTrigger value="rewards">{t('referrals.tabs.rewards') || 'Rewards'}</TabsTrigger>
         </TabsList>
 
         {/* Matrix Visualization Tab */}
@@ -111,61 +109,9 @@ export default function Referrals() {
             />
           </div>
           
-          {/* Legacy Stats Cards for Comparison */}
-          <div className="border-t pt-6">
-            <h3 className="text-lg font-semibold text-honey mb-4">{t('referrals.legacySystem') || 'Legacy System (For Comparison)'}</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            <Card className="bg-secondary border-border">
-              <CardContent className="p-4 sm:p-6 text-center">
-                <UsersIcon className="w-6 h-6 sm:w-8 sm:h-8 text-honey mx-auto mb-2" />
-                <div className="text-xl sm:text-2xl font-bold text-honey">
-                  {userStats?.totalReferrals || userStats?.totalTeamCount || 0}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {t('referrals.totalReferrals') || 'Total Referrals'}
-                </p>
-              </CardContent>
-            </Card>
 
-            <Card className="bg-secondary border-border">
-              <CardContent className="p-4 sm:p-6 text-center">
-                <TrophyIcon className="w-6 h-6 sm:w-8 sm:h-8 text-honey mx-auto mb-2" />
-                <div className="text-xl sm:text-2xl font-bold text-honey">
-                  {userStats?.directReferralCount || 0}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {t('referrals.activeMembers') || 'Active Members'}
-                </p>
-              </CardContent>
-            </Card>
 
-            <Card className="bg-secondary border-border">
-              <CardContent className="p-4 sm:p-6 text-center">
-                <ShareIcon className="w-6 h-6 sm:w-8 sm:h-8 text-honey mx-auto mb-2" />
-                <div className="text-xl sm:text-2xl font-bold text-honey">
-                  ${userStats?.totalEarnings || 0}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {t('referrals.totalEarnings') || 'Total Earnings'}
-                </p>
-              </CardContent>
-            </Card>
 
-            <Card className="bg-secondary border-border">
-              <CardContent className="p-4 sm:p-6 text-center">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 text-honey mx-auto mb-2 bg-honey/20 rounded-full flex items-center justify-center">
-                  <span className="text-xs font-bold">3x3</span>
-                </div>
-                <div className="text-xl sm:text-2xl font-bold text-honey">
-                  {userStats?.matrixLevel || 1}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {t('referrals.matrixLayers') || 'Matrix Layers'}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-          </div>
 
           {/* Recent Activity */}
           <Card className="bg-secondary border-border">
@@ -215,42 +161,6 @@ export default function Referrals() {
           </Card>
         </TabsContent>
 
-        {/* Rewards Tab */}
-        <TabsContent value="rewards" className="space-y-6">
-          <ClaimableRewardsCard walletAddress={walletAddress || ''} />
-          
-          {/* Additional Rewards Information */}
-          <Card className="bg-secondary border-border">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrophyIcon className="w-5 h-5 text-honey" />
-                {t('referrals.rewardSystemInfo') || 'Reward System Information'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-semibold mb-3">{t('referrals.matrixRewardsTitle') || 'Matrix Rewards'}</h4>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• {t('referrals.rewards.level1Direct') || 'Level 1 Direct: $30 USDC per referral'}</li>
-                    <li>• {t('referrals.rewards.level2Matrix') || 'Level 2 Matrix: $10 USDC per position'}</li>
-                    <li>• {t('referrals.rewards.spilloverBonuses') || 'Spillover Bonuses: Additional rewards'}</li>
-                    <li>• {t('referrals.rewards.claimWindow') || '72-hour claim window'}</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-3">{t('referrals.bccTokenRewardsTitle') || 'BCC Token Rewards'}</h4>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• {t('referrals.bccRewards.transferable') || 'Transferable BCC: Immediate use'}</li>
-                    <li>• {t('referrals.bccRewards.locked') || 'Locked BCC: Tier-based release'}</li>
-                    <li>• {t('referrals.bccRewards.multipliers') || 'Tier multipliers: 1.0x, 0.5x, 0.25x, 0.125x'}</li>
-                    <li>• {t('referrals.bccRewards.upgrades') || 'Level upgrades unlock more BCC'}</li>
-                  </ul>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
 
       {/* Back to Dashboard Link */}

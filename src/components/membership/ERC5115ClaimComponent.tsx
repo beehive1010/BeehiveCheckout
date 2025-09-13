@@ -358,20 +358,13 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
 
       console.log(`💳 Checking token balance for payment: ${finalAmount.toString()} units (${formatPrice(levelInfo.priceInUSDC)} USDC with 18 decimals)`);
       
-      // Check user's token balance
-      try {
-        const balanceResult = await fetch(`https://sepolia.arbiscan.io/api?module=account&action=tokenbalance&contractaddress=${PAYMENT_TOKEN_CONTRACT}&address=${account.address}&tag=latest`);
-        const balanceData = await balanceResult.json();
-        console.log('💰 User token balance check:', {
-          balance: balanceData.result,
-          required: finalAmount.toString(),
-          hasEnough: BigInt(balanceData.result || '0') >= finalAmount,
-          level: levelInfo.tokenId,
-          priceUSDC: levelInfo.priceInUSDC
-        });
-      } catch (balanceError) {
-        console.warn('⚠️ Could not check token balance via API:', balanceError);
-      }
+      // Skip external balance check to avoid CORS issues
+      // The thirdweb SDK will handle balance validation during the actual transaction
+      console.log('💰 Skipping external balance check - will validate during transaction:', {
+        required: finalAmount.toString(),
+        level: levelInfo.tokenId,
+        priceUSDC: levelInfo.priceInUSDC
+      });
 
       // Check if approval is needed
       setCurrentStep(t('claim.checkingApproval'));
