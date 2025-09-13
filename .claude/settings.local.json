@@ -52,7 +52,8 @@
       "WebSearch",
       "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions deploy chain-data --project-ref cvqibjcbfrwsgkvthccp)",
       "Bash(/home/ubuntu/WebstormProjects/BEEHIVE/db/deploy-edge-functions.sh:*)",
-      "Bash(npx supabase functions deploy:*)"
+      "Bash(npx supabase functions deploy:*)",
+      "Bash(supabase link:*)"
     ],
     "deny": [],
     "ask": []

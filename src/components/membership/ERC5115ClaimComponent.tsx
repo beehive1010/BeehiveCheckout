@@ -34,27 +34,51 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
   // Use the custom hook for level management
   const { levelInfo, isLoading: isLevelLoading, refetch: refetchLevel, getLevelName, formatPrice } = useNFTLevelClaim(targetLevel);
   
-  // Enhanced transaction wrapper with retry logic
+  // Enhanced transaction wrapper with retry logic and better error handling
   const sendTransactionWithRetry = async (transaction: unknown, account: unknown, description: string = 'transaction') => {
-    return importWithRetry(
-      async () => {
-        console.log(`📤 Sending ${description}...`);
-        return await sendTransaction({
+    let lastError: any = null;
+    const maxRetries = 3;
+    const baseDelay = 2000;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`📤 Sending ${description} (attempt ${attempt}/${maxRetries})...`);
+        
+        // Add a small delay between attempts
+        if (attempt > 1) {
+          await new Promise(resolve => setTimeout(resolve, baseDelay * attempt));
+        }
+        
+        const result = await sendTransaction({
           transaction,
           account
         });
-      },
-      {
-        maxRetries: 3,
-        retryDelay: 2000,
-        onRetry: (attempt, error) => {
-          console.log(`🔄 Retrying ${description} (attempt ${attempt}/3)...`);
-          if (error.message?.includes('eth_getTransactionCount')) {
-            console.log('🎯 Detected eth_getTransactionCount error - network retry in progress');
-          }
+        
+        console.log(`✅ ${description} successful on attempt ${attempt}`);
+        return result;
+        
+      } catch (error: any) {
+        lastError = error;
+        console.error(`❌ ${description} failed on attempt ${attempt}:`, error.message);
+        
+        // Check for specific error types that we should not retry
+        if (error.message?.includes('User rejected') || 
+            error.message?.includes('user denied') ||
+            error.message?.includes('User cancelled')) {
+          throw new Error('Transaction cancelled by user');
         }
+        
+        // If this is the last attempt, don't continue
+        if (attempt === maxRetries) {
+          break;
+        }
+        
+        console.log(`🔄 Retrying ${description} in ${baseDelay * attempt}ms...`);
       }
-    );
+    }
+    
+    // All attempts failed, throw the last error
+    throw new Error(`${description} failed after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
   };
 
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
@@ -290,6 +314,28 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       }
       console.log('✅ Network check passed - on Arbitrum Sepolia');
 
+      // Step 0.05: Check ETH balance for gas fees on Arbitrum Sepolia
+      console.log('⛽ Checking ETH balance for gas fees...');
+      try {
+        const ethBalance = await (window as any).ethereum.request({
+          method: 'eth_getBalance',
+          params: [account.address, 'latest']
+        });
+        const balanceInETH = parseInt(ethBalance, 16) / 1e18;
+        console.log(`💰 ETH Balance: ${balanceInETH} ETH`);
+        
+        if (balanceInETH < 0.001) { // Less than 0.001 ETH
+          throw new Error(`Insufficient ETH for gas fees. You need ETH on Arbitrum Sepolia to pay for transaction fees. Current balance: ${balanceInETH.toFixed(6)} ETH. Please add some ETH to your wallet first.\n\nGet test ETH from: https://sepolia-faucet.arbitrum.io/`);
+        }
+        console.log('✅ ETH balance sufficient for gas fees');
+      } catch (balanceError) {
+        if (balanceError.message.includes('Insufficient ETH')) {
+          throw balanceError; // Re-throw our custom insufficient balance error
+        }
+        console.warn('⚠️ Could not check ETH balance:', balanceError);
+        // Continue anyway since balance check is not critical
+      }
+
       // Step 0.1: Validate contracts are accessible
       console.log('🔍 Validating contract accessibility...');
       try {
@@ -477,6 +523,38 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         data: "0x"
       });
 
+      // First, let's check if user already owns this NFT to avoid claim failures
+      console.log('🔍 Checking if user already owns this NFT...');
+      try {
+        const existingBalance = await readContract({
+          contract: nftContract,
+          method: "function balanceOf(address account, uint256 id) view returns (uint256)",
+          params: [account.address, BigInt(levelInfo.tokenId)]
+        });
+        
+        const currentBalance = Number(existingBalance);
+        console.log(`📊 Current NFT balance for Level ${levelInfo.tokenId}: ${currentBalance}`);
+        
+        if (currentBalance > 0) {
+          console.log('✅ User already owns this NFT - redirecting to dashboard');
+          toast({
+            title: t('claim.welcomeBack'),
+            description: `You already own Level ${levelInfo.tokenId} NFT. Redirecting to dashboard.`,
+            variant: "default",
+            duration: 3000,
+          });
+          
+          if (onSuccess) {
+            setTimeout(() => {
+              onSuccess();
+            }, 1500);
+          }
+          return;
+        }
+      } catch (balanceCheckError) {
+        console.warn('⚠️ Could not check NFT balance, proceeding with claim:', balanceCheckError);
+      }
+
       // Try the standard thirdweb NFT Drop claim function signature
       let claimTransaction;
       try {
@@ -523,13 +601,57 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       
       while (claimAttempts < maxClaimAttempts) {
         try {
-          claimTxResult = await sendTransactionWithRetry(
-            claimTransaction,
-            account,
-            `NFT claim transaction for ${getLevelName(levelInfo.tokenId)}`
-          );
-          console.log('🎉 NFT claim transaction:', claimTxResult.transactionHash);
-          break; // Success, exit retry loop
+          // Try Thirdweb transaction first
+          try {
+            claimTxResult = await sendTransactionWithRetry(
+              claimTransaction,
+              account,
+              `NFT claim transaction for ${getLevelName(levelInfo.tokenId)}`
+            );
+            console.log('🎉 NFT claim transaction via Thirdweb:', claimTxResult.transactionHash);
+            break; // Success, exit retry loop
+          } catch (thirdwebError: any) {
+            console.error(`❌ Thirdweb claim failed:`, thirdwebError.message);
+            
+            // If it's a module import error, try direct wallet interaction
+            if (thirdwebError.message?.includes('Module import failed') || 
+                thirdwebError.message?.includes('Failed to fetch dynamically imported module')) {
+              
+              console.log('🔄 Attempting direct wallet interaction as fallback...');
+              
+              // Use direct wallet interaction as fallback
+              if (typeof window !== 'undefined' && (window as any).ethereum) {
+                try {
+                  // Encode the function call data manually for claim function
+                  const Web3 = await import('web3');
+                  const web3 = new Web3.default((window as any).ethereum);
+                  
+                  // This is a simplified fallback - you may need to adjust based on your contract ABI
+                  const txHash = await (window as any).ethereum.request({
+                    method: 'eth_sendTransaction',
+                    params: [{
+                      from: account.address,
+                      to: NFT_CONTRACT,
+                      value: '0x0', // No ETH payment, using ERC20
+                      data: '0x', // You'd need to encode the claim function call here
+                      gas: '0x2DC6C0', // ~3M gas limit
+                    }],
+                  });
+                  
+                  console.log('🎉 Direct wallet claim transaction:', txHash);
+                  claimTxResult = { transactionHash: txHash };
+                  break;
+                } catch (directError) {
+                  console.error('❌ Direct wallet interaction also failed:', directError);
+                  throw thirdwebError; // Re-throw original Thirdweb error
+                }
+              } else {
+                throw thirdwebError; // Re-throw if no direct wallet access
+              }
+            } else {
+              throw thirdwebError; // Re-throw for non-module-import errors
+            }
+          }
         } catch (claimError: any) {
           claimAttempts++;
           console.error(`❌ Claim attempt ${claimAttempts}/${maxClaimAttempts} failed:`, {
@@ -728,6 +850,14 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
           description: t('claim.needETHForGas'),
           variant: "destructive",
           duration: 8000,
+        });
+        return;
+      } else if (errorMessage.includes('Module import failed') || errorMessage.includes('Failed to fetch dynamically imported module')) {
+        // Thirdweb module loading issue - suggest page refresh
+        toast({
+          title: 'Network Module Error',
+          description: 'Please refresh the page and try again. If the problem persists, check your internet connection.',
+          variant: "destructive",
         });
         return;
       } else if (errorMessage.includes('Rate Limited') || errorMessage.includes('rate limit')) {

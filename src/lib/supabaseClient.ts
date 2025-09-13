@@ -156,58 +156,97 @@ export const authService = {
     }
   },
 
-  // Check if user is activated member via activate-membership Edge Function (check_existing)
+  // Check if user is activated member using Thirdweb-powered NFT verification
   async isActivatedMember(walletAddress: string) {
     try {
-      const result = await callEdgeFunction('activate-membership', {
-        transactionHash: 'check_existing',
+      // First check on-chain NFT ownership using Thirdweb
+      const nftResult = await callEdgeFunction('activate-membership', {
+        action: 'check-nft-ownership',
         level: 1
       }, walletAddress);
       
-      const memberData = result.member || null;
+      // Get database membership info
+      const { data: memberData, error: memberError } = await this.supabase
+        .from('members')
+        .select('current_level, wallet_address, activation_time, referrer_wallet')
+        .eq('wallet_address', walletAddress)
+        .single();
       
-      // Enhanced activation check: consider both on-chain NFT and database membership
       let isActivated = false;
+      let activationSource = '';
       
-      if (result.success && (result.hasNFT || (memberData?.current_level > 0))) {
+      // Priority 1: On-chain NFT verification (most reliable)
+      if (nftResult.success && nftResult.hasNFT) {
         isActivated = true;
-      } else if (!result.success) {
-        // If edge function fails, fallback to direct database check
-        console.log('🔄 Edge function failed, checking database directly...');
+        activationSource = 'on-chain NFT verified via Thirdweb';
+        console.log('✅ Activation confirmed via on-chain NFT ownership');
+      }
+      // Priority 2: Database membership record (fallback)
+      else if (!memberError && memberData && memberData.current_level > 0) {
+        isActivated = true;
+        activationSource = 'database membership record';
+        console.log('✅ Activation confirmed via database membership record');
+      }
+      // Priority 3: Check legacy activation via check_existing
+      else {
+        console.log('🔄 No NFT or database record found, checking legacy activation...');
         try {
-          const { data: fallbackMember } = await this.supabase
-            .from('members')
-            .select('current_level, wallet_address, activation_time')
-            .eq('wallet_address', walletAddress)
-            .single();
+          const legacyResult = await callEdgeFunction('activate-membership', {
+            transactionHash: 'check_existing',
+            level: 1
+          }, walletAddress);
           
-          if (fallbackMember && fallbackMember.current_level > 0) {
-            console.log('✅ Found membership in database fallback check');
+          if (legacyResult.success && (legacyResult.hasNFT || legacyResult.member?.current_level > 0)) {
             isActivated = true;
-            // Use fallback member data if edge function member data is null
-            if (!memberData) {
-              result.member = fallbackMember;
+            activationSource = 'legacy activation check';
+            // Use legacy member data if we don't have it from direct query
+            if (!memberData && legacyResult.member) {
+              memberData = legacyResult.member;
             }
           }
-        } catch (dbError) {
-          console.warn('Database fallback check failed:', dbError);
+        } catch (legacyError) {
+          console.warn('Legacy activation check failed:', legacyError);
         }
       }
       
-      console.log(`🔍 Enhanced member activation status for ${walletAddress}:`, { 
+      console.log(`🔍 Member activation status for ${walletAddress}:`, { 
         isActivated, 
-        level: memberData?.current_level || result.member?.current_level,
-        hasNFT: result.hasNFT,
-        edgeFunctionSuccess: result.success
+        activationSource,
+        level: memberData?.current_level,
+        hasOnChainNFT: nftResult.hasNFT,
+        nftBalance: nftResult.balance
       });
       
       return { 
         isActivated, 
-        memberData: memberData || result.member, 
+        memberData, 
         error: null 
       };
+      
     } catch (error: any) {
       console.error('Error checking member activation:', error);
+      
+      // Final fallback: direct database check
+      try {
+        console.log('🔄 Error occurred, trying direct database fallback...');
+        const { data: fallbackMember } = await this.supabase
+          .from('members')
+          .select('current_level, wallet_address, activation_time')
+          .eq('wallet_address', walletAddress)
+          .single();
+        
+        if (fallbackMember && fallbackMember.current_level > 0) {
+          console.log('✅ Found membership in final database fallback');
+          return { 
+            isActivated: true, 
+            memberData: fallbackMember, 
+            error: null 
+          };
+        }
+      } catch (fallbackError) {
+        console.warn('Final database fallback failed:', fallbackError);
+      }
+      
       return { isActivated: false, memberData: null, error: { message: error.message } };
     }
   },

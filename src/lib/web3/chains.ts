@@ -37,13 +37,19 @@ export const supportedChains = [
 
 // Chain utilities
 export function getChainById(chainId: number | string | undefined) {
-  if (!chainId) return arbitrumSepolia; // Return test chain as default
+  if (!chainId) return arbitrumSepolia; // Return Arbitrum Sepolia as default
   
   const id = typeof chainId === 'string' ? parseInt(chainId) : chainId;
-  if (isNaN(id)) return arbitrumSepolia; // Return test chain as default
+  if (isNaN(id)) return arbitrumSepolia; // Return Arbitrum Sepolia as default
   
   const foundChain = supportedChains.find(chain => chain && chain.id === id);
-  return foundChain || arbitrumSepolia; // Return test chain if not found
+  
+  // Log chain lookup for debugging
+  if (!foundChain) {
+    console.warn(`⚠️ Unknown chain ID ${id}, falling back to Arbitrum Sepolia (${arbitrumSepolia.id})`);
+  }
+  
+  return foundChain || arbitrumSepolia; // Return Arbitrum Sepolia if not found
 }
 
 // Enhanced chain validation
