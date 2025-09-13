@@ -403,7 +403,27 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
     console.log(`📊 链上NFT余额检查: Token ID ${TOKEN_ID} = ${balance}`);
     
     if (balance === 0) {
-      console.log(`❌ 用户未拥有 Level ${level} NFT`);
+      console.log(`❌ 用户未拥有链上 Level ${level} NFT，检查数据库记录`);
+      
+      // Check if user has existing database activation even without on-chain NFT
+      const { data: existingMember } = await supabase
+        .from('members')
+        .select('wallet_address, current_level, activation_sequence, activation_time')
+        .eq('wallet_address', walletAddress)
+        .single();
+      
+      if (existingMember && existingMember.current_level > 0) {
+        console.log(`✅ 用户在数据库中已激活 Level ${existingMember.current_level}，视为有效NFT`);
+        return {
+          success: true,
+          hasNFT: true,
+          action: 'database_activated',
+          member: existingMember,
+          message: `Level ${existingMember.current_level} 会员身份已激活（数据库记录）`
+        };
+      }
+      
+      console.log(`❌ 用户无链上NFT且无数据库激活记录`);
       return { hasNFT: false };
     }
     
