@@ -84,10 +84,10 @@ useEffect(() => {
 ```
 
 ### Pricing Structure Applied:
-- **Level 1**: 130 USDC (Welcome page)
-- **Level 2**: 260 USDC (Membership auto-detect)
-- **Level 3**: 520 USDC (Membership auto-detect)
-- **Level N**: Exponential pricing via `useNFTLevelClaim` hook
+- **Level 1**: 130 USDC (Welcome page, includes platform fee)
+- **Level 2**: 150 USDC (Membership auto-detect)
+- **Level 3**: 200 USDC (Membership auto-detect)
+- **Level N**: Linear pricing (+50 USDC per level) via `useNFTLevelClaim` hook
 
 ## 🚀 **User Experience Flow**
 

@@ -2,27 +2,27 @@ import { useState, useEffect } from 'react';
 import { useActiveAccount } from 'thirdweb/react';
 import { supabase } from '../lib/supabase';
 
-// Level pricing structure (in USDC)
+// Level pricing structure (in USDC) - Updated to match database nft_membership_levels table
 export const LEVEL_PRICING = {
-  1: 130,   // Level 1: 130 USDC
-  2: 260,   // Level 2: 260 USDC
-  3: 520,   // Level 3: 520 USDC
-  4: 1040,  // Level 4: 1040 USDC
-  5: 2080,  // Level 5: 2080 USDC
-  6: 4160,  // Level 6: 4160 USDC
-  7: 8320,  // Level 7: 8320 USDC
-  8: 16640, // Level 8: 16640 USDC
-  9: 33280, // Level 9: 33280 USDC
-  10: 66560, // Level 10: 66560 USDC
-  11: 133120, // Level 11: 133120 USDC
-  12: 266240, // Level 12: 266240 USDC
-  13: 532480, // Level 13: 532480 USDC
-  14: 1064960, // Level 14: 1064960 USDC
-  15: 2129920, // Level 15: 2129920 USDC
-  16: 4259840, // Level 16: 4259840 USDC
-  17: 8519680, // Level 17: 8519680 USDC
-  18: 17039360, // Level 18: 17039360 USDC
-  19: 34078720, // Level 19: 34078720 USDC
+  1: 130,   // Level 1: 130 USDC (includes 30 USDC platform fee)
+  2: 150,   // Level 2: 150 USDC (corrected from 260 to match DB)
+  3: 200,   // Level 3: 200 USDC (corrected from 520 to match DB)
+  4: 250,   // Level 4: 250 USDC (corrected from 1040 to match DB)
+  5: 300,   // Level 5: 300 USDC (corrected from 2080 to match DB)
+  6: 350,   // Level 6: 350 USDC (corrected from 4160 to match DB)
+  7: 400,   // Level 7: 400 USDC (corrected from 8320 to match DB)
+  8: 450,   // Level 8: 450 USDC (corrected from 16640 to match DB)
+  9: 500,   // Level 9: 500 USDC (corrected from 33280 to match DB)
+  10: 550,  // Level 10: 550 USDC (corrected from 66560 to match DB)
+  11: 600,  // Level 11: 600 USDC (corrected from 133120 to match DB)
+  12: 650,  // Level 12: 650 USDC (corrected from 266240 to match DB)
+  13: 700,  // Level 13: 700 USDC (corrected from 532480 to match DB)
+  14: 750,  // Level 14: 750 USDC (corrected from 1064960 to match DB)
+  15: 800,  // Level 15: 800 USDC (corrected from 2129920 to match DB)
+  16: 850,  // Level 16: 850 USDC (corrected from 4259840 to match DB)
+  17: 900,  // Level 17: 900 USDC (corrected from 8519680 to match DB)
+  18: 950,  // Level 18: 950 USDC (corrected from 17039360 to match DB)
+  19: 1000, // Level 19: 1000 USDC (corrected from 34078720 to match DB)
 };
 
 export interface NFTLevelInfo {
