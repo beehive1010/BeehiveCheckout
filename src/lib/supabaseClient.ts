@@ -156,25 +156,44 @@ export const authService = {
     }
   },
 
-  // Check if user is activated member via activate-membership Edge Function (check_existing)
+  // Check if user is activated member - database first, then blockchain fallback
   async isActivatedMember(walletAddress: string) {
     try {
-      const result = await callEdgeFunction('activate-membership', {
+      // First check database activation status using get-member-info action
+      console.log(`🔍 Checking database activation for ${walletAddress}`);
+      const dbResult = await callEdgeFunction('activate-membership', {
+        action: 'get-member-info'
+      }, walletAddress);
+      
+      if (dbResult.success && (dbResult.isActivated || dbResult.currentLevel > 0)) {
+        console.log(`✅ Database shows user is activated: Level ${dbResult.currentLevel}`);
+        return { 
+          isActivated: true, 
+          memberData: dbResult.member,
+          error: null 
+        };
+      }
+      
+      // If not activated in database, fall back to blockchain check
+      console.log(`🔗 Database shows no activation, checking blockchain for ${walletAddress}`);
+      const chainResult = await callEdgeFunction('activate-membership', {
         transactionHash: 'check_existing',
         level: 1
       }, walletAddress);
       
-      if (!result.success) {
-        return { isActivated: false, memberData: null, error: { message: result.error || result.message } };
+      if (!chainResult.success) {
+        console.log(`❌ No activation found in database or blockchain for ${walletAddress}`);
+        return { isActivated: false, memberData: null, error: { message: chainResult.error || chainResult.message } };
       }
       
-      const memberData = result.member || null;
-      const isActivated = result.hasNFT || (memberData?.current_level > 0) || false;
+      const memberData = chainResult.member || null;
+      const isActivated = chainResult.hasNFT || (memberData?.current_level > 0) || false;
       
-      console.log(`🔍 Member activation status for ${walletAddress}:`, { 
+      console.log(`🔍 Final activation status for ${walletAddress}:`, { 
         isActivated, 
         level: memberData?.current_level,
-        hasNFT: result.hasNFT 
+        hasNFT: chainResult.hasNFT,
+        source: 'blockchain'
       });
       
       return { 
