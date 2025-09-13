@@ -88,6 +88,9 @@ export function useNFTLevelClaim(targetLevel?: number) {
       
       if (!memberError && memberData) {
         currentLevel = memberData.current_level || 0;
+      } else if (memberError) {
+        console.log('📋 Member not found in database (new user):', memberError.message);
+        // This is expected for new users who haven't claimed Level 1 yet
       }
 
       // Determine next claimable level
@@ -113,8 +116,10 @@ export function useNFTLevelClaim(targetLevel?: number) {
         // When targeting a specific level (e.g., Welcome page targeting Level 1)
         if (targetLevel === 1) {
           // Level 1 is special - it activates membership
-          // Only allow claiming if user doesn't have Level 1 yet
-          canClaim = currentLevel < 1 && targetLevel <= 19;
+          // Allow claiming Level 1 if:
+          // 1. User has no current level (new user), OR
+          // 2. User current level is 0 (not activated)
+          canClaim = currentLevel <= 0 && targetLevel <= 19;
         } else {
           // Other target levels: allow if user doesn't have that level yet
           canClaim = currentLevel < targetLevel && targetLevel <= 19;
@@ -149,7 +154,7 @@ export function useNFTLevelClaim(targetLevel?: number) {
           isLevel1Special: targetLevel === 1,
           claimLogic: targetLevel ? 
             (targetLevel === 1 ? 
-              `Level 1 (special): currentLevel(${currentLevel}) < 1 = ${currentLevel < 1}` :
+              `Level 1 (special): currentLevel(${currentLevel}) <= 0 = ${currentLevel <= 0}` :
               `currentLevel(${currentLevel}) < targetLevel(${targetLevel}) = ${currentLevel < targetLevel}`) :
             `nextLevel(${nextLevel}) > currentLevel(${currentLevel}) = ${nextLevel > currentLevel}`
         }
