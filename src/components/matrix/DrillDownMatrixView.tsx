@@ -55,58 +55,69 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
     setError(null);
 
     try {
-      // 使用database function获取矩阵数据，或者fallback到view
-      const { data: result, error } = await supabase
-        .from('matrix_structure_view')
-        .select('*')
-        .eq('root_wallet', walletAddress);
+      // Use matrix Edge Function to get all layers data
+      console.log(`🔍 Loading matrix for wallet: ${walletAddress}, showing all 19 layers`);
       
-      if (result && result.length > 0) {
-        // matrix_structure_view provides L, M, R positions directly
-        const matrixRow = result[0]; // Should be one row per root
+      const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/matrix?action=get-matrix&rootWallet=${walletAddress}&maxLayers=19`, {
+        method: 'GET',
+        headers: {
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjU5NjM3OTEsImV4cCI6MjA0MTUzOTc5MX0.jYTJq4dHo9AJ9xqKpyQ1qgWvFVyxxkVsJKNGEKrGdYY',
+          'Content-Type': 'application/json',
+          'x-wallet-address': walletAddress
+        }
+      });
 
-        console.log(`🔍 Matrix data for ${walletAddress}:`, matrixRow);
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to load matrix data');
+      }
 
-        // Extract L, M, R members from the view
-        const leftMembers = matrixRow.l_wallet ? [{
-          walletAddress: matrixRow.l_wallet,
-          username: matrixRow.l_username || `User${matrixRow.l_wallet.slice(-4)}`,
-          level: matrixRow.l_level || 1,
-          isActive: true,
-          layer: 1,
-          position: 'L' as const,
-          placedAt: new Date().toISOString()
-        }] : [];
+      const matrixData = result.data;
+      
+      console.log(`🔍 Matrix data for ${walletAddress}:`, matrixData);
+
+      if (matrixData && matrixData.matrix_data) {
+        // Parse matrix data from Edge Function response
+        const allLayers = matrixData.matrix_data.by_layer || {};
+        const currentLayer = 1; // Start with layer 1
         
-        const middleMembers = matrixRow.m_wallet ? [{
-          walletAddress: matrixRow.m_wallet,
-          username: matrixRow.m_username || `User${matrixRow.m_wallet.slice(-4)}`,
-          level: matrixRow.m_level || 1,
-          isActive: true,
-          layer: 1,
-          position: 'M' as const,
-          placedAt: new Date().toISOString()
-        }] : [];
+        // Get members for the current layer (first layer by default)
+        const layerMembers = allLayers[currentLayer] || [];
         
-        const rightMembers = matrixRow.r_wallet ? [{
-          walletAddress: matrixRow.r_wallet,
-          username: matrixRow.r_username || `User${matrixRow.r_wallet.slice(-4)}`,
-          level: matrixRow.r_level || 1,
-          isActive: true,
-          layer: 1,
-          position: 'R' as const,
-          placedAt: new Date().toISOString()
-        }] : [];
+        // Group members by position (L, M, R)
+        const leftMembers: MatrixMember[] = [];
+        const middleMembers: MatrixMember[] = [];
+        const rightMembers: MatrixMember[] = [];
+        
+        layerMembers.forEach((member: any) => {
+          const memberData: MatrixMember = {
+            walletAddress: member.wallet_address,
+            username: member.members?.username || `User_${member.wallet_address.slice(-6)}`,
+            level: member.members?.current_level || 1,
+            isActive: member.is_activated || member.members?.is_activated || false,
+            layer: member.layer,
+            position: member.position as 'L' | 'M' | 'R',
+            placedAt: member.created_at || new Date().toISOString()
+          };
+          
+          // Only include members directly under this root (not nested)
+          if (member.parent_wallet === walletAddress) {
+            if (member.position === 'L') leftMembers.push(memberData);
+            else if (member.position === 'M') middleMembers.push(memberData);
+            else if (member.position === 'R') rightMembers.push(memberData);
+          }
+        });
 
         // Create current member info
         const currentMember: MatrixMember = {
           walletAddress: walletAddress,
           username: isRoot 
-            ? (rootUser?.username || matrixRow.root_username || `User${walletAddress.slice(-4)}`) 
-            : (matrixRow.root_username || `User${walletAddress.slice(-4)}`),
+            ? (rootUser?.username || `User_${walletAddress.slice(-6)}`) 
+            : `User_${walletAddress.slice(-6)}`,
           level: isRoot 
-            ? (rootUser?.currentLevel || matrixRow.root_level || 1) 
-            : (matrixRow.root_level || 1),
+            ? (rootUser?.currentLevel || 1) 
+            : 1,
           isActive: true,
           layer: navigationPath.length,
           position: navigationPath.length > 0 ? (navigationPath[navigationPath.length - 1].position || 'L') : 'L'
@@ -307,12 +318,31 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
         <CardTitle className="text-honey flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Trophy className="h-5 w-5" />
-            <span>3×3 Matrix Network</span>
+            <span>3×3 Matrix Network (19 Layers)</span>
           </div>
-          <Badge variant="outline" className="border-honey text-honey">
-            Layer {navigationPath.length}
-          </Badge>
+          <div className="flex items-center space-x-2">
+            <Badge variant="outline" className="border-honey text-honey">
+              Current: Layer {navigationPath.length}
+            </Badge>
+            <Badge variant="outline" className="border-blue-400 text-blue-400">
+              Max: 19 Layers
+            </Badge>
+          </div>
         </CardTitle>
+        
+        {/* Layer Progress Indicator */}
+        <div className="flex items-center space-x-2 mt-3">
+          <span className="text-xs text-muted-foreground">Depth:</span>
+          <div className="flex-1 bg-muted rounded-full h-2">
+            <div 
+              className="bg-gradient-to-r from-honey to-orange-500 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${Math.min((navigationPath.length / 19) * 100, 100)}%` }}
+            ></div>
+          </div>
+          <span className="text-xs text-honey font-semibold">
+            {navigationPath.length}/19
+          </span>
+        </div>
       </CardHeader>
       
       <CardContent className="space-y-6">
@@ -380,6 +410,77 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
             </Badge>
           </div>
         )}
+
+        {/* 19-Layer Matrix Overview */}
+        <div className="bg-muted/30 rounded-lg p-4 border border-border/50">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-sm font-semibold text-honey">19-Layer Network Overview</h4>
+            <Badge variant="secondary" className="text-xs">
+              Click to explore deeper layers
+            </Badge>
+          </div>
+          
+          {/* Layer visualization - First 10 layers */}
+          <div className="space-y-2">
+            <div className="flex gap-1">
+              {Array.from({ length: 10 }, (_, i) => {
+                const layer = i + 1;
+                const isCurrentLayer = layer === navigationPath.length;
+                const hasData = layer <= (navigationPath.length + 1);
+                
+                return (
+                  <div
+                    key={layer}
+                    className={`
+                      flex-1 h-8 rounded text-xs flex items-center justify-center cursor-pointer transition-all
+                      ${isCurrentLayer 
+                        ? 'bg-honey text-black font-bold' 
+                        : hasData 
+                          ? 'bg-honey/20 text-honey hover:bg-honey/30' 
+                          : 'bg-muted text-muted-foreground hover:bg-muted/70'
+                      }
+                    `}
+                    title={`Layer ${layer}${isCurrentLayer ? ' (Current)' : ''}`}
+                  >
+                    {layer}
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Second row - Layers 11-19 */}
+            <div className="flex gap-1">
+              {Array.from({ length: 9 }, (_, i) => {
+                const layer = i + 11;
+                const isCurrentLayer = layer === navigationPath.length;
+                const hasData = layer <= (navigationPath.length + 1);
+                
+                return (
+                  <div
+                    key={layer}
+                    className={`
+                      flex-1 h-8 rounded text-xs flex items-center justify-center cursor-pointer transition-all
+                      ${isCurrentLayer 
+                        ? 'bg-honey text-black font-bold' 
+                        : hasData 
+                          ? 'bg-honey/20 text-honey hover:bg-honey/30' 
+                          : 'bg-muted text-muted-foreground hover:bg-muted/70'
+                      }
+                    `}
+                    title={`Layer ${layer}${isCurrentLayer ? ' (Current)' : ''}`}
+                  >
+                    {layer}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          
+          <div className="flex justify-between text-xs text-muted-foreground mt-2">
+            <span>Layer 1</span>
+            <span>Layer 19</span>
+          </div>
+        </div>
 
         {/* L-M-R Matrix Display */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
