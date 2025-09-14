@@ -393,10 +393,15 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         try {
           console.log(`📞 Membership activation attempt ${attempt}/${maxRetries}`);
           
+          console.log('📋 Sending activation request with wallet:', account.address);
+          console.log('📋 Referrer wallet:', referrerWallet);
+          console.log('📋 Transaction hash:', claimTxResult.transactionHash);
+          
           const activateResponse = await fetch(`${API_BASE}/activate-membership`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
               'x-wallet-address': account.address
             },
             body: JSON.stringify({
