@@ -111,19 +111,20 @@ async function handleGetBalance(supabase, walletAddress) {
     if (purchaseError) throw purchaseError;
     const balance = balanceData || {
       wallet_address: walletAddress,
-      bcc_transferable: 0,
+      bcc_balance: 0,
       bcc_locked: 0,
-      total_usdt_earned: 0,
-      pending_upgrade_rewards: 0,
-      rewards_claimed: 0,
+      total_earned: 0,
+      reward_balance: 0,
+      reward_claimed: 0,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      last_updated: new Date().toISOString()
     };
     const response = {
       success: true,
       balance: {
         ...balance,
-        total_bcc: (balance.bcc_transferable || 0) + (balance.bcc_locked || 0),
+        bcc_transferable: balance.bcc_balance || 0, // Map to expected frontend field
+        total_bcc: (balance.bcc_balance || 0) + (balance.bcc_locked || 0),
         pending_rewards_usdt: pendingRewardAmount
       },
       recentActivity: {
