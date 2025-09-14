@@ -42,19 +42,30 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
     try {
       setLoading(true);
       
-      // Use database functions for more accurate data
+      // Use matrix edge function for more accurate data
       const [matrixStatsResult, matrixDownlineResult] = await Promise.allSettled([
-        supabase.rpc('get_matrix_stats', { p_root_wallet: walletAddress }),
-        supabase.rpc('get_matrix_downline', { p_root_wallet: walletAddress, p_max_depth: 3 })
+        supabase.functions.invoke('matrix', { 
+          body: { 
+            action: 'get-matrix-stats', 
+            rootWallet: walletAddress 
+          } 
+        }),
+        supabase.functions.invoke('matrix', { 
+          body: { 
+            action: 'get-downline', 
+            rootWallet: walletAddress, 
+            maxDepth: 3 
+          } 
+        })
       ]);
 
-      // Extract stats data
+      // Extract stats data from edge function response
       let statsData = null;
       if (matrixStatsResult.status === 'fulfilled' && matrixStatsResult.value.data) {
         statsData = matrixStatsResult.value.data;
       }
 
-      // Extract downline data
+      // Extract downline data from edge function response
       let downlineData = [];
       if (matrixDownlineResult.status === 'fulfilled' && matrixDownlineResult.value.data) {
         downlineData = matrixDownlineResult.value.data;
