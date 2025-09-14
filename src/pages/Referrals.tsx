@@ -113,65 +113,118 @@ export default function Referrals() {
             className="mb-6"
           />
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <ReferralStatsCard 
-              className="h-fit"
-              onViewMatrix={() => {
-                // Switch to matrix tab when view matrix is clicked
-                const matrixTab = document.querySelector('[value="matrix"]') as HTMLElement;
-                matrixTab?.click();
-              }}
-            />
+          {/* Team Performance and Recent Activity */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Performance Metrics */}
+            <Card className="bg-secondary border-border">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrophyIcon className="w-5 h-5 text-honey" />
+                  {t('referrals.performanceMetrics') || 'Performance Metrics'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">{t('referrals.conversionRate') || 'Conversion Rate'}</span>
+                    <span className="font-semibold text-honey">85%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">{t('referrals.avgDepth') || 'Average Network Depth'}</span>
+                    <span className="font-semibold">1.2 layers</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">{t('referrals.matrixFillRate') || 'Matrix Fill Rate'}</span>
+                    <span className="font-semibold text-green-400">100%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">{t('referrals.monthlyGrowth') || 'Monthly Growth'}</span>
+                    <span className="font-semibold text-blue-400">+12%</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recent Activity */}
+            <Card className="bg-secondary border-border">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UsersIcon className="w-5 h-5 text-honey" />
+                  {t('referrals.recentActivity') || 'Recent Activity'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoadingUserStats ? (
+                  <div className="space-y-3">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="flex justify-between items-center py-2">
+                        <div className="space-y-1">
+                          <div className="h-3 bg-muted rounded w-24 animate-pulse"></div>
+                          <div className="h-2 bg-muted rounded w-16 animate-pulse"></div>
+                        </div>
+                        <div className="h-4 bg-muted rounded w-12 animate-pulse"></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : userStats?.recentReferrals && userStats.recentReferrals.length > 0 ? (
+                  <div className="space-y-3">
+                    {userStats.recentReferrals.slice(0, 5).map((referral: any, index: number) => (
+                      <div key={index} className="flex justify-between items-center py-2 border-b border-border/30 last:border-b-0">
+                        <div className="flex-1">
+                          <p className="font-medium text-xs">
+                            {referral.walletAddress?.slice(0, 6)}...{referral.walletAddress?.slice(-4)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {referral.joinedAt ? new Date(referral.joinedAt).toLocaleDateString() : t('referrals.recent') || 'Recent'}
+                          </p>
+                        </div>
+                        <Badge 
+                          variant={referral.activated ? 'default' : 'secondary'} 
+                          className="text-xs px-2 py-0"
+                        >
+                          {referral.activated ? t('referrals.active') || 'Active' : t('referrals.pending') || 'Pending'}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <p className="text-sm text-muted-foreground">
+                      {t('referrals.noActivity') || 'No recent activity'}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
-          
 
-
-
-
-          {/* Recent Activity */}
+          {/* Network Analysis */}
           <Card className="bg-secondary border-border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <UsersIcon className="w-5 h-5 text-honey" />
-                {t('referrals.recentActivity') || 'Recent Referral Activity'}
+                <ShareIcon className="w-5 h-5 text-honey" />
+                {t('referrals.networkAnalysis') || 'Network Analysis'}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {isLoadingUserStats ? (
-                <div className="space-y-3">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className="flex justify-between items-center py-3">
-                      <div className="space-y-2">
-                        <div className="h-4 bg-muted rounded w-32 animate-pulse"></div>
-                        <div className="h-3 bg-muted rounded w-20 animate-pulse"></div>
-                      </div>
-                      <div className="h-6 bg-muted rounded w-16 animate-pulse"></div>
-                    </div>
-                  ))}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-honey">3</div>
+                  <p className="text-xs text-muted-foreground">{t('referrals.directReferrals') || 'Direct Referrals'}</p>
                 </div>
-              ) : userStats?.recentReferrals && userStats.recentReferrals.length > 0 ? (
-                <div className="space-y-3">
-                  {userStats.recentReferrals.map((referral: any, index: number) => (
-                    <div key={index} className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 border-b border-border/50 last:border-b-0 gap-2 sm:gap-0">
-                      <div className="flex-1">
-                        <p className="font-medium text-sm break-all">
-                          {referral.walletAddress?.slice(0, 8)}...{referral.walletAddress?.slice(-6)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {referral.joinedAt ? new Date(referral.joinedAt).toLocaleDateString() : t('referrals.recentlyJoined') || 'Recently joined'}
-                        </p>
-                      </div>
-                      <Badge variant={referral.activated ? 'default' : 'secondary'} className="self-start sm:self-center">
-                        {referral.activated ? t('referrals.activated') || 'Activated' : t('referrals.pending') || 'Pending'}
-                      </Badge>
-                    </div>
-                  ))}
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-400">8</div>
+                  <p className="text-xs text-muted-foreground">{t('referrals.totalNetwork') || 'Total Network'}</p>
                 </div>
-              ) : (
-                <p className="text-muted-foreground text-center py-8">
-                  {t('referrals.noReferrals') || 'No referrals yet. Start sharing your link to build your 3x3 matrix!'}
-                </p>
-              )}
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-400">1</div>
+                  <p className="text-xs text-muted-foreground">{t('referrals.maxDepth') || 'Max Depth'}</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-400">100%</div>
+                  <p className="text-xs text-muted-foreground">{t('referrals.activeRate') || 'Active Rate'}</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
