@@ -58,13 +58,18 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
       // Use matrix Edge Function to get all layers data
       console.log(`🔍 Loading matrix for wallet: ${walletAddress}, showing all 19 layers`);
       
-      const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/matrix?action=get-matrix&rootWallet=${walletAddress}&maxLayers=19`, {
-        method: 'GET',
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/matrix`, {
+        method: 'POST',
         headers: {
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNjU0MDUsImV4cCI6MjA3MjY0MTQwNX0.7CfL8CS1dQ8Gua89maSCDkgnMsNb19qp97mJyoJqJjs',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           'Content-Type': 'application/json',
           'x-wallet-address': walletAddress
-        }
+        },
+        body: JSON.stringify({
+          action: 'get-matrix',
+          rootWallet: walletAddress,
+          maxLayers: 19
+        })
       });
 
       const result = await response.json();
