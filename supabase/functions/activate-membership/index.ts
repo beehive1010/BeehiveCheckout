@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { createThirdwebClient, getContract, readContract } from 'https://esm.sh/thirdweb@5'
 import { arbitrumSepolia } from 'https://esm.sh/thirdweb@5/chains'
 
-// 正确的数据库接口定义
+// Correct database interface definition
 interface MemberInfo {
   wallet_address: string;
   activation_sequence?: number;
@@ -30,7 +30,7 @@ serve(async (req) => {
   }
 
   try {
-    // 创建Supabase客户端
+    // Create Supabase client
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -124,21 +124,74 @@ serve(async (req) => {
 
     // Handle member info query action
     if (action === 'get-member-info') {
+      console.log(`🔍 Getting member info for: ${walletAddress}`);
+      
+      // First check if user is registered in users table
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('wallet_address', walletAddress)
+        .single();
+
+      if (userError || !userData) {
+        console.log(`❌ User not registered: ${walletAddress}`);
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'User not registered - please complete registration first',
+          member: null,
+          isRegistered: false,
+          isActivated: false
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        });
+      }
+
+      // Check if they have claimed membership NFT (should be recorded in membership table first)
+      const { data: membershipData, error: membershipError } = await supabase
+        .from('membership')
+        .select('*')
+        .eq('wallet_address', walletAddress)
+        .eq('nft_level', 1) // Level 1 NFT claim
+        .single();
+
+      if (membershipError) {
+        console.log(`⏳ User registered but no Level 1 NFT claimed yet: ${walletAddress}`);
+        return new Response(JSON.stringify({
+          success: true,
+          error: 'Level 1 NFT not claimed - please claim Level 1 NFT to activate membership',
+          member: null,
+          membership: null,
+          isRegistered: true,
+          isActivated: false,
+          user: userData
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        });
+      }
+
+      // Then check members table (should exist after membership NFT claim)
       const { data: memberData, error: memberError } = await supabase
         .from('members')
         .select('*')
         .eq('wallet_address', walletAddress)
-        .single()
+        .single();
 
       if (memberError) {
+        console.log(`🔧 Membership NFT claimed but member record missing: ${walletAddress}`);
         return new Response(JSON.stringify({
           success: false,
-          error: 'Member not found',
-          member: null
+          error: 'Data inconsistency - membership claimed but member record missing',
+          member: null,
+          membership: membershipData,
+          isRegistered: true,
+          isActivated: false,
+          user: userData
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200
-        })
+        });
       }
 
       // Consistent activation check - require level > 0 (like Dashboard and auth service)
@@ -158,11 +211,15 @@ serve(async (req) => {
         memberRecord: memberData
       });
 
+      console.log(`✅ User is activated member: ${walletAddress}, Level: ${memberData?.current_level}`);
       return new Response(JSON.stringify({
         success: true,
         member: memberData,
+        membership: membershipData,
+        isRegistered: true,
         isActivated: isReallyActivated,
-        currentLevel: memberData?.current_level || 0
+        currentLevel: memberData?.current_level || 0,
+        user: userData
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200
@@ -348,7 +405,7 @@ async function verifyNFTClaimTransaction(transactionHash: string, walletAddress:
   const EXPECTED_TOKEN_ID = expectedLevel;
 
   try {
-    // 1. 获取交易回执
+    // 1. Get transaction receipt
     const receiptResponse = await fetch(ARBITRUM_SEPOLIA_RPC, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -364,30 +421,30 @@ async function verifyNFTClaimTransaction(transactionHash: string, walletAddress:
     const receipt = receiptData.result;
 
     if (!receipt) {
-      console.log('⏳ 交易还未确认，需要等待');
+      console.log('⏳ Transaction not yet confirmed, waiting for confirmation');
       return false;
     }
 
     if (receipt.status !== '0x1') {
-      console.log('❌ 交易失败');
+      console.log('❌ Transaction failed');
       return false;
     }
 
-    console.log(`📋 交易确认成功，gas used: ${receipt.gasUsed}`);
+    console.log(`📋 Transaction confirmed successfully, gas used: ${receipt.gasUsed}`);
 
-    // 2. 验证交易是从正确的钱包地址发起
+    // 2. Verify transaction is initiated from correct wallet address
     if (receipt.from?.toLowerCase() !== walletAddress.toLowerCase()) {
-      console.log(`❌ 交易发起者不匹配: ${receipt.from} vs ${walletAddress}`);
+      console.log(`❌ Transaction sender mismatch: ${receipt.from} vs ${walletAddress}`);
       return false;
     }
 
-    // 3. 验证交易是发往NFT合约
+    // 3. Verify transaction is sent to NFT contract
     if (receipt.to?.toLowerCase() !== NFT_CONTRACT.toLowerCase()) {
-      console.log(`❌ 交易接收者不匹配: ${receipt.to} vs ${NFT_CONTRACT}`);
+      console.log(`❌ Transaction recipient mismatch: ${receipt.to} vs ${NFT_CONTRACT}`);
       return false;
     }
 
-    // 4. 验证交易logs中包含NFT mint事件
+    // 4. Verify transaction logs contain NFT mint event
     const transferEventSignature = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
 
     let nftMintFound = false;
@@ -405,7 +462,7 @@ async function verifyNFTClaimTransaction(transactionHash: string, walletAddress:
             toAddress.toLowerCase().includes(walletAddress.slice(2).toLowerCase()) &&
             tokenId === EXPECTED_TOKEN_ID) {
 
-          console.log(`✅ NFT mint 事件验证成功: Token ID ${tokenId} 铸造给 ${walletAddress}`);
+          console.log(`✅ NFT mint event verified successfully: Token ID ${tokenId} minted to ${walletAddress}`);
           nftMintFound = true;
           break;
         }
@@ -413,11 +470,11 @@ async function verifyNFTClaimTransaction(transactionHash: string, walletAddress:
     }
 
     if (!nftMintFound) {
-      console.log('❌ 未找到正确的NFT mint事件');
+      console.log('❌ Correct NFT mint event not found');
       return false;
     }
 
-    // 5. 确保交易已经有足够的确认数
+    // 5. Ensure transaction has sufficient confirmations
     const currentBlockResponse = await fetch(ARBITRUM_SEPOLIA_RPC, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -434,25 +491,25 @@ async function verifyNFTClaimTransaction(transactionHash: string, walletAddress:
     const transactionBlock = parseInt(receipt.blockNumber, 16);
     const confirmations = currentBlock - transactionBlock;
 
-    console.log(`📊 交易确认数: ${confirmations}`);
+    console.log(`📊 Transaction confirmations: ${confirmations}`);
 
     if (confirmations < 3) {
-      console.log(`⏳ 等待更多确认: ${confirmations}/3`);
+      console.log(`⏳ Waiting for more confirmations: ${confirmations}/3`);
       return false;
     }
 
-    console.log(`✅ 区块链验证完成: 交易有效且已充分确认`);
+    console.log(`✅ Blockchain verification completed: Transaction valid and sufficiently confirmed`);
     return true;
 
   } catch (error) {
-    console.error('区块链验证错误:', error);
+    console.error('Blockchain verification error:', error);
     return false;
   }
 }
 
-// 检查用户是否已经拥有链上NFT，如果有但数据库缺少记录，则同步数据
+// Check if user already owns on-chain NFT, sync data if NFT exists but database record is missing
 async function checkExistingNFTAndSync(supabase, walletAddress: string, level: number, referrerWallet?: string) {
-  console.log(`🔍 检查用户 ${walletAddress} 是否已拥有 Level ${level} NFT`);
+  console.log(`🔍 Checking if user ${walletAddress} already owns Level ${level} NFT`);
 
   try {
     // CRITICAL: First check if user is registered
@@ -528,7 +585,7 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
       };
     }
 
-    // 2. 检查数据库中是否已有对应的会员记录
+    // 2. Check if corresponding member record already exists in database
     const { data: existingMember } = await supabase
       .from('members')
       .select('wallet_address, current_level, activation_sequence')
@@ -536,9 +593,9 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
       .single();
 
     if (existingMember && existingMember.current_level > 0) {
-      console.log(`✅ 数据库members记录已存在且已激活，但需要检查完整的activation记录`);
+      console.log(`✅ Database members record exists and is activated, but need to check complete activation records`);
 
-      // 检查是否存在完整的membership和referrals记录
+      // Check if complete membership and referrals records exist
       const { data: membershipRecord } = await supabase
         .from('membership')
         .select('id')
@@ -552,29 +609,29 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
         .single();
 
       if (membershipRecord && referralRecord) {
-        console.log(`✅ 完整的activation记录已存在`);
+        console.log(`✅ Complete activation records already exist`);
         return {
           success: true,
           hasNFT: true,
           action: 'already_synced',
           member: existingMember,
-          message: `Level ${level} 会员身份已激活（链上验证）`
+          message: `Level ${level} membership already activated (verified on-chain)`
         };
       } else {
-        console.log(`🔧 members记录存在但缺少membership/referrals记录，需要补充完整激活流程`);
-        // 继续执行完整的同步流程以创建缺失的记录
+        console.log(`🔧 Members record exists but missing membership/referrals records, need to complete activation process`);
+        // Continue with complete sync process to create missing records
       }
     }
 
-    // 3. 如果链上有NFT但数据库缺少完整的activation记录，则补充记录
-    console.log(`🔧 链上有NFT但缺少完整的activation记录，开始同步...`);
+    // 3. If NFT exists on-chain but database lacks complete activation records, supplement records
+    console.log(`🔧 NFT exists on-chain but missing complete activation records, starting sync...`);
 
     // userData already verified at the beginning of this function
     console.log(`✅ User data already verified for sync: ${userData.wallet_address}`);
 
-    // 如果members记录不存在，先创建它
+    // If members record doesn't exist, create it first
     if (!existingMember) {
-      console.log(`📝 创建members记录...`);
+      console.log(`📝 Creating members record...`);
       const currentTime = new Date().toISOString();
       const { data: newMember, error: memberError } = await supabase
         .from('members')
@@ -592,14 +649,14 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
         .single();
 
       if (memberError) {
-        console.error('同步会员记录失败:', memberError);
-        throw new Error(`同步会员记录失败: ${memberError.message}`);
+        console.error('Failed to sync member record:', memberError);
+        throw new Error(`Failed to sync member record: ${memberError.message}`);
       }
-      console.log(`✅ 新members记录创建完成`);
+      console.log(`✅ New members record created successfully`);
     }
 
-    // 使用完整的activation函数来创建missing的membership和referrals记录
-    console.log(`🚀 调用完整的activation函数来补充缺失的记录...`);
+    // Use complete activation function to create missing membership and referrals records
+    console.log(`🚀 Calling complete activation function to supplement missing records...`);
     const { data: activationResult, error: activationError } = await supabase.rpc(
       'activate_nft_level1_membership',
       {
@@ -610,19 +667,19 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
     );
 
     if (activationError) {
-      console.error('❌ 完整激活同步失败:', activationError);
-      throw new Error(`激活同步失败: ${activationError.message}`);
+      console.error('❌ Complete activation sync failed:', activationError);
+      throw new Error(`Activation sync failed: ${activationError.message}`);
     }
 
     if (!activationResult || !activationResult.success) {
-      const errorMessage = activationResult?.message || '激活同步返回失败';
-      console.error('❌ 激活同步函数返回失败:', errorMessage);
-      throw new Error(`激活同步失败: ${errorMessage}`);
+      const errorMessage = activationResult?.message || 'Activation sync returned failure';
+      console.error('❌ Activation sync function returned failure:', errorMessage);
+      throw new Error(`Activation sync failed: ${errorMessage}`);
     }
 
-    console.log(`✅ 链上NFT完整数据同步完成: ${walletAddress} -> Level ${level}`);
+    console.log(`✅ On-chain NFT complete data sync finished: ${walletAddress} -> Level ${level}`);
 
-    // 获取最新的members记录
+    // Get latest members record
     const { data: updatedMember } = await supabase
       .from('members')
       .select('wallet_address, current_level, activation_sequence')
@@ -635,7 +692,7 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
       action: 'synced_from_chain',
       member: updatedMember,
       level: level,
-      message: `Level ${level} 会员身份已同步（基于链上NFT和完整激活流程）`,
+      message: `Level ${level} membership synced (based on on-chain NFT and complete activation process)`,
       activationDetails: {
         membershipCreated: activationResult.membership_created,
         platformFeeAdded: activationResult.platform_fee_added,
@@ -644,7 +701,7 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
       }
     };
   } catch (error) {
-    console.error('检查链上NFT错误:', error);
+    console.error('Check on-chain NFT error:', error);
     return { hasNFT: false, error: (error as Error).message };
   }
 }

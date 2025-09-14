@@ -176,8 +176,8 @@ export default function NFTs() {
       // Generate mock transaction hash
       const transactionHash = `0x${Date.now().toString(16)}${Math.random().toString(16).slice(2, 10)}`;
 
-      // Use edge function to handle purchase (bypasses RLS issues)
-      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/nft-purchase', {
+      // Use balance API to spend BCC for NFT purchase
+      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/balance', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
@@ -185,11 +185,12 @@ export default function NFTs() {
           'x-wallet-address': walletAddress
         },
         body: JSON.stringify({
-          nft_id: nft.id,
-          nft_type: nftType,
-          price_bcc: nft.price_bcc,
-          price_usdt: nft.price_usdt || 0,
-          transaction_hash: transactionHash
+          action: 'spend-bcc',
+          amount: nft.price_bcc,
+          itemType: nftType,
+          itemId: nft.id,
+          nftType: nftType,
+          purpose: `Purchase NFT: ${nft.title}`
         })
       });
 
@@ -199,7 +200,39 @@ export default function NFTs() {
         throw new Error(purchaseResult.error || 'Purchase failed');
       }
 
-      // Edge function already handled balance updates and supply management
+      // Create NFT purchase record
+      const { error: purchaseError } = await supabase
+        .from('nft_purchases')
+        .insert({
+          buyer_wallet: walletAddress,
+          nft_id: nft.id,
+          nft_type: nftType,
+          nft_title: nft.title,
+          price_bcc: nft.price_bcc,
+          price_usdt: nft.price_usdt || 0,
+          transaction_hash: transactionHash,
+          purchased_at: new Date().toISOString()
+        });
+
+      if (purchaseError) {
+        console.error('Error creating purchase record:', purchaseError);
+        // Don't fail the whole purchase for record creation error
+      }
+
+      // Update supply for merchant NFTs
+      if (nftType === 'merchant' && nft.supply_available && nft.supply_available > 0) {
+        const { error: supplyError } = await supabase
+          .from('merchant_nfts')
+          .update({ 
+            supply_available: Math.max(0, nft.supply_available - 1),
+            supply_sold: (nft.supply_sold || 0) + 1
+          })
+          .eq('id', nft.id);
+
+        if (supplyError) {
+          console.error('Error updating NFT supply:', supplyError);
+        }
+      }
 
       toast({
         title: "🎉 NFT Purchased Successfully!",

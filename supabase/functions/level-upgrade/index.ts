@@ -122,7 +122,7 @@ serve(async (req) => {
 
     const { action, walletAddress, targetLevel, transactionHash, network } = await req.json() as LevelUpgradeRequest
 
-    console.log(`<� Level Upgrade Action: ${action} for ${walletAddress}`)
+    console.log(`🚀 Level Upgrade Action: ${action} for ${walletAddress}`)
 
     let response: LevelUpgradeResponse
 
@@ -179,7 +179,7 @@ async function processLevelUpgrade(
   transactionHash?: string, 
   network?: string
 ): Promise<LevelUpgradeResponse> {
-  console.log(`=� Processing Level ${targetLevel} upgrade for ${walletAddress}`)
+  console.log(`🔄 Processing Level ${targetLevel} upgrade for ${walletAddress}`)
 
   try {
     // 1. Get current member data
@@ -198,8 +198,18 @@ async function processLevelUpgrade(
       }
     }
 
-    const currentLevel = memberData.current_level || 0
+    const currentLevel = memberData.current_level
     const levelsOwned = memberData.levels_owned || []
+    
+    // Members must start at Level 1 - no Level 0 exists
+    if (!currentLevel || currentLevel < 1) {
+      return {
+        success: false,
+        action: 'upgrade_level',
+        message: 'Member must be activated at Level 1 before upgrading',
+        error: 'Invalid member level - must start at Level 1'
+      }
+    }
 
     // 2. Validate upgrade requirements
     const requirementCheck = await checkUpgradeRequirements(supabase, walletAddress, targetLevel)
@@ -284,7 +294,7 @@ async function processLevelUpgrade(
         }
       })
 
-    console.log(` Level upgrade completed: ${walletAddress} -> Level ${targetLevel}`)
+    console.log(`🎉 Level upgrade completed: ${walletAddress} -> Level ${targetLevel}`)
 
     return {
       success: true,
@@ -316,7 +326,7 @@ async function processLevelUpgrade(
 
 // Check upgrade requirements
 async function checkUpgradeRequirements(supabase: any, walletAddress: string, targetLevel: number): Promise<LevelUpgradeResponse> {
-  console.log(` Checking upgrade requirements: Level ${targetLevel} for ${walletAddress}`)
+  console.log(`📋 Checking upgrade requirements: Level ${targetLevel} for ${walletAddress}`)
 
   try {
     // 1. Get member data
@@ -335,8 +345,19 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
       }
     }
 
-    const currentLevel = memberData.current_level || 0
+    const currentLevel = memberData.current_level
     const levelsOwned = memberData.levels_owned || []
+    
+    // Members must start at Level 1 - no Level 0 exists
+    if (!currentLevel || currentLevel < 1) {
+      return {
+        success: false,
+        action: 'check_requirements',
+        canUpgrade: false,
+        message: 'Member must be activated at Level 1 before upgrading',
+        error: 'Invalid member level - must start at Level 1'
+      }
+    }
 
     // 2. Check sequential upgrade requirement
     const expectedNextLevel = currentLevel + 1
@@ -452,7 +473,7 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
 
 // Get level pricing information
 async function getLevelPricing(walletAddress: string, maxLevel?: number): Promise<LevelUpgradeResponse> {
-  console.log(`=� Getting level pricing for ${walletAddress} up to Level ${maxLevel || 19}`)
+  console.log(`💰 Getting level pricing for ${walletAddress} up to Level ${maxLevel || 19}`)
 
   try {
     const pricing = []
@@ -491,7 +512,7 @@ async function verifyUpgradeTransaction(
   targetLevel: number, 
   network?: string
 ): Promise<LevelUpgradeResponse> {
-  console.log(`= Verifying upgrade transaction: ${transactionHash}`)
+  console.log(`= 🔍 Verifying upgrade transaction: ${transactionHash}`)
 
   try {
     // Use the same verification logic as activation but for upgrades
@@ -570,7 +591,7 @@ async function verifyUpgradeTransaction(
             toAddress.toLowerCase().includes(walletAddress.slice(2).toLowerCase()) &&
             tokenId === EXPECTED_TOKEN_ID) {
           
-          console.log(` NFT upgrade verified: Token ID ${tokenId} minted to ${walletAddress}`)
+          console.log(`✅ NFT upgrade verified: Token ID ${tokenId} minted to ${walletAddress}`)
           nftMintFound = true
           break
         }
@@ -605,7 +626,7 @@ async function verifyUpgradeTransaction(
 
 // Unlock BCC for level upgrade
 async function unlockBCCForLevelUpgrade(supabase: any, walletAddress: string, targetLevel: number, memberData: any): Promise<{bccUnlocked: number}> {
-  console.log(`= Unlocking BCC for Level ${targetLevel} upgrade`)
+  console.log(`= 🔓 Unlocking BCC for Level ${targetLevel} upgrade`)
 
   try {
     // Call the BCC release system to unlock BCC
@@ -633,7 +654,7 @@ async function unlockBCCForLevelUpgrade(supabase: any, walletAddress: string, ta
 
 // Process pending rewards that can now be claimed
 async function processPendingRewardsForUpgrade(supabase: any, walletAddress: string, newLevel: number): Promise<{claimed: number}> {
-  console.log(`<� Processing pending rewards for Level ${newLevel} upgrade`)
+  console.log(`🎁 Processing pending rewards for Level ${newLevel} upgrade`)
 
   try {
     // Call the reward processing system
@@ -660,7 +681,7 @@ async function processPendingRewardsForUpgrade(supabase: any, walletAddress: str
 
 // Trigger layer rewards for upgrade
 async function triggerLayerRewardsForUpgrade(supabase: any, walletAddress: string, newLevel: number): Promise<{created: number}> {
-  console.log(`=� Triggering layer rewards for Level ${newLevel} upgrade`)
+  console.log(`⚡ Triggering layer rewards for Level ${newLevel} upgrade`)
 
   try {
     // This would integrate with matrix system to check for newly triggered rewards

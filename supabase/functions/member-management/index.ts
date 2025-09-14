@@ -7,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
 }
 
-console.log(`👥 Member Management API启动成功!`)
+console.log(`👥 Member Management API started successfully!`)
 
 interface MemberInfo {
   wallet_address: string;
@@ -78,7 +78,7 @@ serve(async (req) => {
     const walletAddress = req.headers.get('x-wallet-address')
     
     if (!walletAddress && !['list-members', 'system-stats'].includes(action || '')) {
-      throw new Error('钱包地址缺失')
+      throw new Error('Wallet address missing')
     }
 
     console.log(`👥 Member Management Action: ${action} for wallet: ${walletAddress}`)

@@ -38,6 +38,12 @@ interface PlacementResult {
   searchDepth?: number; // How deep we searched to find the position
 }
 
+interface SpilloverTarget {
+  target_wallet: string;
+  target_sequence: number;
+  available_position: string;
+}
+
 // =============================================
 // MAIN SERVE HANDLER
 // =============================================
@@ -205,121 +211,35 @@ async function findNextAvailablePosition(supabase: any, rootWallet: string): Pro
     }
   }
   
-  console.log(`📈 Layer 1 full, checking spillover opportunities...`);
+  console.log(`📈 Referrer's Layer 1 full, searching for incomplete L-M-R matrices in network...`);
   
-  // Layer 1 is full, find spillover placement in layer 1 members' matrices
-  // Get all layer 1 members under this root, ordered by activation sequence
-  const { data: layer1Members, error: layer1Error } = await supabase
-    .from('referrals')
-    .select(`
-      member_wallet,
-      matrix_position,
-      placed_at
-    `)
-    .eq('matrix_root_wallet', rootWallet)
-    .eq('matrix_layer', 1)
-    .order('placed_at'); // Order by activation time (earlier first)
-  
-  if (layer1Error) {
-    console.error(`❌ Error fetching layer 1 members: ${layer1Error.message}`);
+  // Find members with incomplete L-M-R matrices for spillover placement
+  // Search through all activated members, ordered by activation sequence (earliest first)
+  const { data: incompleteMember, error: incompleteError } = await supabase
+    .rpc('find_incomplete_matrix_for_spillover', {
+      referring_wallet: rootWallet
+    });
+    
+  if (incompleteError) {
+    console.error(`❌ Error finding incomplete matrix: ${incompleteError.message}`);
+  } else if (incompleteMember && Array.isArray(incompleteMember) && incompleteMember.length > 0) {
+    const target = incompleteMember[0] as SpilloverTarget;
+    console.log(`✅ Found incomplete matrix: ${target.target_wallet} (seq=${target.target_sequence}) needs position ${target.available_position}`);
     return {
-      success: false,
-      layer: 0,
-      position: '',
-      error: `Failed to fetch layer 1 members: ${layer1Error.message}`
+      success: true,
+      layer: 1,
+      position: target.available_position,
+      spilloverRoot: target.target_wallet,
+      originalRoot: rootWallet
     };
   }
   
-  // Try to place in each layer 1 member's matrix (spillover placement)
-  for (const layer1Member of layer1Members || []) {
-    console.log(`🔄 Checking spillover placement in ${layer1Member.member_wallet}'s matrix...`);
-    
-    // Check if this layer 1 member has any open positions in their own matrix
-    for (const spilloverPosition of layer1Positions) {
-      const { data: spilloverCheck, error: spilloverError } = await supabase
-        .from('referrals')
-        .select('id')
-        .eq('matrix_root_wallet', layer1Member.member_wallet) // This member becomes the root
-        .eq('matrix_layer', 1)
-        .eq('matrix_position', spilloverPosition)
-        .limit(1);
-      
-      if (spilloverError) {
-        console.warn(`⚠️ Error checking spillover for ${layer1Member.member_wallet}: ${spilloverError.message}`);
-        continue;
-      }
-      
-      const spilloverOccupied = (spilloverCheck?.length > 0);
-      
-      if (!spilloverOccupied) {
-        console.log(`✅ Found spillover position: ${layer1Member.member_wallet} -> Layer 1, Position ${spilloverPosition}`);
-        return {
-          success: true,
-          layer: 1,
-          position: spilloverPosition,
-          spilloverRoot: layer1Member.member_wallet, // This indicates spillover placement
-          originalRoot: rootWallet
-        };
-      }
-    }
-  }
-  
-  // If layer 1 members' matrices are also full, check their downlines recursively
-  console.log(`🔄 Layer 1 members' matrices full, checking deeper layers...`);
-  
-  // Recursive search in layer 2, 3, 4... for any available positions
-  for (let searchLayer = 2; searchLayer <= 19; searchLayer++) {
-    // Get all members at the previous layer who might have available positions
-    const { data: layerMembers, error: layerError } = await supabase
-      .from('referrals')
-      .select('member_wallet, placed_at')
-      .eq('matrix_root_wallet', rootWallet)
-      .eq('matrix_layer', searchLayer - 1)
-      .order('placed_at'); // Order by activation time
-
-    if (layerError || !layerMembers?.length) {
-      continue; // Skip to next layer if no members or error
-    }
-
-    // Check each member at this layer for available positions in their matrix
-    for (const layerMember of layerMembers) {
-      for (const recursivePosition of layer1Positions) {
-        const { data: deepCheck, error: deepError } = await supabase
-          .from('referrals')
-          .select('id')
-          .eq('matrix_root_wallet', layerMember.member_wallet) // Check this member's matrix
-          .eq('matrix_layer', 1) // Always layer 1 in their own matrix
-          .eq('matrix_position', recursivePosition)
-          .limit(1);
-
-        if (deepError) {
-          console.warn(`⚠️ Error checking deep layer for ${layerMember.member_wallet}: ${deepError.message}`);
-          continue;
-        }
-
-        const deepOccupied = (deepCheck?.length > 0);
-
-        if (!deepOccupied) {
-          console.log(`✅ Found deep placement: ${layerMember.member_wallet} -> Layer 1, Position ${recursivePosition} (search layer ${searchLayer})`);
-          return {
-            success: true,
-            layer: 1, // Always layer 1 in the target's own matrix
-            position: recursivePosition,
-            spilloverRoot: layerMember.member_wallet, // This member becomes the matrix root
-            originalRoot: rootWallet,
-            searchDepth: searchLayer // Track how deep we searched
-          };
-        }
-      }
-    }
-  }
-
-  console.log(`❌ No available positions found in entire matrix tree (searched up to layer 19)`);
+  console.log(`❌ Matrix network is completely saturated - no available positions found`);
   return {
     success: false,
     layer: 0,
     position: '',
-    error: 'No available positions in entire 3x3 matrix tree structure'
+    error: 'No incomplete matrices found - network completely saturated'
   };
 }
 
@@ -540,7 +460,7 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
       data: {
         rootWallet: targetRoot,
         members: formattedMembers,
-        totalLayers: Math.max(...(finalMatrixData?.map(m => m.layer) || [0])),
+        totalLayers: Math.max(...((finalMatrixData && finalMatrixData.length > 0) ? finalMatrixData.map(m => m.layer) : [0])),
         totalMembers: finalMatrixData?.length || 0,
         referralMembers: referralData.length,
         spilloverMembers: 0, // spillover_matrix table does not exist
@@ -555,9 +475,9 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
   } catch (error) {
     console.error('❌ Get matrix error:', error);
     
-    const errorMessage = error.message || 'Unknown matrix error';
+    const errorMessage = (error as Error).message || 'Unknown matrix error';
     const errorDetails = {
-      error_type: error.constructor.name,
+      error_type: (error as Error).constructor.name,
       timestamp: new Date().toISOString(),
       wallet_address: walletAddress,
       target_root: data.rootWallet,
@@ -775,11 +695,11 @@ async function handleGetDownline(supabase, walletAddress: string, data) {
     let downlineData = [];
 
     if (referralsResult.status === 'fulfilled' && referralsResult.value.data) {
-      downlineData.push(...referralsResult.value.data.map(item => ({ ...item, source: 'referrals' })));
+      downlineData.push(...referralsResult.value.data.map((item: any) => ({ ...item, source: 'referrals' })));
     }
 
-    const uniqueDownline = downlineData.filter((item, index, self) =>
-      index === self.findIndex(other => 
+    const uniqueDownline = downlineData.filter((item: any, index: number, self: any[]) =>
+      index === self.findIndex((other: any) => 
         other.member_wallet === item.member_wallet && other.matrix_layer === item.matrix_layer
       )
     );
@@ -795,7 +715,7 @@ async function handleGetDownline(supabase, walletAddress: string, data) {
         statistics: downlineStats,
         total_downline: uniqueDownline?.length || 0,
         sources: {
-          referrals: downlineData.filter(item => item.source === 'referrals').length,
+          referrals: downlineData.filter((item: any) => item.source === 'referrals').length,
           spillover: 0 // spillover_matrix table does not exist
         }
       }
@@ -837,7 +757,7 @@ async function handleGetUpline(supabase, walletAddress: string, data) {
     const memberPositions = [];
 
     if (referralsResult.status === 'fulfilled' && referralsResult.value.data) {
-      memberPositions.push(...referralsResult.value.data.map(item => ({ ...item, source: 'referrals' })));
+      memberPositions.push(...referralsResult.value.data.map((item: any) => ({ ...item, source: 'referrals' })));
     }
 
     const uplineData = [];
@@ -900,7 +820,7 @@ async function handleGetMatrixStats(supabase, walletAddress: string, data) {
     }
 
     // Note: spillover_matrix table does not exist
-    const spilloverStats = [];
+    const spilloverStats: any[] = [];
     console.log(`✅ Spillover stats: 0 positions (table does not exist)`);
 
     const { data: memberInfo, error: memberError } = await supabase
@@ -917,7 +837,7 @@ async function handleGetMatrixStats(supabase, walletAddress: string, data) {
     console.log(`✅ Found ${referralsStats?.length || 0} referrals and ${spilloverStats?.length || 0} spillover positions`);
 
     const rootMatrixData = [
-      ...(referralsStats || []).map((item, index) => ({
+      ...(referralsStats || []).map((item: any, index: number) => ({
         wallet_address: item.member_wallet,
         layer: item.matrix_layer || 1,
         is_activated: true,
@@ -987,7 +907,7 @@ async function getMatrixStructure(supabase: any, rootWallet?: string) {
       .order('id')
       .limit(100);
 
-    const structures = {};
+    const structures: { [key: string]: any } = {};
     if (allReferrals) {
       allReferrals.forEach((ref: any) => {
         if (!structures[ref.referrer_wallet]) {
@@ -1041,8 +961,8 @@ async function getMatrixStructure(supabase: any, rootWallet?: string) {
       member_wallet: r.member_wallet,
       referral_id: r.id
     })),
-    first_referral: referrals.length > 0 ? referrals[0].id : null,
-    last_referral: referrals.length > 0 ? referrals[referrals.length - 1].id : null
+    first_referral: (referrals && referrals.length > 0) ? referrals[0]?.id || null : null,
+    last_referral: (referrals && referrals.length > 0) ? referrals[referrals.length - 1]?.id || null : null
   };
 
   return new Response(JSON.stringify({
@@ -1191,8 +1111,8 @@ async function getMatrixStatistics(supabase: any, rootWallet?: string) {
     const stats = {
       referrer_wallet: rootWallet,
       total_referrals: referrals?.length || 0,
-      first_referral: referrals?.length ? referrals[0]?.id : null,
-      last_referral: referrals?.length ? referrals[referrals.length - 1]?.id : null,
+      first_referral: (referrals && referrals.length > 0) ? referrals[0]?.id || null : null,
+      last_referral: (referrals && referrals.length > 0) ? referrals[referrals.length - 1]?.id || null : null,
       referrals_this_month: 0
     };
 
@@ -1276,12 +1196,12 @@ async function getLayerAnalysis(supabase: any, rootWallet: string, timeRange: nu
     referrer_wallet: rootWallet,
     time_range_days: timeRange,
     total_referrals: recentReferrals?.length || 0,
-    first_referral: recentReferrals?.length ? recentReferrals[0]?.id : null,
-    last_referral: recentReferrals?.length ? recentReferrals[recentReferrals.length - 1]?.id : null,
+    first_referral: (recentReferrals && recentReferrals.length > 0) ? recentReferrals[0]?.id || null : null,
+    last_referral: (recentReferrals && recentReferrals.length > 0) ? recentReferrals[recentReferrals.length - 1]?.id || null : null,
     avg_referrals_per_day: recentReferrals?.length ? (recentReferrals.length / timeRange).toFixed(2) : 0
   };
 
-  const dailyStats = {};
+  const dailyStats: { [key: string]: any } = {};
 
   return new Response(JSON.stringify({
     success: true,
@@ -1502,8 +1422,8 @@ async function simulatePlacement(supabase: any, referrerWallet: string, newMembe
 // =============================================
 
 function buildMatrixTree(matrixData: MatrixPosition[]): any {
-  const tree = {};
-  const layers = {};
+  const tree: { [key: string]: any } = {};
+  const layers: { [key: string]: any[] } = {};
   
   matrixData.forEach(member => {
     if (!layers[member.layer]) {
@@ -1526,7 +1446,7 @@ function buildMatrixTree(matrixData: MatrixPosition[]): any {
 }
 
 function comparePositions(posA: string, posB: string): number {
-  const positionWeights = { 'L': 1, 'M': 2, 'R': 3 };
+  const positionWeights: { [key: string]: number } = { 'L': 1, 'M': 2, 'R': 3 };
   
   const getPositionWeight = (pos: string) => {
     const parts = pos.split('.');
@@ -1540,8 +1460,8 @@ function comparePositions(posA: string, posB: string): number {
   return getPositionWeight(posA) - getPositionWeight(posB);
 }
 
-function calculateLayerStatistics(matrixData: MatrixPosition[]): any {
-  const layerStats = {};
+function calculateLayerStatistics(matrixData: MatrixPosition[]): { [key: string]: any } {
+  const layerStats: { [key: string]: any } = {};
   
   matrixData.forEach(member => {
     const layer = member.layer;
@@ -1691,8 +1611,8 @@ async function getUplineChain(supabase, startWallet: string, rootWallet: string)
   return uplineChain;
 }
 
-function groupByLayer(data: any[]): any {
-  return data.reduce((acc, item) => {
+function groupByLayer(data: any[]): { [key: string]: any[] } {
+  return data.reduce((acc: { [key: string]: any[] }, item: any) => {
     const layer = item.matrix_layer || item.layer;
     if (!acc[layer]) {
       acc[layer] = [];
@@ -1720,11 +1640,11 @@ function calculateRootMatrixStats(data: any[]): any {
     total_team_size: data.length,
     activated_members: data.filter(m => m.is_activated).length,
     max_depth: Math.max(...data.map(m => m.layer), 0),
-    layer_distribution: data.reduce((acc, m) => {
+    layer_distribution: data.reduce((acc: { [key: string]: number }, m: any) => {
       acc[m.layer] = (acc[m.layer] || 0) + 1;
       return acc;
     }, {}),
-    sources_breakdown: data.reduce((acc, m) => {
+    sources_breakdown: data.reduce((acc: { [key: string]: number }, m: any) => {
       acc[m.source] = (acc[m.source] || 0) + 1;
       return acc;
     }, {})

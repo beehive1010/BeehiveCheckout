@@ -39,19 +39,18 @@ export function useUserReferralStats() {
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
       
-      // Get direct referrals count using exact matching
+      // Get direct referrals count using matrix_root_wallet (first layer members)
       const { count: directReferrals } = await supabase
         .from('referrals')
         .select('*', { count: 'exact', head: true })
-        .eq('referrer_wallet', walletAddress)
-        .eq('is_direct_referral', true);
+        .eq('matrix_root_wallet', walletAddress)
+        .in('matrix_position', ['L', 'M', 'R']); // Only first layer L-M-R positions
 
-      // Get total team count from direct referrals using exact matching
+      // Get total team count from all matrix members under this root
       const { count: totalTeam } = await supabase
         .from('referrals')
         .select('*', { count: 'exact', head: true })
-        .eq('referrer_wallet', walletAddress)
-        .eq('is_direct_referral', true);
+        .eq('matrix_root_wallet', walletAddress);
 
       // Get member's current level and info using exact matching
       const { data: memberData } = await supabase
@@ -69,16 +68,17 @@ export function useUserReferralStats() {
 
       const totalEarnings = rewardsData?.reduce((sum, reward) => sum + (reward.reward_amount || 0), 0) || 0;
 
-      // Get recent referrals with activation status using exact matching
+      // Get recent referrals with activation status using matrix_root_wallet
       const { data: recentReferralsData } = await supabase
         .from('referrals')
         .select(`
           member_wallet,
           placed_at,
+          matrix_position,
           members!fk_referrals_member_to_members(current_level)
         `)
-        .eq('referrer_wallet', walletAddress)
-        .eq('is_direct_referral', true)
+        .eq('matrix_root_wallet', walletAddress)
+        .in('matrix_position', ['L', 'M', 'R']) // Only direct layer 1 members
         .order('placed_at', { ascending: false })
         .limit(5);
 
