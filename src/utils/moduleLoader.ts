@@ -119,8 +119,8 @@ export function setupGlobalChunkErrorHandler(): void {
         const userMessage = 'Network loading issue detected. Please refresh the page and try again.';
         
         // You can integrate with your toast system here
-        if (typeof window !== 'undefined' && (window as Record<string, unknown>).showToast) {
-          ((window as Record<string, unknown>).showToast as (options: {
+        if (typeof window !== 'undefined' && (window as unknown as Record<string, unknown>).showToast) {
+          ((window as unknown as Record<string, unknown>).showToast as (options: {
             title: string;
             description: string;
             variant: string;
