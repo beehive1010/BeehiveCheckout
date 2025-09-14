@@ -344,8 +344,8 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
             body: JSON.stringify({
               action: 'process-upgrade',
               transactionHash: claimTxResult.transactionHash,
-              newLevel: upgradeLevel,
-              paymentAmount: levelInfo.priceInUSDC,
+              level: upgradeLevel,
+              payment_amount_usdc: levelInfo.priceInUSDC,
               paymentMethod: 'token_payment'
             })
           });
