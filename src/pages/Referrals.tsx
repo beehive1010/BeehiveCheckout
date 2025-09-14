@@ -11,7 +11,6 @@ import { UsersIcon, ShareIcon, TrophyIcon } from '@heroicons/react/24/outline';
 import DrillDownMatrixView from '../components/matrix/DrillDownMatrixView';
 import MatrixLayerStatsView from '../components/matrix/MatrixLayerStatsView';
 import ReferralsStats from '../components/referrals/ReferralsStats';
-import ReferralStatsCard from '../components/referrals/ReferralStatsCard';
 import { Link } from 'wouter';
 import styles from '../styles/referrals/referrals.module.css';
 
@@ -77,26 +76,11 @@ export default function Referrals() {
       </Card>
 
       {/* Main Content with Tabs */}
-      <Tabs defaultValue="team" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="team">{t('referrals.tabs.team') || 'My Team'}</TabsTrigger>
+      <Tabs defaultValue="matrix" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="matrix">{t('referrals.tabs.matrix') || '3x3 Matrix'}</TabsTrigger>
           <TabsTrigger value="stats">{t('referrals.tabs.stats') || 'Statistics'}</TabsTrigger>
         </TabsList>
-
-        {/* Team Overview Tab */}
-        <TabsContent value="team" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <ReferralStatsCard 
-              className="h-fit"
-              onViewMatrix={() => {
-                // Switch to matrix tab
-                const matrixTab = document.querySelector('[value="matrix"]') as HTMLElement;
-                matrixTab?.click();
-              }}
-            />
-          </div>
-        </TabsContent>
 
         {/* Matrix Network Tab */}
         <TabsContent value="matrix" className="space-y-6">

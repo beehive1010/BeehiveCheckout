@@ -157,6 +157,14 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
           middle: [],
           right: []
         });
+        
+        if (isRoot) {
+          setNavigationPath([{
+            walletAddress: walletAddress,
+            username: currentMember.username,
+            layer: 0
+          }]);
+        }
       }
     } catch (error: any) {
       console.error('Error loading matrix data:', error);
@@ -322,7 +330,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
           </div>
           <div className="flex items-center space-x-2">
             <Badge variant="outline" className="border-honey text-honey">
-              Current: Layer {navigationPath.length}
+              Current: Layer {Math.max(navigationPath.length, 1)}
             </Badge>
             <Badge variant="outline" className="border-blue-400 text-blue-400">
               Max: 19 Layers
@@ -336,11 +344,11 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
           <div className="flex-1 bg-muted rounded-full h-2">
             <div 
               className="bg-gradient-to-r from-honey to-orange-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${Math.min((navigationPath.length / 19) * 100, 100)}%` }}
+              style={{ width: `${Math.min((Math.max(navigationPath.length, 1) / 19) * 100, 100)}%` }}
             ></div>
           </div>
           <span className="text-xs text-honey font-semibold">
-            {navigationPath.length}/19
+            {Math.max(navigationPath.length, 1)}/19
           </span>
         </div>
       </CardHeader>
@@ -425,8 +433,8 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
             <div className="flex gap-1">
               {Array.from({ length: 10 }, (_, i) => {
                 const layer = i + 1;
-                const isCurrentLayer = layer === navigationPath.length;
-                const hasData = layer <= (navigationPath.length + 1);
+                const isCurrentLayer = layer === Math.max(navigationPath.length, 1);
+                const hasData = layer <= (Math.max(navigationPath.length, 1) + 1);
                 
                 return (
                   <div
@@ -452,8 +460,8 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
             <div className="flex gap-1">
               {Array.from({ length: 9 }, (_, i) => {
                 const layer = i + 11;
-                const isCurrentLayer = layer === navigationPath.length;
-                const hasData = layer <= (navigationPath.length + 1);
+                const isCurrentLayer = layer === Math.max(navigationPath.length, 1);
+                const hasData = layer <= (Math.max(navigationPath.length, 1) + 1);
                 
                 return (
                   <div

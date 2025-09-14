@@ -12,7 +12,6 @@ import {
   BarChart3
 } from 'lucide-react';
 import { useWallet } from '../../hooks/useWallet';
-import { supabase } from '../../lib/supabase';
 import { useI18n } from '../../contexts/I18nContext';
 
 interface ReferralStatsCardProps {
@@ -44,18 +43,33 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
       
       // Use matrix edge function for more accurate data
       const [matrixStatsResult, matrixDownlineResult] = await Promise.allSettled([
-        supabase.functions.invoke('matrix', { 
-          body: { 
-            action: 'get-matrix-stats', 
-            rootWallet: walletAddress 
-          } 
+        fetch(`${import.meta.env.VITE_API_BASE}/matrix`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'x-wallet-address': walletAddress
+          },
+          body: JSON.stringify({ action: 'get-matrix-stats', rootWallet: walletAddress })
+        }).then(async (res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const result = await res.json();
+          if (!result.success) throw new Error(result.error);
+          return { data: result.data };
         }),
-        supabase.functions.invoke('matrix', { 
-          body: { 
-            action: 'get-downline', 
-            rootWallet: walletAddress, 
-            maxDepth: 3 
-          } 
+        fetch(`${import.meta.env.VITE_API_BASE}/matrix`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'x-wallet-address': walletAddress
+          },
+          body: JSON.stringify({ action: 'get-downline', rootWallet: walletAddress, maxDepth: 3 })
+        }).then(async (res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const result = await res.json();
+          if (!result.success) throw new Error(result.error);
+          return { data: result.data.downline_members || [] };
         })
       ]);
 
@@ -111,23 +125,8 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
           member_level: member.current_level || 1
         })));
       } else {
-        // Fallback to basic members query using exact matching
-        const { data: basicReferrals } = await supabase
-          .from('members')
-          .select('wallet_address, activation_time, current_level')
-          .eq('referrer_wallet', walletAddress)
-          .limit(10);
-
-        setReferrals(basicReferrals?.map((member: any) => ({
-          member_wallet: member.wallet_address,
-          member_name: `User${member.wallet_address.slice(-4)}`,
-          layer: 1,
-          position: 'L',
-          placement_type: 'direct',
-          placed_at: member.activation_time,
-          is_active: member.current_level > 0,
-          member_level: member.current_level || 0
-        })) || []);
+        // No downline data available
+        setReferrals([]);
       }
 
     } catch (error) {
