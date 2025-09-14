@@ -294,8 +294,11 @@ export default function Membership() {
                   });
                   // Refresh user data after successful upgrade
                   console.log('✅ Level upgrade successful - refreshing user data');
-                  queryClient.invalidateQueries({ queryKey: ['user-status', walletAddress] });
-                  queryClient.invalidateQueries({ queryKey: ['/direct-referrals', walletAddress] });
+                  // Add a small delay to ensure database updates have been processed
+                  setTimeout(() => {
+                    queryClient.invalidateQueries({ queryKey: ['user-status', walletAddress] });
+                    queryClient.invalidateQueries({ queryKey: ['/direct-referrals', walletAddress] });
+                  }, 2000);
                 }}
                 targetLevel={currentLevel + 1}
               />
