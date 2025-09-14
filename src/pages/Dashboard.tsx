@@ -93,7 +93,7 @@ export default function Dashboard() {
         const transferable = balanceData.bcc_balance || 0;
         const locked = balanceData.bcc_locked || 0;
         return {
-          bccTotal: transferable + locked,
+          bccTotal: transferable,
           bccLocked: locked,
           bccTransferable: transferable
         };
@@ -101,7 +101,7 @@ export default function Dashboard() {
 
       // 如果没有余额记录，返回默认值 (新成员默认余额)
       return {
-        bccTotal: 600 + 10350, // 600可用 + 10350锁仓
+        bccTotal: 600, // 显示可用余额
         bccLocked: 10350,
         bccTransferable: 600
       };

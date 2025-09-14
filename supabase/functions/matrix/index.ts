@@ -33,6 +33,9 @@ interface PlacementResult {
   position: string;
   error?: string;
   conflictDetected?: boolean;
+  spilloverRoot?: string; // The actual matrix root when spillover occurs
+  originalRoot?: string; // The original referrer wallet
+  searchDepth?: number; // How deep we searched to find the position
 }
 
 // =============================================
@@ -166,52 +169,157 @@ serve(async (req) => {
 // =============================================
 
 async function findNextAvailablePosition(supabase: any, rootWallet: string): Promise<PlacementResult> {
-  console.log(`🔍 Finding next available position for root: ${rootWallet}`);
+  console.log(`🔍 Finding next available position for root: ${rootWallet} using 3x3 spillover logic`);
   
-  for (let layer = 1; layer <= 19; layer++) {
-    console.log(`📊 Checking layer ${layer}...`);
+  // Check layer 1 first (direct positions under root)
+  const layer1Positions = ['L', 'M', 'R'];
+  
+  for (const position of layer1Positions) {
+    const { data: existingReferrals, error: referralsError } = await supabase
+      .from('referrals')
+      .select('id, member_wallet')
+      .eq('matrix_root_wallet', rootWallet)
+      .eq('matrix_layer', 1)
+      .eq('matrix_position', position)
+      .limit(1);
     
-    const positions = ['L', 'M', 'R'];
+    if (referralsError) {
+      console.error(`❌ Error checking referrals: ${referralsError.message}`);
+      return {
+        success: false,
+        layer: 0,
+        position: '',
+        error: `Database error: ${referralsError.message}`
+      };
+    }
     
-    for (const position of positions) {
-      const { data: existingReferrals, error: referralsError } = await supabase
+    const isOccupied = (existingReferrals?.length > 0);
+    
+    if (!isOccupied) {
+      console.log(`✅ Found available Layer 1 position: ${position}`);
+      return {
+        success: true,
+        layer: 1,
+        position: position
+      };
+    }
+  }
+  
+  console.log(`📈 Layer 1 full, checking spillover opportunities...`);
+  
+  // Layer 1 is full, find spillover placement in layer 1 members' matrices
+  // Get all layer 1 members under this root, ordered by activation sequence
+  const { data: layer1Members, error: layer1Error } = await supabase
+    .from('referrals')
+    .select(`
+      member_wallet,
+      matrix_position,
+      placed_at
+    `)
+    .eq('matrix_root_wallet', rootWallet)
+    .eq('matrix_layer', 1)
+    .order('placed_at'); // Order by activation time (earlier first)
+  
+  if (layer1Error) {
+    console.error(`❌ Error fetching layer 1 members: ${layer1Error.message}`);
+    return {
+      success: false,
+      layer: 0,
+      position: '',
+      error: `Failed to fetch layer 1 members: ${layer1Error.message}`
+    };
+  }
+  
+  // Try to place in each layer 1 member's matrix (spillover placement)
+  for (const layer1Member of layer1Members || []) {
+    console.log(`🔄 Checking spillover placement in ${layer1Member.member_wallet}'s matrix...`);
+    
+    // Check if this layer 1 member has any open positions in their own matrix
+    for (const spilloverPosition of layer1Positions) {
+      const { data: spilloverCheck, error: spilloverError } = await supabase
         .from('referrals')
-        .select('id, member_wallet')
-        .eq('matrix_root_wallet', rootWallet)
-        .eq('matrix_layer', layer)
-        .eq('matrix_position', position)
+        .select('id')
+        .eq('matrix_root_wallet', layer1Member.member_wallet) // This member becomes the root
+        .eq('matrix_layer', 1)
+        .eq('matrix_position', spilloverPosition)
         .limit(1);
       
-      if (referralsError) {
-        console.error(`❌ Error checking referrals: ${referralsError.message}`);
-        return {
-          success: false,
-          layer: 0,
-          position: '',
-          error: `Database error: ${referralsError.message}`
-        };
+      if (spilloverError) {
+        console.warn(`⚠️ Error checking spillover for ${layer1Member.member_wallet}: ${spilloverError.message}`);
+        continue;
       }
       
-      const isOccupied = (existingReferrals?.length > 0);
+      const spilloverOccupied = (spilloverCheck?.length > 0);
       
-      if (!isOccupied) {
-        console.log(`✅ Found available position: Layer ${layer}, Position ${position}`);
+      if (!spilloverOccupied) {
+        console.log(`✅ Found spillover position: ${layer1Member.member_wallet} -> Layer 1, Position ${spilloverPosition}`);
         return {
           success: true,
-          layer: layer,
-          position: position
+          layer: 1,
+          position: spilloverPosition,
+          spilloverRoot: layer1Member.member_wallet, // This indicates spillover placement
+          originalRoot: rootWallet
         };
-      } else {
-        console.log(`❌ Position occupied: Layer ${layer}, Position ${position}`);
       }
     }
   }
   
+  // If layer 1 members' matrices are also full, check their downlines recursively
+  console.log(`🔄 Layer 1 members' matrices full, checking deeper layers...`);
+  
+  // Recursive search in layer 2, 3, 4... for any available positions
+  for (let searchLayer = 2; searchLayer <= 19; searchLayer++) {
+    // Get all members at the previous layer who might have available positions
+    const { data: layerMembers, error: layerError } = await supabase
+      .from('referrals')
+      .select('member_wallet, placed_at')
+      .eq('matrix_root_wallet', rootWallet)
+      .eq('matrix_layer', searchLayer - 1)
+      .order('placed_at'); // Order by activation time
+
+    if (layerError || !layerMembers?.length) {
+      continue; // Skip to next layer if no members or error
+    }
+
+    // Check each member at this layer for available positions in their matrix
+    for (const layerMember of layerMembers) {
+      for (const recursivePosition of layer1Positions) {
+        const { data: deepCheck, error: deepError } = await supabase
+          .from('referrals')
+          .select('id')
+          .eq('matrix_root_wallet', layerMember.member_wallet) // Check this member's matrix
+          .eq('matrix_layer', 1) // Always layer 1 in their own matrix
+          .eq('matrix_position', recursivePosition)
+          .limit(1);
+
+        if (deepError) {
+          console.warn(`⚠️ Error checking deep layer for ${layerMember.member_wallet}: ${deepError.message}`);
+          continue;
+        }
+
+        const deepOccupied = (deepCheck?.length > 0);
+
+        if (!deepOccupied) {
+          console.log(`✅ Found deep placement: ${layerMember.member_wallet} -> Layer 1, Position ${recursivePosition} (search layer ${searchLayer})`);
+          return {
+            success: true,
+            layer: 1, // Always layer 1 in the target's own matrix
+            position: recursivePosition,
+            spilloverRoot: layerMember.member_wallet, // This member becomes the matrix root
+            originalRoot: rootWallet,
+            searchDepth: searchLayer // Track how deep we searched
+          };
+        }
+      }
+    }
+  }
+
+  console.log(`❌ No available positions found in entire matrix tree (searched up to layer 19)`);
   return {
     success: false,
     layer: 0,
     position: '',
-    error: 'All 19 layers are full'
+    error: 'No available positions in entire 3x3 matrix tree structure'
   };
 }
 
@@ -220,45 +328,64 @@ async function safelyPlaceMember(
   rootWallet: string, 
   memberWallet: string, 
   layer: number, 
-  position: string
+  position: string,
+  spilloverRoot?: string
 ): Promise<PlacementResult> {
-  console.log(`🔒 Safely placing member ${memberWallet} at Layer ${layer}, Position ${position} for root ${rootWallet}`);
+  const actualRoot = spilloverRoot || rootWallet;
+  console.log(`🔒 Safely placing member ${memberWallet} at Layer ${layer}, Position ${position} for matrix root ${actualRoot}`);
   
   try {
-    const { data: placementResult, error: placementError } = await supabase.rpc(
-      'safe_matrix_placement',
-      {
-        p_root_wallet: rootWallet,
-        p_member_wallet: memberWallet,
-        p_layer: layer,
-        p_position: position
-      }
-    );
-    
-    if (placementError) {
-      console.error(`❌ Placement failed: ${placementError.message}`);
+    // Get member and matrix root activation sequences
+    const { data: memberInfo, error: memberError } = await supabase
+      .from('members')
+      .select('activation_sequence')
+      .eq('wallet_address', memberWallet)
+      .single();
+      
+    const { data: rootInfo, error: rootError } = await supabase
+      .from('members')
+      .select('activation_sequence')
+      .eq('wallet_address', actualRoot)
+      .single();
+
+    if (memberError || rootError) {
+      throw new Error(`Failed to get member or root info: ${memberError?.message || rootError?.message}`);
+    }
+
+    // Insert the matrix placement record directly
+    const { data: insertResult, error: insertError } = await supabase
+      .from('referrals')
+      .insert({
+        member_wallet: memberWallet,
+        referrer_wallet: rootWallet, // Keep original referrer
+        matrix_root_wallet: actualRoot, // Use spillover root if applicable
+        matrix_root_sequence: rootInfo.activation_sequence,
+        matrix_layer: layer,
+        matrix_position: position,
+        member_activation_sequence: memberInfo.activation_sequence,
+        is_direct_referral: actualRoot === rootWallet, // True only if not spillover
+        is_spillover_placement: actualRoot !== rootWallet, // True if spillover
+        placed_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error(`❌ Direct placement failed: ${insertError.message}`);
       return {
         success: false,
         layer: layer,
         position: position,
-        error: `Placement failed: ${placementError.message}`
+        error: `Direct placement failed: ${insertError.message}`
       };
     }
     
-    if (!placementResult?.success) {
-      return {
-        success: false,
-        layer: layer,
-        position: position,
-        error: placementResult?.error || 'Unknown placement error'
-      };
-    }
-    
-    console.log(`✅ Member placed successfully: ${memberWallet} -> Layer ${layer}, Position ${position}`);
+    console.log(`✅ Member placed successfully: ${memberWallet} -> Matrix Root: ${actualRoot}, Layer ${layer}, Position ${position}`);
     return {
       success: true,
       layer: layer,
-      position: position
+      position: position,
+      spilloverRoot: actualRoot !== rootWallet ? actualRoot : undefined
     };
     
   } catch (error) {
@@ -484,7 +611,8 @@ async function handlePlaceMember(supabase, walletAddress: string, data) {
       rootWallet, 
       memberWallet, 
       positionResult.layer, 
-      positionResult.position
+      positionResult.position,
+      positionResult.spilloverRoot // Pass spillover root if available
     );
 
     if (!placementResult.success) {
