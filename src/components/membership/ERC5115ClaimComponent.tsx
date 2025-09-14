@@ -37,7 +37,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
   const { levelInfo, isLoading: isLevelLoading, refetch: refetchLevel, getLevelName, formatPrice } = useNFTLevelClaim(targetLevel);
   
   // Enhanced transaction wrapper with retry logic and better error handling
-  const sendTransactionWithRetry = async (transaction: unknown, account: unknown, description: string = 'transaction') => {
+  const sendTransactionWithRetry = async (transaction: any, account: any, description: string = 'transaction') => {
     let lastError: any = null;
     const maxRetries = 3;
     const baseDelay = 2000;
@@ -327,8 +327,8 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
           throw new Error(`Insufficient ETH for gas fees. You need ETH on Arbitrum Sepolia to pay for transaction fees. Current balance: ${balanceInETH.toFixed(6)} ETH. Please add some ETH to your wallet first.\n\nGet test ETH from: https://sepolia-faucet.arbitrum.io/`);
         }
         console.log('✅ ETH balance sufficient for gas fees');
-      } catch (balanceError) {
-        if (balanceError.message.includes('Insufficient ETH')) {
+      } catch (balanceError: any) {
+        if (balanceError?.message?.includes('Insufficient ETH')) {
           throw balanceError; // Re-throw our custom insufficient balance error
         }
         console.warn('⚠️ Could not check ETH balance:', balanceError);
@@ -453,7 +453,7 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       const approveTransaction = approve({
         contract: usdcContract,
         spender: NFT_CONTRACT,
-        amount: finalAmount
+        amount: finalAmount.toString()
       });
 
       console.log('📝 Sending approval transaction...');
@@ -664,9 +664,9 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
               value: BigInt(0), // No ETH value for ERC20 payments
             });
             console.log('✅ Using manual contract call with tokenId (method 2)');
-          } catch (method2Error) {
+          } catch (method2Error: any) {
             console.error('❌ All claim methods failed:', method2Error);
-            throw new Error(`All Thirdweb v5 claim methods failed. Last error: ${method2Error.message}`);
+            throw new Error(`All Thirdweb v5 claim methods failed. Last error: ${method2Error?.message || 'Unknown error'}`);
           }
         }
       }
