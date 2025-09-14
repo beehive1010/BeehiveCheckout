@@ -620,7 +620,7 @@ async function handleGetDownline(supabase, walletAddress: string, data) {
       .ilike('matrix_root', walletAddress)
       .neq('member_wallet', walletAddress)
       .order('matrix_layer')
-      .order('created_at')
+      .order('placed_at')
       .range(offset, offset + limit - 1);
 
     if (layer) {
@@ -750,7 +750,7 @@ async function handleGetMatrixStats(supabase, walletAddress: string, data) {
     
     const { data: referralsStats, error: referralsError } = await supabase
       .from('referrals')
-      .select('member_wallet, referrer_wallet, matrix_layer, created_at')
+      .select('member_wallet, referrer_wallet, matrix_layer, placed_at')
       .ilike('referrer_wallet', walletAddress);
 
     if (referralsError) {
@@ -780,7 +780,7 @@ async function handleGetMatrixStats(supabase, walletAddress: string, data) {
         wallet_address: item.member_wallet,
         layer: item.matrix_layer || 1,
         is_activated: true,
-        created_at: item.activation_time,
+        created_at: item.placed_at,
         source: 'referrals'
       })),
       ...(spilloverStats || []).map((item, index) => ({

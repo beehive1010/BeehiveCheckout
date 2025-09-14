@@ -55,7 +55,9 @@
       "Bash(npx supabase functions deploy:*)",
       "Bash(supabase link:*)",
       "Bash(timeout 60 npm run build)",
-      "Bash(timeout 30 npm run build)"
+      "Bash(timeout 30 npm run build)",
+      "Bash(./db/deploy-edge-functions.sh:*)",
+      "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 npx supabase functions deploy matrix --project-ref cvqibjcbfrwsgkvthccp)"
     ],
     "deny": [],
     "ask": []

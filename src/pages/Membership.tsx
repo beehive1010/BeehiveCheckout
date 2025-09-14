@@ -180,183 +180,7 @@ export default function Membership() {
     })
   ];
 
-  // Real NFT claim function using Supabase API
-  const handleClaimLevel = async (level: number) => {
-    if (!walletAddress) {
-      toast({
-        title: t('membership.errors.walletRequired'),
-        description: t('membership.errors.connectWallet'),
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Check if user can claim this level (must have previous level)
-    if (level > 1 && (!currentLevel || level > currentLevel + 1)) {
-      toast({
-        title: t('membership.errors.levelLocked'),
-        description: t('membership.errors.previousLevelRequired', { level: level - 1, nextLevel: level }),
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Special condition for Level 2: Must have Level 1 AND more than 3 direct referrals (from referrals table)
-    if (level === 2) {
-      if (!currentLevel || currentLevel < 1) {
-        toast({
-          title: t('membership.level2Requirements.title'),
-          description: t('membership.level2Requirements.needLevel1'),
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      // Use detailed direct referral check
-      try {
-        const { checkLevel2DirectReferralRequirement } = await import('../lib/services/directReferralService');
-        const referralCheck = await checkLevel2DirectReferralRequirement(walletAddress);
-        
-        if (!referralCheck.qualified) {
-          toast({
-            title: t('membership.level2Requirements.title'),
-            description: `${referralCheck.detailedStatus}\n\n${referralCheck.message}\n\n💡 ${t('membership.level2Requirements.tip')}\n\n📋 ${t('membership.level2Requirements.howTo')}`,
-            variant: "destructive",
-            duration: 12000 // Extended display time for full information
-          });
-          return;
-        }
-        
-        // Show successful direct referral check info
-        console.log(`✅ Level 2 direct referral check passed: ${referralCheck.message}`);
-        
-      } catch (error) {
-        console.error('❌ Error checking Level 2 referral requirements:', error);
-        toast({
-          title: t('membership.errors.checkReferralError'),
-          description: t('membership.errors.verificationFailed'),
-          variant: "destructive"
-        });
-        return;
-      }
-    }
-
-    const membershipConfig = membershipLevels.find(m => m.level === level);
-    if (!membershipConfig) return;
-
-    const totalPrice = membershipConfig.price + (membershipConfig.platformFee || 0);
-
-    setClaimState({ level, loading: true, error: null });
-
-    try {
-      // Import NFT service
-      const { nftService } = await import('../lib/supabaseClient');
-
-      toast({
-        title: t('membership.claiming.started', { level }),
-        description: t('membership.claiming.processing', { price: totalPrice }),
-      });
-
-      // Generate a transaction hash for this claim (in real app, this would come from blockchain)
-      const transactionHash = `0x${Date.now().toString(16)}${Math.random().toString(16).slice(2, 10)}`;
-
-      // Call real Supabase API using working service
-      const result = await nftService.processNFTUpgrade(walletAddress, {
-        level,
-        transactionHash,
-        payment_amount_usdc: totalPrice,
-        paymentMethod: 'token_payment',
-        network: 'arbitrum-sepolia'
-      });
-
-      if (result.success) {
-        toast({
-          title: t('membership.claiming.success', { level }),
-          description: t('membership.claiming.successDescription', { level, price: totalPrice }),
-          duration: 6000
-        });
-
-        console.log(`✅ Level ${level} claim successful:`, result);
-        
-        // Trigger layer reward distribution
-        try {
-          const { distributeLayerRewards } = await import('../lib/services/layerRewardService');
-          const rewardResult = await distributeLayerRewards(
-            walletAddress, 
-            level, 
-            membershipConfig.price, // NFT price as reward
-            transactionHash
-          );
-          
-          if (rewardResult.success) {
-            console.log(`🎁 Layer rewards distributed: ${rewardResult.distributions.length} entries created`);
-            
-            // Show reward distribution results
-            const claimableCount = rewardResult.distributions.filter(d => d.status === 'claimable').length;
-            const pendingCount = rewardResult.distributions.filter(d => d.status === 'pending').length;
-            
-            if (claimableCount > 0 || pendingCount > 0) {
-              toast({
-                title: t('membership.rewards.distributed'),
-                description: t('membership.rewards.distributionResult', { claimableCount, pendingCount }),
-                duration: 8000
-              });
-            }
-          } else {
-            console.error('❌ Layer reward distribution failed:', rewardResult.error);
-            toast({
-              title: t('membership.rewards.distributionWarning'),
-              description: t('membership.rewards.distributionIssue'),
-              variant: 'destructive',
-              duration: 6000
-            });
-          }
-        } catch (rewardError) {
-          console.error('❌ Layer reward distribution error:', rewardError);
-          // Does not affect main flow, only show warning
-          toast({
-            title: t('membership.rewards.distributionWarning'), 
-            description: t('membership.rewards.distributionIssue'),
-            variant: 'destructive',
-            duration: 6000
-          });
-        }
-        
-        // Refresh the page data using React Query instead of full reload
-        setTimeout(() => {
-          window.location.reload();
-        }, 3000);
-      } else {
-        throw new Error(result.error || 'Claim processing failed');
-      }
-
-    } catch (error: any) {
-      console.error('Claim error:', error);
-      setClaimState({ level: null, loading: false, error: error.message });
-      
-      // Parse error message for better user feedback
-      let errorMessage = error.message || t('membership.errors.claimFailed', { level });
-      
-      if (errorMessage.includes('Sequential Upgrade Required')) {
-        errorMessage = t('membership.errors.sequentialUpgrade', { nextLevel: (currentLevel || 0) + 1 });
-      } else if (errorMessage.includes('already own')) {
-        errorMessage = t('membership.errors.alreadyOwned', { level });
-      } else if (errorMessage.includes('Level 2 requires')) {
-        errorMessage = t('membership.errors.level2Requirements');
-      } else if (errorMessage.includes('Missing Prerequisites')) {
-        errorMessage = t('membership.errors.missingPrerequisites');
-      }
-      
-      toast({
-        title: t('membership.errors.claimFailed'),
-        description: errorMessage,
-        variant: "destructive",
-        duration: 8000
-      });
-    } finally {
-      setClaimState({ level: null, loading: false, error: null });
-    }
-  };
+  // Note: Level claiming is now handled by specialized components in the Quick Upgrade section
 
   const getLevelStatus = (level: number) => {
     if (!currentLevel) return 'locked';
@@ -626,7 +450,7 @@ export default function Membership() {
                     </ul>
                   </div>
 
-                  {/* Premium Action Button */}
+                  {/* Premium Action Button - Only display cards for information, actual claims handled in top section */}
                   <div className="pt-6">
                     {status === 'owned' ? (
                       <Button 
@@ -639,26 +463,12 @@ export default function Membership() {
                       </Button>
                     ) : status === 'available' ? (
                       <Button 
-                        onClick={() => handleClaimLevel(membership.level)}
-                        disabled={claimState.loading}
-                        className={`w-full h-14 font-bold text-base rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl ${
-                          membership.isSpecial 
-                            ? 'bg-gradient-to-r from-honey via-orange-500 to-honey hover:from-honey/90 hover:via-orange-500/90 hover:to-honey/90 text-black shadow-honey/30' 
-                            : 'bg-gradient-to-r from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white shadow-gray-800/30'
-                        }`}
-                        data-testid={`button-claim-${membership.level}`}
+                        disabled 
+                        className="w-full h-14 bg-gradient-to-r from-honey/20 to-orange-500/20 text-honey font-semibold text-base rounded-2xl border border-honey/30"
+                        data-testid={`button-available-${membership.level}`}
                       >
-                        {claimState.level === membership.level && claimState.loading ? (
-                          <>
-                            <Loader2 className="h-5 w-5 mr-3 animate-spin" />
-                            {t('membership.processing')}
-                          </>
-                        ) : (
-                          <>
-                            <ArrowRight className="h-5 w-5 mr-3 transition-transform duration-200 group-hover:translate-x-1" />
-                            {t('membership.unlockNow', { price: totalPrice })}
-                          </>
-                        )}
+                        <ArrowRight className="h-5 w-5 mr-3" />
+                        {t('membership.useQuickUpgrade') || `Use Quick Upgrade above to claim Level ${membership.level}`}
                       </Button>
                     ) : (
                       <Button 
