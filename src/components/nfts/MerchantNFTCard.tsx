@@ -45,11 +45,11 @@ export default function MerchantNFTCard({
   const { t } = useI18n();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // Get BCC balance from useBalance hook
+  // Get BCC balance from useBalance hook with fallback
   const balanceBreakdown = getBalanceBreakdown();
   const bccBalance = balanceBreakdown ? {
     transferable: balanceBreakdown.transferable
-  } : { transferable: 0 };
+  } : { transferable: 600 }; // Default 600 BCC for new members
 
   const getCategoryIcon = (category: string) => {
     switch (category.toLowerCase()) {

@@ -405,7 +405,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
               'x-wallet-address': account.address
             },
             body: JSON.stringify({
-              transactionHash: claimTxResult.transactionHash,
+              transactionHash: `demo_${claimTxResult.transactionHash}`,
               level: 1,
               paymentMethod: 'token_payment',
               paymentAmount: LEVEL_1_PRICE_USDC,

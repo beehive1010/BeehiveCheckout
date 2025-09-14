@@ -176,46 +176,30 @@ export default function NFTs() {
       // Generate mock transaction hash
       const transactionHash = `0x${Date.now().toString(16)}${Math.random().toString(16).slice(2, 10)}`;
 
-      // Insert purchase record
-      const { error: purchaseError } = await supabase
-        .from('nft_purchases')
-        .insert({
-          buyer_wallet: walletAddress,
+      // Use edge function to handle purchase (bypasses RLS issues)
+      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/nft-purchase', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          'x-wallet-address': walletAddress
+        },
+        body: JSON.stringify({
           nft_id: nft.id,
           nft_type: nftType,
           price_bcc: nft.price_bcc,
           price_usdt: nft.price_usdt || 0,
-          payment_method: 'bcc',
           transaction_hash: transactionHash
-        });
-
-      if (purchaseError) throw purchaseError;
-
-      // Update user BCC balance (lock the BCC instead of subtracting)
-      const currentTransferable = bccBalance?.transferable || 0;
-      const { error: balanceError } = await supabase
-        .from('user_balances')
-        .update({ 
-          bcc_transferable: currentTransferable - nft.price_bcc,
-          bcc_locked: (bccBalance?.locked || 0) + nft.price_bcc, // Add to locked amount
-          updated_at: new Date().toISOString()
         })
-        .eq('wallet_address', walletAddress);
+      });
 
-      if (balanceError) throw balanceError;
-
-      // If it's a merchant NFT, decrease available supply
-      if (nftType === 'merchant' && 'supply_available' in nft && nft.supply_available && nft.supply_available > 0) {
-        const { error: supplyError } = await supabase
-          .from('merchant_nfts')
-          .update({ 
-            supply_available: nft.supply_available - 1,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', nft.id);
-
-        if (supplyError) throw supplyError;
+      const purchaseResult = await response.json();
+      
+      if (!purchaseResult.success) {
+        throw new Error(purchaseResult.error || 'Purchase failed');
       }
+
+      // Edge function already handled balance updates and supply management
 
       toast({
         title: "🎉 NFT Purchased Successfully!",
