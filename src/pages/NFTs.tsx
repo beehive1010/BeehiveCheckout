@@ -183,8 +183,9 @@ export default function NFTs() {
           buyer_wallet: walletAddress,
           nft_id: nft.id,
           nft_type: nftType,
-          amount_paid: nft.price_bcc,
-          currency: 'BCC',
+          price_bcc: nft.price_bcc,
+          price_usdt: nft.price_usdt || 0,
+          payment_method: 'bcc',
           transaction_hash: transactionHash
         });
 

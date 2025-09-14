@@ -202,7 +202,7 @@ export default function NFTCenter() {
             ...nftWithService.purchase.metadata, 
             destroyed: true,
             destruction_date: new Date().toISOString(),
-            bcc_burned: nftWithService.purchase.amount_paid
+            bcc_burned: nftWithService.purchase.price_bcc
           }
         })
         .eq('id', nftWithService.purchase.id);
@@ -211,7 +211,7 @@ export default function NFTCenter() {
 
       toast({
         title: "Service Completed",
-        description: `Service completed successfully. ${nftWithService.purchase.amount_paid} BCC and NFT have been destroyed.`,
+        description: `Service completed successfully. ${nftWithService.purchase.price_bcc} BCC and NFT have been destroyed.`,
         duration: 8000
       });
 
@@ -345,10 +345,10 @@ export default function NFTCenter() {
                   <div className="bg-muted/50 rounded-lg p-3 space-y-1">
                     <div className="text-xs text-muted-foreground space-y-1">
                       <div>Purchased: {new Date(purchase.created_at).toLocaleDateString()}</div>
-                      <div>Paid: {purchase.amount_paid} {purchase.currency}</div>
+                      <div>Paid: {purchase.price_bcc} BCC</div>
                       {isDestroyed && (
                         <div className="text-red-400 font-medium">
-                          🔥 NFT and {purchase.amount_paid} BCC destroyed
+                          🔥 NFT and {purchase.price_bcc} BCC destroyed
                         </div>
                       )}
                     </div>
