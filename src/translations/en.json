@@ -547,9 +547,9 @@
       "description": "Referral link copied to clipboard"
     },
     "tabs": {
+      "team": "My Team",
       "matrix": "3x3 Matrix",
-      "stats": "Statistics",
-      "rewards": "Rewards"
+      "stats": "Statistics"
     },
     "legacySystem": "Legacy System (For Comparison)",
     "activeMembers": "Active Members",
@@ -731,6 +731,33 @@
       "matrixInformation": "Matrix Information",
       "yourMatrixTree": "Your 3×3 Matrix Tree",
       "matrixNetworkLayer": "3×3 Matrix Network - Layer {{layer}}"
+    }
+  },
+  "rewards": {
+    "title": "Rewards & Earnings",
+    "subtitle": "Track your rewards, claim earnings, and view transaction history",
+    "tabs": {
+      "overview": "Overview",
+      "claimable": "Claimable", 
+      "history": "History"
+    },
+    "overview": {
+      "totalEarnings": "Total Earnings",
+      "availableBalance": "Available Balance",
+      "pendingRewards": "Pending Rewards",
+      "rewardsThisMonth": "This Month",
+      "recentActivity": "Recent Activity"
+    },
+    "claimable": {
+      "title": "Claimable Rewards",
+      "claimAll": "Claim All",
+      "noRewards": "No claimable rewards",
+      "noRewardsDescription": "Complete tasks and invite referrals to earn rewards"
+    },
+    "history": {
+      "title": "Transaction History",
+      "noHistory": "No transactions yet",
+      "noHistoryDescription": "Your reward and transaction history will appear here"
     }
   },
   "me": {
