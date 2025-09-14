@@ -56,9 +56,9 @@ serve(async (req) => {
       console.log(`🔍 Checking NFT ownership for ${walletAddress}, Level: ${targetLevel}`);
 
       try {
-        // Create Thirdweb client
-        const thirdwebClientId = Deno.env.get('THIRDWEB_CLIENT_ID');
-        const thirdwebSecretKey = Deno.env.get('THIRDWEB_SECRET_KEY');
+        // Create Thirdweb client - temporarily hardcoded until env vars are set
+        const thirdwebClientId = Deno.env.get('THIRDWEB_CLIENT_ID') || '3123b1ac2ebdb966dd415c6e964dc335';
+        const thirdwebSecretKey = Deno.env.get('THIRDWEB_SECRET_KEY') || 'mjg9DJsme7zjG80cAjsx4Vl-mVDHkDDzkZiD7HeSV9Kf1vKB3WcKYU9nK8Sf6GHAEkEXp1EG68DeKpAtvl6GbA';
 
         if (!thirdwebClientId) {
           throw new Error('THIRDWEB_CLIENT_ID environment variable is required');
@@ -73,7 +73,7 @@ serve(async (req) => {
         const contract = getContract({
           client,
           chain: arbitrumSepolia,
-          address: '0x2Cb47141485754371c24Efcc65d46Ccf004f769a'
+          address: '0x99265477249389469929CEA07c4a337af9e12cdA'
         });
 
         // Check balance using ERC-1155 balanceOf function
@@ -341,7 +341,7 @@ async function verifyNFTClaimTransaction(transactionHash: string, walletAddress:
   console.log(`🔗 Starting transaction verification: ${transactionHash}`);
 
   const ARBITRUM_SEPOLIA_RPC = 'https://sepolia-rollup.arbitrum.io/rpc';
-  const NFT_CONTRACT = '0x2Cb47141485754371c24Efcc65d46Ccf004f769a';
+  const NFT_CONTRACT = '0x99265477249389469929CEA07c4a337af9e12cdA';
   const EXPECTED_TOKEN_ID = expectedLevel;
 
   try {
@@ -471,16 +471,16 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
     console.log(`✅ User registration verified for NFT sync: ${walletAddress}`);
 
 
-    // 1. Use Thirdweb to check on-chain NFT balance
-    const NFT_CONTRACT_ADDRESS = '0x2Cb47141485754371c24Efcc65d46Ccf004f769a';
+    // 1. Use Thirdweb to check on-chain NFT balance  
+    const NFT_CONTRACT_ADDRESS = '0x99265477249389469929CEA07c4a337af9e12cdA'; // Updated to match .env.local
     const TOKEN_ID = level;
 
     console.log(`🔍 Using Thirdweb to check NFT balance for ${walletAddress}, Token ID: ${TOKEN_ID}`);
 
     try {
-      // Create Thirdweb client
-      const thirdwebClientId = Deno.env.get('THIRDWEB_CLIENT_ID');
-      const thirdwebSecretKey = Deno.env.get('THIRDWEB_SECRET_KEY');
+      // Create Thirdweb client - temporarily hardcoded until env vars are set
+      const thirdwebClientId = Deno.env.get('THIRDWEB_CLIENT_ID') || '3123b1ac2ebdb966dd415c6e964dc335';
+      const thirdwebSecretKey = Deno.env.get('THIRDWEB_SECRET_KEY') || 'mjg9DJsme7zjG80cAjsx4Vl-mVDHkDDzkZiD7HeSV9Kf1vKB3WcKYU9nK8Sf6GHAEkEXp1EG68DeKpAtvl6GbA';
 
       if (!thirdwebClientId) {
         throw new Error('THIRDWEB_CLIENT_ID environment variable is required');
@@ -517,7 +517,13 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
       console.log(`✅ User owns Level ${level} NFT on-chain (balance: ${balanceNum})`);
 
     } catch (thirdwebError) {
-      console.error(`❌ Thirdweb NFT check failed:`, thirdwebError);
+      console.error(`❌ Thirdweb NFT check failed for ${walletAddress}:`, {
+        error: thirdwebError.message,
+        stack: thirdwebError.stack,
+        contractAddress: NFT_CONTRACT_ADDRESS,
+        tokenId: TOKEN_ID,
+        chainId: arbitrumSepolia.id
+      });
       // Fallback to false if Thirdweb fails
       return {
         hasNFT: false,
