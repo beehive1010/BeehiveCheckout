@@ -617,7 +617,7 @@ async function handleGetDownline(supabase, walletAddress: string, data) {
     let referralsQuery = supabase
       .from('referrals')
       .select('*')
-      .ilike('matrix_root', walletAddress)
+      .eq('matrix_root_wallet', walletAddress)
       .neq('member_wallet', walletAddress)
       .order('matrix_layer')
       .order('placed_at')

@@ -125,7 +125,7 @@ export function useUserMatrixStats() {
       const { data: matrixData } = await supabase
         .from('referrals')
         .select('matrix_layer, matrix_position, member_wallet')
-        .eq('matrix_root', walletAddress)
+        .eq('matrix_root_wallet', walletAddress)
         .order('matrix_layer');
 
       // Group by layer and count

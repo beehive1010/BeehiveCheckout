@@ -458,7 +458,7 @@ export const matrixService = {
     let query = supabase
       .from('referrals')
       .select('*')
-      .eq('matrix_root', rootWallet)
+      .eq('matrix_root_wallet', rootWallet)
       .eq('is_active', true);
 
     if (layer) {
@@ -482,13 +482,13 @@ export const matrixService = {
       const { count: totalTeamSize } = await supabase
         .from('referrals')
         .select('*', { count: 'exact', head: true })
-        .ilike('matrix_root', walletAddress);
+        .ilike('matrix_root_wallet', walletAddress);
 
       // Get max layer - use ilike for case-insensitive matching
       const { data: maxLayerData } = await supabase
         .from('referrals')
         .select('matrix_layer')
-        .ilike('matrix_root', walletAddress)
+        .ilike('matrix_root_wallet', walletAddress)
         .order('matrix_layer', { ascending: false })
         .limit(1);
 
@@ -504,7 +504,7 @@ export const matrixService = {
           matrix_position,
           is_active
         `)
-        .ilike('matrix_root', walletAddress)
+        .ilike('matrix_root_wallet', walletAddress)
         .order('placed_at', { ascending: false })
         .limit(10);
 
@@ -581,7 +581,7 @@ export const matrixService = {
     let query = supabase
       .from('spillover_matrix')
       .select('*')
-      .eq('matrix_root', rootWallet)
+      .eq('matrix_root_wallet', rootWallet)
       .eq('is_active', true);
 
     if (layer) {
@@ -597,7 +597,7 @@ export const matrixService = {
     let query = supabase
       .from('referrals')
       .select('*')
-      .eq('matrix_root', rootWallet)
+      .eq('matrix_root_wallet', rootWallet)
       .eq('is_active', true);
 
     if (layer) {
@@ -619,13 +619,13 @@ export const matrixService = {
       const { count: totalSpilloverMembers } = await supabase
         .from('spillover_matrix')
         .select('*', { count: 'exact', head: true })
-        .ilike('matrix_root', walletAddress);
+        .ilike('matrix_root_wallet', walletAddress);
 
       // Get members with spillover
       const { count: spilloverCount } = await supabase
         .from('spillover_matrix')
         .select('*', { count: 'exact', head: true })
-        .ilike('matrix_root', walletAddress)
+        .ilike('matrix_root_wallet', walletAddress)
         .neq('matrix_layer', 'original_layer');
 
       return {

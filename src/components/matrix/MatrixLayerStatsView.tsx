@@ -50,7 +50,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       const { data: referralsData, error } = await supabase
         .from('referrals')
         .select('matrix_layer, matrix_position, member_wallet')
-        .eq('matrix_root', walletAddress);
+        .eq('matrix_root_wallet', walletAddress);
       
       // 获取members表数据以检查激活状态
       const memberWallets = referralsData?.map(r => r.member_wallet) || [];
