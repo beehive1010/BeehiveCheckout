@@ -579,4 +579,54 @@
       "upgraded": "อัปเกรดแล้ว",
       "placements": "การจัดวาง"
     }
+  },
+  "referrals": {
+    "title": "ระบบการแนะนำ",
+    "subtitle": "สร้างเครือข่าย matrix 3x3 ของคุณและรับรางวัลผ่านการแนะนำ",
+    "yourLink": "ลิงค์แนะนำของคุณ",
+    "copied": {
+      "title": "คัดลอกแล้ว!",
+      "description": "ลิงค์แนะนำถูกคัดลอกไปยังคลิปบอร์ดแล้ว"
+    },
+    "tabs": {
+      "team": "ทีมของฉัน",
+      "matrix": "Matrix 3x3",
+      "stats": "สถิติ"
+    },
+    "team_overview": "ภาพรวมทีม",
+    "view_matrix": "ดู Matrix",
+    "total_team": "ทีมทั้งหมด",
+    "active_members": "สมาชิกที่ใช้งาน",
+    "max_layers": "ชั้นสูงสุด",
+    "network_strength": "พลังเครือข่าย",
+    "layer_progress": "ความคืบหน้าชั้น",
+    "recent_referrals": "การแนะนำล่าสุด",
+    "share_link": "แชร์ลิงค์แนะนำ"
+  },
+  "rewards": {
+    "title": "รางวัลและรายได้",
+    "subtitle": "ติดตามรางวัลของคุณ รับรายได้ และดูประวัติการทำธุรกรรม",
+    "tabs": {
+      "overview": "ภาพรวม",
+      "claimable": "รับได้", 
+      "history": "ประวัติ"
+    },
+    "overview": {
+      "totalEarnings": "รายได้รวม",
+      "availableBalance": "ยอดคงเหลือที่ใช้ได้",
+      "pendingRewards": "รางวัลที่รอดำเนินการ",
+      "rewardsThisMonth": "รางวัลเดือนนี้",
+      "recentActivity": "กิจกรรมล่าสุด"
+    },
+    "claimable": {
+      "title": "รางวัลที่รับได้",
+      "claimAll": "รับทั้งหมด",
+      "noRewards": "ไม่มีรางวัลที่รับได้",
+      "noRewardsDescription": "ทำงานให้เสร็จและเชิญคนแนะนำเพื่อรับรางวัล"
+    },
+    "history": {
+      "title": "ประวัติการทำธุรกรรม",
+      "noHistory": "ยังไม่มีการทำธุรกรรม",
+      "noHistoryDescription": "รางวัลและประวัติการทำธุรกรรมของคุณจะปรากฏที่นี่"
+    }
   }
