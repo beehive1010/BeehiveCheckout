@@ -622,9 +622,9 @@
       "description": "推荐链接已复制到剪贴板"
     },
     "tabs": {
+      "team": "我的团队",
       "matrix": "3x3矩阵",
-      "stats": "统计",
-      "rewards": "奖励"
+      "stats": "统计"
     },
     "legacySystem": "旧系统（供比较）",
     "activeMembers": "活跃成员",
@@ -815,6 +815,33 @@
       "matrixInformation": "矩阵信息",
       "yourMatrixTree": "您的3×3矩阵树",
       "matrixNetworkLayer": "3×3矩阵网络 - 第{{layer}}层"
+    }
+  },
+  "rewards": {
+    "title": "奖励与收益",
+    "subtitle": "跟踪您的奖励，领取收益，查看交易历史",
+    "tabs": {
+      "overview": "概览",
+      "claimable": "可领取", 
+      "history": "历史"
+    },
+    "overview": {
+      "totalEarnings": "总收益",
+      "availableBalance": "可用余额",
+      "pendingRewards": "待处理奖励",
+      "rewardsThisMonth": "本月奖励",
+      "recentActivity": "最近活动"
+    },
+    "claimable": {
+      "title": "可领取奖励",
+      "claimAll": "全部领取",
+      "noRewards": "暂无可领取奖励",
+      "noRewardsDescription": "完成任务并邀请推荐人以获得奖励"
+    },
+    "history": {
+      "title": "交易历史",
+      "noHistory": "暂无交易记录",
+      "noHistoryDescription": "您的奖励和交易历史将在这里显示"
     }
   },
   "nft": {
