@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { useToast } from '../hooks/use-toast';
 import { supabase } from '../lib/supabase';
 import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
+import RewardsOverview from '../components/rewards/RewardsOverview';
 import { 
   User, 
   Award, 
@@ -289,6 +290,9 @@ export default function Rewards() {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
+          {/* Rewards Overview */}
+          <RewardsOverview walletAddress={walletAddress || ''} />
+          
           {/* Reward System Information */}
       <Card className="bg-secondary border-border">
         <CardHeader>
