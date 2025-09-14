@@ -258,6 +258,35 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
       // Step 6: Check if user already owns Level 1 NFT
       console.log('🔍 Checking Level 1 NFT ownership...');
+      
+      // First check database records
+      try {
+        const { data: membershipData } = await supabase
+          .from('membership')
+          .select('nft_level')
+          .eq('wallet_address', account.address)
+          .eq('nft_level', 1)
+          .single();
+          
+        if (membershipData) {
+          console.log('✅ User already has Level 1 membership in database - redirecting');
+          toast({
+            title: 'Welcome Back! 🎉',
+            description: 'You already have Level 1 membership. Redirecting to dashboard.',
+            variant: "default",
+            duration: 3000,
+          });
+          
+          if (onSuccess) {
+            setTimeout(() => onSuccess(), 1500);
+          }
+          return;
+        }
+      } catch (dbError) {
+        console.warn('⚠️ Could not check membership database:', dbError);
+      }
+      
+      // Also check blockchain NFT balance as backup
       try {
         const existingBalance = await balanceOf({
           contract: nftContract,
@@ -266,9 +295,9 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         });
         
         if (Number(existingBalance) > 0) {
-          console.log('✅ User already owns Level 1 NFT - redirecting');
+          console.log('✅ User already owns Level 1 NFT on blockchain - redirecting');
           toast({
-            title: t('claim.welcomeBack'),
+            title: 'Welcome Back! 🎉',
             description: 'You already own Level 1 NFT. Redirecting to dashboard.',
             variant: "default",
             duration: 3000,
@@ -280,7 +309,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           return;
         }
       } catch (balanceCheckError) {
-        console.warn('⚠️ Could not check NFT balance:', balanceCheckError);
+        console.warn('⚠️ Could not check NFT balance on blockchain:', balanceCheckError);
       }
 
       // Step 7: Check and approve USDC
