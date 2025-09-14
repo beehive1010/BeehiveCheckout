@@ -43,10 +43,19 @@ serve(async (req) => {
     )
 
     const requestBody = await req.json().catch(() => ({}))
-    const { transactionHash, level = 1, action, referrerWallet, ...data } = requestBody
-    const walletAddress = req.headers.get('x-wallet-address')
+    const { transactionHash, level = 1, action, referrerWallet, walletAddress: bodyWalletAddress, ...data } = requestBody
+    const headerWalletAddress = req.headers.get('x-wallet-address')
+    const walletAddress = headerWalletAddress || bodyWalletAddress
+    
+    console.log(`🔍 Wallet address parsing:`, {
+      headerWallet: headerWalletAddress,
+      bodyWallet: bodyWalletAddress,
+      finalWallet: walletAddress,
+      headers: Array.from(req.headers.entries())
+    })
 
     if (!walletAddress) {
+      console.error('❌ No wallet address found in headers or body')
       throw new Error('Wallet address missing')
     }
 
