@@ -542,15 +542,49 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
           {/* Claim Button */}
           <div className="space-y-4">
+            {/* Show network switch button if on wrong network */}
+            {isWrongNetwork && account?.address && (
+              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium text-yellow-800">Wrong Network</span>
+                </div>
+                <p className="text-xs text-yellow-700 mb-3">
+                  You're on {activeChain?.id === 1 ? 'Ethereum Mainnet' : `Network ${activeChain?.id}`}. 
+                  Switch to Arbitrum Sepolia to claim your NFT.
+                </p>
+                <Button 
+                  onClick={handleSwitchNetwork}
+                  disabled={isProcessing}
+                  className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
+                  size="sm"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Switching Network...
+                    </>
+                  ) : (
+                    'Switch to Arbitrum Sepolia'
+                  )}
+                </Button>
+              </div>
+            )}
+
             <Button 
               onClick={handleClaimLevel1NFT}
-              disabled={isProcessing || !account?.address}
+              disabled={isProcessing || !account?.address || isWrongNetwork}
               className="w-full h-12 bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-background font-semibold text-lg shadow-lg disabled:opacity-50"
             >
               {!account?.address ? (
                 <>
                   <Crown className="mr-2 h-5 w-5" />
                   {t('claim.connectWalletToClaimNFT')}
+                </>
+              ) : isWrongNetwork ? (
+                <>
+                  <Crown className="mr-2 h-5 w-5" />
+                  Switch Network First
                 </>
               ) : isProcessing ? (
                 <>
