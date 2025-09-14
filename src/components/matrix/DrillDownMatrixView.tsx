@@ -210,7 +210,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
     return (
       <div 
         className={`
-          relative h-32 rounded-lg border-2 flex flex-col items-center justify-center p-4 transition-all cursor-pointer
+          relative h-24 md:h-32 rounded-lg border-2 flex flex-col items-center justify-center p-2 md:p-4 transition-all cursor-pointer text-center
           ${isEmpty 
             ? 'border-dashed border-muted-foreground/30 bg-muted/20 hover:bg-muted/30' 
             : `${colors.border} ${colors.bg} hover:bg-opacity-80`
@@ -411,12 +411,12 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
           </div>
         )}
 
-        {/* 19-Layer Matrix Overview */}
-        <div className="bg-muted/30 rounded-lg p-4 border border-border/50">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm font-semibold text-honey">19-Layer Network Overview</h4>
-            <Badge variant="secondary" className="text-xs">
-              Click to explore deeper layers
+        {/* 19-Layer Matrix Overview - Mobile Optimized */}
+        <div className="bg-muted/30 rounded-lg p-3 md:p-4 border border-border/50">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+            <h4 className="text-sm font-semibold text-honey">19-Layer Network</h4>
+            <Badge variant="secondary" className="text-xs self-start sm:self-center">
+              Tap layer to explore
             </Badge>
           </div>
           
@@ -482,33 +482,33 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
           </div>
         </div>
 
-        {/* L-M-R Matrix Display */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* L-M-R Matrix Display - Mobile Optimized */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-6">
           {/* Left Position */}
-          <div className="space-y-4">
+          <div className="space-y-2 md:space-y-4">
             <div className="text-center">
-              <Badge variant="outline" className="bg-green-500/10 border-green-500/30 text-green-400">
-                LEFT LEG ({currentNode?.left.length || 0})
+              <Badge variant="outline" className="bg-green-500/10 border-green-500/30 text-green-400 text-xs">
+                LEFT ({currentNode?.left.length || 0})
               </Badge>
             </div>
             {renderMemberCard(currentNode?.left[0] || null, 'L')}
           </div>
 
           {/* Middle Position */}
-          <div className="space-y-4">
+          <div className="space-y-2 md:space-y-4">
             <div className="text-center">
-              <Badge variant="outline" className="bg-blue-500/10 border-blue-500/30 text-blue-400">
-                MIDDLE LEG ({currentNode?.middle.length || 0})
+              <Badge variant="outline" className="bg-blue-500/10 border-blue-500/30 text-blue-400 text-xs">
+                MIDDLE ({currentNode?.middle.length || 0})
               </Badge>
             </div>
             {renderMemberCard(currentNode?.middle[0] || null, 'M')}
           </div>
 
           {/* Right Position */}
-          <div className="space-y-4">
+          <div className="space-y-2 md:space-y-4">
             <div className="text-center">
-              <Badge variant="outline" className="bg-purple-500/10 border-purple-500/30 text-purple-400">
-                RIGHT LEG ({currentNode?.right.length || 0})
+              <Badge variant="outline" className="bg-purple-500/10 border-purple-500/30 text-purple-400 text-xs">
+                RIGHT ({currentNode?.right.length || 0})
               </Badge>
             </div>
             {renderMemberCard(currentNode?.right[0] || null, 'R')}
