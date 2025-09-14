@@ -4,7 +4,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { useToast } from '../../hooks/use-toast';
-import { useWallet } from '../../hooks/useWallet';
+import { useBalance } from '../../hooks/useBalance';
 import { useI18n } from '../../contexts/I18nContext';
 import { ShoppingCart, Eye, ExternalLink, Zap } from 'lucide-react';
 import { IconCode, IconWallet, IconFlame } from '@tabler/icons-react';
@@ -29,10 +29,16 @@ interface AdvertisementNFTCardProps {
 }
 
 export default function AdvertisementNFTCard({ nft, onPurchase, className = '' }: AdvertisementNFTCardProps) {
-  const { bccBalance } = useWallet();
+  const { getBalanceBreakdown } = useBalance();
   const { toast } = useToast();
   const { t } = useI18n();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
+  // Get BCC balance from useBalance hook
+  const balanceBreakdown = getBalanceBreakdown();
+  const bccBalance = balanceBreakdown ? {
+    transferable: balanceBreakdown.transferable
+  } : { transferable: 0 };
 
   const getServiceTypeIcon = (type: string) => {
     switch (type) {
