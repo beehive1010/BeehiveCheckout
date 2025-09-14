@@ -37,10 +37,10 @@ export default function Referrals() {
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8">
         <div className="flex-1">
           <h1 className="text-3xl lg:text-4xl font-bold text-honey mb-2">
-            {t('nav.referrals') || 'Referrals & Matrix'}
+            {t('nav.referrals') || 'Referrals & Team'}
           </h1>
           <p className="text-lg text-muted-foreground">
-            {t('referrals.subtitle') || 'Build your 3x3 matrix network and earn rewards through referrals'}
+            {t('referrals.subtitle') || 'Manage your referral network and track team performance'}
           </p>
         </div>
         <UserProfileCard variant="compact" />
@@ -76,13 +76,28 @@ export default function Referrals() {
       </Card>
 
       {/* Main Content with Tabs */}
-      <Tabs defaultValue="matrix" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs defaultValue="team" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="team">{t('referrals.tabs.team') || 'My Team'}</TabsTrigger>
           <TabsTrigger value="matrix">{t('referrals.tabs.matrix') || '3x3 Matrix'}</TabsTrigger>
           <TabsTrigger value="stats">{t('referrals.tabs.stats') || 'Statistics'}</TabsTrigger>
         </TabsList>
 
-        {/* Matrix Visualization Tab */}
+        {/* Team Overview Tab */}
+        <TabsContent value="team" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <ReferralStatsCard 
+              className="h-fit"
+              onViewMatrix={() => {
+                // Switch to matrix tab
+                const matrixTab = document.querySelector('[value="matrix"]') as HTMLElement;
+                matrixTab?.click();
+              }}
+            />
+          </div>
+        </TabsContent>
+
+        {/* Matrix Network Tab */}
         <TabsContent value="matrix" className="space-y-6">
           <DrillDownMatrixView 
             rootWalletAddress={walletAddress || ''}

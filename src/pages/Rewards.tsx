@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useToast } from '../hooks/use-toast';
 import { supabase } from '../lib/supabase';
 import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
@@ -197,25 +198,20 @@ export default function Rewards() {
 
   return (
     <div className="container mx-auto p-4 space-y-4">
-      {/* Header with Back Button */}
-      <div className="flex items-center gap-3 mb-6">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => setLocation('/dashboard')}
-          className="text-muted-foreground hover:text-honey"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          {t('common.back')}
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold text-honey">{t('nav.rewards')}</h1>
-          <p className="text-sm text-muted-foreground">{t('rewards.subtitle')}</p>
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8">
+        <div className="flex-1">
+          <h1 className="text-3xl lg:text-4xl font-bold text-honey mb-2">
+            {t('nav.rewards') || 'Rewards & Earnings'}
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            {t('rewards.subtitle') || 'Track your earnings, claim rewards, and monitor performance'}
+          </p>
         </div>
       </div>
 
-      {/* Rewards Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Rewards Overview Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <Card>
           <CardContent className="p-4 text-center">
             <DollarSign className="h-6 w-6 text-green-400 mx-auto mb-2" />
@@ -283,10 +279,17 @@ export default function Rewards() {
         </CardContent>
       </Card>
 
-      {/* ClaimableRewardsCard - moved from Referrals page */}
-      <ClaimableRewardsCard walletAddress={walletAddress || ''} />
+      {/* Main Content with Tabs */}
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="overview">{t('rewards.tabs.overview') || 'Overview'}</TabsTrigger>
+          <TabsTrigger value="claimable">{t('rewards.tabs.claimable') || 'Claimable'}</TabsTrigger>
+          <TabsTrigger value="history">{t('rewards.tabs.history') || 'History'}</TabsTrigger>
+        </TabsList>
 
-      {/* Reward System Information - moved from Referrals page */}
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6">
+          {/* Reward System Information */}
       <Card className="bg-secondary border-border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -317,52 +320,61 @@ export default function Rewards() {
           </div>
         </CardContent>
       </Card>
+        </TabsContent>
 
-      {/* Recent Rewards History */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Award className="h-5 w-5 text-green-400" />
-            {t('rewards.recentRewards')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {rewardsData?.history && rewardsData.history.length > 0 ? (
-            <div className="space-y-3">
-              {rewardsData.history.map((reward) => (
-                <div 
-                  key={reward.id} 
-                  className="flex items-center justify-between p-3 rounded-lg border border-border/50 hover:bg-muted/30 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex flex-col">
-                      <div className="font-medium text-sm">{reward.description}</div>
-                      <div className="text-xs text-muted-foreground">{reward.date}</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-bold text-honey">{reward.amount} {reward.currency}</div>
-                    <Badge 
-                      variant="outline" 
-                      className={
-                        reward.status === 'completed' ? 'text-green-400 border-green-400/30' :
-                        reward.status === 'pending' ? 'text-yellow-400 border-yellow-400/30' :
-                        'text-red-400 border-red-400/30'
-                      }
+        {/* Claimable Tab */}
+        <TabsContent value="claimable" className="space-y-6">
+          <ClaimableRewardsCard walletAddress={walletAddress || ''} />
+        </TabsContent>
+
+        {/* History Tab */}
+        <TabsContent value="history" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Award className="h-5 w-5 text-green-400" />
+                {t('rewards.recentRewards') || 'Recent Rewards'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {rewardsData?.history && rewardsData.history.length > 0 ? (
+                <div className="space-y-3">
+                  {rewardsData.history.map((reward) => (
+                    <div 
+                      key={reward.id} 
+                      className="flex items-center justify-between p-3 rounded-lg border border-border/50 hover:bg-muted/30 transition-colors"
                     >
-                      {reward.status}
-                    </Badge>
-                  </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex flex-col">
+                          <div className="font-medium text-sm">{reward.description}</div>
+                          <div className="text-xs text-muted-foreground">{reward.date}</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-honey">{reward.amount} {reward.currency}</div>
+                        <Badge 
+                          variant="outline" 
+                          className={
+                            reward.status === 'completed' ? 'text-green-400 border-green-400/30' :
+                            reward.status === 'pending' ? 'text-yellow-400 border-yellow-400/30' :
+                            'text-red-400 border-red-400/30'
+                          }
+                        >
+                          {reward.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              {t('rewards.noHistory')}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  {t('rewards.noHistory') || 'No reward history yet'}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
     </div>
   );
