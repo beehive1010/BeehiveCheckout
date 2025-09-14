@@ -56,9 +56,9 @@ serve(async (req) => {
       console.log(`🔍 Checking NFT ownership for ${walletAddress}, Level: ${targetLevel}`);
 
       try {
-        // Create Thirdweb client - temporarily hardcoded until env vars are set
-        const thirdwebClientId = Deno.env.get('THIRDWEB_CLIENT_ID') || '3123b1ac2ebdb966dd415c6e964dc335';
-        const thirdwebSecretKey = Deno.env.get('THIRDWEB_SECRET_KEY') || 'mjg9DJsme7zjG80cAjsx4Vl-mVDHkDDzkZiD7HeSV9Kf1vKB3WcKYU9nK8Sf6GHAEkEXp1EG68DeKpAtvl6GbA';
+        // Create Thirdweb client
+        const thirdwebClientId = Deno.env.get('THIRDWEB_CLIENT_ID');
+        const thirdwebSecretKey = Deno.env.get('THIRDWEB_SECRET_KEY');
 
         if (!thirdwebClientId) {
           throw new Error('THIRDWEB_CLIENT_ID environment variable is required');
@@ -73,7 +73,7 @@ serve(async (req) => {
         const contract = getContract({
           client,
           chain: arbitrumSepolia,
-          address: '0x99265477249389469929CEA07c4a337af9e12cdA'
+          address: '0x99265477249389469929cea07c4a337af9e12cda'
         });
 
         // Check balance using ERC-1155 balanceOf function
@@ -103,7 +103,7 @@ serve(async (req) => {
         return new Response(JSON.stringify({
           success: false,
           hasNFT: false,
-          error: error.message,
+          error: (error as Error).message,
           level: targetLevel,
           walletAddress
         }), {
@@ -170,7 +170,7 @@ serve(async (req) => {
     console.log(`🔐 Secure membership activation: ${walletAddress}, transaction: ${transactionHash}`);
 
     // First check if user already owns on-chain NFT
-    const existingNFTCheck = await checkExistingNFTAndSync(supabase, walletAddress, level);
+    const existingNFTCheck = await checkExistingNFTAndSync(supabase, walletAddress, level, referrerWallet);
     if (existingNFTCheck.hasNFT) {
       console.log(`✅ User already owns Level ${level} NFT, returning existing record`);
       return new Response(JSON.stringify(existingNFTCheck), {
@@ -223,7 +223,7 @@ serve(async (req) => {
     console.error('Membership activation error:', error)
     return new Response(JSON.stringify({
       success: false,
-      error: error.message
+      error: (error as Error).message
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
@@ -240,7 +240,7 @@ async function activateNftLevel1Membership(supabase, walletAddress, transactionH
     console.log(`🔍 Checking if user is registered: ${walletAddress}`);
     const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('wallet_address, referrer_wallet, username, email')
+      .select('wallet_address, username, email')
       .eq('wallet_address', walletAddress)
       .single();
 
@@ -280,8 +280,8 @@ async function activateNftLevel1Membership(supabase, walletAddress, transactionH
       console.log(`🎮 Demo or check mode, skipping blockchain verification: ${transactionHash}`);
     }
 
-    // 2.5. Use referrer from user registration if not provided
-    const finalReferrerWallet = referrerWallet || userData.referrer_wallet || '0x0000000000000000000000000000000000000001';
+    // 2.5. Use referrer from parameters or default
+    const finalReferrerWallet = referrerWallet || '0x0000000000000000000000000000000000000001';
     console.log(`📝 Using referrer wallet: ${finalReferrerWallet}`);
 
     // 3. Call unified database activation function
@@ -297,14 +297,8 @@ async function activateNftLevel1Membership(supabase, walletAddress, transactionH
     );
 
     if (activationError) {
-      console.error('❌ Database activation function call failed:', {
-        error: activationError,
-        code: activationError.code,
-        details: activationError.details,
-        hint: activationError.hint,
-        message: activationError.message
-      });
-      throw new Error(`Database activation failed: ${activationError.message} (Code: ${activationError.code})`);
+      console.error('❌ Database activation function call failed:', activationError);
+      throw new Error(`Activation failed: ${activationError.message}`);
     }
 
     if (!activationResult || !activationResult.success) {
@@ -332,7 +326,7 @@ async function activateNftLevel1Membership(supabase, walletAddress, transactionH
 
   } catch (error) {
     console.error('NFT Level 1 activation error:', error);
-    throw new Error(`Activation failed: ${error.message}`);
+    throw new Error(`Activation failed: ${(error as Error).message}`);
   }
 }
 
@@ -341,7 +335,7 @@ async function verifyNFTClaimTransaction(transactionHash: string, walletAddress:
   console.log(`🔗 Starting transaction verification: ${transactionHash}`);
 
   const ARBITRUM_SEPOLIA_RPC = 'https://sepolia-rollup.arbitrum.io/rpc';
-  const NFT_CONTRACT = '0x99265477249389469929CEA07c4a337af9e12cdA';
+  const NFT_CONTRACT = '0x99265477249389469929cea07c4a337af9e12cda';
   const EXPECTED_TOKEN_ID = expectedLevel;
 
   try {
@@ -448,7 +442,7 @@ async function verifyNFTClaimTransaction(transactionHash: string, walletAddress:
 }
 
 // 检查用户是否已经拥有链上NFT，如果有但数据库缺少记录，则同步数据
-async function checkExistingNFTAndSync(supabase, walletAddress: string, level: number) {
+async function checkExistingNFTAndSync(supabase, walletAddress: string, level: number, referrerWallet?: string) {
   console.log(`🔍 检查用户 ${walletAddress} 是否已拥有 Level ${level} NFT`);
 
   try {
@@ -456,7 +450,7 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
     console.log(`🔍 Checking if user is registered before NFT sync: ${walletAddress}`);
     const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('wallet_address, referrer_wallet, username, email')
+      .select('wallet_address, username, email')
       .eq('wallet_address', walletAddress)
       .single();
 
@@ -470,17 +464,16 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
 
     console.log(`✅ User registration verified for NFT sync: ${walletAddress}`);
 
-
-    // 1. Use Thirdweb to check on-chain NFT balance  
-    const NFT_CONTRACT_ADDRESS = '0x99265477249389469929CEA07c4a337af9e12cdA'; // Updated to match .env.local
+    // 1. Use Thirdweb to check on-chain NFT balance
+    const NFT_CONTRACT_ADDRESS = '0x99265477249389469929cea07c4a337af9e12cda';
     const TOKEN_ID = level;
 
     console.log(`🔍 Using Thirdweb to check NFT balance for ${walletAddress}, Token ID: ${TOKEN_ID}`);
 
     try {
-      // Create Thirdweb client - temporarily hardcoded until env vars are set
-      const thirdwebClientId = Deno.env.get('THIRDWEB_CLIENT_ID') || '3123b1ac2ebdb966dd415c6e964dc335';
-      const thirdwebSecretKey = Deno.env.get('THIRDWEB_SECRET_KEY') || 'mjg9DJsme7zjG80cAjsx4Vl-mVDHkDDzkZiD7HeSV9Kf1vKB3WcKYU9nK8Sf6GHAEkEXp1EG68DeKpAtvl6GbA';
+      // Create Thirdweb client
+      const thirdwebClientId = Deno.env.get('THIRDWEB_CLIENT_ID');
+      const thirdwebSecretKey = Deno.env.get('THIRDWEB_SECRET_KEY');
 
       if (!thirdwebClientId) {
         throw new Error('THIRDWEB_CLIENT_ID environment variable is required');
@@ -517,17 +510,12 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
       console.log(`✅ User owns Level ${level} NFT on-chain (balance: ${balanceNum})`);
 
     } catch (thirdwebError) {
-      console.error(`❌ Thirdweb NFT check failed for ${walletAddress}:`, {
-        error: thirdwebError.message,
-        stack: thirdwebError.stack,
-        contractAddress: NFT_CONTRACT_ADDRESS,
-        tokenId: TOKEN_ID,
-        chainId: arbitrumSepolia.id
-      });
+      const error = thirdwebError as Error;
+      console.error(`❌ Thirdweb NFT check failed:`, error);
       // Fallback to false if Thirdweb fails
       return {
         hasNFT: false,
-        error: `On-chain verification failed: ${thirdwebError.message}`
+        error: `On-chain verification failed: ${error.message || 'Unknown error'}`
       };
     }
 
@@ -586,7 +574,7 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
           current_level: level,
           levels_owned: [level], // FIXED: Single level array, no duplicates
           has_pending_rewards: false,
-          referrer_wallet: userData.referrer_wallet,
+          referrer_wallet: referrerWallet || '0x0000000000000000000000000000000000000001',
           activation_sequence: 1,
           activation_time: currentTime,
           updated_at: currentTime
@@ -607,7 +595,7 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
       'activate_nft_level1_membership',
       {
         p_wallet_address: walletAddress,
-        p_referrer_wallet: userData.referrer_wallet || '0x0000000000000000000000000000000000000001',
+        p_referrer_wallet: referrerWallet || '0x0000000000000000000000000000000000000001',
         p_transaction_hash: `chain_sync_${Date.now()}`
       }
     );
@@ -648,8 +636,6 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
     };
   } catch (error) {
     console.error('检查链上NFT错误:', error);
-    return { hasNFT: false, error: error.message };
+    return { hasNFT: false, error: (error as Error).message };
   }
 }
-
-// Note: Matrix placement and reward logic now handled by activate_nft_level1_membership() database function
