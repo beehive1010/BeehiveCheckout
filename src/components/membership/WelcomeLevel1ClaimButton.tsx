@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useActiveAccount, useActiveWalletChain } from 'thirdweb/react';
+import { useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain } from 'thirdweb/react';
 import { getContract, prepareContractCall, sendTransaction, waitForReceipt, readContract } from 'thirdweb';
 import { arbitrumSepolia } from 'thirdweb/chains';
 import { createThirdwebClient } from 'thirdweb';
@@ -23,11 +23,13 @@ interface WelcomeLevel1ClaimButtonProps {
 export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className = '' }: WelcomeLevel1ClaimButtonProps): JSX.Element {
   const account = useActiveAccount();
   const activeChain = useActiveWalletChain();
+  const switchChain = useSwitchActiveWalletChain();
   const { toast } = useToast();
   const { t } = useI18n();
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentStep, setCurrentStep] = useState<string>('');
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [isWrongNetwork, setIsWrongNetwork] = useState(false);
   
   // Fixed Level 1 pricing and info
   const LEVEL_1_PRICE_USDC = 130;
@@ -83,6 +85,38 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
     }
     
     throw new Error(`${description} failed after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
+  };
+
+  // Check network status
+  useEffect(() => {
+    if (activeChain?.id && activeChain.id !== arbitrumSepolia.id) {
+      setIsWrongNetwork(true);
+    } else {
+      setIsWrongNetwork(false);
+    }
+  }, [activeChain?.id]);
+
+  const handleSwitchNetwork = async () => {
+    if (!switchChain) return;
+    
+    try {
+      setIsProcessing(true);
+      await switchChain(arbitrumSepolia);
+      toast({
+        title: 'Network Switched',
+        description: 'Successfully switched to Arbitrum Sepolia',
+        variant: "default",
+      });
+    } catch (error: any) {
+      console.error('Failed to switch network:', error);
+      toast({
+        title: 'Network Switch Failed',
+        description: error.message || 'Could not switch to Arbitrum Sepolia. Please switch manually in your wallet.',
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleRegistrationComplete = () => {
@@ -181,7 +215,14 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       // Step 3: Check network - must be Arbitrum Sepolia
       const chainId = activeChain?.id;
       if (chainId !== arbitrumSepolia.id) {
-        throw new Error(`Please switch to Arbitrum Sepolia network. Current: ${chainId}, Required: ${arbitrumSepolia.id}`);
+        const networkName = chainId === 1 ? 'Ethereum Mainnet' : `Network ${chainId}`;
+        toast({
+          title: 'Wrong Network',
+          description: `Please switch from ${networkName} to Arbitrum Sepolia network to claim your Level 1 NFT.`,
+          variant: "destructive",
+          duration: 8000,
+        });
+        throw new Error(`Please switch to Arbitrum Sepolia network. Current: ${networkName}, Required: Arbitrum Sepolia`);
       }
 
       // Step 4: Check ETH balance for gas
