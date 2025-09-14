@@ -156,7 +156,7 @@ export const authService = {
     }
   },
 
-  // Check if user is activated member - database first, then blockchain fallback
+
   async isActivatedMember(walletAddress: string) {
     try {
       // First check database activation status using get-member-info action
@@ -188,6 +188,7 @@ export const authService = {
       
       const memberData = chainResult.member || null;
       const isActivated = chainResult.hasNFT || (memberData?.current_level > 0) || false;
+
       
       console.log(`🔍 Final activation status for ${walletAddress}:`, { 
         isActivated, 
@@ -201,8 +202,31 @@ export const authService = {
         memberData, 
         error: null 
       };
+      
     } catch (error: any) {
       console.error('Error checking member activation:', error);
+      
+      // Final fallback: direct database check
+      try {
+        console.log('🔄 Error occurred, trying direct database fallback...');
+        const { data: fallbackMember } = await this.supabase
+          .from('members')
+          .select('current_level, wallet_address, activation_time')
+          .eq('wallet_address', walletAddress)
+          .single();
+        
+        if (fallbackMember && fallbackMember.current_level > 0) {
+          console.log('✅ Found membership in final database fallback');
+          return { 
+            isActivated: true, 
+            memberData: fallbackMember, 
+            error: null 
+          };
+        }
+      } catch (fallbackError) {
+        console.warn('Final database fallback failed:', fallbackError);
+      }
+      
       return { isActivated: false, memberData: null, error: { message: error.message } };
     }
   },

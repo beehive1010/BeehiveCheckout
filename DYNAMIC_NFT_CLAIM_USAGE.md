@@ -10,12 +10,12 @@ The `ERC5115ClaimComponent` has been updated to be dynamic and handle different 
 - Supports manual targeting of specific levels via `targetLevel` prop
 
 ### 💰 **Dynamic Pricing**
-- Level 1: 130 USDC
-- Level 2: 260 USDC  
-- Level 3: 520 USDC
-- Level 4: 1,040 USDC
-- ...up to Level 19: 34,078,720 USDC
-- Pricing follows exponential growth pattern (each level costs 2x previous level)
+- Level 1: 130 USDC (includes 30 USDC platform fee)
+- Level 2: 150 USDC  
+- Level 3: 200 USDC
+- Level 4: 250 USDC
+- ...up to Level 19: 1,000 USDC
+- Pricing follows linear growth pattern (each level increases by 50 USDC)
 
 ### 🎯 **Smart Contract Integration**
 - Uses correct token ID for each level

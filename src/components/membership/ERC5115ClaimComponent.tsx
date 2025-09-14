@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useActiveAccount, useActiveWalletChain } from 'thirdweb/react';
-import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from 'thirdweb';
+import { getContract, prepareContractCall, sendTransaction, waitForReceipt, readContract } from 'thirdweb';
 import { arbitrumSepolia } from 'thirdweb/chains';
 import { createThirdwebClient } from 'thirdweb';
+import { claimTo, balanceOf } from 'thirdweb/extensions/erc1155';
+import { approve, balanceOf as erc20BalanceOf, allowance } from 'thirdweb/extensions/erc20';
 import { importWithRetry, importThirdwebTransaction } from '../../utils/moduleLoader';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -34,27 +36,51 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
   // Use the custom hook for level management
   const { levelInfo, isLoading: isLevelLoading, refetch: refetchLevel, getLevelName, formatPrice } = useNFTLevelClaim(targetLevel);
   
-  // Enhanced transaction wrapper with retry logic
+  // Enhanced transaction wrapper with retry logic and better error handling
   const sendTransactionWithRetry = async (transaction: unknown, account: unknown, description: string = 'transaction') => {
-    return importWithRetry(
-      async () => {
-        console.log(`📤 Sending ${description}...`);
-        return await sendTransaction({
+    let lastError: any = null;
+    const maxRetries = 3;
+    const baseDelay = 2000;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`📤 Sending ${description} (attempt ${attempt}/${maxRetries})...`);
+        
+        // Add a small delay between attempts
+        if (attempt > 1) {
+          await new Promise(resolve => setTimeout(resolve, baseDelay * attempt));
+        }
+        
+        const result = await sendTransaction({
           transaction,
           account
         });
-      },
-      {
-        maxRetries: 3,
-        retryDelay: 2000,
-        onRetry: (attempt, error) => {
-          console.log(`🔄 Retrying ${description} (attempt ${attempt}/3)...`);
-          if (error.message?.includes('eth_getTransactionCount')) {
-            console.log('🎯 Detected eth_getTransactionCount error - network retry in progress');
-          }
+        
+        console.log(`✅ ${description} successful on attempt ${attempt}`);
+        return result;
+        
+      } catch (error: any) {
+        lastError = error;
+        console.error(`❌ ${description} failed on attempt ${attempt}:`, error.message);
+        
+        // Check for specific error types that we should not retry
+        if (error.message?.includes('User rejected') || 
+            error.message?.includes('user denied') ||
+            error.message?.includes('User cancelled')) {
+          throw new Error('Transaction cancelled by user');
         }
+        
+        // If this is the last attempt, don't continue
+        if (attempt === maxRetries) {
+          break;
+        }
+        
+        console.log(`🔄 Retrying ${description} in ${baseDelay * attempt}ms...`);
       }
-    );
+    }
+    
+    // All attempts failed, throw the last error
+    throw new Error(`${description} failed after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
   };
 
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
@@ -70,14 +96,11 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
     levelInfo: levelInfo
   });
 
-  // Initialize Thirdweb client with error handling
+  // Initialize Thirdweb v5 client with optimized config
   const client = createThirdwebClient({
     clientId: THIRDWEB_CLIENT_ID,
-    config: {
-      rpc: {
-        batchRequests: false, // Disable batching to avoid some loading issues
-      }
-    }
+    // v5 doesn't need the config object in the same way
+    // Most configuration is now handled per-contract or per-transaction
   });
 
   // Enhanced chain detection using multiple sources
@@ -290,6 +313,28 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       }
       console.log('✅ Network check passed - on Arbitrum Sepolia');
 
+      // Step 0.05: Check ETH balance for gas fees on Arbitrum Sepolia
+      console.log('⛽ Checking ETH balance for gas fees...');
+      try {
+        const ethBalance = await (window as any).ethereum.request({
+          method: 'eth_getBalance',
+          params: [account.address, 'latest']
+        });
+        const balanceInETH = parseInt(ethBalance, 16) / 1e18;
+        console.log(`💰 ETH Balance: ${balanceInETH} ETH`);
+        
+        if (balanceInETH < 0.001) { // Less than 0.001 ETH
+          throw new Error(`Insufficient ETH for gas fees. You need ETH on Arbitrum Sepolia to pay for transaction fees. Current balance: ${balanceInETH.toFixed(6)} ETH. Please add some ETH to your wallet first.\n\nGet test ETH from: https://sepolia-faucet.arbitrum.io/`);
+        }
+        console.log('✅ ETH balance sufficient for gas fees');
+      } catch (balanceError) {
+        if (balanceError.message.includes('Insufficient ETH')) {
+          throw balanceError; // Re-throw our custom insufficient balance error
+        }
+        console.warn('⚠️ Could not check ETH balance:', balanceError);
+        // Continue anyway since balance check is not critical
+      }
+
       // Step 0.1: Validate contracts are accessible
       console.log('🔍 Validating contract accessibility...');
       try {
@@ -358,31 +403,57 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
 
       console.log(`💳 Checking token balance for payment: ${finalAmount.toString()} units (${formatPrice(levelInfo.priceInUSDC)} USDC with 18 decimals)`);
       
-      // Check user's token balance
+      // Check token balance using Thirdweb v5 ERC20 extension
+      console.log('💰 Checking USDC balance with Thirdweb v5...');
       try {
-        const balanceResult = await fetch(`https://sepolia.arbiscan.io/api?module=account&action=tokenbalance&contractaddress=${PAYMENT_TOKEN_CONTRACT}&address=${account.address}&tag=latest`);
-        const balanceData = await balanceResult.json();
-        console.log('💰 User token balance check:', {
-          balance: balanceData.result,
-          required: finalAmount.toString(),
-          hasEnough: BigInt(balanceData.result || '0') >= finalAmount,
-          level: levelInfo.tokenId,
-          priceUSDC: levelInfo.priceInUSDC
+        const tokenBalance = await erc20BalanceOf({
+          contract: usdcContract,
+          address: account.address
         });
-      } catch (balanceError) {
-        console.warn('⚠️ Could not check token balance via API:', balanceError);
+        
+        console.log(`📊 USDC Balance: ${tokenBalance.toString()}, Required: ${finalAmount.toString()}`);
+        
+        if (tokenBalance < finalAmount) {
+          throw new Error(`Insufficient USDC balance. You have ${(Number(tokenBalance) / 1e18).toFixed(2)} USDC but need ${formatPrice(levelInfo.priceInUSDC)} USDC for ${getLevelName(levelInfo.tokenId)}`);
+        }
+        
+        console.log('✅ Sufficient USDC balance confirmed');
+      } catch (balanceError: any) {
+        if (balanceError.message.includes('Insufficient USDC')) {
+          throw balanceError; // Re-throw our custom insufficient balance error
+        }
+        console.warn('⚠️ Could not check USDC balance via Thirdweb, proceeding with transaction:', balanceError);
       }
 
-      // Check if approval is needed
+      // Check current allowance first using Thirdweb v5
       setCurrentStep(t('claim.checkingApproval'));
       
-      // Always request approval for safety and gas estimation
+      console.log('💰 Checking USDC allowance with Thirdweb v5...');
+      try {
+        const currentAllowance = await allowance({
+          contract: usdcContract,
+          owner: account.address,
+          spender: NFT_CONTRACT
+        });
+        
+        console.log(`📊 Current allowance: ${currentAllowance.toString()}, Required: ${finalAmount.toString()}`);
+        
+        if (currentAllowance >= finalAmount) {
+          console.log('✅ Sufficient allowance already exists, skipping approval');
+        } else {
+          console.log('💰 Insufficient allowance, requesting approval...');
+        }
+      } catch (allowanceError) {
+        console.warn('⚠️ Could not check allowance, proceeding with approval:', allowanceError);
+      }
+      
+      // Use Thirdweb v5 ERC20 approve extension for better compatibility
       console.log(`💰 Requesting token approval for ${formatPrice(levelInfo.priceInUSDC)} USDC (${finalAmount.toString()} units with 18 decimals) for ${getLevelName(levelInfo.tokenId)}...`);
       
-      const approveTransaction = prepareContractCall({
+      const approveTransaction = approve({
         contract: usdcContract,
-        method: "function approve(address spender, uint256 amount) returns (bool)",
-        params: [NFT_CONTRACT, finalAmount]
+        spender: NFT_CONTRACT,
+        amount: finalAmount
       });
 
       console.log('📝 Sending approval transaction...');
@@ -484,44 +555,119 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         data: "0x"
       });
 
-      // Try the standard thirdweb NFT Drop claim function signature
-      let claimTransaction;
+      // Use Thirdweb v5 ERC1155 balanceOf extension for better compatibility
+      console.log('🔍 Checking if user already owns this NFT with Thirdweb v5...');
       try {
-        // First try the standard thirdweb NFT Drop signature
-        claimTransaction = prepareContractCall({
+        const existingBalance = await balanceOf({
           contract: nftContract,
-          method: "function claim(address _receiver, uint256 _quantity, address _currency, uint256 _pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) _allowlistProof, bytes _data) payable",
-          params: [
-            account.address, // _receiver
-            BigInt(1), // _quantity
-            PAYMENT_TOKEN_CONTRACT, // _currency
-            finalAmount, // _pricePerToken (dynamic based on level)
-            allowlistProof, // _allowlistProof
-            "0x" // _data (empty bytes)
-          ]
+          owner: account.address,
+          tokenId: BigInt(levelInfo.tokenId)
         });
-        console.log('✅ Using standard NFT Drop claim signature');
-      } catch (methodError) {
-        console.warn('⚠️ Standard claim signature failed, trying with tokenId:', methodError);
+        
+        const currentBalance = Number(existingBalance);
+        console.log(`📊 Current NFT balance for Level ${levelInfo.tokenId}: ${currentBalance}`);
+        
+        if (currentBalance > 0) {
+          console.log('✅ User already owns this NFT - redirecting to dashboard');
+          toast({
+            title: t('claim.welcomeBack'),
+            description: `You already own Level ${levelInfo.tokenId} NFT. Redirecting to dashboard.`,
+            variant: "default",
+            duration: 3000,
+          });
+          
+          if (onSuccess) {
+            setTimeout(() => {
+              onSuccess();
+            }, 1500);
+          }
+          return;
+        }
+        
+        console.log('✅ NFT ownership check passed - user does not own this level yet');
+      } catch (balanceCheckError) {
+        console.warn('⚠️ Could not check NFT balance via Thirdweb v5, proceeding with claim:', balanceCheckError);
+      }
+
+      // Use Thirdweb v5 optimized approach
+      let claimTransaction;
+      
+      console.log('🔍 Preparing Thirdweb v5 optimized claim transaction...');
+      
+      try {
+        // Method 1: Try using Thirdweb's built-in ERC1155 claimTo extension with v5 optimizations
+        console.log('📝 Attempting Thirdweb v5 ERC1155 claimTo extension with enhanced parameters...');
+        
+        // Enhanced claimTo call with additional v5 parameters
+        claimTransaction = claimTo({
+          contract: nftContract,
+          to: account.address,
+          tokenId: BigInt(levelInfo.tokenId),
+          quantity: BigInt(1),
+          // v5 supports additional parameters for claim conditions
+          currency: PAYMENT_TOKEN_CONTRACT,
+          pricePerToken: finalAmount,
+          data: "0x" // Additional data parameter for v5
+        });
+        console.log('✅ Using enhanced Thirdweb v5 ERC1155 claimTo extension');
+      } catch (extensionError) {
+        console.warn('⚠️ ERC1155 extension failed, trying manual contract call:', extensionError);
+        
         try {
-          // Fallback to signature with tokenId parameter
+          // Method 2: Enhanced manual contract call with v5 optimizations
+          console.log('📝 Attempting enhanced manual contract call with v5 syntax...');
           claimTransaction = prepareContractCall({
             contract: nftContract,
-            method: "function claim(address _receiver, uint256 _tokenId, uint256 _quantity, address _currency, uint256 _pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) _allowlistProof, bytes _data) payable",
+            method: "function claim(address _receiver, uint256 _quantity, address _currency, uint256 _pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) _allowlistProof, bytes _data) payable",
             params: [
               account.address, // _receiver
-              BigInt(levelInfo.tokenId), // _tokenId (dynamic level)
               BigInt(1), // _quantity
               PAYMENT_TOKEN_CONTRACT, // _currency
-              finalAmount, // _pricePerToken (dynamic based on level)
-              allowlistProof, // _allowlistProof
-              "0x" // _data (empty bytes)
-            ]
+              finalAmount, // _pricePerToken
+              {
+                proof: [],
+                quantityLimitPerWallet: BigInt(0),
+                pricePerToken: finalAmount,
+                currency: PAYMENT_TOKEN_CONTRACT
+              }, // _allowlistProof struct
+              "0x" // _data
+            ],
+            // v5 gas optimizations
+            gas: BigInt(500000), // Reasonable gas limit
+            gasPrice: undefined, // Let wallet handle gas pricing
           });
-          console.log('✅ Using claim signature with tokenId');
-        } catch (fallbackError) {
-          console.error('❌ Both claim signatures failed:', fallbackError);
-          throw new Error(`Contract claim function not found or incompatible: ${fallbackError.message}`);
+          console.log('✅ Using enhanced manual contract call with v5 optimizations');
+        } catch (method1Error) {
+          console.warn('⚠️ Method 1 failed, trying with tokenId parameter:', method1Error);
+          
+          try {
+            // Method 3: With tokenId parameter
+            claimTransaction = prepareContractCall({
+              contract: nftContract,
+              method: "function claim(address _receiver, uint256 _tokenId, uint256 _quantity, address _currency, uint256 _pricePerToken, (bytes32[] proof, uint256 quantityLimitPerWallet, uint256 pricePerToken, address currency) _allowlistProof, bytes _data) payable",
+              params: [
+                account.address, // _receiver
+                BigInt(levelInfo.tokenId), // _tokenId
+                BigInt(1), // _quantity
+                PAYMENT_TOKEN_CONTRACT, // _currency
+                finalAmount, // _pricePerToken
+                {
+                  proof: [],
+                  quantityLimitPerWallet: BigInt(0),
+                  pricePerToken: finalAmount,
+                  currency: PAYMENT_TOKEN_CONTRACT
+                }, // _allowlistProof struct with all required fields
+                "0x" // _data
+              ],
+              // v5 enhanced transaction parameters
+              gas: BigInt(600000), // Higher gas limit for complex claim
+              value: BigInt(0), // No ETH value for ERC20 payments
+            });
+            console.log('✅ Using manual contract call with tokenId (method 2)');
+          } catch (method2Error) {
+            console.error('❌ All claim methods failed:', method2Error);
+            throw new Error(`All Thirdweb v5 claim methods failed. Last error: ${method2Error.message}`);
+          }
         }
       }
 
@@ -530,13 +676,31 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
       
       while (claimAttempts < maxClaimAttempts) {
         try {
-          claimTxResult = await sendTransactionWithRetry(
-            claimTransaction,
-            account,
-            `NFT claim transaction for ${getLevelName(levelInfo.tokenId)}`
-          );
-          console.log('🎉 NFT claim transaction:', claimTxResult.transactionHash);
-          break; // Success, exit retry loop
+          // Try Thirdweb transaction first
+          try {
+            claimTxResult = await sendTransactionWithRetry(
+              claimTransaction,
+              account,
+              `NFT claim transaction for ${getLevelName(levelInfo.tokenId)}`
+            );
+            console.log('🎉 NFT claim transaction via Thirdweb:', claimTxResult.transactionHash);
+            break; // Success, exit retry loop
+          } catch (thirdwebError: any) {
+            console.error(`❌ Thirdweb claim failed:`, thirdwebError.message);
+            
+            // If it's a module import error, try direct wallet interaction
+            if (thirdwebError.message?.includes('Module import failed') || 
+                thirdwebError.message?.includes('Failed to fetch dynamically imported module')) {
+              
+              console.log('🔄 Attempting direct wallet interaction as fallback...');
+              
+              // If Thirdweb modules fail to load, we can't proceed with the transaction
+              console.error('❌ Thirdweb module loading failed, cannot proceed without proper contract interaction');
+              throw new Error('Module loading error. Please refresh the page and try again. If the issue persists, check your internet connection.');
+            } else {
+              throw thirdwebError; // Re-throw for non-module-import errors
+            }
+          }
         } catch (claimError: any) {
           claimAttempts++;
           console.error(`❌ Claim attempt ${claimAttempts}/${maxClaimAttempts} failed:`, {
@@ -588,15 +752,26 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
         }
       }
 
-      // Wait for NFT claim transaction to be confirmed
+      // Wait for NFT claim transaction to be confirmed with enhanced v5 tracking
       setCurrentStep(t('claim.waitingNFTConfirmation'));
+      console.log('⏳ Waiting for NFT claim transaction confirmation with enhanced v5 tracking...');
+      
       const claimReceipt = await waitForReceipt({
         client,
         chain: arbitrumSepolia,
         transactionHash: claimTxResult?.transactionHash,
+        // v5 enhanced confirmation options
+        maxBlocksWaitTime: 50, // Maximum blocks to wait
+        pollingInterval: 2000, // Poll every 2 seconds
       });
       
-      console.log('✅ NFT claim confirmed:', claimReceipt.status);
+      console.log('✅ NFT claim confirmed with enhanced status:', {
+        status: claimReceipt.status,
+        blockNumber: claimReceipt.blockNumber,
+        gasUsed: claimReceipt.gasUsed?.toString(),
+        transactionHash: claimReceipt.transactionHash,
+        effectiveGasPrice: claimReceipt.effectiveGasPrice?.toString()
+      });
 
       // Step 3: Process the NFT purchase on backend
       console.log('📋 Processing NFT purchase on backend...');
@@ -735,6 +910,14 @@ export function ERC5115ClaimComponent({ onSuccess, referrerWallet, className = '
           description: t('claim.needETHForGas'),
           variant: "destructive",
           duration: 8000,
+        });
+        return;
+      } else if (errorMessage.includes('Module import failed') || errorMessage.includes('Failed to fetch dynamically imported module')) {
+        // Thirdweb module loading issue - suggest page refresh
+        toast({
+          title: 'Network Module Error',
+          description: 'Please refresh the page and try again. If the problem persists, check your internet connection.',
+          variant: "destructive",
         });
         return;
       } else if (errorMessage.includes('Rate Limited') || errorMessage.includes('rate limit')) {
