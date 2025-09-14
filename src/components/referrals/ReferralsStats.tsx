@@ -4,13 +4,9 @@ import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { 
   Users, 
-  Trophy, 
-  UserCheck, 
-  Layers,
-  Target,
-  Award,
   TrendingUp,
-  DollarSign
+  Layers,
+  Target
 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { useI18n } from '../../contexts/I18nContext';
@@ -37,19 +33,6 @@ interface ReferrerStatsData {
   referrer_category: string;
 }
 
-interface RewardsOverviewData {
-  wallet_address: string;
-  total_rewards_count: number;
-  pending_rewards_count: number;
-  claimable_rewards_count: number;
-  claimed_rewards_count: number;
-  total_amount_usdt: number;
-  pending_amount_usdt: number;
-  claimable_amount_usdt: number;
-  claimed_amount_usdt: number;
-  latest_reward_time: string;
-  latest_claim_time: string;
-}
 
 export default function ReferralsStats({ walletAddress, className }: ReferralsStatsProps) {
   const { t } = useI18n();
@@ -69,22 +52,8 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
     }
   });
 
-  const { data: rewardsOverview, isLoading: isLoadingRewards } = useQuery<RewardsOverviewData>({
-    queryKey: ['member-rewards-overview', walletAddress],
-    enabled: !!walletAddress,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('member_rewards_overview_v2')
-        .select('*')
-        .eq('wallet_address', walletAddress)
-        .single();
 
-      if (error) throw error;
-      return data;
-    }
-  });
-
-  const loading = isLoadingStats || isLoadingRewards;
+  const loading = isLoadingStats;
 
   if (loading) {
     return (
@@ -221,90 +190,8 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
           </CardContent>
         </Card>
 
-        {/* Rewards Overview */}
-        {rewardsOverview && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Award className="h-5 w-5 text-honey" />
-                Rewards Overview
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span>Total Rewards</span>
-                  <span className="font-medium">{rewardsOverview.total_rewards_count}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Claimable</span>
-                  <Badge variant="default" className="bg-green-600">
-                    {rewardsOverview.claimable_rewards_count}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Pending</span>
-                  <Badge variant="outline" className="text-orange-600 border-orange-600">
-                    {rewardsOverview.pending_rewards_count}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Claimed</span>
-                  <span className="text-muted-foreground">{rewardsOverview.claimed_rewards_count}</span>
-                </div>
-              </div>
-              
-              <div className="border-t pt-2">
-                <div className="flex justify-between items-center">
-                  <span className="flex items-center gap-1">
-                    <DollarSign className="h-4 w-4" />
-                    Total Earned
-                  </span>
-                  <span className="font-bold text-green-600">
-                    ${(rewardsOverview.total_amount_usdt || 0).toFixed(2)}
-                  </span>
-                </div>
-                {rewardsOverview.claimable_amount_usdt > 0 && (
-                  <div className="flex justify-between items-center text-sm">
-                    <span>Available to Claim</span>
-                    <span className="font-medium text-green-600">
-                      ${(rewardsOverview.claimable_amount_usdt || 0).toFixed(2)}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
 
-      {/* Category and Spillover Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UserCheck className="h-5 w-5 text-honey" />
-            Additional Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <div className="text-sm text-muted-foreground">Referrer Category</div>
-              <Badge variant="outline" className="mt-1">
-                {referrerStats.referrer_category || 'Standard'}
-              </Badge>
-            </div>
-            <div>
-              <div className="text-sm text-muted-foreground">Spillover Count</div>
-              <div className="text-lg font-medium">{referrerStats.spillover_count}</div>
-            </div>
-            <div>
-              <div className="text-sm text-muted-foreground">Activation Sequence</div>
-              <div className="text-lg font-medium">#{referrerStats.activation_sequence}</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
