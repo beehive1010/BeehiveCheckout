@@ -61,7 +61,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
       const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/matrix?action=get-matrix&rootWallet=${walletAddress}&maxLayers=19`, {
         method: 'GET',
         headers: {
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjU5NjM3OTEsImV4cCI6MjA0MTUzOTc5MX0.jYTJq4dHo9AJ9xqKpyQ1qgWvFVyxxkVsJKNGEKrGdYY',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNjU0MDUsImV4cCI6MjA3MjY0MTQwNX0.7CfL8CS1dQ8Gua89maSCDkgnMsNb19qp97mJyoJqJjs',
           'Content-Type': 'application/json',
           'x-wallet-address': walletAddress
         }

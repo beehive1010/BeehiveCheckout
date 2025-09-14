@@ -46,36 +46,45 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
     setError(null);
 
     try {
-      // 从referrals表获取matrix数据
-      const { data: referralsData, error } = await supabase
-        .from('referrals')
-        .select('matrix_layer, matrix_position, member_wallet')
-        .eq('matrix_root_wallet', walletAddress);
+      // 使用matrix edge function获取数据
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/matrix`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'x-wallet-address': walletAddress
+        },
+        body: JSON.stringify({ action: 'get-matrix' })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
       
-      // 获取members表数据以检查激活状态
-      const memberWallets = referralsData?.map(r => r.member_wallet) || [];
-      const { data: membersData } = await supabase
-        .from('members')
-        .select('wallet_address, current_level')
-        .in('wallet_address', memberWallets);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to load matrix data');
+      }
+
+      const matrixData = result.data;
       
-      if (!error && referralsData) {
+      if (matrixData && matrixData.matrix_data && matrixData.matrix_data.by_layer) {
         const stats: LayerStatsData[] = [];
         
         // 创建完整的19层统计
         for (let layer = 1; layer <= 19; layer++) {
-          const layerMembers = referralsData.filter(r => r.matrix_layer === layer);
-          const leftMembers = layerMembers.filter(r => r.matrix_position === 'L').length;
-          const middleMembers = layerMembers.filter(r => r.matrix_position === 'M').length;
-          const rightMembers = layerMembers.filter(r => r.matrix_position === 'R').length;
+          const layerMembers = matrixData.matrix_data.by_layer[layer] || [];
+          const leftMembers = layerMembers.filter(r => r.position === 'L').length;
+          const middleMembers = layerMembers.filter(r => r.position === 'M').length;
+          const rightMembers = layerMembers.filter(r => r.position === 'R').length;
           const totalMembers = layerMembers.length;
           const maxCapacity = Math.pow(3, layer);
           const fillPercentage = maxCapacity > 0 ? (totalMembers / maxCapacity) * 100 : 0;
           
           // 计算激活会员数
           const activeMembers = layerMembers.filter(lm => {
-            const memberData = membersData?.find(m => m.wallet_address === lm.member_wallet);
-            return memberData && memberData.current_level > 0;
+            return lm.is_activated || (lm.members && lm.members.current_level > 0);
           }).length;
           
           // 计算完成百分比（激活会员占总成员的比例）

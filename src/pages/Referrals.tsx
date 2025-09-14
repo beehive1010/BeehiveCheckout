@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import UserProfileCard from '../components/shared/UserProfileCard';
 import { UsersIcon, ShareIcon, TrophyIcon } from '@heroicons/react/24/outline';
 import DrillDownMatrixView from '../components/matrix/DrillDownMatrixView';
+import MatrixLayerStatsView from '../components/matrix/MatrixLayerStatsView';
 import ReferralsStats from '../components/referrals/ReferralsStats';
 import ReferralStatsCard from '../components/referrals/ReferralStatsCard';
 import { Link } from 'wouter';
@@ -99,6 +100,12 @@ export default function Referrals() {
 
         {/* Matrix Network Tab */}
         <TabsContent value="matrix" className="space-y-6">
+          {/* Matrix Layer Statistics */}
+          <MatrixLayerStatsView 
+            walletAddress={walletAddress || ''}
+          />
+          
+          {/* Drill-down Matrix View */}
           <DrillDownMatrixView 
             rootWalletAddress={walletAddress || ''}
             rootUser={{username: userData?.username, currentLevel: userData?.currentLevel}}

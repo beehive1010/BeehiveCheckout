@@ -164,7 +164,7 @@ async function findNextAvailablePosition(supabase: any, rootWallet: string): Pro
       const { data: existingReferrals, error: referralsError } = await supabase
         .from('referrals')
         .select('id, member_wallet')
-        .ilike('matrix_root', rootWallet)
+        .eq('matrix_root_wallet', rootWallet)
         .eq('matrix_layer', layer)
         .eq('matrix_position', position)
         .limit(1);
@@ -263,7 +263,7 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
   try {
     console.log('🎯 Matrix request data:', data);
     const { rootWallet, layer, limit = 1000 } = data;
-    const targetRoot = (rootWallet || walletAddress)?.toLowerCase();
+    const targetRoot = rootWallet || walletAddress;
     
     console.log(`📊 Getting matrix for root: ${targetRoot}, wallet: ${walletAddress}`);
 
@@ -281,7 +281,7 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
     let membersQuery = supabase
       .from('members')
       .select('wallet_address, referrer_wallet, current_level, activation_time')
-      .ilike('referrer_wallet', targetRoot)
+      .eq('referrer_wallet', targetRoot)
       .limit(limit);
 
     let referralsQuery = supabase
@@ -294,7 +294,7 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
         matrix_root_wallet,
         placed_at
       `)
-      .or(`referrer_wallet.ilike.${targetRoot},matrix_root_wallet.ilike.${targetRoot}`)
+      .or(`referrer_wallet.eq.${targetRoot},matrix_root_wallet.eq.${targetRoot}`)
       .limit(limit);
 
     console.log('🔍 Executing queries: members, referrals...');
@@ -326,7 +326,7 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
     // Process referrals data first (original positions)
     referralData.forEach((referral, index) => {
       const member = memberData.find(m => 
-        m.wallet_address.toLowerCase() === referral.member_wallet.toLowerCase()
+        m.wallet_address === referral.member_wallet
       );
       
       if (member) {
@@ -354,7 +354,7 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
     // Add remaining members not in either table (direct referrals only)
     memberData.forEach((member, index) => {
       const alreadyProcessed = finalMatrixData.some(f => 
-        f.wallet_address.toLowerCase() === member.wallet_address.toLowerCase()
+        f.wallet_address === member.wallet_address
       );
       
       if (!alreadyProcessed) {
@@ -542,7 +542,7 @@ async function handleFindOptimalPosition(supabase, walletAddress: string, data) 
     const { count: referralCount } = await supabase
       .from('referrals')
       .select('*', { count: 'exact', head: true })
-      .ilike('matrix_root_wallet', rootWallet);
+      .eq('matrix_root_wallet', rootWallet);
 
     // spillover_matrix table does not exist
     const spilloverCount = 0;
@@ -690,7 +690,7 @@ async function handleGetUpline(supabase, walletAddress: string, data) {
       supabase
         .from('referrals')
         .select('*')
-        .ilike('member_wallet', walletAddress)
+        .eq('member_wallet', walletAddress)
     ]);
 
     const memberPositions = [];
@@ -704,9 +704,9 @@ async function handleGetUpline(supabase, walletAddress: string, data) {
     for (const position of memberPositions || []) {
       if (position.matrix_parent || position.referrer_wallet) {
         const parentWallet = position.matrix_parent || position.referrer_wallet;
-        const uplineChain = await getUplineChain(supabase, parentWallet, position.matrix_root);
+        const uplineChain = await getUplineChain(supabase, parentWallet, position.matrix_root_wallet);
         uplineData.push({
-          matrix_root: position.matrix_root,
+          matrix_root: position.matrix_root_wallet,
           member_position: position.matrix_position,
           member_layer: position.matrix_layer,
           upline_chain: uplineChain,
@@ -751,7 +751,7 @@ async function handleGetMatrixStats(supabase, walletAddress: string, data) {
     const { data: referralsStats, error: referralsError } = await supabase
       .from('referrals')
       .select('member_wallet, referrer_wallet, matrix_layer, placed_at')
-      .ilike('referrer_wallet', walletAddress);
+      .eq('referrer_wallet', walletAddress);
 
     if (referralsError) {
       console.error('❌ Referrals stats query error:', referralsError);
@@ -765,7 +765,7 @@ async function handleGetMatrixStats(supabase, walletAddress: string, data) {
     const { data: memberInfo, error: memberError } = await supabase
       .from('members')
       .select('wallet_address, referrer_wallet, current_level, activation_time')
-      .ilike('wallet_address', walletAddress)
+      .eq('wallet_address', walletAddress)
       .single();
 
     if (memberError && memberError.code !== 'PGRST116') {
@@ -1485,7 +1485,7 @@ async function processAutomaticSpillover(supabase, rootWallet: string, triggerLa
     supabase
       .from('referrals')
       .select('*')
-      .ilike('matrix_root_wallet', rootWallet)
+      .eq('matrix_root_wallet', rootWallet)
       .eq('matrix_layer', triggerLayer)
   ]);
 
@@ -1527,8 +1527,8 @@ async function getUplineChain(supabase, startWallet: string, rootWallet: string)
       supabase
         .from('referrals')
         .select('*')
-        .ilike('member_wallet', currentWallet)
-        .ilike('matrix_root_wallet', rootWallet)
+        .eq('member_wallet', currentWallet)
+        .eq('matrix_root_wallet', rootWallet)
         .single()
     ]);
 
