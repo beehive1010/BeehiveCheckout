@@ -214,41 +214,60 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
           </div>
         </div>
 
-        {/* Layer Progress */}
+        {/* 19-Layer Progress - Mobile Optimized */}
         <div className="space-y-3">
           <h4 className="font-semibold flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
-            {t('referrals.layer_progress')}
+            {t('referrals.layer_progress')} (19 Layers)
           </h4>
-          <div className="space-y-2">
-            {[1, 2, 3, 4, 5].map((layer) => {
+          
+          {/* Active Layers Only */}
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {Array.from({ length: 19 }, (_, i) => i + 1).map((layer) => {
               const progress = calculateLayerProgress(layer);
               const status = getLayerStatus(layer);
               const layerCount = matrixStats?.as_root?.layer_distribution?.[layer] || 0;
               const capacity = Math.pow(3, layer);
 
+              // Only show layers that have progress or are the next expected layer
+              if (progress === 0 && layer > (matrixStats?.as_root?.max_depth || 0) + 1) {
+                return null;
+              }
+
               return (
-                <div key={layer} className="flex items-center gap-3">
+                <div key={layer} className="flex items-center gap-2 md:gap-3">
                   <Badge 
                     variant={status === 'completed' ? 'default' : status === 'active' ? 'secondary' : 'outline'}
-                    className={
+                    className={`text-xs flex-shrink-0 ${
                       status === 'completed' ? 'bg-green-600 text-white' : 
                       status === 'active' ? 'bg-honey text-black' : 
                       'text-muted-foreground'
-                    }
+                    }`}
                   >
                     L{layer}
                   </Badge>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="flex justify-between text-xs mb-1">
-                      <span>{layerCount}/{capacity}</span>
+                      <span className="truncate">{layerCount}/{capacity >= 1000 ? `${(capacity/1000).toFixed(1)}K` : capacity}</span>
                       <span>{progress.toFixed(1)}%</span>
                     </div>
                     <Progress value={progress} className="h-2" />
                   </div>
                 </div>
               );
-            })}
+            }).filter(Boolean)}
+          </div>
+          
+          {/* Summary for deep layers */}
+          {(matrixStats?.as_root?.max_depth || 0) > 10 && (
+            <div className="text-xs text-muted-foreground bg-muted/20 rounded p-2">
+              Network extends to Layer {matrixStats?.as_root?.max_depth} of 19 possible layers
+            </div>
+          )}
+          
+          {/* Show remaining capacity */}
+          <div className="text-xs text-muted-foreground">
+            Showing active layers (max 19 layers total)
           </div>
         </div>
 
