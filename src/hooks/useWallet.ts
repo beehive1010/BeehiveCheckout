@@ -63,12 +63,22 @@ export function useWallet() {
         throw error;
       }
     },
-    staleTime: 5000,
+    staleTime: 30000, // Cache for 30 seconds
     refetchInterval: (query) => {
-      // Only refetch if user is registered
-      return query.state.data?.isRegistered ? 10000 : false;
+      // Reduced polling frequency to avoid deployment issues
+      // Only refetch if user is registered and needs active monitoring
+      const data = query.state.data;
+      if (!data?.isRegistered) return false;
+      
+      // Less frequent polling for better performance
+      return data?.userFlow === 'claim_nft' ? 60000 : false; // Only poll when claiming
     },
     refetchIntervalInBackground: false,
+    retry: (failureCount, error) => {
+      // Better error handling for deployment stability
+      if (failureCount > 2) return false;
+      return !(error as any)?.message?.includes('NETWORK_ERROR');
+    },
   });
   
   const { data: userStatus, isLoading: isUserLoading, error: userError } = userQuery;
@@ -129,27 +139,27 @@ export function useWallet() {
     },
   });
 
-  // Extract user data from enhanced response
-  const userData = userStatus?.user;
+  // Extract user data from enhanced response with error handling
+  const userData = userStatus?.user || null;
   const isRegistered = userStatus?.isRegistered ?? false;
   const hasNFT = userStatus?.hasNFT ?? false;
   const isActivated = userStatus?.isMember ?? userStatus?.isActivated ?? false;
-  const currentLevel = userStatus?.membershipLevel || userData?.currentLevel || 0;
+  const currentLevel = userStatus?.membershipLevel || ((userStatus as any)?.user?.currentLevel) || 0;
   const membershipState = { activeLevel: currentLevel, levelsOwned: currentLevel > 0 ? [currentLevel] : [] };
   const bccBalance = { 
-    transferable: userBalances?.bccTransferable || 0, 
-    restricted: userBalances?.bccRestricted || 0,
-    locked: userBalances?.bccLocked || 0,
-    total: (userBalances?.bccTransferable || 0) + (userBalances?.bccRestricted || 0)
+    transferable: userBalances?.success ? (userBalances.data?.bcc_transferable || 0) : 0, 
+    restricted: 0, // No longer used based on API response
+    locked: userBalances?.success ? (userBalances.data?.bcc_locked || 0) : 0,
+    total: userBalances?.success ? ((userBalances.data?.bcc_transferable || 0) + (userBalances.data?.bcc_locked || 0)) : 0
   };
   // CTH balance not displayed as requested by user
   const cthBalance = 0;
   
   // USDT reward balance for withdrawal functionality  
   const usdtBalance = {
-    totalEarned: userBalances?.totalUsdtEarned || 0,
-    availableRewards: userBalances?.availableUsdtRewards || 0,
-    totalWithdrawn: userBalances?.totalUsdtWithdrawn || 0,
+    totalEarned: userBalances?.success ? (userBalances.data?.usdc_claimed_total || userBalances.data?.usdc_total_earned || 0) : 0,
+    availableRewards: userBalances?.success ? (userBalances.data?.usdc_claimable || 0) : 0,
+    totalWithdrawn: 0, // Not available in current API response
   };
   const referralNode = null; // Would be fetched separately
   const { data: userActivity, isLoading: isActivityLoading } = useQuery({
