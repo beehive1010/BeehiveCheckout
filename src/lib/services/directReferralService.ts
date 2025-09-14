@@ -1,23 +1,23 @@
 import { supabase } from '../supabase';
 
 /**
- * 获取用户的直接推荐人数（基于 matrix_stats 视图）
+ * 获取用户的直接推荐人数（基于 referrer_stats 视图）
  * 只计算通过该用户推荐链接直接注册的用户，不包括矩阵安置的溢出用户
  */
 export async function getDirectReferralCount(referrerWallet: string): Promise<number> {
   try {
-    console.log(`🔍 Fetching direct referrals from matrix_stats for wallet: ${referrerWallet}`);
+    console.log(`🔍 Fetching direct referrals from referrer_stats for wallet: ${referrerWallet}`);
     
-    // Use matrix_stats view to get direct referral count (bypasses RLS issues) with exact matching
+    // Use referrer_stats view to get direct referral count (bypasses RLS issues) with exact matching
     const { data, error } = await supabase
-      .from('matrix_stats')
-      .select('direct_referrals_count')
-      .eq('member_wallet', referrerWallet)
+      .from('referrer_stats')
+      .select('direct_referrals')
+      .eq('wallet_address', referrerWallet)
       .single();
 
     if (error) {
-      console.error('❌ Error fetching from matrix_stats:', error);
-      // Fallback to users table query if matrix_stats fails
+      console.error('❌ Error fetching from referrer_stats:', error);
+      // Fallback to users table query if referrer_stats fails
       console.log('🔄 Falling back to users table...');
       
       const { count, error: usersError } = await supabase
@@ -36,8 +36,8 @@ export async function getDirectReferralCount(referrerWallet: string): Promise<nu
       return directCount;
     }
 
-    const directCount = data?.direct_referrals_count || 0;
-    console.log(`✅ Direct referral count from matrix_stats for ${referrerWallet}: ${directCount}`);
+    const directCount = data?.direct_referrals || 0;
+    console.log(`✅ Direct referral count from referrer_stats for ${referrerWallet}: ${directCount}`);
     
     return directCount;
   } catch (error) {
