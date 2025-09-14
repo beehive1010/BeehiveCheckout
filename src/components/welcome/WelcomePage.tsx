@@ -6,7 +6,7 @@ import { Crown, Gift, Sparkles, Loader2 } from 'lucide-react';
 import { useWallet } from '../../hooks/useWallet';
 import { useI18n } from '../../contexts/I18nContext';
 import { useLocation } from 'wouter';
-import { ERC5115ClaimComponent } from '../membership/ERC5115ClaimComponent';
+import { WelcomeLevel1ClaimButton } from '../membership';
 import { authService } from '../../lib/supabaseClient';
 import RegistrationModal from '../modals/RegistrationModal';
 
@@ -529,7 +529,7 @@ export function WelcomePage() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <ERC5115ClaimComponent
+                        <WelcomeLevel1ClaimButton
                             onSuccess={handleClaimSuccess}
                             className="w-full"
                         />

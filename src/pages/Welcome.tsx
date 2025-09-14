@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ERC5115ClaimComponent } from '../components/membership/ERC5115ClaimComponent';
+import { WelcomeLevel1ClaimButton } from '../components/membership';
 import { useLocation } from 'wouter';
 import { useActiveAccount } from 'thirdweb/react';
 import { referralService } from '../api/landing/referral.client';
@@ -186,10 +186,9 @@ export default function Welcome() {
           </Card>
         </div>
         
-        <ERC5115ClaimComponent 
+        <WelcomeLevel1ClaimButton 
           onSuccess={handleActivationComplete}
           referrerWallet={referrerWallet}
-          targetLevel={1} // Welcome page always shows Level 1 for new users
         />
         
         <div className="mt-8 text-center text-sm text-muted-foreground space-y-2">

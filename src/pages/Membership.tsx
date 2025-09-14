@@ -10,7 +10,7 @@ import { useToast } from '../hooks/use-toast';
 import { Crown, Shield, Star, Zap, Gift, Lock, CheckCircle, Loader2, ArrowRight, Users, Award } from 'lucide-react';
 import MembershipBadge from '../components/membership/MembershipBadge';
 import { getMembershipLevel } from '../lib/config/membershipLevels';
-import { ERC5115ClaimComponent } from '../components/membership/ERC5115ClaimComponent';
+import { Level2ClaimButton, LevelUpgradeButton } from '../components/membership';
 
 interface MembershipLevel {
   level: number;
@@ -434,21 +434,46 @@ export default function Membership() {
           </div>
           
           <div className="max-w-4xl mx-auto">
-            <ERC5115ClaimComponent 
-              onSuccess={() => {
-                toast({
-                  title: t('membership.upgradeSuccess') || 'Upgrade Successful!',
-                  description: t('membership.upgradeSuccessDescription') || 'Your membership has been upgraded successfully',
-                  duration: 5000
-                });
-                // Refresh the page to update level display
-                setTimeout(() => {
-                  window.location.reload();
-                }, 2000);
-              }}
-              referrerWallet={userReferrer} // Use user's original referrer for upgrades
-              // No targetLevel specified - will auto-detect next level
-            />
+            {/* Dynamic component selection for membership upgrades only */}
+            {currentLevel === 0 ? (
+              <div className="text-center p-8 text-muted-foreground">
+                <p>{t('membership.needsActivation') || 'Please activate your Level 1 membership on the Welcome page first.'}</p>
+                <a href="/welcome" className="text-honey hover:underline mt-2 inline-block">
+                  {t('membership.goToWelcome') || 'Go to Welcome Page →'}
+                </a>
+              </div>
+            ) : currentLevel === 1 && (directReferralsCount || 0) >= 3 ? (
+              <Level2ClaimButton 
+                onSuccess={() => {
+                  toast({
+                    title: t('membership.upgradeSuccess') || 'Upgrade Successful!',
+                    description: t('membership.upgradeSuccessDescription') || 'Your membership has been upgraded successfully',
+                    duration: 5000
+                  });
+                  setTimeout(() => {
+                    window.location.reload();
+                  }, 2000);
+                }}
+              />
+            ) : currentLevel >= 1 && currentLevel < 19 ? (
+              <LevelUpgradeButton 
+                onSuccess={() => {
+                  toast({
+                    title: t('membership.upgradeSuccess') || 'Upgrade Successful!',
+                    description: t('membership.upgradeSuccessDescription') || 'Your membership has been upgraded successfully',
+                    duration: 5000
+                  });
+                  setTimeout(() => {
+                    window.location.reload();
+                  }, 2000);
+                }}
+                targetLevel={currentLevel + 1}
+              />
+            ) : (
+              <div className="text-center p-8 text-muted-foreground">
+                <p>{t('membership.maxLevelReached') || 'Maximum level reached!'}</p>
+              </div>
+            )}
           </div>
         </div>
       )}
