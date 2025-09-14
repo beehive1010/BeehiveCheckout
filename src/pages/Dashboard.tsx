@@ -90,18 +90,20 @@ export default function Dashboard() {
       console.log('💰 Raw balance data from DB:', balanceData);
 
       if (balanceData) {
+        const transferable = balanceData.bcc_balance || 0;
+        const locked = balanceData.bcc_locked || 0;
         return {
-          bccTotal: (balanceData.bcc_transferable || 0) + (balanceData.bcc_locked || 0),
-          bccLocked: balanceData.bcc_locked || 0,
-          bccTransferable: balanceData.bcc_transferable || 0
+          bccTotal: transferable + locked,
+          bccLocked: locked,
+          bccTransferable: transferable
         };
       }
 
-      // 如果没有余额记录，返回默认值
+      // 如果没有余额记录，返回默认值 (新成员默认余额)
       return {
-        bccTotal: 0,
-        bccLocked: 0,
-        bccTransferable: 0
+        bccTotal: 600 + 10350, // 600可用 + 10350锁仓
+        bccLocked: 10350,
+        bccTransferable: 600
       };
     } catch (error) {
       console.error('❌ Balance load error:', error);
@@ -263,7 +265,7 @@ export default function Dashboard() {
 
       // 合并数据
       const dashboardData: SimpleDashboardData = {
-        bccBalance: results.balance?.bccTransferable || 0,
+        bccBalance: results.balance?.bccTotal || 0,
         bccLocked: results.balance?.bccLocked || 0,
         bccTransferable: results.balance?.bccTransferable || 0,
         directReferrals: results.matrix?.directReferrals || 0,
