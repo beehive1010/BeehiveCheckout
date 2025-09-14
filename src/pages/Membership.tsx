@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useI18n } from '../contexts/I18nContext';
 import { useWallet } from '../hooks/useWallet';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -29,6 +29,7 @@ export default function Membership() {
   const { walletAddress, bccBalance, currentLevel } = useWallet();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [userReferrer, setUserReferrer] = useState<string>('');
 
   // Fetch user's referrer from members table
@@ -274,8 +275,12 @@ export default function Membership() {
                     description: t('membership.upgradeSuccessDescription') || 'Your membership has been upgraded successfully',
                     duration: 5000
                   });
+                  // Refresh user data and referrals count after successful upgrade
+                  console.log('✅ Level 2 claim successful - refreshing user data');
+                  // Add a small delay to ensure database updates have been processed
                   setTimeout(() => {
-                    window.location.reload();
+                    queryClient.invalidateQueries({ queryKey: ['user-status', walletAddress] });
+                    queryClient.invalidateQueries({ queryKey: ['/direct-referrals', walletAddress] });
                   }, 2000);
                 }}
               />
@@ -287,9 +292,10 @@ export default function Membership() {
                     description: t('membership.upgradeSuccessDescription') || 'Your membership has been upgraded successfully',
                     duration: 5000
                   });
-                  setTimeout(() => {
-                    window.location.reload();
-                  }, 2000);
+                  // Refresh user data after successful upgrade
+                  console.log('✅ Level upgrade successful - refreshing user data');
+                  queryClient.invalidateQueries({ queryKey: ['user-status', walletAddress] });
+                  queryClient.invalidateQueries({ queryKey: ['/direct-referrals', walletAddress] });
                 }}
                 targetLevel={currentLevel + 1}
               />
