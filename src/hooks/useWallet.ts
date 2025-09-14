@@ -137,10 +137,10 @@ export function useWallet() {
   const currentLevel = userStatus?.membershipLevel || userData?.currentLevel || 0;
   const membershipState = { activeLevel: currentLevel, levelsOwned: currentLevel > 0 ? [currentLevel] : [] };
   const bccBalance = { 
-    transferable: userBalances?.bccTransferable || 0, 
-    restricted: userBalances?.bccRestricted || 0,
-    locked: userBalances?.bccLocked || 0,
-    total: (userBalances?.bccTransferable || 0) + (userBalances?.bccRestricted || 0)
+    transferable: userBalances?.data?.bcc_balance || userBalances?.bccTransferable || 0, 
+    restricted: userBalances?.data?.bcc_total_unlocked || userBalances?.bccRestricted || 0,
+    locked: userBalances?.data?.bcc_locked || userBalances?.bccLocked || 0,
+    total: (userBalances?.data?.bcc_balance || 0) + (userBalances?.data?.bcc_total_unlocked || 0)
   };
   // CTH balance not displayed as requested by user
   const cthBalance = 0;
