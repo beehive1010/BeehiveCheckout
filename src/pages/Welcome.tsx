@@ -90,6 +90,13 @@ export default function Welcome() {
           return;
         }
         
+        // Additional check: If user has Level 1 NFT but database shows no activation, redirect to dashboard  
+        if (membershipResult.memberData?.current_level >= 1) {
+          console.log('✅ Welcome page: User has Level 1 NFT but database not synced - redirecting to dashboard');
+          setLocation('/dashboard');
+          return;
+        }
+        
         console.log('🎯 Welcome page: User is not activated (Level', membershipResult.memberData?.current_level || 0, ') - showing claim interface');
       } catch (error) {
         console.warn('⚠️ Welcome page: Failed to check membership status:', error);

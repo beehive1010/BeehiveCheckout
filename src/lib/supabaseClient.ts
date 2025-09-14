@@ -188,6 +188,16 @@ export const authService = {
       
       const memberData = chainResult.member || null;
       const isActivated = chainResult.hasNFT || (memberData?.current_level > 0) || false;
+      
+      // If user has NFT but no member record, they should still be considered activated
+      if (chainResult.hasNFT && !memberData) {
+        console.log(`🔄 User has Level 1 NFT but no member record - treating as activated`);
+        return {
+          isActivated: true,
+          memberData: { current_level: 1, wallet_address: walletAddress },
+          error: null
+        };
+      }
 
       
       console.log(`🔍 Final activation status for ${walletAddress}:`, { 
