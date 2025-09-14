@@ -127,10 +127,13 @@ export default function Dashboard() {
           .select('*', { count: 'exact', head: true })
           .eq('referrer_wallet', walletAddress),
         
-        // 查询总团队人数 - 使用get_matrix_downline RPC函数
-        supabase.rpc('get_matrix_downline', { 
-          p_root_wallet: walletAddress, 
-          p_max_depth: 19 
+        // 查询总团队人数 - 使用matrix edge function
+        supabase.functions.invoke('matrix', { 
+          body: { 
+            action: 'get-downline', 
+            rootWallet: walletAddress, 
+            maxDepth: 19 
+          } 
         }),
         
         // 查询最大层级
