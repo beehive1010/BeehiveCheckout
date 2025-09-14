@@ -297,8 +297,14 @@ async function activateNftLevel1Membership(supabase, walletAddress, transactionH
     );
 
     if (activationError) {
-      console.error('❌ Database activation function call failed:', activationError);
-      throw new Error(`Activation failed: ${activationError.message}`);
+      console.error('❌ Database activation function call failed:', {
+        error: activationError,
+        code: activationError.code,
+        details: activationError.details,
+        hint: activationError.hint,
+        message: activationError.message
+      });
+      throw new Error(`Database activation failed: ${activationError.message} (Code: ${activationError.code})`);
     }
 
     if (!activationResult || !activationResult.success) {

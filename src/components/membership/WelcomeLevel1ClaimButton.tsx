@@ -139,11 +139,20 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         .single();
       
       if (userError || !userData) {
-        console.log('❌ User not registered, showing registration modal');
+        console.log('❌ User not registered:', {
+          error: userError,
+          hasUserData: !!userData,
+          walletAddress: account.address
+        });
         setIsProcessing(false);
         setShowRegistrationModal(true);
         return;
       }
+      
+      console.log('✅ User registration confirmed:', {
+        walletAddress: userData.wallet_address,
+        username: userData.username
+      });
       
       console.log('✅ User registration verified');
       
@@ -371,6 +380,14 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           
         } catch (activationError: any) {
           console.warn(`⚠️ Membership activation attempt ${attempt} failed:`, activationError.message);
+          
+          // Check if it's a registration error
+          if (activationError.message && activationError.message.includes('User must be registered')) {
+            console.log('❌ User registration required, showing registration modal');
+            setIsProcessing(false);
+            setShowRegistrationModal(true);
+            return;
+          }
           
           if (attempt < maxRetries) {
             console.log(`🔄 Retrying activation in ${retryDelay/1000} seconds...`);
