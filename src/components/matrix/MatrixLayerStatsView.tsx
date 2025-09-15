@@ -46,15 +46,15 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
     setError(null);
 
     try {
-      // 使用matrix edge function获取数据
-      const response = await fetch(`${import.meta.env.VITE_API_BASE}/matrix`, {
+      // Use optimized matrix-view edge function for better performance
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/matrix-view`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           'x-wallet-address': walletAddress
         },
-        body: JSON.stringify({ action: 'get-matrix' })
+        body: JSON.stringify({ action: 'get-layer-stats' })
       });
 
       if (!response.ok) {
@@ -64,67 +64,33 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       const result = await response.json();
       
       if (!result.success) {
-        throw new Error(result.error || 'Failed to load matrix data');
+        throw new Error(result.error || 'Failed to load layer statistics');
       }
 
-      const matrixData = result.data;
+      // The optimized view returns pre-calculated layer stats
+      const layerStats = result.data.layer_stats || [];
+      setLayerStats(layerStats);
       
-      if (matrixData && matrixData.matrix_data && matrixData.matrix_data.by_layer) {
-        const stats: LayerStatsData[] = [];
-        
-        // 创建完整的19层统计
-        for (let layer = 1; layer <= 19; layer++) {
-          const layerMembers = matrixData.matrix_data.by_layer[layer] || [];
-          const leftMembers = layerMembers.filter(r => r.position === 'L').length;
-          const middleMembers = layerMembers.filter(r => r.position === 'M').length;
-          const rightMembers = layerMembers.filter(r => r.position === 'R').length;
-          const totalMembers = layerMembers.length;
-          const maxCapacity = Math.pow(3, layer);
-          const fillPercentage = maxCapacity > 0 ? (totalMembers / maxCapacity) * 100 : 0;
-          
-          // 计算激活会员数
-          const activeMembers = layerMembers.filter(lm => {
-            return lm.is_activated || (lm.members && lm.members.current_level > 0);
-          }).length;
-          
-          // 计算完成百分比（激活会员占总成员的比例）
-          const completedPercentage = totalMembers > 0 ? (activeMembers / totalMembers) * 100 : 0;
-          
-          stats.push({
-            layer,
-            totalMembers,
-            leftMembers,
-            middleMembers,
-            rightMembers,
-            maxCapacity,
-            fillPercentage,
-            activeMembers,
-            completedPercentage
-          });
-        }
-
-        setLayerStats(stats);
-      } else {
-        // 创建空统计
-        const emptyStats: LayerStatsData[] = [];
-        for (let layer = 1; layer <= 19; layer++) {
-          emptyStats.push({
-            layer,
-            totalMembers: 0,
-            leftMembers: 0,
-            middleMembers: 0,
-            rightMembers: 0,
-            maxCapacity: Math.pow(3, layer),
-            fillPercentage: 0,
-            activeMembers: 0,
-            completedPercentage: 0
-          });
-        }
-        setLayerStats(emptyStats);
-      }
     } catch (error: any) {
       console.error('Error loading layer stats:', error);
       setError(error.message || 'Failed to load layer statistics');
+      
+      // Fallback: create empty stats
+      const emptyStats: LayerStatsData[] = [];
+      for (let layer = 1; layer <= 19; layer++) {
+        emptyStats.push({
+          layer,
+          totalMembers: 0,
+          leftMembers: 0,
+          middleMembers: 0,
+          rightMembers: 0,
+          maxCapacity: Math.pow(3, layer),
+          fillPercentage: 0,
+          activeMembers: 0,
+          completedPercentage: 0
+        });
+      }
+      setLayerStats(emptyStats);
     } finally {
       setLoading(false);
     }

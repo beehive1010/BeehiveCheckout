@@ -129,14 +129,16 @@ export default function Dashboard() {
           .select('*', { count: 'exact', head: true })
           .eq('referrer_wallet', walletAddress),
         
-        // 查询总团队人数 - 使用matrix edge function
-        supabase.functions.invoke('matrix', { 
-          body: { 
-            action: 'get-downline', 
-            rootWallet: walletAddress, 
-            maxDepth: 19 
-          } 
-        }),
+        // 查询总团队人数 - 使用优化的matrix-view
+        fetch(`${import.meta.env.VITE_API_BASE}/matrix-view`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'x-wallet-address': walletAddress
+          },
+          body: JSON.stringify({ action: 'get-layer-stats' })
+        }).then(res => res.json()),
         
         // 查询最大层级
         supabase
@@ -151,8 +153,8 @@ export default function Dashboard() {
         ? (directReferralsResult.value.count || 0) 
         : 0;
 
-      const totalTeamSize = totalTeamResult.status === 'fulfilled' && totalTeamResult.value.data
-        ? (totalTeamResult.value.data.length || 0) 
+      const totalTeamSize = totalTeamResult.status === 'fulfilled' && totalTeamResult.value.success && totalTeamResult.value.data?.summary
+        ? (totalTeamResult.value.data.summary.total_members || 0) 
         : 0;
 
       const maxLayer = maxLayerResult.status === 'fulfilled' && maxLayerResult.value.data?.[0]
@@ -216,6 +218,7 @@ export default function Dashboard() {
         console.log('🏆 Calculated reward stats:', { totalClaimed, totalPending, totalAvailable });
 
         return {
+          totalRewards: totalClaimed + totalPending + totalAvailable, // 所有奖励总和
           totalClaimed,
           totalPending,
           totalAvailable
@@ -223,6 +226,7 @@ export default function Dashboard() {
       }
 
       return {
+        totalRewards: 0,
         totalClaimed: 0,
         totalPending: 0,
         totalAvailable: 0
@@ -271,7 +275,7 @@ export default function Dashboard() {
         directReferrals: results.matrix?.directReferrals || 0,
         totalTeamSize: results.matrix?.totalTeamSize || 0,
         maxLayer: results.matrix?.maxLayer || 0,
-        totalRewards: results.rewards?.totalClaimed || 0,
+        totalRewards: results.rewards?.totalRewards || 0,
         pendingRewards: results.rewards?.totalPending || 0,
         claimableRewards: results.rewards?.totalAvailable || 0,
         lastUpdated: new Date().toISOString()

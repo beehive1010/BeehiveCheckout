@@ -55,10 +55,10 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
     setError(null);
 
     try {
-      // Use matrix Edge Function to get all layers data
-      console.log(`🔍 Loading matrix for wallet: ${walletAddress}, showing all 19 layers`);
+      // Use optimized matrix-view Edge Function for better performance
+      console.log(`🔍 Loading matrix for wallet: ${walletAddress}, using optimized view`);
       
-      const response = await fetch(`${import.meta.env.VITE_API_BASE}/matrix`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/matrix-view`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
@@ -66,9 +66,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
           'x-wallet-address': walletAddress
         },
         body: JSON.stringify({
-          action: 'get-matrix',
-          rootWallet: walletAddress,
-          maxLayers: 19
+          action: 'get-matrix-members'
         })
       });
 
@@ -98,18 +96,18 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
         layerMembers.forEach((member: any) => {
           const memberData: MatrixMember = {
             walletAddress: member.wallet_address,
-            username: member.members?.username || `User_${member.wallet_address.slice(-6)}`,
-            level: member.members?.current_level || 1,
-            isActive: member.is_activated || member.members?.is_activated || false,
-            layer: member.layer,
-            position: member.position as 'L' | 'M' | 'R',
-            placedAt: member.created_at || new Date().toISOString()
+            username: member.username || `User_${member.wallet_address.slice(-6)}`,
+            level: member.current_level || 1,
+            isActive: member.is_activated || false,
+            layer: member.matrix_layer || currentLayer,
+            position: member.matrix_position as 'L' | 'M' | 'R',
+            placedAt: member.joined_at || new Date().toISOString()
           };
           
           // Include all members in the current layer for this matrix root
-          if (member.position === 'L') leftMembers.push(memberData);
-          else if (member.position === 'M') middleMembers.push(memberData);
-          else if (member.position === 'R') rightMembers.push(memberData);
+          if (member.matrix_position === 'L') leftMembers.push(memberData);
+          else if (member.matrix_position === 'M') middleMembers.push(memberData);
+          else if (member.matrix_position === 'R') rightMembers.push(memberData);
         });
 
         // Create current member info
