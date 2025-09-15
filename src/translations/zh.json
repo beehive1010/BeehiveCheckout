@@ -2358,5 +2358,21 @@
       "rewards": "每个等级的矩阵奖励",
       "benefits": "专属权益和特权"
     }
+  },
+  "guard": {
+    "checkingAccess": "检查访问权限",
+    "verifyingMembership": "验证会员状态中...",
+    "walletRequired": "需要钱包",
+    "connectWalletToContinue": "请连接您的钱包以继续",
+    "goToHome": "返回主页",
+    "accessError": "访问错误",
+    "tryAgain": "重试",
+    "upgradeRequired": "需要升级",
+    "currentLevel": "当前等级",
+    "requiredLevel": "需要等级",
+    "levelRequiredMessage": "此页面需要等级",
+    "upgradeMembership": "升级会员",
+    "redirecting": "正在重定向",
+    "redirectingToActivation": "正在重定向到会员激活..."
   }
 }
