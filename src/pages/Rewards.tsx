@@ -292,10 +292,11 @@ export default function Rewards() {
       </Card>
 
       {/* Main Content with Tabs */}
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">{t('rewards.tabs.overview') || 'Overview'}</TabsTrigger>
           <TabsTrigger value="claimable">{t('rewards.tabs.claimable') || 'Claimable'}</TabsTrigger>
+          <TabsTrigger value="withdrawal">{t('rewards.tabs.withdrawal') || 'Withdraw'}</TabsTrigger>
           <TabsTrigger value="history">{t('rewards.tabs.history') || 'History'}</TabsTrigger>
         </TabsList>
 
@@ -340,6 +341,11 @@ export default function Rewards() {
         {/* Claimable Tab */}
         <TabsContent value="claimable" className="space-y-6">
           <ClaimableRewardsCard walletAddress={walletAddress || ''} />
+        </TabsContent>
+
+        {/* Withdrawal Tab */}
+        <TabsContent value="withdrawal" className="space-y-6">
+          <USDTWithdrawal />
         </TabsContent>
 
         {/* History Tab */}
