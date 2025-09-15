@@ -270,40 +270,53 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
       // Check and request approval
       setCurrentStep('Checking USDC approval...');
       
-      try {
-        const currentAllowance = await allowance({
+      const currentAllowance = await allowance({
+        contract: usdcContract,
+        owner: account.address,
+        spender: NFT_CONTRACT
+      });
+      
+      console.log(`💰 Current allowance: ${Number(currentAllowance) / 1e18} USDC, Required: ${LEVEL_2_PRICE_USDC} USDC`);
+      
+      if (currentAllowance < LEVEL_2_PRICE_WEI) {
+        console.log('💰 Requesting USDC approval...');
+        
+        const approveTransaction = approve({
+          contract: usdcContract,
+          spender: NFT_CONTRACT,
+          amount: LEVEL_2_PRICE_WEI.toString()
+        });
+
+        setCurrentStep('Waiting for approval...');
+        
+        const approveTxResult = await sendTransactionWithRetry(
+          approveTransaction, 
+          account, 
+          'USDC approval transaction'
+        );
+
+        await waitForReceipt({
+          client,
+          chain: arbitrum,
+          transactionHash: approveTxResult?.transactionHash,
+        });
+        
+        console.log('✅ USDC approval confirmed');
+        
+        // Verify the approval was successful
+        const newAllowance = await allowance({
           contract: usdcContract,
           owner: account.address,
           spender: NFT_CONTRACT
         });
         
-        if (currentAllowance < LEVEL_2_PRICE_WEI) {
-          console.log('💰 Requesting USDC approval...');
-          
-          const approveTransaction = approve({
-            contract: usdcContract,
-            spender: NFT_CONTRACT,
-            amount: LEVEL_2_PRICE_WEI.toString()
-          });
-
-          setCurrentStep('Waiting for approval...');
-          
-          const approveTxResult = await sendTransactionWithRetry(
-            approveTransaction, 
-            account, 
-            'USDC approval transaction'
-          );
-
-          await waitForReceipt({
-            client,
-            chain: arbitrum,
-            transactionHash: approveTxResult?.transactionHash,
-          });
-          
-          console.log('✅ USDC approval confirmed');
+        console.log(`✅ New allowance after approval: ${Number(newAllowance) / 1e18} USDC`);
+        
+        if (newAllowance < LEVEL_2_PRICE_WEI) {
+          throw new Error(`Approval failed. Current allowance: ${Number(newAllowance) / 1e18} USDC, Required: ${LEVEL_2_PRICE_USDC} USDC`);
         }
-      } catch (allowanceError) {
-        console.warn('⚠️ Could not check/set allowance:', allowanceError);
+      } else {
+        console.log('✅ Sufficient allowance already exists');
       }
 
       // Step 6: Claim Level 2 NFT
