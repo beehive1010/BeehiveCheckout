@@ -54,6 +54,19 @@ export default function RegistrationModal({
   const validateReferrer = async () => {
     if (!referrerWallet) return;
     
+    // Handle default referrer for development/testing
+    if (referrerWallet === '0x0000000000000000000000000000000000000001') {
+      setReferrerInfo({
+        username: 'DefaultReferrer',
+        wallet_address: referrerWallet,
+        current_level: 1,
+        direct_referrals_count: 0,
+        matrix_members_count: 0
+      });
+      console.log('🔧 Using default referrer for development');
+      return;
+    }
+    
     setValidatingReferrer(true);
     try {
       const response = await fetch(`${supabase.supabaseUrl}/functions/v1/auth`, {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useActiveAccount } from 'thirdweb/react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -8,6 +8,9 @@ import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useToast } from '../hooks/use-toast';
 import { useI18n } from '../contexts/I18nContext';
+import { client } from '../lib/web3';
+import { ethereum, polygon, arbitrum, base } from 'thirdweb/chains';
+import Web3BuyModal from './Web3BuyModal';
 import { 
   Coins, 
   CreditCard,
@@ -19,7 +22,10 @@ import {
   Wallet,
   Network,
   Clock,
-  Info
+  Info,
+  Zap,
+  ShoppingCart,
+  Bridge
 } from 'lucide-react';
 
 interface BccPurchaseConfig {
@@ -45,6 +51,21 @@ interface BccPurchaseInterfaceProps {
   showBalance?: boolean;
 }
 
+// ThirdWeb Buy Configuration
+interface BuyConfig {
+  mode: 'direct' | 'fund_wallet';
+  prefillBuy: {
+    amount: string;
+    token?: {
+      address: string;
+      chainId: number;
+    };
+  };
+  buyForTx: {
+    transactionId: string;
+  };
+}
+
 export function BccPurchaseInterface({ 
   className = "",
   onPurchaseSuccess,
@@ -60,6 +81,8 @@ export function BccPurchaseInterface({
   const [paymentMethod, setPaymentMethod] = useState<string>('thirdweb_bridge');
   const [purchaseStep, setPurchaseStep] = useState<'config' | 'confirm' | 'processing' | 'completed'>('config');
   const [currentOrder, setCurrentOrder] = useState<any>(null);
+  const [showWeb3BuyModal, setShowWeb3BuyModal] = useState<boolean>(false);
+  const [buyMode, setBuyMode] = useState<'traditional' | 'web3_buy'>('traditional');
 
   // Fetch BCC purchase configuration
   const { data: config, isLoading: configLoading } = useQuery({
@@ -207,6 +230,65 @@ export function BccPurchaseInterface({
   const bccAmount = purchaseAmount * (config?.config.exchangeRate || 1);
   const selectedNetworkConfig = config?.config.supportedNetworks[selectedNetwork];
 
+  // Define supported chains for Web3 Buy
+  const supportedBuyChains = [
+    { chain: ethereum, name: 'Ethereum', symbol: 'ETH', color: 'text-blue-400' },
+    { chain: polygon, name: 'Polygon', symbol: 'MATIC', color: 'text-purple-400' },
+    { chain: arbitrum, name: 'Arbitrum', symbol: 'ARB', color: 'text-blue-300' },
+    { chain: base, name: 'Base', symbol: 'ETH', color: 'text-blue-500' }
+  ];
+
+  // Web3 Buy handlers
+  const handleWeb3BuySuccess = useCallback((details: any) => {
+    console.log('🎉 Web3 Buy successful:', details);
+    
+    // Update balance and trigger success flow
+    queryClient.invalidateQueries({ queryKey: ['/api/bcc/spending-balance'] });
+    
+    toast({
+      title: "🎉 Purchase Successful!",
+      description: `Successfully purchased ${bccAmount} BCC tokens via Web3 bridge`,
+      duration: 8000
+    });
+
+    if (onPurchaseSuccess) {
+      onPurchaseSuccess();
+    }
+
+    setBuyMode('traditional');
+    setPurchaseStep('completed');
+  }, [bccAmount, onPurchaseSuccess, queryClient, toast]);
+
+  const handleWeb3BuyError = useCallback((error: any) => {
+    console.error('❌ Web3 Buy failed:', error);
+    
+    toast({
+      title: "Purchase Failed",
+      description: error?.message || "Failed to complete Web3 purchase. Please try again.",
+      variant: "destructive"
+    });
+  }, [toast]);
+
+  // Launch Web3 Buy flow
+  const handleWeb3BuyLaunch = useCallback(() => {
+    if (!account?.address || !purchaseAmount) {
+      toast({
+        title: "Invalid Configuration",
+        description: "Please connect wallet and set purchase amount",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    console.log('🚀 Opening Web3 Buy modal for:', {
+      wallet: account.address,
+      amount: purchaseAmount,
+      expectedBCC: bccAmount
+    });
+
+    setShowWeb3BuyModal(true);
+  }, [account?.address, purchaseAmount, bccAmount, toast]);
+
   // Show loading state
   if (configLoading) {
     return (
@@ -238,6 +320,16 @@ export function BccPurchaseInterface({
 
   return (
     <div className={`space-y-6 ${className}`}>
+      {/* Web3 Buy Modal */}
+      <Web3BuyModal
+        isOpen={showWeb3BuyModal}
+        onClose={() => setShowWeb3BuyModal(false)}
+        purchaseAmount={purchaseAmount}
+        expectedBCC={bccAmount}
+        onSuccess={handleWeb3BuySuccess}
+        onError={handleWeb3BuyError}
+      />
+
       {/* Current Balance Display */}
       {showBalance && balance && (
         <Card className="bg-gradient-to-r from-green-500/10 via-green-500/5 to-transparent border-green-500/20">
@@ -279,6 +371,35 @@ export function BccPurchaseInterface({
         <CardContent className="space-y-6">
           {purchaseStep === 'config' && (
             <div className="space-y-6">
+              {/* Purchase Mode Selection */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium">Purchase Method</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant={buyMode === 'traditional' ? "default" : "outline"}
+                    onClick={() => setBuyMode('traditional')}
+                    className={buyMode === 'traditional' ? "bg-honey hover:bg-honey/90 text-black" : ""}
+                  >
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Traditional
+                  </Button>
+                  <Button
+                    variant={buyMode === 'web3_buy' ? "default" : "outline"}
+                    onClick={() => setBuyMode('web3_buy')}
+                    className={buyMode === 'web3_buy' ? "bg-honey hover:bg-honey/90 text-black" : ""}
+                  >
+                    <Bridge className="mr-2 h-4 w-4" />
+                    Web3 Bridge
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {buyMode === 'traditional' 
+                    ? "Manual USDC transfer with order confirmation"
+                    : "Direct crypto-to-crypto purchase via thirdweb bridge"
+                  }
+                </p>
+              </div>
+
               {/* Purchase Amount */}
               <div className="space-y-3">
                 <label className="text-sm font-medium">Purchase Amount (USDC)</label>
@@ -381,31 +502,130 @@ export function BccPurchaseInterface({
                 </div>
               )}
 
-              {/* Processing Time */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="w-4 h-4" />
-                <span>Estimated processing time: {config?.config.processingTimeEstimate}</span>
-              </div>
+              {/* Traditional Purchase Flow */}
+              {buyMode === 'traditional' && (
+                <>
+                  {/* Processing Time */}
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Clock className="w-4 h-4" />
+                    <span>Estimated processing time: {config?.config.processingTimeEstimate}</span>
+                  </div>
 
-              {/* Create Purchase Button */}
-              <Button
-                onClick={handleCreatePurchase}
-                disabled={createPurchaseMutation.isPending || !purchaseAmount}
-                className="w-full bg-honey hover:bg-honey/90 text-black"
-                size="lg"
-              >
-                {createPurchaseMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating Order...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Create Purchase Order
-                  </>
-                )}
-              </Button>
+                  {/* Create Purchase Button */}
+                  <Button
+                    onClick={handleCreatePurchase}
+                    disabled={createPurchaseMutation.isPending || !purchaseAmount}
+                    className="w-full bg-honey hover:bg-honey/90 text-black"
+                    size="lg"
+                  >
+                    {createPurchaseMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Creating Order...
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        Create Purchase Order
+                      </>
+                    )}
+                  </Button>
+                </>
+              )}
+
+              {/* Web3 Bridge Purchase Flow */}
+              {buyMode === 'web3_buy' && (
+                <div className="space-y-6">
+                  {/* Web3 Buy Info */}
+                  <div className="bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-green-500/10 rounded-lg p-6 border border-blue-500/20">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                          <Bridge className="w-5 h-5 text-blue-400" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-blue-400">ThirdWeb Bridge Purchase</h3>
+                          <p className="text-sm text-muted-foreground">Direct crypto-to-crypto conversion</p>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Zap className="w-4 h-4 text-green-400" />
+                          <span className="text-green-400">Instant Processing</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <ShoppingCart className="w-4 h-4 text-blue-400" />
+                          <span className="text-blue-400">No Manual Transfer</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-purple-400" />
+                          <span className="text-purple-400">Auto-Credited</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Supported Chains Display */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium">Supported Networks</label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {supportedBuyChains.map((chainInfo, index) => (
+                        <div key={index} className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
+                          <Network className={`w-4 h-4 ${chainInfo.color}`} />
+                          <div>
+                            <div className="font-medium text-sm">{chainInfo.name}</div>
+                            <div className="text-xs text-muted-foreground">{chainInfo.symbol}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Web3 Buy Instructions */}
+                  <div className="bg-honey/5 rounded-lg p-4 border border-honey/20">
+                    <h4 className="font-medium text-honey mb-2">How Web3 Bridge Works:</h4>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>1. Connect your wallet with any supported token</li>
+                      <li>2. Select the amount and token you want to spend</li>
+                      <li>3. Bridge automatically converts to USDC and credits BCC</li>
+                      <li>4. Tokens appear in your balance instantly</li>
+                    </ul>
+                  </div>
+
+                  {/* Launch Web3 Buy Button */}
+                  <div className="space-y-3">
+                    <Button
+                      onClick={() => {
+                        // Implementation will be added based on thirdweb's Buy SDK
+                        handleWeb3BuyLaunch();
+                      }}
+                      disabled={!purchaseAmount || purchaseAmount < 10}
+                      className="w-full bg-gradient-to-r from-blue-500 via-purple-500 to-green-500 hover:opacity-90 text-white"
+                      size="lg"
+                    >
+                      <Bridge className="mr-2 h-4 w-4" />
+                      Launch Web3 Bridge Purchase ({purchaseAmount} USDC → {bccAmount} BCC)
+                    </Button>
+                    
+                    {/* Web3 Buy Widget Placeholder */}
+                    <div id="thirdweb-buy-widget" className="hidden">
+                      {/* ThirdWeb Buy widget will be mounted here */}
+                    </div>
+                  </div>
+
+                  {/* Fallback to Traditional */}
+                  <div className="text-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => setBuyMode('traditional')}
+                      className="border-honey/30 text-honey hover:bg-honey/10"
+                    >
+                      Use Traditional Method Instead
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
