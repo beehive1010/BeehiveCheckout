@@ -354,18 +354,26 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
         matrix_root_wallet,
         placed_at
       `)
-      .or(`referrer_wallet.eq.${targetRoot},matrix_root_wallet.eq.${targetRoot}`)
+      .eq('matrix_root_wallet', targetRoot)
       .limit(limit);
 
-    console.log('🔍 Executing queries: members, referrals...');
+    // Get user info for usernames
+    let usersQuery = supabase
+      .from('users')
+      .select('wallet_address, username')
+      .limit(limit);
+
+    console.log('🔍 Executing queries: members, referrals, users...');
     
-    const [membersResult, referralsResult] = await Promise.allSettled([
+    const [membersResult, referralsResult, usersResult] = await Promise.allSettled([
       membersQuery,
-      referralsQuery
+      referralsQuery,
+      usersQuery
     ]);
 
     let memberData = [];
     let referralData = [];
+    let userData = [];
 
     if (membersResult.status === 'fulfilled' && !membersResult.value.error) {
       memberData = membersResult.value.data || [];
@@ -381,32 +389,52 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
       console.warn('⚠️ Referrals query failed:', referralsResult);
     }
 
+    if (usersResult.status === 'fulfilled' && !usersResult.value.error) {
+      userData = usersResult.value.data || [];
+      console.log(`✅ Users query successful: ${userData.length} users found`);
+    } else {
+      console.warn('⚠️ Users query failed:', usersResult);
+    }
+
     const finalMatrixData = [];
     
-    // Process referrals data first (original positions)
+    // Process referrals data - include ALL members in the matrix regardless of parent
     referralData.forEach((referral, index) => {
-      const member = memberData.find(m => 
+      // Get member info from members table
+      let memberInfo = memberData.find(m => 
         m.wallet_address === referral.member_wallet
       );
       
-      if (member) {
-        finalMatrixData.push({
+      // Get user info for username
+      const userInfo = userData.find(u => 
+        u.wallet_address === referral.member_wallet
+      );
+      
+      // If not found in members, try to get basic info
+      if (!memberInfo) {
+        memberInfo = {
           wallet_address: referral.member_wallet,
-          root_wallet: referral.matrix_root_wallet || targetRoot,
-          layer: referral.matrix_layer || 1,
-          position: referral.matrix_position || `${index + 1}`,
-          parent_wallet: referral.referrer_wallet,
-          is_activated: true,
-          placement_order: index + 1,
-          created_at: referral.placed_at || member.activation_time,
-          members: {
-            current_level: member.current_level || 1,
-            is_activated: true,
-            username: member.username || null
-          },
-          source: 'referrals'
-        });
+          current_level: 1,
+          activation_time: referral.placed_at
+        };
       }
+      
+      finalMatrixData.push({
+        wallet_address: referral.member_wallet,
+        root_wallet: referral.matrix_root_wallet || targetRoot,
+        layer: referral.matrix_layer || 1,
+        position: referral.matrix_position || `${index + 1}`,
+        parent_wallet: referral.referrer_wallet,
+        is_activated: true,
+        placement_order: index + 1,
+        created_at: referral.placed_at || memberInfo.activation_time || new Date().toISOString(),
+        members: {
+          current_level: memberInfo.current_level || 1,
+          is_activated: true,
+          username: userInfo?.username || `User_${referral.member_wallet.slice(-6)}`
+        },
+        source: 'referrals'
+      });
     });
     
     // Note: spillover_matrix table does not exist in current database

@@ -106,12 +106,10 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
             placedAt: member.created_at || new Date().toISOString()
           };
           
-          // Only include members directly under this root (not nested)
-          if (member.parent_wallet === walletAddress) {
-            if (member.position === 'L') leftMembers.push(memberData);
-            else if (member.position === 'M') middleMembers.push(memberData);
-            else if (member.position === 'R') rightMembers.push(memberData);
-          }
+          // Include all members in the current layer for this matrix root
+          if (member.position === 'L') leftMembers.push(memberData);
+          else if (member.position === 'M') middleMembers.push(memberData);
+          else if (member.position === 'R') rightMembers.push(memberData);
         });
 
         // Create current member info

@@ -291,7 +291,12 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
     );
   }
 
-  const visibleLayers = showAllLayers ? layerStats : layerStats.slice(0, 5);
+  // Show layers with data or up to layer 5 minimum, all layers if showAllLayers is true
+  const layersWithData = layerStats.filter(stat => stat.totalMembers > 0);
+  const maxLayerWithData = layersWithData.length > 0 ? Math.max(...layersWithData.map(s => s.layer)) : 1;
+  const minLayersToShow = Math.max(5, maxLayerWithData); // Show at least 5 layers or up to the highest layer with data
+  
+  const visibleLayers = showAllLayers ? layerStats : layerStats.slice(0, minLayersToShow);
 
   return (
     <Card className="bg-secondary border-border">
@@ -327,14 +332,20 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
           {/* Layer Controls */}
           <div className="flex items-center justify-between">
             <h4 className="font-medium text-honey">Layer Details</h4>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowAllLayers(!showAllLayers)}
-              className="border-honey/30 text-honey hover:bg-honey hover:text-black"
-            >
-              {showAllLayers ? 'Show Less' : 'Show All 19 Layers'}
-            </Button>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">
+                Showing {visibleLayers.length} of 19 layers
+                {layersWithData.length > 0 && ` (${layersWithData.length} with data)`}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAllLayers(!showAllLayers)}
+                className="border-honey/30 text-honey hover:bg-honey hover:text-black"
+              >
+                {showAllLayers ? 'Show Less' : 'Show All 19 Layers'}
+              </Button>
+            </div>
           </div>
 
           {/* Layer Statistics Grid */}

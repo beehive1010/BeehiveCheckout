@@ -7,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS'
 }
 
-console.log('🕒 Cron Reward Timers函数启动成功!')
+console.log('🕒 Cron Reward Timers function started successfully!')
 
 serve(async (req) => {
   // Handle CORS
@@ -27,19 +27,19 @@ serve(async (req) => {
       }
     )
 
-    console.log('⏰ 开始处理奖励倒计时...')
+    console.log('⏰ Starting reward timer processing...')
 
-    // 调用数据库函数处理过期的倒计时
+    // Call database function to process expired timers
     const { data: timerResult, error: timerError } = await supabase.rpc('process_expired_timers')
 
     if (timerError) {
-      console.error('倒计时处理错误:', timerError)
+      console.error('Timer processing error:', timerError)
       throw timerError
     }
 
-    console.log('倒计时处理结果:', timerResult)
+    console.log('Timer processing result:', timerResult)
 
-    // 获取即将到期的奖励进行通知
+    // Get upcoming expiring rewards for notifications
     const { data: upcomingTimers, error: upcomingError } = await supabase
       .from('reward_timers')
       .select(`
@@ -51,19 +51,19 @@ serve(async (req) => {
       `)
       .eq('is_active', true)
       .gte('expires_at', new Date().toISOString())
-      .lte('expires_at', new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()) // 24小时内到期
+      .lte('expires_at', new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()) // Expiring within 24 hours
       .eq('notification_sent', false)
 
     if (upcomingError) {
-      console.error('获取即将到期倒计时错误:', upcomingError)
+      console.error('Error getting upcoming expiring timers:', upcomingError)
     } else if (upcomingTimers && upcomingTimers.length > 0) {
-      console.log(`发现${upcomingTimers.length}个即将到期的倒计时`)
+      console.log(`Found ${upcomingTimers.length} upcoming expiring timers`)
       
-      // 发送通知（这里可以集成通知系统）
+      // Send notifications (notification system integration can be added here)
       for (const timer of upcomingTimers) {
-        console.log(`即将到期: 钱包 ${timer.recipient_wallet}, 类型 ${timer.timer_type}`)
+        console.log(`Expiring soon: wallet ${timer.recipient_wallet}, type ${timer.timer_type}`)
         
-        // 标记通知已发送
+        // Mark notification as sent
         await supabase
           .from('reward_timers')
           .update({ notification_sent: true })
@@ -71,7 +71,7 @@ serve(async (req) => {
       }
     }
 
-    // 检查Super Root是否已升级到Level 2
+    // Check if Super Root has upgraded to Level 2
     await checkSuperRootUpgrade(supabase)
 
     return new Response(JSON.stringify({
@@ -85,7 +85,7 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    console.error('Cron奖励倒计时错误:', error)
+    console.error('Cron reward timer error:', error)
     return new Response(JSON.stringify({ 
       error: error.message,
       timestamp: new Date().toISOString()
@@ -96,10 +96,10 @@ serve(async (req) => {
   }
 })
 
-// 检查Super Root升级状态
+// Check Super Root upgrade status
 async function checkSuperRootUpgrade(supabase) {
   try {
-    // 获取Super Root当前状态
+    // Get Super Root current status
     const { data: superRoot } = await supabase
       .from('members')
       .select('wallet_address, current_level')
@@ -107,9 +107,9 @@ async function checkSuperRootUpgrade(supabase) {
       .single()
 
     if (superRoot && superRoot.current_level >= 2) {
-      console.log('🎉 Super Root已升级到Level 2，检查pending奖励...')
+      console.log('🎉 Super Root upgraded to Level 2, checking pending rewards...')
       
-      // 将Super Root的pending奖励更新为claimable
+      // Update Super Root pending rewards to claimable
       const { data: updatedRewards, error: updateError } = await supabase
         .from('layer_rewards')
         .update({ 
@@ -121,11 +121,11 @@ async function checkSuperRootUpgrade(supabase) {
         .select('id, reward_amount')
 
       if (updateError) {
-        console.error('更新Super Root奖励状态错误:', updateError)
+        console.error('Error updating Super Root reward status:', updateError)
       } else if (updatedRewards && updatedRewards.length > 0) {
-        console.log(`✅ 已更新${updatedRewards.length}个Super Root奖励为可领取状态`)
+        console.log(`✅ Updated ${updatedRewards.length} Super Root rewards to claimable status`)
         
-        // 停用相关的倒计时
+        // Deactivate related timers
         for (const reward of updatedRewards) {
           await supabase
             .from('reward_timers')
@@ -139,6 +139,6 @@ async function checkSuperRootUpgrade(supabase) {
     }
     
   } catch (error) {
-    console.error('检查Super Root升级状态错误:', error)
+    console.error('Error checking Super Root upgrade status:', error)
   }
 }
