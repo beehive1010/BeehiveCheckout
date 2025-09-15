@@ -23,7 +23,10 @@
     "success": "Success",
     "back": "Back",
     "active": "Active",
-    "pending": "Pending"
+    "pending": "Pending",
+    "refresh": "Refresh",
+    "retry": "Retry",
+    "backToProfile": "Back to Profile"
   },
   "dashboard": {
     "welcomeBack": "Welcome back, {username}!",
