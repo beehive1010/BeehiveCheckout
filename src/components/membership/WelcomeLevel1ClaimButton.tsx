@@ -383,14 +383,19 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       console.log('🎁 Claiming Level 1 NFT...');
       setCurrentStep(t('claim.mintingNFT'));
       
-      // Use Thirdweb v5 claimTo extension with proper parameters
-      const claimTransaction = claimTo({
+      // Use direct contract call instead of claimTo extension to avoid dynamic import issues
+      const claimTransaction = prepareContractCall({
         contract: nftContract,
-        to: account.address,
-        tokenId: BigInt(1),
-        quantity: BigInt(1),
-        pricePerToken: LEVEL_1_PRICE_WEI,
-        currency: PAYMENT_TOKEN_CONTRACT
+        method: "function claim(address _receiver, uint256 _tokenId, uint256 _quantity, address _currency, uint256 _pricePerToken, bytes32[] calldata _proofs, uint256 _proofMaxQuantityPerTransaction) payable",
+        params: [
+          account.address,      // _receiver
+          BigInt(1),           // _tokenId (Level 1)
+          BigInt(1),           // _quantity
+          PAYMENT_TOKEN_CONTRACT, // _currency (USDC)
+          LEVEL_1_PRICE_WEI,   // _pricePerToken
+          [],                  // _proofs (empty for public mint)
+          BigInt(1)            // _proofMaxQuantityPerTransaction
+        ]
       });
 
       const claimTxResult = await sendTransactionWithRetry(

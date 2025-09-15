@@ -434,8 +434,7 @@ async function processNFTTransaction(supabase: any, transaction: {
       'activate_nft_level1_membership',
       {
         p_wallet_address: recipient.toLowerCase(),
-        p_referrer_wallet: referrerWallet, // Use extracted referrer or null for spillover
-        p_transaction_hash: transactionHash
+        p_referrer_wallet: referrerWallet // Use extracted referrer or null for spillover
       }
     )
 
