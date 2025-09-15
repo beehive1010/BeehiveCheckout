@@ -222,7 +222,7 @@ export const authService = {
         const { data: fallbackMember } = await this.supabase
           .from('members')
           .select('current_level, wallet_address, activation_time')
-          .eq('wallet_address', walletAddress)
+          .ilike('wallet_address', walletAddress)
           .single();
         
         if (fallbackMember && fallbackMember.current_level > 0) {
@@ -1380,7 +1380,7 @@ export const transactionService = {
           network,
           metadata
         `)
-        .eq('wallet_address', walletAddress)
+        .ilike('wallet_address', walletAddress)
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
@@ -1481,7 +1481,7 @@ export const transactionService = {
       const { data: ordersData } = await supabase
         .from('bcc_purchase_orders')
         .select('total_amount, status')
-        .eq('wallet_address', walletAddress)
+        .ilike('wallet_address', walletAddress)
         .eq('status', 'completed');
 
       const totalSpent = ordersData?.reduce((sum, order) => sum + order.total_amount, 0) || 0;
@@ -1499,7 +1499,7 @@ export const transactionService = {
       const { count: totalTransactions } = await supabase
         .from('bcc_purchase_orders')
         .select('*', { count: 'exact', head: true })
-        .eq('wallet_address', walletAddress);
+        .ilike('wallet_address', walletAddress);
 
       const { count: rewardTransactions } = await supabase
         .from('reward_claims')

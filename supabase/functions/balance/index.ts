@@ -311,15 +311,78 @@ async function handleSpendBcc(supabase, walletAddress, data) {
       // Handle NFT purchase directly without database function
       const nftType = data.nftType || 'merchant';
       
-      // Get current balance
-      const { data: balanceData, error: balanceError } = await supabase
+      // Get current balance, create records if user doesn't exist
+      let { data: balanceData, error: balanceError } = await supabase
         .from('user_balances')
         .select('bcc_balance')
         .eq('wallet_address', walletAddress.toLowerCase())
         .single();
       
       if (balanceError || !balanceData) {
-        throw new Error('User balance not found');
+        // User doesn't have balance record, need to create user and member records
+        console.log('User balance not found, creating new user records...');
+        
+        // First check if user exists in users table
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('wallet_address')
+          .eq('wallet_address', walletAddress.toLowerCase())
+          .single();
+        
+        if (userError || !userData) {
+          // Create user record first
+          const { error: createUserError } = await supabase
+            .from('users')
+            .insert({
+              wallet_address: walletAddress.toLowerCase(),
+              username: `user_${walletAddress.toLowerCase().slice(-8)}`, // Generate username from wallet
+              role: 'user',
+              profile_completed: false,
+              registration_source: 'nft_purchase',
+              is_active: true,
+              created_at: new Date().toISOString()
+            });
+          
+          if (createUserError) {
+            throw new Error(`Failed to create user record: ${createUserError.message}`);
+          }
+        }
+        
+        // Now create member record (this will trigger balance creation)
+        const maxSequence = await supabase
+          .from('members')
+          .select('activation_sequence')
+          .order('activation_sequence', { ascending: false })
+          .limit(1);
+        
+        const nextSequence = (maxSequence.data?.[0]?.activation_sequence || 0) + 1;
+        
+        const { error: createMemberError } = await supabase
+          .from('members')
+          .insert({
+            wallet_address: walletAddress.toLowerCase(),
+            current_level: 1,
+            activation_sequence: nextSequence,
+            activation_time: new Date().toISOString(),
+            total_nft_claimed: 0
+          });
+        
+        if (createMemberError) {
+          throw new Error(`Failed to create member record: ${createMemberError.message}`);
+        }
+        
+        // Now try to get balance again (should be auto-created by trigger)
+        const { data: newBalanceData, error: newBalanceError } = await supabase
+          .from('user_balances')
+          .select('bcc_balance')
+          .eq('wallet_address', walletAddress.toLowerCase())
+          .single();
+        
+        if (newBalanceError || !newBalanceData) {
+          throw new Error('Failed to create user balance record');
+        }
+        
+        balanceData = newBalanceData;
       }
       
       const currentBalance = balanceData.bcc_balance || 0;

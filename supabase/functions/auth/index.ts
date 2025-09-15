@@ -105,7 +105,7 @@ async function registerUser(supabase, walletAddress, data) {
       .single();
 
     // Check if there are member records (only after NFT purchase)
-    const { data: memberData } = await supabase
+    const { data: memberData, error: memberError } = await supabase
       .from('members')
       .select(`
         activation_sequence,
@@ -115,6 +115,11 @@ async function registerUser(supabase, walletAddress, data) {
       `)
       .eq('wallet_address', walletAddress)
       .single();
+
+    // Ignore "not found" errors as member record may not exist yet
+    if (memberError && memberError.code !== 'PGRST116') {
+      console.error('Member data query error:', memberError);
+    }
 
     console.log(`✅ User registration successful: ${walletAddress}, member: ${!!memberData}`);
     
@@ -238,11 +243,11 @@ async function validateReferrer(supabase, referrerWallet) {
     };
   }
   
-  // Check if referrer is a registered user
+  // Check if referrer is a registered user (case-insensitive)
   const { data: userData, error: userError } = await supabase
     .from('users')
     .select('wallet_address, username')
-    .eq('wallet_address', referrerWallet)
+    .ilike('wallet_address', referrerWallet)
     .single();
   
   if (userError || !userData) {
@@ -250,39 +255,44 @@ async function validateReferrer(supabase, referrerWallet) {
     return {
       success: false,
       isValid: false,
-      error: 'Referrer is not a registered user'
+      error: 'Referrer wallet not found'
     };
   }
   
-  // Check if referrer is an activated member
+  // Check if referrer is an activated member (optional - just for additional info)
   const { data: memberData, error: memberError } = await supabase
     .from('members')
     .select('current_level, activation_sequence, wallet_address')
-    .eq('wallet_address', referrerWallet)
+    .ilike('wallet_address', referrerWallet)
     .single();
   
-  if (memberError || !memberData || memberData.current_level < 1) {
-    console.log(`❌ Referrer is not an activated member: ${referrerWallet}, level: ${memberData?.current_level || 0}`);
-    return {
-      success: false,
-      isValid: false,
-      error: 'Referrer is not an activated member (must have Level 1+ membership)'
+  // For registration, referrer only needs to be a registered user, not necessarily an activated member
+  const isActivatedMember = !memberError && memberData && memberData.current_level > 0;
+  
+  console.log(`✅ Referrer validation: ${referrerWallet}, registered: true, activated: ${isActivatedMember}`);
+  
+  // Get referrer's referral statistics (only if they are an activated member)
+  let referralStats = { direct_referrals_count: 0, matrix_members_count: 0 };
+  
+  if (isActivatedMember) {
+    const { data: directReferrals } = await supabase
+      .from('referrals')
+      .select('member_wallet')
+      .eq('referrer_wallet', referrerWallet)
+      .eq('is_direct_referral', true);
+
+    const { data: matrixMembers } = await supabase
+      .from('referrals')
+      .select('member_wallet')
+      .eq('matrix_root_wallet', referrerWallet);
+    
+    referralStats = {
+      direct_referrals_count: directReferrals?.length || 0,
+      matrix_members_count: matrixMembers?.length || 0
     };
   }
   
-  // Get referrer's referral statistics
-  const { data: directReferrals } = await supabase
-    .from('referrals')
-    .select('member_wallet')
-    .eq('referrer_wallet', referrerWallet)
-    .eq('is_direct_referral', true);
-
-  const { data: matrixMembers } = await supabase
-    .from('referrals')
-    .select('member_wallet')
-    .eq('matrix_root_wallet', referrerWallet);
-  
-  console.log(`✅ Referrer validation passed: ${referrerWallet}, level: ${memberData.current_level}, direct referrals: ${directReferrals?.length || 0}`);
+  console.log(`✅ Referrer validation passed: ${referrerWallet}, level: ${memberData?.current_level || 0}, direct referrals: ${referralStats.direct_referrals_count}`);
   
   return {
     success: true,
@@ -290,12 +300,14 @@ async function validateReferrer(supabase, referrerWallet) {
     referrer: {
       wallet_address: userData.wallet_address,
       username: userData.username,
-      current_level: memberData.current_level,
-      activation_sequence: memberData.activation_sequence,
-      direct_referrals_count: directReferrals?.length || 0,
-      matrix_members_count: matrixMembers?.length || 0
+      current_level: memberData?.current_level || 0,
+      activation_sequence: memberData?.activation_sequence || null,
+      is_activated_member: isActivatedMember,
+      ...referralStats
     },
-    message: 'Referrer is a valid activated member'
+    message: isActivatedMember 
+      ? 'Referrer is a valid activated member'
+      : 'Referrer is a valid registered user (not activated yet)'
   };
 }
 

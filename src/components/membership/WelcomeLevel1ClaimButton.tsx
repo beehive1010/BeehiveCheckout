@@ -196,7 +196,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       const { data: referrerData, error: referrerError } = await supabase
         .from('members')
         .select('wallet_address, current_level')
-        .eq('wallet_address', referrerWallet)
+        .ilike('wallet_address', referrerWallet)
         .single();
       
       if (referrerError || !referrerData || referrerData.current_level <= 0) {
