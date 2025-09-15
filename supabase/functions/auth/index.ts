@@ -102,7 +102,7 @@ async function registerUser(supabase, walletAddress, data) {
         created_at
       `)
       .eq('wallet_address', walletAddress)
-      .single();
+      .maybeSingle();
 
     // Check if there are member records (only after NFT purchase)
     const { data: memberData, error: memberError } = await supabase
@@ -114,7 +114,7 @@ async function registerUser(supabase, walletAddress, data) {
         activation_time
       `)
       .eq('wallet_address', walletAddress)
-      .single();
+      .maybeSingle();
 
     // Ignore "not found" errors as member record may not exist yet
     if (memberError && memberError.code !== 'PGRST116') {
@@ -314,7 +314,7 @@ async function updateUserProfile(supabase, walletAddress, data) {
         updated_at
       `)
       .eq('wallet_address', walletAddress)
-      .single();
+      .maybeSingle();
 
     console.log(`✅ User profile updated successfully: ${walletAddress}`);
     

@@ -31,7 +31,7 @@ serve(async (req)=>{
       });
     }
     // Check admin privileges
-    const { data: userData, error: userError } = await supabase.from('users').select('is_admin').eq('wallet_address', walletAddress).single();
+    const { data: userData, error: userError } = await supabase.from('users').select('is_admin').eq('wallet_address', walletAddress).maybeSingle();
     if (userError || !userData?.is_admin) {
       return new Response(JSON.stringify({
         error: 'Admin privileges required'

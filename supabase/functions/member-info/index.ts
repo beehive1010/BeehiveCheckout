@@ -39,7 +39,7 @@ serve(async (req) => {
       .from('members')
       .select('*')
       .eq('wallet_address', walletAddress)
-      .single()
+      .maybeSingle()
 
     if (memberError) {
       console.log('Member query error:', memberError)

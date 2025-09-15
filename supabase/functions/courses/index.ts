@@ -241,7 +241,7 @@ async function purchaseCourse(supabase, walletAddress: string, courseId: string,
       .from('courses')
       .select('id, title, price_bcc, required_level, is_published')
       .eq('id', courseId)
-      .single()
+      .maybeSingle()
 
     if (courseError || !course) {
       throw new Error('课程不存在')
@@ -256,7 +256,7 @@ async function purchaseCourse(supabase, walletAddress: string, courseId: string,
       .from('members')
       .select('current_level, is_activated')
       .eq('wallet_address', walletAddress)
-      .single()
+      .maybeSingle()
 
     if (memberError || !member || !member.is_activated) {
       throw new Error('用户未激活会员身份')
@@ -272,7 +272,7 @@ async function purchaseCourse(supabase, walletAddress: string, courseId: string,
       .select('id')
       .eq('wallet_address', walletAddress)
       .eq('course_id', courseId)
-      .single()
+      .maybeSingle()
 
     if (existingAccess) {
       throw new Error('已经购买过此课程')
@@ -289,7 +289,7 @@ async function purchaseCourse(supabase, walletAddress: string, courseId: string,
         .from('user_balances')
         .select('bcc_transferable')
         .eq('wallet_address', walletAddress)
-        .single()
+        .maybeSingle()
 
       if (!balance || (balance.bcc_transferable || 0) < course.price_bcc) {
         throw new Error('BCC余额不足')
@@ -307,7 +307,7 @@ async function purchaseCourse(supabase, walletAddress: string, courseId: string,
         access_granted_at: new Date().toISOString()
       })
       .select()
-      .single()
+      .maybeSingle()
 
     if (accessError) {
       throw new Error(`创建课程访问记录失败: ${accessError.message}`)
@@ -364,7 +364,7 @@ async function updateCourseProgress(supabase, walletAddress: string, courseId: s
     .select('id, progress_percentage')
     .eq('wallet_address', walletAddress)
     .eq('course_id', courseId)
-    .single()
+    .maybeSingle()
 
   if (accessError || !courseAccess) {
     throw new Error('没有此课程的访问权限')

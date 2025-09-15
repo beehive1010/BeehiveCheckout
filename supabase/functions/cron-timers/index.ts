@@ -104,7 +104,7 @@ async function checkSuperRootUpgrade(supabase) {
       .from('members')
       .select('wallet_address, current_level')
       .eq('activation_sequence', 0)
-      .single()
+      .maybeSingle()
 
     if (superRoot && superRoot.current_level >= 2) {
       console.log('🎉 Super Root upgraded to Level 2, checking pending rewards...')

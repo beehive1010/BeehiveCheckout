@@ -260,16 +260,24 @@ async function safelyPlaceMember(
       .from('members')
       .select('activation_sequence')
       .eq('wallet_address', memberWallet)
-      .single();
+      .maybeSingle();
       
     const { data: rootInfo, error: rootError } = await supabase
       .from('members')
       .select('activation_sequence')
       .eq('wallet_address', actualRoot)
-      .single();
+      .maybeSingle();
 
     if (memberError || rootError) {
       throw new Error(`Failed to get member or root info: ${memberError?.message || rootError?.message}`);
+    }
+
+    if (!memberInfo) {
+      throw new Error(`Member ${memberWallet} not found in members table`);
+    }
+
+    if (!rootInfo) {
+      throw new Error(`Matrix root ${actualRoot} not found in members table`);
     }
 
     // Insert the matrix placement record directly
@@ -855,9 +863,9 @@ async function handleGetMatrixStats(supabase, walletAddress: string, data) {
       .from('members')
       .select('wallet_address, referrer_wallet, current_level, activation_time')
       .eq('wallet_address', walletAddress)
-      .single();
+      .maybeSingle();
 
-    if (memberError && memberError.code !== 'PGRST116') {
+    if (memberError) {
       console.error('❌ Member info query error:', memberError);
       throw new Error(`Member info query failed: ${memberError.message}`);
     }
@@ -1008,7 +1016,7 @@ async function getPlacementInfo(supabase: any, walletAddress: string) {
     .from('referrals')
     .select('member_wallet, referrer_wallet, id')
     .eq('member_wallet', walletAddress)
-    .single();
+    .maybeSingle();
 
   if (error) {
     return new Response(JSON.stringify({
@@ -1021,11 +1029,22 @@ async function getPlacementInfo(supabase: any, walletAddress: string) {
     });
   }
 
+  if (!referralData) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'No referral data found for this wallet',
+      is_referred: false
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200
+    });
+  }
+
   const { data: referrerData } = await supabase
     .from('members')
     .select('username, current_level')
     .eq('wallet_address', referralData.referrer_wallet)
-    .single();
+    .maybeSingle();
 
   return new Response(JSON.stringify({
     success: true,
@@ -1048,9 +1067,19 @@ async function findOptimalPlacement(supabase: any, referrerWallet: string, newMe
       .from('members')
       .select('wallet_address, username, current_level')
       .eq('wallet_address', referrerWallet)
-      .single();
+      .maybeSingle();
 
-    if (referrerError || !referrerData) {
+    if (referrerError) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: `Database error: ${referrerError.message}`
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
+      });
+    }
+
+    if (!referrerData) {
       return new Response(JSON.stringify({
         success: false,
         error: 'Referrer not found in members table'
@@ -1064,7 +1093,7 @@ async function findOptimalPlacement(supabase: any, referrerWallet: string, newMe
       .from('referrals')
       .select('member_wallet')
       .eq('member_wallet', newMemberWallet)
-      .single();
+      .maybeSingle();
 
     if (existingReferral) {
       return new Response(JSON.stringify({
@@ -1247,9 +1276,20 @@ async function checkSpilloverOpportunities(supabase: any, walletAddress: string)
     .from('members')
     .select('wallet_address, current_level, username')
     .eq('wallet_address', walletAddress)
-    .single();
+    .maybeSingle();
 
-  if (memberError || !memberData) {
+  if (memberError) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: `Database error: ${memberError.message}`,
+      can_refer: false
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500
+    });
+  }
+
+  if (!memberData) {
     return new Response(JSON.stringify({
       success: false,
       error: 'Member not found - must be a member to refer others',
@@ -1369,11 +1409,22 @@ async function syncMatrixData(supabase: any) {
 }
 
 async function getRewardEligibility(supabase: any, walletAddress: string, layer: number) {
-  const { data: memberData } = await supabase
+  const { data: memberData, error: memberError } = await supabase
     .from('members')
     .select('current_level, referrer_wallet')
     .eq('wallet_address', walletAddress)
-    .single();
+    .maybeSingle();
+
+  if (memberError) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: `Database error: ${memberError.message}`,
+      eligible: false
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500
+    });
+  }
 
   if (!memberData) {
     return new Response(JSON.stringify({
@@ -1618,7 +1669,7 @@ async function getUplineChain(supabase, startWallet: string, rootWallet: string)
         .select('*')
         .eq('member_wallet', currentWallet)
         .eq('matrix_root_wallet', rootWallet)
-        .single()
+        .maybeSingle()
     ]);
 
     let position = null;

@@ -450,7 +450,7 @@ async function getRewardDashboard(req, supabaseClient) {
         });
     }
     // Get member requirements
-    const { data: requirements, error: reqError } = await supabaseClient.from('member_requirements_view').select('*').eq('wallet_address', wallet_address).single();
+    const { data: requirements, error: reqError } = await supabaseClient.from('member_requirements_view').select('*').eq('wallet_address', wallet_address).maybeSingle();
     if (reqError) {
         console.error('Dashboard requirements error:', reqError);
     }
@@ -837,7 +837,20 @@ async function updateRewardStatus(req, supabaseClient) {
     }
     try {
         // Verify the reward claim exists and belongs to the user (unless admin override)
-        const { data: existingClaim, error: fetchError } = await supabaseClient.from('reward_claims').select('*').eq('id', claim_id).single();
+        const { data: existingClaim, error: fetchError } = await supabaseClient.from('reward_claims').select('*').eq('id', claim_id).maybeSingle();
+        
+        if (fetchError) {
+            return new Response(JSON.stringify({
+                success: false,
+                error: `Database error: ${fetchError.message}`
+            }), {
+                status: 500,
+                headers: {
+                    ...corsHeaders,
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
         if (fetchError || !existingClaim) {
             return new Response(JSON.stringify({
                 success: false,
@@ -1052,7 +1065,7 @@ async function processLevelActivationRewards(req, supabaseClient) {
             if (activatedLevel === position.matrix_layer) {
                 console.log(`✅ Creating Layer ${position.matrix_layer} reward for Level ${activatedLevel} NFT activation (Layer ${position.matrix_layer} member activated matching Level ${activatedLevel})`);
                 // Get matrix root's member data to check qualification
-                const { data: rootMemberData } = await supabaseClient.from('members').select('current_level').eq('wallet_address', position.matrix_root).single();
+                const { data: rootMemberData } = await supabaseClient.from('members').select('current_level').eq('wallet_address', position.matrix_root).maybeSingle();
                 // ✅ CORRECTED: Calculate reward amount based on the LAYER being rewarded, not the activated level
                 // Layer 2 root gets Layer 2 reward amount when member activates Level 2+ NFT
                 const rewardAmount = calculateNFTLevelReward(position.matrix_layer);
@@ -1160,7 +1173,7 @@ async function handlePendingRewardClaim(supabaseClient, reward, wallet_address) 
             .from('members')
             .select('wallet_address')
             .ilike('wallet_address', wallet_address)
-            .single();
+            .maybeSingle();
             
         const exactWalletAddress = memberData?.wallet_address || wallet_address;
         
@@ -1172,7 +1185,7 @@ async function handlePendingRewardClaim(supabaseClient, reward, wallet_address) 
             .eq('timer_type', 'pending_reward')
             .eq('metadata->>reward_id', reward.id)
             .eq('is_active', true)
-            .single();
+            .maybeSingle();
             
         if (existingTimer) {
             const now = new Date();

@@ -101,7 +101,7 @@ async function claimReward(supabase: any, rewardId: string, walletAddress: strin
       .eq('id', rewardId)
       .eq('root_wallet', walletAddress.toLowerCase())
       .eq('status', 'claimable')
-      .single()
+      .maybeSingle()
 
     if (rewardError || !reward) {
       return {
@@ -255,7 +255,7 @@ async function checkPendingRewards(supabase: any, walletAddress: string): Promis
       .from('members')
       .select('current_level, levels_owned')
       .eq('wallet_address', walletAddress.toLowerCase())
-      .single()
+      .maybeSingle()
 
     const currentLevel = memberData?.current_level || 0
     const levelsOwned = memberData?.levels_owned || []
@@ -454,7 +454,7 @@ async function findNextQualifiedUpline(supabase: any, currentRoot: string, requi
       .from('referrals')
       .select('referrer_wallet, placement_root')
       .eq('referred_wallet', currentRoot)
-      .single()
+      .maybeSingle()
 
     if (!referralData?.referrer_wallet) {
       console.log('No referrer found')
@@ -469,7 +469,7 @@ async function findNextQualifiedUpline(supabase: any, currentRoot: string, requi
         .from('members')
         .select('current_level, wallet_address')
         .eq('wallet_address', currentWallet)
-        .single()
+        .maybeSingle()
 
       if (memberData && memberData.current_level >= requiredLevel) {
         console.log(` Found qualified upline: ${currentWallet} (Level ${memberData.current_level})`)
@@ -481,7 +481,7 @@ async function findNextQualifiedUpline(supabase: any, currentRoot: string, requi
         .from('referrals')
         .select('referrer_wallet')
         .eq('referred_wallet', currentWallet)
-        .single()
+        .maybeSingle()
 
       if (!nextReferral?.referrer_wallet) {
         break
@@ -509,7 +509,7 @@ async function updateUserUSDCBalance(supabase: any, walletAddress: string, amoun
       .from('user_balances')
       .select('usdc_balance')
       .eq('wallet_address', walletAddress.toLowerCase())
-      .single()
+      .maybeSingle()
 
     const newBalance = (currentBalance?.usdc_balance || 0) + amount
 

@@ -86,7 +86,7 @@ serve(async (req) => {
 
     const { action, walletAddress, targetLevel, activationRank } = await req.json() as BCCReleaseRequest
 
-    console.log(`>™ BCC Release System Action: ${action} for ${walletAddress}`)
+    console.log(`>ï¿½ BCC Release System Action: ${action} for ${walletAddress}`)
 
     let response: BCCReleaseResponse
 
@@ -149,9 +149,18 @@ async function unlockBCCForLevel(supabase: any, walletAddress: string, targetLev
       .from('members')
       .select('activation_rank, tier_level, current_level, levels_owned')
       .eq('wallet_address', walletAddress.toLowerCase())
-      .single()
+      .maybeSingle()
 
-    if (memberError || !memberData) {
+    if (memberError) {
+      return {
+        success: false,
+        action: 'unlock_bcc',
+        message: `Database error: ${memberError.message}`,
+        error: 'Database error'
+      }
+    }
+
+    if (!memberData) {
       return {
         success: false,
         action: 'unlock_bcc',
@@ -179,7 +188,7 @@ async function unlockBCCForLevel(supabase: any, walletAddress: string, targetLev
       .eq('wallet_address', walletAddress.toLowerCase())
       .eq('level_unlocked', targetLevel)
       .eq('status', 'unlocked')
-      .single()
+      .maybeSingle()
 
     if (existingRelease) {
       return {
@@ -196,14 +205,14 @@ async function unlockBCCForLevel(supabase: any, walletAddress: string, targetLev
     const tierMultiplier = BCC_RELEASE_CONFIG.TIERS[tier]?.multiplier || 0.125
     const finalBCCAmount = baseBCCAmount * tierMultiplier
 
-    console.log(`=° BCC Calculation: Level ${targetLevel}, Base ${baseBCCAmount}, Tier ${tier} (${tierMultiplier}x) = ${finalBCCAmount} BCC`)
+    console.log(`=ï¿½ BCC Calculation: Level ${targetLevel}, Base ${baseBCCAmount}, Tier ${tier} (${tierMultiplier}x) = ${finalBCCAmount} BCC`)
 
     // 5. Update user balance - move BCC from locked to transferable
     const { data: currentBalance } = await supabase
       .from('user_balances')
       .select('bcc_transferable, bcc_locked')
       .eq('wallet_address', walletAddress.toLowerCase())
-      .single()
+      .maybeSingle()
 
     const newTransferable = (currentBalance?.bcc_transferable || 0) + finalBCCAmount
     const newLocked = Math.max(0, (currentBalance?.bcc_locked || 0) - finalBCCAmount)
@@ -282,7 +291,7 @@ async function unlockBCCForLevel(supabase: any, walletAddress: string, targetLev
 
 // Check user's tier based on activation rank
 async function checkUserTier(supabase: any, walletAddress: string, providedRank?: number): Promise<BCCReleaseResponse> {
-  console.log(`<÷ Checking tier for: ${walletAddress}`)
+  console.log(`<ï¿½ Checking tier for: ${walletAddress}`)
 
   try {
     let activationRank = providedRank
@@ -293,7 +302,7 @@ async function checkUserTier(supabase: any, walletAddress: string, providedRank?
         .from('members')
         .select('activation_rank')
         .eq('wallet_address', walletAddress.toLowerCase())
-        .single()
+        .maybeSingle()
 
       activationRank = memberData?.activation_rank
     }
@@ -333,15 +342,24 @@ async function checkUserTier(supabase: any, walletAddress: string, providedRank?
 
 // Calculate total BCC release for all levels
 async function calculateBCCRelease(supabase: any, walletAddress: string, upToLevel: number): Promise<BCCReleaseResponse> {
-  console.log(`>î Calculating BCC release up to Level ${upToLevel}: ${walletAddress}`)
+  console.log(`>ï¿½ Calculating BCC release up to Level ${upToLevel}: ${walletAddress}`)
 
   try {
     // Get member data
-    const { data: memberData } = await supabase
+    const { data: memberData, error: memberError } = await supabase
       .from('members')
       .select('activation_rank, tier_level')
       .eq('wallet_address', walletAddress.toLowerCase())
-      .single()
+      .maybeSingle()
+
+    if (memberError) {
+      return {
+        success: false,
+        action: 'calculate_release',
+        message: `Database error: ${memberError.message}`,
+        error: 'Database error'
+      }
+    }
 
     if (!memberData) {
       return {
@@ -396,15 +414,24 @@ async function calculateBCCRelease(supabase: any, walletAddress: string, upToLev
 
 // Get user's current BCC balance details
 async function getUserBCCBalance(supabase: any, walletAddress: string): Promise<BCCReleaseResponse> {
-  console.log(`=° Getting BCC balance for: ${walletAddress}`)
+  console.log(`=ï¿½ Getting BCC balance for: ${walletAddress}`)
 
   try {
     // Get current balance
-    const { data: balanceData } = await supabase
+    const { data: balanceData, error: balanceError } = await supabase
       .from('user_balances')
       .select('bcc_transferable, bcc_locked, bcc_restricted, total_usdt_earned')
       .eq('wallet_address', walletAddress.toLowerCase())
-      .single()
+      .maybeSingle()
+
+    if (balanceError) {
+      return {
+        success: false,
+        action: 'get_balance',
+        message: `Database error: ${balanceError.message}`,
+        error: 'Database error'
+      }
+    }
 
     if (!balanceData) {
       return {
@@ -456,11 +483,20 @@ async function processLevelUnlock(supabase: any, walletAddress: string, targetLe
 
   try {
     // 1. Verify member has reached the level
-    const { data: memberData } = await supabase
+    const { data: memberData, error: memberError } = await supabase
       .from('members')
       .select('current_level, levels_owned, activation_rank, tier_level')
       .eq('wallet_address', walletAddress.toLowerCase())
-      .single()
+      .maybeSingle()
+
+    if (memberError) {
+      return {
+        success: false,
+        action: 'process_level_unlock',
+        message: `Database error: ${memberError.message}`,
+        error: 'Database error'
+      }
+    }
 
     if (!memberData || memberData.current_level < targetLevel) {
       return {
@@ -477,7 +513,7 @@ async function processLevelUnlock(supabase: any, walletAddress: string, targetLe
       .select('*')
       .eq('wallet_address', walletAddress.toLowerCase())
       .eq('level_unlocked', targetLevel)
-      .single()
+      .maybeSingle()
 
     if (existingRelease && existingRelease.status === 'unlocked') {
       return {
@@ -557,7 +593,7 @@ async function checkAndUpdatePendingRewards(supabase: any, walletAddress: string
 
 // Process triggered rewards from matrix completions
 async function processTriggeredRewards(supabase: any, walletAddress: string, level: number): Promise<void> {
-  console.log(`< Processing triggered rewards for Level ${level}`)
+  console.log(`<ï¿½ Processing triggered rewards for Level ${level}`)
 
   try {
     // This function would integrate with the matrix system to check if any 
@@ -566,7 +602,7 @@ async function processTriggeredRewards(supabase: any, walletAddress: string, lev
     // For now, this is a placeholder - the actual implementation would involve
     // checking the referral matrix for completed layers and creating new reward claims
 
-    console.log(`=Ë Triggered rewards processing complete for ${walletAddress}`)
+    console.log(`=ï¿½ Triggered rewards processing complete for ${walletAddress}`)
 
   } catch (error) {
     console.error('Process triggered rewards error:', error)

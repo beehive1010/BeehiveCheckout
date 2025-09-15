@@ -660,7 +660,7 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
           updated_at: currentTime
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (memberError) {
         console.error('Failed to sync member record:', memberError);
