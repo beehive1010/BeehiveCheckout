@@ -63,7 +63,8 @@
       "Bash(do if [ -f \"$file\" ])",
       "Bash(then echo \"✅ $file - 已修复\")",
       "Bash(else echo \"❌ $file - 不存在\")",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(do echo \"=== $file ===\")"
     ],
     "deny": [],
     "ask": []
