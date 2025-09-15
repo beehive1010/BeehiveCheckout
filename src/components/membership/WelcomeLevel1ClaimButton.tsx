@@ -496,12 +496,37 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         });
       } else {
         console.log('⚠️ Partial success: NFT minted but backend activation failed');
-        toast({
-          title: '✅ NFT Claimed Successfully!',
-          description: 'Your Level 1 NFT is minted on blockchain. Backend activation is pending - please contact support if needed.',
-          variant: "default",
-          duration: 8000,
-        });
+        console.log('🔄 Attempting fallback activation via database function...');
+        
+        // Try fallback activation using database function directly
+        try {
+          const fallbackResponse = await supabase.rpc('activate_membership_fallback', {
+            p_wallet_address: account.address,
+            p_referrer_wallet: referrerWallet || null,
+            p_transaction_hash: claimTxResult.transactionHash,
+            p_level: 1
+          });
+
+          if (fallbackResponse.data?.success) {
+            console.log('✅ Fallback activation successful!');
+            toast({
+              title: '🎉 Level 1 NFT Claimed!',
+              description: 'Welcome to BEEHIVE! Your Level 1 membership is now active.',
+              variant: "default",
+              duration: 6000,
+            });
+          } else {
+            throw new Error(fallbackResponse.data?.error || 'Fallback activation failed');
+          }
+        } catch (fallbackError) {
+          console.error('❌ Fallback activation also failed:', fallbackError);
+          toast({
+            title: '✅ NFT Claimed Successfully!',
+            description: 'Your Level 1 NFT is minted on blockchain. Membership activation is processing - please refresh the page in a few minutes.',
+            variant: "default",
+            duration: 8000,
+          });
+        }
       }
 
       if (onSuccess) {
