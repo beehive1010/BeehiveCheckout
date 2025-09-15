@@ -3,7 +3,7 @@ import { useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain } fr
 import { getContract, prepareContractCall, sendTransaction, waitForReceipt, readContract } from 'thirdweb';
 import { arbitrum } from 'thirdweb/chains';
 import { createThirdwebClient } from 'thirdweb';
-import { claimTo, balanceOf } from 'thirdweb/extensions/erc1155';
+import { balanceOf } from 'thirdweb/extensions/erc1155';
 import { approve, balanceOf as erc20BalanceOf, allowance } from 'thirdweb/extensions/erc20';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -383,15 +383,36 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       console.log('🎁 Claiming Level 1 NFT...');
       setCurrentStep(t('claim.mintingNFT'));
       
-      // Use the standard claimTo extension for better compatibility
-      const claimTransaction = claimTo({
-        contract: nftContract,
-        to: account.address,
-        tokenId: 1n,
-        quantity: 1n,
-        currencyAddress: PAYMENT_TOKEN_CONTRACT,
-        pricePerToken: LEVEL_1_PRICE_WEI,
-      });
+      // Try the simplest claim function signature first
+      let claimTransaction;
+      try {
+        claimTransaction = prepareContractCall({
+          contract: nftContract,
+          method: "function claim(address to, uint256 tokenId, uint256 quantity, address currency, uint256 pricePerToken, bytes32[] proof, uint256 maxQuantity) payable",
+          params: [
+            account.address,        // to
+            BigInt(1),             // tokenId (Level 1)
+            BigInt(1),             // quantity
+            PAYMENT_TOKEN_CONTRACT, // currency (USDC)
+            LEVEL_1_PRICE_WEI,     // pricePerToken
+            [],                    // proof (empty array)
+            BigInt(1000)           // maxQuantity (large number)
+          ]
+        });
+      } catch (claimError) {
+        console.log('First claim method failed, trying alternative:', claimError);
+        // Fallback to a simpler method signature
+        claimTransaction = prepareContractCall({
+          contract: nftContract,
+          method: "function mint(address to, uint256 id, uint256 amount, bytes data) payable",
+          params: [
+            account.address,        // to
+            BigInt(1),             // id (Level 1)
+            BigInt(1),             // amount
+            "0x"                   // data (empty)
+          ]
+        });
+      }
 
       const claimTxResult = await sendTransactionWithRetry(
         claimTransaction,
