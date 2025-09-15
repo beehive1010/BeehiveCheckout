@@ -742,7 +742,8 @@
     "tabs": {
       "overview": "Overview",
       "claimable": "Claimable", 
-      "history": "History"
+      "history": "History",
+      "withdrawal": "Withdraw"
     },
     "overview": {
       "totalEarnings": "Total Earnings",
@@ -771,6 +772,9 @@
     "refresh": "Refresh",
     "claim": "Claim",
     "no_claimable_rewards": "No claimable rewards available",
+    "withdrawRewards": "Withdraw Rewards",
+    "withdrawDescription": "Withdraw your claimable rewards to any supported blockchain",
+    "withdrawAvailable": "Withdraw Available: ${amount}",
     "claimSuccess": "Rewards Claimed Successfully!",
     "claimSuccessDescription": "Successfully claimed ${amount} USDT in rewards",
     "claimFailed": "Failed to Claim Rewards",
