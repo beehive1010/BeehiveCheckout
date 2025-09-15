@@ -187,7 +187,7 @@ export default function NFTs() {
         body: JSON.stringify({
           action: 'spend-bcc',
           amount: nft.price_bcc,
-          itemType: nftType,
+          itemType: 'nft',
           itemId: nft.id,
           nftType: nftType,
           purpose: `Purchase NFT: ${nft.title}`
