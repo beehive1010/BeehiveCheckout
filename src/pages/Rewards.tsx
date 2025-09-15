@@ -11,6 +11,7 @@ import { useToast } from '../hooks/use-toast';
 import { supabase } from '../lib/supabase';
 import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
 import RewardsOverview from '../components/rewards/RewardsOverview';
+import USDTWithdrawal from '../components/withdrawal/USDTWithdrawal';
 import { 
   User, 
   Award, 
@@ -24,7 +25,8 @@ import {
   ArrowLeft,
   Users,
   Gift,
-  Target
+  Target,
+  ArrowUpRight
 } from 'lucide-react';
 
 interface ProfileData {
@@ -64,6 +66,7 @@ export default function Rewards() {
   const [rewardsData, setRewardsData] = useState<RewardsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('overview');
 
   // Use imported supabase client
 
@@ -255,7 +258,7 @@ export default function Rewards() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <Button 
               onClick={claimPendingRewards}
               disabled={!rewardsData?.claimable || rewardsData.claimable <= 0 || isLoading}
@@ -263,6 +266,14 @@ export default function Rewards() {
             >
               <Gift className="h-4 w-4 mr-2" />
               {t('rewards.claimAvailable', { amount: rewardsData?.claimable || 0 })}
+            </Button>
+            <Button 
+              onClick={() => setActiveTab('withdrawal')}
+              disabled={!rewardsData?.total || rewardsData.total <= 0}
+              className="bg-green-500 hover:bg-green-500/90 text-white font-semibold"
+            >
+              <ArrowUpRight className="h-4 w-4 mr-2" />
+              {t('rewards.withdrawAvailable', { amount: rewardsData?.total || 0 })}
             </Button>
             <Button variant="outline" className="border-honey/30 text-honey hover:bg-honey/10">
               <BarChart3 className="h-4 w-4 mr-2" />

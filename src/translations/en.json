@@ -26,7 +26,8 @@
     "pending": "Pending",
     "refresh": "Refresh",
     "retry": "Retry",
-    "backToProfile": "Back to Profile"
+    "backToProfile": "Back to Profile",
+    "back": "Back"
   },
   "dashboard": {
     "welcomeBack": "Welcome back, {username}!",

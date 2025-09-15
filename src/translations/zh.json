@@ -26,7 +26,8 @@
     "pending": "待处理",
     "refresh": "刷新",
     "retry": "重试",
-    "backToProfile": "返回个人资料"
+    "backToProfile": "返回个人资料",
+    "back": "返回"
   },
   "dashboard": {
     "welcomeBack": "欢迎回来, {username}!",
