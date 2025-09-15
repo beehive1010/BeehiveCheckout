@@ -412,7 +412,7 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
       const { count: directReferralsCount } = await supabase
         .from('direct_referrals')
         .select('*', { count: 'exact' })
-        .ilike('referrer_wallet', walletAddress) // Case-insensitive match
+        .eq('referrer_wallet', walletAddress) // Preserve case
 
       const directReferrals = directReferralsCount || 0
       const requiredReferrals = LEVEL_CONFIG.SPECIAL_REQUIREMENTS.LEVEL_2_DIRECT_REFERRALS
@@ -521,6 +521,7 @@ async function verifyUpgradeTransaction(
       : 'https://sepolia-rollup.arbitrum.io/rpc'
     
     const NFT_CONTRACT = '0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8' // ARB ONE Membership Contract
+    const PAYMENT_TOKEN_CONTRACT = '0x6f9487f2a1036e2D910aBB7509d0263a9581470B' // ARB ONE Payment Token
     const EXPECTED_TOKEN_ID = targetLevel
 
     // Get transaction receipt

@@ -26,7 +26,7 @@ const NETWORK_CONFIG = {
     chainId: 42161,
     name: "Arbitrum One",
     nftContractAddress: '0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8', // ARB ONE Membership Contract
-    paymentTokenAddress: '0xfA278827a612BBA895e7F0A4fBA504b22ff3E7C9', // ARB ONE Payment Token
+    paymentTokenAddress: '0x6f9487f2a1036e2D910aBB7509d0263a9581470B', // ARB ONE Payment Token
     isTestnet: false
   },
   TESTNET: {
@@ -34,7 +34,7 @@ const NETWORK_CONFIG = {
     chainId: 421614, 
     name: "Arbitrum Sepolia",
     nftContractAddress: '0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8', // Use same for testing
-    paymentTokenAddress: '0xfA278827a612BBA895e7F0A4fBA504b22ff3E7C9', // Use same for testing
+    paymentTokenAddress: '0x6f9487f2a1036e2D910aBB7509d0263a9581470B', // Use same for testing
     isTestnet: true
   }
 };
