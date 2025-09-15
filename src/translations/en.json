@@ -761,7 +761,16 @@
       "title": "Transaction History",
       "noHistory": "No transactions yet",
       "noHistoryDescription": "Your reward and transaction history will appear here"
-    }
+    },
+    "available_usdt": "Available USDT",
+    "available_bcc": "Available BCC",
+    "total_earned": "Total Earned",
+    "pending_rewards": "Pending Rewards",
+    "withdraw": "Withdraw",
+    "top_up_bcc": "Top Up BCC",
+    "refresh": "Refresh",
+    "claim": "Claim",
+    "no_claimable_rewards": "No claimable rewards available"
   },
   "me": {
     "title": "User Center",
@@ -2350,5 +2359,21 @@
       "rewards": "Matrix rewards at each level",
       "benefits": "Exclusive benefits and perks"
     }
+  },
+  "guard": {
+    "checkingAccess": "Checking Access",
+    "verifyingMembership": "Verifying membership status...",
+    "walletRequired": "Wallet Required",
+    "connectWalletToContinue": "Please connect your wallet to continue",
+    "goToHome": "Go to Home",
+    "accessError": "Access Error",
+    "tryAgain": "Try Again",
+    "upgradeRequired": "Upgrade Required",
+    "currentLevel": "Current Level",
+    "requiredLevel": "Required Level",
+    "levelRequiredMessage": "This page requires Level",
+    "upgradeMembership": "Upgrade Membership",
+    "redirecting": "Redirecting",
+    "redirectingToActivation": "Redirecting to membership activation..."
   }
 }
