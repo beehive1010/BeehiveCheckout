@@ -149,9 +149,9 @@ BCC_BALANCE=$(psql "$DB_URL" -t -c "
 SELECT bcc_balance, bcc_locked FROM user_balances 
 WHERE wallet_address = '$TEST_WALLET'" 2>/dev/null)
 
-if echo "$BCC_BALANCE" | grep -q "500.000000.*10450.000000"; then
-    echo -e "${GREEN}✅ BCC Balance: 500 available + 10450 locked${NC}"
-    TEST_RESULTS+=("✅ BCC Balance (Fixed)")
+if echo "$BCC_BALANCE" | grep -q "600.000000.*10350.000000"; then
+    echo -e "${GREEN}✅ BCC Balance: 600 available + 10350 locked (after 100 BCC release)${NC}"
+    TEST_RESULTS+=("✅ BCC Balance (Auto-Released)")
 else
     echo -e "${RED}❌ BCC Balance: Incorrect amounts${NC}"
     echo "Balance: $BCC_BALANCE"
@@ -180,30 +180,18 @@ echo "Matrix placement: $MATRIX_INFO"
 
 echo ""
 
-# STEP 5: Layer Reward Triggering
-print_step "5" "Layer Reward Triggering"
+# STEP 5: Layer Reward Auto-Triggering Verification
+print_step "5" "Layer Reward Auto-Triggering Verification"
 
-echo "Manually triggering layer reward..."
-REWARD_RESULT=$(psql "$DB_URL" -t -c "
-SELECT trigger_layer_rewards_on_upgrade(
-    '$TEST_WALLET',
-    1,
-    100.0
-);" 2>/dev/null)
+echo "Checking if layer rewards were automatically created during activation..."
 
-if echo "$REWARD_RESULT" | grep -q '"success":true'; then
-    echo -e "${GREEN}✅ Layer Reward Triggered${NC}"
-    TEST_RESULTS+=("✅ Layer Reward (Manual)")
+# Verify layer_rewards table was populated automatically
+if check_db_record "SELECT COUNT(*) FROM layer_rewards WHERE triggering_member_wallet = '$TEST_WALLET'" "Layer Rewards Auto-Created" 1; then
+    echo -e "${GREEN}✅ Layer Reward Auto-Triggered During Activation${NC}"
+    TEST_RESULTS+=("✅ Layer Reward (Auto-Triggered)")
 else
-    echo -e "${RED}❌ Layer Reward Failed${NC}"
-    TEST_RESULTS+=("❌ Layer Reward")
-fi
-
-# Verify layer_rewards table
-if check_db_record "SELECT COUNT(*) FROM layer_rewards WHERE triggering_member_wallet = '$TEST_WALLET'" "Layer Rewards Table" 1; then
-    TEST_RESULTS+=("✅ Layer Rewards Table")
-else
-    TEST_RESULTS+=("❌ Layer Rewards Table")
+    echo -e "${RED}❌ Layer Reward Auto-Trigger Failed${NC}"
+    TEST_RESULTS+=("❌ Layer Reward (Auto-Trigger)")
 fi
 
 echo ""
