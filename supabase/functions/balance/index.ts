@@ -308,19 +308,95 @@ async function handleSpendBcc(supabase, walletAddress, data) {
     let result;
     let purchaseRecord;
     if (itemType === 'nft') {
-      // Handle NFT purchase
-      const { data: nftResult, error: nftError } = await supabase.rpc('purchase_nft_with_bcc', {
-        p_buyer_wallet: walletAddress,
-        p_nft_id: itemId,
-        p_nft_type: data.nftType || 'merchant',
-        p_price_bcc: amount
-      });
-      if (nftError) throw nftError;
-      result = nftResult;
+      // Handle NFT purchase directly without database function
+      const nftType = data.nftType || 'merchant';
+      
+      // Get current balance
+      const { data: balanceData, error: balanceError } = await supabase
+        .from('user_balances')
+        .select('bcc_balance')
+        .eq('wallet_address', walletAddress.toLowerCase())
+        .single();
+      
+      if (balanceError || !balanceData) {
+        throw new Error('User balance not found');
+      }
+      
+      const currentBalance = balanceData.bcc_balance || 0;
+      if (currentBalance < amount) {
+        throw new Error(`Insufficient BCC balance. Available: ${currentBalance}, Required: ${amount}`);
+      }
+      
+      // Verify NFT exists and is available
+      let nftExists = false;
+      if (nftType === 'advertisement') {
+        const { data: nftData, error: nftError } = await supabase
+          .from('advertisement_nfts')
+          .select('id')
+          .eq('id', itemId)
+          .eq('is_active', true)
+          .single();
+        nftExists = !nftError && !!nftData;
+      } else if (nftType === 'merchant') {
+        const { data: nftData, error: nftError } = await supabase
+          .from('merchant_nfts')
+          .select('id, supply_available')
+          .eq('id', itemId)
+          .eq('is_active', true)
+          .single();
+        nftExists = !nftError && !!nftData;
+        if (nftExists && nftData.supply_available !== null && nftData.supply_available <= 0) {
+          throw new Error('NFT is sold out');
+        }
+      }
+      
+      if (!nftExists) {
+        throw new Error('NFT not found or not available');
+      }
+      
+      // Update user balance
+      const newBalance = currentBalance - amount;
+      const { error: updateError } = await supabase
+        .from('user_balances')
+        .update({
+          bcc_balance: newBalance,
+          updated_at: new Date().toISOString()
+        })
+        .eq('wallet_address', walletAddress.toLowerCase());
+      
+      if (updateError) throw updateError;
+      
+      // Update NFT supply for merchant NFTs
+      if (nftType === 'merchant') {
+        const { data: currentNFT } = await supabase
+          .from('merchant_nfts')
+          .select('supply_available')
+          .eq('id', itemId)
+          .single();
+        
+        if (currentNFT && currentNFT.supply_available !== null) {
+          await supabase
+            .from('merchant_nfts')
+            .update({
+              supply_available: Math.max(0, currentNFT.supply_available - 1),
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', itemId);
+        }
+      }
+      
+      result = {
+        success: true,
+        new_balance: newBalance,
+        amount_spent: amount,
+        nft_id: itemId,
+        nft_type: nftType
+      };
+      
       purchaseRecord = {
         type: 'nft',
         nftId: itemId,
-        nftType: data.nftType || 'merchant'
+        nftType: nftType
       };
     } else if (itemType === 'course') {
       // Handle course purchase
