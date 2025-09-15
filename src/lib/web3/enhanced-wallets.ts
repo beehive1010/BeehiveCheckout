@@ -46,20 +46,24 @@ export const chainGasSponsorshipConfig: Record<number, GasSponsorshipConfig> = {
     dailyLimit: '0x2B5E3AF16B1880000', // 50 MATIC daily
   },
   
-  // Arbitrum One - L2 optimized
+  // Arbitrum One - L2 optimized with Account Factory
   [arbitrum?.id || 42161]: {
     enabled: true,
-    mode: 'EIP7702',
+    mode: 'ERC4337',
     sponsorGas: true,
+    paymasterUrl: 'https://api.thirdweb.com/paymaster/42161',
+    bundlerUrl: 'https://api.thirdweb.com/bundler/42161',
     maxGasSponsored: '0x16345785D8A0000', // 0.1 ETH
     dailyLimit: '0x6F05B59D3B20000', // 0.5 ETH daily
   },
   
-  // Arbitrum Sepolia - Testnet with generous limits
+  // Arbitrum Sepolia - Testnet with Account Factory
   [arbitrumSepolia?.id || 421614]: {
     enabled: true,
-    mode: 'EIP7702',
+    mode: 'ERC4337',
     sponsorGas: true,
+    paymasterUrl: 'https://api.thirdweb.com/paymaster/421614',
+    bundlerUrl: 'https://api.thirdweb.com/bundler/421614',
     maxGasSponsored: '0xDE0B6B3A7640000', // 1 ETH (testnet)
     dailyLimit: '0x21E19E0C9BAB2400000', // 10 ETH daily (testnet)
   },
@@ -161,18 +165,20 @@ export const createSponsoredSmartWallet = (activeChain?: Chain) => {
 
 // Get smart wallet factory address per chain
 function getSmartWalletFactoryAddress(chainId: number): string {
-  // These would be the deployed smart wallet factory addresses per chain
+  // Account Factory address for gas sponsorship across all chains
+  const ACCOUNT_FACTORY_ADDRESS = '0x4be0ddfebca9a5a4a617dee4dece99e7c862dceb';
+  
   const factoryAddresses: Record<number, string> = {
-    1: '0x...', // Ethereum
-    137: '0x...', // Polygon
-    42161: '0x...', // Arbitrum
-    421614: '0x...', // Arbitrum Sepolia
-    10: '0x...', // Optimism
-    8453: '0x...', // Base
-    56: '0x...', // BSC
+    1: ACCOUNT_FACTORY_ADDRESS, // Ethereum
+    137: ACCOUNT_FACTORY_ADDRESS, // Polygon
+    42161: ACCOUNT_FACTORY_ADDRESS, // Arbitrum One - Primary chain
+    421614: ACCOUNT_FACTORY_ADDRESS, // Arbitrum Sepolia
+    10: ACCOUNT_FACTORY_ADDRESS, // Optimism
+    8453: ACCOUNT_FACTORY_ADDRESS, // Base
+    56: ACCOUNT_FACTORY_ADDRESS, // BSC
   };
   
-  return factoryAddresses[chainId] || '0x0000000000000000000000000000000000000000';
+  return factoryAddresses[chainId] || ACCOUNT_FACTORY_ADDRESS;
 }
 
 // Enhanced wallet configuration with dynamic gas sponsorship
