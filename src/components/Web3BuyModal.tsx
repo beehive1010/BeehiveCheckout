@@ -7,7 +7,7 @@ import { useToast } from '../hooks/use-toast';
 import { client } from '../lib/web3';
 import { ethereum, polygon, arbitrum, base } from 'thirdweb/chains';
 import { 
-  Bridge, 
+  Shuffle, // Using Shuffle to represent bridge/swap functionality
   Wallet, 
   CreditCard, 
   Zap, 
@@ -92,7 +92,7 @@ export function Web3BuyModal({
       // For now, we'll simulate the buy process
       
       toast({
-        title: "🔗 Launching Bridge",
+        title: "🔗 Launching Shuffle",
         description: `Initiating purchase on ${selectedChain.name}...`,
         duration: 4000
       });
@@ -141,8 +141,8 @@ export function Web3BuyModal({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Bridge className="w-5 h-5 text-blue-500" />
-            Web3 Bridge Purchase
+            <Shuffle className="w-5 h-5 text-blue-500" />
+            Web3 Shuffle Purchase
           </DialogTitle>
           <DialogDescription>
             Buy BCC tokens directly using crypto from any supported network
@@ -208,9 +208,9 @@ export function Web3BuyModal({
             
             <div className="flex flex-col items-center gap-2">
               <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                <Bridge className="w-5 h-5 text-blue-400" />
+                <Shuffle className="w-5 h-5 text-blue-400" />
               </div>
-              <div className="text-sm font-medium text-blue-400">Auto-Bridge</div>
+              <div className="text-sm font-medium text-blue-400">Auto-Shuffle</div>
               <div className="text-xs text-muted-foreground">Any token to BCC</div>
             </div>
             
@@ -261,7 +261,7 @@ export function Web3BuyModal({
                 </>
               ) : (
                 <>
-                  <Bridge className="mr-2 h-4 w-4" />
+                  <Shuffle className="mr-2 h-4 w-4" />
                   Launch Web3 Purchase
                 </>
               )}

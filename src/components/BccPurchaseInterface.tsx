@@ -25,7 +25,7 @@ import {
   Info,
   Zap,
   ShoppingCart,
-  Bridge
+  Shuffle
 } from 'lucide-react';
 
 interface BccPurchaseConfig {
@@ -388,8 +388,8 @@ export function BccPurchaseInterface({
                     onClick={() => setBuyMode('web3_buy')}
                     className={buyMode === 'web3_buy' ? "bg-honey hover:bg-honey/90 text-black" : ""}
                   >
-                    <Bridge className="mr-2 h-4 w-4" />
-                    Web3 Bridge
+                    <Shuffle className="mr-2 h-4 w-4" />
+                    Web3 Shuffle
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -472,7 +472,7 @@ export function BccPurchaseInterface({
                     <SelectItem value="thirdweb_bridge">
                       <div className="flex items-center gap-2">
                         <CreditCard className="w-4 h-4" />
-                        Thirdweb Bridge (Recommended)
+                        Thirdweb Shuffle (Recommended)
                       </div>
                     </SelectItem>
                     <SelectItem value="direct_transfer">
@@ -496,7 +496,7 @@ export function BccPurchaseInterface({
                     <div className="text-sm text-muted-foreground space-y-1">
                       <div>Chain ID: {selectedNetworkConfig.chainId}</div>
                       <div>USDC Contract: {selectedNetworkConfig.usdcContract.slice(0, 10)}...{selectedNetworkConfig.usdcContract.slice(-8)}</div>
-                      <div>Bridge Support: {selectedNetworkConfig.bridgeSupported ? 'Yes' : 'No'}</div>
+                      <div>Shuffle Support: {selectedNetworkConfig.bridgeSupported ? 'Yes' : 'No'}</div>
                     </div>
                   </div>
                 </div>
@@ -533,7 +533,7 @@ export function BccPurchaseInterface({
                 </>
               )}
 
-              {/* Web3 Bridge Purchase Flow */}
+              {/* Web3 Shuffle Purchase Flow */}
               {buyMode === 'web3_buy' && (
                 <div className="space-y-6">
                   {/* Web3 Buy Info */}
@@ -541,10 +541,10 @@ export function BccPurchaseInterface({
                     <div className="space-y-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                          <Bridge className="w-5 h-5 text-blue-400" />
+                          <Shuffle className="w-5 h-5 text-blue-400" />
                         </div>
                         <div>
-                          <h3 className="font-bold text-blue-400">ThirdWeb Bridge Purchase</h3>
+                          <h3 className="font-bold text-blue-400">ThirdWeb Shuffle Purchase</h3>
                           <p className="text-sm text-muted-foreground">Direct crypto-to-crypto conversion</p>
                         </div>
                       </div>
@@ -584,11 +584,11 @@ export function BccPurchaseInterface({
 
                   {/* Web3 Buy Instructions */}
                   <div className="bg-honey/5 rounded-lg p-4 border border-honey/20">
-                    <h4 className="font-medium text-honey mb-2">How Web3 Bridge Works:</h4>
+                    <h4 className="font-medium text-honey mb-2">How Web3 Shuffle Works:</h4>
                     <ul className="text-sm text-muted-foreground space-y-1">
                       <li>1. Connect your wallet with any supported token</li>
                       <li>2. Select the amount and token you want to spend</li>
-                      <li>3. Bridge automatically converts to USDC and credits BCC</li>
+                      <li>3. Shuffle automatically converts to USDC and credits BCC</li>
                       <li>4. Tokens appear in your balance instantly</li>
                     </ul>
                   </div>
@@ -604,8 +604,8 @@ export function BccPurchaseInterface({
                       className="w-full bg-gradient-to-r from-blue-500 via-purple-500 to-green-500 hover:opacity-90 text-white"
                       size="lg"
                     >
-                      <Bridge className="mr-2 h-4 w-4" />
-                      Launch Web3 Bridge Purchase ({purchaseAmount} USDC → {bccAmount} BCC)
+                      <Shuffle className="mr-2 h-4 w-4" />
+                      Launch Web3 Shuffle Purchase ({purchaseAmount} USDC → {bccAmount} BCC)
                     </Button>
                     
                     {/* Web3 Buy Widget Placeholder */}
