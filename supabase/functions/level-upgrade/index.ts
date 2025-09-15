@@ -186,7 +186,7 @@ async function processLevelUpgrade(
     const { data: memberData, error: memberError } = await supabase
       .from('members')
       .select('current_level, levels_owned, activation_rank, tier_level')
-      .eq('wallet_address', walletAddress.toLowerCase())
+      .eq('wallet_address', walletAddress) // Preserve case
       .single()
 
     if (memberError || !memberData) {
@@ -250,12 +250,12 @@ async function processLevelUpgrade(
         levels_owned: newLevelsOwned,
         updated_at: new Date().toISOString()
       })
-      .eq('wallet_address', walletAddress.toLowerCase())
+      .eq('wallet_address', walletAddress) // Preserve case
 
     // 5. Process NFT purchase with Layer-Level matching rewards
     const { data: nftPurchaseResult, error: nftError } = await supabase
       .rpc('process_nft_purchase_rewards', {
-        p_member_wallet: walletAddress.toLowerCase(),
+        p_member_wallet: walletAddress, // Preserve case
         p_purchased_level: targetLevel
       })
 
@@ -279,7 +279,7 @@ async function processLevelUpgrade(
     await supabase
       .from('audit_logs')
       .insert({
-        wallet_address: walletAddress.toLowerCase(),
+        wallet_address: walletAddress, // Preserve case
         action: 'level_upgrade',
         details: {
           fromLevel: currentLevel,
@@ -333,7 +333,7 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
     const { data: memberData } = await supabase
       .from('members')
       .select('current_level, levels_owned')
-      .eq('wallet_address', walletAddress.toLowerCase())
+      .eq('wallet_address', walletAddress) // Preserve case
       .single()
 
     if (!memberData) {
@@ -412,7 +412,7 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
       const { count: directReferralsCount } = await supabase
         .from('direct_referrals')
         .select('*', { count: 'exact' })
-        .eq('referrer_wallet', walletAddress.toLowerCase())
+        .ilike('referrer_wallet', walletAddress) // Case-insensitive match
 
       const directReferrals = directReferralsCount || 0
       const requiredReferrals = LEVEL_CONFIG.SPECIAL_REQUIREMENTS.LEVEL_2_DIRECT_REFERRALS
@@ -520,7 +520,7 @@ async function verifyUpgradeTransaction(
       ? 'https://arb1.arbitrum.io/rpc' 
       : 'https://sepolia-rollup.arbitrum.io/rpc'
     
-    const NFT_CONTRACT = '0x2Cb47141485754371c24Efcc65d46Ccf004f769a' // Same contract for all levels
+    const NFT_CONTRACT = '0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8' // ARB ONE Membership Contract
     const EXPECTED_TOKEN_ID = targetLevel
 
     // Get transaction receipt
@@ -557,7 +557,7 @@ async function verifyUpgradeTransaction(
     }
     
     // Verify transaction details
-    if (receipt.from?.toLowerCase() !== walletAddress.toLowerCase()) {
+    if (receipt.from?.toLowerCase() !== walletAddress.toLowerCase()) { // Keep lowercase for address comparison
       return {
         success: false,
         action: 'verify_transaction',
@@ -588,7 +588,7 @@ async function verifyUpgradeTransaction(
         const zeroAddress = '0x0000000000000000000000000000000000000000000000000000000000000000'
         
         if (log.topics[1] === zeroAddress && 
-            toAddress.toLowerCase().includes(walletAddress.slice(2).toLowerCase()) &&
+            toAddress.toLowerCase().includes(walletAddress.slice(2).toLowerCase()) && // Keep lowercase for address comparison
             tokenId === EXPECTED_TOKEN_ID) {
           
           console.log(`✅ NFT upgrade verified: Token ID ${tokenId} minted to ${walletAddress}`)

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ThirdwebProvider, useActiveAccount, useActiveWallet, useActiveWalletChain, useConnect } from 'thirdweb/react';
-import { client, supportedChains } from '../lib/web3';
+import { client, supportedChains, arbitrum } from '../lib/web3';
 import { inAppWallet, createWallet } from 'thirdweb/wallets';
 import { createSponsoredInAppWallet, connectWithGasSponsorship, gasSponsorshipUtils } from '../lib/web3/enhanced-wallets';
 import { supabase, supabaseApi, authService } from '../lib/supabase';
@@ -53,8 +53,9 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
   // Enhanced wallet connection with gas sponsorship support
   const connectWallet = async () => {
     try {
-      // Use enhanced sponsored wallet instead of basic InAppWallet
-      const result = await connectWithGasSponsorship('sponsored-inapp', activeChain);
+      // Use enhanced sponsored wallet instead of basic InAppWallet - default to Arbitrum One
+      const targetChain = activeChain || arbitrum;
+      const result = await connectWithGasSponsorship('sponsored-inapp', targetChain);
       
       if (result.success && result.wallet && result.account) {
         // Update gas sponsorship status
@@ -67,7 +68,7 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
       } else {
         // Fallback to basic wallet connection
         console.log('⚠️ Gas sponsorship unavailable, using basic wallet');
-        const wallet = createSponsoredInAppWallet(activeChain);
+        const wallet = createSponsoredInAppWallet(targetChain);
         
         await connect({ 
           client,
@@ -473,7 +474,11 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
 
 export function Web3Provider({ children }: { children: React.ReactNode }) {
   return (
-    <ThirdwebProvider>
+    <ThirdwebProvider 
+      client={client}
+      supportedChains={supportedChains}
+      activeChain={arbitrum} // Set Arbitrum One as default chain
+    >
       <Web3ContextProvider>
         {children}
       </Web3ContextProvider>

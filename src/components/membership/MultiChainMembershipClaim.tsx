@@ -122,6 +122,7 @@ export default function MultiChainMembershipClaim({
       });
 
       sendTransaction(transaction, {
+        gasless: true, // Enable gas sponsorship for multi-chain claims
         onSuccess: async (result) => {
           setTxHash(result.transactionHash);
           setClaimState('verifying');

@@ -37,19 +37,19 @@ export const supportedChains = [
 
 // Chain utilities
 export function getChainById(chainId: number | string | undefined) {
-  if (!chainId) return arbitrumSepolia; // Return Arbitrum Sepolia as default
+  if (!chainId) return arbitrum; // Return Arbitrum One as default
   
   const id = typeof chainId === 'string' ? parseInt(chainId) : chainId;
-  if (isNaN(id)) return arbitrumSepolia; // Return Arbitrum Sepolia as default
+  if (isNaN(id)) return arbitrum; // Return Arbitrum One as default
   
   const foundChain = supportedChains.find(chain => chain && chain.id === id);
   
   // Log chain lookup for debugging
   if (!foundChain) {
-    console.warn(`⚠️ Unknown chain ID ${id}, falling back to Arbitrum Sepolia (${arbitrumSepolia.id})`);
+    console.warn(`⚠️ Unknown chain ID ${id}, falling back to Arbitrum One (${arbitrum.id})`);
   }
   
-  return foundChain || arbitrumSepolia; // Return Arbitrum Sepolia if not found
+  return foundChain || arbitrum; // Return Arbitrum One if not found
 }
 
 // Enhanced chain validation
@@ -123,9 +123,9 @@ export const chainMetadata = {
 // Get chain metadata by ID
 export function getChainMetadata(chainId: number) {
   if (!chainId || typeof chainId !== 'number') {
-    return chainMetadata[arbitrumSepolia.id];
+    return chainMetadata[arbitrum.id];
   }
-  return chainMetadata[chainId as keyof typeof chainMetadata] || chainMetadata[arbitrumSepolia.id];
+  return chainMetadata[chainId as keyof typeof chainMetadata] || chainMetadata[arbitrum.id];
 }
 
 // Check if chain is testnet

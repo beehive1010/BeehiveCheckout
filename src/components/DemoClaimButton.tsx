@@ -4,7 +4,7 @@ import { useActiveAccount, ClaimButton } from "thirdweb/react";
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Zap } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
-import { arbitrumSepolia } from 'thirdweb/chains';
+import { arbitrum } from 'thirdweb/chains';
 import { useWeb3 } from '../contexts/Web3Context';
 
 type DemoState = 'idle' | 'paying' | 'verifying' | 'claiming' | 'success' | 'error';
@@ -29,9 +29,9 @@ export default function DemoClaimButton({
   const { client } = useWeb3();
 
   // Contract addresses from environment
-  const DEMO_MEMBERSHIP_NFT = '0x99265477249389469929CEA07c4a337af9e12cdA';
-  const DEMO_USDT = '0x4470734620414168Aa1673A30849DB25E5886E2A';
-  const CHAIN = arbitrumSepolia;
+  const DEMO_MEMBERSHIP_NFT = '0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8'; // ARB ONE Membership Contract
+  const DEMO_USDT = '0xfA278827a612BBA895e7F0A4fBA504b22ff3E7C9'; // ARB ONE Payment Token
+  const CHAIN = arbitrum;
 
   // Handle successful NFT claim
   const handleClaimSuccess = async (result: any) => {
@@ -186,6 +186,7 @@ export default function DemoClaimButton({
             quantity: BigInt(1),
             tokenId: BigInt(1),
           }}
+          gasless={true} // Enable gas sponsorship for demo claims
           onTransactionSent={(result) => {
             console.log('🚀 Transaction sent:', result);
             setDemoState('claiming');

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain } from 'thirdweb/react';
 import { getContract, prepareContractCall, sendTransaction, waitForReceipt, readContract } from 'thirdweb';
-import { arbitrumSepolia } from 'thirdweb/chains';
+import { arbitrum } from 'thirdweb/chains';
 import { createThirdwebClient } from 'thirdweb';
 import { claimTo, balanceOf } from 'thirdweb/extensions/erc1155';
 import { approve, balanceOf as erc20BalanceOf, allowance } from 'thirdweb/extensions/erc20';
@@ -37,7 +37,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
   
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
   const PAYMENT_TOKEN_CONTRACT = "0x4470734620414168Aa1673A30849DB25E5886E2A";
-  const NFT_CONTRACT = "0x99265477249389469929CEA07c4a337af9e12cdA";
+  const NFT_CONTRACT = "0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8"; // ARB ONE Membership Contract
   const THIRDWEB_CLIENT_ID = import.meta.env.VITE_THIRDWEB_CLIENT_ID;
 
   // Initialize Thirdweb client
@@ -52,7 +52,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`📤 Sending ${description} (attempt ${attempt}/${maxRetries})...`);
+        console.log(`📤 Sending ${description} with gas sponsorship (attempt ${attempt}/${maxRetries})...`);
         
         if (attempt > 1) {
           await new Promise(resolve => setTimeout(resolve, baseDelay * attempt));
@@ -60,10 +60,11 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         
         const result = await sendTransaction({
           transaction,
-          account
+          account,
+          gasless: true, // Enable gas sponsorship for Arbitrum One
         });
         
-        console.log(`✅ ${description} successful on attempt ${attempt}`);
+        console.log(`✅ ${description} successful with sponsored gas on attempt ${attempt}`);
         return result;
         
       } catch (error: any) {
@@ -89,7 +90,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
   // Check network status
   useEffect(() => {
-    if (activeChain?.id && activeChain.id !== arbitrumSepolia.id) {
+    if (activeChain?.id && activeChain.id !== arbitrum.id) {
       setIsWrongNetwork(true);
     } else {
       setIsWrongNetwork(false);
@@ -101,10 +102,10 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
     
     try {
       setIsProcessing(true);
-      await switchChain(arbitrumSepolia);
+      await switchChain(arbitrum);
       toast({
         title: 'Network Switched',
-        description: 'Successfully switched to Arbitrum Sepolia',
+        description: 'Successfully switched to Arbitrum One',
         variant: "default",
       });
     } catch (error: any) {
@@ -220,15 +221,15 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
       // Step 3: Check network - must be Arbitrum Sepolia
       const chainId = activeChain?.id;
-      if (chainId !== arbitrumSepolia.id) {
+      if (chainId !== arbitrum.id) {
         const networkName = chainId === 1 ? 'Ethereum Mainnet' : `Network ${chainId}`;
         toast({
           title: 'Wrong Network',
-          description: `Please switch from ${networkName} to Arbitrum Sepolia network to claim your Level 1 NFT.`,
+          description: `Please switch from ${networkName} to Arbitrum One network to claim your Level 1 NFT.`,
           variant: "destructive",
           duration: 8000,
         });
-        throw new Error(`Please switch to Arbitrum Sepolia network. Current: ${networkName}, Required: Arbitrum Sepolia`);
+        throw new Error(`Please switch to Arbitrum One network. Current: ${networkName}, Required: Arbitrum One`);
       }
 
       // Step 4: Check ETH balance for gas
@@ -253,13 +254,13 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       const usdcContract = getContract({
         client,
         address: PAYMENT_TOKEN_CONTRACT,
-        chain: arbitrumSepolia
+        chain: arbitrum
       });
 
       const nftContract = getContract({
         client,
         address: NFT_CONTRACT,
-        chain: arbitrumSepolia
+        chain: arbitrum
       });
 
       // Step 6: Check if user already owns Level 1 NFT
@@ -368,7 +369,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
           await waitForReceipt({
             client,
-            chain: arbitrumSepolia,
+            chain: arbitrum,
             transactionHash: approveTxResult?.transactionHash,
           });
           
@@ -402,7 +403,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       setCurrentStep(t('claim.waitingNFTConfirmation'));
       const receipt = await waitForReceipt({
         client,
-        chain: arbitrumSepolia,
+        chain: arbitrum,
         transactionHash: claimTxResult.transactionHash,
       });
       
