@@ -81,9 +81,9 @@ export default function Rewards() {
     if (memberWalletAddress) {
       loadRewardsData();
     }
-  }, [memberWalletAddress]);
+  }, [memberWalletAddress, loadRewardsData]);
 
-  const loadRewardsData = async () => {
+  const loadRewardsData = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -160,7 +160,17 @@ export default function Rewards() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [memberWalletAddress]); // Add memberWalletAddress as dependency
+
+  // Stable callback for PendingRewardsTimer
+  const handleRewardClaimable = useCallback((rewardId: string) => {
+    // Reload rewards data when a reward becomes claimable
+    loadRewardsData();
+    toast({
+      title: t('rewards.rewardReady'),
+      description: t('rewards.rewardReadyDescription'),
+    });
+  }, [loadRewardsData, toast, t]);
 
   const claimPendingRewards = async () => {
     if (!rewardsData?.claimable || rewardsData.claimable <= 0) return;
