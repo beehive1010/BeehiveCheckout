@@ -314,14 +314,7 @@ export default function Rewards() {
       {/* Pending Rewards Timer Component */}
       <PendingRewardsTimer 
         walletAddress={memberWalletAddress || ''} 
-        onRewardClaimable={(rewardId) => {
-          // Reload rewards data when a reward becomes claimable
-          loadRewardsData();
-          toast({
-            title: t('rewards.rewardReady'),
-            description: t('rewards.rewardReadyDescription'),
-          });
-        }}
+        onRewardClaimable={handleRewardClaimable}
       />
 
       {/* Main Content with Tabs */}

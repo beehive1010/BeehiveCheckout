@@ -268,14 +268,14 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       // First check database records
       try {
         const { data: membershipData } = await supabase
-          .from('membership')
-          .select('nft_level')
+          .from('members')
+          .select('current_level')
           .ilike('wallet_address', account.address)
-          .eq('nft_level', 1)
+          .gte('current_level', 1)
           .single();
           
         if (membershipData) {
-          console.log('✅ User already has Level 1 membership in database - redirecting');
+          console.log('✅ User already has Level 1+ membership in database - redirecting');
           toast({
             title: 'Welcome Back! 🎉',
             description: 'You already have Level 1 membership. Redirecting to dashboard.',
