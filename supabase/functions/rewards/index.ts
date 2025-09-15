@@ -183,7 +183,7 @@ async function claimReward(req, supabaseClient) {
             .from('layer_rewards')
             .select('*')
             .eq('id', claim_id)
-            .ilike('recipient_wallet', wallet_address.toLowerCase());
+            .ilike('reward_recipient_wallet', wallet_address.toLowerCase());
         
         const reward = rewardArray?.[0] || null;
         
