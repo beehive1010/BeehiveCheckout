@@ -65,7 +65,8 @@
       "Bash(else echo \"❌ $file - 不存在\")",
       "Bash(fi)",
       "Bash(do echo \"=== $file ===\")",
-      "WebFetch(domain:portal.thirdweb.com)"
+      "WebFetch(domain:portal.thirdweb.com)",
+      "Bash(./test-complete-flow.sh:*)"
     ],
     "deny": [],
     "ask": []
