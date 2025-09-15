@@ -130,7 +130,7 @@ serve(async (req) => {
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
-        .eq('wallet_address', walletAddress)
+        .ilike('wallet_address', walletAddress)
         .single();
 
       if (userError || !userData) {
@@ -151,7 +151,7 @@ serve(async (req) => {
       const { data: membershipData, error: membershipError } = await supabase
         .from('membership')
         .select('*')
-        .eq('wallet_address', walletAddress)
+        .ilike('wallet_address', walletAddress)
         .eq('nft_level', 1) // Level 1 NFT claim
         .single();
 
@@ -175,7 +175,7 @@ serve(async (req) => {
       const { data: memberData, error: memberError } = await supabase
         .from('members')
         .select('*')
-        .eq('wallet_address', walletAddress)
+        .ilike('wallet_address', walletAddress)
         .single();
 
       if (memberError) {
@@ -251,7 +251,7 @@ serve(async (req) => {
       const { data: memberData, error: memberError } = await supabase
         .from('members')
         .select('*')
-        .eq('wallet_address', walletAddress)
+        .ilike('wallet_address', walletAddress)
         .single();
 
       if (!memberError && memberData && memberData.current_level > 0) {
@@ -307,7 +307,7 @@ async function activateNftLevel1Membership(supabase, walletAddress, transactionH
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('wallet_address, username, email')
-      .eq('wallet_address', walletAddress)
+      .ilike('wallet_address', walletAddress)
       .single();
 
     if (userError || !userData) {
@@ -321,7 +321,7 @@ async function activateNftLevel1Membership(supabase, walletAddress, transactionH
     const { data: existingMember } = await supabase
       .from('members')
       .select('wallet_address, current_level, activation_sequence')
-      .eq('wallet_address', walletAddress)
+      .ilike('wallet_address', walletAddress)
       .single();
 
     if (existingMember && existingMember.current_level > 0) {
@@ -517,7 +517,7 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('wallet_address, username, email')
-      .eq('wallet_address', walletAddress)
+      .ilike('wallet_address', walletAddress)
       .single();
 
     if (userError || !userData) {
@@ -589,7 +589,7 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
     const { data: existingMember } = await supabase
       .from('members')
       .select('wallet_address, current_level, activation_sequence')
-      .eq('wallet_address', walletAddress)
+      .ilike('wallet_address', walletAddress)
       .single();
 
     if (existingMember && existingMember.current_level > 0) {
@@ -599,7 +599,7 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
       const { data: membershipRecord } = await supabase
         .from('membership')
         .select('id')
-        .eq('wallet_address', walletAddress)
+        .ilike('wallet_address', walletAddress)
         .single();
 
       const { data: referralRecord } = await supabase
@@ -683,7 +683,7 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
     const { data: updatedMember } = await supabase
       .from('members')
       .select('wallet_address, current_level, activation_sequence')
-      .eq('wallet_address', walletAddress)
+      .ilike('wallet_address', walletAddress)
       .single();
 
     return {

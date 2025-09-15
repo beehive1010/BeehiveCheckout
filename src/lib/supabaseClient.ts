@@ -159,17 +159,23 @@ export const authService = {
 
   async isActivatedMember(walletAddress: string) {
     try {
-      // First check database activation status using get-member-info action
+      // Use the fixed auth API instead of activate-membership API
       console.log(`🔍 Checking database activation for ${walletAddress}`);
-      const dbResult = await callEdgeFunction('activate-membership', {
-        action: 'get-member-info'
+      const dbResult = await callEdgeFunction('auth', {
+        action: 'get-user'
       }, walletAddress);
       
-      if (dbResult.success && (dbResult.isActivated || dbResult.currentLevel > 0)) {
-        console.log(`✅ Database shows user is activated: Level ${dbResult.currentLevel}`);
+      if (dbResult.success && dbResult.isMember && dbResult.membershipLevel > 0) {
+        console.log(`✅ Database shows user is activated: Level ${dbResult.membershipLevel}`);
         return { 
           isActivated: true, 
-          memberData: dbResult.member,
+          memberData: {
+            wallet_address: walletAddress,
+            current_level: dbResult.membershipLevel,
+            activation_sequence: dbResult.member?.activation_sequence,
+            referrer_wallet: dbResult.member?.referrer_wallet,
+            activation_time: dbResult.member?.activation_time
+          },
           error: null 
         };
       }
