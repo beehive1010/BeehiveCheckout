@@ -418,81 +418,90 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       console.log('🚀 Activating Level 1 membership with matrix placement...');
       setCurrentStep('Activating membership...');
       
-      let backendProcessed = false;
-      let membershipActivated = false;
-      
-      // Use activate-membership endpoint directly for new user membership activation
       let activationSuccess = false;
-      const maxRetries = 5;
-      const retryDelay = 10000; // 10 seconds
       
-      for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-          console.log(`📞 Membership activation attempt ${attempt}/${maxRetries}`);
-          
-          console.log('📋 Sending activation request with wallet:', account.address);
-          console.log('📋 Referrer wallet:', referrerWallet);
-          console.log('📋 Transaction hash:', claimTxResult.transactionHash);
-          
-          const activateResponse = await fetch(`${API_BASE}/activate-membership`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-              'x-wallet-address': account.address
-            },
-            body: JSON.stringify({
-              transactionHash: claimTxResult.transactionHash,
-              level: 1,
-              paymentMethod: 'token_payment',
-              paymentAmount: LEVEL_1_PRICE_USDC,
-              referrerWallet: referrerWallet
-            })
-          });
+      try {
+        const maxRetries = 5;
+        const retryDelay = 10000; // 10 seconds
+        
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            console.log(`📞 Membership activation attempt ${attempt}/${maxRetries}`);
+            
+            console.log('📋 Sending activation request with wallet:', account.address);
+            console.log('📋 Referrer wallet:', referrerWallet);
+            console.log('📋 Transaction hash:', claimTxResult.transactionHash);
+            
+            const activateResponse = await fetch(`${API_BASE}/activate-membership`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                'x-wallet-address': account.address
+              },
+              body: JSON.stringify({
+                transactionHash: claimTxResult.transactionHash,
+                level: 1,
+                paymentMethod: 'token_payment',
+                paymentAmount: LEVEL_1_PRICE_USDC,
+                referrerWallet: referrerWallet
+              })
+            });
 
-          if (activateResponse.ok) {
-            const result = await activateResponse.json();
-            console.log(`✅ Level 1 membership activated on attempt ${attempt}:`, result);
-            activationSuccess = true;
-            membershipActivated = true;
-            backendProcessed = true;
-            break;
-          } else {
-            throw new Error(`Activation failed with status: ${activateResponse.status}`);
-          }
-          
-        } catch (activationError: any) {
-          console.warn(`⚠️ Membership activation attempt ${attempt} failed:`, activationError.message);
-          
-          // Check if it's a registration error
-          if (activationError.message && activationError.message.includes('User must be registered')) {
-            console.log('❌ User registration required, showing registration modal');
-            setIsProcessing(false);
-            setShowRegistrationModal(true);
-            return;
-          }
-          
-          if (attempt < maxRetries) {
-            console.log(`🔄 Retrying activation in ${retryDelay/1000} seconds...`);
-            setCurrentStep(`Activation failed, retrying in ${retryDelay/1000}s... (${attempt}/${maxRetries})`);
-            await new Promise(resolve => setTimeout(resolve, retryDelay));
+            if (activateResponse.ok) {
+              const result = await activateResponse.json();
+              console.log(`✅ Level 1 membership activated on attempt ${attempt}:`, result);
+              activationSuccess = true;
+              break;
+            } else {
+              const errorText = await activateResponse.text();
+              throw new Error(`Activation failed with status: ${activateResponse.status}, response: ${errorText}`);
+            }
+            
+          } catch (activationError: any) {
+            console.warn(`⚠️ Membership activation attempt ${attempt} failed:`, activationError.message);
+            
+            // Check if it's a registration error
+            if (activationError.message && activationError.message.includes('User must be registered')) {
+              console.log('❌ User registration required, showing registration modal');
+              setIsProcessing(false);
+              setShowRegistrationModal(true);
+              return;
+            }
+            
+            if (attempt < maxRetries) {
+              console.log(`🔄 Retrying activation in ${retryDelay/1000} seconds...`);
+              setCurrentStep(`Activation failed, retrying in ${retryDelay/1000}s... (${attempt}/${maxRetries})`);
+              await new Promise(resolve => setTimeout(resolve, retryDelay));
+            } else {
+              // Last attempt failed, but don't throw - NFT is still minted
+              console.error('❌ All backend activation attempts failed, but NFT is successfully minted');
+            }
           }
         }
+      } catch (backendError: any) {
+        console.error('⚠️ Backend activation failed:', backendError.message);
+        // Don't throw - NFT is successfully minted
       }
       
-      if (!activationSuccess) {
-        console.error('❌ All activation attempts failed');
-        throw new Error('Membership activation failed after multiple attempts');
+      // Show success message based on what succeeded
+      if (activationSuccess) {
+        console.log('✅ Complete success: NFT minted and membership activated');
+        toast({
+          title: '🎉 Level 1 NFT Claimed!',
+          description: 'Welcome to BEEHIVE! Your Level 1 membership is now active.',
+          variant: "default",
+          duration: 6000,
+        });
+      } else {
+        console.log('⚠️ Partial success: NFT minted but backend activation failed');
+        toast({
+          title: '✅ NFT Claimed Successfully!',
+          description: 'Your Level 1 NFT is minted on blockchain. Backend activation is pending - please contact support if needed.',
+          variant: "default",
+          duration: 8000,
+        });
       }
-
-      // Membership activation successful
-
-      toast({
-        title: '🎉 Level 1 NFT Claimed!',
-        description: 'Welcome to BEEHIVE! Your Level 1 membership is now active.',
-        variant: "default",
-        duration: 6000,
-      });
 
       if (onSuccess) {
         onSuccess();
