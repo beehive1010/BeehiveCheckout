@@ -169,7 +169,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
-        .eq('wallet_address', account.address)
+        .ilike('wallet_address', account.address)
         .single();
       
       if (userError || !userData) {
@@ -270,7 +270,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         const { data: membershipData } = await supabase
           .from('membership')
           .select('nft_level')
-          .eq('wallet_address', account.address)
+          .ilike('wallet_address', account.address)
           .eq('nft_level', 1)
           .single();
           

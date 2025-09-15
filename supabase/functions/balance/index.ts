@@ -337,10 +337,8 @@ async function handleSpendBcc(supabase, walletAddress, data) {
               wallet_address: walletAddress.toLowerCase(),
               username: `user_${walletAddress.toLowerCase().slice(-8)}`, // Generate username from wallet
               role: 'user',
-              profile_completed: false,
-              registration_source: 'nft_purchase',
-              is_active: true,
-              created_at: new Date().toISOString()
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
             });
           
           if (createUserError) {
