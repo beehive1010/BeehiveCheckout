@@ -32,6 +32,10 @@
   "dashboard": {
     "welcomeBack": "Welcome back, {username}!",
     "welcomeMember": "Welcome back, Member!",
+    "loadingData": "Loading data...",
+    "balance": "Balance",
+    "network": "Network", 
+    "rewards": "Rewards",
     "buildNetwork": "Let's build your hive network together",
     "upgrade": "Upgrade",
     "bccBalance": "BCC Balance",

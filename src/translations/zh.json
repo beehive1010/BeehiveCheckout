@@ -32,6 +32,10 @@
   "dashboard": {
     "welcomeBack": "欢迎回来, {username}!",
     "welcomeMember": "欢迎回来, 会员!",
+    "loadingData": "加载数据中...",
+    "balance": "余额",
+    "network": "网络",
+    "rewards": "奖励",
     "buildNetwork": "让我们一起建设您的蜂巢网络",
     "upgrade": "升级",
     "bccBalance": "BCC余额",
