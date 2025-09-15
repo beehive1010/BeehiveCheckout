@@ -141,61 +141,31 @@ async function registerUser(supabase, walletAddress, data) {
   }
 }
 
-// Get user function - using new database structure
+// Get user function - simplified using unified member status
 async function getUser(supabase, walletAddress) {
   console.log(`👤 Getting user: ${walletAddress}`);
 
-  // Get user basic information
-  const { data: userData, error: userError } = await supabase
-    .from('users')
-    .select(`
-      wallet_address,
-      username,
-      created_at,
-      updated_at
-    `)
-    .eq('wallet_address', walletAddress)
-    .single();
+  // Use unified member status function
+  const { data: statusResult, error: statusError } = await supabase.rpc('get_member_status', {
+    p_wallet_address: walletAddress
+  });
 
-  if (userError) {
-    if (userError.code === 'PGRST116') {
-      return {
-        success: false,
-        action: 'not_found',
-        isRegistered: false,
-        message: 'User does not exist'
-      };
-    }
-    throw new Error(`Failed to get user: ${userError.message}`);
+  if (statusError) {
+    throw new Error(`Failed to get user status: ${statusError.message}`);
   }
 
-  // Get member information (if exists)
-  const { data: memberData } = await supabase
-    .from('members')
-    .select(`
-      activation_sequence,
-      current_level,
-      referrer_wallet,
-      activation_time
-    `)
-    .eq('wallet_address', walletAddress)
-    .single();
+  if (!statusResult.is_registered) {
+    return {
+      success: false,
+      action: 'not_found',
+      isRegistered: false,
+      message: 'User does not exist'
+    };
+  }
 
-  // Get user balance information
-  const { data: balanceData } = await supabase
-    .from('user_balances')
-    .select(`
-      available_balance,
-      total_earned,
-      bcc_balance,
-      last_updated
-    `)
-    .eq('wallet_address', walletAddress)
-    .single();
-
-  // If member, get referral statistics
+  // Get referral statistics only if member
   let referralStats = null;
-  if (memberData) {
+  if (statusResult.is_member) {
     const { data: directReferrals } = await supabase
       .from('referrals')
       .select('member_wallet')
@@ -212,26 +182,29 @@ async function getUser(supabase, walletAddress) {
     };
   }
 
-  const isMember = !!memberData && memberData.current_level > 0;
-  
-  console.log(`🔍 User status: member=${!!memberData}, level=${memberData?.current_level || 0}`);
+  console.log(`🔍 User status: member=${statusResult.is_member}, level=${statusResult.current_level}`);
 
   return {
     success: true,
     action: 'found',
-    user: userData,
-    member: memberData,
-    balance: balanceData,
+    user: statusResult.user_info,
+    member: statusResult.is_member ? {
+      activation_sequence: statusResult.activation_sequence,
+      current_level: statusResult.current_level,
+      referrer_wallet: statusResult.referrer_wallet,
+      activation_time: statusResult.activation_time
+    } : null,
+    balance: statusResult.balance_info,
     referral_stats: referralStats,
-    isRegistered: true,
-    isMember,
-    membershipLevel: memberData?.current_level || 0,
-    canAccessReferrals: isMember,
+    isRegistered: statusResult.is_registered,
+    isMember: statusResult.is_member,
+    membershipLevel: statusResult.current_level,
+    canAccessReferrals: statusResult.can_access_referrals,
     message: 'User information retrieved successfully'
   };
 }
 
-// Validate referrer function - using new database structure
+// Validate referrer function - simplified using unified status
 async function validateReferrer(supabase, referrerWallet) {
   console.log(`🔍 Validating referrer: ${referrerWallet}`);
   
@@ -243,14 +216,21 @@ async function validateReferrer(supabase, referrerWallet) {
     };
   }
   
-  // Check if referrer is a registered user (case-insensitive)
-  const { data: userData, error: userError } = await supabase
-    .from('users')
-    .select('wallet_address, username')
-    .ilike('wallet_address', referrerWallet)
-    .single();
+  // Use unified member status function
+  const { data: referrerStatus, error: statusError } = await supabase.rpc('get_member_status', {
+    p_wallet_address: referrerWallet
+  });
+
+  if (statusError) {
+    console.log(`❌ Error checking referrer: ${statusError.message}`);
+    return {
+      success: false,
+      isValid: false,
+      error: 'Failed to validate referrer'
+    };
+  }
   
-  if (userError || !userData) {
+  if (!referrerStatus.is_registered) {
     console.log(`❌ Referrer not registered: ${referrerWallet}`);
     return {
       success: false,
@@ -259,22 +239,12 @@ async function validateReferrer(supabase, referrerWallet) {
     };
   }
   
-  // Check if referrer is an activated member (optional - just for additional info)
-  const { data: memberData, error: memberError } = await supabase
-    .from('members')
-    .select('current_level, activation_sequence, wallet_address')
-    .ilike('wallet_address', referrerWallet)
-    .single();
-  
-  // For registration, referrer only needs to be a registered user, not necessarily an activated member
-  const isActivatedMember = !memberError && memberData && memberData.current_level > 0;
-  
-  console.log(`✅ Referrer validation: ${referrerWallet}, registered: true, activated: ${isActivatedMember}`);
+  console.log(`✅ Referrer validation: ${referrerWallet}, registered: true, activated: ${referrerStatus.is_activated}`);
   
   // Get referrer's referral statistics (only if they are an activated member)
   let referralStats = { direct_referrals_count: 0, matrix_members_count: 0 };
   
-  if (isActivatedMember) {
+  if (referrerStatus.is_activated) {
     const { data: directReferrals } = await supabase
       .from('referrals')
       .select('member_wallet')
@@ -292,20 +262,20 @@ async function validateReferrer(supabase, referrerWallet) {
     };
   }
   
-  console.log(`✅ Referrer validation passed: ${referrerWallet}, level: ${memberData?.current_level || 0}, direct referrals: ${referralStats.direct_referrals_count}`);
+  console.log(`✅ Referrer validation passed: ${referrerWallet}, level: ${referrerStatus.current_level}, direct referrals: ${referralStats.direct_referrals_count}`);
   
   return {
     success: true,
     isValid: true,
     referrer: {
-      wallet_address: userData.wallet_address,
-      username: userData.username,
-      current_level: memberData?.current_level || 0,
-      activation_sequence: memberData?.activation_sequence || null,
-      is_activated_member: isActivatedMember,
+      wallet_address: referrerStatus.wallet_address,
+      username: referrerStatus.user_info?.username,
+      current_level: referrerStatus.current_level,
+      activation_sequence: referrerStatus.activation_sequence,
+      is_activated_member: referrerStatus.is_activated,
       ...referralStats
     },
-    message: isActivatedMember 
+    message: referrerStatus.is_activated 
       ? 'Referrer is a valid activated member'
       : 'Referrer is a valid registered user (not activated yet)'
   };
