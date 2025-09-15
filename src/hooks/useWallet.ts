@@ -203,5 +203,14 @@ export function useWallet() {
     activateMembership: activateMembershipMutation.mutate,
     isActivating: activateMembershipMutation.isPending,
     activationError: activateMembershipMutation.error,
+    
+    // Manual refresh function for cache invalidation
+    refreshUserData: () => {
+      if (walletAddress) {
+        queryClient.invalidateQueries({ queryKey: ['user-status', walletAddress] });
+        queryClient.invalidateQueries({ queryKey: ['user-balances', walletAddress] });
+        queryClient.refetchQueries({ queryKey: ['user-status', walletAddress] });
+      }
+    },
   };
 }
