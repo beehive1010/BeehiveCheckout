@@ -383,19 +383,14 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       console.log('🎁 Claiming Level 1 NFT...');
       setCurrentStep(t('claim.mintingNFT'));
       
-      // Use direct contract call instead of claimTo extension to avoid dynamic import issues
-      const claimTransaction = prepareContractCall({
+      // Use the standard claimTo extension for better compatibility
+      const claimTransaction = claimTo({
         contract: nftContract,
-        method: "function claim(address _receiver, uint256 _tokenId, uint256 _quantity, address _currency, uint256 _pricePerToken, bytes32[] calldata _proofs, uint256 _proofMaxQuantityPerTransaction) payable",
-        params: [
-          account.address,      // _receiver
-          BigInt(1),           // _tokenId (Level 1)
-          BigInt(1),           // _quantity
-          PAYMENT_TOKEN_CONTRACT, // _currency (USDC)
-          LEVEL_1_PRICE_WEI,   // _pricePerToken
-          [],                  // _proofs (empty for public mint)
-          BigInt(1)            // _proofMaxQuantityPerTransaction
-        ]
+        to: account.address,
+        tokenId: 1n,
+        quantity: 1n,
+        currencyAddress: PAYMENT_TOKEN_CONTRACT,
+        pricePerToken: LEVEL_1_PRICE_WEI,
       });
 
       const claimTxResult = await sendTransactionWithRetry(
