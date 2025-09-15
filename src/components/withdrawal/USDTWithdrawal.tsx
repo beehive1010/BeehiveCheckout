@@ -49,20 +49,37 @@ export default function USDTWithdrawal() {
   const [withdrawalRequest, setWithdrawalRequest] = useState<WithdrawalRequest | null>(null);
   const [step, setStep] = useState<'form' | 'confirm' | 'signing' | 'processing' | 'success'>('form');
 
-  // Get user USDT balance from earnings wallet
+  // Get user USDT balance from rewards system
   const { data: balance, isLoading: balanceLoading } = useQuery<USDTBalance>({
-    queryKey: ['/api/usdt/balance'],
+    queryKey: ['/api/rewards/balance', account?.address],
     enabled: !!account?.address,
     queryFn: async () => {
-      const response = await fetch('/api/usdt/balance', {
+      const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/rewards/user`, {
+        method: 'GET',
         headers: {
-          'X-Wallet-Address': account!.address,
+          'Content-Type': 'application/json',
+          'x-wallet-address': account!.address,
         },
       });
       if (!response.ok) {
         throw new Error('Failed to fetch claimable rewards balance');
       }
-      return response.json();
+      const result = await response.json();
+      
+      // Transform the response to match expected USDTBalance interface
+      if (result.success && result.data) {
+        return {
+          balance: Math.round((result.data.usdc_claimable || 0) * 100), // Convert to cents
+          balanceUSD: (result.data.usdc_claimable || 0).toFixed(2),
+          lastUpdated: result.data.updated_at || new Date().toISOString()
+        };
+      } else {
+        return {
+          balance: 0,
+          balanceUSD: '0.00',
+          lastUpdated: new Date().toISOString()
+        };
+      }
     },
   });
 
