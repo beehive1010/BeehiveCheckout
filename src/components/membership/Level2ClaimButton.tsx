@@ -131,14 +131,15 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
     }
   };
 
-  const sendTransactionWithRetry = async (transaction: unknown, account: unknown, description: string = 'transaction') => {
+  const sendTransactionWithRetry = async (transaction: unknown, account: unknown, description: string = 'transaction', useGasless: boolean = true) => {
     let lastError: any = null;
     const maxRetries = 3;
     const baseDelay = 2000;
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`📤 Sending ${description} (attempt ${attempt}/${maxRetries})...`);
+        const gasMode = useGasless ? 'with gas sponsorship' : 'with regular gas';
+        console.log(`📤 Sending ${description} ${gasMode} (attempt ${attempt}/${maxRetries})...`);
         
         if (attempt > 1) {
           await new Promise(resolve => setTimeout(resolve, baseDelay * attempt));
@@ -147,10 +148,10 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
         const result = await sendTransaction({
           transaction,
           account,
-          gasless: true, // Enable gas sponsorship for Arbitrum One
+          gasless: useGasless, // Enable/disable gas sponsorship based on parameter
         });
         
-        console.log(`✅ ${description} successful on attempt ${attempt}`);
+        console.log(`✅ ${description} successful ${gasMode} on attempt ${attempt}`);
         return result;
         
       } catch (error: any) {
@@ -292,7 +293,8 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
         const approveTxResult = await sendTransactionWithRetry(
           approveTransaction, 
           account, 
-          'USDC approval transaction'
+          'USDC approval transaction',
+          false // Use regular gas for ERC20 approval
         );
 
         await waitForReceipt({
