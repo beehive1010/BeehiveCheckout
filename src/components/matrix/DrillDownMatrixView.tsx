@@ -219,7 +219,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
     return (
       <div 
         className={`
-          relative h-24 md:h-32 rounded-lg border-2 flex flex-col items-center justify-center p-2 md:p-4 transition-all cursor-pointer text-center
+          relative min-h-[120px] md:h-32 rounded-lg border-2 flex flex-col items-center justify-center p-3 md:p-4 transition-all cursor-pointer text-center
           ${isEmpty 
             ? 'border-dashed border-muted-foreground/30 bg-muted/20 hover:bg-muted/30' 
             : `${colors.border} ${colors.bg} hover:bg-opacity-80`
@@ -230,18 +230,18 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
       >
         {member ? (
           <>
-            <div className="w-16 h-16 bg-gradient-to-br from-honey to-honey/80 rounded-full flex items-center justify-center mb-2 shadow-lg">
-              <span className="text-black font-bold text-lg">
+            <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-honey to-honey/80 rounded-full flex items-center justify-center mb-2 shadow-lg flex-shrink-0">
+              <span className="text-black font-bold text-sm md:text-lg">
                 {member.username?.charAt(0).toUpperCase() || member.walletAddress?.charAt(2).toUpperCase()}
               </span>
             </div>
             
-            <div className="text-center">
-              <div className="text-sm font-medium truncate max-w-full mb-1">
+            <div className="text-center flex-1 min-w-0">
+              <div className="text-xs md:text-sm font-medium truncate w-full mb-1">
                 {member.username || `User${member.walletAddress?.slice(-4)}`}
               </div>
-              <div className="text-xs text-muted-foreground mb-2">
-                {member.walletAddress?.slice(0, 6)}...{member.walletAddress?.slice(-4)}
+              <div className="text-xs text-muted-foreground mb-2 truncate">
+                {member.walletAddress?.slice(0, 4)}...{member.walletAddress?.slice(-4)}
               </div>
               <Badge 
                 variant={member.isActive ? 'default' : 'secondary'} 
@@ -257,15 +257,15 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
 
             {/* Click indicator */}
             <div className="absolute top-2 right-2">
-              <ChevronRight className="h-4 w-4 text-honey" />
+              <ChevronRight className="h-3 w-3 md:h-4 md:w-4 text-honey" />
             </div>
           </>
         ) : (
-          <div className="text-center">
-            <div className="w-16 h-16 border-2 border-dashed border-muted-foreground/30 rounded-full mx-auto mb-2 flex items-center justify-center">
-              <Users className="w-6 h-6 text-muted-foreground/50" />
+          <div className="text-center flex-1">
+            <div className="w-12 h-12 md:w-16 md:h-16 border-2 border-dashed border-muted-foreground/30 rounded-full mx-auto mb-2 flex items-center justify-center flex-shrink-0">
+              <Users className="w-4 h-4 md:w-6 md:h-6 text-muted-foreground/50" />
             </div>
-            <div className="text-sm text-muted-foreground">Available</div>
+            <div className="text-xs md:text-sm text-muted-foreground">Available</div>
             <div className="text-xs text-muted-foreground/70 mt-1">
               Position {position}
             </div>
@@ -324,18 +324,20 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
   return (
     <Card className="bg-secondary border-border">
       <CardHeader>
-        <CardTitle className="text-honey flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Trophy className="h-5 w-5" />
-            <span>3×3 Matrix Network (19 Layers)</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Badge variant="outline" className="border-honey text-honey">
-              Current: Layer {Math.max(navigationPath.length, 1)}
-            </Badge>
-            <Badge variant="outline" className="border-blue-400 text-blue-400">
-              Max: 19 Layers
-            </Badge>
+        <CardTitle className="text-honey">
+          <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center space-x-2">
+              <Trophy className="h-5 w-5 flex-shrink-0" />
+              <span className="text-sm sm:text-base">3×3 Matrix Network (19 Layers)</span>
+            </div>
+            <div className="flex items-center space-x-2 self-start sm:self-center">
+              <Badge variant="outline" className="border-honey text-honey text-xs">
+                Layer {Math.max(navigationPath.length, 1)}
+              </Badge>
+              <Badge variant="outline" className="border-blue-400 text-blue-400 text-xs">
+                Max: 19
+              </Badge>
+            </div>
           </div>
         </CardTitle>
         
@@ -355,15 +357,15 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
       </CardHeader>
       
       <CardContent className="space-y-6">
-        {/* Navigation Breadcrumb */}
+        {/* Navigation Breadcrumb - Mobile Optimized */}
         {navigationPath.length > 1 && (
           <div className="space-y-3">
-            <div className="flex items-center space-x-2">
+            <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:space-x-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={goToRoot}
-                className="border-honey/30 text-honey hover:bg-honey hover:text-black"
+                className="border-honey/30 text-honey hover:bg-honey hover:text-black w-full sm:w-auto"
               >
                 <Home className="h-4 w-4 mr-1" />
                 Root
@@ -373,7 +375,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
                   variant="outline"
                   size="sm"
                   onClick={() => navigateToLevel(navigationPath.length - 2)}
-                  className="border-honey/30 text-honey hover:bg-honey hover:text-black"
+                  className="border-honey/30 text-honey hover:bg-honey hover:text-black w-full sm:w-auto"
                 >
                   <ArrowLeft className="h-4 w-4 mr-1" />
                   Back
@@ -381,40 +383,42 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
               )}
             </div>
             
-            {/* Breadcrumb Path */}
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground bg-muted/30 rounded-lg p-3">
-              <span>Path:</span>
-              {navigationPath.map((node, index) => (
-                <React.Fragment key={node.walletAddress}>
-                  {index > 0 && <ChevronRight className="h-3 w-3" />}
-                  <button
-                    onClick={() => navigateToLevel(index)}
-                    className="hover:text-honey transition-colors cursor-pointer"
-                  >
-                    {node.username}
-                    {node.position && ` (${node.position})`}
-                  </button>
-                </React.Fragment>
-              ))}
+            {/* Breadcrumb Path - Mobile Scrollable */}
+            <div className="bg-muted/30 rounded-lg p-3">
+              <div className="text-xs text-muted-foreground mb-2">Navigation Path:</div>
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground overflow-x-auto scrollbar-hide">
+                {navigationPath.map((node, index) => (
+                  <React.Fragment key={node.walletAddress}>
+                    {index > 0 && <ChevronRight className="h-3 w-3 flex-shrink-0" />}
+                    <button
+                      onClick={() => navigateToLevel(index)}
+                      className="hover:text-honey transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
+                    >
+                      <span className="block sm:inline">{node.username}</span>
+                      {node.position && <span className="text-xs ml-1">({node.position})</span>}
+                    </button>
+                  </React.Fragment>
+                ))}
+              </div>
             </div>
           </div>
         )}
 
-        {/* Current Member Info */}
+        {/* Current Member Info - Mobile Optimized */}
         {currentNode?.member && (
-          <div className="text-center bg-gradient-to-r from-honey/5 to-honey/10 rounded-lg p-4 border border-honey/20">
-            <div className="w-20 h-20 bg-gradient-to-br from-honey to-honey/80 rounded-full mx-auto mb-3 flex items-center justify-center shadow-lg">
-              <span className="text-black font-bold text-xl">
+          <div className="text-center bg-gradient-to-r from-honey/5 to-honey/10 rounded-lg p-3 md:p-4 border border-honey/20">
+            <div className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-honey to-honey/80 rounded-full mx-auto mb-3 flex items-center justify-center shadow-lg">
+              <span className="text-black font-bold text-lg md:text-xl">
                 {currentNode.member.username?.charAt(0).toUpperCase() || currentNode.member.walletAddress?.charAt(2).toUpperCase()}
               </span>
             </div>
-            <h3 className="text-lg font-semibold text-honey mb-1">
+            <h3 className="text-base md:text-lg font-semibold text-honey mb-1 truncate px-2">
               {currentNode.member.username || `User${currentNode.member.walletAddress?.slice(-4)}`}
             </h3>
-            <div className="text-sm text-muted-foreground mb-2">
-              {currentNode.member.walletAddress?.slice(0, 8)}...{currentNode.member.walletAddress?.slice(-4)}
+            <div className="text-xs md:text-sm text-muted-foreground mb-2 truncate px-2">
+              {currentNode.member.walletAddress?.slice(0, 6)}...{currentNode.member.walletAddress?.slice(-4)}
             </div>
-            <Badge className="bg-honey text-black">
+            <Badge className="bg-honey text-black text-xs md:text-sm">
               Level {currentNode.member.level}
             </Badge>
           </div>
