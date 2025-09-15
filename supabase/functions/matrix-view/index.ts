@@ -35,51 +35,88 @@ serve(async (req) => {
     const { action } = await req.json()
 
     if (action === 'get-layer-stats') {
-      // Get layer statistics using the optimized view
+      // Get layer statistics using the fixed get_1x3_matrix_view function
       console.log(`📊 Getting layer statistics for wallet: ${walletAddress}`)
       
-      const { data: layerStats, error: layerError } = await supabase
-        .from('matrix_layer_stats_view')
-        .select('*')
-        .eq('matrix_root_wallet', walletAddress)
-        .order('matrix_layer', { ascending: true })
+      const { data: matrixData, error: matrixError } = await supabase.rpc('get_1x3_matrix_view', {
+        p_wallet_address: walletAddress,
+        p_levels: 19  // Get up to 19 layers
+      })
 
-      if (layerError) {
-        console.error('Error fetching layer stats:', layerError)
-        throw layerError
+      if (matrixError) {
+        console.error('Error fetching matrix data:', matrixError)
+        throw matrixError
       }
 
-      // Generate complete 19-layer statistics
+      console.log(`📊 Matrix data retrieved: ${matrixData?.length || 0} members`)
+
+      // Process matrix data to generate layer statistics
+      const layerStatsMap = new Map()
+      
+      // Initialize all layers with zero counts
+      for (let layer = 1; layer <= 19; layer++) {
+        layerStatsMap.set(layer, {
+          layer,
+          totalMembers: 0,
+          leftMembers: 0,
+          middleMembers: 0,
+          rightMembers: 0,
+          maxCapacity: Math.pow(3, layer),
+          activeMembers: 0
+        })
+      }
+
+      // Process actual matrix data
+      if (matrixData && matrixData.length > 0) {
+        matrixData.forEach((member: any) => {
+          const layer = member.matrix_layer
+          if (layer <= 19) {
+            const stats = layerStatsMap.get(layer)
+            if (stats) {
+              stats.totalMembers++
+              
+              // Count by position (L, M, R)
+              switch (member.matrix_position) {
+                case 'L':
+                  stats.leftMembers++
+                  break
+                case 'M':
+                  stats.middleMembers++
+                  break
+                case 'R':
+                  stats.rightMembers++
+                  break
+              }
+              
+              // Count activated members
+              if (member.is_activated) {
+                stats.activeMembers++
+              }
+              
+              layerStatsMap.set(layer, stats)
+            }
+          }
+        })
+      }
+
+      // Convert to final array with calculated percentages
       const completeStats = []
       for (let layer = 1; layer <= 19; layer++) {
-        const layerData = layerStats?.find(s => s.matrix_layer === layer)
+        const stats = layerStatsMap.get(layer)
+        const fillPercentage = stats.maxCapacity > 0 ? (stats.totalMembers / stats.maxCapacity) * 100 : 0
+        const completedPercentage = stats.totalMembers > 0 ? (stats.activeMembers / stats.totalMembers) * 100 : 0
         
-        if (layerData) {
-          completeStats.push({
-            layer,
-            totalMembers: parseInt(layerData.total_members),
-            leftMembers: parseInt(layerData.left_members),
-            middleMembers: parseInt(layerData.middle_members),
-            rightMembers: parseInt(layerData.right_members),
-            maxCapacity: Math.pow(3, layer),
-            fillPercentage: parseFloat(layerData.fill_percentage) || 0,
-            activeMembers: parseInt(layerData.active_members),
-            completedPercentage: parseFloat(layerData.completion_percentage) || 0
-          })
-        } else {
-          // Empty layer
-          completeStats.push({
-            layer,
-            totalMembers: 0,
-            leftMembers: 0,
-            middleMembers: 0,
-            rightMembers: 0,
-            maxCapacity: Math.pow(3, layer),
-            fillPercentage: 0,
-            activeMembers: 0,
-            completedPercentage: 0
-          })
-        }
+        completeStats.push({
+          layer,
+          totalMembers: stats.totalMembers,
+          leftMembers: stats.leftMembers,
+          middleMembers: stats.middleMembers,
+          rightMembers: stats.rightMembers,
+          maxCapacity: stats.maxCapacity,
+          fillPercentage: parseFloat(fillPercentage.toFixed(2)),
+          activeMembers: stats.activeMembers,
+          completedPercentage: parseFloat(completedPercentage.toFixed(2))
+        })
       }
 
       console.log(`✅ Generated statistics for ${completeStats.length} layers`)
@@ -103,15 +140,13 @@ serve(async (req) => {
     }
 
     if (action === 'get-matrix-members') {
-      // Get detailed matrix member data using the optimized view
+      // Get detailed matrix member data using the fixed get_1x3_matrix_view function
       console.log(`👥 Getting matrix members for wallet: ${walletAddress}`)
       
-      const { data: matrixMembers, error: membersError } = await supabase
-        .from('matrix_view')
-        .select('*')
-        .eq('matrix_root_wallet', walletAddress)
-        .order('matrix_layer', { ascending: true })
-        .order('matrix_position', { ascending: true })
+      const { data: matrixMembers, error: membersError } = await supabase.rpc('get_1x3_matrix_view', {
+        p_wallet_address: walletAddress,
+        p_levels: 19  // Get up to 19 layers
+      })
 
       if (membersError) {
         console.error('Error fetching matrix members:', membersError)
@@ -130,7 +165,7 @@ serve(async (req) => {
           matrix_position: member.matrix_position,
           current_level: member.current_level,
           is_activated: member.is_activated,
-          joined_at: member.joined_at,
+          joined_at: member.activation_time,  // Use activation_time instead of joined_at
           activation_sequence: member.activation_sequence
         })
       })
