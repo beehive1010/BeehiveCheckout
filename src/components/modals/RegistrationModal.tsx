@@ -217,16 +217,18 @@ export default function RegistrationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" aria-describedby="registration-description">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-honey">
             <User className="h-5 w-5" />
             {t('registration.title')}
           </DialogTitle>
-          <DialogDescription>
-            {t('registration.description') || 'Complete your registration to join the BEEHIVE community'}
-          </DialogDescription>
         </DialogHeader>
+        
+        {/* Hidden description for accessibility */}
+        <p id="registration-description" className="sr-only">
+          {t('registration.description') || 'Complete your registration to join the BEEHIVE community'}
+        </p>
 
         <div className="space-y-6">
           {/* Wallet Info */}
