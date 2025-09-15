@@ -223,6 +223,9 @@ export default function RegistrationModal({
             <User className="h-5 w-5" />
             {t('registration.title')}
           </DialogTitle>
+          <DialogDescription>
+            {t('registration.description') || 'Complete your registration to join the BEEHIVE community'}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
