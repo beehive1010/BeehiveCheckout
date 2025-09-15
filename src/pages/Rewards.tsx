@@ -13,6 +13,7 @@ import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
 import RewardsOverview from '../components/rewards/RewardsOverview';
 import USDTWithdrawal from '../components/withdrawal/USDTWithdrawal';
 import CountdownTimer from '../components/rewards/CountdownTimer';
+import { PendingRewardsTimer } from '../components/rewards/PendingRewardsTimer';
 import { 
   User, 
   Award, 
@@ -27,7 +28,8 @@ import {
   Users,
   Gift,
   Target,
-  ArrowUpRight
+  ArrowUpRight,
+  Clock
 } from 'lucide-react';
 
 interface ProfileData {
@@ -299,49 +301,18 @@ export default function Rewards() {
         </div>
       )}
 
-      {/* Quick Actions - Simplified version when no pending rewards */}
-      {pendingRewards.length === 0 && (
-        <Card className="border-honey/20 bg-gradient-to-r from-honey/5 to-yellow-400/5">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Gift className="h-5 w-5 text-honey" />
-              {t('rewards.quickActions')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <Button 
-                onClick={claimPendingRewards}
-                disabled={!rewardsData?.claimable || rewardsData.claimable <= 0 || isLoading}
-                className="bg-honey hover:bg-honey/90 text-black font-semibold"
-              >
-                <Gift className="h-4 w-4 mr-2" />
-                {t('rewards.claimAvailable', { amount: rewardsData?.claimable || 0 })}
-              </Button>
-              <Button 
-                onClick={() => setActiveTab('withdrawal')}
-                disabled={!rewardsData?.total || rewardsData.total <= 0}
-                className="bg-green-500 hover:bg-green-500/90 text-white font-semibold"
-              >
-                <ArrowUpRight className="h-4 w-4 mr-2" />
-                {t('rewards.withdrawAvailable', { amount: rewardsData?.total || 0 })}
-              </Button>
-              <Button variant="outline" className="border-honey/30 text-honey hover:bg-honey/10">
-                <BarChart3 className="h-4 w-4 mr-2" />
-                {t('rewards.viewAnalytics')}
-              </Button>
-              <Button 
-                onClick={loadRewardsData}
-                variant="outline" 
-                className="border-honey/30 text-honey hover:bg-honey/10"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                {t('common.refresh')}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Pending Rewards Timer Component */}
+      <PendingRewardsTimer 
+        walletAddress={memberWalletAddress || ''} 
+        onRewardClaimable={(rewardId) => {
+          // Reload rewards data when a reward becomes claimable
+          loadRewardsData();
+          toast({
+            title: t('rewards.rewardReady'),
+            description: t('rewards.rewardReadyDescription'),
+          });
+        }}
+      />
 
       {/* Main Content with Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

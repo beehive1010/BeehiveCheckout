@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Trophy, User, AlertCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { useI18n } from '../../contexts/I18nContext';
 
 interface PendingReward {
   reward_id: string;
@@ -21,13 +22,14 @@ interface PendingRewardsTimerProps {
 }
 
 export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: PendingRewardsTimerProps) {
+  const { t } = useI18n();
   const [pendingRewards, setPendingRewards] = useState<PendingReward[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 格式化剩余时间
+  // Format remaining time
   const formatTimeRemaining = (seconds: number): string => {
-    if (seconds <= 0) return '已过期';
+    if (seconds <= 0) return t('rewards.expired');
     
     const days = Math.floor(seconds / 86400);
     const hours = Math.floor((seconds % 86400) / 3600);
@@ -35,13 +37,13 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
     const remainingSeconds = seconds % 60;
     
     if (days > 0) {
-      return `${days}天 ${hours}小时 ${minutes}分钟`;
+      return t('rewards.timeFormat.days', { days, hours, minutes });
     } else if (hours > 0) {
-      return `${hours}小时 ${minutes}分钟`;
+      return t('rewards.timeFormat.hours', { hours, minutes });
     } else if (minutes > 0) {
-      return `${minutes}分钟 ${remainingSeconds}秒`;
+      return t('rewards.timeFormat.minutes', { minutes, seconds: remainingSeconds });
     } else {
-      return `${remainingSeconds}秒`;
+      return t('rewards.timeFormat.seconds', { seconds: remainingSeconds });
     }
   };
 
@@ -65,8 +67,8 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
 
       setPendingRewards(data || []);
     } catch (err) {
-      console.error('获取pending奖励错误:', err);
-      setError(err instanceof Error ? err.message : '获取数据失败');
+      console.error('Error fetching pending rewards:', err);
+      setError(err instanceof Error ? err.message : t('rewards.fetchError'));
     } finally {
       setLoading(false);
     }
@@ -113,7 +115,7 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="w-5 h-5" />
-            Pending奖励倒计时
+            {t('rewards.pendingCountdowns')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -132,7 +134,7 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-red-500" />
-            错误
+            {t('common.error')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -148,12 +150,12 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Trophy className="w-5 h-5" />
-            Pending奖励
+            {t('rewards.pendingRewards')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-gray-500 text-center py-4">
-            暂无pending状态的奖励
+            {t('rewards.noPendingRewards')}
           </p>
         </CardContent>
       </Card>
@@ -165,7 +167,7 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Clock className="w-5 h-5" />
-          Pending奖励倒计时
+          {t('rewards.pendingCountdowns')}
           <Badge variant="secondary">{pendingRewards.length}</Badge>
         </CardTitle>
       </CardHeader>
@@ -182,18 +184,18 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
                   <Trophy className="w-4 h-4 text-yellow-500" />
                   <span className="font-semibold">{reward.reward_amount} USDT</span>
                   <Badge variant="outline" size="sm">
-                    {reward.timer_type === 'super_root_upgrade' ? 'Super Root升级' : '资格等待'}
+                    {reward.timer_type === 'super_root_upgrade' ? t('rewards.superRootUpgrade') : t('rewards.qualificationWait')}
                   </Badge>
                 </div>
                 <div className="flex items-center gap-1 text-sm text-gray-600">
                   <User className="w-3 h-3" />
-                  来自: {reward.triggering_member_username}
+                  {t('rewards.from')}: {reward.triggering_member_username}
                 </div>
               </div>
               
               {reward.can_claim && (
                 <Badge variant="default" className="bg-green-500">
-                  可领取
+                  {t('rewards.claimable')}
                 </Badge>
               )}
             </div>
@@ -201,7 +203,7 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
             {/* 倒计时 */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">剩余时间:</span>
+                <span className="text-sm font-medium">{t('rewards.timeRemaining')}:</span>
                 <Badge 
                   variant={getTimerColor(reward.time_remaining_seconds, reward.timer_type) as any}
                   className="font-mono"
@@ -238,7 +240,7 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
 
             {/* 到期时间 */}
             <div className="text-xs text-gray-400">
-              到期时间: {new Date(reward.expires_at).toLocaleString('zh-CN')}
+              {t('rewards.expiresAt')}: {new Date(reward.expires_at).toLocaleString()}
             </div>
           </div>
         ))}
@@ -249,7 +251,7 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
             onClick={fetchPendingRewards}
             className="w-full px-4 py-2 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
           >
-            刷新倒计时
+            {t('rewards.refreshCountdown')}
           </button>
         </div>
       </CardContent>
