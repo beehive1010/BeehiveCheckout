@@ -826,7 +826,8 @@
     "tabs": {
       "overview": "概览",
       "claimable": "可领取", 
-      "history": "历史"
+      "history": "历史",
+      "withdrawal": "提现"
     },
     "overview": {
       "totalEarnings": "总收益",
@@ -855,6 +856,9 @@
     "refresh": "刷新",
     "claim": "领取",
     "no_claimable_rewards": "暂无可领取奖励",
+    "withdrawRewards": "提现奖励",
+    "withdrawDescription": "将您的可领取奖励提现到任何支持的区块链",
+    "withdrawAvailable": "可提现：${amount}",
     "claimSuccess": "奖励领取成功！",
     "claimSuccessDescription": "成功领取 ${amount} USDT 奖励",
     "claimFailed": "奖励领取失败",
