@@ -7,6 +7,7 @@ import { Clock, Gift, DollarSign, CheckCircle, ExternalLink, Loader2, ArrowUpLef
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
 import { useWeb3 } from '@/contexts/Web3Context';
+import { useWallet } from '@/hooks/useWallet';
 import { apiRequest } from '@/lib/queryClient';
 
 interface ClaimableReward {
@@ -44,13 +45,17 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
   const [claimingRewards, setClaimingRewards] = useState<string[]>([]);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   
-  // Use Web3 context for wallet connection
+  // Use both Web3 context and wallet hook to get proper addresses
   const { isConnected } = useWeb3();
+  const { userData } = useWallet();
+  
+  // Use the registered wallet address from user data if available, fallback to connected wallet
+  const memberWalletAddress = userData?.wallet_address || walletAddress;
 
   // Fetch claimable rewards
   const { data: rewardsData, isLoading } = useQuery<ClaimableRewardsResponse>({
-    queryKey: ['/api/rewards/claimable', walletAddress],
-    enabled: !!walletAddress,
+    queryKey: ['/api/rewards/claimable', memberWalletAddress],
+    enabled: !!memberWalletAddress,
     refetchInterval: 30000, // Refresh every 30 seconds
     queryFn: async () => {
       // Get claimable and pending rewards from layer_rewards table with matrix position info
@@ -66,7 +71,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
           created_at,
           is_claimed
         `)
-        .ilike('recipient_wallet', walletAddress)
+        .ilike('recipient_wallet', memberWalletAddress)
         .eq('is_claimed', false)
         .in('reward_type', ['layer_reward', 'pending_layer_reward'])
         .order('created_at', { ascending: false });
@@ -91,17 +96,17 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
       let totalPending = 0;
 
       layerRewards?.forEach(reward => {
-        const positionKey = `${reward.triggering_member_wallet}-${reward.matrix_layer}`;
+        const positionKey = `${reward.payer_wallet}-${reward.layer}`;
         const position = matrixPositions.get(positionKey) || '?';
         
         const transformedReward: ClaimableReward = {
           id: reward.id,
-          rewardAmount: reward.reward_amount || 0,
-          triggerLevel: reward.matrix_layer,
-          payoutLayer: reward.matrix_layer,
-          matrixPosition: `Layer ${reward.matrix_layer} (${position})`,
-          sourceWallet: reward.triggering_member_wallet || '',
-          status: reward.status === 'claimable' ? 'confirmed' : 'pending',
+          rewardAmount: reward.amount_usdt || 0,
+          triggerLevel: reward.layer,
+          payoutLayer: reward.layer,
+          matrixPosition: `Layer ${reward.layer} (${position})`,
+          sourceWallet: reward.payer_wallet || '',
+          status: reward.reward_type === 'layer_reward' ? 'confirmed' : 'pending',
           createdAt: reward.created_at,
           expiresAt: reward.expires_at || undefined
         };
@@ -124,18 +129,36 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
     },
   });
 
-  // Automated claim mutation using Thirdweb Engine
+  // Automated claim mutation using rewards API
   const claimRewardMutation = useMutation({
     mutationFn: async (rewardId: string): Promise<ClaimResponse> => {
-      const response = await apiRequest('/api/rewards/claim', {
+      const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/rewards/claim`, {
         method: 'POST',
-        data: {
-          rewardId,
-          recipientAddress: walletAddress,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-address': memberWalletAddress,
         },
-        walletAddress
+        body: JSON.stringify({
+          claim_id: rewardId,
+          wallet_address: memberWalletAddress
+        }),
       });
-      return await response.json();
+      
+      if (!response.ok) {
+        throw new Error('Failed to claim reward');
+      }
+      
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to claim reward');
+      }
+      
+      return {
+        success: true,
+        message: result.message,
+        transactionHash: result.reward?.transaction_hash,
+        explorerUrl: result.reward?.explorer_url
+      };
     },
     onMutate: (rewardId) => {
       setClaimingRewards(prev => [...prev, rewardId]);
@@ -174,15 +197,32 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
   // Withdraw mutation for withdrawing claimed rewards to wallet
   const withdrawMutation = useMutation({
     mutationFn: async (amount: number): Promise<ClaimResponse> => {
-      const response = await apiRequest('/api/rewards/withdraw', {
+      const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/rewards/withdraw`, {
         method: 'POST',
-        data: {
-          amount,
-          recipientAddress: walletAddress,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-address': memberWalletAddress,
         },
-        walletAddress
+        body: JSON.stringify({
+          wallet_address: memberWalletAddress,
+          amount_usdc: amount,
+          withdrawal_address: memberWalletAddress // Use same wallet address as withdrawal destination
+        }),
       });
-      return await response.json();
+      
+      if (!response.ok) {
+        throw new Error('Failed to initiate withdrawal');
+      }
+      
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to initiate withdrawal');
+      }
+      
+      return {
+        success: true,
+        message: result.message || 'Withdrawal successful'
+      };
     },
     onMutate: () => {
       setIsWithdrawing(true);
@@ -273,7 +313,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
 
   const isClaimingReward = (rewardId: string) => claimingRewards.includes(rewardId);
 
-  if (!walletAddress) {
+  if (!memberWalletAddress) {
     return (
       <Card className="bg-secondary border-border">
         <CardContent className="p-6 text-center">

@@ -8,6 +8,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useActiveAccount, useSendTransaction } from 'thirdweb/react';
+import { useWallet } from '@/hooks/useWallet';
 import { client } from '@/lib/web3';
 import { DollarSign, ArrowRight, Loader2, ExternalLink, CheckCircle, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
