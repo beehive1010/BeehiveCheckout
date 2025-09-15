@@ -845,7 +845,16 @@
       "title": "交易历史",
       "noHistory": "暂无交易记录",
       "noHistoryDescription": "您的奖励和交易历史将在这里显示"
-    }
+    },
+    "available_usdt": "可用USDT",
+    "available_bcc": "可用BCC",
+    "total_earned": "总收益",
+    "pending_rewards": "待处理奖励",
+    "withdraw": "提取",
+    "top_up_bcc": "充值BCC",
+    "refresh": "刷新",
+    "claim": "领取",
+    "no_claimable_rewards": "暂无可领取奖励"
   },
   "nft": {
     "claimError": "认领失败",
