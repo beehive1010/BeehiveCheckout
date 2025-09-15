@@ -30,8 +30,8 @@ const alphaCentauri = defineChain({
 export const contractAddresses = {
   // Membership contracts across chains
   BBC_MEMBERSHIP: {
-    // Arbitrum mainnet
-    arbitrum: import.meta.env.VITE_BBC_MEMBERSHIP_ARB || '0x0000000000000000000000000000000000000000',
+    // Arbitrum mainnet - NEW CONTRACT ADDRESS
+    arbitrum: '0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8',
     // Arbitrum Sepolia testnet  
     arbitrumSepolia: '0xAc8c8662726b72f8DB4F5D1d1a16aC5b06B7a90D',
     // Alpha Centauri L3 testnet
@@ -63,7 +63,7 @@ export const contractAddresses = {
   USDT: {
     ethereum: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     polygon: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
-    arbitrum: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+    arbitrum: '0xfA278827a612BBA895e7F0A4fBA504b22ff3E7C9', // NEW ARB ONE PAYMENT TOKEN
     arbitrumSepolia: '0x4470734620414168Aa1673A30849DB25E5886E2A', // Test USDT
     optimism: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58',
     bsc: '0x55d398326f99059fF775485246999027B3197955', // BSC USDT
@@ -150,16 +150,16 @@ export const merchantNFTContracts = {
   }),
 };
 
-// Legacy single contracts for backward compatibility (Arbitrum Sepolia defaults for testing)
-export const bbcMembershipContract = bbcMembershipContracts.arbitrumSepolia;
-export const bccTokenContract = bccTokenContracts.arbitrumSepolia;
-export const merchantNFTContract = merchantNFTContracts.arbitrumSepolia;
+// Legacy single contracts for backward compatibility (Arbitrum One as primary)
+export const bbcMembershipContract = bbcMembershipContracts.arbitrum;
+export const bccTokenContract = bccTokenContracts.arbitrum;
+export const merchantNFTContract = merchantNFTContracts.arbitrum;
 
-// USDT contract for Arbitrum Sepolia (default for testing)
+// USDT contract for Arbitrum One (production default)
 export const usdtContract = getContract({
   client,
-  address: contractAddresses.USDT.arbitrumSepolia,
-  chain: arbitrumSepolia,
+  address: contractAddresses.USDT.arbitrum,
+  chain: arbitrum,
 });
 
 // Helper function to get contract by chain ID

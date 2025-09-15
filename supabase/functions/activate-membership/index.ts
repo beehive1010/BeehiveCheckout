@@ -405,7 +405,7 @@ async function verifyNFTClaimTransaction(transactionHash: string, walletAddress:
   console.log(`🔗 Starting transaction verification: ${transactionHash}`);
 
   const ARBITRUM_SEPOLIA_RPC = 'https://sepolia-rollup.arbitrum.io/rpc';
-  const NFT_CONTRACT = '0x99265477249389469929CEA07c4a337af9e12cdA';
+  const NFT_CONTRACT = '0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8'; // ARB ONE Membership Contract
   const EXPECTED_TOKEN_ID = expectedLevel;
 
   try {
@@ -535,7 +535,7 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
     console.log(`✅ User registration verified for NFT sync: ${walletAddress}`);
 
     // 1. Use Thirdweb to check on-chain NFT balance
-    const NFT_CONTRACT_ADDRESS = '0x99265477249389469929CEA07c4a337af9e12cdA';
+    const NFT_CONTRACT_ADDRESS = '0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8'; // ARB ONE Membership Contract
     const TOKEN_ID = level;
 
     console.log(`🔍 Using Thirdweb to check NFT balance for ${walletAddress}, Token ID: ${TOKEN_ID}`);

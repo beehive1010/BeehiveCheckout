@@ -96,7 +96,7 @@ export const chainGasSponsorshipConfig: Record<number, GasSponsorshipConfig> = {
 
 // Enhanced InApp Wallet with multi-chain gas sponsorship
 export const createSponsoredInAppWallet = (activeChain?: Chain) => {
-  const chainId = activeChain?.id || arbitrumSepolia?.id || 421614;
+  const chainId = activeChain?.id || arbitrum?.id || 42161; // Default to Arbitrum One
   const gasConfig = chainGasSponsorshipConfig[chainId];
   
   return inAppWallet({
@@ -133,19 +133,19 @@ export const createSponsoredInAppWallet = (activeChain?: Chain) => {
 
 // Smart wallet with advanced gas sponsorship
 export const createSponsoredSmartWallet = (activeChain?: Chain) => {
-  const chainId = activeChain?.id || arbitrumSepolia?.id || 421614;
+  const chainId = activeChain?.id || arbitrum?.id || 42161; // Default to Arbitrum One
   const gasConfig = chainGasSponsorshipConfig[chainId];
   
   if (!gasConfig?.enabled) {
     // Fallback to regular smart wallet without sponsorship
     return smartWallet({
-      chain: activeChain || arbitrumSepolia,
+      chain: activeChain || arbitrum,
       personalWallet: createSponsoredInAppWallet(activeChain),
     });
   }
   
   return smartWallet({
-    chain: activeChain || arbitrumSepolia,
+    chain: activeChain || arbitrum,
     personalWallet: createSponsoredInAppWallet(activeChain),
     gasless: true,
     // Advanced smart wallet configuration
@@ -277,7 +277,7 @@ export const connectWithGasSponsorship = async (
   preferredChain?: Chain
 ) => {
   try {
-    const targetChain = preferredChain || arbitrumSepolia;
+    const targetChain = preferredChain || arbitrum; // Default to Arbitrum One
     let wallet;
     
     switch (walletType) {

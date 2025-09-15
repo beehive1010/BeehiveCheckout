@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useActiveAccount, useActiveWalletChain } from 'thirdweb/react';
 import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from 'thirdweb';
-import { arbitrumSepolia } from 'thirdweb/chains';
+import { arbitrum } from 'thirdweb/chains';
 import { createThirdwebClient } from 'thirdweb';
 import { claimTo, balanceOf } from 'thirdweb/extensions/erc1155';
 import { approve, balanceOf as erc20BalanceOf, allowance } from 'thirdweb/extensions/erc20';
@@ -42,7 +42,7 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
   
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
   const PAYMENT_TOKEN_CONTRACT = "0x4470734620414168Aa1673A30849DB25E5886E2A";
-  const NFT_CONTRACT = "0x99265477249389469929CEA07c4a337af9e12cdA";
+  const NFT_CONTRACT = "0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8"; // ARB ONE Membership Contract
   const THIRDWEB_CLIENT_ID = import.meta.env.VITE_THIRDWEB_CLIENT_ID;
 
   const client = createThirdwebClient({
@@ -199,8 +199,8 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
     try {
       // Step 1: Network check
       const chainId = activeChain?.id;
-      if (chainId !== arbitrumSepolia.id) {
-        throw new Error(`Please switch to Arbitrum Sepolia network. Current: ${chainId}, Required: ${arbitrumSepolia.id}`);
+      if (chainId !== arbitrum.id) {
+        throw new Error(`Please switch to Arbitrum One network. Current: ${chainId}, Required: ${arbitrum.id}`);
       }
 
       // Step 2: ETH balance check
@@ -225,13 +225,13 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
       const usdcContract = getContract({
         client,
         address: PAYMENT_TOKEN_CONTRACT,
-        chain: arbitrumSepolia
+        chain: arbitrum
       });
 
       const nftContract = getContract({
         client,
         address: NFT_CONTRACT,
-        chain: arbitrumSepolia
+        chain: arbitrum
       });
 
       // Step 4: Check if user already owns Level 2 NFT
@@ -310,7 +310,7 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
 
           await waitForReceipt({
             client,
-            chain: arbitrumSepolia,
+            chain: arbitrum,
             transactionHash: approveTxResult?.transactionHash,
           });
           
@@ -344,7 +344,7 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
       setCurrentStep('Waiting for NFT confirmation...');
       const receipt = await waitForReceipt({
         client,
-        chain: arbitrumSepolia,
+        chain: arbitrum,
         transactionHash: claimTxResult.transactionHash,
       });
       
