@@ -144,7 +144,7 @@ export default function Dashboard() {
         supabase
           .from('referrals')
           .select('matrix_layer')
-          .ilike('matrix_root_wallet', walletAddress)
+          .eq('matrix_root_wallet', walletAddress)
           .order('matrix_layer', { ascending: false })
           .limit(1)
       ]);
@@ -157,9 +157,10 @@ export default function Dashboard() {
         ? (totalTeamResult.value.data.summary.total_members || 0) 
         : 0;
 
-      const maxLayer = maxLayerResult.status === 'fulfilled' && maxLayerResult.value.data?.[0]
-        ? maxLayerResult.value.data[0].matrix_layer 
-        : 0;
+      // 从matrix view summary中获取最大层级，如果失败则从直接查询中获取
+      const maxLayer = (totalTeamResult.status === 'fulfilled' && totalTeamResult.value.success && totalTeamResult.value.data?.summary?.deepest_layer) ||
+        (maxLayerResult.status === 'fulfilled' && maxLayerResult.value.data?.[0]?.matrix_layer) ||
+        0;
 
       console.log('🌐 Matrix data from DB:', { directReferrals, totalTeamSize, maxLayer });
 
