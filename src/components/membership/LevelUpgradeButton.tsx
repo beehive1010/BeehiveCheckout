@@ -307,7 +307,8 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
       const claimTxResult = await sendTransactionWithRetry(
         claimTransaction,
         account,
-        `Level ${upgradeLevel} NFT claim transaction`
+        `Level ${upgradeLevel} NFT claim transaction`,
+        false // Temporarily disable gasless for NFT claim to test
       );
 
       // Wait for confirmation
