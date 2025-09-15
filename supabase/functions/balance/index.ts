@@ -307,7 +307,7 @@ async function handleSpendBcc(supabase, walletAddress, data) {
     // Process BCC spending based on item type
     let result;
     let purchaseRecord;
-    if (itemType === 'nft') {
+    if (itemType === 'nft' || itemType === 'advertisement') {
       // Handle NFT purchase directly without database function
       const nftType = data.nftType || 'merchant';
       
@@ -315,7 +315,7 @@ async function handleSpendBcc(supabase, walletAddress, data) {
       let { data: balanceData, error: balanceError } = await supabase
         .from('user_balances')
         .select('bcc_balance')
-        .eq('wallet_address', walletAddress.toLowerCase())
+        .ilike('wallet_address', walletAddress)
         .single();
       
       if (balanceError || !balanceData) {
@@ -326,7 +326,7 @@ async function handleSpendBcc(supabase, walletAddress, data) {
         const { data: userData, error: userError } = await supabase
           .from('users')
           .select('wallet_address')
-          .eq('wallet_address', walletAddress.toLowerCase())
+          .ilike('wallet_address', walletAddress)
           .single();
         
         if (userError || !userData) {
@@ -375,7 +375,7 @@ async function handleSpendBcc(supabase, walletAddress, data) {
         const { data: newBalanceData, error: newBalanceError } = await supabase
           .from('user_balances')
           .select('bcc_balance')
-          .eq('wallet_address', walletAddress.toLowerCase())
+          .ilike('wallet_address', walletAddress)
           .single();
         
         if (newBalanceError || !newBalanceData) {
@@ -425,7 +425,7 @@ async function handleSpendBcc(supabase, walletAddress, data) {
           bcc_balance: newBalance,
           updated_at: new Date().toISOString()
         })
-        .eq('wallet_address', walletAddress.toLowerCase());
+        .ilike('wallet_address', walletAddress);
       
       if (updateError) throw updateError;
       
