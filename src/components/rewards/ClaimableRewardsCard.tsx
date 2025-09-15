@@ -54,18 +54,21 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
     refetchInterval: 30000, // Refresh every 30 seconds
     queryFn: async () => {
       // Get claimable and pending rewards from layer_rewards table with matrix position info
+      // Use case-insensitive matching for wallet address
       const { data: layerRewards, error } = await supabase
         .from('layer_rewards')
         .select(`
           id,
-          reward_amount,
-          matrix_layer,
-          status,
-          triggering_member_wallet,
-          created_at
+          amount_usdt,
+          layer,
+          reward_type,
+          payer_wallet,
+          created_at,
+          is_claimed
         `)
-        .eq('reward_recipient_wallet', walletAddress)
-        .eq('status', 'claimable')
+        .ilike('recipient_wallet', walletAddress)
+        .eq('is_claimed', false)
+        .in('reward_type', ['layer_reward', 'pending_layer_reward'])
         .order('created_at', { ascending: false });
 
       // Simplified matrix position handling (removed dependency on non-existent table)
@@ -73,7 +76,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
       if (layerRewards && layerRewards.length > 0) {
         // Set default positions since individual_matrix_placements table doesn't exist
         layerRewards.forEach(reward => {
-          matrixPositions.set(`${reward.triggering_member_wallet}-${reward.matrix_layer}`, 'L');
+          matrixPositions.set(`${reward.payer_wallet}-${reward.layer}`, 'L');
         });
       }
 
