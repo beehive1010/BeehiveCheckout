@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Trophy, User, AlertCircle } from 'lucide-react';
@@ -26,6 +26,12 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
   const [pendingRewards, setPendingRewards] = useState<PendingReward[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const onRewardClaimableRef = useRef(onRewardClaimable);
+  
+  // Keep ref updated
+  useEffect(() => {
+    onRewardClaimableRef.current = onRewardClaimable;
+  });
 
   // Format remaining time
   const formatTimeRemaining = (seconds: number): string => {
@@ -75,7 +81,7 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
   };
 
   // 更新倒计时
-  const updateCountdown = () => {
+  const updateCountdown = useCallback(() => {
     setPendingRewards(prev => 
       prev.map(reward => {
         const now = new Date().getTime();
@@ -83,8 +89,8 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
         const remaining = Math.max(0, Math.floor((expiry - now) / 1000));
         
         // 如果倒计时结束且可以领取，触发回调
-        if (remaining === 0 && reward.can_claim && onRewardClaimable) {
-          onRewardClaimable(reward.reward_id);
+        if (remaining === 0 && reward.can_claim && onRewardClaimableRef.current) {
+          onRewardClaimableRef.current(reward.reward_id);
         }
         
         return {
@@ -94,7 +100,7 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
         };
       })
     );
-  };
+  }, []); // No dependencies needed since we use ref
 
   useEffect(() => {
     if (walletAddress) {
@@ -107,7 +113,7 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
 
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
-  }, [pendingRewards.length, onRewardClaimable]);
+  }, [pendingRewards.length, updateCountdown]); // Now updateCountdown is stable
 
   if (loading) {
     return (
