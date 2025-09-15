@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useWeb3 } from '../contexts/Web3Context';
+import { useWallet } from './useWallet';
 import { apiRequest } from '../lib/queryClient';
 import { updatedApiClient } from '../lib/apiClientUpdated';
 
@@ -76,6 +77,7 @@ export interface WithdrawalData {
 
 export function useBalance() {
   const { walletAddress, isConnected } = useWeb3();
+  const { userStatus } = useWallet();
   const queryClient = useQueryClient();
 
   // Fetch user balance data using balance API
@@ -86,7 +88,7 @@ export function useBalance() {
     refetch: refetchBalance
   } = useQuery({
     queryKey: ['/api/balance/user', walletAddress],
-    enabled: !!walletAddress && isConnected,
+    enabled: !!walletAddress && isConnected && userStatus?.isActivated,
     queryFn: async (): Promise<UserBalanceData> => {
       // Temporary fix: Query database directly until balance function is deployed
       try {

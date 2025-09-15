@@ -73,6 +73,7 @@ TEST_RESULTS=()
 print_step "1" "User Registration via Auth API"
 REGISTER_RESPONSE=$(curl -s -X POST "$API_BASE/auth" \
     -H "Authorization: Bearer $AUTH_TOKEN" \
+    -H "apikey: $AUTH_TOKEN" \
     -H "Content-Type: application/json" \
     -H "x-wallet-address: $TEST_WALLET" \
     -d "{
@@ -219,6 +220,7 @@ print_step "7" "Dashboard Data Verification"
 echo "Testing dashboard data via API..."
 DASHBOARD_RESPONSE=$(curl -s -X POST "$API_BASE/matrix-view" \
     -H "Authorization: Bearer $AUTH_TOKEN" \
+    -H "apikey: $AUTH_TOKEN" \
     -H "Content-Type: application/json" \
     -H "x-wallet-address: $REFERRER_WALLET" \
     -d '{"action": "get-layer-stats"}')
