@@ -77,12 +77,6 @@ export default function Rewards() {
 
   // Use imported supabase client
 
-  useEffect(() => {
-    if (memberWalletAddress) {
-      loadRewardsData();
-    }
-  }, [memberWalletAddress, loadRewardsData]);
-
   const loadRewardsData = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -161,6 +155,12 @@ export default function Rewards() {
       setIsLoading(false);
     }
   }, [memberWalletAddress]); // Add memberWalletAddress as dependency
+
+  useEffect(() => {
+    if (memberWalletAddress) {
+      loadRewardsData();
+    }
+  }, [memberWalletAddress, loadRewardsData]);
 
   // Stable callback for PendingRewardsTimer
   const handleRewardClaimable = useCallback((rewardId: string) => {

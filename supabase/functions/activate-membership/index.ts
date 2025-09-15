@@ -45,7 +45,11 @@ serve(async (req) => {
     const requestBody = await req.json().catch(() => ({}))
     const { transactionHash, level = 1, action, referrerWallet, walletAddress: bodyWalletAddress, ...data } = requestBody
     const headerWalletAddress = req.headers.get('x-wallet-address')
-    const walletAddress = headerWalletAddress || bodyWalletAddress
+    const rawWalletAddress = headerWalletAddress || bodyWalletAddress
+    
+    // Normalize only user wallet address to lowercase, keep referrer as-is to match database
+    const walletAddress = rawWalletAddress?.toLowerCase()
+    const normalizedReferrerWallet = referrerWallet  // Keep original case for referrer
     
     console.log(`🔍 Wallet address parsing:`, {
       headerWallet: headerWalletAddress,
@@ -278,7 +282,7 @@ serve(async (req) => {
     }
 
     // Use the new unified NFT Level 1 activation function
-    const result = await activateNftLevel1Membership(supabase, walletAddress, transactionHash, level, referrerWallet);
+    const result = await activateNftLevel1Membership(supabase, walletAddress, transactionHash, level, normalizedReferrerWallet);
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
