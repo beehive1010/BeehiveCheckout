@@ -758,7 +758,10 @@
       "title": "Transaction History",
       "noHistory": "No transactions yet",
       "noHistoryDescription": "Your reward and transaction history will appear here"
-    }
+    },
+    "pendingCountdowns": "การนับถอยหลังของรางวัลที่รอดำเนินการ",
+    "pendingRewardTimer": "ตัวจับเวลารางวัลที่รอดำเนินการ",
+    "pendingRewardDescription": "รางวัลชั้น {layer} จะหมดอายุเร็วๆ นี้ - อัปเกรดเพื่อรับ"
   },
   "me": {
     "title": "User Center",

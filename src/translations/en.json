@@ -498,6 +498,7 @@
     "validatingReferrer": "Validating referrer...",
     "invalidReferrer": "Invalid Referrer",
     "useValidReferrer": "Please use a valid referrer wallet address.",
+    "referrerMustBeRegistered": "Referrer must be a registered user on the platform",
     "validationFailed": "Validation Failed",
     "validationFailedDesc": "Unable to verify registration or referrer status. Please refresh and try again.",
     "checkingBalance": "Checking USDC balance...",
@@ -800,7 +801,10 @@
     "bccMultipliers": "Tier multipliers: 1.0x, 0.5x, 0.25x, 0.125x",
     "bccUpgrades": "Level upgrades unlock more BCC",
     "recentRewards": "Recent Rewards",
-    "noHistory": "No reward history yet"
+    "noHistory": "No reward history yet",
+    "pendingCountdowns": "Pending Rewards Countdown",
+    "pendingRewardTimer": "Pending Reward Timer",
+    "pendingRewardDescription": "Layer {layer} reward expires soon - upgrade to claim"
   },
   "me": {
     "title": "User Center",

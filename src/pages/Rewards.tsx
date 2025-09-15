@@ -12,6 +12,7 @@ import { supabase } from '../lib/supabase';
 import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
 import RewardsOverview from '../components/rewards/RewardsOverview';
 import USDTWithdrawal from '../components/withdrawal/USDTWithdrawal';
+import CountdownTimer from '../components/rewards/CountdownTimer';
 import { 
   User, 
   Award, 
@@ -62,8 +63,12 @@ export default function Rewards() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
+  // Use the registered wallet address from user data if available, fallback to connected wallet
+  const memberWalletAddress = userData?.wallet_address || walletAddress;
+  
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [rewardsData, setRewardsData] = useState<RewardsData | null>(null);
+  const [pendingRewards, setPendingRewards] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
@@ -71,10 +76,10 @@ export default function Rewards() {
   // Use imported supabase client
 
   useEffect(() => {
-    if (walletAddress) {
+    if (memberWalletAddress) {
       loadRewardsData();
     }
-  }, [walletAddress]);
+  }, [memberWalletAddress]);
 
   const loadRewardsData = async () => {
     try {
@@ -85,7 +90,7 @@ export default function Rewards() {
       const { data: rewardsData, error: rewardsError } = await supabase
         .from('layer_rewards')
         .select('*')
-        .eq('reward_recipient_wallet', walletAddress)
+        .ilike('reward_recipient_wallet', memberWalletAddress)
         .order('created_at', { ascending: false });
 
       if (rewardsError) {
@@ -110,6 +115,23 @@ export default function Rewards() {
         return claimedDate.getMonth() === currentMonth && claimedDate.getFullYear() === currentYear;
       });
       const thisMonthTotal = thisMonthRewards.reduce((sum, r) => sum + (r.reward_amount || 0), 0);
+
+      // Get pending rewards with expiration times for countdown timers
+      const { data: pendingTimerData, error: pendingError } = await supabase
+        .from('layer_rewards')
+        .select('*')
+        .ilike('recipient_wallet', memberWalletAddress)
+        .eq('is_claimed', false)
+        .eq('reward_type', 'pending_layer_reward')
+        .not('expires_at', 'is', null)
+        .order('expires_at', { ascending: true })
+        .limit(3); // Only show top 3 most urgent
+
+      if (pendingError) {
+        console.warn('Pending rewards fetch error:', pendingError);
+      } else {
+        setPendingRewards(pendingTimerData || []);
+      }
 
       const mappedRewards: RewardsData = {
         total: totalEarned,
@@ -146,7 +168,7 @@ export default function Rewards() {
       
       // Use the database function to claim layer rewards
       const { data, error } = await supabase.rpc('claim_layer_reward', {
-        p_member_wallet: walletAddress,
+        p_member_wallet: memberWalletAddress,
         p_reward_id: null // Will claim all claimable rewards
       });
 
@@ -249,47 +271,77 @@ export default function Rewards() {
         </Card>
       </div>
 
-      {/* Quick Actions */}
-      <Card className="border-honey/20 bg-gradient-to-r from-honey/5 to-yellow-400/5">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Gift className="h-5 w-5 text-honey" />
-            {t('rewards.quickActions')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <Button 
-              onClick={claimPendingRewards}
-              disabled={!rewardsData?.claimable || rewardsData.claimable <= 0 || isLoading}
-              className="bg-honey hover:bg-honey/90 text-black font-semibold"
-            >
-              <Gift className="h-4 w-4 mr-2" />
-              {t('rewards.claimAvailable', { amount: rewardsData?.claimable || 0 })}
-            </Button>
-            <Button 
-              onClick={() => setActiveTab('withdrawal')}
-              disabled={!rewardsData?.total || rewardsData.total <= 0}
-              className="bg-green-500 hover:bg-green-500/90 text-white font-semibold"
-            >
-              <ArrowUpRight className="h-4 w-4 mr-2" />
-              {t('rewards.withdrawAvailable', { amount: rewardsData?.total || 0 })}
-            </Button>
-            <Button variant="outline" className="border-honey/30 text-honey hover:bg-honey/10">
-              <BarChart3 className="h-4 w-4 mr-2" />
-              {t('rewards.viewAnalytics')}
-            </Button>
-            <Button 
-              onClick={loadRewardsData}
-              variant="outline" 
-              className="border-honey/30 text-honey hover:bg-honey/10"
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              {t('common.refresh')}
-            </Button>
+      {/* Pending Rewards Countdown */}
+      {pendingRewards.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <Clock className="h-5 w-5 text-honey" />
+            {t('rewards.pendingCountdowns')}
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {pendingRewards.map((reward) => (
+              <CountdownTimer
+                key={reward.id}
+                endTime={reward.expires_at}
+                title={t('rewards.pendingRewardTimer')}
+                description={t('rewards.pendingRewardDescription', { layer: reward.layer || 1 })}
+                rewardAmount={reward.amount_usdt || 0}
+                variant="detailed"
+                urgencyColors={true}
+                className="h-auto"
+                onExpired={() => {
+                  // Reload rewards data when timer expires
+                  loadRewardsData();
+                }}
+              />
+            ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
+
+      {/* Quick Actions - Simplified version when no pending rewards */}
+      {pendingRewards.length === 0 && (
+        <Card className="border-honey/20 bg-gradient-to-r from-honey/5 to-yellow-400/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Gift className="h-5 w-5 text-honey" />
+              {t('rewards.quickActions')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <Button 
+                onClick={claimPendingRewards}
+                disabled={!rewardsData?.claimable || rewardsData.claimable <= 0 || isLoading}
+                className="bg-honey hover:bg-honey/90 text-black font-semibold"
+              >
+                <Gift className="h-4 w-4 mr-2" />
+                {t('rewards.claimAvailable', { amount: rewardsData?.claimable || 0 })}
+              </Button>
+              <Button 
+                onClick={() => setActiveTab('withdrawal')}
+                disabled={!rewardsData?.total || rewardsData.total <= 0}
+                className="bg-green-500 hover:bg-green-500/90 text-white font-semibold"
+              >
+                <ArrowUpRight className="h-4 w-4 mr-2" />
+                {t('rewards.withdrawAvailable', { amount: rewardsData?.total || 0 })}
+              </Button>
+              <Button variant="outline" className="border-honey/30 text-honey hover:bg-honey/10">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                {t('rewards.viewAnalytics')}
+              </Button>
+              <Button 
+                onClick={loadRewardsData}
+                variant="outline" 
+                className="border-honey/30 text-honey hover:bg-honey/10"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                {t('common.refresh')}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Main Content with Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -303,7 +355,7 @@ export default function Rewards() {
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
           {/* Rewards Overview */}
-          <RewardsOverview walletAddress={walletAddress || ''} />
+          <RewardsOverview walletAddress={memberWalletAddress || ''} />
           
           {/* Reward System Information */}
       <Card className="bg-secondary border-border">
@@ -340,7 +392,7 @@ export default function Rewards() {
 
         {/* Claimable Tab */}
         <TabsContent value="claimable" className="space-y-6">
-          <ClaimableRewardsCard walletAddress={walletAddress || ''} />
+          <ClaimableRewardsCard walletAddress={memberWalletAddress || ''} />
         </TabsContent>
 
         {/* Withdrawal Tab */}

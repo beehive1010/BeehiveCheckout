@@ -884,7 +884,10 @@
     "bccMultipliers": "等级倍数：1.0x, 0.5x, 0.25x, 0.125x",
     "bccUpgrades": "等级升级解锁更多BCC",
     "recentRewards": "最近奖励",
-    "noHistory": "暂无奖励历史"
+    "noHistory": "暂无奖励历史",
+    "pendingCountdowns": "待处理奖励倒计时",
+    "pendingRewardTimer": "待处理奖励计时器",
+    "pendingRewardDescription": "第{layer}层奖励即将到期 - 升级以领取"
   },
   "nft": {
     "claimError": "认领失败",

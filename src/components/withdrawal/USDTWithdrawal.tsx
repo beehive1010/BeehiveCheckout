@@ -41,8 +41,12 @@ const SUPPORTED_CHAINS = [
 export default function USDTWithdrawal() {
   const { toast } = useToast();
   const account = useActiveAccount();
+  const { userData } = useWallet();
   const queryClient = useQueryClient();
   const { mutate: sendTransaction } = useSendTransaction();
+  
+  // Use the registered wallet address from user data if available, fallback to connected wallet
+  const memberWalletAddress = userData?.wallet_address || account?.address;
   
   const [withdrawalAmount, setWithdrawalAmount] = useState('');
   const [selectedChain, setSelectedChain] = useState('');
@@ -52,14 +56,14 @@ export default function USDTWithdrawal() {
 
   // Get user USDT balance from rewards system
   const { data: balance, isLoading: balanceLoading } = useQuery<USDTBalance>({
-    queryKey: ['/api/rewards/balance', account?.address],
-    enabled: !!account?.address,
+    queryKey: ['/api/rewards/balance', memberWalletAddress],
+    enabled: !!memberWalletAddress,
     queryFn: async () => {
       const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/rewards/user`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'x-wallet-address': account!.address,
+          'x-wallet-address': memberWalletAddress!,
         },
       });
       if (!response.ok) {
@@ -89,7 +93,7 @@ export default function USDTWithdrawal() {
     mutationFn: async (data: { amount: number; chain: string; recipientAddress: string }) => {
       return await apiRequest('/api/usdt/withdraw', 'POST', {
         ...data,
-        walletAddress: account?.address,
+        walletAddress: memberWalletAddress,
       });
     },
     onSuccess: (data: WithdrawalRequest) => {
@@ -110,7 +114,7 @@ export default function USDTWithdrawal() {
     mutationFn: async (data: { withdrawalId: string; signature: string; amount: number; chain: string; recipientAddress: string }) => {
       return await apiRequest('/api/usdt/withdraw/confirm', 'POST', {
         ...data,
-        walletAddress: account?.address,
+        walletAddress: memberWalletAddress,
       });
     },
     onSuccess: (data: any) => {
@@ -178,7 +182,7 @@ export default function USDTWithdrawal() {
   };
 
   const handleConfirmWithdrawal = async () => {
-    if (!withdrawalRequest || !account) return;
+    if (!withdrawalRequest || !memberWalletAddress) return;
 
     setStep('signing');
 

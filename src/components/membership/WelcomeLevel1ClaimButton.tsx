@@ -190,27 +190,33 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       
       console.log('✅ User registration verified');
       
-      // Step 2: Validate referrer
+      // Step 2: Validate referrer (check users table, not members)
       setCurrentStep(t('claim.validatingReferrer'));
       
       const { data: referrerData, error: referrerError } = await supabase
-        .from('members')
-        .select('wallet_address, current_level')
+        .from('users')
+        .select('wallet_address, username')
         .ilike('wallet_address', referrerWallet)
         .single();
       
-      if (referrerError || !referrerData || referrerData.current_level <= 0) {
-        console.log('❌ Referrer validation failed');
+      if (referrerError || !referrerData) {
+        console.log('❌ Referrer validation failed - referrer not registered:', {
+          referrerWallet,
+          error: referrerError
+        });
         toast({
           title: t('claim.invalidReferrer'),
-          description: t('claim.useValidReferrer'),
+          description: t('claim.referrerMustBeRegistered') || 'Referrer must be a registered user on the platform',
           variant: "destructive",
         });
         setIsProcessing(false);
         return;
       }
       
-      console.log('✅ Referrer validation passed');
+      console.log('✅ Referrer validation passed - valid registered user:', {
+        referrerWallet: referrerData.wallet_address,
+        referrerUsername: referrerData.username
+      });
 
       // Step 3: Check network - must be Arbitrum Sepolia
       const chainId = activeChain?.id;
