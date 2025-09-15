@@ -358,6 +358,7 @@ export const TransactionHistory: React.FC<TransactionHistoryProps> = ({
             Export
           </Button>
         </div>
+        )}
 
         {/* Transaction List */}
         <div className="space-y-3">
