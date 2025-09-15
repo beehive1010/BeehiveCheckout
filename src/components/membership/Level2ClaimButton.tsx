@@ -41,7 +41,7 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
   const LEVEL_2_PRICE_WEI = BigInt(LEVEL_2_PRICE_USDC) * BigInt('1000000000000000000');
   
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-  const PAYMENT_TOKEN_CONTRACT = "0x4470734620414168Aa1673A30849DB25E5886E2A";
+  const PAYMENT_TOKEN_CONTRACT = "0xfA278827a612BBA895e7F0A4fBA504b22ff3E7C9"; // ARB ONE Payment Token
   const NFT_CONTRACT = "0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8"; // ARB ONE Membership Contract
   const THIRDWEB_CLIENT_ID = import.meta.env.VITE_THIRDWEB_CLIENT_ID;
 

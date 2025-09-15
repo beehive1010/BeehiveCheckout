@@ -25,14 +25,16 @@ const NETWORK_CONFIG = {
     chain: arbitrum,
     chainId: 42161,
     name: "Arbitrum One",
-    nftContractAddress: Deno.env.get('VITE_BBC_MEMBERSHIP_ARB') || '0x0000000000000000000000000000000000000000',
+    nftContractAddress: '0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8', // ARB ONE Membership Contract
+    paymentTokenAddress: '0xfA278827a612BBA895e7F0A4fBA504b22ff3E7C9', // ARB ONE Payment Token
     isTestnet: false
   },
   TESTNET: {
     chain: arbitrumSepolia,
     chainId: 421614, 
     name: "Arbitrum Sepolia",
-    nftContractAddress: '0x2Cb47141485754371c24Efcc65d46Ccf004f769a',
+    nftContractAddress: '0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8', // Use same for testing
+    paymentTokenAddress: '0xfA278827a612BBA895e7F0A4fBA504b22ff3E7C9', // Use same for testing
     isTestnet: true
   }
 };
