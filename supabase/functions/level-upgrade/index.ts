@@ -187,7 +187,7 @@ async function processLevelUpgrade(
       .from('members')
       .select('current_level, levels_owned, activation_rank, tier_level')
       .eq('wallet_address', walletAddress) // Preserve case
-      .single()
+      .maybeSingle()
 
     if (memberError || !memberData) {
       return {
@@ -334,7 +334,7 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
       .from('members')
       .select('current_level, levels_owned')
       .eq('wallet_address', walletAddress) // Preserve case
-      .single()
+      .maybeSingle()
 
     if (!memberData) {
       return {

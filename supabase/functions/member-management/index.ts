@@ -144,14 +144,25 @@ async function getMemberInfo(supabase: any, walletAddress: string) {
     .from('members')
     .select('*')
     .eq('wallet_address', walletAddress)
-    .single()
+    .maybeSingle()
 
   if (memberError) {
     return new Response(JSON.stringify({
       success: false,
-      error: 'Member not found',
+      error: `Database error: ${memberError.message}`,
       member: null,
       debug: { memberError }
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500
+    })
+  }
+
+  if (!memberData) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Member not found',
+      member: null
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 404
@@ -176,14 +187,24 @@ async function getCompleteUserInfo(supabase: any, walletAddress: string) {
     .from('user_complete_info')
     .select('*')
     .eq('wallet_address', walletAddress)
-    .single()
+    .maybeSingle()
 
   if (userError) {
     console.error('User complete info error:', userError)
     return new Response(JSON.stringify({
       success: false,
-      error: 'User information not found',
+      error: `Database error: ${userError.message}`,
       debug: { userError }
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500
+    })
+  }
+
+  if (!userInfo) {
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'User information not found'
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 404
@@ -240,7 +261,7 @@ async function getBalanceDetails(supabase: any, walletAddress: string) {
     .from('user_balance_summary')
     .select('*')
     .eq('wallet_address', walletAddress)
-    .single()
+    .maybeSingle()
 
   // Get recent BCC transactions
   const { data: transactions, error: transError } = await supabase
@@ -374,14 +395,14 @@ async function buildReferralTree(supabase: any, walletAddress: string, currentDe
     .from('users')
     .select('username, email')
     .eq('wallet_address', walletAddress)
-    .single()
+    .maybeSingle()
 
   // Get member info
   const { data: memberInfo } = await supabase
     .from('members')
     .select('current_level, activation_sequence')
     .eq('wallet_address', walletAddress)
-    .single()
+    .maybeSingle()
 
   // Get direct referrals
   const { data: referrals } = await supabase
@@ -507,7 +528,7 @@ async function syncMemberData(supabase: any, walletAddress: string) {
       .from('users')
       .select('*')
       .eq('wallet_address', walletAddress)
-      .single()
+      .maybeSingle()
 
     if (userError) {
       results.errors.user = userError.message
@@ -520,7 +541,7 @@ async function syncMemberData(supabase: any, walletAddress: string) {
       .from('membership')
       .select('*')
       .eq('wallet_address', walletAddress)
-      .single()
+      .maybeSingle()
 
     if (membershipError) {
       results.errors.membership = membershipError.message
@@ -535,9 +556,11 @@ async function syncMemberData(supabase: any, walletAddress: string) {
         .from('members')
         .select('*')
         .eq('wallet_address', walletAddress)
-        .single()
+        .maybeSingle()
 
-      if (memberError && memberError.code === 'PGRST116') {
+      if (memberError) {
+        results.errors.member_check = memberError.message
+      } else if (!memberData) {
         // Member doesn't exist, create it
         console.log(`Creating member record for activated user: ${walletAddress}`)
         
@@ -569,7 +592,7 @@ async function syncMemberData(supabase: any, walletAddress: string) {
       .from('user_balances')
       .select('*')
       .eq('wallet_address', walletAddress)
-      .single()
+      .maybeSingle()
 
     if (balanceError) {
       results.errors.balance = balanceError.message

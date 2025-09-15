@@ -68,7 +68,7 @@ async function createReferralLink(supabase, walletAddress) {
       .from('referral_links')
       .select('*')
       .eq('referrer_wallet', walletAddress)
-      .single();
+      .maybeSingle();
 
     if (existingLink && !checkError) {
       console.log(`✓ Referral link already exists: ${existingLink.link_code}`);
@@ -97,7 +97,7 @@ async function createReferralLink(supabase, walletAddress) {
         conversions: 0
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (insertError) {
       console.error('Create referral link error:', insertError);
@@ -144,7 +144,7 @@ async function getReferralLink(supabase, walletAddress) {
       .from('referral_links')
       .select('*')
       .eq('referrer_wallet', walletAddress)
-      .single();
+      .maybeSingle();
 
     if (error || !linkData) {
       return new Response(JSON.stringify({

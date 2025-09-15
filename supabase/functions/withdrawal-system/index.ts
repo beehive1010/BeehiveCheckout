@@ -228,7 +228,7 @@ async function requestWithdrawal(
       .from('user_balances')
       .select(currency === 'USDC' ? 'usdc_balance' : 'bcc_transferable')
       .eq('wallet_address', walletAddress.toLowerCase())
-      .single()
+      .maybeSingle()
 
     if (!balanceData) {
       return {
@@ -322,7 +322,7 @@ async function requestWithdrawal(
         created_at: new Date().toISOString()
       })
       .select()
-      .single()
+      .maybeSingle()
 
     if (withdrawalError) {
       console.error('Create withdrawal error:', withdrawalError)
@@ -401,7 +401,7 @@ async function checkWithdrawalLimits(supabase: any, walletAddress: string, curre
       .from('user_withdrawal_limits')
       .select('daily_limit_usdc, monthly_limit_usdc, daily_limit_bcc, monthly_limit_bcc')
       .eq('wallet_address', walletAddress.toLowerCase())
-      .single()
+      .maybeSingle()
 
     // Calculate current usage for the day and month
     const now = new Date()
@@ -481,7 +481,7 @@ async function getWithdrawalStatus(supabase: any, walletAddress: string, withdra
       .order('created_at', { ascending: false })
 
     if (withdrawalId) {
-      query = query.eq('id', withdrawalId).single()
+      query = query.eq('id', withdrawalId).maybeSingle()
     }
 
     const { data: withdrawals, error } = await query
@@ -696,7 +696,7 @@ async function cancelWithdrawal(supabase: any, walletAddress: string, withdrawal
       .eq('id', withdrawalId)
       .eq('wallet_address', walletAddress.toLowerCase())
       .eq('status', 'pending')
-      .single()
+      .maybeSingle()
 
     if (error || !withdrawal) {
       return {
@@ -750,7 +750,7 @@ async function refundFailedWithdrawal(supabase: any, withdrawal: any): Promise<v
       .from('user_balances')
       .select(updateField)
       .eq('wallet_address', withdrawal.wallet_address)
-      .single()
+      .maybeSingle()
 
     // Add back the original amount
     await supabase

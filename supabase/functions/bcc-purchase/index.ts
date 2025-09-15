@@ -241,7 +241,7 @@ async function handleConfirmPayment(supabase, walletAddress, data) {
   try {
     const { orderId, transactionHash, actualAmountReceived } = data;
     // Find the purchase order
-    const { data: purchaseOrder, error: fetchError } = await supabase.from('bcc_purchase_orders').select('*').eq('order_id', orderId).eq('buyer_wallet', walletAddress).single();
+    const { data: purchaseOrder, error: fetchError } = await supabase.from('bcc_purchase_orders').select('*').eq('order_id', orderId).eq('buyer_wallet', walletAddress).maybeSingle();
     if (fetchError || !purchaseOrder) {
       return new Response(JSON.stringify({
         success: false,

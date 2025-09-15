@@ -53,7 +53,7 @@ serve(async (req) => {
       .from('user_balances')
       .select('bcc_transferable, bcc_locked')
       .ilike('wallet_address', walletAddress)
-      .single();
+      .maybeSingle();
 
     const currentTransferable = balanceData?.bcc_transferable || 600; // Default for new users
     if (currentTransferable < price_bcc) {
@@ -81,7 +81,7 @@ serve(async (req) => {
         transaction_hash: transaction_hash || `0x${Date.now().toString(16)}${Math.random().toString(16).slice(2, 10)}`
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (purchaseError) {
       console.error('❌ Purchase insert error:', purchaseError);
@@ -138,7 +138,7 @@ serve(async (req) => {
         .from('merchant_nfts')
         .select('supply_available')
         .eq('id', nft_id)
-        .single();
+        .maybeSingle();
 
       if (nftData?.supply_available && nftData.supply_available > 0) {
         await supabase

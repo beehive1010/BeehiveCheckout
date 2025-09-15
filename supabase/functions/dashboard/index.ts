@@ -143,14 +143,14 @@ async function getDashboardData(supabase, walletAddress) {
       .from('members')
       .select('*')
       .eq('wallet_address', walletAddress)
-      .single();
+      .maybeSingle();
 
     // Get balance data
     const { data: balanceData } = await supabase
       .from('user_balances')
       .select('*')
       .eq('wallet_address', walletAddress)
-      .single();
+      .maybeSingle();
 
     return new Response(JSON.stringify({
       success: true,

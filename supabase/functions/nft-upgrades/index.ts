@@ -210,9 +210,22 @@ async function handleCheckEligibility(supabase, walletAddress, level) {
       .select('*')
       .eq('level', level)
       .eq('is_active', true)
-      .single();
+      .maybeSingle();
     
-    if (levelInfoError || !levelInfo) {
+    if (levelInfoError) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: `Database error: ${levelInfoError.message}`
+      }), {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        },
+        status: 500
+      });
+    }
+    
+    if (!levelInfo) {
       return new Response(JSON.stringify({
         success: false,
         error: 'Invalid or inactive level'
@@ -230,10 +243,23 @@ async function handleCheckEligibility(supabase, walletAddress, level) {
       .from('members')
       .select('current_level, levels_owned, is_activated')
       .eq('wallet_address', walletAddress)
-      .single();
+      .maybeSingle();
     
     // For new users (no member record), only Level 1 is eligible
-    if (memberError && memberError.code === 'PGRST116') {
+    if (memberError) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: `Database error: ${memberError.message}`
+      }), {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        },
+        status: 500
+      });
+    }
+    
+    if (!memberData) {
       return new Response(JSON.stringify({
         success: true,
         eligible: level === 1,
@@ -442,23 +468,23 @@ async function handleProcessUpgrade(supabase, walletAddress, data) {
       .from('members')
       .select('current_level, levels_owned, is_activated')
       .eq('wallet_address', walletAddress)
-      .single();
+      .maybeSingle();
 
-    const isNewMember = memberError && memberError.code === 'PGRST116'; // No member record exists
-    
-    if (memberError && memberError.code !== 'PGRST116') {
+    if (memberError) {
       console.error('Member data fetch error:', memberError);
       return new Response(JSON.stringify({
         success: false,
-        error: 'Unable to verify member status for sequential upgrade validation'
+        error: `Database error: ${memberError.message}`
       }), {
         headers: {
           ...corsHeaders,
           'Content-Type': 'application/json'
         },
-        status: 400
+        status: 500
       });
     }
+
+    const isNewMember = !memberData; // No member record exists
 
     // NEW USERS: Can only claim Level 1 as their first NFT
     if (isNewMember && level !== 1) {
@@ -609,7 +635,11 @@ async function handleProcessUpgrade(supabase, walletAddress, data) {
       .from('users')
       .select('referrer_wallet, username')
       .eq('wallet_address', walletAddress)
-      .single();
+      .maybeSingle();
+
+    if (userError) {
+      console.error('User data fetch error:', userError);
+    }
 
     console.log(`📋 Processing NFT Level ${level} for ${walletAddress}, referrer: ${userData?.referrer_wallet || 'none'}`);
 
@@ -705,7 +735,11 @@ async function handleProcessUpgrade(supabase, walletAddress, data) {
         .select('id')
         .eq('referrer_wallet', userData.referrer_wallet)
         .eq('referred_wallet', walletAddress)
-        .single();
+        .maybeSingle();
+
+      if (referralCheckError) {
+        console.error('⚠️ Error checking existing referral:', referralCheckError);
+      }
 
       if (!existingReferral) {
         // Create referral record - this officially adds user to referral system
@@ -962,7 +996,11 @@ async function handleManualProcessClaim(supabase, walletAddress, data) {
       .from('orders')
       .select('*')
       .eq('transaction_hash', transactionHash)
-      .single();
+      .maybeSingle();
+    
+    if (orderCheckError) {
+      console.error('Order check error:', orderCheckError);
+    }
     
     if (existingOrder && !force) {
       return new Response(JSON.stringify({

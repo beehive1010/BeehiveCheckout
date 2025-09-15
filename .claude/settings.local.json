@@ -59,7 +59,11 @@
       "Bash(./db/deploy-edge-functions.sh:*)",
       "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 npx supabase functions deploy matrix --project-ref cvqibjcbfrwsgkvthccp)",
       "Bash(timeout 10 npm run build)",
-      "Bash(./scripts/test-complete-flow.sh:*)"
+      "Bash(./scripts/test-complete-flow.sh:*)",
+      "Bash(do if [ -f \"$file\" ])",
+      "Bash(then echo \"✅ $file - 已修复\")",
+      "Bash(else echo \"❌ $file - 不存在\")",
+      "Bash(fi)"
     ],
     "deny": [],
     "ask": []

@@ -130,7 +130,7 @@ async function recordMultiChainPayment(req: Request, supabase: any) {
         created_at: new Date().toISOString()
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Database error:', error);
@@ -201,7 +201,7 @@ async function createBridgeRequest(req: Request, supabase: any) {
         created_at: new Date().toISOString()
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Bridge request error:', error);
@@ -324,7 +324,7 @@ async function getBridgeStatus(req: Request, supabase: any) {
       .from('bridge_requests')
       .select('*')
       .eq('bridge_transaction_id', bridgeId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Bridge status error:', error);

@@ -125,7 +125,7 @@ async function getServerWalletBalance(url: URL, supabaseClient: any, corsHeaders
       .select('*')
       .eq('chain_id', parseInt(chainId))
 .eq('token_address', tokenAddress)
-      .single();
+      .maybeSingle();
 
     if (error && error.code !== 'PGRST116') { // Not found is OK
       throw error;
@@ -253,7 +253,7 @@ async function processWithdrawal(withdrawalData: WithdrawalRequest, supabaseClie
         created_at: new Date().toISOString()
       }])
       .select()
-      .single();
+      .maybeSingle();
 
     if (insertError) throw insertError;
 

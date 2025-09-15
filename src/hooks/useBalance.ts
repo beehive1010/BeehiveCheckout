@@ -260,16 +260,22 @@ export function useBalance() {
     },
   });
 
-  // Get user withdrawal history using Supabase API
+  // Get user withdrawal history using Supabase API - only for activated members
   const {
     data: withdrawalHistory,
     isLoading: isWithdrawalHistoryLoading
   } = useQuery({
-    queryKey: ['/api/balance/withdrawals', walletAddress],
-    enabled: !!walletAddress && isConnected,
+    queryKey: ['/api/withdrawal-system', walletAddress],
+    enabled: !!walletAddress && isConnected && userStatus?.isActivated,
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/balance/withdrawals', undefined, walletAddress!);
-      return response.json();
+      try {
+        const response = await apiRequest('GET', '/api/withdrawal-system', undefined, walletAddress!);
+        const result = await response.json();
+        return result;
+      } catch (error) {
+        console.log('Withdrawal history failed, returning empty array:', error);
+        return { withdrawals: [] };
+      }
     },
   });
 
