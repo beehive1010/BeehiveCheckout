@@ -447,10 +447,14 @@ async function verifyNFTClaimTransaction(transactionHash: string, walletAddress:
     console.log(`📋 Transaction confirmed successfully, gas used: ${receipt.gasUsed}`);
 
     // 2. Verify transaction is initiated from correct wallet address
-    if (receipt.from?.toLowerCase() !== walletAddress.toLowerCase()) {
+    const receiptFrom = receipt.from?.toLowerCase();
+    const expectedFrom = walletAddress.toLowerCase();
+    if (receiptFrom !== expectedFrom) {
       console.log(`❌ Transaction sender mismatch: ${receipt.from} vs ${walletAddress}`);
+      console.log(`❌ Normalized comparison: ${receiptFrom} vs ${expectedFrom}`);
       return false;
     }
+    console.log(`✅ Transaction sender verified: ${receipt.from} matches ${walletAddress}`);
 
     // 3. Verify transaction is sent to NFT contract
     if (receipt.to?.toLowerCase() !== NFT_CONTRACT.toLowerCase()) {
@@ -459,24 +463,31 @@ async function verifyNFTClaimTransaction(transactionHash: string, walletAddress:
     }
 
     // 4. Verify transaction logs contain NFT mint event
-    const transferEventSignature = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
+    // ERC-1155 TransferSingle event signature
+    const transferSingleEventSignature = '0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62';
 
     let nftMintFound = false;
     for (const log of receipt.logs) {
       if (log.address?.toLowerCase() === NFT_CONTRACT.toLowerCase() &&
-          log.topics[0] === transferEventSignature) {
+          log.topics[0] === transferSingleEventSignature) {
 
-        const fromAddress = log.topics[1];
-        const toAddress = log.topics[2];
-        const tokenId = parseInt(log.topics[3], 16);
+        const operator = log.topics[1];
+        const fromAddress = log.topics[2];
+        const toAddress = log.topics[3];
+        
+        // For ERC-1155, token ID and amount are in data field
+        const data = log.data;
+        const tokenId = parseInt(data.slice(2, 66), 16); // First 32 bytes
+        const amount = parseInt(data.slice(66, 130), 16); // Second 32 bytes
 
         const zeroAddress = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
         if (fromAddress === zeroAddress &&
             toAddress.toLowerCase().includes(walletAddress.slice(2).toLowerCase()) &&
-            tokenId === EXPECTED_TOKEN_ID) {
+            tokenId === EXPECTED_TOKEN_ID &&
+            amount > 0) {
 
-          console.log(`✅ NFT mint event verified successfully: Token ID ${tokenId} minted to ${walletAddress}`);
+          console.log(`✅ NFT mint event verified successfully: Token ID ${tokenId}, Amount ${amount} minted to ${walletAddress}`);
           nftMintFound = true;
           break;
         }
