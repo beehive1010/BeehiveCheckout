@@ -167,7 +167,9 @@ async function handleGetTransactions(supabase, walletAddress, data) {
       success: true,
       transactions: transactions || [],
       summary: {
-        totalCredits: credits.reduce((sum, t)=>sum + parseFloat(t.amount || '0'), 0),
+        totalCredits: credits.reduce((
+
+            sum, t)=>sum + parseFloat(t.amount || '0'), 0),
         totalDebits: debits.reduce((sum, t)=>sum + parseFloat(t.amount || '0'), 0),
         creditCount: credits.length,
         debitCount: debits.length
