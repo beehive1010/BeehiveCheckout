@@ -406,22 +406,34 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
           }
           
           if (!activationSuccess) {
-            console.error('❌ All activation attempts failed');
-            throw new Error('Membership activation failed after multiple attempts');
+            console.error('❌ All activation attempts failed, but NFT is successfully minted');
           }
           
         } catch (backendError: any) {
           console.warn('⚠️ Backend processing error:', backendError);
-          throw new Error(`Backend processing failed: ${backendError.message}`);
+          activationSuccess = false;
+          // Don't throw - NFT is successfully minted
         }
       }
 
-      toast({
-        title: `🎉 Level ${upgradeLevel} NFT Claimed!`,
-        description: `Congratulations! Your Level ${upgradeLevel} membership is now active.`,
-        variant: "default",
-        duration: 6000,
-      });
+      // Show success message based on what succeeded
+      if (activationSuccess) {
+        console.log(`✅ Complete success: Level ${upgradeLevel} NFT minted and membership activated`);
+        toast({
+          title: `🎉 Level ${upgradeLevel} NFT Claimed!`,
+          description: `Congratulations! Your Level ${upgradeLevel} membership is now active.`,
+          variant: "default",
+          duration: 6000,
+        });
+      } else {
+        console.log(`⚠️ Partial success: Level ${upgradeLevel} NFT minted but backend activation failed`);
+        toast({
+          title: `✅ Level ${upgradeLevel} NFT Claimed!`,
+          description: `Your Level ${upgradeLevel} NFT is minted on blockchain. Backend activation is pending - please contact support if needed.`,
+          variant: "default",
+          duration: 8000,
+        });
+      }
 
       // Refresh level info
       await loadCurrentLevel();

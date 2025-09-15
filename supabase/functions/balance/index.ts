@@ -334,8 +334,8 @@ async function handleSpendBcc(supabase, walletAddress, data) {
           const { error: createUserError } = await supabase
             .from('users')
             .insert({
-              wallet_address: walletAddress.toLowerCase(),
-              username: `user_${walletAddress.toLowerCase().slice(-8)}`, // Generate username from wallet
+              wallet_address: walletAddress,
+              username: `user_${walletAddress.toLowerCase().slice(-8)}`, // Generate username from wallet (username can be lowercase)
               role: 'user',
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
@@ -358,7 +358,7 @@ async function handleSpendBcc(supabase, walletAddress, data) {
         const { error: createMemberError } = await supabase
           .from('members')
           .insert({
-            wallet_address: walletAddress.toLowerCase(),
+            wallet_address: walletAddress,
             current_level: 1,
             activation_sequence: nextSequence,
             activation_time: new Date().toISOString(),

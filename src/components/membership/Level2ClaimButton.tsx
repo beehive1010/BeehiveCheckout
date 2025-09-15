@@ -397,28 +397,29 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
         }
       } catch (upgradeError) {
         console.error('❌ Level 2 upgrade error:', upgradeError);
-        throw upgradeError;
+        // Don't throw - NFT is successfully minted
+        backendProcessed = false;
+        membershipActivated = false;
       }
 
       // Show success message based on backend and activation results
-      let successMessage = 'Level 2 NFT claimed successfully!';
-      
       if (backendProcessed && membershipActivated) {
-        successMessage = 'Level 2 NFT claimed and membership activated!';
-      } else if (membershipActivated) {
-        successMessage = 'Level 2 NFT claimed and activated (backend processing pending)';
-      } else if (backendProcessed) {
-        successMessage = 'Level 2 NFT claimed and processed (activation pending)';
+        console.log('✅ Complete success: Level 2 NFT minted and membership activated');
+        toast({
+          title: '🎉 Level 2 NFT Claimed!',
+          description: 'Congratulations! Your Level 2 membership is now active.',
+          variant: "default",
+          duration: 6000,
+        });
       } else {
-        successMessage = 'Level 2 NFT claimed successfully on blockchain';
+        console.log('⚠️ Partial success: Level 2 NFT minted but backend activation failed');
+        toast({
+          title: '✅ Level 2 NFT Claimed!',
+          description: 'Your Level 2 NFT is minted on blockchain. Backend activation is pending - please contact support if needed.',
+          variant: "default",
+          duration: 8000,
+        });
       }
-
-      toast({
-        title: '🎉 Level 2 NFT Claimed!',
-        description: 'Congratulations! Your Level 2 membership is now active.',
-        variant: "default",
-        duration: 6000,
-      });
 
       if (onSuccess) {
         onSuccess();

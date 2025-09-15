@@ -5,7 +5,7 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "vite dev --host 0.0.0.0 --port 5000",
+    "dev": "vite dev --host 0.0.0.0 --port 5000 --force-ipv4",
     "build": "vite build",
     "start": "vite preview --host 0.0.0.0 --port 5000",
     "preview": "vite preview --host 0.0.0.0 --port 5000",
