@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { createThirdwebClient, getContract, readContract } from 'https://esm.sh/thirdweb@5'
-import { arbitrumSepolia } from 'https://esm.sh/thirdweb@5/chains'
+import { arbitrum } from 'https://esm.sh/thirdweb@5/chains'
 
 // Correct database interface definition
 interface MemberInfo {
@@ -59,8 +59,18 @@ serve(async (req) => {
     })
 
     if (!walletAddress) {
-      console.error('❌ No wallet address found in headers or body')
-      throw new Error('Wallet address missing')
+      console.error('❌ No wallet address found in headers or body', {
+        headerWallet: headerWalletAddress,
+        bodyWallet: bodyWalletAddress,
+        allHeaders: Array.from(req.headers.entries())
+      })
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Wallet address missing - please provide wallet address in x-wallet-address header or request body'
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
     }
 
     // Handle NFT ownership check action
@@ -85,7 +95,7 @@ serve(async (req) => {
         // Get contract instance
         const contract = getContract({
           client,
-          chain: arbitrumSepolia,
+          chain: arbitrum,
           address: '0x99265477249389469929CEA07c4a337af9e12cdA'
         });
 
@@ -134,8 +144,8 @@ serve(async (req) => {
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
-        .ilike('wallet_address', walletAddress)
-        .single();
+        .eq('wallet_address', walletAddress)
+        .maybeSingle();
 
       if (userError || !userData) {
         console.log(`❌ User not registered: ${walletAddress}`);
@@ -155,9 +165,9 @@ serve(async (req) => {
       const { data: membershipData, error: membershipError } = await supabase
         .from('membership')
         .select('*')
-        .ilike('wallet_address', walletAddress)
+        .eq('wallet_address', walletAddress)
         .eq('nft_level', 1) // Level 1 NFT claim
-        .single();
+        .maybeSingle();
 
       if (membershipError) {
         console.log(`⏳ User registered but no Level 1 NFT claimed yet: ${walletAddress}`);
@@ -179,8 +189,8 @@ serve(async (req) => {
       const { data: memberData, error: memberError } = await supabase
         .from('members')
         .select('*')
-        .ilike('wallet_address', walletAddress)
-        .single();
+        .eq('wallet_address', walletAddress)
+        .maybeSingle();
 
       if (memberError) {
         console.log(`🔧 Membership NFT claimed but member record missing: ${walletAddress}`);
@@ -255,8 +265,8 @@ serve(async (req) => {
       const { data: memberData, error: memberError } = await supabase
         .from('members')
         .select('*')
-        .ilike('wallet_address', walletAddress)
-        .single();
+        .eq('wallet_address', walletAddress)
+        .maybeSingle();
 
       if (!memberError && memberData && memberData.current_level > 0) {
         console.log(`✅ User has database membership Level ${memberData.current_level}, even without on-chain NFT`);
@@ -311,8 +321,8 @@ async function activateNftLevel1Membership(supabase, walletAddress, transactionH
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('wallet_address, username, email')
-      .ilike('wallet_address', walletAddress)
-      .single();
+      .eq('wallet_address', walletAddress)
+      .maybeSingle();
 
     if (userError || !userData) {
       console.error(`❌ User not registered: ${walletAddress}`, userError);
@@ -325,8 +335,8 @@ async function activateNftLevel1Membership(supabase, walletAddress, transactionH
     const { data: existingMember } = await supabase
       .from('members')
       .select('wallet_address, current_level, activation_sequence')
-      .ilike('wallet_address', walletAddress)
-      .single();
+      .eq('wallet_address', walletAddress)
+      .maybeSingle();
 
     if (existingMember && existingMember.current_level > 0) {
       return {
@@ -343,7 +353,7 @@ async function activateNftLevel1Membership(supabase, walletAddress, transactionH
 
       const isValidTransaction = await verifyNFTClaimTransaction(transactionHash, walletAddress, level);
       if (!isValidTransaction) {
-        throw new Error('Blockchain transaction verification failed - transaction invalid or unconfirmed');
+        throw new Error(`Blockchain transaction verification failed - transaction invalid or unconfirmed. TxHash: ${transactionHash}, Wallet: ${walletAddress}, Level: ${level}`);
       }
       console.log(`✅ Blockchain transaction verification successful: ${transactionHash}`);
     } else {
@@ -404,13 +414,13 @@ async function activateNftLevel1Membership(supabase, walletAddress, transactionH
 async function verifyNFTClaimTransaction(transactionHash: string, walletAddress: string, expectedLevel: number) {
   console.log(`🔗 Starting transaction verification: ${transactionHash}`);
 
-  const ARBITRUM_SEPOLIA_RPC = 'https://sepolia-rollup.arbitrum.io/rpc';
+  const ARBITRUM_ONE_RPC = 'https://arb1.arbitrum.io/rpc';
   const NFT_CONTRACT = '0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8'; // ARB ONE Membership Contract
   const EXPECTED_TOKEN_ID = expectedLevel;
 
   try {
     // 1. Get transaction receipt
-    const receiptResponse = await fetch(ARBITRUM_SEPOLIA_RPC, {
+    const receiptResponse = await fetch(ARBITRUM_ONE_RPC, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -479,7 +489,7 @@ async function verifyNFTClaimTransaction(transactionHash: string, walletAddress:
     }
 
     // 5. Ensure transaction has sufficient confirmations
-    const currentBlockResponse = await fetch(ARBITRUM_SEPOLIA_RPC, {
+    const currentBlockResponse = await fetch(ARBITRUM_ONE_RPC, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -521,8 +531,8 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('wallet_address, username, email')
-      .ilike('wallet_address', walletAddress)
-      .single();
+      .eq('wallet_address', walletAddress)
+      .maybeSingle();
 
     if (userError || !userData) {
       console.error(`❌ Cannot sync NFT - user not registered: ${walletAddress}`, userError);
@@ -557,7 +567,7 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
       // Get contract instance
       const contract = getContract({
         client,
-        chain: arbitrumSepolia,
+        chain: arbitrum,
         address: NFT_CONTRACT_ADDRESS
       });
 
@@ -593,8 +603,8 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
     const { data: existingMember } = await supabase
       .from('members')
       .select('wallet_address, current_level, activation_sequence')
-      .ilike('wallet_address', walletAddress)
-      .single();
+      .eq('wallet_address', walletAddress)
+      .maybeSingle();
 
     if (existingMember && existingMember.current_level > 0) {
       console.log(`✅ Database members record exists and is activated, but need to check complete activation records`);
@@ -603,14 +613,14 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
       const { data: membershipRecord } = await supabase
         .from('membership')
         .select('id')
-        .ilike('wallet_address', walletAddress)
-        .single();
+        .eq('wallet_address', walletAddress)
+        .maybeSingle();
 
       const { data: referralRecord } = await supabase
         .from('referrals')
         .select('id')
         .eq('member_wallet', walletAddress)
-        .single();
+        .maybeSingle();
 
       if (membershipRecord && referralRecord) {
         console.log(`✅ Complete activation records already exist`);
@@ -687,8 +697,8 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
     const { data: updatedMember } = await supabase
       .from('members')
       .select('wallet_address, current_level, activation_sequence')
-      .ilike('wallet_address', walletAddress)
-      .single();
+      .eq('wallet_address', walletAddress)
+      .maybeSingle();
 
     return {
       success: true,

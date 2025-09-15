@@ -22,11 +22,11 @@ TIMESTAMP=$(date +%s)
 TEST_WALLET="0xTEST${TIMESTAMP:6:8}000000000000000000TEST"
 TEST_USERNAME="TestUser_${TIMESTAMP:6:8}"
 TEST_EMAIL="testuser_${TIMESTAMP:6:8}@example.com"
-REFERRER_WALLET="0x781665DaeD20238fFA341085aA77d31b8c0Cf68C"  # User 1234
+REFERRER_WALLET="0xC813218A28E130B46f8247F0a23F0BD841A8DB4E"  # admin user
 
 echo -e "${BLUE}🚀 Starting Complete Flow Test${NC}"
 echo -e "${BLUE}Test User: ${TEST_USERNAME} (${TEST_WALLET})${NC}"
-echo -e "${BLUE}Referrer: 1234 (${REFERRER_WALLET})${NC}"
+echo -e "${BLUE}Referrer: admin (${REFERRER_WALLET})${NC}"
 echo ""
 
 # Function to print step headers
@@ -259,7 +259,7 @@ echo -e "${BLUE}Test User Details:${NC}"
 echo "  Wallet: $TEST_WALLET"
 echo "  Username: $TEST_USERNAME"
 echo "  Email: $TEST_EMAIL"
-echo "  Referrer: $REFERRER_WALLET (1234)"
+echo "  Referrer: $REFERRER_WALLET (admin)"
 
 # Generate report timestamp
 echo ""

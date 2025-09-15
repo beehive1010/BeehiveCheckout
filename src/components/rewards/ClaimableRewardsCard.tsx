@@ -135,6 +135,8 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
       const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/rewards/claim`, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
           'Content-Type': 'application/json',
           'x-wallet-address': memberWalletAddress,
         },
@@ -200,6 +202,8 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
       const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/rewards/withdraw`, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
           'Content-Type': 'application/json',
           'x-wallet-address': memberWalletAddress,
         },

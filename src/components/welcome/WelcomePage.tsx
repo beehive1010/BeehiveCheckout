@@ -74,6 +74,8 @@ export function WelcomePage() {
             const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/auth', {
                 method: 'POST',
                 headers: {
+                    'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                    'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
                     'Content-Type': 'application/json',
                     'x-wallet-address': walletAddress,
                 },
@@ -112,6 +114,8 @@ export function WelcomePage() {
                     const memberResponse = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/activate-membership?t=${Date.now()}`, {
                         method: 'POST',
                         headers: {
+                            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
                             'Content-Type': 'application/json',
                             'x-wallet-address': walletAddress,
                         },

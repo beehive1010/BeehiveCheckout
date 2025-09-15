@@ -75,8 +75,8 @@ async function handleGetBalance(supabase, walletAddress) {
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('wallet_address')
-      .ilike('wallet_address', walletAddress)
-      .single();
+      .eq('wallet_address', walletAddress)
+      .maybeSingle();
 
     if (userError || !userData) {
       console.error(`❌ Balance query denied - user not registered: ${walletAddress}`);
@@ -95,17 +95,17 @@ async function handleGetBalance(supabase, walletAddress) {
     
     console.log(`✅ User registration verified for balance query: ${walletAddress}`);
 
-    // Get user balance - use case insensitive search
-    const { data: balanceData, error: balanceError } = await supabase.from('user_balances').select('*').ilike('wallet_address', walletAddress).single();
+    // Get user balance - use case sensitive search
+    const { data: balanceData, error: balanceError } = await supabase.from('user_balances').select('*').eq('wallet_address', walletAddress).maybeSingle();
     if (balanceError && balanceError.code !== 'PGRST116') {
       throw balanceError;
     }
-    // Get pending rewards (unclaimed rewards) - case insensitive
-    const { data: pendingRewards, error: rewardsError } = await supabase.from('layer_rewards').select('amount_usdt').ilike('recipient_wallet', walletAddress).eq('is_claimed', false);
+    // Get pending rewards (unclaimed rewards) - case sensitive
+    const { data: pendingRewards, error: rewardsError } = await supabase.from('layer_rewards').select('amount_usdt').eq('recipient_wallet', walletAddress).eq('is_claimed', false);
     if (rewardsError) throw rewardsError;
     const pendingRewardAmount = pendingRewards?.reduce((sum, reward)=>sum + parseFloat(reward.amount_usdt), 0) || 0;
-    // Get recent BCC purchase orders - case insensitive
-    const { data: recentPurchases, error: purchaseError } = await supabase.from('bcc_purchase_orders').select('amount_bcc, status, created_at').ilike('buyer_wallet', walletAddress).order('created_at', {
+    // Get recent BCC purchase orders - case sensitive
+    const { data: recentPurchases, error: purchaseError } = await supabase.from('bcc_purchase_orders').select('amount_bcc, status, created_at').eq('buyer_wallet', walletAddress).order('created_at', {
       ascending: false
     }).limit(5);
     if (purchaseError) throw purchaseError;
@@ -315,8 +315,8 @@ async function handleSpendBcc(supabase, walletAddress, data) {
       let { data: balanceData, error: balanceError } = await supabase
         .from('user_balances')
         .select('bcc_balance')
-        .ilike('wallet_address', walletAddress)
-        .single();
+        .eq('wallet_address', walletAddress)
+        .maybeSingle();
       
       if (balanceError || !balanceData) {
         // User doesn't have balance record, need to create user and member records
@@ -326,8 +326,8 @@ async function handleSpendBcc(supabase, walletAddress, data) {
         const { data: userData, error: userError } = await supabase
           .from('users')
           .select('wallet_address')
-          .ilike('wallet_address', walletAddress)
-          .single();
+          .eq('wallet_address', walletAddress)
+          .maybeSingle();
         
         if (userError || !userData) {
           // Create user record first
@@ -373,8 +373,8 @@ async function handleSpendBcc(supabase, walletAddress, data) {
         const { data: newBalanceData, error: newBalanceError } = await supabase
           .from('user_balances')
           .select('bcc_balance')
-          .ilike('wallet_address', walletAddress)
-          .single();
+          .eq('wallet_address', walletAddress)
+          .maybeSingle();
         
         if (newBalanceError || !newBalanceData) {
           throw new Error('Failed to create user balance record');
@@ -396,7 +396,7 @@ async function handleSpendBcc(supabase, walletAddress, data) {
           .select('id')
           .eq('id', itemId)
           .eq('is_active', true)
-          .single();
+          .maybeSingle();
         nftExists = !nftError && !!nftData;
       } else if (nftType === 'merchant') {
         const { data: nftData, error: nftError } = await supabase
@@ -404,7 +404,7 @@ async function handleSpendBcc(supabase, walletAddress, data) {
           .select('id, supply_available')
           .eq('id', itemId)
           .eq('is_active', true)
-          .single();
+          .maybeSingle();
         nftExists = !nftError && !!nftData;
         if (nftExists && nftData.supply_available !== null && nftData.supply_available <= 0) {
           throw new Error('NFT is sold out');
@@ -423,7 +423,7 @@ async function handleSpendBcc(supabase, walletAddress, data) {
           bcc_balance: newBalance,
           updated_at: new Date().toISOString()
         })
-        .ilike('wallet_address', walletAddress);
+        .eq('wallet_address', walletAddress);
       
       if (updateError) throw updateError;
       
@@ -433,7 +433,7 @@ async function handleSpendBcc(supabase, walletAddress, data) {
           .from('merchant_nfts')
           .select('supply_available')
           .eq('id', itemId)
-          .single();
+          .maybeSingle();
         
         if (currentNFT && currentNFT.supply_available !== null) {
           await supabase
