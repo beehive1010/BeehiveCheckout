@@ -232,23 +232,8 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         throw new Error(`Please switch to Arbitrum One network. Current: ${networkName}, Required: Arbitrum One`);
       }
 
-      // Step 4: Check ETH balance for gas
-      try {
-        const ethBalance = await (window as any).ethereum.request({
-          method: 'eth_getBalance',
-          params: [account.address, 'latest']
-        });
-        const balanceInETH = parseInt(ethBalance, 16) / 1e18;
-        
-        if (balanceInETH < 0.001) {
-          throw new Error(`Insufficient ETH for gas fees. Current balance: ${balanceInETH.toFixed(6)} ETH. Get test ETH from: https://sepolia-faucet.arbitrum.io/`);
-        }
-      } catch (balanceError: any) {
-        if (balanceError.message.includes('Insufficient ETH')) {
-          throw balanceError;
-        }
-        console.warn('⚠️ Could not check ETH balance:', balanceError);
-      }
+      // Step 4: Skip ETH balance check - gas is sponsored
+      console.log('⛽ Gas fees are sponsored - skipping ETH balance check');
 
       // Step 5: Setup contracts
       const usdcContract = getContract({
@@ -508,9 +493,9 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           description: 'You cancelled the transaction.',
           variant: "destructive",
         });
-      } else if (errorMessage.includes('Insufficient ETH')) {
+      } else if (false) { // ETH check removed - gas is sponsored
         toast({
-          title: 'Insufficient ETH',
+          title: 'Gas Sponsored',
           description: errorMessage,
           variant: "destructive",
         });

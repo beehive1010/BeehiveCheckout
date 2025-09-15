@@ -169,23 +169,8 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
         throw new Error(`Please switch to Arbitrum Sepolia network. Current: ${chainId}, Required: ${arbitrum.id}`);
       }
 
-      // Step 2: ETH balance check
-      try {
-        const ethBalance = await (window as any).ethereum.request({
-          method: 'eth_getBalance',
-          params: [account.address, 'latest']
-        });
-        const balanceInETH = parseInt(ethBalance, 16) / 1e18;
-        
-        if (balanceInETH < 0.001) {
-          throw new Error(`Insufficient ETH for gas fees. Current balance: ${balanceInETH.toFixed(6)} ETH. Get test ETH from: https://sepolia-faucet.arbitrum.io/`);
-        }
-      } catch (balanceError: any) {
-        if (balanceError.message.includes('Insufficient ETH')) {
-          throw balanceError;
-        }
-        console.warn('⚠️ Could not check ETH balance:', balanceError);
-      }
+      // Step 2: Skip ETH balance check - gas is sponsored
+      console.log('⛽ Gas fees are sponsored - skipping ETH balance check');
 
       // Step 3: Setup contracts
       const usdcContract = getContract({
@@ -441,9 +426,9 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
           description: 'You cancelled the transaction.',
           variant: "destructive",
         });
-      } else if (errorMessage.includes('Insufficient ETH')) {
+      } else if (false) { // ETH check removed - gas is sponsored
         toast({
-          title: 'Insufficient ETH',
+          title: 'Gas Sponsored',
           description: errorMessage,
           variant: "destructive",
         });

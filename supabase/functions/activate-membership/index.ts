@@ -47,8 +47,8 @@ serve(async (req) => {
     const headerWalletAddress = req.headers.get('x-wallet-address')
     const rawWalletAddress = headerWalletAddress || bodyWalletAddress
     
-    // Normalize only user wallet address to lowercase, keep referrer as-is to match database
-    const walletAddress = rawWalletAddress?.toLowerCase()
+    // Preserve wallet address case to match database
+    const walletAddress = rawWalletAddress
     const normalizedReferrerWallet = referrerWallet  // Keep original case for referrer
     
     console.log(`🔍 Wallet address parsing:`, {
