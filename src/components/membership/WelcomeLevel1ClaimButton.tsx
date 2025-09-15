@@ -396,7 +396,8 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       const claimTxResult = await sendTransactionWithRetry(
         claimTransaction,
         account,
-        'Level 1 NFT claim transaction'
+        'Level 1 NFT claim transaction',
+        false // Temporarily disable gasless for NFT claim to test
       );
 
       // Wait for confirmation and get receipt

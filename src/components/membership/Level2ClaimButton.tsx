@@ -338,7 +338,8 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
       const claimTxResult = await sendTransactionWithRetry(
         claimTransaction,
         account,
-        'Level 2 NFT claim transaction'
+        'Level 2 NFT claim transaction',
+        false // Temporarily disable gasless for NFT claim to test
       );
 
       // Wait for confirmation
