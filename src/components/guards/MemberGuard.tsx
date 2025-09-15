@@ -87,55 +87,29 @@ export function MemberGuard({
         return;
       }
 
-      // Fast database check for membership activation - avoid blockchain queries
+      // Use the same isActivatedMember check as Welcome page to avoid conflicts
       let isActivated = false;
       let membershipLevel = 0;
       
       try {
-        // Use the same fast member-info check as WelcomePage
-        const memberResponse = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/activate-membership?t=${Date.now()}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-wallet-address': walletAddress,
-          },
-          body: JSON.stringify({
-            action: 'get-member-info'
-          })
+        console.log('🛡️ MemberGuard: Checking membership status using authService.isActivatedMember');
+        const membershipResult = await authService.isActivatedMember(walletAddress);
+        console.log('🛡️ MemberGuard: Membership result:', membershipResult);
+        
+        // Use the same logic as Welcome page - check both isActivated and current_level
+        const hasLevel = membershipResult.memberData?.current_level >= 1;
+        isActivated = membershipResult.isActivated || hasLevel;
+        membershipLevel = membershipResult.memberData?.current_level || 0;
+        
+        console.log('🛡️ MemberGuard: Final status', { 
+          isActivated, 
+          membershipLevel,
+          apiActivated: membershipResult.isActivated,
+          hasLevel,
+          currentLevel: membershipResult.memberData?.current_level
         });
-
-        if (memberResponse.ok) {
-          const memberResult = await memberResponse.json();
-          console.log('🛡️ MemberGuard: Member check result:', {
-            success: memberResult.success,
-            hasMember: !!memberResult.member,
-            isActivated: memberResult.isActivated,
-            currentLevel: memberResult.currentLevel
-          });
-          
-          // Use the same logic as Dashboard - check the isActivated field with fallback
-          const apiActivated = memberResult.success && memberResult.isActivated;
-          const fallbackActivated = memberResult.success && memberResult.member?.current_level > 0;
-          
-          if (apiActivated || (!apiActivated && fallbackActivated)) {
-            isActivated = true;
-            membershipLevel = memberResult.currentLevel || memberResult.member?.current_level || 1;
-            console.log('🛡️ MemberGuard: User is activated member', { 
-              isActivated, 
-              membershipLevel,
-              viaAPI: apiActivated,
-              viaFallback: fallbackActivated && !apiActivated
-            });
-          } else {
-            console.log('🛡️ MemberGuard: User not activated', {
-              isActivated: memberResult.isActivated,
-              currentLevel: memberResult.currentLevel,
-              memberLevel: memberResult.member?.current_level
-            });
-          }
-        }
       } catch (error) {
-        console.warn('🛡️ MemberGuard: Fast member check failed:', error);
+        console.warn('🛡️ MemberGuard: Membership check failed:', error);
         // Fallback to non-activated state
         isActivated = false;
         membershipLevel = 0;
