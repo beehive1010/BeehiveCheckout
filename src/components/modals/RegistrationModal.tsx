@@ -8,7 +8,7 @@ import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Loader2, User, Users, Crown, Gift, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast.ts';
-import { supabase } from '@/lib/supabase.ts';
+import { createClient } from '@supabase/supabase-js';
 import { useI18n } from '../../contexts/I18nContext';
 
 interface RegistrationModalProps {
@@ -36,6 +36,12 @@ export default function RegistrationModal({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [referrerInfo, setReferrerInfo] = useState<any>(null);
   const [validatingReferrer, setValidatingReferrer] = useState(false);
+
+  // Create Supabase client with IPv4 database and correct ANON key from environment
+  const supabase = createClient(
+    import.meta.env.VITE_SUPABASE_URL,
+    import.meta.env.VITE_SUPABASE_ANON_KEY
+  );
 
   // 验证推荐人
   useEffect(() => {
@@ -69,11 +75,11 @@ export default function RegistrationModal({
     
     setValidatingReferrer(true);
     try {
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/auth`, {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.supabaseKey}`,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           'x-wallet-address': walletAddress,
         },
         body: JSON.stringify({
@@ -103,11 +109,11 @@ export default function RegistrationModal({
 
   const checkUserExists = async () => {
     try {
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/auth`, {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.supabaseKey}`,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           'x-wallet-address': walletAddress,
         },
         body: JSON.stringify({
