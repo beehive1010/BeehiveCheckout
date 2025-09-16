@@ -297,7 +297,7 @@ export const balanceV2Client = {
     try {
       const response = await apiRequest('POST', '/api/balance/global-stats', { 
         action: 'get-global-pool'
-      });
+      }, undefined);
       const result = await response.json();
       
       if (!result.success) {

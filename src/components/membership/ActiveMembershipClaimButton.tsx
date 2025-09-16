@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { inAppWallet } from "thirdweb/wallets";
 import { claimTo } from "thirdweb/extensions/erc1155";
+import { approve, allowance } from "thirdweb/extensions/erc20";
 import { ConnectButton, TransactionButton } from "thirdweb/react";
 import { arbitrum } from "thirdweb/chains";
 import { getContract } from "thirdweb";
@@ -9,6 +10,7 @@ import { client } from "../../lib/thirdwebClient";
 import { toast } from "react-hot-toast";
 import { useWallet } from "../../hooks/useWallet";
 import { supabase } from "../../lib/supabaseClient";
+import { readContract } from "thirdweb";
 
 // Contract addresses from environment
 const MEMBERSHIP_NFT_CONTRACT = import.meta.env.VITE_MEMBERSHIP_NFT_CONTRACT;

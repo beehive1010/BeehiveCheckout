@@ -439,7 +439,7 @@ export const matrixV2Client = {
     timestamp: string;
   }> {
     try {
-      const response = await apiRequest('POST', '/api/matrix/health', {});
+      const response = await apiRequest('POST', '/api/matrix/health', {}, undefined);
       const result = await response.json();
       
       if (!result.success) {

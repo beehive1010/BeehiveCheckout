@@ -69,7 +69,7 @@ export default function NotificationsPage() {
   const { data: statsData } = useQuery({
     queryKey: ['/api/notifications/stats', walletAddress],
     queryFn: async () => {
-      const response = await apiRequest('/api/notifications/stats');
+      const response = await apiRequest('GET', '/api/notifications/stats', undefined, walletAddress);
       return await response.json();
     },
     enabled: !!walletAddress,

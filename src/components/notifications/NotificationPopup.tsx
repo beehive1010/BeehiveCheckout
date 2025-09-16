@@ -63,11 +63,11 @@ export default function NotificationPopup({
   const { data: notificationsData } = useQuery({
     queryKey: ['/api/notifications', 'popup', walletAddress],
     queryFn: async () => {
-      const response = await apiRequest('/api/notifications?' + new URLSearchParams({
+      const response = await apiRequest('GET', '/api/notifications?' + new URLSearchParams({
         isRead: 'false',
         priority: 'urgent,high', // Filter for urgent and high priority
         limit: maxNotifications.toString(),
-      }));
+      }), undefined, walletAddress);
       return await response.json();
     },
     enabled: !!walletAddress && isVisible,

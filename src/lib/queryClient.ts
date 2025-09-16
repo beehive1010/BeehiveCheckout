@@ -120,7 +120,7 @@ export async function apiRequest(
     
     // Call Supabase Edge Function directly
     const response = await fetch(`${baseUrl}/${functionName}`, {
-      method: 'POST',
+      method: finalMethod === 'GET' ? 'POST' : finalMethod, // Most edge functions expect POST
       headers,
       body: JSON.stringify(requestData)
     });
@@ -173,10 +173,7 @@ export const getQueryFn: <T>(options: {
     
     try {
       // Use apiRequest to handle Supabase calls
-      const res = await apiRequest(url, { 
-        method: 'GET', 
-        walletAddress: walletAddress || undefined 
-      });
+      const res = await apiRequest('GET', url, undefined, walletAddress || undefined);
       return await res.json();
     } catch (error: any) {
       if (unauthorizedBehavior === "returnNull" && error.status === 401) {

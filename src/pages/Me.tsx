@@ -635,7 +635,7 @@ export default function Me() {
           <NFTLevelUpgrade 
             showFullPath={true}
             onUpgradeSuccess={() => {
-              refreshAll();
+              refreshAll(walletAddress!);
             }}
           />
         </TabsContent>
