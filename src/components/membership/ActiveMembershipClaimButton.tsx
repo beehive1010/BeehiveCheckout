@@ -341,7 +341,7 @@ export function ActiveMembershipClaimButton({
           ) : (
             <div className="flex items-center justify-center space-x-2">
               <span>🔓</span>
-              <span>Approve 130 USDT</span>
+              <span>Approve {DISPLAY_AMOUNT} USDT</span>
             </div>
           )}
         </TransactionButton>
@@ -384,7 +384,7 @@ export function ActiveMembershipClaimButton({
           ) : (
             <div className="flex items-center justify-center space-x-2">
               <span>🎫</span>
-              <span>Claim Level 1 NFT (130 USDT)</span>
+              <span>Claim Level 1 NFT ({DISPLAY_AMOUNT} USDT)</span>
             </div>
           )}
         </TransactionButton>
