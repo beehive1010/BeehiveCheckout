@@ -53,7 +53,7 @@ export function useWallet() {
             isActivated: false,
             isMember: false,
             membershipLevel: 0,
-            userFlow: 'registration' 
+            userFlow: 'registration' as const
           };
         }
 
@@ -77,7 +77,7 @@ export function useWallet() {
           isActivated,
           isMember: isActivated,
           membershipLevel,
-          userFlow: isActivated ? 'dashboard' : 'claim_nft',
+          userFlow: isActivated ? ('dashboard' as const) : ('claim_nft' as const),
           user: userData,
           memberData // Include member data for additional info
         };

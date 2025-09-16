@@ -70,11 +70,13 @@ export function ActiveMembershipClaimButton({
     
     setIsCheckingAllowance(true);
     try {
-      console.log('🔍 Checking USDT allowance...');
+      console.log('🔍 Checking USDT allowance for:', account.address);
+      console.log('🔍 USDT Contract:', USDT_CONTRACT);
+      console.log('🔍 NFT Contract:', MEMBERSHIP_NFT_CONTRACT);
       
       const currentAllowance = await readContract({
         contract: usdtContract,
-        method: allowance,
+        method: "allowance",
         params: [account.address, MEMBERSHIP_NFT_CONTRACT]
       });
       
@@ -92,6 +94,7 @@ export function ActiveMembershipClaimButton({
       
     } catch (error) {
       console.error('❌ Error checking USDT allowance:', error);
+      console.error('❌ Error details:', error.message || error);
       // Assume approval is needed on error
       setNeedsApproval(true);
     } finally {
@@ -287,6 +290,8 @@ export function ActiveMembershipClaimButton({
         <TransactionButton
           transaction={() => {
             console.log('🚀 Preparing USDT approval transaction...');
+            console.log('🚀 Approving for spender:', MEMBERSHIP_NFT_CONTRACT);
+            console.log('🚀 Amount to approve:', REQUIRED_AMOUNT);
             setIsApproving(true);
             
             return approve({
