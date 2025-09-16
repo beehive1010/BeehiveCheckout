@@ -58,6 +58,11 @@ export function ActiveMembershipClaimButton({
   const account = useActiveAccount();
   const { refreshUserData } = useWallet();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [needsApproval, setNeedsApproval] = useState(false);
+  const [isCheckingAllowance, setIsCheckingAllowance] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
+  
+  const REQUIRED_AMOUNT = "130000000"; // 130 USDT (6 decimals)
 
   // Function to call ThirdWeb webhook for membership activation
   const callThirdWebWebhook = async (transactionHash: string, walletAddress: string) => {
