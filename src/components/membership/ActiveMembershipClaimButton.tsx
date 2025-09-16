@@ -215,7 +215,18 @@ export function ActiveMembershipClaimButton({
 
   const handleClaimError = (error: Error) => {
     console.error('❌ NFT Claim failed:', error);
-    toast.error(`Claim failed: ${error.message}`);
+    console.error('❌ Error name:', error.name);
+    console.error('❌ Error message:', error.message);
+    console.error('❌ Error stack:', error.stack);
+    
+    let errorMessage = 'Claim failed';
+    if (error.message) {
+      errorMessage = `Claim failed: ${error.message}`;
+    } else if (error.name) {
+      errorMessage = `Claim failed: ${error.name}`;
+    }
+    
+    toast.error(errorMessage);
     
     if (onClaimError) {
       onClaimError(error);
@@ -326,6 +337,12 @@ export function ActiveMembershipClaimButton({
         <TransactionButton
           transaction={() => {
             console.log('🚀 Preparing Level 1 NFT claim transaction...');
+            console.log('🚀 NFT Contract:', MEMBERSHIP_NFT_CONTRACT);
+            console.log('🚀 To address:', account.address);
+            console.log('🚀 Token ID:', 1);
+            console.log('🚀 Quantity:', 1);
+            console.log('🚀 Currency:', USDT_CONTRACT);
+            console.log('🚀 Price per token:', REQUIRED_AMOUNT);
             setIsProcessing(true);
             
             return claimTo({
