@@ -88,7 +88,7 @@ export function useBalance() {
     refetch: refetchBalance
   } = useQuery({
     queryKey: ['/api/balance/user', walletAddress],
-    enabled: !!walletAddress && isConnected && userStatus?.isActivated,
+    enabled: !!walletAddress && isConnected && userStatus?.isActivated && userStatus?.isMember,
     queryFn: async (): Promise<UserBalanceData> => {
       // Temporary fix: Query database directly until balance function is deployed
       try {
@@ -164,11 +164,11 @@ export function useBalance() {
         tierPhase: 1,
         tierMultiplier: 1.0,
         tierName: 'Phase 1',
-        currentLevel: memberData.memberData?.current_level || 0,
-        isActivated: (memberData.memberData?.current_level || 0) >= 1,
-        levelsOwned: memberData.memberData?.current_level ? Array.from({length: memberData.memberData.current_level}, (_, i) => i + 1) : [],
-        nextUnlockLevel: (memberData.memberData?.current_level || 0) + 1,
-        nextUnlockAmount: getBccUnlockAmountForLevel((memberData.memberData?.current_level || 0) + 1),
+        currentLevel: memberData.memberData?.current_level || 1,
+        isActivated: true, // 如果执行到这里，说明用户已经通过了会员验证
+        levelsOwned: memberData.memberData?.current_level ? Array.from({length: memberData.memberData.current_level}, (_, i) => i + 1) : [1],
+        nextUnlockLevel: (memberData.memberData?.current_level || 1) + 1,
+        nextUnlockAmount: getBccUnlockAmountForLevel((memberData.memberData?.current_level || 1) + 1),
         pendingRewardClaims: 0
       };
     },
@@ -281,7 +281,7 @@ export function useBalance() {
     isLoading: isWithdrawalHistoryLoading
   } = useQuery({
     queryKey: ['/api/withdrawal-system', walletAddress],
-    enabled: !!walletAddress && isConnected && userStatus?.isActivated,
+    enabled: !!walletAddress && isConnected && userStatus?.isActivated && userStatus?.isMember,
     queryFn: async () => {
       try {
         const response = await apiRequest('GET', '/api/withdrawal-system', undefined, walletAddress!);
