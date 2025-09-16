@@ -64,6 +64,48 @@ export function ActiveMembershipClaimButton({
   
   const REQUIRED_AMOUNT = "130000000"; // 130 USDT (6 decimals)
 
+  // Function to check USDT allowance
+  const checkUSDTAllowance = async () => {
+    if (!account?.address) return;
+    
+    setIsCheckingAllowance(true);
+    try {
+      console.log('🔍 Checking USDT allowance...');
+      
+      const currentAllowance = await readContract({
+        contract: usdtContract,
+        method: allowance,
+        params: [account.address, MEMBERSHIP_NFT_CONTRACT]
+      });
+      
+      console.log('📊 Current USDT allowance:', currentAllowance.toString());
+      console.log('📊 Required amount:', REQUIRED_AMOUNT);
+      
+      const needsApprovalCheck = BigInt(currentAllowance.toString()) < BigInt(REQUIRED_AMOUNT);
+      setNeedsApproval(needsApprovalCheck);
+      
+      if (needsApprovalCheck) {
+        console.log('⚠️ Insufficient USDT allowance - approval needed');
+      } else {
+        console.log('✅ Sufficient USDT allowance');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error checking USDT allowance:', error);
+      // Assume approval is needed on error
+      setNeedsApproval(true);
+    } finally {
+      setIsCheckingAllowance(false);
+    }
+  };
+
+  // Check allowance when account changes
+  useEffect(() => {
+    if (account?.address) {
+      checkUSDTAllowance();
+    }
+  }, [account?.address]);
+
   // Function to call ThirdWeb webhook for membership activation
   const callThirdWebWebhook = async (transactionHash: string, walletAddress: string) => {
     try {
@@ -178,6 +220,21 @@ export function ActiveMembershipClaimButton({
     setIsProcessing(false);
   };
 
+  const handleApprovalSuccess = async (result: any) => {
+    console.log('✅ USDT Approval successful:', result);
+    toast.success('USDT approval confirmed!');
+    setIsApproving(false);
+    
+    // Re-check allowance after approval
+    await checkUSDTAllowance();
+  };
+
+  const handleApprovalError = (error: Error) => {
+    console.error('❌ USDT Approval failed:', error);
+    toast.error(`Approval failed: ${error.message}`);
+    setIsApproving(false);
+  };
+
   if (!account) {
     return (
       <div className={`space-y-4 ${className}`}>
@@ -205,44 +262,98 @@ export function ActiveMembershipClaimButton({
           <p>• Token ID: 1</p>
           <p>• Network: Arbitrum One</p>
           <p>• Gas fees sponsored ✨</p>
+          
+          {/* Status indicator */}
+          {isCheckingAllowance && (
+            <p className="text-blue-600 font-medium">🔍 Checking USDT allowance...</p>
+          )}
+          {!isCheckingAllowance && needsApproval && (
+            <p className="text-orange-600 font-medium">🔓 Step 1: Approve USDT spending</p>
+          )}
+          {!isCheckingAllowance && !needsApproval && (
+            <p className="text-green-600 font-medium">✅ Ready to claim NFT</p>
+          )}
         </div>
       </div>
 
-      <TransactionButton
-        transaction={() => {
-          console.log('🚀 Preparing Level 1 NFT claim transaction...');
-          setIsProcessing(true);
-          
-          return claimTo({
-            contract: nftContract,
-            to: account.address,
-            tokenId: 1n,
-            quantity: 1n,
-            currencyAddress: USDT_CONTRACT,
-            pricePerToken: "130000000", // 130 USDT (6 decimals)
-          });
-        }}
-        onTransactionSent={(result) => {
-          console.log('📡 Transaction sent:', result.transactionHash);
-          toast.loading('Processing NFT claim...', { id: 'claim-tx' });
-        }}
-        onTransactionConfirmed={handleClaimSuccess}
-        onError={handleClaimError}
-        disabled={disabled || isProcessing}
-        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-4 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 disabled:cursor-not-allowed"
-      >
-        {isProcessing ? (
-          <div className="flex items-center justify-center space-x-2">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-            <span>Processing Claim...</span>
-          </div>
-        ) : (
-          <div className="flex items-center justify-center space-x-2">
-            <span>🎫</span>
-            <span>Claim Level 1 NFT (130 USDT)</span>
-          </div>
-        )}
-      </TransactionButton>
+      {/* Show loading state while checking allowance */}
+      {isCheckingAllowance ? (
+        <div className="w-full bg-gray-200 text-gray-600 font-bold py-4 px-6 rounded-lg flex items-center justify-center space-x-2">
+          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600"></div>
+          <span>Checking USDT allowance...</span>
+        </div>
+      ) : needsApproval ? (
+        /* Show USDT approval button */
+        <TransactionButton
+          transaction={() => {
+            console.log('🚀 Preparing USDT approval transaction...');
+            setIsApproving(true);
+            
+            return approve({
+              contract: usdtContract,
+              spender: MEMBERSHIP_NFT_CONTRACT,
+              amount: REQUIRED_AMOUNT
+            });
+          }}
+          onTransactionSent={(result) => {
+            console.log('📡 Approval transaction sent:', result.transactionHash);
+            toast.loading('Processing USDT approval...', { id: 'approval-tx' });
+          }}
+          onTransactionConfirmed={handleApprovalSuccess}
+          onError={handleApprovalError}
+          disabled={disabled || isApproving}
+          className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-4 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 disabled:cursor-not-allowed"
+        >
+          {isApproving ? (
+            <div className="flex items-center justify-center space-x-2">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              <span>Approving USDT...</span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center space-x-2">
+              <span>🔓</span>
+              <span>Approve 130 USDT</span>
+            </div>
+          )}
+        </TransactionButton>
+      ) : (
+        /* Show NFT claim button */
+        <TransactionButton
+          transaction={() => {
+            console.log('🚀 Preparing Level 1 NFT claim transaction...');
+            setIsProcessing(true);
+            
+            return claimTo({
+              contract: nftContract,
+              to: account.address,
+              tokenId: 1n,
+              quantity: 1n,
+              currencyAddress: USDT_CONTRACT,
+              pricePerToken: REQUIRED_AMOUNT,
+            });
+          }}
+          onTransactionSent={(result) => {
+            console.log('📡 Transaction sent:', result.transactionHash);
+            toast.loading('Processing NFT claim...', { id: 'claim-tx' });
+          }}
+          onTransactionConfirmed={handleClaimSuccess}
+          onError={handleClaimError}
+          disabled={disabled || isProcessing}
+          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-4 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 disabled:cursor-not-allowed"
+        >
+          {isProcessing ? (
+            <div className="flex items-center justify-center space-x-2">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              <span>Processing Claim...</span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center space-x-2">
+              <span>🎫</span>
+              <span>Claim Level 1 NFT (130 USDT)</span>
+            </div>
+          )}
+        </TransactionButton>
+      )}
 
       <div className="text-xs text-gray-500 text-center space-y-1">
         <p>Network: Arbitrum One • Gas Sponsored</p>
