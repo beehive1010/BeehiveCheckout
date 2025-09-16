@@ -305,11 +305,11 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         console.warn('⚠️ Could not check NFT balance on blockchain:', balanceCheckError);
       }
 
-      // Step 7: Check and approve USDC
-      console.log('💰 Checking USDC balance and approval...');
+      // Step 7: Check and approve USDT
+      console.log('💰 Checking USDT balance and approval...');
       setCurrentStep(t('claim.checkingBalance'));
       
-      // Check USDC balance
+      // Check USDT balance
       try {
         const tokenBalance = await erc20BalanceOf({
           contract: usdcContract,
@@ -320,7 +320,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           throw new Error(`Insufficient USDC balance. You have ${(Number(tokenBalance) / 1e18).toFixed(2)} USDC but need ${LEVEL_1_PRICE_USDC} USDC for Level 1`);
         }
       } catch (balanceError: any) {
-        if (balanceError.message.includes('Insufficient USDC')) {
+        if (balanceError.message.includes('Insufficient USDT')) {
           throw balanceError;
         }
         console.warn('⚠️ Could not check USDT balance:', balanceError);
@@ -335,10 +335,10 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         spender: NFT_CONTRACT
       });
       
-      console.log(`💰 Current allowance: ${Number(currentAllowance) / 1e18} USDC, Required: ${LEVEL_1_PRICE_USDC} USDC`);
+      console.log(`💰 Current allowance: ${Number(currentAllowance) / 1e18} USDT, Required: ${LEVEL_1_PRICE_USDC} USDT`);
       
       if (currentAllowance < LEVEL_1_PRICE_WEI) {
-        console.log('💰 Requesting USDC approval...');
+        console.log('💰 Requesting USDT approval...');
         
         const approveTransaction = approve({
           contract: usdcContract,
@@ -370,10 +370,10 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           spender: NFT_CONTRACT
         });
         
-        console.log(`✅ New allowance after approval: ${Number(newAllowance) / 1e18} USDC`);
+        console.log(`✅ New allowance after approval: ${Number(newAllowance) / 1e18} USDT`);
         
         if (newAllowance < LEVEL_1_PRICE_WEI) {
-          throw new Error(`Approval failed. Current allowance: ${Number(newAllowance) / 1e18} USDC, Required: ${LEVEL_1_PRICE_USDC} USDC`);
+          throw new Error(`Approval failed. Current allowance: ${Number(newAllowance) / 1e18} USDT, Required: ${LEVEL_1_PRICE_USDC} USDT`);
         }
       } else {
         console.log('✅ Sufficient allowance already exists');
@@ -383,15 +383,87 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       console.log('🎁 Claiming Level 1 NFT...');
       setCurrentStep(t('claim.mintingNFT'));
       
-      // Use ThirdWeb's claimTo extension function
-      const claimTransaction = claimTo({
-        contract: nftContract,
-        to: account.address,
-        tokenId: BigInt(1),
-        quantity: BigInt(1),
+      // Debug: Log contract details
+      console.log('📋 Contract details:', {
+        nftContractAddress: NFT_CONTRACT,
+        paymentTokenAddress: PAYMENT_TOKEN_CONTRACT,
+        priceWei: LEVEL_1_PRICE_WEI.toString(),
+        priceUSDT: LEVEL_1_PRICE_USDC,
+        walletAddress: account.address
       });
       
-      console.log('✅ Using ThirdWeb claimTo function for NFT claim');
+      // Try multiple approaches for claiming NFT
+      let claimTransaction;
+      let claimMethod = 'unknown';
+      
+      // Method 1: Try ThirdWeb's claimTo with price parameter
+      try {
+        console.log('🔧 Trying ThirdWeb claimTo with price parameters...');
+        claimTransaction = claimTo({
+          contract: nftContract,
+          to: account.address,
+          tokenId: BigInt(1),
+          quantity: BigInt(1),
+          currency: PAYMENT_TOKEN_CONTRACT,
+          pricePerToken: LEVEL_1_PRICE_WEI.toString(),
+        });
+        claimMethod = 'claimTo with price';
+        console.log('✅ Successfully prepared claimTo transaction with price');
+      } catch (claimToError) {
+        console.log('❌ ClaimTo with price failed:', claimToError);
+        
+        // Method 2: Try simple claimTo without price
+        try {
+          console.log('🔧 Trying simple ThirdWeb claimTo...');
+          claimTransaction = claimTo({
+            contract: nftContract,
+            to: account.address,
+            tokenId: BigInt(1),
+            quantity: BigInt(1),
+          });
+          claimMethod = 'simple claimTo';
+          console.log('✅ Successfully prepared simple claimTo transaction');
+        } catch (simpleClaimError) {
+          console.log('❌ Simple claimTo failed:', simpleClaimError);
+          
+          // Method 3: Try manual contract call with mint function
+          try {
+            console.log('🔧 Trying manual mint contract call...');
+            claimTransaction = prepareContractCall({
+              contract: nftContract,
+              method: "function mint(address to, uint256 id, uint256 amount, bytes data) payable",
+              params: [
+                account.address,        // to
+                BigInt(1),             // id (Level 1)
+                BigInt(1),             // amount
+                "0x"                   // data (empty)
+              ]
+            });
+            claimMethod = 'manual mint';
+            console.log('✅ Successfully prepared manual mint transaction');
+          } catch (mintError) {
+            console.log('❌ Manual mint failed:', mintError);
+            
+            // Method 4: Try original claim method with payment
+            console.log('🔧 Trying original claim method with payment...');
+            claimTransaction = prepareContractCall({
+              contract: nftContract,
+              method: "function claim(address to, uint256 tokenId, uint256 quantity, address currency, uint256 pricePerToken) payable",
+              params: [
+                account.address,        // to
+                BigInt(1),             // tokenId (Level 1)
+                BigInt(1),             // quantity
+                PAYMENT_TOKEN_CONTRACT, // currency (USDT)
+                LEVEL_1_PRICE_WEI,     // pricePerToken
+              ]
+            });
+            claimMethod = 'original claim with payment';
+            console.log('✅ Successfully prepared original claim transaction with payment');
+          }
+        }
+      }
+      
+      console.log(`📤 About to send claim transaction using method: ${claimMethod}`);
 
       const claimTxResult = await sendTransactionWithRetry(
         claimTransaction,
