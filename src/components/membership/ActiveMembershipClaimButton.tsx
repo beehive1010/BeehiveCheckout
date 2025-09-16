@@ -245,7 +245,18 @@ export function ActiveMembershipClaimButton({
 
   const handleApprovalError = (error: Error) => {
     console.error('❌ USDT Approval failed:', error);
-    toast.error(`Approval failed: ${error.message}`);
+    console.error('❌ Approval error name:', error.name);
+    console.error('❌ Approval error message:', error.message);
+    console.error('❌ Approval error stack:', error.stack);
+    
+    let errorMessage = 'Approval failed';
+    if (error.message) {
+      errorMessage = `Approval failed: ${error.message}`;
+    } else if (error.name) {
+      errorMessage = `Approval failed: ${error.name}`;
+    }
+    
+    toast.error(errorMessage);
     setIsApproving(false);
   };
 
