@@ -74,7 +74,7 @@ export default function TestActiveButton() {
             <p className="text-sm text-blue-800">
               <strong>Network:</strong> Arbitrum One • 
               <strong>Contract:</strong> 0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8 • 
-              <strong>Payment:</strong> 130 USDT
+              <strong>Payment:</strong> 130 Custom USDT
             </p>
           </div>
         </div>

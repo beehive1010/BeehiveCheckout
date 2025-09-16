@@ -61,6 +61,8 @@ export function ActiveMembershipClaimButton({
   const [needsApproval, setNeedsApproval] = useState(false);
   const [isCheckingAllowance, setIsCheckingAllowance] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [isUserRegistered, setIsUserRegistered] = useState(false);
   
   // Check if we're using custom USDT (might have different decimals)
   const REQUIRED_AMOUNT = "130000000000000000000"; // 130 tokens (18 decimals - standard ERC20)
@@ -68,7 +70,16 @@ export function ActiveMembershipClaimButton({
 
   // Function to check USDT allowance
   const checkUSDTAllowance = async () => {
-    if (!account?.address) return;
+    if (!account?.address || !USDT_CONTRACT || !MEMBERSHIP_NFT_CONTRACT) {
+      console.warn('⚠️ Missing required data for allowance check:', {
+        address: account?.address,
+        usdtContract: USDT_CONTRACT,
+        nftContract: MEMBERSHIP_NFT_CONTRACT
+      });
+      setNeedsApproval(true);
+      setIsCheckingAllowance(false);
+      return;
+    }
     
     setIsCheckingAllowance(true);
     try {
@@ -76,23 +87,9 @@ export function ActiveMembershipClaimButton({
       console.log('🔍 USDT Contract:', USDT_CONTRACT);
       console.log('🔍 NFT Contract:', MEMBERSHIP_NFT_CONTRACT);
       
-      const currentAllowance = await readContract({
-        contract: usdtContract,
-        method: allowance,
-        params: [account.address, MEMBERSHIP_NFT_CONTRACT]
-      });
-      
-      console.log('📊 Current USDT allowance:', currentAllowance.toString());
-      console.log('📊 Required amount:', REQUIRED_AMOUNT);
-      
-      const needsApprovalCheck = BigInt(currentAllowance.toString()) < BigInt(REQUIRED_AMOUNT);
-      setNeedsApproval(needsApprovalCheck);
-      
-      if (needsApprovalCheck) {
-        console.log('⚠️ Insufficient USDT allowance - approval needed');
-      } else {
-        console.log('✅ Sufficient USDT allowance');
-      }
+      // Skip allowance check for now - just set to needs approval
+      console.log('⚠️ Skipping allowance check - setting to needs approval');
+      setNeedsApproval(true);
       
     } catch (error) {
       console.error('❌ Error checking USDT allowance:', error);
@@ -104,9 +101,80 @@ export function ActiveMembershipClaimButton({
     }
   };
 
-  // Check allowance when account changes
+  // Function to check if user is registered
+  const checkUserRegistration = async () => {
+    if (!account?.address) return;
+    
+    try {
+      console.log('🔍 Checking user registration status...');
+      const { data } = await supabase
+        .from('users')
+        .select('wallet_address, username')
+        .eq('wallet_address', account.address)
+        .single();
+      
+      if (data) {
+        console.log('✅ User is already registered:', data);
+        setIsUserRegistered(true);
+        return true;
+      } else {
+        console.log('⚠️ User not registered yet');
+        setIsUserRegistered(false);
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ Error checking user registration:', error);
+      setIsUserRegistered(false);
+      return false;
+    }
+  };
+
+  // Function to register new user
+  const registerUser = async () => {
+    if (!account?.address) return false;
+    
+    setIsRegistering(true);
+    try {
+      console.log('🚀 Registering new user...');
+      
+      // Get referrer from localStorage
+      const referrerWallet = localStorage.getItem('beehive-referrer') || '0x0000000000000000000000000000000000000001';
+      
+      const { data, error } = await supabase
+        .from('users')
+        .insert({
+          wallet_address: account.address,
+          username: `user_${account.address.slice(-6)}`,
+          referrer_wallet: referrerWallet,
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('❌ User registration failed:', error);
+        toast.error('User registration failed. Please try again.');
+        return false;
+      }
+      
+      console.log('✅ User registered successfully:', data);
+      toast.success('User registered successfully!');
+      setIsUserRegistered(true);
+      return true;
+      
+    } catch (error) {
+      console.error('❌ User registration error:', error);
+      toast.error('Registration failed. Please try again.');
+      return false;
+    } finally {
+      setIsRegistering(false);
+    }
+  };
+
+  // Check user registration and allowance when account changes
   useEffect(() => {
     if (account?.address) {
+      checkUserRegistration();
       checkUSDTAllowance();
     }
   }, [account?.address]);
@@ -238,11 +306,11 @@ export function ActiveMembershipClaimButton({
 
   const handleApprovalSuccess = async (result: any) => {
     console.log('✅ USDT Approval successful:', result);
-    toast.success('USDT approval confirmed!');
+    toast.success('USDT approval confirmed! You can now claim the NFT.');
     setIsApproving(false);
     
-    // Re-check allowance after approval
-    await checkUSDTAllowance();
+    // Set to not needing approval anymore
+    setNeedsApproval(false);
   };
 
   const handleApprovalError = (error: Error) => {
@@ -318,11 +386,17 @@ export function ActiveMembershipClaimButton({
             console.log('🚀 Amount to approve:', REQUIRED_AMOUNT);
             setIsApproving(true);
             
-            return approve({
-              contract: usdtContract,
-              spender: MEMBERSHIP_NFT_CONTRACT,
-              amount: REQUIRED_AMOUNT
-            });
+            try {
+              return approve({
+                contract: usdtContract,
+                spender: MEMBERSHIP_NFT_CONTRACT,
+                amount: REQUIRED_AMOUNT
+              });
+            } catch (error) {
+              console.error('❌ Error preparing approval transaction:', error);
+              setIsApproving(false);
+              throw error;
+            }
           }}
           onTransactionSent={(result) => {
             console.log('📡 Approval transaction sent:', result.transactionHash);
@@ -358,14 +432,20 @@ export function ActiveMembershipClaimButton({
             console.log('🚀 Price per token:', REQUIRED_AMOUNT);
             setIsProcessing(true);
             
-            return claimTo({
-              contract: nftContract,
-              to: account.address,
-              tokenId: 1n,
-              quantity: 1n,
-              currencyAddress: USDT_CONTRACT,
-              pricePerToken: REQUIRED_AMOUNT,
-            });
+            try {
+              return claimTo({
+                contract: nftContract,
+                to: account.address,
+                tokenId: 1n,
+                quantity: 1n,
+                currencyAddress: USDT_CONTRACT,
+                pricePerToken: REQUIRED_AMOUNT,
+              });
+            } catch (error) {
+              console.error('❌ Error preparing claim transaction:', error);
+              setIsProcessing(false);
+              throw error;
+            }
           }}
           onTransactionSent={(result) => {
             console.log('📡 Transaction sent:', result.transactionHash);
