@@ -62,7 +62,9 @@ export function ActiveMembershipClaimButton({
   const [isCheckingAllowance, setIsCheckingAllowance] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   
-  const REQUIRED_AMOUNT = "130000000"; // 130 USDT (6 decimals)
+  // Check if we're using custom USDT (might have different decimals)
+  const REQUIRED_AMOUNT = "130000000000000000000"; // 130 tokens (18 decimals - standard ERC20)
+  const DISPLAY_AMOUNT = "130"; // For display purposes
 
   // Function to check USDT allowance
   const checkUSDTAllowance = async () => {
@@ -283,7 +285,7 @@ export function ActiveMembershipClaimButton({
           🎫 Claim Level 1 Membership NFT
         </h3>
         <div className="space-y-2 text-sm text-gray-600">
-          <p>• Payment: 130 USDT</p>
+          <p>• Payment: {DISPLAY_AMOUNT} USDT</p>
           <p>• Token ID: 1</p>
           <p>• Network: Arbitrum One</p>
           <p>• Gas fees sponsored ✨</p>
