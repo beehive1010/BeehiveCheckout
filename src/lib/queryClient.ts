@@ -27,14 +27,19 @@ function getWalletAddress(): string | null {
 
 // Direct Supabase Edge Function caller
 export async function apiRequest(
-    url: string, p0: string, p1: { action: string; }, walletAddress: string, options?: {
+    method: string,
+    url: string,
+    data?: { action?: string } | any,
+    walletAddress?: string,
+    options?: {
         method?: string;
         data?: unknown;
         walletAddress?: string;
     }): Promise<Response> {
-  const { method = 'GET', data, walletAddress } = options || {};
+  const finalMethod = options?.method || method;
+  const finalData = options?.data || data;
   // Get wallet address from session storage
-  const addressToUse = walletAddress || getWalletAddress();
+  const addressToUse = options?.walletAddress || walletAddress || getWalletAddress();
   
   // Base Supabase URL
   const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
@@ -100,7 +105,7 @@ export async function apiRequest(
   try {
     const requestData = {
       action,
-      ...(data || {}),
+      ...(finalData || {}),
       walletAddress: addressToUse
     };
     
