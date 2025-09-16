@@ -33,6 +33,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
   
   // Fixed Level 1 pricing and info
   const LEVEL_1_PRICE_USDC = 130;
+  // Your custom USDT token uses 18 decimals (ERC20 standard)
   const LEVEL_1_PRICE_WEI = BigInt(LEVEL_1_PRICE_USDC) * BigInt('1000000000000000000'); // 130 * 10^18
   
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
@@ -317,7 +318,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         });
         
         if (tokenBalance < LEVEL_1_PRICE_WEI) {
-          throw new Error(`Insufficient USDC balance. You have ${(Number(tokenBalance) / 1e18).toFixed(2)} USDC but need ${LEVEL_1_PRICE_USDC} USDC for Level 1`);
+          throw new Error(`Insufficient USDT balance. You have ${(Number(tokenBalance) / 1e18).toFixed(2)} USDT but need ${LEVEL_1_PRICE_USDC} USDT for Level 1`);
         }
       } catch (balanceError: any) {
         if (balanceError.message.includes('Insufficient USDC')) {
@@ -335,7 +336,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         spender: NFT_CONTRACT
       });
       
-      console.log(`💰 Current allowance: ${Number(currentAllowance) / 1e18} USDC, Required: ${LEVEL_1_PRICE_USDC} USDC`);
+      console.log(`💰 Current allowance: ${Number(currentAllowance) / 1e6} USDC, Required: ${LEVEL_1_PRICE_USDC} USDC`);
       
       if (currentAllowance < LEVEL_1_PRICE_WEI) {
         console.log('💰 Requesting USDC approval...');
@@ -370,10 +371,10 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           spender: NFT_CONTRACT
         });
         
-        console.log(`✅ New allowance after approval: ${Number(newAllowance) / 1e18} USDC`);
+        console.log(`✅ New allowance after approval: ${Number(newAllowance) / 1e6} USDC`);
         
         if (newAllowance < LEVEL_1_PRICE_WEI) {
-          throw new Error(`Approval failed. Current allowance: ${Number(newAllowance) / 1e18} USDC, Required: ${LEVEL_1_PRICE_USDC} USDC`);
+          throw new Error(`Approval failed. Current allowance: ${Number(newAllowance) / 1e6} USDC, Required: ${LEVEL_1_PRICE_USDC} USDC`);
         }
       } else {
         console.log('✅ Sufficient allowance already exists');
@@ -383,12 +384,32 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       console.log('🎁 Claiming Level 1 NFT...');
       setCurrentStep(t('claim.mintingNFT'));
       
-      // Try the simplest claim function signature first
+      // Debug: Log contract details
+      console.log('📋 Contract details:', {
+        nftContractAddress: NFT_CONTRACT,
+        paymentTokenAddress: PAYMENT_TOKEN_CONTRACT,
+        priceWei: LEVEL_1_PRICE_WEI.toString(),
+        priceUSDC: LEVEL_1_PRICE_USDC,
+        walletAddress: account.address
+      });
+      
+      // Try multiple claim function signatures to find the right one
       let claimTransaction;
-      try {
-        claimTransaction = prepareContractCall({
-          contract: nftContract,
-          method: "function claim(address to, uint256 tokenId, uint256 quantity, address currency, uint256 pricePerToken, bytes32[] proof, uint256 maxQuantity) payable",
+      const claimMethods = [
+        // Method 1: Simple claim without proof
+        {
+          signature: "function claim(address to, uint256 tokenId, uint256 quantity, address currency, uint256 pricePerToken) payable",
+          params: [
+            account.address,        // to
+            BigInt(1),             // tokenId (Level 1)
+            BigInt(1),             // quantity
+            PAYMENT_TOKEN_CONTRACT, // currency (USDC)
+            LEVEL_1_PRICE_WEI,     // pricePerToken
+          ]
+        },
+        // Method 2: Original claim with proof
+        {
+          signature: "function claim(address to, uint256 tokenId, uint256 quantity, address currency, uint256 pricePerToken, bytes32[] proof, uint256 maxQuantity) payable",
           params: [
             account.address,        // to
             BigInt(1),             // tokenId (Level 1)
@@ -398,21 +419,54 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
             [],                    // proof (empty array)
             BigInt(1000)           // maxQuantity (large number)
           ]
-        });
-      } catch (claimError) {
-        console.log('First claim method failed, trying alternative:', claimError);
-        // Fallback to a simpler method signature
-        claimTransaction = prepareContractCall({
-          contract: nftContract,
-          method: "function mint(address to, uint256 id, uint256 amount, bytes data) payable",
+        },
+        // Method 3: Purchase function
+        {
+          signature: "function purchase(uint256 tokenId, uint256 quantity, address currency, uint256 pricePerToken) payable",
           params: [
-            account.address,        // to
-            BigInt(1),             // id (Level 1)
-            BigInt(1),             // amount
-            "0x"                   // data (empty)
+            BigInt(1),             // tokenId (Level 1)
+            BigInt(1),             // quantity
+            PAYMENT_TOKEN_CONTRACT, // currency (USDC)
+            LEVEL_1_PRICE_WEI,     // pricePerToken
           ]
-        });
+        },
+        // Method 4: Buy function
+        {
+          signature: "function buy(uint256 tokenId, uint256 amount) payable",
+          params: [
+            BigInt(1),             // tokenId (Level 1)
+            BigInt(1),             // amount
+          ]
+        }
+      ];
+      
+      let methodIndex = 0;
+      for (const method of claimMethods) {
+        try {
+          console.log(`🔧 Trying claim method ${methodIndex + 1}: ${method.signature.split('(')[0]}`);
+          claimTransaction = prepareContractCall({
+            contract: nftContract,
+            method: method.signature,
+            params: method.params
+          });
+          console.log(`✅ Successfully prepared transaction with method ${methodIndex + 1}`);
+          break;
+        } catch (prepareError) {
+          console.log(`❌ Method ${methodIndex + 1} failed:`, prepareError);
+          methodIndex++;
+          if (methodIndex === claimMethods.length) {
+            throw new Error('All claim methods failed to prepare transaction');
+          }
+        }
       }
+
+      // Add additional debugging before sending transaction
+      console.log('📤 About to send claim transaction...');
+      console.log('📋 Transaction details:', {
+        contractAddress: NFT_CONTRACT,
+        methodUsed: methodIndex + 1,
+        gasless: false
+      });
 
       const claimTxResult = await sendTransactionWithRetry(
         claimTransaction,
