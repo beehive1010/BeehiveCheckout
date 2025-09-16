@@ -30,7 +30,7 @@ export default function TestActiveButton() {
             🧪 Test Active Membership Claim Button
           </h1>
           <p className="text-gray-600">
-            Testing the new ThirdWeb-powered claim button with ARB One network
+            Testing the new ThirdWeb-powered claim button with ERC-20 approval and ARB One network
           </p>
         </div>
 
@@ -53,6 +53,7 @@ export default function TestActiveButton() {
               <h4 className="font-medium mb-2">ThirdWeb Integration:</h4>
               <ul className="space-y-1">
                 <li>• InApp Wallet connection</li>
+                <li>• ERC-20 USDT approval</li>
                 <li>• Gas sponsorship on ARB One</li>
                 <li>• ERC-1155 NFT claiming</li>
                 <li>• Transaction confirmation</li>
