@@ -359,14 +359,17 @@ export function ActiveMembershipClaimButton({
           <p>• Gas fees sponsored ✨</p>
           
           {/* Status indicator */}
-          {isCheckingAllowance && (
-            <p className="text-blue-600 font-medium">🔍 Checking USDT allowance...</p>
+          {!isUserRegistered && (
+            <p className="text-red-600 font-medium">👤 Step 1: Register user account</p>
           )}
-          {!isCheckingAllowance && needsApproval && (
-            <p className="text-orange-600 font-medium">🔓 Step 1: Approve USDT spending</p>
+          {isUserRegistered && isCheckingAllowance && (
+            <p className="text-blue-600 font-medium">🔍 Step 2: Checking USDT allowance...</p>
           )}
-          {!isCheckingAllowance && !needsApproval && (
-            <p className="text-green-600 font-medium">✅ Ready to claim NFT</p>
+          {isUserRegistered && !isCheckingAllowance && needsApproval && (
+            <p className="text-orange-600 font-medium">🔓 Step 2: Approve USDT spending</p>
+          )}
+          {isUserRegistered && !isCheckingAllowance && !needsApproval && (
+            <p className="text-green-600 font-medium">✅ Step 3: Ready to claim NFT</p>
           )}
         </div>
       </div>
