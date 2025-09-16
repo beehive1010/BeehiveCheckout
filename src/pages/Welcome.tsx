@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import ActiveMembershipClaimButton from '../components/membership/ActiveMembershipClaimButton';
+import { WelcomeLevel1ClaimButton } from '../components/membership/WelcomeLevel1ClaimButton';
 import { useLocation } from 'wouter';
 import { useActiveAccount } from 'thirdweb/react';
 import { referralService } from '../api/landing/referral.client';
@@ -119,27 +119,21 @@ export default function Welcome() {
     checkMembershipStatus();
   }, [account?.address, setLocation]);
 
-  const handleActivationComplete = (txHash: string) => {
-    console.log('✅ Level 1 NFT claim and activation completed - redirecting to dashboard', { txHash });
+  const handleActivationComplete = () => {
+    console.log('✅ Level 1 NFT claim and activation completed - redirecting to dashboard');
     
-    // ActiveMembershipClaimButton already handles:
-    // ✅ Database updates (membership + members tables)
-    // ✅ ThirdWeb webhook call
-    // ✅ User data refresh
-    // ✅ Matrix placement
-    // ✅ BCC balance initialization
-    // ✅ Layer rewards setup
+    // WelcomeLevel1ClaimButton already handles:
+    // ✅ User registration check/modal
+    // ✅ USDC approval and payment
+    // ✅ NFT minting on blockchain
+    // ✅ Database activation via multiple fallbacks
+    // ✅ Matrix placement and member setup
     
     // Add small delay to ensure all processes complete
     setTimeout(() => {
       console.log('🔄 Redirecting to dashboard after complete Level 1 activation...');
       setLocation('/dashboard');
     }, 2000); // 2 second delay for thorough processing
-  };
-
-  const handleActivationError = (error: Error) => {
-    console.error('❌ Welcome page: Activation failed:', error);
-    // Could show error modal or toast here
   };
 
   // Handle default referrer when no valid referrer is found
@@ -217,9 +211,9 @@ export default function Welcome() {
         </div>
         
         <div className="max-w-lg mx-auto">
-          <ActiveMembershipClaimButton
-            onClaimSuccess={handleActivationComplete}
-            onClaimError={handleActivationError}
+          <WelcomeLevel1ClaimButton
+            onSuccess={handleActivationComplete}
+            referrerWallet={referrerWallet}
             className="w-full"
           />
           

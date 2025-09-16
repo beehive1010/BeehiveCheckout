@@ -36,8 +36,8 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
   const LEVEL_1_PRICE_WEI = BigInt(LEVEL_1_PRICE_USDC) * BigInt('1000000000000000000'); // 130 * 10^18
   
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-  const PAYMENT_TOKEN_CONTRACT = "0x6f9487f2a1036e2D910aBB7509d0263a9581470B"; // ARB ONE Payment Token
-  const NFT_CONTRACT = "0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8"; // ARB ONE Membership Contract
+  const PAYMENT_TOKEN_CONTRACT = import.meta.env.VITE_USDT_TESTNET; // Use env variable for custom USDT
+  const NFT_CONTRACT = import.meta.env.VITE_MEMBERSHIP_NFT_CONTRACT; // Use env variable
   const THIRDWEB_CLIENT_ID = import.meta.env.VITE_THIRDWEB_CLIENT_ID;
 
   // Initialize Thirdweb client

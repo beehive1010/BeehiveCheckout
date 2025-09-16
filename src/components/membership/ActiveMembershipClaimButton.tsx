@@ -374,8 +374,27 @@ export function ActiveMembershipClaimButton({
         </div>
       </div>
 
-      {/* Show loading state while checking allowance */}
-      {isCheckingAllowance ? (
+      {/* Show different buttons based on user status */}
+      {!isUserRegistered ? (
+        /* Show user registration button */
+        <button
+          onClick={registerUser}
+          disabled={isRegistering}
+          className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-4 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 disabled:cursor-not-allowed"
+        >
+          {isRegistering ? (
+            <div className="flex items-center justify-center space-x-2">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              <span>Registering User...</span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center space-x-2">
+              <span>👤</span>
+              <span>Register User Account</span>
+            </div>
+          )}
+        </button>
+      ) : isCheckingAllowance ? (
         <div className="w-full bg-gray-200 text-gray-600 font-bold py-4 px-6 rounded-lg flex items-center justify-center space-x-2">
           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600"></div>
           <span>Checking USDT allowance...</span>
