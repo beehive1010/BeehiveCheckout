@@ -76,7 +76,7 @@ export function ActiveMembershipClaimButton({
       
       const currentAllowance = await readContract({
         contract: usdtContract,
-        method: "allowance",
+        method: allowance,
         params: [account.address, MEMBERSHIP_NFT_CONTRACT]
       });
       
