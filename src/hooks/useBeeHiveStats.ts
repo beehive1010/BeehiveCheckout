@@ -4,6 +4,11 @@ import { membershipLevels } from '../lib/config/membershipLevels';
 import { apiRequest } from '../lib/queryClient';
 import { supabase } from '../lib/supabaseClient';
 
+interface MemberData {
+  current_level: number;
+  activation_sequence: number;
+}
+
 interface UserReferralStats {
   directReferralCount: string | number;
   totalTeamCount: number;
@@ -53,20 +58,24 @@ export function useUserReferralStats() {
         .eq('matrix_root_wallet', walletAddress);
 
       // Get member's current level and info using exact matching
-      const { data: memberData } = await supabase
+      const { data: memberData, error: memberError } = await supabase
         .from('members')
         .select('current_level, activation_sequence')
         .eq('wallet_address', walletAddress)
-        .maybeSingle();
+        .maybeSingle() as { data: MemberData | null; error: any };
+
+      if (memberError) {
+        console.error('Error fetching member data:', memberError);
+      }
 
       // Get total earnings from layer rewards using exact matching
       const { data: rewardsData } = await supabase
         .from('layer_rewards')
-        .select('reward_amount')
-        .eq('reward_recipient_wallet', walletAddress)
-        .eq('status', 'claimed');
+        .select('amount_usdt')
+        .eq('recipient_wallet', walletAddress)
+        .eq('is_claimed', true);
 
-      const totalEarnings = rewardsData?.reduce((sum, reward) => sum + (reward.reward_amount || 0), 0) || 0;
+      const totalEarnings = rewardsData?.reduce((sum, reward) => sum + (reward.amount_usdt || 0), 0) || 0;
 
       // Get recent referrals with activation status using matrix_root_wallet
       const { data: recentReferralsData } = await supabase
@@ -84,7 +93,7 @@ export function useUserReferralStats() {
 
       const recentReferrals = recentReferralsData?.map(referral => ({
         walletAddress: referral.member_wallet,
-        joinedAt: referral.placed_at,
+        joinedAt: referral.placed_at || new Date().toISOString(),
         activated: (referral.members as any)?.current_level > 0
       })) || [];
 
@@ -131,11 +140,14 @@ export function useUserMatrixStats() {
       // Group by layer and count
       const layerStats = matrixData?.reduce((acc, placement) => {
         const layer = placement.matrix_layer;
-        if (!acc[layer]) {
-          acc[layer] = { members: 0, positions: [] };
+        const position = placement.matrix_position;
+        if (layer !== null && layer !== undefined && position !== null && position !== undefined) {
+          if (!acc[layer]) {
+            acc[layer] = { members: 0, positions: [] };
+          }
+          acc[layer].members++;
+          acc[layer].positions.push(position);
         }
-        acc[layer].members++;
-        acc[layer].positions.push(placement.matrix_position);
         return acc;
       }, {} as Record<number, { members: number; positions: string[] }>) || {};
 
@@ -166,7 +178,7 @@ export function useUserRewardStats() {
         .select('*')
         .eq('recipient_wallet', walletAddress);
 
-      const claimableRewards = rewardsData?.filter(r => r.reward_type === 'layer_reward' && !r.is_claimed) || [];
+      const claimableRewards = rewardsData?.filter(r => !r.is_claimed && r.reward_type === 'layer_reward') || [];
       const pendingRewards = rewardsData?.filter(r => r.reward_type === 'pending_layer_reward') || [];
       const claimedRewards = rewardsData?.filter(r => r.is_claimed) || [];
 

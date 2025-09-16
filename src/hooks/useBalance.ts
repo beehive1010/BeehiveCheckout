@@ -96,7 +96,12 @@ export function useBalance() {
           action: 'get-balance'
         }, walletAddress!);
         
-        const balanceResponse = await response.json();
+        const balanceResponse = await response.json() as {
+          success: boolean;
+          balance?: any;
+          recentActivity?: { pendingRewardCount?: number };
+          error?: string;
+        };
         
         if (balanceResponse.success) {
           const balance = balanceResponse.balance;
@@ -105,7 +110,12 @@ export function useBalance() {
           
           // Use API response if successful
           const memberResponse = await apiRequest('GET', '/api/auth/user', undefined, walletAddress!);
-          const memberData = await memberResponse.json();
+          const memberData = await memberResponse.json() as {
+            memberData?: {
+              current_level?: number;
+            };
+            error?: string;
+          };
           
           return {
             bccTransferable: bccTransferable,
@@ -120,11 +130,11 @@ export function useBalance() {
             tierPhase: balance.activation_tier || 1,
             tierMultiplier: balance.tier_multiplier || 1.0,
             tierName: `Phase ${balance.activation_tier || 1}`,
-            currentLevel: memberData.memberData?.current_level || 0,
-            isActivated: memberData.memberData?.current_level >= 1,
-            levelsOwned: memberData.memberData?.current_level ? Array.from({length: memberData.memberData.current_level}, (_, i) => i + 1) : [],
-            nextUnlockLevel: (memberData.memberData?.current_level || 0) + 1,
-            nextUnlockAmount: getBccUnlockAmountForLevel((memberData.memberData?.current_level || 0) + 1),
+            currentLevel: memberData.memberData?.current_level || 1,
+            isActivated: true, // 如果能访问到这里，说明已经 claim 了 Level 1 NFT
+            levelsOwned: memberData.memberData?.current_level ? Array.from({length: memberData.memberData.current_level}, (_, i) => i + 1) : [1],
+            nextUnlockLevel: (memberData.memberData?.current_level || 1) + 1,
+            nextUnlockAmount: getBccUnlockAmountForLevel((memberData.memberData?.current_level || 1) + 1),
             pendingRewardClaims: balanceResponse.recentActivity?.pendingRewardCount || 0
           };
         }
@@ -134,7 +144,12 @@ export function useBalance() {
       
       // Fallback: Return default balance for new members
       const memberResponse = await apiRequest('GET', '/api/auth/user', undefined, walletAddress!);
-      const memberData = await memberResponse.json();
+      const memberData = await memberResponse.json() as {
+        memberData?: {
+          current_level?: number;
+        };
+        error?: string;
+      };
       
       return {
         bccTransferable: 600, // Default available balance for new members
@@ -150,7 +165,7 @@ export function useBalance() {
         tierMultiplier: 1.0,
         tierName: 'Phase 1',
         currentLevel: memberData.memberData?.current_level || 0,
-        isActivated: memberData.memberData?.current_level >= 1,
+        isActivated: (memberData.memberData?.current_level || 0) >= 1,
         levelsOwned: memberData.memberData?.current_level ? Array.from({length: memberData.memberData.current_level}, (_, i) => i + 1) : [],
         nextUnlockLevel: (memberData.memberData?.current_level || 0) + 1,
         nextUnlockAmount: getBccUnlockAmountForLevel((memberData.memberData?.current_level || 0) + 1),
@@ -281,9 +296,12 @@ export function useBalance() {
 
   // Calculate current staking tier based on global activations
   const getCurrentStakingTier = (): typeof BCC_STAKING_TIERS[keyof typeof BCC_STAKING_TIERS] => {
-    if (!balanceData?.globalPool) return BCC_STAKING_TIERS.PHASE_1;
+    if (!balanceData || !('globalPool' in balanceData) || !balanceData.globalPool) {
+      return BCC_STAKING_TIERS.PHASE_1;
+    }
     
-    const { totalMembersActivated } = balanceData.globalPool;
+    const globalPool = balanceData.globalPool as { totalMembersActivated: number };
+    const { totalMembersActivated } = globalPool;
     
     if (totalMembersActivated <= 9999) return BCC_STAKING_TIERS.PHASE_1;
     if (totalMembersActivated <= 19998) return BCC_STAKING_TIERS.PHASE_2; // 9999 + 9999
@@ -358,7 +376,8 @@ export function useBalance() {
   };
 
   // Format USDT amount (cents to dollars)
-  const formatUsdtAmount = (cents: number): string => {
+  const formatUsdtAmount = (cents: number | null | undefined): string => {
+    if (cents === null || cents === undefined) return '0.00';
     return (cents / 100).toFixed(2);
   };
 

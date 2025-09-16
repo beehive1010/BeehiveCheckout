@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { useI18n } from '../contexts/I18nContext';
 import { useLocation } from 'wouter';
-import { useActiveAccount } from 'thirdweb/react';
+import { useActiveAccount, TransactionWidget } from 'thirdweb/react';
+import { createThirdwebClient, prepareContractCall, getContract } from 'thirdweb';
+import { arbitrum } from 'thirdweb/chains';
+import { toUnits } from 'thirdweb/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { ArrowLeft, Coins, CreditCard, ShoppingBag, GraduationCap, Megaphone, Package } from 'lucide-react';
 import BccPurchaseInterface from '../components/BccPurchaseInterface';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '../lib/queryClient';
 
 interface AvailableItem {
@@ -21,13 +24,26 @@ interface AvailableItem {
   category: string;
   isActive: boolean;
   itemType: 'merchant_nft' | 'advertisement_nft' | 'course';
+  contractAddress?: string;
+  tokenId?: string;
 }
+
+// Thirdweb client configuration
+const client = createThirdwebClient({
+  clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID || "YOUR_CLIENT_ID",
+});
+
+// USDC token address on Arbitrum
+const USDC_TOKEN_ADDRESS = "0xA0b86a33E6417c4c80C6fD23D4c3bd8F8a5cDECB";
 
 export default function TokenPurchase() {
   const { t } = useI18n();
   const [, setLocation] = useLocation();
   const account = useActiveAccount();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('purchase');
+  const [selectedItem, setSelectedItem] = useState<AvailableItem | null>(null);
+  const [showPurchaseWidget, setShowPurchaseWidget] = useState(false);
 
   // Fetch user's BCC balance using Supabase API
   const { data: balance, isLoading: balanceLoading } = useQuery({
@@ -64,6 +80,77 @@ export default function TokenPurchase() {
 
   const handleBackToDashboard = () => {
     setLocation('/dashboard');
+  };
+
+  const handlePurchaseItem = (item: AvailableItem) => {
+    setSelectedItem(item);
+    setShowPurchaseWidget(true);
+  };
+
+  const createPurchaseTransaction = (item: AvailableItem) => {
+    if (!item.contractAddress) {
+      console.error('No contract address for item:', item.id);
+      return null;
+    }
+
+    const contract = getContract({
+      client,
+      address: item.contractAddress,
+      chain: arbitrum,
+    });
+
+    // Create the purchase transaction based on item type
+    if (item.itemType === 'merchant_nft' || item.itemType === 'advertisement_nft') {
+      return prepareContractCall({
+        contract,
+        method: "function paidMint(address to, uint256 tokenId, uint256 amount)",
+        args: [account?.address!, BigInt(item.tokenId || "1"), BigInt(1)],
+        erc20Value: {
+          token: USDC_TOKEN_ADDRESS,
+          amount: toUnits(item.priceUSDT.toString(), 6), // USDC has 6 decimals
+        },
+      });
+    } else if (item.itemType === 'course') {
+      // For courses, might be a different contract method
+      return prepareContractCall({
+        contract,
+        method: "function purchaseCourse(address student, uint256 courseId)",
+        args: [account?.address!, BigInt(item.id)],
+        erc20Value: {
+          token: USDC_TOKEN_ADDRESS,
+          amount: toUnits(item.priceUSDT.toString(), 6),
+        },
+      });
+    }
+
+    return null;
+  };
+
+  const handlePurchaseSuccess = async (item: AvailableItem) => {
+    try {
+      // Call backend to record the purchase
+      await apiRequest('POST', '/api/bcc/record-purchase', {
+        itemId: item.id,
+        itemType: item.itemType,
+        priceUSDT: item.priceUSDT,
+        priceBCC: item.priceBCC,
+        walletAddress: account?.address,
+      });
+      
+      setShowPurchaseWidget(false);
+      setSelectedItem(null);
+      
+      // Refresh balance and items
+      queryClient.invalidateQueries({ queryKey: ['/api/bcc/spending-balance'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/bcc/available-items'] });
+      
+      // Show success message or redirect
+      alert('Purchase successful!');
+      
+    } catch (error) {
+      console.error('Failed to record purchase:', error);
+      alert('Purchase completed but failed to record. Please contact support.');
+    }
   };
 
   const renderItemGrid = (items: AvailableItem[], title: string, icon: React.ReactNode, emptyMessage: string) => (
@@ -104,9 +191,10 @@ export default function TokenPurchase() {
                 <Button 
                   className="w-full bg-honey hover:bg-honey/90 text-black"
                   disabled={!balance || balance.balance.totalSpendable < item.priceBCC}
+                  onClick={() => handlePurchaseItem(item)}
                 >
                   <ShoppingBag className="mr-2 h-4 w-4" />
-                  {balance && balance.balance.totalSpendable >= item.priceBCC ? 'Purchase with BCC' : 'Insufficient BCC'}
+                  {balance && balance.balance.totalSpendable >= item.priceBCC ? 'Purchase with USDC' : 'Insufficient BCC'}
                 </Button>
               </CardContent>
             </Card>
@@ -276,6 +364,66 @@ export default function TokenPurchase() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Purchase Transaction Widget Modal */}
+      {showPurchaseWidget && selectedItem && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-background border border-border rounded-xl p-6 max-w-md w-full space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Purchase {selectedItem.title}</h3>
+              <Button 
+                variant="ghost" 
+                onClick={() => setShowPurchaseWidget(false)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                ✕
+              </Button>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span>Item:</span>
+                <span className="font-medium">{selectedItem.title}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Price:</span>
+                <span className="font-medium">${selectedItem.priceUSDT} USDC</span>
+              </div>
+              <div className="flex justify-between">
+                <span>BCC Value:</span>
+                <span className="font-medium">{selectedItem.priceBCC} BCC</span>
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              {selectedItem.contractAddress ? (
+                <TransactionWidget
+                  client={client}
+                  chain={arbitrum}
+                  transaction={createPurchaseTransaction(selectedItem)}
+                  onSuccess={() => handlePurchaseSuccess(selectedItem)}
+                  onError={(error) => {
+                    console.error('Purchase failed:', error);
+                    setShowPurchaseWidget(false);
+                  }}
+                />
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-muted-foreground mb-4">
+                    Contract address not configured for this item
+                  </p>
+                  <Button 
+                    onClick={() => setShowPurchaseWidget(false)}
+                    variant="outline"
+                  >
+                    Close
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

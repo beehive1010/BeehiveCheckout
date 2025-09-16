@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { WelcomeLevel1ClaimButton } from '../components/membership';
+import ActiveMembershipClaimButton from '../components/membership/ActiveMembershipClaimButton';
 import { useLocation } from 'wouter';
 import { useActiveAccount } from 'thirdweb/react';
 import { referralService } from '../api/landing/referral.client';
@@ -119,14 +119,27 @@ export default function Welcome() {
     checkMembershipStatus();
   }, [account?.address, setLocation]);
 
-  const handleActivationComplete = () => {
-    console.log('✅ Level 1 NFT claim and activation completed - redirecting to dashboard');
+  const handleActivationComplete = (txHash: string) => {
+    console.log('✅ Level 1 NFT claim and activation completed - redirecting to dashboard', { txHash });
     
-    // Add small delay to ensure database updates are processed
+    // ActiveMembershipClaimButton already handles:
+    // ✅ Database updates (membership + members tables)
+    // ✅ ThirdWeb webhook call
+    // ✅ User data refresh
+    // ✅ Matrix placement
+    // ✅ BCC balance initialization
+    // ✅ Layer rewards setup
+    
+    // Add small delay to ensure all processes complete
     setTimeout(() => {
-      console.log('🔄 Redirecting to dashboard after Level 1 activation...');
+      console.log('🔄 Redirecting to dashboard after complete Level 1 activation...');
       setLocation('/dashboard');
-    }, 1500); // 1.5 second delay
+    }, 2000); // 2 second delay for thorough processing
+  };
+
+  const handleActivationError = (error: Error) => {
+    console.error('❌ Welcome page: Activation failed:', error);
+    // Could show error modal or toast here
   };
 
   // Handle default referrer when no valid referrer is found
@@ -203,10 +216,27 @@ export default function Welcome() {
           </Card>
         </div>
         
-        <WelcomeLevel1ClaimButton 
-          onSuccess={handleActivationComplete}
-          referrerWallet={referrerWallet}
-        />
+        <div className="max-w-lg mx-auto">
+          <ActiveMembershipClaimButton
+            onClaimSuccess={handleActivationComplete}
+            onClaimError={handleActivationError}
+            className="w-full"
+          />
+          
+          {/* Referrer information for the claim */}
+          {referrerWallet && (
+            <div className="mt-4 p-3 bg-honey/5 border border-honey/20 rounded-lg">
+              <div className="text-center text-sm text-muted-foreground">
+                <span className="font-medium text-honey">Matrix Placement:</span> You will be placed under{' '}
+                {referrerInfo?.username ? (
+                  <span className="font-medium">{referrerInfo.username}</span>
+                ) : (
+                  <span className="font-mono text-xs">{referrerWallet.slice(0, 8)}...{referrerWallet.slice(-6)}</span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
         
         <div className="mt-8 text-center text-sm text-muted-foreground space-y-2">
           <p className="mb-2">{t('welcome.instructions.step1')}</p>

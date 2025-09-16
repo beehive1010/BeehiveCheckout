@@ -46,11 +46,11 @@ serve(async (req) => {
     const { transactionHash, level = 1, action, referrerWallet, walletAddress: bodyWalletAddress, ...data } = requestBody
     const headerWalletAddress = req.headers.get('x-wallet-address')
     const rawWalletAddress = headerWalletAddress || bodyWalletAddress
-    
+
     // Preserve wallet address case to match database
     const walletAddress = rawWalletAddress
     const normalizedReferrerWallet = referrerWallet  // Keep original case for referrer
-    
+
     console.log(`🔍 Wallet address parsing:`, {
       headerWallet: headerWalletAddress,
       bodyWallet: bodyWalletAddress,
@@ -139,7 +139,7 @@ serve(async (req) => {
     // Handle member info query action
     if (action === 'get-member-info') {
       console.log(`🔍 Getting member info for: ${walletAddress}`);
-      
+
       // First check if user is registered in users table
       const { data: userData, error: userError } = await supabase
         .from('users')
@@ -474,7 +474,7 @@ async function verifyNFTClaimTransaction(transactionHash: string, walletAddress:
         const operator = log.topics[1];
         const fromAddress = log.topics[2];
         const toAddress = log.topics[3];
-        
+
         // For ERC-1155, token ID and amount are in data field
         const data = log.data;
         const tokenId = parseInt(data.slice(2, 66), 16); // First 32 bytes
@@ -628,7 +628,6 @@ async function checkExistingNFTAndSync(supabase, walletAddress: string, level: n
         .maybeSingle();
 
       const { data: referralRecord } = await supabase
-        .from('referrals')
         .select('id')
         .eq('member_wallet', walletAddress)
         .maybeSingle();

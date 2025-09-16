@@ -27,13 +27,11 @@ function getWalletAddress(): string | null {
 
 // Direct Supabase Edge Function caller
 export async function apiRequest(
-  url: string,
-  options?: {
-    method?: string;
-    data?: unknown;
-    walletAddress?: string;
-  }
-): Promise<Response> {
+    url: string, p0: string, p1: { action: string; }, walletAddress: string, options?: {
+        method?: string;
+        data?: unknown;
+        walletAddress?: string;
+    }): Promise<Response> {
   const { method = 'GET', data, walletAddress } = options || {};
   // Get wallet address from session storage
   const addressToUse = walletAddress || getWalletAddress();

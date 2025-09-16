@@ -27,7 +27,7 @@ export function useUnreadNotificationCount() {
     queryKey: ['/api/notifications/unread-count', walletAddress],
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
-      const response = await apiRequest('POST', '/api/notifications/unread-count', { 
+      const response = await apiRequest('POST', '/api/notification/unread-count', {
         action: 'get-unread-count' 
       }, walletAddress);
       const result = await response.json();

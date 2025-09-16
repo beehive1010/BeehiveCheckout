@@ -1,22 +1,48 @@
-import React from 'react';
 import { useWeb3 } from '../contexts/Web3Context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { authService, balanceService, callEdgeFunction } from '../lib/supabaseClient';
 
+interface UserStatus {
+  isRegistered: boolean;
+  hasNFT: boolean;
+  isActivated: boolean;
+  isMember: boolean;
+  membershipLevel: number;
+  userFlow: 'registration' | 'claim_nft' | 'dashboard';
+  user?: any;
+  memberData?: {
+    current_level?: number;
+  };
+}
+
+interface UserBalances {
+  data?: {
+    bcc_balance?: number;
+    bcc_total_unlocked?: number;
+    bcc_locked?: number;
+    total_earned?: number;
+    available_balance?: number;
+    total_withdrawn?: number;
+  };
+  totalUsdtEarned?: number;
+  availableUsdtRewards?: number;
+  totalUsdtWithdrawn?: number;
+}
+
 export function useWallet() {
-  const { isConnected, walletAddress, isSupabaseAuthenticated } = useWeb3();
+  const { isConnected, walletAddress} = useWeb3();
   const queryClient = useQueryClient();
 
   // Remove old logging - now handled by Web3Context authentication
 
   // Enhanced user status check using new Supabase client - only when wallet is connected
-  const userQuery = useQuery({
+  const userQuery = useQuery<UserStatus>({
     queryKey: ['user-status', walletAddress],
     enabled: !!walletAddress && isConnected,
-    queryFn: async () => {
+    queryFn: async (): Promise<UserStatus> => {
       console.log('🔍 Checking user status (Direct Supabase):', walletAddress);
       try {
-        // Check if user exists
+        // 保持原始大小写格式进行查询，但使用case-insensitive比较
         const { exists } = await authService.userExists(walletAddress!);
         
         if (!exists) {
@@ -32,9 +58,10 @@ export function useWallet() {
         }
 
         // Check if user is an activated member and get membership info
+        // 确保authService使用case-insensitive查询
         const { isActivated, memberData } = await authService.isActivatedMember(walletAddress!);
         
-        // Get user data
+        // Get user data with original case format
         const { data: userData } = await authService.getUser(walletAddress!);
         
         // Get the correct membership level from members table
@@ -120,10 +147,10 @@ export function useWallet() {
   });
 
   // Get user balances using new Supabase services - only when user is registered
-  const { data: userBalances, isLoading: isBalancesLoading } = useQuery({
+  const { data: userBalances, isLoading: isBalancesLoading } = useQuery<UserBalances>({
     queryKey: ['user-balances', walletAddress],
     enabled: !!walletAddress && isConnected && userStatus?.isRegistered,
-    queryFn: async () => {
+    queryFn: async (): Promise<UserBalances> => {
       const balances = await balanceService.getUserBalance(walletAddress!);
       return balances;
     },
@@ -152,10 +179,10 @@ export function useWallet() {
     totalWithdrawn: userBalances?.data?.total_withdrawn || userBalances?.totalUsdtWithdrawn || 0,
   };
   const referralNode = null; // Would be fetched separately
-  const { data: userActivity, isLoading: isActivityLoading } = useQuery({
+  const { data: userActivity, isLoading: isActivityLoading } = useQuery<{ activity: any[] }>({
     queryKey: ['user-activity', walletAddress],
     enabled: !!walletAddress && isConnected && isRegistered,
-    queryFn: async () => {
+    queryFn: async (): Promise<{ activity: any[] }> => {
       // For now, return empty activity until we implement activity tracking
       return { activity: [] };
     },
