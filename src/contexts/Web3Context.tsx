@@ -488,12 +488,14 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Add displayName for Fast Refresh compatibility
 Web3Provider.displayName = 'Web3Provider';
 
-export function useWeb3() {
+// Export hook with Fast Refresh compatibility
+export const useWeb3 = () => {
   const context = useContext(Web3Context);
   if (context === undefined) {
     throw new Error('useWeb3 must be used within a Web3Provider');
   }
   return context;
-}
+};
