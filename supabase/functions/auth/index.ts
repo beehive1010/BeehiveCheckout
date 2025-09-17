@@ -229,7 +229,7 @@ async function getUser(supabase, walletAddress) {
   };
 }
 
-// Validate referrer function - simplified using unified status
+// Validate referrer function - using direct database queries
 async function validateReferrer(supabase, referrerWallet) {
   console.log(`🔍 Validating referrer: ${referrerWallet}`);
   
@@ -241,45 +241,52 @@ async function validateReferrer(supabase, referrerWallet) {
     };
   }
   
-  // Use unified member status function
-  const { data: referrerStatus, error: statusError } = await supabase.rpc('get_member_status', {
-    p_wallet_address: referrerWallet
-  });
+  // Direct database query for user data
+  const { data: userData, error: userError } = await supabase
+    .from('users')
+    .select('wallet_address, username, email, created_at')
+    .ilike('wallet_address', referrerWallet)
+    .single();
 
-  if (statusError) {
-    console.log(`❌ Error checking referrer: ${statusError.message}`);
-    return {
-      success: false,
-      isValid: false,
-      error: 'Failed to validate referrer'
-    };
-  }
-  
-  if (!referrerStatus.is_registered) {
-    console.log(`❌ Referrer not registered: ${referrerWallet}`);
+  if (userError || !userData) {
+    console.log(`❌ Referrer not found: ${referrerWallet}`);
     return {
       success: false,
       isValid: false,
       error: 'Referrer wallet not found'
     };
   }
+
+  // Get member status - use .maybeSingle() since member record may not exist
+  const { data: memberData, error: memberError } = await supabase
+    .from('members')
+    .select('is_activated, current_level, levels_owned, activation_sequence')
+    .ilike('wallet_address', referrerWallet)
+    .maybeSingle();
+
+  // Ignore "not found" errors as member record may not exist yet
+  if (memberError && memberError.code !== 'PGRST116') {
+    console.error('Member data query error:', memberError);
+  }
+
+  const isActivated = memberData?.is_activated === true;
+  const membershipLevel = memberData?.current_level || 0;
   
-  console.log(`✅ Referrer validation: ${referrerWallet}, registered: true, activated: ${referrerStatus.is_activated}`);
+  console.log(`✅ Referrer validation: ${referrerWallet}, registered: true, activated: ${isActivated}`);
   
   // Get referrer's referral statistics (only if they are an activated member)
   let referralStats = { direct_referrals_count: 0, matrix_members_count: 0 };
   
-  if (referrerStatus.is_activated) {
+  if (isActivated) {
     const { data: directReferrals } = await supabase
       .from('referrals')
       .select('member_wallet')
-      .eq('referrer_wallet', referrerWallet)
-      .eq('is_direct_referral', true);
+      .eq('referrer_wallet', referrerWallet);
 
     const { data: matrixMembers } = await supabase
       .from('referrals')
       .select('member_wallet')
-      .eq('matrix_root_wallet', referrerWallet);
+      .eq('matrix_root', referrerWallet);
     
     referralStats = {
       direct_referrals_count: directReferrals?.length || 0,
@@ -287,20 +294,20 @@ async function validateReferrer(supabase, referrerWallet) {
     };
   }
   
-  console.log(`✅ Referrer validation passed: ${referrerWallet}, level: ${referrerStatus.current_level}, direct referrals: ${referralStats.direct_referrals_count}`);
+  console.log(`✅ Referrer validation passed: ${referrerWallet}, level: ${membershipLevel}, direct referrals: ${referralStats.direct_referrals_count}`);
   
   return {
     success: true,
     isValid: true,
     referrer: {
-      wallet_address: referrerStatus.wallet_address,
-      username: referrerStatus.user_info?.username,
-      current_level: referrerStatus.current_level,
-      activation_sequence: referrerStatus.activation_sequence,
-      is_activated_member: referrerStatus.is_activated,
+      wallet_address: userData.wallet_address,
+      username: userData.username,
+      current_level: membershipLevel,
+      activation_sequence: memberData?.activation_sequence,
+      is_activated_member: isActivated,
       ...referralStats
     },
-    message: referrerStatus.is_activated 
+    message: isActivated 
       ? 'Referrer is a valid activated member'
       : 'Referrer is a valid registered user (not activated yet)'
   };
