@@ -44,7 +44,16 @@ export async function callEdgeFunction(
 
     return await response.json();
   } catch (error) {
-    console.error(`Edge Function [${functionName}] Error:`, error);
+    // Enhanced error logging for debugging
+    if (error instanceof Error) {
+      console.error(`Edge Function [${functionName}] Error:`, {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      });
+    } else {
+      console.error(`Edge Function [${functionName}] Error:`, error);
+    }
     throw error;
   }
 }

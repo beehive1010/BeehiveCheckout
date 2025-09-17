@@ -300,10 +300,21 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    console.error('Membership activation error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
+    console.error('Membership activation error:', {
+      message: errorMessage,
+      stack: errorStack,
+      walletAddress,
+      action,
+      error
+    });
+    
     return new Response(JSON.stringify({
       success: false,
-      error: (error as Error).message
+      error: errorMessage,
+      debug: { walletAddress, action }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
