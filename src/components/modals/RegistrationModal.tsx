@@ -8,7 +8,7 @@ import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Loader2, User, Users, Crown, Gift, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast.ts';
-import { createClient } from '@supabase/supabase-js';
+import { authService } from '../../lib/supabase-unified';
 import { useI18n } from '../../contexts/I18nContext';
 
 interface RegistrationModalProps {
@@ -37,11 +37,7 @@ export default function RegistrationModal({
   const [referrerInfo, setReferrerInfo] = useState<any>(null);
   const [validatingReferrer, setValidatingReferrer] = useState(false);
 
-  // Create Supabase client with IPv4 database and correct ANON key from environment
-  const supabase = createClient(
-    import.meta.env.VITE_SUPABASE_URL,
-    import.meta.env.VITE_SUPABASE_ANON_KEY
-  );
+  // Use unified Supabase client to avoid multiple instances
 
   // 验证推荐人
   useEffect(() => {
@@ -75,25 +71,12 @@ export default function RegistrationModal({
     
     setValidatingReferrer(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'x-wallet-address': walletAddress,
-        },
-        body: JSON.stringify({
-          action: 'validate-referrer',
-          referrerWallet: referrerWallet
-        })
-      });
-
-      const result = await response.json();
+      const { isValid, referrer, error } = await authService.validateReferrer(referrerWallet);
       
-      if (result.success && result.isValid) {
-        setReferrerInfo(result.referrer);
+      if (isValid && referrer) {
+        setReferrerInfo(referrer);
       } else {
-        throw new Error(result.error || t('registration.invalidReferrer'));
+        throw new Error(error?.message || t('registration.invalidReferrer'));
       }
     } catch (error: any) {
       console.error(t('registration.referrerValidationFailed'), error);
@@ -109,21 +92,9 @@ export default function RegistrationModal({
 
   const checkUserExists = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'x-wallet-address': walletAddress,
-        },
-        body: JSON.stringify({
-          action: 'get-user'
-        })
-      });
-
-      const result = await response.json();
+      const { exists } = await authService.userExists(walletAddress);
       
-      if (result.success && result.isRegistered) {
+      if (exists) {
         onClose();
         onRegistrationComplete();
         return;
@@ -166,25 +137,25 @@ export default function RegistrationModal({
     setIsLoading(true);
 
     try {
-      // Use direct database RPC function instead of Edge Function
-      const { data: result, error: rpcError } = await supabase.rpc('register_user_simple', {
-        p_wallet_address: walletAddress,
-        p_username: formData.username.trim(),
-        p_email: formData.email.trim() || null,
-        p_referrer_wallet: referrerWallet
-      });
+      // Use unified authService for registration
+      const { data: result, error, isExisting } = await authService.registerUser(
+        walletAddress,
+        formData.username.trim(),
+        formData.email.trim() || undefined,
+        referrerWallet
+      );
 
-      if (rpcError || !result?.success) {
-        throw new Error(result?.error || rpcError?.message || t('registration.failed'));
+      if (error || !result) {
+        throw new Error(error?.message || t('registration.failed'));
       }
 
       toast({
-        title: result.user_existed ? t('registration.welcomeBack') : t('registration.success'),
-        description: result.message || 'Registration completed successfully',
+        title: isExisting ? t('registration.welcomeBack') : t('registration.success'),
+        description: isExisting ? t('registration.existingUser') : t('registration.newUserCreated'),
         duration: 4000,
       });
 
-      if (result.member_created) {
+      if (!isExisting) {
         toast({
           title: t('registration.memberCreated') || 'Member Record Created',
           description: t('registration.memberCreatedMessage') || 'Your member profile has been set up',

@@ -6,7 +6,7 @@ import { Label } from '../ui/label';
 import { useToast } from '../../hooks/use-toast';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useWallet } from '../../hooks/useWallet';
-import { authService } from '../../lib/supabaseClient';
+import { authService } from '../../lib/supabase-unified';
 import { useI18n } from '../../contexts/I18nContext';
 
 interface UserRegistrationProps {

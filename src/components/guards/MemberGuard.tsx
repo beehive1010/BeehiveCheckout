@@ -5,7 +5,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Loader2, Shield, Crown, Users, AlertTriangle, Wallet } from 'lucide-react';
 import { useWallet } from '../../hooks/useWallet';
-import { authService } from '../../lib/supabaseClient';
+import { authService } from '../../lib/supabase-unified';
 import { useI18n } from '../../contexts/I18nContext';
 import RegistrationModal from '../modals/RegistrationModal';
 import { referralService } from '../../api/landing/referral.client';

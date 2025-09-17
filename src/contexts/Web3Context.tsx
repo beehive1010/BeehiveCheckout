@@ -3,7 +3,7 @@ import { ThirdwebProvider, useActiveAccount, useActiveWallet, useActiveWalletCha
 import { client, supportedChains, arbitrum } from '../lib/web3';
 import { inAppWallet, createWallet } from 'thirdweb/wallets';
 import { createSponsoredInAppWallet, connectWithGasSponsorship, gasSponsorshipUtils } from '../lib/web3/enhanced-wallets';
-import { supabase, supabaseApi, authService } from '../lib/supabase';
+import { supabase, authService } from '../lib/supabase-unified';
 import { useLocation } from 'wouter';
 
 interface Web3ContextType {
