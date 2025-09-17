@@ -168,20 +168,25 @@ export const authService = {
     }
   },
 
-  // Check if user is an activated member
+  // Check if user is an activated member - use auth Edge Function
   async isActivatedMember(walletAddress: string) {
     try {
-      const result = await callEdgeFunction('activate-membership', {
-        action: 'get-member-info'
+      // Use working auth Edge Function to get user status
+      const result = await callEdgeFunction('auth', {
+        action: 'get-user'
       }, walletAddress);
       
       if (!result.success) {
         return { isActivated: false, memberData: null, error: { message: result.error } };
       }
       
+      // Extract activation status from auth response
+      const isActivated = result.isMember && result.membershipLevel > 0;
+      const memberData = result.member || null;
+      
       return { 
-        isActivated: result.isActivated || false, 
-        memberData: result.member || null,
+        isActivated, 
+        memberData,
         error: null 
       };
     } catch (error: any) {
