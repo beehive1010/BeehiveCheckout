@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -52,7 +52,7 @@ export function CountdownTimer({
   const { toast } = useToast();
   const [timeRemaining, setTimeRemaining] = useState<TimeRemaining | null>(null);
   const [isExpired, setIsExpired] = useState(false);
-  const [hasNotifiedExpiry, setHasNotifiedExpiry] = useState(false);
+  const hasNotifiedExpiryRef = useRef(false);
 
   // Calculate time remaining
   const calculateTimeRemaining = (): TimeRemaining | null => {
@@ -84,44 +84,8 @@ export function CountdownTimer({
     };
   };
 
-  // Update timer every second
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const remaining = calculateTimeRemaining();
-      
-      if (remaining) {
-        setTimeRemaining(remaining);
-        setIsExpired(false);
-      } else {
-        setTimeRemaining(null);
-        if (!isExpired) {
-          setIsExpired(true);
-          if (!hasNotifiedExpiry) {
-            setHasNotifiedExpiry(true);
-            toast({
-              title: "⏰ Timer Expired",
-              description: "Your countdown timer has expired.",
-              variant: "destructive"
-            });
-            onExpired?.();
-          }
-        }
-      }
-    }, 1000);
-
-    // Initial calculation
-    const initial = calculateTimeRemaining();
-    if (initial) {
-      setTimeRemaining(initial);
-    } else {
-      setIsExpired(true);
-    }
-
-    return () => clearInterval(timer);
-  }, [endTime, isExpired, hasNotifiedExpiry, onExpired, toast]);
-
-  // Get urgency styling
-  const getUrgencyStyle = () => {
+  // Memoize urgency style to prevent recalculation on every render
+  const urgencyStyle = useMemo(() => {
     if (!urgencyColors || !timeRemaining) return { color: 'text-honey', bg: 'bg-honey/10', border: 'border-honey/30' };
 
     const { percentage } = timeRemaining;
@@ -135,9 +99,47 @@ export function CountdownTimer({
     } else {
       return { color: 'text-red-400', bg: 'bg-red-500/10', border: 'border-red-500/30' };
     }
-  };
+  }, [timeRemaining?.percentage, urgencyColors]);
 
-  const urgencyStyle = getUrgencyStyle();
+  // Stable update function to prevent flicker
+  const updateTime = useCallback(() => {
+    const remaining = calculateTimeRemaining();
+    
+    if (remaining) {
+      setTimeRemaining(prev => {
+        // Only update if there's a meaningful change to reduce flicker
+        if (!prev || prev.seconds !== remaining.seconds) {
+          return remaining;
+        }
+        return prev;
+      });
+      if (isExpired) setIsExpired(false);
+    } else {
+      setTimeRemaining(null);
+      if (!isExpired) {
+        setIsExpired(true);
+        if (!hasNotifiedExpiryRef.current) {
+          hasNotifiedExpiryRef.current = true;
+          toast({
+            title: "⏰ Timer Expired",
+            description: "Your countdown timer has expired.",
+            variant: "destructive"
+          });
+          onExpired?.();
+        }
+      }
+    }
+  }, [endTime, isExpired, onExpired, toast]);
+
+  // Update timer every second with stable dependencies
+  useEffect(() => {
+    // Initial calculation
+    updateTime();
+    
+    const timer = setInterval(updateTime, 1000);
+    return () => clearInterval(timer);
+  }, [updateTime]); // Include updateTime in dependencies
+
 
   // Format time display
   const formatTimeDisplay = (time: TimeRemaining) => {

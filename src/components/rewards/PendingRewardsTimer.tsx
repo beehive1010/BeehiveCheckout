@@ -80,13 +80,18 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
     }
   };
 
-  // 更新倒计时
+  // 稳定的更新倒计时函数，减少闪烁
   const updateCountdown = useCallback(() => {
     setPendingRewards(prev => 
       prev.map(reward => {
         const now = new Date().getTime();
         const expiry = new Date(reward.expires_at).getTime();
         const remaining = Math.max(0, Math.floor((expiry - now) / 1000));
+        
+        // 只有秒数发生变化时才更新，减少不必要的重新渲染
+        if (reward.time_remaining_seconds === remaining) {
+          return reward;
+        }
         
         // 如果倒计时结束且可以领取，触发回调
         if (remaining === 0 && reward.can_claim && onRewardClaimableRef.current) {
@@ -108,12 +113,13 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
     }
   }, [walletAddress]);
 
+  // 减少定时器重新创建的频率
   useEffect(() => {
     if (pendingRewards.length === 0) return;
 
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
-  }, [pendingRewards.length, updateCountdown]); // Now updateCountdown is stable
+  }, [updateCountdown, pendingRewards.length]); // 修复依赖
 
   if (loading) {
     return (
@@ -189,7 +195,7 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
                 <div className="flex items-center gap-2">
                   <Trophy className="w-4 h-4 text-yellow-500" />
                   <span className="font-semibold">{reward.reward_amount} USDT</span>
-                  <Badge variant="outline" size="sm">
+                  <Badge variant="outline">
                     {reward.timer_type === 'super_root_upgrade' ? t('rewards.superRootUpgrade') : t('rewards.qualificationWait')}
                   </Badge>
                 </div>
@@ -221,7 +227,7 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
               {/* 进度条 */}
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
-                  className={`h-2 rounded-full transition-all duration-1000 ${
+                  className={`h-2 rounded-full transition-all duration-500 ${
                     reward.time_remaining_seconds <= 0
                       ? 'bg-red-500'
                       : reward.time_remaining_seconds <= 3600
