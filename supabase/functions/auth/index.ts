@@ -145,16 +145,14 @@ async function registerUser(supabase, walletAddress, data) {
 async function getUser(supabase, walletAddress) {
   console.log(`👤 Getting user: ${walletAddress}`);
 
-  // Use unified member status function
-  const { data: statusResult, error: statusError } = await supabase.rpc('get_member_status', {
-    p_wallet_address: walletAddress
-  });
+  // Direct database query since get_member_status function doesn't exist
+  const { data: userData, error: userError } = await supabase
+    .from('users')
+    .select('wallet_address, username, email, created_at')
+    .ilike('wallet_address', walletAddress)
+    .single();
 
-  if (statusError) {
-    throw new Error(`Failed to get user status: ${statusError.message}`);
-  }
-
-  if (!statusResult.is_registered) {
+  if (userError || !userData) {
     return {
       success: false,
       action: 'not_found',
@@ -163,9 +161,29 @@ async function getUser(supabase, walletAddress) {
     };
   }
 
+  // Get member status
+  const { data: memberData, error: memberError } = await supabase
+    .from('members')
+    .select('is_activated, current_level, levels_owned')
+    .ilike('wallet_address', walletAddress)
+    .single();
+
+  // Get membership status
+  const { data: membershipData, error: membershipError } = await supabase
+    .from('membership')
+    .select('claim_status, activated_at, member_created, nft_level')
+    .ilike('wallet_address', walletAddress)
+    .eq('nft_level', 1)
+    .single();
+
+  // Build status result
+  const isActivated = memberData?.is_activated === true;
+  const membershipLevel = memberData?.current_level || 0;
+  const hasNFT = isActivated && membershipData?.claim_status === 'completed';
+
   // Get referral statistics only if member
   let referralStats = null;
-  if (statusResult.is_member) {
+  if (isActivated) {
     const { data: directReferrals } = await supabase
       .from('referrals')
       .select('member_wallet')
@@ -182,24 +200,31 @@ async function getUser(supabase, walletAddress) {
     };
   }
 
-  console.log(`🔍 User status: member=${statusResult.is_member}, level=${statusResult.current_level}`);
+  console.log(`🔍 User status: member=${isActivated}, level=${membershipLevel}`);
 
   return {
     success: true,
     action: 'found',
-    user: statusResult.user_info,
-    member: statusResult.is_member ? {
-      activation_sequence: statusResult.activation_sequence,
-      current_level: statusResult.current_level,
-      referrer_wallet: statusResult.referrer_wallet,
-      activation_time: statusResult.activation_time
+    user: {
+      ...userData,
+      email: userData.email,
+      username: userData.username,
+      created_at: userData.created_at,
+      isMember: isActivated,
+      membershipLevel: membershipLevel,
+      canAccessReferrals: isActivated
+    },
+    member: isActivated ? {
+      current_level: membershipLevel,
+      is_activated: isActivated,
+      levels_owned: memberData?.levels_owned || [],
     } : null,
-    balance: statusResult.balance_info,
+    balance: null, // Would need separate query for balance info
     referral_stats: referralStats,
-    isRegistered: statusResult.is_registered,
-    isMember: statusResult.is_member,
-    membershipLevel: statusResult.current_level,
-    canAccessReferrals: statusResult.can_access_referrals,
+    isRegistered: true,
+    isMember: isActivated,
+    membershipLevel: membershipLevel,
+    canAccessReferrals: isActivated,
     message: 'User information retrieved successfully'
   };
 }
