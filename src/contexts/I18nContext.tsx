@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { translations } from '../lib/i18n';
+import { supabase } from '../lib/supabaseClient';
 
-type Language = 'en' | 'zh' | 'th' | 'ms' | 'ko' | 'ja';
+type Language = 'en' | 'zh' | 'zh-tw' | 'th' | 'ms' | 'ko' | 'ja';
 
 interface I18nContextType {
   language: Language;
@@ -14,7 +14,8 @@ const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 const languageOptions = [
   { code: 'en' as Language, name: 'English' },
-  { code: 'zh' as Language, name: '中文' },
+  { code: 'zh' as Language, name: '中文简体' },
+  { code: 'zh-tw' as Language, name: '中文繁體' },
   { code: 'th' as Language, name: 'ไทย' },
   { code: 'ms' as Language, name: 'Malay' },
   { code: 'ko' as Language, name: '한국어' },
@@ -23,11 +24,59 @@ const languageOptions = [
 
 const I18nProvider = ({ children }: { children: React.ReactNode }) => {
   const [language, setLanguageState] = useState<Language>('en');
+  const [translations, setTranslations] = useState<Record<Language, Record<string, string>>>({
+    en: {},
+    zh: {},
+    'zh-tw': {},
+    th: {},
+    ms: {},
+    ko: {},
+    ja: {}
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize language from localStorage after component mounts
+  // Load translations from database
+  const loadTranslations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('app_translations')
+        .select('translation_key, language_code, translated_text');
+
+      if (error) {
+        console.error('Error loading translations from database:', error);
+        return;
+      }
+
+      const translationMap: Record<Language, Record<string, string>> = {
+        en: {},
+        zh: {},
+        'zh-tw': {},
+        th: {},
+        ms: {},
+        ko: {},
+        ja: {}
+      };
+
+      data?.forEach(item => {
+        const lang = item.language_code as Language;
+        if (translationMap[lang]) {
+          translationMap[lang][item.translation_key] = item.translated_text;
+        }
+      });
+
+      setTranslations(translationMap);
+      console.log(`🌍 Loaded translations: ${Object.keys(translationMap.en).length} EN, ${Object.keys(translationMap.zh).length} ZH`);
+    } catch (error) {
+      console.error('Failed to load translations:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Initialize language from localStorage and load translations
   useEffect(() => {
     const saved = localStorage.getItem('beehive-language');
-    const validLanguages: Language[] = ['en', 'zh', 'th', 'ms', 'ko', 'ja'];
+    const validLanguages: Language[] = ['en', 'zh', 'zh-tw', 'th', 'ms', 'ko', 'ja'];
     if (saved && validLanguages.includes(saved as Language)) {
       setLanguageState(saved as Language);
     } else {
@@ -35,6 +84,9 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.setItem('beehive-language', 'en');
       setLanguageState('en');
     }
+
+    // Load translations from database
+    loadTranslations();
   }, []);
 
   const setLanguage = (lang: Language) => {
@@ -44,45 +96,23 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
 
   const t = (key: string, interpolations?: Record<string, string | number>): string => {
     try {
-      const keys = key.split('.');
-      let value: any = translations[language];
-      
-      for (const k of keys) {
-        value = value?.[k];
+      // If translations are still loading, return the key as fallback
+      if (isLoading) {
+        return key;
       }
+
+      // Get translation from current language
+      let result = translations[language]?.[key];
       
       // If translation not found in current language, try English as fallback
-      if (!value && language !== 'en') {
-        let englishValue: any = translations.en;
-        for (const k of keys) {
-          englishValue = englishValue?.[k];
-        }
-        if (englishValue) {
-          value = englishValue;
-        }
+      if (!result && language !== 'en') {
+        result = translations.en?.[key];
       }
       
-      let result = value || key;
-      
-      // Force reload for dashboard.topUp if missing
-      if (key === 'dashboard.topUp' && !value) {
-        // Direct access to ensure translation works
-        const directValue = translations[language]?.dashboard?.topUp;
-        if (directValue) {
-          result = directValue;
-        } else if (language !== 'en') {
-          // Fallback to English
-          const englishValue = translations.en?.dashboard?.topUp;
-          if (englishValue) {
-            result = englishValue;
-          }
-        }
-      }
-      
-      // Ensure we always return a string, never an object
-      if (typeof result === 'object') {
-        console.warn('Translation returned object instead of string for key:', key, result);
-        return key; // Fallback to key if object found
+      // If still no translation found, return the key
+      if (!result) {
+        console.warn(`Translation missing for key: ${key} (language: ${language})`);
+        return key;
       }
       
       // Handle interpolation
@@ -130,7 +160,7 @@ const useI18n = () => {
         console.warn(`Translation fallback used for key: ${key}`);
         return key; // Return the key as fallback
       },
-      languages: [{ code: 'en' as Language, name: 'English' }],
+      languages: languageOptions,
     };
   }
   return context;

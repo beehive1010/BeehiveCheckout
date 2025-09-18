@@ -62,8 +62,18 @@ interface NFTPurchase {
 }
 
 export default function NFTs() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { walletAddress, bccBalance, currentLevel } = useWallet();
+  
+  // Helper function to get translated content from NFT metadata
+  const getTranslatedContent = (nft: AdvertisementNFT | MerchantNFT, field: 'title' | 'description' | 'category') => {
+    const translations = nft.metadata?.translations;
+    if (translations && translations[language] && translations[language][field]) {
+      return translations[language][field];
+    }
+    // Fallback to default field value
+    return nft[field] || '';
+  };
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
@@ -419,13 +429,13 @@ export default function NFTs() {
                       className="w-full h-48 object-cover rounded-lg mb-3"
                     />
                     <Badge className="w-fit bg-blue-500/20 text-blue-400 border-blue-500/30">
-                      {nft.category}
+                      {getTranslatedContent(nft, 'category')}
                     </Badge>
-                    <CardTitle className="text-lg text-foreground">{nft.title}</CardTitle>
+                    <CardTitle className="text-lg text-foreground">{getTranslatedContent(nft, 'title')}</CardTitle>
                   </CardHeader>
                   
                   <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground line-clamp-3">{nft.description}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-3">{getTranslatedContent(nft, 'description')}</p>
                     
                     <div className="flex items-center justify-between">
                       <div className="text-center">
@@ -503,7 +513,7 @@ export default function NFTs() {
                     />
                     <div className="flex items-center justify-between">
                       <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
-                        {nft.category}
+                        {getTranslatedContent(nft, 'category')}
                       </Badge>
                       {nft.supply_total && (
                         <Badge variant="outline" className="text-xs">
@@ -511,11 +521,11 @@ export default function NFTs() {
                         </Badge>
                       )}
                     </div>
-                    <CardTitle className="text-lg text-foreground">{nft.title}</CardTitle>
+                    <CardTitle className="text-lg text-foreground">{getTranslatedContent(nft, 'title')}</CardTitle>
                   </CardHeader>
                   
                   <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground line-clamp-3">{nft.description}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-3">{getTranslatedContent(nft, 'description')}</p>
                     
                     <div className="flex items-center justify-between">
                       <div className="text-center">
@@ -600,17 +610,17 @@ export default function NFTs() {
                             ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' 
                             : 'bg-purple-500/20 text-purple-400 border-purple-500/30'
                         }`}>
-                          {nft.category}
+                          {getTranslatedContent(nft, 'category')}
                         </Badge>
                         <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
                           Owned
                         </Badge>
                       </div>
-                      <CardTitle className="text-lg text-foreground">{nft.title}</CardTitle>
+                      <CardTitle className="text-lg text-foreground">{getTranslatedContent(nft, 'title')}</CardTitle>
                     </CardHeader>
                     
                     <CardContent className="space-y-4">
-                      <p className="text-sm text-muted-foreground line-clamp-2">{nft.description}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{getTranslatedContent(nft, 'description')}</p>
                       
                       <div className="text-xs text-muted-foreground space-y-1">
                         <div>Purchased: {new Date(purchase.purchased_at).toLocaleDateString()}</div>
