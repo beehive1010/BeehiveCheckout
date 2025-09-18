@@ -13,9 +13,11 @@ import HexagonIcon from '../components/shared/HexagonIcon';
 import { Book, BookOpen, Award, User } from 'lucide-react';
 import UserProfileCard from '../components/shared/UserProfileCard';
 import { coursesApi } from '../api/education/courses.api';
+import CourseDetail from '../components/education/CourseDetail';
 import { useState, useMemo } from 'react';
 import { Progress } from '../components/ui/progress';
 import styles from '../styles/education/education.module.css';
+import { useActiveAccount } from "thirdweb/react";
 
 interface Course {
   id: string;
@@ -44,18 +46,19 @@ interface CourseAccess {
 
 export default function Education() {
   const { walletAddress, currentLevel, bccBalance } = useWallet();
-  const { t } = useI18n();
+  const { t, currentLanguage } = useI18n();
+  const activeAccount = useActiveAccount();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterLevel, setFilterLevel] = useState<string>('all');
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
 
-  // Fetch courses
+  // Fetch courses with language support and user level filtering
   const { data: courses = [], isLoading: isLoadingCourses } = useQuery({
-    queryKey: ['/api/courses'],
-    queryFn: coursesApi.getCourses
+    queryKey: ['/api/courses', currentLanguage, currentLevel],
+    queryFn: () => coursesApi.getCourses(currentLanguage, currentLevel)
   });
 
   // Fetch user's course access
@@ -68,7 +71,7 @@ export default function Education() {
   // Purchase course mutation
   const purchaseCourseMutation = useMutation({
     mutationFn: ({ courseId, bccAmount }: { courseId: string; bccAmount: number }) =>
-      coursesApi.purchaseCourse(courseId, bccAmount),
+      coursesApi.purchaseCourse(courseId, bccAmount, activeAccount?.address),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/course-access'] });
       toast({
@@ -87,7 +90,7 @@ export default function Education() {
 
   // Filter courses
   const filteredCourses = useMemo(() => {
-    return courses.filter((course: Course) => {
+    return courses.filter((course: any) => {
       const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           course.description.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesLevel = filterLevel === 'all' || course.requiredLevel <= parseInt(filterLevel);
@@ -129,12 +132,14 @@ export default function Education() {
     });
   };
 
-  const myCourses = courses.filter((course: Course) => hasAccess(course.id));
-  const completedCourses = myCourses.filter((course: Course) => getProgress(course.id) === 100);
-  const inProgressCourses = myCourses.filter((course: Course) => {
+  const myCourses = courses.filter((course: any) => hasAccess(course.id));
+  const completedCourses = myCourses.filter((course: any) => getProgress(course.id) === 100);
+  const inProgressCourses = myCourses.filter((course: any) => {
     const progress = getProgress(course.id);
     return progress > 0 && progress < 100;
   });
+  const availableCourses = courses.filter((course: any) => course.canAccess);
+  const lockedCourses = courses.filter((course: any) => !course.canAccess);
 
   return (
     <div className={`${styles.educationContainer} container mx-auto px-4 py-8`}>
@@ -164,6 +169,38 @@ export default function Education() {
         </TabsList>
 
         <TabsContent value="all-courses" className="space-y-6">
+          {/* Course Statistics */}
+          <Card className="bg-secondary border-border">
+            <CardContent className="p-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-honey">{availableCourses.length}</div>
+                  <p className="text-sm text-muted-foreground">Available Courses</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-500">{availableCourses.filter(c => c.isFree).length}</div>
+                  <p className="text-sm text-muted-foreground">Free Courses</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-500">{availableCourses.filter(c => !c.isFree).length}</div>
+                  <p className="text-sm text-muted-foreground">Premium Courses</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-red-500">{lockedCourses.length}</div>
+                  <p className="text-sm text-muted-foreground">Level Locked</p>
+                </div>
+              </div>
+              {lockedCourses.length > 0 && (
+                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm text-amber-800">
+                    🔒 You have <strong>{lockedCourses.length} courses</strong> locked due to level requirements. 
+                    Upgrade your membership to unlock advanced courses!
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Search and Filter */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
@@ -179,11 +216,11 @@ export default function Education() {
                 <SelectValue placeholder={t('education.filterByLevel')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t('education.allLevels')}</SelectItem>
-                <SelectItem value="1">{t('education.level')} 1+</SelectItem>
-                <SelectItem value="3">{t('education.level')} 3+</SelectItem>
-                <SelectItem value="5">{t('education.level')} 5+</SelectItem>
-                <SelectItem value="10">{t('education.level')} 10+</SelectItem>
+                <SelectItem value="all">All Levels</SelectItem>
+                <SelectItem value="1">Level 1+ (Beginner)</SelectItem>
+                <SelectItem value="3">Level 3+ (Intermediate)</SelectItem>
+                <SelectItem value="5">Level 5+ (Advanced)</SelectItem>
+                <SelectItem value="10">Level 10+ (Expert)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -195,22 +232,35 @@ export default function Education() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredCourses.map((course: Course) => {
+              {filteredCourses.map((course: any) => {
                 const hasUserAccess = hasAccess(course.id);
                 const progress = getProgress(course.id);
-                const canAccess = currentLevel >= course.requiredLevel;
+                const canAccess = course.canAccess;
+                const isLevelLocked = course.levelLocked;
 
                 return (
-                  <Card key={course.id} className="bg-secondary border-border hover:border-honey/50 transition-colors">
+                  <Card key={course.id} className={`bg-secondary border-border transition-colors ${
+                    isLevelLocked 
+                      ? 'opacity-60 border-muted hover:border-muted' 
+                      : 'hover:border-honey/50'
+                  }`}>
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h3 className="font-semibold text-honey mb-1">{course.title}</h3>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className={`font-semibold mb-1 ${
+                              isLevelLocked ? 'text-muted-foreground' : 'text-honey'
+                            }`}>{course.title}</h3>
+                            {isLevelLocked && <Badge variant="secondary">🔒 Locked</Badge>}
+                            {course.isFree && <Badge variant="outline" className="text-green-500 border-green-500">FREE</Badge>}
+                          </div>
                           <p className="text-sm text-muted-foreground line-clamp-2">
                             {course.description}
                           </p>
                         </div>
-                        <HexagonIcon className="w-8 h-8 text-honey/70 flex-shrink-0 ml-2">
+                        <HexagonIcon className={`w-8 h-8 flex-shrink-0 ml-2 ${
+                          isLevelLocked ? 'text-muted-foreground' : 'text-honey/70'
+                        }`}>
                           <Book className="w-4 h-4" />
                         </HexagonIcon>
                       </div>
@@ -218,12 +268,19 @@ export default function Education() {
                     <CardContent className="space-y-3">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">{t('education.duration')}</span>
-                        <span>{course.duration}</span>
+                        <span>{course.duration}h</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Type</span>
+                        <Badge variant="outline" className="capitalize">
+                          {course.courseType === 'online' ? '🎥 Live' : '📚 Video'}
+                        </Badge>
                       </div>
                       
                       <div className="flex items-center justify-between">
                         <Badge variant={canAccess ? 'default' : 'destructive'}>
-                          {t('education.level')} {course.requiredLevel}+
+                          Level {course.requiredLevel}+
                         </Badge>
                         {!course.isFree && (
                           <Badge variant="outline" className="text-honey border-honey">
@@ -243,10 +300,18 @@ export default function Education() {
                       )}
 
                       <div className="pt-2">
-                        {hasUserAccess ? (
+                        {isLevelLocked ? (
+                          <Button 
+                            className="w-full" 
+                            variant="outline"
+                            disabled
+                          >
+                            🔒 Requires Level {course.requiredLevel}
+                          </Button>
+                        ) : hasUserAccess ? (
                           <Button 
                             className="w-full bg-honey text-secondary hover:bg-honey/90"
-                            onClick={() => setSelectedCourse(course)}
+                            onClick={() => setSelectedCourseId(course.id)}
                           >
                             {progress === 100 ? t('education.review') : t('education.continue')}
                           </Button>
@@ -254,9 +319,9 @@ export default function Education() {
                           <Button 
                             className="w-full bg-honey text-secondary hover:bg-honey/90"
                             onClick={() => handlePurchaseCourse(course)}
-                            disabled={!canAccess || (!course.isFree && (bccBalance?.transferable || 0) < course.priceBCC)}
+                            disabled={!course.isFree && (bccBalance?.transferable || 0) < course.priceBCC}
                           >
-                            {course.isFree ? t('education.enroll') : t('education.purchase')}
+                            {course.isFree ? '🆓 Enroll Free' : `💰 Purchase ${course.priceBCC} BCC`}
                           </Button>
                         )}
                       </div>
@@ -370,7 +435,7 @@ export default function Education() {
 
                         <Button 
                           className="w-full bg-honey text-secondary hover:bg-honey/90"
-                          onClick={() => setSelectedCourse(course)}
+                          onClick={() => setSelectedCourseId(course.id)}
                         >
                           {isCompleted ? 'Review Course' : progress > 0 ? 'Continue Learning' : 'Start Course'}
                         </Button>
@@ -383,6 +448,14 @@ export default function Education() {
           )}
         </TabsContent>
       </Tabs>
+      
+      {/* Course Detail Modal */}
+      {selectedCourseId && (
+        <CourseDetail 
+          courseId={selectedCourseId} 
+          onClose={() => setSelectedCourseId(null)} 
+        />
+      )}
     </div>
   );
 }

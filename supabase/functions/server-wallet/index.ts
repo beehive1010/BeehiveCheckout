@@ -11,6 +11,8 @@ interface WithdrawalRequest {
   target_chain_id: number;
   token_address: string;
   user_signature: string;
+  withdrawal_fee?: number;
+  gas_fee_wallet?: string;
   metadata?: Record<string, any>;
 }
 
@@ -23,7 +25,7 @@ interface ServerWalletBalance {
   last_updated: string;
 }
 
-serve(async (req) => {
+// Helper function to get token decimals for different chains\nfunction getTokenDecimals(chainId: number, tokenAddress: string): number {\n  // USDT decimals vary by chain\n  const usdtDecimals: Record<number, number> = {\n    1: 6,      // Ethereum USDT\n    137: 6,    // Polygon USDT  \n    42161: 6,  // Arbitrum USDT\n    10: 6,     // Optimism USDT\n    56: 18,    // BSC USDT (18 decimals!)\n    8453: 6    // Base USDT\n  };\n  \n  // Check if it's a custom token with 18 decimals (like your test USDT)\n  const customTokens18Decimals = [\n    '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d' // Your custom test USDT\n  ];\n  \n  if (customTokens18Decimals.includes(tokenAddress.toLowerCase())) {\n    return 18;\n  }\n  \n  return usdtDecimals[chainId] || 6; // Default to 6 decimals\n}\n\nserve(async (req) => {
   // CORS Headers
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -140,8 +142,8 @@ async function getServerWalletBalance(url: URL, supabaseClient: any, corsHeaders
             chain_id: parseInt(chainId),
             token_address: tokenAddress,
             balance: '0',
-            decimals: 6,
-            symbol: 'USDC',
+            decimals: getTokenDecimals(parseInt(chainId), tokenAddress),
+            symbol: 'USDT',
             last_updated: new Date().toISOString(),
             cached: false
           }
@@ -244,11 +246,11 @@ async function processWithdrawal(withdrawalData: WithdrawalRequest, supabaseClie
       .insert([{
         id: withdrawalId,
         user_wallet: withdrawalData.user_wallet,
-        amount: withdrawalData.amount,
+        amount: grossAmount.toString(), // Gross amount requested
         target_chain_id: withdrawalData.target_chain_id,
         token_address: withdrawalData.token_address,
         user_signature: withdrawalData.user_signature,
-        metadata: withdrawalData.metadata || {},
+        metadata: enhancedMetadata,
         status: 'pending',
         created_at: new Date().toISOString()
       }])
@@ -257,15 +259,49 @@ async function processWithdrawal(withdrawalData: WithdrawalRequest, supabaseClie
 
     if (insertError) throw insertError;
 
+    // Calculate fee and net amount
+    const withdrawalFees: Record<number, number> = {
+      1: 15.0,      // Ethereum
+      137: 1.0,     // Polygon
+      42161: 2.0,   // Arbitrum
+      10: 1.5,      // Optimism
+      56: 1.0,      // BSC
+      8453: 1.5     // Base
+    };
+    
+    const fee = withdrawalData.withdrawal_fee || withdrawalFees[withdrawalData.target_chain_id] || 2.0;
+    const grossAmount = parseFloat(withdrawalData.amount);
+    const netAmount = grossAmount - fee;
+    const gasFeeWallet = withdrawalData.gas_fee_wallet || '0xC2422eae8A56914509b6977E69F7f3aCE7DD6463';
+    
+    if (netAmount <= 0) {
+      return new Response(
+        JSON.stringify({ success: false, error: `Amount too small. Minimum withdrawal is ${fee + 0.01} USDT (including ${fee} USDT fee)` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     // TODO: Implement actual blockchain transaction processing
     // For now, we'll simulate the processing with a delay
     
     // In a real implementation, this would:
     // 1. Check server wallet balance
     // 2. Verify user signature
-    // 3. Execute blockchain transaction
-    // 4. Update database with transaction hash
-    // 5. Monitor transaction confirmation
+    // 3. Execute two blockchain transactions:
+    //    a) Transfer netAmount USDT to user wallet
+    //    b) Transfer fee USDT to gas fee wallet
+    // 4. Update database with transaction hashes
+    // 5. Monitor transaction confirmations
+    
+    // Store additional fee information in metadata
+    const enhancedMetadata = {
+      ...withdrawalData.metadata,
+      fee_amount: fee,
+      net_amount: netAmount,
+      gas_fee_wallet: gasFeeWallet,
+      fee_transaction_hash: null, // Will be populated when real transaction is made
+      user_transaction_hash: null // Will be populated when real transaction is made
+    };
 
     return new Response(
       JSON.stringify({
@@ -273,8 +309,12 @@ async function processWithdrawal(withdrawalData: WithdrawalRequest, supabaseClie
         withdrawal: {
           id: withdrawalId,
           status: 'processing',
+          gross_amount: grossAmount,
+          fee_amount: fee,
+          net_amount: netAmount,
+          gas_fee_wallet: gasFeeWallet,
           estimated_completion: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // 5 minutes
-          message: 'Withdrawal request submitted successfully'
+          message: `Withdrawal request submitted successfully. You will receive ${netAmount.toFixed(2)} USDT (${fee} USDT fee deducted).`
         }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -294,6 +334,16 @@ async function estimateWithdrawalGas(requestData: any, corsHeaders: any) {
     const chainId = requestData.target_chain_id;
     const amount = requestData.amount;
 
+    // Chain-specific withdrawal fees (in USDT) that will be deducted
+    const withdrawalFees: Record<number, number> = {
+      1: 15.0,      // Ethereum - higher gas fees
+      137: 1.0,     // Polygon - low fees
+      42161: 2.0,   // Arbitrum - moderate fees
+      10: 1.5,      // Optimism - low-moderate fees
+      56: 1.0,      // BSC - low fees
+      8453: 1.5     // Base - low-moderate fees
+    };
+    
     // Chain-specific gas estimates (simplified)
     const gasEstimates: Record<number, { gasLimit: number; gasPriceUSD: number }> = {
       1: { gasLimit: 65000, gasPriceUSD: 15 },      // Ethereum
@@ -303,6 +353,8 @@ async function estimateWithdrawalGas(requestData: any, corsHeaders: any) {
       56: { gasLimit: 65000, gasPriceUSD: 0.5 },    // BSC
       8453: { gasLimit: 65000, gasPriceUSD: 0.3 }   // Base
     };
+    
+    const fee = withdrawalFees[chainId] || 2.0;
 
     const estimate = gasEstimates[chainId] || { gasLimit: 65000, gasPriceUSD: 1 };
 
@@ -312,7 +364,8 @@ async function estimateWithdrawalGas(requestData: any, corsHeaders: any) {
         estimate: {
           gas_limit: estimate.gasLimit.toString(),
           gas_price_usd: estimate.gasPriceUSD.toString(),
-          total_fee_usd: estimate.gasPriceUSD,
+          withdrawal_fee_usdt: fee,
+          total_fee_usd: fee, // User pays withdrawal fee, not gas directly
           estimated_time_minutes: chainId === 1 ? 3 : 1 // Ethereum slower
         }
       }),
@@ -400,12 +453,12 @@ async function getWithdrawalHistory(url: URL, supabaseClient: any, corsHeaders: 
 async function getSupportedChains(corsHeaders: any) {
   try {
     const supportedChains = [
-      { chain_id: 1, name: 'Ethereum', symbol: 'ETH', usdc_address: '0xA0b86a33E6411efaC5C8F58fb8DbbBe3ba5eC1A3' },
-      { chain_id: 137, name: 'Polygon', symbol: 'MATIC', usdc_address: '0x2791Bca1f2de4661ED88A30c99A7a9449Aa84174' },
-      { chain_id: 42161, name: 'Arbitrum', symbol: 'ARB', usdc_address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' },
-      { chain_id: 10, name: 'Optimism', symbol: 'OP', usdc_address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85' },
-      { chain_id: 56, name: 'BSC', symbol: 'BNB', usdc_address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d' },
-      { chain_id: 8453, name: 'Base', symbol: 'BASE', usdc_address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' }
+      { chain_id: 1, name: 'Ethereum', symbol: 'ETH', usdt_address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', withdrawal_fee: 15.0 },
+      { chain_id: 137, name: 'Polygon', symbol: 'MATIC', usdt_address: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', withdrawal_fee: 1.0 },
+      { chain_id: 42161, name: 'Arbitrum', symbol: 'ARB', usdt_address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', withdrawal_fee: 2.0 },
+      { chain_id: 10, name: 'Optimism', symbol: 'OP', usdt_address: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58', withdrawal_fee: 1.5 },
+      { chain_id: 56, name: 'BSC', symbol: 'BNB', usdt_address: '0x55d398326f99059fF775485246999027B3197955', withdrawal_fee: 1.0 },
+      { chain_id: 8453, name: 'Base', symbol: 'BASE', usdt_address: '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2', withdrawal_fee: 1.5 }
     ];
 
     return new Response(

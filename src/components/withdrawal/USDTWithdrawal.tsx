@@ -39,28 +39,41 @@ const CHAIN_INFO = {
   8453: { id: 'base', name: 'Base', symbol: 'BASE', icon: '🔵', color: 'text-blue-500', testnet: false },
 };
 
-// Token contract addresses for each chain
+// USDT Token contract addresses for each chain
 const TOKEN_ADDRESSES = {
-  1: { address: '0xA0b86a33E6411efaC5C8F58fb8DbbBe3ba5eC1A3', symbol: 'USDC', decimals: 6 },     // Ethereum USDC
-  137: { address: '0x2791Bca1f2de4661ED88A30c99A7a9449Aa84174', symbol: 'USDC', decimals: 6 },   // Polygon USDC
+  1: { address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', symbol: 'USDT', decimals: 6 },     // Ethereum USDT (6 decimals)
+  137: { address: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', symbol: 'USDT', decimals: 6 },   // Polygon USDT (6 decimals)
   42161: { 
-    usdc: { address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', symbol: 'USDC', decimals: 6 }, // Arbitrum USDC
+    usdt: { address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', symbol: 'USDT', decimals: 6 }, // Arbitrum USDT (6 decimals)
     testUSDT: { 
       address: import.meta.env.VITE_ARB_TEST_USDT_ADDRESS || '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d', 
       symbol: 'TEST-USDT', 
       decimals: 18 
-    } // Your custom Test USDT on Arbitrum
+    } // Your custom Test USDT on Arbitrum (18 decimals)
   },
-  10: { address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85', symbol: 'USDC', decimals: 6 },    // Optimism USDC
-  56: { address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', symbol: 'USDC', decimals: 6 },    // BSC USDC
-  8453: { address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', symbol: 'USDC', decimals: 6 }   // Base USDC
+  10: { address: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58', symbol: 'USDT', decimals: 6 },    // Optimism USDT (6 decimals)
+  56: { address: '0x55d398326f99059fF775485246999027B3197955', symbol: 'USDT', decimals: 18 },   // BSC USDT (18 decimals)
+  8453: { address: '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2', symbol: 'USDT', decimals: 6 }   // Base USDT (6 decimals)
 };
 
+// Withdrawal fees for each chain (in USDT)
+const WITHDRAWAL_FEES = {
+  1: 15.0,      // Ethereum - higher gas fees
+  137: 1.0,     // Polygon - low fees
+  42161: 2.0,   // Arbitrum - moderate fees
+  10: 1.5,      // Optimism - low-moderate fees
+  56: 1.0,      // BSC - low fees
+  8453: 1.5     // Base - low-moderate fees
+};
+
+// Gas fee wallet address
+const GAS_FEE_WALLET = '0xC2422eae8A56914509b6977E69F7f3aCE7DD6463';
+
 // Helper function to get token address and info for a chain
-const getTokenInfo = (chainId: number, tokenType: 'usdc' | 'testUSDT' = 'usdc') => {
+const getTokenInfo = (chainId: number, tokenType: 'usdt' | 'testUSDT' = 'usdt') => {
   const chainTokens = TOKEN_ADDRESSES[chainId as keyof typeof TOKEN_ADDRESSES];
   
-  if (chainId === 42161 && typeof chainTokens === 'object' && 'usdc' in chainTokens) {
+  if (chainId === 42161 && typeof chainTokens === 'object' && 'usdt' in chainTokens) {
     // Arbitrum has multiple tokens
     return chainTokens[tokenType];
   } else if (typeof chainTokens === 'object' && 'address' in chainTokens) {
@@ -68,14 +81,19 @@ const getTokenInfo = (chainId: number, tokenType: 'usdc' | 'testUSDT' = 'usdc') 
     return chainTokens;
   }
   
-  // Default to Arbitrum USDC
-  return TOKEN_ADDRESSES[42161].usdc;
+  // Default to Arbitrum USDT
+  return TOKEN_ADDRESSES[42161].usdt;
 };
 
 // Legacy helper function for backward compatibility
-const getUSDCAddress = (chainId: number, tokenType: 'usdc' | 'testUSDT' = 'usdc') => {
+const getUSDTAddress = (chainId: number, tokenType: 'usdt' | 'testUSDT' = 'usdt') => {
   const tokenInfo = getTokenInfo(chainId, tokenType);
   return tokenInfo.address;
+};
+
+// Get withdrawal fee for chain
+const getWithdrawalFee = (chainId: number) => {
+  return WITHDRAWAL_FEES[chainId as keyof typeof WITHDRAWAL_FEES] || 2.0;
 };
 
 export default function USDTWithdrawal() {
@@ -96,7 +114,7 @@ export default function USDTWithdrawal() {
   const [withdrawalAmount, setWithdrawalAmount] = useState('');
   const [withdrawalRequest, setWithdrawalRequest] = useState<WithdrawalRequest | null>(null);
   const [step, setStep] = useState<'form' | 'confirm' | 'processing' | 'success'>('form');
-  const [selectedToken, setSelectedToken] = useState<'usdc' | 'testUSDT'>('usdc'); // Token selection for Arbitrum
+  const [selectedToken, setSelectedToken] = useState<'usdt' | 'testUSDT'>('usdt'); // Token selection for Arbitrum
 
   // Get user USDT balance from rewards system
   const { data: balance, isLoading: balanceLoading } = useQuery<USDTBalance>({
@@ -118,8 +136,8 @@ export default function USDTWithdrawal() {
       // Transform the response to match expected USDTBalance interface
       if (result.success && result.data) {
         return {
-          balance: Math.round((result.data.usdc_claimable || 0) * 100), // Convert to cents
-          balanceUSD: (result.data.usdc_claimable || 0).toFixed(2),
+          balance: Math.round((result.data.usdt_claimable || result.data.usdc_claimable || 0) * 100), // Convert to cents
+          balanceUSD: (result.data.usdt_claimable || result.data.usdc_claimable || 0).toFixed(2),
           lastUpdated: result.data.updated_at || new Date().toISOString()
         };
       } else {
@@ -152,8 +170,10 @@ export default function USDTWithdrawal() {
           user_wallet: data.recipientAddress,
           amount: data.amount.toString(),
           target_chain_id: currentChainId,
-          token_address: getUSDCAddress(currentChainId!, selectedToken),
+          token_address: getUSDTAddress(currentChainId!, selectedToken),
           user_signature: 'server_initiated', // Server wallet doesn't need user signature
+          withdrawal_fee: getWithdrawalFee(currentChainId!),
+          gas_fee_wallet: GAS_FEE_WALLET,
           metadata: {
             source: 'rewards_withdrawal',
             member_wallet: memberWalletAddress,
@@ -171,9 +191,11 @@ export default function USDTWithdrawal() {
     },
     onSuccess: (data: any) => {
       if (data.success) {
+        const fee = getWithdrawalFee(currentChainId!);
+        const netAmount = parseFloat(withdrawalAmount) - fee;
         toast({
           title: "Withdrawal Successful! 🎉",
-          description: `${withdrawalAmount} USDT sent to your wallet on ${currentChainInfo?.name}`,
+          description: `${netAmount.toFixed(2)} USDT sent to your wallet on ${currentChainInfo?.name} (${fee} USDT fee deducted)`,
         });
         
         // Update user balance
@@ -233,10 +255,11 @@ export default function USDTWithdrawal() {
       return;
     }
 
-    if (!balance || amount > parseFloat(balance.balanceUSD)) {
+    const fee = getWithdrawalFee(currentChainId!);
+    if (!balance || (amount + fee) > parseFloat(balance.balanceUSD)) {
       toast({
         title: "Insufficient Balance",
-        description: "You don't have enough USDT to withdraw this amount",
+        description: `You need ${(amount + fee).toFixed(2)} USDT (${amount} + ${fee} fee) but only have ${balance?.balanceUSD || '0'}`,
         variant: 'destructive',
       });
       return;
@@ -269,10 +292,11 @@ export default function USDTWithdrawal() {
       return;
     }
 
-    if (!balance || amount > parseFloat(balance.balanceUSD)) {
+    const fee = getWithdrawalFee(currentChainId!);
+    if (!balance || (amount + fee) > parseFloat(balance.balanceUSD)) {
       toast({
         title: "Insufficient Balance",
-        description: "You don't have enough USDT to withdraw this amount",
+        description: `You need ${(amount + fee).toFixed(2)} USDT (${amount} + ${fee} fee) but only have ${balance?.balanceUSD || '0'}`,
         variant: 'destructive',
       });
       return;
@@ -374,12 +398,12 @@ export default function USDTWithdrawal() {
                   <Label className="text-sm text-muted-foreground">Select Token to Withdraw:</Label>
                   <div className="flex gap-2">
                     <Button
-                      variant={selectedToken === 'usdc' ? 'default' : 'outline'}
+                      variant={selectedToken === 'usdt' ? 'default' : 'outline'}
                       size="sm"
-                      onClick={() => setSelectedToken('usdc')}
-                      className={selectedToken === 'usdc' ? 'bg-honey text-black' : ''}
+                      onClick={() => setSelectedToken('usdt')}
+                      className={selectedToken === 'usdt' ? 'bg-honey text-black' : ''}
                     >
-                      USDC (Standard)
+                      USDT (Standard)
                     </Button>
                     <Button
                       variant={selectedToken === 'testUSDT' ? 'default' : 'outline'}
@@ -391,8 +415,8 @@ export default function USDTWithdrawal() {
                     </Button>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {selectedToken === 'usdc' 
-                      ? 'Standard USDC token on Arbitrum One' 
+                    {selectedToken === 'usdt' 
+                      ? 'Standard USDT token on Arbitrum One' 
                       : 'Your custom TEST-USDT token on Arbitrum One'}
                   </p>
                 </div>
@@ -413,9 +437,10 @@ export default function USDTWithdrawal() {
                 className="bg-muted border-honey/20 focus:border-honey"
                 data-testid="input-withdrawal-amount"
               />
-              <p className="text-xs text-muted-foreground">
-                Available: ${balance?.balanceUSD || '0.00'} USDT
-              </p>
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Available: ${balance?.balanceUSD || '0.00'} USDT</span>
+                <span>Fee: ${getWithdrawalFee(currentChainId || 42161)} USDT</span>
+              </div>
             </div>
 
             <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
@@ -469,6 +494,14 @@ export default function USDTWithdrawal() {
                 <span className="font-semibold text-honey">{withdrawalRequest.amountUSD} USDT</span>
               </div>
               <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Withdrawal Fee:</span>
+                <span className="font-semibold text-orange-400">{getWithdrawalFee(currentChainId!)} USDT</span>
+              </div>
+              <div className="flex justify-between items-center border-t border-border pt-2">
+                <span className="text-muted-foreground">You'll Receive:</span>
+                <span className="font-semibold text-green-400">{(parseFloat(withdrawalRequest.amountUSD) - getWithdrawalFee(currentChainId!)).toFixed(2)} USDT</span>
+              </div>
+              <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">To Network:</span>
                 <div className="flex items-center gap-2">
                   <span>{currentChainInfo?.icon}</span>
@@ -482,7 +515,7 @@ export default function USDTWithdrawal() {
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{getTokenInfo(currentChainId, selectedToken).symbol}</span>
                     <Badge variant="outline" className="text-xs">
-                      {selectedToken === 'usdc' ? 'Standard' : 'Custom'}
+                      {selectedToken === 'usdt' ? 'Standard' : 'Custom'}
                     </Badge>
                   </div>
                 </div>
@@ -550,18 +583,18 @@ export default function USDTWithdrawal() {
           </div>
         )}
 
-        {/* Network fees info */}
-        <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+        {/* Withdrawal fees info */}
+        <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4">
           <div className="flex items-start gap-3">
-            <div className="text-blue-400 mt-1">
+            <div className="text-orange-400 mt-1">
               <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
               </svg>
             </div>
             <div>
-              <h4 className="text-sm font-medium text-blue-400 mb-1">Network Fees</h4>
+              <h4 className="text-sm font-medium text-orange-400 mb-1">Withdrawal Fees</h4>
               <p className="text-xs text-muted-foreground">
-                Network fees will be paid by the platform. You receive the full withdrawal amount.
+                A withdrawal fee of {getWithdrawalFee(currentChainId || 42161)} USDT will be deducted and sent to our gas fee wallet for transaction processing. Different networks have different fees.
               </p>
             </div>
           </div>

@@ -2,11 +2,12 @@
 import { supabase } from '../../lib/supabase';
 
 export const coursesApi = {
-  async getCourses() {
+  async getCourses(language = 'en', userLevel?: number) {
     try {
       console.log('📚 获取课程列表...')
       
-      const { data: courses, error } = await supabase
+      // 根据用户等级获取可访问的课程
+      let query = supabase
         .from('courses')
         .select(`
           id,
@@ -14,34 +15,32 @@ export const coursesApi = {
           description,
           required_level,
           price_bcc,
-          is_free,
-          course_type,
-          duration,
+          price_usdt,
+          category,
           difficulty_level,
-          zoom_meeting_id,
-          zoom_password,
-          zoom_link,
-          video_url,
-          scheduled_at,
-          total_enrollments,
-          average_rating,
-          category_id,
-          course_categories (
-            name,
-            icon
-          ),
-          course_instructor_relations (
-            instructor_id,
-            role,
-            course_instructors (
-              name,
-              bio,
-              avatar_url
-            )
+          duration_hours,
+          instructor_name,
+          instructor_wallet,
+          is_active,
+          image_url,
+          metadata,
+          course_type,
+          course_translations (
+            language_code,
+            title,
+            description
           )
         `)
-        .eq('is_published', true)
+        .eq('is_active', true)
+        .order('required_level', { ascending: true })
         .order('created_at', { ascending: false })
+      
+      // 如果提供了用户等级，只显示用户可以访问的课程
+      if (userLevel !== undefined) {
+        query = query.lte('required_level', userLevel)
+      }
+      
+      const { data: courses, error } = await query
 
       if (error) {
         console.error('获取课程失败:', error)
@@ -49,31 +48,38 @@ export const coursesApi = {
       }
 
       // 转换数据格式以匹配前端期望
-      const formattedCourses = courses?.map(course => ({
-        id: course.id,
-        title: course.title,
-        description: course.description,
-        requiredLevel: course.required_level,
-        priceBCC: course.price_bcc,
-        isFree: course.is_free,
-        duration: course.duration,
-        courseType: course.course_type,
-        zoomMeetingId: course.zoom_meeting_id,
-        zoomPassword: course.zoom_password,
-        zoomLink: course.zoom_link,
-        videoUrl: course.video_url,
-        scheduledAt: course.scheduled_at,
-        category: course.course_categories?.name,
-        categoryIcon: course.course_categories?.icon,
-        instructors: course.course_instructor_relations?.map(rel => ({
-          name: rel.course_instructors.name,
-          bio: rel.course_instructors.bio,
-          avatar: rel.course_instructors.avatar_url,
-          role: rel.role
-        })) || [],
-        totalEnrollments: course.total_enrollments,
-        averageRating: course.average_rating
-      })) || []
+      const formattedCourses = courses?.map(course => {
+        const translation = course.course_translations?.find(t => t.language_code === language);
+        const canAccess = userLevel === undefined || course.required_level <= userLevel;
+        
+        return {
+          id: course.id,
+          title: translation?.title || course.title,
+          description: translation?.description || course.description,
+          requiredLevel: course.required_level,
+          priceBCC: course.price_bcc || 0,
+          priceUSDT: course.price_usdt || 0,
+          isFree: (course.price_bcc || 0) === 0,
+          duration: course.duration_hours || 1,
+          courseType: course.course_type || 'video',
+          category: course.category,
+          categoryIcon: course.course_type === 'online' ? '🎥' : '📚',
+          instructors: [{
+            name: course.instructor_name || 'Unknown Instructor',
+            bio: 'Course instructor',
+            avatar: null,
+            role: 'primary',
+            wallet: course.instructor_wallet
+          }],
+          difficultyLevel: course.difficulty_level,
+          imageUrl: course.image_url,
+          metadata: course.metadata,
+          totalEnrollments: 0, // Will calculate later
+          averageRating: 0, // Will calculate later
+          canAccess: canAccess, // 用户是否可以访问此课程
+          levelLocked: !canAccess // 是否因等级限制被锁定
+        };
+      }) || []
 
       console.log(`✅ 返回 ${formattedCourses.length} 门课程`)
       return formattedCourses
@@ -88,26 +94,25 @@ export const coursesApi = {
       console.log(`📖 获取用户课程访问权限: ${walletAddress}`)
       
       const { data: courseAccess, error } = await supabase
-        .from('course_access')
+        .from('course_activations')
         .select(`
           id,
           course_id,
           progress_percentage,
           completed_at,
-          last_accessed_at,
-          access_granted_at,
-          rating,
+          activated_at,
+          expires_at,
+          activation_type,
+          metadata,
           courses (
             title,
-            course_type,
-            zoom_meeting_id,
-            zoom_password,
-            zoom_link,
-            video_url
+            category,
+            image_url,
+            instructor_name
           )
         `)
         .eq('wallet_address', walletAddress)
-        .order('access_granted_at', { ascending: false })
+        .order('activated_at', { ascending: false })
 
       if (error) {
         console.error('获取课程访问权限失败:', error)
@@ -119,21 +124,21 @@ export const coursesApi = {
         id: access.id,
         walletAddress: walletAddress,
         courseId: access.course_id,
-        progress: access.progress_percentage,
+        progress: access.progress_percentage || 0,
         completed: access.completed_at !== null,
-        grantedAt: access.access_granted_at,
-        lastAccessed: access.last_accessed_at,
-        rating: access.rating,
+        grantedAt: access.activated_at,
+        expiresAt: access.expires_at,
+        activationType: access.activation_type,
+        rating: null, // Not in current schema
         course: {
           title: access.courses?.title,
-          type: access.courses?.course_type,
-          zoomInfo: access.courses?.course_type === 'online' ? {
-            meetingId: access.courses?.zoom_meeting_id,
-            password: access.courses?.zoom_password,
-            link: access.courses?.zoom_link
-          } : null,
-          videoUrl: access.courses?.video_url
-        }
+          type: 'online', // Default type
+          category: access.courses?.category,
+          instructor: access.courses?.instructor_name,
+          imageUrl: access.courses?.image_url,
+          zoomInfo: null // Not available in current schema
+        },
+        metadata: access.metadata
       })) || []
 
       console.log(`✅ 返回 ${formattedAccess.length} 个课程访问记录`)
@@ -155,7 +160,7 @@ export const coursesApi = {
       // 1. 获取课程信息
       const { data: course, error: courseError } = await supabase
         .from('courses')
-        .select('id, title, price_bcc, required_level, is_published')
+        .select('id, title, price_bcc, price_usdt, required_level, is_active')
         .eq('id', courseId)
         .maybeSingle()
 
@@ -163,7 +168,7 @@ export const coursesApi = {
         throw new Error('课程不存在')
       }
 
-      if (!course.is_published) {
+      if (!course.is_active) {
         throw new Error('课程未发布')
       }
 
@@ -184,7 +189,7 @@ export const coursesApi = {
 
       // 3. 检查是否已经购买
       const { data: existingAccess } = await supabase
-        .from('course_access')
+        .from('course_activations')
         .select('id')
         .eq('wallet_address', walletAddress)
         .eq('course_id', courseId)
@@ -212,15 +217,20 @@ export const coursesApi = {
         }
       }
 
-      // 6. 创建课程访问记录
+      // 6. 创建课程激活记录
       const { data: courseAccess, error: accessError } = await supabase
-        .from('course_access')
+        .from('course_activations')
         .insert({
           wallet_address: walletAddress,
           course_id: courseId,
-          payment_method: course.price_bcc > 0 ? 'bcc' : 'free',
-          amount_paid: course.price_bcc,
-          access_granted_at: new Date().toISOString()
+          activation_type: course.price_bcc > 0 ? 'purchase' : 'free',
+          activated_at: new Date().toISOString(),
+          progress_percentage: 0,
+          metadata: {
+            payment_method: course.price_bcc > 0 ? 'bcc' : 'free',
+            amount_paid_bcc: course.price_bcc || 0,
+            amount_paid_usdt: course.price_usdt || 0
+          }
         })
         .select()
         .maybeSingle()
@@ -237,7 +247,7 @@ export const coursesApi = {
         courseAccess: {
           id: courseAccess.id,
           courseId: courseId,
-          grantedAt: courseAccess.access_granted_at
+          grantedAt: courseAccess.activated_at
         }
       }
     } catch (error) {
@@ -246,7 +256,7 @@ export const coursesApi = {
     }
   },
 
-  async updateProgress(courseId: string, progress: number, walletAddress?: string) {
+  async updateProgress(courseId: string, progress: number, walletAddress?: string, lessonId?: string) {
     try {
       if (!walletAddress) {
         throw new Error('需要钱包地址');
@@ -259,31 +269,50 @@ export const coursesApi = {
         throw new Error('进度必须在0-100之间')
       }
 
-      // 检查课程访问权限
+      // 检查课程激活状态
       const { data: courseAccess, error: accessError } = await supabase
-        .from('course_access')
+        .from('course_activations')
         .select('id, progress_percentage')
         .eq('wallet_address', walletAddress)
         .eq('course_id', courseId)
         .maybeSingle()
 
       if (accessError || !courseAccess) {
-        throw new Error('没有此课程的访问权限')
+        throw new Error('没有此课程的激活记录')
       }
 
-      // 更新进度
+      // 如果提供了lessonId，更新具体lesson的进度
+      if (lessonId) {
+        const { error: lessonProgressError } = await supabase
+          .from('course_progress')
+          .upsert({
+            wallet_address: walletAddress,
+            course_id: courseId,
+            lesson_id: lessonId,
+            completed: progress >= 100,
+            time_spent_minutes: Math.floor(progress / 100 * 60), // 估算时间
+            last_accessed_at: new Date().toISOString(),
+            completed_at: progress >= 100 ? new Date().toISOString() : null,
+            overall_progress_percentage: progress
+          })
+
+        if (lessonProgressError) {
+          console.error('更新lesson进度失败:', lessonProgressError)
+        }
+      }
+
+      // 更新课程整体进度
       const updateData: any = {
-        progress_percentage: progress,
-        last_accessed_at: new Date().toISOString()
+        progress_percentage: progress
       }
 
       // 如果进度达到100%，标记为完成
-      if (progress >= 100 && courseAccess.progress_percentage < 100) {
+      if (progress >= 100 && (courseAccess.progress_percentage || 0) < 100) {
         updateData.completed_at = new Date().toISOString()
       }
 
       const { error: updateError } = await supabase
-        .from('course_access')
+        .from('course_activations')
         .update(updateData)
         .eq('id', courseAccess.id)
 
@@ -301,6 +330,147 @@ export const coursesApi = {
       }
     } catch (error) {
       console.error('更新进度失败:', error);
+      throw error;
+    }
+  },
+
+  // 获取课程lessons（支持多语言）
+  async getCourseLessons(courseId: string, language = 'en', walletAddress?: string) {
+    try {
+      console.log(`📚 获取课程lessons: ${courseId} (${language})`)
+      
+      const { data: lessons, error } = await supabase
+        .from('course_lessons')
+        .select(`
+          id,
+          title,
+          description,
+          lesson_order,
+          content_type,
+          content_url,
+          duration_minutes,
+          is_free,
+          metadata,
+          lesson_translations (
+            language_code,
+            title,
+            description
+          )
+        `)
+        .eq('course_id', courseId)
+        .order('lesson_order', { ascending: true })
+
+      if (error) {
+        console.error('获取lessons失败:', error)
+        return []
+      }
+
+      // 检查用户是否有课程访问权限
+      let hasAccess = false
+      if (walletAddress) {
+        const { data: activation } = await supabase
+          .from('course_activations')
+          .select('id')
+          .eq('wallet_address', walletAddress)
+          .eq('course_id', courseId)
+          .maybeSingle()
+        hasAccess = !!activation
+      }
+
+      const formattedLessons = lessons?.map(lesson => {
+        const translation = lesson.lesson_translations?.find(t => t.language_code === language)
+        const canAccess = lesson.is_free || hasAccess
+        
+        return {
+          id: lesson.id,
+          title: translation?.title || lesson.title,
+          description: translation?.description || lesson.description,
+          order: lesson.lesson_order,
+          contentType: lesson.content_type,
+          contentUrl: canAccess ? lesson.content_url : null,
+          duration: lesson.duration_minutes,
+          isFree: lesson.is_free,
+          canAccess: canAccess,
+          metadata: lesson.metadata
+        }
+      }) || []
+
+      console.log(`✅ 返回 ${formattedLessons.length} 个lessons`)
+      return formattedLessons
+    } catch (error) {
+      console.error('获取lessons失败:', error);
+      return [];
+    }
+  },
+
+  // 预约online课程
+  async bookOnlineCourse(courseId: string, scheduledAt: string, meetingType: 'zoom' | 'voov', walletAddress?: string) {
+    try {
+      if (!walletAddress) {
+        throw new Error('需要钱包地址');
+      }
+      
+      console.log(`📅 预约online课程: ${courseId} -> ${scheduledAt}`)
+      
+      // 检查用户是否已购买课程
+      const { data: activation } = await supabase
+        .from('course_activations')
+        .select('id')
+        .eq('wallet_address', walletAddress)
+        .eq('course_id', courseId)
+        .maybeSingle()
+
+      if (!activation) {
+        throw new Error('需要先购买课程才能预约')
+      }
+
+      // 生成验证码
+      const verificationCode = Math.random().toString(36).substr(2, 6).toUpperCase()
+      
+      // 生成会议信息（模拟）
+      const meetingInfo = {
+        url: meetingType === 'zoom' ? 'https://zoom.us/j/123456789' : 'https://meeting.tencent.com/dm/123456789',
+        id: '123456789',
+        password: 'course123'
+      }
+
+      const { data: booking, error } = await supabase
+        .from('course_bookings')
+        .insert({
+          course_id: courseId,
+          wallet_address: walletAddress,
+          scheduled_at: scheduledAt,
+          meeting_type: meetingType,
+          meeting_url: meetingInfo.url,
+          meeting_id: meetingInfo.id,
+          meeting_password: meetingInfo.password,
+          verification_code: verificationCode,
+          status: 'booked'
+        })
+        .select()
+        .maybeSingle()
+
+      if (error) {
+        throw new Error(`预约失败: ${error.message}`)
+      }
+
+      console.log(`✅ 课程预约成功: ${verificationCode}`)
+
+      return {
+        success: true,
+        booking: {
+          id: booking.id,
+          scheduledAt: booking.scheduled_at,
+          meetingType: booking.meeting_type,
+          meetingUrl: booking.meeting_url,
+          meetingId: booking.meeting_id,
+          meetingPassword: booking.meeting_password,
+          verificationCode: booking.verification_code,
+          instructions: `请在会议中将昵称设置为: [username]+${verificationCode}`
+        }
+      }
+    } catch (error) {
+      console.error('预约课程失败:', error);
       throw error;
     }
   }
