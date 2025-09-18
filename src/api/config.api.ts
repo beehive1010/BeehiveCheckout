@@ -154,9 +154,100 @@ class ConfigAPI {
 
   // Get discover partners (keeping this for compatibility, but could be moved to Supabase later)
   async getDiscoverPartners(): Promise<DiscoverPartner[]> {
-    // For now, return empty array as this feature may not be migrated yet
+    // For now, return mock data to showcase the discover functionality
     // TODO: Implement discover partners in Supabase if needed
-    return [];
+    return [
+      {
+        id: '1',
+        name: 'Uniswap',
+        logoUrl: 'https://cryptologos.cc/logos/uniswap-uni-logo.png',
+        websiteUrl: 'https://app.uniswap.org',
+        shortDescription: 'Leading decentralized exchange for swapping cryptocurrencies',
+        longDescription: 'Uniswap is a decentralized trading protocol, guaranteed liquidity for millions of users and hundreds of Ethereum applications.',
+        tags: ['DEX', 'DeFi', 'Trading'],
+        chains: ['Ethereum', 'Polygon', 'Arbitrum'],
+        dappType: 'defi',
+        featured: true,
+        status: 'published',
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-01')
+      },
+      {
+        id: '2',
+        name: 'OpenSea',
+        logoUrl: 'https://storage.googleapis.com/opensea-static/Logomark/OpenSea-Full-Logo%20(dark).svg',
+        websiteUrl: 'https://opensea.io',
+        shortDescription: 'The largest NFT marketplace for buying, selling, and trading digital assets',
+        longDescription: 'OpenSea is the world\'s first and largest web3 marketplace for NFTs and crypto collectibles.',
+        tags: ['NFT', 'Marketplace', 'Trading'],
+        chains: ['Ethereum', 'Polygon'],
+        dappType: 'nft',
+        featured: true,
+        status: 'published',
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-01')
+      },
+      {
+        id: '3',
+        name: 'MetaMask',
+        logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg',
+        websiteUrl: 'https://metamask.io',
+        shortDescription: 'The leading self-custodial wallet for Web3',
+        longDescription: 'MetaMask is a software cryptocurrency wallet used to interact with the Ethereum blockchain.',
+        tags: ['Wallet', 'Security', 'Web3'],
+        chains: ['Ethereum', 'BSC', 'Polygon'],
+        dappType: 'wallet',
+        featured: true,
+        status: 'published',
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-01')
+      },
+      {
+        id: '4',
+        name: 'Compound',
+        logoUrl: 'https://compound.finance/images/compound-mark.svg',
+        websiteUrl: 'https://compound.finance',
+        shortDescription: 'Algorithmic money market protocol for earning interest on crypto',
+        longDescription: 'Compound is an algorithmic, autonomous interest rate protocol built for developers.',
+        tags: ['DeFi', 'Lending', 'Interest'],
+        chains: ['Ethereum'],
+        dappType: 'defi',
+        featured: false,
+        status: 'published',
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-01')
+      },
+      {
+        id: '5',
+        name: 'Axie Infinity',
+        logoUrl: 'https://whitelist.coinmarketcap.com/api/v1/public/uploads/axie_infinity_logo.png',
+        websiteUrl: 'https://axieinfinity.com',
+        shortDescription: 'Play-to-earn blockchain game with NFT creatures',
+        longDescription: 'Axie Infinity is a Pokémon-inspired digital pet universe where players battle, raise, and trade fantasy creatures called Axies.',
+        tags: ['Gaming', 'NFT', 'Play-to-Earn'],
+        chains: ['Ethereum', 'Ronin'],
+        dappType: 'gaming',
+        featured: false,
+        status: 'published',
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-01')
+      },
+      {
+        id: '6',
+        name: 'Chainlink',
+        logoUrl: 'https://chain.link/badge-randomness-blue',
+        websiteUrl: 'https://chain.link',
+        shortDescription: 'Decentralized oracle network providing real-world data to smart contracts',
+        longDescription: 'Chainlink is a decentralized oracle network that enables smart contracts to securely access off-chain data feeds.',
+        tags: ['Oracle', 'Data', 'Infrastructure'],
+        chains: ['Ethereum', 'BSC', 'Polygon'],
+        dappType: 'tools',
+        featured: false,
+        status: 'published',
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-01')
+      }
+    ];
   }
 }
 
