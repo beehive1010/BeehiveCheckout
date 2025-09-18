@@ -182,10 +182,10 @@ export default function NFTs() {
       return;
     }
 
-    // Check BCC balance - fallback to direct database query if bccBalance is not available
-    let currentBCC = bccBalance?.transferable || 0;
+    // Check BCC balance - use direct balance if available, otherwise fallback to useWallet balance
+    let currentBCC = directBCCBalance !== null ? directBCCBalance : (bccBalance?.transferable || 0);
     
-    // If bccBalance is 0 or undefined, query database directly
+    // If still no balance, query database directly
     if (currentBCC === 0) {
       try {
         const { data: balanceData } = await supabase
@@ -214,30 +214,19 @@ export default function NFTs() {
       // Generate mock transaction hash
       const transactionHash = `0x${Date.now().toString(16)}${Math.random().toString(16).slice(2, 10)}`;
 
-      // Use balance API to spend BCC for NFT purchase
-      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/balance', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Content-Type': 'application/json',
-          'x-wallet-address': walletAddress
-        },
-        body: JSON.stringify({
-          action: 'spend-bcc',
-          amount: nft.price_bcc,
-          itemType: 'nft',
-          itemId: nft.id,
-          nftType: nftType,
-          purpose: `Purchase NFT: ${nft.title}`
-        })
+      // Use Supabase SDK to spend BCC for NFT purchase
+      const { data: spendResult, error: spendError } = await supabase.rpc('spend_bcc_tokens', {
+        p_wallet_address: walletAddress,
+        p_amount: nft.price_bcc,
+        p_purpose: 'nft_purchase',
+        p_item_reference: nft.id
       });
 
-      const purchaseResult = await response.json();
-      
-      if (!purchaseResult.success) {
-        throw new Error(purchaseResult.error || 'Purchase failed');
+      if (spendError || !spendResult?.success) {
+        throw new Error(`BCC spending failed: ${spendError?.message || spendResult?.error || 'Unknown error'}`);
       }
+
+      console.log(`✅ BCC spent successfully: ${nft.price_bcc} BCC for NFT ${nft.title}`);
 
       // Create NFT purchase record
       const { error: purchaseError } = await supabase
@@ -279,9 +268,10 @@ export default function NFTs() {
         duration: 6000
       });
 
-      // Refresh data
+      // Refresh data including direct balance
       await Promise.all([
         fetchMyPurchases(),
+        fetchDirectBCCBalance(),
         nftType === 'merchant' ? fetchMerchantNFTs() : fetchAdvertisementNFTs()
       ]);
 
@@ -303,9 +293,10 @@ export default function NFTs() {
     Promise.all([
       fetchAdvertisementNFTs(),
       fetchMerchantNFTs(),
-      fetchMyPurchases()
+      fetchMyPurchases(),
+      fetchDirectBCCBalance()
     ]).finally(() => setLoading(false));
-  }, [fetchAdvertisementNFTs, fetchMerchantNFTs, fetchMyPurchases]);
+  }, [fetchAdvertisementNFTs, fetchMerchantNFTs, fetchMyPurchases, fetchDirectBCCBalance]);
 
   // Calculate stats
   const adNFTsOwned = myPurchases.filter(p => p.nft_type === 'advertisement').length;
@@ -344,7 +335,7 @@ export default function NFTs() {
                 <span>BCC Balance</span>
               </div>
               <div className="text-lg font-bold text-green-400">
-                {(bccBalance?.transferable || 0).toFixed(2)} BCC
+                {((directBCCBalance !== null ? directBCCBalance : bccBalance?.transferable) || 0).toFixed(2)} BCC
               </div>
             </div>
           </div>
