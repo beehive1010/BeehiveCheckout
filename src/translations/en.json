@@ -820,7 +820,8 @@
     "claimable": "Claimable",
     "timeRemaining": "Time Remaining",
     "expiresAt": "Expires At",
-    "refreshCountdown": "Refresh Countdown"
+    "refreshCountdown": "Refresh Countdown",
+    "pendingRewards": "Pending Rewards"
   },
   "me": {
     "title": "User Center",

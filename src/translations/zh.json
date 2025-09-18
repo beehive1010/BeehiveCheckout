@@ -903,7 +903,8 @@
     "claimable": "可领取",
     "timeRemaining": "剩余时间",
     "expiresAt": "到期时间",
-    "refreshCountdown": "刷新倒计时"
+    "refreshCountdown": "刷新倒计时",
+    "pendingRewards": "待处理奖励"
   },
   "nft": {
     "claimError": "认领失败",
