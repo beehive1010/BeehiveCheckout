@@ -151,6 +151,26 @@ export default function NFTs() {
     }
   }, [walletAddress, toast]);
 
+  // Fetch direct BCC balance from database
+  const fetchDirectBCCBalance = useCallback(async () => {
+    if (!walletAddress) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_balances')
+        .select('bcc_balance')
+        .eq('wallet_address', walletAddress)
+        .single();
+
+      if (error) throw error;
+      setDirectBCCBalance(data?.bcc_balance || 0);
+      console.log(`💰 Direct BCC Balance: ${data?.bcc_balance || 0}`);
+    } catch (error) {
+      console.error('Error fetching direct BCC balance:', error);
+      setDirectBCCBalance(0);
+    }
+  }, [walletAddress]);
+
   // Purchase NFT function
   const handlePurchaseNFT = async (nft: AdvertisementNFT | MerchantNFT, nftType: 'advertisement' | 'merchant') => {
     if (!walletAddress) {
