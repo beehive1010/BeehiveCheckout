@@ -67,7 +67,11 @@
       "Bash(do echo \"=== $file ===\")",
       "WebFetch(domain:portal.thirdweb.com)",
       "Bash(./test-complete-flow.sh:*)",
-      "Bash(./test-complete-webhook.sh:*)"
+      "Bash(./test-complete-webhook.sh:*)",
+      "Bash(git merge:*)",
+      "Bash(git checkout:*)",
+      "Bash(git stash:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
