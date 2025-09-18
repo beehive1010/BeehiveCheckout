@@ -8,7 +8,7 @@ import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useToast } from '../hooks/use-toast';
 import { Megaphone, Package, ArrowRight, Star, Loader2, ShoppingCart, Eye, Sparkles, Palette } from 'lucide-react';
-import { supabase } from '../lib/supabaseClient';
+import { supabase, orderService } from '../lib/supabaseClient';
 
 interface AdvertisementNFT {
   id: string;
@@ -228,30 +228,28 @@ export default function NFTs() {
 
       console.log(`✅ BCC spent successfully: ${nft.price_bcc} BCC for NFT ${nft.title}`);
 
-      // Create NFT purchase record
-      const { error: purchaseError } = await supabase
-        .from('nft_purchases')
-        .insert({
-          buyer_wallet: walletAddress,
-          nft_id: nft.id,
-          nft_type: nftType,
-          price_bcc: nft.price_bcc,
-          price_usdt: nft.price_usdt || 0,
-          payment_method: 'bcc',
-          transaction_hash: transactionHash,
-          metadata: {
-            nft_title: nft.title,
-            category: nft.category || nftType,
-            image_url: nft.image_url
-          }
-        });
+      // Create NFT purchase record using the orderService
+      const { data: purchaseRecord, error: purchaseError } = await orderService.createNFTPurchase({
+        buyer_wallet: walletAddress,
+        nft_id: nft.id,
+        nft_type: nftType,
+        price_bcc: nft.price_bcc,
+        price_usdt: nft.price_usdt || 0,
+        payment_method: 'bcc',
+        transaction_hash: transactionHash,
+        metadata: {
+          nft_title: nft.title,
+          category: nft.category || nftType,
+          image_url: nft.image_url
+        }
+      });
 
       if (purchaseError) {
         console.error('❌ Error creating purchase record:', purchaseError);
         throw new Error(`Failed to create purchase record: ${purchaseError.message}`);
       }
       
-      console.log('✅ NFT purchase record created successfully');
+      console.log('✅ NFT purchase record created successfully:', purchaseRecord?.id);
 
       // Update supply for merchant NFTs
       if (nftType === 'merchant' && nft.supply_available && nft.supply_available > 0) {
