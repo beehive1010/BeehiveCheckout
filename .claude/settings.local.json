@@ -71,7 +71,9 @@
       "Bash(git merge:*)",
       "Bash(git checkout:*)",
       "Bash(git stash:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

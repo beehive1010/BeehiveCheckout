@@ -1,16 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { useActiveAccount, useSendTransaction } from 'thirdweb/react';
+import { useActiveAccount, useActiveWalletChain } from 'thirdweb/react';
 import { useWallet } from '@/hooks/useWallet';
-import { client } from '@/lib/web3';
-import { DollarSign, ArrowRight, Loader2, ExternalLink, CheckCircle, AlertTriangle } from 'lucide-react';
+import { DollarSign, ArrowRight, Loader2, CheckCircle, AlertTriangle, Wallet, Link } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -30,29 +28,75 @@ interface WithdrawalRequest {
   message: string;
 }
 
-const SUPPORTED_CHAINS = [
-  { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', icon: '🔷', color: 'text-blue-400' },
-  { id: 'polygon', name: 'Polygon', symbol: 'MATIC', icon: '🟣', color: 'text-purple-400' },
-  { id: 'arbitrum', name: 'Arbitrum', symbol: 'ARB', icon: '🔵', color: 'text-blue-300' },
-  { id: 'optimism', name: 'Optimism', symbol: 'OP', icon: '🔴', color: 'text-red-400' },
-  { id: 'bsc', name: 'BSC', symbol: 'BNB', icon: '🟡', color: 'text-yellow-400' },
-];
+// Chain mapping from thirdweb chain IDs to readable names
+const CHAIN_INFO = {
+  1: { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', icon: '🔷', color: 'text-blue-400', testnet: false },
+  137: { id: 'polygon', name: 'Polygon', symbol: 'MATIC', icon: '🟣', color: 'text-purple-400', testnet: false },
+  42161: { id: 'arbitrum', name: 'Arbitrum One', symbol: 'ARB', icon: '🔵', color: 'text-blue-300', testnet: false },
+  421614: { id: 'arbitrum-sepolia', name: 'Arbitrum Sepolia', symbol: 'ETH', icon: '🧪', color: 'text-orange-400', testnet: true },
+  10: { id: 'optimism', name: 'Optimism', symbol: 'OP', icon: '🔴', color: 'text-red-400', testnet: false },
+  56: { id: 'bsc', name: 'BSC', symbol: 'BNB', icon: '🟡', color: 'text-yellow-400', testnet: false },
+  8453: { id: 'base', name: 'Base', symbol: 'BASE', icon: '🔵', color: 'text-blue-500', testnet: false },
+};
+
+// Token contract addresses for each chain
+const TOKEN_ADDRESSES = {
+  1: { address: '0xA0b86a33E6411efaC5C8F58fb8DbbBe3ba5eC1A3', symbol: 'USDC', decimals: 6 },     // Ethereum USDC
+  137: { address: '0x2791Bca1f2de4661ED88A30c99A7a9449Aa84174', symbol: 'USDC', decimals: 6 },   // Polygon USDC
+  42161: { 
+    usdc: { address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', symbol: 'USDC', decimals: 6 }, // Arbitrum USDC
+    testUSDT: { 
+      address: import.meta.env.VITE_ARB_TEST_USDT_ADDRESS || '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d', 
+      symbol: 'TEST-USDT', 
+      decimals: 18 
+    } // Your custom Test USDT on Arbitrum
+  },
+  10: { address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85', symbol: 'USDC', decimals: 6 },    // Optimism USDC
+  56: { address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', symbol: 'USDC', decimals: 6 },    // BSC USDC
+  8453: { address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', symbol: 'USDC', decimals: 6 }   // Base USDC
+};
+
+// Helper function to get token address and info for a chain
+const getTokenInfo = (chainId: number, tokenType: 'usdc' | 'testUSDT' = 'usdc') => {
+  const chainTokens = TOKEN_ADDRESSES[chainId as keyof typeof TOKEN_ADDRESSES];
+  
+  if (chainId === 42161 && typeof chainTokens === 'object' && 'usdc' in chainTokens) {
+    // Arbitrum has multiple tokens
+    return chainTokens[tokenType];
+  } else if (typeof chainTokens === 'object' && 'address' in chainTokens) {
+    // Other chains have single token
+    return chainTokens;
+  }
+  
+  // Default to Arbitrum USDC
+  return TOKEN_ADDRESSES[42161].usdc;
+};
+
+// Legacy helper function for backward compatibility
+const getUSDCAddress = (chainId: number, tokenType: 'usdc' | 'testUSDT' = 'usdc') => {
+  const tokenInfo = getTokenInfo(chainId, tokenType);
+  return tokenInfo.address;
+};
 
 export default function USDTWithdrawal() {
   const { toast } = useToast();
   const account = useActiveAccount();
+  const activeChain = useActiveWalletChain();
   const { userData } = useWallet();
   const queryClient = useQueryClient();
-  const { mutate: sendTransaction } = useSendTransaction();
   
   // Use the registered wallet address from user data if available, fallback to connected wallet
   const memberWalletAddress = userData?.wallet_address || account?.address;
   
+  // Auto-detect current wallet and chain info
+  const currentWalletAddress = account?.address || '';
+  const currentChainId = activeChain?.id;
+  const currentChainInfo = currentChainId ? CHAIN_INFO[currentChainId as keyof typeof CHAIN_INFO] : null;
+  
   const [withdrawalAmount, setWithdrawalAmount] = useState('');
-  const [selectedChain, setSelectedChain] = useState('');
-  const [recipientAddress, setRecipientAddress] = useState('');
   const [withdrawalRequest, setWithdrawalRequest] = useState<WithdrawalRequest | null>(null);
-  const [step, setStep] = useState<'form' | 'confirm' | 'signing' | 'processing' | 'success'>('form');
+  const [step, setStep] = useState<'form' | 'confirm' | 'processing' | 'success'>('form');
+  const [selectedToken, setSelectedToken] = useState<'usdc' | 'testUSDT'>('usdc'); // Token selection for Arbitrum
 
   // Get user USDT balance from rewards system
   const { data: balance, isLoading: balanceLoading } = useQuery<USDTBalance>({
@@ -88,57 +132,81 @@ export default function USDTWithdrawal() {
     },
   });
 
-  // Initiate withdrawal mutation
-  const initiateWithdrawalMutation = useMutation({
-    mutationFn: async (data: { amount: number; chain: string; recipientAddress: string }) => {
-      return await apiRequest('/api/usdt/withdraw', 'POST', {
-        ...data,
-        walletAddress: memberWalletAddress,
+  // Server wallet withdrawal mutation - no user signing required
+  const serverWithdrawalMutation = useMutation({
+    mutationFn: async (data: { amount: number; recipientAddress: string }) => {
+      if (!currentChainInfo) {
+        throw new Error('Unsupported chain. Please switch to a supported network.');
+      }
+      
+      // Call server wallet to perform withdrawal using thirdweb
+      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/server-wallet/withdraw', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'wallet-address': memberWalletAddress!,
+        },
+        body: JSON.stringify({
+          user_wallet: data.recipientAddress,
+          amount: data.amount.toString(),
+          target_chain_id: currentChainId,
+          token_address: getUSDCAddress(currentChainId!, selectedToken),
+          user_signature: 'server_initiated', // Server wallet doesn't need user signature
+          metadata: {
+            source: 'rewards_withdrawal',
+            member_wallet: memberWalletAddress,
+            initiated_by: 'user'
+          }
+        })
       });
-    },
-    onSuccess: (data: WithdrawalRequest) => {
-      setWithdrawalRequest(data);
-      setStep('confirm');
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Withdrawal Failed",
-        description: error.message || "Failed to initiate withdrawal",
-        variant: 'destructive',
-      });
-    },
-  });
-
-  // Confirm withdrawal mutation
-  const confirmWithdrawalMutation = useMutation({
-    mutationFn: async (data: { withdrawalId: string; signature: string; amount: number; chain: string; recipientAddress: string }) => {
-      return await apiRequest('/api/usdt/withdraw/confirm', 'POST', {
-        ...data,
-        walletAddress: memberWalletAddress,
-      });
+      
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error || 'Withdrawal failed');
+      }
+      
+      return await response.json();
     },
     onSuccess: (data: any) => {
-      toast({
-        title: "Withdrawal Successful!",
-        description: `Successfully withdrawn ${data.amount} USDT to ${data.chain}`,
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/usdt/balance'] });
-      setStep('success');
+      if (data.success) {
+        toast({
+          title: "Withdrawal Successful! 🎉",
+          description: `${withdrawalAmount} USDT sent to your wallet on ${currentChainInfo?.name}`,
+        });
+        
+        // Update user balance
+        queryClient.invalidateQueries({ queryKey: ['/api/rewards/balance'] });
+        setStep('success');
+        setWithdrawalRequest({
+          withdrawalId: data.transaction_hash || data.withdrawalId || 'completed',
+          amount: parseFloat(withdrawalAmount),
+          amountUSD: withdrawalAmount,
+          chain: currentChainInfo?.name || 'Unknown',
+          recipientAddress: currentWalletAddress,
+          status: 'completed',
+          message: data.message || 'Withdrawal completed successfully'
+        });
+      } else {
+        throw new Error(data.error || 'Withdrawal failed');
+      }
     },
     onError: (error: any) => {
       toast({
         title: "Withdrawal Failed",
-        description: error.message || "Failed to confirm withdrawal",
+        description: error.message || "Failed to process withdrawal",
         variant: 'destructive',
       });
       setStep('form');
     },
   });
 
+
   const handleInitiateWithdrawal = () => {
-    const amountCents = Math.round(parseFloat(withdrawalAmount) * 100);
+    const amount = parseFloat(withdrawalAmount);
     
-    if (!withdrawalAmount || amountCents <= 0) {
+    if (!withdrawalAmount || amount <= 0) {
       toast({
         title: "Invalid Amount",
         description: "Please enter a valid withdrawal amount",
@@ -147,25 +215,25 @@ export default function USDTWithdrawal() {
       return;
     }
 
-    if (!selectedChain) {
+    if (!currentWalletAddress) {
       toast({
-        title: "Select Chain",
-        description: "Please select a blockchain to withdraw to",
+        title: "Wallet Not Connected",
+        description: "Please connect your wallet to proceed",
         variant: 'destructive',
       });
       return;
     }
 
-    if (!recipientAddress || !/^0x[a-fA-F0-9]{40}$/.test(recipientAddress)) {
+    if (!currentChainInfo) {
       toast({
-        title: "Invalid Address",
-        description: "Please enter a valid wallet address",
+        title: "Unsupported Chain",
+        description: "Please switch to a supported network (Ethereum, Polygon, Arbitrum, Optimism, BSC, or Base)",
         variant: 'destructive',
       });
       return;
     }
 
-    if (!balance || amountCents > balance.balance) {
+    if (!balance || amount > parseFloat(balance.balanceUSD)) {
       toast({
         title: "Insufficient Balance",
         description: "You don't have enough USDT to withdraw this amount",
@@ -174,55 +242,56 @@ export default function USDTWithdrawal() {
       return;
     }
 
-    initiateWithdrawalMutation.mutate({
-      amount: amountCents,
-      chain: selectedChain,
-      recipientAddress,
+    // Create withdrawal request object for confirmation
+    setWithdrawalRequest({
+      withdrawalId: '',
+      amount: amount,
+      amountUSD: withdrawalAmount,
+      chain: currentChainInfo.name,
+      recipientAddress: currentWalletAddress,
+      status: 'pending',
+      message: 'Ready for confirmation'
     });
+    
+    // Show confirmation step
+    setStep('confirm');
   };
 
-  const handleConfirmWithdrawal = async () => {
-    if (!withdrawalRequest || !memberWalletAddress) return;
-
-    setStep('signing');
-
-    try {
-      // Create a message for the user to sign
-      const message = withdrawalRequest.message;
-      
-      // In a real implementation, you would use the user's wallet to sign this message
-      // For now, we'll use a mock signature
-      const mockSignature = `0x${Math.random().toString(16).slice(2).padStart(130, '0')}`;
-
-      setStep('processing');
-      
-      confirmWithdrawalMutation.mutate({
-        withdrawalId: withdrawalRequest.withdrawalId,
-        signature: mockSignature,
-        amount: withdrawalRequest.amount,
-        chain: withdrawalRequest.chain,
-        recipientAddress: withdrawalRequest.recipientAddress,
-      });
-    } catch (error) {
-      console.error('Signing error:', error);
+  const handleConfirmWithdrawal = () => {
+    const amount = parseFloat(withdrawalAmount);
+    
+    if (!currentWalletAddress || !/^0x[a-fA-F0-9]{40}$/.test(currentWalletAddress)) {
       toast({
-        title: "Signing Failed",
-        description: "Failed to sign the withdrawal request",
+        title: "Invalid Wallet",
+        description: "Please connect a valid wallet address",
         variant: 'destructive',
       });
-      setStep('confirm');
+      return;
     }
+
+    if (!balance || amount > parseFloat(balance.balanceUSD)) {
+      toast({
+        title: "Insufficient Balance",
+        description: "You don't have enough USDT to withdraw this amount",
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setStep('processing');
+    
+    // Call server wallet withdrawal directly - no user signing required
+    serverWithdrawalMutation.mutate({
+      amount: amount,
+      recipientAddress: currentWalletAddress
+    });
   };
 
   const resetForm = () => {
     setStep('form');
     setWithdrawalRequest(null);
     setWithdrawalAmount('');
-    setSelectedChain('');
-    setRecipientAddress('');
   };
-
-  const selectedChainInfo = SUPPORTED_CHAINS.find(chain => chain.id === selectedChain) || SUPPORTED_CHAINS[0];
 
   if (balanceLoading) {
     return (
@@ -256,6 +325,80 @@ export default function USDTWithdrawal() {
       <CardContent className="space-y-6">
         {step === 'form' && (
           <>
+            {/* Current Wallet & Chain Info */}
+            <div className="bg-muted/30 rounded-lg p-4 space-y-3">
+              <h4 className="font-semibold text-honey flex items-center gap-2">
+                <Wallet className="h-4 w-4" />
+                Connected Wallet Information
+              </h4>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Wallet Address:</span>
+                  <span className="font-mono text-xs bg-muted px-2 py-1 rounded">
+                    {currentWalletAddress ? `${currentWalletAddress.slice(0, 6)}...${currentWalletAddress.slice(-4)}` : 'Not Connected'}
+                  </span>
+                </div>
+                
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Current Network:</span>
+                  {currentChainInfo ? (
+                    <div className="flex items-center gap-2">
+                      <span>{currentChainInfo.icon}</span>
+                      <span className="font-medium">{currentChainInfo.name}</span>
+                      <Badge className={`${currentChainInfo.color} text-xs`}>{currentChainInfo.symbol}</Badge>
+                      {currentChainInfo.testnet && (
+                        <Badge variant="outline" className="text-xs text-orange-500 border-orange-500">
+                          TESTNET
+                        </Badge>
+                      )}
+                    </div>
+                  ) : (
+                    <Badge variant="destructive" className="text-xs">Unsupported Chain</Badge>
+                  )}
+                </div>
+              </div>
+              
+              {!currentChainInfo && (
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription className="text-sm">
+                    Please switch to a supported network: Ethereum, Polygon, Arbitrum One, Arbitrum Sepolia (testnet), Optimism, BSC, or Base
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {/* Token Selection for Arbitrum */}
+              {currentChainId === 42161 && (
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Select Token to Withdraw:</Label>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={selectedToken === 'usdc' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSelectedToken('usdc')}
+                      className={selectedToken === 'usdc' ? 'bg-honey text-black' : ''}
+                    >
+                      USDC (Standard)
+                    </Button>
+                    <Button
+                      variant={selectedToken === 'testUSDT' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSelectedToken('testUSDT')}
+                      className={selectedToken === 'testUSDT' ? 'bg-honey text-black' : ''}
+                    >
+                      TEST-USDT (Custom)
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedToken === 'usdc' 
+                      ? 'Standard USDC token on Arbitrum One' 
+                      : 'Your custom TEST-USDT token on Arbitrum One'}
+                  </p>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="amount" className="text-honey">Withdrawal Amount (USDT)</Label>
               <Input
@@ -271,55 +414,32 @@ export default function USDTWithdrawal() {
                 data-testid="input-withdrawal-amount"
               />
               <p className="text-xs text-muted-foreground">
-                Claimable: ${balance?.balanceUSD || '0.00'} USDT
+                Available: ${balance?.balanceUSD || '0.00'} USDT
               </p>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="chain" className="text-honey">Destination Blockchain</Label>
-              <Select value={selectedChain} onValueChange={setSelectedChain}>
-                <SelectTrigger className="bg-muted border-honey/20 focus:border-honey">
-                  <SelectValue placeholder="Select blockchain" />
-                </SelectTrigger>
-                <SelectContent>
-                  {SUPPORTED_CHAINS.map(chain => (
-                    <SelectItem key={chain.id || chain.name} value={chain.id || chain.name}>
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg">{chain.icon}</span>
-                        <div>
-                          <p className="font-medium">{chain.name}</p>
-                          <p className="text-xs text-muted-foreground">{chain.symbol}</p>
-                        </div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="recipient" className="text-honey">Recipient Wallet Address</Label>
-              <Input
-                id="recipient"
-                type="text"
-                placeholder="0x..."
-                value={recipientAddress}
-                onChange={(e) => setRecipientAddress(e.target.value)}
-                className="bg-muted border-honey/20 focus:border-honey font-mono text-sm"
-                data-testid="input-recipient-address"
-              />
-              <p className="text-xs text-muted-foreground">
-                Make sure this address supports USDT on the selected blockchain
-              </p>
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <div className="text-blue-400 mt-1">
+                  <Link className="h-4 w-4" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-blue-400 mb-1">Auto-Detection Active</h4>
+                  <p className="text-xs text-muted-foreground">
+                    USDT will be sent to your currently connected wallet on the {currentChainInfo?.name || 'selected'} network. 
+                    To withdraw to a different network, please switch networks in your wallet first.
+                  </p>
+                </div>
+              </div>
             </div>
 
             <Button
               onClick={handleInitiateWithdrawal}
-              disabled={initiateWithdrawalMutation.isPending || !withdrawalAmount || !selectedChain || !recipientAddress}
+              disabled={!withdrawalAmount || !currentWalletAddress || !currentChainInfo}
               className="w-full bg-honey text-black hover:bg-honey/90"
               data-testid="button-initiate-withdrawal"
             >
-              {initiateWithdrawalMutation.isPending ? (
+              {serverWithdrawalMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Preparing Withdrawal...
@@ -349,15 +469,26 @@ export default function USDTWithdrawal() {
                 <span className="font-semibold text-honey">{withdrawalRequest.amountUSD} USDT</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">To Chain:</span>
+                <span className="text-muted-foreground">To Network:</span>
                 <div className="flex items-center gap-2">
-                  <span>{selectedChainInfo?.icon}</span>
-                  <span>{selectedChainInfo?.name}</span>
-                  <Badge className={selectedChainInfo?.color}>{selectedChainInfo?.symbol}</Badge>
+                  <span>{currentChainInfo?.icon}</span>
+                  <span>{currentChainInfo?.name}</span>
+                  <Badge className={`${currentChainInfo?.color} text-xs`}>{currentChainInfo?.symbol}</Badge>
                 </div>
               </div>
+              {currentChainId === 42161 && (
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Token:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{getTokenInfo(currentChainId, selectedToken).symbol}</span>
+                    <Badge variant="outline" className="text-xs">
+                      {selectedToken === 'usdc' ? 'Standard' : 'Custom'}
+                    </Badge>
+                  </div>
+                </div>
+              )}
               <div className="flex justify-between items-start">
-                <span className="text-muted-foreground">Recipient:</span>
+                <span className="text-muted-foreground">To Wallet:</span>
                 <span className="font-mono text-xs text-right max-w-[200px] break-all">
                   {withdrawalRequest.recipientAddress}
                 </span>
@@ -379,23 +510,12 @@ export default function USDTWithdrawal() {
                 data-testid="button-confirm-withdrawal"
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
-                Confirm & Sign
+                Confirm Withdrawal
               </Button>
             </div>
           </div>
         )}
 
-        {step === 'signing' && (
-          <div className="text-center space-y-4">
-            <div className="bg-muted/30 rounded-lg p-6">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-honey" />
-              <h3 className="text-lg font-semibold text-honey mb-2">Waiting for Signature</h3>
-              <p className="text-muted-foreground text-sm">
-                Please sign the withdrawal request in your wallet to authorize the transaction.
-              </p>
-            </div>
-          </div>
-        )}
 
         {step === 'processing' && (
           <div className="text-center space-y-4">
