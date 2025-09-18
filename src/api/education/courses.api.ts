@@ -175,11 +175,11 @@ export const coursesApi = {
       // 2. 检查用户会员等级
       const { data: member, error: memberError } = await supabase
         .from('members')
-        .select('current_level, is_activated')
+        .select('current_level')
         .eq('wallet_address', walletAddress)
         .maybeSingle()
 
-      if (memberError || !member || !member.is_activated) {
+      if (memberError || !member) {
         throw new Error('用户未激活会员身份')
       }
 
@@ -208,16 +208,31 @@ export const coursesApi = {
       if (course.price_bcc > 0) {
         const { data: balance } = await supabase
           .from('user_balances')
-          .select('bcc_transferable')
+          .select('bcc_balance')
           .eq('wallet_address', walletAddress)
           .maybeSingle()
 
-        if (!balance || (balance.bcc_transferable || 0) < course.price_bcc) {
-          throw new Error('BCC余额不足')
+        if (!balance || (balance.bcc_balance || 0) < course.price_bcc) {
+          throw new Error(`BCC余额不足，需要 ${course.price_bcc} BCC，当前余额 ${balance?.bcc_balance || 0} BCC`)
         }
       }
 
-      // 6. 创建课程激活记录
+      // 6. 扣除BCC（如果需要）
+      if (course.price_bcc > 0) {
+        const { data: spendResult, error: spendError } = await supabase
+          .rpc('spend_bcc_tokens', {
+            p_wallet_address: walletAddress,
+            p_amount: course.price_bcc,
+            p_purpose: 'course_purchase',
+            p_item_reference: courseId
+          })
+
+        if (spendError || !spendResult?.success) {
+          throw new Error(`BCC扣除失败: ${spendError?.message || spendResult?.error || '未知错误'}`)
+        }
+      }
+
+      // 7. 创建课程激活记录
       const { data: courseAccess, error: accessError } = await supabase
         .from('course_activations')
         .insert({
