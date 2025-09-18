@@ -257,28 +257,47 @@ async function processWithdrawal(withdrawalData: WithdrawalRequest, supabaseClie
 
     if (insertError) throw insertError;
 
-    // TODO: Implement actual blockchain transaction processing
-    // For now, we'll simulate the processing with a delay
+    // Execute thirdweb transaction
+    const thirdwebResult = await executeThirdwebTransfer(withdrawalData);
     
-    // In a real implementation, this would:
-    // 1. Check server wallet balance
-    // 2. Verify user signature
-    // 3. Execute blockchain transaction
-    // 4. Update database with transaction hash
-    // 5. Monitor transaction confirmation
+    if (thirdwebResult.success) {
+      // Update withdrawal with transaction hash
+      await supabaseClient
+        .from('withdrawal_requests')
+        .update({
+          status: 'completed',
+          transaction_hash: thirdwebResult.transactionHash,
+          completed_at: new Date().toISOString()
+        })
+        .eq('id', withdrawalId);
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        withdrawal: {
-          id: withdrawalId,
-          status: 'processing',
-          estimated_completion: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // 5 minutes
-          message: 'Withdrawal request submitted successfully'
-        }
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+      return new Response(
+        JSON.stringify({
+          success: true,
+          withdrawal: {
+            id: withdrawalId,
+            status: 'completed',
+            transaction_hash: thirdwebResult.transactionHash,
+            message: 'Withdrawal completed successfully'
+          }
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } else {
+      // Update withdrawal as failed
+      await supabaseClient
+        .from('withdrawal_requests')
+        .update({
+          status: 'failed',
+          error_message: thirdwebResult.error
+        })
+        .eq('id', withdrawalId);
+
+      return new Response(
+        JSON.stringify({ success: false, error: thirdwebResult.error }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
   } catch (error) {
     console.error('Process withdrawal error:', error);
@@ -425,6 +444,60 @@ async function getSupportedChains(corsHeaders: any) {
   }
 }
 
+async function executeThirdwebTransfer(withdrawalData: WithdrawalRequest): Promise<{ success: boolean; transactionHash?: string; error?: string }> {
+  try {
+    const THIRDWEB_ENGINE_URL = Deno.env.get('THIRDWEB_ENGINE_URL');
+    const THIRDWEB_ACCESS_TOKEN = Deno.env.get('THIRDWEB_ACCESS_TOKEN');
+    const THIRDWEB_BACKEND_WALLET = Deno.env.get('THIRDWEB_BACKEND_WALLET');
+
+    if (!THIRDWEB_ENGINE_URL || !THIRDWEB_ACCESS_TOKEN || !THIRDWEB_BACKEND_WALLET) {
+      return { success: false, error: 'Thirdweb configuration missing' };
+    }
+
+    // Convert amount to proper format (USDC has 6 decimals)
+    const amountInWei = (parseFloat(withdrawalData.amount) * 1e6).toString();
+
+    // Call thirdweb Engine API to transfer USDC
+    const thirdwebResponse = await fetch(
+      `${THIRDWEB_ENGINE_URL}/contract/${withdrawalData.target_chain_id}/${withdrawalData.token_address}/erc20/transfer`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${THIRDWEB_ACCESS_TOKEN}`,
+          'X-Backend-Wallet-Address': THIRDWEB_BACKEND_WALLET
+        },
+        body: JSON.stringify({
+          toAddress: withdrawalData.user_wallet,
+          amount: amountInWei
+        })
+      }
+    );
+
+    const thirdwebData = await thirdwebResponse.json();
+
+    if (!thirdwebResponse.ok) {
+      console.error('Thirdweb API error:', thirdwebData);
+      return { success: false, error: `Thirdweb API error: ${thirdwebData.message || 'Unknown error'}` };
+    }
+
+    // Thirdweb returns either transactionHash directly or in result object
+    const transactionHash = thirdwebData.result?.transactionHash || thirdwebData.transactionHash || thirdwebData.queueId;
+
+    if (!transactionHash) {
+      console.error('No transaction hash returned from thirdweb:', thirdwebData);
+      return { success: false, error: 'No transaction hash returned from blockchain' };
+    }
+
+    console.log(`✅ Thirdweb transfer successful: ${transactionHash}`);
+    return { success: true, transactionHash };
+
+  } catch (error) {
+    console.error('Execute thirdweb transfer error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 function validateWithdrawalRequest(request: WithdrawalRequest): { isValid: boolean; error?: string } {
   if (!request.user_wallet || !request.amount || !request.target_chain_id) {
     return { isValid: false, error: 'Missing required fields' };
@@ -442,7 +515,8 @@ function validateWithdrawalRequest(request: WithdrawalRequest): { isValid: boole
     return { isValid: false, error: 'Amount below minimum withdrawal limit' };
   }
 
-  if (!request.user_signature || request.user_signature.length < 10) {
+  // For server-initiated withdrawals, signature validation is relaxed
+  if (request.user_signature !== 'server_initiated' && (!request.user_signature || request.user_signature.length < 10)) {
     return { isValid: false, error: 'Invalid user signature' };
   }
 
