@@ -67,6 +67,9 @@ export default function NFTs() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
+  // Local state for direct BCC balance
+  const [directBCCBalance, setDirectBCCBalance] = useState<number | null>(null);
+  
   // State management
   const [activeTab, setActiveTab] = useState('advertisement-nfts');
   const [loading, setLoading] = useState(false);
@@ -159,8 +162,23 @@ export default function NFTs() {
       return;
     }
 
-    // Check BCC balance
-    const currentBCC = bccBalance?.transferable || 0;
+    // Check BCC balance - fallback to direct database query if bccBalance is not available
+    let currentBCC = bccBalance?.transferable || 0;
+    
+    // If bccBalance is 0 or undefined, query database directly
+    if (currentBCC === 0) {
+      try {
+        const { data: balanceData } = await supabase
+          .from('user_balances')
+          .select('bcc_balance')
+          .eq('wallet_address', walletAddress)
+          .single();
+        currentBCC = balanceData?.bcc_balance || 0;
+        console.log(`🔄 Direct DB query - BCC balance: ${currentBCC}`);
+      } catch (error) {
+        console.error('Failed to get balance from database:', error);
+      }
+    }
     if (currentBCC < nft.price_bcc) {
       toast({
         title: "Insufficient BCC",
