@@ -887,7 +887,23 @@
     "noHistory": "暂无奖励历史",
     "pendingCountdowns": "待处理奖励倒计时",
     "pendingRewardTimer": "待处理奖励计时器",
-    "pendingRewardDescription": "第{layer}层奖励即将到期 - 升级以领取"
+    "pendingRewardDescription": "第{layer}层奖励即将到期 - 升级以领取",
+    "expired": "已过期",
+    "timeFormat": {
+      "days": "{days}天{hours}小时{minutes}分钟",
+      "hours": "{hours}小时{minutes}分钟",
+      "minutes": "{minutes}分钟{seconds}秒",
+      "seconds": "{seconds}秒"
+    },
+    "fetchError": "加载待处理奖励失败",
+    "noPendingRewards": "暂无待处理奖励",
+    "superRootUpgrade": "超级根升级",
+    "qualificationWait": "资格等待",
+    "from": "来自",
+    "claimable": "可领取",
+    "timeRemaining": "剩余时间",
+    "expiresAt": "到期时间",
+    "refreshCountdown": "刷新倒计时"
   },
   "nft": {
     "claimError": "认领失败",

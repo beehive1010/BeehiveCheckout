@@ -804,7 +804,23 @@
     "noHistory": "No reward history yet",
     "pendingCountdowns": "Pending Rewards Countdown",
     "pendingRewardTimer": "Pending Reward Timer",
-    "pendingRewardDescription": "Layer {layer} reward expires soon - upgrade to claim"
+    "pendingRewardDescription": "Layer {layer} reward expires soon - upgrade to claim",
+    "expired": "Expired",
+    "timeFormat": {
+      "days": "{days}d {hours}h {minutes}m",
+      "hours": "{hours}h {minutes}m",
+      "minutes": "{minutes}m {seconds}s",
+      "seconds": "{seconds}s"
+    },
+    "fetchError": "Failed to load pending rewards",
+    "noPendingRewards": "No pending rewards",
+    "superRootUpgrade": "Super Root Upgrade",
+    "qualificationWait": "Qualification Wait",
+    "from": "From",
+    "claimable": "Claimable",
+    "timeRemaining": "Time Remaining",
+    "expiresAt": "Expires At",
+    "refreshCountdown": "Refresh Countdown"
   },
   "me": {
     "title": "User Center",
