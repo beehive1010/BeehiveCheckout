@@ -175,8 +175,8 @@ export default function NFTs() {
   const handlePurchaseNFT = async (nft: AdvertisementNFT | MerchantNFT, nftType: 'advertisement' | 'merchant') => {
     if (!walletAddress) {
       toast({
-        title: "Wallet Required",
-        description: "Please connect your wallet to purchase NFTs",
+        title: t('nfts.purchase.walletRequired'),
+        description: t('nfts.purchase.connectWallet'),
         variant: "destructive"
       });
       return;
@@ -201,8 +201,8 @@ export default function NFTs() {
     }
     if (currentBCC < nft.price_bcc) {
       toast({
-        title: "Insufficient BCC",
-        description: `You need ${nft.price_bcc} BCC to purchase this NFT (current: ${currentBCC} BCC)`,
+        title: t('nfts.purchase.insufficientBcc'),
+        description: t('nfts.purchase.needBcc', { amount: nft.price_bcc, current: currentBCC }),
         variant: "destructive"
       });
       return;
@@ -235,17 +235,23 @@ export default function NFTs() {
           buyer_wallet: walletAddress,
           nft_id: nft.id,
           nft_type: nftType,
-          nft_title: nft.title,
           price_bcc: nft.price_bcc,
           price_usdt: nft.price_usdt || 0,
+          payment_method: 'bcc',
           transaction_hash: transactionHash,
-          purchased_at: new Date().toISOString()
+          metadata: {
+            nft_title: nft.title,
+            category: nft.category || nftType,
+            image_url: nft.image_url
+          }
         });
 
       if (purchaseError) {
-        console.error('Error creating purchase record:', purchaseError);
-        // Don't fail the whole purchase for record creation error
+        console.error('❌ Error creating purchase record:', purchaseError);
+        throw new Error(`Failed to create purchase record: ${purchaseError.message}`);
       }
+      
+      console.log('✅ NFT purchase record created successfully');
 
       // Update supply for merchant NFTs
       if (nftType === 'merchant' && nft.supply_available && nft.supply_available > 0) {
@@ -263,8 +269,8 @@ export default function NFTs() {
       }
 
       toast({
-        title: "🎉 NFT Purchased Successfully!",
-        description: `You've purchased "${nft.title}" for ${nft.price_bcc} BCC`,
+        title: "🎉 " + t('nfts.purchase.success'),
+        description: `${t('nfts.purchase.successDesc')} "${nft.title}" for ${nft.price_bcc} BCC`,
         duration: 6000
       });
 
@@ -278,8 +284,8 @@ export default function NFTs() {
     } catch (error: any) {
       console.error('Purchase error:', error);
       toast({
-        title: "Purchase Failed",
-        description: error.message || "Failed to purchase NFT. Please try again.",
+        title: t('nfts.purchase.failed'),
+        description: error.message || t('nfts.purchase.failedDesc'),
         variant: "destructive"
       });
     } finally {
@@ -310,10 +316,10 @@ export default function NFTs() {
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
           <div className="flex-1">
             <h1 className="text-3xl lg:text-4xl font-bold text-honey mb-3 bg-gradient-to-r from-honey via-honey/90 to-honey/70 bg-clip-text text-transparent">
-              NFT Marketplace
+              {t('nfts.title')}
             </h1>
             <p className="text-muted-foreground max-w-2xl">
-              Discover and purchase exclusive Web3 services, merchant offerings, and premium digital assets using BCC tokens
+              {t('nfts.subtitle')}
             </p>
           </div>
           
@@ -360,7 +366,7 @@ export default function NFTs() {
                 className="flex items-center gap-2 data-[state=active]:bg-honey data-[state=active]:text-secondary font-medium"
               >
                 <Megaphone className="w-4 h-4" />
-                <span className="hidden sm:inline">Advertisement</span>
+                <span className="hidden sm:inline">{t('nfts.stats.advertisement')}</span>
                 <span className="sm:hidden">Ads</span>
                 <Badge variant="secondary" className="ml-1 bg-blue-500/20 text-blue-400 text-xs">
                   {advertisementNFTs.length}
@@ -372,7 +378,7 @@ export default function NFTs() {
                 className="flex items-center gap-2 data-[state=active]:bg-honey data-[state=active]:text-secondary font-medium"
               >
                 <Palette className="w-4 h-4" />
-                <span className="hidden sm:inline">Merchant</span>
+                <span className="hidden sm:inline">{t('nfts.stats.merchant')}</span>
                 <span className="sm:hidden">Merchant</span>
                 <Badge variant="secondary" className="ml-1 bg-purple-500/20 text-purple-400 text-xs">
                   {merchantNFTs.length}
@@ -400,8 +406,8 @@ export default function NFTs() {
                 <Megaphone className="w-8 h-8 text-blue-400" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-blue-400">Advertisement NFTs</h2>
-                <p className="text-muted-foreground">Web3 services and platform advertisements - purchase with BCC</p>
+                <h2 className="text-2xl font-bold text-blue-400">{t('nfts.advertisement.title')}</h2>
+                <p className="text-muted-foreground">{t('nfts.advertisement.subtitle')}</p>
               </div>
             </div>
 
@@ -430,7 +436,7 @@ export default function NFTs() {
                       </div>
                       <div className="text-center">
                         <div className="text-sm font-medium text-foreground">{nft.impressions_current.toLocaleString()}</div>
-                        <div className="text-xs text-muted-foreground">Views</div>
+                        <div className="text-xs text-muted-foreground">{t('nfts.advertisement.views')}</div>
                       </div>
                     </div>
 
@@ -443,12 +449,12 @@ export default function NFTs() {
                         {purchaseState.loading && purchaseState.nftId === nft.id ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Purchasing...
+                            {t('nfts.purchase.purchasing')}
                           </>
                         ) : (
                           <>
                             <ShoppingCart className="mr-2 h-4 w-4" />
-                            Purchase
+                            {t('nfts.purchase.button')}
                           </>
                         )}
                       </Button>
@@ -483,8 +489,8 @@ export default function NFTs() {
                 <Palette className="w-8 h-8 text-purple-400" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-purple-400">Merchant NFTs</h2>
-                <p className="text-muted-foreground">Professional services and digital products from verified merchants</p>
+                <h2 className="text-2xl font-bold text-purple-400">{t('nfts.merchant.title')}</h2>
+                <p className="text-muted-foreground">{t('nfts.merchant.subtitle')}</p>
               </div>
             </div>
 
@@ -537,14 +543,14 @@ export default function NFTs() {
                       {purchaseState.loading && purchaseState.nftId === nft.id ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Purchasing...
+                          {t('nfts.purchase.purchasing')}
                         </>
                       ) : nft.supply_available !== null && nft.supply_available <= 0 ? (
-                        'Sold Out'
+                        t('nfts.merchant.soldOut')
                       ) : (
                         <>
                           <ShoppingCart className="mr-2 h-4 w-4" />
-                          Purchase ({nft.price_bcc} BCC)
+                          {t('nfts.purchase.button')} ({nft.price_bcc} BCC)
                         </>
                       )}
                     </Button>
@@ -568,8 +574,8 @@ export default function NFTs() {
                 <Star className="w-8 h-8 text-green-400" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-green-400">My NFT Collection</h2>
-                <p className="text-muted-foreground">Your purchased NFTs and active services</p>
+                <h2 className="text-2xl font-bold text-green-400">{t('nfts.myCollection.title')}</h2>
+                <p className="text-muted-foreground">{t('nfts.myCollection.subtitle')}</p>
               </div>
             </div>
 
@@ -635,7 +641,7 @@ export default function NFTs() {
                 <div className="w-20 h-20 rounded-full border-2 border-dashed border-green-400/30 mx-auto mb-4 flex items-center justify-center">
                   <Package className="w-8 h-8 text-green-400/30" />
                 </div>
-                <p className="text-muted-foreground mb-4">No NFTs in your collection yet</p>
+                <p className="text-muted-foreground mb-4">{t('nfts.myCollection.empty')}</p>
                 <div className="flex flex-wrap justify-center gap-2">
                   <Button
                     variant="outline"

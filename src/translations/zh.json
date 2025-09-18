@@ -2424,5 +2424,56 @@
     "upgradeMembership": "升级会员",
     "redirecting": "正在重定向",
     "redirectingToActivation": "正在重定向到会员激活..."
+  },
+  "nfts": {
+    "title": "NFT 市场",
+    "subtitle": "使用您的BCC代币探索、收集和交易独特的数字资产",
+    "advertisement": {
+      "title": "广告NFT",
+      "subtitle": "Web3服务和平台广告 - 使用BCC购买",
+      "views": "浏览量"
+    },
+    "merchant": {
+      "title": "商家NFT", 
+      "subtitle": "来自验证商家的专业服务和数字产品",
+      "soldOut": "已售完",
+      "supply": "供应量",
+      "sold": "已售出"
+    },
+    "myCollection": {
+      "title": "我的NFT收藏",
+      "subtitle": "您购买的NFT和活跃服务",
+      "empty": "您的收藏中还没有NFT",
+      "emptyDesc": "购买您的第一个NFT开始吧！"
+    },
+    "purchase": {
+      "button": "购买",
+      "purchasing": "购买中...",
+      "walletRequired": "需要钱包", 
+      "connectWallet": "请连接您的钱包来购买NFT",
+      "insufficientBcc": "BCC余额不足",
+      "needBcc": "您需要 {amount} BCC 来购买此NFT（当前：{current} BCC）",
+      "success": "购买成功！",
+      "successDesc": "NFT购买成功！查看您的收藏。",
+      "failed": "购买失败",
+      "failedDesc": "购买NFT失败。请重试。"
+    },
+    "balance": {
+      "available": "可用BCC",
+      "bccBalance": "BCC余额"
+    },
+    "stats": {
+      "advertisement": "广告",
+      "merchant": "商家", 
+      "owned": "拥有"
+    },
+    "categories": {
+      "all": "所有类别",
+      "defi": "DeFi",
+      "gaming": "游戏",
+      "art": "艺术",
+      "utility": "实用",
+      "collectible": "收藏品"
+    }
   }
 }

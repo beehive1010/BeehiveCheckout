@@ -2426,5 +2426,56 @@
     "upgradeMembership": "Upgrade Membership",
     "redirecting": "Redirecting",
     "redirectingToActivation": "Redirecting to membership activation..."
+  },
+  "nfts": {
+    "title": "NFT Marketplace",
+    "subtitle": "Explore, collect, and trade unique digital assets with your BCC tokens",
+    "advertisement": {
+      "title": "Advertisement NFTs",
+      "subtitle": "Web3 services and platform advertisements - purchase with BCC",
+      "views": "Views"
+    },
+    "merchant": {
+      "title": "Merchant NFTs", 
+      "subtitle": "Professional services and digital products from verified merchants",
+      "soldOut": "Sold Out",
+      "supply": "Supply",
+      "sold": "Sold"
+    },
+    "myCollection": {
+      "title": "My NFT Collection",
+      "subtitle": "Your purchased NFTs and active services",
+      "empty": "No NFTs in your collection yet",
+      "emptyDesc": "Purchase your first NFT to get started!"
+    },
+    "purchase": {
+      "button": "Purchase",
+      "purchasing": "Purchasing...",
+      "walletRequired": "Wallet Required", 
+      "connectWallet": "Please connect your wallet to purchase NFTs",
+      "insufficientBcc": "Insufficient BCC",
+      "needBcc": "You need {amount} BCC to purchase this NFT (current: {current} BCC)",
+      "success": "Purchase Successful!",
+      "successDesc": "NFT purchased successfully! Check your collection.",
+      "failed": "Purchase Failed",
+      "failedDesc": "Failed to purchase NFT. Please try again."
+    },
+    "balance": {
+      "available": "Available BCC",
+      "bccBalance": "BCC Balance"
+    },
+    "stats": {
+      "advertisement": "Advertisement",
+      "merchant": "Merchant", 
+      "owned": "Owned"
+    },
+    "categories": {
+      "all": "All Categories",
+      "defi": "DeFi",
+      "gaming": "Gaming",
+      "art": "Art",
+      "utility": "Utility",
+      "collectible": "Collectible"
+    }
   }
 }
