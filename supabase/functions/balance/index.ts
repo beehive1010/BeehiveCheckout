@@ -116,7 +116,7 @@ async function handleGetBalance(supabase, walletAddress) {
       throw balanceError;
     }
     // Get pending rewards (unclaimed rewards) - case sensitive
-    const { data: pendingRewards, error: rewardsError } = await supabase.from('layer_rewards').select('reward_amount').ilike('reward_recipient_wallet', walletAddress).eq('is_claimed', false);
+    const { data: pendingRewards, error: rewardsError } = await supabase.from('layer_rewards').select('reward_amount').ilike('reward_recipient_wallet', walletAddress).in('status', ['pending', 'claimable']);
     if (rewardsError) throw rewardsError;
     const pendingRewardAmount = pendingRewards?.reduce((sum, reward)=>sum + parseFloat(reward.reward_amount || '0'), 0) || 0;
     // Get recent BCC purchase orders - case sensitive
@@ -552,10 +552,10 @@ async function handleGetEarningHistory(supabase, walletAddress, data) {
     // Get USDT earning history from rewards
     const { data: rewardHistory, error: rewardError } = await supabase.from('layer_rewards').select(`
         id,
-        payer_wallet,
+        triggering_member_wallet,
         triggering_nft_level,
         reward_amount,
-        is_claimed,
+        status,
         created_at,
         claimed_at
       `).ilike('reward_recipient_wallet', walletAddress).order('created_at', {
@@ -579,8 +579,8 @@ async function handleGetEarningHistory(supabase, walletAddress, data) {
     // Calculate totals
     const totalUsdtEarned = rewardHistory?.reduce((sum, reward)=>sum + parseFloat(reward.reward_amount || '0'), 0) || 0;
     const totalBccEarned = bccHistory?.reduce((sum, purchase)=>sum + parseFloat(purchase.amount_bcc), 0) || 0;
-    const totalClaimedRewards = rewardHistory?.filter((r)=>r.is_claimed === true).length || 0;
-    const totalPendingRewards = rewardHistory?.filter((r)=>r.is_claimed === false).length || 0;
+    const totalClaimedRewards = rewardHistory?.filter((r)=>r.status === 'claimed').length || 0;
+    const totalPendingRewards = rewardHistory?.filter((r)=>['pending', 'claimable'].includes(r.status)).length || 0;
     const response = {
       success: true,
       earningHistory: {

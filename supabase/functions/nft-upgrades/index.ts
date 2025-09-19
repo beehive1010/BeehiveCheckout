@@ -615,7 +615,7 @@ async function handleProcessUpgrade(supabase, walletAddress, data) {
       item_id: `nft_level_${level}`,
       order_type: 'nft_purchase',
       payment_method: data.paymentMethod || 'blockchain',
-      amount_usdt: paymentAmount || 0,
+      reward_amount: paymentAmount || 0,
       amount_bcc: null,
       transaction_hash: transactionHash,
       status: 'pending',
@@ -790,7 +790,7 @@ async function handleProcessUpgrade(supabase, walletAddress, data) {
     try {
       const { data: rewardResult, error: rewardError } = await supabase.rpc('distribute_layer_rewards', {
         p_nft_level: level,
-        p_payer_wallet: walletAddress,
+        p_triggering_member_wallet: walletAddress,
         p_transaction_hash: transactionHash
       });
 
@@ -1061,7 +1061,7 @@ async function handleManualProcessClaim(supabase, walletAddress, data) {
       item_id: `nft_level_${level}`,
       order_type: 'nft_purchase',
       payment_method: 'blockchain_manual',
-      amount_usdt: 130,
+      reward_amount: 130,
       transaction_hash: transactionHash,
       status: 'completed',
       completed_at: new Date().toISOString(),

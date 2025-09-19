@@ -183,7 +183,7 @@ async function claimReward(req, supabaseClient) {
             .from('layer_rewards')
             .select('*')
             .eq('id', claim_id)
-            .ilike('reward_recipient_wallet', wallet_address.toLowerCase());
+            .ilike('reward_reward_recipient_wallet', wallet_address.toLowerCase());
         
         const reward = rewardArray?.[0] || null;
         
@@ -201,16 +201,16 @@ async function claimReward(req, supabaseClient) {
             });
         }
         
-        console.log(`📋 Found reward: Layer ${reward.layer}, ${reward.amount_usdt} USDT, Status: ${reward.reward_type}, Claimed: ${reward.is_claimed}`);
+        console.log(`📋 Found reward: Layer ${reward.matrix_layer}, ${reward.reward_amount} USDT, Status: ${reward.reward_type}, Claimed: ${reward.status}`);
         
         // 2. Handle different reward types - claimable vs pending
         if (reward.reward_type === 'layer_reward') {
             // ✅ CLAIMABLE REWARD - Process immediately
-            console.log(`💰 Processing claimable reward: ${reward.amount_usdt} USDT`);
+            console.log(`💰 Processing claimable reward: ${reward.reward_amount} USDT`);
             
         } else if (reward.reward_type === 'pending_layer_reward') {
             // ⏳ PENDING REWARD - Create countdown timer
-            console.log(`⏳ Processing pending reward: ${reward.amount_usdt} USDT`);
+            console.log(`⏳ Processing pending reward: ${reward.reward_amount} USDT`);
             return await handlePendingRewardClaim(supabaseClient, reward, wallet_address);
             
         } else {
@@ -227,7 +227,7 @@ async function claimReward(req, supabaseClient) {
             });
         }
         
-        if (reward.is_claimed) {
+        if (reward.status) {
             return new Response(JSON.stringify({
                 success: false,
                 error: 'Reward has already been claimed',
@@ -245,15 +245,15 @@ async function claimReward(req, supabaseClient) {
         const { data: matrixPositionArray } = await supabaseClient
             .from('spillover_matrix')
             .select('matrix_position')
-            .ilike('matrix_root', reward.recipient_wallet.toLowerCase())
-            .ilike('member_wallet', reward.payer_wallet.toLowerCase())
-            .eq('matrix_layer', reward.layer)
+            .ilike('matrix_root', reward.reward_recipient_wallet.toLowerCase())
+            .ilike('member_wallet', reward.triggering_member_wallet.toLowerCase())
+            .eq('matrix_layer', reward.matrix_layer)
             .eq('is_active', true);
             
         const matrixPosition = matrixPositionArray?.[0] || null;
         
         // 4. CRITICAL BUSINESS RULE: Layer 1 R position special rule
-        if (reward.layer === 1 && matrixPosition?.matrix_position === 'R') {
+        if (reward.matrix_layer === 1 && matrixPosition?.matrix_position === 'R') {
             const { data: memberArray, error: memberError } = await supabaseClient
                 .from('members')
                 .select('current_level')
@@ -281,7 +281,7 @@ async function claimReward(req, supabaseClient) {
                     restriction_type: 'layer_1_r_position',
                     required_level: 2,
                     current_level: memberData.current_level,
-                    reward_amount: reward.amount_usdt,
+                    reward_amount: reward.reward_amount,
                     countdown_expires: '72 hours from activation'
                 }), {
                     headers: {
@@ -297,7 +297,7 @@ async function claimReward(req, supabaseClient) {
         const { error: updateError } = await supabaseClient
             .from('layer_rewards')
             .update({
-                is_claimed: true,
+                status: 'claimed',
                 updated_at: new Date().toISOString()
             })
             .eq('id', claim_id);
@@ -316,8 +316,8 @@ async function claimReward(req, supabaseClient) {
             const currentBalance = currentBalanceArray?.[0] || null;
             
             if (currentBalance) {
-                const newClaimable = Math.max(0, currentBalance.usdc_claimable - reward.amount_usdt);
-                const newClaimed = currentBalance.usdc_claimed_total + reward.amount_usdt;
+                const newClaimable = Math.max(0, currentBalance.usdc_claimable - reward.reward_amount);
+                const newClaimed = currentBalance.usdc_claimed_total + reward.reward_amount;
                 
                 const { error: balanceError } = await supabaseClient
                     .from('user_balances')
@@ -331,7 +331,7 @@ async function claimReward(req, supabaseClient) {
                 if (balanceError) {
                     console.error('❌ Balance update failed:', balanceError);
                 } else {
-                    console.log(`✅ Balance updated: -${reward.amount_usdt} claimable, +${reward.amount_usdt} claimed`);
+                    console.log(`✅ Balance updated: -${reward.reward_amount} claimable, +${reward.reward_amount} claimed`);
                 }
             } else {
                 // Create balance record if doesn't exist
@@ -341,7 +341,7 @@ async function claimReward(req, supabaseClient) {
                         wallet_address: wallet_address.toLowerCase(),
                         usdc_claimable: 0,
                         usdc_pending: 0,
-                        usdc_claimed_total: reward.amount_usdt,
+                        usdc_claimed_total: reward.reward_amount,
                         bcc_transferable: 0,
                         bcc_locked: 0,
                         created_at: new Date().toISOString(),
@@ -351,22 +351,22 @@ async function claimReward(req, supabaseClient) {
                 if (createBalanceError) {
                     console.error('❌ Create balance failed:', createBalanceError);
                 } else {
-                    console.log(`✅ Created balance record: +${reward.amount_usdt} claimed`);
+                    console.log(`✅ Created balance record: +${reward.reward_amount} claimed`);
                 }
             }
         }
         
         // 7. Success response
-        console.log(`✅ Reward claimed successfully: ${reward.amount_usdt} USDT`);
+        console.log(`✅ Reward claimed successfully: ${reward.reward_amount} USDT`);
         return new Response(JSON.stringify({
             success: true,
             message: 'Reward claimed successfully',
             reward: {
                 id: reward.id,
-                amount_usdt: reward.amount_usdt,
+                reward_amount: reward.reward_amount,
                 amount_bcc: reward.amount_bcc || 0,
-                layer: reward.layer,
-                from_member: reward.payer_wallet,
+                layer: reward.matrix_layer,
+                from_member: reward.triggering_member_wallet,
                 claimed_at: new Date().toISOString()
             },
             balance_updated: true
@@ -1127,7 +1127,7 @@ async function processLevelActivationRewards(req, supabaseClient) {
                 rewards_created: rewardsCreated.length,
                 rewards: rewardsCreated.map((r)=>({
                     root_wallet: r.root_wallet,
-                    layer: r.layer,
+                    layer: r.matrix_layer,
                     amount_usdc: r.reward_amount_usdc,
                     status: r.status
                 }))
@@ -1198,7 +1198,7 @@ async function handlePendingRewardClaim(supabaseClient, reward, wallet_address) 
                 timer_info: {
                     end_time: existingTimer.end_time,
                     time_remaining_hours: Math.max(0, remainingMs / (1000 * 60 * 60)),
-                    reward_amount: reward.amount_usdt,
+                    reward_amount: reward.reward_amount,
                     action_required: 'Upgrade to required NFT level to claim'
                 }
             }), {
@@ -1219,17 +1219,17 @@ async function handlePendingRewardClaim(supabaseClient, reward, wallet_address) 
             .insert({
                 wallet_address: exactWalletAddress,
                 timer_type: 'pending_reward',
-                title: `Layer ${reward.layer} Reward Countdown`,
-                description: `You have 72 hours to upgrade your NFT level to claim this ${reward.amount_usdt} USDT reward`,
+                title: `Layer ${reward.matrix_layer} Reward Countdown`,
+                description: `You have 72 hours to upgrade your NFT level to claim this ${reward.reward_amount} USDT reward`,
                 start_time: new Date().toISOString(),
                 end_time: expiresAt.toISOString(),
                 is_active: true,
                 auto_action: 'expire_reward',
                 metadata: {
                     reward_id: reward.id,
-                    reward_amount: reward.amount_usdt,
-                    reward_layer: reward.layer,
-                    payer_wallet: reward.payer_wallet,
+                    reward_amount: reward.reward_amount,
+                    reward_layer: reward.matrix_layer,
+                    triggering_member_wallet: reward.triggering_member_wallet,
                     required_action: 'Upgrade NFT level'
                 }
             })
@@ -1248,8 +1248,8 @@ async function handlePendingRewardClaim(supabaseClient, reward, wallet_address) 
             timer: {
                 id: newTimer.id,
                 reward_id: reward.id,
-                reward_amount: reward.amount_usdt,
-                layer: reward.layer,
+                reward_amount: reward.reward_amount,
+                layer: reward.matrix_layer,
                 end_time: expiresAt.toISOString(),
                 hours_remaining: 72,
                 action_required: 'Upgrade your NFT to the required level to claim this reward'

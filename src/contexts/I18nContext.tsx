@@ -1,5 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+// Import JSON translations as fallback
+import enTranslations from '../translations/en.json';
+import zhTranslations from '../translations/zh.json';
+import zhTwTranslations from '../translations/zh-tw.json';
+import thTranslations from '../translations/th.json';
+import msTranslations from '../translations/ms.json';
+import koTranslations from '../translations/ko.json';
+import jaTranslations from '../translations/ja.json';
 
 type Language = 'en' | 'zh' | 'zh-tw' | 'th' | 'ms' | 'ko' | 'ja';
 
@@ -22,20 +30,42 @@ const languageOptions = [
   { code: 'ja' as Language, name: '日本語' },
 ];
 
+// Helper function to flatten nested JSON objects
+const flattenTranslations = (obj: any, prefix = ''): Record<string, string> => {
+  const flattened: Record<string, string> = {};
+  
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      const newKey = prefix ? `${prefix}.${key}` : key;
+      
+      if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+        Object.assign(flattened, flattenTranslations(obj[key], newKey));
+      } else {
+        flattened[newKey] = String(obj[key]);
+      }
+    }
+  }
+  
+  return flattened;
+};
+
+// JSON fallback translations (flattened)
+const jsonTranslations: Record<Language, Record<string, string>> = {
+  en: flattenTranslations(enTranslations),
+  zh: flattenTranslations(zhTranslations),
+  'zh-tw': flattenTranslations(zhTwTranslations),
+  th: flattenTranslations(thTranslations),
+  ms: flattenTranslations(msTranslations),
+  ko: flattenTranslations(koTranslations),
+  ja: flattenTranslations(jaTranslations)
+};
+
 const I18nProvider = ({ children }: { children: React.ReactNode }) => {
   const [language, setLanguageState] = useState<Language>('en');
-  const [translations, setTranslations] = useState<Record<Language, Record<string, string>>>({
-    en: {},
-    zh: {},
-    'zh-tw': {},
-    th: {},
-    ms: {},
-    ko: {},
-    ja: {}
-  });
+  const [translations, setTranslations] = useState<Record<Language, Record<string, string>>>(jsonTranslations);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load translations from database
+  // Load translations from database and merge with JSON fallbacks
   const loadTranslations = async () => {
     try {
       const { data, error } = await supabase
@@ -44,38 +74,45 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error) {
         console.error('Error loading translations from database:', error);
+        // Use JSON translations as fallback if database fails
+        console.log('🌍 Using JSON fallback translations');
+        setIsLoading(false);
         return;
       }
 
-      const translationMap: Record<Language, Record<string, string>> = {
-        en: {},
-        zh: {},
-        'zh-tw': {},
-        th: {},
-        ms: {},
-        ko: {},
-        ja: {}
+      // Start with JSON translations as base
+      const mergedTranslations: Record<Language, Record<string, string>> = {
+        en: { ...jsonTranslations.en },
+        zh: { ...jsonTranslations.zh },
+        'zh-tw': { ...jsonTranslations['zh-tw'] },
+        th: { ...jsonTranslations.th },
+        ms: { ...jsonTranslations.ms },
+        ko: { ...jsonTranslations.ko },
+        ja: { ...jsonTranslations.ja }
       };
 
+      // Override with database translations
       data?.forEach(item => {
         const lang = item.language_code as Language;
-        if (translationMap[lang]) {
-          translationMap[lang][item.translation_key] = item.translated_text;
+        if (mergedTranslations[lang]) {
+          mergedTranslations[lang][item.translation_key] = item.translated_text;
         }
       });
 
-      setTranslations(translationMap);
-      console.log(`🌍 Loaded translations:`, {
-        en: Object.keys(translationMap.en).length,
-        zh: Object.keys(translationMap.zh).length,
-        'zh-tw': Object.keys(translationMap['zh-tw']).length,
-        th: Object.keys(translationMap.th).length,
-        ms: Object.keys(translationMap.ms).length,
-        ko: Object.keys(translationMap.ko).length,
-        ja: Object.keys(translationMap.ja).length
+      setTranslations(mergedTranslations);
+      console.log(`🌍 Loaded translations (DB + JSON fallback):`, {
+        en: Object.keys(mergedTranslations.en).length,
+        zh: Object.keys(mergedTranslations.zh).length,
+        'zh-tw': Object.keys(mergedTranslations['zh-tw']).length,
+        th: Object.keys(mergedTranslations.th).length,
+        ms: Object.keys(mergedTranslations.ms).length,
+        ko: Object.keys(mergedTranslations.ko).length,
+        ja: Object.keys(mergedTranslations.ja).length
       });
     } catch (error) {
       console.error('Failed to load translations:', error);
+      // Use JSON translations as fallback if anything fails
+      console.log('🌍 Using JSON fallback translations due to error');
     } finally {
       setIsLoading(false);
     }
