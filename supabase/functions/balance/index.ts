@@ -79,13 +79,28 @@ async function handleGetBalance(supabase, walletAddress) {
       .maybeSingle();
 
     if (userError || !userData) {
-      console.error(`❌ Balance query denied - user not registered: ${walletAddress}`);
+      console.log(`📝 User not registered, returning default balance: ${walletAddress}`);
       return new Response(JSON.stringify({
-        success: false,
-        error: 'User must be registered before accessing balance information. Please complete registration first.',
-        balance: null
+        success: true,
+        balance: {
+          wallet_address: walletAddress,
+          bcc_balance: 0,
+          bcc_locked: 0,
+          total_earned: 0,
+          reward_balance: 0,
+          reward_claimed: 0,
+          bcc_transferable: 0,
+          total_bcc: 0,
+          pending_rewards_usdt: 0,
+          created_at: new Date().toISOString(),
+          last_updated: new Date().toISOString()
+        },
+        recentActivity: {
+          pendingRewardCount: 0,
+          recentPurchases: []
+        },
+        isRegistered: false
       }), {
-        status: 403,
         headers: {
           ...corsHeaders,
           'Content-Type': 'application/json'
