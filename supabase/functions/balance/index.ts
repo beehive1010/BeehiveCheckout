@@ -116,9 +116,9 @@ async function handleGetBalance(supabase, walletAddress) {
       throw balanceError;
     }
     // Get pending rewards (unclaimed rewards) - case sensitive
-    const { data: pendingRewards, error: rewardsError } = await supabase.from('layer_rewards').select('amount_usdt').eq('recipient_wallet', walletAddress).eq('is_claimed', false);
+    const { data: pendingRewards, error: rewardsError } = await supabase.from('layer_rewards').select('reward_amount').ilike('reward_recipient_wallet', walletAddress).eq('is_claimed', false);
     if (rewardsError) throw rewardsError;
-    const pendingRewardAmount = pendingRewards?.reduce((sum, reward)=>sum + parseFloat(reward.amount_usdt), 0) || 0;
+    const pendingRewardAmount = pendingRewards?.reduce((sum, reward)=>sum + parseFloat(reward.reward_amount || '0'), 0) || 0;
     // Get recent BCC purchase orders - case sensitive
     const { data: recentPurchases, error: purchaseError } = await supabase.from('bcc_purchase_orders').select('amount_bcc, status, created_at').eq('buyer_wallet', walletAddress).order('created_at', {
       ascending: false
@@ -553,12 +553,12 @@ async function handleGetEarningHistory(supabase, walletAddress, data) {
     const { data: rewardHistory, error: rewardError } = await supabase.from('layer_rewards').select(`
         id,
         payer_wallet,
-        layer,
-        amount_usdt,
+        triggering_nft_level,
+        reward_amount,
         is_claimed,
         created_at,
         claimed_at
-      `).eq('recipient_wallet', walletAddress).order('created_at', {
+      `).ilike('reward_recipient_wallet', walletAddress).order('created_at', {
       ascending: false
     }).range(offset, offset + limit - 1);
     if (rewardError) throw rewardError;
@@ -577,7 +577,7 @@ async function handleGetEarningHistory(supabase, walletAddress, data) {
     }).range(offset, offset + limit - 1);
     if (bccError) throw bccError;
     // Calculate totals
-    const totalUsdtEarned = rewardHistory?.reduce((sum, reward)=>sum + parseFloat(reward.amount_usdt), 0) || 0;
+    const totalUsdtEarned = rewardHistory?.reduce((sum, reward)=>sum + parseFloat(reward.reward_amount || '0'), 0) || 0;
     const totalBccEarned = bccHistory?.reduce((sum, purchase)=>sum + parseFloat(purchase.amount_bcc), 0) || 0;
     const totalClaimedRewards = rewardHistory?.filter((r)=>r.is_claimed === true).length || 0;
     const totalPendingRewards = rewardHistory?.filter((r)=>r.is_claimed === false).length || 0;

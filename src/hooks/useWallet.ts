@@ -1,6 +1,7 @@
 import { useWeb3 } from '../contexts/Web3Context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { authService, balanceService, callEdgeFunction } from '../lib/supabase-unified';
+import { authService, callEdgeFunction } from '../lib/supabase-unified';
+import { balanceService } from '../lib/supabaseClient';
 
 interface UserStatus {
   isRegistered: boolean;
