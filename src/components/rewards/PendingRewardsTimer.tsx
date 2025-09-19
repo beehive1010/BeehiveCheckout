@@ -119,7 +119,7 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
 
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
-  }, [updateCountdown, pendingRewards.length]); // 修复依赖
+  }, [pendingRewards.length]); // 移除updateCountdown依赖避免频繁重创建
 
   if (loading) {
     return (

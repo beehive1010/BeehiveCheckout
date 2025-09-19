@@ -94,10 +94,23 @@ export default function Rewards() {
         throw new Error(`Failed to fetch rewards: ${rewardsError.message}`);
       }
 
-      // Calculate totals based on status field
-      const claimedRewards = rewardsData?.filter(r => r.status === 'claimed') || [];
-      const pendingRewards = rewardsData?.filter(r => r.status === 'pending') || [];
-      const claimableRewards = rewardsData?.filter(r => r.status === 'claimable') || [];
+      // Calculate totals based on status field and is_claimed flag
+      const claimedRewards = rewardsData?.filter(r => r.status === 'claimed' || r.is_claimed === true) || [];
+      const pendingRewards = rewardsData?.filter(r => 
+        (r.status === 'pending' || r.is_claimed === false) && 
+        (!r.expires_at || new Date(r.expires_at) > new Date())
+      ) || [];
+      const claimableRewards = rewardsData?.filter(r => 
+        r.status === 'claimable' || 
+        (r.is_claimed === false && r.expires_at && new Date(r.expires_at) <= new Date())
+      ) || [];
+
+      console.log('Rewards breakdown:', {
+        total: rewardsData?.length,
+        claimed: claimedRewards.length,
+        pending: pendingRewards.length, 
+        claimable: claimableRewards.length
+      });
 
       const totalEarned = claimedRewards.reduce((sum, r) => sum + (r.reward_amount || 0), 0);
       const totalPending = pendingRewards.reduce((sum, r) => sum + (r.reward_amount || 0), 0);
@@ -116,7 +129,7 @@ export default function Rewards() {
       const { data: pendingTimerData, error: pendingError } = await supabase
         .from('layer_rewards')
         .select('*')
-        .ilike('recipient_wallet', memberWalletAddress)
+        .ilike('reward_recipient_wallet', memberWalletAddress)
         .eq('is_claimed', false)
         .eq('reward_type', 'pending_layer_reward')
         .not('expires_at', 'is', null)

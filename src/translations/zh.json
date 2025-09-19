@@ -646,7 +646,11 @@
       "level1Direct": "1级直接：每推荐$30 USDC",
       "level2Matrix": "2级矩阵：每位置$10 USDC",
       "spilloverBonuses": "溢出奖励：额外奖励",
-      "claimWindow": "72小时认领窗口"
+      "claimWindow": "72小时认领窗口",
+      "bccTransferable": "可转移BCC：立即使用",
+      "bccLocked": "锁定BCC：基于等级释放",
+      "bccMultipliers": "等级倍数：1.0x, 0.5x, 0.25x, 0.125x",
+      "bccUpgrades": "等级升级解锁更多BCC"
     },
     "bccRewards": {
       "transferable": "可转移BCC：立即使用",
@@ -806,7 +810,11 @@
       "level1Direct": "一级直推：每次推荐30美元USDC",
       "level2Matrix": "二级矩阵：每个位置10美元USDC",
       "spilloverBonuses": "溢出奖励：额外奖励",
-      "claimWindow": "72小时领取窗口"
+      "claimWindow": "72小时领取窗口",
+      "bccTransferable": "可转移BCC：立即使用",
+      "bccLocked": "锁定BCC：基于等级释放", 
+      "bccMultipliers": "等级倍数：1.0x, 0.5x, 0.25x, 0.125x",
+      "bccUpgrades": "等级升级解锁更多BCC"
     },
     "bccRewards": {
       "transferable": "可转移BCC：立即使用",

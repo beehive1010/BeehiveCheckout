@@ -563,7 +563,11 @@
       "level1Direct": "Level 1 Direct: $30 USDC per referral",
       "level2Matrix": "Level 2 Matrix: $10 USDC per position",
       "spilloverBonuses": "Spillover Bonuses: Additional rewards",
-      "claimWindow": "72-hour claim window"
+      "claimWindow": "72-hour claim window",
+      "bccTransferable": "BCC ที่สามารถโอน: ใช้ได้ทันที",
+      "bccLocked": "BCC ที่ล็อก: ปลดล็อกตามระดับ",
+      "bccMultipliers": "ตัวคูณระดับ: 1.0x, 0.5x, 0.25x, 0.125x",
+      "bccUpgrades": "การอัพเกรดระดับปลดล็อก BCC เพิ่มเติม"
     },
     "bccRewards": {
       "transferable": "Transferable BCC: Immediate use",
@@ -714,7 +718,11 @@
       "level1Direct": "Level 1 Direct: $30 USDC per referral",
       "level2Matrix": "Level 2 Matrix: $10 USDC per position",
       "spilloverBonuses": "Spillover Bonuses: Additional rewards",
-      "claimWindow": "72-hour claim window"
+      "claimWindow": "72-hour claim window",
+      "bccTransferable": "BCC ที่สามารถโอน: ใช้ได้ทันที",
+      "bccLocked": "BCC ที่ล็อก: ปลดล็อกตามระดับ",
+      "bccMultipliers": "ตัวคูณระดับ: 1.0x, 0.5x, 0.25x, 0.125x",
+      "bccUpgrades": "การอัพเกรดระดับปลดล็อก BCC เพิ่มเติม"
     },
     "bccRewards": {
       "transferable": "Transferable BCC: Immediate use",

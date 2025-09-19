@@ -425,13 +425,13 @@ export default function Membership() {
                         <span className="font-semibold text-honey">{t('membership.directReferralRequirement')}</span>
                       </div>
                       <div className="text-sm text-muted-foreground mb-2">
-                        {(directReferralsCount || 0) > 3 ? (
+                        {(directReferralsCount || 0) >= 3 ? (
                           <span className="text-emerald-600 font-medium">
                             {t('membership.qualifiedStatus', { count: directReferralsCount, excess: (directReferralsCount || 0) - 3 })}
                           </span>
                         ) : (
                           <span className="text-orange-600 font-medium">
-                            {t('membership.statusNotQualified', { count: directReferralsCount || 0, needed: Math.max(1, 4 - (directReferralsCount || 0)) })}
+                            {t('membership.statusNotQualified', { count: directReferralsCount || 0, needed: Math.max(1, 3 - (directReferralsCount || 0)) })}
                           </span>
                         )}
                       </div>
