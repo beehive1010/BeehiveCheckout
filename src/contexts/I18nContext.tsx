@@ -65,7 +65,15 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       setTranslations(translationMap);
-      console.log(`🌍 Loaded translations: ${Object.keys(translationMap.en).length} EN, ${Object.keys(translationMap.zh).length} ZH`);
+      console.log(`🌍 Loaded translations:`, {
+        en: Object.keys(translationMap.en).length,
+        zh: Object.keys(translationMap.zh).length,
+        'zh-tw': Object.keys(translationMap['zh-tw']).length,
+        th: Object.keys(translationMap.th).length,
+        ms: Object.keys(translationMap.ms).length,
+        ko: Object.keys(translationMap.ko).length,
+        ja: Object.keys(translationMap.ja).length
+      });
     } catch (error) {
       console.error('Failed to load translations:', error);
     } finally {

@@ -23,10 +23,12 @@ export default function LanguageSwitcher() {
   const getLanguageFlag = (code: string) => {
     const flags = {
       'en': '🇺🇸',
-      'zh': '🇨🇳', 
+      'zh': '🇨🇳',
+      'zh-tw': '🇹🇼', 
       'th': '🇹🇭',
       'ms': '🇲🇾',
-      'ko': '🇰🇷'
+      'ko': '🇰🇷',
+      'ja': '🇯🇵'
     };
     return flags[code as keyof typeof flags] || '🌐';
   };
