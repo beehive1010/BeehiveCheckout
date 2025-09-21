@@ -95,8 +95,8 @@ export default function ReferralMatrixVisualization({
 
       // Get additional member info separately
       const memberWallets = matrixPlacements?.map(p => p.member_wallet) || [];
-      let memberInfo = new Map();
-      let userInfo = new Map();
+      const memberInfo = new Map();
+      const userInfo = new Map();
 
       if (memberWallets.length > 0) {
         // Get member data

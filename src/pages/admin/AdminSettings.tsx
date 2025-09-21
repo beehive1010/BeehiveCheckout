@@ -6,7 +6,7 @@ import { Label } from '../../components/ui/label';
 import { Badge } from '../../components/ui/badge';
 import { Alert, AlertDescription } from '../../components/ui/alert';
 import { useToast } from '../../hooks/use-toast';
-import { Settings, Clock, Users, Trash2, RefreshCw } from 'lucide-react';
+import { Settings, Clock, Users, Trash2, RefreshCw, AlertCircle } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface RegistrationStats {

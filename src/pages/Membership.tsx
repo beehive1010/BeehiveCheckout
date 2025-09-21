@@ -187,9 +187,9 @@ export default function Membership() {
     if (!currentLevel) return 'locked';
     if (level <= currentLevel) return 'owned';
     
-    // Special logic for Level 2: requires Level 1 + direct referrals > 3 (from referrals table)
+    // Special logic for Level 2: requires Level 1 + direct referrals >= 3 (from referrals table)
     if (level === 2) {
-      if (currentLevel >= 1 && (directReferralsCount || 0) > 3) {
+      if (currentLevel >= 1 && (directReferralsCount || 0) >= 3) {
         return 'available';
       }
       return 'locked';

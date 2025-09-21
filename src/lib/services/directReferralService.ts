@@ -60,8 +60,8 @@ export async function checkLevel2DirectReferralRequirement(walletAddress: string
   const requiredCount = 3;
   const currentCount = await getDirectReferralCount(walletAddress);
   
-  const qualified = currentCount > requiredCount;
-  const shortage = Math.max(0, requiredCount + 1 - currentCount); // 需要多少人才能达标
+  const qualified = currentCount >= requiredCount;
+  const shortage = Math.max(0, requiredCount - currentCount); // 需要多少人才能达标
   
   let detailedStatus = '';
   if (qualified) {
