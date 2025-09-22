@@ -1627,6 +1627,13 @@
     "processing": "处理中...",
     "notUnlocked": "暂未解锁",
     "useQuickUpgrade": "使用上方快速升级来认领级别 {level}",
+    "quickUpgrade": "快速NFT升级",
+    "nftClaimDescription": "使用区块链NFT认领来即时升级您的会员级别",
+    "nftClaimNote": "这使用与欢迎页面相同的智能合约，具有自动级别检测功能",
+    "needsActivation": "请先在欢迎页面激活您的1级会员。",
+    "goToWelcome": "前往欢迎页面 →",
+    "upgradeSuccess": "升级成功！",
+    "upgradeSuccessDescription": "您的会员资格已成功升级",
     "progressInfo": {
       "title": "渐进式会员系统",
       "description": "会员级别必须按顺序认领。每个级别都会解锁增强的权益、增加的奖励和独家平台功能。",

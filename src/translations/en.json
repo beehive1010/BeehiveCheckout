@@ -923,6 +923,13 @@
     "processing": "Processing...",
     "notUnlocked": "Not Yet Unlocked",
     "useQuickUpgrade": "Use Quick Upgrade above to claim Level {level}",
+    "quickUpgrade": "Quick NFT Upgrade",
+    "nftClaimDescription": "Use blockchain NFT claiming to upgrade your membership level instantly",
+    "nftClaimNote": "This uses the same smart contract as the welcome page with automatic level detection",
+    "needsActivation": "Please activate your Level 1 membership on the Welcome page first.",
+    "goToWelcome": "Go to Welcome Page →",
+    "upgradeSuccess": "Upgrade Successful!",
+    "upgradeSuccessDescription": "Your membership has been upgraded successfully",
     "progressInfo": {
       "title": "Progressive Membership System",
       "description": "Membership levels must be claimed sequentially. Each level unlocks enhanced benefits, increased rewards, and exclusive platform features.",
