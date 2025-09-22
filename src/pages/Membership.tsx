@@ -80,7 +80,16 @@ export default function Membership() {
     error: null
   });
 
-  // Handle direct upgrade from card
+  // State for managing card-based upgrades
+  const [upgradeState, setUpgradeState] = useState<{
+    level: number | null;
+    isProcessing: boolean;
+  }>({
+    level: null,
+    isProcessing: false
+  });
+
+  // Handle direct upgrade from card - Use actual upgrade logic
   const handleCardUpgrade = async (targetLevel: number) => {
     if (!walletAddress) {
       toast({
@@ -91,9 +100,18 @@ export default function Membership() {
       return;
     }
 
-    // For Level 2, use Level2ClaimButton logic
+    // Check if user can upgrade to this level
+    if (targetLevel !== currentLevel + 1) {
+      toast({
+        title: "Sequential Upgrade Required",
+        description: `You can only upgrade to Level ${currentLevel + 1}. Cannot skip levels.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // For Level 2, check special requirements
     if (targetLevel === 2) {
-      // Check if user meets Level 2 requirements
       if (currentLevel !== 1 || (directReferralsCount || 0) < 3) {
         toast({
           title: "Requirements Not Met",
@@ -104,25 +122,41 @@ export default function Membership() {
       }
     }
 
-    // For Level 3+, trigger the same upgrade process as LevelUpgradeButton
-    console.log(`🎯 Card upgrade triggered for Level ${targetLevel}`);
+    setUpgradeState({ level: targetLevel, isProcessing: true });
     
-    // Scroll to the Quick Upgrade section and highlight it
-    const quickUpgradeSection = document.querySelector('[data-testid="quick-upgrade-section"]');
-    if (quickUpgradeSection) {
-      quickUpgradeSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    try {
+      // Import the upgrade logic dynamically
+      const { claimNFT } = await import('../lib/nftClaim');
       
-      // Add a temporary highlight effect
-      quickUpgradeSection.classList.add('ring-4', 'ring-honey/50', 'ring-offset-2');
-      setTimeout(() => {
-        quickUpgradeSection.classList.remove('ring-4', 'ring-honey/50', 'ring-offset-2');
-      }, 3000);
-      
+      await claimNFT({
+        level: targetLevel,
+        walletAddress,
+        onProgress: (step: string) => {
+          console.log(`🔄 Upgrade progress: ${step}`);
+        }
+      });
+
       toast({
-        title: "Scroll to Quick Upgrade",
-        description: `The upgrade section has been highlighted above. Use the upgrade button there to claim Level ${targetLevel}.`,
+        title: `Level ${targetLevel} Claimed!`,
+        description: `Successfully upgraded to Level ${targetLevel}`,
         duration: 5000,
       });
+
+      // Refresh data
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['user-status', walletAddress] });
+        queryClient.invalidateQueries({ queryKey: ['/direct-referrals', walletAddress] });
+      }, 2000);
+
+    } catch (error: any) {
+      console.error('Card upgrade error:', error);
+      toast({
+        title: "Upgrade Failed",
+        description: error.message || "Failed to upgrade membership",
+        variant: "destructive",
+      });
+    } finally {
+      setUpgradeState({ level: null, isProcessing: false });
     }
   };
 
@@ -534,11 +568,21 @@ export default function Membership() {
                     ) : status === 'available' ? (
                       <Button 
                         onClick={() => handleCardUpgrade(membership.level)}
-                        className="w-full h-14 bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-white font-semibold text-base rounded-2xl border border-honey/30 transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                        disabled={upgradeState.isProcessing && upgradeState.level === membership.level}
+                        className="w-full h-14 bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-white font-semibold text-base rounded-2xl border border-honey/30 transition-all duration-200 hover:scale-105 hover:shadow-lg disabled:opacity-75 disabled:cursor-not-allowed disabled:hover:scale-100"
                         data-testid={`button-available-${membership.level}`}
                       >
-                        <ArrowRight className="h-5 w-5 mr-3" />
-                        {t('membership.upgradeNow') || `Upgrade to Level ${membership.level} - $${membership.price}`}
+                        {upgradeState.isProcessing && upgradeState.level === membership.level ? (
+                          <>
+                            <Loader2 className="h-5 w-5 mr-3 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <ArrowRight className="h-5 w-5 mr-3" />
+                            {t('membership.upgradeNow') || `Upgrade to Level ${membership.level} - $${membership.price}`}
+                          </>
+                        )}
                       </Button>
                     ) : (
                       <Button 
