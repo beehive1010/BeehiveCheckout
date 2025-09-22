@@ -140,7 +140,7 @@ export function useNFTLevelClaim(targetLevel?: number) {
         isMaxLevel
       });
 
-      console.log('🎯 NFT Level Info Updated:', {
+      console.log('🎯 NFT Level Info Updated (Enhanced):', {
         currentLevel,
         nextClaimableLevel: nextLevel,
         priceInUSDC,
@@ -149,6 +149,8 @@ export function useNFTLevelClaim(targetLevel?: number) {
         canClaim,
         isMaxLevel,
         targetLevel,
+        upgradeLevel3Check: nextLevel >= 3 && nextLevel <= 19,
+        finalCanUpgrade: canClaim && nextLevel >= 3 && nextLevel <= 19,
         debugInfo: {
           hasTargetLevel: !!targetLevel,
           isLevel1Special: targetLevel === 1,
@@ -156,7 +158,8 @@ export function useNFTLevelClaim(targetLevel?: number) {
             (targetLevel === 1 ? 
               `Level 1 (special): currentLevel(${currentLevel}) <= 0 = ${currentLevel <= 0}` :
               `currentLevel(${currentLevel}) < targetLevel(${targetLevel}) = ${currentLevel < targetLevel}`) :
-            `nextLevel(${nextLevel}) > currentLevel(${currentLevel}) = ${nextLevel > currentLevel}`
+            `nextLevel(${nextLevel}) > currentLevel(${currentLevel}) = ${nextLevel > currentLevel}`,
+          levelRange: `${nextLevel} >= 3 && ${nextLevel} <= 19 = ${nextLevel >= 3 && nextLevel <= 19}`
         }
       });
 

@@ -490,18 +490,27 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
   const upgradeLevel = levelInfo.tokenId;
   const canUpgrade = levelInfo.canClaim && upgradeLevel >= 3 && upgradeLevel <= 19;
   
-  // Debug logging (console only)
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔧 LevelUpgradeButton Debug:', {
-      currentUserLevel,
-      upgradeLevel,
-      canClaim: levelInfo.canClaim,
-      canUpgrade,
-      isLoading,
+  // Enhanced debug logging
+  console.log('🔧 LevelUpgradeButton Enhanced Debug:', {
+    currentUserLevel,
+    upgradeLevel,
+    canClaim: levelInfo.canClaim,
+    canUpgrade,
+    isLoading,
+    isProcessing,
+    isLevelLoading,
+    isLoadingLevel,
+    accountAddress: account?.address,
+    activeChain: activeChain?.id,
+    levelInfo: JSON.stringify(levelInfo),
+    buttonDisabled: isProcessing || !account?.address || isLoading || !canUpgrade,
+    disabledReasons: {
       isProcessing,
-      accountAddress: account?.address
-    });
-  }
+      noAccount: !account?.address,
+      isLoading,
+      cantUpgrade: !canUpgrade
+    }
+  });
 
   return (
     <Card className={`bg-gradient-to-br from-blue/5 to-blue/15 border-blue/30 ${className}`}>

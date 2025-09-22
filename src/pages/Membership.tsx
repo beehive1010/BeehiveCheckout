@@ -260,6 +260,20 @@ export default function Membership() {
           </div>
           
           <div className="max-w-4xl mx-auto">
+            {/* Debug component selection */}
+            {console.log('🎯 Membership Component Selection:', {
+              currentLevel,
+              currentLevelType: typeof currentLevel,
+              directReferralsCount,
+              directReferralsType: typeof directReferralsCount,
+              condition1: currentLevel === 0,
+              condition2: currentLevel === 1 && (directReferralsCount || 0) >= 3,
+              condition3: currentLevel >= 1 && currentLevel < 19,
+              selectedComponent: currentLevel === 0 ? 'needsActivation' : 
+                                currentLevel === 1 && (directReferralsCount || 0) >= 3 ? 'Level2ClaimButton' :
+                                currentLevel >= 1 && currentLevel < 19 ? 'LevelUpgradeButton' : 'unknown'
+            })}
+            
             {/* Dynamic component selection for membership upgrades only */}
             {currentLevel === 0 ? (
               <div className="text-center p-8 text-muted-foreground">
