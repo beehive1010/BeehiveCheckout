@@ -176,7 +176,7 @@ export default function Membership() {
         ].filter(Boolean),
         icon: getIcon(),
         ...colors,
-        isSpecial: level >= 5 && (level % 5 === 0 || level >= 15)
+        isSpecial: false // Will be set dynamically based on availability
       };
     })
   ];
@@ -328,13 +328,13 @@ export default function Membership() {
             >
               {/* Background Glow Effect */}
               <div className={`absolute inset-0 rounded-3xl transition-all duration-500 ${
-                membership.isSpecial 
+                status === 'available' 
                   ? 'bg-gradient-to-br from-honey/20 via-orange-500/20 to-honey/20 blur-xl group-hover:blur-2xl group-hover:scale-105' 
                   : 'bg-gradient-to-br from-gray-200/20 via-gray-300/20 to-gray-200/20 dark:from-gray-700/20 dark:via-gray-600/20 dark:to-gray-700/20 blur-lg group-hover:blur-xl group-hover:scale-102'
               }`}></div>
               
-              {/* Special Featured Badge */}
-              {membership.isSpecial && (
+              {/* Special Featured Badge - Show for available levels */}
+              {status === 'available' && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-20">
                   <div className="relative">
                     <div className="absolute inset-0 bg-gradient-to-r from-honey/50 to-orange-500/50 rounded-full blur-md"></div>
@@ -347,7 +347,7 @@ export default function Membership() {
 
               {/* Main Card */}
               <Card className={`relative z-10 overflow-hidden border-0 bg-gradient-to-br from-white/95 via-white/98 to-white/95 dark:from-gray-900/95 dark:via-gray-800/98 dark:to-gray-900/95 backdrop-blur-xl rounded-3xl shadow-2xl transition-all duration-500 ${
-                membership.isSpecial 
+                status === 'available' 
                   ? 'ring-2 ring-honey/30 shadow-honey/20' 
                   : 'shadow-gray-200/50 dark:shadow-gray-800/50'
               } group-hover:shadow-3xl`}>
@@ -359,12 +359,12 @@ export default function Membership() {
                       {/* Icon with Glow */}
                       <div className="relative">
                         <div className={`absolute inset-0 rounded-2xl transition-all duration-300 ${
-                          membership.isSpecial 
+                          status === 'available' 
                             ? 'bg-gradient-to-r from-honey/30 to-orange-500/30 blur-md group-hover:blur-lg' 
                             : 'bg-gradient-to-r from-gray-300/30 to-gray-400/30 dark:from-gray-600/30 dark:to-gray-700/30 blur-sm group-hover:blur-md'
                         }`}></div>
                         <div className={`relative p-4 rounded-2xl ${
-                          membership.isSpecial 
+                          status === 'available' 
                             ? 'bg-gradient-to-br from-honey/20 to-orange-500/20' 
                             : membership.bgColor
                         } backdrop-blur-sm`}>
@@ -375,7 +375,7 @@ export default function Membership() {
                       {/* Level Title */}
                       <div>
                         <CardTitle className={`text-2xl font-bold mb-1 ${
-                          membership.isSpecial 
+                          status === 'available' 
                             ? 'bg-gradient-to-r from-honey via-orange-500 to-honey bg-clip-text text-transparent' 
                             : 'text-foreground'
                         }`}>

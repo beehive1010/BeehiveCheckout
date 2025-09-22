@@ -162,5 +162,8 @@
     "myNFTs": "我的NFT",
     "marketplace": "市場",
     "collection": "收藏"
+  },
+  "membership": {
+    "useQuickUpgrade": "使用上方快速升級來認領級別 {level}"
   }
 }

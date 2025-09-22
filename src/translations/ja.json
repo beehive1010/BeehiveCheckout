@@ -1127,6 +1127,7 @@
   "membership": {
     "activationSuccess": "メンバーシップが成功裁にアクティベートされました！",
     "nftActivationFailed": "NFTのアクティベーションに失敗しました。もう一度試してください。",
+    "useQuickUpgrade": "上記のクイックアップグレードを使用してレベル{level}を獲得してください",
     "walletNotConnected": "まずウォレットを接続してください",
     "purchase": {
       "button": "メンバーアンロック - 130 USDT",
