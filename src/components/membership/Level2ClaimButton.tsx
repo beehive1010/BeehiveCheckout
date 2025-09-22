@@ -67,7 +67,7 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
       const { data: currentUser, error: userError } = await supabase
         .from('members')
         .select('wallet_address, current_level')
-        .eq('wallet_address', account.address)
+        .ilike('wallet_address', account.address)
         .single();
       
       if (userError || !currentUser) {

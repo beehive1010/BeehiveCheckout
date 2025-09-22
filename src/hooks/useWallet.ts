@@ -74,15 +74,15 @@ export function useWallet() {
         let finalMemberData = memberData;
         
         if (isAdminUser) {
-          // Override with correct data for admin user
+          // Use real data from database for admin user
           finalIsActivated = true;
-          membershipLevel = 1;
+          membershipLevel = memberData?.current_level || 2; // Use actual level from database
           finalMemberData = {
-            current_level: 1,
+            current_level: memberData?.current_level || 2,
             is_activated: true,
-            levels_owned: [1]
+            levels_owned: memberData?.current_level ? Array.from({length: memberData.current_level}, (_, i) => i + 1) : [1, 2]
           };
-          console.log('🔧 Applied admin user override - activated with Level 1');
+          console.log('🔧 Applied admin user override - using actual database level:', membershipLevel);
         } else if (isActivated && memberData) {
           membershipLevel = memberData.current_level || 1;
           console.log('📊 Member level from members table:', membershipLevel);
