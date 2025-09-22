@@ -80,6 +80,52 @@ export default function Membership() {
     error: null
   });
 
+  // Handle direct upgrade from card
+  const handleCardUpgrade = async (targetLevel: number) => {
+    if (!walletAddress) {
+      toast({
+        title: "Wallet Required",
+        description: "Please connect your wallet first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // For Level 2, use Level2ClaimButton logic
+    if (targetLevel === 2) {
+      // Check if user meets Level 2 requirements
+      if (currentLevel !== 1 || (directReferralsCount || 0) < 3) {
+        toast({
+          title: "Requirements Not Met",
+          description: "Level 2 requires Level 1 membership and 3+ direct referrals",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // For Level 3+, trigger the same upgrade process as LevelUpgradeButton
+    console.log(`🎯 Card upgrade triggered for Level ${targetLevel}`);
+    
+    // Scroll to the Quick Upgrade section and highlight it
+    const quickUpgradeSection = document.querySelector('[data-testid="quick-upgrade-section"]');
+    if (quickUpgradeSection) {
+      quickUpgradeSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Add a temporary highlight effect
+      quickUpgradeSection.classList.add('ring-4', 'ring-honey/50', 'ring-offset-2');
+      setTimeout(() => {
+        quickUpgradeSection.classList.remove('ring-4', 'ring-honey/50', 'ring-offset-2');
+      }, 3000);
+      
+      toast({
+        title: "Scroll to Quick Upgrade",
+        description: `The upgrade section has been highlighted above. Use the upgrade button there to claim Level ${targetLevel}.`,
+        duration: 5000,
+      });
+    }
+  };
+
   // Define all 19 membership levels with progressive pricing and benefits
   const membershipLevels: MembershipLevel[] = [
     // Level 1: Bronze Bee
@@ -259,7 +305,7 @@ export default function Membership() {
             
           </div>
           
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-4xl mx-auto" data-testid="quick-upgrade-section">
             {/* Debug component selection */}
             {console.log('🎯 Membership Component Selection:', {
               currentLevel,
@@ -487,12 +533,12 @@ export default function Membership() {
                       </Button>
                     ) : status === 'available' ? (
                       <Button 
-                        disabled 
-                        className="w-full h-14 bg-gradient-to-r from-honey/20 to-orange-500/20 text-honey font-semibold text-base rounded-2xl border border-honey/30"
+                        onClick={() => handleCardUpgrade(membership.level)}
+                        className="w-full h-14 bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-white font-semibold text-base rounded-2xl border border-honey/30 transition-all duration-200 hover:scale-105 hover:shadow-lg"
                         data-testid={`button-available-${membership.level}`}
                       >
                         <ArrowRight className="h-5 w-5 mr-3" />
-                        {t('membership.useQuickUpgrade') || `Use Quick Upgrade above to claim Level ${membership.level}`}
+                        {t('membership.upgradeNow') || `Upgrade to Level ${membership.level} - $${membership.price}`}
                       </Button>
                     ) : (
                       <Button 
