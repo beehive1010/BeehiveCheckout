@@ -124,24 +124,27 @@ export default function Membership() {
 
     setUpgradeState({ level: targetLevel, isProcessing: true });
     
-    // Create a synthetic click on the actual LevelUpgradeButton
-    const upgradeButton = document.querySelector('[data-testid="level-upgrade-button"]') as HTMLButtonElement;
-    if (upgradeButton && !upgradeButton.disabled) {
-      upgradeButton.click();
-      toast({
-        title: "Upgrade Initiated",
-        description: `Processing Level ${targetLevel} upgrade...`,
-        duration: 3000,
-      });
-    } else {
-      toast({
-        title: "Upgrade Not Available",
-        description: "The upgrade function is currently not available. Please try the Quick Upgrade section above.",
-        variant: "destructive",
-      });
-    }
-    
-    setUpgradeState({ level: null, isProcessing: false });
+    // Simple navigation to Quick Upgrade section
+    setTimeout(() => {
+      const quickUpgradeSection = document.querySelector('[data-testid="quick-upgrade-section"]');
+      if (quickUpgradeSection) {
+        quickUpgradeSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Add highlight effect
+        quickUpgradeSection.classList.add('ring-4', 'ring-honey/50', 'ring-offset-4', 'rounded-xl');
+        setTimeout(() => {
+          quickUpgradeSection.classList.remove('ring-4', 'ring-honey/50', 'ring-offset-4', 'rounded-xl');
+        }, 5000);
+        
+        toast({
+          title: `📍 Level ${targetLevel} Upgrade`,
+          description: `Scrolled to Quick Upgrade section. Use the upgrade button above to claim Level ${targetLevel}.`,
+          duration: 6000,
+        });
+      }
+      
+      setUpgradeState({ level: null, isProcessing: false });
+    }, 800); // Small delay for smooth animation
   };
 
   // Define all 19 membership levels with progressive pricing and benefits
@@ -546,12 +549,12 @@ export default function Membership() {
                         {upgradeState.isProcessing && upgradeState.level === membership.level ? (
                           <>
                             <Loader2 className="h-5 w-5 mr-3 animate-spin" />
-                            Processing...
+                            Navigating...
                           </>
                         ) : (
                           <>
                             <ArrowRight className="h-5 w-5 mr-3" />
-                            {t('membership.upgradeNow') || `Upgrade to Level ${membership.level} - $${membership.price}`}
+                            {t('membership.quickUpgradeNow') || `Quick Upgrade to Level ${membership.level}`}
                           </>
                         )}
                       </Button>

@@ -931,6 +931,7 @@
     "upgradeSuccess": "Upgrade Successful!",
     "upgradeSuccessDescription": "Your membership has been upgraded successfully",
     "upgradeNow": "Upgrade to Level {level} - ${price}",
+    "quickUpgradeNow": "Quick Upgrade to Level {level}",
     "progressInfo": {
       "title": "Progressive Membership System",
       "description": "Membership levels must be claimed sequentially. Each level unlocks enhanced benefits, increased rewards, and exclusive platform features.",

@@ -1635,6 +1635,7 @@
     "upgradeSuccess": "升级成功！",
     "upgradeSuccessDescription": "您的会员资格已成功升级",
     "upgradeNow": "升级到级别 {level} - ${price}",
+    "quickUpgradeNow": "快速升级到级别 {level}",
     "progressInfo": {
       "title": "渐进式会员系统",
       "description": "会员级别必须按顺序认领。每个级别都会解锁增强的权益、增加的奖励和独家平台功能。",
