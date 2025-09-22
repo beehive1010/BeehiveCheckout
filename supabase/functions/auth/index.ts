@@ -125,7 +125,8 @@ async function getUser(supabase, walletAddress) {
     p_wallet_address: walletAddress
   });
   if (statusError) {
-    throw new Error(`Failed to get user status: ${statusError.message}`);
+    console.error('❌ get_member_status error:', statusError);
+    throw new Error(`Failed to get user status: ${statusError.message || statusError.details || statusError.hint || JSON.stringify(statusError)}`);
   }
   if (!statusResult.is_registered) {
     return {

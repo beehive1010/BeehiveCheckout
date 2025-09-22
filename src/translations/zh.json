@@ -276,6 +276,7 @@
   "registration": {
     "title": "完成注册",
     "subtitle": "设置您的蜂巢资料",
+    "description": "完成注册以加入蜂巢社区",
     "walletAddress": "钱包地址",
     "email": "邮箱地址",
     "emailPlaceholder": "输入您的邮箱",
@@ -1625,6 +1626,7 @@
     "unlockNow": "立即购买 ${price}",
     "processing": "处理中...",
     "notUnlocked": "暂未解锁",
+    "useQuickUpgrade": "使用上方快速升级来认领级别 {level}",
     "progressInfo": {
       "title": "渐进式会员系统",
       "description": "会员级别必须按顺序认领。每个级别都会解锁增强的权益、增加的奖励和独家平台功能。",

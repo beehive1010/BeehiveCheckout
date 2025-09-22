@@ -12,7 +12,7 @@ export async function getDirectReferralCount(referrerWallet: string): Promise<nu
     const { data, error } = await supabase
       .from('referrer_stats')
       .select('direct_referrals')
-      .eq('wallet_address', referrerWallet)
+      .ilike('wallet_address', referrerWallet)
       .single();
 
     if (error) {
@@ -23,7 +23,7 @@ export async function getDirectReferralCount(referrerWallet: string): Promise<nu
       const { count, error: usersError } = await supabase
         .from('users')
         .select('*', { count: 'exact', head: true })
-        .eq('referrer_wallet', referrerWallet)
+        .ilike('referrer_wallet', referrerWallet)
         .neq('wallet_address', '0x0000000000000000000000000000000000000001');
       
       if (usersError) {
@@ -104,7 +104,7 @@ export async function getDirectReferralDetails(referrerWallet: string): Promise<
         placed_at,
         is_active
       `)
-      .eq('referrer_wallet', referrerWallet)
+      .ilike('referrer_wallet', referrerWallet)
       .order('placed_at', { ascending: false });
 
     if (referralError) {
@@ -115,7 +115,7 @@ export async function getDirectReferralDetails(referrerWallet: string): Promise<
     const { data: usersData, error: usersError } = await supabase
       .from('users')
       .select('wallet_address, username, created_at')
-      .eq('referrer_wallet', referrerWallet)
+      .ilike('referrer_wallet', referrerWallet)
       .neq('wallet_address', '0x0000000000000000000000000000000000000001')
       .order('created_at', { ascending: false });
 

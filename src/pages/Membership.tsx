@@ -42,7 +42,7 @@ export default function Membership() {
         const { data: memberData } = await supabase
           .from('members')
           .select('referrer_wallet')
-          .eq('wallet_address', walletAddress)
+          .ilike('wallet_address', walletAddress)
           .single();
         
         if (memberData?.referrer_wallet) {
