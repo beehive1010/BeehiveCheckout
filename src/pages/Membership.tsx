@@ -256,6 +256,11 @@ export default function Membership() {
             <div className="mt-2 text-xs text-honey/80">
               {t('membership.nftClaimNote') || 'This uses the same smart contract as the welcome page with automatic level detection'}
             </div>
+            
+            {/* Debug info */}
+            <div className="mt-4 p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground">
+              Debug: currentLevel={currentLevel}, directReferrals={directReferralsCount}, wallet={walletAddress?.slice(0,8)}...
+            </div>
           </div>
           
           <div className="max-w-4xl mx-auto">

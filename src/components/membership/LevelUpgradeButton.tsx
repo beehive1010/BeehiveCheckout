@@ -489,6 +489,17 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
   const isLoading = isLevelLoading || isLoadingLevel;
   const upgradeLevel = levelInfo.tokenId;
   const canUpgrade = levelInfo.canClaim && upgradeLevel >= 3 && upgradeLevel <= 19;
+  
+  // Debug logging
+  console.log('🔧 LevelUpgradeButton Debug:', {
+    currentUserLevel,
+    upgradeLevel,
+    canClaim: levelInfo.canClaim,
+    canUpgrade,
+    isLoading,
+    isProcessing,
+    accountAddress: account?.address
+  });
 
   return (
     <Card className={`bg-gradient-to-br from-blue/5 to-blue/15 border-blue/30 ${className}`}>
