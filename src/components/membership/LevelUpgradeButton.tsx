@@ -571,6 +571,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
           <Button 
             onClick={handleUpgradeLevel}
             disabled={isProcessing || !account?.address || isLoading || !canUpgrade}
+            data-testid="level-upgrade-button"
             className="w-full h-12 bg-gradient-to-r from-blue-400 to-blue-600 hover:from-blue-400/90 hover:to-blue-600/90 text-white font-semibold text-lg shadow-lg disabled:opacity-50"
           >
             {!account?.address ? (

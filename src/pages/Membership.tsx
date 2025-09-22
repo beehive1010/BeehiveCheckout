@@ -124,40 +124,24 @@ export default function Membership() {
 
     setUpgradeState({ level: targetLevel, isProcessing: true });
     
-    try {
-      // Import the upgrade logic dynamically
-      const { claimNFT } = await import('../lib/nftClaim');
-      
-      await claimNFT({
-        level: targetLevel,
-        walletAddress,
-        onProgress: (step: string) => {
-          console.log(`🔄 Upgrade progress: ${step}`);
-        }
-      });
-
+    // Create a synthetic click on the actual LevelUpgradeButton
+    const upgradeButton = document.querySelector('[data-testid="level-upgrade-button"]') as HTMLButtonElement;
+    if (upgradeButton && !upgradeButton.disabled) {
+      upgradeButton.click();
       toast({
-        title: `Level ${targetLevel} Claimed!`,
-        description: `Successfully upgraded to Level ${targetLevel}`,
-        duration: 5000,
+        title: "Upgrade Initiated",
+        description: `Processing Level ${targetLevel} upgrade...`,
+        duration: 3000,
       });
-
-      // Refresh data
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['user-status', walletAddress] });
-        queryClient.invalidateQueries({ queryKey: ['/direct-referrals', walletAddress] });
-      }, 2000);
-
-    } catch (error: any) {
-      console.error('Card upgrade error:', error);
+    } else {
       toast({
-        title: "Upgrade Failed",
-        description: error.message || "Failed to upgrade membership",
+        title: "Upgrade Not Available",
+        description: "The upgrade function is currently not available. Please try the Quick Upgrade section above.",
         variant: "destructive",
       });
-    } finally {
-      setUpgradeState({ level: null, isProcessing: false });
     }
+    
+    setUpgradeState({ level: null, isProcessing: false });
   };
 
   // Define all 19 membership levels with progressive pricing and benefits
@@ -340,19 +324,6 @@ export default function Membership() {
           </div>
           
           <div className="max-w-4xl mx-auto" data-testid="quick-upgrade-section">
-            {/* Debug component selection */}
-            {console.log('🎯 Membership Component Selection:', {
-              currentLevel,
-              currentLevelType: typeof currentLevel,
-              directReferralsCount,
-              directReferralsType: typeof directReferralsCount,
-              condition1: currentLevel === 0,
-              condition2: currentLevel === 1 && (directReferralsCount || 0) >= 3,
-              condition3: currentLevel >= 1 && currentLevel < 19,
-              selectedComponent: currentLevel === 0 ? 'needsActivation' : 
-                                currentLevel === 1 && (directReferralsCount || 0) >= 3 ? 'Level2ClaimButton' :
-                                currentLevel >= 1 && currentLevel < 19 ? 'LevelUpgradeButton' : 'unknown'
-            })}
             
             {/* Dynamic component selection for membership upgrades only */}
             {currentLevel === 0 ? (
