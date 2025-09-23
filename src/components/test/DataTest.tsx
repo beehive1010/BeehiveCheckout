@@ -44,11 +44,12 @@ const DataTest: React.FC<DataTestProps> = ({ walletAddress }) => {
     setError(null);
     
     try {
-      console.log('Testing matrix_layers_view for:', walletAddress);
+      const lowerWallet = walletAddress.toLowerCase();
+      console.log('Testing matrix_layers_view for:', walletAddress, 'as lowercase:', lowerWallet);
       const { data, error } = await supabase
         .from('matrix_layers_view')
         .select('*')
-        .eq('matrix_root_wallet', walletAddress)
+        .eq('matrix_root_wallet', lowerWallet)
         .limit(5);
 
       if (error) {
@@ -72,11 +73,12 @@ const DataTest: React.FC<DataTestProps> = ({ walletAddress }) => {
     setError(null);
     
     try {
-      console.log('Testing matrix_referrals_tree_view for:', walletAddress);
+      const lowerWallet = walletAddress.toLowerCase();
+      console.log('Testing matrix_referrals_tree_view for:', walletAddress, 'as lowercase:', lowerWallet);
       const { data, error } = await supabase
         .from('matrix_referrals_tree_view')
         .select('*')
-        .eq('matrix_root_wallet', walletAddress)
+        .eq('matrix_root_wallet', lowerWallet)
         .limit(10);
 
       if (error) {
