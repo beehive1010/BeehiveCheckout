@@ -90,18 +90,19 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
 
       // Check direct referrals requirement using unified service (Level 2 needs 3+ direct referrals)
       const { getDirectReferralCount } = await import('../../lib/services/directReferralService');
-      const directReferralsCount = await getDirectReferralCount(account.address);
+      const currentDirectReferrals = await getDirectReferralCount(account.address);
+      setDirectReferralsCount(currentDirectReferrals);
       
-      const hasThreeDirectReferrals = directReferralsCount >= 3;
+      const hasThreeDirectReferrals = currentDirectReferrals >= 3;
       
       if (!hasThreeDirectReferrals) {
-        console.log(`❌ Level 2 requires 3+ direct referrals. User has ${directReferralsCount}`);
+        console.log(`❌ Level 2 requires 3+ direct referrals. User has ${currentDirectReferrals}`);
         setCanClaimLevel2(false);
         setIsCheckingEligibility(false);
         return;
       }
       
-      console.log(`✅ Direct referrals check passed: ${directReferralsCount}/3`);
+      console.log(`✅ Direct referrals check passed: ${currentDirectReferrals}/3`);
       
       
       // Check if user already owns Level 2 NFT on blockchain
