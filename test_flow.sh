@@ -31,7 +31,7 @@ DB_HOST="db.cvqibjcbfrwsgkvthccp.supabase.co"
 
 # Test data
 TEST_WALLET="0xTEST$(date +%s)000000000000000000000TEST"
-TEST_REFERRER="0x0000000000000000000000000000000000000001"  # Root wallet
+TEST_REFERRER="0x5b9F8f6eed6f27760935E4E73687307F74Ae1601"  # Valid member sequence 114
 TEST_EMAIL="test$(date +%s)@example.com"
 TEST_USERNAME="testuser$(date +%s)"
 

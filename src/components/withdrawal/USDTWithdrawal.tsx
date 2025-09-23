@@ -417,7 +417,7 @@ export default function USDTWithdrawal() {
       
       // Record withdrawal in database
       const { supabase } = await import('../../lib/supabase');
-      const withdrawalId = `wd_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const withdrawalId = `wd_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
       
       await supabase.from('withdrawal_requests').insert({
         id: withdrawalId,
@@ -687,7 +687,7 @@ export default function USDTWithdrawal() {
             )}
             {!balanceLoading && memberWalletAddress && (
               <p className="text-xs text-muted-foreground">
-                Wallet: {memberWalletAddress?.slice(0, 6)}...{memberWalletAddress?.slice(-4)}
+                Wallet: {memberWalletAddress?.slice?.(0, 6) || ''}...{memberWalletAddress?.slice?.(-4) || ''}
               </p>
             )}
             {!memberWalletAddress && (
@@ -747,7 +747,7 @@ export default function USDTWithdrawal() {
               <div className="flex-1">
                 <h4 className="text-sm font-medium text-yellow-400 mb-1">No Balance Record Found</h4>
                 <p className="text-xs text-muted-foreground mb-3">
-                  Your wallet address ({memberWalletAddress ? `${memberWalletAddress.slice(0, 6)}...${memberWalletAddress.slice(-4)}` : 'Unknown'}) doesn't have a balance record in our system yet.
+                  Your wallet address ({memberWalletAddress ? `${memberWalletAddress?.slice?.(0, 6) || ''}...${memberWalletAddress?.slice?.(-4) || ''}` : 'Unknown'}) doesn't have a balance record in our system yet.
                 </p>
                 <button
                   onClick={async () => {
@@ -862,7 +862,7 @@ export default function USDTWithdrawal() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Wallet Address:</span>
                   <span className="font-mono text-xs bg-muted px-2 py-1 rounded">
-                    {currentWalletAddress ? `${currentWalletAddress.slice(0, 6)}...${currentWalletAddress.slice(-4)}` : 'Not Connected'}
+                    {currentWalletAddress ? `${currentWalletAddress?.slice?.(0, 6) || ''}...${currentWalletAddress?.slice?.(-4) || ''}` : 'Not Connected'}
                   </span>
                 </div>
                 
