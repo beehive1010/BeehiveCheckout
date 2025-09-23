@@ -137,7 +137,7 @@ export default function ReferralMatrixVisualization({
           level: memberInfo?.current_level || 1,
           layer: placement.layer || 1,
           position: positionNumber,
-          isActive: Boolean(memberInfo?.current_level && memberInfo.current_level > 0),
+          isActive: Boolean(memberInfo && memberInfo.current_level && memberInfo.current_level > 0),
           placedAt: placement.child_activation_time || new Date().toISOString(),
           downlineCount: 0 // TODO: Calculate downline count
         };
