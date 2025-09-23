@@ -44,7 +44,8 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
         .from('referrer_stats')
         .select('*')
         .eq('referrer', walletAddress)
-        .single();
+        .limit(1)
+        .maybeSingle();
 
       if (error) throw error;
       return data;
