@@ -25,15 +25,16 @@ interface BCCReleaseLog {
 }
 
 export const BCCBalanceDisplay: React.FC<BCCBalanceProps> = ({ walletAddress }) => {
-  // Get current BCC balance
-  const { data: balanceData, isLoading: balanceLoading } = useQuery<BCCBalanceData>({
+  // Get current BCC balance via Supabase Edge Function
+  const { data: balanceData, isLoading: balanceLoading } = useQuery<any>({
     queryKey: ['bcc-balance', walletAddress],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('user_balances')
-        .select('bcc_balance, bcc_locked, bcc_total_unlocked, bcc_used, last_updated')
-        .eq('wallet_address', walletAddress)
-        .single();
+      const { data, error } = await supabase.functions.invoke('bcc-balance', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
       if (error) throw error;
       return data;

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Gift, DollarSign, CheckCircle, ExternalLink, Loader2, ArrowUpLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../../lib/supabase';
 import { useWeb3 } from '@/contexts/Web3Context';
 import { useWallet } from '@/hooks/useWallet';
 import { apiRequest } from '@/lib/queryClient';
