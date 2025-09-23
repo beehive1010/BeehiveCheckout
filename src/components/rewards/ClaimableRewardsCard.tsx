@@ -95,25 +95,25 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
       let totalPending = 0;
 
       layerRewards?.forEach(reward => {
-        const positionKey = `${reward.payer_wallet}-${reward.layer}`;
+        const positionKey = `${reward.triggering_member_wallet}-${reward.matrix_layer}`;
         const position = matrixPositions.get(positionKey) || '?';
         
         const transformedReward: ClaimableReward = {
           id: reward.id,
-          rewardAmount: reward.amount_usdt || 0,
-          triggerLevel: reward.layer,
-          payoutLayer: reward.layer,
-          matrixPosition: `Layer ${reward.layer} (${position})`,
-          sourceWallet: reward.payer_wallet || '',
-          status: reward.reward_type === 'layer_reward' ? 'confirmed' : 'pending',
+          rewardAmount: reward.reward_amount || 0,
+          triggerLevel: reward.matrix_layer,
+          payoutLayer: reward.matrix_layer,
+          matrixPosition: `Layer ${reward.matrix_layer} (${position})`,
+          sourceWallet: reward.triggering_member_wallet || '',
+          status: reward.status === 'claimable' ? 'confirmed' : 'pending',
           createdAt: reward.created_at,
-          expiresAt: reward.expires_at || undefined
+          expiresAt: undefined // expires_at not included in select, would need to add if needed
         };
 
-        if (reward.reward_type === 'layer_reward') {
+        if (reward.status === 'claimable') {
           claimableRewards.push(transformedReward);
           totalClaimable += transformedReward.rewardAmount;
-        } else if (reward.reward_type === 'pending_layer_reward') {
+        } else if (reward.status === 'pending') {
           pendingRewards.push(transformedReward);
           totalPending += transformedReward.rewardAmount;
         }
