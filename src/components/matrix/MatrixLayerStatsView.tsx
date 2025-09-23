@@ -138,7 +138,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
           >
             {stat.totalMembers}/{stat.maxCapacity}
           </Badge>
-          {stat.activeMembers === stat.totalMembers && stat.totalMembers > 0 && (
+          {isLayerComplete && (
             <CheckCircle className="w-4 h-4 text-green-400" />
           )}
         </div>
@@ -168,7 +168,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
         </div>
         <div className="flex items-center gap-1">
           <Target className="w-3 h-3" />
-          <span>{stat.completedPercentage.toFixed(1)}% Complete</span>
+          <span>{isLayerComplete ? '100% Complete' : `${Math.round(((stat.leftMembers > 0 ? 1 : 0) + (stat.middleMembers > 0 ? 1 : 0) + (stat.rightMembers > 0 ? 1 : 0)) / 3 * 100)}% Complete`}</span>
         </div>
       </div>
 
