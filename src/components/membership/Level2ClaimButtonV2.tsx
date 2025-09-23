@@ -86,6 +86,38 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
         setIsCheckingEligibility(false);
         return;
       }
+
+      // Check direct referrals requirement (Level 2 needs 3+ direct referrals)
+      const { data: referrals, error: referralsError } = await supabase
+        .from('referrals_new')
+        .select(`
+          referred_wallet,
+          members!inner(wallet_address, current_level)
+        `)
+        .eq('referrer_wallet', account.address);
+      
+      if (referralsError) {
+        console.error('❌ Error loading referrals:', referralsError);
+        setCanClaimLevel2(false);
+        setIsCheckingEligibility(false);
+        return;
+      }
+      
+      const eligibleReferrals = referrals?.filter(ref => 
+        (ref.members as any)?.current_level >= 1
+      ) || [];
+      
+      const hasThreeDirectReferrals = eligibleReferrals.length >= 3;
+      
+      if (!hasThreeDirectReferrals) {
+        console.log(`❌ Level 2 requires 3+ direct referrals. User has ${eligibleReferrals.length}`);
+        setCanClaimLevel2(false);
+        setIsCheckingEligibility(false);
+        return;
+      }
+      
+      console.log(`✅ Direct referrals check passed: ${eligibleReferrals.length}/3`);
+      
       
       // Check if user already owns Level 2 NFT on blockchain
       try {
