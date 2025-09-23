@@ -389,6 +389,13 @@ export default function Membership() {
                   }, 2000);
                 }}
               />
+            ) : currentLevel === 1 && (directReferralsCount || 0) < 3 ? (
+              <div className="text-center p-8 text-muted-foreground">
+                <p className="mb-2">{t('membership.level2RequiresReferrals') || 'Level 2 requires 3+ direct referrals'}</p>
+                <p className="text-sm">
+                  {t('membership.currentReferrals', { count: directReferralsCount || 0 }) || `Current referrals: ${directReferralsCount || 0}`}
+                </p>
+              </div>
             ) : currentLevel && currentLevel >= 2 && currentLevel < 19 ? (
               <LevelUpgradeButtonGeneric 
                 targetLevel={currentLevel + 1}
@@ -409,13 +416,6 @@ export default function Membership() {
                   }, 2000);
                 }}
               />
-            ) : currentLevel === 1 && (directReferralsCount || 0) < 3 ? (
-              <div className="text-center p-8 text-muted-foreground">
-                <p className="mb-2">{t('membership.level2RequiresReferrals') || 'Level 2 requires 3+ direct referrals'}</p>
-                <p className="text-sm">
-                  {t('membership.currentReferrals', { count: directReferralsCount || 0 }) || `Current referrals: ${directReferralsCount || 0}`}
-                </p>
-              </div>
             ) : (
               <div className="text-center p-8 text-muted-foreground">
                 <p>{t('membership.maxLevelReached') || 'Maximum level reached!'}</p>

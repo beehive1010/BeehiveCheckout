@@ -407,9 +407,9 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
       console.log('📋 事件 logs:', receipt.logs);
       console.log('✅ Receipt status:', receipt.status);
 
-      // Step 7: Process Level 2 upgrade - simplified approach using existing database triggers
+      // Step 7: Process Level 2 upgrade using level-upgrade Edge Function
       if (claimTxResult?.transactionHash) {
-        console.log('🚀 Processing Level 2 upgrade - leveraging existing database triggers...');
+        console.log('🚀 Processing Level 2 upgrade via level-upgrade function...');
         setCurrentStep('Processing Level 2 upgrade...');
         
         await new Promise(resolve => setTimeout(resolve, 3000));
@@ -417,84 +417,60 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
         let activationSuccess = false;
         
         try {
-          // Direct database update approach - the triggers will handle Layer 2 rewards automatically
-          console.log('📊 Updating members table - triggers will handle Layer 2 rewards...');
+          // Call level-upgrade Edge Function for proper processing
+          console.log('📡 Calling level-upgrade function for Level 2...');
           
-          // Simple approach: just update the members table level from 1 to 2
-          // The existing trigger_member_level_upgrade_rewards will automatically:
-          // 1. Call trigger_level_upgrade_rewards() 
-          // 2. Which calls trigger_layer_rewards_on_upgrade() for Layer 2 (150 USD)
-          // 3. Handle claimable/pending logic based on matrix root level
-          // 4. Create 72-hour timer if needed
-          // 5. Process rollup if timer expires
-          
-          const { data: updateResult, error: updateError } = await supabase
-            .from('members')
-            .update({ 
-              current_level: 2,
-              updated_at: new Date().toISOString()
+          const upgradeResponse = await fetch(`${API_BASE}/level-upgrade`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              'x-wallet-address': account.address,
+            },
+            body: JSON.stringify({
+              action: 'upgrade_level',
+              walletAddress: account.address,
+              targetLevel: 2,
+              transactionHash: claimTxResult.transactionHash,
+              network: 'mainnet'
             })
-            .eq('wallet_address', account.address)
-            .select('*')
-            .single();
+          });
 
-          if (updateError) {
-            throw new Error(`Database update failed: ${updateError.message}`);
+          const upgradeResult = await upgradeResponse.json();
+
+          if (!upgradeResult.success) {
+            throw new Error(`Level 2 upgrade failed: ${upgradeResult.error || upgradeResult.message}`);
           }
 
-          console.log('✅ Members table updated - Level 2 triggers fired:', updateResult);
-          
-          // Also insert into membership table for tracking
-          const { error: membershipError } = await supabase
-            .from('membership')
-            .insert({
-              wallet_address: account.address,
-              nft_level: 2,
-              transaction_hash: claimTxResult.transactionHash,
-              purchase_amount_usdc: LEVEL_2_PRICE_USDC,
-              payment_method: 'token_payment',
-              status: 'completed',
-              claimed_at: new Date().toISOString()
-            });
-
-          if (membershipError) {
-            console.warn('⚠️ Membership table insert failed:', membershipError);
-            // Don't throw - members table update succeeded and triggers fired
-          } else {
-            console.log('✅ Membership record created for Level 2');
-          }
-          
+          console.log('✅ Level 2 upgrade processed successfully:', upgradeResult);
           activationSuccess = true;
           
         } catch (backendError: any) {
           console.error('❌ Level 2 backend processing error:', backendError);
-          activationSuccess = false;
-          
-          // Fallback: try the edge function approach
-          console.log('🔄 Attempting fallback via nft-upgrades edge function...');
+          // Fallback to direct database update if Edge Function fails
           try {
-            const upgradeResponse = await fetch(`${API_BASE}/nft-upgrades`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'x-wallet-address': account.address
-              },
-              body: JSON.stringify({
-                action: 'process-upgrade',
-                transactionHash: claimTxResult.transactionHash,
-                level: 2,
-                payment_amount_usdc: LEVEL_2_PRICE_USDC,
-                paymentMethod: 'token_payment'
+            console.log('🔄 Fallback: Direct database update for Level 2...');
+            
+            const { data: updateResult, error: updateError } = await supabase
+              .from('members')
+              .update({ 
+                current_level: 2,
+                updated_at: new Date().toISOString()
               })
-            });
+              .eq('wallet_address', account.address)
+              .select('*')
+              .single();
 
-            if (upgradeResponse.ok) {
-              const upgradeResult = await upgradeResponse.json();
-              console.log('✅ Fallback upgrade processing succeeded:', upgradeResult);
-              activationSuccess = true;
+            if (updateError) {
+              throw new Error(`Fallback database update failed: ${updateError.message}`);
             }
-          } catch (fallbackError) {
-            console.error('❌ Fallback also failed:', fallbackError);
+
+            console.log('✅ Fallback update successful for Level 2:', updateResult);
+            activationSuccess = true;
+            
+          } catch (fallbackError: any) {
+            console.error('❌ Fallback update also failed:', fallbackError);
+            activationSuccess = false;
           }
         }
       }
