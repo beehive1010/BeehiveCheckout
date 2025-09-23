@@ -64,41 +64,13 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
 
       console.log('📊 Matrix layers data:', matrixData);
 
-      // Get matrix data from corrected matrix_referrals_tree_view
-      const { data: positionData, error: positionError } = await supabase
-        .from('matrix_referrals_tree_view')
-        .select('layer, position, member_wallet, activation_sequence, is_spillover')
-        .eq('matrix_root_wallet', walletAddress)
-        .neq('position', 'root');
-
-      if (positionError) {
-        console.error('❌ Matrix tree query error:', positionError);
-        throw new Error(`Matrix tree error: ${positionError.message}`);
-      }
-
-      console.log('📊 Matrix data from corrected matrix_referrals_tree_view:', positionData);
-
-      // Calculate position distribution by layer
-      const positionByLayer: Record<number, { L: number; M: number; R: number }> = {};
-      positionData?.forEach(member => {
-        const layer = member.layer; // Now consistently using layer field
-        if (!positionByLayer[layer]) {
-          positionByLayer[layer] = { L: 0, M: 0, R: 0 };
-        }
-        if (member.position === 'L' || member.position === 'M' || member.position === 'R') {
-          positionByLayer[layer][member.position]++;
-        }
-      });
-
-      console.log('📊 Position distribution by layer:', positionByLayer);
-
-      // Transform data to match LayerStatsData interface
+      // Transform data directly from matrix_layers_view (no need for additional queries)
       const layerStats: LayerStatsData[] = matrixData?.map((layer: any) => ({
         layer: layer.layer || 1,
         totalMembers: layer.filled_slots || 0,
-        leftMembers: positionByLayer[layer.layer]?.L || 0,
-        middleMembers: positionByLayer[layer.layer]?.M || 0,
-        rightMembers: positionByLayer[layer.layer]?.R || 0,
+        leftMembers: layer.left_count || 0,
+        middleMembers: layer.middle_count || 0,
+        rightMembers: layer.right_count || 0,
         maxCapacity: layer.max_slots || Math.pow(3, layer.layer || 1),
         fillPercentage: parseFloat(layer.completion_rate || 0),
         activeMembers: layer.activated_members || 0,
