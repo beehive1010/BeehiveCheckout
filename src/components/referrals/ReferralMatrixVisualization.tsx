@@ -78,15 +78,17 @@ export default function ReferralMatrixVisualization({
     try {
       setLoading(true);
 
-      // Get referral data from users table (fallback since individual_matrix_placements doesn't exist)
+      // Get referral data from matrix_referrals table
       const { data: matrixPlacements, error } = await supabase
-        .from('users')
+        .from('matrix_referrals')
         .select(`
-          wallet_address,
-          username,
+          member_wallet,
+          parent_wallet,
+          parent_depth,
+          position,
           created_at
         `)
-        .eq('referrer_wallet', effectiveRootWallet)
+        .eq('matrix_root_wallet', effectiveRootWallet)
         .order('created_at');
 
       if (error) {
