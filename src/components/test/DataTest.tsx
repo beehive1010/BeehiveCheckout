@@ -21,8 +21,7 @@ const DataTest: React.FC<DataTestProps> = ({ walletAddress }) => {
       const { data, error } = await supabase
         .from('referrer_stats')
         .select('*')
-        .eq('referrer', walletAddress)
-        .single();
+        .eq('referrer', walletAddress);
 
       if (error) {
         console.error('referrer_stats error:', error);
