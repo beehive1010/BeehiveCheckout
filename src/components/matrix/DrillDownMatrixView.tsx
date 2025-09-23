@@ -93,12 +93,12 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
         layerMembers.forEach((member: any) => {
           const memberData: MatrixMember = {
             walletAddress: member.member_wallet,
-            username: `User_${member.member_wallet.slice(-6)}`, // No username in tree view
-            level: 1, // Default level, can get from members table if needed
-            isActive: true, // Tree view only shows activated members
+            username: member.username || `User_${member.member_wallet.slice(-6)}`,
+            level: member.current_level || 1,
+            isActive: member.is_activated || false,
             layer: member.layer || currentLayer,
             position: member.position as 'L' | 'M' | 'R',
-            placedAt: member.created_at || new Date().toISOString()
+            placedAt: member.activation_time || new Date().toISOString()
           };
           
           // Filter by position - exact match since database uses 'L', 'M', 'R'
