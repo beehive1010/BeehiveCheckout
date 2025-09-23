@@ -1654,7 +1654,9 @@
       "claimFailed": "认领失败",
       "sequentialUpgrade": "您必须先升级到{nextLevel}级。不能跳级。",
       "alreadyOwned": "您已经拥有{level}级NFT。每个级别只能购买一次。",
-      "level2Requirements": "2级需要3个活跃直接推荐。请先邀请更多成员。",
+      "level2Requirements": "Level 2 要求未满足",
+      "level2DirectReferrals": "您需要至少3个直推才能认领Level 2 NFT。",
+      "levelNotAvailable": "此级别目前无法解锁。请先完成您的当前级别。",
       "missingPrerequisites": "缺少先决条件级别。请先完成较低级别。"
     },
     "claiming": {

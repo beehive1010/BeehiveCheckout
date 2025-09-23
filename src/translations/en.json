@@ -970,7 +970,9 @@
       "claimFailed": "Claim Failed",
       "sequentialUpgrade": "You must upgrade to Level {nextLevel} first. Cannot skip levels.",
       "alreadyOwned": "You already own Level {level} NFT. Each level can only be purchased once.",
-      "level2Requirements": "Level 2 requires 3 active direct referrals. Invite more members first.",
+      "level2Requirements": "Level 2 Requirements Not Met",
+      "level2DirectReferrals": "You need at least 3 direct referrals to claim Level 2 NFT.",
+      "levelNotAvailable": "This level is not currently unlockable. Please complete your current level first.",
       "missingPrerequisites": "Missing prerequisite levels. Please complete lower levels first."
     },
     "claiming": {

@@ -240,26 +240,6 @@ async function processWithdrawal(withdrawalData: WithdrawalRequest, supabaseClie
     // Generate withdrawal ID
     const withdrawalId = `wd_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // Store withdrawal request in database
-    const { data: insertData, error: insertError } = await supabaseClient
-      .from('withdrawal_requests')
-      .insert([{
-        id: withdrawalId,
-        user_wallet: withdrawalData.user_wallet,
-        amount: grossAmount.toString(), // Gross amount requested
-        target_chain_id: withdrawalData.target_chain_id,
-        token_address: withdrawalData.token_address,
-        user_signature: withdrawalData.user_signature,
-        metadata: enhancedMetadata,
-        status: 'pending',
-        created_at: new Date().toISOString()
-      }])
-      .select()
-      .maybeSingle();
-
-    if (insertError) throw insertError;
-
-    // Calculate fee and net amount
     const withdrawalFees: Record<number, number> = {
       1: 15.0,      // Ethereum
       137: 1.0,     // Polygon
@@ -273,6 +253,16 @@ async function processWithdrawal(withdrawalData: WithdrawalRequest, supabaseClie
     const grossAmount = parseFloat(withdrawalData.amount);
     const netAmount = grossAmount - fee;
     const gasFeeWallet = withdrawalData.gas_fee_wallet || '0xC2422eae8A56914509b6977E69F7f3aCE7DD6463';
+    
+    // Store additional fee information in metadata
+    const enhancedMetadata = {
+      ...withdrawalData.metadata,
+      fee_amount: fee,
+      net_amount: netAmount,
+      gas_fee_wallet: gasFeeWallet,
+      fee_transaction_hash: null, // Will be populated when real transaction is made
+      user_transaction_hash: null // Will be populated when real transaction is made
+    };
     
     if (netAmount <= 0) {
       return new Response(
