@@ -747,7 +747,8 @@
     "subtitle": "Track your rewards, claim earnings, and view transaction history",
     "tabs": {
       "overview": "Overview",
-      "claimable": "Claimable", 
+      "claimable": "Claimable",
+      "rollup": "Rollup",
       "history": "History",
       "withdrawal": "Withdraw"
     },
