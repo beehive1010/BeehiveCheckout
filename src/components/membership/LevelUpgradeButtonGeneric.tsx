@@ -395,9 +395,9 @@ export function LevelUpgradeButtonGeneric({
       console.log('📋 事件 logs:', receipt.logs);
       console.log('✅ Receipt status:', receipt.status);
 
-      // Step 7: Process level upgrade using database update to trigger all rewards
+      // Step 7: Process level upgrade using level-upgrade Edge Function
       if (claimTxResult?.transactionHash) {
-        console.log(`🚀 Processing Level ${targetLevel} upgrade - leveraging existing database triggers...`);
+        console.log(`🚀 Processing Level ${targetLevel} upgrade via level-upgrade function...`);
         setCurrentStep(`Processing Level ${targetLevel} upgrade...`);
         
         await new Promise(resolve => setTimeout(resolve, 3000));
@@ -405,49 +405,61 @@ export function LevelUpgradeButtonGeneric({
         let activationSuccess = false;
         
         try {
-          // Direct database update approach - the triggers will handle layer rewards automatically
-          console.log(`📊 Updating members table - triggers will handle Layer ${targetLevel} rewards...`);
+          // Call level-upgrade Edge Function for proper processing
+          console.log(`📡 Calling level-upgrade function for Level ${targetLevel}...`);
           
-          const { data: updateResult, error: updateError } = await supabase
-            .from('members')
-            .update({ 
-              current_level: targetLevel,
-              updated_at: new Date().toISOString()
+          const upgradeResponse = await fetch(`${API_BASE}/level-upgrade`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              'x-wallet-address': account.address,
+            },
+            body: JSON.stringify({
+              action: 'upgrade_level',
+              walletAddress: account.address,
+              targetLevel: targetLevel,
+              transactionHash: claimTxResult.transactionHash,
+              network: 'mainnet'
             })
-            .eq('wallet_address', account.address)
-            .select('*')
-            .single();
+          });
 
-          if (updateError) {
-            throw new Error(`Database update failed: ${updateError.message}`);
+          const upgradeResult = await upgradeResponse.json();
+
+          if (!upgradeResult.success) {
+            throw new Error(`Level upgrade failed: ${upgradeResult.error || upgradeResult.message}`);
           }
 
-          console.log(`✅ Members table updated - Level ${targetLevel} triggers fired:`, updateResult);
-          
-          // Also insert into membership table for tracking
-          const { error: membershipError } = await supabase
-            .from('membership')
-            .insert({
-              wallet_address: account.address,
-              nft_level: targetLevel,
-              claim_price: LEVEL_PRICE_USDC,
-              claimed_at: new Date().toISOString(),
-              is_member: true,
-              unlock_membership_level: targetLevel + 1, // Dynamic unlock level
-              total_cost: LEVEL_PRICE_USDC
-            });
-
-          if (membershipError && !membershipError.message?.includes('duplicate')) {
-            console.warn('⚠️ Membership table insert failed:', membershipError);
-          } else {
-            console.log(`✅ Membership record created for Level ${targetLevel}`);
-          }
-          
+          console.log(`✅ Level ${targetLevel} upgrade processed successfully:`, upgradeResult);
           activationSuccess = true;
           
         } catch (backendError: any) {
           console.error(`❌ Level ${targetLevel} backend processing error:`, backendError);
-          activationSuccess = false;
+          // Fallback to direct database update if Edge Function fails
+          try {
+            console.log(`🔄 Fallback: Direct database update for Level ${targetLevel}...`);
+            
+            const { data: updateResult, error: updateError } = await supabase
+              .from('members')
+              .update({ 
+                current_level: targetLevel,
+                updated_at: new Date().toISOString()
+              })
+              .eq('wallet_address', account.address)
+              .select('*')
+              .single();
+
+            if (updateError) {
+              throw new Error(`Fallback database update failed: ${updateError.message}`);
+            }
+
+            console.log(`✅ Fallback update successful for Level ${targetLevel}:`, updateResult);
+            activationSuccess = true;
+            
+          } catch (fallbackError: any) {
+            console.error(`❌ Fallback update also failed:`, fallbackError);
+            activationSuccess = false;
+          }
         }
       }
 
