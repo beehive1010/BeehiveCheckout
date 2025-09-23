@@ -146,52 +146,243 @@ export default function USDTWithdrawal() {
     },
   });
 
-  // Server wallet withdrawal mutation - no user signing required
+  // Direct thirdweb API withdrawal mutation
   const serverWithdrawalMutation = useMutation({
     mutationFn: async (data: { amount: number; recipientAddress: string }) => {
       if (!currentChainInfo) {
         throw new Error('Unsupported chain. Please switch to a supported network.');
       }
       
-      // Call server wallet to perform withdrawal using thirdweb
-      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/server-wallet/withdraw', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'wallet-address': memberWalletAddress!,
-        },
-        body: JSON.stringify({
-          user_wallet: data.recipientAddress,
-          amount: data.amount.toString(),
-          target_chain_id: currentChainId,
-          token_address: getUSDTAddress(currentChainId!, selectedToken),
-          user_signature: 'server_initiated', // Server wallet doesn't need user signature
-          withdrawal_fee: getWithdrawalFee(currentChainId!),
-          gas_fee_wallet: GAS_FEE_WALLET,
-          metadata: {
-            source: 'rewards_withdrawal',
-            member_wallet: memberWalletAddress,
-            initiated_by: 'user'
-          }
-        })
-      });
+      const fee = getWithdrawalFee(currentChainId!);
+      const netAmount = data.amount - fee;
       
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error || 'Withdrawal failed');
+      if (netAmount <= 0) {
+        throw new Error(`Amount too small. Minimum withdrawal is ${fee + 0.01} USDT (including ${fee} USDT fee)`);
       }
       
-      return await response.json();
+      const sourceChainId = 42161; // Arbitrum One (where our USDT is held)
+      const sourceTokenAddress = '0xfA278827a612BBA895e7F0A4fBA504b22ff3E7C9'; // Our Arbitrum USDT
+      const targetChainId = currentChainId;
+      const targetTokenAddress = getUSDTAddress(currentChainId!, selectedToken);
+      
+      // Check if this is same-chain transfer or cross-chain bridge
+      if (sourceChainId === targetChainId) {
+        // Same chain transfer - use direct thirdweb SDK
+        console.log(`🔄 Direct transfer on Arbitrum One`);
+        
+        const { createThirdwebClient } = await import('thirdweb');
+        const { privateKeyToAccount } = await import('thirdweb/wallets');
+        const { getContract, sendTransaction } = await import('thirdweb');
+        const { transfer } = await import('thirdweb/extensions/erc20');
+        const { defineChain } = await import('thirdweb/chains');
+        
+        const thirdwebClient = createThirdwebClient({
+          clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
+          secretKey: import.meta.env.VITE_THIRDWEB_SECRET_KEY!,
+        });
+        
+        const serverWalletPrivateKey = import.meta.env.VITE_SERVER_WALLET_PRIVATE_KEY!;
+        const serverAccount = privateKeyToAccount({
+          client: thirdwebClient,
+          privateKey: serverWalletPrivateKey,
+        });
+        
+        const tokenDecimals = getTokenInfo(targetChainId, selectedToken).decimals;
+        const amountInWei = BigInt(Math.floor(netAmount * Math.pow(10, tokenDecimals)));
+        const targetChain = defineChain(targetChainId);
+        
+        const tokenContract = getContract({
+          client: thirdwebClient,
+          chain: targetChain,
+          address: targetTokenAddress,
+        });
+        
+        // Execute user withdrawal
+        const userTransferTransaction = transfer({
+          contract: tokenContract,
+          to: data.recipientAddress,
+          amount: amountInWei,
+        });
+        
+        const userTxResult = await sendTransaction({
+          transaction: userTransferTransaction,
+          account: serverAccount,
+        });
+        
+        // Execute fee transfer
+        let feeTransactionHash = null;
+        if (fee > 0) {
+          const feeAmountInWei = BigInt(Math.floor(fee * Math.pow(10, tokenDecimals)));
+          
+          const feeTransferTransaction = transfer({
+            contract: tokenContract,
+            to: GAS_FEE_WALLET,
+            amount: feeAmountInWei,
+          });
+          
+          const feeTxResult = await sendTransaction({
+            transaction: feeTransferTransaction,
+            account: serverAccount,
+          });
+          
+          feeTransactionHash = feeTxResult.transactionHash;
+        }
+        
+        var result = {
+          transactionHash: userTxResult.transactionHash,
+          feeTransactionHash,
+          bridged: false,
+        };
+        
+      } else {
+        // Cross-chain bridge using thirdweb Bridge API
+        console.log(`🌉 Cross-chain bridge from Arbitrum to Chain ${targetChainId}`);
+        
+        const bridgeAmount = netAmount + fee; // Bridge total amount needed
+        const sourceTokenDecimals = 18; // Arbitrum USDT decimals
+        const amountInWei = (bridgeAmount * Math.pow(10, sourceTokenDecimals)).toString();
+        
+        // Call thirdweb Bridge API
+        const bridgeResponse = await fetch('https://api.thirdweb.com/v1/bridge/swap', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_THIRDWEB_SECRET_KEY}`,
+          },
+          body: JSON.stringify({
+            fromChainId: sourceChainId.toString(),
+            toChainId: targetChainId.toString(),
+            fromTokenAddress: sourceTokenAddress,
+            toTokenAddress: targetTokenAddress,
+            fromAddress: import.meta.env.VITE_SERVER_WALLET_ADDRESS, // Server wallet as sender
+            toAddress: data.recipientAddress, // User as recipient
+            amount: amountInWei,
+          })
+        });
+        
+        if (!bridgeResponse.ok) {
+          const error = await bridgeResponse.text();
+          throw new Error(`Bridge API failed: ${error}`);
+        }
+        
+        const bridgeData = await bridgeResponse.json();
+        console.log(`✅ Bridge quote received:`, bridgeData);
+        
+        // Execute the bridge transaction
+        if (bridgeData.transaction) {
+          const { createThirdwebClient } = await import('thirdweb');
+          const { privateKeyToAccount } = await import('thirdweb/wallets');
+          const { sendTransaction } = await import('thirdweb');
+          const { defineChain } = await import('thirdweb/chains');
+          
+          const thirdwebClient = createThirdwebClient({
+            clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
+            secretKey: import.meta.env.VITE_THIRDWEB_SECRET_KEY!,
+          });
+          
+          const serverWalletPrivateKey = import.meta.env.VITE_SERVER_WALLET_PRIVATE_KEY!;
+          const serverAccount = privateKeyToAccount({
+            client: thirdwebClient,
+            privateKey: serverWalletPrivateKey,
+          });
+          
+          const sourceChain = defineChain(sourceChainId);
+          
+          // Execute bridge transaction
+          const bridgeTxResult = await sendTransaction({
+            transaction: {
+              to: bridgeData.transaction.to,
+              data: bridgeData.transaction.data,
+              value: BigInt(bridgeData.transaction.value || '0'),
+              chain: sourceChain,
+              client: thirdwebClient,
+            },
+            account: serverAccount,
+          });
+          
+          var result = {
+            transactionHash: bridgeTxResult.transactionHash,
+            feeTransactionHash: null, // Fee is handled within bridge
+            bridged: true,
+            bridgeQuote: bridgeData,
+          };
+        } else {
+          throw new Error('Bridge transaction data not provided');
+        }
+      }
+      
+      // Record withdrawal in database
+      const { supabase } = await import('../../lib/supabase');
+      const withdrawalId = `wd_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      await supabase.from('withdrawal_requests').insert({
+        id: withdrawalId,
+        user_wallet: data.recipientAddress,
+        amount: data.amount.toString(),
+        target_chain_id: targetChainId,
+        token_address: targetTokenAddress,
+        user_signature: result.bridged ? 'thirdweb_bridge_api' : 'thirdweb_sdk_direct',
+        status: 'completed',
+        user_transaction_hash: result.transactionHash,
+        fee_transaction_hash: result.feeTransactionHash,
+        created_at: new Date().toISOString(),
+        completed_at: new Date().toISOString(),
+        metadata: {
+          source: 'rewards_withdrawal',
+          member_wallet: memberWalletAddress,
+          withdrawal_fee: fee,
+          net_amount: netAmount,
+          source_chain_id: sourceChainId,
+          target_chain_id: targetChainId,
+          source_token_address: sourceTokenAddress,
+          target_token_address: targetTokenAddress,
+          is_cross_chain: result.bridged,
+          withdrawal_method: result.bridged ? 'thirdweb_bridge_api' : 'thirdweb_sdk_direct',
+          bridge_quote: result.bridgeQuote || null,
+        }
+      });
+      
+      // Update user balance
+      const { data: currentBalance } = await supabase
+        .from('user_balances')
+        .select('claimable_reward_balance_usdc, total_rewards_withdrawn_usdc')
+        .ilike('wallet_address', memberWalletAddress!)
+        .single();
+      
+      if (currentBalance) {
+        await supabase
+          .from('user_balances')
+          .update({
+            claimable_reward_balance_usdc: Math.max(0, (currentBalance.claimable_reward_balance_usdc || 0) - data.amount),
+            total_rewards_withdrawn_usdc: (currentBalance.total_rewards_withdrawn_usdc || 0) + data.amount,
+            last_withdrawal_at: new Date().toISOString(),
+          })
+          .ilike('wallet_address', memberWalletAddress!);
+      }
+      
+      return {
+        success: true,
+        transaction_hash: result.transactionHash,
+        fee_transaction_hash: result.feeTransactionHash,
+        net_amount: netAmount,
+        fee_amount: fee,
+        withdrawal_id: withdrawalId,
+        is_bridged: result.bridged,
+        bridge_quote: result.bridgeQuote
+      };
     },
     onSuccess: (data: any) => {
       if (data.success) {
         const fee = getWithdrawalFee(currentChainId!);
         const netAmount = parseFloat(withdrawalAmount) - fee;
+        const method = data.is_bridged ? 'bridged' : 'transferred';
+        const networkInfo = data.is_bridged ? 
+          `cross-chain bridge to ${currentChainInfo?.name}` : 
+          `direct transfer on ${currentChainInfo?.name}`;
+          
         toast({
-          title: "Withdrawal Successful! 🎉",
-          description: `${netAmount.toFixed(2)} USDT sent to your wallet on ${currentChainInfo?.name} (${fee} USDT fee deducted)`,
+          title: `Withdrawal Successful! ${data.is_bridged ? '🌉' : '✅'}`,
+          description: `${netAmount.toFixed(2)} USDT ${method} to your wallet via ${networkInfo} (${fee} USDT fee)`,
         });
         
         // Update user balance cache
@@ -445,10 +636,13 @@ export default function USDTWithdrawal() {
                   <Link className="h-4 w-4" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium text-blue-400 mb-1">Auto-Detection Active</h4>
+                  <h4 className="text-sm font-medium text-blue-400 mb-1">
+                    {currentChainId === 42161 ? 'Direct Transfer' : 'Thirdweb Bridge'}
+                  </h4>
                   <p className="text-xs text-muted-foreground">
-                    USDT will be sent to your currently connected wallet on the {currentChainInfo?.name || 'selected'} network. 
-                    To withdraw to a different network, please switch networks in your wallet first.
+                    {currentChainId === 42161 
+                      ? 'Direct transfer from our Arbitrum server wallet to your wallet using your custom USDT token.' 
+                      : `Cross-chain bridge from Arbitrum to ${currentChainInfo?.name} using thirdweb Bridge API. Your custom USDT will be automatically converted to standard USDT on ${currentChainInfo?.name}.`}
                   </p>
                 </div>
               </div>
