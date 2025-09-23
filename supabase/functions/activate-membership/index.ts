@@ -245,6 +245,28 @@ serve(async (req)=>{
     }
     // Matrix placement was already done in Step 5
     let matrixResult = referralRecord;
+    
+    // Step 6: Create Layer 1 rewards after matrix placement is complete
+    let layerRewardResult = null;
+    if (referralRecord && referralRecord.success) {
+      try {
+        console.log(`💰 Creating Layer 1 rewards for Level 1 activation: ${walletAddress}`);
+        const { data: layerReward, error: layerRewardError } = await supabase.rpc('trigger_layer_rewards_on_upgrade', {
+          p_upgrading_member_wallet: userData.wallet_address,
+          p_new_level: 1, // Level 1 activation triggers Layer 1 reward
+          p_nft_price: 100 // Layer 1 reward is 100 USD, not 130
+        });
+        
+        if (layerRewardError) {
+          console.warn('⚠️ Layer 1 reward creation failed:', layerRewardError);
+        } else {
+          console.log(`✅ Layer 1 reward created:`, layerReward);
+          layerRewardResult = layerReward;
+        }
+      } catch (layerRewardErr) {
+        console.warn('⚠️ Layer 1 reward error (non-critical):', layerRewardErr);
+      }
+    }
     // Return success response
     const responseData = {
       success: true,
@@ -263,8 +285,10 @@ serve(async (req)=>{
           membershipCreated: !!membership,
           memberRecordCreated: !!memberRecord,
           referralRecorded: !!referralRecord,
-          matrixPlaced: !!matrixResult
-        }
+          matrixPlaced: !!matrixResult,
+          layerRewardCreated: !!layerRewardResult && layerRewardResult.success
+        },
+        layerReward: layerRewardResult
       },
       transactionHash
     };

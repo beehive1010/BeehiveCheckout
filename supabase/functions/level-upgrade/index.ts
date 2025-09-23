@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -117,7 +117,13 @@ serve(async (req) => {
   try {
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
     )
 
     const { action, walletAddress, targetLevel, transactionHash, network } = await req.json() as LevelUpgradeRequest
@@ -186,7 +192,7 @@ async function processLevelUpgrade(
     const { data: memberData, error: memberError } = await supabase
       .from('members')
       .select('current_level, levels_owned, activation_rank, tier_level')
-      .eq('wallet_address', walletAddress) // Preserve case
+      .ilike('wallet_address', walletAddress) // Case insensitive match
       .maybeSingle()
 
     if (memberError || !memberData) {
@@ -270,7 +276,7 @@ async function processLevelUpgrade(
       .update({
         current_level: targetLevel
       })
-      .eq('wallet_address', walletAddress) // Preserve case
+      .ilike('wallet_address', walletAddress) // Case insensitive match
       .select()
       .single()
 
@@ -286,6 +292,26 @@ async function processLevelUpgrade(
 
     console.log(`✅ Member level updated - upgrade triggers fired:`, memberUpdateResult)
 
+    // 5.1. Trigger layer rewards for this level upgrade  
+    console.log(`💰 Creating layer rewards for Level ${targetLevel} upgrade...`)
+    // Calculate layer reward amount 
+    // Level 1: 100 USD (NFT price 130 - 30 platform fee)
+    // Level 2+: Full NFT price (no platform fee)
+    const nftPrice = LEVEL_CONFIG.PRICING[targetLevel] || 0;
+    const layerRewardAmount = targetLevel === 1 ? 100 : nftPrice; // Level 1: 100 USD, others: full NFT price (no platform fee)
+    
+    const { data: layerReward, error: layerRewardError } = await supabase.rpc('trigger_layer_rewards_on_upgrade', {
+      p_upgrading_member_wallet: walletAddress,
+      p_new_level: targetLevel,
+      p_nft_price: layerRewardAmount
+    });
+    
+    if (layerRewardError) {
+      console.warn('⚠️ Layer reward creation failed:', layerRewardError);
+    } else {
+      console.log(`✅ Layer reward created for Level ${targetLevel}:`, layerReward);
+    }
+
     // 6. Get final results from triggered functions
     await new Promise(resolve => setTimeout(resolve, 2000)) // Wait for triggers to complete
     
@@ -293,7 +319,7 @@ async function processLevelUpgrade(
     const { data: balanceData } = await supabase
       .from('user_balances')
       .select('bcc_balance, pending_bcc_rewards')
-      .eq('wallet_address', walletAddress)
+      .ilike('wallet_address', walletAddress)
       .single()
 
     // Check layer rewards created
@@ -333,7 +359,9 @@ async function processLevelUpgrade(
         newLevel: targetLevel,
         bccUnlocked: LEVEL_CONFIG.BCC_UNLOCK[targetLevel] || 0,
         pendingRewardsClaimed: 0,
-        newPendingRewards: balanceData?.pending_bcc_rewards || 0
+        newPendingRewards: balanceData?.pending_bcc_rewards || 0,
+        layerRewardCreated: !!layerReward && layerReward.success,
+        layerRewardDetails: layerReward
       },
       message: `Successfully upgraded to Level ${targetLevel}! Membership record created, level updated, triggers fired for BCC release and layer rewards.`
     }
@@ -358,7 +386,7 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
     const { data: memberData } = await supabase
       .from('members')
       .select('current_level, levels_owned')
-      .eq('wallet_address', walletAddress) // Preserve case
+      .ilike('wallet_address', walletAddress) // Case insensitive match
       .maybeSingle()
 
     if (!memberData) {
