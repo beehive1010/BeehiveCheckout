@@ -123,9 +123,20 @@ export default function USDTWithdrawal() {
     retry: 3,
     refetchOnWindowFocus: false,
     queryFn: async () => {
-      console.log(`🔍 Querying user balance for wallet: ${memberWalletAddress}`);
-      
-      const { supabase } = await import('../../lib/supabase');
+      try {
+        console.log(`🔍 Querying user balance for wallet: ${memberWalletAddress}`);
+        
+        if (!memberWalletAddress) {
+          console.warn('❌ No memberWalletAddress provided');
+          return {
+            balance: 0,
+            balanceUSD: '0.00',
+            lastUpdated: new Date().toISOString(),
+            error: 'No wallet address'
+          };
+        }
+        
+        const { supabase } = await import('../../lib/supabase');
       
       // First, let's check what columns actually exist
       console.log('🔍 Checking available columns...');
@@ -242,6 +253,17 @@ export default function USDTWithdrawal() {
         foundWallet: data?.wallet_address || '',
         rawData: data || {} // Include raw data for debugging
       };
+      
+      } catch (overallError: any) {
+        console.error('❌ Overall query function error:', overallError);
+        return {
+          balance: 0,
+          balanceUSD: '0.00',
+          lastUpdated: new Date().toISOString(),
+          error: `Query function error: ${overallError?.message || 'Unknown error'}`,
+          rawData: {}
+        };
+      }
     },
   });
 
