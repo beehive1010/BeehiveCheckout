@@ -117,10 +117,14 @@ export default function USDTWithdrawal() {
   const [selectedToken, setSelectedToken] = useState<'usdt' | 'testUSDT'>('usdt'); // Token selection for Arbitrum
 
   // Get user USDT balance from user_balances table
-  const { data: balance, isLoading: balanceLoading } = useQuery<USDTBalance>({
+  const { data: balance, isLoading: balanceLoading, error: balanceError, refetch: refetchBalance } = useQuery<USDTBalance>({
     queryKey: ['user-balance', memberWalletAddress],
     enabled: !!memberWalletAddress,
+    retry: 3,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
+      console.log(`🔍 Querying user balance for wallet: ${memberWalletAddress}`);
+      
       const { supabase } = await import('../../lib/supabase');
       const { data, error } = await supabase
         .from('user_balances')
@@ -129,7 +133,8 @@ export default function USDTWithdrawal() {
         .single();
       
       if (error) {
-        console.warn('Balance query error, returning defaults:', error);
+        console.warn('Balance query error:', error);
+        console.warn('Returning defaults for wallet:', memberWalletAddress);
         return {
           balance: 0,
           balanceUSD: '0.00',
@@ -138,6 +143,8 @@ export default function USDTWithdrawal() {
       }
       
       const balanceAmount = data?.claimable_reward_balance_usdc || 0;
+      console.log(`💰 Found balance: ${balanceAmount} USDT for wallet: ${memberWalletAddress}`);
+      
       return {
         balance: Math.round(balanceAmount * 100), // Convert to cents
         balanceUSD: balanceAmount.toFixed(2),
@@ -514,11 +521,48 @@ export default function USDTWithdrawal() {
             <p className="text-lg font-semibold text-honey">
               ${balance?.balanceUSD || '0.00'} USDT
             </p>
+            {balanceLoading && (
+              <p className="text-xs text-muted-foreground">Loading balance...</p>
+            )}
+            {!balanceLoading && memberWalletAddress && (
+              <p className="text-xs text-muted-foreground">
+                Wallet: {memberWalletAddress.slice(0, 6)}...{memberWalletAddress.slice(-4)}
+              </p>
+            )}
+            {!memberWalletAddress && (
+              <p className="text-xs text-red-400">No wallet address found</p>
+            )}
+            {balanceError && (
+              <div className="text-xs text-red-400 flex items-center gap-2">
+                <span>Balance query failed</span>
+                <button 
+                  onClick={() => refetchBalance()} 
+                  className="underline hover:no-underline"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-6">
+        {/* Debug Info */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="bg-gray-800/50 rounded-lg p-3 text-xs">
+            <h4 className="font-semibold mb-2 text-gray-300">Debug Info:</h4>
+            <div className="space-y-1 text-gray-400">
+              <p>userData?.wallet_address: {userData?.wallet_address || 'null'}</p>
+              <p>account?.address: {account?.address || 'null'}</p>
+              <p>memberWalletAddress: {memberWalletAddress || 'null'}</p>
+              <p>balance query enabled: {!!memberWalletAddress ? 'true' : 'false'}</p>
+              <p>balanceLoading: {balanceLoading ? 'true' : 'false'}</p>
+              <p>balance?.balanceUSD: {balance?.balanceUSD || 'null'}</p>
+            </div>
+          </div>
+        )}
+        
         {step === 'form' && (
           <>
             {/* Current Wallet & Chain Info */}
