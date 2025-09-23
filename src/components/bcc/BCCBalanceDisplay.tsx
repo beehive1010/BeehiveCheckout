@@ -8,11 +8,11 @@ interface BCCBalanceProps {
 }
 
 interface BCCBalanceData {
-  bcc_balance: number;
-  bcc_locked: number;
-  bcc_total_unlocked: number;
-  bcc_used: number;
-  last_updated: string;
+  bcc_balance: number | null;
+  bcc_locked: number | null;
+  bcc_total_unlocked: number | null;
+  bcc_used: number | null;
+  last_updated: string | null;
 }
 
 interface BCCReleaseLog {

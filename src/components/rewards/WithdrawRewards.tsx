@@ -30,35 +30,58 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
   const [showWithdrawForm, setShowWithdrawForm] = useState(false);
   const queryClient = useQueryClient();
 
-  // Get claimable and pending rewards via Supabase Edge Function
-  const { data: rewardsData, isLoading: rewardsLoading } = useQuery<any>({
+  // Get claimable and pending rewards
+  const { data: rewards, isLoading: rewardsLoading } = useQuery<LayerReward[]>({
     queryKey: ['layer-rewards', walletAddress],
     queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke('rewards-status', {
-        body: { walletAddress },
-      });
+      const { data, error } = await supabase
+        .from('layer_rewards')
+        .select('*')
+        .eq('reward_recipient_wallet', walletAddress)
+        .in('status', ['claimable', 'pending'])
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: !!walletAddress,
     refetchInterval: 5000,
   });
 
-  // Balance data is now included in rewardsData from the Edge Function
-
-  // Claim reward mutation using Supabase Edge Function
-  const claimRewardMutation = useMutation({
-    mutationFn: async (rewardId: string) => {
-      const { data, error } = await supabase.functions.invoke('rewards-claim', {
-        body: { 
-          walletAddress, 
-          rewardId 
-        },
-      });
+  // Get user balance
+  const { data: balance } = useQuery<UserBalance>({
+    queryKey: ['user-balance', walletAddress],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_balances')
+        .select('reward_balance, total_withdrawn, available_balance')
+        .eq('wallet_address', walletAddress)
+        .single();
 
       if (error) throw error;
       return data;
+    },
+    enabled: !!walletAddress,
+  });
+
+  // Claim reward mutation
+  const claimRewardMutation = useMutation({
+    mutationFn: async (rewardId: string) => {
+      const response = await fetch('/api/rewards/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          walletAddress, 
+          rewardId 
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error);
+      }
+
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['layer-rewards', walletAddress] });
@@ -84,10 +107,9 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
     },
   });
 
-  const claimableRewards = rewardsData?.rewards?.claimable || [];
-  const pendingRewards = rewardsData?.rewards?.pending || [];
-  const balance = rewardsData?.balance || {};
-  const totalClaimable = rewardsData?.summary?.totalClaimable || 0;
+  const claimableRewards = rewards?.filter(r => r.status === 'claimable') || [];
+  const pendingRewards = rewards?.filter(r => r.status === 'pending') || [];
+  const totalClaimable = claimableRewards.reduce((sum, r) => sum + r.reward_amount, 0);
 
   const handleClaimReward = (rewardId: string) => {
     claimRewardMutation.mutate(rewardId);
