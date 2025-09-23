@@ -209,28 +209,11 @@ export default function USDTWithdrawal() {
           account: serverAccount,
         });
         
-        // Execute fee transfer
-        let feeTransactionHash = null;
-        if (fee > 0) {
-          const feeAmountInWei = BigInt(Math.floor(fee * Math.pow(10, tokenDecimals)));
-          
-          const feeTransferTransaction = transfer({
-            contract: tokenContract,
-            to: GAS_FEE_WALLET,
-            amount: feeAmountInWei,
-          });
-          
-          const feeTxResult = await sendTransaction({
-            transaction: feeTransferTransaction,
-            account: serverAccount,
-          });
-          
-          feeTransactionHash = feeTxResult.transactionHash;
-        }
+        // Fee is already deducted from netAmount, no separate fee transfer needed
         
         var result = {
           transactionHash: userTxResult.transactionHash,
-          feeTransactionHash,
+          feeTransactionHash: null, // No separate fee transaction
           bridged: false,
         };
         
@@ -238,7 +221,7 @@ export default function USDTWithdrawal() {
         // Cross-chain bridge using thirdweb Bridge API
         console.log(`🌉 Cross-chain bridge from Arbitrum to Chain ${targetChainId}`);
         
-        const bridgeAmount = netAmount + fee; // Bridge total amount needed
+        const bridgeAmount = netAmount; // Bridge only the net amount (fee already deducted)
         const sourceTokenDecimals = 18; // Arbitrum USDT decimals
         const amountInWei = (bridgeAmount * Math.pow(10, sourceTokenDecimals)).toString();
         
@@ -332,6 +315,8 @@ export default function USDTWithdrawal() {
           member_wallet: memberWalletAddress,
           withdrawal_fee: fee,
           net_amount: netAmount,
+          gross_amount: data.amount, // Original amount before fee deduction
+          fee_deducted_from_amount: true, // Indicates fee was deducted, not transferred separately
           source_chain_id: sourceChainId,
           target_chain_id: targetChainId,
           source_token_address: sourceTokenAddress,
