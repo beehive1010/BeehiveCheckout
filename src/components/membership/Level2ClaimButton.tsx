@@ -84,17 +84,15 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
         return;
       }
       
-      // Get direct referrals (users who have this user as referrer)
+      // Get direct referrals using the referrals_new table (URL-based direct referrals)
       const { data: referrals, error: referralsError } = await supabase
-        .from('members')
+        .from('referrals_new')
         .select(`
-          wallet_address,
-          current_level,
+          referred_wallet,
           created_at,
-          users!inner(username)
+          members!inner(wallet_address, current_level, users!inner(username))
         `)
         .eq('referrer_wallet', account.address)
-        .gte('current_level', 1)
         .order('created_at', { ascending: true });
       
       if (referralsError) {
