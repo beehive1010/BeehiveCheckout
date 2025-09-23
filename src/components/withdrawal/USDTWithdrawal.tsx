@@ -116,37 +116,33 @@ export default function USDTWithdrawal() {
   const [step, setStep] = useState<'form' | 'confirm' | 'processing' | 'success'>('form');
   const [selectedToken, setSelectedToken] = useState<'usdt' | 'testUSDT'>('usdt'); // Token selection for Arbitrum
 
-  // Get user USDT balance from rewards system
+  // Get user USDT balance from user_balances table
   const { data: balance, isLoading: balanceLoading } = useQuery<USDTBalance>({
-    queryKey: ['/api/rewards/balance', memberWalletAddress],
+    queryKey: ['user-balance', memberWalletAddress],
     enabled: !!memberWalletAddress,
     queryFn: async () => {
-      const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/rewards/user`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-wallet-address': memberWalletAddress!,
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch claimable rewards balance');
-      }
-      const result = await response.json();
+      const { supabase } = await import('../../lib/supabase');
+      const { data, error } = await supabase
+        .from('user_balances')
+        .select('claimable_reward_balance_usdc, total_rewards_withdrawn_usdc, updated_at')
+        .ilike('wallet_address', memberWalletAddress!)
+        .single();
       
-      // Transform the response to match expected USDTBalance interface
-      if (result.success && result.data) {
-        return {
-          balance: Math.round((result.data.usdt_claimable || result.data.usdc_claimable || 0) * 100), // Convert to cents
-          balanceUSD: (result.data.usdt_claimable || result.data.usdc_claimable || 0).toFixed(2),
-          lastUpdated: result.data.updated_at || new Date().toISOString()
-        };
-      } else {
+      if (error) {
+        console.warn('Balance query error, returning defaults:', error);
         return {
           balance: 0,
           balanceUSD: '0.00',
           lastUpdated: new Date().toISOString()
         };
       }
+      
+      const balanceAmount = data?.claimable_reward_balance_usdc || 0;
+      return {
+        balance: Math.round(balanceAmount * 100), // Convert to cents
+        balanceUSD: balanceAmount.toFixed(2),
+        lastUpdated: data?.updated_at || new Date().toISOString()
+      };
     },
   });
 

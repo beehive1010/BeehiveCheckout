@@ -12,7 +12,7 @@ import { supabase } from '../lib/supabase';
 import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
 import RollupRewardsCard from '../components/rewards/RollupRewardsCard';
 import RewardsOverview from '../components/rewards/RewardsOverview';
-import { WithdrawRewards } from '../components/rewards/WithdrawRewards';
+import USDTWithdrawal from '../components/withdrawal/USDTWithdrawal';
 import CountdownTimer from '../components/rewards/CountdownTimer';
 import { PendingRewardsTimer } from '../components/rewards/PendingRewardsTimer';
 import { 
@@ -383,7 +383,7 @@ export default function Rewards() {
 
         {/* Withdrawal Tab */}
         <TabsContent value="withdrawal" className="space-y-6">
-          <WithdrawRewards walletAddress={memberWalletAddress || ''} />
+          <USDTWithdrawal />
         </TabsContent>
 
         {/* History Tab */}
