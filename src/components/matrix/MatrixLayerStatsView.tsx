@@ -107,19 +107,25 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
     }
   };
 
-  const getLayerStatusColor = (fillPercentage: number, completedPercentage: number) => {
-    if (completedPercentage >= 80) return 'text-green-400 bg-green-500/10 border-green-500/30';
-    if (fillPercentage >= 80) return 'text-blue-400 bg-blue-500/10 border-blue-500/30';
-    if (fillPercentage >= 50) return 'text-orange-400 bg-orange-500/10 border-orange-500/30';
-    if (fillPercentage >= 20) return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30';
-    return 'text-gray-400 bg-gray-500/10 border-gray-500/30';
+  const getLayerStatusColor = (fillPercentage: number, leftCount: number, middleCount: number, rightCount: number) => {
+    // A layer is "complete" when all 3 basic positions (L, M, R) have at least 1 member
+    const isLayerComplete = leftCount > 0 && middleCount > 0 && rightCount > 0;
+    
+    if (isLayerComplete) return 'text-green-400 bg-green-500/10 border-green-500/30'; // Complete
+    if (fillPercentage >= 50) return 'text-blue-400 bg-blue-500/10 border-blue-500/30'; // Good progress
+    if (fillPercentage >= 20) return 'text-orange-400 bg-orange-500/10 border-orange-500/30'; // Some progress
+    if (fillPercentage > 0) return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30'; // Started
+    return 'text-gray-400 bg-gray-500/10 border-gray-500/30'; // Empty
   };
 
-  const renderLayerCard = (stat: LayerStatsData) => (
-    <div
-      key={stat.layer}
-      className={`rounded-lg border-2 p-4 transition-all hover:shadow-lg ${getLayerStatusColor(stat.fillPercentage, stat.completedPercentage)}`}
-    >
+  const renderLayerCard = (stat: LayerStatsData) => {
+    const isLayerComplete = stat.leftMembers > 0 && stat.middleMembers > 0 && stat.rightMembers > 0;
+    
+    return (
+      <div
+        key={stat.layer}
+        className={`rounded-lg border-2 p-4 transition-all hover:shadow-lg ${getLayerStatusColor(stat.fillPercentage, stat.leftMembers, stat.middleMembers, stat.rightMembers)}`}
+      >
       {/* Layer Header */}
       <div className="flex justify-between items-center mb-3">
         <Badge variant="outline" className="font-semibold text-xs">
