@@ -234,7 +234,7 @@ export const authService = {
       // Final fallback: direct database check
       try {
         console.log('🔄 Error occurred, trying direct database fallback...');
-        const { data: fallbackMember } = await this.supabase
+        const { data: fallbackMember } = await supabase
           .from('members')
           .select('current_level, wallet_address, activation_time')
           .ilike('wallet_address', walletAddress)
