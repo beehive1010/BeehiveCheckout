@@ -139,10 +139,8 @@ export default function Dashboard() {
       const directReferrals = referrerStats?.direct_referrals || 0;
       const totalTeamSize = referrerStats?.total_team_size || 0;
 
-      // 从matrix view summary中获取最大层级，如果失败则从直接查询中获取
-      const maxLayer = (totalTeamResult.status === 'fulfilled' && totalTeamResult.value.success && totalTeamResult.value.data?.summary?.deepest_layer) ||
-        (maxLayerResult.status === 'fulfilled' && maxLayerResult.value.data?.[0]?.matrix_layer) ||
-        0;
+      // 从referrer_stats获取最大层级
+      const maxLayer = referrerStats?.max_layer || 0;
 
       console.log('🌐 Matrix data from DB:', { directReferrals, totalTeamSize, maxLayer });
 
