@@ -76,30 +76,40 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
           })
       ]);
 
-      // Extract stats data from edge function response
+      // Extract stats data from referral_stats_view
       let statsData = null;
       if (matrixStatsResult.status === 'fulfilled' && matrixStatsResult.value.data) {
         statsData = matrixStatsResult.value.data;
       }
 
-      // Extract downline data from edge function response
+      // Extract downline data from matrix_team_view
       let downlineData = [];
       if (matrixDownlineResult.status === 'fulfilled' && matrixDownlineResult.value.data) {
         downlineData = matrixDownlineResult.value.data;
       }
 
-      // Process matrix stats
+      // Process matrix stats from referral_stats_view
       if (statsData) {
-        setMatrixStats(statsData);
+        setMatrixStats({
+          as_root: {
+            total_team_size: statsData.total_team_size || 0,
+            activated_members: statsData.activated_members || 0,
+            max_depth: statsData.max_depth || 0,
+            layer_distribution: statsData.layer_distribution || {}
+          },
+          overall: {
+            network_strength: statsData.network_strength || 0
+          }
+        });
       } else {
-        // Fallback: Get basic referrals data from members table using exact matching
+        // Fallback: Get basic referrals data from direct_referrals_view
         const { data: basicReferrals } = await supabase
-          .from('members')
-          .select('wallet_address, activation_time, current_level')
+          .from('direct_referrals_view')
+          .select('*')
           .eq('referrer_wallet', walletAddress)
           .limit(10);
 
-        const activatedCount = basicReferrals?.filter(m => m.current_level > 0).length || 0;
+        const activatedCount = basicReferrals?.filter(r => r.is_activated).length || 0;
         const totalReferrals = basicReferrals?.length || 0;
 
         setMatrixStats({
@@ -115,17 +125,17 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
         });
       }
 
-      // Process downline referrals
+      // Process downline referrals from matrix_team_view
       if (downlineData && downlineData.length > 0) {
-        setReferrals(downlineData.slice(0, 10).map((member: any) => ({
-          member_wallet: member.wallet_address || member.member_wallet,
-          member_name: member.username || `User${(member.wallet_address || member.member_wallet).slice(-4)}`,
-          layer: member.depth_level || 1,
-          position: member.matrix_position || 'L',
-          placement_type: member.is_direct_referral ? 'direct' : 'spillover',
-          placed_at: member.activation_date || member.placed_at,
-          is_active: member.current_level > 0 || member.is_active,
-          member_level: member.current_level || 1
+        setReferrals(downlineData.map((member: any) => ({
+          member_wallet: member.member_wallet,
+          member_name: member.member_name || `User${member.member_wallet.slice(-4)}`,
+          layer: member.matrix_layer,
+          position: member.matrix_position,
+          placement_type: member.placement_type,
+          placed_at: member.placed_at,
+          is_active: member.is_active,
+          member_level: member.member_level || 0
         })));
       } else {
         // No downline data available
