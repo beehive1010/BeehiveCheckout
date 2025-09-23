@@ -17,20 +17,19 @@ interface ReferralsStatsProps {
 }
 
 interface ReferrerStatsData {
-  wallet_address: string;
-  activation_sequence: number;
-  username: string;
+  referrer: string;
+  activation_id: number;
   current_level: number;
   direct_referrals: number;
+  l_count: number;
+  m_count: number;
+  r_count: number;
   spillover_count: number;
-  total_team_size: number;
+  l_activation_id: number | null;
+  m_activation_id: number | null;
+  r_activation_id: number | null;
   max_layer: number;
-  l_position_filled: boolean;
-  m_position_filled: boolean;
-  r_position_filled: boolean;
-  layer1_filled_count: number;
-  next_vacant_position: string;
-  referrer_category: string;
+  total_team_size: number;
 }
 
 
@@ -38,13 +37,13 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
   const { t } = useI18n();
 
   const { data: referrerStats, isLoading: isLoadingStats } = useQuery<ReferrerStatsData>({
-    queryKey: ['referrals-stats-view', walletAddress],
+    queryKey: ['referrer-stats', walletAddress],
     enabled: !!walletAddress,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('referrals_stats_view')
+        .from('referrer_stats')
         .select('*')
-        .eq('wallet_address', walletAddress)
+        .eq('referrer', walletAddress)
         .single();
 
       if (error) throw error;
@@ -82,9 +81,9 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
   }
 
   const matrixPositionsFilled = [
-    referrerStats.l_position_filled,
-    referrerStats.m_position_filled,
-    referrerStats.r_position_filled
+    referrerStats.l_count > 0,
+    referrerStats.m_count > 0,
+    referrerStats.r_count > 0
   ].filter(Boolean).length;
 
   return (
@@ -171,21 +170,32 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
                 </Badge>
               </div>
               <div className="grid grid-cols-3 gap-2">
-                <div className={`text-center p-2 rounded border ${referrerStats.l_position_filled ? 'bg-green-100 border-green-300 text-green-800' : 'bg-gray-100 border-gray-300'}`}>
-                  L {referrerStats.l_position_filled ? '✓' : '○'}
+                <div className={`text-center p-2 rounded border ${referrerStats.l_count > 0 ? 'bg-green-100 border-green-300 text-green-800' : 'bg-gray-100 border-gray-300'}`}>
+                  L {referrerStats.l_count > 0 ? '✓' : '○'}
+                  {referrerStats.l_activation_id && (
+                    <div className="text-xs">#{referrerStats.l_activation_id}</div>
+                  )}
                 </div>
-                <div className={`text-center p-2 rounded border ${referrerStats.m_position_filled ? 'bg-green-100 border-green-300 text-green-800' : 'bg-gray-100 border-gray-300'}`}>
-                  M {referrerStats.m_position_filled ? '✓' : '○'}
+                <div className={`text-center p-2 rounded border ${referrerStats.m_count > 0 ? 'bg-green-100 border-green-300 text-green-800' : 'bg-gray-100 border-gray-300'}`}>
+                  M {referrerStats.m_count > 0 ? '✓' : '○'}
+                  {referrerStats.m_activation_id && (
+                    <div className="text-xs">#{referrerStats.m_activation_id}</div>
+                  )}
                 </div>
-                <div className={`text-center p-2 rounded border ${referrerStats.r_position_filled ? 'bg-green-100 border-green-300 text-green-800' : 'bg-gray-100 border-gray-300'}`}>
-                  R {referrerStats.r_position_filled ? '✓' : '○'}
+                <div className={`text-center p-2 rounded border ${referrerStats.r_count > 0 ? 'bg-green-100 border-green-300 text-green-800' : 'bg-gray-100 border-gray-300'}`}>
+                  R {referrerStats.r_count > 0 ? '✓' : '○'}
+                  {referrerStats.r_activation_id && (
+                    <div className="text-xs">#{referrerStats.r_activation_id}</div>
+                  )}
                 </div>
               </div>
-              {referrerStats.next_vacant_position && (
-                <div className="text-sm text-muted-foreground">
-                  Next vacant: <span className="font-medium">{referrerStats.next_vacant_position}</span>
-                </div>
-              )}
+              <div className="text-sm text-muted-foreground">
+                Next vacant: <span className="font-medium">
+                  {referrerStats.l_count === 0 ? 'L' : 
+                   referrerStats.m_count === 0 ? 'M' : 
+                   referrerStats.r_count === 0 ? 'R' : 'Full'}
+                </span>
+              </div>
             </div>
           </CardContent>
         </Card>

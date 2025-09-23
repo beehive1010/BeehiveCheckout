@@ -121,41 +121,23 @@ export default function Dashboard() {
     try {
       console.log('🌐 Fetching matrix data from database for:', walletAddress);
       
-      // 并行查询直推人数和总团队人数
-      const [directReferralsResult, totalTeamResult, maxLayerResult] = await Promise.allSettled([
-        // 查询直推人数 - 从members表查询referrer_wallet
-        supabase
-          .from('members')
-          .select('*', { count: 'exact', head: true })
-          .eq('referrer_wallet', walletAddress),
-        
-        // 查询总团队人数 - 使用优化的matrix-view
-        fetch(`${import.meta.env.VITE_API_BASE}/matrix-view`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            'x-wallet-address': walletAddress
-          },
-          body: JSON.stringify({ action: 'get-layer-stats' })
-        }).then(res => res.json()),
-        
-        // 查询最大层级
-        supabase
-          .from('matrix_referrals_tree_view')
-          .select('layer')
-          .eq('matrix_root_wallet', walletAddress)
-          .order('layer', { ascending: false })
-          .limit(1)
-      ]);
+      // 使用referrer_stats统一查询推荐数据
+      const { data: referrerStats, error: referrerError } = await supabase
+        .from('referrer_stats')
+        .select('*')
+        .eq('referrer', walletAddress)
+        .single();
 
-      const directReferrals = directReferralsResult.status === 'fulfilled' 
-        ? (directReferralsResult.value.count || 0) 
-        : 0;
+      if (referrerError && referrerError.code !== 'PGRST116') {
+        console.error('❌ Referrer stats query error:', referrerError);
+        throw new Error(`Database error: ${referrerError.message}`);
+      }
 
-      const totalTeamSize = totalTeamResult.status === 'fulfilled' && totalTeamResult.value.success && totalTeamResult.value.data?.summary
-        ? (totalTeamResult.value.data.summary.total_members || 0) 
-        : 0;
+      console.log('🌐 Raw referrer stats from DB:', referrerStats);
+
+      // 从referrer_stats获取统计数据
+      const directReferrals = referrerStats?.direct_referrals || 0;
+      const totalTeamSize = referrerStats?.total_team_size || 0;
 
       // 从matrix view summary中获取最大层级，如果失败则从直接查询中获取
       const maxLayer = (totalTeamResult.status === 'fulfilled' && totalTeamResult.value.success && totalTeamResult.value.data?.summary?.deepest_layer) ||
