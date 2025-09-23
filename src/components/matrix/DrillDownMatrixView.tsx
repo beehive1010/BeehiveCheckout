@@ -81,9 +81,10 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
       console.log(`🔍 Matrix data for ${walletAddress}:`, matrixData);
 
       if (matrixData && matrixData.length > 0) {
-        // Get members for the current layer (first layer by default)
-        const currentLayer = 1;
-        const layerMembers = matrixData.filter((member: any) => member.layer === currentLayer);
+        // For the current wallet, show its direct children (layer 1 from their perspective)
+        // When navigating, currentNode will be based on navigationPath length
+        const currentViewLayer = navigationPath.length > 0 ? 1 : 1; // Always show layer 1 for any selected node
+        const layerMembers = matrixData.filter((member: any) => member.layer === currentViewLayer);
         
         // Group members by position (L, M, R)
         const leftMembers: MatrixMember[] = [];

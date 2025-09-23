@@ -184,22 +184,23 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       {/* Completion Progress */}
       <div>
         <div className="flex justify-between text-xs mb-1">
-          <span>Activation Rate</span>
-          <span>{stat.completedPercentage.toFixed(1)}%</span>
+          <span>Position Complete</span>
+          <span>{isLayerComplete ? '100%' : `${Math.round(((stat.leftMembers > 0 ? 1 : 0) + (stat.middleMembers > 0 ? 1 : 0) + (stat.rightMembers > 0 ? 1 : 0)) / 3 * 100)}%`}</span>
         </div>
         <Progress 
-          value={stat.completedPercentage} 
+          value={isLayerComplete ? 100 : ((stat.leftMembers > 0 ? 1 : 0) + (stat.middleMembers > 0 ? 1 : 0) + (stat.rightMembers > 0 ? 1 : 0)) / 3 * 100} 
           className="h-1.5"
         />
       </div>
     </div>
   );
+  };
 
   const renderSummaryStats = () => {
     const totalMembers = layerStats.reduce((sum, stat) => sum + stat.totalMembers, 0);
     const totalActive = layerStats.reduce((sum, stat) => sum + stat.activeMembers, 0);
     const layersWithMembers = layerStats.filter(stat => stat.totalMembers > 0).length;
-    const layersCompleted = layerStats.filter(stat => stat.activeMembers === stat.totalMembers && stat.totalMembers > 0).length;
+    const layersCompleted = layerStats.filter(stat => stat.leftMembers > 0 && stat.middleMembers > 0 && stat.rightMembers > 0).length;
     const avgFillRate = layersWithMembers > 0 ? layerStats.slice(0, layersWithMembers).reduce((sum, stat) => sum + stat.fillPercentage, 0) / layersWithMembers : 0;
     const avgCompletionRate = totalMembers > 0 ? (totalActive / totalMembers) * 100 : 0;
 
