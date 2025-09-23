@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useToast } from '../../hooks/use-toast';
 import { useBalance } from '../../hooks/useBalance';
 import { useI18n } from '../../contexts/I18nContext';
+import { HybridTranslation } from '../shared/HybridTranslation';
 import { ShoppingCart, Eye, Package, Star, Zap } from 'lucide-react';
 import { IconBriefcase, IconPalette, IconCode, IconSchool } from '@tabler/icons-react';
 
@@ -23,6 +24,11 @@ export interface MerchantNFT {
   creator_wallet?: string;
   metadata: any;
   created_at: string;
+  // 多语言支持
+  language?: string;
+  translations?: Record<string, { title?: string; description?: string; category?: string; }>;
+  // 可用语言列表
+  availableLanguages?: string[];
 }
 
 interface MerchantNFTCardProps {
@@ -135,7 +141,17 @@ export default function MerchantNFTCard({
           <Badge variant="secondary" className={`bg-black/70 text-white border-0 ${getCategoryColor(nft.category)}`}>
             <div className="flex items-center gap-1">
               {getCategoryIcon(nft.category)}
-              <span className="text-xs">{nft.category}</span>
+              <HybridTranslation
+                content={{
+                  text: nft.category,
+                  language: nft.language,
+                  translations: nft.translations ? Object.fromEntries(
+                    Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.category || nft.category])
+                  ) : {}
+                }}
+                autoTranslate={true}
+                contentStyle="text-xs"
+              />
             </div>
           </Badge>
         </div>
@@ -216,7 +232,18 @@ export default function MerchantNFTCard({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-purple-400 group-hover:text-purple-300 transition-colors text-lg">
-            {nft.title}
+            {/* NFT标题 - 使用DeepL翻译 */}
+            <HybridTranslation
+              content={{
+                text: nft.title,
+                language: nft.language,
+                translations: nft.translations ? Object.fromEntries(
+                  Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.title || nft.title])
+                ) : {}
+              }}
+              autoTranslate={true}
+              contentStyle="text-lg font-semibold text-purple-400 group-hover:text-purple-300 transition-colors"
+            />
           </CardTitle>
           {nft.metadata?.certification && (
             <Badge variant="outline" className="text-xs">
@@ -226,7 +253,18 @@ export default function MerchantNFTCard({
           )}
         </div>
         <p className="text-sm text-muted-foreground line-clamp-2">
-          {nft.description}
+          {/* NFT描述 - 使用DeepL翻译 */}
+          <HybridTranslation
+            content={{
+              text: nft.description,
+              language: nft.language,
+              translations: nft.translations ? Object.fromEntries(
+                Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.description || nft.description])
+              ) : {}
+            }}
+            autoTranslate={true}
+            contentStyle="text-sm text-muted-foreground"
+          />
         </p>
       </CardHeader>
 

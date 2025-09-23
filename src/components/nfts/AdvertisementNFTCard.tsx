@@ -7,6 +7,7 @@ import { useToast } from '../../hooks/use-toast';
 import { useBalance } from '../../hooks/useBalance';
 import { useI18n } from '../../contexts/I18nContext';
 import { HybridTranslation } from '../shared/HybridTranslation';
+import { MultilingualText } from '../shared/MultilingualContent';
 import { ShoppingCart, Eye, ExternalLink, Zap } from 'lucide-react';
 import { IconCode, IconWallet, IconFlame } from '@tabler/icons-react';
 
