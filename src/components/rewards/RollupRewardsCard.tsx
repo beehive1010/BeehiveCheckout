@@ -136,15 +136,15 @@ export default function RollupRewardsCard({ walletAddress, className }: RollupRe
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ArrowUpRight className="h-5 w-5 text-honey" />
-            Rollup Rewards
+            {t('rewards.rollup.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
             <ArrowUpRight className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-            <p className="text-muted-foreground">No rollup rewards found</p>
+            <p className="text-muted-foreground">{t('rewards.rollup.noRollupRewards')}</p>
             <p className="text-sm text-muted-foreground mt-2">
-              Rollup rewards appear when pending rewards expire or are redistributed
+              {t('rewards.rollup.noRollupDescription')}
             </p>
           </div>
         </CardContent>
@@ -157,7 +157,7 @@ export default function RollupRewardsCard({ walletAddress, className }: RollupRe
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ArrowUpRight className="h-5 w-5 text-honey" />
-          Rollup Rewards
+          {t('rewards.rollup.title')}
           <Badge variant="secondary">{rollupStats.total_rolled_up}</Badge>
         </CardTitle>
       </CardHeader>
@@ -167,7 +167,7 @@ export default function RollupRewardsCard({ walletAddress, className }: RollupRe
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-800">Total Rolled Up</span>
+              <span className="text-sm font-medium text-blue-800">{t('rewards.rollup.totalRolledUp')}</span>
             </div>
             <div className="text-2xl font-bold text-blue-600">
               {rollupStats.total_rolled_up}
@@ -177,7 +177,7 @@ export default function RollupRewardsCard({ walletAddress, className }: RollupRe
           <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
             <div className="flex items-center gap-2 mb-2">
               <DollarSign className="h-4 w-4 text-green-600" />
-              <span className="text-sm font-medium text-green-800">Total Amount</span>
+              <span className="text-sm font-medium text-green-800">{t('rewards.rollup.totalAmount')}</span>
             </div>
             <div className="text-2xl font-bold text-green-600">
               ${rollupStats.total_amount.toFixed(2)}
