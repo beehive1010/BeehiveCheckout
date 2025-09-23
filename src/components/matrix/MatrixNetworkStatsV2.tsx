@@ -46,52 +46,68 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
     setError(null);
 
     try {
-      console.log('🚀 Loading matrix stats via functions API for:', walletAddress);
+      console.log('🚀 Loading matrix stats directly from Supabase for:', walletAddress);
       
-      // Call matrix-view function directly
-      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/matrix-view', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNjU0MDUsImV4cCI6MjA3MjY0MTQwNX0.7CfL8CS1dQ8Gua89maSCDkgnMsNb19qp97mJyoJqJjs`,
-          'x-wallet-address': walletAddress
-        },
-        body: JSON.stringify({
-          action: 'get-layer-stats'
-        })
-      });
+      // Import supabase client (assuming it's available)
+      const { supabase } = await import('../../lib/supabase');
+      
+      // Get layer statistics directly from matrix_layers_view
+      const { data: matrixData, error: layerError } = await supabase
+        .from('matrix_layers_view')
+        .select('*')
+        .eq('matrix_root_wallet', walletAddress)
+        .order('layer', { ascending: true });
 
-      if (!response.ok) {
-        throw new Error(`API call failed: ${response.status} ${response.statusText}`);
+      if (layerError) {
+        console.error('❌ Matrix layers query error:', layerError);
+        throw new Error(`Matrix layers error: ${layerError.message}`);
       }
 
-      const result = await response.json();
-      console.log('📊 Matrix stats response:', result);
+      console.log('📊 Matrix layers data:', matrixData);
 
-      if (!result.success) {
-        throw new Error(result.error || t('matrix.errors.loadMatrixStatsFailed'));
+      // Transform data for all 19 layers
+      const layerStats = [];
+      for (let layer = 1; layer <= 19; layer++) {
+        const layerData = matrixData?.find((l: any) => l.layer === layer);
+        
+        if (layerData) {
+          layerStats.push({
+            layer: layerData.layer,
+            totalMembers: layerData.filled_slots || 0,
+            leftMembers: layerData.left_count || 0,
+            middleMembers: layerData.middle_count || 0,
+            rightMembers: layerData.right_count || 0,
+            maxCapacity: layerData.max_slots || Math.pow(3, layer),
+            fillPercentage: parseFloat(layerData.completion_rate || 0),
+            activeMembers: layerData.activated_members || 0
+          });
+        } else {
+          layerStats.push({
+            layer,
+            totalMembers: 0,
+            leftMembers: 0,
+            middleMembers: 0,
+            rightMembers: 0,
+            maxCapacity: Math.pow(3, layer),
+            fillPercentage: 0,
+            activeMembers: 0
+          });
+        }
       }
 
-      const summary = result.data.summary;
-      const layerStats = result.data.layer_stats;
+      // Calculate summary
+      const totalMembers = layerStats.reduce((sum, stat) => sum + stat.totalMembers, 0);
+      const totalActive = layerStats.reduce((sum, stat) => sum + stat.activeMembers, 0);
+      const deepestLayer = Math.max(...layerStats.filter(s => s.totalMembers > 0).map(s => s.layer), 0);
+      const layersWithData = layerStats.filter(s => s.totalMembers > 0).length;
 
-      // Transform to expected format
       const statsData: MatrixStatsData = {
-        totalMembers: summary.total_members || 0,
-        activeMembers: summary.total_active || 0,
-        deepestLayer: summary.deepest_layer || 0,
-        layersWithData: summary.layers_with_data || 0,
+        totalMembers,
+        activeMembers: totalActive,
+        deepestLayer,
+        layersWithData,
         directReferrals: layerStats.find((l: any) => l.layer === 1)?.totalMembers || 0,
-        layerBreakdown: layerStats.slice(0, 5).map((layer: any) => ({
-          layer: layer.layer,
-          totalMembers: layer.totalMembers,
-          leftMembers: layer.leftMembers,
-          middleMembers: layer.middleMembers,
-          rightMembers: layer.rightMembers,
-          maxCapacity: layer.maxCapacity,
-          fillPercentage: layer.fillPercentage,
-          activeMembers: layer.activeMembers
-        }))
+        layerBreakdown: layerStats.slice(0, 5) // Show first 5 layers
       };
 
       setMatrixStats(statsData);
