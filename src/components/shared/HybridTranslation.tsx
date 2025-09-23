@@ -52,7 +52,7 @@ export function HybridTranslation({
   // 处理内容翻译
   useEffect(() => {
     async function handleContentTranslation() {
-      const sourceLanguage = content.language || 'en';
+      const sourceLanguage = content.language || detectLanguage(content.text) || 'en';
       
       // 1. 如果是原语言，直接显示
       if (language === sourceLanguage) {
@@ -142,8 +142,70 @@ export function HybridTranslation({
       <Badge variant="outline" className={`text-xs ${config.className}`}>
         <Icon className="w-3 h-3 mr-1" />
         {config.text}
+        {/* 显示目标语言 */}
+        {translationSource !== 'original' && (
+          <span className="ml-1">→ {getLanguageName(language)}</span>
+        )}
       </Badge>
     );
+  };
+
+  // 获取语言显示名称
+  // 获取语言显示名称
+  const getLanguageName = (code: string): string => {
+    const names: Record<string, string> = {
+      'en': 'EN',
+      'zh': '中文',
+      'zh-tw': '繁體',
+      'th': 'ไทย',
+      'ms': 'BM',
+      'ko': '한국',
+      'ja': '日本'
+    };
+    return names[code] || code.toUpperCase();
+  };
+
+  // 简单的语言检测 (基于字符模式)
+  const detectLanguage = (text: string): string | null => {
+    if (!text || text.length < 3) return null;
+    
+    // 中文检测 (包含中文字符)
+    if (/[\u4e00-\u9fff]/.test(text)) {
+      // 繁体字检测 (检查常见繁体字)
+      if (/[繁體選擇點擊確認]/.test(text)) {
+        return 'zh-tw';
+      }
+      return 'zh';
+    }
+    
+    // 日文检测 (平假名、片假名、日文汉字)
+    if (/[\u3040-\u309f\u30a0-\u30ff]/.test(text)) {
+      return 'ja';
+    }
+    
+    // 韩文检测 (韩文字符)
+    if (/[\u1100-\u11ff\u3130-\u318f\uac00-\ud7af]/.test(text)) {
+      return 'ko';
+    }
+    
+    // 泰文检测 (泰文字符)
+    if (/[\u0e00-\u0e7f]/.test(text)) {
+      return 'th';
+    }
+    
+    // 英文检测 (基本拉丁字符)
+    if (/^[a-zA-Z\s.,!?'"()-]+$/.test(text)) {
+      return 'en';
+    }
+    
+    // 马来语通常使用拉丁字符，但难以从英语中区分
+    // 这里可以根据常见马来语词汇进行检测
+    const malayWords = /\b(dan|atau|yang|ini|itu|dengan|untuk|pada|dari|ke|oleh|akan|adalah|juga|tidak|ada|dalam|dapat|sudah|belum|masih|sangat|lebih|paling|semua|setiap|beberapa|satu|dua|tiga)\b/i;
+    if (malayWords.test(text)) {
+      return 'ms';
+    }
+    
+    return null; // 无法确定语言
   };
 
   return (

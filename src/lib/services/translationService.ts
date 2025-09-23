@@ -120,11 +120,11 @@ class DeepLProvider implements TranslationProvider {
     const mapping: Record<string, string> = {
       'en': 'EN-US', // 美式英语
       'zh': 'ZH',    // 中文（简体）
-      'zh-tw': 'ZH', // 中文（DeepL暂不支持繁体，使用简体）
+      'zh-tw': 'ZH', // 中文繁体 -> 简体（DeepL不支持繁体）
       'ja': 'JA',    // 日语
-      'ko': 'KO',    // 韩语
-      'th': 'EN-US', // 泰语暂不支持，回退到英语
-      'ms': 'EN-US', // 马来语暂不支持，回退到英语
+      'ko': 'KO',    // 韩语  
+      'th': 'EN-US', // 泰语（DeepL不支持，需要其他提供商）
+      'ms': 'EN-US', // 马来语（DeepL不支持，需要其他提供商）
       'de': 'DE',    // 德语
       'fr': 'FR',    // 法语
       'es': 'ES',    // 西班牙语
@@ -135,6 +135,12 @@ class DeepLProvider implements TranslationProvider {
       'pl': 'PL'     // 波兰语
     };
     return mapping[code] || 'EN-US';
+  }
+
+  // 检查DeepL是否原生支持该语言
+  isLanguageNativelySupported(code: string): boolean {
+    const nativeSupported = ['en', 'zh', 'ja', 'ko', 'de', 'fr', 'es', 'it', 'pt', 'ru', 'nl', 'pl'];
+    return nativeSupported.includes(code);
   }
 
   isAvailable(): boolean {
@@ -430,6 +436,41 @@ class TranslationService {
     return btoa(content).replace(/[^a-zA-Z0-9]/g, '').substring(0, 64);
   }
 
+  // 智能选择最佳翻译提供商
+  private selectBestProvider(targetLanguage: string, sourceLanguage: string): TranslationProvider | null {
+    const availableProviders = this.providers.filter(p => 
+      p.isAvailable() && p.getSupportedLanguages().includes(targetLanguage)
+    );
+
+    if (availableProviders.length === 0) return null;
+
+    // 语言质量优先级映射
+    const qualityMap: Record<string, string[]> = {
+      // DeepL最佳支持的语言
+      'zh': ['DeepL', 'Microsoft Translator', 'Google Translate', 'MyMemory'],
+      'ja': ['DeepL', 'Microsoft Translator', 'Google Translate', 'MyMemory'],
+      'ko': ['DeepL', 'Microsoft Translator', 'Google Translate', 'MyMemory'],
+      'en': ['DeepL', 'Microsoft Translator', 'Google Translate', 'MyMemory'],
+      
+      // 对于DeepL不支持的语言，优先使用其他服务
+      'th': ['Microsoft Translator', 'Google Translate', 'MyMemory', 'LibreTranslate'],
+      'ms': ['Microsoft Translator', 'Google Translate', 'MyMemory', 'LibreTranslate'],
+      'zh-tw': ['Microsoft Translator', 'Google Translate', 'MyMemory', 'DeepL'], // DeepL会转简体
+    };
+
+    const preferredOrder = qualityMap[targetLanguage] || ['DeepL', 'Microsoft Translator', 'Google Translate', 'MyMemory', 'LibreTranslate'];
+
+    for (const providerName of preferredOrder) {
+      const provider = availableProviders.find(p => p.name === providerName);
+      if (provider) {
+        console.log(`🎯 为 ${targetLanguage} 选择最佳提供商: ${provider.name}`);
+        return provider;
+      }
+    }
+
+    return availableProviders[0];
+  }
+
   // 获取翻译，带缓存和失败回退
   async translateText(
     text: string, 
@@ -459,8 +500,11 @@ class TranslationService {
       }
     }
 
-    // 2. 尝试使用翻译API
-    for (const provider of this.providers) {
+    // 2. 智能选择最佳翻译提供商
+    const bestProvider = this.selectBestProvider(targetLanguage, sourceLanguage);
+    const sortedProviders = bestProvider ? [bestProvider, ...this.providers.filter(p => p !== bestProvider)] : this.providers;
+
+    for (const provider of sortedProviders) {
       if (options?.provider && provider.name !== options.provider) {
         continue;
       }
@@ -470,7 +514,7 @@ class TranslationService {
       }
 
       try {
-        console.log(`🌐 使用 ${provider.name} 翻译: ${text.substring(0, 50)}...`);
+        console.log(`🌐 使用 ${provider.name} 翻译 (${sourceLanguage} -> ${targetLanguage}): ${text.substring(0, 50)}...`);
         const translated = await provider.translate(text, targetLanguage, sourceLanguage);
         
         // 缓存翻译结果
