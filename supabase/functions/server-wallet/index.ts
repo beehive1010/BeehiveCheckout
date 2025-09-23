@@ -3,6 +3,11 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createThirdwebClient } from 'https://esm.sh/thirdweb@5.28.0';
+import { privateKeyToAccount } from 'https://esm.sh/thirdweb@5.28.0/wallets';
+import { arbitrum, polygon, optimism, ethereum, base, bsc } from 'https://esm.sh/thirdweb@5.28.0/chains';
+import { getContract, prepareContractCall, sendTransaction } from 'https://esm.sh/thirdweb@5.28.0';
+import { transfer } from 'https://esm.sh/thirdweb@5.28.0/extensions/erc20';
 
 interface WithdrawalRequest {
   id?: string;
@@ -25,7 +30,51 @@ interface ServerWalletBalance {
   last_updated: string;
 }
 
-// Helper function to get token decimals for different chains\nfunction getTokenDecimals(chainId: number, tokenAddress: string): number {\n  // USDT decimals vary by chain\n  const usdtDecimals: Record<number, number> = {\n    1: 6,      // Ethereum USDT\n    137: 6,    // Polygon USDT  \n    42161: 6,  // Arbitrum USDT\n    10: 6,     // Optimism USDT\n    56: 18,    // BSC USDT (18 decimals!)\n    8453: 6    // Base USDT\n  };\n  \n  // Check if it's a custom token with 18 decimals (like your test USDT)\n  const customTokens18Decimals = [\n    '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d' // Your custom test USDT\n  ];\n  \n  if (customTokens18Decimals.includes(tokenAddress.toLowerCase())) {\n    return 18;\n  }\n  \n  return usdtDecimals[chainId] || 6; // Default to 6 decimals\n}\n\nserve(async (req) => {
+// Initialize Thirdweb client
+const thirdwebClient = createThirdwebClient({
+  clientId: Deno.env.get('VITE_THIRDWEB_CLIENT_ID') ?? '',
+  secretKey: Deno.env.get('VITE_THIRDWEB_SECRET_KEY') ?? '',
+});
+
+// Server wallet private key (should be stored securely in environment)
+const SERVER_WALLET_PRIVATE_KEY = Deno.env.get('SERVER_WALLET_PRIVATE_KEY') ?? '';
+
+// Chain mapping
+const getChainFromId = (chainId: number) => {
+  switch (chainId) {
+    case 1: return ethereum;
+    case 137: return polygon;
+    case 42161: return arbitrum;
+    case 10: return optimism;
+    case 56: return bsc;
+    case 8453: return base;
+    default: return arbitrum; // Default to Arbitrum
+  }
+};
+
+// Helper function to get token decimals for different chains
+function getTokenDecimals(chainId: number, tokenAddress: string): number {
+  // USDT decimals vary by chain
+  const usdtDecimals: Record<number, number> = {
+    1: 6,      // Ethereum USDT
+    137: 6,    // Polygon USDT  
+    42161: 6,  // Arbitrum USDT
+    10: 6,     // Optimism USDT
+    56: 18,    // BSC USDT (18 decimals!)
+    8453: 6    // Base USDT
+  };
+  
+  // Check if it's a custom token with 18 decimals (like your test USDT)
+  const customTokens18Decimals = [
+    '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d' // Your custom test USDT
+  ];
+  
+  if (customTokens18Decimals.includes(tokenAddress.toLowerCase())) {
+    return 18;
+  }
+  
+  return usdtDecimals[chainId] || 6; // Default to 6 decimals
+}\n\nserve(async (req) => {
   // CORS Headers
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -271,27 +320,161 @@ async function processWithdrawal(withdrawalData: WithdrawalRequest, supabaseClie
       );
     }
     
-    // TODO: Implement actual blockchain transaction processing
-    // For now, we'll simulate the processing with a delay
-    
-    // In a real implementation, this would:
-    // 1. Check server wallet balance
-    // 2. Verify user signature
-    // 3. Execute two blockchain transactions:
-    //    a) Transfer netAmount USDT to user wallet
-    //    b) Transfer fee USDT to gas fee wallet
-    // 4. Update database with transaction hashes
-    // 5. Monitor transaction confirmations
-    
-    // Store additional fee information in metadata
-    const enhancedMetadata = {
-      ...withdrawalData.metadata,
-      fee_amount: fee,
-      net_amount: netAmount,
-      gas_fee_wallet: gasFeeWallet,
-      fee_transaction_hash: null, // Will be populated when real transaction is made
-      user_transaction_hash: null // Will be populated when real transaction is made
-    };
+    // Implement actual blockchain transaction processing using Thirdweb
+    try {
+      // 1. Initialize server wallet account
+      if (!SERVER_WALLET_PRIVATE_KEY) {
+        throw new Error('Server wallet private key not configured');
+      }
+      
+      const serverAccount = privateKeyToAccount({
+        client: thirdwebClient,
+        privateKey: SERVER_WALLET_PRIVATE_KEY,
+      });
+      
+      // 2. Get the target chain
+      const targetChain = getChainFromId(withdrawalData.target_chain_id);
+      
+      // 3. Setup token contract
+      const tokenContract = getContract({
+        client: thirdwebClient,
+        chain: targetChain,
+        address: withdrawalData.token_address,
+      });
+      
+      // 4. Calculate amounts with proper decimals
+      const tokenDecimals = getTokenDecimals(withdrawalData.target_chain_id, withdrawalData.token_address);
+      const netAmountWei = BigInt(Math.floor(netAmount * Math.pow(10, tokenDecimals)));
+      const feeAmountWei = BigInt(Math.floor(fee * Math.pow(10, tokenDecimals)));
+      
+      // 5. Execute user withdrawal transaction
+      console.log(`🔄 Executing withdrawal: ${netAmount} USDT to ${withdrawalData.user_wallet}`);
+      
+      const userTransferTransaction = transfer({
+        contract: tokenContract,
+        to: withdrawalData.user_wallet,
+        amount: netAmountWei,
+      });
+      
+      const userTxResult = await sendTransaction({
+        transaction: userTransferTransaction,
+        account: serverAccount,
+      });
+      
+      console.log(`✅ User transfer successful: ${userTxResult.transactionHash}`);
+      
+      // 6. Execute fee transfer transaction  
+      let feeTransactionHash = null;
+      if (fee > 0 && gasFeeWallet) {
+        console.log(`🔄 Executing fee transfer: ${fee} USDT to ${gasFeeWallet}`);
+        
+        const feeTransferTransaction = transfer({
+          contract: tokenContract,
+          to: gasFeeWallet,
+          amount: feeAmountWei,
+        });
+        
+        const feeTxResult = await sendTransaction({
+          transaction: feeTransferTransaction,
+          account: serverAccount,
+        });
+        
+        feeTransactionHash = feeTxResult.transactionHash;
+        console.log(`✅ Fee transfer successful: ${feeTransactionHash}`);
+      }
+      
+      // 7. Store transaction information in metadata
+      const enhancedMetadata = {
+        ...withdrawalData.metadata,
+        fee_amount: fee,
+        net_amount: netAmount,
+        gas_fee_wallet: gasFeeWallet,
+        fee_transaction_hash: feeTransactionHash,
+        user_transaction_hash: userTxResult.transactionHash,
+        chain_id: withdrawalData.target_chain_id,
+        token_decimals: tokenDecimals,
+      };
+      
+      // 8. Store withdrawal request in database with transaction hashes
+      const { data: insertData, error: insertError } = await supabaseClient
+        .from('withdrawal_requests')
+        .insert([{
+          id: withdrawalId,
+          user_wallet: withdrawalData.user_wallet,
+          amount: grossAmount.toString(),
+          target_chain_id: withdrawalData.target_chain_id,
+          token_address: withdrawalData.token_address,
+          user_signature: withdrawalData.user_signature,
+          metadata: enhancedMetadata,
+          status: 'completed',
+          user_transaction_hash: userTxResult.transactionHash,
+          fee_transaction_hash: feeTransactionHash,
+          created_at: new Date().toISOString(),
+          completed_at: new Date().toISOString(),
+        }])
+        .select()
+        .maybeSingle();
+
+      if (insertError) {
+        console.error('Database insert error:', insertError);
+        // Transaction succeeded but database failed - log for manual reconciliation
+      }
+      
+      return new Response(
+        JSON.stringify({
+          success: true,
+          withdrawal: {
+            id: withdrawalId,
+            status: 'completed',
+            gross_amount: grossAmount,
+            fee_amount: fee,
+            net_amount: netAmount,
+            gas_fee_wallet: gasFeeWallet,
+            user_transaction_hash: userTxResult.transactionHash,
+            fee_transaction_hash: feeTransactionHash,
+            completed_at: new Date().toISOString(),
+            message: `Withdrawal completed successfully. ${netAmount.toFixed(2)} USDT sent to your wallet (${fee} USDT fee deducted).`
+          }
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+      
+    } catch (blockchainError: any) {
+      console.error('Blockchain transaction error:', blockchainError);
+      
+      // Store failed withdrawal request for monitoring
+      const failedMetadata = {
+        ...withdrawalData.metadata,
+        fee_amount: fee,
+        net_amount: netAmount,
+        gas_fee_wallet: gasFeeWallet,
+        error: blockchainError.message,
+        failed_at: new Date().toISOString(),
+      };
+      
+      await supabaseClient
+        .from('withdrawal_requests')
+        .insert([{
+          id: withdrawalId,
+          user_wallet: withdrawalData.user_wallet,
+          amount: grossAmount.toString(),
+          target_chain_id: withdrawalData.target_chain_id,
+          token_address: withdrawalData.token_address,
+          user_signature: withdrawalData.user_signature,
+          metadata: failedMetadata,
+          status: 'failed',
+          created_at: new Date().toISOString(),
+        }]);
+      
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Withdrawal failed: ${blockchainError.message}`,
+          withdrawal_id: withdrawalId
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     return new Response(
       JSON.stringify({

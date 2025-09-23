@@ -2385,6 +2385,12 @@
     "notUnlocked": "未解锁",
     "directReferralRequirement": "直推要求",
     "directRegisterTip": "💡 直推是指通过您的推荐链接注册的用户",
+    "quickUpgrade": "快速升级",
+    "nftClaimDescription": "使用区块链NFT申领立即升级您的会员等级",
+    "nftClaimNote": "您的NFT将安全存储在区块链上作为会员资格证明",
+    "level2Requirements": "等级2要求",
+    "level2DirectReferralsRequired": "需要3个以上直推",
+    "currentDirectReferrals": "当前直推人数",
     "status": {
       "owned": "已拥有",
       "available": "可购买",
