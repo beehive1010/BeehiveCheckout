@@ -426,22 +426,51 @@ export default function USDTWithdrawal() {
         }
       });
       
-      // Update user balance
+      // Update user balance - try different column names
       const { data: currentBalance } = await supabase
         .from('user_balances')
-        .select('claimable_reward_balance_usdc, total_rewards_withdrawn_usdc')
+        .select('*')
         .ilike('wallet_address', memberWalletAddress!)
         .single();
       
       if (currentBalance) {
+        // Find the correct balance field
+        let currentClaimable = 0;
+        let currentWithdrawn = 0;
+        let claimableField = 'claimable_reward_balance_usdc';
+        let withdrawnField = 'total_rewards_withdrawn_usdc';
+        
+        const balanceFields = [
+          { claimable: 'claimable_reward_balance_usdc', withdrawn: 'total_rewards_withdrawn_usdc' },
+          { claimable: 'claimable_rewards', withdrawn: 'total_withdrawn' },
+          { claimable: 'balance', withdrawn: 'withdrawn' },
+          { claimable: 'claimable_reward_balance', withdrawn: 'total_rewards_withdrawn' }
+        ];
+        
+        for (const fields of balanceFields) {
+          if (currentBalance[fields.claimable] !== undefined) {
+            currentClaimable = currentBalance[fields.claimable] || 0;
+            currentWithdrawn = currentBalance[fields.withdrawn] || 0;
+            claimableField = fields.claimable;
+            withdrawnField = fields.withdrawn;
+            break;
+          }
+        }
+        
+        console.log(`📊 Current balance - ${claimableField}: ${currentClaimable}, ${withdrawnField}: ${currentWithdrawn}`);
+        
+        const updateData = {
+          [claimableField]: Math.max(0, currentClaimable - data.amount),
+          [withdrawnField]: currentWithdrawn + data.amount,
+          last_withdrawal_at: new Date().toISOString(),
+        };
+        
         await supabase
           .from('user_balances')
-          .update({
-            claimable_reward_balance_usdc: Math.max(0, (currentBalance.claimable_reward_balance_usdc || 0) - data.amount),
-            total_rewards_withdrawn_usdc: (currentBalance.total_rewards_withdrawn_usdc || 0) + data.amount,
-            last_withdrawal_at: new Date().toISOString(),
-          })
+          .update(updateData)
           .ilike('wallet_address', memberWalletAddress!);
+          
+        console.log(`✅ Balance updated:`, updateData);
       }
       
       return {
