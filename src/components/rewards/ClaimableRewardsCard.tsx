@@ -76,12 +76,11 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
         .in('status', ['claimable', 'pending'])
         .order('created_at', { ascending: false });
 
-      // Simplified matrix position handling (removed dependency on non-existent table)
+      // Matrix positions are now included in the layer_rewards table
       const matrixPositions = new Map();
       if (layerRewards && layerRewards.length > 0) {
-        // Set default positions since individual_matrix_placements table doesn't exist
         layerRewards.forEach(reward => {
-          matrixPositions.set(`${reward.payer_wallet}-${reward.layer}`, 'L');
+          matrixPositions.set(`${reward.triggering_member_wallet}-${reward.matrix_layer}`, reward.layer_position || 'L');
         });
       }
 
