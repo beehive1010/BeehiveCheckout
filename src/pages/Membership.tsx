@@ -393,7 +393,7 @@ export default function Membership() {
               <div className="text-center p-6 bg-orange-50 border border-orange-200 rounded-lg">
                 <Users className="h-12 w-12 text-orange-500 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-orange-800 mb-2">
-                  {t('membership.level2Requirements') || 'Level 2 Requirements'}
+                  {t('membership.level2Requirements.title') || 'Level 2 Requirements'}
                 </h3>
                 <p className="text-orange-700 mb-4">
                   {t('membership.level2DirectReferralsRequired') || 'You need 3 direct referrals to unlock Level 2'}
