@@ -114,21 +114,38 @@ export default function NFTs() {
   // Fetch Advertisement NFTs using multilingual API
   const fetchAdvertisementNFTs = useCallback(async () => {
     try {
+      console.log(`🔍 开始获取广告NFT数据 (语言: ${language})`);
       const { multilingualNFTsApi } = await import('../api/nfts/multilingual-nfts.api');
       const data = await multilingualNFTsApi.getAdvertisementNFTs(language, {
         is_active: true,
         limit: 50
       });
+      console.log(`📦 获取到 ${data.length} 个广告NFT`, data);
       setAdvertisementNFTs(data);
     } catch (error) {
       console.error('Error fetching multilingual advertisement NFTs:', error);
-      toast({
-        title: t('nfts.errors.loadFailed'),
-        description: t('nfts.errors.loadAdvertisementFailed'),
-        variant: "destructive"
-      });
+      // 尝试直接从Supabase获取
+      try {
+        console.log('🔄 尝试直接从Supabase获取数据...');
+        const { data: fallbackData, error: supabaseError } = await supabase
+          .from('advertisement_nfts')
+          .select('*')
+          .eq('is_active', true)
+          .limit(10);
+        
+        if (supabaseError) throw supabaseError;
+        console.log(`📦 直接获取到 ${fallbackData?.length || 0} 个广告NFT`, fallbackData);
+        setAdvertisementNFTs(fallbackData || []);
+      } catch (fallbackError) {
+        console.error('直接获取也失败:', fallbackError);
+        toast({
+          title: t('nfts.errors.loadFailed'),
+          description: t('nfts.errors.loadAdvertisementFailed'),
+          variant: "destructive"
+        });
+      }
     }
-  }, [language, toast]);
+  }, [language, toast, t]);
 
   // Fetch Merchant NFTs using multilingual API
   const fetchMerchantNFTs = useCallback(async () => {
