@@ -2512,5 +2512,22 @@
       "utility": "实用",
       "collectible": "收藏品"
     }
+  },
+  "footer": {
+    "newsletter": {
+      "title": "保持更新",
+      "description": "订阅我们的新闻通讯，获取最新更新和公告",
+      "placeholder": "输入您的邮箱地址",
+      "button": "订阅",
+      "disclaimer": "我们尊重您的隐私，绝不会分享您的邮箱"
+    },
+    "brand": {
+      "tagline": "构建Web3会员和教育的未来"
+    },
+    "copyright": {
+      "rights": "版权所有",
+      "blockchain": "由区块链技术提供支持"
+    },
+    "backToTop": "回到顶部"
   }
 }

@@ -72,7 +72,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
         leftMembers: layer.left_count || 0,
         middleMembers: layer.middle_count || 0,
         rightMembers: layer.right_count || 0,
-        maxCapacity: layer.max_slots || Math.pow(3, layer.layer || 1),
+        maxCapacity: layer.max_slots || (layer.layer === 2 ? 9 : Math.pow(3, layer.layer || 1)),
         fillPercentage: parseFloat(layer.completion_rate || 0),
         activeMembers: layer.activated_members || 0,
         completedPercentage: parseFloat(layer.completion_rate || 0),

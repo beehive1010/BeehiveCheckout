@@ -2525,5 +2525,22 @@
       "utility": "Utility",
       "collectible": "Collectible"
     }
+  },
+  "footer": {
+    "newsletter": {
+      "title": "Stay Updated",
+      "description": "Subscribe to our newsletter for the latest updates and announcements",
+      "placeholder": "Enter your email address",
+      "button": "Subscribe",
+      "disclaimer": "We respect your privacy and will never share your email"
+    },
+    "brand": {
+      "tagline": "Building the future of Web3 membership and education"
+    },
+    "copyright": {
+      "rights": "All rights reserved",
+      "blockchain": "Powered by blockchain technology"
+    },
+    "backToTop": "Back to Top"
   }
 }
