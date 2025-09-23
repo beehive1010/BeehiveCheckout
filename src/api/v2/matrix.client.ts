@@ -191,7 +191,7 @@ export const matrixV2Client = {
 
       return {
         walletAddress,
-        totalTeamSize: result.stats.totalReferrals || 0,
+        totalTeamSize: result.stats.totalTeamSize || 0,
         directReferrals: result.stats.directReferrals || 0,
         layerCounts,
         layerBreakdown
