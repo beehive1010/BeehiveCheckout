@@ -81,7 +81,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
       if (matrixData && matrixData.length > 0) {
         // Get members for the current layer (first layer by default)
         const currentLayer = 1;
-        const layerMembers = matrixData.filter((member: any) => member.matrix_layer === currentLayer);
+        const layerMembers = matrixData.filter((member: any) => member.layer === currentLayer);
         
         // Group members by position (L, M, R)
         const leftMembers: MatrixMember[] = [];
@@ -91,12 +91,12 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
         layerMembers.forEach((member: any) => {
           const memberData: MatrixMember = {
             walletAddress: member.member_wallet,
-            username: member.username || `User_${member.member_wallet.slice(-6)}`,
-            level: member.current_level || 1,
-            isActive: member.is_activated || false,
-            layer: member.matrix_layer || currentLayer,
-            position: member.matrix_position as 'L' | 'M' | 'R',
-            placedAt: member.joined_at || new Date().toISOString()
+            username: `User_${member.member_wallet.slice(-6)}`, // No username in tree view
+            level: 1, // Default level, can get from members table if needed
+            isActive: true, // Tree view only shows activated members
+            layer: member.layer || currentLayer,
+            position: member.position as 'L' | 'M' | 'R',
+            placedAt: member.child_activation_time || new Date().toISOString()
           };
           
           // Include all members in the current layer for this matrix root
