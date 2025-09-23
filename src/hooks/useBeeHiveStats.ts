@@ -76,26 +76,36 @@ export function useUserReferralStats() {
 
       const totalEarnings = rewardsData?.reduce((sum, reward) => sum + (Number(reward.reward_amount) || 0), 0) || 0;
 
-      // Get recent referrals with activation status using new MasterSpec matrix_referrals table
+      // Get recent referrals with activation status - use separate queries to avoid complex joins
       const { data: recentReferralsData } = await supabase
         .from('matrix_referrals')
         .select(`
           member_wallet,
           created_at,
           position,
-          parent_depth,
-          members!matrix_referrals_member_wallet_fkey(current_level)
+          parent_depth
         `)
         .eq('matrix_root_wallet', walletAddress)
         .eq('parent_depth', 1) // Only direct layer 1 members
         .order('created_at', { ascending: false })
         .limit(5);
 
-      const recentReferrals = recentReferralsData?.map(referral => ({
-        walletAddress: referral.member_wallet,
-        joinedAt: referral.created_at || new Date().toISOString(),
-        activated: (referral.members as any)?.current_level > 0
-      })) || [];
+      // Get activation status for recent referrals
+      const recentReferrals = await Promise.all(
+        (recentReferralsData || []).map(async (referral) => {
+          const { data: memberData } = await supabase
+            .from('members')
+            .select('current_level')
+            .eq('wallet_address', referral.member_wallet)
+            .single();
+
+          return {
+            walletAddress: referral.member_wallet,
+            joinedAt: referral.created_at || new Date().toISOString(),
+            activated: (memberData?.current_level || 0) > 0
+          };
+        })
+      );
 
       return {
         directReferralCount: directReferrals || 0,
@@ -176,15 +186,15 @@ export function useUserRewardStats() {
       const { data: rewardsData } = await supabase
         .from('layer_rewards')
         .select('*')
-        .eq('recipient_wallet', walletAddress);
+        .eq('reward_recipient_wallet', walletAddress);
 
-      const claimableRewards = rewardsData?.filter(r => !r.is_claimed && r.reward_type === 'layer_reward') || [];
-      const pendingRewards = rewardsData?.filter(r => r.reward_type === 'pending_layer_reward') || [];
-      const claimedRewards = rewardsData?.filter(r => r.is_claimed) || [];
+      const claimableRewards = rewardsData?.filter(r => r.status === 'claimable') || [];
+      const pendingRewards = rewardsData?.filter(r => r.status === 'pending') || [];
+      const claimedRewards = rewardsData?.filter(r => r.status === 'claimed') || [];
 
-      const totalClaimableAmount = claimableRewards.reduce((sum, r) => sum + (r.amount_usdt || 0), 0);
-      const totalPendingAmount = pendingRewards.reduce((sum, r) => sum + (r.amount_usdt || 0), 0);
-      const totalClaimedAmount = claimedRewards.reduce((sum, r) => sum + (r.amount_usdt || 0), 0);
+      const totalClaimableAmount = claimableRewards.reduce((sum, r) => sum + (Number(r.reward_amount) || 0), 0);
+      const totalPendingAmount = pendingRewards.reduce((sum, r) => sum + (Number(r.reward_amount) || 0), 0);
+      const totalClaimedAmount = claimedRewards.reduce((sum, r) => sum + (Number(r.reward_amount) || 0), 0);
 
       return {
         claimableRewards: claimableRewards.length,
