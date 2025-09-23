@@ -122,8 +122,8 @@ export default function Membership() {
   const handleCardUpgrade = async (targetLevel: number) => {
     if (!walletAddress) {
       toast({
-        title: "Wallet Required",
-        description: "Please connect your wallet first",
+        title: t('membership.errors.walletRequired'),
+        description: t('membership.errors.connectWallet'),
         variant: "destructive",
       });
       return;
@@ -132,8 +132,8 @@ export default function Membership() {
     // Check if this level is the next unlockable level from database
     if (!nextUnlockLevel || targetLevel !== nextUnlockLevel) {
       toast({
-        title: "Level Not Available",
-        description: `This level is not currently unlockable. Please complete your current level first.`,
+        title: t('membership.errors.levelLocked'),
+        description: t('membership.errors.levelNotAvailable'),
         variant: "destructive",
       });
       return;

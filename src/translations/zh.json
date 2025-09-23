@@ -839,7 +839,6 @@
     "subtitle": "跟踪您的奖励，领取收益，查看交易历史",
     "tabs": {
       "overview": "概览",
-      "claimable": "可领取",
       "rollup": "汇总", 
       "history": "历史",
       "withdrawal": "提现"
