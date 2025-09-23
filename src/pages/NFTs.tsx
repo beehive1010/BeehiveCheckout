@@ -551,7 +551,16 @@ export default function NFTs() {
                   </CardHeader>
                   
                   <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground line-clamp-3">{getTranslatedContent(nft, 'description')}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-3">
+                      <MultilingualText
+                        text={nft.description}
+                        language={nft.language_code || nft.language}
+                        translations={nft.translations ? Object.fromEntries(
+                          Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.description || nft.description])
+                        ) : {}}
+                        autoTranslate={true}
+                      />
+                    </p>
                     
                     <div className="flex items-center justify-between">
                       <div className="text-center">
