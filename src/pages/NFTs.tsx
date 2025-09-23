@@ -79,6 +79,16 @@ export default function NFTs() {
   
   // 使用多语言NFT钩子
   const { nfts: multilingualNFTs, loading: nftsLoading, error: nftsError } = useMultilingualNFTs(language);
+  
+  // Helper function to get translated content from NFT metadata (临时向后兼容)
+  const getTranslatedContent = (nft: AdvertisementNFT | MerchantNFT, field: 'title' | 'description' | 'category') => {
+    const translations = nft.metadata?.translations || nft.translations;
+    if (translations && translations[language] && translations[language][field]) {
+      return translations[language][field];
+    }
+    // Fallback to default field value
+    return nft[field] || '';
+  };
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
