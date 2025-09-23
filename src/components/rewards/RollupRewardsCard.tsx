@@ -198,7 +198,7 @@ export default function RollupRewardsCard({ walletAddress, className }: RollupRe
         {/* Rollup Reasons Breakdown */}
         {Object.keys(rollupStats.by_reason).length > 0 && (
           <div className="space-y-3">
-            <h4 className="font-semibold text-gray-800">Rollup Breakdown</h4>
+            <h4 className="font-semibold text-gray-800">{t('rewards.rollup.rollupBreakdown')}</h4>
             <div className="space-y-2">
               {Object.entries(rollupStats.by_reason).map(([reason, stats]) => (
                 <div key={reason} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
@@ -222,7 +222,7 @@ export default function RollupRewardsCard({ walletAddress, className }: RollupRe
         {/* Recent Rollups */}
         {rollupStats.recent_rollups.length > 0 && (
           <div className="space-y-3">
-            <h4 className="font-semibold text-gray-800">Recent Rollups</h4>
+            <h4 className="font-semibold text-gray-800">{t('rewards.rollup.recentRollups')}</h4>
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {rollupStats.recent_rollups.map((reward) => (
                 <div key={reward.id} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
@@ -264,11 +264,9 @@ export default function RollupRewardsCard({ walletAddress, className }: RollupRe
               </svg>
             </div>
             <div>
-              <h4 className="text-sm font-medium text-blue-800 mb-1">About Rollup Rewards</h4>
+              <h4 className="text-sm font-medium text-blue-800 mb-1">{t('rewards.rollup.aboutRollup')}</h4>
               <p className="text-xs text-blue-600">
-                Rollup rewards are rewards that were pending but couldn't be claimed due to expiration, 
-                insufficient level, or other reasons. These rewards are redistributed within the network 
-                according to the matrix rollup system.
+                {t('rewards.rollup.aboutRollupDescription')}
               </p>
             </div>
           </div>
