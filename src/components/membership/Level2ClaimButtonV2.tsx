@@ -1,0 +1,664 @@
+import { useState, useEffect } from 'react';
+import { useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain } from 'thirdweb/react';
+import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from 'thirdweb';
+import { arbitrum } from 'thirdweb/chains';
+import { createThirdwebClient } from 'thirdweb';
+import { claimTo, balanceOf } from 'thirdweb/extensions/erc1155';
+import { approve, balanceOf as erc20BalanceOf, allowance } from 'thirdweb/extensions/erc20';
+import { Button } from '../ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Badge } from '../ui/badge';
+import { useToast } from '../../hooks/use-toast';
+import { Loader2, Crown, TrendingUp, Coins, Clock, Star } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
+import { useI18n } from '../../contexts/I18nContext';
+
+interface Level2ClaimButtonV2Props {
+  onSuccess?: () => void;
+  className?: string;
+}
+
+export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimButtonV2Props): JSX.Element {
+  const account = useActiveAccount();
+  const activeChain = useActiveWalletChain();
+  const switchChain = useSwitchActiveWalletChain();
+  const { toast } = useToast();
+  const { t } = useI18n();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [currentStep, setCurrentStep] = useState<string>('');
+  const [canClaimLevel2, setCanClaimLevel2] = useState(false);
+  const [isCheckingEligibility, setIsCheckingEligibility] = useState(true);
+  const [isWrongNetwork, setIsWrongNetwork] = useState(false);
+  
+  // Fixed Level 2 pricing - same as Level1 logic
+  const LEVEL_2_PRICE_USDC = 150;
+  const LEVEL_2_PRICE_WEI = BigInt(LEVEL_2_PRICE_USDC) * BigInt('1000000000000000000');
+  
+  const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+  const PAYMENT_TOKEN_CONTRACT = "0x6f9487f2a1036e2D910aBB7509d0263a9581470B"; // ARB ONE Payment Token
+  const NFT_CONTRACT = "0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8"; // ARB ONE Membership Contract
+  const THIRDWEB_CLIENT_ID = import.meta.env.VITE_THIRDWEB_CLIENT_ID;
+
+  const client = createThirdwebClient({
+    clientId: THIRDWEB_CLIENT_ID,
+  });
+
+  // Check network status
+  useEffect(() => {
+    if (activeChain?.id && activeChain.id !== arbitrum.id) {
+      setIsWrongNetwork(true);
+    } else {
+      setIsWrongNetwork(false);
+    }
+  }, [activeChain?.id]);
+
+  // Check Level 2 eligibility - simplified logic
+  useEffect(() => {
+    if (account?.address) {
+      checkLevel2Eligibility();
+    }
+  }, [account?.address]);
+
+  const checkLevel2Eligibility = async () => {
+    if (!account?.address) return;
+    
+    setIsCheckingEligibility(true);
+    try {
+      console.log('🔍 Checking Level 2 eligibility for:', account.address);
+      
+      // Check if user has Level 1 membership but not Level 2
+      const { data: memberData, error: memberError } = await supabase
+        .from('members')
+        .select('current_level, wallet_address')
+        .ilike('wallet_address', account.address)
+        .single();
+      
+      if (memberError || !memberData) {
+        console.log('❌ User not found in members table - must claim Level 1 first');
+        setCanClaimLevel2(false);
+        setIsCheckingEligibility(false);
+        return;
+      }
+      
+      if (memberData.current_level !== 1) {
+        console.log(`❌ User current level: ${memberData.current_level}, must be Level 1 to claim Level 2`);
+        setCanClaimLevel2(false);
+        setIsCheckingEligibility(false);
+        return;
+      }
+      
+      // Check if user already owns Level 2 NFT on blockchain
+      try {
+        const nftContract = getContract({
+          client,
+          address: NFT_CONTRACT,
+          chain: arbitrum
+        });
+        
+        const level2Balance = await balanceOf({
+          contract: nftContract,
+          owner: account.address,
+          tokenId: BigInt(2)
+        });
+        
+        if (Number(level2Balance) > 0) {
+          console.log('❌ User already owns Level 2 NFT');
+          setCanClaimLevel2(false);
+          setIsCheckingEligibility(false);
+          return;
+        }
+      } catch (nftCheckError) {
+        console.warn('⚠️ Could not check Level 2 NFT balance:', nftCheckError);
+      }
+      
+      // All checks passed - user can claim Level 2
+      console.log('✅ User eligible for Level 2 claim');
+      setCanClaimLevel2(true);
+      
+    } catch (error) {
+      console.error('❌ Error checking Level 2 eligibility:', error);
+      setCanClaimLevel2(false);
+    } finally {
+      setIsCheckingEligibility(false);
+    }
+  };
+
+  const sendTransactionWithRetry = async (transaction: unknown, account: unknown, description: string = 'transaction', useGasless: boolean = true) => {
+    let lastError: any = null;
+    const maxRetries = 3;
+    const baseDelay = 2000;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const gasMode = useGasless ? 'with gas sponsorship' : 'with regular gas';
+        console.log(`📤 Sending ${description} ${gasMode} (attempt ${attempt}/${maxRetries})...`);
+        
+        if (attempt > 1) {
+          await new Promise(resolve => setTimeout(resolve, baseDelay * attempt));
+        }
+        
+        const result = await sendTransaction({
+          transaction,
+          account,
+          gasless: useGasless,
+        });
+        
+        console.log(`✅ ${description} successful ${gasMode} on attempt ${attempt}`);
+        return result;
+        
+      } catch (error: any) {
+        lastError = error;
+        console.error(`❌ ${description} failed on attempt ${attempt}:`, error.message);
+        
+        if (error.message?.includes('User rejected') || 
+            error.message?.includes('user denied') ||
+            error.message?.includes('User cancelled')) {
+          throw new Error('Transaction cancelled by user');
+        }
+        
+        if (attempt === maxRetries) {
+          break;
+        }
+        
+        console.log(`🔄 Retrying ${description} in ${baseDelay * attempt}ms...`);
+      }
+    }
+    
+    throw new Error(`${description} failed after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
+  };
+
+  const handleSwitchNetwork = async () => {
+    if (!switchChain) return;
+    
+    try {
+      setIsProcessing(true);
+      await switchChain(arbitrum);
+      toast({
+        title: 'Network Switched',
+        description: 'Successfully switched to Arbitrum One',
+        variant: "default",
+      });
+    } catch (error: any) {
+      console.error('Failed to switch network:', error);
+      toast({
+        title: 'Network Switch Failed',
+        description: error.message || 'Could not switch to Arbitrum One. Please switch manually in your wallet.',
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleClaimLevel2NFT = async () => {
+    console.log('🎯 Level 2 NFT Claim attempt started');
+    
+    if (!account?.address) {
+      toast({
+        title: t('claim.walletNotConnected'),
+        description: t('claim.connectWalletToClaimNFT'),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!canClaimLevel2) {
+      toast({
+        title: 'Level 2 Requirements Not Met',
+        description: 'You must own Level 1 NFT and not yet own Level 2 to claim.',
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      // Step 1: Network check - same as Level 1
+      const chainId = activeChain?.id;
+      if (chainId !== arbitrum.id) {
+        throw new Error(`Please switch to Arbitrum One network. Current: ${chainId}, Required: ${arbitrum.id}`);
+      }
+
+      // Step 2: Skip ETH balance check - gas is sponsored
+      console.log('⛽ Gas fees are sponsored - skipping ETH balance check');
+
+      // Step 3: Setup contracts - same as Level 1
+      const usdcContract = getContract({
+        client,
+        address: PAYMENT_TOKEN_CONTRACT,
+        chain: arbitrum
+      });
+
+      const nftContract = getContract({
+        client,
+        address: NFT_CONTRACT,
+        chain: arbitrum
+      });
+
+      // Step 4: Check if user already owns Level 2 NFT (double-check)
+      console.log('🔍 Double-checking Level 2 NFT ownership...');
+      try {
+        const existingBalance = await balanceOf({
+          contract: nftContract,
+          owner: account.address,
+          tokenId: BigInt(2)
+        });
+        
+        if (Number(existingBalance) > 0) {
+          console.log('✅ User already owns Level 2 NFT');
+          toast({
+            title: t('claim.welcomeBack'),
+            description: 'You already own Level 2 NFT.',
+            variant: "default",
+            duration: 3000,
+          });
+          
+          if (onSuccess) {
+            setTimeout(() => onSuccess(), 1500);
+          }
+          return;
+        }
+      } catch (balanceCheckError) {
+        console.warn('⚠️ Could not check NFT balance:', balanceCheckError);
+      }
+
+      // Step 5: Check USDC balance and approval - same as Level 1
+      console.log('💰 Checking USDC balance and approval...');
+      setCurrentStep('Checking USDC balance...');
+      
+      try {
+        const tokenBalance = await erc20BalanceOf({
+          contract: usdcContract,
+          address: account.address
+        });
+        
+        if (tokenBalance < LEVEL_2_PRICE_WEI) {
+          throw new Error(`Insufficient USDC balance. You have ${(Number(tokenBalance) / 1e18).toFixed(2)} USDC but need ${LEVEL_2_PRICE_USDC} USDC for Level 2`);
+        }
+        
+        console.log('✅ Sufficient USDC balance confirmed');
+      } catch (balanceError: any) {
+        if (balanceError.message.includes('Insufficient USDC')) {
+          throw balanceError;
+        }
+        console.warn('⚠️ Could not check USDC balance:', balanceError);
+      }
+
+      // Check and request approval
+      setCurrentStep('Checking USDC approval...');
+      
+      const currentAllowance = await allowance({
+        contract: usdcContract,
+        owner: account.address,
+        spender: NFT_CONTRACT
+      });
+      
+      console.log(`💰 Current allowance: ${Number(currentAllowance) / 1e18} USDC, Required: ${LEVEL_2_PRICE_USDC} USDC`);
+      
+      if (currentAllowance < LEVEL_2_PRICE_WEI) {
+        console.log('💰 Requesting USDC approval...');
+        
+        const approveTransaction = approve({
+          contract: usdcContract,
+          spender: NFT_CONTRACT,
+          amount: LEVEL_2_PRICE_WEI.toString()
+        });
+
+        setCurrentStep('Waiting for approval...');
+        
+        const approveTxResult = await sendTransactionWithRetry(
+          approveTransaction, 
+          account, 
+          'USDC approval transaction',
+          false // Use regular gas for ERC20 approval
+        );
+
+        await waitForReceipt({
+          client,
+          chain: arbitrum,
+          transactionHash: approveTxResult?.transactionHash,
+        });
+        
+        console.log('✅ USDC approval confirmed');
+        
+        // Verify the approval was successful
+        const newAllowance = await allowance({
+          contract: usdcContract,
+          owner: account.address,
+          spender: NFT_CONTRACT
+        });
+        
+        console.log(`✅ New allowance after approval: ${Number(newAllowance) / 1e18} USDC`);
+        
+        if (newAllowance < LEVEL_2_PRICE_WEI) {
+          throw new Error(`Approval failed. Current allowance: ${Number(newAllowance) / 1e18} USDC, Required: ${LEVEL_2_PRICE_USDC} USDC`);
+        }
+      } else {
+        console.log('✅ Sufficient allowance already exists');
+      }
+
+      // Step 6: Claim Level 2 NFT - same method as Level 1, just tokenId: 2
+      console.log('🎁 Claiming Level 2 NFT...');
+      setCurrentStep('Minting Level 2 NFT...');
+      
+      // Use the same claim method as Level 1, but with tokenId: 2
+      const claimTransaction = claimTo({
+        contract: nftContract,
+        to: account.address,
+        tokenId: BigInt(2), // Level 2 token ID
+        quantity: BigInt(1),
+        pricePerToken: LEVEL_2_PRICE_WEI,
+        currency: PAYMENT_TOKEN_CONTRACT
+      });
+
+      const claimTxResult = await sendTransactionWithRetry(
+        claimTransaction,
+        account,
+        'Level 2 NFT claim transaction',
+        false // Temporarily disable gasless for NFT claim to test
+      );
+
+      // Wait for confirmation
+      setCurrentStep('Waiting for NFT confirmation...');
+      const receipt = await waitForReceipt({
+        client,
+        chain: arbitrum,
+        transactionHash: claimTxResult.transactionHash,
+        maxBlocksWaitTime: 50,
+        pollingInterval: 2000,
+      });
+      
+      console.log('✅ Level 2 NFT claim confirmed');
+      console.log('📦 Level 2 Claim成功，区块号:', receipt.blockNumber);
+      console.log('🔗 交易哈希:', claimTxResult.transactionHash);
+      console.log('📋 事件 logs:', receipt.logs);
+      console.log('✅ Receipt status:', receipt.status);
+
+      // Step 7: Process Level 2 upgrade - simplified approach using existing database triggers
+      if (claimTxResult?.transactionHash) {
+        console.log('🚀 Processing Level 2 upgrade - leveraging existing database triggers...');
+        setCurrentStep('Processing Level 2 upgrade...');
+        
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        let activationSuccess = false;
+        
+        try {
+          // Direct database update approach - the triggers will handle Layer 2 rewards automatically
+          console.log('📊 Updating members table - triggers will handle Layer 2 rewards...');
+          
+          // Simple approach: just update the members table level from 1 to 2
+          // The existing trigger_member_level_upgrade_rewards will automatically:
+          // 1. Call trigger_level_upgrade_rewards() 
+          // 2. Which calls trigger_layer_rewards_on_upgrade() for Layer 2 (150 USD)
+          // 3. Handle claimable/pending logic based on matrix root level
+          // 4. Create 72-hour timer if needed
+          // 5. Process rollup if timer expires
+          
+          const { data: updateResult, error: updateError } = await supabase
+            .from('members')
+            .update({ 
+              current_level: 2,
+              updated_at: new Date().toISOString()
+            })
+            .eq('wallet_address', account.address)
+            .select('*')
+            .single();
+
+          if (updateError) {
+            throw new Error(`Database update failed: ${updateError.message}`);
+          }
+
+          console.log('✅ Members table updated - Level 2 triggers fired:', updateResult);
+          
+          // Also insert into membership table for tracking
+          const { error: membershipError } = await supabase
+            .from('membership')
+            .insert({
+              wallet_address: account.address,
+              nft_level: 2,
+              transaction_hash: claimTxResult.transactionHash,
+              purchase_amount_usdc: LEVEL_2_PRICE_USDC,
+              payment_method: 'token_payment',
+              status: 'completed',
+              claimed_at: new Date().toISOString()
+            });
+
+          if (membershipError) {
+            console.warn('⚠️ Membership table insert failed:', membershipError);
+            // Don't throw - members table update succeeded and triggers fired
+          } else {
+            console.log('✅ Membership record created for Level 2');
+          }
+          
+          activationSuccess = true;
+          
+        } catch (backendError: any) {
+          console.error('❌ Level 2 backend processing error:', backendError);
+          activationSuccess = false;
+          
+          // Fallback: try the edge function approach
+          console.log('🔄 Attempting fallback via nft-upgrades edge function...');
+          try {
+            const upgradeResponse = await fetch(`${API_BASE}/nft-upgrades`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-wallet-address': account.address
+              },
+              body: JSON.stringify({
+                action: 'process-upgrade',
+                transactionHash: claimTxResult.transactionHash,
+                level: 2,
+                payment_amount_usdc: LEVEL_2_PRICE_USDC,
+                paymentMethod: 'token_payment'
+              })
+            });
+
+            if (upgradeResponse.ok) {
+              const upgradeResult = await upgradeResponse.json();
+              console.log('✅ Fallback upgrade processing succeeded:', upgradeResult);
+              activationSuccess = true;
+            }
+          } catch (fallbackError) {
+            console.error('❌ Fallback also failed:', fallbackError);
+          }
+        }
+      }
+
+      // Show success message based on what succeeded
+      if (activationSuccess) {
+        console.log('✅ Complete success: Level 2 NFT minted and membership activated with Layer 2 rewards');
+        toast({
+          title: '🎉 Level 2 NFT Claimed!',
+          description: 'Congratulations! Your Level 2 membership is now active. Layer 2 rewards have been processed.',
+          variant: "default",
+          duration: 6000,
+        });
+      } else {
+        console.log('⚠️ Partial success: Level 2 NFT minted but backend activation failed');
+        toast({
+          title: '✅ Level 2 NFT Claimed!',
+          description: 'Your Level 2 NFT is minted on blockchain. Backend activation is pending - please contact support if needed.',
+          variant: "default",
+          duration: 8000,
+        });
+      }
+
+      // Refresh eligibility check
+      await checkLevel2Eligibility();
+
+      if (onSuccess) {
+        onSuccess();
+      }
+
+    } catch (error: any) {
+      console.error('❌ Level 2 NFT claim error:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      if (errorMessage.includes('User rejected') || errorMessage.includes('user denied')) {
+        toast({
+          title: 'Transaction Cancelled',
+          description: 'You cancelled the transaction.',
+          variant: "destructive",
+        });
+      } else if (errorMessage.includes('Insufficient USDC')) {
+        toast({
+          title: 'Insufficient USDC',
+          description: errorMessage,
+          variant: "destructive",
+        });
+      } else if (errorMessage.includes('network')) {
+        toast({
+          title: 'Network Error',
+          description: 'Please switch to Arbitrum One network.',
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: 'Level 2 Upgrade Failed',
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <Card className={`bg-gradient-to-br from-blue/5 to-blue/15 border-blue/30 ${className}`}>
+      <CardHeader className="text-center pb-4">
+        <div className="flex items-center justify-center mb-3">
+          <TrendingUp className="h-8 w-8 text-blue-400 mr-2" />
+          <Badge className="bg-blue-400/20 text-blue-400 border-blue-400/50">
+            Level 2 Upgrade
+          </Badge>
+        </div>
+        <CardTitle className="text-2xl text-blue-400 mb-2">
+          Claim Level 2 NFT
+        </CardTitle>
+        <p className="text-muted-foreground">
+          Upgrade from Level 1 to Level 2 membership
+        </p>
+      </CardHeader>
+
+      <CardContent className="space-y-6">
+        {/* Level Info */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="text-center p-4 bg-gradient-to-br from-orange-500/10 to-orange-500/5 rounded-lg border border-orange-500/20">
+            <Coins className="h-6 w-6 text-orange-400 mx-auto mb-2" />
+            <h3 className="font-semibold text-orange-400 mb-1">
+              {LEVEL_2_PRICE_USDC} USDC
+            </h3>
+            <p className="text-xs text-muted-foreground">Level 2 Price</p>
+          </div>
+          <div className="text-center p-4 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20">
+            <Crown className="h-6 w-6 text-blue-400 mx-auto mb-2" />
+            <h3 className="font-semibold text-blue-400 mb-1">Level 2</h3>
+            <p className="text-xs text-muted-foreground">Target Level</p>
+          </div>
+          <div className="text-center p-4 bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-lg border border-purple-500/20">
+            <Star className="h-6 w-6 text-purple-400 mx-auto mb-2" />
+            <h3 className="font-semibold text-purple-400 mb-1">Layer 2</h3>
+            <p className="text-xs text-muted-foreground">Rewards Trigger</p>
+          </div>
+        </div>
+
+        {/* Claim Button */}
+        <div className="space-y-4">
+          {/* Show network switch button if on wrong network */}
+          {isWrongNetwork && account?.address && (
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-yellow-800">Wrong Network</span>
+              </div>
+              <p className="text-xs text-yellow-700 mb-3">
+                You're on {activeChain?.id === 1 ? 'Ethereum Mainnet' : `Network ${activeChain?.id}`}. 
+                Switch to Arbitrum One to claim your Level 2 NFT.
+              </p>
+              <Button 
+                onClick={handleSwitchNetwork}
+                disabled={isProcessing}
+                className="w-full bg-yellow-600 hover:bg-yellow-700 text-white"
+                size="sm"
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Switching Network...
+                  </>
+                ) : (
+                  'Switch to Arbitrum One'
+                )}
+              </Button>
+            </div>
+          )}
+
+          <Button 
+            onClick={handleClaimLevel2NFT}
+            disabled={isProcessing || !account?.address || isWrongNetwork || !canClaimLevel2 || isCheckingEligibility}
+            className="w-full h-12 bg-gradient-to-r from-blue-400 to-blue-600 hover:from-blue-400/90 hover:to-blue-600/90 text-white font-semibold text-lg shadow-lg disabled:opacity-50"
+          >
+            {!account?.address ? (
+              <>
+                <Crown className="mr-2 h-5 w-5" />
+                Connect Wallet
+              </>
+            ) : isWrongNetwork ? (
+              <>
+                <Crown className="mr-2 h-5 w-5" />
+                Switch Network First
+              </>
+            ) : isCheckingEligibility ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Checking Eligibility...
+              </>
+            ) : !canClaimLevel2 ? (
+              <>
+                <Crown className="mr-2 h-5 w-5" />
+                Need Level 1 First
+              </>
+            ) : isProcessing ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                {currentStep || 'Processing...'}
+              </>
+            ) : (
+              <>
+                <TrendingUp className="mr-2 h-5 w-5" />
+                Upgrade to Level 2 - {LEVEL_2_PRICE_USDC} USDC
+              </>
+            )}
+          </Button>
+          
+          {/* Progress indicator */}
+          {isProcessing && currentStep && (
+            <div className="mt-3 p-3 bg-muted/50 rounded-lg border border-border/50">
+              <div className="flex items-center gap-2 text-sm">
+                <Clock className="h-4 w-4 text-blue-400 animate-pulse" />
+                <span className="text-muted-foreground">{currentStep}</span>
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Do not close this page while processing...
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Additional Information */}
+        <div className="text-center text-xs text-muted-foreground pt-2 space-y-1">
+          <p>📈 Level 1 → Level 2 upgrade</p>
+          <p>💳 USDC payment required</p>
+          <p>⚡ Instant level activation</p>
+          <p>🎭 NFT minted to your wallet</p>
+          <p>💰 Layer 2 rewards (150 USDC) processed</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

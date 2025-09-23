@@ -44,16 +44,15 @@ export function useUserReferralStats() {
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
       
-      // Get direct referrals count using matrix_root_wallet (first layer members)
+      // Get direct referrals count using new MasterSpec referrals_new table (URL direct referrals)
       const { count: directReferrals } = await supabase
-        .from('referrals')
+        .from('referrals_new')
         .select('*', { count: 'exact', head: true })
-        .eq('matrix_root_wallet', walletAddress)
-        .in('matrix_position', ['L', 'M', 'R']); // Only first layer L-M-R positions
+        .eq('referrer_wallet', walletAddress);
 
-      // Get total team count from all matrix members under this root
+      // Get total team count from matrix_referrals table (all matrix members under this root)
       const { count: totalTeam } = await supabase
-        .from('referrals')
+        .from('matrix_referrals')
         .select('*', { count: 'exact', head: true })
         .eq('matrix_root_wallet', walletAddress);
 
@@ -68,32 +67,33 @@ export function useUserReferralStats() {
         console.error('Error fetching member data:', memberError);
       }
 
-      // Get total earnings from layer rewards using exact matching
+      // Get total earnings from layer rewards using correct column names
       const { data: rewardsData } = await supabase
         .from('layer_rewards')
-        .select('amount_usdt')
-        .eq('recipient_wallet', walletAddress)
-        .eq('is_claimed', true);
+        .select('reward_amount')
+        .eq('reward_recipient_wallet', walletAddress)
+        .eq('status', 'claimed');
 
-      const totalEarnings = rewardsData?.reduce((sum, reward) => sum + (reward.amount_usdt || 0), 0) || 0;
+      const totalEarnings = rewardsData?.reduce((sum, reward) => sum + (Number(reward.reward_amount) || 0), 0) || 0;
 
-      // Get recent referrals with activation status using matrix_root_wallet
+      // Get recent referrals with activation status using new MasterSpec matrix_referrals table
       const { data: recentReferralsData } = await supabase
-        .from('referrals')
+        .from('matrix_referrals')
         .select(`
           member_wallet,
-          placed_at,
-          matrix_position,
-          members!fk_referrals_member_to_members(current_level)
+          created_at,
+          position,
+          parent_depth,
+          members!matrix_referrals_member_wallet_fkey(current_level)
         `)
         .eq('matrix_root_wallet', walletAddress)
-        .in('matrix_position', ['L', 'M', 'R']) // Only direct layer 1 members
-        .order('placed_at', { ascending: false })
+        .eq('parent_depth', 1) // Only direct layer 1 members
+        .order('created_at', { ascending: false })
         .limit(5);
 
       const recentReferrals = recentReferralsData?.map(referral => ({
         walletAddress: referral.member_wallet,
-        joinedAt: referral.placed_at || new Date().toISOString(),
+        joinedAt: referral.created_at || new Date().toISOString(),
         activated: (referral.members as any)?.current_level > 0
       })) || [];
 
@@ -130,17 +130,17 @@ export function useUserMatrixStats() {
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
       
-      // Get matrix placements by layer using referrals table with exact matching
+      // Get matrix placements by layer using matrix_referrals_tree_view
       const { data: matrixData } = await supabase
-        .from('referrals')
-        .select('matrix_layer, matrix_position, member_wallet')
+        .from('matrix_referrals_tree_view')
+        .select('layer, position, member_wallet')
         .eq('matrix_root_wallet', walletAddress)
-        .order('matrix_layer');
+        .order('layer');
 
       // Group by layer and count
       const layerStats = matrixData?.reduce((acc, placement) => {
-        const layer = placement.matrix_layer;
-        const position = placement.matrix_position;
+        const layer = placement.layer;
+        const position = placement.position;
         if (layer !== null && layer !== undefined && position !== null && position !== undefined) {
           if (!acc[layer]) {
             acc[layer] = { members: 0, positions: [] };

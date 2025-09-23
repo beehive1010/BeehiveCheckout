@@ -1,119 +1,220 @@
-# 矩阵系统分析与同步需求
+Got it ✅
+Here’s a **draft Markdown spec file** (English, detailed, structured) for your **Matrix Recommendation System (19 layers)**.
+This is suitable as documentation for your Agent or developer team.
 
-## 📋 基于 MarketingPlan.md 的矩阵系统要求
+---
 
-### 🎯 矩阵结构 (3x3 Matrix System)
-- **层级**: 最多19层
-- **每层容量**: 
-  - 层级1: 3个成员 (L, M, R)
-  - 层级2: 9个成员 (3²)
-  - 层级3: 27个成员 (3³)
-  - ...
-  - 层级19: 3¹⁹个成员
+# Matrix Referral & Placement System (19 Layers)
 
-### 🔄 放置规则 (Placement Rules)
-1. 找到推荐人在推荐树中的位置
-2. 定位第一个不完整的下线层级（L → M → R 优先级）
-3. 将新成员作为该不完整成员的第一层下线放置
+## 1. Overview
 
-### 📊 当前数据库问题分析
+This document describes the **design and data flow** of a 3×3 Matrix referral system, built on top of the `members` table and extended into two levels of recursive trees:
 
-#### ❌ 缺失的字段和表
-基于错误信息和系统需求，需要以下结构：
+1. **`referrals_new`** – normalized direct referral records based on activation time.
+2. **`referrals_tree_view`** – a recursive 19-layer referral chain (direct-referrals only).
+3. **`matrix_referrals_tree_view`** – the final 19-layer placement tree, filled left-to-right (L → M → R), based on activation order, with spillover rules.
+4. **Derived views / statistics** – to power UI components such as progress bars, counters, and empty slot indicators.
 
-1. **referrals 表缺失字段**:
-   - `matrix_parent` - 矩阵父节点
-   - `matrix_position` - 矩阵位置 (L, M, R)
-   - `matrix_layer` - 矩阵层级 (1-19)
-   - `matrix_root` - 矩阵根节点
-   - `placement_order` - 放置顺序
+---
 
-2. **可能缺失的表**:
-   - `matrix_positions` - 矩阵位置追踪
-   - `layer_rewards` - 层级奖励
-   - `roll_up_rewards` - 上滚奖励
+## 2. Base Tables
 
-### 🎯 同步需求
+### 2.1 Members
 
-#### 1. **Basic Referral → Matrix 同步**
-- 将现有的 referrer → referrals 关系转换为完整的矩阵结构
-- 需要计算每个成员的矩阵位置、层级、父节点
+| Column            | Description                                                          |
+| ----------------- | -------------------------------------------------------------------- |
+| `wallet_address`  | Unique ID of the member (primary key).                               |
+| `activation_time` | When the member activated their membership. Defines global ordering. |
+| `current_level`   | Current membership level.                                            |
+| …                 | Other profile/status fields.                                         |
 
-#### 2. **Matrix Parent 计算**
-- 根据3x3矩阵规则计算每个成员的实际矩阵父节点
-- 矩阵父节点可能不等于直接推荐人（spillover效应）
+---
 
-#### 3. **Layer 和 Position 计算**
-- 基于放置顺序和矩阵规则计算准确的层级和位置
+### 2.2 Referrals\_New
 
-## 🔧 需要的数据结构
+This is a normalized form of `referrals`.
+It is populated **at the moment of activation**.
 
-```sql
--- 扩展 referrals 表
-ALTER TABLE referrals ADD COLUMN IF NOT EXISTS matrix_parent TEXT;
-ALTER TABLE referrals ADD COLUMN IF NOT EXISTS matrix_position TEXT; -- 'L', 'M', 'R'
-ALTER TABLE referrals ADD COLUMN IF NOT EXISTS matrix_layer INTEGER;
-ALTER TABLE referrals ADD COLUMN IF NOT EXISTS matrix_root TEXT;
-ALTER TABLE referrals ADD COLUMN IF NOT EXISTS placement_order INTEGER;
-ALTER TABLE referrals ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();
+| Column            | Description                                        |
+| ----------------- | -------------------------------------------------- |
+| `referrer_wallet` | Who invited the member.                            |
+| `referred_wallet` | The new member.                                    |
+| `created_at`      | Timestamp when the referral relation was recorded. |
+| `is_valid`        | Boolean (true if referred member is activated).    |
 
--- 创建矩阵位置表
-CREATE TABLE IF NOT EXISTS matrix_positions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    member_wallet TEXT NOT NULL,
-    matrix_parent TEXT,
-    matrix_root TEXT NOT NULL,
-    layer_number INTEGER NOT NULL,
-    position_in_layer TEXT NOT NULL, -- 'L', 'M', 'R'
-    placement_order INTEGER,
-    is_complete BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE(member_wallet, matrix_root)
-);
+Purpose:
 
--- 创建层级奖励表
-CREATE TABLE IF NOT EXISTS layer_rewards (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    root_member TEXT NOT NULL,
-    triggering_member TEXT NOT NULL,
-    layer_number INTEGER NOT NULL,
-    reward_amount DECIMAL(18,6) NOT NULL,
-    reward_currency TEXT DEFAULT 'USDC',
-    status TEXT DEFAULT 'pending', -- pending, claimable, claimed, rolled_up
-    expires_at TIMESTAMP,
-    claimed_at TIMESTAMP,
-    created_at TIMESTAMP DEFAULT NOW()
-);
-```
+* Ensures that only **activated members** are included in tree construction.
+* Cleans duplicates or dangling references.
 
-## 🚀 同步算法
+---
 
-### Phase 1: 基础结构同步
-1. 确保所有有推荐人的成员都在 referrals 表中
-2. 添加缺失的矩阵字段
+## 3. Direct Referral Tree
 
-### Phase 2: 矩阵位置计算
-1. 按照激活顺序重建矩阵结构
-2. 实施3x3矩阵放置算法
-3. 计算每个成员的实际矩阵父节点和位置
+### 3.1 `referrals_tree_view`
 
-### Phase 3: 奖励系统同步  
-1. 基于矩阵结构计算应有的层级奖励
-2. 检查待领取/上滚的奖励状态
+* Purpose: Display the **pure referral chain** (depth 1–19).
+* Does not handle placement slots (L/M/R).
+* Built using **recursive CTE** over `referrals_new`.
 
-## 🎯 关键算法：矩阵放置
+**Columns:**
 
-```
-function placeMemberInMatrix(newMember, referrer):
-    1. 找到推荐人的矩阵根
-    2. 从根开始遍历矩阵，寻找第一个可用位置:
-       - 层级1优先级: L → M → R
-       - 如果层级1满，检查层级2
-       - 使用广度优先搜索
-    3. 在找到的位置放置成员
-    4. 更新矩阵父节点（可能不是直接推荐人）
-    5. 计算层级和位置编码
-    6. 检查是否触发层级奖励
-```
+| Column                  | Description              |
+| ----------------------- | ------------------------ |
+| `root_wallet`           | The origin of the chain. |
+| `referrer_wallet`       | Parent in this edge.     |
+| `referred_wallet`       | Child in this edge.      |
+| `depth`                 | Depth level (1…19).      |
+| `referral_created_at`   | Time of referral.        |
+| `child_activation_time` | Time child activated.    |
 
-这个分析为完整的矩阵同步提供了基础。
+---
+
+## 4. Matrix Referral Tree
+
+### 4.1 Placement Rules
+
+* Each **root\_wallet** defines a 3×3 recursive structure (max depth 19).
+* **Activation time** is the *only priority* for filling slots.
+* Order of filling is **breadth-first, left to right**: L → M → R.
+* If a spillover activates *before* a direct referral, it takes the available slot.
+* Direct referrals are tagged with `is_direct`; spillovers are tagged `is_spillover`.
+* Each parent can have max **3 children**.
+
+---
+
+### 4.2 `matrix_referrals` Table
+
+| Column                       | Description                                   |
+| ---------------------------- | --------------------------------------------- |
+| `matrix_root_wallet`         | The root of the tree.                         |
+| `member_wallet`              | Current node.                                 |
+| `parent_wallet`              | Placement parent.                             |
+| `parent_depth`               | Depth of the parent (1…19).                   |
+| `position` (L/M/R)           | Assigned slot under parent.                   |
+| `referral_type`              | `is_direct` or `is_spillover`.                |
+| `created_at`                 | Placement timestamp.                          |
+| `matrix_root_activation_seq` | Sequence number within this root’s BFS order. |
+
+---
+
+### 4.3 `matrix_referrals_tree_view`
+
+Recursive tree view combining placement info.
+
+**Columns:**
+
+| Column                       | Description                            |
+|------------------------------|----------------------------------------|
+| `matrix_root_wallet`         | Root of tree.                          |
+| `member_wallet`              | Current node.                          |
+| `parent_wallet`              | Placement parent.                      |
+| `path`                       | path for layer=depth all the path seq. |
+| `Layer`                      | Layer1-Layer19 for matrix_root         |
+| `position`                   | L / M / R for parent_wallet.           |
+| `referral_type`              | is\_direct / is\_spillover.            |
+| `child_activation_time`      | Member activation time.                |
+| `matrix_root_activation_seq` | BFS sequence by activation.            |
+
+**Logic:**
+
+1. For each `matrix_root_wallet`, collect all members directly or indirectly linked by `referrals_new`.
+2. Sort by `activation_time` (tie → `created_at`).
+3. Assign BFS slots left-to-right.
+4. Write into `matrix_referrals`.
+5. The view expands this recursively up to depth 19.
+
+---
+
+## 5. Derived Views / Components
+
+### 5.1 `matrix_layers_view`
+
+* Summarizes **per layer** status for each root.
+
+| Column               | Description           |
+|----------------------| --------------------- |
+| `matrix_root_wallet` | Root.                 |
+| `layer`              | Layer number.         |
+| `L_max_slots`        | `3^layer`.            |
+| `M_max_slots`        | `3^layer`.            |
+| `R_max_slots`        | `3^layer`.            |
+| `total_max_slots`    | `3^layer`.            |
+| `filled_slots`       | Number of placements. |
+| `completion_rate`    | filled / max.         |
+| `empty_slots`        | Remaining open slots. |
+
+---
+
+### 5.2 `empty_slot_flags_view`
+
+* For each parent, show which of **L/M/R** slots are open.
+* Supports UI highlighting “next available slot”.
+
+| Column          | Description  |
+| --------------- | ------------ |
+| `parent_wallet` | Parent node. |
+| `layer`         | Depth.       |
+| `slot_L_empty`  | Boolean.     |
+| `slot_M_empty`  | Boolean.     |
+| `slot_R_empty`  | Boolean.     |
+
+---
+
+### 5.3 `referrals_stats_view`
+
+Summary of referral metrics for dashboards.
+
+| Column               | Description                          |
+| -------------------- | ------------------------------------ |
+| `matrix_root_wallet` | Root.                                |
+| `matrix_root_level`  | Membership level.                    |
+| `direct_referrals`   | Count of direct children.            |
+| `completed_layers`   | Number of fully filled layers.       |
+| `team_size`          | Total size of downline (all layers). |
+
+---
+
+## 6. Validation Rules
+
+1. **Uniqueness**: No duplicate `(matrix_root_wallet, member_wallet)`.
+2. **Parent constraint**: Each parent max 3 children.
+3. **Slot uniqueness**: Each parent + position (L/M/R) only once.
+4. **Depth**: 1–19 only.
+5. **Activation ordering**: Earlier activations always receive lower sequence numbers.
+
+---
+
+## 7. Implementation Flow
+
+1. **On Member Activation**
+
+    * Insert into `members` with activation\_time.
+    * Insert into `referrals_new` if referrer exists.
+
+2. **Rebuild / Extend Referral Tree**
+
+    * `referrals_tree_view` expands direct chain.
+
+3. **Placement in Matrix**
+
+    * Check next available BFS slot for that root.
+    * Insert row into `matrix_referrals`.
+
+4. **Views Refresh**
+
+    * `matrix_referrals_tree_view` + statistics updated automatically.
+
+---
+
+## 8. Usage in Frontend
+
+* **Member Profile**: show direct referrals (from `referrals_tree_view`).
+* **Matrix Tree**: show 19-layer placement (from `matrix_referrals_tree_view`).
+* **Progress Bars**: use `matrix_layers_view`.
+* **Empty Slot UI**: use `empty_slot_flags_view`.
+* **Dashboard Stats**: use `referrals_stats_view`.
+
+---
+
+Would you like me to now generate a **ready-to-use SQL migration package** (3 `CREATE VIEW` statements + validation queries) so your Agent can drop it directly into Supabase migrations?

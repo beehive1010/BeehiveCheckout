@@ -75,7 +75,10 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(SUPABASE_ACCESS_TOKEN=sbp_92c70391157352d8248124dcf96b62368b45afe1 supabase functions deploy server-wallet --project-ref cvqibjcbfrwsgkvthccp)",
-      "Bash(./fix_wallet_case_queries.sh:*)"
+      "Bash(./fix_wallet_case_queries.sh:*)",
+      "Bash(timeout 30 PGPASSWORD=bee8881941 psql -h 34.56.229.13 -U postgres -d postgres -c \"\\dt\")",
+      "Bash(timeout 30 psql -h 34.56.229.13 -U postgres -d postgres -c \"\\dt\")",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []

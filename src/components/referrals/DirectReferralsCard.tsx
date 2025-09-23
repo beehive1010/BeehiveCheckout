@@ -20,6 +20,7 @@ interface DirectReferral {
   isActivated: boolean;
   memberLevel: number;
   activationRank: number | null;
+  referralSource: string;
 }
 
 interface DirectReferralsCardProps {
@@ -49,30 +50,29 @@ const DirectReferralsCard: React.FC<DirectReferralsCardProps> = ({
     try {
       console.log(`🔍 Loading direct referrals for wallet: ${walletAddress}`);
 
-      // Get direct referrals from referrals table (people who used this wallet's referral link)
+      // Get direct referrals from referrals_new table (MasterSpec 2.4 - URL direct referrals only)
       // Using exact matching to avoid RLS issues
       const { data: referralsData, error: referralsError } = await supabase
-        .from('referrals')
+        .from('referrals_new')
         .select(`
-          member_wallet,
-          placed_at,
+          referred_wallet,
+          created_at,
           referrer_wallet,
-          is_direct_referral
+          referral_source
         `)
         .eq('referrer_wallet', walletAddress)
-        .eq('is_direct_referral', true)
-        .neq('member_wallet', '0x0000000000000000000000000000000000000001')
-        .order('placed_at', { ascending: false });
+        .neq('referred_wallet', '0x0000000000000000000000000000000000000001')
+        .order('created_at', { ascending: false });
 
       if (referralsError) {
         console.error('❌ Referrals query error:', referralsError);
         throw new Error(referralsError.message);
       }
 
-      console.log(`📊 Found ${referralsData?.length || 0} referrals with referrer_wallet matching ${walletAddress}`);
+      console.log(`📊 Found ${referralsData?.length || 0} direct referrals with referrer_wallet matching ${walletAddress}`);
 
-      // Get user names and member info
-      const walletAddresses = referralsData?.map(r => r.member_wallet) || [];
+      // Get user names and member info (using new column name)
+      const walletAddresses = referralsData?.map(r => r.referred_wallet) || [];
       
       let membersData = [];
       let usersData = [];
@@ -104,21 +104,22 @@ const DirectReferralsCard: React.FC<DirectReferralsCardProps> = ({
         }
       }
 
-      // Combine referral, user and member data
+      // Combine referral, user and member data (using new column names)
       const referralsList = referralsData?.map((referral: any) => {
         const userData = usersData?.find(u => 
-          u.wallet_address.toLowerCase() === referral.member_wallet.toLowerCase()
+          u.wallet_address.toLowerCase() === referral.referred_wallet.toLowerCase()
         );
         const memberData = membersData?.find(m => 
-          m.wallet_address.toLowerCase() === referral.member_wallet.toLowerCase()
+          m.wallet_address.toLowerCase() === referral.referred_wallet.toLowerCase()
         );
         return {
-          memberWallet: referral.member_wallet,
-          memberName: userData?.username || `User${referral.member_wallet.slice(-4)}`,
-          referredAt: referral.placed_at,
+          memberWallet: referral.referred_wallet,
+          memberName: userData?.username || `User${referral.referred_wallet.slice(-4)}`,
+          referredAt: referral.created_at,
           isActivated: !!memberData && memberData.current_level > 0,
           memberLevel: memberData?.current_level || 0,
-          activationRank: memberData?.activation_sequence || null
+          activationRank: memberData?.activation_sequence || null,
+          referralSource: referral.referral_source || 'direct'
         };
       }) || [];
 

@@ -10,7 +10,8 @@ import { useToast } from '../hooks/use-toast';
 import { Crown, Shield, Star, Zap, Gift, Lock, CheckCircle, Loader2, ArrowRight, Users, Award } from 'lucide-react';
 import MembershipBadge from '../components/membership/MembershipBadge';
 import { getMembershipLevel } from '../lib/config/membershipLevels';
-import { Level2ClaimButton, LevelUpgradeButton } from '../components/membership';
+import { LevelUpgradeButton } from '../components/membership';
+import { Level2ClaimButtonV2 } from '../components/membership/Level2ClaimButtonV2';
 
 interface MembershipLevel {
   level: number;
@@ -336,8 +337,8 @@ export default function Membership() {
                   {t('membership.goToWelcome') || 'Go to Welcome Page →'}
                 </a>
               </div>
-            ) : currentLevel === 1 && (directReferralsCount || 0) >= 3 ? (
-              <Level2ClaimButton 
+            ) : currentLevel === 1 ? (
+              <Level2ClaimButtonV2 
                 onSuccess={() => {
                   toast({
                     title: t('membership.upgradeSuccess') || 'Upgrade Successful!',
@@ -554,7 +555,7 @@ export default function Membership() {
                         ) : (
                           <>
                             <ArrowRight className="h-5 w-5 mr-3" />
-                            {t('membership.quickUpgradeNow') || `Quick Upgrade to Level ${membership.level}`}
+                            {t('membership.quickUpgradeNow', { level: membership.level }) || `Quick Upgrade to Level ${membership.level}`}
                           </>
                         )}
                       </Button>

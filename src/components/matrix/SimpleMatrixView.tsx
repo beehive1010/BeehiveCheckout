@@ -33,7 +33,7 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load matrix data from Supabase
+  // Load matrix data from Supabase using optimized tree view
   useEffect(() => {
     const loadMatrixData = async () => {
       if (!walletAddress) return;
@@ -42,13 +42,15 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
       setError(null);
       
       try {
-        // Get matrix data from referrals table
-        const { data: referralsData, error } = await supabase
-          .from('referrals')
+        // Get complete 19-layer matrix tree from matrix_referrals_view
+        const { data: treeData, error } = await supabase
+          .from('matrix_referrals_view')
           .select('*')
-          .eq('matrix_root', walletAddress);
+          .eq('matrix_root_wallet', walletAddress)
+          .order('layer')
+          .order('position');
         
-        if (!error && referralsData) {
+        if (!error && treeData) {
           const organizedData: { [key: number]: MatrixLayerData } = {};
           
           // Initialize all 19 layers
@@ -56,33 +58,30 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
             organizedData[i] = { left: [], middle: [], right: [] };
           }
           
-          // Organize referrals by layer and position
-          referralsData.forEach((referral: any) => {
-            const layer = referral.matrix_layer;
-            const position = referral.matrix_position;
+          // Organize matrix data by layer and position (from matrix_referrals_view)
+          treeData.forEach((node: any) => {
+            const layer = node.layer;
+            const position = node.position;
             
             const member: MatrixMember = {
-              walletAddress: referral.member_wallet,
-              username: `User${referral.member_wallet.slice(-4)}`,
-              level: 1,
-              isActive: true,
+              walletAddress: node.wallet_address,
+              username: node.username || `User${node.wallet_address.slice(-4)}`,
+              level: node.current_level || 1,
+              isActive: node.is_active || false,
               layer: layer,
               position: position
             };
             
-            // Distribute to L-M-R based on position - use proper mapping
+            // Distribute to L-M-R based on position
             if (organizedData[layer]) {
-              const pos = String(position).toLowerCase();
+              const pos = String(position).toUpperCase();
               
-              if (['l', '1', 'left'].includes(pos)) {
+              if (pos === 'L') {
                 organizedData[layer].left.push(member);
-              } else if (['m', '2', 'middle', 'center'].includes(pos)) {
+              } else if (pos === 'M') {
                 organizedData[layer].middle.push(member);
-              } else if (['r', '3', 'right'].includes(pos)) {
+              } else if (pos === 'R') {
                 organizedData[layer].right.push(member);
-              } else {
-                // Default to left if position is unclear
-                organizedData[layer].left.push(member);
               }
             }
           });
@@ -97,8 +96,8 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
           setMatrixData(emptyData);
         }
       } catch (error: any) {
-        console.error('Error loading matrix data:', error);
-        setError(error.message || 'Failed to load matrix data');
+        console.error('Error loading matrix tree data:', error);
+        setError(error.message || 'Failed to load matrix tree data');
         
         // Initialize empty matrix on error
         const emptyData: { [key: number]: MatrixLayerData } = {};

@@ -94,15 +94,14 @@ export default function Rewards() {
         throw new Error(`Failed to fetch rewards: ${rewardsError.message}`);
       }
 
-      // Calculate totals based on status field and is_claimed flag
-      const claimedRewards = rewardsData?.filter(r => r.status === 'claimed' || r.is_claimed === true) || [];
+      // Calculate totals based on status field only (layer_rewards table uses status column)
+      const claimedRewards = rewardsData?.filter(r => r.status === 'claimed') || [];
       const pendingRewards = rewardsData?.filter(r => 
-        (r.status === 'pending' || r.is_claimed === false) && 
+        r.status === 'pending' && 
         (!r.expires_at || new Date(r.expires_at) > new Date())
       ) || [];
       const claimableRewards = rewardsData?.filter(r => 
-        r.status === 'claimable' || 
-        (r.is_claimed === false && r.expires_at && new Date(r.expires_at) <= new Date())
+        r.status === 'claimable'
       ) || [];
 
       console.log('Rewards breakdown:', {

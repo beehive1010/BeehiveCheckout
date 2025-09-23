@@ -95,17 +95,16 @@ export async function getDirectReferralDetails(referrerWallet: string): Promise<
   try {
     console.log(`🔍 Fetching detailed referral info for: ${referrerWallet}`);
     
-    // Try to get data from referrals table first (contains matrix placement info)
+    // Get data from referrals_new table (URL direct referrals only - MasterSpec 2.4)
     const { data: referralData, error: referralError } = await supabase
-      .from('referrals')
+      .from('referrals_new')
       .select(`
-        member_wallet,
+        referred_wallet,
         referrer_wallet,
-        placed_at,
-        is_active
+        created_at
       `)
       .ilike('referrer_wallet', referrerWallet)
-      .order('placed_at', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (referralError) {
       console.error('❌ Error fetching from referrals table:', referralError);
@@ -141,15 +140,15 @@ export async function getDirectReferralDetails(referrerWallet: string): Promise<
     // Combine data
     return usersData.map(user => {
       const memberData = membersData?.find(m => m.wallet_address === user.wallet_address);
-      const referralInfo = referralData?.find(r => r.member_wallet === user.wallet_address);
+      const referralInfo = referralData?.find(r => r.referred_wallet === user.wallet_address);
       
       return {
         memberWallet: user.wallet_address,
         memberName: user.username || 'Unknown',
-        referredAt: referralInfo?.placed_at || user.created_at,
+        referredAt: referralInfo?.created_at || user.created_at,
         isActivated: !!memberData && memberData.current_level > 0,
         memberLevel: memberData?.current_level || 0,
-        activationRank: memberData?.activation_rank || null
+        activationRank: memberData?.activation_sequence || null
       };
     });
   } catch (error) {

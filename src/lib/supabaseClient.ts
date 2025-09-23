@@ -468,59 +468,57 @@ export const matrixService = {
     }, rootWallet);
   },
 
-  // Get referrals for a root wallet
+  // Get matrix referrals for a root wallet using new MasterSpec table structure
   async getReferrals(rootWallet: string, layer?: number) {
     let query = supabase
-      .from('referrals')
+      .from('matrix_referrals')
       .select('*')
-      .eq('matrix_root_wallet', rootWallet)
-      .eq('is_active', true);
+      .eq('matrix_root_wallet', rootWallet);
 
     if (layer) {
-      query = query.eq('matrix_layer', layer);
+      query = query.eq('parent_depth', layer);
     }
 
-    return query.order('placed_at', { ascending: true });
+    return query.order('created_at', { ascending: true });
   },
 
-  // Get matrix statistics using direct database queries for real data
+  // Get matrix statistics using new MasterSpec table structure
   async getMatrixStats(walletAddress: string) {
     try {
-      // Get direct referrals count (layer 1 referrals) - use ilike for case-insensitive matching
+      // Get direct referrals count (URL direct referrals) from referrals_new table
       const { count: directReferralsCount } = await supabase
-        .from('referrals')
+        .from('referrals_new')
         .select('*', { count: 'exact', head: true })
-        .ilike('matrix_parent', walletAddress)
-        .eq('matrix_layer', 1);
+        .ilike('referrer_wallet', walletAddress);
 
-      // Get total team size (all referrals) - use ilike for case-insensitive matching
+      // Get total matrix team size from matrix_referrals table
       const { count: totalTeamSize } = await supabase
-        .from('referrals')
+        .from('matrix_referrals')
         .select('*', { count: 'exact', head: true })
         .ilike('matrix_root_wallet', walletAddress);
 
-      // Get max layer - use ilike for case-insensitive matching
-      const { data: maxLayerData } = await supabase
-        .from('referrals')
-        .select('matrix_layer')
+      // Get max depth from matrix_referrals table
+      const { data: maxDepthData } = await supabase
+        .from('matrix_referrals')
+        .select('parent_depth')
         .ilike('matrix_root_wallet', walletAddress)
-        .order('matrix_layer', { ascending: false })
+        .order('parent_depth', { ascending: false })
         .limit(1);
 
-      const maxLayer = maxLayerData?.[0]?.matrix_layer || 0;
+      const maxLayer = maxDepthData?.[0]?.parent_depth || 0;
 
-      // Get recent activity (last 10 referrals) - use ilike for case-insensitive matching
+      // Get recent matrix activity (last 10 placements)
       const { data: recentActivity } = await supabase
-        .from('referrals')
+        .from('matrix_referrals')
         .select(`
           member_wallet,
-          placed_at,
-          matrix_layer,
-          matrix_position,
-          is_active
+          created_at,
+          parent_depth,
+          position,
+          referral_type
         `)
         .ilike('matrix_root_wallet', walletAddress)
-        .order('placed_at', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(10);
 
       return {
@@ -547,44 +545,39 @@ export const matrixService = {
     }
   },
 
-  // Create referral record (usually handled by matrix placement)
+  // Create matrix referral record using new MasterSpec table structure
   async createReferral(referralData: {
-    root_wallet: string;
+    matrix_root_wallet: string;
     member_wallet: string;
     parent_wallet?: string;
-    placer_wallet: string;
+    parent_depth: number;
     position: string;
-    layer: number;
-    placement_type: string;
+    referral_type: string;
   }) {
     return supabase
-      .from('referrals')
+      .from('matrix_referrals')
       .insert([{
         ...referralData,
-        is_active: true,
         created_at: new Date().toISOString(),
       }])
       .select()
       .single();
   },
 
-  // Update referral status
+  // Update matrix referral (matrix referrals are immutable in MasterSpec)
   async updateReferralStatus(referralId: string, isActive: boolean) {
-    return supabase
-      .from('referrals')
-      .update({ is_active: isActive })
-      .eq('id', referralId)
-      .select()
-      .single();
+    // Note: Matrix referrals should be immutable according to MasterSpec
+    // This function is kept for backward compatibility but logs a warning
+    console.warn('Matrix referrals should be immutable according to MasterSpec 2.5');
+    return { data: null, error: { message: 'Matrix referrals are immutable' } };
   },
 
-  // Count direct referrals (layer 1 referrals placed by this wallet)
+  // Count direct referrals from referrals_new table (URL direct referrals)
   async countDirectReferrals(walletAddress: string) {
     const { count } = await supabase
-      .from('referrals')
+      .from('referrals_new')
       .select('*', { count: 'exact', head: true })
-      .eq('placer_wallet', walletAddress)
-      .eq('layer', 1);
+      .eq('referrer_wallet', walletAddress);
 
     return count || 0;
   },
@@ -607,20 +600,20 @@ export const matrixService = {
                 .order('placed_at', { ascending: true });
   },
 
-  // Get original referral relationships (before spillover)
+  // Get original matrix referral relationships using new MasterSpec structure
   async getOriginalReferrals(rootWallet: string, layer?: number) {
     let query = supabase
-      .from('referrals')
+      .from('matrix_referrals')
       .select('*')
       .eq('matrix_root_wallet', rootWallet)
-      .eq('is_active', true);
+      .eq('referral_type', 'is_direct'); // Only direct placements, not spillovers
 
     if (layer) {
-      query = query.eq('matrix_layer', layer);
+      query = query.eq('parent_depth', layer);
     }
 
-    return query.order('matrix_layer', { ascending: true })
-                .order('placed_at', { ascending: true });
+    return query.order('parent_depth', { ascending: true })
+                .order('created_at', { ascending: true });
   },
 
   // Get spillover matrix statistics using new functions

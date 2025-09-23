@@ -307,12 +307,11 @@ async function handleCheckEligibility(supabase, walletAddress, level) {
       }
     }
 
-    // Check Level 2 specific requirements
+    // Check Level 2 specific requirements using new MasterSpec table structure
     if (level === 2 && eligible) {
       const { data: referralData, error: referralError } = await supabase
-        .from('referrals')
+        .from('referrals_new')
         .select(`
-          id,
           referred_wallet,
           members!inner(is_activated, current_level)
         `)
@@ -563,12 +562,11 @@ async function handleProcessUpgrade(supabase, walletAddress, data) {
       }
     }
 
-    // CRITICAL BUSINESS RULE: Level 2 requires 3 directly referred active members
+    // CRITICAL BUSINESS RULE: Level 2 requires 3 directly referred active members using new MasterSpec table
     if (level === 2) {
       const { data: referralData, error: referralError } = await supabase
-        .from('referrals')
+        .from('referrals_new')
         .select(`
-          id,
           referred_wallet,
           members!inner(is_activated, current_level)
         `)
@@ -729,10 +727,10 @@ async function handleProcessUpgrade(supabase, walletAddress, data) {
     if (userData?.referrer_wallet && level === 1) {
       console.log(`🔗 Creating referral relationship: ${userData.referrer_wallet} → ${walletAddress}`);
       
-      // Check if referral record already exists
+      // Check if URL referral record already exists using new MasterSpec table structure
       const { data: existingReferral, error: referralCheckError } = await supabase
-        .from('referrals')
-        .select('id')
+        .from('referrals_new')
+        .select('referred_wallet')
         .eq('referrer_wallet', userData.referrer_wallet)
         .eq('referred_wallet', walletAddress)
         .maybeSingle();
@@ -742,17 +740,13 @@ async function handleProcessUpgrade(supabase, walletAddress, data) {
       }
 
       if (!existingReferral) {
-        // Create referral record - this officially adds user to referral system
+        // Create URL referral record using new MasterSpec 2.4 table structure
         const { error: referralCreateError } = await supabase
-          .from('referrals')
+          .from('referrals_new')
           .insert({
             referrer_wallet: userData.referrer_wallet,
             referred_wallet: walletAddress,
-            is_active: true,
-            layer: 1,
-            member_wallet: walletAddress,
-            placement_type: 'direct',
-            position: 'left' // Default position
+            created_at: new Date().toISOString()
           });
 
         if (referralCreateError) {

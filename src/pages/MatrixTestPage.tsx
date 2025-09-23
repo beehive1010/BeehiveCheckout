@@ -21,13 +21,13 @@ const MatrixTestPage: React.FC = () => {
     try {
       console.log('Testing matrix data for wallet:', walletAddress);
       
-      // Test direct query to referrals table
+      // Test direct query to matrix_referrals_tree_view
       const { data: referralsData, error: referralsError } = await supabase
-        .from('referrals')
+        .from('matrix_referrals_tree_view')
         .select('*')
-        .eq('matrix_root', walletAddress)
-        .order('matrix_layer')
-        .order('matrix_position');
+        .eq('matrix_root_wallet', walletAddress)
+        .order('layer')
+        .order('position');
       
       if (referralsError) {
         console.error('Referrals query error:', referralsError);

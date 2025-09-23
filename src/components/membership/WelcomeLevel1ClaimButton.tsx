@@ -113,7 +113,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       console.error('Failed to switch network:', error);
       toast({
         title: 'Network Switch Failed',
-        description: error.message || 'Could not switch to Arbitrum Sepolia. Please switch manually in your wallet.',
+        description: error.message || 'Could not switch to Arbitrum One. Please switch manually in your wallet.',
         variant: "destructive",
       });
     } finally {

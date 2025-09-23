@@ -36,6 +36,7 @@ import TokenPurchase from "@/pages/TokenPurchase";
 import SupabaseAuth from "@/pages/SupabaseAuth";
 import AuthCallback from "@/pages/AuthCallback";
 import AdminNFTsPage from "@/pages/AdminNFTs";
+import TestUpgradeMembership from "@/pages/TestUpgradeMembership";
 
 // Import proper Header and Navigation components
 import Header from "@/components/shared/Header";
@@ -314,6 +315,13 @@ function Router() {
         {/* Public routes - No authentication required */}
         <Route path="/matrix-explanation" component={MatrixExplanation} />
         <Route path="/matrix-test" component={MatrixTestPage} />
+        
+        {/* Test routes */}
+        <Route path="/testUpgradeMembership" component={() => (
+          <MemberGuard requireActivation={true} redirectTo="/welcome">
+            <TestUpgradeMembership />
+          </MemberGuard>
+        )} />
         <Route path="/hiveworld" component={() => (
           <MemberGuard requireActivation={true} redirectTo="/welcome">
             <HiveWorld />

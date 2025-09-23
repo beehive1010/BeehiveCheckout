@@ -38,11 +38,11 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
   const { t } = useI18n();
 
   const { data: referrerStats, isLoading: isLoadingStats } = useQuery<ReferrerStatsData>({
-    queryKey: ['referrer-stats', walletAddress],
+    queryKey: ['referrals-stats-view', walletAddress],
     enabled: !!walletAddress,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('referrer_stats')
+        .from('referrals_stats_view')
         .select('*')
         .eq('wallet_address', walletAddress)
         .single();
