@@ -611,6 +611,9 @@ export default function USDTWithdrawal() {
               <p>balance query enabled: {!!memberWalletAddress ? 'true' : 'false'}</p>
               <p>balanceLoading: {balanceLoading ? 'true' : 'false'}</p>
               <p>balance?.balanceUSD: {balance?.balanceUSD || 'null'}</p>
+              {balance?.notFound && <p className="text-red-400">❌ No balance record found in database</p>}
+              {balance?.foundWallet && <p className="text-green-400">✅ Found wallet: {balance.foundWallet}</p>}
+              {balance?.error && <p className="text-red-400">❌ Query error: {balance.error}</p>}
             </div>
           </div>
         )}
