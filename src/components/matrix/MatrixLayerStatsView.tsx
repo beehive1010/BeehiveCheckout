@@ -46,6 +46,8 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
     setError(null);
 
     try {
+      console.log('🔍 Loading matrix layer stats for:', walletAddress);
+      
       // Get layer summary data
       const { data: matrixData, error: layerError } = await supabase
         .from('matrix_layers_view')
@@ -54,24 +56,56 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
         .order('layer', { ascending: true });
 
       if (layerError) {
-        throw new Error(layerError.message);
+        console.error('❌ Matrix layers query error:', layerError);
+        throw new Error(`Matrix layers error: ${layerError.message}`);
       }
 
-      // Get position distribution data for actual L M R counts from referral_tree_view
-      const { data: positionData, error: positionError } = await supabase
-        .from('referral_tree_view')
-        .select('depth, position')
-        .eq('root_wallet', walletAddress)
-        .neq('position', 'root'); // Exclude root position
+      console.log('📊 Matrix layers data:', matrixData);
+
+      // Get position distribution data - try matrix_referrals_tree_view first
+      let positionData, positionError;
+      
+      // First try: matrix_referrals_tree_view (includes spillover allocation)
+      const matrixTreeResult = await supabase
+        .from('matrix_referrals_tree_view')
+        .select('layer, position')
+        .eq('matrix_root_wallet', walletAddress)
+        .neq('position', 'root');
+
+      if (matrixTreeResult.error) {
+        console.warn('⚠️ matrix_referrals_tree_view failed, trying referral_tree_view:', matrixTreeResult.error);
+        
+        // Fallback: referral_tree_view (direct referral relationships)
+        const referralTreeResult = await supabase
+          .from('referral_tree_view')
+          .select('depth, position')
+          .eq('root_wallet', walletAddress)
+          .neq('position', 'root');
+
+        if (referralTreeResult.error) {
+          console.error('❌ Both tree views failed:', referralTreeResult.error);
+          positionError = referralTreeResult.error;
+        } else {
+          // Map depth to layer for consistency
+          positionData = referralTreeResult.data?.map(item => ({
+            layer: item.depth,
+            position: item.position
+          }));
+          console.log('📊 Position data from referral_tree_view (depth→layer):', positionData);
+        }
+      } else {
+        positionData = matrixTreeResult.data;
+        console.log('📊 Position data from matrix_referrals_tree_view:', positionData);
+      }
 
       if (positionError) {
-        throw new Error(positionError.message);
+        throw new Error(`Position data error: ${positionError.message}`);
       }
 
-      // Calculate position distribution by depth (layer)
+      // Calculate position distribution by layer
       const positionByLayer: Record<number, { L: number; M: number; R: number }> = {};
       positionData?.forEach(member => {
-        const layer = member.depth; // Use depth instead of layer
+        const layer = member.layer; // Now consistently using layer field
         if (!positionByLayer[layer]) {
           positionByLayer[layer] = { L: 0, M: 0, R: 0 };
         }
@@ -79,6 +113,8 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
           positionByLayer[layer][member.position]++;
         }
       });
+
+      console.log('📊 Position distribution by layer:', positionByLayer);
 
       // Transform data to match LayerStatsData interface
       const layerStats: LayerStatsData[] = matrixData?.map((layer: any) => ({
