@@ -129,8 +129,7 @@ export default function Rewards() {
         .from('layer_rewards')
         .select('*')
         .ilike('reward_recipient_wallet', memberWalletAddress)
-        .eq('is_claimed', false)
-        .eq('reward_type', 'pending_layer_reward')
+        .eq('status', 'pending')
         .not('expires_at', 'is', null)
         .order('expires_at', { ascending: true })
         .limit(3); // Only show top 3 most urgent
