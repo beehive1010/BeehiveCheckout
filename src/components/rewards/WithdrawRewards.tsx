@@ -45,21 +45,7 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
     refetchInterval: 5000,
   });
 
-  // Get user balance
-  const { data: balance } = useQuery<UserBalance>({
-    queryKey: ['user-balance', walletAddress],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('user_balances')
-        .select('reward_balance, total_withdrawn, available_balance')
-        .eq('wallet_address', walletAddress)
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!walletAddress,
-  });
+  // Balance data is now included in rewardsData from the Edge Function
 
   // Claim reward mutation using Supabase Edge Function
   const claimRewardMutation = useMutation({
@@ -98,9 +84,10 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
     },
   });
 
-  const claimableRewards = rewards?.filter(r => r.status === 'claimable') || [];
-  const pendingRewards = rewards?.filter(r => r.status === 'pending') || [];
-  const totalClaimable = claimableRewards.reduce((sum, r) => sum + r.reward_amount, 0);
+  const claimableRewards = rewardsData?.rewards?.claimable || [];
+  const pendingRewards = rewardsData?.rewards?.pending || [];
+  const balance = rewardsData?.balance || {};
+  const totalClaimable = rewardsData?.summary?.totalClaimable || 0;
 
   const handleClaimReward = (rewardId: string) => {
     claimRewardMutation.mutate(rewardId);
