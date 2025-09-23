@@ -31,10 +31,79 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
   const [isWrongNetwork, setIsWrongNetwork] = useState(false);
   const [directReferralsCount, setDirectReferralsCount] = useState(0);
   const [alreadyOwnsLevel2, setAlreadyOwnsLevel2] = useState(false);
+  const [dataSync, setDataSync] = useState({
+    hasLevel2Membership: false,
+    currentMemberLevel: 0,
+    canClaimLevel3: false,
+    isDataSynced: false
+  });
   
   // Fixed Level 2 pricing - same as Level1 logic
   const LEVEL_2_PRICE_USDC = 150;
   const LEVEL_2_PRICE_WEI = BigInt(LEVEL_2_PRICE_USDC) * BigInt('1000000000000000000');
+
+  // Check data synchronization between NFT ownership and database records
+  const checkDataSynchronization = async (walletAddress: string) => {
+    try {
+      const { supabase } = await import('../../lib/supabase');
+      
+      console.log('🔄 Checking data synchronization for Level 2 NFT owner...');
+      
+      // 1. Check membership table for Level 2 record
+      const { data: membershipData } = await supabase
+        .from('membership')
+        .select('nft_level, is_member, unlock_membership_level')
+        .ilike('wallet_address', walletAddress)
+        .eq('nft_level', 2)
+        .single();
+      
+      // 2. Check members table for current level
+      const { data: memberData } = await supabase
+        .from('members')
+        .select('current_level')
+        .ilike('wallet_address', walletAddress)
+        .single();
+      
+      // 3. Check next unlock level from membership records
+      const { data: nextUnlockData } = await supabase
+        .from('membership')
+        .select('unlock_membership_level')
+        .ilike('wallet_address', walletAddress)
+        .order('nft_level', { ascending: false })
+        .limit(1)
+        .single();
+      
+      const hasLevel2Membership = !!membershipData;
+      const currentMemberLevel = memberData?.current_level || 0;
+      const nextUnlockLevel = nextUnlockData?.unlock_membership_level;
+      const canClaimLevel3 = nextUnlockLevel === 3;
+      const isDataSynced = hasLevel2Membership && currentMemberLevel >= 2;
+      
+      console.log('📊 Data sync status:', {
+        hasLevel2Membership,
+        currentMemberLevel,
+        nextUnlockLevel,
+        canClaimLevel3,
+        isDataSynced
+      });
+      
+      setDataSync({
+        hasLevel2Membership,
+        currentMemberLevel,
+        canClaimLevel3,
+        isDataSynced
+      });
+      
+    } catch (error) {
+      console.error('❌ Data synchronization check failed:', error);
+      setDataSync({
+        hasLevel2Membership: false,
+        currentMemberLevel: 0,
+        canClaimLevel3: false,
+        isDataSynced: false
+      });
+    }
+  };
   
   const API_BASE = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
   const PAYMENT_TOKEN_CONTRACT = "0x6f9487f2a1036e2D910aBB7509d0263a9581470B"; // ARB ONE Payment Token
@@ -121,8 +190,13 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
         });
         
         if (Number(level2Balance) > 0) {
-          console.log('❌ User already owns Level 2 NFT');
+          console.log('❌ User already owns Level 2 NFT - checking data synchronization...');
+          setAlreadyOwnsLevel2(true);
           setCanClaimLevel2(false);
+          
+          // Check data synchronization when user owns Level 2 NFT
+          await checkDataSynchronization(account.address);
+          
           setIsCheckingEligibility(false);
           return;
         }
@@ -596,9 +670,31 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
                 Level 2 NFT Status
               </span>
             </div>
-            <p className="text-xs text-blue-600">
-              ✅ You already own the Level 2 NFT! Visit the membership page to upgrade to Level 3.
-            </p>
+            
+            {dataSync.isDataSynced ? (
+              <div className="space-y-2">
+                <p className="text-xs text-emerald-600">
+                  ✅ Level 2 NFT owned & data synchronized (Member Level: {dataSync.currentMemberLevel})
+                </p>
+                {dataSync.canClaimLevel3 ? (
+                  <p className="text-xs text-purple-600">
+                    🚀 Level 3 NFT now available! Visit membership page to upgrade.
+                  </p>
+                ) : (
+                  <p className="text-xs text-amber-600">
+                    ⏳ Level 3 unlock pending. Check your membership status.
+                  </p>
+                )}
+              </div>
+            ) : dataSync.hasLevel2Membership ? (
+              <p className="text-xs text-amber-600">
+                ⏳ Level 2 NFT owned, membership record exists, but member level not updated (Current: {dataSync.currentMemberLevel}). Data syncing in progress.
+              </p>
+            ) : (
+              <p className="text-xs text-orange-600">
+                ⚠️ Level 2 NFT owned but no membership record found. This may indicate a sync issue.
+              </p>
+            )}
           </div>
         )}
 
