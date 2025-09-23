@@ -21,7 +21,7 @@ interface MatrixPosition {
   root_wallet: string;
   layer: number;
   position: string; // Format: "L", "M", "R", "L.L", "L.M", "L.R", "M.L", etc.
-  parent_wallet?: string;
+  referrer_wallet?: string;
   is_activated: boolean;
   placement_order: number;
   created_at: string;
@@ -432,7 +432,7 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
         root_wallet: referral.matrix_root_wallet || targetRoot,
         layer: referral.matrix_layer || 1,
         position: referral.matrix_position || `${index + 1}`,
-        parent_wallet: referral.referrer_wallet,
+        referrer_wallet: referral.referrer_wallet,
         is_activated: true,
         placement_order: index + 1,
         created_at: referral.placed_at || memberInfo.activation_time || new Date().toISOString(),
@@ -459,7 +459,7 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
           root_wallet: targetRoot,
           layer: 1, // Direct referrals are layer 1
           position: `${index + 1}`,
-          parent_wallet: member.referrer_wallet,
+          referrer_wallet: member.referrer_wallet,
           is_activated: true,
           placement_order: index + 1,
           created_at: member.activation_time,
@@ -799,8 +799,8 @@ async function handleGetUpline(supabase, walletAddress: string, data) {
     const uplineData = [];
 
     for (const position of memberPositions || []) {
-      if (position.matrix_parent || position.referrer_wallet) {
-        const parentWallet = position.matrix_parent || position.referrer_wallet;
+      if (position.referrer_wallet) {
+        const parentWallet = position.referrer_wallet;
         const uplineChain = await getUplineChain(supabase, parentWallet, position.matrix_root_wallet);
         uplineData.push({
           matrix_root: position.matrix_root_wallet,

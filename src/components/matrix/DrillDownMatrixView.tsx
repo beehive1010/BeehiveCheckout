@@ -64,9 +64,9 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
           member_wallet,
           layer,
           position,
-          parent_wallet,
-          referral_type,
-          child_activation_time
+          referrer_wallet,
+          is_spillover,
+          created_at
         `)
         .eq('matrix_root_wallet', walletAddress)
         .order('layer', { ascending: true })
@@ -96,7 +96,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
             isActive: true, // Tree view only shows activated members
             layer: member.layer || currentLayer,
             position: member.position as 'L' | 'M' | 'R',
-            placedAt: member.child_activation_time || new Date().toISOString()
+            placedAt: member.created_at || new Date().toISOString()
           };
           
           // Filter by position - exact match since database uses 'L', 'M', 'R'

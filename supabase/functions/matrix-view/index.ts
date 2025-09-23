@@ -35,13 +35,14 @@ serve(async (req) => {
     const { action } = await req.json()
 
     if (action === 'get-layer-stats') {
-      // Get layer statistics using the fixed get_1x3_matrix_view function
+      // Get layer statistics using matrix_layers_view directly
       console.log(`📊 Getting layer statistics for wallet: ${walletAddress}`)
       
-      const { data: matrixData, error: matrixError } = await supabase.rpc('get_1x3_matrix_view', {
-        p_wallet_address: walletAddress,
-        p_levels: 19  // Get up to 19 layers
-      })
+      const { data: matrixData, error: matrixError } = await supabase
+        .from('matrix_layers_view')
+        .select('*')
+        .eq('matrix_root_wallet', walletAddress)
+        .order('layer')
 
       if (matrixError) {
         console.error('Error fetching matrix data:', matrixError)

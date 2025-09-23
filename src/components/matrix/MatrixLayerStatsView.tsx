@@ -63,6 +63,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       }
 
       console.log('📊 Matrix layers data:', matrixData);
+      console.log('📊 Sample layer data structure:', matrixData?.[0]);
 
       // Transform data directly from matrix_layers_view (no need for additional queries)
       const layerStats: LayerStatsData[] = matrixData?.map((layer: any) => ({
