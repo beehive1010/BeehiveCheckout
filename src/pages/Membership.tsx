@@ -67,7 +67,8 @@ export default function Membership() {
       }
       
       try {
-        const { createThirdwebClient, getContract, balanceOf } = await import('thirdweb');
+        const { createThirdwebClient, getContract } = await import('thirdweb');
+        const { balanceOf } = await import('thirdweb/extensions/erc1155');
         const { arbitrum } = await import('thirdweb/chains');
         
         const client = createThirdwebClient({
@@ -184,8 +185,8 @@ export default function Membership() {
     if (targetLevel === 2) {
       if ((directReferralsCount || 0) < 3) {
         toast({
-          title: "Requirements Not Met",
-          description: `Level 2 requires 3+ direct referrals. You currently have ${directReferralsCount || 0}.`,
+          title: t('membership.errors.requirementsNotMet'),
+          description: t('membership.errors.level2ReferralRequirement', { count: directReferralsCount || 0 }),
           variant: "destructive",
         });
         return;
@@ -207,8 +208,8 @@ export default function Membership() {
         }, 5000);
         
         toast({
-          title: `📍 Level ${targetLevel} Upgrade`,
-          description: `Scrolled to Quick Upgrade section. Use the upgrade button above to claim Level ${targetLevel}.`,
+          title: t('membership.levelUpgradeTitle', { level: targetLevel }),
+          description: t('membership.upgradeInstruction', { level: targetLevel }),
           duration: 6000,
         });
       }
@@ -439,15 +440,15 @@ export default function Membership() {
               />
             ) : currentLevel === 1 && hasLevel2NFT ? (
               <div className="text-center p-8 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20">
-                <p className="mb-2 text-blue-400 font-semibold">🎉 Level 2 NFT Detected!</p>
+                <p className="mb-2 text-blue-400 font-semibold">{t('membership.nftDetected')}</p>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Your membership data is syncing. Please refresh the page in a few moments to access Level 3 upgrade.
+                  {t('membership.syncingData')}
                 </p>
                 <button 
                   onClick={() => window.location.reload()} 
                   className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                 >
-                  Refresh Now
+                  {t('membership.refreshNow')}
                 </button>
               </div>
             ) : currentLevel === 1 && (directReferralsCount || 0) < 3 ? (
@@ -586,7 +587,7 @@ export default function Membership() {
                       ${membership.price}
                     </div>
                     <p className="text-sm font-medium text-muted-foreground">
-                      USDC Payment
+                      {t('membership.usdcPayment')}
                     </p>
                   </div>
                 </CardHeader>
@@ -602,7 +603,7 @@ export default function Membership() {
                       <div className="text-sm text-muted-foreground mb-2">
                         {(directReferralsCount || 0) >= 3 ? (
                           <span className="text-emerald-600 font-medium">
-                            {t('membership.qualifiedStatus', { count: directReferralsCount, excess: (directReferralsCount || 0) - 3 })}
+                            {t('membership.qualifiedStatus', { count: directReferralsCount || 0, excess: (directReferralsCount || 0) - 3 })}
                           </span>
                         ) : (
                           <span className="text-orange-600 font-medium">
@@ -655,12 +656,12 @@ export default function Membership() {
                         {upgradeState.isProcessing && upgradeState.level === membership.level ? (
                           <>
                             <Loader2 className="h-5 w-5 mr-3 animate-spin" />
-                            Navigating...
+                            {t('membership.navigating')}
                           </>
                         ) : (
                           <>
                             <ArrowRight className="h-5 w-5 mr-3" />
-                            {t('membership.quickUpgradeNow', { level: membership.level }) || `Quick Upgrade to Level ${membership.level}`}
+                            {t('membership.quickUpgradeNow', { level: membership.level })}
                           </>
                         )}
                       </Button>

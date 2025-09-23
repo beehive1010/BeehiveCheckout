@@ -97,7 +97,7 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
         }
       } catch (error: any) {
         console.error('Error loading matrix tree data:', error);
-        setError(error.message || 'Failed to load matrix tree data');
+        setError(error.message || t('matrix.errors.loadTreeDataFailed'));
         
         // Initialize empty matrix on error
         const emptyData: { [key: number]: MatrixLayerData } = {};
@@ -122,7 +122,7 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
           {member.username?.charAt(0).toUpperCase() || 'U'}
         </span>
       </div>
-      <div className="text-sm font-medium truncate">{member.username || 'Unknown'}</div>
+      <div className="text-sm font-medium truncate">{member.username || t('matrix.ui.unknown')}</div>
       <div className="text-xs text-muted-foreground">
         {member.walletAddress?.slice(0, 6)}...{member.walletAddress?.slice(-4)}
       </div>

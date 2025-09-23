@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '../../lib/supabase';
 import { useWeb3 } from '@/contexts/Web3Context';
 import { useWallet } from '@/hooks/useWallet';
+import { useI18n } from '@/contexts/I18nContext';
 import { apiRequest } from '@/lib/queryClient';
 
 interface ClaimableReward {
@@ -40,6 +41,7 @@ interface ClaimResponse {
 }
 
 export default function ClaimableRewardsCard({ walletAddress }: { walletAddress: string }) {
+  const { t } = useI18n();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [claimingRewards, setClaimingRewards] = useState<string[]>([]);
@@ -146,12 +148,12 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
       });
       
       if (!response.ok) {
-        throw new Error('Failed to claim reward');
+        throw new Error(t('rewards.claimable.failedToClaim'));
       }
       
       const result = await response.json();
       if (!result.success) {
-        throw new Error(result.error || 'Failed to claim reward');
+        throw new Error(result.error || t('rewards.claimable.failedToClaim'));
       }
       
       return {
@@ -166,7 +168,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
     },
     onSuccess: (data: ClaimResponse, rewardId) => {
       toast({
-        title: "Reward Claimed Successfully! 🎉",
+        title: t('rewards.claimable.claimSuccess'),
         description: data.transactionHash 
           ? `USDT sent to your wallet. Transaction: ${data.transactionHash.slice(0, 10)}...`
           : data.message,
@@ -185,8 +187,8 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
     },
     onError: (error: Error, rewardId) => {
       toast({
-        title: "Claim Failed",
-        description: error.message || "Failed to claim reward. Please try again.",
+        title: t('rewards.claimable.claimFailed'),
+        description: error.message || t('rewards.claimable.claimFailedDescription'),
         variant: "destructive",
       });
     },
@@ -214,17 +216,17 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
       });
       
       if (!response.ok) {
-        throw new Error('Failed to initiate withdrawal');
+        throw new Error(t('rewards.claimable.failedToWithdraw'));
       }
       
       const result = await response.json();
       if (!result.success) {
-        throw new Error(result.error || 'Failed to initiate withdrawal');
+        throw new Error(result.error || t('rewards.claimable.failedToWithdraw'));
       }
       
       return {
         success: true,
-        message: result.message || 'Withdrawal successful'
+        message: result.message || t('rewards.claimable.withdrawalSuccessful')
       };
     },
     onMutate: () => {
@@ -232,7 +234,7 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
     },
     onSuccess: (data) => {
       toast({
-        title: "Withdrawal Successful",
+        title: t('rewards.claimable.withdrawSuccess'),
         description: data.message || `Successfully initiated withdrawal to your wallet.`,
         variant: "default",
       });
@@ -241,8 +243,8 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
     },
     onError: (error: Error) => {
       toast({
-        title: "Withdrawal Failed",
-        description: error.message || "Failed to withdraw rewards. Please try again.",
+        title: t('rewards.claimable.withdrawFailed'),
+        description: error.message || t('rewards.claimable.withdrawFailedDescription'),
         variant: "destructive",
       });
     },
@@ -254,8 +256,8 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
   const handleWithdraw = () => {
     if (!isConnected) {
       toast({
-        title: "Wallet Not Connected",
-        description: "Please connect your wallet to withdraw rewards.",
+        title: t('rewards.claimable.walletNotConnected'),
+        description: t('rewards.claimable.walletRequiredWithdraw'),
         variant: "destructive",
       });
       return;
@@ -263,8 +265,8 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
 
     if (!totalClaimable || totalClaimable <= 0) {
       toast({
-        title: "No Balance Available",
-        description: "You need to have claimed rewards to withdraw.",
+        title: t('rewards.claimable.noBalanceAvailable'),
+        description: t('rewards.claimable.noBalanceDescription'),
         variant: "destructive",
       });
       return;
@@ -276,8 +278,8 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
   const handleClaimReward = (reward: ClaimableReward) => {
     if (!isConnected) {
       toast({
-        title: "Wallet Not Connected",
-        description: "Please connect your wallet to claim rewards.",
+        title: t('rewards.claimable.walletNotConnected'),
+        description: t('rewards.claimable.walletRequiredClaim'),
         variant: "destructive",
       });
       return;
@@ -291,8 +293,8 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
     
     if (!isConnected) {
       toast({
-        title: "Wallet Not Connected",
-        description: "Please connect your wallet to claim rewards.",
+        title: t('rewards.claimable.walletNotConnected'),
+        description: t('rewards.claimable.walletRequiredClaim'),
         variant: "destructive",
       });
       return;

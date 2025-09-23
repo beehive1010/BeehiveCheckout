@@ -13,6 +13,8 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { useIsMobile } from '../../hooks/use-mobile';
+import { SystemFixPanel } from '../../components/admin/SystemFixPanel';
 
 interface DashboardStats {
   totalUsers: number;
@@ -27,6 +29,7 @@ interface DashboardStats {
 
 export default function AdminDashboard() {
   const { adminUser, hasPermission } = useAdminAuth();
+  const isMobile = useIsMobile();
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     activeMembers: 0,
@@ -45,46 +48,80 @@ export default function AdminDashboard() {
 
   const loadDashboardStats = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-stats?action=dashboard-stats`, {
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-          'x-admin-token': localStorage.getItem('admin_token') || '',
-        },
+      // Use multiple endpoint calls to get accurate data
+      const [usersResponse, membersResponse, rewardsResponse] = await Promise.allSettled([
+        // Get total users count
+        fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/users?select=wallet_address&count=exact&head=true`, {
+          headers: {
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+        }),
+        // Get active members count  
+        fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/members?select=wallet_address&current_level=gt.0&count=exact&head=true`, {
+          headers: {
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+        }),
+        // Get pending rewards count
+        fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/layer_rewards?select=id&status=eq.pending&count=exact&head=true`, {
+          headers: {
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+        })
+      ]);
+
+      let totalUsers = 0;
+      let activeMembers = 0;
+      let pendingApprovals = 0;
+
+      if (usersResponse.status === 'fulfilled' && usersResponse.value.ok) {
+        const countHeader = usersResponse.value.headers.get('content-range');
+        if (countHeader) {
+          totalUsers = parseInt(countHeader.split('/')[1]) || 0;
+        }
+      }
+
+      if (membersResponse.status === 'fulfilled' && membersResponse.value.ok) {
+        const countHeader = membersResponse.value.headers.get('content-range');
+        if (countHeader) {
+          activeMembers = parseInt(countHeader.split('/')[1]) || 0;
+        }
+      }
+
+      if (rewardsResponse.status === 'fulfilled' && rewardsResponse.value.ok) {
+        const countHeader = rewardsResponse.value.headers.get('content-range');
+        if (countHeader) {
+          pendingApprovals = parseInt(countHeader.split('/')[1]) || 0;
+        }
+      }
+
+      setStats({
+        totalUsers,
+        activeMembers,
+        totalNFTs: 19, // Fixed based on our NFT levels 1-19
+        blogPosts: 0, // TODO: Implement blog posts count when blog is ready
+        courses: 16, // Fixed based on known course count
+        discoverPartners: 0, // TODO: Implement discover partners count when ready
+        pendingApprovals,
+        systemHealth: 'healthy', // TODO: Implement actual health check
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch dashboard stats');
-      }
-
-      const result = await response.json();
-      if (result.success && result.data) {
-        setStats({
-          totalUsers: result.data.overview.total_members || 0,
-          activeMembers: result.data.overview.total_activated || 0,
-          totalNFTs: 19, // Fixed based on our NFT levels 1-19
-          blogPosts: 0,
-          courses: 16,
-          discoverPartners: 0,
-          pendingApprovals: result.data.overview.total_pending_rewards || 0,
-          systemHealth: result.data.systemHealth || 'healthy',
-        });
-      } else {
-        throw new Error(result.error || 'Invalid response format');
-      }
+      
       setIsLoading(false);
     } catch (error) {
       console.error('Failed to load dashboard stats:', error);
-      // Fallback to mock data for development
+      // Fallback to minimal data for development
       setStats({
-        totalUsers: 3,
-        activeMembers: 2,
-        totalNFTs: 6,
+        totalUsers: 0,
+        activeMembers: 0,
+        totalNFTs: 19,
         blogPosts: 0,
         courses: 16,
         discoverPartners: 0,
         pendingApprovals: 0,
-        systemHealth: 'healthy',
+        systemHealth: 'degraded',
       });
       setIsLoading(false);
     }
@@ -200,10 +237,10 @@ export default function AdminDashboard() {
           </p>
         </div>
         
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
           {Array.from({ length: 6 }).map((_, i) => (
             <Card key={i} className="animate-pulse">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader className={`flex flex-row items-center justify-between space-y-0 pb-2 ${isMobile ? 'px-4 py-3' : ''}`}>
                 <div className="h-4 bg-muted rounded w-20"></div>
                 <div className="h-4 w-4 bg-muted rounded"></div>
               </CardHeader>
@@ -229,20 +266,20 @@ export default function AdminDashboard() {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
         {quickStats
           .filter(stat => !stat.permission || hasPermission(stat.permission))
           .map((stat) => (
           <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+            <CardHeader className={`flex flex-row items-center justify-between space-y-0 pb-2 ${isMobile ? 'px-4 py-3' : ''}`}>
+              <CardTitle className={`${isMobile ? 'text-base' : 'text-sm'} font-medium`}>
                 {stat.title}
               </CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
+              <stat.icon className={`${isMobile ? 'h-5 w-5' : 'h-4 w-4'} text-muted-foreground`} />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-honey">{stat.value}</div>
-              <p className="text-xs text-muted-foreground mt-1">
+            <CardContent className={isMobile ? 'px-4 pb-4' : ''}>
+              <div className={`${isMobile ? 'text-3xl' : 'text-2xl'} font-bold text-honey`}>{stat.value}</div>
+              <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-muted-foreground mt-1`}>
                 {stat.description}
               </p>
             </CardContent>
@@ -250,7 +287,7 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'lg:grid-cols-2'}`}>
         {/* System Status */}
         {hasPermission('system.read') && (
           <Card>
@@ -314,6 +351,13 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* System Health & Auto-Fix Panel */}
+      {hasPermission('system.write') && (
+        <div className="mt-6">
+          <SystemFixPanel onFixComplete={() => loadDashboardStats()} />
+        </div>
+      )}
     </div>
   );
 }

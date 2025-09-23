@@ -108,7 +108,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       
     } catch (error: any) {
       console.error('Error loading layer stats:', error);
-      setError(error.message || 'Failed to load layer statistics');
+      setError(error.message || t('matrix.errors.loadLayerStatsFailed'));
       
       // Fallback: create empty stats
       const emptyStats: LayerStatsData[] = [];
@@ -351,7 +351,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
                 onClick={() => setShowAllLayers(!showAllLayers)}
                 className="border-honey/30 text-honey hover:bg-honey hover:text-black"
               >
-                {showAllLayers ? 'Show Less' : 'Show All 19 Layers'}
+                {showAllLayers ? t('matrix.ui.showLess') : t('matrix.ui.showAllLayers')}
               </Button>
             </div>
           </div>

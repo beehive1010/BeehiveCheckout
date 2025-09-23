@@ -45,7 +45,7 @@ export default function NotificationButton({
       try {
         const response = await callEdgeFunction('notification', { action: 'stats' }, walletAddress);
         if (!response.success) {
-          throw new Error(response.error || 'Failed to fetch notification stats');
+          throw new Error(response.error || t('notifications.errors.fetchStatsFailed'));
         }
         return response.data;
       } catch (error) {

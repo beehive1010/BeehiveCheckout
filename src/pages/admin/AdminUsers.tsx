@@ -5,6 +5,10 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
+import { Label } from '../../components/ui/label';
+import { Switch } from '../../components/ui/switch';
+import { Checkbox } from '../../components/ui/checkbox';
 import { 
   Users, 
   Wallet,
@@ -20,11 +24,19 @@ import {
   Link as LinkIcon,
   Award,
   Eye,
-  AlertTriangle
+  AlertTriangle,
+  Plus,
+  Edit,
+  Trash2,
+  Upload,
+  Download,
+  Database,
+  Settings
 } from 'lucide-react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { useToast } from '../../hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useIsMobile } from '../../hooks/use-mobile';
 
 interface PlatformUser {
   walletAddress: string;
@@ -89,13 +101,26 @@ export default function AdminUsers() {
   const { hasPermission } = useAdminAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedUser, setSelectedUser] = useState<PlatformUser | null>(null);
+  
+  // New state for enhanced functionality
+  const [viewMode, setViewMode] = useState<'users' | 'members'>('users');
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showBulkImportDialog, setShowBulkImportDialog] = useState(false);
+  const [editingUser, setEditingUser] = useState<PlatformUser | null>(null);
+  const [bulkImportData, setBulkImportData] = useState('');
+  const [importFormat, setImportFormat] = useState<'json' | 'csv'>('json');
+  
+  // Form state for create/edit (unified for both users and members)
+  const [formData, setFormData] = useState<any>({});
 
   // Fetch platform users
-  const { data: platformUsers = [], isLoading, refetch } = useQuery({
+  const { data: platformUsers = [], isLoading: isQueryLoading, refetch } = useQuery({
     queryKey: ['/api/admin/platform-users', { search: searchTerm, level: levelFilter, status: statusFilter }],
     queryFn: async (): Promise<PlatformUser[]> => {
       const params = new URLSearchParams();
@@ -121,10 +146,44 @@ export default function AdminUsers() {
     enabled: hasPermission('users.read'),
   });
 
-  // Update user mutation
+  // Create user/member mutation
+  const createMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const endpoint = viewMode === 'users' ? '/api/admin/users' : '/api/admin/members';
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminSessionToken')}`,
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to create ${viewMode.slice(0, -1)}`);
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/platform-users'] });
+      setShowCreateDialog(false);
+      resetFormData();
+      toast({
+        title: `${viewMode === 'users' ? 'User' : 'Member'} Created`,
+        description: `${viewMode === 'users' ? 'User' : 'Member'} has been created successfully${viewMode === 'members' ? '. Remember to add NFT membership record if needed!' : ''}`,
+        variant: viewMode === 'members' ? 'default' : 'default',
+      });
+    },
+  });
+
+  // Update user mutation  
   const updateUserMutation = useMutation({
     mutationFn: async ({ walletAddress, updates }: { walletAddress: string; updates: any }) => {
-      const response = await fetch(`/api/admin/platform-users/${walletAddress}`, {
+      const endpoint = viewMode === 'users' 
+        ? `/api/admin/users/${walletAddress}` 
+        : `/api/admin/members/${walletAddress}`;
+      const response = await fetch(endpoint, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -134,7 +193,37 @@ export default function AdminUsers() {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to update user');
+        throw new Error(`Failed to update ${viewMode.slice(0, -1)}`);
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/platform-users'] });
+      setShowEditDialog(false);
+      setEditingUser(null);
+      toast({
+        title: `${viewMode === 'users' ? 'User' : 'Member'} Updated`,
+        description: `${viewMode === 'users' ? 'User' : 'Member'} data has been updated successfully`,
+      });
+    },
+  });
+  
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (walletAddress: string) => {
+      const endpoint = viewMode === 'users' 
+        ? `/api/admin/users/${walletAddress}` 
+        : `/api/admin/members/${walletAddress}`;
+      const response = await fetch(endpoint, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminSessionToken')}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to delete ${viewMode.slice(0, -1)}`);
       }
       
       return response.json();
@@ -142,11 +231,114 @@ export default function AdminUsers() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/platform-users'] });
       toast({
-        title: 'User Updated',
-        description: 'User data has been updated successfully',
+        title: `${viewMode === 'users' ? 'User' : 'Member'} Deleted`,
+        description: `${viewMode === 'users' ? 'User' : 'Member'} has been deleted successfully`,
       });
     },
   });
+  
+  // Bulk import mutation
+  const bulkImportMutation = useMutation({
+    mutationFn: async (importData: any[]) => {
+      const endpoint = viewMode === 'users' ? '/api/admin/users/bulk' : '/api/admin/members/bulk';
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminSessionToken')}`,
+        },
+        body: JSON.stringify({ data: importData }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to import data');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/platform-users'] });
+      setShowBulkImportDialog(false);
+      setBulkImportData('');
+      toast({
+        title: 'Bulk Import Complete',
+        description: `Successfully imported ${result.imported} records${viewMode === 'members' ? '. Remember to add NFT records for new members!' : ''}`,
+      });
+    },
+  });
+
+  // Loading states
+  const isLoading = createMutation.isPending || updateUserMutation.isPending || deleteMutation.isPending || bulkImportMutation.isPending;
+
+  // Utility functions
+  const resetFormData = () => {
+    setFormData({});
+  };
+
+  const handleFormSubmit = () => {
+    if (showEditDialog && editingUser) {
+      updateUserMutation.mutate({ walletAddress: editingUser.walletAddress, updates: formData });
+    } else {
+      createMutation.mutate(formData);
+    }
+  };
+
+  const handleEdit = (user: PlatformUser) => {
+    setEditingUser(user);
+    if (viewMode === 'users') {
+      setFormData({
+        wallet_address: user.walletAddress,
+        username: user.username || '',
+        email: user.email || '',
+        is_verified: user.registrationStatus === 'completed',
+        referrer_wallet: user.referrerWallet || ''
+      });
+    } else {
+      setFormData({
+        wallet_address: user.walletAddress,
+        membership_level: user.currentLevel,
+        nft_token_id: '',
+        referrer_wallet: user.referrerWallet || '',
+        matrix_position: user.matrixPosition?.toString() || '',
+        is_active: user.memberActivated
+      });
+    }
+    setShowEditDialog(true);
+  };
+
+  const handleBulkImport = () => {
+    try {
+      let parsedData: any[] = [];
+      
+      if (importFormat === 'json') {
+        parsedData = JSON.parse(bulkImportData);
+      } else {
+        // Parse CSV
+        const lines = bulkImportData.trim().split('\n');
+        const headers = lines[0].split(',').map(h => h.trim());
+        parsedData = lines.slice(1).map(line => {
+          const values = line.split(',').map(v => v.trim());
+          const obj: any = {};
+          headers.forEach((header, index) => {
+            obj[header] = values[index] || '';
+          });
+          return obj;
+        });
+      }
+      
+      if (parsedData.length === 0) {
+        throw new Error('No valid data found');
+      }
+      
+      bulkImportMutation.mutate(parsedData);
+    } catch (error: any) {
+      toast({
+        title: 'Import Error',
+        description: error.message || 'Failed to parse import data',
+        variant: 'destructive',
+      });
+    }
+  };
 
   // Get level name and color
   const getLevelInfo = (level: number) => {
@@ -189,7 +381,7 @@ export default function AdminUsers() {
     );
   }
 
-  if (isLoading) {
+  if (isQueryLoading) {
     return (
       <Card>
         <CardHeader>
@@ -205,65 +397,109 @@ export default function AdminUsers() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className={`${isMobile ? 'space-y-3' : 'flex justify-between items-center'}`}>
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Platform Users</h1>
-          <p className="text-muted-foreground">Manage Web3 platform members and their data</p>
+          <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-foreground`}>
+            {viewMode === 'users' ? 'Users Management' : 'Members Management'}
+          </h1>
+          <p className="text-muted-foreground">
+            {viewMode === 'users' 
+              ? 'Manage platform user accounts and registration data' 
+              : 'Manage membership levels, balances and member data'
+            }
+          </p>
+        </div>
+        
+        {/* Controls */}
+        <div className={`${isMobile ? 'w-full' : ''} flex ${isMobile ? 'flex-col' : 'flex-row'} gap-3`}>
+          {/* View Mode Toggle */}
+          <div className="flex items-center space-x-2">
+            <Database className="h-4 w-4" />
+            <Switch 
+              checked={viewMode === 'members'}
+              onCheckedChange={(checked) => setViewMode(checked ? 'members' : 'users')}
+            />
+            <span className="text-sm font-medium">
+              {viewMode === 'members' ? 'Members' : 'Users'}
+            </span>
+          </div>
+          
+          {/* Action Buttons */}
+          <div className={`flex ${isMobile ? 'w-full' : ''} gap-2`}>
+            <Button 
+              variant="outline" 
+              size={isMobile ? "default" : "sm"} 
+              className={isMobile ? 'flex-1' : ''}
+              onClick={() => setShowBulkImportDialog(true)}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Import
+            </Button>
+            
+            <Button 
+              size={isMobile ? "default" : "sm"} 
+              className={isMobile ? 'flex-1' : ''}
+              onClick={() => setShowCreateDialog(true)}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add {viewMode === 'users' ? 'User' : 'Member'}
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-5'}`}>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Users className="h-8 w-8 text-blue-600" />
+          <CardContent className={`${isMobile ? 'p-3' : 'p-4'}`}>
+            <div className={`flex items-center ${isMobile ? 'space-x-1' : 'space-x-2'}`}>
+              <Users className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} text-blue-600`} />
               <div>
-                <p className="text-2xl font-bold">{stats.total}</p>
-                <p className="text-xs text-muted-foreground">Total Users</p>
+                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold`}>{stats.total}</p>
+                <p className={`${isMobile ? 'text-xs' : 'text-xs'} text-muted-foreground`}>Total Users</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-8 w-8 text-green-600" />
+          <CardContent className={`${isMobile ? 'p-3' : 'p-4'}`}>
+            <div className={`flex items-center ${isMobile ? 'space-x-1' : 'space-x-2'}`}>
+              <CheckCircle className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} text-green-600`} />
               <div>
-                <p className="text-2xl font-bold">{stats.activated}</p>
+                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold`}>{stats.activated}</p>
                 <p className="text-xs text-muted-foreground">Activated</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Clock className="h-8 w-8 text-orange-600" />
+          <CardContent className={`${isMobile ? 'p-3' : 'p-4'}`}>
+            <div className={`flex items-center ${isMobile ? 'space-x-1' : 'space-x-2'}`}>
+              <Clock className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} text-orange-600`} />
               <div>
-                <p className="text-2xl font-bold">{stats.unactivated}</p>
+                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold`}>{stats.unactivated}</p>
                 <p className="text-xs text-muted-foreground">Unactivated</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Crown className="h-8 w-8 text-yellow-600" />
+          <CardContent className={`${isMobile ? 'p-3' : 'p-4'}`}>
+            <div className={`flex items-center ${isMobile ? 'space-x-1' : 'space-x-2'}`}>
+              <Crown className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} text-yellow-600`} />
               <div>
-                <p className="text-2xl font-bold">{stats.totalBCC.toLocaleString()}</p>
+                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold`}>{stats.totalBCC.toLocaleString()}</p>
                 <p className="text-xs text-muted-foreground">Total BCC</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <DollarSign className="h-8 w-8 text-green-600" />
+          <CardContent className={`${isMobile ? 'p-3' : 'p-4'}`}>
+            <div className={`flex items-center ${isMobile ? 'space-x-1' : 'space-x-2'}`}>
+              <DollarSign className={`${isMobile ? 'h-6 w-6' : 'h-8 w-8'} text-green-600`} />
               <div>
-                <p className="text-2xl font-bold">${stats.totalEarnings.toFixed(2)}</p>
+                <p className={`${isMobile ? 'text-lg' : 'text-2xl'} font-bold`}>${stats.totalEarnings.toFixed(2)}</p>
                 <p className="text-xs text-muted-foreground">Total Earnings</p>
               </div>
             </div>
@@ -273,12 +509,12 @@ export default function AdminUsers() {
 
       {/* Filters */}
       <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-4">
+        <CardContent className={`${isMobile ? 'p-3' : 'p-4'}`}>
+          <div className={`${isMobile ? 'space-y-3' : 'flex flex-col md:flex-row gap-4'}`}>
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="Search by wallet address or username..."
+                placeholder={isMobile ? "Search users..." : "Search by wallet address or username..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -286,7 +522,7 @@ export default function AdminUsers() {
               />
             </div>
             <Select value={levelFilter} onValueChange={setLevelFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className={`${isMobile ? 'w-full' : 'w-[180px]'}`}>
                 <SelectValue placeholder="Filter by level" />
               </SelectTrigger>
               <SelectContent>
@@ -386,16 +622,43 @@ export default function AdminUsers() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className={`flex items-center ${isMobile ? 'flex-col space-y-2' : 'space-x-2'}`}>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setSelectedUser(user)}
                       data-testid={`button-view-user-${user.walletAddress}`}
+                      className={isMobile ? 'w-full' : ''}
                     >
                       <Eye className="h-4 w-4 mr-1" />
-                      View Details
+                      View
                     </Button>
+                    {hasPermission('users.write') && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEdit(user)}
+                        className={isMobile ? 'w-full' : ''}
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                    )}
+                    {hasPermission('users.delete') && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (confirm(`Delete ${viewMode.slice(0, -1)} ${user.walletAddress}?`)) {
+                            deleteMutation.mutate(user.walletAddress);
+                          }
+                        }}
+                        className={`${isMobile ? 'w-full' : ''} text-red-600 hover:text-red-700`}
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
+                      </Button>
+                    )}
                   </div>
                 </div>
               );
@@ -408,6 +671,243 @@ export default function AdminUsers() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Create/Edit Dialog */}
+      <Dialog open={showCreateDialog || showEditDialog} onOpenChange={() => {
+        setShowCreateDialog(false);
+        setShowEditDialog(false);
+        setEditingUser(null);
+        setFormData({});
+      }}>
+        <DialogContent className={`${isMobile ? 'max-w-[95vw]' : 'max-w-md'}`}>
+          <DialogHeader>
+            <DialogTitle>
+              {showEditDialog ? '编辑' : '创建'} {viewMode === 'users' ? '用户' : '会员'}
+            </DialogTitle>
+            <DialogDescription>
+              {showEditDialog 
+                ? `修改${viewMode === 'users' ? '用户' : '会员'}信息` 
+                : `添加新的${viewMode === 'users' ? '用户' : '会员'}记录`}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {viewMode === 'users' ? (
+              // Users form fields
+              <>
+                <div>
+                  <label className="block text-sm font-medium mb-1">钱包地址</label>
+                  <Input
+                    value={formData.wallet_address || ''}
+                    onChange={(e) => setFormData({...formData, wallet_address: e.target.value})}
+                    placeholder="0x..."
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">邮箱</label>
+                  <Input
+                    type="email"
+                    value={formData.email || ''}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    placeholder="user@example.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">推荐人钱包地址</label>
+                  <Input
+                    value={formData.referrer_wallet || ''}
+                    onChange={(e) => setFormData({...formData, referrer_wallet: e.target.value})}
+                    placeholder="0x..."
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    checked={formData.is_verified || false}
+                    onCheckedChange={(checked) => setFormData({...formData, is_verified: checked})}
+                  />
+                  <label className="text-sm">已验证</label>
+                </div>
+              </>
+            ) : (
+              // Members form fields
+              <>
+                <div>
+                  <label className="block text-sm font-medium mb-1">钱包地址</label>
+                  <Input
+                    value={formData.wallet_address || ''}
+                    onChange={(e) => setFormData({...formData, wallet_address: e.target.value})}
+                    placeholder="0x..."
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">会员等级</label>
+                  <Input
+                    type="number"
+                    value={formData.membership_level || ''}
+                    onChange={(e) => setFormData({...formData, membership_level: parseInt(e.target.value)})}
+                    placeholder="1-7"
+                    min="1"
+                    max="7"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">NFT Token ID</label>
+                  <Input
+                    value={formData.nft_token_id || ''}
+                    onChange={(e) => setFormData({...formData, nft_token_id: e.target.value})}
+                    placeholder="Token ID"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">推荐人钱包地址</label>
+                  <Input
+                    value={formData.referrer_wallet || ''}
+                    onChange={(e) => setFormData({...formData, referrer_wallet: e.target.value})}
+                    placeholder="0x..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">矩阵位置</label>
+                  <Input
+                    value={formData.matrix_position || ''}
+                    onChange={(e) => setFormData({...formData, matrix_position: e.target.value})}
+                    placeholder="1.1.1"
+                  />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    checked={formData.is_active || false}
+                    onCheckedChange={(checked) => setFormData({...formData, is_active: checked})}
+                  />
+                  <label className="text-sm">激活状态</label>
+                </div>
+                {!showEditDialog && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                    <p className="text-sm text-yellow-800">
+                      ⚠️ 提醒：创建会员记录时，请确保同时在NFT membership表中添加相应的NFT记录
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowCreateDialog(false);
+              setShowEditDialog(false);
+              setEditingUser(null);
+              setFormData({});
+            }}>
+              取消
+            </Button>
+            <Button onClick={handleFormSubmit} disabled={isLoading}>
+              {isLoading ? '保存中...' : '保存'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Import Dialog */}
+      <Dialog open={showBulkImportDialog} onOpenChange={setShowBulkImportDialog}>
+        <DialogContent className={`${isMobile ? 'max-w-[95vw] max-h-[90vh]' : 'max-w-2xl max-h-[80vh]'} overflow-y-auto`}>
+          <DialogHeader>
+            <DialogTitle>批量导入 {viewMode === 'users' ? '用户' : '会员'}</DialogTitle>
+            <DialogDescription>
+              通过JSON或CSV格式批量导入{viewMode === 'users' ? '用户' : '会员'}数据
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">导入格式</label>
+              <div className="flex space-x-4">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    value="json"
+                    checked={importFormat === 'json'}
+                    onChange={(e) => setImportFormat(e.target.value as 'json' | 'csv')}
+                  />
+                  <span>JSON</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    value="csv"
+                    checked={importFormat === 'csv'}
+                    onChange={(e) => setImportFormat(e.target.value as 'json' | 'csv')}
+                  />
+                  <span>CSV</span>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                数据 ({importFormat.toUpperCase()})
+              </label>
+              <textarea
+                className="w-full h-64 p-3 border border-gray-300 rounded-md font-mono text-sm"
+                value={bulkImportData}
+                onChange={(e) => setBulkImportData(e.target.value)}
+                placeholder={importFormat === 'json' ? 
+                  viewMode === 'users' ? 
+                    '[\n  {\n    "wallet_address": "0x...",\n    "email": "user@example.com",\n    "referrer_wallet": "0x...",\n    "is_verified": true\n  }\n]' :
+                    '[\n  {\n    "wallet_address": "0x...",\n    "membership_level": 1,\n    "nft_token_id": "123",\n    "referrer_wallet": "0x...",\n    "matrix_position": "1.1.1",\n    "is_active": true\n  }\n]'
+                  :
+                  viewMode === 'users' ?
+                    'wallet_address,email,referrer_wallet,is_verified\n0x...,user@example.com,0x...,true' :
+                    'wallet_address,membership_level,nft_token_id,referrer_wallet,matrix_position,is_active\n0x...,1,123,0x...,1.1.1,true'
+                }
+              />
+            </div>
+
+            {viewMode === 'members' && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                <p className="text-sm text-yellow-800">
+                  ⚠️ 提醒：批量导入会员记录时，请确保同时在NFT membership表中添加相应的NFT记录
+                </p>
+              </div>
+            )}
+
+            <div className="text-sm text-gray-600">
+              <p className="font-medium">格式说明：</p>
+              {viewMode === 'users' ? (
+                <ul className="list-disc list-inside space-y-1 mt-1">
+                  <li>wallet_address: 钱包地址 (必填)</li>
+                  <li>email: 邮箱地址</li>
+                  <li>referrer_wallet: 推荐人钱包地址</li>
+                  <li>is_verified: 验证状态 (true/false)</li>
+                </ul>
+              ) : (
+                <ul className="list-disc list-inside space-y-1 mt-1">
+                  <li>wallet_address: 钱包地址 (必填)</li>
+                  <li>membership_level: 会员等级 (1-7)</li>
+                  <li>nft_token_id: NFT Token ID</li>
+                  <li>referrer_wallet: 推荐人钱包地址</li>
+                  <li>matrix_position: 矩阵位置</li>
+                  <li>is_active: 激活状态 (true/false)</li>
+                </ul>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowBulkImportDialog(false);
+              setBulkImportData('');
+            }}>
+              取消
+            </Button>
+            <Button onClick={handleBulkImport} disabled={isLoading || !bulkImportData.trim()}>
+              {isLoading ? '导入中...' : '开始导入'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* User Details Dialog could go here */}
       {selectedUser && (

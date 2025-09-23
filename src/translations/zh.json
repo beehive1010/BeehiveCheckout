@@ -46,6 +46,78 @@
     "allPartners": "所有合作伙伴",
     "noRecentErrors": "没有最近错误"
   },
+  "matrixExplanation": {
+    "title": "3×3矩阵系统",
+    "subtitle": "了解蜂巢19层推荐系统",
+    "matrixStructure": "矩阵结构",
+    "placementRules": {
+      "title": "安置规则",
+      "rule1": "L → M → R 优先安置",
+      "rule2": "找到第一个未完成的下线层",
+      "rule3": "每个成员维护19层矩阵"
+    },
+    "rewardSystem": {
+      "title": "奖励系统",
+      "rule1": "层级奖励 = 该级别NFT价格",
+      "rule2": "根节点必须持有≥该级别才能领取",
+      "rule3": "72小时升级窗口期"
+    },
+    "membershipLevels": {
+      "title": "会员等级",
+      "level1": {
+        "title": "等级1",
+        "price": "130 USDC",
+        "description": "100 USDC NFT + 30 USDC 激活费"
+      },
+      "level2to19": {
+        "title": "等级2-19",
+        "price": "每级+50 USDC",
+        "description": "需要顺序升级"
+      },
+      "level19": {
+        "title": "等级19",
+        "price": "1000 USDC",
+        "description": "最高等级"
+      }
+    },
+    "bccRewards": {
+      "title": "BCC代币奖励",
+      "tier1": "层级1 (1-9,999): 总计10,450 BCC",
+      "levelProgression": "等级1: 100 BCC → 等级19: 1000 BCC",
+      "activationBonus": "500 BCC 激活奖励"
+    },
+    "specialRules": {
+      "title": "特殊规则",
+      "level2Requirement": "等级2: 需要3个直推",
+      "sequentialPurchases": "需要顺序购买NFT",
+      "pendingWindow": "72小时待领取奖励窗口"
+    }
+  },
+  "auth": {
+    "completingAuthentication": "正在完成身份验证...",
+    "authenticationSuccessful": "身份验证成功！",
+    "redirectingToDashboard": "正在跳转到控制台...",
+    "backToLogin": "返回登录"
+  },
+  "landing": {
+    "features": {
+      "smartContracts": {
+        "title": "智能合约",
+        "description": "100%自动化区块链执行"
+      },
+      "nftMarketplace": {
+        "title": "NFT市场",
+        "description": "交易专属蜂巢NFT"
+      },
+      "matrixRewards": {
+        "title": "矩阵奖励",
+        "description": "指数财富增长系统"
+      }
+    },
+    "cta": {
+      "subtitle": "加入数千名会员赚取被动收入"
+    }
+  },
   "dashboard": {
     "welcomeBack": "欢迎回来, {username}!",
     "welcomeMember": "欢迎回来, 会员!",
@@ -2419,6 +2491,13 @@
     "upgradeSuccess": "升级成功！",
     "upgradeSuccessDescription": "您的会员资格已成功升级",
     "maxLevelReached": "已达到最高等级！",
+    "nftDetected": "🎉 检测到等级2 NFT！",
+    "syncingData": "您的会员数据正在同步。请稍后刷新页面以访问等级3升级。",
+    "refreshNow": "立即刷新",
+    "usdcPayment": "USDC支付",
+    "navigating": "导航中...",
+    "levelUpgradeTitle": "等级{level}升级",
+    "upgradeInstruction": "已滚动到快速升级部分。使用上面的升级按钮申领等级{level}。",
     "status": {
       "owned": "已拥有",
       "available": "可购买",
@@ -2445,7 +2524,9 @@
       "sequentialUpgrade": "您必须先升级到等级{nextLevel}",
       "alreadyOwned": "您已拥有等级{level}",
       "level2Requirements": "等级2需要3个以上直推",
-      "missingPrerequisites": "缺少必需的先决条件"
+      "missingPrerequisites": "缺少必需的先决条件",
+      "requirementsNotMet": "未满足要求",
+      "level2ReferralRequirement": "等级2需要3个以上直推。您目前有{count}个。"
     },
     "claiming": {
       "started": "申领等级{level}",

@@ -147,10 +147,10 @@ export default function Education() {
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8">
         <div className="flex-1">
           <h1 className="text-3xl lg:text-4xl font-bold text-honey mb-2">
-            {t('education.title') || 'Learning Hub'}
+            {t('education.title')}
           </h1>
           <p className="text-lg text-muted-foreground">
-            {t('education.subtitle') || 'Enhance your skills with premium courses and tutorials'}
+            {t('education.subtitle')}
           </p>
         </div>
         <UserProfileCard variant="compact" />
@@ -430,14 +430,14 @@ export default function Education() {
                           variant={isCompleted ? 'default' : progress > 0 ? 'secondary' : 'outline'}
                           className={isCompleted ? 'bg-honey text-secondary' : ''}
                         >
-                          {isCompleted ? 'Completed' : progress > 0 ? 'In Progress' : 'Not Started'}
+                          {isCompleted ? t('education.status.completed') : progress > 0 ? t('education.status.inProgress') : t('education.status.notStarted')}
                         </Badge>
 
                         <Button 
                           className="w-full bg-honey text-secondary hover:bg-honey/90"
                           onClick={() => setSelectedCourseId(course.id)}
                         >
-                          {isCompleted ? 'Review Course' : progress > 0 ? 'Continue Learning' : 'Start Course'}
+                          {isCompleted ? t('education.actions.reviewCourse') : progress > 0 ? t('education.actions.continueLearning') : t('education.actions.startCourse')}
                         </Button>
                       </CardContent>
                     </Card>

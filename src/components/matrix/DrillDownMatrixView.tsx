@@ -171,7 +171,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
       }
     } catch (error: any) {
       console.error('Error loading matrix data:', error);
-      setError(error.message || 'Failed to load matrix data');
+      setError(error.message || t('matrix.errors.loadFailed'));
     } finally {
       setLoading(false);
     }

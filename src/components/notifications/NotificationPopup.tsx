@@ -285,7 +285,7 @@ export default function NotificationPopup({
                           data-testid={`action-popup-${notification.id}`}
                         >
                           <ExternalLink className="w-3 h-3 mr-1" />
-                          {notification.actionType || 'Act'}
+                          {notification.actionType || t('notifications.actions.act')}
                         </Button>
                       )}
                       

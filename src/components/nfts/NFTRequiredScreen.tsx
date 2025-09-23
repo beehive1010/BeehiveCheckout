@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import ClaimMembershipButton from '../membership/ClaimMembershipButton';
+import { WelcomeLevel1ClaimButton } from '../membership/WelcomeLevel1ClaimButton';
 import { useI18n } from '../../contexts/I18nContext';
 import { useToast } from '../../hooks/use-toast';
 
@@ -70,22 +70,13 @@ export function NFTRequiredScreen({ walletAddress }: NFTRequiredScreenProps) {
                 {t('dashboard.nftRequired.premiumDescription')}
               </p>
 
-              <ClaimMembershipButton
-                walletAddress={walletAddress}
-                level={1}
+              <WelcomeLevel1ClaimButton
                 onSuccess={() => {
                   toast({
                     title: t('dashboard.nftRequired.purchaseSuccess.title'),
                     description: t('dashboard.nftRequired.purchaseSuccess.description'),
                   });
                   window.location.reload();
-                }}
-                onError={(error) => {
-                  toast({
-                    title: t('dashboard.nftRequired.purchaseError.title'),
-                    description: error || t('dashboard.nftRequired.purchaseError.description'),
-                    variant: 'destructive',
-                  });
                 }}
                 className="w-full"
               />

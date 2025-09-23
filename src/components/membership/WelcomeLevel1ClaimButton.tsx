@@ -60,9 +60,8 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         }
         
         const result = await sendTransaction({
-          transaction,
-          account,
-          gasless: useGasless, // Enable/disable gas sponsorship based on parameter
+          transaction: transaction as any,
+          account: account as any,
         });
         
         console.log(`✅ ${description} successful ${gasMode} on attempt ${attempt}`);
@@ -404,8 +403,6 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           to: account.address,
           tokenId: BigInt(1),
           quantity: BigInt(1),
-          currency: PAYMENT_TOKEN_CONTRACT,
-          pricePerToken: LEVEL_1_PRICE_WEI.toString(),
         });
         claimMethod = 'claimTo with price';
         console.log('✅ Successfully prepared claimTo transaction with price');
@@ -572,7 +569,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         
         // Try fallback activation using database function directly
         try {
-          const fallbackResponse = await supabase.rpc('activate_membership_fallback', {
+          const fallbackResponse = await (supabase as any).rpc('activate_membership_fallback', {
             p_wallet_address: account.address,
             p_referrer_wallet: referrerWallet || null,
             p_transaction_hash: claimTxResult.transactionHash,

@@ -2,12 +2,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../contexts/I18nContext';
 import { useWallet } from '../hooks/useWallet';
 import { useLocation } from 'wouter';
+import { useMultilingualNFTs } from '../hooks/useMultilingualContent';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { MultilingualText } from '../components/shared/MultilingualContent';
 import { useToast } from '../hooks/use-toast';
-import { Megaphone, Package, ArrowRight, Star, Loader2, ShoppingCart, Eye, Sparkles, Palette } from 'lucide-react';
+import { Megaphone, Package, ArrowRight, Star, Loader2, ShoppingCart, Eye, Sparkles, Palette, Languages } from 'lucide-react';
 import { supabase, orderService } from '../lib/supabaseClient';
 
 interface AdvertisementNFT {
@@ -28,6 +30,11 @@ interface AdvertisementNFT {
   metadata: any;
   created_at: string;
   updated_at: string;
+  // 多语言支持
+  language?: string;
+  language_code?: string;
+  translations?: Record<string, { title?: string; description?: string; category?: string; }>;
+  available_languages?: string[];
 }
 
 interface MerchantNFT {
@@ -45,6 +52,11 @@ interface MerchantNFT {
   metadata: any;
   created_at: string;
   updated_at: string;
+  // 多语言支持
+  language?: string;
+  language_code?: string;
+  translations?: Record<string, { title?: string; description?: string; category?: string; }>;
+  available_languages?: string[];
 }
 
 interface NFTPurchase {
@@ -65,15 +77,8 @@ export default function NFTs() {
   const { t, language } = useI18n();
   const { walletAddress, bccBalance, currentLevel } = useWallet();
   
-  // Helper function to get translated content from NFT metadata
-  const getTranslatedContent = (nft: AdvertisementNFT | MerchantNFT, field: 'title' | 'description' | 'category') => {
-    const translations = nft.metadata?.translations;
-    if (translations && translations[language] && translations[language][field]) {
-      return translations[language][field];
-    }
-    // Fallback to default field value
-    return nft[field] || '';
-  };
+  // 使用多语言NFT钩子
+  const { nfts: multilingualNFTs, loading: nftsLoading, error: nftsError } = useMultilingualNFTs(language);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
@@ -96,47 +101,43 @@ export default function NFTs() {
     error: null
   });
 
-  // Fetch Advertisement NFTs from Supabase
+  // Fetch Advertisement NFTs using multilingual API
   const fetchAdvertisementNFTs = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('advertisement_nfts')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setAdvertisementNFTs(data || []);
+      const { multilingualNFTsApi } = await import('../api/nfts/multilingual-nfts.api');
+      const data = await multilingualNFTsApi.getAdvertisementNFTs(language, {
+        is_active: true,
+        limit: 50
+      });
+      setAdvertisementNFTs(data);
     } catch (error) {
-      console.error('Error fetching advertisement NFTs:', error);
+      console.error('Error fetching multilingual advertisement NFTs:', error);
       toast({
-        title: "Error",
-        description: "Failed to load advertisement NFTs",
+        title: t('nfts.errors.loadFailed'),
+        description: t('nfts.errors.loadAdvertisementFailed'),
         variant: "destructive"
       });
     }
-  }, [toast]);
+  }, [language, toast]);
 
-  // Fetch Merchant NFTs from Supabase
+  // Fetch Merchant NFTs using multilingual API
   const fetchMerchantNFTs = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('merchant_nfts')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setMerchantNFTs(data || []);
+      const { multilingualNFTsApi } = await import('../api/nfts/multilingual-nfts.api');
+      const data = await multilingualNFTsApi.getMerchantNFTs(language, {
+        is_active: true,
+        limit: 50
+      });
+      setMerchantNFTs(data);
     } catch (error) {
-      console.error('Error fetching merchant NFTs:', error);
+      console.error('Error fetching multilingual merchant NFTs:', error);
       toast({
-        title: "Error",
-        description: "Failed to load merchant NFTs",
+        title: t('nfts.errors.loadFailed'),
+        description: t('nfts.errors.loadMerchantFailed'),
         variant: "destructive"
       });
     }
-  }, [toast]);
+  }, [language, toast]);
 
   // Fetch user's NFT purchases from Supabase
   const fetchMyPurchases = useCallback(async () => {
@@ -154,8 +155,8 @@ export default function NFTs() {
     } catch (error) {
       console.error('Error fetching user purchases:', error);
       toast({
-        title: "Error",
-        description: "Failed to load your NFT purchases",
+        title: t('nfts.errors.loadFailed'),
+        description: t('nfts.errors.loadPurchasesFailed'),
         variant: "destructive"
       });
     }
@@ -429,13 +430,38 @@ export default function NFTs() {
                       className="w-full h-48 object-cover rounded-lg mb-3"
                     />
                     <Badge className="w-fit bg-blue-500/20 text-blue-400 border-blue-500/30">
-                      {getTranslatedContent(nft, 'category')}
+                      <MultilingualText
+                        text={nft.category}
+                        language={nft.language_code || nft.language}
+                        translations={nft.translations ? Object.fromEntries(
+                          Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.category || nft.category])
+                        ) : {}}
+                        autoTranslate={true}
+                      />
                     </Badge>
-                    <CardTitle className="text-lg text-foreground">{getTranslatedContent(nft, 'title')}</CardTitle>
+                    <CardTitle className="text-lg text-foreground">
+                      <MultilingualText
+                        text={nft.title}
+                        language={nft.language_code || nft.language}
+                        translations={nft.translations ? Object.fromEntries(
+                          Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.title || nft.title])
+                        ) : {}}
+                        autoTranslate={true}
+                      />
+                    </CardTitle>
                   </CardHeader>
                   
                   <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground line-clamp-3">{getTranslatedContent(nft, 'description')}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-3">
+                      <MultilingualText
+                        text={nft.description}
+                        language={nft.language_code || nft.language}
+                        translations={nft.translations ? Object.fromEntries(
+                          Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.description || nft.description])
+                        ) : {}}
+                        autoTranslate={true}
+                      />
+                    </p>
                     
                     <div className="flex items-center justify-between">
                       <div className="text-center">

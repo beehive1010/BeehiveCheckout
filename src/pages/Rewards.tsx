@@ -152,7 +152,7 @@ export default function Rewards() {
           type: reward.status || 'layer_reward',
           amount: reward.reward_amount || 0,
           currency: 'USDC',
-          date: reward.claimed_at || reward.created_at || 'Unknown',
+          date: reward.claimed_at || reward.created_at || t('common.unknown'),
           status: reward.status === 'claimed' ? 'completed' : reward.status as 'pending' | 'completed' | 'failed',
           description: `Layer ${reward.triggering_nft_level} reward`
         })) || []
@@ -162,7 +162,7 @@ export default function Rewards() {
 
     } catch (err) {
       console.error('Rewards data fetch error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load rewards');
+      setError(err instanceof Error ? err.message : t('rewards.errors.loadFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -210,7 +210,7 @@ export default function Rewards() {
         // Reload data
         await loadRewardsData();
       } else {
-        throw new Error(data?.error || 'Failed to claim rewards');
+        throw new Error(data?.error || t('rewards.errors.claimFailed'));
       }
 
     } catch (err) {
@@ -252,10 +252,10 @@ export default function Rewards() {
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8">
         <div className="flex-1">
           <h1 className="text-3xl lg:text-4xl font-bold text-honey mb-2">
-            {t('nav.rewards') || 'Rewards & Earnings'}
+            {t('nav.rewards')}
           </h1>
           <p className="text-lg text-muted-foreground">
-            {t('rewards.subtitle') || 'Track your earnings, claim rewards, and monitor performance'}
+            {t('rewards.subtitle')}
           </p>
         </div>
       </div>
@@ -332,10 +332,10 @@ export default function Rewards() {
       {/* Main Content with Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">{t('rewards.tabs.overview') || 'Overview'}</TabsTrigger>
-          <TabsTrigger value="rollup">{t('rewards.tabs.rollup') || 'Rollup'}</TabsTrigger>
-          <TabsTrigger value="withdrawal">{t('rewards.tabs.withdrawal') || 'Withdraw'}</TabsTrigger>
-          <TabsTrigger value="history">{t('rewards.tabs.history') || 'History'}</TabsTrigger>
+          <TabsTrigger value="overview">{t('rewards.tabs.overview')}</TabsTrigger>
+          <TabsTrigger value="rollup">{t('rewards.tabs.rollup')}</TabsTrigger>
+          <TabsTrigger value="withdrawal">{t('rewards.tabs.withdrawal')}</TabsTrigger>
+          <TabsTrigger value="history">{t('rewards.tabs.history')}</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -348,27 +348,27 @@ export default function Rewards() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Gift className="h-5 w-5 text-honey" />
-            {t('rewards.rewardSystemInfo') || 'Reward System Information'}
+            {t('rewards.rewardSystemInfo')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h4 className="font-semibold mb-3">{t('rewards.matrixRewardsTitle') || 'Matrix Rewards'}</h4>
+              <h4 className="font-semibold mb-3">{t('rewards.matrixRewardsTitle')}</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• {t('rewards.level1Direct') || 'Level 1 Direct: $30 USDC per referral'}</li>
-                <li>• {t('rewards.level2Matrix') || 'Level 2 Matrix: $10 USDC per position'}</li>
-                <li>• {t('rewards.spilloverBonuses') || 'Spillover Bonuses: Additional rewards'}</li>
+                <li>• {t('rewards.level1Direct')}</li>
+                <li>• {t('rewards.level2Matrix')}</li>
+                <li>• {t('rewards.spilloverBonuses')}</li>
                 <li>• {t('rewards.claimWindow') || '72-hour claim window'}</li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-3">{t('rewards.bccTokenRewardsTitle') || 'BCC Token Rewards'}</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• {t('rewards.bccTransferable') || 'Transferable BCC: Immediate use'}</li>
-                <li>• {t('rewards.bccLocked') || 'Locked BCC: Tier-based release'}</li>
-                <li>• {t('rewards.bccMultipliers') || 'Tier multipliers: 1.0x, 0.5x, 0.25x, 0.125x'}</li>
-                <li>• {t('rewards.bccUpgrades') || 'Level upgrades unlock more BCC'}</li>
+                <li>• {t('rewards.bccTransferable')}</li>
+                <li>• {t('rewards.bccLocked')}</li>
+                <li>• {t('rewards.bccMultipliers')}</li>
+                <li>• {t('rewards.bccUpgrades')}</li>
               </ul>
             </div>
           </div>
@@ -392,7 +392,7 @@ export default function Rewards() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Award className="h-5 w-5 text-green-400" />
-                {t('rewards.recentRewards') || 'Recent Rewards'}
+                {t('rewards.recentRewards')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -427,7 +427,7 @@ export default function Rewards() {
                 </div>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
-                  {t('rewards.noHistory') || 'No reward history yet'}
+                  {t('rewards.noHistory')}
                 </div>
               )}
             </CardContent>

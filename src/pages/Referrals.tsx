@@ -25,8 +25,8 @@ export default function Referrals() {
   const copyReferralLink = () => {
     navigator.clipboard.writeText(referralLink);
     toast({
-      title: t('referrals.copied.title') || "Copied!",
-      description: t('referrals.copied.description') || "Referral link copied to clipboard",
+      title: t('referrals.copied.title'),
+      description: t('referrals.copied.description'),
       duration: 2000
     });
   };
@@ -37,10 +37,10 @@ export default function Referrals() {
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8">
         <div className="flex-1">
           <h1 className="text-3xl lg:text-4xl font-bold text-honey mb-2">
-            {t('nav.referrals') || 'Referrals & Team'}
+            {t('nav.referrals')}
           </h1>
           <p className="text-lg text-muted-foreground">
-            {t('referrals.subtitle') || 'Manage your referral network and track team performance'}
+            {t('referrals.subtitle')}
           </p>
         </div>
         <UserProfileCard variant="compact" />
@@ -51,7 +51,7 @@ export default function Referrals() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-honey">
             <ShareIcon className="w-5 h-5" />
-            {t('referrals.yourLink') || 'Your Referral Link'}
+            {t('referrals.yourLink')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -66,11 +66,11 @@ export default function Referrals() {
               onClick={copyReferralLink}
               className="bg-honey text-secondary hover:bg-honey/90 w-full sm:w-auto px-4 py-2"
             >
-              {t('referrals.copy') || 'Copy'}
+              {t('referrals.copy')}
             </Button>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            {t('referrals.linkDescription') || 'Share this link to earn rewards when people join through your referral and activate membership'}
+            {t('referrals.linkDescription')}
           </p>
         </CardContent>
       </Card>
@@ -79,7 +79,7 @@ export default function Referrals() {
       <Tabs defaultValue="matrix" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="matrix">{t('referrals.tabs.matrix') || '3x3 Matrix'}</TabsTrigger>
-          <TabsTrigger value="stats">{t('referrals.tabs.stats') || 'Statistics'}</TabsTrigger>
+          <TabsTrigger value="stats">{t('referrals.tabs.stats')}</TabsTrigger>
         </TabsList>
 
         {/* Matrix Network Tab */}
@@ -107,7 +107,7 @@ export default function Referrals() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <UsersIcon className="w-4 h-4 text-honey" />
-                {t('referrals.recentActivity') || 'Recent Activity'}
+                {t('referrals.recentActivity')}
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
@@ -131,14 +131,14 @@ export default function Referrals() {
                             {referral.walletAddress?.slice(0, 6)}...{referral.walletAddress?.slice(-4)}
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
-                            {referral.joinedAt ? new Date(referral.joinedAt).toLocaleDateString() : 'Recent'}
+                            {referral.joinedAt ? new Date(referral.joinedAt).toLocaleDateString() : t('referrals.recent')}
                           </p>
                         </div>
                         <Badge 
                           variant={referral.activated ? 'default' : 'secondary'} 
                           className="text-xs px-2 py-1 flex-shrink-0"
                         >
-                          {referral.activated ? 'Active' : 'Pending'}
+                          {referral.activated ? t('common.active') : t('common.pending')}
                         </Badge>
                       </div>
                     ))}
@@ -166,7 +166,7 @@ export default function Referrals() {
       <div className="mt-8 text-center">
         <Link href="/dashboard">
           <Button variant="outline" className="w-full sm:w-auto">
-            ← {t('common.back') || 'Back to Dashboard'}
+            ← {t('common.back')}
           </Button>
         </Link>
       </div>

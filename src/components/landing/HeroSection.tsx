@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { StatsBar } from './StatsBar';
+import { useI18n } from '../../contexts/I18nContext';
 import styles from '../../styles/landing/landing.module.css';
 
 interface HeroSectionProps {
@@ -9,6 +10,7 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ title, subtitle, getStartedText }: HeroSectionProps) {
+  const { t } = useI18n();
   const [isVisible, setIsVisible] = useState(false);
   
   useEffect(() => {
@@ -136,9 +138,9 @@ export function HeroSection({ title, subtitle, getStartedText }: HeroSectionProp
         {/* Enhanced Feature Highlights */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center max-w-5xl mx-auto">
           {[
-            { icon: '🔗', title: 'Smart Contracts', desc: '100% automated blockchain execution', gradient: 'from-blue-400 to-cyan-400' },
-            { icon: '💎', title: 'NFT Marketplace', desc: 'Trade exclusive Beehive NFTs', gradient: 'from-purple-400 to-pink-400' },
-            { icon: '🎯', title: 'Matrix Rewards', desc: 'Exponential wealth growth system', gradient: 'from-green-400 to-emerald-400' }
+            { icon: '🔗', title: t('landing.features.smartContracts.title'), desc: t('landing.features.smartContracts.description'), gradient: 'from-blue-400 to-cyan-400' },
+            { icon: '💎', title: t('landing.features.nftMarketplace.title'), desc: t('landing.features.nftMarketplace.description'), gradient: 'from-purple-400 to-pink-400' },
+            { icon: '🎯', title: t('landing.features.matrixRewards.title'), desc: t('landing.features.matrixRewards.description'), gradient: 'from-green-400 to-emerald-400' }
           ].map((feature, index) => (
             <div key={index} className="group relative">
               {/* Card Background with Glow */}

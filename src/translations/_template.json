@@ -17,6 +17,138 @@
     "backToProfile": "",
     "cancel": ""
   },
+  "matrixExplanation": {
+    "title": "",
+    "subtitle": "",
+    "matrixStructure": "",
+    "placementRules": {
+      "title": "",
+      "rule1": "",
+      "rule2": "",
+      "rule3": ""
+    },
+    "rewardSystem": {
+      "title": "",
+      "rule1": "",
+      "rule2": "",
+      "rule3": ""
+    },
+    "membershipLevels": {
+      "title": "",
+      "level1": {
+        "title": "",
+        "price": "",
+        "description": ""
+      },
+      "level2to19": {
+        "title": "",
+        "price": "",
+        "description": ""
+      },
+      "level19": {
+        "title": "",
+        "price": "",
+        "description": ""
+      }
+    },
+    "bccRewards": {
+      "title": "",
+      "tier1": "",
+      "levelProgression": "",
+      "activationBonus": ""
+    },
+    "specialRules": {
+      "title": "",
+      "level2Requirement": "",
+      "sequentialPurchases": "",
+      "pendingWindow": ""
+    }
+  },
+  "auth": {
+    "completingAuthentication": "",
+    "authenticationSuccessful": "",
+    "redirectingToDashboard": "",
+    "backToLogin": ""
+  },
+  "landing": {
+    "hero": {
+      "title": "",
+      "subtitle": ""
+    },
+    "getStarted": "",
+    "matrix": {
+      "explainTitle": "",
+      "explainDescription": "",
+      "explainButton": ""
+    },
+    "features": {
+      "membership": {
+        "title": "",
+        "description": ""
+      },
+      "referral": {
+        "title": "",
+        "description": ""
+      },
+      "education": {
+        "title": "",
+        "description": ""
+      },
+      "marketplace": {
+        "title": "",
+        "description": ""
+      },
+      "tokens": {
+        "title": "",
+        "description": ""
+      },
+      "rewards": {
+        "title": "",
+        "description": ""
+      }
+    },
+    "stats": {
+      "membershipLevels": "",
+      "matrixSystem": "",
+      "nftMarketplace": ""
+    },
+    "platformFeatures": {
+      "title": "",
+      "subtitle": "",
+      "exclusiveLevels": "",
+      "exclusiveCollections": "",
+      "autoPlacement": "",
+      "dualTokenSystem": "",
+      "premiumCourses": "",
+      "countdown": ""
+    },
+    "ctaStats": {
+      "membershipLevels": "",
+      "matrixSystem": "",
+      "earningPotential": ""
+    },
+    "howItWorks": {
+      "title": "",
+      "subtitle": "",
+      "step1": {
+        "title": "",
+        "description": ""
+      },
+      "step2": {
+        "title": "",
+        "description": ""
+      },
+      "step3": {
+        "title": "",
+        "description": ""
+      }
+    },
+    "cta": {
+      "title": "",
+      "description": "",
+      "button": ""
+    }
+  },
   "dashboard": {
     "welcomeBack": "",
     "welcomeMember": "",
@@ -255,85 +387,6 @@
   "header": {
     "connectWallet": ""
   },
-  "landing": {
-    "hero": {
-      "title": "",
-      "subtitle": ""
-    },
-    "getStarted": "",
-    "matrix": {
-      "explainTitle": "",
-      "explainDescription": "",
-      "explainButton": ""
-    },
-    "features": {
-      "membership": {
-        "title": "",
-        "description": ""
-      },
-      "referral": {
-        "title": "",
-        "description": ""
-      },
-      "education": {
-        "title": "",
-        "description": ""
-      },
-      "marketplace": {
-        "title": "",
-        "description": ""
-      },
-      "tokens": {
-        "title": "",
-        "description": ""
-      },
-      "rewards": {
-        "title": "",
-        "description": ""
-      }
-    },
-    "stats": {
-      "membershipLevels": "",
-      "matrixSystem": "",
-      "nftMarketplace": ""
-    },
-    "platformFeatures": {
-      "title": "",
-      "subtitle": "",
-      "exclusiveLevels": "",
-      "exclusiveCollections": "",
-      "autoPlacement": "",
-      "dualTokenSystem": "",
-      "premiumCourses": "",
-      "countdown": ""
-    },
-    "ctaStats": {
-      "membershipLevels": "",
-      "matrixSystem": "",
-      "earningPotential": ""
-    },
-    "howItWorks": {
-      "title": "",
-      "subtitle": "",
-      "step1": {
-        "title": "",
-        "description": ""
-      },
-      "step2": {
-        "title": "",
-        "description": ""
-      },
-      "step3": {
-        "title": "",
-        "description": ""
-      }
-    },
-    "cta": {
-      "title": "",
-      "description": "",
-      "button": ""
-    }
-  },
   "footer": {
     "newsletter": {
       "title": "",
@@ -381,12 +434,51 @@
       "passwordRequired": "",
       "passwordTooShort": "",
       "passwordMismatch": "",
-      "referrerRequired": ""
+      "referrerRequired": "",
+      "alreadyRegistered": "",
+      "alreadyRegisteredDescription": "",
+      "cannotReferSelf": "",
+      "failedToValidateReferrer": "",
+      "referrerNotValid": "",
+      "walletRequired": "",
+      "walletRequiredDescription": "",
+      "referrerRequiredDescription": "",
+      "invalidReferrer": "",
+      "invalidReferrerDescription": "",
+      "registrationFailed": "",
+      "registrationFailedDescription": ""
     },
     "success": "",
+    "successDescription": "",
     "welcomeBack": "",
     "accountExists": "",
     "welcomeMessage": "",
+    "validatingReferrer": "",
+    "invalidReferrer": "",
+    "validReferrer": "",
+    "level": "",
+    "checkingStatus": "",
+    "connected": "",
+    "referralStatus": "",
+    "usernameLabel": "",
+    "emailLabel": "",
+    "nextSteps": "",
+    "nextStepsDescription": {
+      "step1": "",
+      "step2": "",
+      "step3": "",
+      "step4": ""
+    },
+    "registerButton": "",
+    "registeringButton": "",
+    "referralLinkRequired": "",
+    "footerText": "",
+    "referredBy": "",
+    "referralLinkExample": "",
+    "referralRequired": {
+      "title": "",
+      "description": ""
+    },
     "failed": "",
     "unknownError": "",
     "error": {
@@ -398,11 +490,9 @@
       "description": ""
     },
     "optional": "",
-    "referredBy": "",
     "referrerValidationFailed": "",
     "referrerNotActiveMember": "",
     "checkUserError": "",
-    "invalidReferrer": "",
     "memberCreated": "",
     "memberCreatedMessage": "",
     "registrationError": "",
@@ -417,7 +507,6 @@
     "referrerValidated": "",
     "directReferrals": "",
     "teamMembers": "",
-    "nextSteps": "",
     "nextStep1": "",
     "nextStep2": "",
     "nextStep3": "",
@@ -959,6 +1048,13 @@
     "upgradeSuccess": "",
     "upgradeSuccessDescription": "",
     "maxLevelReached": "",
+    "nftDetected": "",
+    "syncingData": "",
+    "refreshNow": "",
+    "usdcPayment": "",
+    "navigating": "",
+    "levelUpgradeTitle": "",
+    "upgradeInstruction": "",
     "status": {
       "owned": "",
       "available": "",
@@ -985,7 +1081,9 @@
       "sequentialUpgrade": "",
       "alreadyOwned": "",
       "level2Requirements": "",
-      "missingPrerequisites": ""
+      "missingPrerequisites": "",
+      "requirementsNotMet": "",
+      "level2ReferralRequirement": ""
     },
     "claiming": {
       "started": "",
@@ -1816,7 +1914,23 @@
       },
       "errors": {
         "loadFailed": "",
-        "copyFailed": ""
+        "copyFailed": "",
+        "loadTreeDataFailed": "",
+        "loadLayerStatsFailed": "",
+        "loadMatrixStatsFailed": "",
+        "loadRecursiveMatrixFailed": ""
+      },
+      "navigation": {
+        "home": "",
+        "features": "",
+        "howItWorks": "",
+        "education": "",
+        "getStarted": ""
+      },
+      "ui": {
+        "unknown": "",
+        "showLess": "",
+        "showAllLayers": ""
       },
       "success": {
         "linkCopied": ""
@@ -1958,6 +2072,12 @@
       "failed": "",
       "failedDesc": ""
     },
+    "errors": {
+      "loadFailed": "",
+      "loadAdvertisementFailed": "",
+      "loadMerchantFailed": "",
+      "loadPurchasesFailed": ""
+    },
     "balance": {
       "available": "",
       "bccBalance": ""
@@ -1974,6 +2094,204 @@
       "art": "",
       "utility": "",
       "collectible": ""
+    }
+  },
+  "bccBalance": {
+    "title": "",
+    "description": "",
+    "totalBalance": "",
+    "balanceBreakdown": "",
+    "transferable": "",
+    "transferableDesc": "",
+    "rewardClaims": "",
+    "rewardClaimsDesc": "",
+    "levelUnlock": "",
+    "levelUnlockDesc": "",
+    "activationBonus": "",
+    "activationBonusDesc": "",
+    "locked": "",
+    "pending": "",
+    "tierInfo": "",
+    "currentPhase": "",
+    "tierMultiplier": "",
+    "totalLockedPhase": "",
+    "nextPhaseAt": "",
+    "activations": "",
+    "transferBcc": "",
+    "transferring": "",
+    "claimRewards": "",
+    "claiming": "",
+    "infoTitle": "",
+    "transferableInfo": "",
+    "lockedInfo": "",
+    "tierInfoDesc": ""
+  },
+  "bccDisplay": {
+    "availableBcc": "",
+    "lockedBcc": "",
+    "totalUsed": "",
+    "totalUnlockedProgress": "",
+    "progressTarget": "",
+    "nextRelease": "",
+    "every72Hours": "",
+    "willBeReleased": "",
+    "latestRelease": "",
+    "bccReleased": "",
+    "releaseReason": "",
+    "scheduledRelease": "",
+    "noLockedBcc": "",
+    "unableToLoad": ""
+  },
+  "bccPurchase": {
+    "loadingOptions": "",
+    "connectWallet": "",
+    "currentBalance": "",
+    "availableForSpending": "",
+    "purchaseTokens": "",
+    "payWithUsdc": "",
+    "purchaseMethod": "",
+    "traditional": "",
+    "web3Shuffle": "",
+    "traditionalDesc": "",
+    "web3ShuffleDesc": "",
+    "purchaseAmount": "",
+    "enterAmount": "",
+    "minAmount": "",
+    "maxAmount": "",
+    "youPay": "",
+    "youReceive": "",
+    "exchangeRate": "",
+    "paymentNetwork": "",
+    "paymentMethod": "",
+    "thirdwebShuffle": "",
+    "directTransfer": "",
+    "chainId": "",
+    "usdcContract": "",
+    "shuffleSupport": "",
+    "yes": "",
+    "no": "",
+    "estimatedTime": "",
+    "createOrder": "",
+    "creatingOrder": "",
+    "orderCreated": "",
+    "completePayment": "",
+    "orderId": "",
+    "amountToPay": "",
+    "youllReceive": "",
+    "network": "",
+    "companyWallet": "",
+    "sendExactly": "",
+    "afterSending": "",
+    "backToConfig": "",
+    "confirmPaymentSent": "",
+    "processingPayment": "",
+    "confirmingPayment": "",
+    "purchaseCompleted": "",
+    "tokensCredited": "",
+    "addedToBalance": "",
+    "buyMoreBcc": "",
+    "browseNfts": "",
+    "web3Buy": {
+      "title": "",
+      "description": "",
+      "instantProcessing": "",
+      "noManualTransfer": "",
+      "autoCredited": "",
+      "supportedNetworks": "",
+      "howItWorks": "",
+      "step1": "",
+      "step2": "",
+      "step3": "",
+      "step4": "",
+      "launchPurchase": "",
+      "useTraditional": "",
+      "invalidConfig": "",
+      "connectWalletAndAmount": "",
+      "purchaseSuccessful": "",
+      "purchaseSuccess": "",
+      "purchaseFailed": "",
+      "purchaseFailedDesc": ""
+    }
+  },
+  "fees": {
+    "calculator": {
+      "title": "",
+      "subtitle": "",
+      "description": "",
+      "transactionDetails": "",
+      "transactionAmount": "",
+      "enterAmount": "",
+      "transactionType": "",
+      "types": {
+        "withdrawal": "",
+        "transfer": "",
+        "bridge": "",
+        "swap": ""
+      },
+      "sourceChain": "",
+      "targetChain": "",
+      "selectTargetChain": "",
+      "transactionPriority": "",
+      "priorities": {
+        "slow": "",
+        "standard": "",
+        "fast": ""
+      },
+      "includeApproval": "",
+      "autoCalculate": "",
+      "calculateFees": "",
+      "calculating": "",
+      "results": {
+        "title": "",
+        "failed": "",
+        "totalCost": "",
+        "percentage": "",
+        "breakdown": "",
+        "networkFee": "",
+        "platformFee": "",
+        "bridgeFee": "",
+        "tokenApproval": "",
+        "estimatedTime": "",
+        "timeMinutes": "",
+        "confirmations": "",
+        "recommendations": ""
+      },
+      "urgency": {
+        "low": "",
+        "medium": "",
+        "high": ""
+      },
+      "chainInfo": {
+        "chainId": "",
+        "usdcContract": "",
+        "bridgeSupport": "",
+        "yes": "",
+        "no": ""
+      },
+      "processing": "",
+      "error": ""
+    }
+  },
+  "guards": {
+    "route": {
+      "checkingAccess": "",
+      "verifyingMembership": "",
+      "walletRequired": "",
+      "connectWalletMessage": "",
+      "goToHome": "",
+      "accessError": "",
+      "tryAgain": "",
+      "loadingUserData": "",
+      "redirecting": "",
+      "accessDenied": ""
+    },
+    "admin": {
+      "verifyingAccess": "",
+      "notAuthenticated": "",
+      "unauthorized": "",
+      "insufficientPermissions": "",
+      "roleRequired": "",
+      "permissionRequired": ""
     }
   }
 }

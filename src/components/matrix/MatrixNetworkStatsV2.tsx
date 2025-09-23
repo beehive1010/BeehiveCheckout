@@ -69,7 +69,7 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
       console.log('📊 Matrix stats response:', result);
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to fetch matrix stats');
+        throw new Error(result.error || t('matrix.errors.loadMatrixStatsFailed'));
       }
 
       const summary = result.data.summary;
@@ -98,7 +98,7 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
 
     } catch (error: any) {
       console.error('❌ Matrix stats loading error:', error);
-      setError(error.message || 'Failed to load matrix statistics');
+      setError(error.message || t('matrix.errors.loadMatrixStatsFailed'));
     } finally {
       setLoading(false);
     }

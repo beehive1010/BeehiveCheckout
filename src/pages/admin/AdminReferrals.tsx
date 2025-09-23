@@ -20,6 +20,7 @@ import {
   Wallet
 } from 'lucide-react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { useIsMobile } from '../../hooks/use-mobile';
 
 interface GlobalMatrixPosition {
   walletAddress: string;
@@ -45,6 +46,7 @@ interface GlobalMatrixVisualization {
 
 export default function AdminReferrals() {
   const { hasPermission } = useAdminAuth();
+  const isMobile = useIsMobile();
   const [matrixPositions, setMatrixPositions] = useState<GlobalMatrixPosition[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');

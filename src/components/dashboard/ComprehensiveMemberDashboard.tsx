@@ -26,7 +26,7 @@ import { useWallet } from '@/hooks/useWallet';
 import { supabase } from '../../lib/supabase';
 import { toast } from 'react-hot-toast';
 import { useI18n } from '@/contexts/I18nContext';
-import MembershipActivationSystem from '../membership/MembershipActivationSystem';
+import { WelcomeLevel1ClaimButton } from '../membership/WelcomeLevel1ClaimButton';
 import ReferralMatrixVisualization from '../referrals/ReferralMatrixVisualization';
 
 interface MemberStats {
@@ -395,7 +395,7 @@ const ComprehensiveMemberDashboard: React.FC = () => {
   }
 
   if (!memberStats || memberStats.currentLevel === 0) {
-    return <MembershipActivationSystem onActivationComplete={loadDashboardData} />;
+    return <WelcomeLevel1ClaimButton onSuccess={loadDashboardData} />;
   }
 
   return (

@@ -231,9 +231,8 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
         }
         
         const result = await sendTransaction({
-          transaction,
-          account,
-          gasless: useGasless,
+          transaction: transaction as any,
+          account: account as any
         });
         
         console.log(`✅ ${description} successful ${gasMode} on attempt ${attempt}`);
@@ -440,9 +439,7 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
         contract: nftContract,
         to: account.address,
         tokenId: BigInt(2), // Level 2 token ID
-        quantity: BigInt(1),
-        pricePerToken: LEVEL_2_PRICE_WEI,
-        currency: PAYMENT_TOKEN_CONTRACT
+        quantity: BigInt(1)
       });
 
       const claimTxResult = await sendTransactionWithRetry(
@@ -458,8 +455,7 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
         client,
         chain: arbitrum,
         transactionHash: claimTxResult.transactionHash,
-        maxBlocksWaitTime: 50,
-        pollingInterval: 2000,
+        maxBlocksWaitTime: 50
       });
       
       console.log('✅ Level 2 NFT claim confirmed');

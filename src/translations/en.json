@@ -46,6 +46,78 @@
     "allPartners": "All Partners",
     "noRecentErrors": "No Recent Errors"
   },
+  "matrixExplanation": {
+    "title": "3×3 Matrix System",
+    "subtitle": "Understanding the Beehive 19-Layer Referral System",
+    "matrixStructure": "Matrix Structure",
+    "placementRules": {
+      "title": "Placement Rules",
+      "rule1": "L → M → R priority placement",
+      "rule2": "Find first incomplete downline layer",
+      "rule3": "Each member maintains 19-layer matrix"
+    },
+    "rewardSystem": {
+      "title": "Reward System",
+      "rule1": "Layer Rewards = NFT price of that level",
+      "rule2": "Root must hold ≥ that level to claim",
+      "rule3": "72-hour upgrade window for pending rewards"
+    },
+    "membershipLevels": {
+      "title": "Membership Levels",
+      "level1": {
+        "title": "Level 1",
+        "price": "130 USDC",
+        "description": "100 USDC NFT + 30 USDC activation"
+      },
+      "level2to19": {
+        "title": "Level 2-19",
+        "price": "+50 USDC each",
+        "description": "Sequential upgrade required"
+      },
+      "level19": {
+        "title": "Level 19",
+        "price": "1000 USDC",
+        "description": "Maximum level"
+      }
+    },
+    "bccRewards": {
+      "title": "BCC Token Rewards",
+      "tier1": "Tier 1 (1-9,999): 10,450 BCC total",
+      "levelProgression": "Level 1: 100 BCC → Level 19: 1000 BCC",
+      "activationBonus": "500 BCC activation bonus"
+    },
+    "specialRules": {
+      "title": "Special Rules",
+      "level2Requirement": "Level 2: Requires 3 direct referrals",
+      "sequentialPurchases": "Sequential NFT purchases required",
+      "pendingWindow": "72-hour pending reward window"
+    }
+  },
+  "auth": {
+    "completingAuthentication": "Completing authentication...",
+    "authenticationSuccessful": "Authentication Successful!",
+    "redirectingToDashboard": "Redirecting to your dashboard...",
+    "backToLogin": "Back to Login"
+  },
+  "landing": {
+    "features": {
+      "smartContracts": {
+        "title": "Smart Contracts",
+        "description": "100% automated blockchain execution"
+      },
+      "nftMarketplace": {
+        "title": "NFT Marketplace", 
+        "description": "Trade exclusive Beehive NFTs"
+      },
+      "matrixRewards": {
+        "title": "Matrix Rewards",
+        "description": "Exponential wealth growth system"
+      }
+    },
+    "cta": {
+      "subtitle": "Join thousands of members earning passive income"
+    }
+  },
   "dashboard": {
     "welcomeBack": "Welcome back, {username}!",
     "welcomeMember": "Welcome back, Member!",
@@ -447,12 +519,54 @@
       "passwordRequired": "Secondary password is required",
       "passwordTooShort": "Password must be at least 6 characters",
       "passwordMismatch": "Passwords do not match",
-      "referrerRequired": "A valid referral link is required to register"
+      "referrerRequired": "A valid referral link is required to register",
+      "alreadyRegistered": "Already Registered",
+      "alreadyRegisteredDescription": "You are already registered! Redirecting to welcome page...",
+      "cannotReferSelf": "You cannot refer yourself",
+      "failedToValidateReferrer": "Failed to validate referrer",
+      "referrerNotValid": "Referrer is not a valid activated member",
+      "walletRequired": "Wallet Required",
+      "walletRequiredDescription": "Please connect your wallet first",
+      "referrerRequired": "Referrer Required",
+      "referrerRequiredDescription": "You must use a valid referral link to register. Please ask an existing member for a referral link.",
+      "invalidReferrer": "Invalid Referrer",
+      "invalidReferrerDescription": "Please check your referral link",
+      "registrationFailed": "Registration Failed",
+      "registrationFailedDescription": "Please try again later"
     },
-    "success": "Registration Successful!",
+    "success": "Registration Successful! 🎉",
+    "successDescription": "Welcome to Beehive! Redirecting to claim your Level 1 NFT...",
     "welcomeBack": "Welcome Back!",
     "accountExists": "Account already exists, no need to register again",
     "welcomeMessage": "Your profile has been created. You can now activate your membership.",
+    "validatingReferrer": "Validating referrer...",
+    "invalidReferrer": "Invalid referrer",
+    "validReferrer": "Valid referrer",
+    "level": "Level",
+    "checkingStatus": "Checking registration status...",
+    "connected": "Connected",
+    "referralStatus": "Referral Status",
+    "usernameLabel": "Username *",
+    "usernamePlaceholder": "Enter your username",
+    "emailLabel": "Email (optional)",
+    "emailPlaceholder": "Enter your email",
+    "nextSteps": "Next Steps",
+    "nextStepsDescription": {
+      "step1": "Complete registration to create your account",
+      "step2": "Claim your Level 1 NFT for 130 USDC (100 NFT + 30 fee)",
+      "step3": "Join the 3x3 matrix referral system",
+      "step4": "Start earning BCC tokens and USDC rewards"
+    },
+    "registerButton": "Register & Join Beehive",
+    "registeringButton": "Registering...",
+    "referralLinkRequired": "Referral Link Required",
+    "footerText": "By registering, you'll be part of the 3x3 matrix referral system.",
+    "referredBy": "Referred by",
+    "referralLinkExample": "💡 Referral links look like:",
+    "referralRequired": {
+      "title": "Referral Required",
+      "description": "You need a valid referral link to join Beehive Community. Please ask an existing member to share their referral link with you."
+    },
     "failed": "Registration Failed",
     "unknownError": "Please try again or contact support if the problem persists.",
     "registering": "Processing...",
@@ -507,7 +621,52 @@
       "description": "You'll receive notifications for BCC rewards, upgrades, and referrals"
     },
     "showLess": "Show less",
-    "showAll": "Show all {{count}} notifications"
+    "showAll": "Show all {{count}} notifications",
+    "viewAll": "View All",
+    "errors": {
+      "fetchStatsFailed": "Failed to fetch notification stats",
+      "fetchNotificationsFailed": "Failed to fetch notifications", 
+      "markAsReadFailed": "Failed to mark notification as read",
+      "markAllAsReadFailed": "Failed to mark all notifications as read",
+      "archiveNotImplemented": "Archive functionality not yet implemented",
+      "deleteNotImplemented": "Delete functionality not yet implemented"
+    },
+    "placeholders": {
+      "searchNotifications": "Search notifications..."
+    },
+    "actions": {
+      "takeAction": "Take Action",
+      "act": "Act"
+    },
+    "fallback": {
+      "recently": "Recently"
+    },
+    "navigation": {
+      "navigatingTo": "Navigating to action"
+    },
+    "settings": {
+      "saved": "Settings Saved",
+      "preferencesUpdated": "Your notification preferences have been updated."
+    },
+    "examples": {
+      "layerRewardTitle": "Layer Reward Available",
+      "layerRewardMessage": "You have a $50 USDT layer reward ready to claim from Layer 1.",
+      "claimNow": "Claim Now",
+      "newReferralTitle": "New Referral Joined", 
+      "newReferralMessage": "Alice has joined your network and activated Level 1 membership.",
+      "viewNetwork": "View Network",
+      "levelUnlockedTitle": "Level 2 Unlocked!",
+      "levelUnlockedMessage": "Congratulations! You can now upgrade to Level 2 membership.",
+      "upgradeNow": "Upgrade Now",
+      "rewardExpiringTitle": "Reward Expiring Soon",
+      "rewardExpiringMessage": "Your $100 layer reward will expire in 24 hours. Claim it now to avoid losing it.",
+      "claimBeforeExpiry": "Claim Before Expiry",
+      "paymentConfirmedTitle": "Payment Confirmed",
+      "paymentConfirmedMessage": "Your NFT Level 2 purchase has been confirmed on the blockchain.",
+      "matrixFilledTitle": "Matrix Layer Filled",
+      "matrixFilledMessage": "Your Layer 1 matrix is now completely filled with active members.",
+      "viewMatrix": "View Matrix"
+    }
   },
   "claim": {
     "walletNotConnected": "Wallet not connected",
@@ -784,7 +943,21 @@
       "title": "Claimable Rewards",
       "claimAll": "Claim All",
       "noRewards": "No claimable rewards",
-      "noRewardsDescription": "Complete tasks and invite referrals to earn rewards"
+      "noRewardsDescription": "Complete tasks and invite referrals to earn rewards",
+      "claimSuccess": "Reward Claimed Successfully! 🎉",
+      "claimFailed": "Claim Failed",
+      "claimFailedDescription": "Failed to claim reward. Please try again.",
+      "withdrawSuccess": "Withdrawal Successful",
+      "withdrawFailed": "Withdrawal Failed",
+      "withdrawFailedDescription": "Failed to withdraw rewards. Please try again.",
+      "walletNotConnected": "Wallet Not Connected",
+      "walletRequiredClaim": "Please connect your wallet to claim rewards.",
+      "walletRequiredWithdraw": "Please connect your wallet to withdraw rewards.",
+      "noBalanceAvailable": "No Balance Available",
+      "noBalanceDescription": "You need to have claimed rewards to withdraw.",
+      "failedToClaim": "Failed to claim reward",
+      "failedToWithdraw": "Failed to initiate withdrawal",
+      "withdrawalSuccessful": "Withdrawal successful"
     },
     "rollup": {
       "title": "Rollup Rewards",
@@ -2194,7 +2367,23 @@
       },
       "errors": {
         "loadFailed": "Failed to load matrix data",
-        "copyFailed": "Failed to copy link"
+        "copyFailed": "Failed to copy link",
+        "loadTreeDataFailed": "Failed to load matrix tree data",
+        "loadLayerStatsFailed": "Failed to load layer statistics",
+        "loadMatrixStatsFailed": "Failed to load matrix statistics",
+        "loadRecursiveMatrixFailed": "Failed to load recursive matrix data"
+      },
+      "navigation": {
+        "home": "Home",
+        "features": "Features", 
+        "howItWorks": "How It Works",
+        "education": "Education",
+        "getStarted": "Get Started"
+      },
+      "ui": {
+        "unknown": "Unknown",
+        "showLess": "Show Less",
+        "showAllLayers": "Show All 19 Layers"
       },
       "success": {
         "linkCopied": "Referral link copied to clipboard!"
@@ -2432,6 +2621,13 @@
     "upgradeSuccess": "Upgrade Successful!",
     "upgradeSuccessDescription": "Your membership has been upgraded successfully",
     "maxLevelReached": "Maximum level reached!",
+    "nftDetected": "🎉 Level 2 NFT Detected!",
+    "syncingData": "Your membership data is syncing. Please refresh the page in a few moments to access Level 3 upgrade.",
+    "refreshNow": "Refresh Now",
+    "usdcPayment": "USDC Payment",
+    "navigating": "Navigating...",
+    "levelUpgradeTitle": "Level {level} Upgrade",
+    "upgradeInstruction": "Scrolled to Quick Upgrade section. Use the upgrade button above to claim Level {level}.",
     "status": {
       "owned": "Owned",
       "available": "Available", 
@@ -2458,7 +2654,9 @@
       "sequentialUpgrade": "You must upgrade to Level {nextLevel} first",
       "alreadyOwned": "You already own Level {level}",
       "level2Requirements": "Level 2 requires 3+ direct referrals",
-      "missingPrerequisites": "Missing required prerequisites"
+      "missingPrerequisites": "Missing required prerequisites",
+      "requirementsNotMet": "Requirements Not Met",
+      "level2ReferralRequirement": "Level 2 requires 3+ direct referrals. You currently have {count}."
     },
     "claiming": {
       "started": "Claiming Level {level}",
@@ -2529,6 +2727,12 @@
       "failed": "Purchase Failed",
       "failedDesc": "Failed to purchase NFT. Please try again."
     },
+    "errors": {
+      "loadFailed": "Error",
+      "loadAdvertisementFailed": "Failed to load advertisement NFTs",
+      "loadMerchantFailed": "Failed to load merchant NFTs",
+      "loadPurchasesFailed": "Failed to load your NFT purchases"
+    },
     "balance": {
       "available": "Available BCC",
       "bccBalance": "BCC Balance"
@@ -2545,6 +2749,205 @@
       "art": "Art",
       "utility": "Utility",
       "collectible": "Collectible"
+    }
+  },
+  "bccBalance": {
+    "title": "BCC Balance",
+    "description": "Beehive Credit Coin balance breakdown and availability",
+    "totalBalance": "Total Balance (All Types)",
+    "balanceBreakdown": "Balance Breakdown",
+    "transferable": "Transferable",
+    "transferableDesc": "Available for spending",
+    "rewardClaims": "Reward Claims",
+    "rewardClaimsDesc": "From layer rewards",
+    "levelUnlock": "Level Unlock",
+    "levelUnlockDesc": "NFT Level {{level}} reward",
+    "activationBonus": "Activation Bonus",
+    "activationBonusDesc": "Level 1 membership unlock",
+    "locked": "Locked",
+    "pending": "Pending",
+    "tierInfo": "Tier Information",
+    "currentPhase": "Current Phase",
+    "tierMultiplier": "Tier Multiplier",
+    "totalLockedPhase": "Total Locked (Phase)",
+    "nextPhaseAt": "Next Phase At",
+    "activations": "activations",
+    "transferBcc": "Transfer BCC",
+    "transferring": "Transferring...",
+    "claimRewards": "Claim Rewards",
+    "claiming": "Claiming...",
+    "infoTitle": "Balance Information",
+    "transferableInfo": "Can be used immediately for purchases and transfers.",
+    "lockedInfo": "BCC that will unlock when specific conditions are met.",
+    "tierInfoDesc": "BCC unlock amounts are determined by your tier phase and halve with each new phase."
+  },
+  "bccDisplay": {
+    "availableBcc": "Available BCC",
+    "lockedBcc": "Locked BCC",
+    "totalUsed": "Total Used",
+    "totalUnlockedProgress": "Total Unlocked Progress",
+    "progressTarget": "Progress towards full BCC unlock (10,000 BCC target)",
+    "nextRelease": "Next BCC Release",
+    "every72Hours": "Every 72 hours",
+    "willBeReleased": "{{amount}} BCC will be released",
+    "latestRelease": "Latest Release",
+    "bccReleased": "+{{amount}} BCC Released",
+    "releaseReason": "Reason: {{reason}}",
+    "scheduledRelease": "Scheduled 72-hour release",
+    "noLockedBcc": "No locked BCC. Upgrade your membership level to unlock more BCC!",
+    "unableToLoad": "Unable to load BCC balance"
+  },
+  "bccPurchase": {
+    "loadingOptions": "Loading purchase options...",
+    "connectWallet": "Connect your wallet to purchase BCC tokens",
+    "currentBalance": "Current BCC Balance",
+    "availableForSpending": "Available for spending on NFTs and courses",
+    "purchaseTokens": "Purchase BCC Tokens",
+    "payWithUsdc": "Pay with USDC to receive BCC tokens for platform purchases",
+    "purchaseMethod": "Purchase Method",
+    "traditional": "Traditional",
+    "web3Shuffle": "Web3 Shuffle",
+    "traditionalDesc": "Manual USDC transfer with order confirmation",
+    "web3ShuffleDesc": "Direct crypto-to-crypto purchase via thirdweb bridge",
+    "purchaseAmount": "Purchase Amount (USDC)",
+    "enterAmount": "Enter USDC amount",
+    "minAmount": "Min: ${{amount}} USDC",
+    "maxAmount": "Max: ${{amount}} USDC",
+    "youPay": "You pay:",
+    "youReceive": "You receive:",
+    "exchangeRate": "Exchange Rate: 1 USDC = {{rate}} BCC",
+    "paymentNetwork": "Payment Network",
+    "paymentMethod": "Payment Method",
+    "thirdwebShuffle": "Thirdweb Shuffle (Recommended)",
+    "directTransfer": "Direct Transfer",
+    "chainId": "Chain ID: {{id}}",
+    "usdcContract": "USDC Contract: {{contract}}",
+    "shuffleSupport": "Shuffle Support: {{support}}",
+    "yes": "Yes",
+    "no": "No",
+    "estimatedTime": "Estimated processing time: {{time}}",
+    "createOrder": "Create Purchase Order",
+    "creatingOrder": "Creating Order...",
+    "orderCreated": "Purchase Order Created",
+    "completePayment": "Complete your payment to receive BCC tokens",
+    "orderId": "Order ID:",
+    "amountToPay": "Amount to Pay:",
+    "youllReceive": "You'll Receive:",
+    "network": "Network:",
+    "companyWallet": "Company Wallet:",
+    "sendExactly": "Send exactly {{amount}} USDC to the company wallet address above on {{network}}.",
+    "afterSending": "After sending the payment, click the confirmation button below. Your BCC tokens will be credited within {{time}}.",
+    "backToConfig": "Back to Configuration",
+    "confirmPaymentSent": "Confirm Payment Sent",
+    "processingPayment": "Processing Payment",
+    "confirmingPayment": "We're confirming your payment and crediting your BCC tokens...",
+    "purchaseCompleted": "Purchase Completed! 🎉",
+    "tokensCredited": "Your BCC tokens have been successfully credited to your account",
+    "addedToBalance": "Added to your balance",
+    "buyMoreBcc": "Buy More BCC",
+    "browseNfts": "Browse NFTs & Courses",
+    "web3Buy": {
+      "title": "ThirdWeb Shuffle Purchase",
+      "description": "Direct crypto-to-crypto conversion",
+      "instantProcessing": "Instant Processing",
+      "noManualTransfer": "No Manual Transfer",
+      "autoCredited": "Auto-Credited",
+      "supportedNetworks": "Supported Networks",
+      "howItWorks": "How Web3 Shuffle Works:",
+      "step1": "1. Connect your wallet with any supported token",
+      "step2": "2. Select the amount and token you want to spend",
+      "step3": "3. Shuffle automatically converts to USDC and credits BCC",
+      "step4": "4. Tokens appear in your balance instantly",
+      "launchPurchase": "Launch Web3 Shuffle Purchase ({{usdcAmount}} USDC → {{bccAmount}} BCC)",
+      "useTraditional": "Use Traditional Method Instead",
+      "invalidConfig": "Invalid Configuration",
+      "connectWalletAndAmount": "Please connect wallet and set purchase amount",
+      "purchaseSuccessful": "🎉 Purchase Successful!",
+      "purchaseSuccess": "Successfully purchased {{amount}} BCC tokens via Web3 bridge",
+      "purchaseFailed": "Purchase Failed",
+      "purchaseFailedDesc": "Failed to complete Web3 purchase. Please try again."
+    }
+  },
+  "fees": {
+    "calculator": {
+      "title": "Real-Time Fee Calculator",
+      "subtitle": "Transaction Fee Estimator",
+      "description": "Get accurate fee estimates with real-time network data",
+      "transactionDetails": "Transaction Details",
+      "transactionAmount": "Transaction Amount (USD)",
+      "enterAmount": "Enter USDC amount",
+      "transactionType": "Transaction Type",
+      "types": {
+        "withdrawal": "💸 Withdrawal",
+        "transfer": "💰 Transfer",
+        "bridge": "🌉 Bridge",
+        "swap": "🔄 Swap"
+      },
+      "sourceChain": "Source Chain",
+      "targetChain": "Target Chain",
+      "selectTargetChain": "Select target chain",
+      "transactionPriority": "Transaction Priority",
+      "priorities": {
+        "slow": "🐢 Slow",
+        "standard": "⚖️ Standard",
+        "fast": "⚡ Fast"
+      },
+      "includeApproval": "Include token approval fee",
+      "autoCalculate": "Auto-calculate on changes",
+      "calculateFees": "Calculate Fees",
+      "calculating": "Calculating...",
+      "results": {
+        "title": "Fee Calculation Results",
+        "failed": "Calculation Failed",
+        "totalCost": "Total Transaction Cost",
+        "percentage": "% of transaction amount",
+        "breakdown": "Fee Breakdown",
+        "networkFee": "Network Fee",
+        "platformFee": "Platform Fee (0.5%)",
+        "bridgeFee": "Bridge Fee",
+        "tokenApproval": "Token Approval",
+        "totalCost": "Total Cost",
+        "estimatedTime": "Estimated Processing Time",
+        "timeMinutes": "Time: ~{{minutes}} minutes",
+        "confirmations": "Confirmations: {{blocks}} blocks",
+        "recommendations": "Recommendations"
+      },
+      "urgency": {
+        "low": "Low",
+        "medium": "Medium", 
+        "high": "High"
+      },
+      "chainInfo": {
+        "chainId": "Chain ID: {{id}}",
+        "usdcContract": "USDC Contract: {{contract}}",
+        "bridgeSupport": "Shuffle Support: {{support}}",
+        "yes": "Yes",
+        "no": "No"
+      },
+      "processing": "Calculating fees with real-time network data...",
+      "error": "Unknown error occurred"
+    }
+  },
+  "guards": {
+    "route": {
+      "checkingAccess": "Checking Access",
+      "verifyingMembership": "Verifying membership...",
+      "walletRequired": "Wallet Required",
+      "connectWalletMessage": "Please connect your wallet to access this feature",
+      "goToHome": "Go to Home",
+      "accessError": "Access Error", 
+      "tryAgain": "Try Again",
+      "loadingUserData": "Loading user data...",
+      "redirecting": "Redirecting...",
+      "accessDenied": "Access Denied"
+    },
+    "admin": {
+      "verifyingAccess": "Verifying admin access...",
+      "notAuthenticated": "Not authenticated",
+      "unauthorized": "Unauthorized access",
+      "insufficientPermissions": "Insufficient permissions",
+      "roleRequired": "Required role: {{role}}",
+      "permissionRequired": "Required permission: {{permission}}"
     }
   },
   "footer": {

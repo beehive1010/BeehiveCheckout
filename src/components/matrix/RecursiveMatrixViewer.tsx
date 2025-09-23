@@ -84,7 +84,7 @@ const RecursiveMatrixViewer: React.FC<RecursiveMatrixViewerProps> = ({
       setSelectedMatrix(walletAddress);
     } catch (error: any) {
       console.error('Error loading recursive matrix data:', error);
-      setError(error.message || 'Failed to load recursive matrix data');
+      setError(error.message || t('matrix.errors.loadRecursiveMatrixFailed'));
     } finally {
       setLoading(false);
     }

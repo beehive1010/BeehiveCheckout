@@ -90,9 +90,8 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
         }
         
         const result = await sendTransaction({
-          transaction,
-          account,
-          gasless: useGasless, // Enable/disable gas sponsorship based on parameter
+          transaction: transaction as any,
+          account: account as any,
         });
         
         console.log(`✅ ${description} successful ${gasMode} on attempt ${attempt}`);
@@ -299,9 +298,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
         contract: nftContract,
         to: account.address,
         tokenId: BigInt(upgradeLevel),
-        quantity: BigInt(1),
-        pricePerToken: finalAmount,
-        currency: PAYMENT_TOKEN_CONTRACT
+        quantity: BigInt(1)
       });
 
       const claimTxResult = await sendTransactionWithRetry(
@@ -317,8 +314,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
         client,
         chain: arbitrum,
         transactionHash: claimTxResult.transactionHash,
-        maxBlocksWaitTime: 50,
-        pollingInterval: 2000,
+        maxBlocksWaitTime: 50
       });
       
       console.log(`✅ Level ${upgradeLevel} NFT claim confirmed`);
@@ -328,6 +324,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
       console.log('✅ Receipt status:', receipt.status);
 
       // Step 7: Process upgrade with database recording (same as original ERC5115ClaimComponent)
+      let activationSuccess = false;
       if (claimTxResult?.transactionHash) {
         console.log(`🚀 Processing Level ${upgradeLevel} upgrade...`);
         setCurrentStep('Processing upgrade...');
@@ -363,7 +360,7 @@ export function LevelUpgradeButton({ onSuccess, targetLevel, className = '' }: L
           console.log('🚀 Activating membership with retry logic...');
           setCurrentStep('Activating membership...');
           
-          let activationSuccess = false;
+          activationSuccess = false;
           const maxRetries = 5;
           const retryDelay = 10000; // 10 seconds
           

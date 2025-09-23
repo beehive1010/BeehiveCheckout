@@ -23,7 +23,10 @@ serve(async (req)=>{
     });
     const { action, ...data } = await req.json();
     const walletAddress = req.headers.get('x-wallet-address');
-    if (!walletAddress) {
+    
+    // Only require wallet address for certain actions
+    const requiresWallet = ['register', 'get-user', 'update-profile'];
+    if (requiresWallet.includes(action) && !walletAddress) {
       throw new Error('Wallet address missing');
     }
     console.log(`📞 Auth request: ${action} - Wallet: ${walletAddress}`);

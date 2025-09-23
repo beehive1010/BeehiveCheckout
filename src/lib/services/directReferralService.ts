@@ -138,7 +138,7 @@ export async function getDirectReferralDetails(referrerWallet: string): Promise<
       return {
         memberWallet: referral.referred_wallet,
         memberName: userData?.username || 'Unknown',
-        referredAt: referral.created_at,
+        referredAt: referral.created_at || 'Unknown',
         isActivated: !!memberData && memberData.current_level > 0,
         memberLevel: memberData?.current_level || 0,
         activationRank: memberData?.activation_sequence || null

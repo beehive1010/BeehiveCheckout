@@ -93,7 +93,7 @@ export function ActiveMembershipClaimButton({
       
     } catch (error) {
       console.error('❌ Error checking USDT allowance:', error);
-      console.error('❌ Error details:', error.message || error);
+      console.error('❌ Error details:', (error as any)?.message || error);
       // Assume approval is needed on error
       setNeedsApproval(true);
     } finally {
@@ -222,7 +222,7 @@ export function ActiveMembershipClaimButton({
       // 保持原始混合大小写格式，不转换为小写
       const { data, error } = await supabase.rpc('activate_nft_level1_membership', {
         p_wallet_address: walletAddress, // 保持原始格式
-        p_referrer_wallet: null // Will be auto-detected from users table
+        p_referrer_wallet: undefined // Will be auto-detected from users table
       });
 
       if (error) {
@@ -333,12 +333,13 @@ export function ActiveMembershipClaimButton({
   if (!account) {
     return (
       <div className={`space-y-4 ${className}`}>
-        <ConnectButton 
-          client={client} 
-          wallets={wallets}
-          chain={arbitrum}
-          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200"
-        />
+        <div className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200">
+          <ConnectButton 
+            client={client} 
+            wallets={wallets}
+            chain={arbitrum}
+          />
+        </div>
         <p className="text-sm text-gray-600 text-center">
           Connect your wallet to claim Level 1 NFT
         </p>
@@ -460,7 +461,7 @@ export function ActiveMembershipClaimButton({
                 to: account.address,
                 tokenId: 1n,
                 quantity: 1n,
-                currencyAddress: USDT_CONTRACT,
+                // currencyAddress: USDT_CONTRACT,
                 pricePerToken: REQUIRED_AMOUNT,
               });
             } catch (error) {

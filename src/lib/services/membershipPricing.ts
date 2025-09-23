@@ -3,11 +3,19 @@ import { supabase } from '../supabase';
 export interface DatabaseMembershipLevel {
   level: number;
   level_name: string;
-  price_usdc: number;
-  bcc_release: number;
-  unlock_layer: number;
-  benefits?: any;
+  nft_price_usdt: number;
+  platform_fee_usdt: number;
+  total_cost_usdt: number;
+  max_layer_members: number;
+  reward_usdt: number;
   is_active: boolean;
+  description?: string;
+  image_url?: string;
+  token_id?: number;
+  // Legacy compatibility fields
+  price_usdc?: number;
+  bcc_release?: number;
+  unlock_layer?: number;
 }
 
 export interface LayerRule {
@@ -26,7 +34,7 @@ export interface LayerRule {
 export async function getMembershipLevelsFromDB(): Promise<DatabaseMembershipLevel[]> {
   try {
     const { data, error } = await supabase
-      .from('nft_levels')
+      .from('nft_membership_levels')
       .select('*')
       .eq('is_active', true)
       .order('level', { ascending: true });
@@ -36,7 +44,7 @@ export async function getMembershipLevelsFromDB(): Promise<DatabaseMembershipLev
       throw error;
     }
 
-    return data || [];
+    return (data || []) as DatabaseMembershipLevel[];
   } catch (error) {
     console.error('❌ Failed to load membership levels from database:', error);
     throw error;
@@ -58,7 +66,7 @@ export async function getLayerRulesFromDB(): Promise<LayerRule[]> {
       throw error;
     }
 
-    return data || [];
+    return (data || []) as LayerRule[];
   } catch (error) {
     console.error('❌ Failed to load layer rules from database:', error);
     throw error;
@@ -71,7 +79,7 @@ export async function getLayerRulesFromDB(): Promise<LayerRule[]> {
 export async function getMembershipLevelFromDB(level: number): Promise<DatabaseMembershipLevel | null> {
   try {
     const { data, error } = await supabase
-      .from('nft_levels')
+      .from('nft_membership_levels')
       .select('*')
       .eq('level', level)
       .eq('is_active', true)
@@ -82,7 +90,7 @@ export async function getMembershipLevelFromDB(level: number): Promise<DatabaseM
       return null;
     }
 
-    return data;
+    return data as DatabaseMembershipLevel;
   } catch (error) {
     console.error(`❌ Failed to load membership level ${level} from database:`, error);
     return null;
@@ -105,7 +113,7 @@ export async function getLayerRuleFromDB(layer: number): Promise<LayerRule | nul
       return null;
     }
 
-    return data;
+    return data as LayerRule;
   } catch (error) {
     console.error(`❌ Failed to load layer rule ${layer} from database:`, error);
     return null;

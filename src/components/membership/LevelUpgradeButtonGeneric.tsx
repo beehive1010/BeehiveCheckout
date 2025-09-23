@@ -159,9 +159,8 @@ export function LevelUpgradeButtonGeneric({
         }
         
         const result = await sendTransaction({
-          transaction,
-          account,
-          gasless: useGasless,
+          transaction: transaction as any,
+          account: account as any
         });
         
         console.log(`✅ ${description} successful ${gasMode} on attempt ${attempt}`);
@@ -367,9 +366,7 @@ export function LevelUpgradeButtonGeneric({
         contract: nftContract,
         to: account.address,
         tokenId: BigInt(targetLevel),
-        quantity: BigInt(1),
-        pricePerToken: LEVEL_PRICE_WEI,
-        currency: PAYMENT_TOKEN_CONTRACT
+        quantity: BigInt(1)
       });
 
       const claimTxResult = await sendTransactionWithRetry(
@@ -385,8 +382,7 @@ export function LevelUpgradeButtonGeneric({
         client,
         chain: arbitrum,
         transactionHash: claimTxResult.transactionHash,
-        maxBlocksWaitTime: 50,
-        pollingInterval: 2000,
+        maxBlocksWaitTime: 50
       });
       
       console.log(`✅ Level ${targetLevel} NFT claim confirmed`);
@@ -396,13 +392,12 @@ export function LevelUpgradeButtonGeneric({
       console.log('✅ Receipt status:', receipt.status);
 
       // Step 7: Process level upgrade using level-upgrade Edge Function
+      let activationSuccess = false;
       if (claimTxResult?.transactionHash) {
         console.log(`🚀 Processing Level ${targetLevel} upgrade via level-upgrade function...`);
         setCurrentStep(`Processing Level ${targetLevel} upgrade...`);
         
         await new Promise(resolve => setTimeout(resolve, 3000));
-        
-        let activationSuccess = false;
         
         try {
           // Call level-upgrade Edge Function for proper processing

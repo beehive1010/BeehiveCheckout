@@ -268,7 +268,7 @@ export default function Dashboard() {
 
     } catch (error: unknown) {
       console.error('❌ Failed to load dashboard data:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load dashboard data';
+      const errorMessage = error instanceof Error ? error.message : t('dashboard.errors.dataLoadFailed');
       setError(errorMessage);
       
       // 重试逻辑

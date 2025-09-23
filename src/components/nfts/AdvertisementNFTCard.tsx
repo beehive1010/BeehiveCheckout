@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useToast } from '../../hooks/use-toast';
 import { useBalance } from '../../hooks/useBalance';
 import { useI18n } from '../../contexts/I18nContext';
+import { MultilingualText } from '../shared/MultilingualContent';
 import { ShoppingCart, Eye, ExternalLink, Zap } from 'lucide-react';
 import { IconCode, IconWallet, IconFlame } from '@tabler/icons-react';
 
@@ -20,6 +21,11 @@ export interface AdvertisementNFT {
   totalSupply: number;
   claimedCount: number;
   createdAt: string;
+  // 多语言支持
+  language?: string;
+  translations?: Record<string, { title?: string; description?: string; serviceName?: string; }>;
+  // 可用语言列表
+  availableLanguages?: string[];
 }
 
 interface AdvertisementNFTCardProps {
@@ -103,7 +109,15 @@ export default function AdvertisementNFTCard({ nft, onPurchase, className = '' }
           <Badge variant="secondary" className={`bg-black/70 text-white border-0 ${getServiceTypeColor(nft.serviceType)}`}>
             <div className="flex items-center gap-1">
               {getServiceTypeIcon(nft.serviceType)}
-              <span className="text-xs">{nft.serviceName}</span>
+              <MultilingualText
+                text={nft.serviceName}
+                language={nft.language}
+                translations={nft.translations ? Object.fromEntries(
+                  Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.serviceName || nft.serviceName])
+                ) : {}}
+                className="text-xs"
+                autoTranslate={true}
+              />
             </div>
           </Badge>
         </div>
@@ -123,14 +137,39 @@ export default function AdvertisementNFTCard({ nft, onPurchase, className = '' }
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle className="text-blue-400">{nft.title}</DialogTitle>
+                <DialogTitle className="text-blue-400">
+                  <MultilingualText
+                    text={nft.title}
+                    language={nft.language}
+                    translations={nft.translations ? Object.fromEntries(
+                      Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.title || nft.title])
+                    ) : {}}
+                    autoTranslate={true}
+                  />
+                </DialogTitle>
                 <DialogDescription>
-                  by {nft.serviceName}
+                  by <MultilingualText
+                    text={nft.serviceName}
+                    language={nft.language}
+                    translations={nft.translations ? Object.fromEntries(
+                      Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.serviceName || nft.serviceName])
+                    ) : {}}
+                    autoTranslate={true}
+                  />
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <img src={nft.imageUrl} alt={nft.title} className="w-full h-48 object-cover rounded-lg" />
-                <p className="text-sm text-muted-foreground">{nft.description}</p>
+                <p className="text-sm text-muted-foreground">
+                  <MultilingualText
+                    text={nft.description}
+                    language={nft.language}
+                    translations={nft.translations ? Object.fromEntries(
+                      Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.description || nft.description])
+                    ) : {}}
+                    autoTranslate={true}
+                  />
+                </p>
                 <div className="flex items-center justify-between">
                   <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
                     {nft.priceBCC} BCC
@@ -148,10 +187,24 @@ export default function AdvertisementNFTCard({ nft, onPurchase, className = '' }
       {/* Card Content */}
       <CardHeader className="pb-3">
         <CardTitle className="text-blue-400 group-hover:text-blue-300 transition-colors text-lg">
-          {nft.title}
+          <MultilingualText
+            text={nft.title}
+            language={nft.language}
+            translations={nft.translations ? Object.fromEntries(
+              Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.title || nft.title])
+            ) : {}}
+            autoTranslate={true}
+          />
         </CardTitle>
         <p className="text-sm text-muted-foreground line-clamp-2">
-          {nft.description}
+          <MultilingualText
+            text={nft.description}
+            language={nft.language}
+            translations={nft.translations ? Object.fromEntries(
+              Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.description || nft.description])
+            ) : {}}
+            autoTranslate={true}
+          />
         </p>
       </CardHeader>
 
