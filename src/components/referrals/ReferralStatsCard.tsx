@@ -83,7 +83,7 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
       }
 
       // Extract downline data from matrix_referrals_view
-      let downlineData = [];
+      let downlineData: any[] = [];
       if (matrixDownlineResult.status === 'fulfilled' && matrixDownlineResult.value.data) {
         downlineData = matrixDownlineResult.value.data;
       }
