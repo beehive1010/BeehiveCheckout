@@ -331,9 +331,8 @@ export default function Rewards() {
 
       {/* Main Content with Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">{t('rewards.tabs.overview') || 'Overview'}</TabsTrigger>
-          <TabsTrigger value="claimable">{t('rewards.tabs.claimable') || 'Claimable'}</TabsTrigger>
           <TabsTrigger value="rollup">{t('rewards.tabs.rollup') || 'Rollup'}</TabsTrigger>
           <TabsTrigger value="withdrawal">{t('rewards.tabs.withdrawal') || 'Withdraw'}</TabsTrigger>
           <TabsTrigger value="history">{t('rewards.tabs.history') || 'History'}</TabsTrigger>
