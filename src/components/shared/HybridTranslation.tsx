@@ -131,7 +131,7 @@ export function HybridTranslation({
     const badgeConfig = {
       original: { text: '原文', icon: Globe, className: 'bg-gray-500/20 text-gray-400' },
       database: { text: '数据库', icon: Languages, className: 'bg-green-500/20 text-green-400' },
-      deepl: { text: 'DeepL', icon: Sparkles, className: 'bg-blue-500/20 text-blue-400' },
+      deepl: { text: getDeepLBadgeText(), icon: Sparkles, className: getDeepLBadgeClass() },
       i18n: { text: 'i18n', icon: Languages, className: 'bg-purple-500/20 text-purple-400' }
     };
 
@@ -151,7 +151,6 @@ export function HybridTranslation({
   };
 
   // 获取语言显示名称
-  // 获取语言显示名称
   const getLanguageName = (code: string): string => {
     const names: Record<string, string> = {
       'en': 'EN',
@@ -163,6 +162,26 @@ export function HybridTranslation({
       'ja': '日本'
     };
     return names[code] || code.toUpperCase();
+  };
+
+  // 获取DeepL徽章文本（根据语言支持情况）
+  const getDeepLBadgeText = (): string => {
+    if (['th', 'ms'].includes(language)) {
+      return 'DeepL→EN'; // 不支持的语言显示为英语替代
+    } else if (language === 'zh-tw') {
+      return 'DeepL→简'; // 繁体转简体
+    }
+    return 'DeepL';
+  };
+
+  // 获取DeepL徽章样式（根据语言支持情况）
+  const getDeepLBadgeClass = (): string => {
+    if (['th', 'ms'].includes(language)) {
+      return 'bg-yellow-500/20 text-yellow-400'; // 替代翻译用黄色
+    } else if (language === 'zh-tw') {
+      return 'bg-orange-500/20 text-orange-400'; // 简繁转换用橙色
+    }
+    return 'bg-blue-500/20 text-blue-400'; // 正常支持用蓝色
   };
 
   // 简单的语言检测 (基于字符模式)

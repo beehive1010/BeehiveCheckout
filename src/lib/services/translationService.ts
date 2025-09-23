@@ -69,6 +69,11 @@ class DeepLProvider implements TranslationProvider {
 
   async translate(text: string, targetLanguage: string, sourceLanguage?: string): Promise<string> {
     try {
+      // 特殊处理不支持的语言
+      if (['th', 'ms'].includes(targetLanguage)) {
+        return await this.handleUnsupportedLanguage(text, targetLanguage, sourceLanguage);
+      }
+
       const targetLang = this.mapLanguageCode(targetLanguage);
       const sourceLang = sourceLanguage && sourceLanguage !== 'auto' ? this.mapLanguageCode(sourceLanguage) : undefined;
 
@@ -83,7 +88,7 @@ class DeepLProvider implements TranslationProvider {
         body.append('source_lang', sourceLang);
       }
 
-      console.log(`🌐 DeepL翻译: ${text.substring(0, 50)}... -> ${targetLanguage}`);
+      console.log(`🌐 DeepL翻译: ${text.substring(0, 50)}... (${sourceLanguage || 'auto'} -> ${targetLanguage})`);
 
       const response = await fetch(this.apiUrl, {
         method: 'POST',
@@ -106,13 +111,70 @@ class DeepLProvider implements TranslationProvider {
       }
 
       const translatedText = data.translations[0].text;
-      console.log(`✅ DeepL翻译成功: ${translatedText.substring(0, 50)}...`);
+      
+      // 对于zh-tw，添加说明
+      if (targetLanguage === 'zh-tw') {
+        console.log(`⚠️ DeepL将繁体中文转换为简体中文: ${translatedText.substring(0, 50)}...`);
+      } else {
+        console.log(`✅ DeepL翻译成功: ${translatedText.substring(0, 50)}...`);
+      }
       
       return translatedText;
     } catch (error) {
       console.error('DeepL API 错误:', error);
       throw error;
     }
+  }
+
+  // 处理DeepL不支持的语言
+  private async handleUnsupportedLanguage(text: string, targetLanguage: string, sourceLanguage?: string): Promise<string> {
+    console.log(`⚠️ DeepL不支持 ${targetLanguage}，翻译为英语作为替代`);
+    
+    // 直接调用核心翻译方法，避免递归
+    const targetLang = 'EN-US';
+    const sourceLang = sourceLanguage && sourceLanguage !== 'auto' ? this.mapLanguageCode(sourceLanguage) : undefined;
+
+    const body = new URLSearchParams({
+      text: text,
+      target_lang: targetLang,
+      formality: 'default',
+      preserve_formatting: '1'
+    });
+
+    if (sourceLang) {
+      body.append('source_lang', sourceLang);
+    }
+
+    const response = await fetch(this.apiUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `DeepL-Auth-Key ${this.apiKey}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: body
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`DeepL API 错误 ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    
+    if (!data.translations || data.translations.length === 0) {
+      throw new Error('DeepL返回的翻译结果为空');
+    }
+
+    const englishResult = data.translations[0].text;
+    
+    // 在结果前添加说明，表明这是英语替代
+    const languageNames = {
+      'th': 'ไทย',
+      'ms': 'Bahasa Malaysia'
+    };
+    
+    console.log(`📝 ${targetLanguage} -> 英语替代翻译完成`);
+    return `[${languageNames[targetLanguage as keyof typeof languageNames] || targetLanguage}] ${englishResult}`;
   }
 
   private mapLanguageCode(code: string): string {
@@ -398,38 +460,22 @@ class TranslationService {
   }
 
   private setupProviders() {
-    // 从环境变量获取API密钥 (使用 import.meta.env 代替 process.env)
+    // 从环境变量获取DeepL API密钥
     const deepLApiKey = import.meta.env.VITE_DEEPL_API_KEY;
-    const googleApiKey = import.meta.env.VITE_GOOGLE_TRANSLATE_API_KEY;
-    const microsoftApiKey = import.meta.env.VITE_MICROSOFT_TRANSLATOR_API_KEY;
-    const microsoftRegion = import.meta.env.VITE_MICROSOFT_TRANSLATOR_REGION;
-    const userEmail = import.meta.env.VITE_USER_EMAIL; // 用于MyMemory提高限制
     
-    // 按优先级添加翻译提供商（DeepL优先）
-    
-    // 1. DeepL (质量最好，50万字符/月免费)
+    // 只使用DeepL提供商
     if (deepLApiKey) {
       this.providers.push(new DeepLProvider(deepLApiKey));
-      console.log('🚀 DeepL翻译服务已启用 (首选)');
+      console.log('🚀 DeepL翻译服务已启用 (单一提供商模式)');
+      console.log('✅ 支持语言: en, zh, zh-tw(→zh), ja, ko | 替代支持: th(→en), ms(→en)');
+    } else {
+      console.warn('⚠️ 未找到DeepL API密钥，翻译功能将不可用');
     }
     
-    // 2. Google Translate (质量优秀，但需要付费API)
-    if (googleApiKey) {
-      this.providers.push(new GoogleTranslateProvider(googleApiKey));
-    }
+    // 添加MyMemory作为纯粹的备选（如果DeepL完全失败）
+    this.providers.push(new MyMemoryProvider());
     
-    // 3. Microsoft Translator (200万字符/月免费)
-    if (microsoftApiKey) {
-      this.providers.push(new MicrosoftTranslatorProvider(microsoftApiKey, microsoftRegion));
-    }
-    
-    // 4. MyMemory (1000次/天免费，无需API密钥)
-    this.providers.push(new MyMemoryProvider(userEmail));
-    
-    // 5. LibreTranslate (完全免费开源，作为最后备选)
-    this.providers.push(new LibreTranslateProvider());
-    
-    console.log(`🌐 翻译服务初始化，可用提供商: ${this.getAvailableProviders().join(', ')}`);
+    console.log(`🌐 翻译服务初始化完成，主要提供商: DeepL`);
   }
 
   private generateCacheKey(text: string, targetLanguage: string, sourceLanguage: string): string {
@@ -437,38 +483,27 @@ class TranslationService {
     return btoa(content).replace(/[^a-zA-Z0-9]/g, '').substring(0, 64);
   }
 
-  // 智能选择最佳翻译提供商
+  // 智能选择最佳翻译提供商 (专门针对只有DeepL的情况)
   private selectBestProvider(targetLanguage: string, sourceLanguage: string): TranslationProvider | null {
-    const availableProviders = this.providers.filter(p => 
-      p.isAvailable() && p.getSupportedLanguages().includes(targetLanguage)
-    );
+    const availableProviders = this.providers.filter(p => p.isAvailable());
 
     if (availableProviders.length === 0) return null;
 
-    // 语言质量优先级映射
-    const qualityMap: Record<string, string[]> = {
-      // DeepL最佳支持的语言
-      'zh': ['DeepL', 'Microsoft Translator', 'Google Translate', 'MyMemory'],
-      'ja': ['DeepL', 'Microsoft Translator', 'Google Translate', 'MyMemory'],
-      'ko': ['DeepL', 'Microsoft Translator', 'Google Translate', 'MyMemory'],
-      'en': ['DeepL', 'Microsoft Translator', 'Google Translate', 'MyMemory'],
-      
-      // 对于DeepL不支持的语言，优先使用其他服务
-      'th': ['Microsoft Translator', 'Google Translate', 'MyMemory', 'LibreTranslate'],
-      'ms': ['Microsoft Translator', 'Google Translate', 'MyMemory', 'LibreTranslate'],
-      'zh-tw': ['Microsoft Translator', 'Google Translate', 'MyMemory', 'DeepL'], // DeepL会转简体
-    };
-
-    const preferredOrder = qualityMap[targetLanguage] || ['DeepL', 'Microsoft Translator', 'Google Translate', 'MyMemory', 'LibreTranslate'];
-
-    for (const providerName of preferredOrder) {
-      const provider = availableProviders.find(p => p.name === providerName);
-      if (provider) {
-        console.log(`🎯 为 ${targetLanguage} 选择最佳提供商: ${provider.name}`);
-        return provider;
+    // 优先选择DeepL（如果可用）
+    const deeplProvider = availableProviders.find(p => p.name === 'DeepL');
+    if (deeplProvider) {
+      // 对于DeepL原生支持的语言，直接使用
+      if (['en', 'zh', 'ja', 'ko'].includes(targetLanguage)) {
+        console.log(`🎯 DeepL原生支持 ${targetLanguage}，使用DeepL`);
+        return deeplProvider;
       }
+      
+      // 对于不支持的语言，仍然使用DeepL但会有特殊处理
+      console.log(`⚠️ ${targetLanguage} 不被DeepL直接支持，将使用最接近的替代方案`);
+      return deeplProvider;
     }
 
+    // 如果没有DeepL，使用其他可用的提供商
     return availableProviders[0];
   }
 

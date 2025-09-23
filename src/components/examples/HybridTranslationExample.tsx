@@ -51,6 +51,12 @@ export default function HybridTranslationExample() {
             数据库 - 已存翻译
           </Badge>
         </div>
+        
+        {/* DeepL语言支持说明 */}
+        <div className="mt-4 text-xs text-muted-foreground text-center space-y-1">
+          <div>🟢 DeepL原生支持: EN, 中文, 日本語, 한국어</div>
+          <div>🟡 替代支持: ไทย(→EN), Bahasa Malaysia(→EN), 繁體(→简)</div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
