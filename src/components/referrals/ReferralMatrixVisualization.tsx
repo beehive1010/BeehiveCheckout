@@ -78,70 +78,46 @@ export default function ReferralMatrixVisualization({
     try {
       setLoading(true);
 
-      // Get referral data from matrix_referrals_tree_view
+      // Get referral data from matrix_team_view
       const { data: matrixPlacements, error } = await supabase
-        .from('matrix_referrals_tree_view')
+        .from('matrix_team_view')
         .select(`
           member_wallet,
-          parent_wallet,
-          layer,
-          position,
-          activation_time
+          matrix_root,
+          matrix_layer,
+          matrix_position,
+          placed_at,
+          is_active,
+          member_name,
+          member_level,
+          placement_type,
+          original_referrer,
+          original_referrer_name
         `)
-        .eq('matrix_root_wallet', effectiveRootWallet)
-        .order('activation_time');
+        .eq('matrix_root', effectiveRootWallet)
+        .order('placed_at');
 
       if (error) {
         throw new Error(`Failed to load matrix data: ${error.message}`);
       }
 
-      // Get additional member info separately
-      const memberWallets = matrixPlacements?.map(p => p.member_wallet) || [];
-      const memberInfo = new Map();
-      const userInfo = new Map();
-
-      if (memberWallets.length > 0) {
-        // Get member data
-        const { data: membersData } = await supabase
-          .from('members')
-          .select('wallet_address, current_level, activation_rank')
-          .in('wallet_address', memberWallets);
-
-        // Get user data  
-        const { data: usersData } = await supabase
-          .from('users')
-          .select('wallet_address, username')
-          .in('wallet_address', memberWallets);
-
-        membersData?.forEach(member => {
-          memberInfo.set(member.wallet_address, member);
-        });
-
-        usersData?.forEach(user => {
-          userInfo.set(user.wallet_address, user);
-        });
-      }
-
-      // Transform data to MatrixMember format
+      // Transform data to MatrixMember format using matrix_team_view data
       const members: MatrixMember[] = matrixPlacements?.map(placement => {
         // Convert position from L/M/R to 1/2/3 for internal use
         let positionNumber = 0;
-        if (placement.position === 'L') positionNumber = 1;
-        else if (placement.position === 'M') positionNumber = 2;
-        else if (placement.position === 'R') positionNumber = 3;
-        else positionNumber = parseInt(placement.position || '0');
-
-        const member = memberInfo.get(placement.member_wallet);
-        const user = userInfo.get(placement.member_wallet);
+        if (placement.matrix_position === 'L') positionNumber = 1;
+        else if (placement.matrix_position === 'M') positionNumber = 2;
+        else if (placement.matrix_position === 'R') positionNumber = 3;
+        else positionNumber = parseInt(placement.matrix_position || '0');
 
         return {
           walletAddress: placement.member_wallet,
-          username: user?.username,
-          level: member?.current_level || 1,
-          layer: placement.layer,
+          username: placement.member_name,
+          level: placement.member_level || 1,
+          layer: placement.matrix_layer,
           position: positionNumber,
-          isActive: (member?.current_level || 0) > 0,
-          placedAt: placement.activation_time,
+          isActive: placement.is_active && (placement.member_level || 0) > 0,
+          placedAt: placement.placed_at,
           downlineCount: 0 // TODO: Calculate downline count
         };
       }) || [];
