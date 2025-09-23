@@ -64,10 +64,10 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
             const position = node.position;
             
             const member: MatrixMember = {
-              walletAddress: node.wallet_address,
-              username: node.username || `User${node.wallet_address.slice(-4)}`,
+              walletAddress: node.member_wallet,
+              username: node.username || `User${node.member_wallet.slice(-4)}`,
               level: node.current_level || 1,
-              isActive: node.is_active || false,
+              isActive: node.is_activated || false,
               layer: layer,
               position: position
             };
