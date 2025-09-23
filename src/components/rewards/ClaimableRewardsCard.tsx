@@ -64,16 +64,16 @@ export default function ClaimableRewardsCard({ walletAddress }: { walletAddress:
         .from('layer_rewards')
         .select(`
           id,
-          amount_usdt,
-          layer,
-          reward_type,
-          payer_wallet,
+          reward_amount,
+          matrix_layer,
+          layer_position,
+          triggering_member_wallet,
+          status,
           created_at,
-          is_claimed
+          claimed_at
         `)
-        .ilike('recipient_wallet', memberWalletAddress)
-        .eq('is_claimed', false)
-        .in('reward_type', ['layer_reward', 'pending_layer_reward'])
+        .ilike('reward_recipient_wallet', memberWalletAddress)
+        .in('status', ['claimable', 'pending'])
         .order('created_at', { ascending: false });
 
       // Simplified matrix position handling (removed dependency on non-existent table)
