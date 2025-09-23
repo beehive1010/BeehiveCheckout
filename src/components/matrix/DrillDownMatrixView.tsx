@@ -100,7 +100,13 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
           };
           
           // Include all members in the current layer for this matrix root
-          if (member.matrix_position === 'L') leftMembers.push(memberData);
+          if (member.position === 'L' || member.position?.includes('L')) {
+            leftMembers.push(memberData);
+          } else if (member.position === 'M' || member.position?.includes('M')) {
+            middleMembers.push(memberData);
+          } else if (member.position === 'R' || member.position?.includes('R')) {
+            rightMembers.push(memberData);
+          }
           else if (member.matrix_position === 'M') middleMembers.push(memberData);
           else if (member.matrix_position === 'R') rightMembers.push(memberData);
         });
