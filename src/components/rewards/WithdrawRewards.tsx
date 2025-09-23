@@ -89,21 +89,37 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
     },
   });
 
-  // Withdraw mutation
+  // Withdraw mutation using server-wallet API
   const withdrawMutation = useMutation({
     mutationFn: async (amount: number) => {
-      const { data, error } = await supabase.rpc('withdraw_member_rewards', {
-        p_wallet_address: walletAddress,
-        p_withdraw_amount: amount,
+      // Call server-wallet function via supabase functions
+      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/server-wallet/withdraw', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'wallet-address': walletAddress,
+        },
+        body: JSON.stringify({
+          amount: amount.toString(),
+          targetChainId: 42161, // Arbitrum
+          tokenAddress: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', // USDT on Arbitrum
+        }),
       });
 
-      if (error) throw error;
-      return data;
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error);
+      }
+
+      return response.json();
     },
     onSuccess: () => {
       setWithdrawAmount('');
       setShowWithdrawForm(false);
       queryClient.invalidateQueries({ queryKey: ['user-balance', walletAddress] });
+      queryClient.invalidateQueries({ queryKey: ['layer-rewards', walletAddress] });
     },
   });
 
