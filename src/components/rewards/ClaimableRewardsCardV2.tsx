@@ -7,7 +7,7 @@ import { Clock, Gift, DollarSign, CheckCircle, ExternalLink, Loader2, ArrowUpLef
 import { useToast } from '@/hooks/use-toast';
 import { useWeb3 } from '@/contexts/Web3Context';
 import { rewardsV2Client, LayerReward, PendingReward } from '@/api/v2/rewards.client';
-import { useClaimableRewardsV2, usePendingRewardsV2 } from '@/hooks/useDashboardV2';
+import { useClaimableRewardsV2, usePendingRewardsV2 } from '@/hooks/useMatrixData';
 
 export default function ClaimableRewardsCardV2({ walletAddress }: { walletAddress: string }) {
   const { toast } = useToast();
