@@ -678,16 +678,18 @@ export default function USDTWithdrawal() {
     setWithdrawalAmount('');
   };
 
-  if (balanceLoading) {
-    return (
-      <Card className="bg-secondary border-border">
-        <CardContent className="p-6 text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-honey" />
-          <p className="text-muted-foreground">Loading USDT balance...</p>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Add comprehensive error handling for the component render
+  try {
+    if (balanceLoading) {
+      return (
+        <Card className="bg-secondary border-border">
+          <CardContent className="p-6 text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-honey" />
+            <p className="text-muted-foreground">Loading USDT balance...</p>
+          </CardContent>
+        </Card>
+      );
+    }
 
   return (
     <Card className="bg-secondary border-border">
@@ -1133,4 +1135,33 @@ export default function USDTWithdrawal() {
       </CardContent>
     </Card>
   );
+  
+  } catch (renderError: any) {
+    console.error('❌ USDTWithdrawal component render error:', renderError);
+    return (
+      <Card className="bg-secondary border-border">
+        <CardContent className="p-6 text-center">
+          <div className="text-red-400 mb-4">
+            <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
+            <h3 className="text-lg font-semibold">Component Error</h3>
+            <p className="text-sm text-muted-foreground mt-2">
+              An error occurred while rendering the withdrawal component.
+            </p>
+            <details className="mt-3 text-xs text-left">
+              <summary className="cursor-pointer">Error Details</summary>
+              <pre className="mt-2 p-2 bg-black/50 rounded overflow-x-auto">
+                {renderError?.message || 'Unknown error'}
+              </pre>
+            </details>
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="mt-4 bg-honey text-black hover:bg-honey/90"
+            >
+              Reload Page
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 }
