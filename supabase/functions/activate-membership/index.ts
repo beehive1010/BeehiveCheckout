@@ -157,12 +157,12 @@ serve(async (req)=>{
     const membershipData = {
       wallet_address: userData.wallet_address, // Use exact case from users table
       nft_level: level,
-      claim_price: data.paymentAmount || 130,
+      claim_price: data.paymentAmount || (level === 1 ? 130 : level === 2 ? 150 : level === 3 ? 200 : 200 + (50 * (level - 3))),
       claimed_at: new Date().toISOString(),
-      is_upgrade: false,
-      previous_level: null,
-      platform_activation_fee: 0,
-      total_cost: data.paymentAmount || 130
+      is_member: true,
+      unlock_membership_level: level + 1, // Dynamic unlock level
+      platform_activation_fee: level === 1 ? 30 : 0, // Only Level 1 has platform fee
+      total_cost: data.paymentAmount || (level === 1 ? 130 : level === 2 ? 150 : level === 3 ? 200 : 200 + (50 * (level - 3)))
     };
     const { data: membership, error: membershipError } = await supabase.from('membership').insert(membershipData).select().single();
     if (membershipError) {
@@ -214,6 +214,20 @@ serve(async (req)=>{
     if (normalizedReferrerWallet && normalizedReferrerWallet !== '0x0000000000000000000000000000000000000001' && memberRecord) {
       try {
         console.log(`🔗 Recording referral for: ${walletAddress} -> ${normalizedReferrerWallet}`);
+        
+        // First, create referrals_new record for view consistency
+        const { error: referralNewError } = await supabase.from('referrals_new').insert({
+          referrer_wallet: normalizedReferrerWallet,
+          referred_wallet: userData.wallet_address,
+          created_at: new Date().toISOString()
+        });
+        
+        if (referralNewError && !referralNewError.message?.includes('duplicate')) {
+          console.warn('⚠️ Failed to create referrals_new record:', referralNewError);
+        } else {
+          console.log(`✅ Referrals_new record created: ${userData.wallet_address} -> ${normalizedReferrerWallet}`);
+        }
+        
         // Use the matrix function to place member and create referral record
         const matrixPlacementResult = await supabase.rpc('place_new_member_in_matrix_correct', {
           p_member_wallet: userData.wallet_address, // Use exact case from users table

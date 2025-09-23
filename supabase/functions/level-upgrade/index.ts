@@ -54,27 +54,27 @@ interface LevelUpgradeResponse {
 
 // Level upgrade configuration based on MarketingPlan.md
 const LEVEL_CONFIG = {
-  // NFT pricing (USDC)
+  // NFT pricing (USDC) - aligned with frontend and activate-membership
   PRICING: {
-    1: 100,   // Level 1: 100 USDC (+ 30 USDC activation fee)
+    1: 130,   // Level 1: 130 USDC (includes 30 USDC platform activation fee)
     2: 150,   // Level 2: 150 USDC
     3: 200,   // Level 3: 200 USDC
-    4: 250,   // Level 4: 250 USDC
-    5: 300,   // Level 5: 300 USDC
-    6: 350,   // Level 6: 350 USDC
-    7: 400,   // Level 7: 400 USDC
-    8: 450,   // Level 8: 450 USDC
-    9: 500,   // Level 9: 500 USDC
-    10: 550,  // Level 10: 550 USDC
-    11: 600,  // Level 11: 600 USDC
-    12: 650,  // Level 12: 650 USDC
-    13: 700,  // Level 13: 700 USDC
-    14: 750,  // Level 14: 750 USDC
-    15: 800,  // Level 15: 800 USDC
-    16: 850,  // Level 16: 850 USDC
-    17: 900,  // Level 17: 900 USDC
-    18: 950,  // Level 18: 950 USDC
-    19: 1000  // Level 19: 1000 USDC
+    4: 250,   // Level 4: 250 USDC (200 + 50*1)
+    5: 300,   // Level 5: 300 USDC (200 + 50*2)
+    6: 350,   // Level 6: 350 USDC (200 + 50*3)
+    7: 400,   // Level 7: 400 USDC (200 + 50*4)
+    8: 450,   // Level 8: 450 USDC (200 + 50*5)
+    9: 500,   // Level 9: 500 USDC (200 + 50*6)
+    10: 550,  // Level 10: 550 USDC (200 + 50*7)
+    11: 600,  // Level 11: 600 USDC (200 + 50*8)
+    12: 650,  // Level 12: 650 USDC (200 + 50*9)
+    13: 700,  // Level 13: 700 USDC (200 + 50*10)
+    14: 750,  // Level 14: 750 USDC (200 + 50*11)
+    15: 800,  // Level 15: 800 USDC (200 + 50*12)
+    16: 850,  // Level 16: 850 USDC (200 + 50*13)
+    17: 900,  // Level 17: 900 USDC (200 + 50*14)
+    18: 950,  // Level 18: 950 USDC (200 + 50*15)
+    19: 1000  // Level 19: 1000 USDC (200 + 50*16)
   },
 
   // BCC unlock amounts (base amounts)
@@ -236,44 +236,74 @@ async function processLevelUpgrade(
       }
     }
 
-    // 4. Update member level and owned levels
-    const newLevelsOwned = [...levelsOwned]
-    if (!newLevelsOwned.includes(targetLevel)) {
-      newLevelsOwned.push(targetLevel)
-    }
-    newLevelsOwned.sort((a, b) => a - b)
-
-    await supabase
-      .from('members')
-      .update({
-        current_level: targetLevel,
-        levels_owned: newLevelsOwned,
-        updated_at: new Date().toISOString()
+    // 4. Create membership record (triggers BCC release and other membership processing)
+    console.log(`💫 Creating membership record for Level ${targetLevel}...`)
+    const { data: membershipData, error: membershipError } = await supabase
+      .from('membership')
+      .insert({
+        wallet_address: walletAddress, // Preserve case
+        nft_level: targetLevel,
+        claim_price: LEVEL_CONFIG.PRICING[targetLevel] || 0,
+        claimed_at: new Date().toISOString(),
+        is_member: true,
+        unlock_membership_level: targetLevel + 1, // Dynamic unlock level
+        total_cost: LEVEL_CONFIG.PRICING[targetLevel] || 0
       })
-      .eq('wallet_address', walletAddress) // Preserve case
+      .select()
+      .single()
 
-    // 5. Process NFT purchase with Layer-Level matching rewards
-    const { data: nftPurchaseResult, error: nftError } = await supabase
-      .rpc('process_nft_purchase_rewards', {
-        p_member_wallet: walletAddress, // Preserve case
-        p_purchased_level: targetLevel
-      })
-
-    if (nftError) {
-      console.error('NFT purchase processing failed:', nftError)
+    if (membershipError) {
+      console.error('Membership record creation failed:', membershipError)
       return {
         success: false,
         action: 'upgrade_level',
-        message: 'Failed to process NFT purchase rewards',
-        error: nftError.message
+        message: 'Failed to create membership record',
+        error: membershipError.message
       }
     }
 
-    const purchaseResult = nftPurchaseResult?.[0] || {}
-    console.log(`✅ NFT purchase processed: ${purchaseResult.member_bcc_released} BCC released, ${purchaseResult.matrix_rewards_triggered} matrix rewards triggered`)
+    console.log(`✅ Membership record created - triggers fired:`, membershipData)
+
+    // 5. Update member level (triggers level upgrade rewards and layer rewards)
+    console.log(`⬆️ Updating member level to ${targetLevel}...`)
+    const { data: memberUpdateResult, error: memberUpdateError } = await supabase
+      .from('members')
+      .update({
+        current_level: targetLevel,
+        updated_at: new Date().toISOString()
+      })
+      .eq('wallet_address', walletAddress) // Preserve case
+      .select()
+      .single()
+
+    if (memberUpdateError) {
+      console.error('Member level update failed:', memberUpdateError)
+      return {
+        success: false,
+        action: 'upgrade_level', 
+        message: 'Failed to update member level',
+        error: memberUpdateError.message
+      }
+    }
+
+    console.log(`✅ Member level updated - upgrade triggers fired:`, memberUpdateResult)
+
+    // 6. Get final results from triggered functions
+    await new Promise(resolve => setTimeout(resolve, 2000)) // Wait for triggers to complete
     
-    // 6. Process pending rewards that can now be claimed (fallback)
-    const pendingResult = await processPendingRewardsForUpgrade(supabase, walletAddress, targetLevel)
+    // Check user balance changes
+    const { data: balanceData } = await supabase
+      .from('user_balances')
+      .select('bcc_balance, pending_bcc_rewards')
+      .eq('wallet_address', walletAddress)
+      .single()
+
+    // Check layer rewards created
+    const { count: layerRewardsCount } = await supabase
+      .from('layer_rewards')
+      .select('*', { count: 'exact' })
+      .eq('triggering_member_wallet', walletAddress)
+      .eq('level', targetLevel)
 
     // 7. Log the upgrade
     await supabase
@@ -286,11 +316,11 @@ async function processLevelUpgrade(
           toLevel: targetLevel,
           transactionHash,
           network,
-          bccUnlocked: purchaseResult.member_bcc_released || 0,
-          matrixRewardsTriggered: purchaseResult.matrix_rewards_triggered || 0,
-          availableRewards: purchaseResult.available_rewards || 0,
-          pendingRewards: purchaseResult.pending_rewards || 0,
-          totalRewardAmount: purchaseResult.total_reward_amount || 0
+          membershipRecordCreated: !!membershipData,
+          memberLevelUpdated: !!memberUpdateResult,
+          bccBalance: balanceData?.bcc_balance || 0,
+          pendingBccRewards: balanceData?.pending_bcc_rewards || 0,
+          layerRewardsTriggered: layerRewardsCount || 0
         }
       })
 
@@ -303,14 +333,13 @@ async function processLevelUpgrade(
       targetLevel,
       upgradeResult: {
         newLevel: targetLevel,
-        bccUnlocked: purchaseResult.member_bcc_released || 0,
-        bccRemaining: purchaseResult.member_bcc_remaining || 0,
-        matrixRewardsTriggered: purchaseResult.matrix_rewards_triggered || 0,
-        availableRewards: purchaseResult.available_rewards || 0,
-        pendingRewards: purchaseResult.pending_rewards || 0,
-        totalRewardAmount: purchaseResult.total_reward_amount || 0
+        membershipCreated: !!membershipData,
+        memberLevelUpdated: !!memberUpdateResult,
+        currentBccBalance: balanceData?.bcc_balance || 0,
+        pendingBccRewards: balanceData?.pending_bcc_rewards || 0,
+        layerRewardsTriggered: layerRewardsCount || 0
       },
-      message: `Successfully upgraded to Level ${targetLevel}! ${purchaseResult.member_bcc_released || 0} BCC unlocked, ${purchaseResult.matrix_rewards_triggered || 0} matrix rewards triggered.`
+      message: `Successfully upgraded to Level ${targetLevel}! Membership record created, level updated, triggers fired for BCC release and layer rewards.`
     }
 
   } catch (error) {

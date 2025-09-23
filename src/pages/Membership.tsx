@@ -10,8 +10,8 @@ import { useToast } from '../hooks/use-toast';
 import { Crown, Shield, Star, Zap, Gift, Lock, CheckCircle, Loader2, ArrowRight, Users, Award } from 'lucide-react';
 import MembershipBadge from '../components/membership/MembershipBadge';
 import { getMembershipLevel } from '../lib/config/membershipLevels';
-import { LevelUpgradeButton } from '../components/membership';
 import { LevelUpgradeButtonGeneric } from '../components/membership/LevelUpgradeButtonGeneric';
+import { Level2ClaimButtonV2 } from '../components/membership/Level2ClaimButtonV2';
 
 interface MembershipLevel {
   level: number;
@@ -372,7 +372,24 @@ export default function Membership() {
                   {t('membership.goToWelcome') || 'Go to Welcome Page →'}
                 </a>
               </div>
-            ) : currentLevel && currentLevel >= 1 && currentLevel < 19 ? (
+            ) : currentLevel === 1 && (directReferralsCount || 0) >= 3 ? (
+              <Level2ClaimButtonV2 
+                onSuccess={() => {
+                  toast({
+                    title: t('membership.upgradeSuccess') || 'Level 2 Upgrade Successful!',
+                    description: t('membership.upgradeSuccessDescription') || 'Your Level 2 membership has been activated successfully',
+                    duration: 5000
+                  });
+                  // Refresh user data and referrals count after successful upgrade
+                  console.log(`✅ Level 2 claim successful - refreshing user data`);
+                  // Add a small delay to ensure database updates have been processed
+                  setTimeout(() => {
+                    queryClient.invalidateQueries({ queryKey: ['user-status', walletAddress] });
+                    queryClient.invalidateQueries({ queryKey: ['/direct-referrals', walletAddress] });
+                  }, 2000);
+                }}
+              />
+            ) : currentLevel && currentLevel >= 2 && currentLevel < 19 ? (
               <LevelUpgradeButtonGeneric 
                 targetLevel={currentLevel + 1}
                 currentLevel={currentLevel}
@@ -392,6 +409,13 @@ export default function Membership() {
                   }, 2000);
                 }}
               />
+            ) : currentLevel === 1 && (directReferralsCount || 0) < 3 ? (
+              <div className="text-center p-8 text-muted-foreground">
+                <p className="mb-2">{t('membership.level2RequiresReferrals') || 'Level 2 requires 3+ direct referrals'}</p>
+                <p className="text-sm">
+                  {t('membership.currentReferrals', { count: directReferralsCount || 0 }) || `Current referrals: ${directReferralsCount || 0}`}
+                </p>
+              </div>
             ) : (
               <div className="text-center p-8 text-muted-foreground">
                 <p>{t('membership.maxLevelReached') || 'Maximum level reached!'}</p>
