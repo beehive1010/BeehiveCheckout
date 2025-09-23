@@ -34,7 +34,7 @@ import {
   useClaimableRewardsV2,
   usePendingRewardsV2,
   useRefreshDashboardV2
-} from '../hooks/useDashboardV2';
+} from '../hooks/useMatrixData';
 import ClaimableRewardsCardV2 from '../components/rewards/ClaimableRewardsCardV2';
 import SimpleMatrixView from '../components/matrix/SimpleMatrixView';
 import { MatrixNetworkStatsV2 } from '../components/matrix/MatrixNetworkStatsV2';
