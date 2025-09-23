@@ -9,9 +9,9 @@ import { Separator } from '../components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useToast } from '../hooks/use-toast';
 import { supabase } from '../lib/supabase';
-import RollupRewardsCard from '../components/rewards/RollupRewardsCard';
+import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
 import RewardsOverview from '../components/rewards/RewardsOverview';
-import USDTWithdrawal from '../components/withdrawal/USDTWithdrawal';
+import { WithdrawRewards } from '../components/rewards/WithdrawRewards';
 import CountdownTimer from '../components/rewards/CountdownTimer';
 import { PendingRewardsTimer } from '../components/rewards/PendingRewardsTimer';
 import { 
@@ -332,7 +332,7 @@ export default function Rewards() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">{t('rewards.tabs.overview') || 'Overview'}</TabsTrigger>
-          <TabsTrigger value="rollup">{t('rewards.tabs.rollup') || 'Rollup'}</TabsTrigger>
+          <TabsTrigger value="claimable">{t('rewards.tabs.claimable') || 'Claimable'}</TabsTrigger>
           <TabsTrigger value="withdrawal">{t('rewards.tabs.withdrawal') || 'Withdraw'}</TabsTrigger>
           <TabsTrigger value="history">{t('rewards.tabs.history') || 'History'}</TabsTrigger>
         </TabsList>
@@ -375,14 +375,14 @@ export default function Rewards() {
       </Card>
         </TabsContent>
 
-        {/* Rollup Tab */}
-        <TabsContent value="rollup" className="space-y-6">
-          <RollupRewardsCard walletAddress={memberWalletAddress || ''} />
+        {/* Claimable Tab */}
+        <TabsContent value="claimable" className="space-y-6">
+          <ClaimableRewardsCard walletAddress={memberWalletAddress || ''} />
         </TabsContent>
 
         {/* Withdrawal Tab */}
         <TabsContent value="withdrawal" className="space-y-6">
-          <USDTWithdrawal />
+          <WithdrawRewards walletAddress={memberWalletAddress || ''} />
         </TabsContent>
 
         {/* History Tab */}

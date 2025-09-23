@@ -45,7 +45,7 @@ export default function RollupRewardsCard({ walletAddress, className }: RollupRe
         .select('*')
         .eq('reward_recipient_wallet', walletAddress)
         .eq('status', 'rolled_up')
-        .order('rolled_up_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (rollupError) throw rollupError;
 
@@ -238,8 +238,8 @@ export default function RollupRewardsCard({ walletAddress, className }: RollupRe
                       Layer {reward.matrix_layer} • Position {reward.layer_position}
                     </div>
                     <div className="text-xs text-orange-500">
-                      {reward.rolled_up_at 
-                        ? `Rolled up: ${new Date(reward.rolled_up_at).toLocaleDateString()}`
+                      {reward.expires_at 
+                        ? `Expired: ${new Date(reward.expires_at).toLocaleDateString()}`
                         : `Created: ${new Date(reward.created_at).toLocaleDateString()}`
                       }
                     </div>
