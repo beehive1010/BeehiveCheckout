@@ -32,6 +32,7 @@ export default function Membership() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [userReferrer, setUserReferrer] = useState<string>('');
+  const [hasLevel2NFT, setHasLevel2NFT] = useState<boolean>(false);
 
   // Fetch user's referrer from members table
   useEffect(() => {
@@ -56,6 +57,46 @@ export default function Membership() {
 
     fetchUserReferrer();
   }, [walletAddress]);
+
+  // Check if user has Level 2 NFT directly from blockchain
+  useEffect(() => {
+    const checkLevel2NFT = async () => {
+      if (!walletAddress) {
+        setHasLevel2NFT(false);
+        return;
+      }
+      
+      try {
+        const { createThirdwebClient, getContract, balanceOf } = await import('thirdweb');
+        const { arbitrum } = await import('thirdweb/chains');
+        
+        const client = createThirdwebClient({
+          clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID
+        });
+        
+        const nftContract = getContract({
+          client,
+          address: '0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8',
+          chain: arbitrum
+        });
+        
+        const level2Balance = await balanceOf({
+          contract: nftContract,
+          owner: walletAddress,
+          tokenId: BigInt(2)
+        });
+        
+        const hasNFT = Number(level2Balance) > 0;
+        setHasLevel2NFT(hasNFT);
+        console.log(`📊 Level 2 NFT check: ${hasNFT ? 'OWNS' : 'DOES NOT OWN'} Level 2 NFT`);
+      } catch (error) {
+        console.warn('⚠️ Failed to check Level 2 NFT ownership:', error);
+        setHasLevel2NFT(false);
+      }
+    };
+
+    checkLevel2NFT();
+  }, [walletAddress, currentLevel]); // Re-check when currentLevel changes
 
   // Fetch user's direct referrals count for Level 2 condition (from referrals table)
   const { data: directReferralsCount } = useQuery({
@@ -372,7 +413,7 @@ export default function Membership() {
                   {t('membership.goToWelcome') || 'Go to Welcome Page →'}
                 </a>
               </div>
-            ) : currentLevel === 1 && (directReferralsCount || 0) >= 3 ? (
+            ) : currentLevel === 1 && (directReferralsCount || 0) >= 3 && !hasLevel2NFT ? (
               <Level2ClaimButtonV2 
                 onSuccess={() => {
                   toast({
@@ -386,9 +427,29 @@ export default function Membership() {
                   setTimeout(() => {
                     queryClient.invalidateQueries({ queryKey: ['user-status', walletAddress] });
                     queryClient.invalidateQueries({ queryKey: ['/direct-referrals', walletAddress] });
+                    queryClient.invalidateQueries({ queryKey: ['/next-unlock-level', walletAddress] });
+                    // Force a complete refetch
+                    queryClient.refetchQueries({ queryKey: ['user-status', walletAddress] });
                   }, 2000);
+                  
+                  // Also try immediate refresh to catch quick database updates
+                  queryClient.invalidateQueries({ queryKey: ['user-status', walletAddress] });
+                  queryClient.invalidateQueries({ queryKey: ['/next-unlock-level', walletAddress] });
                 }}
               />
+            ) : currentLevel === 1 && hasLevel2NFT ? (
+              <div className="text-center p-8 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-lg border border-blue-500/20">
+                <p className="mb-2 text-blue-400 font-semibold">🎉 Level 2 NFT Detected!</p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Your membership data is syncing. Please refresh the page in a few moments to access Level 3 upgrade.
+                </p>
+                <button 
+                  onClick={() => window.location.reload()} 
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  Refresh Now
+                </button>
+              </div>
             ) : currentLevel === 1 && (directReferralsCount || 0) < 3 ? (
               <div className="text-center p-8 text-muted-foreground">
                 <p className="mb-2">{t('membership.level2RequiresReferrals') || 'Level 2 requires 3+ direct referrals'}</p>
@@ -396,10 +457,10 @@ export default function Membership() {
                   {t('membership.currentReferrals', { count: directReferralsCount || 0 }) || `Current referrals: ${directReferralsCount || 0}`}
                 </p>
               </div>
-            ) : currentLevel && currentLevel >= 2 && currentLevel < 19 ? (
+            ) : (currentLevel && currentLevel >= 2 && currentLevel < 19) || (currentLevel === 1 && hasLevel2NFT) ? (
               <LevelUpgradeButtonGeneric 
-                targetLevel={currentLevel + 1}
-                currentLevel={currentLevel}
+                targetLevel={hasLevel2NFT && currentLevel === 1 ? 3 : currentLevel + 1}
+                currentLevel={hasLevel2NFT && currentLevel === 1 ? 2 : currentLevel}
                 directReferralsCount={directReferralsCount || 0}
                 onSuccess={() => {
                   toast({
