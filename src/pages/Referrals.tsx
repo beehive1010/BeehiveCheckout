@@ -84,6 +84,11 @@ export default function Referrals() {
           <TabsTrigger value="stats">{t('referrals.tabs.stats') || 'Statistics'}</TabsTrigger>
         </TabsList>
 
+        {/* Data Test Tab */}
+        <TabsContent value="test">
+          <DataTest walletAddress={walletAddress || ''} />
+        </TabsContent>
+
         {/* Matrix Network Tab */}
         <TabsContent value="matrix" className="space-y-6">
           {/* Matrix Layer Statistics */}
