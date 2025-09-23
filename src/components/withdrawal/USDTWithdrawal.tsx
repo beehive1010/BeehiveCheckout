@@ -618,6 +618,53 @@ export default function USDTWithdrawal() {
           </div>
         )}
         
+        {/* No balance record found - offer to create one */}
+        {balance?.notFound && (
+          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <div className="text-yellow-400 mt-1">
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h4 className="text-sm font-medium text-yellow-400 mb-1">No Balance Record Found</h4>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Your wallet address ({memberWalletAddress?.slice(0, 6)}...{memberWalletAddress?.slice(-4)}) doesn't have a balance record in our system yet.
+                </p>
+                <button
+                  onClick={async () => {
+                    const { supabase } = await import('../../lib/supabase');
+                    try {
+                      await supabase.from('user_balances').insert({
+                        wallet_address: memberWalletAddress,
+                        claimable_reward_balance_usdc: 100, // Test amount
+                        total_rewards_withdrawn_usdc: 0,
+                        updated_at: new Date().toISOString()
+                      });
+                      refetchBalance();
+                      toast({
+                        title: "Test Record Created",
+                        description: "Created a test balance record with 100 USDT",
+                      });
+                    } catch (error) {
+                      console.error('Create balance error:', error);
+                      toast({
+                        title: "Error",
+                        description: "Failed to create balance record",
+                        variant: 'destructive',
+                      });
+                    }
+                  }}
+                  className="px-3 py-1 text-xs bg-yellow-500/20 text-yellow-400 rounded hover:bg-yellow-500/30 transition-colors"
+                >
+                  Create Test Balance (100 USDT)
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {step === 'form' && (
           <>
             {/* Current Wallet & Chain Info */}
