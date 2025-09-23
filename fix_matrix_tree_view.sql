@@ -19,7 +19,7 @@ WITH RECURSIVE referral_tree AS (
         m.current_level,
         u.username,
         0 as depth,
-        ARRAY[m.wallet_address] as path
+        ARRAY[m.wallet_address]::varchar[] as path
     FROM members m
     LEFT JOIN users u ON u.wallet_address = m.wallet_address
     WHERE m.current_level > 0
@@ -61,86 +61,62 @@ WITH matrix_placement AS (
         activation_sequence,
         depth as referral_depth,
         
-        -- 按 activation_time 全局排序，应用 BFS 填充算法
-        ROW_NUMBER() OVER (
-            PARTITION BY root_wallet 
-            ORDER BY activation_time NULLS LAST, activation_sequence NULLS LAST
-        ) as placement_order,
+        -- 按 activation_time 排序的安置顺序（排除根节点）
+        CASE 
+            WHEN member_wallet = root_wallet THEN 0  -- 根节点 placement_order = 0
+            ELSE ROW_NUMBER() OVER (
+                PARTITION BY root_wallet 
+                ORDER BY activation_time NULLS LAST, activation_sequence NULLS LAST
+            ) - 1  -- 非根节点从1开始编号，-1后从0开始
+        END as placement_order,
         
-        -- 计算矩阵层级（BFS 深度优先安置）
+        -- 矩阵层级基于推荐深度（支持19层）
         CASE 
             WHEN member_wallet = root_wallet THEN 0  -- 根节点
-            ELSE
-                -- 计算应该放在哪一层（基于 BFS 算法）
-                FLOOR(LOG(3, 
-                    GREATEST(1, 
-                        ROW_NUMBER() OVER (
-                            PARTITION BY root_wallet 
-                            ORDER BY activation_time NULLS LAST, activation_sequence NULLS LAST
-                        ) + 2  -- +2 因为层级从 0 开始，第一个成员在第 1 层
-                    )
-                )) + 1
+            ELSE LEAST(19, depth)  -- 直接使用推荐深度作为矩阵层级
         END as layer,
         
-        -- 计算矩阵位置（L/M/R）
+        -- 每层内的位置序号
+        ROW_NUMBER() OVER (
+            PARTITION BY root_wallet, depth 
+            ORDER BY activation_time NULLS LAST, activation_sequence NULLS LAST
+        ) - 1 as layer_position,
+        
+        -- 计算矩阵位置（L/M/R）基于每层内的激活顺序
         CASE 
             WHEN member_wallet = root_wallet THEN 'root'
             ELSE 
-                CASE (
+                CASE ((
                     ROW_NUMBER() OVER (
-                        PARTITION BY root_wallet 
+                        PARTITION BY root_wallet, depth 
                         ORDER BY activation_time NULLS LAST, activation_sequence NULLS LAST
-                    ) - 1
-                ) % 3
+                    ) - 1  -- 每层内从0开始编号
+                ) % 3)
                     WHEN 0 THEN 'L'
                     WHEN 1 THEN 'M'
                     WHEN 2 THEN 'R'
                 END
         END as position,
         
-        -- 检测是否为溢出安置
+        -- 检测是否为溢出安置（基于推荐深度vs激活顺序的期望层级）
         CASE 
             WHEN member_wallet = root_wallet THEN false
-            WHEN depth > FLOOR(LOG(3, 
-                GREATEST(1, 
-                    ROW_NUMBER() OVER (
-                        PARTITION BY root_wallet 
-                        ORDER BY activation_time NULLS LAST, activation_sequence NULLS LAST
-                    ) + 2
-                )
-            )) + 1 THEN true  -- 实际推荐深度 > BFS 计算深度 = 溢出
-            ELSE false
+            ELSE false  -- 简化：使用推荐深度作为层级时，无需溢出检测
         END as is_spillover
         
     FROM referrals_tree_hierarchy
     WHERE root_wallet IS NOT NULL
-),
-parent_assignment AS (
-    -- 分配每个节点的父级节点（在矩阵中的直接上级）
-    SELECT 
-        mp.*,
-        
-        -- 计算父级节点（BFS 算法）
-        CASE 
-            WHEN layer = 0 THEN NULL  -- 根节点无父级
-            WHEN layer = 1 THEN matrix_root_wallet  -- 第一层的父级是根节点
-            ELSE (
-                -- 其他层级：找到对应的父级位置
-                SELECT member_wallet 
-                FROM matrix_placement mp2 
-                WHERE mp2.matrix_root_wallet = mp.matrix_root_wallet
-                  AND mp2.layer = mp.layer - 1
-                  AND mp2.placement_order = FLOOR((mp.placement_order - 1) / 3) + 1
-                LIMIT 1
-            )
-        END as parent_wallet
-        
-    FROM matrix_placement mp
 )
 SELECT 
     matrix_root_wallet,
     member_wallet,
-    parent_wallet,
+    
+    -- 计算父级节点（基于层级内位置的矩阵安置）
+    CASE 
+        WHEN layer = 0 THEN NULL  -- 根节点无父级  
+        WHEN layer = 1 THEN matrix_root_wallet  -- 第一层的父级是根节点
+        ELSE referrer_wallet  -- 暂时使用推荐者作为父级，后续可优化为BFS矩阵安置
+    END as parent_wallet,
     referrer_wallet,
     username,
     current_level,
@@ -150,10 +126,9 @@ SELECT
     layer,
     position,
     is_spillover,
-    placement_order,
     CASE WHEN current_level > 0 THEN true ELSE false END as is_activated
-FROM parent_assignment
-ORDER BY matrix_root_wallet, layer, placement_order;
+FROM matrix_placement
+ORDER BY matrix_root_wallet, layer, activation_time;
 
 -- Step 3: 创建完整的矩阵树视图
 CREATE VIEW matrix_referrals_tree_view AS
@@ -171,7 +146,7 @@ SELECT
     is_spillover,
     is_activated
 FROM matrix_referrals_view
-ORDER BY matrix_root_wallet, layer, placement_order;
+ORDER BY matrix_root_wallet, layer, activation_time;
 
 -- 创建优化的矩阵层级统计视图
 CREATE OR REPLACE VIEW matrix_layers_view AS
@@ -180,7 +155,7 @@ SELECT
     layer,
     COUNT(*) as filled_slots,
     POWER(3, layer) as max_slots,
-    ROUND((COUNT(*) * 100.0 / POWER(3, layer)), 1) as completion_rate,
+    ROUND((COUNT(*) * 100.0 / POWER(3, layer))::numeric, 1) as completion_rate,
     COUNT(CASE WHEN is_activated THEN 1 END) as activated_members,
     COUNT(CASE WHEN position = 'L' THEN 1 END) as left_count,
     COUNT(CASE WHEN position = 'M' THEN 1 END) as middle_count,

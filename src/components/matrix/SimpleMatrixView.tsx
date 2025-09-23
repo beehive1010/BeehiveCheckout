@@ -42,9 +42,9 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
       setError(null);
       
       try {
-        // Get complete 19-layer matrix tree from matrix_referrals_view
+        // Get complete 19-layer matrix tree from matrix_referrals_tree_view
         const { data: treeData, error } = await supabase
-          .from('matrix_referrals_view')
+          .from('matrix_referrals_tree_view')
           .select('*')
           .eq('matrix_root_wallet', walletAddress)
           .order('layer')
@@ -58,7 +58,7 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
             organizedData[i] = { left: [], middle: [], right: [] };
           }
           
-          // Organize matrix data by layer and position (from matrix_referrals_view)
+          // Organize matrix data by layer and position (from matrix_referrals_tree_view)
           treeData.forEach((node: any) => {
             const layer = node.layer;
             const position = node.position;

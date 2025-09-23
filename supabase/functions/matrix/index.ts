@@ -346,11 +346,11 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
       });
     }
 
-    // Use optimized matrix_referrals_view for better performance
-    console.log('🔍 Querying matrix_referrals_view for optimized data...');
+    // Use optimized matrix_referrals_tree_view for better performance
+    console.log('🔍 Querying matrix_referrals_tree_view for optimized data...');
     
     let matrixQuery = supabase
-      .from('matrix_referrals_view')
+      .from('matrix_referrals_tree_view')
       .select('*')
       .eq('matrix_root_wallet', targetRoot)
       .order('layer')

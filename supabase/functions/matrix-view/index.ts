@@ -108,11 +108,11 @@ serve(async (req) => {
     }
 
     if (action === 'get-matrix-members') {
-      // Get detailed matrix member data using matrix_referrals_view
+      // Get detailed matrix member data using matrix_referrals_tree_view
       console.log(`👥 Getting matrix members for wallet: ${walletAddress}`)
       
       const { data: matrixMembers, error: membersError } = await supabase
-        .from('matrix_referrals_view')
+        .from('matrix_referrals_tree_view')
         .select('*')
         .eq('matrix_root_wallet', walletAddress)
         .order('layer')

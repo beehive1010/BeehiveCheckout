@@ -78,18 +78,18 @@ export default function ReferralMatrixVisualization({
     try {
       setLoading(true);
 
-      // Get referral data from matrix_referrals table
+      // Get referral data from matrix_referrals_tree_view
       const { data: matrixPlacements, error } = await supabase
-        .from('matrix_referrals')
+        .from('matrix_referrals_tree_view')
         .select(`
           member_wallet,
           parent_wallet,
-          parent_depth,
+          layer,
           position,
-          created_at
+          activation_time
         `)
         .eq('matrix_root_wallet', effectiveRootWallet)
-        .order('created_at');
+        .order('activation_time');
 
       if (error) {
         throw new Error(`Failed to load matrix data: ${error.message}`);
@@ -126,10 +126,10 @@ export default function ReferralMatrixVisualization({
       const members: MatrixMember[] = matrixPlacements?.map(placement => {
         // Convert position from L/M/R to 1/2/3 for internal use
         let positionNumber = 0;
-        if (placement.position_in_layer === 'L') positionNumber = 1;
-        else if (placement.position_in_layer === 'M') positionNumber = 2;
-        else if (placement.position_in_layer === 'R') positionNumber = 3;
-        else positionNumber = parseInt(placement.position_in_layer || '0');
+        if (placement.position === 'L') positionNumber = 1;
+        else if (placement.position === 'M') positionNumber = 2;
+        else if (placement.position === 'R') positionNumber = 3;
+        else positionNumber = parseInt(placement.position || '0');
 
         const member = memberInfo.get(placement.member_wallet);
         const user = userInfo.get(placement.member_wallet);
@@ -138,10 +138,10 @@ export default function ReferralMatrixVisualization({
           walletAddress: placement.member_wallet,
           username: user?.username,
           level: member?.current_level || 1,
-          layer: placement.layer_in_owner_matrix,
+          layer: placement.layer,
           position: positionNumber,
           isActive: (member?.current_level || 0) > 0,
-          placedAt: placement.placed_at,
+          placedAt: placement.activation_time,
           downlineCount: 0 // TODO: Calculate downline count
         };
       }) || [];

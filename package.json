@@ -25,6 +25,8 @@
     "audit:patches": "psql \"postgresql://postgres:bee8881941@db.cvqibjcbfrwsgkvthccp.supabase.co:5432/postgres\" -f sql/security_patches.sql",
     "fix:referrals": "psql \"postgresql://postgres:bee8881941@db.cvqibjcbfrwsgkvthccp.supabase.co:5432/postgres\" -f sql/fix_referrals_policy.sql",
     "fix:recording": "psql \"postgresql://postgres:bee8881941@db.cvqibjcbfrwsgkvthccp.supabase.co:5432/postgres\" -f sql/fix_referrals_insert_policies.sql",
+    "cleanup:functions": "psql \"postgresql://postgres:bee8881941@db.cvqibjcbfrwsgkvthccp.supabase.co:5432/postgres\" -f sql/drop_duplicate_function.sql",
+    "fix:notifications": "psql \"postgresql://postgres:bee8881941@db.cvqibjcbfrwsgkvthccp.supabase.co:5432/postgres\" -f sql/recreate_reward_notifications.sql",
     "audit:help": "echo '📖 Audit Help: Open sql/ files in Supabase Dashboard SQL Editor to run audits' && echo '📋 Quick Start: cat AUDIT_QUICK_START.md'",
     "install:psql": "./scripts/install-psql.sh",
     "debug:edge": "./scripts/debug-edge.sh",
