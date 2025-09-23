@@ -1,8 +1,9 @@
 /**
- * Simplified Matrix Data Hook - Direct API calls to functions
+ * Matrix Data Hooks - Direct API calls to Supabase functions
  */
 
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 interface MatrixStatsData {
   totalMembers: number;
@@ -19,6 +20,7 @@ interface MatrixStatsData {
     fillPercentage: number;
     activeMembers: number;
   }>;
+  layerCounts: Record<number, number>;
 }
 
 interface BalanceData {
@@ -34,6 +36,65 @@ interface RewardsData {
   pendingAmount: number;
   claimedAmount: number;
   totalEarnings: number;
+}
+
+interface PerformanceData {
+  spilloverRate: number;
+  growthVelocity: number;
+  rewardEfficiency: number;
+}
+
+interface DashboardData {
+  balance: BalanceData;
+  matrix: MatrixStatsData;
+  rewards: RewardsData;
+  performance: PerformanceData;
+}
+
+interface BalanceBreakdown {
+  bcc: {
+    total: number;
+    transferable: number;
+    restricted: number;
+    locked: number;
+    breakdown: {
+      transferable: { description: string; usage: string };
+      restricted: { description: string; usage: string };
+      locked: { description: string; usage: string };
+    };
+  };
+  usdt: {
+    totalEarned: number;
+    availableRewards: number;
+    totalWithdrawn: number;
+    pendingWithdrawals: number;
+  };
+  activation: {
+    tier: number;
+    order: number;
+    tierDescription: string;
+  };
+  metadata: {
+    lastUpdated: string;
+  };
+}
+
+interface LayerReward {
+  id: string;
+  rewardAmount: number;
+  triggerLevel: number;
+  layerNumber: number;
+  triggerWallet: string;
+  status: string;
+  createdAt: string;
+  expiresAt?: string;
+}
+
+interface PendingReward extends LayerReward {
+  requiresLevel: number;
+  currentRecipientLevel: number;
+  unlockCondition: string;
+  timeRemaining: string;
 }
 
 // Placeholder hook for dashboard data
