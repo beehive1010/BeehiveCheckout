@@ -109,16 +109,16 @@ export default function ReferralMatrixVisualization({
         else positionNumber = parseInt(placement.position || '0');
 
         return {
-          walletAddress: placement.wallet_address,
-          username: placement.username,
+          walletAddress: placement.wallet_address || '',
+          username: placement.username || undefined,
           level: placement.current_level || 1,
           layer: placement.layer || 1,
           position: positionNumber,
-          isActive: placement.is_active && (placement.current_level || 0) > 0,
+          isActive: Boolean(placement.is_active && (placement.current_level || 0) > 0),
           placedAt: placement.created_at || new Date().toISOString(),
           downlineCount: 0 // TODO: Calculate downline count
         };
-      }) || [];
+      }).filter(member => member.walletAddress) || [];
 
       // Create matrix data structure
       const totalLayers = Math.max(...members.map(m => m.layer), 0);
