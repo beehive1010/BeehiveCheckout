@@ -43,7 +43,7 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
       const { data, error } = await supabase
         .from('referrer_stats')
         .select('*')
-        .ilike('referrer', walletAddress) // Case insensitive search
+        .eq('referrer', walletAddress) // Exact case match
         .limit(1)
         .maybeSingle();
 
