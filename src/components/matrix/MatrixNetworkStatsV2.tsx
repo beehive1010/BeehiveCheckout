@@ -1,24 +1,110 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Users, TrendingUp, Activity, Layers, Target, Crown, ArrowUpRight, Loader2 } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
-import { useDashboardV2, useMatrixTreeV2, useGlobalPoolStatsV2 } from '@/hooks/useDashboardV2';
 
 interface MatrixNetworkStatsV2Props {
   walletAddress: string;
 }
 
+interface MatrixStatsData {
+  totalMembers: number;
+  activeMembers: number;
+  deepestLayer: number;
+  layersWithData: number;
+  directReferrals: number;
+  layerBreakdown: Array<{
+    layer: number;
+    totalMembers: number;
+    leftMembers: number;
+    middleMembers: number;
+    rightMembers: number;
+    maxCapacity: number;
+    fillPercentage: number;
+    activeMembers: number;
+  }>;
+}
+
 export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Props) {
   const { t } = useI18n();
   
-  // Use v2 hooks for enhanced data
-  const { data: dashboardData, isLoading: isDashboardLoading } = useDashboardV2(walletAddress);
-  const { data: matrixTree, isLoading: isMatrixLoading } = useMatrixTreeV2(walletAddress, 5); // First 5 layers for overview
-  const { data: globalStats } = useGlobalPoolStatsV2();
+  // Direct API state management
+  const [matrixStats, setMatrixStats] = useState<MatrixStatsData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const isLoading = isDashboardLoading || isMatrixLoading;
+  useEffect(() => {
+    if (walletAddress) {
+      loadMatrixStats();
+    }
+  }, [walletAddress]);
+
+  const loadMatrixStats = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      console.log('🚀 Loading matrix stats via functions API for:', walletAddress);
+      
+      // Call matrix-view function directly
+      const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/matrix-view', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1MjUwMTYsImV4cCI6MjA0MDEwMTAxNn0.gBWZUvwCJgP1lsVQlZNDsYXDxBEr31QfRtNEgYzS6NA`,
+          'x-wallet-address': walletAddress
+        },
+        body: JSON.stringify({
+          action: 'get-layer-stats'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API call failed: ${response.status} ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log('📊 Matrix stats response:', result);
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch matrix stats');
+      }
+
+      const summary = result.data.summary;
+      const layerStats = result.data.layer_stats;
+
+      // Transform to expected format
+      const statsData: MatrixStatsData = {
+        totalMembers: summary.total_members || 0,
+        activeMembers: summary.total_active || 0,
+        deepestLayer: summary.deepest_layer || 0,
+        layersWithData: summary.layers_with_data || 0,
+        directReferrals: layerStats.find((l: any) => l.layer === 1)?.totalMembers || 0,
+        layerBreakdown: layerStats.slice(0, 5).map((layer: any) => ({
+          layer: layer.layer,
+          totalMembers: layer.totalMembers,
+          leftMembers: layer.leftMembers,
+          middleMembers: layer.middleMembers,
+          rightMembers: layer.rightMembers,
+          maxCapacity: layer.maxCapacity,
+          fillPercentage: layer.fillPercentage,
+          activeMembers: layer.activeMembers
+        }))
+      };
+
+      setMatrixStats(statsData);
+
+    } catch (error: any) {
+      console.error('❌ Matrix stats loading error:', error);
+      setError(error.message || 'Failed to load matrix statistics');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isLoading = loading;
 
   const renderLoadingState = () => (
     <div className="grid grid-cols-1 gap-4">
@@ -40,11 +126,11 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
   );
 
   const renderMatrixLayerStats = () => {
-    if (!matrixTree?.layerSummary) return null;
+    if (!matrixStats?.layerBreakdown) return null;
 
-    return matrixTree.layerSummary.slice(0, 5).map((layer) => {
+    return matrixStats.layerBreakdown.map((layer) => {
       const fillRate = layer.fillPercentage;
-      const activatedMembers = layer.members.filter((m: any) => m.activated).length;
+      const activatedMembers = layer.activeMembers;
       
       return (
         <div 
