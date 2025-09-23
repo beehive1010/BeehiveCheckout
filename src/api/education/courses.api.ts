@@ -217,15 +217,29 @@ export const coursesApi = {
         }
       }
 
-      // 6. 扣除BCC（如果需要）
+      // 6. 扣除BCC（如果需要）- 使用balance edge function
       if (course.price_bcc > 0) {
-        const { data: spendResult, error: spendError } = await supabase
-          .rpc('spend_bcc_tokens', {
-            p_wallet_address: walletAddress,
-            p_amount: course.price_bcc,
-            p_purpose: 'course_purchase',
-            p_item_reference: courseId
+        const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+        const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1MjUwMTYsImV4cCI6MjA0MDEwMTAxNn0.gBWZUvwCJgP1lsVQlZNDsYXDxBEr31QfRtNEgYzS6NA';
+        
+        const spendResponse = await fetch(`${baseUrl}/balance`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${anonKey}`,
+            'x-wallet-address': walletAddress,
+          },
+          body: JSON.stringify({
+            action: 'spend-bcc',
+            amount: course.price_bcc,
+            purpose: 'course_purchase',
+            itemType: 'course',
+            itemId: courseId
           })
+        });
+        
+        const spendResult = await spendResponse.json();
+        const spendError = !spendResponse.ok ? new Error(spendResult.error || 'Failed to spend BCC') : null;
 
         if (spendError || !spendResult?.success) {
           throw new Error(`BCC扣除失败: ${spendError?.message || spendResult?.error || '未知错误'}`)

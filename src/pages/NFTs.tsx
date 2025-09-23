@@ -369,13 +369,29 @@ export default function NFTs() {
       // Generate mock transaction hash
       const transactionHash = `0x${Date.now().toString(16)}${Math.random().toString(16).slice(2, 10)}`;
 
-      // Use Supabase SDK to spend BCC for NFT purchase (修复参数顺序)
-      const { data: spendResult, error: spendError } = await supabase.rpc('spend_bcc_tokens', {
-        p_item_reference: nft.id,
-        p_purpose: 'nft_purchase', 
-        p_wallet_address: walletAddress,
-        p_amount: nft.price_bcc
+      // Use balance edge function to spend BCC for NFT purchase
+      const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+      const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1MjUwMTYsImV4cCI6MjA0MDEwMTAxNn0.gBWZUvwCJgP1lsVQlZNDsYXDxBEr31QfRtNEgYzS6NA';
+      
+      const spendResponse = await fetch(`${baseUrl}/balance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${anonKey}`,
+          'x-wallet-address': walletAddress,
+        },
+        body: JSON.stringify({
+          action: 'spend-bcc',
+          amount: nft.price_bcc,
+          purpose: 'nft_purchase',
+          itemType: 'nft',
+          itemId: nft.id,
+          nftType: nft.nft_type || 'merchant'
+        })
       });
+      
+      const spendResult = await spendResponse.json();
+      const spendError = !spendResponse.ok ? new Error(spendResult.error || 'Failed to spend BCC') : null;
 
       if (spendError || !spendResult?.success) {
         throw new Error(`BCC spending failed: ${spendError?.message || spendResult?.error || 'Unknown error'}`);
