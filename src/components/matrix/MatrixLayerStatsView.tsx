@@ -64,21 +64,45 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
 
       console.log('📊 Matrix layers data:', matrixData);
       console.log('📊 Sample layer data structure:', matrixData?.[0]);
+      
+      // Debug: Check specific Layer 2 data
+      const layer2Data = matrixData?.find(layer => layer.layer === 2);
+      if (layer2Data) {
+        console.log('🔍 Layer 2 debug data:', {
+          layer: layer2Data.layer,
+          left_count: layer2Data.left_count,
+          middle_count: layer2Data.middle_count,
+          right_count: layer2Data.right_count,
+          filled_slots: layer2Data.filled_slots,
+          max_slots: layer2Data.max_slots
+        });
+      }
 
-      // Transform data directly from matrix_layers_view (no need for additional queries)
+      // Transform data directly from matrix_layers_view (use actual database data)
       const layerStats: LayerStatsData[] = matrixData?.map((layer: any) => ({
         layer: layer.layer || 1,
         totalMembers: layer.filled_slots || 0,
         leftMembers: layer.left_count || 0,
         middleMembers: layer.middle_count || 0,
         rightMembers: layer.right_count || 0,
-        maxCapacity: layer.max_slots || (layer.layer === 2 ? 9 : Math.pow(3, layer.layer || 1)),
+        maxCapacity: layer.max_slots || 0,
         fillPercentage: parseFloat(layer.completion_rate || 0),
         activeMembers: layer.activated_members || 0,
         completedPercentage: parseFloat(layer.completion_rate || 0),
       })) || [];
 
       console.log('📊 Final layer stats:', layerStats);
+      
+      // Debug: Show raw left_count, middle_count, right_count for all layers
+      matrixData?.forEach((layer: any) => {
+        console.log(`🔍 Layer ${layer.layer} raw counts:`, {
+          left_count: layer.left_count,
+          middle_count: layer.middle_count, 
+          right_count: layer.right_count,
+          filled_slots: layer.filled_slots,
+          max_slots: layer.max_slots
+        });
+      });
 
       setLayerStats(layerStats);
       
@@ -119,7 +143,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
   };
 
   const renderLayerCard = (stat: LayerStatsData) => {
-    const isLayerComplete = stat.leftMembers > 0 && stat.middleMembers > 0 && stat.rightMembers > 0;
+    const isLayerComplete = stat.fillPercentage >= 100;
     
     return (
       <div
@@ -168,7 +192,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
         </div>
         <div className="flex items-center gap-1">
           <Target className="w-3 h-3" />
-          <span>{isLayerComplete ? '100% Complete' : `${Math.round(((stat.leftMembers > 0 ? 1 : 0) + (stat.middleMembers > 0 ? 1 : 0) + (stat.rightMembers > 0 ? 1 : 0)) / 3 * 100)}% Complete`}</span>
+          <span>{stat.fillPercentage.toFixed(1)}% Complete</span>
         </div>
       </div>
 
@@ -184,11 +208,11 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       {/* Completion Progress */}
       <div>
         <div className="flex justify-between text-xs mb-1">
-          <span>Position Complete</span>
-          <span>{isLayerComplete ? '100%' : `${Math.round(((stat.leftMembers > 0 ? 1 : 0) + (stat.middleMembers > 0 ? 1 : 0) + (stat.rightMembers > 0 ? 1 : 0)) / 3 * 100)}%`}</span>
+          <span>Layer Complete</span>
+          <span>{stat.fillPercentage.toFixed(1)}%</span>
         </div>
         <Progress 
-          value={isLayerComplete ? 100 : ((stat.leftMembers > 0 ? 1 : 0) + (stat.middleMembers > 0 ? 1 : 0) + (stat.rightMembers > 0 ? 1 : 0)) / 3 * 100} 
+          value={stat.fillPercentage} 
           className="h-1.5"
         />
       </div>
@@ -200,7 +224,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
     const totalMembers = layerStats.reduce((sum, stat) => sum + stat.totalMembers, 0);
     const totalActive = layerStats.reduce((sum, stat) => sum + stat.activeMembers, 0);
     const layersWithMembers = layerStats.filter(stat => stat.totalMembers > 0).length;
-    const layersCompleted = layerStats.filter(stat => stat.leftMembers > 0 && stat.middleMembers > 0 && stat.rightMembers > 0).length;
+    const layersCompleted = layerStats.filter(stat => stat.fillPercentage >= 100).length;
     const avgFillRate = layersWithMembers > 0 ? layerStats.slice(0, layersWithMembers).reduce((sum, stat) => sum + stat.fillPercentage, 0) / layersWithMembers : 0;
     const avgCompletionRate = totalMembers > 0 ? (totalActive / totalMembers) * 100 : 0;
 
@@ -226,7 +250,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
           <div className="flex items-center justify-between mb-2">
             <Layers className="w-5 h-5 text-purple-400" />
           </div>
-          <div className="text-2xl font-bold text-purple-400">{layersCompleted}/{layersWithMembers}</div>
+          <div className="text-2xl font-bold text-purple-400">{layersCompleted}/19</div>
           <div className="text-xs text-muted-foreground">Layers Completed</div>
         </div>
 
