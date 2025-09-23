@@ -142,10 +142,10 @@ export default function Dashboard() {
         
         // 查询最大层级
         supabase
-          .from('referrals')
-          .select('matrix_layer')
+          .from('matrix_referrals_tree_view')
+          .select('layer')
           .eq('matrix_root_wallet', walletAddress)
-          .order('matrix_layer', { ascending: false })
+          .order('layer', { ascending: false })
           .limit(1)
       ]);
 
