@@ -54,7 +54,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       const { data: matrixData, error: layerError } = await supabase
         .from('matrix_layers_view')
         .select('*')
-        .ilike('matrix_root_wallet', walletAddress) // Case insensitive search
+        .eq('matrix_root_wallet', walletAddress) // Exact case match
         .order('layer', { ascending: true });
 
       if (layerError) {
