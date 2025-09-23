@@ -194,8 +194,8 @@ export default function USDTWithdrawal() {
           description: `${netAmount.toFixed(2)} USDT sent to your wallet on ${currentChainInfo?.name} (${fee} USDT fee deducted)`,
         });
         
-        // Update user balance
-        queryClient.invalidateQueries({ queryKey: ['/api/rewards/balance'] });
+        // Update user balance cache
+        queryClient.invalidateQueries({ queryKey: ['user-balance', memberWalletAddress] });
         setStep('success');
         setWithdrawalRequest({
           withdrawalId: data.transaction_hash || data.withdrawalId || 'completed',

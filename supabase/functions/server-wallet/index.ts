@@ -419,6 +419,49 @@ async function processWithdrawal(withdrawalData: WithdrawalRequest, supabaseClie
         console.error('Database insert error:', insertError);
         // Transaction succeeded but database failed - log for manual reconciliation
       }
+
+      // 9. Update user_balance after successful withdrawal
+      try {
+        console.log(`🔄 Updating user_balance for wallet: ${withdrawalData.user_wallet}`);
+        
+        // Get current user balance
+        const { data: currentBalance, error: balanceError } = await supabaseClient
+          .from('user_balances')
+          .select('claimable_reward_balance_usdc, total_rewards_withdrawn_usdc')
+          .ilike('wallet_address', withdrawalData.user_wallet)
+          .single();
+        
+        if (balanceError && balanceError.code !== 'PGRST116') { // PGRST116 = no rows found
+          console.error('Error fetching user balance:', balanceError);
+        } else {
+          const currentClaimable = currentBalance?.claimable_reward_balance_usdc || 0;
+          const currentWithdrawn = currentBalance?.total_rewards_withdrawn_usdc || 0;
+          
+          // Calculate new balances
+          const newClaimableBalance = Math.max(0, currentClaimable - grossAmount); // Deduct gross amount from claimable
+          const newTotalWithdrawn = currentWithdrawn + grossAmount; // Add gross amount to total withdrawn
+          
+          // Update user balance
+          const { error: updateError } = await supabaseClient
+            .from('user_balances')
+            .update({
+              claimable_reward_balance_usdc: newClaimableBalance,
+              total_rewards_withdrawn_usdc: newTotalWithdrawn,
+              last_withdrawal_at: new Date().toISOString(),
+            })
+            .ilike('wallet_address', withdrawalData.user_wallet);
+          
+          if (updateError) {
+            console.error('Error updating user balance:', updateError);
+            // Log this for manual reconciliation - withdrawal succeeded but balance update failed
+          } else {
+            console.log(`✅ User balance updated: ${currentClaimable} -> ${newClaimableBalance} claimable, ${currentWithdrawn} -> ${newTotalWithdrawn} withdrawn`);
+          }
+        }
+      } catch (balanceUpdateError) {
+        console.error('Error in user balance update process:', balanceUpdateError);
+        // Don't fail the withdrawal response - this is a secondary operation
+      }
       
       return new Response(
         JSON.stringify({
