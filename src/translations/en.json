@@ -2404,6 +2404,13 @@
     "nftClaimNote": "Your NFT will be stored securely on the blockchain as proof of membership",
     "level2DirectReferralsRequired": "3+ Direct Referrals Required",
     "currentDirectReferrals": "Current Direct Referrals",
+    "level2RequiresReferrals": "Level 2 requires 3+ direct referrals",
+    "currentReferrals": "Current referrals: {count}",
+    "needsActivation": "Please activate your Level 1 membership on the Welcome page first.",
+    "goToWelcome": "Go to Welcome Page →",
+    "upgradeSuccess": "Upgrade Successful!",
+    "upgradeSuccessDescription": "Your membership has been upgraded successfully",
+    "maxLevelReached": "Maximum level reached!",
     "status": {
       "owned": "Owned",
       "available": "Available", 

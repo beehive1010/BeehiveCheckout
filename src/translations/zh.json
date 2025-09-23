@@ -2391,6 +2391,13 @@
     "level2Requirements": "等级2要求",
     "level2DirectReferralsRequired": "需要3个以上直推",
     "currentDirectReferrals": "当前直推人数",
+    "level2RequiresReferrals": "等级2需要3个以上直推",
+    "currentReferrals": "当前直推人数：{count}",
+    "needsActivation": "请先在欢迎页面激活您的1级会员资格。",
+    "goToWelcome": "前往欢迎页面 →",
+    "upgradeSuccess": "升级成功！",
+    "upgradeSuccessDescription": "您的会员资格已成功升级",
+    "maxLevelReached": "已达到最高等级！",
     "status": {
       "owned": "已拥有",
       "available": "可购买",
