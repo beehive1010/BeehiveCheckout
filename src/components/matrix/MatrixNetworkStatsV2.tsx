@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Users, TrendingUp, Activity, Layers, Target, Crown, ArrowUpRight, Loader2 } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { useDashboardV2, useMatrixTreeV2, useGlobalPoolStatsV2 } from '@/hooks/useDashboardV2';
-import { useDirectMatrixStats } from '@/hooks/useDirectMatrixData';
 
 interface MatrixNetworkStatsV2Props {
   walletAddress: string;
