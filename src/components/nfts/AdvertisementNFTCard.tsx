@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useToast } from '../../hooks/use-toast';
 import { useBalance } from '../../hooks/useBalance';
 import { useI18n } from '../../contexts/I18nContext';
-import { MultilingualText } from '../shared/MultilingualContent';
+import { HybridTranslation } from '../shared/HybridTranslation';
 import { ShoppingCart, Eye, ExternalLink, Zap } from 'lucide-react';
 import { IconCode, IconWallet, IconFlame } from '@tabler/icons-react';
 
@@ -187,23 +187,31 @@ export default function AdvertisementNFTCard({ nft, onPurchase, className = '' }
       {/* Card Content */}
       <CardHeader className="pb-3">
         <CardTitle className="text-blue-400 group-hover:text-blue-300 transition-colors text-lg">
-          <MultilingualText
-            text={nft.title}
-            language={nft.language}
-            translations={nft.translations ? Object.fromEntries(
-              Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.title || nft.title])
-            ) : {}}
+          {/* NFT标题 - 使用DeepL翻译 */}
+          <HybridTranslation
+            content={{
+              text: nft.title,
+              language: nft.language,
+              translations: nft.translations ? Object.fromEntries(
+                Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.title || nft.title])
+              ) : {}
+            }}
             autoTranslate={true}
+            contentStyle="text-lg font-semibold text-blue-400 group-hover:text-blue-300 transition-colors"
           />
         </CardTitle>
         <p className="text-sm text-muted-foreground line-clamp-2">
-          <MultilingualText
-            text={nft.description}
-            language={nft.language}
-            translations={nft.translations ? Object.fromEntries(
-              Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.description || nft.description])
-            ) : {}}
+          {/* NFT描述 - 使用DeepL翻译 */}
+          <HybridTranslation
+            content={{
+              text: nft.description,
+              language: nft.language,
+              translations: nft.translations ? Object.fromEntries(
+                Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.description || nft.description])
+              ) : {}
+            }}
             autoTranslate={true}
+            contentStyle="text-sm text-muted-foreground"
           />
         </p>
       </CardHeader>

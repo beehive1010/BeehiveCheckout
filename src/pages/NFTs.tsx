@@ -235,12 +235,12 @@ export default function NFTs() {
       // Generate mock transaction hash
       const transactionHash = `0x${Date.now().toString(16)}${Math.random().toString(16).slice(2, 10)}`;
 
-      // Use Supabase SDK to spend BCC for NFT purchase
+      // Use Supabase SDK to spend BCC for NFT purchase (修复参数顺序)
       const { data: spendResult, error: spendError } = await supabase.rpc('spend_bcc_tokens', {
+        p_item_reference: nft.id,
+        p_purpose: 'nft_purchase', 
         p_wallet_address: walletAddress,
-        p_amount: nft.price_bcc,
-        p_purpose: 'nft_purchase',
-        p_item_reference: nft.id
+        p_amount: nft.price_bcc
       });
 
       if (spendError || !spendResult?.success) {
