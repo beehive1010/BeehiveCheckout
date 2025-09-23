@@ -488,15 +488,64 @@ async function handleSpendBcc(supabase, walletAddress, data) {
         courseId: itemId
       };
     } else {
-      // Generic BCC spending
-      const { data: spendResult, error: spendError } = await supabase.rpc('spend_bcc_tokens', {
-        p_wallet_address: walletAddress,
-        p_amount: amount,
-        p_purpose: purpose || `${itemType} purchase`,
-        p_item_reference: `${itemType}:${itemId}`
+      // Generic BCC spending - inline implementation
+      const { data: balanceData, error: balanceError } = await supabase
+        .from('user_balances')
+        .select('bcc_balance')
+        .eq('wallet_address', walletAddress)
+        .maybeSingle();
+      
+      if (balanceError || !balanceData) {
+        return new Response(JSON.stringify({
+          success: false,
+          error: 'User balance record not found'
+        }), {
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      
+      const currentBalance = balanceData.bcc_balance || 0;
+      if (currentBalance < amount) {
+        return new Response(JSON.stringify({
+          success: false,
+          error: `Insufficient BCC balance. Available: ${currentBalance}, Required: ${amount}`
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+      
+      const newBalance = currentBalance - amount;
+      
+      // Update balance
+      const { error: updateError } = await supabase
+        .from('user_balances')
+        .update({
+          bcc_balance: newBalance,
+          updated_at: new Date().toISOString()
+        })
+        .eq('wallet_address', walletAddress);
+      
+      if (updateError) throw updateError;
+      
+      // Log transaction
+      await supabase.from('bcc_transactions').insert({
+        wallet_address: walletAddress,
+        transaction_type: 'spending',
+        amount: -amount,
+        description: purpose || `${itemType} purchase`,
+        item_reference: `${itemType}:${itemId}`,
+        created_at: new Date().toISOString()
       });
-      if (spendError) throw spendError;
-      result = spendResult;
+      
+      result = {
+        success: true,
+        new_balance: newBalance,
+        amount_spent: amount,
+        transaction_type: 'spending'
+      };
+      
       purchaseRecord = {
         type: itemType,
         itemId: itemId

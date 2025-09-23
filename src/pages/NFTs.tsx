@@ -386,7 +386,7 @@ export default function NFTs() {
           purpose: 'nft_purchase',
           itemType: 'nft',
           itemId: nft.id,
-          nftType: nft.nft_type || 'merchant'
+          nftType: nftType
         })
       });
       
@@ -423,12 +423,12 @@ export default function NFTs() {
       console.log('✅ NFT purchase record created successfully:', purchaseRecord?.id);
 
       // Update supply for merchant NFTs
-      if (nftType === 'merchant' && nft.supply_available && nft.supply_available > 0) {
+      if (nftType === 'merchant' && 'supply_available' in nft && nft.supply_available && nft.supply_available > 0) {
         const { error: supplyError } = await supabase
           .from('merchant_nfts')
           .update({ 
             supply_available: Math.max(0, nft.supply_available - 1),
-            supply_sold: (nft.supply_sold || 0) + 1
+            updated_at: new Date().toISOString()
           })
           .eq('id', nft.id);
 
@@ -808,7 +808,7 @@ export default function NFTs() {
                   <Card key={purchase.id} className="border-green-500/20">
                     <CardHeader className="pb-3">
                       <img 
-                        src={nft.image_url} 
+                        src={nft.image_url || '/placeholder-nft.jpg'} 
                         alt={nft.title}
                         className="w-full h-48 object-cover rounded-lg mb-3"
                       />
