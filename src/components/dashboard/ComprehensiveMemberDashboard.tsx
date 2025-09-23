@@ -23,7 +23,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useWallet } from '@/hooks/useWallet';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../../lib/supabase';
 import { toast } from 'react-hot-toast';
 import { useI18n } from '@/contexts/I18nContext';
 import MembershipActivationSystem from '../membership/MembershipActivationSystem';
