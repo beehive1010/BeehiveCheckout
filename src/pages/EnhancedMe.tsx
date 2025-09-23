@@ -140,7 +140,7 @@ const getComprehensiveUserData = async (walletAddress: string, method: string) =
       const [balanceView, memberView, matrixView] = await Promise.all([
         supabase.from('user_bcc_balance_overview').select('*').eq('wallet_address', walletAddress).single(),
         supabase.from('member_requirements_view').select('*').eq('wallet_address', walletAddress).single(),
-        supabase.from('matrix_layer_summary').select('*').eq('root_wallet', walletAddress).single()
+        supabase.from('referrer_stats').select('*').eq('referrer', walletAddress).single()
       ]);
       
       return {
