@@ -180,12 +180,12 @@ export const matrixV2Client = {
       }> = [];
 
       result.stats.layerSummary?.forEach((layer: any) => {
-        layerCounts[layer.layer] = layer.member_count || 0;
+        layerCounts[layer.layer] = layer.memberCount || 0;
         layerBreakdown.push({
           layer: layer.layer,
-          memberCount: layer.member_count || 0,
-          maxCapacity: Math.pow(3, layer.layer), // 3^layer capacity
-          fillPercentage: ((layer.member_count || 0) / Math.pow(3, layer.layer)) * 100
+          memberCount: layer.memberCount || 0,
+          maxCapacity: layer.maxCapacity || Math.pow(3, layer.layer),
+          fillPercentage: layer.fillPercentage || 0
         });
       });
 

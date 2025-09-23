@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Users, TrendingUp, Activity, Layers, Target, Crown, ArrowUpRight, Loader2 } from 'lucide-react';
 import { useI18n } from '@/contexts/I18nContext';
 import { useDashboardV2, useMatrixTreeV2, useGlobalPoolStatsV2 } from '@/hooks/useDashboardV2';
+import { useDirectMatrixStats } from '@/hooks/useDirectMatrixData';
 
 interface MatrixNetworkStatsV2Props {
   walletAddress: string;
@@ -13,10 +14,13 @@ interface MatrixNetworkStatsV2Props {
 export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Props) {
   const { t } = useI18n();
   
-  // Use v2 hooks for enhanced data
-  const { data: dashboardData, isLoading: isDashboardLoading } = useDashboardV2(walletAddress);
+  // Use v2 hooks for enhanced data with direct query fallback
+  const { data: dashboardData, isLoading: isDashboardLoading, error: dashboardError } = useDashboardV2(walletAddress);
   const { data: matrixTree, isLoading: isMatrixLoading } = useMatrixTreeV2(walletAddress, 5); // First 5 layers for overview
   const { data: globalStats } = useGlobalPoolStatsV2();
+  
+  // Direct query fallback for matrix stats if API fails
+  const { data: directMatrixStats, isLoading: isDirectLoading } = useDirectMatrixStats(walletAddress);
 
   const isLoading = isDashboardLoading || isMatrixLoading;
 

@@ -845,76 +845,82 @@ async function handleGetMatrixStats(supabase, walletAddress: string, data) {
 
     console.log(`🔍 Getting matrix stats for wallet: ${walletAddress}`);
     
+    // Use optimized views for better performance and correct data
+    const { data: layerStats, error: layerError } = await supabase
+      .from('matrix_layers_view')
+      .select('*')
+      .eq('matrix_root_wallet', walletAddress)
+      .order('layer');
+
     const { data: referralsStats, error: referralsError } = await supabase
-      .from('referrals')
-      .select('member_wallet, referrer_wallet, matrix_layer, placed_at')
-      .eq('referrer_wallet', walletAddress);
+      .from('referrer_stats')
+      .select('*')
+      .eq('referrer', walletAddress)
+      .maybeSingle();
+
+    if (layerError) {
+      console.error('❌ Layer stats query error:', layerError);
+      throw new Error(`Layer stats query failed: ${layerError.message}`);
+    }
 
     if (referralsError) {
       console.error('❌ Referrals stats query error:', referralsError);
-      throw new Error(`Referrals stats query failed: ${referralsError.message}`);
+      // Non-fatal error for referrer stats
     }
 
-    // Note: spillover_matrix table does not exist
-    const spilloverStats: any[] = [];
-    console.log(`✅ Spillover stats: 0 positions (table does not exist)`);
+    console.log(`✅ Found ${layerStats?.length || 0} layers and referrer data:`, referralsStats);
 
-    const { data: memberInfo, error: memberError } = await supabase
-      .from('members')
-      .select('wallet_address, referrer_wallet, current_level, activation_time')
-      .eq('wallet_address', walletAddress)
-      .maybeSingle();
+    // Calculate layer statistics from matrix_layers_view
+    const layerCounts: Record<number, number> = {};
+    const layerBreakdown: Array<{
+      layer: number;
+      memberCount: number;
+      maxCapacity: number;
+      fillPercentage: number;
+    }> = [];
 
-    if (memberError) {
-      console.error('❌ Member info query error:', memberError);
-      throw new Error(`Member info query failed: ${memberError.message}`);
+    let totalTeamSize = 0;
+    let totalActiveMembers = 0;
+    let directReferrals = 0;
+
+    if (layerStats && layerStats.length > 0) {
+      layerStats.forEach((layer: any) => {
+        const layerNum = layer.layer;
+        const memberCount = layer.filled_slots || 0;
+        const maxCapacity = layer.max_slots || Math.pow(3, layerNum);
+        const fillPercentage = parseFloat(layer.completion_rate || 0);
+
+        layerCounts[layerNum] = memberCount;
+        layerBreakdown.push({
+          layer: layerNum,
+          memberCount,
+          maxCapacity,
+          fillPercentage
+        });
+
+        totalTeamSize += memberCount;
+        totalActiveMembers += layer.activated_members || 0;
+        
+        if (layerNum === 1) {
+          directReferrals = memberCount;
+        }
+      });
     }
-
-    console.log(`✅ Found ${referralsStats?.length || 0} referrals and ${spilloverStats?.length || 0} spillover positions`);
-
-    const rootMatrixData = [
-      ...(referralsStats || []).map((item: any, index: number) => ({
-        wallet_address: item.member_wallet,
-        layer: item.matrix_layer || 1,
-        is_activated: true,
-        created_at: item.placed_at,
-        source: 'referrals'
-      })),
-      ...(spilloverStats || []).map((item, index) => ({
-        wallet_address: item.member_wallet,
-        layer: item.matrix_layer,
-        is_activated: true,
-        created_at: item.placed_at,
-        source: 'spillover'
-      }))
-    ];
-
-    const memberMatrixData = memberInfo ? [{
-      root_wallet: memberInfo.referrer_wallet,
-      layer: 1,
-      is_activated: true,
-      created_at: memberInfo.activation_time
-    }] : [];
 
     const stats = {
-      as_root: calculateRootMatrixStats(rootMatrixData),
-      as_member: calculateMemberMatrixStats(memberMatrixData),
-      overall: calculateOverallMatrixStats(rootMatrixData, memberMatrixData),
-      direct_referrals: (referralsStats || []).filter(r => (r.matrix_layer || 1) === 1).length,
-      spillover_positions: (spilloverStats || []).length,
-      total_team_size: rootMatrixData.length,
-      member_level: memberInfo?.current_level || 0,
-      has_referrer: !!memberInfo?.referrer_wallet,
-      referrer_wallet: memberInfo?.referrer_wallet || null,
-      sources_breakdown: {
-        referrals: (referralsStats || []).length,
-        spillover: (spilloverStats || []).length
-      }
+      totalReferrals: totalTeamSize,
+      directReferrals: directReferrals,
+      layerSummary: layerBreakdown,
+      totalTeamSize: totalTeamSize,
+      activeMembers: totalActiveMembers,
+      layerCounts: layerCounts,
+      // Include referrer stats if available
+      referrerInfo: referralsStats || null
     };
 
     return new Response(JSON.stringify({
       success: true,
-      data: stats
+      stats: stats
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });

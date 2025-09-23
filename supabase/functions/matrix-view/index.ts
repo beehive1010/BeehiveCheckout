@@ -49,75 +49,42 @@ serve(async (req) => {
         throw matrixError
       }
 
-      console.log(`📊 Matrix data retrieved: ${matrixData?.length || 0} members`)
+      console.log(`📊 Matrix layer data retrieved: ${matrixData?.length || 0} layers`)
 
-      // Process matrix data to generate layer statistics
-      const layerStatsMap = new Map()
-      
-      // Initialize all layers with zero counts
-      for (let layer = 1; layer <= 19; layer++) {
-        layerStatsMap.set(layer, {
-          layer,
-          totalMembers: 0,
-          leftMembers: 0,
-          middleMembers: 0,
-          rightMembers: 0,
-          maxCapacity: Math.pow(3, layer),
-          activeMembers: 0
-        })
-      }
-
-      // Process actual matrix data
-      if (matrixData && matrixData.length > 0) {
-        matrixData.forEach((member: any) => {
-          const layer = member.matrix_layer
-          if (layer <= 19) {
-            const stats = layerStatsMap.get(layer)
-            if (stats) {
-              stats.totalMembers++
-              
-              // Count by position (L, M, R)
-              switch (member.matrix_position) {
-                case 'L':
-                  stats.leftMembers++
-                  break
-                case 'M':
-                  stats.middleMembers++
-                  break
-                case 'R':
-                  stats.rightMembers++
-                  break
-              }
-              
-              // Count activated members
-              if (member.is_activated) {
-                stats.activeMembers++
-              }
-              
-              layerStatsMap.set(layer, stats)
-            }
-          }
-        })
-      }
-
-      // Convert to final array with calculated percentages
+      // Transform data directly from matrix_layers_view (no need for processing)
       const completeStats = []
+      
+      // Initialize all 19 layers
       for (let layer = 1; layer <= 19; layer++) {
-        const stats = layerStatsMap.get(layer)
-        const fillPercentage = stats.maxCapacity > 0 ? (stats.totalMembers / stats.maxCapacity) * 100 : 0
-        const completedPercentage = stats.totalMembers > 0 ? (stats.activeMembers / stats.totalMembers) * 100 : 0
+        const layerData = matrixData?.find((l: any) => l.layer === layer)
         
-        completeStats.push({
-          layer,
-          totalMembers: stats.totalMembers,
-          leftMembers: stats.leftMembers,
-          middleMembers: stats.middleMembers,
-          rightMembers: stats.rightMembers,
-          maxCapacity: stats.maxCapacity,
-          fillPercentage: parseFloat(fillPercentage.toFixed(2)),
-          activeMembers: stats.activeMembers,
-          completedPercentage: parseFloat(completedPercentage.toFixed(2))
-        })
+        if (layerData) {
+          // Use data from matrix_layers_view directly
+          completeStats.push({
+            layer: layerData.layer,
+            totalMembers: layerData.filled_slots || 0,
+            leftMembers: layerData.left_count || 0,
+            middleMembers: layerData.middle_count || 0,
+            rightMembers: layerData.right_count || 0,
+            maxCapacity: layerData.max_slots || Math.pow(3, layer),
+            fillPercentage: parseFloat(layerData.completion_rate || 0),
+            activeMembers: layerData.activated_members || 0,
+            completedPercentage: parseFloat(layerData.completion_rate || 0)
+          })
+        } else {
+          // Empty layer
+          completeStats.push({
+            layer,
+            totalMembers: 0,
+            leftMembers: 0,
+            middleMembers: 0,
+            rightMembers: 0,
+            maxCapacity: Math.pow(3, layer),
+            fillPercentage: 0,
+            activeMembers: 0,
+            completedPercentage: 0
+          })
+        }
       }
 
       console.log(`✅ Generated statistics for ${completeStats.length} layers`)
@@ -141,13 +108,15 @@ serve(async (req) => {
     }
 
     if (action === 'get-matrix-members') {
-      // Get detailed matrix member data using the fixed get_1x3_matrix_view function
+      // Get detailed matrix member data using matrix_referrals_view
       console.log(`👥 Getting matrix members for wallet: ${walletAddress}`)
       
-      const { data: matrixMembers, error: membersError } = await supabase.rpc('get_1x3_matrix_view', {
-        p_wallet_address: walletAddress,
-        p_levels: 19  // Get up to 19 layers
-      })
+      const { data: matrixMembers, error: membersError } = await supabase
+        .from('matrix_referrals_view')
+        .select('*')
+        .eq('matrix_root_wallet', walletAddress)
+        .order('layer')
+        .order('position')
 
       if (membersError) {
         console.error('Error fetching matrix members:', membersError)
@@ -157,16 +126,16 @@ serve(async (req) => {
       // Organize by layer
       const byLayer = {}
       matrixMembers?.forEach(member => {
-        if (!byLayer[member.matrix_layer]) {
-          byLayer[member.matrix_layer] = []
+        if (!byLayer[member.layer]) {
+          byLayer[member.layer] = []
         }
-        byLayer[member.matrix_layer].push({
-          wallet_address: member.wallet_address,
+        byLayer[member.layer].push({
+          wallet_address: member.member_wallet,
           username: member.username,
-          matrix_position: member.matrix_position,
+          matrix_position: member.position,
           current_level: member.current_level,
           is_activated: member.is_activated,
-          joined_at: member.activation_time,  // Use activation_time instead of joined_at
+          joined_at: member.created_at,  // Use created_at from matrix_referrals_view
           activation_sequence: member.activation_sequence
         })
       })
