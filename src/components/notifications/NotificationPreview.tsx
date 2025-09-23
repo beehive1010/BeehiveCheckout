@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { callEdgeFunction } from '../../lib/supabaseClient';
 import { Bell } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { useI18n } from '../../contexts/I18nContext';
 import type { NotificationStats } from '../../types/notification';
 
 interface NotificationPreviewProps {
@@ -14,6 +15,7 @@ export default function NotificationPreview({
   walletAddress, 
   onNotificationClick 
 }: NotificationPreviewProps) {
+  const { t } = useI18n();
   // Simple query for recent notifications
   const { data: notificationsData, isLoading } = useQuery({
     queryKey: ['notifications', 'preview', walletAddress],
@@ -46,16 +48,16 @@ export default function NotificationPreview({
     <div className="p-4">
       <div className="flex items-center gap-2 mb-3">
         <Bell className="w-5 h-5 text-yellow-400" />
-        <h3 className="text-white font-semibold">Recent Notifications</h3>
+        <h3 className="text-white font-semibold">{t('notifications.recentNotifications')}</h3>
       </div>
       
       {isLoading ? (
         <div className="text-center py-4 text-gray-400">
-          Loading...
+          {t('common.loading')}
         </div>
       ) : notifications.length === 0 ? (
         <div className="text-center py-4 text-gray-400">
-          No notifications yet
+          {t('notifications.noNotificationsYet')}
         </div>
       ) : (
         <div className="space-y-2">
@@ -73,10 +75,10 @@ export default function NotificationPreview({
                 <Bell className="w-4 h-4 text-gray-400 mt-1 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-white truncate">
-                    {notification.title || 'Notification'}
+                    {notification.title || t('notifications.defaultTitle')}
                   </p>
                   <p className="text-xs text-gray-400 mt-1 line-clamp-2">
-                    {notification.message || 'No message'}
+                    {notification.message || t('notifications.noMessage')}
                   </p>
                   {notification.created_at && !isNaN(new Date(notification.created_at).getTime()) && (
                     <p className="text-xs text-gray-500 mt-1">

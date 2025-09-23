@@ -27,7 +27,24 @@
     "refresh": "Refresh",
     "retry": "Retry",
     "backToProfile": "Back to Profile",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "pageNotFound": "Page Not Found",
+    "accessDenied": "Access Denied",
+    "tokenPurchase": "Token Purchase",
+    "authenticationFailed": "Authentication Failed",
+    "thisRequiresConnectedWallet": "This requires a connected wallet",
+    "thisMayTakeAFewSeconds": "This may take a few seconds",
+    "comingSoon": "Coming Soon",
+    "healthy": "Healthy",
+    "warning": "Warning",
+    "critical": "Critical",
+    "maintenance": "Maintenance",
+    "info": "Info",
+    "expired": "EXPIRED",
+    "errorLoading": "Error Loading",
+    "featuredPartners": "Featured Partners",
+    "allPartners": "All Partners",
+    "noRecentErrors": "No Recent Errors"
   },
   "dashboard": {
     "welcomeBack": "Welcome back, {username}!",
@@ -481,6 +498,10 @@
   "notifications": {
     "title": "Notifications",
     "markAllRead": "Mark all read",
+    "recentNotifications": "Recent Notifications",
+    "noNotificationsYet": "No notifications yet",
+    "defaultTitle": "Notification",
+    "noMessage": "No message",
     "empty": {
       "title": "No notifications yet",
       "description": "You'll receive notifications for BCC rewards, upgrades, and referrals"

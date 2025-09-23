@@ -27,7 +27,24 @@
     "refresh": "刷新",
     "retry": "重试",
     "backToProfile": "返回个人资料",
-    "back": "返回"
+    "unknown": "未知",
+    "pageNotFound": "页面未找到",
+    "accessDenied": "访问被拒绝",
+    "tokenPurchase": "代币购买",
+    "authenticationFailed": "身份验证失败",
+    "thisRequiresConnectedWallet": "这需要连接钱包",
+    "thisMayTakeAFewSeconds": "这可能需要几秒钟",
+    "comingSoon": "即将推出",
+    "healthy": "健康",
+    "warning": "警告",
+    "critical": "严重",
+    "maintenance": "维护中",
+    "info": "信息",
+    "expired": "已过期",
+    "errorLoading": "加载错误",
+    "featuredPartners": "特色合作伙伴",
+    "allPartners": "所有合作伙伴",
+    "noRecentErrors": "没有最近错误"
   },
   "dashboard": {
     "welcomeBack": "欢迎回来, {username}!",
@@ -556,6 +573,10 @@
   "notifications": {
     "title": "通知",
     "markAllRead": "全部标为已读",
+    "recentNotifications": "最近通知",
+    "noNotificationsYet": "暂无通知",
+    "defaultTitle": "通知",
+    "noMessage": "无消息",
     "empty": {
       "title": "暂无通知",
       "description": "您将收到BCC奖励、升级和推荐的通知"

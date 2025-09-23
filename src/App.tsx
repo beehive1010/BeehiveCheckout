@@ -44,30 +44,88 @@ import Navigation from "@/components/shared/Navigation";
 import { useWallet } from "@/hooks/useWallet";
 import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
 import MemberGuard from "@/components/guards/MemberGuard";
+import { useI18n } from "@/contexts/I18nContext";
 
 // Temporary components for features not yet refactored
-const CourseDetails = () => <div>Course Details - Coming Soon</div>;
-const BlogPost = () => <div>Blog Post - Coming Soon</div>;
-const AdvertisementNFTs = () => <div>Advertisement NFTs - Coming Soon</div>;
-const AdminNFTManager = () => <div>Admin NFT Manager - Coming Soon</div>;
-const NotFound = () => <div className="text-center py-12"><h1 className="text-honey text-2xl">Page Not Found</h1></div>;
+const CourseDetails = () => {
+  const { t } = useI18n();
+  return <div>{t('common.comingSoon')} - Course Details</div>;
+};
+const BlogPost = () => {
+  const { t } = useI18n();
+  return <div>{t('common.comingSoon')} - Blog Post</div>;
+};
+const AdvertisementNFTs = () => {
+  const { t } = useI18n();
+  return <div>{t('common.comingSoon')} - Advertisement NFTs</div>;
+};
+const AdminNFTManager = () => {
+  const { t } = useI18n();
+  return <div>{t('common.comingSoon')} - Admin NFT Manager</div>;
+};
+const NotFound = () => {
+  const { t } = useI18n();
+  return <div className="text-center py-12"><h1 className="text-honey text-2xl">{t('common.pageNotFound')}</h1></div>;
+};
 
 // Admin components
 import AdminLogin from "@/pages/AdminLogin";
-const AdminDashboard = () => <div>Admin Dashboard - Coming Soon</div>;
-const AdminUsers = () => <div>Admin Users - Coming Soon</div>;
-const AdminUserManagement = () => <div>Admin User Management - Coming Soon</div>;
-const AdminReferrals = () => <div>Admin Referrals - Coming Soon</div>;
-const AdminNFTsPlaceholder = () => <div>Admin NFTs - Coming Soon</div>;
-const AdminContracts = () => <div>Admin Contracts - Coming Soon</div>;
-const AdminContractDetail = () => <div>Admin Contract Detail - Coming Soon</div>;
-const AdminContractDeploy = () => <div>Admin Contract Deploy - Coming Soon</div>;
-const AdminCourses = () => <div>Admin Courses - Coming Soon</div>;
-const AdminBlog = () => <div>Admin Blog - Coming Soon</div>;
-const AdminSystem = () => <div>Admin System - Coming Soon</div>;
-const AdminDiscover = () => <div>Admin Discover - Coming Soon</div>;
-const Courses = () => <div>Courses - Coming Soon</div>;
-const DiscoverPartners = () => <div>Discover Partners - Coming Soon</div>;
+const AdminDashboard = () => {
+  const { t } = useI18n();
+  return <div>{t('common.comingSoon')} - Admin Dashboard</div>;
+};
+const AdminUsers = () => {
+  const { t } = useI18n();
+  return <div>{t('common.comingSoon')} - Admin Users</div>;
+};
+const AdminUserManagement = () => {
+  const { t } = useI18n();
+  return <div>{t('common.comingSoon')} - Admin User Management</div>;
+};
+const AdminReferrals = () => {
+  const { t } = useI18n();
+  return <div>{t('common.comingSoon')} - Admin Referrals</div>;
+};
+const AdminNFTsPlaceholder = () => {
+  const { t } = useI18n();
+  return <div>{t('common.comingSoon')} - Admin NFTs</div>;
+};
+const AdminContracts = () => {
+  const { t } = useI18n();
+  return <div>{t('common.comingSoon')} - Admin Contracts</div>;
+};
+const AdminContractDetail = () => {
+  const { t } = useI18n();
+  return <div>{t('common.comingSoon')} - Admin Contract Detail</div>;
+};
+const AdminContractDeploy = () => {
+  const { t } = useI18n();
+  return <div>{t('common.comingSoon')} - Admin Contract Deploy</div>;
+};
+const AdminCourses = () => {
+  const { t } = useI18n();
+  return <div>{t('common.comingSoon')} - Admin Courses</div>;
+};
+const AdminBlog = () => {
+  const { t } = useI18n();
+  return <div>{t('common.comingSoon')} - Admin Blog</div>;
+};
+const AdminSystem = () => {
+  const { t } = useI18n();
+  return <div>{t('common.comingSoon')} - Admin System</div>;
+};
+const AdminDiscover = () => {
+  const { t } = useI18n();
+  return <div>{t('common.comingSoon')} - Admin Discover</div>;
+};
+const Courses = () => {
+  const { t } = useI18n();
+  return <div>{t('common.comingSoon')} - Courses</div>;
+};
+const DiscoverPartners = () => {
+  const { t } = useI18n();
+  return <div>{t('common.comingSoon')} - Discover Partners</div>;
+};
 const AdminLayout = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
 
 // Layout components (temporary)
@@ -122,6 +180,7 @@ function SmartHomePage() {
 
 function Router() {
   const [location] = useLocation();
+  const { t } = useI18n();
   const isAdminRoute = location.startsWith('/admin');
 
   // Handle admin routes separately with AdminAuthProvider
@@ -217,7 +276,7 @@ function Router() {
         <Route path="/admin/unauthorized" component={() => (
           <div className="min-h-screen flex items-center justify-center bg-background">
             <div className="text-center space-y-4">
-              <h1 className="text-3xl font-bold text-honey">Access Denied</h1>
+              <h1 className="text-3xl font-bold text-honey">{t('common.accessDenied')}</h1>
               <p className="text-muted-foreground">
                 You don't have permission to access this area.
               </p>
@@ -331,7 +390,7 @@ function Router() {
         <Route path="/tokens" component={() => (
           <div className="container mx-auto px-4 py-8 max-w-7xl">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-honey mb-2">Token Purchase</h1>
+              <h1 className="text-3xl font-bold text-honey mb-2">{t('common.tokenPurchase')}</h1>
               <p className="text-muted-foreground">
                 Buy BCC and CTH tokens across multiple chains at 1 token = 0.01 USDT
               </p>
