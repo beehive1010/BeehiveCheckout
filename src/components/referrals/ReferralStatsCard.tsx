@@ -42,36 +42,38 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
     try {
       setLoading(true);
       
-      // Use matrix Supabase functions directly
+      // Use matrix views directly from database
       const [matrixStatsResult, matrixDownlineResult] = await Promise.allSettled([
-        fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/matrix-view', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1MjUwMTYsImV4cCI6MjA0MDEwMTAxNn0.gBWZUvwCJgP1lsVQlZNDsYXDxBEr31QfRtNEgYzS6NA',
-            'x-wallet-address': walletAddress
-          },
-          body: JSON.stringify({ action: 'get-layer-stats' })
-        }).then(async (res) => {
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const result = await res.json();
-          if (!result.success) throw new Error(result.error);
-          return { data: result.data };
-        }),
-        fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/matrix-view', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1MjUwMTYsImV4cCI6MjA0MDEwMTAxNn0.gBWZUvwCJgP1lsVQlZNDsYXDxBEr31QfRtNEgYzS6NA',
-            'x-wallet-address': walletAddress
-          },
-          body: JSON.stringify({ action: 'get-matrix-tree', maxLayers: 5 })
-        }).then(async (res) => {
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const result = await res.json();
-          if (!result.success) throw new Error(result.error);
-          return { data: result.data.tree_members || [] };
-        })
+        // Get stats from referral_stats_view
+        supabase
+          .from('referral_stats_view')
+          .select('*')
+          .eq('wallet_address', walletAddress)
+          .single()
+          .then(({ data, error }) => {
+            if (error) throw error;
+            return { data };
+          }),
+        // Get team members from matrix_team_view
+        supabase
+          .from('matrix_team_view')
+          .select(`
+            member_wallet,
+            member_name,
+            matrix_layer,
+            matrix_position,
+            placed_at,
+            is_active,
+            member_level,
+            placement_type
+          `)
+          .eq('matrix_root', walletAddress)
+          .order('placed_at', { ascending: false })
+          .limit(10)
+          .then(({ data, error }) => {
+            if (error) throw error;
+            return { data: data || [] };
+          })
       ]);
 
       // Extract stats data from edge function response
