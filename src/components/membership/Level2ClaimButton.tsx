@@ -187,8 +187,8 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
 
     if (!canClaimLevel2) {
       toast({
-        title: 'Level 2 Requirements Not Met',
-        description: 'You need at least 3 direct referrals to claim Level 2 NFT.',
+        title: t('membership.errors.level2Requirements'),
+        description: t('membership.errors.level2DirectReferrals'),
         variant: "destructive",
       });
       return;
