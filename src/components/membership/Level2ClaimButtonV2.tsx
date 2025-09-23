@@ -587,6 +587,21 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
           </p>
         </div>
 
+        {/* NFT Ownership Status */}
+        {alreadyOwnsLevel2 && (
+          <div className="p-4 rounded-lg border bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+              <span className="text-sm font-medium text-blue-600">
+                Level 2 NFT Status
+              </span>
+            </div>
+            <p className="text-xs text-blue-600">
+              ✅ You already own the Level 2 NFT! Visit the membership page to upgrade to Level 3.
+            </p>
+          </div>
+        )}
+
         {/* Claim Button */}
         <div className="space-y-4">
           {/* Show network switch button if on wrong network */}
@@ -641,7 +656,7 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
             ) : !canClaimLevel2 ? (
               <>
                 <Crown className="mr-2 h-5 w-5" />
-                Requirements Not Met
+                {alreadyOwnsLevel2 ? 'Already Own Level 2 NFT' : 'Requirements Not Met'}
               </>
             ) : isProcessing ? (
               <>
