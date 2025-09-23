@@ -372,7 +372,7 @@ export default function Membership() {
                   {t('membership.goToWelcome') || 'Go to Welcome Page →'}
                 </a>
               </div>
-            ) : currentLevel === 1 ? (
+            ) : currentLevel === 1 && (directReferralsCount || 0) >= 3 ? (
               <Level2ClaimButtonV2 
                 onSuccess={() => {
                   toast({
@@ -389,6 +389,19 @@ export default function Membership() {
                   }, 2000);
                 }}
               />
+            ) : currentLevel === 1 && (directReferralsCount || 0) < 3 ? (
+              <div className="text-center p-6 bg-orange-50 border border-orange-200 rounded-lg">
+                <Users className="h-12 w-12 text-orange-500 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-orange-800 mb-2">
+                  {t('membership.level2Requirements') || 'Level 2 Requirements'}
+                </h3>
+                <p className="text-orange-700 mb-4">
+                  {t('membership.level2DirectReferralsRequired') || 'You need 3 direct referrals to unlock Level 2'}
+                </p>
+                <div className="text-sm text-orange-600">
+                  {t('membership.currentDirectReferrals') || 'Current direct referrals'}: {directReferralsCount || 0}/3
+                </div>
+              </div>
             ) : currentLevel >= 1 && currentLevel < 19 ? (
               <LevelUpgradeButton 
                 onSuccess={() => {
