@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { MultilingualText } from '../components/shared/MultilingualContent';
+import { HybridTranslation } from '../components/shared/HybridTranslation';
 import { useToast } from '../hooks/use-toast';
 import { Megaphone, Package, ArrowRight, Star, Loader2, ShoppingCart, Eye, Sparkles, Palette, Languages } from 'lucide-react';
 import { supabase, orderService } from '../lib/supabaseClient';
@@ -440,13 +440,16 @@ export default function NFTs() {
                       className="w-full h-48 object-cover rounded-lg mb-3"
                     />
                     <Badge className="w-fit bg-blue-500/20 text-blue-400 border-blue-500/30">
-                      <MultilingualText
-                        text={nft.category}
-                        language={nft.language_code || nft.language}
-                        translations={nft.translations ? Object.fromEntries(
-                          Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.category || nft.category])
-                        ) : {}}
+                      <HybridTranslation
+                        content={{
+                          text: nft.category,
+                          language: nft.language_code || nft.language,
+                          translations: nft.translations ? Object.fromEntries(
+                            Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.category || nft.category])
+                          ) : {}
+                        }}
                         autoTranslate={true}
+                        contentStyle="text-xs"
                       />
                     </Badge>
                     <CardTitle className="text-lg text-foreground">
