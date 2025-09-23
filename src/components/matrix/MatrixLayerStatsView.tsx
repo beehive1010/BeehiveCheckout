@@ -51,7 +51,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
         .from('matrix_layers_view')
         .select('*')
         .eq('matrix_root_wallet', walletAddress)
-        .order('layer_number', { ascending: true });
+        .order('layer', { ascending: true });
 
       if (error) {
         throw new Error(error.message);
@@ -59,15 +59,15 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
 
       // Transform data to match LayerStatsData interface
       const layerStats: LayerStatsData[] = matrixData?.map((layer: any) => ({
-        layer: layer.layer_number || 1,
-        totalMembers: layer.total_members || 0,
-        leftMembers: layer.left_members || 0,
-        middleMembers: layer.middle_members || 0,
-        rightMembers: layer.right_members || 0,
-        maxCapacity: Math.pow(3, layer.layer_number || 1), // 3^layer capacity
-        fillPercentage: layer.fill_percentage || 0,
-        activeMembers: layer.active_members || 0,
-        completedPercentage: layer.completed_percentage || 0,
+        layer: layer.layer || 1,
+        totalMembers: layer.filled_slots || 0,
+        leftMembers: Math.floor((layer.filled_slots || 0) / 3), // Approximation
+        middleMembers: Math.floor((layer.filled_slots || 0) / 3),
+        rightMembers: Math.floor((layer.filled_slots || 0) / 3),
+        maxCapacity: layer.max_slots || Math.pow(3, layer.layer || 1),
+        fillPercentage: parseFloat(layer.completion_rate || 0),
+        activeMembers: layer.filled_slots || 0, // Assume all filled slots are active
+        completedPercentage: parseFloat(layer.completion_rate || 0),
       })) || [];
 
       setLayerStats(layerStats);
