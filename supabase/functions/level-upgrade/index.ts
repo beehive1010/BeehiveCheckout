@@ -246,8 +246,7 @@ async function processLevelUpgrade(
         claim_price: LEVEL_CONFIG.PRICING[targetLevel] || 0,
         claimed_at: new Date().toISOString(),
         is_member: true,
-        unlock_membership_level: targetLevel + 1, // Dynamic unlock level
-        total_cost: LEVEL_CONFIG.PRICING[targetLevel] || 0
+        unlock_membership_level: targetLevel + 1 // Dynamic unlock level
       })
       .select()
       .single()
@@ -269,8 +268,7 @@ async function processLevelUpgrade(
     const { data: memberUpdateResult, error: memberUpdateError } = await supabase
       .from('members')
       .update({
-        current_level: targetLevel,
-        updated_at: new Date().toISOString()
+        current_level: targetLevel
       })
       .eq('wallet_address', walletAddress) // Preserve case
       .select()
@@ -333,11 +331,9 @@ async function processLevelUpgrade(
       targetLevel,
       upgradeResult: {
         newLevel: targetLevel,
-        membershipCreated: !!membershipData,
-        memberLevelUpdated: !!memberUpdateResult,
-        currentBccBalance: balanceData?.bcc_balance || 0,
-        pendingBccRewards: balanceData?.pending_bcc_rewards || 0,
-        layerRewardsTriggered: layerRewardsCount || 0
+        bccUnlocked: LEVEL_CONFIG.BCC_UNLOCK[targetLevel] || 0,
+        pendingRewardsClaimed: 0,
+        newPendingRewards: balanceData?.pending_bcc_rewards || 0
       },
       message: `Successfully upgraded to Level ${targetLevel}! Membership record created, level updated, triggers fired for BCC release and layer rewards.`
     }
@@ -438,12 +434,13 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
     let directReferralsCheck = { required: 0, current: 0, satisfied: true }
     
     if (targetLevel === 2) {
-      const { count: directReferralsCount } = await supabase
-        .from('direct_referrals')
-        .select('*', { count: 'exact' })
-        .eq('referrer_wallet', walletAddress) // Preserve case
+      const { data: referrerStatsData } = await supabase
+        .from('referrer_stats')
+        .select('direct_referrals')
+        .ilike('referrer', walletAddress) // Use ilike for case insensitive match
+        .maybeSingle()
 
-      const directReferrals = directReferralsCount || 0
+      const directReferrals = referrerStatsData?.direct_referrals || 0
       const requiredReferrals = LEVEL_CONFIG.SPECIAL_REQUIREMENTS.LEVEL_2_DIRECT_REFERRALS
 
       directReferralsCheck = {
