@@ -765,6 +765,26 @@
       "noRewards": "No claimable rewards",
       "noRewardsDescription": "Complete tasks and invite referrals to earn rewards"
     },
+    "rollup": {
+      "title": "Rollup Rewards",
+      "subtitle": "Rewards that were redistributed due to expiration or qualification issues",
+      "totalRolledUp": "Total Rolled Up",
+      "totalAmount": "Total Amount",
+      "reasons": "Reasons",
+      "recentRollups": "Recent Rollups",
+      "rollupBreakdown": "Rollup Breakdown",
+      "noRollupRewards": "No rollup rewards found",
+      "noRollupDescription": "Rollup rewards appear when pending rewards expire or are redistributed",
+      "aboutRollup": "About Rollup Rewards",
+      "aboutRollupDescription": "Rollup rewards are rewards that were pending but couldn't be claimed due to expiration, insufficient level, or other reasons. These rewards are redistributed within the network according to the matrix rollup system.",
+      "reasons": {
+        "expired_unclaimed": "Expired - Not Claimed",
+        "insufficient_level": "Insufficient Level",
+        "network_spillover": "Network Spillover",
+        "manual_rollup": "Manual Rollup",
+        "system_rollup": "System Rollup"
+      }
+    },
     "history": {
       "title": "Transaction History",
       "noHistory": "No transactions yet",

@@ -76,17 +76,18 @@ export default function RollupRewardsCard({ walletAddress, className }: RollupRe
   });
 
   const formatRollupReason = (reason: string | null) => {
-    if (!reason) return 'Unknown';
+    if (!reason) return t('common.unknown') || 'Unknown';
     
-    const reasonMap: Record<string, string> = {
-      'expired_unclaimed': 'Expired - Not Claimed',
-      'insufficient_level': 'Insufficient Level',
-      'network_spillover': 'Network Spillover',
-      'manual_rollup': 'Manual Rollup',
-      'system_rollup': 'System Rollup'
-    };
+    // Use translations for rollup reasons
+    const reasonKey = `rewards.rollup.reasons.${reason}`;
+    const translatedReason = t(reasonKey);
     
-    return reasonMap[reason] || reason.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    // If translation exists, use it; otherwise format the reason string
+    if (translatedReason && translatedReason !== reasonKey) {
+      return translatedReason;
+    }
+    
+    return reason.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
   const getRollupReasonColor = (reason: string | null) => {
@@ -107,7 +108,7 @@ export default function RollupRewardsCard({ walletAddress, className }: RollupRe
         <CardContent className="p-6">
           <div className="text-center py-8">
             <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2 text-honey" />
-            <p className="text-muted-foreground">Loading rollup rewards...</p>
+            <p className="text-muted-foreground">{t('common.loading')}</p>
           </div>
         </CardContent>
       </Card>
@@ -119,7 +120,7 @@ export default function RollupRewardsCard({ walletAddress, className }: RollupRe
       <Card className={className}>
         <CardContent className="p-6">
           <div className="text-center py-8">
-            <p className="text-red-500">Error loading rollup rewards</p>
+            <p className="text-red-500">{t('common.error')}</p>
             <p className="text-sm text-muted-foreground mt-2">
               {error instanceof Error ? error.message : 'Unknown error'}
             </p>
