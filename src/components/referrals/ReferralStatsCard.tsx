@@ -42,11 +42,11 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
     try {
       setLoading(true);
       
-      // Use matrix views directly from database
+      // Use existing views from database
       const [matrixStatsResult, matrixDownlineResult] = await Promise.allSettled([
-        // Get stats from referral_stats_view
+        // Get stats from referrer_stats view
         supabase
-          .from('referral_stats_view')
+          .from('referrer_stats')
           .select('*')
           .eq('wallet_address', walletAddress)
           .single()
@@ -54,21 +54,21 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
             if (error) throw error;
             return { data };
           }),
-        // Get team members from matrix_team_view
+        // Get team members from matrix_referrals_view
         supabase
-          .from('matrix_team_view')
+          .from('matrix_referrals_view')
           .select(`
-            member_wallet,
-            member_name,
-            matrix_layer,
-            matrix_position,
-            placed_at,
+            wallet_address,
+            username,
+            layer,
+            position,
+            created_at,
             is_active,
-            member_level,
-            placement_type
+            current_level,
+            referral_type
           `)
-          .eq('matrix_root', walletAddress)
-          .order('placed_at', { ascending: false })
+          .eq('matrix_root_wallet', walletAddress)
+          .order('created_at', { ascending: false })
           .limit(10)
           .then(({ data, error }) => {
             if (error) throw error;

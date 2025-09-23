@@ -89,7 +89,8 @@ export default function ReferralMatrixVisualization({
           is_active,
           username,
           current_level,
-          referral_type
+          referral_type,
+          created_at
         `)
         .eq('matrix_root_wallet', effectiveRootWallet)
         .order('activation_sequence');
