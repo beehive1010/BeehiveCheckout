@@ -57,21 +57,21 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
         throw new Error(layerError.message);
       }
 
-      // Get position distribution data for actual L M R counts
+      // Get position distribution data for actual L M R counts from referral_tree_view
       const { data: positionData, error: positionError } = await supabase
-        .from('matrix_referrals_tree_view')
-        .select('layer, position')
-        .eq('matrix_root_wallet', walletAddress)
+        .from('referral_tree_view')
+        .select('depth, position')
+        .eq('root_wallet', walletAddress)
         .neq('position', 'root'); // Exclude root position
 
       if (positionError) {
         throw new Error(positionError.message);
       }
 
-      // Calculate position distribution by layer
+      // Calculate position distribution by depth (layer)
       const positionByLayer: Record<number, { L: number; M: number; R: number }> = {};
       positionData?.forEach(member => {
-        const layer = member.layer;
+        const layer = member.depth; // Use depth instead of layer
         if (!positionByLayer[layer]) {
           positionByLayer[layer] = { L: 0, M: 0, R: 0 };
         }
