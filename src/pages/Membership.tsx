@@ -11,7 +11,7 @@ import { Crown, Shield, Star, Zap, Gift, Lock, CheckCircle, Loader2, ArrowRight,
 import MembershipBadge from '../components/membership/MembershipBadge';
 import { getMembershipLevel } from '../lib/config/membershipLevels';
 import { LevelUpgradeButton } from '../components/membership';
-import { Level2ClaimButtonV2 } from '../components/membership/Level2ClaimButtonV2';
+import { LevelUpgradeButtonGeneric } from '../components/membership/LevelUpgradeButtonGeneric';
 
 interface MembershipLevel {
   level: number;
@@ -372,8 +372,11 @@ export default function Membership() {
                   {t('membership.goToWelcome') || 'Go to Welcome Page →'}
                 </a>
               </div>
-            ) : currentLevel === 1 && (directReferralsCount || 0) >= 3 ? (
-              <Level2ClaimButtonV2 
+            ) : currentLevel && currentLevel >= 1 && currentLevel < 19 ? (
+              <LevelUpgradeButtonGeneric 
+                targetLevel={currentLevel + 1}
+                currentLevel={currentLevel}
+                directReferralsCount={directReferralsCount || 0}
                 onSuccess={() => {
                   toast({
                     title: t('membership.upgradeSuccess') || 'Upgrade Successful!',
@@ -381,44 +384,13 @@ export default function Membership() {
                     duration: 5000
                   });
                   // Refresh user data and referrals count after successful upgrade
-                  console.log('✅ Level 2 claim successful - refreshing user data');
+                  console.log(`✅ Level ${currentLevel + 1} claim successful - refreshing user data`);
                   // Add a small delay to ensure database updates have been processed
                   setTimeout(() => {
                     queryClient.invalidateQueries({ queryKey: ['user-status', walletAddress] });
                     queryClient.invalidateQueries({ queryKey: ['/direct-referrals', walletAddress] });
                   }, 2000);
                 }}
-              />
-            ) : currentLevel === 1 && (directReferralsCount || 0) < 3 ? (
-              <div className="text-center p-6 bg-orange-50 border border-orange-200 rounded-lg">
-                <Users className="h-12 w-12 text-orange-500 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-orange-800 mb-2">
-                  {t('membership.level2Requirements.title') || 'Level 2 Requirements'}
-                </h3>
-                <p className="text-orange-700 mb-4">
-                  {t('membership.level2DirectReferralsRequired') || 'You need 3 direct referrals to unlock Level 2'}
-                </p>
-                <div className="text-sm text-orange-600">
-                  {t('membership.currentDirectReferrals') || 'Current direct referrals'}: {directReferralsCount || 0}/3
-                </div>
-              </div>
-            ) : currentLevel >= 1 && currentLevel < 19 ? (
-              <LevelUpgradeButton 
-                onSuccess={() => {
-                  toast({
-                    title: t('membership.upgradeSuccess') || 'Upgrade Successful!',
-                    description: t('membership.upgradeSuccessDescription') || 'Your membership has been upgraded successfully',
-                    duration: 5000
-                  });
-                  // Refresh user data after successful upgrade
-                  console.log('✅ Level upgrade successful - refreshing user data');
-                  // Add a small delay to ensure database updates have been processed
-                  setTimeout(() => {
-                    queryClient.invalidateQueries({ queryKey: ['user-status', walletAddress] });
-                    queryClient.invalidateQueries({ queryKey: ['/direct-referrals', walletAddress] });
-                  }, 2000);
-                }}
-                targetLevel={currentLevel + 1}
               />
             ) : (
               <div className="text-center p-8 text-muted-foreground">
