@@ -561,6 +561,32 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
           </div>
         </div>
 
+        {/* Direct Referrals Status */}
+        <div className={`p-4 rounded-lg border ${
+          directReferralsCount >= 3 
+            ? 'bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border-emerald-500/20' 
+            : 'bg-gradient-to-br from-amber-500/10 to-amber-500/5 border-amber-500/20'
+        }`}>
+          <div className="flex items-center gap-2 mb-2">
+            <div className={`w-2 h-2 rounded-full ${
+              directReferralsCount >= 3 ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'
+            }`}></div>
+            <span className={`text-sm font-medium ${
+              directReferralsCount >= 3 ? 'text-emerald-600' : 'text-amber-600'
+            }`}>
+              Direct Referrals: {directReferralsCount}/3
+            </span>
+          </div>
+          <p className={`text-xs ${
+            directReferralsCount >= 3 ? 'text-emerald-600' : 'text-amber-600'
+          }`}>
+            {directReferralsCount >= 3 
+              ? '✅ Qualified for Level 2 upgrade'
+              : `❌ Need ${3 - directReferralsCount} more direct referrals`
+            }
+          </p>
+        </div>
+
         {/* Claim Button */}
         <div className="space-y-4">
           {/* Show network switch button if on wrong network */}
