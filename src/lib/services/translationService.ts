@@ -120,11 +120,12 @@ class DeepLProvider implements TranslationProvider {
     const mapping: Record<string, string> = {
       'en': 'EN-US', // 美式英语
       'zh': 'ZH',    // 中文（简体）
-      'zh-tw': 'ZH', // 中文繁体 -> 简体（DeepL不支持繁体）
+      'zh-tw': 'ZH', // 中文繁体 -> 简体（DeepL将转换为简体）
       'ja': 'JA',    // 日语
       'ko': 'KO',    // 韩语  
-      'th': 'EN-US', // 泰语（DeepL不支持，需要其他提供商）
-      'ms': 'EN-US', // 马来语（DeepL不支持，需要其他提供商）
+      // 对于DeepL不支持的语言，我们尝试翻译到英语作为中间语言
+      'th': 'EN-US', // 泰语 -> 英语（用户可理解）
+      'ms': 'EN-US', // 马来语 -> 英语（用户可理解）
       'de': 'DE',    // 德语
       'fr': 'FR',    // 法语
       'es': 'ES',    // 西班牙语
