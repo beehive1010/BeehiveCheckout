@@ -96,6 +96,27 @@ const getWithdrawalFee = (chainId: number) => {
   return WITHDRAWAL_FEES[chainId as keyof typeof WITHDRAWAL_FEES] || 2.0;
 };
 
+// Safe string operations to prevent "cannot read replace/slice" errors
+const safeStringSlice = (str: string | null | undefined, start: number, end?: number) => {
+  if (!str || typeof str !== 'string') return '';
+  try {
+    return end !== undefined ? str.slice(start, end) : str.slice(start);
+  } catch (error) {
+    console.warn('Safe string slice failed:', error);
+    return '';
+  }
+};
+
+const formatWalletAddress = (address: string | null | undefined) => {
+  if (!address || typeof address !== 'string') return 'Unknown';
+  try {
+    return `${safeStringSlice(address, 0, 6)}...${safeStringSlice(address, -4)}`;
+  } catch (error) {
+    console.warn('Format wallet address failed:', error);
+    return 'Invalid Address';
+  }
+};
+
 export default function USDTWithdrawal() {
   const { toast } = useToast();
   const account = useActiveAccount();
@@ -687,7 +708,7 @@ export default function USDTWithdrawal() {
             )}
             {!balanceLoading && memberWalletAddress && (
               <p className="text-xs text-muted-foreground">
-                Wallet: {memberWalletAddress?.slice?.(0, 6) || ''}...{memberWalletAddress?.slice?.(-4) || ''}
+                Wallet: {formatWalletAddress(memberWalletAddress)}
               </p>
             )}
             {!memberWalletAddress && (
@@ -747,7 +768,7 @@ export default function USDTWithdrawal() {
               <div className="flex-1">
                 <h4 className="text-sm font-medium text-yellow-400 mb-1">No Balance Record Found</h4>
                 <p className="text-xs text-muted-foreground mb-3">
-                  Your wallet address ({memberWalletAddress ? `${memberWalletAddress?.slice?.(0, 6) || ''}...${memberWalletAddress?.slice?.(-4) || ''}` : 'Unknown'}) doesn't have a balance record in our system yet.
+                  Your wallet address ({formatWalletAddress(memberWalletAddress)}) doesn't have a balance record in our system yet.
                 </p>
                 <button
                   onClick={async () => {
@@ -862,7 +883,7 @@ export default function USDTWithdrawal() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Wallet Address:</span>
                   <span className="font-mono text-xs bg-muted px-2 py-1 rounded">
-                    {currentWalletAddress ? `${currentWalletAddress?.slice?.(0, 6) || ''}...${currentWalletAddress?.slice?.(-4) || ''}` : 'Not Connected'}
+                    {currentWalletAddress ? formatWalletAddress(currentWalletAddress) : 'Not Connected'}
                   </span>
                 </div>
                 
