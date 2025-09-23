@@ -98,27 +98,41 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
 
       console.log('📊 Matrix layers data:', matrixData);
 
-      // Use referral_tree_view as the source since it has the correct 9 layers
-      // Then apply matrix spillover logic in frontend
-      const { data: referralTreeData, error: positionError } = await supabase
-        .from('referral_tree_view')
-        .select('depth, position, wallet_address, activation_sequence')
-        .eq('root_wallet', walletAddress)
-        .neq('position', 'root')
-        .order('depth', { ascending: true })
-        .order('activation_sequence', { ascending: true });
-
-      if (positionError) {
-        console.error('❌ Referral tree query error:', positionError);
-        throw new Error(`Referral tree error: ${positionError.message}`);
-      }
-
-      console.log('📊 Raw referral tree data (9 layers):', referralTreeData);
-
-      // Apply matrix spillover logic: redistribute members to create matrix structure
-      const positionData = applyMatrixSpilloverLogic(referralTreeData || []);
+      // Try to get matrix data from available views, applying BFS logic
+      let positionData;
       
-      console.log('📊 Matrix position data after spillover logic:', positionData);
+      console.log('🔍 Trying matrix_referrals_tree_view first...');
+      
+      // Try matrix_referrals_tree_view first
+      const matrixResult = await supabase
+        .from('matrix_referrals_tree_view')
+        .select('layer, position, member_wallet, activation_sequence, is_spillover')
+        .eq('matrix_root_wallet', walletAddress)
+        .neq('position', 'root');
+
+      if (matrixResult.error) {
+        console.warn('⚠️ matrix_referrals_tree_view not available, using referral_tree_view with BFS logic');
+        
+        // Fallback: Use referral_tree_view and apply BFS matrix logic
+        const referralResult = await supabase
+          .from('referral_tree_view')
+          .select('depth, position, wallet_address, activation_sequence')
+          .eq('root_wallet', walletAddress)
+          .neq('position', 'root')
+          .order('activation_sequence', { ascending: true });
+
+        if (referralResult.error) {
+          throw new Error(`No suitable matrix view available: ${referralResult.error.message}`);
+        }
+
+        console.log('📊 Raw referral tree data (applying BFS logic):', referralResult.data);
+        
+        // Apply BFS matrix placement algorithm
+        positionData = applyBFSMatrixPlacement(referralResult.data || []);
+      } else {
+        positionData = matrixResult.data;
+        console.log('📊 Matrix data from matrix_referrals_tree_view:', positionData);
+      }
 
       // Calculate position distribution by layer
       const positionByLayer: Record<number, { L: number; M: number; R: number }> = {};
