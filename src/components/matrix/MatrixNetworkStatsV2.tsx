@@ -363,41 +363,21 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
         </CardContent>
       </Card>
 
-      {/* Global Network Statistics */}
-      {globalStats && (
+      {/* Add retry button for failed loads */}
+      {error && (
         <Card className="bg-secondary border-border">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-honey">
-              <Crown className="h-5 w-5" />
-              Global Network Statistics
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-3 bg-honey/5 rounded-lg border border-honey/20">
-                <div className="text-2xl font-bold text-honey">
-                  {globalStats.globalPool.totalMembersActivated.toLocaleString()}
-                </div>
-                <div className="text-xs text-muted-foreground">Global Members</div>
-              </div>
-              <div className="text-center p-3 bg-green-500/5 rounded-lg border border-green-500/20">
-                <div className="text-2xl font-bold text-green-400">
-                  {globalStats.tierBreakdown.tier1.toLocaleString()}
-                </div>
-                <div className="text-xs text-muted-foreground">Tier 1 Members</div>
-              </div>
-              <div className="text-center p-3 bg-blue-500/5 rounded-lg border border-blue-500/20">
-                <div className="text-2xl font-bold text-blue-400">
-                  {globalStats.globalPool.currentTier}
-                </div>
-                <div className="text-xs text-muted-foreground">Current Global Tier</div>
-              </div>
-              <div className="text-center p-3 bg-purple-500/5 rounded-lg border border-purple-500/20">
-                <div className="text-2xl font-bold text-purple-400">
-                  {globalStats.globalPool.totalBccLocked.toLocaleString()}
-                </div>
-                <div className="text-xs text-muted-foreground">BCC Locked</div>
-              </div>
+          <CardContent className="p-6">
+            <div className="text-center py-8">
+              <div className="text-red-400 mb-2">⚠️ Failed to load matrix statistics</div>
+              <div className="text-xs text-muted-foreground mb-4">{error}</div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={loadMatrixStats}
+                className="border-honey/30 text-honey hover:bg-honey hover:text-black"
+              >
+                Retry Loading
+              </Button>
             </div>
           </CardContent>
         </Card>
