@@ -435,10 +435,19 @@ export default function USDTWithdrawal() {
     }
 
     const fee = getWithdrawalFee(currentChainId!);
-    if (!balance || (amount + fee) > parseFloat(balance.balanceUSD)) {
+    if (!balance || amount > parseFloat(balance.balanceUSD)) {
       toast({
         title: "Insufficient Balance",
-        description: `You need ${(amount + fee).toFixed(2)} USDT (${amount} + ${fee} fee) but only have ${balance?.balanceUSD || '0'}`,
+        description: `You need ${amount} USDT but only have ${balance?.balanceUSD || '0'} USDT`,
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (amount <= fee) {
+      toast({
+        title: "Amount Too Small",
+        description: `Minimum withdrawal is ${(fee + 0.01).toFixed(2)} USDT (fee: ${fee} USDT)`,
         variant: 'destructive',
       });
       return;
@@ -472,10 +481,19 @@ export default function USDTWithdrawal() {
     }
 
     const fee = getWithdrawalFee(currentChainId!);
-    if (!balance || (amount + fee) > parseFloat(balance.balanceUSD)) {
+    if (!balance || amount > parseFloat(balance.balanceUSD)) {
       toast({
-        title: "Insufficient Balance",
-        description: `You need ${(amount + fee).toFixed(2)} USDT (${amount} + ${fee} fee) but only have ${balance?.balanceUSD || '0'}`,
+        title: "Insufficient Balance", 
+        description: `You need ${amount} USDT but only have ${balance?.balanceUSD || '0'} USDT`,
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (amount <= fee) {
+      toast({
+        title: "Amount Too Small",
+        description: `Minimum withdrawal is ${(fee + 0.01).toFixed(2)} USDT (fee: ${fee} USDT)`,
         variant: 'destructive',
       });
       return;
