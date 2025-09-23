@@ -29,6 +29,7 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
   const [canClaimLevel2, setCanClaimLevel2] = useState(false);
   const [isCheckingEligibility, setIsCheckingEligibility] = useState(true);
   const [isWrongNetwork, setIsWrongNetwork] = useState(false);
+  const [directReferralsCount, setDirectReferralsCount] = useState(0);
   
   // Fixed Level 2 pricing - same as Level1 logic
   const LEVEL_2_PRICE_USDC = 150;
