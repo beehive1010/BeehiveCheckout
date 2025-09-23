@@ -64,10 +64,9 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
           member_wallet,
           layer,
           position,
-          username,
-          current_level,
-          is_activated,
-          placed_at
+          parent_wallet,
+          referral_type,
+          child_activation_time
         `)
         .eq('matrix_root_wallet', walletAddress)
         .order('layer', { ascending: true })
@@ -82,7 +81,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
       if (matrixData && matrixData.length > 0) {
         // Get members for the current layer (first layer by default)
         const currentLayer = 1;
-        const layerMembers = matrixData.filter((member: any) => member.layer === currentLayer);
+        const layerMembers = matrixData.filter((member: any) => member.matrix_layer === currentLayer);
         
         // Group members by position (L, M, R)
         const leftMembers: MatrixMember[] = [];
@@ -95,8 +94,8 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
             username: member.username || `User_${member.member_wallet.slice(-6)}`,
             level: member.current_level || 1,
             isActive: member.is_activated || false,
-            layer: member.layer || currentLayer,
-            position: member.position as 'L' | 'M' | 'R',
+            layer: member.matrix_layer || currentLayer,
+            position: member.matrix_position as 'L' | 'M' | 'R',
             placedAt: member.joined_at || new Date().toISOString()
           };
           

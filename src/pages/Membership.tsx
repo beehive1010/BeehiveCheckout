@@ -71,6 +71,34 @@ export default function Membership() {
       }
     }
   });
+
+  // Fetch user's next unlockable level from membership table
+  const { data: nextUnlockLevel } = useQuery({
+    queryKey: ['/next-unlock-level', walletAddress],
+    enabled: !!walletAddress,
+    queryFn: async () => {
+      try {
+        const { supabase } = await import('../lib/supabase');
+        const { data, error } = await supabase
+          .from('membership')
+          .select('unlock_membership_level')
+          .ilike('wallet_address', walletAddress!)
+          .order('nft_level', { ascending: false })
+          .limit(1)
+          .single();
+        
+        if (error) {
+          console.error('Failed to fetch next unlock level:', error);
+          return null;
+        }
+        
+        return data?.unlock_membership_level || null;
+      } catch (error) {
+        console.error('Failed to fetch next unlock level:', error);
+        return null;
+      }
+    }
+  });
   const [claimState, setClaimState] = useState<{
     level: number | null;
     loading: boolean;
@@ -90,7 +118,7 @@ export default function Membership() {
     isProcessing: false
   });
 
-  // Handle direct upgrade from card - Use actual upgrade logic
+  // Handle direct upgrade from card - Use database unlock logic
   const handleCardUpgrade = async (targetLevel: number) => {
     if (!walletAddress) {
       toast({
@@ -101,22 +129,22 @@ export default function Membership() {
       return;
     }
 
-    // Check if user can upgrade to this level
-    if (targetLevel !== currentLevel + 1) {
+    // Check if this level is the next unlockable level from database
+    if (!nextUnlockLevel || targetLevel !== nextUnlockLevel) {
       toast({
-        title: "Sequential Upgrade Required",
-        description: `You can only upgrade to Level ${currentLevel + 1}. Cannot skip levels.`,
+        title: "Level Not Available",
+        description: `This level is not currently unlockable. Please complete your current level first.`,
         variant: "destructive",
       });
       return;
     }
 
-    // For Level 2, check special requirements
+    // For Level 2, check special requirements (direct referrals >= 3)
     if (targetLevel === 2) {
-      if (currentLevel !== 1 || (directReferralsCount || 0) < 3) {
+      if ((directReferralsCount || 0) < 3) {
         toast({
           title: "Requirements Not Met",
-          description: "Level 2 requires Level 1 membership and 3+ direct referrals",
+          description: `Level 2 requires 3+ direct referrals. You currently have ${directReferralsCount || 0}.`,
           variant: "destructive",
         });
         return;
@@ -255,17 +283,24 @@ export default function Membership() {
     if (!currentLevel) return 'locked';
     if (level <= currentLevel) return 'owned';
     
-    // Special logic for Level 2: requires Level 1 + direct referrals >= 3 (from referrals table)
-    if (level === 2) {
-      if (currentLevel >= 1 && (directReferralsCount || 0) >= 3) {
-        return 'available';
+    // Check if this level is the next unlockable level from database
+    if (nextUnlockLevel && level === nextUnlockLevel) {
+      // Special condition for Level 2: requires direct referrals >= 3
+      if (level === 2) {
+        if ((directReferralsCount || 0) >= 3) {
+          return 'available';
+        }
+        return 'locked';
       }
-      return 'locked';
+      // For other levels, if it's the next unlock level, it's available
+      return 'available';
     }
     
-    if (level === currentLevel + 1) return 'available';
     return 'locked';
   };
+
+  // Filter out Level 1 and Level 2 from the membership claims list
+  const displayedMembershipLevels = membershipLevels.filter(level => level.level > 2);
 
   const canClaimLevel = (level: number) => {
     const status = getLevelStatus(level);
@@ -383,7 +418,7 @@ export default function Membership() {
 
       {/* Premium Membership Levels Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {membershipLevels.map((membership) => {
+        {displayedMembershipLevels.map((membership) => {
           const status = getLevelStatus(membership.level);
           const totalPrice = membership.price + (membership.platformFee || 0);
           const Icon = membership.icon;
@@ -487,8 +522,8 @@ export default function Membership() {
                 </CardHeader>
 
                 <CardContent className="p-8 pt-4 space-y-6">
-                  {/* Level 2 Special Requirements Display */}
-                  {membership.level === 2 && currentLevel === 1 && (
+                  {/* Level 2 Special Requirements Display - Now handled in quick upgrade section */}
+                  {membership.level === 2 && currentLevel === 1 && nextUnlockLevel === 2 && (
                     <div className="mb-6 p-4 rounded-2xl border border-honey/20 bg-gradient-to-r from-honey/5 to-orange-500/5">
                       <div className="flex items-center gap-2 mb-2">
                         <Users className="h-4 w-4 text-honey" />
