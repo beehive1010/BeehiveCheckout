@@ -769,7 +769,7 @@ export default function USDTWithdrawal() {
             <div>
               <h4 className="text-sm font-medium text-orange-400 mb-1">Withdrawal Fees</h4>
               <p className="text-xs text-muted-foreground">
-                A withdrawal fee of {getWithdrawalFee(currentChainId || 42161)} USDT will be deducted and sent to our gas fee wallet for transaction processing. Different networks have different fees.
+                A withdrawal fee of {getWithdrawalFee(currentChainId || 42161)} USDT will be deducted from your withdrawal amount. You will receive the net amount after the fee deduction. Different networks have different fees.
               </p>
             </div>
           </div>
