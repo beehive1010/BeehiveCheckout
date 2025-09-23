@@ -465,11 +465,11 @@ export default function NFTs() {
                     
                     <div className="flex items-center justify-between">
                       <div className="text-center">
-                        <div className="text-lg font-bold text-blue-400">{nft.price_bcc} BCC</div>
-                        <div className="text-xs text-muted-foreground">${nft.price_usdt} USDT</div>
+                        <div className="text-lg font-bold text-blue-400">{nft.price_bcc || 0} BCC</div>
+                        <div className="text-xs text-muted-foreground">${nft.price_usdt || 0} USDT</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-sm font-medium text-foreground">{nft.impressions_current.toLocaleString()}</div>
+                        <div className="text-sm font-medium text-foreground">{(nft.impressions_current || 0).toLocaleString()}</div>
                         <div className="text-xs text-muted-foreground">{t('nfts.advertisement.views')}</div>
                       </div>
                     </div>
@@ -555,8 +555,8 @@ export default function NFTs() {
                     
                     <div className="flex items-center justify-between">
                       <div className="text-center">
-                        <div className="text-lg font-bold text-purple-400">{nft.price_bcc} BCC</div>
-                        <div className="text-xs text-muted-foreground">${nft.price_usdt} USDT</div>
+                        <div className="text-lg font-bold text-purple-400">{nft.price_bcc || 0} BCC</div>
+                        <div className="text-xs text-muted-foreground">${nft.price_usdt || 0} USDT</div>
                       </div>
                       {nft.supply_total && (
                         <div className="text-center">
@@ -650,7 +650,7 @@ export default function NFTs() {
                       
                       <div className="text-xs text-muted-foreground space-y-1">
                         <div>Purchased: {new Date(purchase.purchased_at).toLocaleDateString()}</div>
-                        <div>Paid: {purchase.price_usdt} USDT</div>
+                        <div>Paid: {purchase.price_usdt || 0} USDT</div>
                         <div>Type: {purchase.nft_type}</div>
                       </div>
 
