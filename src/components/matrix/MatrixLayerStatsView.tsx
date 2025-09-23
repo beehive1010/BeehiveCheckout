@@ -24,41 +24,7 @@ interface MatrixLayerStatsViewProps {
   compact?: boolean;
 }
 
-// Matrix spillover logic: redistribute referral tree members into matrix structure
-const applyMatrixSpilloverLogic = (referralData: any[]) => {
-  const matrixPositions: any[] = [];
-  const layerCapacity = [0, 3, 9, 27, 81, 243, 729]; // Layer 1-6 capacity
-  
-  // Group by depth (layer) first
-  const membersByDepth = referralData.reduce((acc, member) => {
-    const depth = member.depth;
-    if (!acc[depth]) acc[depth] = [];
-    acc[depth].push(member);
-    return acc;
-  }, {} as Record<number, any[]>);
-
-  // Process each depth level
-  Object.keys(membersByDepth).forEach(depthKey => {
-    const depth = parseInt(depthKey);
-    const members = membersByDepth[depth];
-    
-    members.forEach((member, index) => {
-      // Calculate matrix position based on spillover logic
-      const capacity = layerCapacity[depth] || Math.pow(3, depth);
-      const positionIndex = index % 3;
-      const layer = depth;
-      
-      matrixPositions.push({
-        layer: layer,
-        position: ['L', 'M', 'R'][positionIndex],
-        wallet_address: member.wallet_address,
-        activation_sequence: member.activation_sequence
-      });
-    });
-  });
-
-  return matrixPositions;
-};
+// Matrix views now handle BFS logic in database - no frontend processing needed
 
 const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({ 
   walletAddress, 
@@ -98,41 +64,19 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
 
       console.log('📊 Matrix layers data:', matrixData);
 
-      // Try to get matrix data from available views, applying BFS logic
-      let positionData;
-      
-      console.log('🔍 Trying matrix_referrals_tree_view first...');
-      
-      // Try matrix_referrals_tree_view first
-      const matrixResult = await supabase
+      // Get matrix data from corrected matrix_referrals_tree_view
+      const { data: positionData, error: positionError } = await supabase
         .from('matrix_referrals_tree_view')
         .select('layer, position, member_wallet, activation_sequence, is_spillover')
         .eq('matrix_root_wallet', walletAddress)
         .neq('position', 'root');
 
-      if (matrixResult.error) {
-        console.warn('⚠️ matrix_referrals_tree_view not available, using referral_tree_view with BFS logic');
-        
-        // Fallback: Use referral_tree_view and apply BFS matrix logic
-        const referralResult = await supabase
-          .from('referral_tree_view')
-          .select('depth, position, wallet_address, activation_sequence')
-          .eq('root_wallet', walletAddress)
-          .neq('position', 'root')
-          .order('activation_sequence', { ascending: true });
-
-        if (referralResult.error) {
-          throw new Error(`No suitable matrix view available: ${referralResult.error.message}`);
-        }
-
-        console.log('📊 Raw referral tree data (applying BFS logic):', referralResult.data);
-        
-        // Apply BFS matrix placement algorithm
-        positionData = applyBFSMatrixPlacement(referralResult.data || []);
-      } else {
-        positionData = matrixResult.data;
-        console.log('📊 Matrix data from matrix_referrals_tree_view:', positionData);
+      if (positionError) {
+        console.error('❌ Matrix tree query error:', positionError);
+        throw new Error(`Matrix tree error: ${positionError.message}`);
       }
+
+      console.log('📊 Matrix data from corrected matrix_referrals_tree_view:', positionData);
 
       // Calculate position distribution by layer
       const positionByLayer: Record<number, { L: number; M: number; R: number }> = {};
@@ -157,9 +101,11 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
         rightMembers: positionByLayer[layer.layer]?.R || 0,
         maxCapacity: layer.max_slots || Math.pow(3, layer.layer || 1),
         fillPercentage: parseFloat(layer.completion_rate || 0),
-        activeMembers: layer.filled_slots || 0,
+        activeMembers: layer.activated_members || 0,
         completedPercentage: parseFloat(layer.completion_rate || 0),
       })) || [];
+
+      console.log('📊 Final layer stats:', layerStats);
 
       setLayerStats(layerStats);
       
