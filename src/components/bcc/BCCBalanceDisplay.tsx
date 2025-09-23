@@ -30,10 +30,7 @@ export const BCCBalanceDisplay: React.FC<BCCBalanceProps> = ({ walletAddress }) 
     queryKey: ['bcc-balance', walletAddress],
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke('bcc-balance', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        body: { walletAddress },
       });
 
       if (error) throw error;

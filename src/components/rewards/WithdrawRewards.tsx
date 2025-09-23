@@ -30,19 +30,16 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
   const [showWithdrawForm, setShowWithdrawForm] = useState(false);
   const queryClient = useQueryClient();
 
-  // Get claimable and pending rewards
-  const { data: rewards, isLoading: rewardsLoading } = useQuery<LayerReward[]>({
+  // Get claimable and pending rewards via Supabase Edge Function
+  const { data: rewardsData, isLoading: rewardsLoading } = useQuery<any>({
     queryKey: ['layer-rewards', walletAddress],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('layer_rewards')
-        .select('*')
-        .eq('reward_recipient_wallet', walletAddress)
-        .in('status', ['claimable', 'pending'])
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.functions.invoke('rewards-status', {
+        body: { walletAddress },
+      });
 
       if (error) throw error;
-      return data || [];
+      return data;
     },
     enabled: !!walletAddress,
     refetchInterval: 5000,
@@ -64,24 +61,18 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
     enabled: !!walletAddress,
   });
 
-  // Claim reward mutation
+  // Claim reward mutation using Supabase Edge Function
   const claimRewardMutation = useMutation({
     mutationFn: async (rewardId: string) => {
-      const response = await fetch('/api/rewards/claim', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+      const { data, error } = await supabase.functions.invoke('rewards-claim', {
+        body: { 
           walletAddress, 
           rewardId 
-        }),
+        },
       });
 
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error);
-      }
-
-      return response.json();
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['layer-rewards', walletAddress] });
