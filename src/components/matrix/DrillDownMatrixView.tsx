@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { ChevronRight, Users, Trophy, ArrowLeft, Home } from 'lucide-react';
-import { supabase } from '../../lib/supabaseClient';
+import { supabase } from '../../lib/supabase';
 import { useI18n } from '../../contexts/I18nContext';
 
 interface MatrixMember {
@@ -55,38 +55,34 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
     setError(null);
 
     try {
-      // Use optimized matrix-view Edge Function for better performance
+      // Use optimized matrix_referrals_tree_view for better performance
       console.log(`🔍 Loading matrix for wallet: ${walletAddress}, using optimized view`);
       
-      const response = await fetch(`${import.meta.env.VITE_API_BASE}/matrix-view`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-          'x-wallet-address': walletAddress
-        },
-        body: JSON.stringify({
-          action: 'get-matrix-members'
-        })
-      });
+      const { data: matrixData, error } = await supabase
+        .from('matrix_referrals_tree_view')
+        .select(`
+          member_wallet,
+          layer,
+          position,
+          username,
+          current_level,
+          is_activated,
+          placed_at
+        `)
+        .eq('matrix_root_wallet', walletAddress)
+        .order('layer', { ascending: true })
+        .order('position', { ascending: true });
 
-      const result = await response.json();
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to load matrix data');
+      if (error) {
+        throw new Error(error.message);
       }
-
-      const matrixData = result.data;
       
       console.log(`🔍 Matrix data for ${walletAddress}:`, matrixData);
 
-      if (matrixData && matrixData.matrix_data) {
-        // Parse matrix data from Edge Function response
-        const allLayers = matrixData.matrix_data.by_layer || {};
-        const currentLayer = 1; // Start with layer 1
-        
+      if (matrixData && matrixData.length > 0) {
         // Get members for the current layer (first layer by default)
-        const layerMembers = allLayers[currentLayer] || [];
+        const currentLayer = 1;
+        const layerMembers = matrixData.filter((member: any) => member.layer === currentLayer);
         
         // Group members by position (L, M, R)
         const leftMembers: MatrixMember[] = [];
@@ -95,12 +91,12 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
         
         layerMembers.forEach((member: any) => {
           const memberData: MatrixMember = {
-            walletAddress: member.wallet_address,
-            username: member.username || `User_${member.wallet_address.slice(-6)}`,
+            walletAddress: member.member_wallet,
+            username: member.username || `User_${member.member_wallet.slice(-6)}`,
             level: member.current_level || 1,
             isActive: member.is_activated || false,
-            layer: member.matrix_layer || currentLayer,
-            position: member.matrix_position as 'L' | 'M' | 'R',
+            layer: member.layer || currentLayer,
+            position: member.position as 'L' | 'M' | 'R',
             placedAt: member.joined_at || new Date().toISOString()
           };
           

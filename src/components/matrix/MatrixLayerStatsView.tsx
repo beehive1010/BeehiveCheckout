@@ -46,29 +46,30 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
     setError(null);
 
     try {
-      // Use optimized matrix-view edge function for better performance
-      const response = await fetch(`${import.meta.env.VITE_API_BASE}/matrix-view`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'x-wallet-address': walletAddress
-        },
-        body: JSON.stringify({ action: 'get-layer-stats' })
-      });
+      // Use matrix_layers_view for optimized layer statistics
+      const { data: matrixData, error } = await supabase
+        .from('matrix_layers_view')
+        .select('*')
+        .eq('matrix_root_wallet', walletAddress)
+        .order('layer_number', { ascending: true });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      if (error) {
+        throw new Error(error.message);
       }
 
-      const result = await response.json();
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to load layer statistics');
-      }
+      // Transform data to match LayerStatsData interface
+      const layerStats: LayerStatsData[] = matrixData?.map((layer: any) => ({
+        layer: layer.layer_number || 1,
+        totalMembers: layer.total_members || 0,
+        leftMembers: layer.left_members || 0,
+        middleMembers: layer.middle_members || 0,
+        rightMembers: layer.right_members || 0,
+        maxCapacity: Math.pow(3, layer.layer_number || 1), // 3^layer capacity
+        fillPercentage: layer.fill_percentage || 0,
+        activeMembers: layer.active_members || 0,
+        completedPercentage: layer.completed_percentage || 0,
+      })) || [];
 
-      // The optimized view returns pre-calculated layer stats
-      const layerStats = result.data.layer_stats || [];
       setLayerStats(layerStats);
       
     } catch (error: any) {
