@@ -613,7 +613,7 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
             ) : !canClaimLevel2 ? (
               <>
                 <Crown className="mr-2 h-5 w-5" />
-                Need Level 1 First
+                Requirements Not Met
               </>
             ) : isProcessing ? (
               <>
