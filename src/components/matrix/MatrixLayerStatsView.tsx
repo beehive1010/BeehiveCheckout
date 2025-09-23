@@ -344,7 +344,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
               🎯 Green layers are fully activated • Blue layers are well-filled • Yellow layers need more members
             </p>
             <p className="text-xs mt-1">
-              📊 Each layer can hold 3^layer positions (Layer 1: 3, Layer 2: 9, Layer 3: 27, etc.)
+              📊 Layer capacities: Layer 1: 3, Layer 2: 9 (L×3, M×3, R×3), Layer 3+: 3^layer positions
             </p>
           </div>
         </CardContent>

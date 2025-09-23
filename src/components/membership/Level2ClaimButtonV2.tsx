@@ -394,13 +394,13 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
       console.log('✅ Receipt status:', receipt.status);
 
       // Step 7: Process Level 2 upgrade using level-upgrade Edge Function
+      let activationSuccess = false;
+      
       if (claimTxResult?.transactionHash) {
         console.log('🚀 Processing Level 2 upgrade via level-upgrade function...');
         setCurrentStep('Processing Level 2 upgrade...');
         
         await new Promise(resolve => setTimeout(resolve, 3000));
-        
-        let activationSuccess = false;
         
         try {
           // Call level-upgrade Edge Function for proper processing
@@ -440,8 +440,7 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
             const { data: updateResult, error: updateError } = await supabase
               .from('members')
               .update({ 
-                current_level: 2,
-                updated_at: new Date().toISOString()
+                current_level: 2
               })
               .eq('wallet_address', account.address)
               .select('*')
