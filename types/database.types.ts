@@ -1293,20 +1293,6 @@ export type Database = {
             foreignKeyName: "layer_rewards_matrix_root_wallet_fkey"
             columns: ["matrix_root_wallet"]
             isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "layer_rewards_matrix_root_wallet_fkey"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "layer_rewards_matrix_root_wallet_fkey"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
             referencedRelation: "member_balance_complete"
             referencedColumns: ["wallet_address"]
           },
@@ -1342,20 +1328,6 @@ export type Database = {
             foreignKeyName: "layer_rewards_reward_recipient_wallet_fkey"
             columns: ["reward_recipient_wallet"]
             isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "layer_rewards_reward_recipient_wallet_fkey"
-            columns: ["reward_recipient_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "layer_rewards_reward_recipient_wallet_fkey"
-            columns: ["reward_recipient_wallet"]
-            isOneToOne: false
             referencedRelation: "member_balance_complete"
             referencedColumns: ["wallet_address"]
           },
@@ -1386,20 +1358,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "referrer_stats"
             referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "layer_rewards_triggering_member_wallet_fkey"
-            columns: ["triggering_member_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "layer_rewards_triggering_member_wallet_fkey"
-            columns: ["triggering_member_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
           },
           {
             foreignKeyName: "layer_rewards_triggering_member_wallet_fkey"
@@ -1569,20 +1527,6 @@ export type Database = {
             foreignKeyName: "matrix_referrals_matrix_root_wallet_fkey"
             columns: ["matrix_root_wallet"]
             isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "matrix_referrals_matrix_root_wallet_fkey"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "matrix_referrals_matrix_root_wallet_fkey"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
             referencedRelation: "member_balance_complete"
             referencedColumns: ["wallet_address"]
           },
@@ -1618,20 +1562,6 @@ export type Database = {
             foreignKeyName: "matrix_referrals_member_wallet_fkey"
             columns: ["member_wallet"]
             isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "matrix_referrals_member_wallet_fkey"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "matrix_referrals_member_wallet_fkey"
-            columns: ["member_wallet"]
-            isOneToOne: false
             referencedRelation: "member_balance_complete"
             referencedColumns: ["wallet_address"]
           },
@@ -1662,20 +1592,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "referrer_stats"
             referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "matrix_referrals_parent_wallet_fkey"
-            columns: ["parent_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "matrix_referrals_parent_wallet_fkey"
-            columns: ["parent_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
           },
           {
             foreignKeyName: "matrix_referrals_parent_wallet_fkey"
@@ -1740,20 +1656,6 @@ export type Database = {
           wallet_address?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
           {
             foreignKeyName: "fk_members_referrer_to_members"
             columns: ["referrer_wallet"]
@@ -2067,20 +1969,6 @@ export type Database = {
             foreignKeyName: "fk_referrals_matrix_root_to_members"
             columns: ["matrix_root_wallet"]
             isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
             referencedRelation: "member_balance_complete"
             referencedColumns: ["wallet_address"]
           },
@@ -2116,20 +2004,6 @@ export type Database = {
             foreignKeyName: "fk_referrals_member_to_members"
             columns: ["member_wallet"]
             isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
             referencedRelation: "member_balance_complete"
             referencedColumns: ["wallet_address"]
           },
@@ -2160,20 +2034,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "referrer_stats"
             referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
           },
           {
             foreignKeyName: "fk_referrals_referrer_to_members"
@@ -2236,20 +2096,6 @@ export type Database = {
             foreignKeyName: "referrals_new_referred_wallet_fkey"
             columns: ["referred_wallet"]
             isOneToOne: true
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "referrals_new_referred_wallet_fkey"
-            columns: ["referred_wallet"]
-            isOneToOne: true
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "referrals_new_referred_wallet_fkey"
-            columns: ["referred_wallet"]
-            isOneToOne: true
             referencedRelation: "member_balance_complete"
             referencedColumns: ["wallet_address"]
           },
@@ -2280,20 +2126,6 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "referrer_stats"
             referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "referrals_new_referrer_wallet_fkey"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "referrals_new_referrer_wallet_fkey"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
           },
           {
             foreignKeyName: "referrals_new_referrer_wallet_fkey"
@@ -2530,20 +2362,6 @@ export type Database = {
             foreignKeyName: "roll_up_rewards_final_recipient_fkey"
             columns: ["final_recipient"]
             isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "roll_up_rewards_final_recipient_fkey"
-            columns: ["final_recipient"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "roll_up_rewards_final_recipient_fkey"
-            columns: ["final_recipient"]
-            isOneToOne: false
             referencedRelation: "member_balance_complete"
             referencedColumns: ["wallet_address"]
           },
@@ -2574,20 +2392,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "referrer_stats"
             referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "roll_up_rewards_original_recipient_fkey"
-            columns: ["original_recipient"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "roll_up_rewards_original_recipient_fkey"
-            columns: ["original_recipient"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
           },
           {
             foreignKeyName: "roll_up_rewards_original_recipient_fkey"
@@ -2847,20 +2651,6 @@ export type Database = {
             foreignKeyName: "fk_user_balances_wallet_to_members"
             columns: ["wallet_address"]
             isOneToOne: true
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_user_balances_wallet_to_members"
-            columns: ["wallet_address"]
-            isOneToOne: true
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_user_balances_wallet_to_members"
-            columns: ["wallet_address"]
-            isOneToOne: true
             referencedRelation: "member_balance_complete"
             referencedColumns: ["wallet_address"]
           },
@@ -3109,486 +2899,160 @@ export type Database = {
         }
         Relationships: []
       }
-      matrix_layer_stats_view: {
+      empty_slot_flags_view: {
         Row: {
-          active_members: number | null
-          completion_percentage: number | null
-          fill_percentage: number | null
-          left_members: number | null
-          matrix_layer: number | null
+          layer: number | null
           matrix_root_wallet: string | null
-          max_capacity: number | null
-          middle_members: number | null
-          right_members: number | null
-          total_members: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_balance_complete"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_complete_info"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_rewards_overview_v2"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "referrer_stats"
-            referencedColumns: ["wallet_address"]
-          },
-        ]
-      }
-      matrix_layer_view: {
-        Row: {
-          activation_sequence: number | null
-          current_level: number | null
-          direct_referrer: string | null
-          matrix_layer: number | null
-          matrix_owner: string | null
-          matrix_position: string | null
-          matrix_root_wallet: string | null
-          member_name: string | null
-          member_wallet: string | null
-          placed_at: string | null
-          placement_source: string | null
-          placement_type: string | null
-          referrer_wallet: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_balance_complete"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_complete_info"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_rewards_overview_v2"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "referrer_stats"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_balance_complete"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_complete_info"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_rewards_overview_v2"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "referrer_stats"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_balance_complete"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_complete_info"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_rewards_overview_v2"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "referrer_stats"
-            referencedColumns: ["wallet_address"]
-          },
-        ]
-      }
-      matrix_referrals_view: {
-        Row: {
-          activation_time: string | null
-          current_level: number | null
-          matrix_root_wallet: string | null
-          member_activation_sequence: number | null
-          member_wallet: string | null
-          parent_depth: number | null
           parent_wallet: string | null
-          path: string[] | null
-          position: string | null
-          referral_type: string | null
-          tree_level: number | null
+          slot_l_empty: boolean | null
+          slot_m_empty: boolean | null
+          slot_r_empty: boolean | null
+          total_empty_slots: number | null
         }
         Relationships: []
       }
-      matrix_structure_view: {
+      matrix_layers_view: {
         Row: {
-          l_activation_sequence: number | null
-          l_level: number | null
-          l_username: string | null
-          l_wallet: string | null
-          m_activation_sequence: number | null
-          m_level: number | null
-          m_username: string | null
-          m_wallet: string | null
-          next_vacant_position: string | null
-          positions_filled: number | null
-          r_activation_sequence: number | null
-          r_level: number | null
-          r_username: string | null
-          r_wallet: string | null
-          root_activation_sequence: number | null
-          root_level: number | null
-          root_username: string | null
-          root_wallet: string | null
+          completion_rate: number | null
+          empty_slots: number | null
+          filled_slots: number | null
+          layer: number | null
+          matrix_root_wallet: string | null
+          max_slots: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_members_wallet_to_users"
-            columns: ["root_wallet"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["wallet_address"]
-          },
-        ]
+        Relationships: []
       }
-      matrix_vacancy_quick: {
+      matrix_referrals_tree_view: {
         Row: {
-          css_class: string | null
-          is_direct_referral: boolean | null
-          is_spillover_placement: boolean | null
-          matrix_layer: number | null
-          matrix_position: string | null
-          occupant_activation_sequence: number | null
-          occupant_level: number | null
-          occupant_username: string | null
-          placement_type: string | null
-          position_index: number | null
-          root_activation_sequence: number | null
-          root_username: string | null
-          root_wallet: string | null
-          sort_order: number | null
-          status: string | null
+          child_activation_time: string | null
+          layer: number | null
+          matrix_root_activation_sequence: number | null
+          matrix_root_wallet: string | null
+          member_wallet: string | null
+          parent_wallet: string | null
+          position: string | null
+          referral_type: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_members_wallet_to_users"
-            columns: ["root_wallet"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["wallet_address"]
-          },
-        ]
+        Relationships: []
       }
-      matrix_view: {
+      matrix_referrals_view: {
         Row: {
           activation_sequence: number | null
-          activation_time: string | null
-          active_layers: number | null
+          created_at: string | null
           current_level: number | null
-          deepest_layer: number | null
-          email: string | null
-          first_referral_date: string | null
-          is_activated: boolean | null
-          joined_at: string | null
-          last_referral_date: string | null
-          layer_active: number | null
-          layer_capacity: number | null
-          layer_completion_rate: number | null
-          layer_fill_rate: number | null
-          layer_left: number | null
-          layer_middle: number | null
-          layer_right: number | null
-          layer_total: number | null
-          matrix_layer: number | null
-          matrix_position: string | null
+          depth: number | null
+          is_active: boolean | null
+          layer: number | null
+          layer_label: string | null
           matrix_root_wallet: string | null
-          referral_id: string | null
-          referrer_wallet: string | null
-          total_active_members: number | null
-          total_team_size: number | null
+          parent_wallet: string | null
+          position: string | null
+          referral_type: string | null
           username: string | null
           wallet_address: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
+            foreignKeyName: "matrix_referrals_matrix_root_wallet_fkey"
             columns: ["matrix_root_wallet"]
             isOneToOne: false
             referencedRelation: "member_balance_complete"
             referencedColumns: ["wallet_address"]
           },
           {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
+            foreignKeyName: "matrix_referrals_matrix_root_wallet_fkey"
             columns: ["matrix_root_wallet"]
             isOneToOne: false
             referencedRelation: "member_complete_info"
             referencedColumns: ["wallet_address"]
           },
           {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
+            foreignKeyName: "matrix_referrals_matrix_root_wallet_fkey"
             columns: ["matrix_root_wallet"]
             isOneToOne: false
             referencedRelation: "member_rewards_overview_v2"
             referencedColumns: ["wallet_address"]
           },
           {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
+            foreignKeyName: "matrix_referrals_matrix_root_wallet_fkey"
             columns: ["matrix_root_wallet"]
             isOneToOne: false
             referencedRelation: "members"
             referencedColumns: ["wallet_address"]
           },
           {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
+            foreignKeyName: "matrix_referrals_matrix_root_wallet_fkey"
             columns: ["matrix_root_wallet"]
             isOneToOne: false
             referencedRelation: "referrer_stats"
             referencedColumns: ["wallet_address"]
           },
           {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["wallet_address"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["wallet_address"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
+            foreignKeyName: "matrix_referrals_member_wallet_fkey"
             columns: ["wallet_address"]
             isOneToOne: false
             referencedRelation: "member_balance_complete"
             referencedColumns: ["wallet_address"]
           },
           {
-            foreignKeyName: "fk_referrals_member_to_members"
+            foreignKeyName: "matrix_referrals_member_wallet_fkey"
             columns: ["wallet_address"]
             isOneToOne: false
             referencedRelation: "member_complete_info"
             referencedColumns: ["wallet_address"]
           },
           {
-            foreignKeyName: "fk_referrals_member_to_members"
+            foreignKeyName: "matrix_referrals_member_wallet_fkey"
             columns: ["wallet_address"]
             isOneToOne: false
             referencedRelation: "member_rewards_overview_v2"
             referencedColumns: ["wallet_address"]
           },
           {
-            foreignKeyName: "fk_referrals_member_to_members"
+            foreignKeyName: "matrix_referrals_member_wallet_fkey"
             columns: ["wallet_address"]
             isOneToOne: false
             referencedRelation: "members"
             referencedColumns: ["wallet_address"]
           },
           {
-            foreignKeyName: "fk_referrals_member_to_members"
+            foreignKeyName: "matrix_referrals_member_wallet_fkey"
             columns: ["wallet_address"]
             isOneToOne: false
             referencedRelation: "referrer_stats"
             referencedColumns: ["wallet_address"]
           },
           {
-            foreignKeyName: "fk_referrals_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_referrer_to_members"
-            columns: ["referrer_wallet"]
+            foreignKeyName: "matrix_referrals_parent_wallet_fkey"
+            columns: ["parent_wallet"]
             isOneToOne: false
             referencedRelation: "member_balance_complete"
             referencedColumns: ["wallet_address"]
           },
           {
-            foreignKeyName: "fk_referrals_referrer_to_members"
-            columns: ["referrer_wallet"]
+            foreignKeyName: "matrix_referrals_parent_wallet_fkey"
+            columns: ["parent_wallet"]
             isOneToOne: false
             referencedRelation: "member_complete_info"
             referencedColumns: ["wallet_address"]
           },
           {
-            foreignKeyName: "fk_referrals_referrer_to_members"
-            columns: ["referrer_wallet"]
+            foreignKeyName: "matrix_referrals_parent_wallet_fkey"
+            columns: ["parent_wallet"]
             isOneToOne: false
             referencedRelation: "member_rewards_overview_v2"
             referencedColumns: ["wallet_address"]
           },
           {
-            foreignKeyName: "fk_referrals_referrer_to_members"
-            columns: ["referrer_wallet"]
+            foreignKeyName: "matrix_referrals_parent_wallet_fkey"
+            columns: ["parent_wallet"]
             isOneToOne: false
             referencedRelation: "members"
             referencedColumns: ["wallet_address"]
           },
           {
-            foreignKeyName: "fk_referrals_referrer_to_members"
-            columns: ["referrer_wallet"]
+            foreignKeyName: "matrix_referrals_parent_wallet_fkey"
+            columns: ["parent_wallet"]
             isOneToOne: false
             referencedRelation: "referrer_stats"
             referencedColumns: ["wallet_address"]
@@ -3657,20 +3121,6 @@ export type Database = {
             foreignKeyName: "fk_members_referrer_to_members"
             columns: ["referrer_wallet"]
             isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
             referencedRelation: "member_balance_complete"
             referencedColumns: ["wallet_address"]
           },
@@ -3707,177 +3157,6 @@ export type Database = {
             columns: ["wallet_address"]
             isOneToOne: true
             referencedRelation: "users"
-            referencedColumns: ["wallet_address"]
-          },
-        ]
-      }
-      member_matrix_layers_view: {
-        Row: {
-          activation_sequence: number | null
-          current_level: number | null
-          direct_referrer: string | null
-          layer_member_count: number | null
-          layer_status: string | null
-          layer_theoretical_capacity: number | null
-          matrix_layer: number | null
-          matrix_owner: string | null
-          matrix_position: string | null
-          matrix_root_wallet: string | null
-          member_name: string | null
-          member_wallet: string | null
-          placed_at: string | null
-          placement_type: string | null
-          position_in_layer: number | null
-          referrer_wallet: string | null
-          spillover_status: string | null
-          total_team_size: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_balance_complete"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_complete_info"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_rewards_overview_v2"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "referrer_stats"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_balance_complete"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_complete_info"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_rewards_overview_v2"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "referrer_stats"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_balance_complete"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_complete_info"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_rewards_overview_v2"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "referrer_stats"
             referencedColumns: ["wallet_address"]
           },
         ]
@@ -3911,211 +3190,28 @@ export type Database = {
           },
         ]
       }
-      personal_matrix_view: {
+      referrals_stats_view: {
         Row: {
-          activation_time: string | null
-          current_level: number | null
-          join_type: string | null
-          matrix_layer: number | null
-          matrix_position: string | null
-          matrix_root: string | null
-          member_name: string | null
-          member_wallet: string | null
-          placement_time: string | null
-          referred_by_name: string | null
-          referrer_wallet: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_balance_complete"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_complete_info"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_rewards_overview_v2"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "referrer_stats"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root"]
-            isOneToOne: false
-            referencedRelation: "member_balance_complete"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root"]
-            isOneToOne: false
-            referencedRelation: "member_complete_info"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root"]
-            isOneToOne: false
-            referencedRelation: "member_rewards_overview_v2"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root"]
-            isOneToOne: false
-            referencedRelation: "referrer_stats"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_balance_complete"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_complete_info"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_rewards_overview_v2"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "referrer_stats"
-            referencedColumns: ["wallet_address"]
-          },
-        ]
-      }
-      recursive_matrix_complete: {
-        Row: {
+          activated_referrals_count: number | null
           activation_sequence: number | null
-          matrix_layer: number | null
-          matrix_owner: string | null
-          matrix_position: string | null
-          matrix_root: string | null
-          member_name: string | null
-          member_wallet: string | null
+          current_level: number | null
+          direct_referrals_count: number | null
+          first_referral_time: string | null
+          last_referral_time: string | null
+          level2_upgrade_eligible: boolean | null
+          username: string | null
+          wallet_address: string | null
         }
         Relationships: []
       }
-      referral_hierarchy_19_levels: {
+      referrals_tree_view: {
         Row: {
-          activation_sequence: number | null
-          current_level: number | null
-          direct_referrals: number | null
-          hierarchy_path: number[] | null
-          path_string: string | null
-          referral_depth: number | null
-          referrer_short: string | null
+          child_activation_time: string | null
+          depth: number | null
+          referral_created_at: string | null
+          referred_wallet: string | null
           referrer_wallet: string | null
-          total_team_size: number | null
-          tree_display: string | null
-          wallet_address: string | null
-          wallet_short: string | null
-        }
-        Relationships: []
-      }
-      referral_hierarchy_view: {
-        Row: {
-          activation_sequence: number | null
-          current_level: number | null
-          direct_referrals: number | null
-          hierarchy_path: number[] | null
-          referral_depth: number | null
-          referrer_short: string | null
-          total_team: number | null
-          tree_display: string | null
-          wallet_address: string | null
-          wallet_short: string | null
+          root_wallet: string | null
         }
         Relationships: []
       }
@@ -4148,176 +3244,14 @@ export type Database = {
           },
         ]
       }
-      spillover_matrix_view: {
+      system_views_info: {
         Row: {
-          current_level: number | null
-          direct_referrer: string | null
-          layer_member_count: number | null
-          lmr_completion_status: string | null
-          matrix_layer: number | null
-          matrix_owner: string | null
-          matrix_position: string | null
-          matrix_root_wallet: string | null
-          member_activation_seq: number | null
-          member_name: string | null
-          member_wallet: string | null
-          placed_at: string | null
-          placement_source_detail: string | null
-          placement_type: string | null
-          position_in_layer: number | null
-          referrer_wallet: string | null
-          root_activation_seq: number | null
-          spillover_status: string | null
+          description: string | null
+          frontend_usage: string | null
+          key_columns: string | null
+          view_name: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_balance_complete"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_complete_info"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_rewards_overview_v2"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_members_referrer_to_members"
-            columns: ["referrer_wallet"]
-            isOneToOne: false
-            referencedRelation: "referrer_stats"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_balance_complete"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_complete_info"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_rewards_overview_v2"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "referrer_stats"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_balance_complete"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_complete_info"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_rewards_overview_v2"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "fk_referrals_member_to_members"
-            columns: ["member_wallet"]
-            isOneToOne: false
-            referencedRelation: "referrer_stats"
-            referencedColumns: ["wallet_address"]
-          },
-        ]
+        Relationships: []
       }
       v_r_zone_status: {
         Row: {
@@ -4337,20 +3271,6 @@ export type Database = {
             foreignKeyName: "fk_referrals_matrix_root_to_members"
             columns: ["matrix_root_wallet"]
             isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "fk_referrals_matrix_root_to_members"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
             referencedRelation: "member_balance_complete"
             referencedColumns: ["wallet_address"]
           },
@@ -4386,20 +3306,6 @@ export type Database = {
             foreignKeyName: "layer_rewards_reward_recipient_wallet_fkey"
             columns: ["reward_recipient_wallet"]
             isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "layer_rewards_reward_recipient_wallet_fkey"
-            columns: ["reward_recipient_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "layer_rewards_reward_recipient_wallet_fkey"
-            columns: ["reward_recipient_wallet"]
-            isOneToOne: false
             referencedRelation: "member_balance_complete"
             referencedColumns: ["wallet_address"]
           },
@@ -4430,20 +3336,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "referrer_stats"
             referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "layer_rewards_triggering_member_wallet_fkey"
-            columns: ["triggering_member_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_structure_view"
-            referencedColumns: ["root_wallet"]
-          },
-          {
-            foreignKeyName: "layer_rewards_triggering_member_wallet_fkey"
-            columns: ["triggering_member_wallet"]
-            isOneToOne: false
-            referencedRelation: "matrix_vacancy_quick"
-            referencedColumns: ["root_wallet"]
           },
           {
             foreignKeyName: "layer_rewards_triggering_member_wallet_fkey"
@@ -4577,25 +3469,9 @@ export type Database = {
         }
         Returns: Json
       }
-      find_incomplete_matrix_for_spillover: {
-        Args: { referring_wallet: string }
-        Returns: {
-          available_position: string
-          target_sequence: number
-          target_wallet: string
-        }[]
-      }
       find_next_qualified_upline: {
         Args: { current_wallet: string; required_level: number }
         Returns: string
-      }
-      fix_matrix_layer2_distribution: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      fix_missing_level1_rewards: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
       }
       generate_level_based_rewards: {
         Args: { p_member_level: number; p_member_wallet: string }
@@ -4604,19 +3480,6 @@ export type Database = {
       generate_qualified_rewards: {
         Args: { p_member_level: number; p_member_wallet: string }
         Returns: Json
-      }
-      get_1x3_matrix_view: {
-        Args: { p_levels?: number; p_wallet_address: string }
-        Returns: {
-          activation_sequence: number
-          current_level: number
-          is_activated: boolean
-          matrix_layer: number
-          matrix_position: string
-          total_downline: number
-          username: string
-          wallet_address: string
-        }[]
       }
       get_current_activation_tier: {
         Args: Record<PropertyKey, never>
@@ -4639,20 +3502,6 @@ export type Database = {
       get_nft_level_price: {
         Args: { p_level: number }
         Returns: number
-      }
-      get_recursive_matrix_view: {
-        Args: { p_levels?: number; p_wallet_address: string }
-        Returns: {
-          activation_sequence: number
-          current_level: number
-          is_activated: boolean
-          matrix_layer: number
-          matrix_position: string
-          parent_wallet: string
-          total_downline: number
-          username: string
-          wallet_address: string
-        }[]
       }
       get_user_pending_rewards: {
         Args: { p_wallet_address: string }
@@ -4752,10 +3601,6 @@ export type Database = {
           p_wallet_address: string
         }
         Returns: Json
-      }
-      sync_layer_rewards_to_claims: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
       }
       sync_members_to_membership: {
         Args: Record<PropertyKey, never>
