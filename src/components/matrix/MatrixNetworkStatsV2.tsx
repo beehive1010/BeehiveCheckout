@@ -256,52 +256,57 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
   };
 
   const renderPerformanceMetrics = () => {
-    if (!dashboardData?.performance) return null;
+    if (!matrixStats) return null;
+
+    const activationRate = matrixStats.totalMembers > 0 ? (matrixStats.activeMembers / matrixStats.totalMembers) * 100 : 0;
+    const averageFillRate = matrixStats.layerBreakdown.length > 0 
+      ? matrixStats.layerBreakdown.reduce((sum, layer) => sum + layer.fillPercentage, 0) / matrixStats.layerBreakdown.length 
+      : 0;
 
     return (
       <div className="space-y-3">
         <h4 className="font-medium text-honey flex items-center gap-2">
           <Activity className="w-4 h-4" />
-          Performance Metrics
+          Performance Metrics (Direct from Views)
         </h4>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="bg-muted/30 rounded-lg p-3">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm text-muted-foreground">Spillover Rate</span>
+              <span className="text-sm text-muted-foreground">Activation Rate</span>
               <TrendingUp className="w-4 h-4 text-honey" />
             </div>
             <div className="text-lg font-bold text-honey">
-              {dashboardData.performance.spilloverRate.toFixed(1)}%
+              {activationRate.toFixed(1)}%
             </div>
             <div className="w-full bg-muted/50 rounded-full h-1 mt-2">
               <div 
                 className="bg-honey h-1 rounded-full transition-all"
-                style={{ width: `${Math.min(dashboardData.performance.spilloverRate, 100)}%` }}
+                style={{ width: `${Math.min(activationRate, 100)}%` }}
               />
             </div>
           </div>
 
           <div className="bg-muted/30 rounded-lg p-3">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm text-muted-foreground">Growth Velocity</span>
+              <span className="text-sm text-muted-foreground">Avg Fill Rate</span>
               <ArrowUpRight className="w-4 h-4 text-green-400" />
             </div>
             <div className="text-lg font-bold text-green-400">
-              {dashboardData.performance.growthVelocity.toFixed(1)}
+              {averageFillRate.toFixed(1)}%
             </div>
-            <div className="text-xs text-muted-foreground">members/day</div>
+            <div className="text-xs text-muted-foreground">across layers</div>
           </div>
 
           <div className="bg-muted/30 rounded-lg p-3">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm text-muted-foreground">Reward Efficiency</span>
+              <span className="text-sm text-muted-foreground">Team Depth</span>
               <Target className="w-4 h-4 text-blue-400" />
             </div>
             <div className="text-lg font-bold text-blue-400">
-              ${dashboardData.performance.rewardEfficiency.toFixed(2)}
+              {matrixStats.deepestLayer}
             </div>
-            <div className="text-xs text-muted-foreground">per member</div>
+            <div className="text-xs text-muted-foreground">layers deep</div>
           </div>
         </div>
       </div>
@@ -322,9 +327,9 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
               <Layers className="h-5 w-5" />
               Enhanced Matrix Network
             </div>
-            {dashboardData && (
+            {matrixStats && (
               <Badge variant="outline" className="bg-honey/10 text-honey border-honey/30">
-                {dashboardData.matrix.totalTeamSize} members
+                {matrixStats.totalMembers} members
               </Badge>
             )}
           </CardTitle>
@@ -345,7 +350,7 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
         </CardHeader>
         <CardContent>
           <div className="space-y-4 max-h-96 overflow-y-auto custom-scrollbar">
-            {matrixTree?.layerSummary && matrixTree.layerSummary.length > 0 ? (
+            {matrixStats?.layerBreakdown && matrixStats.layerBreakdown.length > 0 ? (
               renderMatrixLayerStats()
             ) : (
               <div className="text-center py-8 text-muted-foreground">
