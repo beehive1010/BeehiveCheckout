@@ -673,8 +673,13 @@ export default function USDTWithdrawal() {
               />
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>Available: ${balance?.balanceUSD || '0.00'} USDT</span>
-                <span>Fee: ${getWithdrawalFee(currentChainId || 42161)} USDT</span>
+                <span>Fee: {getWithdrawalFee(currentChainId || 42161)} USDT (deducted)</span>
               </div>
+              {withdrawalAmount && (
+                <div className="text-xs text-green-600 mt-1">
+                  You'll receive: {Math.max(0, parseFloat(withdrawalAmount) - getWithdrawalFee(currentChainId || 42161)).toFixed(2)} USDT
+                </div>
+              )}
             </div>
 
             <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
@@ -727,12 +732,12 @@ export default function USDTWithdrawal() {
 
             <div className="bg-muted/30 rounded-lg p-4 space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Amount:</span>
+                <span className="text-muted-foreground">Withdrawal Request:</span>
                 <span className="font-semibold text-honey">{withdrawalRequest.amountUSD} USDT</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Withdrawal Fee:</span>
-                <span className="font-semibold text-orange-400">{getWithdrawalFee(currentChainId!)} USDT</span>
+                <span className="text-muted-foreground">Withdrawal Fee (deducted):</span>
+                <span className="font-semibold text-orange-400">-{getWithdrawalFee(currentChainId!)} USDT</span>
               </div>
               <div className="flex justify-between items-center border-t border-border pt-2">
                 <span className="text-muted-foreground">You'll Receive:</span>
