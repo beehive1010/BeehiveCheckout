@@ -24,6 +24,42 @@ interface MatrixLayerStatsViewProps {
   compact?: boolean;
 }
 
+// Matrix spillover logic: redistribute referral tree members into matrix structure
+const applyMatrixSpilloverLogic = (referralData: any[]) => {
+  const matrixPositions: any[] = [];
+  const layerCapacity = [0, 3, 9, 27, 81, 243, 729]; // Layer 1-6 capacity
+  
+  // Group by depth (layer) first
+  const membersByDepth = referralData.reduce((acc, member) => {
+    const depth = member.depth;
+    if (!acc[depth]) acc[depth] = [];
+    acc[depth].push(member);
+    return acc;
+  }, {} as Record<number, any[]>);
+
+  // Process each depth level
+  Object.keys(membersByDepth).forEach(depthKey => {
+    const depth = parseInt(depthKey);
+    const members = membersByDepth[depth];
+    
+    members.forEach((member, index) => {
+      // Calculate matrix position based on spillover logic
+      const capacity = layerCapacity[depth] || Math.pow(3, depth);
+      const positionIndex = index % 3;
+      const layer = depth;
+      
+      matrixPositions.push({
+        layer: layer,
+        position: ['L', 'M', 'R'][positionIndex],
+        wallet_address: member.wallet_address,
+        activation_sequence: member.activation_sequence
+      });
+    });
+  });
+
+  return matrixPositions;
+};
+
 const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({ 
   walletAddress, 
   compact = false 
@@ -62,45 +98,27 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
 
       console.log('📊 Matrix layers data:', matrixData);
 
-      // Get position distribution data - try matrix_referrals_tree_view first
-      let positionData, positionError;
-      
-      // First try: matrix_referrals_tree_view (includes spillover allocation)
-      const matrixTreeResult = await supabase
-        .from('matrix_referrals_tree_view')
-        .select('layer, position')
-        .eq('matrix_root_wallet', walletAddress)
-        .neq('position', 'root');
-
-      if (matrixTreeResult.error) {
-        console.warn('⚠️ matrix_referrals_tree_view failed, trying referral_tree_view:', matrixTreeResult.error);
-        
-        // Fallback: referral_tree_view (direct referral relationships)
-        const referralTreeResult = await supabase
-          .from('referral_tree_view')
-          .select('depth, position')
-          .eq('root_wallet', walletAddress)
-          .neq('position', 'root');
-
-        if (referralTreeResult.error) {
-          console.error('❌ Both tree views failed:', referralTreeResult.error);
-          positionError = referralTreeResult.error;
-        } else {
-          // Map depth to layer for consistency
-          positionData = referralTreeResult.data?.map(item => ({
-            layer: item.depth,
-            position: item.position
-          }));
-          console.log('📊 Position data from referral_tree_view (depth→layer):', positionData);
-        }
-      } else {
-        positionData = matrixTreeResult.data;
-        console.log('📊 Position data from matrix_referrals_tree_view:', positionData);
-      }
+      // Use referral_tree_view as the source since it has the correct 9 layers
+      // Then apply matrix spillover logic in frontend
+      const { data: referralTreeData, error: positionError } = await supabase
+        .from('referral_tree_view')
+        .select('depth, position, wallet_address, activation_sequence')
+        .eq('root_wallet', walletAddress)
+        .neq('position', 'root')
+        .order('depth', { ascending: true })
+        .order('activation_sequence', { ascending: true });
 
       if (positionError) {
-        throw new Error(`Position data error: ${positionError.message}`);
+        console.error('❌ Referral tree query error:', positionError);
+        throw new Error(`Referral tree error: ${positionError.message}`);
       }
+
+      console.log('📊 Raw referral tree data (9 layers):', referralTreeData);
+
+      // Apply matrix spillover logic: redistribute members to create matrix structure
+      const positionData = applyMatrixSpilloverLogic(referralTreeData || []);
+      
+      console.log('📊 Matrix position data after spillover logic:', positionData);
 
       // Calculate position distribution by layer
       const positionByLayer: Record<number, { L: number; M: number; R: number }> = {};
