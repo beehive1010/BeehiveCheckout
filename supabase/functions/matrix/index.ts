@@ -346,38 +346,22 @@ async function handleGetMatrix(supabase, walletAddress: string, data) {
       });
     }
 
-    let membersQuery = supabase
-      .from('members')
-      .select('wallet_address, referrer_wallet, current_level, activation_time')
-      .eq('referrer_wallet', targetRoot)
-      .limit(limit);
-
-    let referralsQuery = supabase
-      .from('referrals')
-      .select(`
-        member_wallet,
-        referrer_wallet,
-        matrix_position,
-        matrix_layer,
-        matrix_root_wallet,
-        placed_at
-      `)
-      .eq('matrix_root_wallet', targetRoot)
-      .limit(limit);
-
-    // Get user info for usernames
-    let usersQuery = supabase
-      .from('users')
-      .select('wallet_address, username')
-      .limit(limit);
-
-    console.log('🔍 Executing queries: members, referrals, users...');
+    // Use optimized matrix_referrals_view for better performance
+    console.log('🔍 Querying matrix_referrals_view for optimized data...');
     
-    const [membersResult, referralsResult, usersResult] = await Promise.allSettled([
-      membersQuery,
-      referralsQuery,
-      usersQuery
-    ]);
+    let matrixQuery = supabase
+      .from('matrix_referrals_view')
+      .select('*')
+      .eq('matrix_root_wallet', targetRoot)
+      .order('layer')
+      .order('position')
+      .limit(limit);
+
+    if (layer) {
+      matrixQuery = matrixQuery.eq('layer', layer);
+    }
+
+    const matrixResult = await matrixQuery;
 
     let memberData = [];
     let referralData = [];
