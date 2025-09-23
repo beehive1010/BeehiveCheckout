@@ -149,11 +149,11 @@ export default function USDTWithdrawal() {
         console.log('📊 Available columns:', Object.keys(schemaCheck[0]));
       }
       
-      // Try different possible column names
+      // Try different possible column names (put the most likely first based on curl test)
       const possibleQueries = [
+        'balance, withdrawn, updated_at, wallet_address', // Most likely based on curl
         'claimable_reward_balance_usdc, total_rewards_withdrawn_usdc, updated_at, wallet_address',
         'claimable_rewards, total_withdrawn, updated_at, wallet_address', 
-        'balance, withdrawn, updated_at, wallet_address',
         'claimable_reward_balance, total_rewards_withdrawn, updated_at, wallet_address',
         '*' // Get all columns as fallback
       ];
@@ -225,13 +225,13 @@ export default function USDTWithdrawal() {
         };
       }
       
-      // Extract balance from different possible column names
+      // Extract balance from different possible column names (prioritize 'balance' based on curl test)
       let balanceAmount = 0;
       const possibleBalanceFields = [
+        'balance', // Most likely based on curl test
         'claimable_reward_balance_usdc',
         'claimable_rewards', 
         'claimable_reward_balance',
-        'balance',
         'reward_balance'
       ];
       
@@ -463,9 +463,9 @@ export default function USDTWithdrawal() {
         let withdrawnField = 'total_rewards_withdrawn_usdc';
         
         const balanceFields = [
+          { claimable: 'balance', withdrawn: 'withdrawn' }, // Most likely based on curl test
           { claimable: 'claimable_reward_balance_usdc', withdrawn: 'total_rewards_withdrawn_usdc' },
           { claimable: 'claimable_rewards', withdrawn: 'total_withdrawn' },
-          { claimable: 'balance', withdrawn: 'withdrawn' },
           { claimable: 'claimable_reward_balance', withdrawn: 'total_rewards_withdrawn' }
         ];
         
@@ -753,8 +753,14 @@ export default function USDTWithdrawal() {
                   onClick={async () => {
                     const { supabase } = await import('../../lib/supabase');
                     try {
-                      // Try different column name variations
+                      // Try different column name variations (prioritize 'balance/withdrawn' based on curl test)
                       const testInsertOptions = [
+                        {
+                          wallet_address: memberWalletAddress,
+                          balance: 100,
+                          withdrawn: 0,
+                          updated_at: new Date().toISOString()
+                        },
                         {
                           wallet_address: memberWalletAddress,
                           claimable_reward_balance_usdc: 100,
@@ -765,12 +771,6 @@ export default function USDTWithdrawal() {
                           wallet_address: memberWalletAddress,
                           claimable_rewards: 100,
                           total_withdrawn: 0,
-                          updated_at: new Date().toISOString()
-                        },
-                        {
-                          wallet_address: memberWalletAddress,
-                          balance: 100,
-                          withdrawn: 0,
                           updated_at: new Date().toISOString()
                         },
                         {
@@ -814,6 +814,35 @@ export default function USDTWithdrawal() {
                   className="px-3 py-1 text-xs bg-yellow-500/20 text-yellow-400 rounded hover:bg-yellow-500/30 transition-colors"
                 >
                   Create Test Balance (100 USDT)
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      // Test direct API call like the curl command
+                      const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/rest/v1/user_balances?select=balance,withdrawn,updated_at,wallet_address&wallet_address=eq.${memberWalletAddress}`, {
+                        headers: {
+                          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+                          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`,
+                        }
+                      });
+                      const data = await response.json();
+                      console.log('🔍 Direct API test result:', data);
+                      toast({
+                        title: "API Test Complete",
+                        description: `Found ${data?.length || 0} records. Check console for details.`,
+                      });
+                    } catch (error) {
+                      console.error('❌ Direct API test failed:', error);
+                      toast({
+                        title: "API Test Failed",
+                        description: "Check console for error details",
+                        variant: 'destructive',
+                      });
+                    }
+                  }}
+                  className="ml-2 px-3 py-1 text-xs bg-blue-500/20 text-blue-400 rounded hover:bg-blue-500/30 transition-colors"
+                >
+                  Test Direct API
                 </button>
               </div>
             </div>
