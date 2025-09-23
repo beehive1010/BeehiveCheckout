@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useWallet } from '../../hooks/useWallet';
 import { useI18n } from '../../contexts/I18nContext';
+import { supabase } from '../../lib/supabase';
 
 interface ReferralStatsCardProps {
   className?: string;
