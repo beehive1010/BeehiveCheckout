@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, Users, Trophy } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '../../lib/supabase';
 import { useI18n } from '@/contexts/I18nContext';
 
 interface MatrixMember {
