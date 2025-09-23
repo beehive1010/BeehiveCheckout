@@ -87,36 +87,20 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
         return;
       }
 
-      // Check direct referrals requirement (Level 2 needs 3+ direct referrals)
-      const { data: referrals, error: referralsError } = await supabase
-        .from('referrals_new')
-        .select(`
-          referred_wallet,
-          members!inner(wallet_address, current_level)
-        `)
-        .eq('referrer_wallet', account.address);
+      // Check direct referrals requirement using unified service (Level 2 needs 3+ direct referrals)
+      const { getDirectReferralCount } = await import('../../lib/services/directReferralService');
+      const directReferralsCount = await getDirectReferralCount(account.address);
       
-      if (referralsError) {
-        console.error('❌ Error loading referrals:', referralsError);
-        setCanClaimLevel2(false);
-        setIsCheckingEligibility(false);
-        return;
-      }
-      
-      const eligibleReferrals = referrals?.filter(ref => 
-        (ref.members as any)?.current_level >= 1
-      ) || [];
-      
-      const hasThreeDirectReferrals = eligibleReferrals.length >= 3;
+      const hasThreeDirectReferrals = directReferralsCount >= 3;
       
       if (!hasThreeDirectReferrals) {
-        console.log(`❌ Level 2 requires 3+ direct referrals. User has ${eligibleReferrals.length}`);
+        console.log(`❌ Level 2 requires 3+ direct referrals. User has ${directReferralsCount}`);
         setCanClaimLevel2(false);
         setIsCheckingEligibility(false);
         return;
       }
       
-      console.log(`✅ Direct referrals check passed: ${eligibleReferrals.length}/3`);
+      console.log(`✅ Direct referrals check passed: ${directReferralsCount}/3`);
       
       
       // Check if user already owns Level 2 NFT on blockchain
