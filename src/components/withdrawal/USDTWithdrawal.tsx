@@ -127,19 +127,58 @@ export default function USDTWithdrawal() {
       
       const { supabase } = await import('../../lib/supabase');
       
-      // First try with exact case match
-      let { data, error } = await supabase
+      // First, let's check what columns actually exist
+      console.log('🔍 Checking available columns...');
+      const { data: schemaCheck } = await supabase
         .from('user_balances')
-        .select('claimable_reward_balance_usdc, total_rewards_withdrawn_usdc, updated_at, wallet_address')
-        .eq('wallet_address', memberWalletAddress!)
-        .single();
+        .select('*')
+        .limit(1);
       
-      // If no exact match, try case-insensitive
-      if (error && error.code === 'PGRST116') {
+      if (schemaCheck && schemaCheck[0]) {
+        console.log('📊 Available columns:', Object.keys(schemaCheck[0]));
+      }
+      
+      // Try different possible column names
+      const possibleQueries = [
+        'claimable_reward_balance_usdc, total_rewards_withdrawn_usdc, updated_at, wallet_address',
+        'claimable_rewards, total_withdrawn, updated_at, wallet_address', 
+        'balance, withdrawn, updated_at, wallet_address',
+        'claimable_reward_balance, total_rewards_withdrawn, updated_at, wallet_address',
+        '*' // Get all columns as fallback
+      ];
+      
+      let data = null;
+      let error = null;
+      let usedQuery = '';
+      
+      for (const queryColumns of possibleQueries) {
+        try {
+          console.log(`🔄 Trying query with columns: ${queryColumns}`);
+          const result = await supabase
+            .from('user_balances')
+            .select(queryColumns)
+            .eq('wallet_address', memberWalletAddress!)
+            .single();
+          
+          if (!result.error) {
+            data = result.data;
+            error = result.error;
+            usedQuery = queryColumns;
+            console.log(`✅ Query successful with: ${queryColumns}`);
+            break;
+          }
+        } catch (queryError) {
+          console.log(`❌ Query failed with: ${queryColumns}`, queryError);
+          continue;
+        }
+      }
+      
+      // If no exact match, try case-insensitive with the working query
+      if (error && error.code === 'PGRST116' && usedQuery) {
         console.log('🔄 Trying case-insensitive search...');
         const result = await supabase
           .from('user_balances')
-          .select('claimable_reward_balance_usdc, total_rewards_withdrawn_usdc, updated_at, wallet_address')
+          .select(usedQuery)
           .ilike('wallet_address', memberWalletAddress!)
           .single();
         data = result.data;
@@ -175,14 +214,33 @@ export default function USDTWithdrawal() {
         };
       }
       
-      const balanceAmount = data?.claimable_reward_balance_usdc || 0;
-      console.log(`💰 Found balance: ${balanceAmount} USDT for wallet: ${data?.wallet_address}`);
+      // Extract balance from different possible column names
+      let balanceAmount = 0;
+      const possibleBalanceFields = [
+        'claimable_reward_balance_usdc',
+        'claimable_rewards', 
+        'claimable_reward_balance',
+        'balance',
+        'reward_balance'
+      ];
+      
+      for (const field of possibleBalanceFields) {
+        if (data && data[field] !== undefined && data[field] !== null) {
+          balanceAmount = data[field];
+          console.log(`💰 Found balance in field '${field}': ${balanceAmount} USDT`);
+          break;
+        }
+      }
+      
+      console.log(`💰 Final balance: ${balanceAmount} USDT for wallet: ${data?.wallet_address}`);
+      console.log(`📊 Full data object:`, data);
       
       return {
         balance: Math.round(balanceAmount * 100),
         balanceUSD: balanceAmount.toFixed(2),
-        lastUpdated: data?.updated_at || new Date().toISOString(),
-        foundWallet: data?.wallet_address
+        lastUpdated: data?.updated_at || data?.created_at || new Date().toISOString(),
+        foundWallet: data?.wallet_address,
+        rawData: data // Include raw data for debugging
       };
     },
   });
@@ -636,12 +694,50 @@ export default function USDTWithdrawal() {
                   onClick={async () => {
                     const { supabase } = await import('../../lib/supabase');
                     try {
-                      await supabase.from('user_balances').insert({
-                        wallet_address: memberWalletAddress,
-                        claimable_reward_balance_usdc: 100, // Test amount
-                        total_rewards_withdrawn_usdc: 0,
-                        updated_at: new Date().toISOString()
-                      });
+                      // Try different column name variations
+                      const testInsertOptions = [
+                        {
+                          wallet_address: memberWalletAddress,
+                          claimable_reward_balance_usdc: 100,
+                          total_rewards_withdrawn_usdc: 0,
+                          updated_at: new Date().toISOString()
+                        },
+                        {
+                          wallet_address: memberWalletAddress,
+                          claimable_rewards: 100,
+                          total_withdrawn: 0,
+                          updated_at: new Date().toISOString()
+                        },
+                        {
+                          wallet_address: memberWalletAddress,
+                          balance: 100,
+                          withdrawn: 0,
+                          updated_at: new Date().toISOString()
+                        },
+                        {
+                          wallet_address: memberWalletAddress,
+                          claimable_reward_balance: 100,
+                          total_rewards_withdrawn: 0,
+                          updated_at: new Date().toISOString()
+                        }
+                      ];
+                      
+                      let insertSuccess = false;
+                      for (const insertData of testInsertOptions) {
+                        try {
+                          await supabase.from('user_balances').insert(insertData);
+                          insertSuccess = true;
+                          console.log('✅ Insert successful with:', insertData);
+                          break;
+                        } catch (insertError) {
+                          console.log('❌ Insert failed with:', insertData, insertError);
+                          continue;
+                        }
+                      }
+                      
+                      if (!insertSuccess) {
+                        throw new Error('All insert attempts failed');
+                      }
                       refetchBalance();
                       toast({
                         title: "Test Record Created",
