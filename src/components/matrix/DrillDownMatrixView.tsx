@@ -99,16 +99,14 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
             placedAt: member.child_activation_time || new Date().toISOString()
           };
           
-          // Include all members in the current layer for this matrix root
-          if (member.position === 'L' || member.position?.includes('L')) {
+          // Filter by position - exact match since database uses 'L', 'M', 'R'
+          if (member.position === 'L') {
             leftMembers.push(memberData);
-          } else if (member.position === 'M' || member.position?.includes('M')) {
+          } else if (member.position === 'M') {
             middleMembers.push(memberData);
-          } else if (member.position === 'R' || member.position?.includes('R')) {
+          } else if (member.position === 'R') {
             rightMembers.push(memberData);
           }
-          else if (member.matrix_position === 'M') middleMembers.push(memberData);
-          else if (member.matrix_position === 'R') rightMembers.push(memberData);
         });
 
         // Create current member info

@@ -46,27 +46,50 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
     setError(null);
 
     try {
-      // Use matrix_layers_view for optimized layer statistics
-      const { data: matrixData, error } = await supabase
+      // Get layer summary data
+      const { data: matrixData, error: layerError } = await supabase
         .from('matrix_layers_view')
         .select('*')
         .eq('matrix_root_wallet', walletAddress)
         .order('layer', { ascending: true });
 
-      if (error) {
-        throw new Error(error.message);
+      if (layerError) {
+        throw new Error(layerError.message);
       }
+
+      // Get position distribution data for actual L M R counts
+      const { data: positionData, error: positionError } = await supabase
+        .from('matrix_referrals_tree_view')
+        .select('layer, position')
+        .eq('matrix_root_wallet', walletAddress)
+        .neq('position', 'root'); // Exclude root position
+
+      if (positionError) {
+        throw new Error(positionError.message);
+      }
+
+      // Calculate position distribution by layer
+      const positionByLayer: Record<number, { L: number; M: number; R: number }> = {};
+      positionData?.forEach(member => {
+        const layer = member.layer;
+        if (!positionByLayer[layer]) {
+          positionByLayer[layer] = { L: 0, M: 0, R: 0 };
+        }
+        if (member.position === 'L' || member.position === 'M' || member.position === 'R') {
+          positionByLayer[layer][member.position]++;
+        }
+      });
 
       // Transform data to match LayerStatsData interface
       const layerStats: LayerStatsData[] = matrixData?.map((layer: any) => ({
         layer: layer.layer || 1,
         totalMembers: layer.filled_slots || 0,
-        leftMembers: Math.floor((layer.filled_slots || 0) / 3), // Approximation
-        middleMembers: Math.floor((layer.filled_slots || 0) / 3),
-        rightMembers: Math.floor((layer.filled_slots || 0) / 3),
+        leftMembers: positionByLayer[layer.layer]?.L || 0,
+        middleMembers: positionByLayer[layer.layer]?.M || 0,
+        rightMembers: positionByLayer[layer.layer]?.R || 0,
         maxCapacity: layer.max_slots || Math.pow(3, layer.layer || 1),
         fillPercentage: parseFloat(layer.completion_rate || 0),
-        activeMembers: layer.filled_slots || 0, // Assume all filled slots are active
+        activeMembers: layer.filled_slots || 0,
         completedPercentage: parseFloat(layer.completion_rate || 0),
       })) || [];
 
