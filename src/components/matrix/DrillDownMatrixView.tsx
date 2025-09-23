@@ -62,11 +62,13 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
         .from('matrix_referrals_tree_view')
         .select(`
           member_wallet,
+          username,
+          current_level,
           layer,
           position,
-          referrer_wallet,
           is_spillover,
-          created_at
+          is_activated,
+          activation_time
         `)
         .eq('matrix_root_wallet', walletAddress)
         .order('layer', { ascending: true })

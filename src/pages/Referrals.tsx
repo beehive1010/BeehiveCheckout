@@ -11,7 +11,6 @@ import { UsersIcon, ShareIcon, TrophyIcon } from '@heroicons/react/24/outline';
 import DrillDownMatrixView from '../components/matrix/DrillDownMatrixView';
 import MatrixLayerStatsView from '../components/matrix/MatrixLayerStatsView';
 import ReferralsStats from '../components/referrals/ReferralsStats';
-import DataTest from '../components/test/DataTest';
 import { Link } from 'wouter';
 import styles from '../styles/referrals/referrals.module.css';
 
@@ -77,17 +76,11 @@ export default function Referrals() {
       </Card>
 
       {/* Main Content with Tabs */}
-      <Tabs defaultValue="test" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="test">Data Test</TabsTrigger>
+      <Tabs defaultValue="matrix" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="matrix">{t('referrals.tabs.matrix') || '3x3 Matrix'}</TabsTrigger>
           <TabsTrigger value="stats">{t('referrals.tabs.stats') || 'Statistics'}</TabsTrigger>
         </TabsList>
-
-        {/* Data Test Tab */}
-        <TabsContent value="test">
-          <DataTest walletAddress={walletAddress || ''} />
-        </TabsContent>
 
         {/* Matrix Network Tab */}
         <TabsContent value="matrix" className="space-y-6">
