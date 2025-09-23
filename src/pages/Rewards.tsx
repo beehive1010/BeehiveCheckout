@@ -376,11 +376,6 @@ export default function Rewards() {
       </Card>
         </TabsContent>
 
-        {/* Claimable Tab */}
-        <TabsContent value="claimable" className="space-y-6">
-          <ClaimableRewardsCard walletAddress={memberWalletAddress || ''} />
-        </TabsContent>
-
         {/* Rollup Tab */}
         <TabsContent value="rollup" className="space-y-6">
           <RollupRewardsCard walletAddress={memberWalletAddress || ''} />
