@@ -44,7 +44,7 @@ const TOKEN_ADDRESSES = {
   1: { address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', symbol: 'USDT', decimals: 6 },     // Ethereum USDT (6 decimals)
   137: { address: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', symbol: 'USDT', decimals: 6 },   // Polygon USDT (6 decimals)
   42161: { 
-    usdt: { address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9', symbol: 'USDT', decimals: 6 }, // Arbitrum USDT (6 decimals)
+    usdt: { address: '0xfA278827a612BBA895e7F0A4fBA504b22ff3E7C9', symbol: 'USDT', decimals: 18 }, // Arbitrum One USDT (18 decimals)
     testUSDT: { 
       address: import.meta.env.VITE_ARB_TEST_USDT_ADDRESS || '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d', 
       symbol: 'TEST-USDT', 
