@@ -391,12 +391,12 @@ class TranslationService {
   }
 
   private setupProviders() {
-    // 从环境变量获取API密钥
-    const deepLApiKey = process.env.VITE_DEEPL_API_KEY;
-    const googleApiKey = process.env.VITE_GOOGLE_TRANSLATE_API_KEY;
-    const microsoftApiKey = process.env.VITE_MICROSOFT_TRANSLATOR_API_KEY;
-    const microsoftRegion = process.env.VITE_MICROSOFT_TRANSLATOR_REGION;
-    const userEmail = process.env.VITE_USER_EMAIL; // 用于MyMemory提高限制
+    // 从环境变量获取API密钥 (使用 import.meta.env 代替 process.env)
+    const deepLApiKey = import.meta.env.VITE_DEEPL_API_KEY;
+    const googleApiKey = import.meta.env.VITE_GOOGLE_TRANSLATE_API_KEY;
+    const microsoftApiKey = import.meta.env.VITE_MICROSOFT_TRANSLATOR_API_KEY;
+    const microsoftRegion = import.meta.env.VITE_MICROSOFT_TRANSLATOR_REGION;
+    const userEmail = import.meta.env.VITE_USER_EMAIL; // 用于MyMemory提高限制
     
     // 按优先级添加翻译提供商（DeepL优先）
     

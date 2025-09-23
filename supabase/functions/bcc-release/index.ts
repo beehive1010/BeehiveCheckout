@@ -46,7 +46,7 @@ serve(async (req) => {
       .from('user_balances')
       .select('bcc_balance, bcc_locked, bcc_total_unlocked')
       .eq('wallet_address', walletAddress)
-      .single()
+      .maybeSingle()
 
     if (balanceError || !currentBalance) {
       return new Response(
@@ -108,7 +108,7 @@ serve(async (req) => {
       .from('members')
       .select('current_level')
       .eq('wallet_address', walletAddress)
-      .single()
+      .maybeSingle()
 
     // Update balance
     const { error: updateError } = await supabaseClient

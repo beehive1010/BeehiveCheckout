@@ -119,7 +119,7 @@ serve(async (req) => {
       .from('user_balances')
       .select('reward_balance, total_earned, available_balance')
       .eq('wallet_address', walletAddress)
-      .single()
+      .maybeSingle()
 
     if (balanceError) {
       console.error('Balance query error:', balanceError)

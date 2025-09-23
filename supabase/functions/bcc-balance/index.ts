@@ -46,7 +46,7 @@ serve(async (req) => {
           tier_multiplier
         `)
         .eq('wallet_address', walletAddress)
-        .single()
+        .maybeSingle()
 
       if (balanceError) {
         console.error('Balance query error:', balanceError)
@@ -82,7 +82,7 @@ serve(async (req) => {
         .from('members')
         .select('current_level')
         .eq('wallet_address', walletAddress)
-        .single()
+        .maybeSingle()
 
       const response = {
         balance: {

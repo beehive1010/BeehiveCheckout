@@ -592,7 +592,7 @@ async function processWithdrawal(withdrawalData: WithdrawalRequest, supabaseClie
           .from('user_balances')
           .select('claimable_reward_balance_usdc, total_rewards_withdrawn_usdc')
           .ilike('wallet_address', withdrawalData.user_wallet)
-          .single();
+          .maybeSingle();
         
         if (balanceError && balanceError.code !== 'PGRST116') { // PGRST116 = no rows found
           console.error('Error fetching user balance:', balanceError);

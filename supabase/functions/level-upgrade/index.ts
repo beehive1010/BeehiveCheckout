@@ -320,7 +320,7 @@ async function processLevelUpgrade(
       .from('user_balances')
       .select('bcc_balance, pending_bcc_rewards')
       .ilike('wallet_address', walletAddress)
-      .single()
+      .maybeSingle()
 
     // Check layer rewards created
     const { count: layerRewardsCount } = await supabase
