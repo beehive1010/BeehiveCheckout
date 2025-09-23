@@ -78,28 +78,35 @@ export default function ReferralMatrixVisualization({
     try {
       setLoading(true);
 
-      // Get referral data from matrix_referrals_view
+      // Get referral data from matrix_referrals_tree_view
       const { data: matrixPlacements, error } = await supabase
-        .from('matrix_referrals_view')
+        .from('matrix_referrals_tree_view')
         .select(`
-          wallet_address,
+          member_wallet,
           matrix_root_wallet,
           layer,
           position,
-          is_active,
-          username,
-          current_level,
           referral_type,
-          created_at
+          child_activation_time
         `)
         .eq('matrix_root_wallet', effectiveRootWallet)
-        .order('activation_sequence');
+        .order('child_activation_time');
 
       if (error) {
         throw new Error(`Failed to load matrix data: ${error.message}`);
       }
 
-      // Transform data to MatrixMember format using matrix_referrals_view data
+      // Get additional member and user info
+      const memberWallets = matrixPlacements?.map(p => p.member_wallet).filter(Boolean) || [];
+      const [{ data: membersData }, { data: usersData }] = await Promise.allSettled([
+        supabase.from('members').select('wallet_address, current_level').in('wallet_address', memberWallets),
+        supabase.from('users').select('wallet_address, username').in('wallet_address', memberWallets)
+      ]).then(results => results.map(r => r.status === 'fulfilled' ? r.value : { data: null }));
+
+      const membersMap = new Map(membersData?.map(m => [m.wallet_address, m]) || []);
+      const usersMap = new Map(usersData?.map(u => [u.wallet_address, u]) || []);
+
+      // Transform data to MatrixMember format using matrix_referrals_tree_view data
       const members: MatrixMember[] = matrixPlacements?.map(placement => {
         // Convert position from L/M/R to 1/2/3 for internal use
         let positionNumber = 0;
@@ -108,14 +115,17 @@ export default function ReferralMatrixVisualization({
         else if (placement.position === 'R') positionNumber = 3;
         else positionNumber = parseInt(placement.position || '0');
 
+        const memberInfo = membersMap.get(placement.member_wallet || '');
+        const userInfo = usersMap.get(placement.member_wallet || '');
+
         return {
-          walletAddress: placement.wallet_address || '',
-          username: placement.username || undefined,
-          level: placement.current_level || 1,
+          walletAddress: placement.member_wallet || '',
+          username: userInfo?.username || undefined,
+          level: memberInfo?.current_level || 1,
           layer: placement.layer || 1,
           position: positionNumber,
-          isActive: Boolean(placement.is_active && (placement.current_level || 0) > 0),
-          placedAt: placement.created_at || new Date().toISOString(),
+          isActive: Boolean(memberInfo?.current_level && memberInfo.current_level > 0),
+          placedAt: placement.child_activation_time || new Date().toISOString(),
           downlineCount: 0 // TODO: Calculate downline count
         };
       }).filter(member => member.walletAddress) || [];
