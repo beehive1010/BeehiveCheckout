@@ -89,14 +89,22 @@ export function BccPurchaseInterface({
     queryKey: ['/api/bcc/purchase-config', account?.address],
     enabled: !!account?.address,
     queryFn: async (): Promise<{ success: boolean; config: BccPurchaseConfig }> => {
-      const response = await fetch('/api/bcc/purchase-config', {
+      const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+      const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1MjUwMTYsImV4cCI6MjA0MDEwMTAxNn0.gBWZUvwCJgP1lsVQlZNDsYXDxBEr31QfRtNEgYzS6NA';
+      
+      const response = await fetch(`${baseUrl}/bcc-purchase`, {
+        method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${anonKey}`,
           'X-Wallet-Address': account!.address,
         },
+        body: JSON.stringify({ action: 'get-config' })
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch purchase configuration');
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch purchase configuration: ${errorText}`);
       }
       
       return response.json();
@@ -108,14 +116,22 @@ export function BccPurchaseInterface({
     queryKey: ['/api/bcc/spending-balance', account?.address],
     enabled: !!account?.address && showBalance,
     queryFn: async () => {
-      const response = await fetch('/api/bcc/spending-balance', {
+      const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+      const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1MjUwMTYsImV4cCI6MjA0MDEwMTAxNn0.gBWZUvwCJgP1lsVQlZNDsYXDxBEr31QfRtNEgYzS6NA';
+      
+      const response = await fetch(`${baseUrl}/balance`, {
+        method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${anonKey}`,
           'X-Wallet-Address': account!.address,
         },
+        body: JSON.stringify({ action: 'get-balance' })
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch BCC balance');
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch BCC balance: ${errorText}`);
       }
       
       return response.json();
@@ -125,13 +141,17 @@ export function BccPurchaseInterface({
   // Create BCC purchase order
   const createPurchaseMutation = useMutation({
     mutationFn: async (purchaseData: any) => {
-      const response = await fetch('/api/bcc/purchase', {
+      const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+      const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1MjUwMTYsImV4cCI6MjA0MDEwMTAxNn0.gBWZUvwCJgP1lsVQlZNDsYXDxBEr31QfRtNEgYzS6NA';
+      
+      const response = await fetch(`${baseUrl}/bcc-purchase`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${anonKey}`,
           'X-Wallet-Address': account!.address
         },
-        body: JSON.stringify(purchaseData)
+        body: JSON.stringify({ action: 'create-purchase', ...purchaseData })
       });
 
       if (!response.ok) {
@@ -162,13 +182,17 @@ export function BccPurchaseInterface({
   // Confirm payment
   const confirmPaymentMutation = useMutation({
     mutationFn: async (confirmData: any) => {
-      const response = await fetch('/api/bcc/confirm-payment', {
+      const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+      const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1MjUwMTYsImV4cCI6MjA0MDEwMTAxNn0.gBWZUvwCJgP1lsVQlZNDsYXDxBEr31QfRtNEgYzS6NA';
+      
+      const response = await fetch(`${baseUrl}/bcc-purchase`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${anonKey}`,
           'X-Wallet-Address': account!.address
         },
-        body: JSON.stringify(confirmData)
+        body: JSON.stringify({ action: 'confirm-payment', ...confirmData })
       });
 
       if (!response.ok) {

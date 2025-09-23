@@ -453,26 +453,33 @@ export default function NFTs() {
                       />
                     </Badge>
                     <CardTitle className="text-lg text-foreground">
-                      <MultilingualText
-                        text={nft.title}
-                        language={nft.language_code || nft.language}
-                        translations={nft.translations ? Object.fromEntries(
-                          Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.title || nft.title])
-                        ) : {}}
+                      <HybridTranslation
+                        content={{
+                          text: nft.title,
+                          language: nft.language_code || nft.language,
+                          translations: nft.translations ? Object.fromEntries(
+                            Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.title || nft.title])
+                          ) : {}
+                        }}
                         autoTranslate={true}
+                        contentStyle="text-lg font-semibold"
+                        showTranslationSource={true}
                       />
                     </CardTitle>
                   </CardHeader>
                   
                   <CardContent className="space-y-4">
                     <p className="text-sm text-muted-foreground line-clamp-3">
-                      <MultilingualText
-                        text={nft.description}
-                        language={nft.language_code || nft.language}
-                        translations={nft.translations ? Object.fromEntries(
-                          Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.description || nft.description])
-                        ) : {}}
+                      <HybridTranslation
+                        content={{
+                          text: nft.description,
+                          language: nft.language_code || nft.language,
+                          translations: nft.translations ? Object.fromEntries(
+                            Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.description || nft.description])
+                          ) : {}
+                        }}
                         autoTranslate={true}
+                        contentStyle="text-sm text-muted-foreground"
                       />
                     </p>
                     
@@ -565,13 +572,16 @@ export default function NFTs() {
                   
                   <CardContent className="space-y-4">
                     <p className="text-sm text-muted-foreground line-clamp-3">
-                      <MultilingualText
-                        text={nft.description}
-                        language={nft.language_code || nft.language}
-                        translations={nft.translations ? Object.fromEntries(
-                          Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.description || nft.description])
-                        ) : {}}
+                      <HybridTranslation
+                        content={{
+                          text: nft.description,
+                          language: nft.language_code || nft.language,
+                          translations: nft.translations ? Object.fromEntries(
+                            Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.description || nft.description])
+                          ) : {}
+                        }}
                         autoTranslate={true}
+                        contentStyle="text-sm text-muted-foreground"
                       />
                     </p>
                     
