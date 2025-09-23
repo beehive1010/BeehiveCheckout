@@ -9,7 +9,7 @@ import { Separator } from '../components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useToast } from '../hooks/use-toast';
 import { supabase } from '../lib/supabase';
-import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
+import RollupRewardsCard from '../components/rewards/RollupRewardsCard';
 import RewardsOverview from '../components/rewards/RewardsOverview';
 import USDTWithdrawal from '../components/withdrawal/USDTWithdrawal';
 import CountdownTimer from '../components/rewards/CountdownTimer';
