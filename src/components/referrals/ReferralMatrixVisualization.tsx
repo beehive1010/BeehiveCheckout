@@ -97,14 +97,27 @@ export default function ReferralMatrixVisualization({
       }
 
       // Get additional member and user info
-      const memberWallets = matrixPlacements?.map(p => p.member_wallet).filter(Boolean) || [];
-      const [{ data: membersData }, { data: usersData }] = await Promise.allSettled([
-        supabase.from('members').select('wallet_address, current_level').in('wallet_address', memberWallets),
-        supabase.from('users').select('wallet_address, username').in('wallet_address', memberWallets)
-      ]).then(results => results.map(r => r.status === 'fulfilled' ? r.value : { data: null }));
+      const memberWallets = matrixPlacements?.map(p => p.member_wallet).filter((w): w is string => Boolean(w)) || [];
+      
+      let membersData: any[] = [];
+      let usersData: any[] = [];
+      
+      if (memberWallets.length > 0) {
+        const [membersResult, usersResult] = await Promise.allSettled([
+          supabase.from('members').select('wallet_address, current_level').in('wallet_address', memberWallets),
+          supabase.from('users').select('wallet_address, username').in('wallet_address', memberWallets)
+        ]);
+        
+        if (membersResult.status === 'fulfilled' && membersResult.value.data) {
+          membersData = membersResult.value.data;
+        }
+        if (usersResult.status === 'fulfilled' && usersResult.value.data) {
+          usersData = usersResult.value.data;
+        }
+      }
 
-      const membersMap = new Map(membersData?.map(m => [m.wallet_address, m]) || []);
-      const usersMap = new Map(usersData?.map(u => [u.wallet_address, u]) || []);
+      const membersMap = new Map(membersData.map(m => [m.wallet_address, m]));
+      const usersMap = new Map(usersData.map(u => [u.wallet_address, u]));
 
       // Transform data to MatrixMember format using matrix_referrals_tree_view data
       const members: MatrixMember[] = matrixPlacements?.map(placement => {
