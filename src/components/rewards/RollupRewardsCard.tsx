@@ -187,7 +187,7 @@ export default function RollupRewardsCard({ walletAddress, className }: RollupRe
           <div className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-lg p-4 border border-purple-200">
             <div className="flex items-center gap-2 mb-2">
               <Users className="h-4 w-4 text-purple-600" />
-              <span className="text-sm font-medium text-purple-800">Reasons</span>
+              <span className="text-sm font-medium text-purple-800">{t('rewards.rollup.reasons')}</span>
             </div>
             <div className="text-2xl font-bold text-purple-600">
               {Object.keys(rollupStats.by_reason).length}
