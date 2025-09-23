@@ -1,6 +1,8 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+// 导入DeepL测试工具（在控制台中可用）
+import "./utils/testDeepL";
 
 // Enhanced error handling for deployment stability
 const renderApp = () => {
