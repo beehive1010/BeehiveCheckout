@@ -236,11 +236,11 @@ export default function USDTWithdrawal() {
       console.log(`📊 Full data object:`, data);
       
       return {
-        balance: Math.round(balanceAmount * 100),
-        balanceUSD: balanceAmount.toFixed(2),
+        balance: Math.round((balanceAmount || 0) * 100),
+        balanceUSD: (balanceAmount || 0).toFixed(2),
         lastUpdated: data?.updated_at || data?.created_at || new Date().toISOString(),
-        foundWallet: data?.wallet_address,
-        rawData: data // Include raw data for debugging
+        foundWallet: data?.wallet_address || '',
+        rawData: data || {} // Include raw data for debugging
       };
     },
   });
