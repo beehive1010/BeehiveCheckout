@@ -705,7 +705,7 @@ export default function USDTWithdrawal() {
                 <details className="mt-2">
                   <summary className="cursor-pointer text-blue-400">Raw Database Data</summary>
                   <pre className="mt-1 p-2 bg-black/50 rounded text-xs overflow-x-auto">
-                    {JSON.stringify(balance.rawData, null, 2)}
+                    {JSON.stringify(balance.rawData || {}, null, 2)}
                   </pre>
                 </details>
               )}
@@ -725,7 +725,7 @@ export default function USDTWithdrawal() {
               <div className="flex-1">
                 <h4 className="text-sm font-medium text-yellow-400 mb-1">No Balance Record Found</h4>
                 <p className="text-xs text-muted-foreground mb-3">
-                  Your wallet address ({memberWalletAddress?.slice(0, 6)}...{memberWalletAddress?.slice(-4)}) doesn't have a balance record in our system yet.
+                  Your wallet address ({memberWalletAddress ? `${memberWalletAddress.slice(0, 6)}...${memberWalletAddress.slice(-4)}` : 'Unknown'}) doesn't have a balance record in our system yet.
                 </p>
                 <button
                   onClick={async () => {
