@@ -75,6 +75,9 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
           <div className="text-center py-8">
             <Users className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
             <p className="text-muted-foreground">No referral statistics available</p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Start building your network by sharing your referral link!
+            </p>
           </div>
         </CardContent>
       </Card>

@@ -95,6 +95,8 @@ const DataTest: React.FC<DataTestProps> = ({ walletAddress }) => {
     }
   };
 
+  const testWalletWithData = '0xC813218A28E130B46f8247F0a23F0BD841A8DB4E'; // This wallet has data
+
   return (
     <Card>
       <CardHeader>
@@ -103,6 +105,9 @@ const DataTest: React.FC<DataTestProps> = ({ walletAddress }) => {
       <CardContent>
         <div className="space-y-4">
           <p className="text-sm">Testing wallet: <code>{walletAddress}</code></p>
+          <p className="text-xs text-muted-foreground">
+            Note: Your wallet may not have data yet. Try with test wallet: <code>{testWalletWithData}</code>
+          </p>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             <Button onClick={testReferrerStats} disabled={loading}>
