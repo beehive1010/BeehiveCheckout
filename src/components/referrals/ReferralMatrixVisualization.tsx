@@ -78,46 +78,43 @@ export default function ReferralMatrixVisualization({
     try {
       setLoading(true);
 
-      // Get referral data from matrix_team_view
+      // Get referral data from matrix_referrals_view
       const { data: matrixPlacements, error } = await supabase
-        .from('matrix_team_view')
+        .from('matrix_referrals_view')
         .select(`
-          member_wallet,
-          matrix_root,
-          matrix_layer,
-          matrix_position,
-          placed_at,
+          wallet_address,
+          matrix_root_wallet,
+          layer,
+          position,
           is_active,
-          member_name,
-          member_level,
-          placement_type,
-          original_referrer,
-          original_referrer_name
+          username,
+          current_level,
+          referral_type
         `)
-        .eq('matrix_root', effectiveRootWallet)
-        .order('placed_at');
+        .eq('matrix_root_wallet', effectiveRootWallet)
+        .order('activation_sequence');
 
       if (error) {
         throw new Error(`Failed to load matrix data: ${error.message}`);
       }
 
-      // Transform data to MatrixMember format using matrix_team_view data
+      // Transform data to MatrixMember format using matrix_referrals_view data
       const members: MatrixMember[] = matrixPlacements?.map(placement => {
         // Convert position from L/M/R to 1/2/3 for internal use
         let positionNumber = 0;
-        if (placement.matrix_position === 'L') positionNumber = 1;
-        else if (placement.matrix_position === 'M') positionNumber = 2;
-        else if (placement.matrix_position === 'R') positionNumber = 3;
-        else positionNumber = parseInt(placement.matrix_position || '0');
+        if (placement.position === 'L') positionNumber = 1;
+        else if (placement.position === 'M') positionNumber = 2;
+        else if (placement.position === 'R') positionNumber = 3;
+        else positionNumber = parseInt(placement.position || '0');
 
         return {
-          walletAddress: placement.member_wallet,
-          username: placement.member_name,
-          level: placement.member_level || 1,
-          layer: placement.matrix_layer,
+          walletAddress: placement.wallet_address,
+          username: placement.username,
+          level: placement.current_level || 1,
+          layer: placement.layer || 1,
           position: positionNumber,
-          isActive: placement.is_active && (placement.member_level || 0) > 0,
-          placedAt: placement.placed_at,
+          isActive: placement.is_active && (placement.current_level || 0) > 0,
+          placedAt: placement.created_at || new Date().toISOString(),
           downlineCount: 0 // TODO: Calculate downline count
         };
       }) || [];
