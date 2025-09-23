@@ -102,9 +102,9 @@ export function Level2ClaimButton({ onSuccess, className = '' }: Level2ClaimButt
       }
       
       const formattedReferrals = referrals?.map(ref => ({
-        wallet_address: ref.wallet_address,
-        username: (ref.users as any).username || 'Unknown',
-        current_level: ref.current_level,
+        wallet_address: ref.referred_wallet,
+        username: (ref.members as any)?.users?.username || 'Unknown',
+        current_level: (ref.members as any)?.current_level || 0,
         created_at: ref.created_at
       })) || [];
       
