@@ -149,7 +149,7 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
                 variant="secondary" 
                 className={`${fillRate > 80 ? 'bg-green-500/10 text-green-400' : fillRate > 50 ? 'bg-orange-500/10 text-orange-400' : 'bg-muted'}`}
               >
-                {layer.members.length} members
+                {layer.totalMembers} members
               </Badge>
             </div>
             <div className="flex items-center gap-2">
@@ -160,15 +160,15 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
           
           <div className="grid grid-cols-3 gap-3 mb-3">
             <div className="text-center">
-              <div className="text-lg font-bold text-green-400">{layer.members.filter((m: any) => m.position === 'L').length}</div>
+              <div className="text-lg font-bold text-green-400">{layer.leftMembers}</div>
               <div className="text-xs text-muted-foreground">{t('referrals.matrixPosition.left')}</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold text-blue-400">{layer.members.filter((m: any) => m.position === 'M').length}</div>
+              <div className="text-lg font-bold text-blue-400">{layer.middleMembers}</div>
               <div className="text-xs text-muted-foreground">{t('referrals.matrixPosition.middle')}</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold text-purple-400">{layer.members.filter((m: any) => m.position === 'R').length}</div>
+              <div className="text-lg font-bold text-purple-400">{layer.rightMembers}</div>
               <div className="text-xs text-muted-foreground">{t('referrals.matrixPosition.right')}</div>
             </div>
           </div>
