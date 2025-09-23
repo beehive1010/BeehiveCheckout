@@ -672,6 +672,14 @@ export default function USDTWithdrawal() {
               {balance?.notFound && <p className="text-red-400">❌ No balance record found in database</p>}
               {balance?.foundWallet && <p className="text-green-400">✅ Found wallet: {balance.foundWallet}</p>}
               {balance?.error && <p className="text-red-400">❌ Query error: {balance.error}</p>}
+              {balance?.rawData && (
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-blue-400">Raw Database Data</summary>
+                  <pre className="mt-1 p-2 bg-black/50 rounded text-xs overflow-x-auto">
+                    {JSON.stringify(balance.rawData, null, 2)}
+                  </pre>
+                </details>
+              )}
             </div>
           </div>
         )}
