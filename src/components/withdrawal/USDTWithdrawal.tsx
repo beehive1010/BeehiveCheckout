@@ -126,29 +126,63 @@ export default function USDTWithdrawal() {
       console.log(`🔍 Querying user balance for wallet: ${memberWalletAddress}`);
       
       const { supabase } = await import('../../lib/supabase');
-      const { data, error } = await supabase
+      
+      // First try with exact case match
+      let { data, error } = await supabase
         .from('user_balances')
-        .select('claimable_reward_balance_usdc, total_rewards_withdrawn_usdc, updated_at')
-        .ilike('wallet_address', memberWalletAddress!)
+        .select('claimable_reward_balance_usdc, total_rewards_withdrawn_usdc, updated_at, wallet_address')
+        .eq('wallet_address', memberWalletAddress!)
         .single();
       
-      if (error) {
-        console.warn('Balance query error:', error);
-        console.warn('Returning defaults for wallet:', memberWalletAddress);
+      // If no exact match, try case-insensitive
+      if (error && error.code === 'PGRST116') {
+        console.log('🔄 Trying case-insensitive search...');
+        const result = await supabase
+          .from('user_balances')
+          .select('claimable_reward_balance_usdc, total_rewards_withdrawn_usdc, updated_at, wallet_address')
+          .ilike('wallet_address', memberWalletAddress!)
+          .single();
+        data = result.data;
+        error = result.error;
+      }
+      
+      // If still no match, check if any user_balances exist at all
+      if (error && error.code === 'PGRST116') {
+        console.log('🔍 No balance record found, checking all user_balances...');
+        const { data: allBalances } = await supabase
+          .from('user_balances')
+          .select('wallet_address, claimable_reward_balance_usdc')
+          .limit(5);
+        
+        console.log('📊 Sample user_balances records:', allBalances);
+        console.log(`❌ No balance record found for wallet: ${memberWalletAddress}`);
+        
         return {
           balance: 0,
           balanceUSD: '0.00',
-          lastUpdated: new Date().toISOString()
+          lastUpdated: new Date().toISOString(),
+          notFound: true
+        };
+      }
+      
+      if (error) {
+        console.warn('Balance query error:', error);
+        return {
+          balance: 0,
+          balanceUSD: '0.00',
+          lastUpdated: new Date().toISOString(),
+          error: error.message
         };
       }
       
       const balanceAmount = data?.claimable_reward_balance_usdc || 0;
-      console.log(`💰 Found balance: ${balanceAmount} USDT for wallet: ${memberWalletAddress}`);
+      console.log(`💰 Found balance: ${balanceAmount} USDT for wallet: ${data?.wallet_address}`);
       
       return {
-        balance: Math.round(balanceAmount * 100), // Convert to cents
+        balance: Math.round(balanceAmount * 100),
         balanceUSD: balanceAmount.toFixed(2),
-        lastUpdated: data?.updated_at || new Date().toISOString()
+        lastUpdated: data?.updated_at || new Date().toISOString(),
+        foundWallet: data?.wallet_address
       };
     },
   });
