@@ -665,7 +665,7 @@ export default function USDTWithdrawal() {
             )}
             {!balanceLoading && memberWalletAddress && (
               <p className="text-xs text-muted-foreground">
-                Wallet: {memberWalletAddress.slice(0, 6)}...{memberWalletAddress.slice(-4)}
+                Wallet: {memberWalletAddress?.slice(0, 6)}...{memberWalletAddress?.slice(-4)}
               </p>
             )}
             {!memberWalletAddress && (
