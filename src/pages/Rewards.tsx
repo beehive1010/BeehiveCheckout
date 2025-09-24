@@ -6,6 +6,7 @@ import {Card, CardContent, CardHeader, CardTitle} from '../components/ui/card';
 import {Button} from '../components/ui/button';
 import {Badge} from '../components/ui/badge';
 import {Tabs, TabsContent, TabsList, TabsTrigger} from '../components/ui/tabs';
+import {Collapsible, CollapsibleContent, CollapsibleTrigger} from '../components/ui/collapsible';
 import {useToast} from '../hooks/use-toast';
 import {supabase} from '../lib/supabase';
 import RollupRewardsCard from '../components/rewards/RollupRewardsCard';
@@ -17,6 +18,7 @@ import {
     ArrowUpRight,
     Award,
     BarChart3,
+    ChevronDown,
     Clock,
     DollarSign,
     Gift,
@@ -71,6 +73,7 @@ export default function Rewards() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('pending');
+  const [isOverviewOpen, setIsOverviewOpen] = useState(false);
   const [isRewardInfoExpanded, setIsRewardInfoExpanded] = useState(false);
   const [mobileRewardTab, setMobileRewardTab] = useState<'matrix' | 'bcc'>('matrix');
   
@@ -250,77 +253,89 @@ export default function Rewards() {
         </p>
       </div>
 
-      {/* Stats Overview - Compact Information Display */}
-      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 p-3 md:p-4 mb-4">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-5 h-5 md:w-6 md:h-6 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center">
-            <BarChart3 className="h-3 w-3 md:h-4 md:w-4 text-gray-600 dark:text-gray-400" />
+      {/* Collapsible Stats Overview */}
+      <Collapsible open={isOverviewOpen} onOpenChange={setIsOverviewOpen} className="mb-3">
+        <CollapsibleTrigger className="w-full">
+          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 p-2 md:p-3 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center">
+                  <BarChart3 className="h-3 w-3 text-gray-600 dark:text-gray-400" />
+                </div>
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                  奖励概览
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  ${rewardsData?.claimable || 0} 可领取
+                </span>
+                <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${isOverviewOpen ? 'rotate-180' : ''}`} />
+              </div>
+            </div>
           </div>
-          <h3 className="text-sm md:text-base font-medium text-gray-700 dark:text-gray-300">
-            {t('rewards.overview.title')}
-          </h3>
-        </div>
+        </CollapsibleTrigger>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
-          <div className="text-center p-2 md:p-3 bg-white dark:bg-gray-700/30 rounded border border-gray-100 dark:border-gray-600">
-            <div className="w-6 h-6 md:w-8 md:h-8 mx-auto bg-amber-100 dark:bg-amber-900/50 rounded-full flex items-center justify-center mb-1">
-              <TrendingUp className="h-3 w-3 md:h-4 md:w-4 text-amber-600 dark:text-amber-400" />
-            </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-              {t('rewards.overview.totalEarned')}
-            </p>
-            <p className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
-              ${rewardsData?.total || 0}
-            </p>
-          </div>
+        <CollapsibleContent>
+          <div className="bg-white dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-600 p-2 md:p-3 mt-1">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              <div className="text-center p-2 bg-gray-50 dark:bg-gray-600/30 rounded border border-gray-100 dark:border-gray-600">
+                <div className="w-5 h-5 mx-auto bg-amber-100 dark:bg-amber-900/50 rounded-full flex items-center justify-center mb-1">
+                  <TrendingUp className="h-3 w-3 text-amber-600 dark:text-amber-400" />
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  {t('rewards.overview.totalEarned')}
+                </p>
+                <p className="text-sm font-bold text-gray-900 dark:text-white">
+                  ${rewardsData?.total || 0}
+                </p>
+              </div>
 
-          <div className="text-center p-2 md:p-3 bg-white dark:bg-gray-700/30 rounded border border-gray-100 dark:border-gray-600">
-            <div className="w-6 h-6 md:w-8 md:h-8 mx-auto bg-orange-100 dark:bg-orange-900/50 rounded-full flex items-center justify-center mb-1">
-              <ArrowDownLeft className="h-3 w-3 md:h-4 md:w-4 text-orange-600 dark:text-orange-400" />
-            </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-              {t('rewards.overview.totalWithdrawn')}
-            </p>
-            <p className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
-              ${rewardsData?.totalWithdrawn || 0}
-            </p>
-          </div>
+              <div className="text-center p-2 bg-gray-50 dark:bg-gray-600/30 rounded border border-gray-100 dark:border-gray-600">
+                <div className="w-5 h-5 mx-auto bg-orange-100 dark:bg-orange-900/50 rounded-full flex items-center justify-center mb-1">
+                  <ArrowDownLeft className="h-3 w-3 text-orange-600 dark:text-orange-400" />
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  {t('rewards.overview.totalWithdrawn')}
+                </p>
+                <p className="text-sm font-bold text-gray-900 dark:text-white">
+                  ${rewardsData?.totalWithdrawn || 0}
+                </p>
+              </div>
 
-          <div className="text-center p-2 md:p-3 bg-white dark:bg-gray-700/30 rounded border border-gray-100 dark:border-gray-600">
-            <div className="w-6 h-6 md:w-8 md:h-8 mx-auto bg-yellow-100 dark:bg-yellow-900/50 rounded-full flex items-center justify-center mb-1">
-              <Clock className="h-3 w-3 md:h-4 md:w-4 text-yellow-600 dark:text-yellow-400" />
-            </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-              {t('rewards.overview.pending')}
-            </p>
-            <p className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
-              ${rewardsData?.pending || 0}
-            </p>
-          </div>
+              <div className="text-center p-2 bg-gray-50 dark:bg-gray-600/30 rounded border border-gray-100 dark:border-gray-600">
+                <div className="w-5 h-5 mx-auto bg-yellow-100 dark:bg-yellow-900/50 rounded-full flex items-center justify-center mb-1">
+                  <Clock className="h-3 w-3 text-yellow-600 dark:text-yellow-400" />
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  {t('rewards.overview.pending')}
+                </p>
+                <p className="text-sm font-bold text-gray-900 dark:text-white">
+                  ${rewardsData?.pending || 0}
+                </p>
+              </div>
 
-          <div className="text-center p-2 md:p-3 bg-white dark:bg-gray-700/30 rounded border border-gray-100 dark:border-gray-600">
-            <div className="w-6 h-6 md:w-8 md:h-8 mx-auto bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mb-1">
-              <Gift className="h-3 w-3 md:h-4 md:w-4 text-green-600 dark:text-green-400" />
+              <div className="text-center p-2 bg-gray-50 dark:bg-gray-600/30 rounded border border-gray-100 dark:border-gray-600">
+                <div className="w-5 h-5 mx-auto bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mb-1">
+                  <Gift className="h-3 w-3 text-green-600 dark:text-green-400" />
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  {t('rewards.overview.claimable')}
+                </p>
+                <p className="text-sm font-bold text-gray-900 dark:text-white">
+                  ${rewardsData?.claimable || 0}
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-              {t('rewards.overview.claimable')}
-            </p>
-            <p className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
-              ${rewardsData?.claimable || 0}
-            </p>
           </div>
-        </div>
-      </div>
+        </CollapsibleContent>
+      </Collapsible>
 
-      {/* Action Navigation - Clear Separation from Stats */}
-      <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-lg mb-6">
-        <div className="mb-4">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-            <Users className="h-5 w-5 text-blue-600" />
-            {t('rewards.sections.title')}
-          </h3>
+      {/* Action Navigation - Moved Up for Better UX */}
+      <div className="bg-white dark:bg-gray-900 p-3 md:p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-lg mb-4">
+        <div className="mb-3">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            {t('rewards.sections.description')}
+            选择下方分类查看和管理您的奖励
           </p>
         </div>
         
