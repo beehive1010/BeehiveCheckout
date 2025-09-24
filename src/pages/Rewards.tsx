@@ -241,7 +241,7 @@ export default function Rewards() {
   }
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:container lg:mx-auto py-2 sm:py-4 space-y-1 sm:space-y-2 animate-in fade-in-50 duration-700">
+    <div className="w-full px-4 sm:px-6 lg:container lg:mx-auto py-2 sm:py-4 pb-8 sm:pb-12 lg:pb-16 space-y-1 sm:space-y-2 animate-in fade-in-50 duration-700">
       {/* Enhanced Header */}
       <div className="text-center sm:text-left mb-1 sm:mb-2 animate-in slide-in-from-top-2 duration-500">
         <div className="relative inline-block">
@@ -633,11 +633,14 @@ export default function Rewards() {
         </Tabs>
       </div>
 
+      {/* Extra spacing between tabs and info card */}
+      <div className="h-8 sm:h-12 lg:h-16"></div>
+
       {/* Reward System Information - Premium Expandable Card (moved to bottom) */}
       <RewardSystemInfoCard 
         isExpanded={isRewardInfoExpanded}
         onExpandChange={setIsRewardInfoExpanded}
-        className="mt-6"
+        className="mt-8 sm:mt-10 lg:mt-12"
       />
 
     </div>
