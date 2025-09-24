@@ -464,11 +464,11 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
     if (targetLevel === 2) {
       const { data: referrerStatsData } = await supabase
         .from('referrer_stats')
-        .select('direct_referrals')
+        .select('total_direct_referrals')
         .ilike('referrer', walletAddress) // Use ilike for case insensitive match
         .maybeSingle()
 
-      const directReferrals = referrerStatsData?.direct_referrals || 0
+      const directReferrals = referrerStatsData?.total_direct_referrals || 0
       const requiredReferrals = LEVEL_CONFIG.SPECIAL_REQUIREMENTS.LEVEL_2_DIRECT_REFERRALS
 
       directReferralsCheck = {

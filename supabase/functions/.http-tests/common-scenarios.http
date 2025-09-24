@@ -112,7 +112,7 @@ Authorization: Bearer {{serviceKey}}
 Content-Type: application/json
 
 {
-  "matrix_root": "{{referrer}}"
+  "matrix_root_wallet": "{{referrer}}"
 }
 
 ###############################################
@@ -301,7 +301,7 @@ Content-Type: application/json
   "operations": [
     {
       "type": "validate",
-      "matrix_root": "{{referrer}}"
+      "matrix_root_wallet": "{{referrer}}"
     }
   ]
 }

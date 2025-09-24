@@ -7,7 +7,7 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-wallet-address',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
 };
-serve(async (req)=>{
+serve(async (req: Request) => {
     if (req.method === 'OPTIONS') {
         return new Response('ok', {
             headers: corsHeaders
@@ -241,19 +241,19 @@ async function claimReward(req, supabaseClient) {
             });
         }
         
-        // 3. Get matrix position for Layer 1 R position check (using spillover_matrix table)
+        // 3. Get matrix position for Layer 1 R position check (using matrix_referrals_tree_view)
         const { data: matrixPositionArray } = await supabaseClient
-            .from('spillover_matrix')
-            .select('matrix_position')
-            .ilike('matrix_root', reward.reward_recipient_wallet.toLowerCase())
+            .from('matrix_referrals_tree_view')
+            .select('position')
+            .ilike('matrix_root_wallet', reward.reward_recipient_wallet.toLowerCase())
             .ilike('member_wallet', reward.triggering_member_wallet.toLowerCase())
-            .eq('matrix_layer', reward.matrix_layer)
-            .eq('is_active', true);
+            .eq('layer', reward.matrix_layer)
+            .eq('is_activated', true);
             
         const matrixPosition = matrixPositionArray?.[0] || null;
         
         // 4. CRITICAL BUSINESS RULE: Layer 1 R position special rule
-        if (reward.matrix_layer === 1 && matrixPosition?.matrix_position === 'R') {
+        if (reward.matrix_layer === 1 && matrixPosition?.position === 'R') {
             const { data: memberArray, error: memberError } = await supabaseClient
                 .from('members')
                 .select('current_level')
@@ -1048,7 +1048,7 @@ async function processLevelActivationRewards(req, supabaseClient) {
         // Find all positions where this member is placed that match the activated level
         const { data: memberPositions, error: positionError } = await supabaseClient.from('referrals').select(`
         member_wallet,
-        matrix_root,
+        matrix_root_wallet,
         matrix_layer,
         matrix_position,
         referrer_wallet
@@ -1065,7 +1065,7 @@ async function processLevelActivationRewards(req, supabaseClient) {
             if (activatedLevel === position.matrix_layer) {
                 console.log(`✅ Creating Layer ${position.matrix_layer} reward for Level ${activatedLevel} NFT activation (Layer ${position.matrix_layer} member activated matching Level ${activatedLevel})`);
                 // Get matrix root's member data to check qualification
-                const { data: rootMemberData } = await supabaseClient.from('members').select('current_level').eq('wallet_address', position.matrix_root).maybeSingle();
+                const { data: rootMemberData } = await supabaseClient.from('members').select('current_level').eq('wallet_address', position.matrix_root_wallet).maybeSingle();
                 // ✅ CORRECTED: Calculate reward amount based on the LAYER being rewarded, not the activated level
                 // Layer 2 root gets Layer 2 reward amount when member activates Level 2+ NFT
                 const rewardAmount = calculateNFTLevelReward(position.matrix_layer);
@@ -1088,7 +1088,7 @@ async function processLevelActivationRewards(req, supabaseClient) {
                 const expiresAt = new Date();
                 expiresAt.setHours(expiresAt.getHours() + 72);
                 const { data: newReward, error: rewardError } = await supabaseClient.from('reward_claims').insert({
-                    root_wallet: position.matrix_root,
+                    root_wallet: position.matrix_root_wallet,
                     triggering_member_wallet: memberWallet,
                     layer: position.matrix_layer,
                     nft_level: activatedLevel,

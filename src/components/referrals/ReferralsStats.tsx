@@ -18,18 +18,15 @@ interface ReferralsStatsProps {
 
 interface ReferrerStatsData {
   referrer: string;
-  activation_id: number;
-  current_level: number;
-  direct_referrals: number;
-  l_count: number;
-  m_count: number;
-  r_count: number;
-  spillover_count: number;
-  l_activation_id: number | null;
-  m_activation_id: number | null;
-  r_activation_id: number | null;
-  max_layer: number;
+  referrer_name: string;
+  total_direct_referrals: number;
+  activated_referrals: number;
   total_team_size: number;
+  activated_members: number;
+  max_depth: number;
+  network_strength: number;
+  highest_referral_level: number;
+  level2_upgrade_eligible: boolean;
 }
 
 
@@ -84,11 +81,7 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
     );
   }
 
-  const matrixPositionsFilled = [
-    referrerStats.l_count > 0,
-    referrerStats.m_count > 0,
-    referrerStats.r_count > 0
-  ].filter(Boolean).length;
+  const matrixPositionsFilled = Math.min(3, referrerStats.total_direct_referrals || 0);
 
   return (
     <div className={`space-y-6 ${className}`}>
@@ -101,7 +94,7 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
               <Users className="h-8 w-8 text-blue-500" />
               <div>
                 <div className="text-2xl font-bold text-blue-400">
-                  {referrerStats.direct_referrals}
+                  {referrerStats.total_direct_referrals}
                 </div>
                 <div className="text-xs text-muted-foreground">Direct Referrals</div>
               </div>
@@ -131,7 +124,7 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
               <Layers className="h-8 w-8 text-purple-500" />
               <div>
                 <div className="text-2xl font-bold text-purple-400">
-                  {referrerStats.max_layer}
+                  {referrerStats.max_depth}
                 </div>
                 <div className="text-xs text-muted-foreground">Max Layer</div>
               </div>
@@ -174,30 +167,19 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
                 </Badge>
               </div>
               <div className="grid grid-cols-3 gap-2">
-                <div className={`text-center p-2 rounded border ${referrerStats.l_count > 0 ? 'bg-green-100 border-green-300 text-green-800' : 'bg-gray-100 border-gray-300'}`}>
-                  L {referrerStats.l_count > 0 ? '✓' : '○'}
-                  {referrerStats.l_activation_id && (
-                    <div className="text-xs">#{referrerStats.l_activation_id}</div>
-                  )}
-                </div>
-                <div className={`text-center p-2 rounded border ${referrerStats.m_count > 0 ? 'bg-green-100 border-green-300 text-green-800' : 'bg-gray-100 border-gray-300'}`}>
-                  M {referrerStats.m_count > 0 ? '✓' : '○'}
-                  {referrerStats.m_activation_id && (
-                    <div className="text-xs">#{referrerStats.m_activation_id}</div>
-                  )}
-                </div>
-                <div className={`text-center p-2 rounded border ${referrerStats.r_count > 0 ? 'bg-green-100 border-green-300 text-green-800' : 'bg-gray-100 border-gray-300'}`}>
-                  R {referrerStats.r_count > 0 ? '✓' : '○'}
-                  {referrerStats.r_activation_id && (
-                    <div className="text-xs">#{referrerStats.r_activation_id}</div>
-                  )}
-                </div>
+                {[...Array(3)].map((_, i) => {
+                  const isFilled = i < matrixPositionsFilled;
+                  const position = ['L', 'M', 'R'][i];
+                  return (
+                    <div key={i} className={`text-center p-2 rounded border ${isFilled ? 'bg-green-100 border-green-300 text-green-800' : 'bg-gray-100 border-gray-300'}`}>
+                      {position} {isFilled ? '✓' : '○'}
+                    </div>
+                  );
+                })}
               </div>
               <div className="text-sm text-muted-foreground">
-                Next vacant: <span className="font-medium">
-                  {referrerStats.l_count === 0 ? 'L' : 
-                   referrerStats.m_count === 0 ? 'M' : 
-                   referrerStats.r_count === 0 ? 'R' : 'Full'}
+                Matrix Status: <span className="font-medium">
+                  {matrixPositionsFilled < 3 ? `${3 - matrixPositionsFilled} positions available` : 'Full'}
                 </span>
               </div>
             </div>

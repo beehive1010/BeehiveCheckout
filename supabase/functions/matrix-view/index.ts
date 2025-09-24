@@ -9,7 +9,7 @@ const corsHeaders = {
 
 console.log('🔍 Matrix View function started successfully!')
 
-serve(async (req) => {
+serve(async (req: Request) => {
   // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -35,54 +35,93 @@ serve(async (req) => {
     const { action } = await req.json()
 
     if (action === 'get-layer-stats') {
-      // Get layer statistics using matrix_layers_view directly
+      // Get layer statistics using matrix_layers_view and referrals_stats_view
       console.log(`📊 Getting layer statistics for wallet: ${walletAddress}`)
       
+      // Get basic stats first
+      const { data: statsData, error: statsError } = await supabase
+        .from('referrals_stats_view')
+        .select('*')
+        .eq('wallet_address', walletAddress)
+        .single()
+
+      if (statsError && statsError.code !== 'PGRST116') { // Ignore not found error
+        console.log('Stats not found, using fallback:', statsError.message)
+      }
+
+      // Get matrix layers data
       const { data: matrixData, error: matrixError } = await supabase
         .from('matrix_layers_view')
-        .select('*')
+        .select(`
+          layer,
+          filled_slots,
+          empty_slots,
+          max_slots,
+          completion_rate
+        `)
         .eq('matrix_root_wallet', walletAddress)
         .order('layer')
 
       if (matrixError) {
         console.error('Error fetching matrix data:', matrixError)
-        throw matrixError
+        // Don't throw, continue with empty data
       }
 
       console.log(`📊 Matrix layer data retrieved: ${matrixData?.length || 0} layers`)
 
-      // Transform data directly from matrix_layers_view (no need for processing)
+      // Get detailed member positions for L/M/R breakdown
+      const { data: membersData } = await supabase
+        .from('matrix_referrals_tree_view')
+        .select('layer, position')
+        .eq('matrix_root_wallet', walletAddress)
+
+      // Count positions by layer
+      const positionCounts: any = {}
+      membersData?.forEach(member => {
+        if (!positionCounts[member.layer]) {
+          positionCounts[member.layer] = { L: 0, M: 0, R: 0 }
+        }
+        if (member.position && ['L', 'M', 'R'].includes(member.position)) {
+          positionCounts[member.layer][member.position]++
+        }
+      })
+
+      // Transform data from matrix_layers_view
       const completeStats = []
       
       // Initialize all 19 layers
       for (let layer = 1; layer <= 19; layer++) {
         const layerData = matrixData?.find((l: any) => l.layer === layer)
+        const posData = positionCounts[layer] || { L: 0, M: 0, R: 0 }
         
         if (layerData) {
-          // Use data from matrix_layers_view directly
+          // Use data from matrix_layers_view with position breakdown
           completeStats.push({
             layer: layerData.layer,
             totalMembers: layerData.filled_slots || 0,
-            leftMembers: layerData.left_count || 0,
-            middleMembers: layerData.middle_count || 0,
-            rightMembers: layerData.right_count || 0,
+            leftMembers: posData.L,
+            middleMembers: posData.M,
+            rightMembers: posData.R,
             maxCapacity: layerData.max_slots || Math.pow(3, layer),
-            fillPercentage: parseFloat(layerData.completion_rate || 0),
-            activeMembers: layerData.activated_members || 0,
-            completedPercentage: parseFloat(layerData.completion_rate || 0)
+            fillPercentage: (layerData.completion_rate || 0) * 100,
+            activeMembers: layerData.filled_slots || 0,
+            completedPercentage: (layerData.completion_rate || 0) * 100,
+            emptySlots: layerData.empty_slots || 0
           })
         } else {
           // Empty layer
+          const maxCapacity = Math.pow(3, layer)
           completeStats.push({
             layer,
-            totalMembers: 0,
-            leftMembers: 0,
-            middleMembers: 0,
-            rightMembers: 0,
-            maxCapacity: Math.pow(3, layer),
+            totalMembers: posData.L + posData.M + posData.R,
+            leftMembers: posData.L,
+            middleMembers: posData.M,
+            rightMembers: posData.R,
+            maxCapacity,
             fillPercentage: 0,
-            activeMembers: 0,
-            completedPercentage: 0
+            activeMembers: posData.L + posData.M + posData.R,
+            completedPercentage: 0,
+            emptySlots: maxCapacity
           })
         }
       }
@@ -98,7 +137,10 @@ serve(async (req) => {
             total_members: completeStats.reduce((sum, stat) => sum + stat.totalMembers, 0),
             total_active: completeStats.reduce((sum, stat) => sum + stat.activeMembers, 0),
             deepest_layer: Math.max(...completeStats.filter(s => s.totalMembers > 0).map(s => s.layer), 0),
-            layers_with_data: completeStats.filter(s => s.totalMembers > 0).length
+            layers_with_data: completeStats.filter(s => s.totalMembers > 0).length,
+            direct_referrals: statsData?.direct_referrals_count || 0,
+            activated_referrals: statsData?.activated_referrals_count || 0,
+            network_strength: (completeStats.reduce((sum, stat) => sum + stat.totalMembers, 0) * 5) + (statsData?.activated_referrals_count || 0) * 10
           }
         }
       }), {
@@ -107,37 +149,89 @@ serve(async (req) => {
       })
     }
 
-    if (action === 'get-matrix-members') {
+    if (action === 'get-matrix-members' || action === 'get-matrix-tree') {
       // Get detailed matrix member data using matrix_referrals_tree_view
       console.log(`👥 Getting matrix members for wallet: ${walletAddress}`)
       
       const { data: matrixMembers, error: membersError } = await supabase
         .from('matrix_referrals_tree_view')
-        .select('*')
+        .select(`
+          member_wallet,
+          matrix_root_wallet,
+          layer,
+          position,
+          referral_type,
+          child_activation_time
+        `)
         .eq('matrix_root_wallet', walletAddress)
         .order('layer')
         .order('position')
 
       if (membersError) {
         console.error('Error fetching matrix members:', membersError)
-        throw membersError
+        // Don't throw, return empty data instead
+        return new Response(JSON.stringify({
+          success: true,
+          data: {
+            wallet_address: walletAddress,
+            matrix_data: {
+              by_layer: {},
+              total_members: 0
+            },
+            tree_members: [],
+            note: 'No matrix members found'
+          }
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        })
       }
 
+      // Get additional user info
+      const memberWallets = matrixMembers?.map(m => m.member_wallet).filter(Boolean) || []
+      let usersData = []
+      let membersData = []
+
+      if (memberWallets.length > 0) {
+        const [usersResult, membersResult] = await Promise.all([
+          supabase.from('users').select('wallet_address, username').in('wallet_address', memberWallets),
+          supabase.from('members').select('wallet_address, current_level').in('wallet_address', memberWallets)
+        ])
+
+        usersData = usersResult.data || []
+        membersData = membersResult.data || []
+      }
+
+      const usersMap = new Map(usersData.map((u: any) => [u.wallet_address, u]))
+      const membersMap = new Map(membersData.map((m: any) => [m.wallet_address, m]))
+
       // Organize by layer
-      const byLayer = {}
-      matrixMembers?.forEach(member => {
+      const byLayer: any = {}
+      const treeMembers: any [] = []
+
+      matrixMembers?.forEach((member: any) => {
+        const userInfo = usersMap.get(member.member_wallet)
+        const memberInfo = membersMap.get(member.member_wallet)
+
+        const memberData = {
+          wallet_address: member.member_wallet,
+          username: userInfo?.username || `User${member.member_wallet?.slice(-4) || ''}`,
+          matrix_position: member.position,
+          current_level: memberInfo?.current_level || 1,
+          is_activated: Boolean(memberInfo?.current_level && memberInfo.current_level > 0),
+          joined_at: member.child_activation_time,
+          referral_type: member.referral_type,
+          layer: member.layer
+        }
+
+        // Add to layer organization
         if (!byLayer[member.layer]) {
           byLayer[member.layer] = []
         }
-        byLayer[member.layer].push({
-          wallet_address: member.member_wallet,
-          username: member.username,
-          matrix_position: member.position,
-          current_level: member.current_level,
-          is_activated: member.is_activated,
-          joined_at: member.created_at,  // Use created_at from matrix_referrals_view
-          activation_sequence: member.activation_sequence
-        })
+        byLayer[member.layer].push(memberData)
+
+        // Add to tree members
+        treeMembers.push(memberData)
       })
 
       console.log(`✅ Retrieved ${matrixMembers?.length || 0} matrix members`)
@@ -149,7 +243,8 @@ serve(async (req) => {
           matrix_data: {
             by_layer: byLayer,
             total_members: matrixMembers?.length || 0
-          }
+          },
+          tree_members: treeMembers
         }
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

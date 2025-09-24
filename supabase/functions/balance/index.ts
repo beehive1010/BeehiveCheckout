@@ -9,7 +9,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-wallet-address',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
 };
-serve(async (req)=>{
+serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', {
@@ -58,7 +58,7 @@ serve(async (req)=>{
   } catch (error) {
     console.error('Balance function error:', error);
     return new Response(JSON.stringify({
-      error: 'Internal server error'
+      error: error instanceof Error ? error.message : 'Internal server error'
     }), {
       status: 500,
       headers: {
@@ -68,7 +68,7 @@ serve(async (req)=>{
     });
   }
 });
-async function handleGetBalance(supabase, walletAddress) {
+async function handleGetBalance(supabase: any, walletAddress: string) {
   try {
     // CRITICAL: Verify user is registered before returning balance data
     console.log(`🔍 Verifying user registration for balance query: ${walletAddress}`);
@@ -156,7 +156,7 @@ async function handleGetBalance(supabase, walletAddress) {
   } catch (error) {
     console.error('Get balance error:', error);
     return new Response(JSON.stringify({
-      error: 'Failed to fetch balance data'
+      error: error instanceof Error ? error.message : 'Failed to fetch balance data'
     }), {
       status: 500,
       headers: {
@@ -166,7 +166,7 @@ async function handleGetBalance(supabase, walletAddress) {
     });
   }
 }
-async function handleGetTransactions(supabase, walletAddress, data) {
+async function handleGetTransactions(supabase: any, walletAddress: string, data: any) {
   try {
     const { limit = 50, offset = 0 } = data;
     // Get BCC purchase orders as transaction history
@@ -204,7 +204,7 @@ async function handleGetTransactions(supabase, walletAddress, data) {
   } catch (error) {
     console.error('Get transactions error:', error);
     return new Response(JSON.stringify({
-      error: 'Failed to fetch transaction history'
+      error: error instanceof Error ? error.message : 'Failed to fetch transaction history'
     }), {
       status: 500,
       headers: {
@@ -214,7 +214,7 @@ async function handleGetTransactions(supabase, walletAddress, data) {
     });
   }
 }
-async function handleTransferBcc(supabase, walletAddress, data) {
+async function handleTransferBcc(supabase: any, walletAddress: string, data: any) {
   try {
     const { amount, recipientWallet, purpose } = data;
     if (!amount || amount <= 0) {
@@ -282,7 +282,7 @@ async function handleTransferBcc(supabase, walletAddress, data) {
   } catch (error) {
     console.error('Transfer BCC error:', error);
     return new Response(JSON.stringify({
-      error: 'Failed to transfer BCC tokens'
+      error: error instanceof Error ? error.message : 'Failed to transfer BCC tokens'
     }), {
       status: 500,
       headers: {
@@ -292,7 +292,7 @@ async function handleTransferBcc(supabase, walletAddress, data) {
     });
   }
 }
-async function handleSpendBcc(supabase, walletAddress, data) {
+async function handleSpendBcc(supabase: any, walletAddress: string, data: any) {
   try {
     const { amount, itemType, itemId, purpose } = data;
     if (!amount || amount <= 0) {
@@ -368,7 +368,7 @@ async function handleSpendBcc(supabase, walletAddress, data) {
           .order('activation_sequence', { ascending: false })
           .limit(1);
         
-        const nextSequence = (maxSequence.data?.[0]?.activation_sequence || 0) + 1;
+        const nextSequence = ((maxSequence.data as any)?.[0]?.activation_sequence || 0) + 1;
         
         const { error: createMemberError } = await supabase
           .from('members')
@@ -585,7 +585,7 @@ async function handleSpendBcc(supabase, walletAddress, data) {
   } catch (error) {
     console.error('Spend BCC error:', error);
     return new Response(JSON.stringify({
-      error: 'Failed to spend BCC tokens'
+      error: error instanceof Error ? error.message : 'Failed to spend BCC tokens'
     }), {
       status: 500,
       headers: {
@@ -595,7 +595,7 @@ async function handleSpendBcc(supabase, walletAddress, data) {
     });
   }
 }
-async function handleGetEarningHistory(supabase, walletAddress, data) {
+async function handleGetEarningHistory(supabase: any, walletAddress: string, data: any) {
   try {
     const { limit = 50, offset = 0 } = data;
     // Get USDT earning history from rewards
@@ -658,7 +658,7 @@ async function handleGetEarningHistory(supabase, walletAddress, data) {
   } catch (error) {
     console.error('Get earning history error:', error);
     return new Response(JSON.stringify({
-      error: 'Failed to fetch earning history'
+      error: error instanceof Error ? error.message : 'Failed to fetch earning history'
     }), {
       status: 500,
       headers: {
@@ -670,7 +670,7 @@ async function handleGetEarningHistory(supabase, walletAddress, data) {
 }
 
 // Dashboard activity handler - temporary fix
-async function handleGetDashboardActivity(supabase, walletAddress, requestData) {
+async function handleGetDashboardActivity(supabase: any, walletAddress: string, requestData: any) {
   try {
     console.log(`📊 Getting dashboard activity for: ${walletAddress}`);
     
@@ -698,7 +698,8 @@ async function handleGetDashboardActivity(supabase, walletAddress, requestData) 
     console.error('Dashboard activity error:', error);
     return new Response(JSON.stringify({
       success: true,
-      activity: [] // Return empty array to prevent crashes
+      activity: [], // Return empty array to prevent crashes
+      error: error instanceof Error ? error.message : 'Failed to fetch dashboard activity'
     }), {
       headers: {
         ...corsHeaders,

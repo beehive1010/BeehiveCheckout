@@ -8,7 +8,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS'
 };
 console.log(`🚀 Fixed membership activation function with correct database schema!`);
-serve(async (req)=>{
+serve(async (req: Request) => {
   // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', {

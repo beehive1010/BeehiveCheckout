@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS'
 };
 console.log(`Updated Auth function started successfully! - Using new database structure`);
-serve(async (req)=>{
+serve(async (req: Request) => {
   // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', {
@@ -57,7 +57,7 @@ serve(async (req)=>{
   } catch (error) {
     console.error('Auth function error:', error);
     return new Response(JSON.stringify({
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     }), {
       headers: {
         ...corsHeaders,
@@ -68,7 +68,7 @@ serve(async (req)=>{
   }
 });
 // User registration function - only creates user records, not member records
-async function registerUser(supabase, walletAddress, data) {
+async function registerUser(supabase: any, walletAddress: string, data: any) {
   console.log(`👤 Registering user: ${walletAddress}`);
   try {
     // Use updated database function to handle user registration
@@ -117,11 +117,11 @@ async function registerUser(supabase, walletAddress, data) {
     };
   } catch (error) {
     console.error('Registration process error:', error);
-    throw error;
+    throw error instanceof Error ? error : new Error(String(error));
   }
 }
 // Get user function - simplified using unified member status
-async function getUser(supabase, walletAddress) {
+async function getUser(supabase: any, walletAddress: string) {
   console.log(`👤 Getting user: ${walletAddress}`);
   // Use unified member status function
   const { data: statusResult, error: statusError } = await supabase.rpc('get_member_status', {
@@ -170,7 +170,7 @@ async function getUser(supabase, walletAddress) {
   };
 }
 // Validate referrer function - simplified using unified status
-async function validateReferrer(supabase, referrerWallet) {
+async function validateReferrer(supabase: any, referrerWallet: string) {
   console.log(`🔍 Validating referrer: ${referrerWallet}`);
   if (!referrerWallet) {
     return {
@@ -229,7 +229,7 @@ async function validateReferrer(supabase, referrerWallet) {
   };
 }
 // Update user profile function - using new database structure
-async function updateUserProfile(supabase, walletAddress, data) {
+async function updateUserProfile(supabase: any, walletAddress: string, data: any) {
   console.log(`👤 Updating user profile: ${walletAddress}`);
   try {
     // Update user basic information
