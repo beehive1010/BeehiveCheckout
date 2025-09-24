@@ -137,13 +137,38 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
     }
   }, [walletAddress]);
 
-  // 减少定时器重新创建的频率
+  // 创建定时器，只在有pending rewards时运行
   useEffect(() => {
     if (pendingRewards.length === 0) return;
 
-    const interval = setInterval(updateCountdown, 1000);
+    const interval = setInterval(() => {
+      setPendingRewards(prev => 
+        prev.map(reward => {
+          const now = new Date().getTime();
+          const expiry = new Date(reward.expires_at).getTime();
+          const remaining = Math.max(0, Math.floor((expiry - now) / 1000));
+          
+          // 只有秒数发生变化时才更新
+          if (reward.time_remaining_seconds === remaining) {
+            return reward;
+          }
+          
+          // 如果倒计时结束且可以领取，触发回调
+          if (remaining === 0 && reward.can_claim && onRewardClaimableRef.current) {
+            onRewardClaimableRef.current(reward.reward_id);
+          }
+          
+          return {
+            ...reward,
+            time_remaining_seconds: remaining,
+            can_claim: remaining === 0 || reward.can_claim
+          };
+        })
+      );
+    }, 1000);
+
     return () => clearInterval(interval);
-  }, [pendingRewards.length]); // 移除updateCountdown依赖避免频繁重创建
+  }, [pendingRewards.length]); // 只依赖rewards数量变化
 
   if (loading) {
     return (
