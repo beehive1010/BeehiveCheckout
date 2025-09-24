@@ -259,18 +259,20 @@ export default function Rewards() {
       <Collapsible open={isOverviewOpen} onOpenChange={setIsOverviewOpen} className="mb-1 animate-in slide-in-from-bottom-2 duration-500">
         <CollapsibleTrigger className="w-full">
           <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900 dark:from-black dark:via-slate-950 dark:to-black rounded-xl border-2 border-slate-700 dark:border-slate-800 px-3 py-1.5 sm:px-4 sm:py-2 hover:border-honey/50 transition-all duration-500 cursor-pointer shadow-2xl hover:shadow-3xl hover:shadow-honey/20 group hover:scale-[1.02] transform">
+            {/* Animated border effect */}
+            <div className="absolute inset-0 rounded-xl border-2 border-transparent bg-gradient-to-r from-honey/30 via-amber-400/30 to-honey/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse"></div>
             <div className="absolute inset-0 bg-gradient-to-r from-honey/5 via-transparent to-amber-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <div className="relative flex flex-row items-center justify-between gap-2">
               <div className="flex flex-col items-start gap-0.5">
                 <div className="flex items-center gap-1.5">
-                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-br from-honey via-amber-400 to-amber-500 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-honey/50 group-hover:scale-110 transition-all duration-500">
-                    <BarChart3 className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-black drop-shadow-sm" />
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-br from-slate-600 via-gray-500 to-slate-600 group-hover:from-honey/80 group-hover:via-amber-400 group-hover:to-amber-500 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-honey/50 group-hover:scale-110 transition-all duration-500">
+                    <BarChart3 className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white group-hover:text-black drop-shadow-sm transition-colors duration-500" />
                   </div>
-                  <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-honey to-amber-400 bg-clip-text text-transparent drop-shadow-sm tracking-wide">
+                  <span className="text-base sm:text-lg font-bold text-slate-200 group-hover:text-white transition-all duration-500 tracking-wide">
                     {t('rewards.overview') || 'Rewards Overview'}
                   </span>
                 </div>
-                <span className="text-xs text-gray-400 dark:text-gray-500 ml-7 sm:ml-8">
+                <span className="text-xs text-gray-400 dark:text-gray-500 ml-7 sm:ml-8 group-hover:text-gray-300 transition-colors duration-300">
                   {t('rewards.overviewSubtitle') || 'Click to expand and view detailed statistics'}
                 </span>
               </div>
@@ -282,8 +284,9 @@ export default function Rewards() {
                     <span className="sm:hidden">${rewardsData?.claimable || 0}</span>
                   </span>
                 </div>
-                <div className="bg-honey/20 hover:bg-honey/30 rounded-full p-1.5 transition-all duration-300 flex-shrink-0">
-                  <ChevronDown className={`h-4 w-4 text-honey transition-all duration-500 group-hover:scale-110 ${isOverviewOpen ? 'rotate-180' : ''}`} />
+                <div className="relative bg-honey/20 hover:bg-honey/30 rounded-full p-1.5 transition-all duration-300 flex-shrink-0 group-hover:animate-bounce">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-honey/50 to-amber-400/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-ping"></div>
+                  <ChevronDown className={`relative z-10 h-4 w-4 text-honey transition-all duration-700 group-hover:scale-125 group-hover:text-amber-300 ${isOverviewOpen ? 'rotate-180 text-amber-400' : ''}`} />
                 </div>
               </div>
             </div>
