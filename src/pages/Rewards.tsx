@@ -458,18 +458,18 @@ export default function Rewards() {
             {/* Enhanced Quick Actions */}
             <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 justify-between items-start lg:items-center">
               <div className="space-y-2">
-                <h3 className="text-xl font-bold flex items-center gap-3">
-                  <div className="p-2 rounded-full bg-gradient-to-br from-honey/20 to-amber-400/20">
-                    <Clock className="h-5 w-5 text-honey" />
+                <h3 className="text-lg sm:text-xl font-bold flex items-center gap-2 sm:gap-3">
+                  <div className="p-1.5 sm:p-2 rounded-full bg-gradient-to-br from-honey/20 to-amber-400/20">
+                    <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-honey" />
                   </div>
                   <span className="bg-gradient-to-r from-slate-700 to-gray-800 dark:from-slate-200 dark:to-gray-100 bg-clip-text text-transparent">
                     {t('rewards.pendingCountdowns')}
                   </span>
                   {pendingRewards.length > 0 && (
-                    <Badge className="bg-honey text-black font-bold px-3 py-1 rounded-full animate-pulse shadow-lg">{pendingRewards.length}</Badge>
+                    <Badge className="bg-honey text-black font-bold px-2 sm:px-3 py-1 rounded-full animate-pulse shadow-lg text-xs sm:text-sm">{pendingRewards.length}</Badge>
                   )}
                 </h3>
-                <p className="text-sm text-muted-foreground max-w-2xl">
+                <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl">
                   {t('rewards.pendingDescription')}
                 </p>
               </div>
