@@ -83,30 +83,42 @@ export default function Membership() {
           chain: arbitrum
         });
         
-        const [level2Balance, level3Balance] = await Promise.all([
-          balanceOf({
-            contract: nftContract,
-            owner: walletAddress,
-            tokenId: BigInt(2)
-          }),
-          balanceOf({
-            contract: nftContract,
-            owner: walletAddress,
-            tokenId: BigInt(3)
-          })
-        ]);
+        // Check NFTs for levels 1-19
+        const nftChecks = [];
+        for (let level = 1; level <= 19; level++) {
+          nftChecks.push(
+            balanceOf({
+              contract: nftContract,
+              owner: walletAddress,
+              tokenId: BigInt(level)
+            })
+          );
+        }
         
-        const hasLevel2 = Number(level2Balance) > 0;
-        const hasLevel3 = Number(level3Balance) > 0;
+        const nftBalances = await Promise.all(nftChecks);
+        const ownedLevels = nftBalances
+          .map((balance, index) => ({ level: index + 1, balance: Number(balance) }))
+          .filter(item => item.balance > 0)
+          .map(item => item.level);
+        
+        const hasLevel2 = ownedLevels.includes(2);
+        const hasLevel3 = ownedLevels.includes(3);
         
         setHasLevel2NFT(hasLevel2);
         setHasLevel3NFT(hasLevel3);
         
-        console.log(`📊 Level 2 NFT check: ${hasLevel2 ? 'OWNS' : 'DOES NOT OWN'} Level 2 NFT`);
-        console.log(`📊 Level 3 NFT check: ${hasLevel3 ? 'OWNS' : 'DOES NOT OWN'} Level 3 NFT`);
+        console.log(`📊 Owned NFT Levels:`, ownedLevels);
+        console.log(`📊 Level 2 NFT: ${hasLevel2 ? 'OWNS' : 'DOES NOT OWN'}`);
+        console.log(`📊 Level 3 NFT: ${hasLevel3 ? 'OWNS' : 'DOES NOT OWN'}`);
+        console.log(`📊 Current Database Level: ${currentLevel}`);
+        
+        // Determine next claimable level
+        const maxOwnedLevel = ownedLevels.length > 0 ? Math.max(...ownedLevels) : 0;
+        const nextClaimableLevel = Math.max(currentLevel + 1, maxOwnedLevel + 1);
+        console.log(`📊 Max Owned NFT Level: ${maxOwnedLevel}, Next Claimable: ${nextClaimableLevel}`);
         
         if (hasLevel3) {
-          console.log(`✅ User eligible for Level 4 claim`);
+          console.log(`✅ User eligible for Level 4+ claims`);
         }
       } catch (error) {
         console.warn('⚠️ Failed to check NFT ownership:', error);

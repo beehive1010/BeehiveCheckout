@@ -134,6 +134,14 @@ export function LevelUpgradeButtonGeneric({
       
       // All checks passed
       console.log(`✅ User eligible for Level ${targetLevel} claim`);
+      console.log(`🔧 ELIGIBILITY DEBUG:`, {
+        targetLevel,
+        currentLevel,
+        directReferralsCount,
+        'currentLevel === targetLevel - 1': currentLevel === targetLevel - 1,
+        'hasNFTAlready': 'checked above - should be false',
+        'level2Requirements': targetLevel === 2 ? `${directReferralsCount}/${LEVEL_REQUIREMENTS.directReferrals}` : 'N/A'
+      });
       setCanClaimLevel(true);
       
     } catch (error) {
