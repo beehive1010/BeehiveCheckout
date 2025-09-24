@@ -282,10 +282,10 @@ export default function Rewards() {
           <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 dark:from-black dark:via-gray-950 dark:to-black rounded-xl border border-gray-700 dark:border-gray-800 p-3 md:p-4 mt-2 shadow-2xl">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="group text-center p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-gray-700 hover:via-gray-600 hover:to-gray-700 rounded-lg border border-gray-600 hover:border-honey/50 transition-all duration-300 hover:shadow-lg hover:shadow-honey/20 hover:-translate-y-1">
-                <div className="w-6 h-6 mx-auto bg-gradient-to-br from-gray-600 via-gray-500 to-gray-600 group-hover:from-honey/80 group-hover:via-honey group-hover:to-amber-400 rounded-lg flex items-center justify-center mb-2 transition-all duration-300 shadow-inner">
-                  <TrendingUp className="h-3.5 w-3.5 text-gray-300 group-hover:text-black transition-colors duration-300" />
+                <div className="w-6 h-6 mx-auto bg-gradient-to-br from-gray-500 via-gray-400 to-gray-500 group-hover:from-honey/80 group-hover:via-honey group-hover:to-amber-400 rounded-lg flex items-center justify-center mb-2 transition-all duration-300 shadow-inner">
+                  <TrendingUp className="h-3.5 w-3.5 text-white group-hover:text-black transition-colors duration-300" />
                 </div>
-                <p className="text-xs text-gray-400 group-hover:text-gray-300 mb-2 transition-colors duration-300">
+                <p className="text-xs text-gray-100 group-hover:text-gray-200 mb-2 transition-colors duration-300 font-medium">
                   {t('rewards.overview.totalEarned')}
                 </p>
                 <p className="text-sm font-bold text-white group-hover:text-honey transition-colors duration-300">
@@ -294,10 +294,10 @@ export default function Rewards() {
               </div>
 
               <div className="group text-center p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-gray-700 hover:via-gray-600 hover:to-gray-700 rounded-lg border border-gray-600 hover:border-honey/50 transition-all duration-300 hover:shadow-lg hover:shadow-honey/20 hover:-translate-y-1">
-                <div className="w-6 h-6 mx-auto bg-gradient-to-br from-gray-600 via-gray-500 to-gray-600 group-hover:from-honey/80 group-hover:via-honey group-hover:to-amber-400 rounded-lg flex items-center justify-center mb-2 transition-all duration-300 shadow-inner">
-                  <ArrowDownLeft className="h-3.5 w-3.5 text-gray-300 group-hover:text-black transition-colors duration-300" />
+                <div className="w-6 h-6 mx-auto bg-gradient-to-br from-gray-500 via-gray-400 to-gray-500 group-hover:from-honey/80 group-hover:via-honey group-hover:to-amber-400 rounded-lg flex items-center justify-center mb-2 transition-all duration-300 shadow-inner">
+                  <ArrowDownLeft className="h-3.5 w-3.5 text-white group-hover:text-black transition-colors duration-300" />
                 </div>
-                <p className="text-xs text-gray-400 group-hover:text-gray-300 mb-2 transition-colors duration-300">
+                <p className="text-xs text-gray-100 group-hover:text-gray-200 mb-2 transition-colors duration-300 font-medium">
                   {t('rewards.overview.totalWithdrawn')}
                 </p>
                 <p className="text-sm font-bold text-white group-hover:text-honey transition-colors duration-300">
@@ -306,10 +306,10 @@ export default function Rewards() {
               </div>
 
               <div className="group text-center p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-gray-700 hover:via-gray-600 hover:to-gray-700 rounded-lg border border-gray-600 hover:border-honey/50 transition-all duration-300 hover:shadow-lg hover:shadow-honey/20 hover:-translate-y-1">
-                <div className="w-6 h-6 mx-auto bg-gradient-to-br from-gray-600 via-gray-500 to-gray-600 group-hover:from-honey/80 group-hover:via-honey group-hover:to-amber-400 rounded-lg flex items-center justify-center mb-2 transition-all duration-300 shadow-inner">
-                  <Clock className="h-3.5 w-3.5 text-gray-300 group-hover:text-black transition-colors duration-300" />
+                <div className="w-6 h-6 mx-auto bg-gradient-to-br from-gray-500 via-gray-400 to-gray-500 group-hover:from-honey/80 group-hover:via-honey group-hover:to-amber-400 rounded-lg flex items-center justify-center mb-2 transition-all duration-300 shadow-inner">
+                  <Clock className="h-3.5 w-3.5 text-white group-hover:text-black transition-colors duration-300" />
                 </div>
-                <p className="text-xs text-gray-400 group-hover:text-gray-300 mb-2 transition-colors duration-300">
+                <p className="text-xs text-gray-100 group-hover:text-gray-200 mb-2 transition-colors duration-300 font-medium">
                   {t('rewards.overview.pending')}
                 </p>
                 <p className="text-sm font-bold text-white group-hover:text-honey transition-colors duration-300">
@@ -318,10 +318,10 @@ export default function Rewards() {
               </div>
 
               <div className="group text-center p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-gray-700 hover:via-gray-600 hover:to-gray-700 rounded-lg border border-gray-600 hover:border-honey/50 transition-all duration-300 hover:shadow-lg hover:shadow-honey/20 hover:-translate-y-1">
-                <div className="w-6 h-6 mx-auto bg-gradient-to-br from-honey/60 via-honey to-amber-400 rounded-lg flex items-center justify-center mb-2 shadow-lg">
+                <div className="w-6 h-6 mx-auto bg-gradient-to-br from-honey/70 via-honey to-amber-400 rounded-lg flex items-center justify-center mb-2 shadow-lg">
                   <Gift className="h-3.5 w-3.5 text-black" />
                 </div>
-                <p className="text-xs text-honey mb-2">
+                <p className="text-xs text-honey mb-2 font-semibold">
                   {t('rewards.overview.claimable')}
                 </p>
                 <p className="text-sm font-bold text-honey">
