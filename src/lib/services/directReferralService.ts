@@ -35,8 +35,8 @@ export async function getDirectReferralCount(referrerWallet: string): Promise<nu
       return directCount;
     }
 
-    const directCount = data?.direct_referrals || 0;
-    console.log(`✅ Direct referral count from referrer_stats for ${referrerWallet}: ${directCount}`);
+    const directCount = data?.total_direct_referrals || 0;
+    console.log(`✅ Direct referral count from rewards_stats_view for ${referrerWallet}: ${directCount}`);
     
     return directCount;
   } catch (error) {
