@@ -256,75 +256,75 @@ export default function Rewards() {
       {/* Collapsible Stats Overview */}
       <Collapsible open={isOverviewOpen} onOpenChange={setIsOverviewOpen} className="mb-3">
         <CollapsibleTrigger className="w-full">
-          <div className="bg-gradient-to-r from-honey/5 to-amber-50 dark:from-honey/10 dark:to-amber-900/20 rounded-lg border border-honey/20 dark:border-honey/30 p-2 md:p-3 hover:from-honey/10 hover:to-amber-100 dark:hover:from-honey/15 dark:hover:to-amber-800/30 transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md">
+          <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-black dark:from-black dark:via-gray-900 dark:to-black rounded-xl border border-gray-700 dark:border-gray-800 p-3 md:p-4 hover:from-gray-800 hover:via-gray-700 hover:to-gray-900 dark:hover:from-gray-900 dark:hover:via-gray-800 dark:hover:to-black transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl hover:shadow-honey/10 group">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-honey/20 dark:bg-honey/30 rounded flex items-center justify-center">
-                  <BarChart3 className="h-3 w-3 text-honey dark:text-honey" />
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 bg-gradient-to-br from-honey via-amber-400 to-amber-500 rounded-lg flex items-center justify-center shadow-inner group-hover:shadow-lg group-hover:scale-110 transition-all duration-300">
+                  <BarChart3 className="h-3.5 w-3.5 text-black drop-shadow-sm" />
                 </div>
-                <span className="text-xs font-medium text-honey dark:text-honey">
+                <span className="text-sm font-semibold text-honey drop-shadow-sm tracking-wide">
                   奖励概览
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="bg-green-100 dark:bg-green-900/50 px-2 py-0.5 rounded-full">
-                  <span className="text-xs font-semibold text-green-700 dark:text-green-300">
+              <div className="flex items-center gap-3">
+                <div className="bg-gradient-to-r from-honey/90 to-amber-400 px-3 py-1.5 rounded-full shadow-lg">
+                  <span className="text-sm font-bold text-black drop-shadow-sm">
                     ${rewardsData?.claimable || 0} 可领取
                   </span>
                 </div>
-                <ChevronDown className={`h-4 w-4 text-honey transition-transform ${isOverviewOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-5 w-5 text-honey transition-all duration-300 group-hover:scale-110 ${isOverviewOpen ? 'rotate-180' : ''}`} />
               </div>
             </div>
           </div>
         </CollapsibleTrigger>
         
         <CollapsibleContent>
-          <div className="bg-white dark:bg-gray-800/40 rounded-lg border border-honey/20 dark:border-honey/30 p-2 md:p-3 mt-1 shadow-sm">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              <div className="text-center p-2 bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/30 rounded border border-amber-200 dark:border-amber-600/50">
-                <div className="w-5 h-5 mx-auto bg-amber-200 dark:bg-amber-700/50 rounded-full flex items-center justify-center mb-1">
-                  <TrendingUp className="h-3 w-3 text-amber-700 dark:text-amber-300" />
+          <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 dark:from-black dark:via-gray-950 dark:to-black rounded-xl border border-gray-700 dark:border-gray-800 p-3 md:p-4 mt-2 shadow-2xl">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="group text-center p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-gray-700 hover:via-gray-600 hover:to-gray-700 rounded-lg border border-gray-600 hover:border-honey/50 transition-all duration-300 hover:shadow-lg hover:shadow-honey/20 hover:-translate-y-1">
+                <div className="w-6 h-6 mx-auto bg-gradient-to-br from-gray-600 via-gray-500 to-gray-600 group-hover:from-honey/80 group-hover:via-honey group-hover:to-amber-400 rounded-lg flex items-center justify-center mb-2 transition-all duration-300 shadow-inner">
+                  <TrendingUp className="h-3.5 w-3.5 text-gray-300 group-hover:text-black transition-colors duration-300" />
                 </div>
-                <p className="text-xs text-amber-600 dark:text-amber-400 mb-1">
+                <p className="text-xs text-gray-400 group-hover:text-gray-300 mb-2 transition-colors duration-300">
                   {t('rewards.overview.totalEarned')}
                 </p>
-                <p className="text-sm font-bold text-amber-800 dark:text-amber-200">
+                <p className="text-sm font-bold text-white group-hover:text-honey transition-colors duration-300">
                   ${rewardsData?.total || 0}
                 </p>
               </div>
 
-              <div className="text-center p-2 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30 rounded border border-orange-200 dark:border-orange-600/50">
-                <div className="w-5 h-5 mx-auto bg-orange-200 dark:bg-orange-700/50 rounded-full flex items-center justify-center mb-1">
-                  <ArrowDownLeft className="h-3 w-3 text-orange-700 dark:text-orange-300" />
+              <div className="group text-center p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-gray-700 hover:via-gray-600 hover:to-gray-700 rounded-lg border border-gray-600 hover:border-honey/50 transition-all duration-300 hover:shadow-lg hover:shadow-honey/20 hover:-translate-y-1">
+                <div className="w-6 h-6 mx-auto bg-gradient-to-br from-gray-600 via-gray-500 to-gray-600 group-hover:from-honey/80 group-hover:via-honey group-hover:to-amber-400 rounded-lg flex items-center justify-center mb-2 transition-all duration-300 shadow-inner">
+                  <ArrowDownLeft className="h-3.5 w-3.5 text-gray-300 group-hover:text-black transition-colors duration-300" />
                 </div>
-                <p className="text-xs text-orange-600 dark:text-orange-400 mb-1">
+                <p className="text-xs text-gray-400 group-hover:text-gray-300 mb-2 transition-colors duration-300">
                   {t('rewards.overview.totalWithdrawn')}
                 </p>
-                <p className="text-sm font-bold text-orange-800 dark:text-orange-200">
+                <p className="text-sm font-bold text-white group-hover:text-honey transition-colors duration-300">
                   ${rewardsData?.totalWithdrawn || 0}
                 </p>
               </div>
 
-              <div className="text-center p-2 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 rounded border border-blue-200 dark:border-blue-600/50">
-                <div className="w-5 h-5 mx-auto bg-blue-200 dark:bg-blue-700/50 rounded-full flex items-center justify-center mb-1">
-                  <Clock className="h-3 w-3 text-blue-700 dark:text-blue-300" />
+              <div className="group text-center p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-gray-700 hover:via-gray-600 hover:to-gray-700 rounded-lg border border-gray-600 hover:border-honey/50 transition-all duration-300 hover:shadow-lg hover:shadow-honey/20 hover:-translate-y-1">
+                <div className="w-6 h-6 mx-auto bg-gradient-to-br from-gray-600 via-gray-500 to-gray-600 group-hover:from-honey/80 group-hover:via-honey group-hover:to-amber-400 rounded-lg flex items-center justify-center mb-2 transition-all duration-300 shadow-inner">
+                  <Clock className="h-3.5 w-3.5 text-gray-300 group-hover:text-black transition-colors duration-300" />
                 </div>
-                <p className="text-xs text-blue-600 dark:text-blue-400 mb-1">
+                <p className="text-xs text-gray-400 group-hover:text-gray-300 mb-2 transition-colors duration-300">
                   {t('rewards.overview.pending')}
                 </p>
-                <p className="text-sm font-bold text-blue-800 dark:text-blue-200">
+                <p className="text-sm font-bold text-white group-hover:text-honey transition-colors duration-300">
                   ${rewardsData?.pending || 0}
                 </p>
               </div>
 
-              <div className="text-center p-2 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded border border-green-200 dark:border-green-600/50">
-                <div className="w-5 h-5 mx-auto bg-green-200 dark:bg-green-700/50 rounded-full flex items-center justify-center mb-1">
-                  <Gift className="h-3 w-3 text-green-700 dark:text-green-300" />
+              <div className="group text-center p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-gray-700 hover:via-gray-600 hover:to-gray-700 rounded-lg border border-gray-600 hover:border-honey/50 transition-all duration-300 hover:shadow-lg hover:shadow-honey/20 hover:-translate-y-1">
+                <div className="w-6 h-6 mx-auto bg-gradient-to-br from-honey/60 via-honey to-amber-400 rounded-lg flex items-center justify-center mb-2 shadow-lg">
+                  <Gift className="h-3.5 w-3.5 text-black" />
                 </div>
-                <p className="text-xs text-green-600 dark:text-green-400 mb-1">
+                <p className="text-xs text-honey mb-2">
                   {t('rewards.overview.claimable')}
                 </p>
-                <p className="text-sm font-bold text-green-800 dark:text-green-200">
+                <p className="text-sm font-bold text-honey">
                   ${rewardsData?.claimable || 0}
                 </p>
               </div>
