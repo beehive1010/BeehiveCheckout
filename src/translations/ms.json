@@ -337,6 +337,29 @@
       "placements": "penempatan"
     }
   },
+  "membershipSystem": {
+    "wallet": {
+      "connectTitle": "Sambung Dompet Anda",
+      "connectDescription": "Sila sambung dompet anda untuk mengakses sistem keahlian"
+    },
+    "matrix": {
+      "title": "Matrix Rujukan",
+      "connectDescription": "Sambung dompet anda untuk melihat matrix rujukan",
+      "layerFillStatus": "Status Pengisian Lapisan",
+      "ui": {
+        "unknown": "Tidak Diketahui",
+        "showLess": "Tunjuk Kurang",
+        "showAllLayers": "Tunjuk Semua 19 Lapisan"
+      },
+      "errors": {
+        "loadFailed": "Gagal memuatkan data matrix",
+        "copyFailed": "Gagal menyalin pautan"
+      },
+      "success": {
+        "linkCopied": "Pautan rujukan disalin ke papan keratan!"
+      }
+    }
+  },
   "footer": {
     "description": "Platform keahlian dan pembelajaran Web3 dengan ganjaran blockchain.",
     "platform": "Platform",
@@ -572,5 +595,28 @@
       "members": "ahli",
       "upgraded": "dinaik taraf",
       "placements": "penempatan"
+    }
+  },
+  "membershipSystem": {
+    "wallet": {
+      "connectTitle": "Sambung Dompet Anda",
+      "connectDescription": "Sila sambung dompet anda untuk mengakses sistem keahlian"
+    },
+    "matrix": {
+      "title": "Matrix Rujukan",
+      "connectDescription": "Sambung dompet anda untuk melihat matrix rujukan",
+      "layerFillStatus": "Status Pengisian Lapisan",
+      "ui": {
+        "unknown": "Tidak Diketahui",
+        "showLess": "Tunjuk Kurang",
+        "showAllLayers": "Tunjuk Semua 19 Lapisan"
+      },
+      "errors": {
+        "loadFailed": "Gagal memuatkan data matrix",
+        "copyFailed": "Gagal menyalin pautan"
+      },
+      "success": {
+        "linkCopied": "Pautan rujukan disalin ke papan keratan!"
+      }
     }
   }
