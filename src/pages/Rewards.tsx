@@ -261,12 +261,17 @@ export default function Rewards() {
           <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900 dark:from-black dark:via-slate-950 dark:to-black rounded-xl border-2 border-slate-700 dark:border-slate-800 px-3 py-1.5 sm:px-4 sm:py-2 hover:border-honey/50 transition-all duration-500 cursor-pointer shadow-2xl hover:shadow-3xl hover:shadow-honey/20 group hover:scale-[1.02] transform">
             <div className="absolute inset-0 bg-gradient-to-r from-honey/5 via-transparent to-amber-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <div className="relative flex flex-row items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5">
-                <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-br from-honey via-amber-400 to-amber-500 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-honey/50 group-hover:scale-110 transition-all duration-500">
-                  <BarChart3 className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-black drop-shadow-sm" />
+              <div className="flex flex-col items-start gap-0.5">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-br from-honey via-amber-400 to-amber-500 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-honey/50 group-hover:scale-110 transition-all duration-500">
+                    <BarChart3 className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-black drop-shadow-sm" />
+                  </div>
+                  <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-honey to-amber-400 bg-clip-text text-transparent drop-shadow-sm tracking-wide">
+                    {t('rewards.overview') || 'Rewards Overview'}
+                  </span>
                 </div>
-                <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-honey to-amber-400 bg-clip-text text-transparent drop-shadow-sm tracking-wide">
-                  {t('rewards.overview') || 'Rewards Overview'}
+                <span className="text-xs text-gray-400 dark:text-gray-500 ml-7 sm:ml-8">
+                  {t('rewards.overviewSubtitle') || 'Click to expand and view detailed statistics'}
                 </span>
               </div>
               <div className="flex items-center gap-1.5">
