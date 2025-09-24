@@ -1,7 +1,7 @@
 import { supabase } from '../supabase';
 
 /**
- * 获取用户的直接推荐人数（基于 referrer_stats 视图）
+ * 获取用户的直接推荐人数（基于 rewards_stats_view）
  * 只计算通过该用户推荐链接直接注册的用户，不包括矩阵安置的溢出用户
  */
 export async function getDirectReferralCount(referrerWallet: string): Promise<number> {
