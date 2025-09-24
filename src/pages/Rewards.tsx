@@ -258,14 +258,14 @@ export default function Rewards() {
       {/* Enhanced Collapsible Stats Overview */}
       <Collapsible open={isOverviewOpen} onOpenChange={setIsOverviewOpen} className="mb-1 animate-in slide-in-from-bottom-2 duration-500">
         <CollapsibleTrigger className="w-full">
-          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900 dark:from-black dark:via-slate-950 dark:to-black rounded-2xl border-2 border-slate-700 dark:border-slate-800 p-3 sm:p-4 hover:border-honey/50 transition-all duration-500 cursor-pointer shadow-2xl hover:shadow-3xl hover:shadow-honey/20 group hover:scale-[1.02] transform">
+          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900 dark:from-black dark:via-slate-950 dark:to-black rounded-2xl border-2 border-slate-700 dark:border-slate-800 p-2 sm:p-3 hover:border-honey/50 transition-all duration-500 cursor-pointer shadow-2xl hover:shadow-3xl hover:shadow-honey/20 group hover:scale-[1.02] transform">
             <div className="absolute inset-0 bg-gradient-to-r from-honey/5 via-transparent to-amber-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-honey via-amber-400 to-amber-500 rounded-xl flex items-center justify-center shadow-2xl group-hover:shadow-honey/50 group-hover:scale-110 transition-all duration-500">
-                  <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-black drop-shadow-sm" />
+            <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-honey via-amber-400 to-amber-500 rounded-xl flex items-center justify-center shadow-2xl group-hover:shadow-honey/50 group-hover:scale-110 transition-all duration-500">
+                  <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 text-black drop-shadow-sm" />
                 </div>
-                <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-honey to-amber-400 bg-clip-text text-transparent drop-shadow-sm tracking-wide">
+                <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-honey to-amber-400 bg-clip-text text-transparent drop-shadow-sm tracking-wide">
                   {t('rewards.overview') || 'Rewards Overview'}
                 </span>
               </div>
