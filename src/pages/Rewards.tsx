@@ -260,7 +260,7 @@ export default function Rewards() {
         <CollapsibleTrigger className="w-full">
           <div className="relative overflow-hidden bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 dark:from-black/95 dark:via-slate-950/90 dark:to-black/95 rounded-xl border-2 border-slate-700 dark:border-slate-800 px-3 py-1.5 sm:px-4 sm:py-2 hover:border-honey/50 transition-all duration-500 cursor-pointer shadow-2xl hover:shadow-3xl hover:shadow-honey/20 group hover:scale-[1.02] transform">
             {/* Golden background gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-honey/8 via-amber-300/5 to-yellow-400/8 opacity-40"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-honey/20 via-amber-300/15 to-yellow-400/20 opacity-70"></div>
             {/* Strong animated border glow effect with pulse */}
             <div className="absolute inset-0 rounded-xl border-2 border-honey/50 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
             <div className="absolute inset-0 rounded-xl border border-amber-400/60 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-ping"></div>
