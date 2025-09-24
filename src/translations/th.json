@@ -2084,6 +2084,11 @@
         "title": "Join the Community",
         "text": "Join me in this amazing community and start earning rewards!"
       },
+      "ui": {
+        "unknown": "ไม่ทราบ",
+        "showLess": "แสดงน้อยลง",
+        "showAllLayers": "แสดงทั้ง 19 ชั้น"
+      },
       "errors": {
         "loadFailed": "Failed to load matrix data",
         "copyFailed": "Failed to copy link"
