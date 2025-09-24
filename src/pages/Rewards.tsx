@@ -259,8 +259,8 @@ export default function Rewards() {
       <Collapsible open={isOverviewOpen} onOpenChange={setIsOverviewOpen} className="mb-1 animate-in slide-in-from-bottom-2 duration-500">
         <CollapsibleTrigger className="w-full">
           <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900 dark:from-black dark:via-slate-950 dark:to-black rounded-xl border-2 border-slate-700 dark:border-slate-800 px-3 py-1.5 sm:px-4 sm:py-2 hover:border-honey/50 transition-all duration-500 cursor-pointer shadow-2xl hover:shadow-3xl hover:shadow-honey/20 group hover:scale-[1.02] transform">
-            {/* Animated border effect */}
-            <div className="absolute inset-0 rounded-xl border-2 border-transparent bg-gradient-to-r from-honey/30 via-amber-400/30 to-honey/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse"></div>
+            {/* Smooth border glow effect */}
+            <div className="absolute inset-0 rounded-xl border-2 border-honey/20 opacity-0 group-hover:opacity-100 transition-all duration-700 group-hover:border-honey/60"></div>
             <div className="absolute inset-0 bg-gradient-to-r from-honey/5 via-transparent to-amber-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <div className="relative flex flex-row items-center justify-between gap-2">
               <div className="flex flex-col items-start gap-0.5">
@@ -284,9 +284,8 @@ export default function Rewards() {
                     <span className="sm:hidden">${rewardsData?.claimable || 0}</span>
                   </span>
                 </div>
-                <div className="relative bg-honey/20 hover:bg-honey/30 rounded-full p-1.5 transition-all duration-300 flex-shrink-0 group-hover:animate-bounce">
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-honey/50 to-amber-400/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-ping"></div>
-                  <ChevronDown className={`relative z-10 h-4 w-4 text-honey transition-all duration-700 group-hover:scale-125 group-hover:text-amber-300 ${isOverviewOpen ? 'rotate-180 text-amber-400' : ''}`} />
+                <div className="w-8 h-8 bg-honey/20 hover:bg-honey/30 rounded-full transition-all duration-300 flex-shrink-0 flex items-center justify-center group-hover:scale-110">
+                  <ChevronDown className={`h-4 w-4 text-honey transition-all duration-700 group-hover:text-amber-300 ${isOverviewOpen ? 'rotate-180 text-amber-400' : ''}`} />
                 </div>
               </div>
             </div>
