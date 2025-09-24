@@ -14,7 +14,7 @@ import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
 import RollupRewardsCard from '../components/rewards/RollupRewardsCard';
 import USDTWithdrawal from '../components/withdrawal/USDTWithdrawal';
 import CountdownTimer from '../components/rewards/CountdownTimer';
-import { PendingRewardsTimer } from '../components/rewards/PendingRewardsTimer';
+import { PendingRewardsList } from '../components/rewards/PendingRewardsList';
 import { 
   User, 
   Award, 
@@ -440,38 +440,12 @@ export default function Rewards() {
               </div>
             </div>
 
-            {/* Pending Rewards Countdown Cards */}
-            {pendingRewards.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {pendingRewards.map((reward) => (
-                  <CountdownTimer
-                    key={reward.id}
-                    endTime={reward.expires_at}
-                    title={t('rewards.pendingRewardTimer')}
-                    description={t('rewards.pendingRewardDescription', { layer: reward.matrix_layer || 1 })}
-                    rewardAmount={reward.reward_amount || 0}
-                    variant="detailed"
-                    urgencyColors={true}
-                    className="h-auto"
-                    onExpired={() => {
-                      loadRewardsData();
-                    }}
-                  />
-                ))}
-              </div>
-            ) : (
-              <Card className="border-dashed border-2 border-muted-foreground/25">
-                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                  <Clock className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                  <h3 className="text-lg font-semibold text-muted-foreground mb-2">
-                    {t('rewards.noPendingRewards')}
-                  </h3>
-                  <p className="text-sm text-muted-foreground max-w-md">
-                    {t('rewards.noPendingDescription')}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+            {/* Pending Rewards List */}
+            <PendingRewardsList 
+              rewards={pendingRewards}
+              onRewardExpired={loadRewardsData}
+              variant="compact"
+            />
           </div>
         </TabsContent>
 

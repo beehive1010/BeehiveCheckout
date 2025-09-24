@@ -14,6 +14,10 @@
     "home": "Home"
   },
   "common": {
+    "safe": "Safe",
+    "caution": "Caution", 
+    "warning": "Warning",
+    "critical": "Critical",
     "cancel": "Cancel",
     "confirm": "Confirm",
     "close": "Close",
@@ -1046,6 +1050,9 @@
     "noPendingRewards": "No pending rewards",
     "noPendingDescription": "Complete tasks and invite referrals to start earning pending rewards with countdown timers",
     "pendingDescription": "Monitor your pending rewards with real-time countdown timers",
+    "pendingRewardDetails": "Pending Reward Details",
+    "pendingRewardsCount": "{count} Pending Rewards",
+    "totalPendingValue": "Total Pending Value",
     "superRootUpgrade": "Super Root Upgrade",
     "qualificationWait": "Qualification Wait",
     "from": "From",
