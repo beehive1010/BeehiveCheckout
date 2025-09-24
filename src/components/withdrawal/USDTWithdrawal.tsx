@@ -461,43 +461,23 @@ export default function USDTWithdrawal() {
         }
       });
       
-      // Update user balance - try different column names
+      // Update user balance using correct column structure
       const { data: currentBalance } = await supabase
         .from('user_balances')
-        .select('*')
+        .select('available_balance, reward_balance, total_withdrawn')
         .ilike('wallet_address', memberWalletAddress!)
         .single();
       
       if (currentBalance) {
-        // Find the correct balance field
-        let currentClaimable = 0;
-        let currentWithdrawn = 0;
-        let claimableField = 'claimable_reward_balance_usdc';
-        let withdrawnField = 'total_rewards_withdrawn_usdc';
+        const currentRewardBalance = currentBalance.reward_balance || 0;
+        const currentWithdrawn = currentBalance.total_withdrawn || 0;
         
-        const balanceFields = [
-          { claimable: 'balance', withdrawn: 'withdrawn' }, // Most likely based on curl test
-          { claimable: 'claimable_reward_balance_usdc', withdrawn: 'total_rewards_withdrawn_usdc' },
-          { claimable: 'claimable_rewards', withdrawn: 'total_withdrawn' },
-          { claimable: 'claimable_reward_balance', withdrawn: 'total_rewards_withdrawn' }
-        ];
-        
-        for (const fields of balanceFields) {
-          if (currentBalance[fields.claimable] !== undefined) {
-            currentClaimable = currentBalance[fields.claimable] || 0;
-            currentWithdrawn = currentBalance[fields.withdrawn] || 0;
-            claimableField = fields.claimable;
-            withdrawnField = fields.withdrawn;
-            break;
-          }
-        }
-        
-        console.log(`📊 Current balance - ${claimableField}: ${currentClaimable}, ${withdrawnField}: ${currentWithdrawn}`);
+        console.log(`📊 Current balances - reward_balance: ${currentRewardBalance}, total_withdrawn: ${currentWithdrawn}`);
         
         const updateData = {
-          [claimableField]: Math.max(0, currentClaimable - data.amount),
-          [withdrawnField]: currentWithdrawn + data.amount,
-          last_withdrawal_at: new Date().toISOString(),
+          reward_balance: Math.max(0, currentRewardBalance - data.amount),
+          total_withdrawn: currentWithdrawn + data.amount,
+          updated_at: new Date().toISOString(),
         };
         
         await supabase
