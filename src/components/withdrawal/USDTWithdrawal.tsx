@@ -16,6 +16,11 @@ interface USDTBalance {
   balance: number;
   balanceUSD: string;
   lastUpdated: string;
+  notFound?: boolean;
+  isRegistered?: boolean;
+  error?: string;
+  foundWallet?: string;
+  rawData?: any;
 }
 
 interface WithdrawalRequest {
