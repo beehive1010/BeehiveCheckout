@@ -7,6 +7,7 @@ import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {useToast} from '@/hooks/use-toast';
 import {useActiveAccount, useActiveWalletChain} from 'thirdweb/react';
 import {useWallet} from '@/hooks/useWallet';
+import {useIsMobile} from '@/hooks/use-mobile';
 import {AlertTriangle, ArrowRight, CheckCircle, DollarSign, Link, Loader2, Wallet} from 'lucide-react';
 import {Badge} from '@/components/ui/badge';
 import {Alert, AlertDescription} from '@/components/ui/alert';
@@ -177,6 +178,7 @@ export default function USDTWithdrawal() {
   const activeChain = useActiveWalletChain();
   const { userData } = useWallet();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   
   // Use the registered wallet address from user data if available, fallback to connected wallet
   const memberWalletAddress = userData?.wallet_address || account?.address;
@@ -623,57 +625,63 @@ export default function USDTWithdrawal() {
   try {
     if (balanceLoading) {
       return (
-        <Card className="bg-secondary border-border">
-          <CardContent className="p-6 text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-honey" />
-            <p className="text-muted-foreground">Loading USDT balance...</p>
+        <Card className="bg-gradient-to-br from-secondary/60 to-secondary border-border shadow-lg">
+          <CardContent className={`text-center ${isMobile ? 'p-4' : 'p-6'}`}>
+            <div className="bg-gradient-to-br from-honey/20 to-amber-500/20 rounded-full p-4 w-fit mx-auto mb-4 animate-pulse">
+              <Loader2 className={`animate-spin text-honey ${isMobile ? 'h-6 w-6' : 'h-8 w-8'}`} />
+            </div>
+            <p className={`text-muted-foreground ${isMobile ? 'text-sm' : 'text-base'}`}>Loading USDT balance...</p>
           </CardContent>
         </Card>
       );
     }
 
   return (
-    <Card className="bg-secondary border-border">
-      <CardHeader>
-        <CardTitle className="text-xl font-bold text-honey flex items-center gap-2">
-          <DollarSign className="h-6 w-6" />
-          Claimable Rewards Withdrawal
+    <Card className="bg-gradient-to-br from-secondary/60 to-secondary border-border shadow-xl hover:shadow-2xl transition-all duration-300">
+      <CardHeader className={isMobile ? 'p-4' : 'p-6'}>
+        <CardTitle className={`font-bold text-transparent bg-gradient-to-r from-honey to-amber-400 bg-clip-text flex items-center gap-2 ${isMobile ? 'text-lg' : 'text-xl'}`}>
+          <div className="bg-gradient-to-br from-honey/20 to-amber-500/20 p-2 rounded-lg">
+            <DollarSign className={`text-honey ${isMobile ? 'h-5 w-5' : 'h-6 w-6'}`} />
+          </div>
+          {isMobile ? 'Rewards Withdrawal' : 'Claimable Rewards Withdrawal'}
         </CardTitle>
-        <div className="flex items-center justify-between">
-          <p className="text-muted-foreground">Withdraw your claimable rewards to any supported blockchain</p>
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">Reward Balance</p>
-            <p className="text-2xl font-bold text-honey">
+        <div className={`${isMobile ? 'space-y-3' : 'flex items-center justify-between'}`}>
+          <p className={`text-muted-foreground ${isMobile ? 'text-sm' : 'text-base'}`}>
+            {isMobile ? 'Withdraw rewards to any supported blockchain' : 'Withdraw your claimable rewards to any supported blockchain'}
+          </p>
+          <div className={`${isMobile ? 'bg-gradient-to-r from-honey/10 to-amber-500/10 rounded-lg p-3 border border-honey/20' : 'text-right'}`}>
+            <p className={`text-muted-foreground ${isMobile ? 'text-xs mb-1' : 'text-sm'}`}>Reward Balance</p>
+            <p className={`font-bold text-transparent bg-gradient-to-r from-honey to-amber-400 bg-clip-text ${isMobile ? 'text-xl' : 'text-2xl'}`}>
               ${balance?.balanceUSD || '0.00'} USDT
             </p>
             {balanceLoading && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className={`flex items-center gap-2 text-muted-foreground ${isMobile ? 'text-xs justify-center' : 'text-xs'}`}>
                 <Loader2 className="h-3 w-3 animate-spin" />
                 Loading balance...
               </div>
             )}
             {!balanceLoading && memberWalletAddress && (
-              <p className="text-xs text-muted-foreground">
+              <p className={`text-muted-foreground ${isMobile ? 'text-xs text-center' : 'text-xs'}`}>
                 Wallet: {formatWalletAddress(memberWalletAddress)}
               </p>
             )}
             {!memberWalletAddress && (
-              <p className="text-xs text-red-400">No wallet address found</p>
+              <p className={`text-red-400 ${isMobile ? 'text-xs text-center' : 'text-xs'}`}>No wallet address found</p>
             )}
             {balanceError && (
-              <div className="text-xs text-red-400 flex items-center gap-2">
-                <AlertTriangle className="h-3 w-3" />
+              <div className={`text-red-400 flex items-center gap-2 ${isMobile ? 'text-xs justify-center flex-wrap' : 'text-xs'}`}>
+                <AlertTriangle className="h-3 w-3 flex-shrink-0" />
                 <span>Balance query failed</span>
                 <button 
                   onClick={() => refetchBalance()} 
-                  className="underline hover:no-underline"
+                  className="underline hover:no-underline text-blue-400"
                 >
                   Retry
                 </button>
               </div>
             )}
             {balance && !balanceLoading && !balanceError && (
-              <div className="mt-1 text-xs text-green-400">
+              <div className={`text-green-400 ${isMobile ? 'mt-1 text-xs text-center' : 'mt-1 text-xs'}`}>
                 ✓ Balance loaded successfully
               </div>
             )}
@@ -681,22 +689,22 @@ export default function USDTWithdrawal() {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-6">
+      <CardContent className={`${isMobile ? 'p-4 space-y-4' : 'p-6 space-y-6'}`}>
         
         {/* No balance record found - show user registration status */}
         {(balance?.notFound || balance?.isRegistered === false) && (
-          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <div className="text-yellow-400 mt-1">
-                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+          <div className="bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/30 rounded-xl p-4 shadow-lg">
+            <div className={`flex items-start ${isMobile ? 'gap-2' : 'gap-3'}`}>
+              <div className="text-yellow-400 mt-1 bg-yellow-500/20 p-1 rounded-lg">
+                <svg className={`fill-current ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
               </div>
               <div className="flex-1">
-                <h4 className="text-sm font-medium text-yellow-400 mb-1">
+                <h4 className={`font-medium text-yellow-400 mb-1 ${isMobile ? 'text-xs' : 'text-sm'}`}>
                   {balance?.isRegistered === false ? 'User Not Registered' : 'No Balance Record Found'}
                 </h4>
-                <p className="text-xs text-muted-foreground mb-3">
+                <p className={`text-muted-foreground mb-3 ${isMobile ? 'text-xs leading-relaxed' : 'text-xs'}`}>
                   {balance?.isRegistered === false 
                     ? `Your wallet address (${formatWalletAddress(memberWalletAddress)}) is not registered in our system yet. You need to register and activate membership to have reward balances.`
                     : `Your wallet address (${formatWalletAddress(memberWalletAddress)}) doesn't have a balance record in our system yet.`
@@ -704,7 +712,7 @@ export default function USDTWithdrawal() {
                 </p>
                 <button
                   onClick={() => refetchBalance()}
-                  className="px-3 py-1 text-xs bg-blue-500/20 text-blue-400 rounded hover:bg-blue-500/30 transition-colors"
+                  className={`bg-gradient-to-r from-blue-500/20 to-blue-600/20 text-blue-400 rounded-lg hover:from-blue-500/30 hover:to-blue-600/30 transition-all duration-200 shadow-md hover:shadow-lg ${isMobile ? 'px-2 py-1 text-xs' : 'px-3 py-1 text-xs'}`}
                 >
                   Refresh Balance
                 </button>
@@ -716,43 +724,45 @@ export default function USDTWithdrawal() {
         {step === 'form' && (
           <>
             {/* Current Wallet & Chain Info */}
-            <div className="bg-muted/30 rounded-lg p-4 space-y-3">
-              <h4 className="font-semibold text-honey flex items-center gap-2">
-                <Wallet className="h-4 w-4" />
-                Connected Wallet Information
+            <div className="bg-gradient-to-r from-muted/30 to-muted/20 rounded-xl p-4 space-y-3 border border-muted/30 shadow-lg">
+              <h4 className={`font-semibold text-transparent bg-gradient-to-r from-honey to-amber-400 bg-clip-text flex items-center gap-2 ${isMobile ? 'text-sm' : 'text-base'}`}>
+                <div className="bg-gradient-to-br from-honey/20 to-amber-500/20 p-1 rounded-lg">
+                  <Wallet className={`text-honey ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                </div>
+                {isMobile ? 'Wallet Info' : 'Connected Wallet Information'}
               </h4>
               
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Wallet Address:</span>
-                  <span className="font-mono text-xs bg-muted px-2 py-1 rounded">
+              <div className="space-y-3">
+                <div className={`${isMobile ? 'space-y-1' : 'flex justify-between items-center'}`}>
+                  <span className={`text-muted-foreground ${isMobile ? 'text-xs block' : 'text-sm'}`}>Wallet Address:</span>
+                  <span className={`font-mono bg-gradient-to-r from-muted to-muted/70 px-2 py-1 rounded-lg border border-muted/50 ${isMobile ? 'text-xs block mt-1' : 'text-xs'}`}>
                     {currentWalletAddress ? formatWalletAddress(currentWalletAddress) : 'Not Connected'}
                   </span>
                 </div>
                 
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Current Network:</span>
+                <div className={`${isMobile ? 'space-y-1' : 'flex justify-between items-center'}`}>
+                  <span className={`text-muted-foreground ${isMobile ? 'text-xs block' : 'text-sm'}`}>Current Network:</span>
                   {currentChainInfo ? (
-                    <div className="flex items-center gap-2">
-                      <span>{currentChainInfo.icon}</span>
-                      <span className="font-medium">{currentChainInfo.name}</span>
-                      <Badge className={`${currentChainInfo.color} text-xs`}>{currentChainInfo.symbol}</Badge>
+                    <div className={`flex items-center gap-2 ${isMobile ? 'mt-1 flex-wrap' : ''}`}>
+                      <span className={isMobile ? 'text-lg' : 'text-base'}>{currentChainInfo.icon}</span>
+                      <span className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>{currentChainInfo.name}</span>
+                      <Badge className={`${currentChainInfo.color} ${isMobile ? 'text-xs px-1 py-0' : 'text-xs'}`}>{currentChainInfo.symbol}</Badge>
                       {currentChainInfo.testnet && (
-                        <Badge variant="outline" className="text-xs text-orange-500 border-orange-500">
+                        <Badge variant="outline" className={`text-orange-500 border-orange-500 ${isMobile ? 'text-xs px-1 py-0' : 'text-xs'}`}>
                           TESTNET
                         </Badge>
                       )}
                     </div>
                   ) : (
-                    <Badge variant="destructive" className="text-xs">Unsupported Chain</Badge>
+                    <Badge variant="destructive" className={isMobile ? 'text-xs px-1 py-0 mt-1' : 'text-xs'}>Unsupported Chain</Badge>
                   )}
                 </div>
               </div>
               
               {!currentChainInfo && (
-                <Alert>
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription className="text-sm">
+                <Alert className="border-red-500/30 bg-red-500/10">
+                  <AlertTriangle className={`text-red-400 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                  <AlertDescription className={`text-red-300 ${isMobile ? 'text-xs leading-relaxed' : 'text-sm'}`}>
                     Please switch to a supported network: Ethereum, Polygon, Arbitrum One, Arbitrum Sepolia (testnet), Optimism, BSC, or Base
                   </AlertDescription>
                 </Alert>
@@ -760,27 +770,27 @@ export default function USDTWithdrawal() {
               
               {/* Token Selection for Arbitrum */}
               {currentChainId === 42161 && (
-                <div className="space-y-2">
-                  <Label className="text-sm text-muted-foreground">Select Token to Withdraw:</Label>
-                  <div className="flex gap-2">
+                <div className="space-y-3">
+                  <Label className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>Select Token to Withdraw:</Label>
+                  <div className={`${isMobile ? 'flex flex-col gap-2' : 'flex gap-2'}`}>
                     <Button
                       variant={selectedToken === 'usdt' ? 'default' : 'outline'}
-                      size="sm"
+                      size={isMobile ? 'sm' : 'sm'}
                       onClick={() => setSelectedToken('usdt')}
-                      className={selectedToken === 'usdt' ? 'bg-honey text-black' : ''}
+                      className={`transition-all duration-200 ${selectedToken === 'usdt' ? 'bg-gradient-to-r from-honey to-amber-400 text-black shadow-lg hover:shadow-xl' : 'hover:bg-honey/10 hover:border-honey/50'} ${isMobile ? 'text-xs py-2' : ''}`}
                     >
-                      USDT (Standard)
+                      USDT {isMobile ? '(Std)' : '(Standard)'}
                     </Button>
                     <Button
                       variant={selectedToken === 'testUSDT' ? 'default' : 'outline'}
-                      size="sm"
+                      size={isMobile ? 'sm' : 'sm'}
                       onClick={() => setSelectedToken('testUSDT')}
-                      className={selectedToken === 'testUSDT' ? 'bg-honey text-black' : ''}
+                      className={`transition-all duration-200 ${selectedToken === 'testUSDT' ? 'bg-gradient-to-r from-honey to-amber-400 text-black shadow-lg hover:shadow-xl' : 'hover:bg-honey/10 hover:border-honey/50'} ${isMobile ? 'text-xs py-2' : ''}`}
                     >
-                      TEST-USDT (Custom)
+                      TEST-USDT {isMobile ? '(Custom)' : '(Custom)'}
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className={`text-muted-foreground ${isMobile ? 'text-xs leading-relaxed' : 'text-xs'}`}>
                     {selectedToken === 'usdt' 
                       ? 'Standard USDT token on Arbitrum One' 
                       : 'Your custom TEST-USDT token on Arbitrum One'}
@@ -789,8 +799,8 @@ export default function USDTWithdrawal() {
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="amount" className="text-honey">Withdrawal Amount (USDT)</Label>
+            <div className="space-y-3">
+              <Label htmlFor="amount" className={`text-transparent bg-gradient-to-r from-honey to-amber-400 bg-clip-text font-medium ${isMobile ? 'text-sm' : 'text-base'}`}>Withdrawal Amount (USDT)</Label>
               <Input
                 id="amount"
                 type="number"
@@ -800,30 +810,30 @@ export default function USDTWithdrawal() {
                 placeholder="0.00"
                 value={withdrawalAmount}
                 onChange={(e) => setWithdrawalAmount(e.target.value)}
-                className="bg-muted border-honey/20 focus:border-honey"
+                className={`bg-gradient-to-r from-muted/50 to-muted/30 border-honey/30 focus:border-honey focus:ring-honey/20 focus:ring-2 transition-all duration-200 shadow-md ${isMobile ? 'text-sm py-3' : 'text-base'}`}
                 data-testid="input-withdrawal-amount"
               />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Available: ${balance?.balanceUSD || '0.00'} USDT</span>
-                <span>Fee: {getWithdrawalFee(currentChainId || 42161)} USDT (deducted)</span>
+              <div className={`${isMobile ? 'space-y-1' : 'flex justify-between'} text-muted-foreground ${isMobile ? 'text-xs' : 'text-xs'}`}>
+                <span className={isMobile ? 'block' : ''}>Available: ${balance?.balanceUSD || '0.00'} USDT</span>
+                <span className={isMobile ? 'block text-orange-400' : 'text-orange-400'}>Fee: {getWithdrawalFee(currentChainId || 42161)} USDT (deducted)</span>
               </div>
               {withdrawalAmount && (
-                <div className="text-xs text-green-600 mt-1">
-                  You'll receive: {Math.max(0, parseFloat(withdrawalAmount) - getWithdrawalFee(currentChainId || 42161)).toFixed(2)} USDT
+                <div className={`text-green-400 font-medium bg-green-500/10 px-3 py-2 rounded-lg border border-green-500/20 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                  💰 You'll receive: {Math.max(0, parseFloat(withdrawalAmount) - getWithdrawalFee(currentChainId || 42161)).toFixed(2)} USDT
                 </div>
               )}
             </div>
 
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <div className="text-blue-400 mt-1">
-                  <Link className="h-4 w-4" />
+            <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/30 rounded-xl p-4 shadow-lg">
+              <div className={`flex items-start ${isMobile ? 'gap-2' : 'gap-3'}`}>
+                <div className="text-blue-400 mt-1 bg-blue-500/20 p-1 rounded-lg">
+                  <Link className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
                 </div>
-                <div>
-                  <h4 className="text-sm font-medium text-blue-400 mb-1">
-                    {currentChainId === 42161 ? 'Direct Transfer' : 'Thirdweb Bridge'}
+                <div className="flex-1">
+                  <h4 className={`font-medium text-blue-400 mb-1 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                    {currentChainId === 42161 ? '⚡ Direct Transfer' : '🌉 Thirdweb Bridge'}
                   </h4>
-                  <p className="text-xs text-muted-foreground">
+                  <p className={`text-muted-foreground ${isMobile ? 'text-xs leading-relaxed' : 'text-xs'}`}>
                     {currentChainId === 42161 
                       ? 'Direct transfer from our Arbitrum server wallet to your wallet using your custom USDT token.' 
                       : `Cross-chain bridge from Arbitrum to ${currentChainInfo?.name} using thirdweb Bridge API. Your custom USDT will be automatically converted to standard USDT on ${currentChainInfo?.name}.`}
@@ -835,18 +845,18 @@ export default function USDTWithdrawal() {
             <Button
               onClick={handleInitiateWithdrawal}
               disabled={!withdrawalAmount || !currentWalletAddress || !currentChainInfo}
-              className="w-full bg-honey text-black hover:bg-honey/90"
+              className={`w-full bg-gradient-to-r from-honey to-amber-400 text-black hover:from-honey/90 hover:to-amber-400/90 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold ${isMobile ? 'py-3 text-sm' : 'py-2 text-base'}`}
               data-testid="button-initiate-withdrawal"
             >
               {serverWithdrawalMutation.isPending ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Preparing Withdrawal...
+                  <Loader2 className={`animate-spin mr-2 ${isMobile ? 'h-4 w-4' : 'h-4 w-4'}`} />
+                  {isMobile ? 'Preparing...' : 'Preparing Withdrawal...'}
                 </>
               ) : (
                 <>
-                  <ArrowRight className="h-4 w-4 mr-2" />
-                  Initiate Withdrawal
+                  <ArrowRight className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-4 w-4'}`} />
+                  {isMobile ? 'Initiate' : 'Initiate Withdrawal'}
                 </>
               )}
             </Button>
@@ -854,70 +864,70 @@ export default function USDTWithdrawal() {
         )}
 
         {step === 'confirm' && withdrawalRequest && (
-          <div className="space-y-4">
-            <Alert>
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
+          <div className={isMobile ? 'space-y-3' : 'space-y-4'}>
+            <Alert className="border-orange-500/30 bg-orange-500/10">
+              <AlertTriangle className={`text-orange-400 ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+              <AlertDescription className={`text-orange-300 ${isMobile ? 'text-xs leading-relaxed' : 'text-sm'}`}>
                 Please review your withdrawal details carefully. This action cannot be undone.
               </AlertDescription>
             </Alert>
 
-            <div className="bg-muted/30 rounded-lg p-4 space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Withdrawal Request:</span>
-                <span className="font-semibold text-honey">{withdrawalRequest.amountUSD} USDT</span>
+            <div className="bg-gradient-to-br from-muted/40 to-muted/20 rounded-xl p-4 space-y-3 border border-muted/30 shadow-lg">
+              <div className={`${isMobile ? 'space-y-1' : 'flex justify-between items-center'}`}>
+                <span className={`text-muted-foreground ${isMobile ? 'text-xs block' : 'text-sm'}`}>Withdrawal Request:</span>
+                <span className={`font-semibold text-transparent bg-gradient-to-r from-honey to-amber-400 bg-clip-text ${isMobile ? 'text-sm block' : 'text-base'}`}>{withdrawalRequest.amountUSD} USDT</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Withdrawal Fee (deducted):</span>
-                <span className="font-semibold text-orange-400">-{getWithdrawalFee(currentChainId!)} USDT</span>
+              <div className={`${isMobile ? 'space-y-1' : 'flex justify-between items-center'}`}>
+                <span className={`text-muted-foreground ${isMobile ? 'text-xs block' : 'text-sm'}`}>Withdrawal Fee (deducted):</span>
+                <span className={`font-semibold text-orange-400 ${isMobile ? 'text-sm block' : 'text-base'}`}>-{getWithdrawalFee(currentChainId!)} USDT</span>
               </div>
-              <div className="flex justify-between items-center border-t border-border pt-2">
-                <span className="text-muted-foreground">You'll Receive:</span>
-                <span className="font-semibold text-green-400">{(parseFloat(withdrawalRequest.amountUSD) - getWithdrawalFee(currentChainId!)).toFixed(2)} USDT</span>
+              <div className={`border-t border-border pt-2 ${isMobile ? 'space-y-1' : 'flex justify-between items-center'}`}>
+                <span className={`text-muted-foreground ${isMobile ? 'text-xs block' : 'text-sm'}`}>You'll Receive:</span>
+                <span className={`font-semibold text-green-400 ${isMobile ? 'text-sm block' : 'text-base'}`}>{(parseFloat(withdrawalRequest.amountUSD) - getWithdrawalFee(currentChainId!)).toFixed(2)} USDT</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">To Network:</span>
-                <div className="flex items-center gap-2">
-                  <span>{currentChainInfo?.icon}</span>
-                  <span>{currentChainInfo?.name}</span>
-                  <Badge className={`${currentChainInfo?.color} text-xs`}>{currentChainInfo?.symbol}</Badge>
+              <div className={`${isMobile ? 'space-y-1' : 'flex justify-between items-center'}`}>
+                <span className={`text-muted-foreground ${isMobile ? 'text-xs block' : 'text-sm'}`}>To Network:</span>
+                <div className={`flex items-center gap-2 ${isMobile ? 'flex-wrap' : ''}`}>
+                  <span className={isMobile ? 'text-lg' : 'text-base'}>{currentChainInfo?.icon}</span>
+                  <span className={isMobile ? 'text-xs' : 'text-sm'}>{currentChainInfo?.name}</span>
+                  <Badge className={`${currentChainInfo?.color} ${isMobile ? 'text-xs px-1 py-0' : 'text-xs'}`}>{currentChainInfo?.symbol}</Badge>
                 </div>
               </div>
               {currentChainId === 42161 && (
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Token:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{getTokenInfo(currentChainId, selectedToken).symbol}</span>
-                    <Badge variant="outline" className="text-xs">
+                <div className={`${isMobile ? 'space-y-1' : 'flex justify-between items-center'}`}>
+                  <span className={`text-muted-foreground ${isMobile ? 'text-xs block' : 'text-sm'}`}>Token:</span>
+                  <div className={`flex items-center gap-2 ${isMobile ? 'flex-wrap' : ''}`}>
+                    <span className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>{getTokenInfo(currentChainId, selectedToken).symbol}</span>
+                    <Badge variant="outline" className={isMobile ? 'text-xs px-1 py-0' : 'text-xs'}>
                       {selectedToken === 'usdt' ? 'Standard' : 'Custom'}
                     </Badge>
                   </div>
                 </div>
               )}
-              <div className="flex justify-between items-start">
-                <span className="text-muted-foreground">To Wallet:</span>
-                <span className="font-mono text-xs text-right max-w-[200px] break-all">
+              <div className={`${isMobile ? 'space-y-1' : 'flex justify-between items-start'}`}>
+                <span className={`text-muted-foreground ${isMobile ? 'text-xs block' : 'text-sm'}`}>To Wallet:</span>
+                <span className={`font-mono text-right break-all bg-muted/50 px-2 py-1 rounded ${isMobile ? 'text-xs block mt-1 max-w-full' : 'text-xs max-w-[200px]'}`}>
                   {withdrawalRequest.recipientAddress}
                 </span>
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className={`${isMobile ? 'flex flex-col gap-2' : 'flex gap-3'}`}>
               <Button
                 onClick={resetForm}
                 variant="outline"
-                className="flex-1"
+                className={`${isMobile ? 'w-full' : 'flex-1'} hover:bg-red-500/10 hover:border-red-500/50 hover:text-red-400 transition-all duration-200 ${isMobile ? 'py-2 text-sm' : ''}`}
                 data-testid="button-cancel-withdrawal"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleConfirmWithdrawal}
-                className="flex-1 bg-honey text-black hover:bg-honey/90"
+                className={`${isMobile ? 'w-full' : 'flex-1'} bg-gradient-to-r from-honey to-amber-400 text-black hover:from-honey/90 hover:to-amber-400/90 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold ${isMobile ? 'py-2 text-sm' : ''}`}
                 data-testid="button-confirm-withdrawal"
               >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Confirm Withdrawal
+                <CheckCircle className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-4 w-4'}`} />
+                {isMobile ? 'Confirm' : 'Confirm Withdrawal'}
               </Button>
             </div>
           </div>
@@ -926,48 +936,59 @@ export default function USDTWithdrawal() {
 
         {step === 'processing' && (
           <div className="text-center space-y-4">
-            <div className="bg-muted/30 rounded-lg p-6">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-honey" />
-              <h3 className="text-lg font-semibold text-honey mb-2">Processing Withdrawal</h3>
-              <p className="text-muted-foreground text-sm">
+            <div className={`bg-gradient-to-br from-muted/40 to-muted/20 rounded-xl border border-muted/30 shadow-xl ${isMobile ? 'p-4' : 'p-6'}`}>
+              <div className="bg-gradient-to-br from-honey/20 to-amber-500/20 rounded-full p-4 w-fit mx-auto mb-4 animate-pulse">
+                <Loader2 className={`animate-spin text-honey ${isMobile ? 'h-6 w-6' : 'h-8 w-8'}`} />
+              </div>
+              <h3 className={`font-semibold text-transparent bg-gradient-to-r from-honey to-amber-400 bg-clip-text mb-2 ${isMobile ? 'text-base' : 'text-lg'}`}>⚡ Processing Withdrawal</h3>
+              <p className={`text-muted-foreground ${isMobile ? 'text-xs leading-relaxed' : 'text-sm'}`}>
                 Your withdrawal is being processed on the blockchain. This may take a few moments.
               </p>
+              <div className="mt-4 flex justify-center">
+                <div className="flex space-x-1">
+                  <div className="h-2 w-2 bg-honey rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                  <div className="h-2 w-2 bg-amber-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                  <div className="h-2 w-2 bg-honey rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
         {step === 'success' && (
           <div className="text-center space-y-4">
-            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-6">
-              <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-400" />
-              <h3 className="text-lg font-semibold text-green-400 mb-2">Withdrawal Complete!</h3>
-              <p className="text-muted-foreground text-sm mb-4">
+            <div className={`bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-xl shadow-xl ${isMobile ? 'p-4' : 'p-6'}`}>
+              <div className="bg-gradient-to-br from-green-400/20 to-emerald-500/20 rounded-full p-4 w-fit mx-auto mb-4">
+                <CheckCircle className={`text-green-400 ${isMobile ? 'h-8 w-8' : 'h-12 w-12'}`} />
+              </div>
+              <h3 className={`font-semibold text-green-400 mb-2 ${isMobile ? 'text-base' : 'text-lg'}`}>✅ Withdrawal Complete!</h3>
+              <p className={`text-muted-foreground mb-4 ${isMobile ? 'text-xs leading-relaxed' : 'text-sm'}`}>
                 Your USDT withdrawal has been successfully processed.
               </p>
               
               {/* Transaction details would be shown here in a real implementation */}
               <Button
                 onClick={resetForm}
-                className="bg-honey text-black hover:bg-honey/90"
+                className={`bg-gradient-to-r from-honey to-amber-400 text-black hover:from-honey/90 hover:to-amber-400/90 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold ${isMobile ? 'w-full py-2 text-sm' : 'px-6 py-2'}`}
                 data-testid="button-new-withdrawal"
               >
-                New Withdrawal
+                {isMobile ? 'New Withdrawal' : 'New Withdrawal'}
               </Button>
             </div>
           </div>
         )}
 
         {/* Withdrawal fees info */}
-        <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <div className="text-orange-400 mt-1">
-              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+        <div className="bg-gradient-to-r from-orange-500/10 to-amber-500/10 border border-orange-500/30 rounded-xl p-4 shadow-lg">
+          <div className={`flex items-start ${isMobile ? 'gap-2' : 'gap-3'}`}>
+            <div className="text-orange-400 mt-1 bg-orange-500/20 p-1 rounded-lg">
+              <svg className={`fill-current ${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
               </svg>
             </div>
-            <div>
-              <h4 className="text-sm font-medium text-orange-400 mb-1">Withdrawal Fees</h4>
-              <p className="text-xs text-muted-foreground">
+            <div className="flex-1">
+              <h4 className={`font-medium text-orange-400 mb-1 ${isMobile ? 'text-xs' : 'text-sm'}`}>💸 Withdrawal Fees</h4>
+              <p className={`text-muted-foreground ${isMobile ? 'text-xs leading-relaxed' : 'text-xs'}`}>
                 A withdrawal fee of {getWithdrawalFee(currentChainId || 42161)} USDT will be deducted from your withdrawal amount. You will receive the net amount after the fee deduction. Different networks have different fees.
               </p>
             </div>
@@ -980,23 +1001,25 @@ export default function USDTWithdrawal() {
   } catch (renderError: any) {
     console.error('❌ USDTWithdrawal component render error:', renderError);
     return (
-      <Card className="bg-secondary border-border">
-        <CardContent className="p-6 text-center">
+      <Card className="bg-gradient-to-br from-secondary/60 to-secondary border-border shadow-xl">
+        <CardContent className={`text-center ${isMobile ? 'p-4' : 'p-6'}`}>
           <div className="text-red-400 mb-4">
-            <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
-            <h3 className="text-lg font-semibold">Component Error</h3>
-            <p className="text-sm text-muted-foreground mt-2">
+            <div className="bg-red-500/20 rounded-full p-4 w-fit mx-auto mb-4">
+              <AlertTriangle className={`mx-auto text-red-400 ${isMobile ? 'h-6 w-6' : 'h-8 w-8'}`} />
+            </div>
+            <h3 className={`font-semibold ${isMobile ? 'text-base' : 'text-lg'}`}>Component Error</h3>
+            <p className={`text-muted-foreground mt-2 ${isMobile ? 'text-xs' : 'text-sm'}`}>
               An error occurred while rendering the withdrawal component.
             </p>
-            <details className="mt-3 text-xs text-left">
-              <summary className="cursor-pointer">Error Details</summary>
-              <pre className="mt-2 p-2 bg-black/50 rounded overflow-x-auto">
+            <details className={`mt-3 text-left ${isMobile ? 'text-xs' : 'text-xs'}`}>
+              <summary className="cursor-pointer text-blue-400 hover:text-blue-300">Error Details</summary>
+              <pre className="mt-2 p-2 bg-black/50 rounded overflow-x-auto text-red-300">
                 {renderError?.message || 'Unknown error'}
               </pre>
             </details>
             <Button 
               onClick={() => window.location.reload()} 
-              className="mt-4 bg-honey text-black hover:bg-honey/90"
+              className={`mt-4 bg-gradient-to-r from-honey to-amber-400 text-black hover:from-honey/90 hover:to-amber-400/90 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold ${isMobile ? 'w-full py-2 text-sm' : 'px-6 py-2'}`}
             >
               Reload Page
             </Button>
