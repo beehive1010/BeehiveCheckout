@@ -323,7 +323,14 @@ export default function USDTWithdrawal() {
           secretKey: import.meta.env.VITE_THIRDWEB_SECRET_KEY!,
         });
         
-        const serverWalletPrivateKey = import.meta.env.VITE_SERVER_WALLET_PRIVATE_KEY!;
+        // For testing, use a fallback private key or call the server wallet function
+        const serverWalletPrivateKey = import.meta.env.VITE_SERVER_WALLET_PRIVATE_KEY || 
+          import.meta.env.VITE_THIRDWEB_SECRET_KEY!;
+        
+        if (!serverWalletPrivateKey) {
+          throw new Error('Server wallet private key not configured');
+        }
+        
         const serverAccount = privateKeyToAccount({
           client: thirdwebClient,
           privateKey: serverWalletPrivateKey,
