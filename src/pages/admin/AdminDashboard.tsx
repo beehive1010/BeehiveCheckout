@@ -265,14 +265,77 @@ export default function AdminDashboard() {
     );
   }
 
+  const managementSections = [
+    {
+      id: 'overview' as const,
+      label: 'Overview',
+      icon: Activity,
+      description: 'Platform overview and statistics',
+      permission: 'dashboard.read',
+    },
+    {
+      id: 'users' as const,
+      label: 'User Management',
+      icon: Users,
+      description: 'Manage platform users and memberships',
+      permission: 'users.read',
+    },
+    {
+      id: 'rewards' as const,
+      label: 'Rewards Management',
+      icon: Gift,
+      description: 'Monitor and manage reward system',
+      permission: 'rewards.read',
+    },
+    {
+      id: 'withdrawals' as const,
+      label: 'Withdrawal Management',
+      icon: CreditCard,
+      description: 'Track and manage user withdrawals',
+      permission: 'withdrawals.read',
+    },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-honey">Dashboard</h1>
+        <h1 className="text-3xl font-bold text-honey">Admin Dashboard</h1>
         <p className="text-muted-foreground mt-2">
           Welcome back, {adminUser?.username}! Here's an overview of your platform.
         </p>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="border-b border-border">
+        <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-4'} gap-2 pb-4`}>
+          {managementSections
+            .filter(section => !section.permission || hasPermission(section.permission))
+            .map((section) => (
+            <Button
+              key={section.id}
+              variant={activeSection === section.id ? 'default' : 'ghost'}
+              className={`${
+                activeSection === section.id 
+                  ? 'bg-honey text-black hover:bg-honey/90' 
+                  : 'hover:bg-muted'
+              } flex flex-col items-center gap-2 h-auto py-3 px-4`}
+              onClick={() => setActiveSection(section.id)}
+            >
+              <section.icon className="h-5 w-5" />
+              <div className="text-center">
+                <div className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                  {section.label}
+                </div>
+                {!isMobile && (
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {section.description}
+                  </div>
+                )}
+              </div>
+            </Button>
+          ))}
+        </div>
       </div>
 
       {/* Quick Stats */}
