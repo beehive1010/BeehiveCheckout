@@ -57,23 +57,19 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
     try {
       console.log(`🔍 Loading matrix for wallet: ${walletAddress}, using matrix-view function`);
       
-      // Use matrix-view Supabase function for consistent data
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/matrix-view`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-wallet-address': walletAddress
-        },
-        body: JSON.stringify({
+      // Use matrix-view Supabase function with proper authentication
+      const { data: result, error: functionError } = await supabase.functions.invoke('matrix-view', {
+        body: {
           action: 'get-matrix-members'
-        })
+        },
+        headers: {
+          'x-wallet-address': walletAddress
+        }
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      if (functionError) {
+        throw new Error(`Function error: ${functionError.message}`);
       }
-
-      const result = await response.json();
       
       if (!result.success) {
         throw new Error(result.error || 'Failed to get matrix members');

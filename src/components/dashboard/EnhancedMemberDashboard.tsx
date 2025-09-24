@@ -125,16 +125,43 @@ export function EnhancedMemberDashboard({ className = "" }: EnhancedMemberDashbo
   
   // Fetch Matrix view data for team tab
   const { data: matrixView } = useQuery({
-    queryKey: ['/matrix/1x3-view', walletAddress],
+    queryKey: ['/matrix/referrals-tree-view', walletAddress],
     enabled: !!walletAddress && activeTab === 'team',
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_1x3_matrix_view', {
-        p_wallet_address: walletAddress!,
-        p_levels: 3
-      });
+      const { data, error } = await supabase
+        .from('matrix_referrals_tree_view')
+        .select(`
+          member_wallet,
+          matrix_root_wallet,
+          layer,
+          position,
+          referral_type,
+          child_activation_time
+        `)
+        .eq('matrix_root_wallet', walletAddress!)
+        .lte('layer', 3)
+        .order('layer');
 
       if (error) throw error;
-      return data;
+      
+      // Group by root for compatibility with existing UI
+      const groupedData = data?.reduce((acc: any, item: any) => {
+        const key = item.matrix_root_wallet;
+        if (!acc[key]) {
+          acc[key] = {
+            wallet_address: key,
+            current_level: 1,
+            username: `Root ${key.slice(0, 6)}...`,
+            total_downline: 0,
+            members: []
+          };
+        }
+        acc[key].members.push(item);
+        acc[key].total_downline++;
+        return acc;
+      }, {});
+      
+      return Object.values(groupedData || {});
     },
   });
 

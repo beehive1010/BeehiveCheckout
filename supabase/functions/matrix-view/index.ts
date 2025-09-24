@@ -217,8 +217,8 @@ serve(async (req: Request) => {
           wallet_address: member.member_wallet,
           username: userInfo?.username || `User${member.member_wallet?.slice(-4) || ''}`,
           matrix_position: member.position,
-          current_level: memberInfo?.current_level || 1,
-          is_activated: Boolean(memberInfo?.current_level && memberInfo.current_level > 0),
+          current_level: (memberInfo as any)?.current_level || 1,
+          is_activated: Boolean((memberInfo as any)?.current_level && (memberInfo as any).current_level > 0),
           joined_at: member.child_activation_time,
           referral_type: member.referral_type,
           layer: member.layer
