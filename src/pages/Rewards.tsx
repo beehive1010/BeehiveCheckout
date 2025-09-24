@@ -287,8 +287,8 @@ export default function Rewards() {
                     <span className="sm:hidden">${rewardsData?.claimable || 0}</span>
                   </span>
                 </div>
-                <div className="w-8 h-8 bg-honey/20 hover:bg-honey/30 rounded-full transition-all duration-300 flex-shrink-0 flex items-center justify-center group-hover:scale-110">
-                  <ChevronDown className={`h-4 w-4 text-honey transition-all duration-700 group-hover:text-amber-300 ${isOverviewOpen ? 'rotate-180 text-amber-400' : ''}`} />
+                <div className="min-w-8 min-h-8 w-8 h-8 bg-honey/20 hover:bg-honey/30 rounded-full transition-all duration-300 flex-shrink-0 flex items-center justify-center group-hover:scale-110 relative">
+                  <ChevronDown className={`h-4 w-4 text-honey transition-all duration-700 group-hover:text-amber-300 absolute inset-0 m-auto ${isOverviewOpen ? 'rotate-180 text-amber-400' : ''}`} />
                 </div>
               </div>
             </div>
