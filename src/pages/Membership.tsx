@@ -479,8 +479,15 @@ export default function Membership() {
               </div>
             ) : (currentLevel && currentLevel >= 2 && currentLevel < 19) || (currentLevel === 1 && hasLevel2NFT) ? (
               <LevelUpgradeButtonGeneric 
-                targetLevel={hasLevel2NFT && currentLevel === 1 ? 3 : currentLevel + 1}
-                currentLevel={hasLevel2NFT && currentLevel === 1 ? 2 : currentLevel}
+                targetLevel={
+                  hasLevel2NFT && currentLevel === 1 ? 3 : 
+                  hasLevel3NFT && currentLevel === 3 ? 4 : 
+                  currentLevel + 1
+                }
+                currentLevel={
+                  hasLevel2NFT && currentLevel === 1 ? 2 : 
+                  currentLevel
+                }
                 directReferralsCount={directReferralsCount || 0}
                 onSuccess={() => {
                   toast({
