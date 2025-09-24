@@ -287,8 +287,8 @@ export default function Rewards() {
                     <span className="sm:hidden">${rewardsData?.claimable || 0}</span>
                   </span>
                 </div>
-                <div className="w-8 h-8 bg-gray-600 hover:bg-gray-500 rounded-full transition-all duration-300 flex-shrink-0 group-hover:scale-110 grid place-items-center shadow-[inset_0_1px_0_rgba(255,255,255,0.15),inset_0_-1px_0_rgba(0,0,0,0.4),0_2px_4px_rgba(0,0,0,0.2)]">
-                  <ChevronDown className={`h-4 w-4 text-gray-200 group-hover:text-white transition-all duration-700 ${isOverviewOpen ? 'rotate-180 text-white' : ''}`} />
+                <div className="w-8 h-8 bg-black/80 hover:bg-black/90 rounded-full transition-all duration-300 flex-shrink-0 group-hover:scale-110 grid place-items-center shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-1px_0_rgba(0,0,0,0.6),0_2px_4px_rgba(0,0,0,0.3)]">
+                  <ChevronDown className={`h-4 w-4 text-honey group-hover:text-amber-300 transition-all duration-700 ${isOverviewOpen ? 'rotate-180 text-amber-400' : ''}`} />
                 </div>
               </div>
             </div>
