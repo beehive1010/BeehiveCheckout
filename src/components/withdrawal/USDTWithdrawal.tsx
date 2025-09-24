@@ -309,54 +309,44 @@ export default function USDTWithdrawal() {
       
       // Check if this is same-chain transfer or cross-chain bridge
       if (sourceChainId === targetChainId) {
-        // Direct thirdweb SDK call for token transfer
-        console.log(`🔄 Direct thirdweb SDK transfer`);
+        // Use thirdweb wallets API for server wallet transfer
+        console.log(`🔄 Thirdweb wallets API transfer`);
         
-        const { createThirdwebClient } = await import('thirdweb');
-        const { privateKeyToAccount } = await import('thirdweb/wallets');
-        const { getContract, sendTransaction } = await import('thirdweb');
-        const { transfer } = await import('thirdweb/extensions/erc20');
-        const { defineChain } = await import('thirdweb/chains');
-        
-        // Create thirdweb client
-        const client = createThirdwebClient({
-          clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
-        });
-        
-        // Create server account from secret key (which should be a private key)
-        const account = privateKeyToAccount({
-          client,
-          privateKey: import.meta.env.VITE_THIRDWEB_SECRET_KEY!,
-        });
-        
-        // Define the target chain
-        const chain = defineChain(targetChainId);
-        
-        // Get token contract
-        const contract = getContract({
-          client,
-          chain,
-          address: targetTokenAddress,
-        });
-        
-        // Calculate amount in wei
         const tokenDecimals = getTokenInfo(targetChainId, selectedToken).decimals;
-        const amountInWei = BigInt(Math.floor(netAmount * Math.pow(10, tokenDecimals)));
+        const amountInWei = (netAmount * Math.pow(10, tokenDecimals)).toString();
         
-        // Prepare and send the transfer transaction
-        const transaction = transfer({
-          contract,
-          to: data.recipientAddress,
-          amount: amountInWei,
+        // Call thirdweb wallets API
+        const walletResponse = await fetch('https://api.thirdweb.com/v1/wallets/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_THIRDWEB_SECRET_KEY}`,
+            'x-client-id': import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
+          },
+          body: JSON.stringify({
+            chain_id: targetChainId.toString(),
+            from_wallet_address: import.meta.env.VITE_SERVER_WALLET_ADDRESS!,
+            to_wallet_address: data.recipientAddress,
+            contract_address: targetTokenAddress,
+            function_name: "transfer",
+            function_args: [data.recipientAddress, amountInWei],
+            value: "0"
+          })
         });
         
-        const txResult = await sendTransaction({
-          transaction,
-          account,
-        });
+        if (!walletResponse.ok) {
+          const errorText = await walletResponse.text();
+          throw new Error(`Thirdweb wallets API failed: ${walletResponse.status} ${errorText}`);
+        }
+        
+        const walletData = await walletResponse.json();
+        
+        if (!walletData.success || walletData.error) {
+          throw new Error(`Thirdweb wallets API error: ${walletData.error || 'Unknown error'}`);
+        }
         
         var result = {
-          transactionHash: txResult.transactionHash,
+          transactionHash: walletData.transaction_hash || walletData.txHash,
           feeTransactionHash: null,
           bridged: false,
         };
