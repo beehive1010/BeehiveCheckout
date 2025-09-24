@@ -355,9 +355,7 @@ async function processLevelUpgrade(
         newLevel: targetLevel,
         bccUnlocked: LEVEL_CONFIG.BCC_UNLOCK[targetLevel] || 0,
         pendingRewardsClaimed: 0,
-        newPendingRewards: balanceData?.pending_bcc_rewards || 0,
-        layerRewardCreated: !!layerReward && layerReward.success,
-        layerRewardDetails: layerReward
+        newPendingRewards: balanceData?.pending_bcc_rewards || 0
       },
       message: `Successfully upgraded to Level ${targetLevel}! Membership record created, level updated, triggers fired for BCC release and layer rewards.`
     }

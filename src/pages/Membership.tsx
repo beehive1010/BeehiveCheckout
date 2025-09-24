@@ -33,6 +33,7 @@ export default function Membership() {
   const queryClient = useQueryClient();
   const [userReferrer, setUserReferrer] = useState<string>('');
   const [hasLevel2NFT, setHasLevel2NFT] = useState<boolean>(false);
+  const [hasLevel3NFT, setHasLevel3NFT] = useState<boolean>(false);
 
   // Fetch user's referrer from members table
   useEffect(() => {
