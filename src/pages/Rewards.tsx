@@ -259,8 +259,9 @@ export default function Rewards() {
       <Collapsible open={isOverviewOpen} onOpenChange={setIsOverviewOpen} className="mb-1 animate-in slide-in-from-bottom-2 duration-500">
         <CollapsibleTrigger className="w-full">
           <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900 dark:from-black dark:via-slate-950 dark:to-black rounded-xl border-2 border-slate-700 dark:border-slate-800 px-3 py-1.5 sm:px-4 sm:py-2 hover:border-honey/50 transition-all duration-500 cursor-pointer shadow-2xl hover:shadow-3xl hover:shadow-honey/20 group hover:scale-[1.02] transform">
-            {/* Animated border glow effect with pulse */}
-            <div className="absolute inset-0 rounded-xl border-2 border-honey/30 opacity-0 group-hover:opacity-100 transition-all duration-700 group-hover:border-honey/70 animate-pulse"></div>
+            {/* Strong animated border glow effect with pulse */}
+            <div className="absolute inset-0 rounded-xl border-2 border-honey/50 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
+            <div className="absolute inset-0 rounded-xl border border-amber-400/60 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-ping"></div>
             <div className="absolute inset-0 bg-gradient-to-r from-honey/5 via-transparent to-amber-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <div className="relative flex flex-row items-center justify-between gap-2">
               <div className="flex flex-col items-start gap-0.5">
