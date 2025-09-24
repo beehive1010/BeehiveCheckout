@@ -15,6 +15,7 @@ import RollupRewardsCard from '../components/rewards/RollupRewardsCard';
 import USDTWithdrawal from '../components/withdrawal/USDTWithdrawal';
 import CountdownTimer from '../components/rewards/CountdownTimer';
 import { PendingRewardsList } from '../components/rewards/PendingRewardsList';
+import RewardHistory from '../components/rewards/RewardHistory';
 import { 
   User, 
   Award, 
@@ -86,62 +87,6 @@ export default function Rewards() {
   const [isRewardInfoExpanded, setIsRewardInfoExpanded] = useState(false);
   const [mobileRewardTab, setMobileRewardTab] = useState<'matrix' | 'bcc'>('matrix');
   
-  // History filters and pagination
-  const [historyFilters, setHistoryFilters] = useState({
-    layer: '',
-    searchKeyword: '',
-    dateFrom: '',
-    dateTo: '',
-    status: ''
-  });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
-  const [filteredHistory, setFilteredHistory] = useState<any[]>([]);
-
-  // Filter and pagination logic
-  useEffect(() => {
-    if (!rewardsData?.history) {
-      setFilteredHistory([]);
-      return;
-    }
-
-    let filtered = [...rewardsData.history];
-
-    // Apply filters
-    if (historyFilters.layer) {
-      filtered = filtered.filter(item => item.layer?.toString() === historyFilters.layer);
-    }
-    
-    if (historyFilters.searchKeyword) {
-      const keyword = historyFilters.searchKeyword.toLowerCase();
-      filtered = filtered.filter(item => 
-        item.description?.toLowerCase().includes(keyword) ||
-        item.id?.toLowerCase().includes(keyword)
-      );
-    }
-    
-    if (historyFilters.dateFrom) {
-      filtered = filtered.filter(item => new Date(item.date) >= new Date(historyFilters.dateFrom));
-    }
-    
-    if (historyFilters.dateTo) {
-      filtered = filtered.filter(item => new Date(item.date) <= new Date(historyFilters.dateTo));
-    }
-    
-    if (historyFilters.status) {
-      filtered = filtered.filter(item => item.status === historyFilters.status);
-    }
-
-    setFilteredHistory(filtered);
-    setCurrentPage(1); // Reset to first page when filters change
-  }, [rewardsData?.history, historyFilters]);
-
-  // Pagination logic
-  const totalPages = Math.ceil(filteredHistory.length / itemsPerPage);
-  const paginatedHistory = filteredHistory.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
 
   // Use imported supabase client
 
@@ -616,7 +561,7 @@ export default function Rewards() {
               <span className="sm:hidden">{t('rewards.history')}</span>
             </TabsTrigger>
           </TabsList>
-        </div>
+        </Tabs>
       </div>
 
       {/* Tab Content Container with proper spacing */}
@@ -756,220 +701,7 @@ export default function Rewards() {
 
         {/* Enhanced History Tab */}
         <TabsContent value="history" className="space-y-6">
-          {/* Premium Header */}
-          <Card className="relative overflow-hidden bg-gradient-to-br from-emerald-500/10 via-green-500/5 to-teal-500/10 border-0 shadow-xl">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.1),transparent_70%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(20,184,166,0.1),transparent_70%)]" />
-            
-            <CardHeader className="relative">
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg">
-                    <Award className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <span className="text-xl font-bold bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
-                      {t('rewards.recentRewards')}
-                    </span>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {t('rewards.historySubtitle') || 'Complete transaction history and reward tracking'}
-                    </p>
-                  </div>
-                </div>
-                
-                {rewardsData?.history && rewardsData.history.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <Badge 
-                      variant="outline" 
-                      className="bg-emerald-500/15 border-emerald-500/30 text-emerald-500 font-semibold px-3 py-1"
-                    >
-                      {rewardsData.history.length} {t('rewards.historyItems') || 'Items'}
-                    </Badge>
-                  </div>
-                )}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-
-          {/* Enhanced History Content */}
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-background via-background to-muted/20">
-            <CardContent className="p-8">
-              {rewardsData?.history && rewardsData.history.length > 0 ? (
-                <div className="space-y-6">
-                  {/* Desktop Timeline Container */}
-                  <div className="hidden lg:block relative">
-                    {/* Main Timeline Line */}
-                    <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-emerald-500 via-green-500 to-teal-500" />
-                    
-                    <div className="space-y-6">
-                      {rewardsData.history.map((reward, index) => (
-                        <div 
-                          key={reward.id} 
-                          className="relative group"
-                          style={{
-                            animationDelay: `${index * 100}ms`,
-                            animation: 'slideInFromLeft 0.6s ease-out forwards'
-                          }}
-                        >
-                          {/* Timeline Node */}
-                          <div className="absolute left-2 z-10 w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                            {reward.status === 'completed' ? (
-                              <svg className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                              </svg>
-                            ) : reward.status === 'pending' ? (
-                              <Clock className="h-4 w-4 text-white" />
-                            ) : (
-                              <svg className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                              </svg>
-                            )}
-                          </div>
-                          
-                          {/* Content Card */}
-                          <div className="ml-16">
-                            <Card className="border border-border/50 hover:border-emerald-500/30 transition-all duration-300 hover:shadow-lg hover:translate-x-2 group-hover:bg-emerald-500/5">
-                              <CardContent className="p-6">
-                                <div className="flex items-start justify-between mb-4">
-                                  <div className="flex-1">
-                                    <h4 className="font-semibold text-foreground mb-2">
-                                      {reward.description}
-                                    </h4>
-                                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                      <div className="flex items-center gap-1">
-                                        <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                                          <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                                        </svg>
-                                        <span>{reward.date}</span>
-                                      </div>
-                                      <div className="flex items-center gap-1">
-                                        <DollarSign className="h-3 w-3" />
-                                        <span>{reward.currency}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="text-right">
-                                    <div className="text-2xl font-bold text-honey mb-1">
-                                      {reward.amount}
-                                    </div>
-                                    <Badge 
-                                      variant="outline" 
-                                      className={
-                                        reward.status === 'completed' 
-                                          ? 'bg-green-500/10 border-green-500/30 text-green-500' :
-                                        reward.status === 'pending' 
-                                          ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500' :
-                                          'bg-red-500/10 border-red-500/30 text-red-500'
-                                      }
-                                    >
-                                      {reward.status === 'completed' ? t('rewards.status.completed') || 'Completed' :
-                                       reward.status === 'pending' ? t('rewards.status.pending') || 'Pending' :
-                                       t('rewards.status.failed') || 'Failed'}
-                                    </Badge>
-                                  </div>
-                                </div>
-                                
-                                {/* Progress Bar for Status */}
-                                <div className="w-full bg-muted/50 rounded-full h-1.5 mb-3">
-                                  <div 
-                                    className={`h-1.5 rounded-full transition-all duration-500 ${
-                                      reward.status === 'completed' 
-                                        ? 'bg-gradient-to-r from-green-500 to-emerald-500 w-full' :
-                                      reward.status === 'pending' 
-                                        ? 'bg-gradient-to-r from-yellow-500 to-orange-500 w-2/3' :
-                                        'bg-gradient-to-r from-red-500 to-red-600 w-1/3'
-                                    }`}
-                                  />
-                                </div>
-                                
-                                {/* Action Buttons */}
-                                <div className="flex items-center justify-between">
-                                  <div className="text-xs text-muted-foreground">
-                                    Transaction ID: {reward.id.slice(0, 8)}...
-                                  </div>
-                                  <div className="flex gap-2">
-                                    <Button variant="outline" size="sm" className="h-7 text-xs">
-                                      {t('rewards.viewDetails') || 'Details'}
-                                    </Button>
-                                    {reward.status === 'completed' && (
-                                      <Button variant="outline" size="sm" className="h-7 text-xs">
-                                        {t('rewards.receipt') || 'Receipt'}
-                                      </Button>
-                                    )}
-                                  </div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Mobile Compact List with Filters */}
-                  <div className="lg:hidden space-y-3">
-                    {/* Filter Controls */}
-                    <div className="space-y-3 p-3 bg-muted/20 rounded-lg">
-                      {/* Search and Layer Filter Row */}
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="relative">
-                          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                          <input
-                            type="text"
-                            placeholder={t('rewards.history.search') || 'Search...'}
-                            value={historyFilters.searchKeyword}
-                            onChange={(e) => setHistoryFilters(prev => ({ ...prev, searchKeyword: e.target.value }))}
-                            className="w-full pl-8 pr-3 py-2 text-sm border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-                          />
-                        </div>
-                        <select
-                          value={historyFilters.layer}
-                          onChange={(e) => setHistoryFilters(prev => ({ ...prev, layer: e.target.value }))}
-                          className="w-full px-3 py-2 text-sm border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-                        >
-                          <option value="">{t('rewards.history.allLayers') || 'All Layers'}</option>
-                          {[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19].map(layer => (
-                            <option key={layer} value={layer.toString()}>Layer {layer}</option>
-                          ))}
-                        </select>
-                      </div>
-                      
-                      {/* Date Range and Status Filter Row */}
-                      <div className="grid grid-cols-3 gap-2">
-                        <input
-                          type="date"
-                          value={historyFilters.dateFrom}
-                          onChange={(e) => setHistoryFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
-                          className="w-full px-2 py-2 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-                        />
-                        <input
-                          type="date"
-                          value={historyFilters.dateTo}
-                          onChange={(e) => setHistoryFilters(prev => ({ ...prev, dateTo: e.target.value }))}
-                          className="w-full px-2 py-2 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-                        />
-                        <select
-                          value={historyFilters.status}
-                          onChange={(e) => setHistoryFilters(prev => ({ ...prev, status: e.target.value }))}
-                          className="w-full px-2 py-2 text-xs border border-border rounded-md bg-background focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-                        >
-                          <option value="">{t('rewards.history.allStatus') || 'All'}</option>
-                          <option value="completed">{t('rewards.status.completed') || 'Completed'}</option>
-                          <option value="pending">{t('rewards.status.pending') || 'Pending'}</option>
-                          <option value="failed">{t('rewards.status.failed') || 'Failed'}</option>
-                        </select>
-                      </div>
-                      
-                      {/* Clear Filters */}
-                      {(historyFilters.layer || historyFilters.searchKeyword || historyFilters.dateFrom || historyFilters.dateTo || historyFilters.status) && (
-                        <button
-                          onClick={() => setHistoryFilters({ layer: '', searchKeyword: '', dateFrom: '', dateTo: '', status: '' })}
-                          className="text-xs text-muted-foreground hover:text-foreground underline"
-                        >
-                          {t('rewards.history.clearFilters') || 'Clear Filters'}
-                        </button>
-                      )}
+          <RewardHistory history={rewardsData?.history || []} />
                     </div>
 
                     {/* Results Summary */}
