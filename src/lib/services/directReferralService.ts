@@ -8,35 +8,52 @@ export async function getDirectReferralCount(referrerWallet: string): Promise<nu
   try {
     console.log(`🔍 Fetching direct referrals for wallet: ${referrerWallet}`);
     
-    // Primary: Use referrals table to count direct referrals
+    // Primary: Use referrals_new table (correct direct referrals source)
     const { count, error } = await supabase
-      .from('referrals')
+      .from('referrals_new')
       .select('*', { count: 'exact', head: true })
-      .ilike('referrer_wallet', referrerWallet)
-      .eq('is_direct_referral', true);
+      .ilike('referrer_wallet', referrerWallet);
 
     if (error) {
-      console.error('❌ referrals table query failed:', error);
-      // Fallback to referrals_new table for direct count
-      console.log('🔄 Falling back to referrals_new table...');
+      console.error('❌ referrals_new table query failed:', error);
+      // Fallback to referrals table (check if it has is_direct_referral column)
+      console.log('🔄 Falling back to referrals table...');
       
-      const { count: fallbackCount, error: referralsError } = await supabase
-        .from('referrals_new')
-        .select('*', { count: 'exact', head: true })
-        .ilike('referrer_wallet', referrerWallet);
+      try {
+        const { count: fallbackCount, error: referralsError } = await supabase
+          .from('referrals')
+          .select('*', { count: 'exact', head: true })
+          .ilike('referrer_wallet', referrerWallet)
+          .eq('is_direct_referral', true);
 
-      if (referralsError) {
-        console.error('❌ referrals_new fallback also failed:', referralsError);
+        if (referralsError) {
+          console.error('❌ referrals fallback failed:', referralsError);
+          // Final fallback: count all referrals (may include spillovers)
+          const { count: finalCount, error: finalError } = await supabase
+            .from('referrals')
+            .select('*', { count: 'exact', head: true })
+            .ilike('referrer_wallet', referrerWallet);
+          
+          if (finalError) {
+            console.error('❌ All fallback queries failed:', finalError);
+            return 0;
+          }
+          
+          console.log(`⚠️ Using all referrals count (may include spillovers): ${finalCount || 0}`);
+          return finalCount || 0;
+        }
+
+        const directCount = fallbackCount || 0;
+        console.log(`✅ Direct referral count (referrals fallback) for ${referrerWallet}: ${directCount}`);
+        return directCount;
+      } catch (fallbackError) {
+        console.error('❌ Referrals fallback error:', fallbackError);
         return 0;
       }
-
-      const directCount = fallbackCount || 0;
-      console.log(`✅ Direct referral count (referrals_new fallback) for ${referrerWallet}: ${directCount}`);
-      return directCount;
     }
 
     const directCount = count || 0;
-    console.log(`✅ Direct referral count from referrals table for ${referrerWallet}: ${directCount}`);
+    console.log(`✅ Direct referral count from referrals_new table for ${referrerWallet}: ${directCount}`);
     
     return directCount;
   } catch (error) {
