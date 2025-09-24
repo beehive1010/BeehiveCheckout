@@ -38,7 +38,7 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
     enabled: !!walletAddress,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('referrer_stats')
+        .from('rewards_stats_view')
         .select('*')
         .eq('referrer', walletAddress) // Exact case match
         .limit(1)
