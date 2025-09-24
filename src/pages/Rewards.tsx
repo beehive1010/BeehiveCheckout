@@ -331,17 +331,17 @@ export default function Rewards() {
         </CollapsibleContent>
       </Collapsible>
 
-      {/* Action Navigation - Moved Up for Better UX */}
-      <div className="bg-white dark:bg-gray-900 p-3 md:p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-lg mb-4">
-        <div className="mb-3">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            选择下方分类查看和管理您的奖励
-          </p>
-        </div>
-        
+      {/* Unified Tab Navigation and Content Container */}
+      <div className="bg-white dark:bg-gray-900 rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-lg">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          {/* Header with Description */}
+          <div className="p-3 md:p-4 border-b border-gray-200 dark:border-gray-700">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              选择下方分类查看和管理您的奖励
+            </p>
+          </div>
           {/* Mobile: 3D Button Style Tabs */}
-          <div className="md:hidden">
+          <div className="md:hidden p-3 md:p-4">
             <TabsList className="grid grid-cols-2 gap-4 h-auto bg-transparent p-0">
               <TabsTrigger 
                 value="pending" 
@@ -389,7 +389,7 @@ export default function Rewards() {
           </div>
 
           {/* Desktop: 3D Button Style Tabs */}
-          <div className="hidden md:block">
+          <div className="hidden md:block p-3 md:p-4">
             <TabsList className="grid w-full grid-cols-4 h-auto bg-gray-100 dark:bg-gray-800 gap-3 p-3 rounded-xl border border-gray-300 dark:border-gray-600 shadow-inner">
               <TabsTrigger value="pending" className="group relative flex items-center justify-center gap-3 px-6 py-4 text-sm min-h-[64px] bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/40 dark:to-blue-800/40 hover:from-blue-100 hover:to-blue-200 dark:hover:from-blue-800/60 dark:hover:to-blue-700/60 border-2 border-blue-300 dark:border-blue-600 data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:border-blue-700 rounded-lg text-blue-800 dark:text-blue-200 shadow-[0_4px_8px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_6px_12px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] data-[state=active]:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] transition-all duration-200 transform hover:-translate-y-1 active:translate-y-0 cursor-pointer">
                 <div className="w-8 h-8 bg-white/60 dark:bg-blue-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-inner">
@@ -417,12 +417,9 @@ export default function Rewards() {
               </TabsTrigger>
             </TabsList>
           </div>
-        </Tabs>
-      </div>
-
-      {/* Tab Content Container with proper spacing */}
-      <div className="pt-4 space-y-6 md:space-y-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          
+          {/* Content Area with visual separation */}
+          <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 p-4 md:p-6 rounded-b-xl">
 
         {/* Pending Tab */}
         <TabsContent value="pending" className="space-y-6">
@@ -559,7 +556,8 @@ export default function Rewards() {
         <TabsContent value="history" className="space-y-6">
           <RewardHistory history={rewardsData?.history || []} />
         </TabsContent>
-      </Tabs>
+          </div>
+        </Tabs>
       </div>
 
       {/* Reward System Information - Premium Expandable Card (moved to bottom) */}
