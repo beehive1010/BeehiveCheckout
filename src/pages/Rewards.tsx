@@ -256,73 +256,75 @@ export default function Rewards() {
       {/* Collapsible Stats Overview */}
       <Collapsible open={isOverviewOpen} onOpenChange={setIsOverviewOpen} className="mb-3">
         <CollapsibleTrigger className="w-full">
-          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 p-2 md:p-3 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
+          <div className="bg-gradient-to-r from-honey/5 to-amber-50 dark:from-honey/10 dark:to-amber-900/20 rounded-lg border border-honey/20 dark:border-honey/30 p-2 md:p-3 hover:from-honey/10 hover:to-amber-100 dark:hover:from-honey/15 dark:hover:to-amber-800/30 transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center">
-                  <BarChart3 className="h-3 w-3 text-gray-600 dark:text-gray-400" />
+                <div className="w-4 h-4 bg-honey/20 dark:bg-honey/30 rounded flex items-center justify-center">
+                  <BarChart3 className="h-3 w-3 text-honey dark:text-honey" />
                 </div>
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                <span className="text-xs font-medium text-honey dark:text-honey">
                   奖励概览
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  ${rewardsData?.claimable || 0} 可领取
-                </span>
-                <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${isOverviewOpen ? 'rotate-180' : ''}`} />
+                <div className="bg-green-100 dark:bg-green-900/50 px-2 py-0.5 rounded-full">
+                  <span className="text-xs font-semibold text-green-700 dark:text-green-300">
+                    ${rewardsData?.claimable || 0} 可领取
+                  </span>
+                </div>
+                <ChevronDown className={`h-4 w-4 text-honey transition-transform ${isOverviewOpen ? 'rotate-180' : ''}`} />
               </div>
             </div>
           </div>
         </CollapsibleTrigger>
         
         <CollapsibleContent>
-          <div className="bg-white dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-600 p-2 md:p-3 mt-1">
+          <div className="bg-white dark:bg-gray-800/40 rounded-lg border border-honey/20 dark:border-honey/30 p-2 md:p-3 mt-1 shadow-sm">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              <div className="text-center p-2 bg-gray-50 dark:bg-gray-600/30 rounded border border-gray-100 dark:border-gray-600">
-                <div className="w-5 h-5 mx-auto bg-amber-100 dark:bg-amber-900/50 rounded-full flex items-center justify-center mb-1">
-                  <TrendingUp className="h-3 w-3 text-amber-600 dark:text-amber-400" />
+              <div className="text-center p-2 bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/30 rounded border border-amber-200 dark:border-amber-600/50">
+                <div className="w-5 h-5 mx-auto bg-amber-200 dark:bg-amber-700/50 rounded-full flex items-center justify-center mb-1">
+                  <TrendingUp className="h-3 w-3 text-amber-700 dark:text-amber-300" />
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                <p className="text-xs text-amber-600 dark:text-amber-400 mb-1">
                   {t('rewards.overview.totalEarned')}
                 </p>
-                <p className="text-sm font-bold text-gray-900 dark:text-white">
+                <p className="text-sm font-bold text-amber-800 dark:text-amber-200">
                   ${rewardsData?.total || 0}
                 </p>
               </div>
 
-              <div className="text-center p-2 bg-gray-50 dark:bg-gray-600/30 rounded border border-gray-100 dark:border-gray-600">
-                <div className="w-5 h-5 mx-auto bg-orange-100 dark:bg-orange-900/50 rounded-full flex items-center justify-center mb-1">
-                  <ArrowDownLeft className="h-3 w-3 text-orange-600 dark:text-orange-400" />
+              <div className="text-center p-2 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30 rounded border border-orange-200 dark:border-orange-600/50">
+                <div className="w-5 h-5 mx-auto bg-orange-200 dark:bg-orange-700/50 rounded-full flex items-center justify-center mb-1">
+                  <ArrowDownLeft className="h-3 w-3 text-orange-700 dark:text-orange-300" />
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                <p className="text-xs text-orange-600 dark:text-orange-400 mb-1">
                   {t('rewards.overview.totalWithdrawn')}
                 </p>
-                <p className="text-sm font-bold text-gray-900 dark:text-white">
+                <p className="text-sm font-bold text-orange-800 dark:text-orange-200">
                   ${rewardsData?.totalWithdrawn || 0}
                 </p>
               </div>
 
-              <div className="text-center p-2 bg-gray-50 dark:bg-gray-600/30 rounded border border-gray-100 dark:border-gray-600">
-                <div className="w-5 h-5 mx-auto bg-yellow-100 dark:bg-yellow-900/50 rounded-full flex items-center justify-center mb-1">
-                  <Clock className="h-3 w-3 text-yellow-600 dark:text-yellow-400" />
+              <div className="text-center p-2 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 rounded border border-blue-200 dark:border-blue-600/50">
+                <div className="w-5 h-5 mx-auto bg-blue-200 dark:bg-blue-700/50 rounded-full flex items-center justify-center mb-1">
+                  <Clock className="h-3 w-3 text-blue-700 dark:text-blue-300" />
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                <p className="text-xs text-blue-600 dark:text-blue-400 mb-1">
                   {t('rewards.overview.pending')}
                 </p>
-                <p className="text-sm font-bold text-gray-900 dark:text-white">
+                <p className="text-sm font-bold text-blue-800 dark:text-blue-200">
                   ${rewardsData?.pending || 0}
                 </p>
               </div>
 
-              <div className="text-center p-2 bg-gray-50 dark:bg-gray-600/30 rounded border border-gray-100 dark:border-gray-600">
-                <div className="w-5 h-5 mx-auto bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mb-1">
-                  <Gift className="h-3 w-3 text-green-600 dark:text-green-400" />
+              <div className="text-center p-2 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded border border-green-200 dark:border-green-600/50">
+                <div className="w-5 h-5 mx-auto bg-green-200 dark:bg-green-700/50 rounded-full flex items-center justify-center mb-1">
+                  <Gift className="h-3 w-3 text-green-700 dark:text-green-300" />
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                <p className="text-xs text-green-600 dark:text-green-400 mb-1">
                   {t('rewards.overview.claimable')}
                 </p>
-                <p className="text-sm font-bold text-gray-900 dark:text-white">
+                <p className="text-sm font-bold text-green-800 dark:text-green-200">
                   ${rewardsData?.claimable || 0}
                 </p>
               </div>
