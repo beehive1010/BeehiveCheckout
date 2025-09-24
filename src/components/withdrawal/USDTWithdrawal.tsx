@@ -776,50 +776,24 @@ export default function USDTWithdrawal() {
                   onClick={async () => {
                     const { supabase } = await import('../../lib/supabase');
                     try {
-                      // Try different column name variations (prioritize 'balance/withdrawn' based on curl test)
-                      const testInsertOptions = [
-                        {
-                          wallet_address: memberWalletAddress,
-                          balance: 100,
-                          withdrawn: 0,
-                          updated_at: new Date().toISOString()
-                        },
-                        {
-                          wallet_address: memberWalletAddress,
-                          claimable_reward_balance_usdc: 100,
-                          total_rewards_withdrawn_usdc: 0,
-                          updated_at: new Date().toISOString()
-                        },
-                        {
-                          wallet_address: memberWalletAddress,
-                          claimable_rewards: 100,
-                          total_withdrawn: 0,
-                          updated_at: new Date().toISOString()
-                        },
-                        {
-                          wallet_address: memberWalletAddress,
-                          claimable_reward_balance: 100,
-                          total_rewards_withdrawn: 0,
-                          updated_at: new Date().toISOString()
-                        }
-                      ];
+                      // Create test balance record using correct column structure
+                      const insertData = {
+                        wallet_address: memberWalletAddress,
+                        available_balance: 0,
+                        reward_balance: 100,
+                        total_withdrawn: 0,
+                        updated_at: new Date().toISOString()
+                      };
                       
-                      let insertSuccess = false;
-                      for (const insertData of testInsertOptions) {
-                        try {
-                          await supabase.from('user_balances').insert(insertData);
-                          insertSuccess = true;
-                          console.log('✅ Insert successful with:', insertData);
-                          break;
-                        } catch (insertError) {
-                          console.log('❌ Insert failed with:', insertData, insertError);
-                          continue;
-                        }
+                      const { error: insertError } = await supabase
+                        .from('user_balances')
+                        .insert(insertData);
+                      
+                      if (insertError) {
+                        throw insertError;
                       }
                       
-                      if (!insertSuccess) {
-                        throw new Error('All insert attempts failed');
-                      }
+                      console.log('✅ Test balance record created:', insertData);
                       refetchBalance();
                       toast({
                         title: "Test Record Created",
@@ -842,7 +816,7 @@ export default function USDTWithdrawal() {
                   onClick={async () => {
                     try {
                       // Test direct API call like the curl command
-                      const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/rest/v1/user_balances?select=balance,withdrawn,updated_at,wallet_address&wallet_address=eq.${memberWalletAddress}`, {
+                      const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/rest/v1/user_balances?select=available_balance,reward_balance,total_withdrawn,updated_at,wallet_address&wallet_address=eq.${memberWalletAddress}`, {
                         headers: {
                           'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
                           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`,
