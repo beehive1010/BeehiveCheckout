@@ -253,64 +253,64 @@ export default function Rewards() {
       <div className="space-y-4 mb-6">
         {/* Mobile: Stack cards vertically for better readability */}
         <div className="md:hidden space-y-3">
-          <Card className="bg-gradient-to-r from-honey/10 to-amber-50 dark:from-honey/20 dark:to-amber-900/30 border-honey/20">
+          <Card className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/40 dark:to-yellow-900/40 border-amber-200 dark:border-amber-700/50">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-honey/20 rounded-lg">
-                    <DollarSign className="h-5 w-5 text-honey" />
+                  <div className="p-2 bg-amber-200 dark:bg-amber-800 rounded-lg">
+                    <DollarSign className="h-5 w-5 text-amber-800 dark:text-amber-200" />
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-honey">${rewardsData?.total || 0}</div>
-                    <div className="text-sm text-muted-foreground">{t('rewards.totalEarned')}</div>
+                    <div className="text-lg font-bold text-amber-800 dark:text-amber-200">${rewardsData?.total || 0}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">{t('rewards.totalEarned')}</div>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 border-amber-200/30">
+          <Card className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/40 dark:to-red-900/40 border-orange-200 dark:border-orange-700/50">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-amber-500/20 rounded-lg">
-                    <TrendingUp className="h-5 w-5 text-amber-600" />
+                  <div className="p-2 bg-orange-200 dark:bg-orange-800 rounded-lg">
+                    <TrendingUp className="h-5 w-5 text-orange-800 dark:text-orange-200" />
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-amber-600">${rewardsData?.totalWithdrawn || 0}</div>
-                    <div className="text-sm text-muted-foreground">{t('rewards.totalWithdrawn')}</div>
+                    <div className="text-lg font-bold text-orange-800 dark:text-orange-200">${rewardsData?.totalWithdrawn || 0}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">{t('rewards.totalWithdrawn')}</div>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/30 dark:to-amber-900/30 border-yellow-200/30">
+          <Card className="bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/40 dark:to-amber-900/40 border-yellow-200 dark:border-yellow-700/50">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-yellow-500/20 rounded-lg">
-                    <Timer className="h-5 w-5 text-yellow-600" />
+                  <div className="p-2 bg-yellow-200 dark:bg-yellow-800 rounded-lg">
+                    <Timer className="h-5 w-5 text-yellow-800 dark:text-yellow-200" />
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-yellow-600">${rewardsData?.pending || 0}</div>
-                    <div className="text-sm text-muted-foreground">{t('rewards.pending')}</div>
+                    <div className="text-lg font-bold text-yellow-800 dark:text-yellow-200">${rewardsData?.pending || 0}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">{t('rewards.pending')}</div>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-r from-honey/15 to-amber-100 dark:from-honey/25 dark:to-amber-800/30 border-honey/30">
+          <Card className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/40 dark:to-emerald-900/40 border-green-200 dark:border-green-700/50">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-honey/30 rounded-lg">
-                    <Gift className="h-5 w-5 text-honey" />
+                  <div className="p-2 bg-green-200 dark:bg-green-800 rounded-lg">
+                    <Gift className="h-5 w-5 text-green-800 dark:text-green-200" />
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-honey">${rewardsData?.claimable || 0}</div>
-                    <div className="text-sm text-muted-foreground">{t('rewards.claimable')}</div>
+                    <div className="text-lg font-bold text-green-800 dark:text-green-200">${rewardsData?.claimable || 0}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300">{t('rewards.claimable')}</div>
                   </div>
                 </div>
               </div>
@@ -362,14 +362,14 @@ export default function Rewards() {
             <TabsList className="grid grid-cols-2 gap-2 h-auto bg-transparent p-0">
               <TabsTrigger 
                 value="pending" 
-                className="flex flex-col items-center gap-2 p-4 h-auto bg-gradient-to-br from-honey/10 to-amber-50 dark:from-honey/20 dark:to-amber-900/30 border border-honey/20 data-[state=active]:bg-honey data-[state=active]:text-white rounded-xl"
+                className="flex flex-col items-center gap-2 p-4 h-auto bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/40 dark:to-blue-800/40 border border-blue-200 dark:border-blue-700/50 data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-xl text-blue-800 dark:text-blue-200"
               >
                 <Clock className="h-5 w-5" />
                 <span className="text-sm font-medium">{t('rewards.tabs.pending')}</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="rollup" 
-                className="flex flex-col items-center gap-2 p-4 h-auto bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 border border-amber-200/30 data-[state=active]:bg-amber-500 data-[state=active]:text-white rounded-xl"
+                className="flex flex-col items-center gap-2 p-4 h-auto bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/40 dark:to-purple-800/40 border border-purple-200 dark:border-purple-700/50 data-[state=active]:bg-purple-600 data-[state=active]:text-white rounded-xl text-purple-800 dark:text-purple-200"
               >
                 <BarChart3 className="h-5 w-5" />
                 <span className="text-sm font-medium">{t('rewards.tabs.rollup')}</span>
@@ -378,14 +378,14 @@ export default function Rewards() {
             <TabsList className="grid grid-cols-2 gap-2 h-auto bg-transparent p-0 mt-2">
               <TabsTrigger 
                 value="withdrawal" 
-                className="flex flex-col items-center gap-2 p-4 h-auto bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/30 dark:to-amber-900/30 border border-yellow-200/30 data-[state=active]:bg-yellow-500 data-[state=active]:text-white rounded-xl"
+                className="flex flex-col items-center gap-2 p-4 h-auto bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/40 dark:to-emerald-800/40 border border-emerald-200 dark:border-emerald-700/50 data-[state=active]:bg-emerald-600 data-[state=active]:text-white rounded-xl text-emerald-800 dark:text-emerald-200"
               >
                 <DollarSign className="h-5 w-5" />
                 <span className="text-sm font-medium">{t('rewards.tabs.withdrawal')}</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="history" 
-                className="flex flex-col items-center gap-2 p-4 h-auto bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/30 dark:to-red-900/30 border border-orange-200/30 data-[state=active]:bg-orange-500 data-[state=active]:text-white rounded-xl"
+                className="flex flex-col items-center gap-2 p-4 h-auto bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/40 dark:to-orange-800/40 border border-orange-200 dark:border-orange-700/50 data-[state=active]:bg-orange-600 data-[state=active]:text-white rounded-xl text-orange-800 dark:text-orange-200"
               >
                 <Award className="h-5 w-5" />
                 <span className="text-sm font-medium">{t('rewards.tabs.history')}</span>

@@ -938,6 +938,15 @@
     "history": "History",
     "withdrawal": "Withdrawal",
     "claimAll": "Claim All",
+    "loading": "Loading rewards...",
+    "error": "Error loading rewards",
+    "totalEarned": "Total Earned",
+    "totalWithdrawn": "Total Withdrawn",
+    "pending": "Pending",
+    "claimable": "Claimable",
+    "active": "Active",
+    "pendingCountdowns": "Pending Countdowns",
+    "pendingDescription": "Your pending rewards with countdown timers",
     "tabs": {
       "overview": "Overview",
       "pending": "Pending",
@@ -1014,6 +1023,8 @@
     },
     "history": {
       "title": "Transaction History",
+      "subtitle": "Complete transaction history",
+      "transactions": "Transaction History",
       "noHistory": "No transactions yet",
       "noHistoryDescription": "Your reward and transaction history will appear here",
       "items": "History Items",
@@ -1027,6 +1038,19 @@
       "results": "results",
       "noFilteredResults": "No transactions match your filters"
     },
+    "bccRewards": {
+      "bccTransferable": "BCC Transferable",
+      "bccLocked": "BCC Locked", 
+      "bccMultipliers": "BCC Multipliers",
+      "bccUpgrades": "BCC Upgrades"
+    },
+    "errors": {
+      "loadFailed": "Failed to load rewards",
+      "claimFailed": "Failed to claim rewards"
+    },
+    "rewardReady": "Reward Ready",
+    "rewardReadyDescription": "Your reward is ready to claim",
+    "claimSuccessDescription": "Successfully claimed {amount} USDT",
     "available_usdt": "Available USDT",
     "available_bcc": "Available BCC",
     "total_earned": "Total Earned",
