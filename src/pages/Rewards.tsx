@@ -359,11 +359,11 @@ export default function Rewards() {
               <div className="w-6 h-6 bg-gradient-to-br from-honey to-amber-500 rounded-lg flex items-center justify-center shadow-lg">
                 <Award className="h-3 w-3 text-black" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-slate-700 to-gray-800 dark:from-slate-200 dark:to-gray-100 bg-clip-text text-transparent">
+              <h2 className="text-base sm:text-lg lg:text-xl font-bold bg-gradient-to-r from-slate-700 to-gray-800 dark:from-slate-200 dark:to-gray-100 bg-clip-text text-transparent">
                 {t('rewards.management')}
               </h2>
             </div>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
               {t('rewards.selectCategory')}
             </p>
           </div>
@@ -423,28 +423,28 @@ export default function Rewards() {
                 <div className="relative w-8 h-8 bg-white/90 dark:bg-blue-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <Clock className="h-4 w-4" />
                 </div>
-                <span className="relative font-bold">{t('rewards.tabs.pending')}</span>
+                <span className="relative font-bold text-xs sm:text-sm lg:text-base">{t('rewards.tabs.pending')}</span>
               </TabsTrigger>
               <TabsTrigger value="rollup" className="group relative overflow-hidden flex items-center justify-center gap-3 px-6 py-4 text-sm min-h-[60px] bg-gradient-to-br from-purple-50 via-purple-100 to-purple-50 dark:from-purple-950/30 dark:via-purple-900/40 dark:to-purple-950/30 hover:from-purple-100 hover:via-purple-200 hover:to-purple-100 dark:hover:from-purple-900/50 dark:hover:via-purple-800/60 dark:hover:to-purple-900/50 border-2 border-purple-200 dark:border-purple-700 data-[state=active]:from-purple-500 data-[state=active]:via-purple-600 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:border-purple-600 rounded-xl text-purple-800 dark:text-purple-200 shadow-lg hover:shadow-xl transform hover:scale-105 hover:-translate-y-1 data-[state=active]:scale-105 transition-all duration-300 cursor-pointer">
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-transparent to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="relative w-8 h-8 bg-white/90 dark:bg-purple-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <BarChart3 className="h-4 w-4" />
                 </div>
-                <span className="relative font-bold">{t('rewards.tabs.rollup')}</span>
+                <span className="relative font-bold text-xs sm:text-sm lg:text-base">{t('rewards.tabs.rollup')}</span>
               </TabsTrigger>
               <TabsTrigger value="withdrawal" className="group relative overflow-hidden flex items-center justify-center gap-3 px-6 py-4 text-sm min-h-[60px] bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-50 dark:from-emerald-950/30 dark:via-emerald-900/40 dark:to-emerald-950/30 hover:from-emerald-100 hover:via-emerald-200 hover:to-emerald-100 dark:hover:from-emerald-900/50 dark:hover:via-emerald-800/60 dark:hover:to-emerald-900/50 border-2 border-emerald-200 dark:border-emerald-700 data-[state=active]:from-emerald-500 data-[state=active]:via-emerald-600 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:border-emerald-600 rounded-xl text-emerald-800 dark:text-emerald-200 shadow-lg hover:shadow-xl transform hover:scale-105 hover:-translate-y-1 data-[state=active]:scale-105 transition-all duration-300 cursor-pointer">
                 <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-transparent to-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="relative w-8 h-8 bg-white/90 dark:bg-emerald-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <DollarSign className="h-4 w-4" />
                 </div>
-                <span className="relative font-bold">{t('rewards.tabs.withdrawal')}</span>
+                <span className="relative font-bold text-xs sm:text-sm lg:text-base">{t('rewards.tabs.withdrawal')}</span>
               </TabsTrigger>
               <TabsTrigger value="history" className="group relative overflow-hidden flex items-center justify-center gap-3 px-6 py-4 text-sm min-h-[60px] bg-gradient-to-br from-orange-50 via-orange-100 to-orange-50 dark:from-orange-950/30 dark:via-orange-900/40 dark:to-orange-950/30 hover:from-orange-100 hover:via-orange-200 hover:to-orange-100 dark:hover:from-orange-900/50 dark:hover:via-orange-800/60 dark:hover:to-orange-900/50 border-2 border-orange-200 dark:border-orange-700 data-[state=active]:from-orange-500 data-[state=active]:via-orange-600 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:border-orange-600 rounded-xl text-orange-800 dark:text-orange-200 shadow-lg hover:shadow-xl transform hover:scale-105 hover:-translate-y-1 data-[state=active]:scale-105 transition-all duration-300 cursor-pointer">
                 <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 via-transparent to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="relative w-8 h-8 bg-white/90 dark:bg-orange-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <Award className="h-4 w-4" />
                 </div>
-                <span className="relative font-bold">{t('rewards.tabs.history')}</span>
+                <span className="relative font-bold text-xs sm:text-sm lg:text-base">{t('rewards.tabs.history')}</span>
               </TabsTrigger>
             </TabsList>
           </div>
