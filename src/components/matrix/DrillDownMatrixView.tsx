@@ -109,6 +109,12 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
         const rightMembers: MatrixMember[] = [];
         
         layerMembers.forEach((member: any) => {
+          console.log(`🔍 Processing member:`, {
+            wallet: member.wallet_address,
+            position: member.matrix_position,
+            layer: member.layer
+          });
+          
           const memberData: MatrixMember = {
             walletAddress: member.wallet_address,
             username: member.username || `User_${member.wallet_address?.slice(-6)}`,
@@ -122,12 +128,19 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
           // Filter by position - exact match since function uses 'L', 'M', 'R'
           if (member.matrix_position === 'L') {
             leftMembers.push(memberData);
+            console.log(`✅ Added to LEFT:`, memberData.walletAddress);
           } else if (member.matrix_position === 'M') {
             middleMembers.push(memberData);
+            console.log(`✅ Added to MIDDLE:`, memberData.walletAddress);
           } else if (member.matrix_position === 'R') {
             rightMembers.push(memberData);
+            console.log(`✅ Added to RIGHT:`, memberData.walletAddress);
+          } else {
+            console.log(`⚠️ Unknown position for member:`, member.matrix_position, memberData.walletAddress);
           }
         });
+        
+        console.log(`🔍 Final member counts - L:${leftMembers.length}, M:${middleMembers.length}, R:${rightMembers.length}`);
 
         // Create current member info
         const currentMember: MatrixMember = {
