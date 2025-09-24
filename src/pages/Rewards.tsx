@@ -284,7 +284,7 @@ export default function Rewards() {
         <CollapsibleContent>
           <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-900 dark:from-black dark:via-gray-950 dark:to-black rounded-2xl border-2 border-gray-700 dark:border-gray-800 p-4 sm:p-6 mt-3 shadow-3xl animate-in slide-in-from-top-2 duration-300">
             <div className="absolute inset-0 bg-gradient-to-r from-honey/8 via-transparent to-amber-400/8 opacity-40"></div>
-            <div className="relative grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="relative grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-4">
               <div className="group relative overflow-hidden p-4 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-gray-700 hover:via-gray-600 hover:to-gray-700 border-2 border-gray-600 hover:border-honey/50 rounded-xl shadow-lg hover:shadow-2xl hover:shadow-honey/20 transition-all duration-500 hover:scale-[1.05] hover:-translate-y-1">
                 <div className="absolute inset-0 bg-gradient-to-r from-honey/5 via-transparent to-amber-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="relative text-center space-y-2">
