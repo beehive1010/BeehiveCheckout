@@ -294,7 +294,7 @@ export default function Rewards() {
                   <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide">
                     {t('rewards.overview.totalEarned')}
                   </p>
-                  <p className="text-lg font-bold text-emerald-800 dark:text-emerald-200">
+                  <p className="text-sm sm:text-lg font-bold text-emerald-800 dark:text-emerald-200">
                     ${rewardsData?.total || 0}
                   </p>
                 </div>
@@ -309,7 +309,7 @@ export default function Rewards() {
                   <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wide">
                     {t('rewards.overview.totalWithdrawn')}
                   </p>
-                  <p className="text-lg font-bold text-blue-800 dark:text-blue-200">
+                  <p className="text-sm sm:text-lg font-bold text-blue-800 dark:text-blue-200">
                     ${rewardsData?.totalWithdrawn || 0}
                   </p>
                 </div>
@@ -324,7 +324,7 @@ export default function Rewards() {
                   <p className="text-xs font-semibold text-orange-700 dark:text-orange-300 uppercase tracking-wide">
                     {t('rewards.overview.pending')}
                   </p>
-                  <p className="text-lg font-bold text-orange-800 dark:text-orange-200">
+                  <p className="text-sm sm:text-lg font-bold text-orange-800 dark:text-orange-200">
                     ${rewardsData?.pending || 0}
                   </p>
                 </div>
@@ -339,7 +339,7 @@ export default function Rewards() {
                   <p className="text-xs font-semibold text-amber-700 dark:text-honey uppercase tracking-wide">
                     {t('rewards.overview.claimable')}
                   </p>
-                  <p className="text-lg font-bold text-honey">
+                  <p className="text-sm sm:text-lg font-bold text-honey">
                     ${rewardsData?.claimable || 0}
                   </p>
                 </div>
