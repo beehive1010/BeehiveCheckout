@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useWallet } from './useWallet';
-import { matrixService } from '../lib/supabase/matrixService';
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
+import {useWallet} from './useWallet';
+import {matrixService} from '../lib/services/matrixService.ts';
 
 // 用户矩阵层级详情hook
 export function useUserMatrixLayers() {

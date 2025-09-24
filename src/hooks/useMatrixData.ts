@@ -2,8 +2,7 @@
  * Matrix Data Hooks - Direct API calls to Supabase functions
  */
 
-import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import {useQuery} from '@tanstack/react-query';
 
 interface MatrixStatsData {
   totalMembers: number;
@@ -103,7 +102,7 @@ const callSupabaseFunction = async (functionName: string, action: string, wallet
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1MjUwMTYsImV4cCI6MjA0MDEwMTAxNn0.gBWZUvwCJgP1lsVQlZNDsYXDxBEr31QfRtNEgYzS6NA`,
+      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
       'x-wallet-address': walletAddress
     },
     body: JSON.stringify({
