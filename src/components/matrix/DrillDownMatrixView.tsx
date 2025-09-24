@@ -112,7 +112,8 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
           console.log(`🔍 Processing member:`, {
             wallet: member.wallet_address,
             position: member.matrix_position,
-            layer: member.layer
+            layer: member.layer,
+            fullMember: member
           });
           
           const memberData: MatrixMember = {
@@ -137,6 +138,9 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
             console.log(`✅ Added to RIGHT:`, memberData.walletAddress);
           } else {
             console.log(`⚠️ Unknown position for member:`, member.matrix_position, memberData.walletAddress);
+            // Try adding to left as fallback for debugging
+            leftMembers.push({ ...memberData, position: 'L' });
+            console.log(`🔄 Added to LEFT as fallback:`, memberData.walletAddress);
           }
         });
         
