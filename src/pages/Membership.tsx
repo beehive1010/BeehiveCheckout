@@ -202,11 +202,12 @@ export default function Membership() {
       return;
     }
 
-    // Check if this level is the next unlockable level from database
-    if (!nextUnlockLevel || targetLevel !== nextUnlockLevel) {
+    // Check if this level is unlockable (simplified logic - sequential upgrade only)
+    const expectedNextLevel = currentLevel + 1;
+    if (targetLevel !== expectedNextLevel) {
       toast({
         title: t('membership.errors.levelLocked'),
-        description: t('membership.errors.levelNotAvailable'),
+        description: `Must upgrade sequentially. Expected Level ${expectedNextLevel}, got ${targetLevel}`,
         variant: "destructive",
       });
       return;
