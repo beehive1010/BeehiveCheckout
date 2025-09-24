@@ -512,7 +512,7 @@ export default function Rewards() {
                 {/* Matrix Rewards Section */}
                 <div className="space-y-5">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-honey to-amber-500 flex items-center justify-center">
                       <Gift className="h-4 w-4 text-white" />
                     </div>
                     <h4 className="text-lg font-bold text-foreground">
@@ -528,7 +528,7 @@ export default function Rewards() {
                     ].map((item, index) => (
                       <div 
                         key={item.key}
-                        className="group flex items-center gap-4 p-4 rounded-xl bg-emerald-50/50 hover:bg-emerald-100/50 dark:bg-emerald-900/20 dark:hover:bg-emerald-800/30 border border-emerald-200/50 dark:border-emerald-700/50 hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
+                        className="group flex items-center gap-4 p-4 rounded-xl bg-amber-50/50 hover:bg-amber-100/50 dark:bg-amber-900/20 dark:hover:bg-amber-800/30 border border-amber-200/50 dark:border-amber-700/50 hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
                         style={{
                           animationDelay: `${index * 100}ms`,
                           animation: isRewardInfoExpanded ? 'slideInFromLeft 0.5s ease-out forwards' : 'none'
@@ -540,7 +540,7 @@ export default function Rewards() {
                             {t(`rewards.rewards.${item.key}`)}
                           </span>
                         </div>
-                        <div className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600 group-hover:scale-125 transition-transform duration-300" />
+                        <div className="w-3 h-3 rounded-full bg-gradient-to-r from-honey to-amber-600 group-hover:scale-125 transition-transform duration-300" />
                       </div>
                     ))}
                   </div>
