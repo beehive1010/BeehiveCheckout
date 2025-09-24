@@ -50,6 +50,7 @@ export default function AdminDashboard() {
     systemHealth: 'healthy',
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [activeSection, setActiveSection] = useState<'overview' | 'users' | 'rewards' | 'withdrawals'>('overview');
 
   useEffect(() => {
     loadDashboardStats();
