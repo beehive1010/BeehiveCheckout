@@ -407,31 +407,61 @@ export default function USDTWithdrawal() {
         }
       });
       
-      // Update user balance using correct column structure
-      const { data: currentBalance } = await supabase
-        .from('user_balances')
-        .select('available_balance, reward_balance, total_withdrawn')
-        .ilike('wallet_address', memberWalletAddress!)
-        .single();
-      
-      if (currentBalance) {
-        const currentRewardBalance = currentBalance.reward_balance || 0;
-        const currentWithdrawn = currentBalance.total_withdrawn || 0;
+      // Update user balance via balance API (similar to how balance is retrieved)
+      try {
+        const balanceUpdateResponse = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/balance`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY!,
+            'Content-Type': 'application/json',
+            'x-wallet-address': memberWalletAddress!,
+          },
+          body: JSON.stringify({
+            action: 'update-balance',
+            amount: -data.amount, // Negative amount for withdrawal
+            transaction_type: 'withdrawal',
+            description: `USDT withdrawal to ${data.recipientAddress}`,
+            reference: withdrawalId
+          }),
+        });
         
-        console.log(`📊 Current balances - reward_balance: ${currentRewardBalance}, total_withdrawn: ${currentWithdrawn}`);
-        
-        const updateData = {
-          reward_balance: Math.max(0, currentRewardBalance - data.amount),
-          total_withdrawn: currentWithdrawn + data.amount,
-          updated_at: new Date().toISOString(),
-        };
-        
-        await supabase
-          .from('user_balances')
-          .update(updateData)
-          .ilike('wallet_address', memberWalletAddress!);
+        if (!balanceUpdateResponse.ok) {
+          console.warn('Balance update API warning:', await balanceUpdateResponse.text());
+          // Continue with direct database update as fallback
+          const { supabase } = await import('../../lib/supabase');
+          const { data: currentBalance } = await supabase
+            .from('user_balances')
+            .select('reward_balance, total_withdrawn')
+            .ilike('wallet_address', memberWalletAddress!)
+            .single();
           
-        console.log(`✅ Balance updated:`, updateData);
+          if (currentBalance) {
+            const currentRewardBalance = currentBalance.reward_balance || 0;
+            const currentWithdrawn = currentBalance.total_withdrawn || 0;
+            
+            console.log(`📊 Fallback: Current balances - reward_balance: ${currentRewardBalance}, total_withdrawn: ${currentWithdrawn}`);
+            
+            const updateData = {
+              reward_balance: Math.max(0, currentRewardBalance - data.amount),
+              total_withdrawn: currentWithdrawn + data.amount,
+              updated_at: new Date().toISOString(),
+            };
+            
+            await supabase
+              .from('user_balances')
+              .update(updateData)
+              .ilike('wallet_address', memberWalletAddress!);
+              
+            console.log(`✅ Fallback balance updated:`, updateData);
+          }
+        } else {
+          const balanceUpdateResult = await balanceUpdateResponse.json();
+          console.log(`✅ Balance updated via API:`, balanceUpdateResult);
+        }
+      } catch (balanceError) {
+        console.warn('Balance update error:', balanceError);
+        // Continue anyway as the withdrawal was successful
       }
       
       return {
