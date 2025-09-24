@@ -370,7 +370,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
             ></div>
           </div>
           <span className="text-xs text-honey font-semibold">
-            {Math.max(navigationPath.length, 1)}/19
+            {navigationPath.length === 0 ? 1 : navigationPath.length}/19
           </span>
         </div>
       </CardHeader>
