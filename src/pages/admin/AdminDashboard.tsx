@@ -17,7 +17,7 @@ import {
   Gift,
   ArrowRight
 } from 'lucide-react';
-import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { useAdminAuthContext } from '../../contexts/AdminAuthContext';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { SystemFixPanel } from '../../components/admin/SystemFixPanel';
 import { ServerWalletPanel } from '../../components/admin/ServerWalletPanel';
