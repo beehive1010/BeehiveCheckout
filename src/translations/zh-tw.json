@@ -165,5 +165,28 @@
   },
   "membership": {
     "useQuickUpgrade": "使用上方快速升級來認領級別 {level}"
+  },
+  "membershipSystem": {
+    "wallet": {
+      "connectTitle": "連接您的錢包",
+      "connectDescription": "請連接您的錢包以訪問會員系統"
+    },
+    "matrix": {
+      "title": "推薦矩陣",
+      "connectDescription": "連接您的錢包以查看推薦矩陣",
+      "layerFillStatus": "層級填充狀態",
+      "ui": {
+        "unknown": "未知",
+        "showLess": "顯示較少",
+        "showAllLayers": "顯示全部19層"
+      },
+      "errors": {
+        "loadFailed": "載入矩陣數據失敗",
+        "copyFailed": "複製連結失敗"
+      },
+      "success": {
+        "linkCopied": "推薦連結已複製到剪貼板！"
+      }
+    }
   }
 }

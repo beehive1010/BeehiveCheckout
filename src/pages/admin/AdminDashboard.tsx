@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
 import { 
   Users, 
   Image, 
@@ -10,12 +11,19 @@ import {
   TrendingUp,
   Activity,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  Settings,
+  CreditCard,
+  Gift,
+  ArrowRight
 } from 'lucide-react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { SystemFixPanel } from '../../components/admin/SystemFixPanel';
 import { ServerWalletPanel } from '../../components/admin/ServerWalletPanel';
+import { UserManagement } from '../../components/admin/UserManagement';
+import { RewardsManagement } from '../../components/admin/RewardsManagement';
+import { WithdrawalManagement } from '../../components/admin/WithdrawalManagement';
 
 interface DashboardStats {
   totalUsers: number;
