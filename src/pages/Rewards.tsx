@@ -394,7 +394,7 @@ export default function Rewards() {
                 <div className="flex items-center gap-2">
                   <Badge 
                     variant="outline" 
-                    className="bg-honey/15 border-honey/30 text-honey font-semibold px-2 md:px-3 py-1 text-xs">
+                    className="bg-honey/15 border-honey/30 text-honey font-semibold px-2 md:px-3 py-1 text-xs"
                   >
                     {t('rewards.rollup.autoDistribution') || 'Auto Distribution'}
                   </Badge>
