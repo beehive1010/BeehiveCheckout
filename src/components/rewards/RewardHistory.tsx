@@ -155,11 +155,11 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
 
       {/* Enhanced Filters Panel */}
       {showFilters && (
-        <Card className="border border-emerald-500/20 bg-gradient-to-r from-emerald-50/50 to-green-50/50 dark:from-emerald-900/10 dark:to-green-900/10">
+        <Card className="border border-honey/20 bg-gradient-to-r from-amber-50/50 to-yellow-50/50 dark:from-amber-900/10 dark:to-yellow-900/10">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <Filter className="h-4 w-4 text-emerald-500" />
+                <Filter className="h-4 w-4 text-honey" />
                 {t('rewards.history.filters') || 'Filters'}
               </h4>
               <Button
@@ -274,7 +274,7 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
                   {/* Status Icon */}
                   <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
                     reward.status === 'completed' 
-                      ? 'bg-gradient-to-br from-green-500 to-emerald-500' :
+                      ? 'bg-gradient-to-br from-honey to-amber-500' :
                     reward.status === 'pending' 
                       ? 'bg-gradient-to-br from-yellow-500 to-orange-500' :
                       'bg-gradient-to-br from-red-500 to-red-600'
@@ -311,14 +311,14 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
                 
                 {/* Amount and Status */}
                 <div className="text-right flex-shrink-0">
-                  <div className="text-lg md:text-xl font-bold text-emerald-600 dark:text-emerald-400">
+                  <div className="text-lg md:text-xl font-bold text-honey dark:text-amber-400">
                     ${reward.amount.toFixed(2)}
                   </div>
                   <Badge 
                     variant="outline" 
                     className={`text-xs mt-1 ${
                       reward.status === 'completed' 
-                        ? 'bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400' :
+                        ? 'bg-honey/10 border-honey/30 text-honey dark:text-amber-400' :
                       reward.status === 'pending' 
                         ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-600 dark:text-yellow-400' :
                         'bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400'
@@ -336,7 +336,7 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
                 <div 
                   className={`h-1.5 rounded-full transition-all duration-500 ${
                     reward.status === 'completed' 
-                      ? 'bg-gradient-to-r from-green-500 to-emerald-500 w-full' :
+                      ? 'bg-gradient-to-r from-honey to-amber-500 w-full' :
                     reward.status === 'pending' 
                       ? 'bg-gradient-to-r from-yellow-500 to-orange-500 w-2/3' :
                       'bg-gradient-to-r from-red-500 to-red-600 w-1/3'
@@ -368,7 +368,7 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
       
       {/* Enhanced Pagination */}
       {totalPages > 1 && (
-        <Card className="border-0 bg-gradient-to-r from-emerald-50/50 to-green-50/50 dark:from-emerald-900/10 dark:to-green-900/10">
+        <Card className="border-0 bg-gradient-to-r from-amber-50/50 to-yellow-50/50 dark:from-amber-900/10 dark:to-yellow-900/10">
           <CardContent className="p-4">
             <div className="flex justify-center items-center gap-2">
               <Button
@@ -376,7 +376,7 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
                 size="sm"
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
-                className="h-10 w-10 p-0 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10 disabled:opacity-50"
+                className="h-10 w-10 p-0 border-honey/30 text-honey hover:bg-honey/10 disabled:opacity-50"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -392,8 +392,8 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
                       onClick={() => setCurrentPage(page)}
                       className={`h-10 w-10 p-0 ${
                         currentPage === page
-                          ? 'bg-emerald-500 text-white border-emerald-500 hover:bg-emerald-600'
-                          : 'border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10'
+                          ? 'bg-honey text-white border-honey hover:bg-amber-600'
+                          : 'border-honey/30 text-honey hover:bg-honey/10'
                       }`}
                     >
                       {page}
@@ -407,7 +407,7 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
                 size="sm"
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
-                className="h-10 w-10 p-0 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10 disabled:opacity-50"
+                className="h-10 w-10 p-0 border-honey/30 text-honey hover:bg-honey/10 disabled:opacity-50"
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
