@@ -316,7 +316,7 @@ export default function USDTWithdrawal() {
         const amountInWei = (netAmount * Math.pow(10, tokenDecimals)).toString();
         
         // Call thirdweb Engine API directly
-        const engineResponse = await fetch('https://api.thirdweb.com/v1/contract/{chain_id}/{contract_address}/erc20/transfer', {
+        const engineResponse = await fetch(`https://api.thirdweb.com/v1/contract/${targetChainId}/${targetTokenAddress}/erc20/transfer`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
