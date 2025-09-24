@@ -274,14 +274,16 @@ export default function Rewards() {
                   {t('rewards.overviewSubtitle') || 'Click to expand and view detailed statistics'}
                 </span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <div className="bg-gradient-to-r from-honey/90 to-amber-400 px-2.5 py-1 rounded-full shadow-lg transform group-hover:scale-105 transition-all duration-300">
-                  <span className="text-xs sm:text-sm font-bold text-black drop-shadow-sm whitespace-nowrap">
-                    ${rewardsData?.claimable || 0} {t('rewards.available_to_claim') || 'Available to Claim'}
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <div className="bg-gradient-to-r from-honey/90 to-amber-400 px-2 py-1 rounded-full shadow-lg transform group-hover:scale-105 transition-all duration-300">
+                  <span className="text-xs font-bold text-black drop-shadow-sm">
+                    <span className="hidden xs:inline">${rewardsData?.claimable || 0} </span>
+                    <span className="hidden sm:inline">{t('rewards.available_to_claim') || 'Available'}</span>
+                    <span className="sm:hidden">${rewardsData?.claimable || 0}</span>
                   </span>
                 </div>
-                <div className="bg-honey/20 hover:bg-honey/30 rounded-full p-1 transition-all duration-300">
-                  <ChevronDown className={`h-4 w-4 sm:h-5 sm:w-5 text-honey transition-all duration-500 group-hover:scale-110 ${isOverviewOpen ? 'rotate-180' : ''}`} />
+                <div className="bg-honey/20 hover:bg-honey/30 rounded-full p-1.5 transition-all duration-300 flex-shrink-0">
+                  <ChevronDown className={`h-4 w-4 text-honey transition-all duration-500 group-hover:scale-110 ${isOverviewOpen ? 'rotate-180' : ''}`} />
                 </div>
               </div>
             </div>
