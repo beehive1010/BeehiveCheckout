@@ -90,11 +90,11 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
 
   if (!history || history.length === 0) {
     return (
-      <Card className={`border-0 shadow-lg bg-gradient-to-br from-emerald-50/50 to-green-50/50 dark:from-emerald-900/10 dark:to-green-900/10 ${className}`}>
+      <Card className={`border-0 shadow-lg bg-gradient-to-br from-amber-50/50 to-yellow-50/50 dark:from-amber-900/10 dark:to-yellow-900/10 ${className}`}>
         <CardContent className="p-8 md:p-12">
           <div className="text-center">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-emerald-500/20 to-green-500/20 flex items-center justify-center">
-              <Award className="h-10 w-10 text-emerald-500" />
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-honey/20 to-amber-500/20 flex items-center justify-center">
+              <Award className="h-10 w-10 text-honey" />
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-2">
               {t('rewards.noHistory')}
@@ -102,7 +102,7 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
             <p className="text-muted-foreground max-w-md mx-auto mb-6">
               {t('rewards.noHistoryDescription') || 'Your reward transactions will appear here once you start earning through the matrix system.'}
             </p>
-            <Button variant="outline" className="border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10">
+            <Button variant="outline" className="border-honey/30 text-honey hover:bg-honey/10">
               <span className="text-sm">{t('rewards.learnMore') || 'Learn More'}</span>
             </Button>
           </div>
@@ -114,18 +114,18 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
   return (
     <div className={`space-y-4 md:space-y-6 ${className}`}>
       {/* Premium Header */}
-      <Card className="relative overflow-hidden bg-gradient-to-br from-emerald-500/10 via-green-500/5 to-teal-500/10 border-0 shadow-xl">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.1),transparent_70%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(20,184,166,0.1),transparent_70%)]" />
+      <Card className="relative overflow-hidden bg-gradient-to-br from-honey/10 via-amber-500/5 to-yellow-500/10 border-0 shadow-xl">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.1),transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(245,158,11,0.1),transparent_70%)]" />
         
         <CardHeader className="relative">
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-honey to-amber-500 flex items-center justify-center shadow-lg">
                 <Award className="h-5 w-5 text-white" />
               </div>
               <div>
-                <span className="text-xl font-bold bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">
+                <span className="text-xl font-bold bg-gradient-to-r from-honey to-amber-500 bg-clip-text text-transparent">
                   {t('rewards.history.title') || 'Reward History'}
                 </span>
                 <p className="text-sm text-muted-foreground mt-1">
@@ -136,7 +136,7 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
             <div className="flex items-center gap-2">
               <Badge 
                 variant="outline" 
-                className="bg-emerald-500/15 border-emerald-500/30 text-emerald-500 font-semibold px-3 py-1"
+                className="bg-honey/15 border-honey/30 text-honey font-semibold px-3 py-1"
               >
                 {filteredHistory.length} {t('rewards.history.transactions') || 'Transactions'}
               </Badge>
@@ -144,7 +144,7 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
                 variant="outline"
                 size="sm"
                 onClick={() => setShowFilters(!showFilters)}
-                className="border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10"
+                className="border-honey/30 text-honey hover:bg-honey/10"
               >
                 <Filter className="h-4 w-4" />
               </Button>
@@ -172,16 +172,16 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
               </Button>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
               {/* Search */}
-              <div className="relative">
+              <div className="relative sm:col-span-2 lg:col-span-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input
                   type="text"
                   placeholder={t('rewards.history.searchPlaceholder') || 'Search...'}
                   value={historyFilters.searchKeyword}
                   onChange={(e) => setHistoryFilters(prev => ({ ...prev, searchKeyword: e.target.value }))}
-                  className="w-full pl-10 pr-3 py-2.5 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  className="w-full pl-10 pr-3 py-3 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-honey/20 focus:border-honey"
                 />
               </div>
 
@@ -189,7 +189,7 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
               <select
                 value={historyFilters.layer}
                 onChange={(e) => setHistoryFilters(prev => ({ ...prev, layer: e.target.value }))}
-                className="w-full px-3 py-2.5 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                className="w-full px-3 py-3 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-honey/20 focus:border-honey"
               >
                 <option value="">{t('rewards.history.allLayers') || 'All Layers'}</option>
                 <option value="1">Layer 1</option>
@@ -201,7 +201,7 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
               <select
                 value={historyFilters.status}
                 onChange={(e) => setHistoryFilters(prev => ({ ...prev, status: e.target.value }))}
-                className="w-full px-3 py-2.5 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                className="w-full px-3 py-3 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-honey/20 focus:border-honey"
               >
                 <option value="">{t('rewards.history.allStatus') || 'All Status'}</option>
                 <option value="completed">{t('rewards.status.completed') || 'Completed'}</option>
@@ -210,13 +210,13 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
               </select>
 
               {/* Date From */}
-              <div className="relative">
+              <div className="relative sm:col-span-2 lg:col-span-1">
                 <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input
                   type="date"
                   value={historyFilters.dateFrom}
                   onChange={(e) => setHistoryFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
-                  className="w-full pl-10 pr-3 py-2.5 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  className="w-full pl-10 pr-3 py-3 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-honey/20 focus:border-honey"
                 />
               </div>
 
@@ -227,7 +227,7 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
                   type="date"
                   value={historyFilters.dateTo}
                   onChange={(e) => setHistoryFilters(prev => ({ ...prev, dateTo: e.target.value }))}
-                  className="w-full pl-10 pr-3 py-2.5 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  className="w-full pl-10 pr-3 py-3 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-honey/20 focus:border-honey"
                 />
               </div>
             </div>
@@ -239,7 +239,7 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
                   variant="outline"
                   size="sm"
                   onClick={clearFilters}
-                  className="text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/10"
+                  className="text-honey border-honey/30 hover:bg-honey/10"
                 >
                   <X className="h-4 w-4 mr-2" />
                   {t('rewards.history.clearFilters') || 'Clear Filters'}
@@ -260,13 +260,13 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
         {paginatedHistory.length > 0 ? paginatedHistory.map((reward, index) => (
           <Card 
             key={reward.id} 
-            className="group relative overflow-hidden border border-border/50 hover:border-emerald-500/30 transition-all duration-300 hover:shadow-lg hover:scale-[1.01]"
+            className="group relative overflow-hidden border border-border/50 hover:border-honey/30 transition-all duration-300 hover:shadow-lg hover:scale-[1.01]"
             style={{
               animationDelay: `${index * 100}ms`,
               animation: 'fadeInUp 0.5s ease-out forwards'
             }}
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-honey/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             
             <CardContent className="p-4 md:p-5 relative">
               <div className="flex items-center justify-between mb-3">
@@ -356,7 +356,7 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
                   variant="outline"
                   size="sm"
                   onClick={clearFilters}
-                  className="text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/10"
+                  className="text-honey border-honey/30 hover:bg-honey/10"
                 >
                   {t('rewards.history.clearFilters') || 'Clear Filters'}
                 </Button>

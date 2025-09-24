@@ -293,26 +293,26 @@ export default function Rewards() {
       {/* Sticky TabBar Container */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border/40 -mx-3 md:-mx-4 lg:mx-0 px-3 md:px-4 lg:px-0 pb-2 mb-3 md:mb-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 h-12 md:h-auto bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
-            <TabsTrigger value="pending" className="flex items-center gap-1 md:gap-2 px-2 md:px-4 text-xs md:text-sm">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto md:h-auto bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm gap-1 p-1">
+            <TabsTrigger value="pending" className="flex items-center gap-1 md:gap-2 px-1 sm:px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm min-h-[40px] md:min-h-[48px]">
               <Clock className="h-3 w-3 md:h-4 md:w-4" />
-              <span className="hidden sm:inline">{t('rewards.tabs.pending')}</span>
-              <span className="sm:hidden">{t('rewards.pending')}</span>
+              <span className="hidden xs:inline sm:inline">{t('rewards.tabs.pending')}</span>
+              <span className="xs:hidden sm:hidden text-[10px]">{t('rewards.pending')}</span>
             </TabsTrigger>
-            <TabsTrigger value="rollup" className="flex items-center gap-1 md:gap-2 px-2 md:px-4 text-xs md:text-sm">
+            <TabsTrigger value="rollup" className="flex items-center gap-1 md:gap-2 px-1 sm:px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm min-h-[40px] md:min-h-[48px]">
               <BarChart3 className="h-3 w-3 md:h-4 md:w-4" />
-              <span className="hidden sm:inline">{t('rewards.tabs.rollup')}</span>
-              <span className="sm:hidden">{t('rewards.rollup')}</span>
+              <span className="hidden xs:inline sm:inline">{t('rewards.tabs.rollup')}</span>
+              <span className="xs:hidden sm:hidden text-[10px]">{t('rewards.rollup')}</span>
             </TabsTrigger>
-            <TabsTrigger value="withdrawal" className="flex items-center gap-1 md:gap-2 px-2 md:px-4 text-xs md:text-sm">
+            <TabsTrigger value="withdrawal" className="flex items-center gap-1 md:gap-2 px-1 sm:px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm min-h-[40px] md:min-h-[48px]">
               <DollarSign className="h-3 w-3 md:h-4 md:w-4" />
-              <span className="hidden sm:inline">{t('rewards.tabs.withdrawal')}</span>
-              <span className="sm:hidden">{t('rewards.withdrawal')}</span>
+              <span className="hidden xs:inline sm:inline">{t('rewards.tabs.withdrawal')}</span>
+              <span className="xs:hidden sm:hidden text-[10px]">{t('rewards.withdrawal')}</span>
             </TabsTrigger>
-            <TabsTrigger value="history" className="flex items-center gap-1 md:gap-2 px-2 md:px-4 text-xs md:text-sm">
+            <TabsTrigger value="history" className="flex items-center gap-1 md:gap-2 px-1 sm:px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm min-h-[40px] md:min-h-[48px]">
               <Award className="h-3 w-3 md:h-4 md:w-4" />
-              <span className="hidden sm:inline">{t('rewards.tabs.history')}</span>
-              <span className="sm:hidden">{t('rewards.history')}</span>
+              <span className="hidden xs:inline sm:inline">{t('rewards.tabs.history')}</span>
+              <span className="xs:hidden sm:hidden text-[10px]">{t('rewards.history')}</span>
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -340,12 +340,12 @@ export default function Rewards() {
                 </p>
               </div>
               
-              <div className="flex gap-2 w-full sm:w-auto">
+              <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">
                 <Button 
                   onClick={claimPendingRewards}
                   disabled={!rewardsData?.claimable || rewardsData.claimable <= 0}
                   size="sm"
-                  className="bg-honey hover:bg-honey/90 text-black font-semibold flex-1 sm:flex-none"
+                  className="bg-honey hover:bg-honey/90 text-black font-semibold flex-1 xs:flex-none min-h-[40px]"
                   data-testid="button-claim-all"
                 >
                   <Gift className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
@@ -377,17 +377,17 @@ export default function Rewards() {
         <TabsContent value="rollup" className="space-y-3 md:space-y-6">
           {/* Premium Rollup Header */}
           <Card className="relative overflow-hidden bg-gradient-to-br from-orange-500/10 via-red-500/5 to-pink-500/10 border-0 shadow-xl">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(249,115,22,0.1),transparent_70%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(239,68,68,0.1),transparent_70%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.1),transparent_70%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(245,158,11,0.1),transparent_70%)]" />
             
             <CardHeader className="relative p-3 md:p-6">
               <CardTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-2 md:gap-3">
-                  <div className="w-6 h-6 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg">
+                  <div className="w-6 h-6 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-honey to-amber-500 flex items-center justify-center shadow-lg">
                     <BarChart3 className="h-3 w-3 md:h-5 md:w-5 text-white" />
                   </div>
                   <div>
-                    <span className="text-sm md:text-xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
+                    <span className="text-sm md:text-xl font-bold bg-gradient-to-r from-honey to-amber-500 bg-clip-text text-transparent">
                       {t('rewards.rollup.title')}
                     </span>
                     <p className="text-xs md:text-sm text-muted-foreground mt-1 hidden sm:block">
@@ -399,47 +399,47 @@ export default function Rewards() {
                 <div className="flex items-center gap-2">
                   <Badge 
                     variant="outline" 
-                    className="bg-orange-500/15 border-orange-500/30 text-orange-500 font-semibold px-2 md:px-3 py-1 text-xs"
+                    className="bg-honey/15 border-honey/30 text-honey font-semibold px-2 md:px-3 py-1 text-xs">
                   >
                     {t('rewards.rollup.autoDistribution') || 'Auto Distribution'}
                   </Badge>
-                  <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+                  <div className="w-2 h-2 rounded-full bg-honey animate-pulse" />
                 </div>
               </CardTitle>
             </CardHeader>
           </Card>
 
           {/* Quick Info Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
             <Card className="hover:scale-[1.02] transition-transform duration-200">
-              <CardContent className="p-2 md:p-4 text-center">
-                <ArrowUpRight className="h-4 w-4 md:h-6 md:w-6 text-orange-400 mx-auto mb-1 md:mb-2" />
-                <div className="text-sm md:text-lg font-bold text-orange-400">{t('rewards.rollup.automatic') || 'Automatic'}</div>
-                <div className="text-[10px] md:text-xs text-muted-foreground leading-tight">{t('rewards.rollup.distribution') || 'Distribution'}</div>
+              <CardContent className="p-3 md:p-4 text-center">
+                <ArrowUpRight className="h-4 w-4 md:h-6 md:w-6 text-honey mx-auto mb-1 md:mb-2" />
+                <div className="text-xs sm:text-sm md:text-lg font-bold text-honey">{t('rewards.rollup.automatic') || 'Automatic'}</div>
+                <div className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground leading-tight">{t('rewards.rollup.distribution') || 'Distribution'}</div>
               </CardContent>
             </Card>
 
             <Card className="hover:scale-[1.02] transition-transform duration-200">
-              <CardContent className="p-2 md:p-4 text-center">
-                <Users className="h-4 w-4 md:h-6 md:w-6 text-blue-400 mx-auto mb-1 md:mb-2" />
-                <div className="text-sm md:text-lg font-bold text-blue-400">{t('rewards.rollup.networkBased') || 'Network'}</div>
-                <div className="text-[10px] md:text-xs text-muted-foreground leading-tight">{t('rewards.rollup.based') || 'Based'}</div>
+              <CardContent className="p-3 md:p-4 text-center">
+                <Users className="h-4 w-4 md:h-6 md:w-6 text-amber-500 mx-auto mb-1 md:mb-2" />
+                <div className="text-xs sm:text-sm md:text-lg font-bold text-amber-500">{t('rewards.rollup.networkBased') || 'Network'}</div>
+                <div className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground leading-tight">{t('rewards.rollup.based') || 'Based'}</div>
               </CardContent>
             </Card>
 
             <Card className="hover:scale-[1.02] transition-transform duration-200">
-              <CardContent className="p-2 md:p-4 text-center">
-                <Clock className="h-4 w-4 md:h-6 md:w-6 text-purple-400 mx-auto mb-1 md:mb-2" />
-                <div className="text-sm md:text-lg font-bold text-purple-400">{t('rewards.rollup.realTime') || 'Real-time'}</div>
-                <div className="text-[10px] md:text-xs text-muted-foreground leading-tight">{t('rewards.rollup.tracking') || 'Tracking'}</div>
+              <CardContent className="p-3 md:p-4 text-center">
+                <Clock className="h-4 w-4 md:h-6 md:w-6 text-orange-500 mx-auto mb-1 md:mb-2" />
+                <div className="text-xs sm:text-sm md:text-lg font-bold text-orange-500">{t('rewards.rollup.realTime') || 'Real-time'}</div>
+                <div className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground leading-tight">{t('rewards.rollup.tracking') || 'Tracking'}</div>
               </CardContent>
             </Card>
 
             <Card className="hover:scale-[1.02] transition-transform duration-200">
-              <CardContent className="p-2 md:p-4 text-center">
-                <Shield className="h-4 w-4 md:h-6 md:w-6 text-green-400 mx-auto mb-1 md:mb-2" />
-                <div className="text-sm md:text-lg font-bold text-green-400">{t('rewards.rollup.transparent') || 'Transparent'}</div>
-                <div className="text-[10px] md:text-xs text-muted-foreground leading-tight">{t('rewards.rollup.system') || 'System'}</div>
+              <CardContent className="p-3 md:p-4 text-center">
+                <Shield className="h-4 w-4 md:h-6 md:w-6 text-lime-500 mx-auto mb-1 md:mb-2" />
+                <div className="text-xs sm:text-sm md:text-lg font-bold text-lime-500">{t('rewards.rollup.transparent') || 'Transparent'}</div>
+                <div className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground leading-tight">{t('rewards.rollup.system') || 'System'}</div>
               </CardContent>
             </Card>
           </div>
