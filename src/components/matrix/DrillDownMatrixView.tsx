@@ -97,7 +97,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
             username: member.username || `User_${member.member_wallet.slice(-6)}`,
             level: member.current_level || 1,
             isActive: member.is_activated || false,
-            layer: member.layer || currentLayer,
+            layer: member.layer || currentViewLayer,
             position: member.position as 'L' | 'M' | 'R',
             placedAt: member.activation_time || new Date().toISOString()
           };
