@@ -312,6 +312,15 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
   const maxLayerWithData = layersWithData.length > 0 ? Math.max(...layersWithData.map(s => s.layer)) : 1;
   const minLayersToShow = Math.max(5, maxLayerWithData); // Show at least 5 layers or up to the highest layer with data
   
+  // Debug logging to help diagnose the issue
+  console.log('🔍 Layer display calculation:', {
+    layersWithDataCount: layersWithData.length,
+    maxLayerWithData,
+    minLayersToShow,
+    showAllLayers,
+    totalLayerStats: layerStats.length
+  });
+  
   const visibleLayers = showAllLayers ? layerStats : layerStats.slice(0, minLayersToShow);
 
   return (
