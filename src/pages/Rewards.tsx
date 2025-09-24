@@ -345,45 +345,41 @@ export default function Rewards() {
             <TabsList className="grid grid-cols-2 gap-4 h-auto bg-transparent p-0">
               <TabsTrigger 
                 value="pending" 
-                className="group relative flex flex-col items-center gap-3 p-5 h-auto bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/40 dark:to-blue-800/40 hover:from-blue-100 hover:to-blue-200 dark:hover:from-blue-800/60 dark:hover:to-blue-700/60 border-2 border-blue-300 dark:border-blue-600 data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:border-blue-700 rounded-xl text-blue-800 dark:text-blue-200 shadow-[0_4px_8px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_6px_12px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] data-[state=active]:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                className="group relative flex flex-col items-center gap-2 p-3 h-auto bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/40 dark:to-blue-800/40 hover:from-blue-100 hover:to-blue-200 dark:hover:from-blue-800/60 dark:hover:to-blue-700/60 border-2 border-blue-300 dark:border-blue-600 data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:border-blue-700 rounded-lg text-blue-800 dark:text-blue-200 shadow-[0_2px_4px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_3px_6px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.3)] data-[state=active]:shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)] transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
               >
-                <div className="w-10 h-10 bg-white/80 dark:bg-blue-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-inner">
-                  <Clock className="h-5 w-5" />
+                <div className="w-8 h-8 bg-white/80 dark:bg-blue-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-inner">
+                  <Clock className="h-4 w-4" />
                 </div>
-                <span className="text-sm font-bold text-center">{t('rewards.tabs.pending')}</span>
-                <div className="text-xs opacity-75">点击查看</div>
+                <span className="text-xs font-bold text-center">{t('rewards.tabs.pending')}</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="rollup" 
-                className="group relative flex flex-col items-center gap-3 p-5 h-auto bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/40 dark:to-purple-800/40 hover:from-purple-100 hover:to-purple-200 dark:hover:from-purple-800/60 dark:hover:to-purple-700/60 border-2 border-purple-300 dark:border-purple-600 data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white data-[state=active]:border-purple-700 rounded-xl text-purple-800 dark:text-purple-200 shadow-[0_4px_8px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_6px_12px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] data-[state=active]:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                className="group relative flex flex-col items-center gap-2 p-3 h-auto bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/40 dark:to-purple-800/40 hover:from-purple-100 hover:to-purple-200 dark:hover:from-purple-800/60 dark:hover:to-purple-700/60 border-2 border-purple-300 dark:border-purple-600 data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white data-[state=active]:border-purple-700 rounded-lg text-purple-800 dark:text-purple-200 shadow-[0_2px_4px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_3px_6px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.3)] data-[state=active]:shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)] transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
               >
-                <div className="w-10 h-10 bg-white/80 dark:bg-purple-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-inner">
-                  <BarChart3 className="h-5 w-5" />
+                <div className="w-8 h-8 bg-white/80 dark:bg-purple-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-inner">
+                  <BarChart3 className="h-4 w-4" />
                 </div>
-                <span className="text-sm font-bold text-center">{t('rewards.tabs.rollup')}</span>
-                <div className="text-xs opacity-75">点击查看</div>
+                <span className="text-xs font-bold text-center">{t('rewards.tabs.rollup')}</span>
               </TabsTrigger>
             </TabsList>
             <TabsList className="grid grid-cols-2 gap-4 h-auto bg-transparent p-0 mt-4">
               <TabsTrigger 
                 value="withdrawal" 
-                className="group relative flex flex-col items-center gap-3 p-5 h-auto bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/40 dark:to-emerald-800/40 hover:from-emerald-100 hover:to-emerald-200 dark:hover:from-emerald-800/60 dark:hover:to-emerald-700/60 border-2 border-emerald-300 dark:border-emerald-600 data-[state=active]:from-emerald-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white data-[state=active]:border-emerald-700 rounded-xl text-emerald-800 dark:text-emerald-200 shadow-[0_4px_8px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_6px_12px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] data-[state=active]:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                className="group relative flex flex-col items-center gap-2 p-3 h-auto bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/40 dark:to-emerald-800/40 hover:from-emerald-100 hover:to-emerald-200 dark:hover:from-emerald-800/60 dark:hover:to-emerald-700/60 border-2 border-emerald-300 dark:border-emerald-600 data-[state=active]:from-emerald-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white data-[state=active]:border-emerald-700 rounded-lg text-emerald-800 dark:text-emerald-200 shadow-[0_2px_4px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_3px_6px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.3)] data-[state=active]:shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)] transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
               >
-                <div className="w-10 h-10 bg-white/80 dark:bg-emerald-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-inner">
-                  <DollarSign className="h-5 w-5" />
+                <div className="w-8 h-8 bg-white/80 dark:bg-emerald-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-inner">
+                  <DollarSign className="h-4 w-4" />
                 </div>
-                <span className="text-sm font-bold text-center">{t('rewards.tabs.withdrawal')}</span>
-                <div className="text-xs opacity-75">点击查看</div>
+                <span className="text-xs font-bold text-center">{t('rewards.tabs.withdrawal')}</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="history" 
-                className="group relative flex flex-col items-center gap-3 p-5 h-auto bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/40 dark:to-orange-800/40 hover:from-orange-100 hover:to-orange-200 dark:hover:from-orange-800/60 dark:hover:to-orange-700/60 border-2 border-orange-300 dark:border-orange-600 data-[state=active]:from-orange-600 data-[state=active]:to-orange-700 data-[state=active]:text-white data-[state=active]:border-orange-700 rounded-xl text-orange-800 dark:text-orange-200 shadow-[0_4px_8px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_6px_12px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] data-[state=active]:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                className="group relative flex flex-col items-center gap-2 p-3 h-auto bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/40 dark:to-orange-800/40 hover:from-orange-100 hover:to-orange-200 dark:hover:from-orange-800/60 dark:hover:to-orange-700/60 border-2 border-orange-300 dark:border-orange-600 data-[state=active]:from-orange-600 data-[state=active]:to-orange-700 data-[state=active]:text-white data-[state=active]:border-orange-700 rounded-lg text-orange-800 dark:text-orange-200 shadow-[0_2px_4px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_3px_6px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.3)] data-[state=active]:shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)] transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
               >
-                <div className="w-10 h-10 bg-white/80 dark:bg-orange-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-inner">
-                  <Award className="h-5 w-5" />
+                <div className="w-8 h-8 bg-white/80 dark:bg-orange-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-inner">
+                  <Award className="h-4 w-4" />
                 </div>
-                <span className="text-sm font-bold text-center">{t('rewards.tabs.history')}</span>
-                <div className="text-xs opacity-75">点击查看</div>
+                <span className="text-xs font-bold text-center">{t('rewards.tabs.history')}</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -391,27 +387,27 @@ export default function Rewards() {
           {/* Desktop: 3D Button Style Tabs */}
           <div className="hidden md:block p-3 md:p-4">
             <TabsList className="grid w-full grid-cols-4 h-auto bg-gray-100 dark:bg-gray-800 gap-3 p-3 rounded-xl border border-gray-300 dark:border-gray-600 shadow-inner">
-              <TabsTrigger value="pending" className="group relative flex items-center justify-center gap-3 px-6 py-4 text-sm min-h-[64px] bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/40 dark:to-blue-800/40 hover:from-blue-100 hover:to-blue-200 dark:hover:from-blue-800/60 dark:hover:to-blue-700/60 border-2 border-blue-300 dark:border-blue-600 data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:border-blue-700 rounded-lg text-blue-800 dark:text-blue-200 shadow-[0_4px_8px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_6px_12px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] data-[state=active]:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] transition-all duration-200 transform hover:-translate-y-1 active:translate-y-0 cursor-pointer">
-                <div className="w-8 h-8 bg-white/60 dark:bg-blue-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-inner">
-                  <Clock className="h-4 w-4" />
+              <TabsTrigger value="pending" className="group relative flex items-center justify-center gap-2 px-4 py-2.5 text-sm min-h-[44px] bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/40 dark:to-blue-800/40 hover:from-blue-100 hover:to-blue-200 dark:hover:from-blue-800/60 dark:hover:to-blue-700/60 border-2 border-blue-300 dark:border-blue-600 data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:border-blue-700 rounded-lg text-blue-800 dark:text-blue-200 shadow-[0_2px_4px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_3px_6px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.3)] data-[state=active]:shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)] transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer">
+                <div className="w-6 h-6 bg-white/60 dark:bg-blue-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-inner">
+                  <Clock className="h-3.5 w-3.5" />
                 </div>
                 <span className="font-bold">{t('rewards.tabs.pending')}</span>
               </TabsTrigger>
-              <TabsTrigger value="rollup" className="group relative flex items-center justify-center gap-3 px-6 py-4 text-sm min-h-[64px] bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/40 dark:to-purple-800/40 hover:from-purple-100 hover:to-purple-200 dark:hover:from-purple-800/60 dark:hover:to-purple-700/60 border-2 border-purple-300 dark:border-purple-600 data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white data-[state=active]:border-purple-700 rounded-lg text-purple-800 dark:text-purple-200 shadow-[0_4px_8px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_6px_12px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] data-[state=active]:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] transition-all duration-200 transform hover:-translate-y-1 active:translate-y-0 cursor-pointer">
-                <div className="w-8 h-8 bg-white/60 dark:bg-purple-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-inner">
-                  <BarChart3 className="h-4 w-4" />
+              <TabsTrigger value="rollup" className="group relative flex items-center justify-center gap-2 px-4 py-2.5 text-sm min-h-[44px] bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/40 dark:to-purple-800/40 hover:from-purple-100 hover:to-purple-200 dark:hover:from-purple-800/60 dark:hover:to-purple-700/60 border-2 border-purple-300 dark:border-purple-600 data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white data-[state=active]:border-purple-700 rounded-lg text-purple-800 dark:text-purple-200 shadow-[0_2px_4px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_3px_6px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.3)] data-[state=active]:shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)] transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer">
+                <div className="w-6 h-6 bg-white/60 dark:bg-purple-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-inner">
+                  <BarChart3 className="h-3.5 w-3.5" />
                 </div>
                 <span className="font-bold">{t('rewards.tabs.rollup')}</span>
               </TabsTrigger>
-              <TabsTrigger value="withdrawal" className="group relative flex items-center justify-center gap-3 px-6 py-4 text-sm min-h-[64px] bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/40 dark:to-emerald-800/40 hover:from-emerald-100 hover:to-emerald-200 dark:hover:from-emerald-800/60 dark:hover:to-emerald-700/60 border-2 border-emerald-300 dark:border-emerald-600 data-[state=active]:from-emerald-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white data-[state=active]:border-emerald-700 rounded-lg text-emerald-800 dark:text-emerald-200 shadow-[0_4px_8px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_6px_12px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] data-[state=active]:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] transition-all duration-200 transform hover:-translate-y-1 active:translate-y-0 cursor-pointer">
-                <div className="w-8 h-8 bg-white/60 dark:bg-emerald-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-inner">
-                  <DollarSign className="h-4 w-4" />
+              <TabsTrigger value="withdrawal" className="group relative flex items-center justify-center gap-2 px-4 py-2.5 text-sm min-h-[44px] bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/40 dark:to-emerald-800/40 hover:from-emerald-100 hover:to-emerald-200 dark:hover:from-emerald-800/60 dark:hover:to-emerald-700/60 border-2 border-emerald-300 dark:border-emerald-600 data-[state=active]:from-emerald-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white data-[state=active]:border-emerald-700 rounded-lg text-emerald-800 dark:text-emerald-200 shadow-[0_2px_4px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_3px_6px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.3)] data-[state=active]:shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)] transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer">
+                <div className="w-6 h-6 bg-white/60 dark:bg-emerald-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-inner">
+                  <DollarSign className="h-3.5 w-3.5" />
                 </div>
                 <span className="font-bold">{t('rewards.tabs.withdrawal')}</span>
               </TabsTrigger>
-              <TabsTrigger value="history" className="group relative flex items-center justify-center gap-3 px-6 py-4 text-sm min-h-[64px] bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/40 dark:to-orange-800/40 hover:from-orange-100 hover:to-orange-200 dark:hover:from-orange-800/60 dark:hover:to-orange-700/60 border-2 border-orange-300 dark:border-orange-600 data-[state=active]:from-orange-600 data-[state=active]:to-orange-700 data-[state=active]:text-white data-[state=active]:border-orange-700 rounded-lg text-orange-800 dark:text-orange-200 shadow-[0_4px_8px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_6px_12px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.3)] data-[state=active]:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] transition-all duration-200 transform hover:-translate-y-1 active:translate-y-0 cursor-pointer">
-                <div className="w-8 h-8 bg-white/60 dark:bg-orange-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-inner">
-                  <Award className="h-4 w-4" />
+              <TabsTrigger value="history" className="group relative flex items-center justify-center gap-2 px-4 py-2.5 text-sm min-h-[44px] bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/40 dark:to-orange-800/40 hover:from-orange-100 hover:to-orange-200 dark:hover:from-orange-800/60 dark:hover:to-orange-700/60 border-2 border-orange-300 dark:border-orange-600 data-[state=active]:from-orange-600 data-[state=active]:to-orange-700 data-[state=active]:text-white data-[state=active]:border-orange-700 rounded-lg text-orange-800 dark:text-orange-200 shadow-[0_2px_4px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_3px_6px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.3)] data-[state=active]:shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)] transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer">
+                <div className="w-6 h-6 bg-white/60 dark:bg-orange-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-inner">
+                  <Award className="h-3.5 w-3.5" />
                 </div>
                 <span className="font-bold">{t('rewards.tabs.history')}</span>
               </TabsTrigger>
