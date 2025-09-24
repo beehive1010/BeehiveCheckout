@@ -282,8 +282,7 @@ export default function Rewards() {
               <div className="flex items-center gap-1.5 flex-shrink-0">
                 <div className="bg-gradient-to-r from-honey/90 to-amber-400 px-2 py-1 rounded-full shadow-lg transform group-hover:scale-105 transition-all duration-300">
                   <span className="text-xs font-bold text-white drop-shadow-sm">
-                    <span className="hidden xs:inline">${rewardsData?.claimable || 0} </span>
-                    <span className="hidden sm:inline">{t('rewards.available_to_claim') || 'Available'}</span>
+                    <span className="hidden sm:inline">${rewardsData?.claimable || 0} {t('rewards.available_to_claim') || 'Available'}</span>
                     <span className="sm:hidden">${rewardsData?.claimable || 0}</span>
                   </span>
                 </div>
