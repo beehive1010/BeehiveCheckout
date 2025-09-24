@@ -55,30 +55,32 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
     setError(null);
 
     try {
-      // Use optimized matrix_referrals_tree_view for better performance
-      console.log(`🔍 Loading matrix for wallet: ${walletAddress}, using optimized view`);
+      console.log(`🔍 Loading matrix for wallet: ${walletAddress}, using matrix-view function`);
       
-      const { data: matrixData, error } = await supabase
-        .from('matrix_referrals_tree_view')
-        .select(`
-          member_wallet,
-          username,
-          current_level,
-          layer,
-          position,
-          is_spillover,
-          is_activated,
-          activation_time
-        `)
-        .eq('matrix_root_wallet', walletAddress)
-        .order('layer', { ascending: true })
-        .order('position', { ascending: true });
+      // Use matrix-view Supabase function for consistent data
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/matrix-view`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-address': walletAddress
+        },
+        body: JSON.stringify({
+          action: 'get-matrix-members'
+        })
+      });
 
-      if (error) {
-        throw new Error(error.message);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get matrix members');
       }
       
-      console.log(`🔍 Matrix data for ${walletAddress}:`, matrixData);
+      console.log(`🔍 Matrix data for ${walletAddress}:`, result.data);
+      const matrixData = result.data.tree_members || [];
 
       if (matrixData && matrixData.length > 0) {
         // For the current wallet, show its direct children (layer 1 from their perspective)
@@ -93,21 +95,21 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
         
         layerMembers.forEach((member: any) => {
           const memberData: MatrixMember = {
-            walletAddress: member.member_wallet,
-            username: member.username || `User_${member.member_wallet.slice(-6)}`,
+            walletAddress: member.wallet_address,
+            username: member.username || `User_${member.wallet_address?.slice(-6)}`,
             level: member.current_level || 1,
             isActive: member.is_activated || false,
             layer: member.layer || currentViewLayer,
-            position: member.position as 'L' | 'M' | 'R',
-            placedAt: member.activation_time || new Date().toISOString()
+            position: member.matrix_position as 'L' | 'M' | 'R',
+            placedAt: member.joined_at || new Date().toISOString()
           };
           
-          // Filter by position - exact match since database uses 'L', 'M', 'R'
-          if (member.position === 'L') {
+          // Filter by position - exact match since function uses 'L', 'M', 'R'
+          if (member.matrix_position === 'L') {
             leftMembers.push(memberData);
-          } else if (member.position === 'M') {
+          } else if (member.matrix_position === 'M') {
             middleMembers.push(memberData);
-          } else if (member.position === 'R') {
+          } else if (member.matrix_position === 'R') {
             rightMembers.push(memberData);
           }
         });
