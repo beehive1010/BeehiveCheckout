@@ -1,29 +1,27 @@
-import { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { Button } from '../../components/ui/button';
-import { 
-  Users, 
-  Image, 
-  FileText, 
-  BookOpen, 
-  Globe, 
-  TrendingUp,
-  Activity,
-  AlertTriangle,
-  CheckCircle,
-  Settings,
-  CreditCard,
-  Gift,
-  ArrowRight
+import {useEffect, useState} from 'react';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '../../components/ui/card';
+import {Badge} from '../../components/ui/badge';
+import {Button} from '../../components/ui/button';
+import {
+    Activity,
+    AlertTriangle,
+    BookOpen,
+    CheckCircle,
+    CreditCard,
+    FileText,
+    Gift,
+    Globe,
+    Image,
+    TrendingUp,
+    Users
 } from 'lucide-react';
-import { useAdminAuthContext } from '../../contexts/AdminAuthContext';
-import { useIsMobile } from '../../hooks/use-mobile';
-import { SystemFixPanel } from '../../components/admin/SystemFixPanel';
-import { ServerWalletPanel } from '../../components/admin/ServerWalletPanel';
-import { UserManagement } from '../../components/admin/UserManagement';
-import { RewardsManagement } from '../../components/admin/RewardsManagement';
-import { WithdrawalManagement } from '../../components/admin/WithdrawalManagement';
+import {useAdminAuthContext} from '../../contexts/AdminAuthContext';
+import {useIsMobile} from '../../hooks/use-mobile';
+import {SystemFixPanel} from '../../components/admin/SystemFixPanel';
+import {ServerWalletPanel} from '../../components/admin/ServerWalletPanel';
+import {UserManagement} from '../../components/admin/UserManagement';
+import {RewardsManagement} from '../../components/admin/RewardsManagement';
+import {WithdrawalManagement} from '../../components/admin/WithdrawalManagement';
 
 interface DashboardStats {
   totalUsers: number;
@@ -70,8 +68,12 @@ export default function AdminDashboard() {
         key: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'Set' : 'Missing'
       });
 
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://cvqibjcbfrwsgkvthccp.supabase.co';
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNjU0MDUsImV4cCI6MjA3MjY0MTQwNX0.7CfL8CS1dQ8Gua89maSCDkgnMsNb19qp97mJyoJqJjs';
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error('Missing Supabase configuration. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.');
+      }
 
       // Use multiple endpoint calls to get accurate data
       const [usersResponse, membersResponse, rewardsResponse] = await Promise.allSettled([
