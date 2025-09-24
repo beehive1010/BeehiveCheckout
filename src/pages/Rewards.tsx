@@ -356,10 +356,10 @@ export default function Rewards() {
             <div>
               <h4 className="font-semibold mb-3">{t('rewards.matrixRewardsTitle')}</h4>
               <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• {t('rewards.level1Direct')}</li>
-                <li>• {t('rewards.level2Matrix')}</li>
-                <li>• {t('rewards.spilloverBonuses')}</li>
-                <li>• {t('rewards.claimWindow') || '72-hour claim window'}</li>
+                <li>• {t('rewards.rewards.level1Direct')}</li>
+                <li>• {t('rewards.rewards.level2Matrix')}</li>
+                <li>• {t('rewards.rewards.spilloverBonuses')}</li>
+                <li>• {t('rewards.rewards.claimWindow')}</li>
               </ul>
             </div>
             <div>
