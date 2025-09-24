@@ -1,9 +1,10 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { Award, DollarSign } from 'lucide-react';
-import { supabase } from '../../lib/supabaseClient';
+import {useQuery} from '@tanstack/react-query';
+import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
+import {Badge} from '../ui/badge';
+import {Award, DollarSign} from 'lucide-react';
+import {supabase} from '../../lib/supabaseClient';
+import {useI18n} from '../../contexts/I18nContext';
 
 interface RewardsOverviewProps {
   walletAddress: string;
@@ -25,6 +26,7 @@ interface RewardsOverviewData {
 }
 
 export default function RewardsOverview({ walletAddress, className }: RewardsOverviewProps) {
+  const { t } = useI18n();
   const { data: rewardsOverview, isLoading } = useQuery<RewardsOverviewData>({
     queryKey: ['member-rewards-overview', walletAddress],
     enabled: !!walletAddress,
