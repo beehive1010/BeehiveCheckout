@@ -83,7 +83,20 @@ export default function Rewards() {
       setIsLoading(true);
       setError(null);
 
-      // Get all rewards for this wallet from layer_rewards table
+      // Use the new rewards stats function to get comprehensive data
+      const { data: statsData, error: statsError } = await supabase.rpc('get_user_rewards_stats', {
+        p_wallet_address: memberWalletAddress
+      });
+
+      if (statsError) {
+        console.error('Rewards stats error:', statsError);
+        throw new Error(`Failed to fetch rewards stats: ${statsError.message}`);
+      }
+
+      const stats = statsData?.[0];
+      console.log('Rewards stats:', stats);
+
+      // Get all rewards for history
       const { data: rewardsData, error: rewardsError } = await supabase
         .from('layer_rewards')
         .select('*')
@@ -95,35 +108,13 @@ export default function Rewards() {
         throw new Error(`Failed to fetch rewards: ${rewardsError.message}`);
       }
 
-      // Calculate totals based on status field only (layer_rewards table uses status column)
-      const claimedRewards = rewardsData?.filter(r => r.status === 'claimed') || [];
-      const pendingRewards = rewardsData?.filter(r => 
-        r.status === 'pending' && 
-        (!r.expires_at || new Date(r.expires_at) > new Date())
-      ) || [];
-      const claimableRewards = rewardsData?.filter(r => 
-        r.status === 'claimable'
-      ) || [];
-
       console.log('Rewards breakdown:', {
         total: rewardsData?.length,
-        claimed: claimedRewards.length,
-        pending: pendingRewards.length, 
-        claimable: claimableRewards.length
+        total_earned: stats?.total_earned || 0,
+        total_withdrawn: stats?.total_withdrawn || 0,
+        claimable: stats?.total_claimable || 0,
+        pending: stats?.total_pending || 0
       });
-
-      const totalEarned = claimedRewards.reduce((sum, r) => sum + (r.reward_amount || 0), 0);
-      const totalPending = pendingRewards.reduce((sum, r) => sum + (r.reward_amount || 0), 0);
-      const totalClaimable = claimableRewards.reduce((sum, r) => sum + (r.reward_amount || 0), 0);
-
-      // Calculate this month's earnings
-      const currentMonth = new Date().getMonth();
-      const currentYear = new Date().getFullYear();
-      const thisMonthRewards = claimedRewards.filter(r => {
-        const claimedDate = new Date(r.claimed_at || r.created_at);
-        return claimedDate.getMonth() === currentMonth && claimedDate.getFullYear() === currentYear;
-      });
-      const thisMonthTotal = thisMonthRewards.reduce((sum, r) => sum + (r.reward_amount || 0), 0);
 
       // Get pending rewards with expiration times for countdown timers
       const { data: pendingTimerData, error: pendingError } = await supabase
@@ -142,11 +133,11 @@ export default function Rewards() {
       }
 
       const mappedRewards: RewardsData = {
-        total: totalEarned,
-        thisMonth: thisMonthTotal,
-        lastMonth: 0, // Could be calculated if needed
-        pending: totalPending,
-        claimable: totalClaimable,
+        total: stats?.total_earned || 0,
+        totalWithdrawn: stats?.total_withdrawn || 0,
+        netEarnings: stats?.net_earnings || 0,
+        pending: stats?.total_pending || 0,
+        claimable: stats?.total_claimable || 0,
         history: rewardsData?.slice(0, 10).map((reward) => ({
           id: reward.id,
           type: reward.status || 'layer_reward',
@@ -166,7 +157,7 @@ export default function Rewards() {
     } finally {
       setIsLoading(false);
     }
-  }, [memberWalletAddress]); // Add memberWalletAddress as dependency
+  }, [memberWalletAddress, t]); // Add memberWalletAddress as dependency
 
   useEffect(() => {
     if (memberWalletAddress) {
@@ -272,9 +263,9 @@ export default function Rewards() {
 
         <Card>
           <CardContent className="p-4 text-center">
-            <TrendingUp className="h-6 w-6 text-blue-400 mx-auto mb-2" />
-            <div className="text-lg font-bold text-blue-400">${rewardsData?.thisMonth || 0}</div>
-            <div className="text-xs text-muted-foreground">{t('rewards.thisMonth')}</div>
+            <TrendingUp className="h-6 w-6 text-purple-400 mx-auto mb-2" />
+            <div className="text-lg font-bold text-purple-400">${rewardsData?.totalWithdrawn || 0}</div>
+            <div className="text-xs text-muted-foreground">{t('rewards.totalWithdrawn')}</div>
           </CardContent>
         </Card>
 
