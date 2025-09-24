@@ -1,4 +1,4 @@
-import { supabase } from '../supabase';
+import {supabase} from '../supabase';
 
 /**
  * 获取用户的直接推荐人数（基于 referrals 表）
@@ -9,10 +9,13 @@ export async function getDirectReferralCount(referrerWallet: string): Promise<nu
     console.log(`🔍 Fetching direct referrals for wallet: ${referrerWallet}`);
     
     // Primary: Use referrals_new table (correct direct referrals source)
-    const { count, error } = await supabase
+    const { count, error, data } = await supabase
       .from('referrals_new')
-      .select('*', { count: 'exact', head: true })
+      .select('*', { count: 'exact' })
       .ilike('referrer_wallet', referrerWallet);
+
+    // Add debug logging
+    console.log('🔍 referrals_new query result:', { count, error, dataLength: data?.length });
 
     if (error) {
       console.error('❌ referrals_new table query failed:', error);
