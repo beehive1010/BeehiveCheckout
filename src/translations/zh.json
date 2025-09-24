@@ -940,6 +940,16 @@
   "rewards": {
     "title": "奖励与收益",
     "subtitle": "跟踪您的奖励，领取收益，查看交易历史",
+    "overview": "奖励总览",
+    "loading_overview": "正在加载奖励总览...",
+    "no_data": "暂无奖励数据",
+    "start_earning": "开始参与平台活动赚取奖励！",
+    "total_rewards": "总奖励",
+    "claimed": "已领取",
+    "new": "新",
+    "available_to_claim": "可领取",
+    "available_usdt": "可用 USDT",
+    "available_bcc": "可用 BCC",
     "tabs": {
       "overview": "概览",
       "rollup": "汇总", 
