@@ -309,60 +309,36 @@ export default function USDTWithdrawal() {
       
       // Check if this is same-chain transfer or cross-chain bridge
       if (sourceChainId === targetChainId) {
-        // Same chain transfer - use direct thirdweb SDK
-        console.log(`🔄 Direct transfer on Arbitrum One`);
-        
-        const { createThirdwebClient } = await import('thirdweb');
-        const { privateKeyToAccount } = await import('thirdweb/wallets');
-        const { getContract, sendTransaction } = await import('thirdweb');
-        const { transfer } = await import('thirdweb/extensions/erc20');
-        const { defineChain } = await import('thirdweb/chains');
-        
-        const thirdwebClient = createThirdwebClient({
-          clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
-          secretKey: import.meta.env.VITE_THIRDWEB_SECRET_KEY!,
-        });
-        
-        // For testing, use a fallback private key or call the server wallet function
-        const serverWalletPrivateKey = import.meta.env.VITE_SERVER_WALLET_PRIVATE_KEY || 
-          import.meta.env.VITE_THIRDWEB_SECRET_KEY!;
-        
-        if (!serverWalletPrivateKey) {
-          throw new Error('Server wallet private key not configured');
-        }
-        
-        const serverAccount = privateKeyToAccount({
-          client: thirdwebClient,
-          privateKey: serverWalletPrivateKey,
-        });
+        // Direct thirdweb Engine API call for token transfer
+        console.log(`🔄 Direct thirdweb Engine API transfer`);
         
         const tokenDecimals = getTokenInfo(targetChainId, selectedToken).decimals;
-        const amountInWei = BigInt(Math.floor(netAmount * Math.pow(10, tokenDecimals)));
-        const targetChain = defineChain(targetChainId);
+        const amountInWei = (netAmount * Math.pow(10, tokenDecimals)).toString();
         
-        const tokenContract = getContract({
-          client: thirdwebClient,
-          chain: targetChain,
-          address: targetTokenAddress,
-        });
+        // Call thirdweb Engine API directly
+        const engineResponse = await fetch('https://api.thirdweb.com/v1/contract/{chain_id}/{contract_address}/erc20/transfer', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_THIRDWEB_SECRET_KEY}`,
+            'x-client-id': import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
+          },
+          body: JSON.stringify({
+            chain_id: targetChainId.toString(),
+            contract_address: targetTokenAddress,
+            from_address: import.meta.env.VITE_SERVER_WALLET_ADDRESS!,
+            to_address: data.recipientAddress,
+            amount: amountInWei
+          })
+        }).then(res => res.json());
         
-        // Execute user withdrawal
-        const userTransferTransaction = transfer({
-          contract: tokenContract,
-          to: data.recipientAddress,
-          amount: amountInWei,
-        });
-        
-        const userTxResult = await sendTransaction({
-          transaction: userTransferTransaction,
-          account: serverAccount,
-        });
-        
-        // Fee is already deducted from netAmount, no separate fee transfer needed
+        if (!engineResponse.result || engineResponse.error) {
+          throw new Error(`Thirdweb Engine API failed: ${engineResponse.error?.message || 'Unknown error'}`);
+        }
         
         var result = {
-          transactionHash: userTxResult.transactionHash,
-          feeTransactionHash: null, // No separate fee transaction
+          transactionHash: engineResponse.result.transactionHash || engineResponse.result.queueId,
+          feeTransactionHash: null,
           bridged: false,
         };
         
