@@ -265,25 +265,43 @@ export default function Rewards() {
             <div className="absolute inset-0 rounded-xl border-2 border-honey/50 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
             <div className="absolute inset-0 rounded-xl border border-amber-400/60 opacity-0 group-hover:opacity-100 transition-all duration-300 animate-ping"></div>
             <div className="absolute inset-0 bg-gradient-to-r from-honey/5 via-transparent to-amber-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="relative flex flex-row items-center justify-between gap-2">
-              <div className="flex flex-col items-start gap-0.5">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-br from-slate-600 via-gray-500 to-slate-600 group-hover:from-honey/80 group-hover:via-amber-400 group-hover:to-amber-500 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-honey/50 group-hover:scale-110 transition-all duration-500">
-                    <BarChart3 className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-white group-hover:text-black drop-shadow-sm transition-colors duration-500" />
+            <div className="relative flex flex-col sm:flex-row gap-2 sm:gap-0">
+              {/* 移动端：垂直布局，桌面端：水平布局 */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 sm:mb-0">
+                  <div className="w-6 h-6 sm:w-6 sm:h-6 bg-gradient-to-br from-slate-600 via-gray-500 to-slate-600 group-hover:from-honey/80 group-hover:via-amber-400 group-hover:to-amber-500 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-honey/50 group-hover:scale-110 transition-all duration-500 flex-shrink-0">
+                    <BarChart3 className="h-3 w-3 sm:h-3 sm:w-3 text-white group-hover:text-black drop-shadow-sm transition-colors duration-500" />
                   </div>
-                  <span className="text-base sm:text-lg font-bold text-slate-200 group-hover:text-white transition-all duration-500 tracking-wide">
-                    {t('rewards.overview') || 'Rewards Overview'}
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm sm:text-lg font-bold text-slate-200 group-hover:text-white transition-all duration-500 tracking-wide block truncate">
+                      {t('rewards.overview') || 'Rewards Overview'}
+                    </span>
+                  </div>
+                  {/* 移动端：右侧显示金额和箭头 */}
+                  <div className="flex items-center gap-1.5 sm:hidden">
+                    <div className="bg-gradient-to-r from-honey/90 to-amber-400 px-2 py-1 rounded-full shadow-lg transform group-hover:scale-105 transition-all duration-300">
+                      <span className="text-xs font-bold text-white drop-shadow-sm">
+                        ${rewardsData?.claimable || 0}
+                      </span>
+                    </div>
+                    <div className="relative w-7 h-7 bg-gradient-to-br from-yellow-400 via-amber-500 to-yellow-600 hover:from-yellow-300 hover:via-amber-400 hover:to-yellow-500 rounded-full transition-all duration-300 flex-shrink-0 group-hover:scale-110 grid place-items-center shadow-[inset_0_1px_0_rgba(255,255,255,0.3),inset_0_-1px_0_rgba(0,0,0,0.2),0_2px_8px_rgba(251,191,36,0.4)] animate-pulse">
+                      <div className="absolute inset-0 bg-gradient-to-br from-yellow-300/50 via-transparent to-amber-400/50 rounded-full animate-ping opacity-75"></div>
+                      <ChevronDown className={`relative h-3.5 w-3.5 text-black drop-shadow-sm transition-all duration-700 ${isOverviewOpen ? 'rotate-180' : ''}`} />
+                    </div>
+                  </div>
+                </div>
+                <div className="sm:ml-8">
+                  <span className="text-xs text-gray-400 dark:text-gray-500 group-hover:text-gray-300 transition-colors duration-300 line-clamp-2 sm:line-clamp-1">
+                    {t('rewards.overviewSubtitle') || 'Click to expand and view detailed statistics'}
                   </span>
                 </div>
-                <span className="text-xs text-gray-400 dark:text-gray-500 ml-7 sm:ml-8 group-hover:text-gray-300 transition-colors duration-300">
-                  {t('rewards.overviewSubtitle') || 'Click to expand and view detailed statistics'}
-                </span>
               </div>
-              <div className="flex items-center gap-1.5 flex-shrink-0">
-                <div className="bg-gradient-to-r from-honey/90 to-amber-400 px-2 py-1 rounded-full shadow-lg transform group-hover:scale-105 transition-all duration-300">
-                  <span className="text-xs font-bold text-white drop-shadow-sm">
-                    <span className="hidden sm:inline">${rewardsData?.claimable || 0} {t('rewards.available_to_claim') || 'Available'}</span>
-                    <span className="sm:hidden">${rewardsData?.claimable || 0}</span>
+              
+              {/* 桌面端：右侧显示金额和箭头 */}
+              <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
+                <div className="bg-gradient-to-r from-honey/90 to-amber-400 px-3 py-1.5 rounded-full shadow-lg transform group-hover:scale-105 transition-all duration-300">
+                  <span className="text-xs font-bold text-white drop-shadow-sm whitespace-nowrap">
+                    ${rewardsData?.claimable || 0} {t('rewards.available_to_claim') || 'Available'}
                   </span>
                 </div>
                 <div className="relative w-8 h-8 bg-gradient-to-br from-yellow-400 via-amber-500 to-yellow-600 hover:from-yellow-300 hover:via-amber-400 hover:to-yellow-500 rounded-full transition-all duration-300 flex-shrink-0 group-hover:scale-110 grid place-items-center shadow-[inset_0_1px_0_rgba(255,255,255,0.3),inset_0_-1px_0_rgba(0,0,0,0.2),0_2px_8px_rgba(251,191,36,0.4)] animate-pulse">
