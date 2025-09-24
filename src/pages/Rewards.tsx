@@ -241,9 +241,9 @@ export default function Rewards() {
   }
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:container lg:mx-auto py-4 sm:py-6 space-y-2 sm:space-y-3 animate-in fade-in-50 duration-700">
+    <div className="w-full px-4 sm:px-6 lg:container lg:mx-auto py-2 sm:py-4 space-y-1 sm:space-y-2 animate-in fade-in-50 duration-700">
       {/* Enhanced Header */}
-      <div className="text-center sm:text-left mb-3 sm:mb-4 animate-in slide-in-from-top-2 duration-500">
+      <div className="text-center sm:text-left mb-1 sm:mb-2 animate-in slide-in-from-top-2 duration-500">
         <div className="relative inline-block">
           <div className="absolute inset-0 bg-gradient-to-r from-honey/20 to-amber-400/20 rounded-2xl blur-xl animate-pulse"></div>
           <h1 className="relative text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-honey via-amber-400 to-honey bg-clip-text text-transparent mb-2 sm:mb-3">
@@ -256,7 +256,7 @@ export default function Rewards() {
       </div>
 
       {/* Enhanced Collapsible Stats Overview */}
-      <Collapsible open={isOverviewOpen} onOpenChange={setIsOverviewOpen} className="mb-2 animate-in slide-in-from-bottom-2 duration-500">
+      <Collapsible open={isOverviewOpen} onOpenChange={setIsOverviewOpen} className="mb-1 animate-in slide-in-from-bottom-2 duration-500">
         <CollapsibleTrigger className="w-full">
           <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900 dark:from-black dark:via-slate-950 dark:to-black rounded-2xl border-2 border-slate-700 dark:border-slate-800 p-3 sm:p-4 hover:border-honey/50 transition-all duration-500 cursor-pointer shadow-2xl hover:shadow-3xl hover:shadow-honey/20 group hover:scale-[1.02] transform">
             <div className="absolute inset-0 bg-gradient-to-r from-honey/5 via-transparent to-amber-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
