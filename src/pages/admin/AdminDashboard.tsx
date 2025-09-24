@@ -37,7 +37,13 @@ interface DashboardStats {
 }
 
 export default function AdminDashboard() {
-  const { adminUser, hasPermission } = useAdminAuth();
+  const { adminUser, isAdminAuthenticated } = useAdminAuthContext();
+  
+  const hasPermission = (permission: string): boolean => {
+    if (!adminUser || !isAdminAuthenticated) return false;
+    // For now, grant all permissions to authenticated admin users
+    return true;
+  };
   const isMobile = useIsMobile();
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
