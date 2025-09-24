@@ -338,105 +338,125 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
-        {quickStats
-          .filter(stat => !stat.permission || hasPermission(stat.permission))
-          .map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className={`flex flex-row items-center justify-between space-y-0 pb-2 ${isMobile ? 'px-4 py-3' : ''}`}>
-              <CardTitle className={`${isMobile ? 'text-base' : 'text-sm'} font-medium`}>
-                {stat.title}
-              </CardTitle>
-              <stat.icon className={`${isMobile ? 'h-5 w-5' : 'h-4 w-4'} text-muted-foreground`} />
-            </CardHeader>
-            <CardContent className={isMobile ? 'px-4 pb-4' : ''}>
-              <div className={`${isMobile ? 'text-3xl' : 'text-2xl'} font-bold text-honey`}>{stat.value}</div>
-              <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-muted-foreground mt-1`}>
-                {stat.description}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Content Section based on active tab */}
+      {activeSection === 'overview' && (
+        <>
+          {/* Quick Stats */}
+          <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
+            {quickStats
+              .filter(stat => !stat.permission || hasPermission(stat.permission))
+              .map((stat) => (
+              <Card key={stat.title}>
+                <CardHeader className={`flex flex-row items-center justify-between space-y-0 pb-2 ${isMobile ? 'px-4 py-3' : ''}`}>
+                  <CardTitle className={`${isMobile ? 'text-base' : 'text-sm'} font-medium`}>
+                    {stat.title}
+                  </CardTitle>
+                  <stat.icon className={`${isMobile ? 'h-5 w-5' : 'h-4 w-4'} text-muted-foreground`} />
+                </CardHeader>
+                <CardContent className={isMobile ? 'px-4 pb-4' : ''}>
+                  <div className={`${isMobile ? 'text-3xl' : 'text-2xl'} font-bold text-honey`}>{stat.value}</div>
+                  <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-muted-foreground mt-1`}>
+                    {stat.description}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
-      <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'lg:grid-cols-2'}`}>
-        {/* System Status */}
-        {hasPermission('system.read') && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Activity className="h-5 w-5" />
-                <span>System Status</span>
-              </CardTitle>
-              <CardDescription>
-                Real-time monitoring of platform services
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {systemStatus.map((service) => (
-                  <div key={service.service} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      {getStatusIcon(service.status)}
-                      <span className="font-medium">{service.service}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-muted-foreground">{service.latency}</span>
-                      {getStatusBadge(service.status)}
-                    </div>
+          <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'lg:grid-cols-2'}`}>
+            {/* System Status */}
+            {hasPermission('system.read') && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Activity className="h-5 w-5" />
+                    <span>System Status</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Real-time monitoring of platform services
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {systemStatus.map((service) => (
+                      <div key={service.service} className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          {getStatusIcon(service.status)}
+                          <span className="font-medium">{service.service}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-muted-foreground">{service.latency}</span>
+                          {getStatusBadge(service.status)}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                </CardContent>
+              </Card>
+            )}
 
-        {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5" />
-              <span>Recent Activity</span>
-            </CardTitle>
-            <CardDescription>
-              Latest administrative actions and system events
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="text-sm text-muted-foreground">
-                📊 {stats.pendingApprovals} items pending approval
-              </div>
-              <div className="text-sm text-muted-foreground">
-                👥 {stats.totalUsers} total registered users
-              </div>
-              <div className="text-sm text-muted-foreground">
-                🎯 {stats.activeMembers} users have active memberships
-              </div>
-              <div className="text-sm text-muted-foreground">
-                🎨 {stats.totalNFTs} NFT types available
-              </div>
-              <div className="text-sm text-muted-foreground">
-                📚 {stats.courses} educational courses available
-              </div>
+            {/* Recent Activity */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <TrendingUp className="h-5 w-5" />
+                  <span>Recent Activity</span>
+                </CardTitle>
+                <CardDescription>
+                  Latest administrative actions and system events
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="text-sm text-muted-foreground">
+                    📊 {stats.pendingApprovals} items pending approval
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    👥 {stats.totalUsers} total registered users
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    🎯 {stats.activeMembers} users have active memberships
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    🎨 {stats.totalNFTs} NFT types available
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    📚 {stats.courses} educational courses available
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Server Wallet Management */}
+          {hasPermission('system.read') && (
+            <div className="mt-6">
+              <ServerWalletPanel />
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          )}
 
-      {/* Server Wallet Management */}
-      {hasPermission('system.read') && (
-        <div className="mt-6">
-          <ServerWalletPanel />
-        </div>
+          {/* System Health & Auto-Fix Panel */}
+          {hasPermission('system.write') && (
+            <div className="mt-6">
+              <SystemFixPanel onFixComplete={() => loadDashboardStats()} />
+            </div>
+          )}
+        </>
       )}
 
-      {/* System Health & Auto-Fix Panel */}
-      {hasPermission('system.write') && (
-        <div className="mt-6">
-          <SystemFixPanel onFixComplete={() => loadDashboardStats()} />
-        </div>
+      {/* User Management Section */}
+      {activeSection === 'users' && hasPermission('users.read') && (
+        <UserManagement />
+      )}
+
+      {/* Rewards Management Section */}
+      {activeSection === 'rewards' && hasPermission('rewards.read') && (
+        <RewardsManagement />
+      )}
+
+      {/* Withdrawal Management Section */}
+      {activeSection === 'withdrawals' && hasPermission('withdrawals.read') && (
+        <WithdrawalManagement />
       )}
     </div>
   );
