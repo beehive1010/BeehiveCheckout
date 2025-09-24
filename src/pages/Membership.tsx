@@ -136,8 +136,16 @@ export default function Membership() {
           'hasLevel2NFT && currentLevel === 1': hasLevel2NFT && currentLevel === 1,
           'hasLevel3NFT && currentLevel === 3': hasLevel3NFT && currentLevel === 3,
           calculatedTargetLevel,
-          'fallback currentLevel + 1': currentLevel + 1
+          'fallback currentLevel + 1': currentLevel + 1,
+          maxOwnedLevel,
+          'currentLevel vs maxOwned mismatch': currentLevel < maxOwnedLevel
         });
+        
+        // Alert if there's a level sync issue
+        if (currentLevel < maxOwnedLevel) {
+          console.warn(`⚠️ LEVEL SYNC ISSUE: DB level ${currentLevel} < Max NFT level ${maxOwnedLevel}`);
+          console.log(`🔄 Consider refreshing page or syncing levels manually`);
+        }
       } catch (error) {
         console.warn('⚠️ Failed to check NFT ownership:', error);
         setHasLevel2NFT(false);
