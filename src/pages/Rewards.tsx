@@ -624,9 +624,9 @@ export default function Rewards() {
                       </div>
                       <div className="grid grid-cols-2 gap-1.5">
                         {[
-                          { key: 'level1Direct', bgClass: 'bg-gradient-to-br from-emerald-50/50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-800/20 border-emerald-200/50 dark:border-emerald-700/50', dotClass: 'bg-gradient-to-r from-emerald-400 to-emerald-600', icon: '🎯' },
-                          { key: 'level2Matrix', bgClass: 'bg-gradient-to-br from-blue-50/50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200/50 dark:border-blue-700/50', dotClass: 'bg-gradient-to-r from-blue-400 to-blue-600', icon: '🌐' },
-                          { key: 'spilloverBonuses', bgClass: 'bg-gradient-to-br from-purple-50/50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200/50 dark:border-purple-700/50', dotClass: 'bg-gradient-to-r from-purple-400 to-purple-600', icon: '⚡' },
+                          { key: 'level1Direct', bgClass: 'bg-gradient-to-br from-honey/10 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-800/20 border-amber-200/50 dark:border-amber-700/50', dotClass: 'bg-gradient-to-r from-honey to-amber-600', icon: '🎯' },
+                          { key: 'level2Matrix', bgClass: 'bg-gradient-to-br from-amber-50/50 to-yellow-100/50 dark:from-yellow-900/20 dark:to-yellow-800/20 border-yellow-200/50 dark:border-yellow-700/50', dotClass: 'bg-gradient-to-r from-amber-400 to-yellow-600', icon: '🌐' },
+                          { key: 'spilloverBonuses', bgClass: 'bg-gradient-to-br from-orange-50/50 to-orange-100/50 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200/50 dark:border-orange-700/50', dotClass: 'bg-gradient-to-r from-orange-400 to-orange-600', icon: '⚡' },
                           { key: 'claimWindow', bgClass: 'bg-gradient-to-br from-orange-50/50 to-orange-100/50 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200/50 dark:border-orange-700/50', dotClass: 'bg-gradient-to-r from-orange-400 to-orange-600', icon: '⏰' }
                         ].map((item, index) => (
                           <div 
@@ -658,8 +658,8 @@ export default function Rewards() {
                         {[
                           { key: 'bccTransferable', bgClass: 'bg-gradient-to-br from-yellow-50/50 to-yellow-100/50 dark:from-yellow-900/20 dark:to-yellow-800/20 border-yellow-200/50 dark:border-yellow-700/50', dotClass: 'bg-gradient-to-r from-yellow-400 to-yellow-600', icon: '💰' },
                           { key: 'bccLocked', bgClass: 'bg-gradient-to-br from-red-50/50 to-red-100/50 dark:from-red-900/20 dark:to-red-800/20 border-red-200/50 dark:border-red-700/50', dotClass: 'bg-gradient-to-r from-red-400 to-red-600', icon: '🔒' },
-                          { key: 'bccMultipliers', bgClass: 'bg-gradient-to-br from-teal-50/50 to-teal-100/50 dark:from-teal-900/20 dark:to-teal-800/20 border-teal-200/50 dark:border-teal-700/50', dotClass: 'bg-gradient-to-r from-teal-400 to-teal-600', icon: '📈' },
-                          { key: 'bccUpgrades', bgClass: 'bg-gradient-to-br from-indigo-50/50 to-indigo-100/50 dark:from-indigo-900/20 dark:to-indigo-800/20 border-indigo-200/50 dark:border-indigo-700/50', dotClass: 'bg-gradient-to-r from-indigo-400 to-indigo-600', icon: '🚀' }
+                          { key: 'bccMultipliers', bgClass: 'bg-gradient-to-br from-yellow-50/50 to-amber-100/50 dark:from-amber-900/20 dark:to-yellow-800/20 border-amber-200/50 dark:border-amber-700/50', dotClass: 'bg-gradient-to-r from-yellow-400 to-amber-600', icon: '📈' },
+                          { key: 'bccUpgrades', bgClass: 'bg-gradient-to-br from-amber-50/50 to-honey/10 dark:from-honey/20 dark:to-amber-800/20 border-honey/30 dark:border-amber-700/50', dotClass: 'bg-gradient-to-r from-honey to-amber-600', icon: '🚀' }
                         ].map((item, index) => (
                           <div 
                             key={item.key}
