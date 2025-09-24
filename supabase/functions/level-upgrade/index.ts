@@ -312,6 +312,19 @@ async function processLevelUpgrade(
       console.log(`✅ Layer reward created for Level ${targetLevel}:`, layerReward);
     }
 
+    // 5.2. Check and update pending rewards that may now be claimable
+    console.log(`🎁 Checking pending rewards after Level ${targetLevel} upgrade...`);
+    const { data: pendingRewardCheck, error: pendingRewardError } = await supabase.rpc('check_pending_rewards_after_upgrade', {
+      p_upgraded_wallet: walletAddress,
+      p_new_level: targetLevel
+    });
+
+    if (pendingRewardError) {
+      console.warn('⚠️ Pending reward check failed:', pendingRewardError);
+    } else {
+      console.log(`✅ Pending reward check completed:`, pendingRewardCheck);
+    }
+
     // 6. Get final results from triggered functions
     await new Promise(resolve => setTimeout(resolve, 2000)) // Wait for triggers to complete
     

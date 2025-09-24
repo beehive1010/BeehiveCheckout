@@ -92,11 +92,13 @@ export default function RollupRewardsCard({ walletAddress, className }: RollupRe
 
   const getRollupReasonColor = (reason: string | null) => {
     const colorMap: Record<string, string> = {
+      'expired_timeout': 'text-red-500 border-red-500/30', // Layer 1 R position timeout
       'expired_unclaimed': 'text-red-500 border-red-500/30',
       'insufficient_level': 'text-orange-500 border-orange-500/30',
       'network_spillover': 'text-blue-500 border-blue-500/30',
       'manual_rollup': 'text-purple-500 border-purple-500/30',
-      'system_rollup': 'text-gray-500 border-gray-500/30'
+      'system_rollup': 'text-gray-500 border-gray-500/30',
+      'no_qualified_upline': 'text-gray-600 border-gray-600/30'
     };
     
     return colorMap[reason || ''] || 'text-gray-500 border-gray-500/30';

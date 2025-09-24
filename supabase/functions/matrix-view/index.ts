@@ -219,6 +219,8 @@ serve(async (req: Request) => {
       // Get detailed matrix member data using matrix_referrals_tree_view
       console.log(`👥 Getting matrix members for wallet: ${walletAddress}`)
       
+      console.log(`👥 Querying matrix_referrals_tree_view for wallet: ${walletAddress}`)
+      
       const { data: matrixMembers, error: membersError } = await supabase
         .from('matrix_referrals_tree_view')
         .select(`
@@ -226,15 +228,24 @@ serve(async (req: Request) => {
           matrix_root_wallet,
           layer,
           position,
-          referral_type,
-          child_activation_time
+          is_spillover,
+          activation_time,
+          username,
+          current_level,
+          is_activated
         `)
         .eq('matrix_root_wallet', walletAddress)
         .order('layer')
         .order('position')
 
+      console.log(`👥 Matrix query result:`, { 
+        memberCount: matrixMembers?.length || 0,
+        error: membersError,
+        sampleData: matrixMembers?.slice(0, 2)
+      })
+
       if (membersError) {
-        console.error('Error fetching matrix members:', membersError)
+        console.error('❌ Error fetching matrix members:', membersError)
         // Don't throw, return empty data instead
         return new Response(JSON.stringify({
           success: true,
@@ -245,7 +256,26 @@ serve(async (req: Request) => {
               total_members: 0
             },
             tree_members: [],
-            note: 'No matrix members found'
+            note: `Matrix query error: ${membersError.message}`
+          }
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        })
+      }
+      
+      if (!matrixMembers || matrixMembers.length === 0) {
+        console.log('⚠️ No matrix members found for wallet:', walletAddress)
+        return new Response(JSON.stringify({
+          success: true,
+          data: {
+            wallet_address: walletAddress,
+            matrix_data: {
+              by_layer: {},
+              total_members: 0
+            },
+            tree_members: [],
+            note: 'No matrix members found - empty result'
           }
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -281,12 +311,12 @@ serve(async (req: Request) => {
 
         const memberData = {
           wallet_address: member.member_wallet,
-          username: userInfo?.username || `User${member.member_wallet?.slice(-4) || ''}`,
+          username: member.username || userInfo?.username || `User${member.member_wallet?.slice(-4) || ''}`,
           matrix_position: member.position,
-          current_level: (memberInfo as any)?.current_level || 1,
-          is_activated: Boolean((memberInfo as any)?.current_level && (memberInfo as any).current_level > 0),
-          joined_at: member.child_activation_time,
-          referral_type: member.referral_type,
+          current_level: member.current_level || (memberInfo as any)?.current_level || 1,
+          is_activated: member.is_activated || Boolean((memberInfo as any)?.current_level && (memberInfo as any).current_level > 0),
+          joined_at: member.activation_time,
+          is_spillover: member.is_spillover || false,
           layer: member.layer
         }
 

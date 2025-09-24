@@ -266,6 +266,23 @@ serve(async (req: Request) => {
       } catch (layerRewardErr) {
         console.warn('⚠️ Layer 1 reward error (non-critical):', layerRewardErr);
       }
+
+      // Step 6.1: Check and update pending rewards that may now be claimable after Level 1 activation
+      console.log(`🎁 Checking pending rewards after Level 1 activation for ${walletAddress}...`);
+      try {
+        const { data: pendingRewardCheck, error: pendingRewardError } = await supabase.rpc('check_pending_rewards_after_upgrade', {
+          p_upgraded_wallet: walletAddress,
+          p_new_level: level
+        });
+
+        if (pendingRewardError) {
+          console.warn('⚠️ Pending reward check failed:', pendingRewardError);
+        } else {
+          console.log(`✅ Pending reward check completed for Level ${level} activation:`, pendingRewardCheck);
+        }
+      } catch (pendingRewardErr) {
+        console.warn('⚠️ Pending reward check error (non-critical):', pendingRewardErr);
+      }
     }
     // Return success response
     const responseData = {
