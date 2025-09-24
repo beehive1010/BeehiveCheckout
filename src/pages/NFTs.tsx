@@ -1,16 +1,16 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useI18n } from '../contexts/I18nContext';
-import { useWallet } from '../hooks/useWallet';
-import { useLocation } from 'wouter';
-import { useMultilingualNFTs } from '../hooks/useMultilingualContent';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { HybridTranslation } from '../components/shared/HybridTranslation';
-import { useToast } from '../hooks/use-toast';
-import { Megaphone, Package, ArrowRight, Star, Loader2, ShoppingCart, Eye, Sparkles, Palette, Languages } from 'lucide-react';
-import { supabase, orderService } from '../lib/supabaseClient';
+import React, {useCallback, useEffect, useState} from 'react';
+import {useI18n} from '../contexts/I18nContext';
+import {useWallet} from '../hooks/useWallet';
+import {useLocation} from 'wouter';
+import {useMultilingualNFTs} from '../hooks/useMultilingualContent';
+import {Card, CardContent, CardHeader, CardTitle} from '../components/ui/card';
+import {Button} from '../components/ui/button';
+import {Badge} from '../components/ui/badge';
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '../components/ui/tabs';
+import {HybridTranslation} from '../components/shared/HybridTranslation';
+import {useToast} from '../hooks/use-toast';
+import {Eye, Loader2, Megaphone, Package, Palette, ShoppingCart, Star} from 'lucide-react';
+import {orderService, supabase} from '../lib/supabaseClient';
 
 interface AdvertisementNFT {
   id: string;
@@ -337,19 +337,37 @@ export default function NFTs() {
       return;
     }
 
-    // Check BCC balance - use direct balance if available, otherwise fallback to useWallet balance
-    let currentBCC = directBCCBalance !== null ? directBCCBalance : (bccBalance?.transferable || 0);
+    // Check BCC balance with multiple fallback methods
+    let currentBCC = 0;
     
-    // If still no balance, query database directly
-    if (currentBCC === 0) {
+    console.log('💰 Balance check - Direct BCC:', directBCCBalance, 'Wallet BCC:', bccBalance?.transferable);
+    
+    // Priority 1: Use direct balance if available and greater than 0
+    if (directBCCBalance !== null && directBCCBalance > 0) {
+      currentBCC = directBCCBalance;
+      console.log('✅ Using direct BCC balance:', currentBCC);
+    }
+    // Priority 2: Use wallet balance if available
+    else if (bccBalance?.transferable && bccBalance.transferable > 0) {
+      currentBCC = bccBalance.transferable;
+      console.log('✅ Using wallet BCC balance:', currentBCC);
+    }
+    // Priority 3: Query database directly as final fallback
+    else {
       try {
-        const { data: balanceData } = await supabase
+        console.log('🔄 Querying database directly for BCC balance...');
+        const { data: balanceData, error } = await supabase
           .from('user_balances')
           .select('bcc_balance')
           .eq('wallet_address', walletAddress)
           .single();
-        currentBCC = balanceData?.bcc_balance || 0;
-        console.log(`🔄 Direct DB query - BCC balance: ${currentBCC}`);
+          
+        if (error) {
+          console.error('Database balance query error:', error);
+        } else {
+          currentBCC = balanceData?.bcc_balance || 0;
+          console.log('✅ Database BCC balance:', currentBCC);
+        }
       } catch (error) {
         console.error('Failed to get balance from database:', error);
       }
@@ -371,7 +389,7 @@ export default function NFTs() {
 
       // Use balance edge function to spend BCC for NFT purchase
       const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-      const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1MjUwMTYsImV4cCI6MjA0MDEwMTAxNn0.gBWZUvwCJgP1lsVQlZNDsYXDxBEr31QfRtNEgYzS6NA';
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       
       const spendResponse = await fetch(`${baseUrl}/balance`, {
         method: 'POST',
@@ -390,11 +408,18 @@ export default function NFTs() {
         })
       });
       
-      const spendResult = await spendResponse.json();
-      const spendError = !spendResponse.ok ? new Error(spendResult.error || 'Failed to spend BCC') : null;
+      if (!spendResponse.ok) {
+        const errorData = await spendResponse.json().catch(() => ({ error: 'Network error' }));
+        console.error('❌ BCC spend API error:', errorData);
+        throw new Error(errorData.error || `API request failed with status ${spendResponse.status}`);
+      }
 
-      if (spendError || !spendResult?.success) {
-        throw new Error(`BCC spending failed: ${spendError?.message || spendResult?.error || 'Unknown error'}`);
+      const spendResult = await spendResponse.json();
+      console.log('💰 BCC spend response:', spendResult);
+
+      if (!spendResult?.success) {
+        console.error('❌ BCC spend failed:', spendResult);
+        throw new Error(spendResult?.error || spendResult?.message || 'BCC spending failed - insufficient balance or system error');
       }
 
       console.log(`✅ BCC spent successfully: ${nft.price_bcc} BCC for NFT ${nft.title}`);
@@ -585,9 +610,13 @@ export default function NFTs() {
                 <Card key={nft.id} className="group hover:shadow-lg transition-all duration-200 border-blue-500/20 hover:border-blue-500/40">
                   <CardHeader className="pb-3">
                     <img 
-                      src={nft.image_url || '/placeholder-nft.jpg'} 
+                      src={nft.image_url || 'https://via.placeholder.com/400x300/e2e8f0/64748b?text=Advertisement+NFT'} 
                       alt={nft.title}
                       className="w-full h-48 object-cover rounded-lg mb-3"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'https://via.placeholder.com/400x300/e2e8f0/64748b?text=NFT+Image';
+                      }}
                     />
                     <Badge className="w-fit bg-blue-500/20 text-blue-400 border-blue-500/30">
                       <HybridTranslation
@@ -703,13 +732,27 @@ export default function NFTs() {
                 <Card key={nft.id} className="group hover:shadow-lg transition-all duration-200 border-purple-500/20 hover:border-purple-500/40">
                   <CardHeader className="pb-3">
                     <img 
-                      src={nft.image_url || '/placeholder-nft.jpg'} 
+                      src={nft.image_url || 'https://via.placeholder.com/400x300/9333ea/e9d5ff?text=Merchant+NFT'} 
                       alt={nft.title}
                       className="w-full h-48 object-cover rounded-lg mb-3"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'https://via.placeholder.com/400x300/9333ea/e9d5ff?text=Service+NFT';
+                      }}
                     />
                     <div className="flex items-center justify-between">
                       <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
-                        {getTranslatedContent(nft, 'category')}
+                        <HybridTranslation
+                          content={{
+                            text: nft.category,
+                            language: nft.language_code || nft.language,
+                            translations: nft.translations ? Object.fromEntries(
+                              Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.category || nft.category])
+                            ) : {}
+                          }}
+                          autoTranslate={true}
+                          contentStyle="text-xs"
+                        />
                       </Badge>
                       {nft.supply_total && (
                         <Badge variant="outline" className="text-xs">
@@ -717,7 +760,20 @@ export default function NFTs() {
                         </Badge>
                       )}
                     </div>
-                    <CardTitle className="text-lg text-foreground">{getTranslatedContent(nft, 'title')}</CardTitle>
+                    <CardTitle className="text-lg text-foreground">
+                      <HybridTranslation
+                        content={{
+                          text: nft.title,
+                          language: nft.language_code || nft.language,
+                          translations: nft.translations ? Object.fromEntries(
+                            Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.title || nft.title])
+                          ) : {}
+                        }}
+                        autoTranslate={true}
+                        contentStyle="text-lg font-semibold"
+                        showTranslationSource={true}
+                      />
+                    </CardTitle>
                   </CardHeader>
                   
                   <CardContent className="space-y-4">
@@ -808,9 +864,13 @@ export default function NFTs() {
                   <Card key={purchase.id} className="border-green-500/20">
                     <CardHeader className="pb-3">
                       <img 
-                        src={nft.image_url || '/placeholder-nft.jpg'} 
+                        src={nft.image_url || 'https://via.placeholder.com/400x300/10b981/dcfce7?text=My+NFT'} 
                         alt={nft.title}
                         className="w-full h-48 object-cover rounded-lg mb-3"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = 'https://via.placeholder.com/400x300/10b981/dcfce7?text=Owned+NFT';
+                        }}
                       />
                       <div className="flex items-center justify-between">
                         <Badge className={`${
@@ -818,13 +878,36 @@ export default function NFTs() {
                             ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' 
                             : 'bg-purple-500/20 text-purple-400 border-purple-500/30'
                         }`}>
-                          {getTranslatedContent(nft, 'category')}
+                          <HybridTranslation
+                            content={{
+                              text: nft.category,
+                              language: nft.language_code || nft.language,
+                              translations: nft.translations ? Object.fromEntries(
+                                Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.category || nft.category])
+                              ) : {}
+                            }}
+                            autoTranslate={true}
+                            contentStyle="text-xs"
+                          />
                         </Badge>
                         <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
                           Owned
                         </Badge>
                       </div>
-                      <CardTitle className="text-lg text-foreground">{getTranslatedContent(nft, 'title')}</CardTitle>
+                      <CardTitle className="text-lg text-foreground">
+                        <HybridTranslation
+                          content={{
+                            text: nft.title,
+                            language: nft.language_code || nft.language,
+                            translations: nft.translations ? Object.fromEntries(
+                              Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.title || nft.title])
+                            ) : {}
+                          }}
+                          autoTranslate={true}
+                          contentStyle="text-lg font-semibold"
+                          showTranslationSource={true}
+                        />
+                      </CardTitle>
                     </CardHeader>
                     
                     <CardContent className="space-y-4">

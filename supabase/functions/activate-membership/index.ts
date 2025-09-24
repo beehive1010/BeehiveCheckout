@@ -1,7 +1,8 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { createThirdwebClient, getContract, readContract } from 'https://esm.sh/thirdweb@5';
-import { arbitrum } from 'https://esm.sh/thirdweb@5/chains';
+import {serve} from "https://deno.land/std@0.168.0/http/server.ts";
+import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
+import {createThirdwebClient, getContract, readContract} from 'https://esm.sh/thirdweb@5';
+import {arbitrum} from 'https://esm.sh/thirdweb@5/chains';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-wallet-address',
@@ -180,10 +181,34 @@ serve(async (req: Request) => {
       });
     }
     console.log(`✅ Membership record created successfully: ${membership.wallet_address}`);
-    // Step 4: Now that membership is created, create members record
+    
+    // Step 4: FIRST create referrals_new record (权威推荐关系) - 必须在members记录之前
+    let referralRecord = null;
+    if (normalizedReferrerWallet && normalizedReferrerWallet !== '0x0000000000000000000000000000000000000001') {
+      try {
+        console.log(`🔗 Creating referrals_new record FIRST: ${userData.wallet_address} -> ${normalizedReferrerWallet}`);
+        
+        // Create referrals_new record for view consistency (权威来源)
+        const { error: referralNewError } = await supabase.from('referrals_new').insert({
+          referrer_wallet: normalizedReferrerWallet,
+          referred_wallet: userData.wallet_address,
+          created_at: new Date().toISOString()
+        });
+        
+        if (referralNewError && !referralNewError.message?.includes('duplicate')) {
+          console.warn('⚠️ Failed to create referrals_new record:', referralNewError);
+        } else {
+          console.log(`✅ Referrals_new record created FIRST: ${userData.wallet_address} -> ${normalizedReferrerWallet}`);
+        }
+      } catch (referralErr) {
+        console.warn('⚠️ Referrals_new creation error (non-critical):', referralErr);
+      }
+    }
+    
+    // Step 5: Now create members record (after referrals_new exists)
     let memberRecord = null;
     try {
-      console.log(`👥 Creating members record for: ${walletAddress}`);
+      console.log(`👥 Creating members record AFTER referrals_new: ${walletAddress}`);
       // Get the next activation sequence number
       const { data: sequenceData } = await supabase.from('members').select('activation_sequence').order('activation_sequence', {
         ascending: false
@@ -203,30 +228,17 @@ serve(async (req: Request) => {
         throw new Error(`Failed to create members record: ${memberError.message}`);
       } else {
         memberRecord = newMember;
-        console.log(`✅ Members record created: ${memberRecord.wallet_address} with referrer: ${memberRecord.referrer_wallet}`);
+        console.log(`✅ Members record created AFTER referrals_new: ${memberRecord.wallet_address} with referrer: ${memberRecord.referrer_wallet}`);
       }
     } catch (memberErr) {
       console.error('❌ Members record creation error (critical):', memberErr);
       throw memberErr;
     }
-    // Step 5: Record referral if referrer exists - use matrix placement function
-    let referralRecord = null;
+    
+    // Step 6: Complete matrix placement after both referrals_new and members exist
     if (normalizedReferrerWallet && normalizedReferrerWallet !== '0x0000000000000000000000000000000000000001' && memberRecord) {
       try {
-        console.log(`🔗 Recording referral for: ${walletAddress} -> ${normalizedReferrerWallet}`);
-        
-        // First, create referrals_new record for view consistency
-        const { error: referralNewError } = await supabase.from('referrals_new').insert({
-          referrer_wallet: normalizedReferrerWallet,
-          referred_wallet: userData.wallet_address,
-          created_at: new Date().toISOString()
-        });
-        
-        if (referralNewError && !referralNewError.message?.includes('duplicate')) {
-          console.warn('⚠️ Failed to create referrals_new record:', referralNewError);
-        } else {
-          console.log(`✅ Referrals_new record created: ${userData.wallet_address} -> ${normalizedReferrerWallet}`);
-        }
+        console.log(`📐 Completing matrix placement: ${walletAddress} -> ${normalizedReferrerWallet}`);
         
         // Use the matrix function to place member and create referral record
         const matrixPlacementResult = await supabase.rpc('place_new_member_in_matrix_correct', {
@@ -243,10 +255,39 @@ serve(async (req: Request) => {
         console.warn('⚠️ Matrix placement error (non-critical):', referralErr);
       }
     }
-    // Matrix placement was already done in Step 5
+    // Matrix placement was already done in Step 6
     let matrixResult = referralRecord;
     
-    // Step 6: Create Layer 1 rewards after matrix placement is complete
+    // Step 7: Trigger BCC release for Level activation
+    let bccReleaseResult = null;
+    try {
+      console.log(`🔓 Unlocking BCC for Level ${level} activation...`);
+      const bccResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/bcc-release-system`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+        },
+        body: JSON.stringify({
+          action: 'process_level_unlock',
+          walletAddress: userData.wallet_address,
+          targetLevel: level
+        })
+      });
+      
+      if (bccResponse.ok) {
+        bccReleaseResult = await bccResponse.json();
+        console.log(`✅ BCC release completed:`, bccReleaseResult);
+      } else {
+        console.warn(`⚠️ BCC release failed with status ${bccResponse.status}`);
+        const errorText = await bccResponse.text();
+        console.warn(`BCC release error:`, errorText);
+      }
+    } catch (bccError) {
+      console.warn('⚠️ BCC release error (non-critical):', bccError);
+    }
+    
+    // Step 8: Create Layer 1 rewards after matrix placement is complete
     let layerRewardResult = null;
     if (referralRecord && referralRecord.success) {
       try {
@@ -267,7 +308,7 @@ serve(async (req: Request) => {
         console.warn('⚠️ Layer 1 reward error (non-critical):', layerRewardErr);
       }
 
-      // Step 6.1: Check and update pending rewards that may now be claimable after Level 1 activation
+      // Step 8.1: Check and update pending rewards that may now be claimable after Level 1 activation
       console.log(`🎁 Checking pending rewards after Level 1 activation for ${walletAddress}...`);
       try {
         const { data: pendingRewardCheck, error: pendingRewardError } = await supabase.rpc('check_pending_rewards_after_upgrade', {
@@ -284,6 +325,55 @@ serve(async (req: Request) => {
         console.warn('⚠️ Pending reward check error (non-critical):', pendingRewardErr);
       }
     }
+
+    // Step 8.2: Check and compensate for missing layer rewards (trigger补偿逻辑)
+    console.log(`🔍 Checking if layer rewards were triggered for ${walletAddress} Level ${level}...`);
+    try {
+      // Check if layer reward exists for this activation
+      const { data: existingLayerReward, error: checkError } = await supabase
+        .from('layer_rewards')
+        .select('id, status, reward_amount')
+        .eq('triggering_member_wallet', userData.wallet_address)
+        .eq('matrix_layer', level)
+        .maybeSingle();
+
+      if (checkError) {
+        console.warn('⚠️ Layer reward check query failed:', checkError);
+      } else if (!existingLayerReward) {
+        console.log(`❌ Missing layer reward detected, compensating with manual trigger...`);
+        
+        // Calculate correct NFT price for all levels (1-19)
+        const getNftPrice = (lvl) => {
+          const prices = {
+            1: 100, 2: 150, 3: 200, 4: 250, 5: 300, 6: 350, 7: 400, 8: 450, 9: 500,
+            10: 550, 11: 600, 12: 650, 13: 700, 14: 750, 15: 800, 16: 850, 17: 900, 18: 950, 19: 1000
+          };
+          return prices[lvl] || (lvl <= 19 ? 100 + (lvl - 1) * 50 : 0);
+        };
+        
+        // Manually trigger the layer reward creation
+        const { data: compensationResult, error: compensationError } = await supabase.rpc('trigger_layer_rewards_on_upgrade', {
+          p_upgrading_member_wallet: userData.wallet_address,
+          p_new_level: level,
+          p_nft_price: getNftPrice(level)
+        });
+
+        if (compensationError) {
+          console.warn('⚠️ Layer reward compensation failed:', compensationError);
+        } else {
+          console.log(`✅ Layer reward compensation successful:`, compensationResult);
+          // Update the layerRewardResult for response
+          if (compensationResult && compensationResult.success) {
+            layerRewardResult = compensationResult;
+          }
+        }
+      } else {
+        console.log(`✅ Layer reward already exists: ${existingLayerReward.id} (${existingLayerReward.status}, ${existingLayerReward.reward_amount})`);
+      }
+    } catch (compensationErr) {
+      console.warn('⚠️ Layer reward compensation error (non-critical):', compensationErr);
+    }
+
     // Return success response
     const responseData = {
       success: true,
@@ -303,8 +393,10 @@ serve(async (req: Request) => {
           memberRecordCreated: !!memberRecord,
           referralRecorded: !!referralRecord,
           matrixPlaced: !!matrixResult,
+          bccReleased: !!bccReleaseResult && bccReleaseResult.success,
           layerRewardCreated: !!layerRewardResult && layerRewardResult.success
         },
+        bccRelease: bccReleaseResult,
         layerReward: layerRewardResult
       },
       transactionHash

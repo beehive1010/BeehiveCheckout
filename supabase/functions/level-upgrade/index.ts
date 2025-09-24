@@ -1,5 +1,5 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import {serve} from "https://deno.land/std@0.168.0/http/server.ts"
+import {createClient} from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,7 +8,7 @@ const corsHeaders = {
 }
 
 interface LevelUpgradeRequest {
-  action: 'upgrade_level' | 'check_requirements' | 'get_pricing' | 'verify_transaction'
+  action: 'upgrade_level' | 'check_requirements' | 'get_pricing' | 'verify_transaction' | 'debug_user_status'
   walletAddress: string
   targetLevel?: number
   transactionHash?: string
@@ -149,6 +149,10 @@ serve(async (req) => {
         response = await verifyUpgradeTransaction(transactionHash!, walletAddress, targetLevel!, network)
         break
       
+      case 'debug_user_status':
+        response = await debugUserStatus(supabase, walletAddress)
+        break
+      
       default:
         response = {
           success: false,
@@ -252,7 +256,22 @@ async function processLevelUpgrade(
       }
     }
 
-    // 4. Create membership record (triggers BCC release and other membership processing)
+    // 4. Verify referrals_new record exists (required for upgrade integrity)
+    console.log(`🔗 Verifying referrals_new record exists for ${walletAddress}...`)
+    const { data: referralsNewData } = await supabase
+      .from('referrals_new')
+      .select('referrer_wallet, referred_wallet')
+      .ilike('referred_wallet', walletAddress) // Case insensitive match
+      .maybeSingle()
+
+    if (!referralsNewData) {
+      console.warn(`⚠️ No referrals_new record found for ${walletAddress} - this may indicate incomplete registration`)
+      // For upgrade, we don't block if no referral exists (could be root user or legacy data)
+    } else {
+      console.log(`✅ Referrals_new record verified: ${referralsNewData.referred_wallet} -> ${referralsNewData.referrer_wallet}`)
+    }
+
+    // 5. Create membership record (triggers BCC release and other membership processing)
     console.log(`💫 Creating membership record for Level ${targetLevel}...`)
     const { data: membershipData, error: membershipError } = await supabase
       .from('membership')
@@ -279,7 +298,7 @@ async function processLevelUpgrade(
 
     console.log(`✅ Membership record created - triggers fired:`, membershipData)
 
-    // 5. Update member level (triggers level upgrade rewards and layer rewards)
+    // 6. Update member level (triggers level upgrade rewards and layer rewards)
     console.log(`⬆️ Updating member level to ${targetLevel}...`)
     const { data: memberUpdateResult, error: memberUpdateError } = await supabase
       .from('members')
@@ -302,13 +321,58 @@ async function processLevelUpgrade(
 
     console.log(`✅ Member level updated - upgrade triggers fired:`, memberUpdateResult)
 
-    // 5.1. Note: Layer rewards will be handled by membership table triggers
+    // 6.1. Note: Layer rewards will be handled by membership table triggers
     console.log(`💰 Layer rewards will be processed by database triggers...`)
     
-    // 5.2. Note: Pending rewards will be handled by member level update triggers  
+    // 6.2. Note: Pending rewards will be handled by member level update triggers  
     console.log(`🎁 Pending rewards will be processed by database triggers...`)
 
-    // 6. Get final results from triggered functions
+    // 6.3. Check and compensate for missing layer rewards (trigger补偿逻辑)
+    console.log(`🔍 Checking if layer rewards were triggered for ${walletAddress} Level ${targetLevel}...`)
+    try {
+      // Check if layer reward exists for this level upgrade
+      const { data: existingLayerReward, error: checkError } = await supabase
+        .from('layer_rewards')
+        .select('id, status, reward_amount')
+        .ilike('triggering_member_wallet', walletAddress)
+        .eq('matrix_layer', targetLevel)
+        .maybeSingle()
+
+      if (checkError) {
+        console.warn('⚠️ Layer reward check query failed:', checkError)
+      } else if (!existingLayerReward) {
+        console.log(`❌ Missing layer reward detected for Level ${targetLevel}, compensating with manual trigger...`)
+        
+        // Calculate correct layer reward amount for all levels (1-19)
+        // This should match the get_nft_level_price database function
+        const getLayerRewardAmount = (lvl) => {
+          const rewardAmounts = {
+            1: 100, 2: 150, 3: 200, 4: 250, 5: 300, 6: 350, 7: 400, 8: 450, 9: 500,
+            10: 550, 11: 600, 12: 650, 13: 700, 14: 750, 15: 800, 16: 850, 17: 900, 18: 950, 19: 1000
+          };
+          return rewardAmounts[lvl] || (lvl <= 19 ? 100 + (lvl - 1) * 50 : 0);
+        };
+        
+        // Manually trigger the layer reward creation
+        const { data: compensationResult, error: compensationError } = await supabase.rpc('trigger_layer_rewards_on_upgrade', {
+          p_upgrading_member_wallet: walletAddress,
+          p_new_level: targetLevel,
+          p_nft_price: getLayerRewardAmount(targetLevel)
+        })
+
+        if (compensationError) {
+          console.warn('⚠️ Layer reward compensation failed:', compensationError)
+        } else {
+          console.log(`✅ Layer reward compensation successful:`, compensationResult)
+        }
+      } else {
+        console.log(`✅ Layer reward already exists: ${existingLayerReward.id} (${existingLayerReward.status}, ${existingLayerReward.reward_amount})`)
+      }
+    } catch (compensationErr) {
+      console.warn('⚠️ Layer reward compensation error (non-critical):', compensationErr)
+    }
+
+    // 7. Get final results from triggered functions
     await new Promise(resolve => setTimeout(resolve, 2000)) // Wait for triggers to complete
     
     // Check user balance changes
@@ -325,7 +389,7 @@ async function processLevelUpgrade(
       .eq('triggering_member_wallet', walletAddress)
       .eq('level', targetLevel)
 
-    // 7. Log the upgrade
+    // 8. Log the upgrade
     await supabase
       .from('audit_logs')
       .insert({
@@ -336,6 +400,7 @@ async function processLevelUpgrade(
           toLevel: targetLevel,
           transactionHash,
           network,
+          referralsNewVerified: !!referralsNewData,
           membershipRecordCreated: !!membershipData,
           memberLevelUpdated: !!memberUpdateResult,
           bccBalance: balanceData?.bcc_balance || 0,
@@ -357,7 +422,7 @@ async function processLevelUpgrade(
         pendingRewardsClaimed: 0,
         newPendingRewards: balanceData?.pending_bcc_rewards || 0
       },
-      message: `Successfully upgraded to Level ${targetLevel}! Membership record created, level updated, triggers fired for BCC release and layer rewards.`
+      message: `Successfully upgraded to Level ${targetLevel}! Referrals verified, membership record created, level updated, triggers fired for BCC release and layer rewards.`
     }
 
   } catch (error) {
@@ -463,13 +528,28 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
     let directReferralsCheck = { required: 0, current: 0, satisfied: true }
     
     if (targetLevel === 2) {
-      const { data: referrerStatsData } = await supabase
-        .from('rewards_stats_view')
-        .select('total_direct_referrals')
-        .ilike('referrer', walletAddress) // Use ilike for case insensitive match
+      // Use referrals_stats_view for accurate direct referral count (includes referrals_new data)
+      const { data: referralsStatsData, error: referralsStatsError } = await supabase
+        .from('referrals_stats_view')
+        .select('direct_referrals_count')
+        .ilike('wallet_address', walletAddress)
         .maybeSingle()
 
-      const directReferrals = referrerStatsData?.total_direct_referrals || 0
+      let directReferrals = 0
+      
+      if (!referralsStatsError && referralsStatsData) {
+        directReferrals = referralsStatsData.direct_referrals_count || 0
+      } else {
+        console.warn('⚠️ referrals_stats_view query failed, trying referrals_new fallback:', referralsStatsError)
+        // Fallback to referrals_new table
+        const { count: fallbackCount } = await supabase
+          .from('referrals_new')
+          .select('*', { count: 'exact', head: true })
+          .ilike('referrer_wallet', walletAddress)
+        
+        directReferrals = fallbackCount || 0
+      }
+
       const requiredReferrals = LEVEL_CONFIG.SPECIAL_REQUIREMENTS.LEVEL_2_DIRECT_REFERRALS
 
       directReferralsCheck = {
@@ -747,5 +827,123 @@ async function triggerLayerRewardsForUpgrade(supabase: any, walletAddress: strin
   } catch (error) {
     console.error('Trigger layer rewards error:', error)
     return { created: 0 }
+  }
+}
+
+// Debug user status - comprehensive check
+async function debugUserStatus(supabase: any, walletAddress: string): Promise<LevelUpgradeResponse> {
+  console.log(`🔍 Debug: Comprehensive status check for ${walletAddress}`)
+
+  try {
+    // 1. Get member data
+    const { data: memberData, error: memberError } = await supabase
+      .from('members')
+      .select('current_level, wallet_address, activation_sequence, activation_time')
+      .ilike('wallet_address', walletAddress)
+      .maybeSingle()
+
+    // 2. Get direct referrals count using referrals_new table
+    const { count: directReferralsCount, error: referralsError } = await supabase
+      .from('referrals_new')
+      .select('*', { count: 'exact', head: true })
+      .ilike('referrer_wallet', walletAddress)
+
+    // Fallback to referrals table if referrals_new fails
+    let fallbackReferralsCount = 0
+    if (referralsError || !directReferralsCount) {
+      const { count: fallbackCount } = await supabase
+        .from('referrals')
+        .select('*', { count: 'exact', head: true })
+        .ilike('referrer_wallet', walletAddress)
+        .eq('is_direct_referral', true)
+      
+      fallbackReferralsCount = fallbackCount || 0
+    }
+
+    // 3. Get membership records
+    const { data: membershipRecords, error: membershipError } = await supabase
+      .from('membership')
+      .select('nft_level, is_member, claimed_at, unlock_membership_level')
+      .ilike('wallet_address', walletAddress)
+      .order('nft_level', { ascending: true })
+
+    // 4. Get user balance
+    const { data: balanceData, error: balanceError } = await supabase
+      .from('user_balances')
+      .select('bcc_balance, pending_bcc_rewards')
+      .ilike('wallet_address', walletAddress)
+      .maybeSingle()
+
+    // 5. Get referrals_new record
+    const { data: referralsNewData, error: referralsNewError } = await supabase
+      .from('referrals_new')
+      .select('referrer_wallet, referred_wallet')
+      .ilike('referred_wallet', walletAddress)
+      .maybeSingle()
+
+    // 6. Get layer rewards
+    const { data: layerRewardsData, error: layerRewardsError } = await supabase
+      .from('layer_rewards')
+      .select('id, matrix_layer, status, reward_amount, created_at')
+      .ilike('triggering_member_wallet', walletAddress)
+      .order('matrix_layer', { ascending: true })
+
+    const debugInfo = {
+      walletAddress,
+      member: memberError ? null : memberData,
+      memberError: memberError?.message,
+      
+      directReferrals: referralsError ? fallbackReferralsCount : (directReferralsCount || 0),
+      referralsError: referralsError?.message,
+      
+      membershipRecords: membershipError ? [] : (membershipRecords || []),
+      membershipError: membershipError?.message,
+      
+      balance: balanceError ? null : balanceData,
+      balanceError: balanceError?.message,
+      
+      referralsNew: referralsNewError ? null : referralsNewData,
+      referralsNewError: referralsNewError?.message,
+      
+      layerRewards: layerRewardsError ? [] : (layerRewardsData || []),
+      layerRewardsError: layerRewardsError?.message,
+      
+      // Analysis
+      analysis: {
+        currentLevel: memberData?.current_level || 0,
+        canUpgradeToLevel2: (memberData?.current_level === 1) && ((referralsError ? fallbackReferralsCount : (directReferralsCount || 0)) >= 3),
+        hasLevel2Membership: (membershipRecords || []).some(m => m.nft_level === 2),
+        nextUnlockLevel: membershipRecords && membershipRecords.length > 0 
+          ? Math.max(...membershipRecords.map(m => m.unlock_membership_level || 0))
+          : null,
+        ownedNFTLevels: (membershipRecords || []).map(m => m.nft_level),
+        syncIssues: []
+      }
+    }
+
+    // Check for sync issues
+    const analysis = debugInfo.analysis
+    if (memberData && membershipRecords) {
+      const maxOwnedNFTLevel = membershipRecords.length > 0 ? Math.max(...membershipRecords.map(m => m.nft_level)) : 0
+      if (memberData.current_level < maxOwnedNFTLevel) {
+        analysis.syncIssues.push(`Database level (${memberData.current_level}) < Max NFT level (${maxOwnedNFTLevel})`)
+      }
+    }
+
+    return {
+      success: true,
+      action: 'debug_user_status',
+      message: 'Debug information collected',
+      debugInfo
+    } as any
+
+  } catch (error) {
+    console.error('Debug user status error:', error)
+    return {
+      success: false,
+      action: 'debug_user_status',
+      message: 'Failed to collect debug information',
+      error: error.message
+    }
   }
 }

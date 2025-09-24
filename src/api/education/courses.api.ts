@@ -1,5 +1,5 @@
 // Education API functions - Using Supabase direct queries
-import { supabase } from '../../lib/supabase';
+import {supabase} from '../../lib/supabase';
 
 export const coursesApi = {
   async getCourses(language = 'en', userLevel?: number) {
@@ -220,7 +220,7 @@ export const coursesApi = {
       // 6. 扣除BCC（如果需要）- 使用balance edge function
       if (course.price_bcc > 0) {
         const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-        const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1MjUwMTYsImV4cCI6MjA0MDEwMTAxNn0.gBWZUvwCJgP1lsVQlZNDsYXDxBEr31QfRtNEgYzS6NA';
+        const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
         
         const spendResponse = await fetch(`${baseUrl}/balance`, {
           method: 'POST',
