@@ -24,7 +24,6 @@ import {
     Gift,
     RefreshCw,
     Shield,
-    Timer,
     TrendingUp,
     Users
 } from 'lucide-react';
@@ -242,146 +241,176 @@ export default function Rewards() {
   }
 
   return (
-    <div className="w-full px-4 md:px-6 lg:container lg:mx-auto py-4 md:py-6 space-y-6 md:space-y-8">
-      {/* Header */}
-      <div className="text-center md:text-left mb-6 md:mb-8">
-        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-honey mb-2 md:mb-3">
-          {t('nav.rewards')}
-        </h1>
-        <p className="text-base md:text-lg text-muted-foreground">
+    <div className="w-full px-4 sm:px-6 lg:container lg:mx-auto py-4 sm:py-6 space-y-4 sm:space-y-6 animate-in fade-in-50 duration-700">
+      {/* Enhanced Header */}
+      <div className="text-center sm:text-left mb-6 sm:mb-8 animate-in slide-in-from-top-2 duration-500">
+        <div className="relative inline-block">
+          <div className="absolute inset-0 bg-gradient-to-r from-honey/20 to-amber-400/20 rounded-2xl blur-xl animate-pulse"></div>
+          <h1 className="relative text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-honey via-amber-400 to-honey bg-clip-text text-transparent mb-2 sm:mb-3">
+            {t('nav.rewards')}
+          </h1>
+        </div>
+        <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto sm:mx-0">
           {t('rewards.subtitle')}
         </p>
       </div>
 
-      {/* Collapsible Stats Overview */}
-      <Collapsible open={isOverviewOpen} onOpenChange={setIsOverviewOpen} className="mb-3">
+      {/* Enhanced Collapsible Stats Overview */}
+      <Collapsible open={isOverviewOpen} onOpenChange={setIsOverviewOpen} className="mb-4 animate-in slide-in-from-bottom-2 duration-500">
         <CollapsibleTrigger className="w-full">
-          <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-black dark:from-black dark:via-gray-900 dark:to-black rounded-xl border border-gray-700 dark:border-gray-800 p-3 md:p-4 hover:from-gray-800 hover:via-gray-700 hover:to-gray-900 dark:hover:from-gray-900 dark:hover:via-gray-800 dark:hover:to-black transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl hover:shadow-honey/10 group">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-6 h-6 bg-gradient-to-br from-honey via-amber-400 to-amber-500 rounded-lg flex items-center justify-center shadow-inner group-hover:shadow-lg group-hover:scale-110 transition-all duration-300">
-                  <BarChart3 className="h-3.5 w-3.5 text-black drop-shadow-sm" />
+          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900 dark:from-black dark:via-slate-950 dark:to-black rounded-2xl border-2 border-slate-700 dark:border-slate-800 p-4 sm:p-5 hover:border-honey/50 transition-all duration-500 cursor-pointer shadow-2xl hover:shadow-3xl hover:shadow-honey/20 group hover:scale-[1.02] transform">
+            <div className="absolute inset-0 bg-gradient-to-r from-honey/5 via-transparent to-amber-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-honey via-amber-400 to-amber-500 rounded-xl flex items-center justify-center shadow-2xl group-hover:shadow-honey/50 group-hover:scale-110 transition-all duration-500">
+                  <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-black drop-shadow-sm" />
                 </div>
-                <span className="text-sm font-semibold text-honey drop-shadow-sm tracking-wide">
-                  奖励概览
+                <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-honey to-amber-400 bg-clip-text text-transparent drop-shadow-sm tracking-wide">
+                  {t('rewards.overview')}
                 </span>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="bg-gradient-to-r from-honey/90 to-amber-400 px-3 py-1.5 rounded-full shadow-lg">
-                  <span className="text-sm font-bold text-black drop-shadow-sm">
-                    ${rewardsData?.claimable || 0} 可领取
+              <div className="flex flex-col xs:flex-row items-start xs:items-center gap-2 xs:gap-3">
+                <div className="bg-gradient-to-r from-honey/90 to-amber-400 px-4 py-2 rounded-full shadow-xl transform group-hover:scale-105 transition-all duration-300">
+                  <span className="text-sm sm:text-base font-bold text-black drop-shadow-sm whitespace-nowrap">
+                    ${rewardsData?.claimable || 0} {t('rewards.available_to_claim')}
                   </span>
                 </div>
-                <ChevronDown className={`h-5 w-5 text-honey transition-all duration-300 group-hover:scale-110 ${isOverviewOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-5 w-5 sm:h-6 sm:w-6 text-honey transition-all duration-500 group-hover:scale-110 ${isOverviewOpen ? 'rotate-180' : ''}`} />
               </div>
             </div>
           </div>
         </CollapsibleTrigger>
         
         <CollapsibleContent>
-          <div className="bg-gradient-to-br from-gray-900 via-black to-gray-900 dark:from-black dark:via-gray-950 dark:to-black rounded-xl border border-gray-700 dark:border-gray-800 p-3 md:p-4 mt-2 shadow-2xl">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="group text-center p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-gray-700 hover:via-gray-600 hover:to-gray-700 rounded-lg border border-gray-600 hover:border-honey/50 transition-all duration-300 hover:shadow-lg hover:shadow-honey/20 hover:-translate-y-1">
-                <div className="w-6 h-6 mx-auto bg-gradient-to-br from-gray-500 via-gray-400 to-gray-500 group-hover:from-honey/80 group-hover:via-honey group-hover:to-amber-400 rounded-lg flex items-center justify-center mb-2 transition-all duration-300 shadow-inner">
-                  <TrendingUp className="h-3.5 w-3.5 text-white group-hover:text-black transition-colors duration-300" />
+          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-black dark:via-slate-950 dark:to-black rounded-2xl border-2 border-slate-700 dark:border-slate-800 p-4 sm:p-6 mt-3 shadow-3xl animate-in slide-in-from-top-2 duration-300">
+            <div className="absolute inset-0 bg-gradient-to-r from-honey/10 via-transparent to-amber-400/10 opacity-30"></div>
+            <div className="relative grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="group relative overflow-hidden p-4 bg-gradient-to-br from-emerald-50 to-green-100 dark:from-emerald-950/30 dark:to-green-950/30 border-2 border-emerald-200 dark:border-emerald-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.05] hover:-translate-y-1">
+                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-transparent to-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative text-center space-y-2">
+                  <div className="w-8 h-8 mx-auto bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <TrendingUp className="h-4 w-4 text-white" />
+                  </div>
+                  <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wide">
+                    {t('rewards.overview.totalEarned')}
+                  </p>
+                  <p className="text-lg font-bold text-emerald-800 dark:text-emerald-200">
+                    ${rewardsData?.total || 0}
+                  </p>
                 </div>
-                <p className="text-xs text-gray-100 group-hover:text-gray-200 mb-2 transition-colors duration-300 font-medium">
-                  {t('rewards.overview.totalEarned')}
-                </p>
-                <p className="text-sm font-bold text-white group-hover:text-honey transition-colors duration-300">
-                  ${rewardsData?.total || 0}
-                </p>
               </div>
 
-              <div className="group text-center p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-gray-700 hover:via-gray-600 hover:to-gray-700 rounded-lg border border-gray-600 hover:border-honey/50 transition-all duration-300 hover:shadow-lg hover:shadow-honey/20 hover:-translate-y-1">
-                <div className="w-6 h-6 mx-auto bg-gradient-to-br from-gray-500 via-gray-400 to-gray-500 group-hover:from-honey/80 group-hover:via-honey group-hover:to-amber-400 rounded-lg flex items-center justify-center mb-2 transition-all duration-300 shadow-inner">
-                  <ArrowDownLeft className="h-3.5 w-3.5 text-white group-hover:text-black transition-colors duration-300" />
+              <div className="group relative overflow-hidden p-4 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950/30 dark:to-indigo-950/30 border-2 border-blue-200 dark:border-blue-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.05] hover:-translate-y-1">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative text-center space-y-2">
+                  <div className="w-8 h-8 mx-auto bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <ArrowDownLeft className="h-4 w-4 text-white" />
+                  </div>
+                  <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wide">
+                    {t('rewards.overview.totalWithdrawn')}
+                  </p>
+                  <p className="text-lg font-bold text-blue-800 dark:text-blue-200">
+                    ${rewardsData?.totalWithdrawn || 0}
+                  </p>
                 </div>
-                <p className="text-xs text-gray-100 group-hover:text-gray-200 mb-2 transition-colors duration-300 font-medium">
-                  {t('rewards.overview.totalWithdrawn')}
-                </p>
-                <p className="text-sm font-bold text-white group-hover:text-honey transition-colors duration-300">
-                  ${rewardsData?.totalWithdrawn || 0}
-                </p>
               </div>
 
-              <div className="group text-center p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-gray-700 hover:via-gray-600 hover:to-gray-700 rounded-lg border border-gray-600 hover:border-honey/50 transition-all duration-300 hover:shadow-lg hover:shadow-honey/20 hover:-translate-y-1">
-                <div className="w-6 h-6 mx-auto bg-gradient-to-br from-gray-500 via-gray-400 to-gray-500 group-hover:from-honey/80 group-hover:via-honey group-hover:to-amber-400 rounded-lg flex items-center justify-center mb-2 transition-all duration-300 shadow-inner">
-                  <Clock className="h-3.5 w-3.5 text-white group-hover:text-black transition-colors duration-300" />
+              <div className="group relative overflow-hidden p-4 bg-gradient-to-br from-orange-50 to-amber-100 dark:from-orange-950/30 dark:to-amber-950/30 border-2 border-orange-200 dark:border-orange-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.05] hover:-translate-y-1">
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 via-transparent to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative text-center space-y-2">
+                  <div className="w-8 h-8 mx-auto bg-gradient-to-br from-orange-500 to-amber-600 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <Clock className="h-4 w-4 text-white" />
+                  </div>
+                  <p className="text-xs font-semibold text-orange-700 dark:text-orange-300 uppercase tracking-wide">
+                    {t('rewards.overview.pending')}
+                  </p>
+                  <p className="text-lg font-bold text-orange-800 dark:text-orange-200">
+                    ${rewardsData?.pending || 0}
+                  </p>
                 </div>
-                <p className="text-xs text-gray-100 group-hover:text-gray-200 mb-2 transition-colors duration-300 font-medium">
-                  {t('rewards.overview.pending')}
-                </p>
-                <p className="text-sm font-bold text-white group-hover:text-honey transition-colors duration-300">
-                  ${rewardsData?.pending || 0}
-                </p>
               </div>
 
-              <div className="group text-center p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-gray-700 hover:via-gray-600 hover:to-gray-700 rounded-lg border border-gray-600 hover:border-honey/50 transition-all duration-300 hover:shadow-lg hover:shadow-honey/20 hover:-translate-y-1">
-                <div className="w-6 h-6 mx-auto bg-gradient-to-br from-honey/70 via-honey to-amber-400 rounded-lg flex items-center justify-center mb-2 shadow-lg">
-                  <Gift className="h-3.5 w-3.5 text-black" />
+              <div className="group relative overflow-hidden p-4 bg-gradient-to-br from-honey/10 via-amber-50 to-honey/20 dark:from-honey/10 dark:via-amber-950/30 dark:to-honey/20 border-2 border-honey/30 dark:border-honey/40 rounded-xl shadow-lg hover:shadow-2xl hover:shadow-honey/30 transition-all duration-500 hover:scale-[1.05] hover:-translate-y-1">
+                <div className="absolute inset-0 bg-gradient-to-r from-honey/10 via-transparent to-amber-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative text-center space-y-2">
+                  <div className="w-8 h-8 mx-auto bg-gradient-to-br from-honey to-amber-500 rounded-full flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300 shadow-lg animate-pulse">
+                    <Gift className="h-4 w-4 text-black" />
+                  </div>
+                  <p className="text-xs font-semibold text-amber-700 dark:text-honey uppercase tracking-wide">
+                    {t('rewards.overview.claimable')}
+                  </p>
+                  <p className="text-lg font-bold text-honey">
+                    ${rewardsData?.claimable || 0}
+                  </p>
                 </div>
-                <p className="text-xs text-honey mb-2 font-semibold">
-                  {t('rewards.overview.claimable')}
-                </p>
-                <p className="text-sm font-bold text-honey">
-                  ${rewardsData?.claimable || 0}
-                </p>
               </div>
             </div>
           </div>
         </CollapsibleContent>
       </Collapsible>
 
-      {/* Unified Tab Navigation and Content Container */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-lg">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          {/* Header with Description */}
-          <div className="p-3 md:p-4 border-b border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              选择下方分类查看和管理您的奖励
+      {/* Enhanced Unified Tab Navigation and Content Container */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-white via-slate-50 to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-700 shadow-2xl animate-in slide-in-from-bottom-3 duration-500">
+        <div className="absolute inset-0 bg-gradient-to-r from-honey/5 via-transparent to-amber-400/5 opacity-50"></div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="relative w-full">
+          {/* Enhanced Header with Description */}
+          <div className="p-4 sm:p-6 border-b-2 border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-gray-100 dark:from-slate-800 dark:to-slate-700">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-6 h-6 bg-gradient-to-br from-honey to-amber-500 rounded-lg flex items-center justify-center shadow-lg">
+                <Award className="h-3 w-3 text-black" />
+              </div>
+              <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-slate-700 to-gray-800 dark:from-slate-200 dark:to-gray-100 bg-clip-text text-transparent">
+                {t('rewards.management')}
+              </h2>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              {t('rewards.selectCategory')}
             </p>
           </div>
-          {/* Mobile: 3D Button Style Tabs */}
-          <div className="md:hidden p-3 md:p-4">
-            <TabsList className="grid grid-cols-2 gap-4 h-auto bg-transparent p-0">
+          {/* Enhanced Mobile: 3D Button Style Tabs */}
+          <div className="lg:hidden p-4 sm:p-6">
+            <TabsList className="grid grid-cols-2 gap-3 sm:gap-4 h-auto bg-transparent p-0">
               <TabsTrigger 
                 value="pending" 
-                className="group relative flex flex-col items-center gap-2 p-3 h-auto bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/40 dark:to-blue-800/40 hover:from-blue-100 hover:to-blue-200 dark:hover:from-blue-800/60 dark:hover:to-blue-700/60 border-2 border-blue-300 dark:border-blue-600 data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:border-blue-700 rounded-lg text-blue-800 dark:text-blue-200 shadow-[0_2px_4px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_3px_6px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.3)] data-[state=active]:shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)] transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                className="group relative overflow-hidden flex flex-col items-center gap-3 p-4 h-auto bg-gradient-to-br from-blue-50 via-blue-100 to-blue-50 dark:from-blue-950/30 dark:via-blue-900/40 dark:to-blue-950/30 hover:from-blue-100 hover:via-blue-200 hover:to-blue-100 dark:hover:from-blue-900/50 dark:hover:via-blue-800/60 dark:hover:to-blue-900/50 border-2 border-blue-200 dark:border-blue-700 data-[state=active]:from-blue-500 data-[state=active]:via-blue-600 data-[state=active]:to-blue-500 data-[state=active]:text-white data-[state=active]:border-blue-600 rounded-2xl text-blue-800 dark:text-blue-200 shadow-lg hover:shadow-xl transform hover:scale-105 hover:-translate-y-1 data-[state=active]:scale-105 transition-all duration-300 cursor-pointer"
               >
-                <div className="w-8 h-8 bg-white/80 dark:bg-blue-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-inner">
-                  <Clock className="h-4 w-4" />
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative w-10 h-10 bg-white/90 dark:bg-blue-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <Clock className="h-5 w-5" />
                 </div>
-                <span className="text-xs font-bold text-center">{t('rewards.tabs.pending')}</span>
+                <span className="relative text-xs font-bold text-center leading-tight">{t('rewards.tabs.pending')}</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="rollup" 
-                className="group relative flex flex-col items-center gap-2 p-3 h-auto bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/40 dark:to-purple-800/40 hover:from-purple-100 hover:to-purple-200 dark:hover:from-purple-800/60 dark:hover:to-purple-700/60 border-2 border-purple-300 dark:border-purple-600 data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white data-[state=active]:border-purple-700 rounded-lg text-purple-800 dark:text-purple-200 shadow-[0_2px_4px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_3px_6px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.3)] data-[state=active]:shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)] transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                className="group relative overflow-hidden flex flex-col items-center gap-3 p-4 h-auto bg-gradient-to-br from-purple-50 via-purple-100 to-purple-50 dark:from-purple-950/30 dark:via-purple-900/40 dark:to-purple-950/30 hover:from-purple-100 hover:via-purple-200 hover:to-purple-100 dark:hover:from-purple-900/50 dark:hover:via-purple-800/60 dark:hover:to-purple-900/50 border-2 border-purple-200 dark:border-purple-700 data-[state=active]:from-purple-500 data-[state=active]:via-purple-600 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:border-purple-600 rounded-2xl text-purple-800 dark:text-purple-200 shadow-lg hover:shadow-xl transform hover:scale-105 hover:-translate-y-1 data-[state=active]:scale-105 transition-all duration-300 cursor-pointer"
               >
-                <div className="w-8 h-8 bg-white/80 dark:bg-purple-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-inner">
-                  <BarChart3 className="h-4 w-4" />
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-transparent to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative w-10 h-10 bg-white/90 dark:bg-purple-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <BarChart3 className="h-5 w-5" />
                 </div>
-                <span className="text-xs font-bold text-center">{t('rewards.tabs.rollup')}</span>
+                <span className="relative text-xs font-bold text-center leading-tight">{t('rewards.tabs.rollup')}</span>
               </TabsTrigger>
             </TabsList>
-            <TabsList className="grid grid-cols-2 gap-4 h-auto bg-transparent p-0 mt-4">
+            <TabsList className="grid grid-cols-2 gap-3 sm:gap-4 h-auto bg-transparent p-0 mt-4">
               <TabsTrigger 
                 value="withdrawal" 
-                className="group relative flex flex-col items-center gap-2 p-3 h-auto bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/40 dark:to-emerald-800/40 hover:from-emerald-100 hover:to-emerald-200 dark:hover:from-emerald-800/60 dark:hover:to-emerald-700/60 border-2 border-emerald-300 dark:border-emerald-600 data-[state=active]:from-emerald-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white data-[state=active]:border-emerald-700 rounded-lg text-emerald-800 dark:text-emerald-200 shadow-[0_2px_4px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_3px_6px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.3)] data-[state=active]:shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)] transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                className="group relative overflow-hidden flex flex-col items-center gap-3 p-4 h-auto bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-50 dark:from-emerald-950/30 dark:via-emerald-900/40 dark:to-emerald-950/30 hover:from-emerald-100 hover:via-emerald-200 hover:to-emerald-100 dark:hover:from-emerald-900/50 dark:hover:via-emerald-800/60 dark:hover:to-emerald-900/50 border-2 border-emerald-200 dark:border-emerald-700 data-[state=active]:from-emerald-500 data-[state=active]:via-emerald-600 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:border-emerald-600 rounded-2xl text-emerald-800 dark:text-emerald-200 shadow-lg hover:shadow-xl transform hover:scale-105 hover:-translate-y-1 data-[state=active]:scale-105 transition-all duration-300 cursor-pointer"
               >
-                <div className="w-8 h-8 bg-white/80 dark:bg-emerald-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-inner">
-                  <DollarSign className="h-4 w-4" />
+                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-transparent to-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative w-10 h-10 bg-white/90 dark:bg-emerald-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <DollarSign className="h-5 w-5" />
                 </div>
-                <span className="text-xs font-bold text-center">{t('rewards.tabs.withdrawal')}</span>
+                <span className="relative text-xs font-bold text-center leading-tight">{t('rewards.tabs.withdrawal')}</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="history" 
-                className="group relative flex flex-col items-center gap-2 p-3 h-auto bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/40 dark:to-orange-800/40 hover:from-orange-100 hover:to-orange-200 dark:hover:from-orange-800/60 dark:hover:to-orange-700/60 border-2 border-orange-300 dark:border-orange-600 data-[state=active]:from-orange-600 data-[state=active]:to-orange-700 data-[state=active]:text-white data-[state=active]:border-orange-700 rounded-lg text-orange-800 dark:text-orange-200 shadow-[0_2px_4px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_3px_6px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.3)] data-[state=active]:shadow-[inset_0_1px_2px_rgba(0,0,0,0.15)] transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                className="group relative overflow-hidden flex flex-col items-center gap-3 p-4 h-auto bg-gradient-to-br from-orange-50 via-orange-100 to-orange-50 dark:from-orange-950/30 dark:via-orange-900/40 dark:to-orange-950/30 hover:from-orange-100 hover:via-orange-200 hover:to-orange-100 dark:hover:from-orange-900/50 dark:hover:via-orange-800/60 dark:hover:to-orange-900/50 border-2 border-orange-200 dark:border-orange-700 data-[state=active]:from-orange-500 data-[state=active]:via-orange-600 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:border-orange-600 rounded-2xl text-orange-800 dark:text-orange-200 shadow-lg hover:shadow-xl transform hover:scale-105 hover:-translate-y-1 data-[state=active]:scale-105 transition-all duration-300 cursor-pointer"
               >
-                <div className="w-8 h-8 bg-white/80 dark:bg-orange-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-inner">
-                  <Award className="h-4 w-4" />
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 via-transparent to-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative w-10 h-10 bg-white/90 dark:bg-orange-900/50 group-data-[state=active]:bg-white/20 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <Award className="h-5 w-5" />
                 </div>
-                <span className="text-xs font-bold text-center">{t('rewards.tabs.history')}</span>
+                <span className="relative text-xs font-bold text-center leading-tight">{t('rewards.tabs.history')}</span>
               </TabsTrigger>
             </TabsList>
           </div>
