@@ -23,11 +23,11 @@ interface USDTBalance {
 // Supported chains for withdrawal
 const SUPPORTED_CHAINS = {
   42161: { name: 'Arbitrum', symbol: 'ARB', icon: '🔵', fee: 2.0, native: true },
-  1: { name: 'Ethereum', symbol: 'ETH', icon: '🔷', fee: 15.0 },
-  137: { name: 'Polygon', symbol: 'MATIC', icon: '🟣', fee: 1.0 },
-  10: { name: 'Optimism', symbol: 'OP', icon: '🔴', fee: 1.5 },
-  56: { name: 'BSC', symbol: 'BNB', icon: '🟡', fee: 1.0 },
-  8453: { name: 'Base', symbol: 'BASE', icon: '🔵', fee: 1.5 }
+  1: { name: 'Ethereum', symbol: 'ETH', icon: '🔷', fee: 15.0, native: false },
+  137: { name: 'Polygon', symbol: 'MATIC', icon: '🟣', fee: 1.0, native: false },
+  10: { name: 'Optimism', symbol: 'OP', icon: '🔴', fee: 1.5, native: false },
+  56: { name: 'BSC', symbol: 'BNB', icon: '🟡', fee: 1.0, native: false },
+  8453: { name: 'Base', symbol: 'BASE', icon: '🔵', fee: 1.5, native: false }
 };
 
 export default function USDTWithdrawal() {
