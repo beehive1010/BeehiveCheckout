@@ -1037,6 +1037,7 @@
     "expiresAt": "Expires At",
     "refreshCountdown": "Refresh Countdown",
     "pendingRewards": "Pending Rewards",
+    "totalWithdrawn": "Total Withdrawn",
     "rollup": {
       "title": "Rollup Rewards",
       "noRollupRewards": "No rollup rewards",

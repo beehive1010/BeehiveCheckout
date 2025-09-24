@@ -1017,6 +1017,7 @@
     "expiresAt": "到期时间",
     "refreshCountdown": "刷新倒计时",
     "pendingRewards": "待处理奖励",
+    "totalWithdrawn": "总提取金额",
     "rollup": {
       "title": "上滚奖励",
       "noRollupRewards": "暂无上滚奖励",
