@@ -929,8 +929,14 @@
   "rewards": {
     "title": "Rewards & Earnings",
     "subtitle": "Track your rewards, claim earnings, and view transaction history",
+    "learnMore": "Learn More",
+    "rollup": "Rollup",
+    "withdrawal": "Withdrawal",
+    "history": "History",
+    "claimAll": "Claim All",
     "tabs": {
       "overview": "Overview",
+      "pending": "Pending",
       "rollup": "Rollup",
       "history": "History",
       "withdrawal": "Withdraw"
@@ -1038,6 +1044,8 @@
     },
     "fetchError": "Failed to load pending rewards",
     "noPendingRewards": "No pending rewards",
+    "noPendingDescription": "Complete tasks and invite referrals to start earning pending rewards with countdown timers",
+    "pendingDescription": "Monitor your pending rewards with real-time countdown timers",
     "superRootUpgrade": "Super Root Upgrade",
     "qualificationWait": "Qualification Wait",
     "from": "From",

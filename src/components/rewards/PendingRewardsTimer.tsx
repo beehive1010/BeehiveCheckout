@@ -9,7 +9,7 @@ interface PendingReward {
   reward_id: string;
   reward_amount: number;
   triggering_member_username: string;
-  timer_type: 'layer_r_upgrade_incentive' | 'layer_qualification_wait' | 'qualification_wait';
+  timer_type: string; // More flexible type to handle different timer types
   time_remaining_seconds: number;
   expires_at: string;
   status_description: string;
@@ -89,13 +89,13 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
   // 获取pending奖励
   const fetchPendingRewards = async () => {
     try {
-      const { data, error } = await supabase.rpc('get_user_pending_rewards', {
+      const { data, error } = await supabase.rpc('get_user_pending_rewards' as any, {
         p_wallet_address: walletAddress
       });
 
       if (error) throw error;
 
-      setPendingRewards(data || []);
+      setPendingRewards((data as PendingReward[]) || []);
     } catch (err) {
       console.error('Error fetching pending rewards:', err);
       setError(err instanceof Error ? err.message : t('rewards.fetchError'));

@@ -7,11 +7,11 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../components/ui/collapsible';
 import { useToast } from '../hooks/use-toast';
 import { supabase } from '../lib/supabase';
 import ClaimableRewardsCard from '../components/rewards/ClaimableRewardsCard';
 import RollupRewardsCard from '../components/rewards/RollupRewardsCard';
-import RewardsOverview from '../components/rewards/RewardsOverview';
 import USDTWithdrawal from '../components/withdrawal/USDTWithdrawal';
 import CountdownTimer from '../components/rewards/CountdownTimer';
 import { PendingRewardsTimer } from '../components/rewards/PendingRewardsTimer';
@@ -30,7 +30,10 @@ import {
   Gift,
   Target,
   ArrowUpRight,
-  Clock
+  Clock,
+  ChevronDown,
+  ChevronUp,
+  Info
 } from 'lucide-react';
 
 interface ProfileData {
@@ -74,7 +77,8 @@ export default function Rewards() {
   const [pendingRewards, setPendingRewards] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('pending');
+  const [isRewardInfoExpanded, setIsRewardInfoExpanded] = useState(false);
 
   // Use imported supabase client
 
@@ -84,7 +88,7 @@ export default function Rewards() {
       setError(null);
 
       // Use the new rewards stats function to get comprehensive data
-      const { data: statsData, error: statsError } = await supabase.rpc('get_user_rewards_stats', {
+      const { data: statsData, error: statsError } = await supabase.rpc('get_user_rewards_stats' as any, {
         p_wallet_address: memberWalletAddress
       });
 
@@ -93,7 +97,7 @@ export default function Rewards() {
         throw new Error(`Failed to fetch rewards stats: ${statsError.message}`);
       }
 
-      const stats = statsData?.[0];
+      const stats = Array.isArray(statsData) ? statsData[0] : statsData;
       console.log('Rewards stats:', stats);
 
       // Get all rewards for history
@@ -182,9 +186,9 @@ export default function Rewards() {
       setIsLoading(true);
       
       // Use the database function to claim layer rewards
-      const { data, error } = await supabase.rpc('claim_layer_reward', {
+      const { data, error } = await supabase.rpc('claim_layer_reward' as any, {
         p_member_wallet: memberWalletAddress,
-        p_reward_id: null // Will claim all claimable rewards
+        p_reward_id: null as any // Will claim all claimable rewards
       });
 
       if (error) {
@@ -192,16 +196,17 @@ export default function Rewards() {
         throw new Error(`Failed to claim rewards: ${error.message}`);
       }
 
-      if (data?.success) {
+      const resultData = data as any;
+      if (resultData?.success) {
         toast({
           title: t('rewards.claimSuccess'),
-          description: t('rewards.claimSuccessDescription', { amount: data.amount_claimed || rewardsData.claimable }),
+          description: t('rewards.claimSuccessDescription', { amount: resultData.amount_claimed || rewardsData.claimable }),
         });
         
         // Reload data
         await loadRewardsData();
       } else {
-        throw new Error(data?.error || t('rewards.errors.claimFailed'));
+        throw new Error(resultData?.error || t('rewards.errors.claimFailed'));
       }
 
     } catch (err) {
@@ -286,79 +291,188 @@ export default function Rewards() {
         </Card>
       </div>
 
-      {/* Pending Rewards Countdown - Beautiful UI version */}
-      {pendingRewards.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <Clock className="h-5 w-5 text-honey" />
-            {t('rewards.pendingCountdowns')}
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {pendingRewards.map((reward) => (
-              <CountdownTimer
-                key={reward.id}
-                endTime={reward.expires_at}
-                title={t('rewards.pendingRewardTimer')}
-                description={t('rewards.pendingRewardDescription', { layer: reward.matrix_layer || 1 })}
-                rewardAmount={reward.reward_amount || 0}
-                variant="detailed"
-                urgencyColors={true}
-                className="h-auto"
-                onExpired={() => {
-                  // Reload rewards data when timer expires
-                  loadRewardsData();
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Reward System Information - Expandable Card */}
+      <Collapsible 
+        open={isRewardInfoExpanded} 
+        onOpenChange={setIsRewardInfoExpanded}
+        className="w-full"
+      >
+        <Card className="bg-gradient-to-r from-honey/5 to-orange-500/5 border-honey/20 shadow-lg">
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-honey/5 transition-colors rounded-t-lg">
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Info className="h-5 w-5 text-honey" />
+                  <span className="text-lg font-semibold">{t('rewards.rewardSystemInfo')}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="bg-honey/10 border-honey/30 text-honey">
+                    {t('rewards.learnMore')}
+                  </Badge>
+                  {isRewardInfoExpanded ? (
+                    <ChevronUp className="h-5 w-5 text-honey" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-honey" />
+                  )}
+                </div>
+              </CardTitle>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-honey flex items-center gap-2">
+                    <Gift className="h-4 w-4" />
+                    {t('rewards.matrixRewardsTitle')}
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>{t('rewards.rewards.level1Direct')}</span>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span>{t('rewards.rewards.level2Matrix')}</span>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      <span>{t('rewards.rewards.spilloverBonuses')}</span>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                      <span>{t('rewards.rewards.claimWindow')}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-honey flex items-center gap-2">
+                    <Coins className="h-4 w-4" />
+                    {t('rewards.bccTokenRewardsTitle') || 'BCC Token Rewards'}
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                      <span>{t('rewards.bccTransferable')}</span>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                      <span>{t('rewards.bccLocked')}</span>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 bg-teal-50 dark:bg-teal-900/20 rounded-lg">
+                      <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                      <span>{t('rewards.bccMultipliers')}</span>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+                      <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+                      <span>{t('rewards.bccUpgrades')}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
       {/* Main Content with Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">{t('rewards.tabs.overview')}</TabsTrigger>
-          <TabsTrigger value="rollup">{t('rewards.tabs.rollup')}</TabsTrigger>
-          <TabsTrigger value="withdrawal">{t('rewards.tabs.withdrawal')}</TabsTrigger>
-          <TabsTrigger value="history">{t('rewards.tabs.history')}</TabsTrigger>
+          <TabsTrigger value="pending" className="flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('rewards.tabs.pending')}</span>
+            <span className="sm:hidden">{t('rewards.pending')}</span>
+          </TabsTrigger>
+          <TabsTrigger value="rollup" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('rewards.tabs.rollup')}</span>
+            <span className="sm:hidden">{t('rewards.rollup')}</span>
+          </TabsTrigger>
+          <TabsTrigger value="withdrawal" className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('rewards.tabs.withdrawal')}</span>
+            <span className="sm:hidden">{t('rewards.withdrawal')}</span>
+          </TabsTrigger>
+          <TabsTrigger value="history" className="flex items-center gap-2">
+            <Award className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('rewards.tabs.history')}</span>
+            <span className="sm:hidden">{t('rewards.history')}</span>
+          </TabsTrigger>
         </TabsList>
 
-        {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
-          {/* Rewards Overview */}
-          <RewardsOverview walletAddress={memberWalletAddress || ''} />
-          
-          {/* Reward System Information */}
-      <Card className="bg-secondary border-border">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Gift className="h-5 w-5 text-honey" />
-            {t('rewards.rewardSystemInfo')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold mb-3">{t('rewards.matrixRewardsTitle')}</h4>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• {t('rewards.rewards.level1Direct')}</li>
-                <li>• {t('rewards.rewards.level2Matrix')}</li>
-                <li>• {t('rewards.rewards.spilloverBonuses')}</li>
-                <li>• {t('rewards.rewards.claimWindow')}</li>
-              </ul>
+        {/* Pending Tab */}
+        <TabsContent value="pending" className="space-y-6">
+          <div className="space-y-6">
+            {/* Quick Actions */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+              <div>
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-honey" />
+                  {t('rewards.pendingCountdowns')}
+                  {pendingRewards.length > 0 && (
+                    <Badge variant="secondary" className="ml-2">{pendingRewards.length}</Badge>
+                  )}
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {t('rewards.pendingDescription')}
+                </p>
+              </div>
+              
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button 
+                  onClick={claimPendingRewards}
+                  disabled={!rewardsData?.claimable || rewardsData.claimable <= 0}
+                  className="bg-honey hover:bg-honey/90 text-black font-semibold flex-1 sm:flex-none"
+                  data-testid="button-claim-all"
+                >
+                  <Gift className="h-4 w-4 mr-2" />
+                  {t('rewards.claimAll')}
+                </Button>
+                <Button 
+                  onClick={loadRewardsData}
+                  variant="outline"
+                  className="border-honey/30 hover:bg-honey/10"
+                  data-testid="button-refresh"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  {t('common.refresh')}
+                </Button>
+              </div>
             </div>
-            <div>
-              <h4 className="font-semibold mb-3">{t('rewards.bccTokenRewardsTitle') || 'BCC Token Rewards'}</h4>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• {t('rewards.bccTransferable')}</li>
-                <li>• {t('rewards.bccLocked')}</li>
-                <li>• {t('rewards.bccMultipliers')}</li>
-                <li>• {t('rewards.bccUpgrades')}</li>
-              </ul>
-            </div>
+
+            {/* Pending Rewards Countdown Cards */}
+            {pendingRewards.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {pendingRewards.map((reward) => (
+                  <CountdownTimer
+                    key={reward.id}
+                    endTime={reward.expires_at}
+                    title={t('rewards.pendingRewardTimer')}
+                    description={t('rewards.pendingRewardDescription', { layer: reward.matrix_layer || 1 })}
+                    rewardAmount={reward.reward_amount || 0}
+                    variant="detailed"
+                    urgencyColors={true}
+                    className="h-auto"
+                    onExpired={() => {
+                      loadRewardsData();
+                    }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <Card className="border-dashed border-2 border-muted-foreground/25">
+                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                  <Clock className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                  <h3 className="text-lg font-semibold text-muted-foreground mb-2">
+                    {t('rewards.noPendingRewards')}
+                  </h3>
+                  <p className="text-sm text-muted-foreground max-w-md">
+                    {t('rewards.noPendingDescription')}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </div>
-        </CardContent>
-      </Card>
         </TabsContent>
 
         {/* Rollup Tab */}
