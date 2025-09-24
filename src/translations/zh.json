@@ -46,6 +46,16 @@
     "allPartners": "所有合作伙伴",
     "noRecentErrors": "没有最近错误"
   },
+  "matrix": {
+    "ui": {
+      "showAllLayers": "显示所有层级",
+      "showLess": "显示较少"
+    },
+    "errors": {
+      "loadFailed": "加载矩阵数据失败",
+      "loadLayerStatsFailed": "加载层级统计失败"
+    }
+  },
   "matrixExplanation": {
     "title": "3×3矩阵系统",
     "subtitle": "了解蜂巢19层推荐系统",
