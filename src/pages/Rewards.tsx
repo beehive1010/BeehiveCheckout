@@ -449,57 +449,67 @@ export default function Rewards() {
             </TabsList>
           </div>
           
-          {/* Content Area with visual separation */}
-          <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30 p-4 md:p-6 rounded-b-xl">
+          {/* Enhanced Content Area with visual separation */}
+          <div className="border-t-2 border-slate-200 dark:border-slate-700 bg-gradient-to-br from-slate-50/80 via-gray-50/50 to-slate-50/80 dark:from-slate-800/30 dark:via-slate-750/30 dark:to-slate-800/30 p-4 sm:p-6 lg:p-8 rounded-b-2xl">
 
-        {/* Pending Tab */}
-        <TabsContent value="pending" className="space-y-6">
+        {/* Enhanced Pending Tab */}
+        <TabsContent value="pending" className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
           <div className="space-y-6">
-            {/* Quick Actions */}
-            <div className="flex flex-col sm:flex-row gap-2 md:gap-4 justify-between items-start sm:items-center">
-              <div>
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-honey" />
-                  {t('rewards.pendingCountdowns')}
+            {/* Enhanced Quick Actions */}
+            <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 justify-between items-start lg:items-center">
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold flex items-center gap-3">
+                  <div className="p-2 rounded-full bg-gradient-to-br from-honey/20 to-amber-400/20">
+                    <Clock className="h-5 w-5 text-honey" />
+                  </div>
+                  <span className="bg-gradient-to-r from-slate-700 to-gray-800 dark:from-slate-200 dark:to-gray-100 bg-clip-text text-transparent">
+                    {t('rewards.pendingCountdowns')}
+                  </span>
                   {pendingRewards.length > 0 && (
-                    <Badge variant="secondary" className="ml-2">{pendingRewards.length}</Badge>
+                    <Badge className="bg-honey text-black font-bold px-3 py-1 rounded-full animate-pulse shadow-lg">{pendingRewards.length}</Badge>
                   )}
                 </h3>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-sm text-muted-foreground max-w-2xl">
                   {t('rewards.pendingDescription')}
                 </p>
               </div>
               
-              <div className="flex flex-col xs:flex-row gap-2 w-full sm:w-auto">
+              <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
                 <Button 
                   onClick={claimPendingRewards}
                   disabled={!rewardsData?.claimable || rewardsData.claimable <= 0}
-                  size="sm"
-                  className="bg-honey hover:bg-honey/90 text-black font-semibold flex-1 xs:flex-none min-h-[40px]"
+                  className="group relative overflow-hidden bg-gradient-to-r from-honey to-amber-400 hover:from-honey/90 hover:to-amber-500 text-black font-bold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 rounded-xl px-6 py-3 min-h-[48px] flex-1 sm:flex-none disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   data-testid="button-claim-all"
                 >
-                  <Gift className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
-                  <span className="text-xs md:text-sm">{t('rewards.claimAll')}</span>
+                  <div className="absolute inset-0 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+                  <div className="relative flex items-center justify-center gap-2">
+                    <Gift className="h-4 w-4 group-hover:animate-bounce" />
+                    <span>{t('rewards.claimAll')}</span>
+                  </div>
                 </Button>
                 <Button 
                   onClick={loadRewardsData}
                   variant="outline"
-                  size="sm"
-                  className="border-honey/30 hover:bg-honey/10"
+                  className="group relative overflow-hidden border-2 border-honey/30 hover:border-honey/50 hover:bg-honey/10 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 rounded-xl px-6 py-3 min-h-[48px] flex-1 sm:flex-none"
                   data-testid="button-refresh"
                 >
-                  <RefreshCw className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
-                  <span className="text-xs md:text-sm">{t('common.refresh')}</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-honey/5 to-amber-400/5 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+                  <div className="relative flex items-center justify-center gap-2">
+                    <RefreshCw className="h-4 w-4 group-hover:rotate-180 transition-transform duration-500" />
+                    <span className="font-semibold">{t('common.refresh')}</span>
+                  </div>
                 </Button>
               </div>
             </div>
 
-            {/* Pending Rewards List */}
-            <PendingRewardsList 
-              rewards={pendingRewards}
-              onRewardExpired={loadRewardsData}
-              variant="compact"
-            />
+            {/* Enhanced Pending Rewards List */}
+            <div className="animate-in slide-in-from-left-2 duration-700">
+              <PendingRewardsList 
+                rewards={pendingRewards}
+                onRewardExpired={loadRewardsData}
+                variant="compact"
+              />
+            </div>
           </div>
         </TabsContent>
 

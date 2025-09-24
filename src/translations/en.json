@@ -956,6 +956,8 @@
     "available_to_claim": "Available to Claim",
     "available_usdt": "Available USDT",
     "available_bcc": "Available BCC",
+    "management": "Reward Management",
+    "selectCategory": "Select a category below to view and manage your rewards",
     "pendingDescription": "Your pending rewards with countdown timers",
     "tabs": {
       "overview": "Overview",
