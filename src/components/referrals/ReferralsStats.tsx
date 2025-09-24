@@ -37,12 +37,24 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
     queryKey: ['referrer-stats', walletAddress],
     enabled: !!walletAddress,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('rewards_stats_view')
-        .select('*')
-        .eq('referrer', walletAddress) // Exact case match
-        .limit(1)
-        .maybeSingle();
+      // Get referral stats by counting direct referrals from referrals table
+      const { count: directReferralsCount, error: directError } = await supabase
+        .from('referrals')
+        .select('*', { count: 'exact', head: true })
+        .ilike('referrer_wallet', walletAddress)
+        .eq('is_direct_referral', true);
+      
+      if (directError) throw directError;
+      
+      // Create a stats object with the count
+      const data = {
+        referrer: walletAddress,
+        total_direct_referrals: directReferralsCount || 0,
+        total_referrals: directReferralsCount || 0, // For now, same as direct
+        direct_referrals: directReferralsCount || 0
+      };
+      
+      const error = null;
 
       if (error) throw error;
       return data;

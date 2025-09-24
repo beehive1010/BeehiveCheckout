@@ -1,26 +1,26 @@
 import { supabase } from '../supabase';
 
 /**
- * 获取用户的直接推荐人数（基于 rewards_stats_view）
- * 只计算通过该用户推荐链接直接注册的用户，不包括矩阵安置的溢出用户
+ * 获取用户的直接推荐人数（基于 referrals 表）
+ * 只计算通过该用户推荐链接直接注册的用户（is_direct_referral=true），不包括矩阵安置的溢出用户
  */
 export async function getDirectReferralCount(referrerWallet: string): Promise<number> {
   try {
     console.log(`🔍 Fetching direct referrals for wallet: ${referrerWallet}`);
     
-    // Primary: Use rewards_stats_view as source of truth
-    const { data, error } = await supabase
-      .from('rewards_stats_view')
-      .select('total_direct_referrals')
-      .ilike('referrer', referrerWallet)
-      .single();
+    // Primary: Use referrals table to count direct referrals
+    const { count, error } = await supabase
+      .from('referrals')
+      .select('*', { count: 'exact', head: true })
+      .ilike('referrer_wallet', referrerWallet)
+      .eq('is_direct_referral', true);
 
     if (error) {
-      console.error('❌ rewards_stats_view query failed:', error);
+      console.error('❌ referrals table query failed:', error);
       // Fallback to referrals_new table for direct count
       console.log('🔄 Falling back to referrals_new table...');
       
-      const { count, error: referralsError } = await supabase
+      const { count: fallbackCount, error: referralsError } = await supabase
         .from('referrals_new')
         .select('*', { count: 'exact', head: true })
         .ilike('referrer_wallet', referrerWallet);
@@ -30,13 +30,13 @@ export async function getDirectReferralCount(referrerWallet: string): Promise<nu
         return 0;
       }
 
-      const directCount = count || 0;
+      const directCount = fallbackCount || 0;
       console.log(`✅ Direct referral count (referrals_new fallback) for ${referrerWallet}: ${directCount}`);
       return directCount;
     }
 
-    const directCount = data?.total_direct_referrals || 0;
-    console.log(`✅ Direct referral count from rewards_stats_view for ${referrerWallet}: ${directCount}`);
+    const directCount = count || 0;
+    console.log(`✅ Direct referral count from referrals table for ${referrerWallet}: ${directCount}`);
     
     return directCount;
   } catch (error) {
