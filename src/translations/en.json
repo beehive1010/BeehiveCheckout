@@ -955,11 +955,20 @@
       "withdrawal": "Withdraw"
     },
     "overview": {
+      "title": "Rewards Overview",
       "totalEarnings": "Total Earnings",
+      "totalEarned": "Total Earned",
+      "totalWithdrawn": "Total Withdrawn",
+      "pending": "Pending",
+      "claimable": "Claimable",
       "availableBalance": "Available Balance",
       "pendingRewards": "Pending Rewards",
       "rewardsThisMonth": "This Month",
       "recentActivity": "Recent Activity"
+    },
+    "sections": {
+      "title": "Select Rewards Section",
+      "description": "Choose a section below to view and manage your rewards"
     },
     "rewards": {
       "level1Direct": "Level 1 Direct: $30 USDC per referral",
