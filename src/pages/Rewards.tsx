@@ -64,6 +64,7 @@ interface RewardHistory {
   date: string;
   status: 'pending' | 'completed' | 'failed';
   description: string;
+  layer?: number;
 }
 
 export default function Rewards() {
@@ -203,14 +204,15 @@ export default function Rewards() {
         netEarnings: stats?.net_earnings || 0,
         pending: stats?.total_pending || 0,
         claimable: stats?.total_claimable || 0,
-        history: rewardsData?.slice(0, 10).map((reward) => ({
+        history: rewardsData?.map((reward) => ({
           id: reward.id,
           type: reward.status || 'layer_reward',
           amount: reward.reward_amount || 0,
           currency: 'USDC',
           date: reward.claimed_at || reward.created_at || t('common.unknown'),
           status: reward.status === 'claimed' ? 'completed' : reward.status as 'pending' | 'completed' | 'failed',
-          description: `Layer ${reward.triggering_nft_level} reward`
+          description: `Layer ${reward.triggering_nft_level} reward`,
+          layer: reward.triggering_nft_level || 1
         })) || []
       };
       
@@ -304,50 +306,50 @@ export default function Rewards() {
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-4">
+    <div className="w-full px-3 md:px-4 lg:container lg:mx-auto py-2 md:py-4 space-y-3 md:space-y-4">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-8">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 md:gap-6 mb-4 md:mb-6">
         <div className="flex-1">
-          <h1 className="text-3xl lg:text-4xl font-bold text-honey mb-2">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-honey mb-1 md:mb-2">
             {t('nav.rewards')}
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-sm md:text-lg text-muted-foreground">
             {t('rewards.subtitle')}
           </p>
         </div>
       </div>
 
       {/* Rewards Overview Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <DollarSign className="h-6 w-6 text-green-400 mx-auto mb-2" />
-            <div className="text-lg font-bold text-green-400">${rewardsData?.total || 0}</div>
-            <div className="text-xs text-muted-foreground">{t('rewards.totalEarned')}</div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-6">
+        <Card className="hover:scale-[1.02] transition-transform duration-200">
+          <CardContent className="p-2 md:p-4 text-center">
+            <DollarSign className="h-4 w-4 md:h-6 md:w-6 text-green-400 mx-auto mb-1 md:mb-2" />
+            <div className="text-sm md:text-lg font-bold text-green-400">${rewardsData?.total || 0}</div>
+            <div className="text-[10px] md:text-xs text-muted-foreground leading-tight">{t('rewards.totalEarned')}</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4 text-center">
-            <TrendingUp className="h-6 w-6 text-purple-400 mx-auto mb-2" />
-            <div className="text-lg font-bold text-purple-400">${rewardsData?.totalWithdrawn || 0}</div>
-            <div className="text-xs text-muted-foreground">{t('rewards.totalWithdrawn')}</div>
+        <Card className="hover:scale-[1.02] transition-transform duration-200">
+          <CardContent className="p-2 md:p-4 text-center">
+            <TrendingUp className="h-4 w-4 md:h-6 md:w-6 text-purple-400 mx-auto mb-1 md:mb-2" />
+            <div className="text-sm md:text-lg font-bold text-purple-400">${rewardsData?.totalWithdrawn || 0}</div>
+            <div className="text-[10px] md:text-xs text-muted-foreground leading-tight">{t('rewards.totalWithdrawn')}</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Timer className="h-6 w-6 text-yellow-400 mx-auto mb-2" />
-            <div className="text-lg font-bold text-yellow-400">${rewardsData?.pending || 0}</div>
-            <div className="text-xs text-muted-foreground">{t('rewards.pending')}</div>
+        <Card className="hover:scale-[1.02] transition-transform duration-200">
+          <CardContent className="p-2 md:p-4 text-center">
+            <Timer className="h-4 w-4 md:h-6 md:w-6 text-yellow-400 mx-auto mb-1 md:mb-2" />
+            <div className="text-sm md:text-lg font-bold text-yellow-400">${rewardsData?.pending || 0}</div>
+            <div className="text-[10px] md:text-xs text-muted-foreground leading-tight">{t('rewards.pending')}</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Gift className="h-6 w-6 text-honey mx-auto mb-2" />
-            <div className="text-lg font-bold text-honey">${rewardsData?.claimable || 0}</div>
-            <div className="text-xs text-muted-foreground">{t('rewards.claimable')}</div>
+        <Card className="hover:scale-[1.02] transition-transform duration-200">
+          <CardContent className="p-2 md:p-4 text-center">
+            <Gift className="h-4 w-4 md:h-6 md:w-6 text-honey mx-auto mb-1 md:mb-2" />
+            <div className="text-sm md:text-lg font-bold text-honey">${rewardsData?.claimable || 0}</div>
+            <div className="text-[10px] md:text-xs text-muted-foreground leading-tight">{t('rewards.claimable')}</div>
           </CardContent>
         </Card>
       </div>
@@ -595,7 +597,7 @@ export default function Rewards() {
       </Collapsible>
 
       {/* Main Content with Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3 md:space-y-6">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="pending" className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
@@ -623,7 +625,7 @@ export default function Rewards() {
         <TabsContent value="pending" className="space-y-6">
           <div className="space-y-6">
             {/* Quick Actions */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+            <div className="flex flex-col sm:flex-row gap-2 md:gap-4 justify-between items-start sm:items-center">
               <div>
                 <h3 className="text-lg font-semibold flex items-center gap-2">
                   <Clock className="h-5 w-5 text-honey" />
@@ -641,20 +643,22 @@ export default function Rewards() {
                 <Button 
                   onClick={claimPendingRewards}
                   disabled={!rewardsData?.claimable || rewardsData.claimable <= 0}
+                  size="sm"
                   className="bg-honey hover:bg-honey/90 text-black font-semibold flex-1 sm:flex-none"
                   data-testid="button-claim-all"
                 >
-                  <Gift className="h-4 w-4 mr-2" />
-                  {t('rewards.claimAll')}
+                  <Gift className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                  <span className="text-xs md:text-sm">{t('rewards.claimAll')}</span>
                 </Button>
                 <Button 
                   onClick={loadRewardsData}
                   variant="outline"
+                  size="sm"
                   className="border-honey/30 hover:bg-honey/10"
                   data-testid="button-refresh"
                 >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  {t('common.refresh')}
+                  <RefreshCw className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                  <span className="text-xs md:text-sm">{t('common.refresh')}</span>
                 </Button>
               </div>
             </div>
@@ -975,8 +979,6 @@ export default function Rewards() {
                             </div>
                           </CardContent>
                         </Card>
-                      ))}
-                    </div>
                       )) : (
                         <div className="text-center py-8">
                           <div className="text-muted-foreground mb-2">
