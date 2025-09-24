@@ -258,10 +258,10 @@ export default function Rewards() {
       {/* Enhanced Collapsible Stats Overview */}
       <Collapsible open={isOverviewOpen} onOpenChange={setIsOverviewOpen} className="mb-4 animate-in slide-in-from-bottom-2 duration-500">
         <CollapsibleTrigger className="w-full">
-          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900 dark:from-black dark:via-slate-950 dark:to-black rounded-2xl border-2 border-slate-700 dark:border-slate-800 p-4 sm:p-5 hover:border-honey/50 transition-all duration-500 cursor-pointer shadow-2xl hover:shadow-3xl hover:shadow-honey/20 group hover:scale-[1.02] transform">
+          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900 dark:from-black dark:via-slate-950 dark:to-black rounded-2xl border-2 border-slate-700 dark:border-slate-800 p-3 sm:p-4 hover:border-honey/50 transition-all duration-500 cursor-pointer shadow-2xl hover:shadow-3xl hover:shadow-honey/20 group hover:scale-[1.02] transform">
             <div className="absolute inset-0 bg-gradient-to-r from-honey/5 via-transparent to-amber-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-              <div className="flex items-center gap-3 sm:gap-4">
+            <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-honey via-amber-400 to-amber-500 rounded-xl flex items-center justify-center shadow-2xl group-hover:shadow-honey/50 group-hover:scale-110 transition-all duration-500">
                   <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-black drop-shadow-sm" />
                 </div>
@@ -269,7 +269,7 @@ export default function Rewards() {
                   {t('rewards.overview') || 'Rewards Overview'}
                 </span>
               </div>
-              <div className="flex flex-col xs:flex-row items-start xs:items-center gap-2 xs:gap-3">
+              <div className="flex flex-col xs:flex-row items-start xs:items-center gap-1 xs:gap-2">
                 <div className="bg-gradient-to-r from-honey/90 to-amber-400 px-4 py-2 rounded-full shadow-xl transform group-hover:scale-105 transition-all duration-300">
                   <span className="text-sm sm:text-base font-bold text-black drop-shadow-sm whitespace-nowrap">
                     ${rewardsData?.claimable || 0} {t('rewards.available_to_claim') || 'Available to Claim'}
