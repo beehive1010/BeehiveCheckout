@@ -82,26 +82,24 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
       console.log(`🔍 Matrix members sample:`, matrixData.slice(0, 3));
 
       if (matrixData && matrixData.length > 0) {
-        // For the current wallet, show its direct children (layer 1 from their perspective)
-        // When navigating, currentNode will be based on navigationPath length
-        const currentViewLayer = navigationPath.length > 0 ? 1 : 1; // Always show layer 1 for any selected node
-        const layerMembers = matrixData.filter((member: any) => member.layer === currentViewLayer);
+        // For root view, show layer 1. For navigated views, show the immediate children
+        const currentViewLayer = isRoot ? 1 : 1; // Always show the next layer down
+        let layerMembers = matrixData.filter((member: any) => member.layer === currentViewLayer);
         
         console.log(`🔍 Current view layer: ${currentViewLayer}`);
         console.log(`🔍 Layer members found: ${layerMembers.length}`);
-        console.log(`🔍 Layer members sample:`, layerMembers.slice(0, 3));
+        console.log(`🔍 Matrix members sample:`, layerMembers.slice(0, 3));
+        console.log(`🔍 All matrix data:`, matrixData.map(m => ({ layer: m.layer, position: m.matrix_position, wallet: m.wallet_address?.slice(0, 8) })));
         
-        // If no members found at the expected layer, check what layers are available
+        // If no members found at layer 1, try layer 0 (exclude root) or any available layer
         if (layerMembers.length === 0) {
-          const availableLayers = [...new Set(matrixData.map((m: any) => m.layer))].sort();
+          const availableLayers = [...new Set(matrixData.map((m: any) => m.layer))].sort().filter(l => l > 0); // Exclude layer 0 (root)
           console.log(`🔍 No members at layer ${currentViewLayer}, available layers:`, availableLayers);
           
-          // Try to get members from the first available layer
           if (availableLayers.length > 0) {
             const firstLayer = availableLayers[0];
-            const firstLayerMembers = matrixData.filter((member: any) => member.layer === firstLayer);
-            console.log(`🔍 Using first available layer ${firstLayer} with ${firstLayerMembers.length} members`);
-            layerMembers.push(...firstLayerMembers);
+            layerMembers = matrixData.filter((member: any) => member.layer === firstLayer);
+            console.log(`🔍 Using first available layer ${firstLayer} with ${layerMembers.length} members`);
           }
         }
         
@@ -353,10 +351,10 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
             </div>
             <div className="flex items-center space-x-2 self-start sm:self-center">
               <Badge variant="outline" className="border-honey text-honey text-xs">
-                Layer {Math.max(navigationPath.length, 1)}
+                Viewing Layer {navigationPath.length === 0 ? 1 : navigationPath.length}
               </Badge>
               <Badge variant="outline" className="border-blue-400 text-blue-400 text-xs">
-                Max: 19
+                Max: 19 Layers
               </Badge>
             </div>
           </div>
