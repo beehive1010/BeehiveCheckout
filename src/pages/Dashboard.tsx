@@ -67,43 +67,45 @@ export default function Dashboard() {
   const retryCountRef = useRef(0);
   const maxRetries = 3;
 
-  // 加载余额数据 - 直接使用Supabase数据库查询
+  // 加载余额数据 - 使用balance Supabase函数
   const loadBalanceData = useCallback(async () => {
     if (!walletAddress) return null;
 
     setLoadingState(prev => ({ ...prev, balance: true }));
     try {
-      console.log('💰 Fetching balance from database for:', walletAddress);
+      console.log('💰 Fetching balance using balance function for:', walletAddress);
       
-      // 直接查询用户余额表
-      const { data: balanceData, error: balanceError } = await supabase
-        .from('user_balances')
-        .select('*')
-        .eq('wallet_address', walletAddress)
-        .single();
+      // 使用balance Supabase函数获取数据
+      const { data: result, error: functionError } = await supabase.functions.invoke('balance', {
+        body: {
+          action: 'get-balance'
+        },
+        headers: {
+          'x-wallet-address': walletAddress
+        }
+      });
 
-      if (balanceError && balanceError.code !== 'PGRST116') {
-        console.error('❌ Balance query error:', balanceError);
-        throw new Error(`Database error: ${balanceError.message}`);
+      if (functionError) {
+        console.error('❌ Balance function error:', functionError);
+        throw new Error(`Function error: ${functionError.message}`);
       }
 
-      console.log('💰 Raw balance data from DB:', balanceData);
+      console.log('💰 Raw balance data from function:', result);
 
-      if (balanceData) {
-        const transferable = balanceData.bcc_balance || 0;
-        const locked = balanceData.bcc_locked || 0;
+      if (result.success && result.balance) {
+        const balance = result.balance;
         return {
-          bccTotal: transferable,
-          bccLocked: locked,
-          bccTransferable: transferable
+          bccTotal: balance.bcc_transferable || 0,
+          bccLocked: balance.bcc_locked || 0,
+          bccTransferable: balance.bcc_transferable || 0
         };
       }
 
       // 如果没有余额记录，返回默认值 (新成员默认余额)
       return {
-        bccTotal: 600, // 显示可用余额
+        bccTotal: 500, // 显示可用余额
         bccLocked: 10350,
-        bccTransferable: 600
+        bccTransferable: 500
       };
     } catch (error) {
       console.error('❌ Balance load error:', error);
@@ -113,41 +115,44 @@ export default function Dashboard() {
     }
   }, [walletAddress]);
 
-  // 加载矩阵数据 - 直接使用Supabase数据库查询
+  // 加载矩阵数据 - 使用matrix-view Supabase函数
   const loadMatrixData = useCallback(async () => {
     if (!walletAddress) return null;
 
     setLoadingState(prev => ({ ...prev, matrix: true }));
     try {
-      console.log('🌐 Fetching matrix data from database for:', walletAddress);
+      console.log('🌐 Fetching matrix data using matrix-view function for:', walletAddress);
       
-      // 使用referrer_stats统一查询推荐数据
-      const { data: referrerStats, error: referrerError } = await supabase
-        .from('referrer_stats')
-        .select('*')
-        .eq('referrer', walletAddress)
-        .single();
+      // 使用matrix-view Supabase函数获取层级统计数据
+      const { data: result, error: functionError } = await supabase.functions.invoke('matrix-view', {
+        body: {
+          action: 'get-layer-stats'
+        },
+        headers: {
+          'x-wallet-address': walletAddress
+        }
+      });
 
-      if (referrerError && referrerError.code !== 'PGRST116') {
-        console.error('❌ Referrer stats query error:', referrerError);
-        throw new Error(`Database error: ${referrerError.message}`);
+      if (functionError) {
+        console.error('❌ Matrix function error:', functionError);
+        throw new Error(`Function error: ${functionError.message}`);
       }
 
-      console.log('🌐 Raw referrer stats from DB:', referrerStats);
+      console.log('🌐 Matrix data from function:', result);
 
-      // 从referrer_stats获取统计数据
-      const directReferrals = referrerStats?.direct_referrals || 0;
-      const totalTeamSize = referrerStats?.total_team_size || 0;
-
-      // 从referrer_stats获取最大层级
-      const maxLayer = referrerStats?.max_layer || 0;
-
-      console.log('🌐 Matrix data from DB:', { directReferrals, totalTeamSize, maxLayer });
+      if (result.success && result.data) {
+        const summary = result.data.summary;
+        return {
+          directReferrals: summary.direct_referrals || 0,
+          totalTeamSize: summary.total_members || 0,
+          maxLayer: summary.deepest_layer || 0
+        };
+      }
 
       return {
-        directReferrals,
-        totalTeamSize,
-        maxLayer
+        directReferrals: 0,
+        totalTeamSize: 0,
+        maxLayer: 0
       };
     } catch (error) {
       console.error('❌ Matrix load error:', error);

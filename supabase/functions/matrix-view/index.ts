@@ -49,22 +49,35 @@ serve(async (req: Request) => {
         console.log('Stats not found, using fallback:', statsError.message)
       }
 
-      // Get matrix layers data
-      const { data: matrixData, error: matrixError } = await supabase
-        .from('matrix_layers_view')
-        .select(`
-          layer,
-          filled_slots,
-          empty_slots,
-          max_slots,
-          completion_rate
-        `)
-        .eq('matrix_root_wallet', walletAddress)
-        .order('layer')
+      // Try to get matrix layers data, with fallback if view doesn't exist
+      let matrixData = null;
+      let matrixError = null;
+      
+      try {
+        const result = await supabase
+          .from('matrix_layers_view')
+          .select(`
+            layer,
+            filled_slots,
+            empty_slots,
+            max_slots,
+            completion_rate
+          `)
+          .eq('matrix_root_wallet', walletAddress)
+          .order('layer');
+        
+        matrixData = result.data;
+        matrixError = result.error;
+      } catch (error) {
+        console.log('matrix_layers_view not available, using fallback calculation');
+        matrixError = error;
+      }
 
       if (matrixError) {
         console.error('Error fetching matrix data:', matrixError)
-        // Don't throw, continue with empty data
+        console.log('Using direct table calculation as fallback...')
+        // Continue with empty data - will be calculated from member positions
+        matrixData = [];
       }
 
       console.log(`📊 Matrix layer data for ${walletAddress}:`, matrixData)
@@ -96,33 +109,58 @@ serve(async (req: Request) => {
         const posData = positionCounts[layer] || { L: 0, M: 0, R: 0 }
         
         if (layerData) {
-          // Use data from matrix_layers_view with position breakdown
+          // Manual percentage calculation to avoid database view issues
+          const totalMembers = layerData.filled_slots || 0;
+          const maxCapacity = layerData.max_slots || Math.pow(3, layer);
+          const calculatedPercentage = maxCapacity > 0 ? (totalMembers / maxCapacity) * 100 : 0;
+          const safePercentage = Math.min(Math.max(calculatedPercentage, 0), 100); // Clamp between 0-100
+          
+          console.log(`🔍 Layer ${layer} calculation:`, {
+            totalMembers,
+            maxCapacity,
+            calculatedPercentage,
+            safePercentage,
+            db_completion_rate: layerData.completion_rate
+          });
+          
           completeStats.push({
             layer: layerData.layer,
-            totalMembers: layerData.filled_slots || 0,
+            totalMembers: totalMembers,
             leftMembers: posData.L,
             middleMembers: posData.M,
             rightMembers: posData.R,
-            maxCapacity: layerData.max_slots || Math.pow(3, layer),
-            fillPercentage: (layerData.completion_rate || 0) * 100,
-            activeMembers: layerData.filled_slots || 0,
-            completedPercentage: (layerData.completion_rate || 0) * 100,
-            emptySlots: layerData.empty_slots || 0
+            maxCapacity: maxCapacity,
+            fillPercentage: safePercentage,
+            activeMembers: totalMembers, // All filled slots are considered active
+            completedPercentage: safePercentage,
+            emptySlots: Math.max(maxCapacity - totalMembers, 0)
           })
         } else {
-          // Empty layer
-          const maxCapacity = Math.pow(3, layer)
+          // Layer not in view - calculate from position data
+          const maxCapacity = Math.pow(3, layer);
+          const totalMembers = posData.L + posData.M + posData.R;
+          const calculatedPercentage = maxCapacity > 0 ? (totalMembers / maxCapacity) * 100 : 0;
+          const safePercentage = Math.min(Math.max(calculatedPercentage, 0), 100);
+          
+          console.log(`🔍 Layer ${layer} fallback calculation:`, {
+            totalMembers,
+            maxCapacity,
+            calculatedPercentage,
+            safePercentage,
+            positions: posData
+          });
+          
           completeStats.push({
             layer,
-            totalMembers: posData.L + posData.M + posData.R,
+            totalMembers: totalMembers,
             leftMembers: posData.L,
             middleMembers: posData.M,
             rightMembers: posData.R,
             maxCapacity,
-            fillPercentage: 0,
-            activeMembers: posData.L + posData.M + posData.R,
-            completedPercentage: 0,
-            emptySlots: maxCapacity
+            fillPercentage: safePercentage,
+            activeMembers: totalMembers,
+            completedPercentage: safePercentage,
+            emptySlots: Math.max(maxCapacity - totalMembers, 0)
           })
         }
       }
