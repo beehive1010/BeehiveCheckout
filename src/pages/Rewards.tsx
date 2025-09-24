@@ -278,8 +278,8 @@ export default function Rewards() {
                     </span>
                   </div>
                   {/* 移动端：右侧显示金额和箭头 */}
-                  <div className="flex items-center gap-1.5 sm:hidden">
-                    <div className="bg-gradient-to-r from-honey/90 to-amber-400 px-2 py-1 rounded-full shadow-lg transform group-hover:scale-105 transition-all duration-300">
+                  <div className="flex items-center gap-1 sm:hidden">
+                    <div className="bg-gradient-to-r from-honey/90 to-amber-400 px-2 py-0.5 rounded-full shadow-lg transform group-hover:scale-105 transition-all duration-300">
                       <span className="text-xs font-bold text-white drop-shadow-sm">
                         ${rewardsData?.claimable || 0}
                       </span>

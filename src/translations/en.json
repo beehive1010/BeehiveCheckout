@@ -946,7 +946,7 @@
     "claimable": "Claimable",
     "active": "Active",
     "pendingCountdowns": "Pending Countdowns",
-    "overview": "Rewards Overview",
+    "overview": "Reward_balance:",
     "overviewSubtitle": "Click to expand and view detailed statistics",
     "loading_overview": "Loading rewards overview...",
     "no_data": "No rewards data available",

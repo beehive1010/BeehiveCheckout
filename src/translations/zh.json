@@ -940,7 +940,7 @@
   "rewards": {
     "title": "奖励与收益",
     "subtitle": "跟踪您的奖励，领取收益，查看交易历史",
-    "overview": "奖励总览",
+    "overview": "当前奖励余额",
     "loading_overview": "正在加载奖励总览...",
     "no_data": "暂无奖励数据",
     "start_earning": "开始参与平台活动赚取奖励！",
