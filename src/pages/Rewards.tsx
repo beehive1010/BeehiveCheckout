@@ -25,6 +25,7 @@ import {
     TrendingUp,
     Users
 } from 'lucide-react';
+import RewardSystemInfoCard from '../components/rewards/RewardSystemInfoCard';
 
 interface ProfileData {
   wallet_address: string;
