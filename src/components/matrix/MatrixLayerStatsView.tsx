@@ -51,7 +51,7 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       console.log('🔍 Loading matrix layer stats for:', walletAddress);
       
       // Use matrix-view Supabase function instead of direct database queries
-      const response = await fetch('/functions/v1/matrix-view', {
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/matrix-view`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,41 +76,41 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
       const { layer_stats } = result.data;
       
       // Debug: Check specific Layer 2 data
-      const layer2Data = matrixData?.find(layer => layer.layer === 2);
+      const layer2Data = layer_stats?.find((layer: any) => layer.layer === 2);
       if (layer2Data) {
         console.log('🔍 Layer 2 debug data:', {
           layer: layer2Data.layer,
-          left_count: layer2Data.left_count,
-          middle_count: layer2Data.middle_count,
-          right_count: layer2Data.right_count,
-          filled_slots: layer2Data.filled_slots,
-          max_slots: layer2Data.max_slots
+          leftMembers: layer2Data.leftMembers,
+          middleMembers: layer2Data.middleMembers,
+          rightMembers: layer2Data.rightMembers,
+          totalMembers: layer2Data.totalMembers,
+          maxCapacity: layer2Data.maxCapacity
         });
       }
 
-      // Transform data directly from matrix_layers_view (use actual database data)
-      const layerStats: LayerStatsData[] = matrixData?.map((layer: any) => ({
+      // Transform data from matrix-view function response
+      const layerStats: LayerStatsData[] = layer_stats?.map((layer: any) => ({
         layer: layer.layer || 1,
-        totalMembers: layer.filled_slots || 0,
-        leftMembers: layer.left_count || 0,
-        middleMembers: layer.middle_count || 0,
-        rightMembers: layer.right_count || 0,
-        maxCapacity: layer.max_slots || 0,
-        fillPercentage: parseFloat(layer.completion_rate || 0),
-        activeMembers: layer.activated_members || 0,
-        completedPercentage: parseFloat(layer.completion_rate || 0),
+        totalMembers: layer.totalMembers || 0,
+        leftMembers: layer.leftMembers || 0,
+        middleMembers: layer.middleMembers || 0,
+        rightMembers: layer.rightMembers || 0,
+        maxCapacity: layer.maxCapacity || Math.pow(3, layer.layer || 1),
+        fillPercentage: layer.fillPercentage || 0,
+        activeMembers: layer.activeMembers || 0,
+        completedPercentage: layer.completedPercentage || 0,
       })) || [];
 
       console.log('📊 Final layer stats:', layerStats);
       
-      // Debug: Show raw left_count, middle_count, right_count for all layers
-      matrixData?.forEach((layer: any) => {
-        console.log(`🔍 Layer ${layer.layer} raw counts:`, {
-          left_count: layer.left_count,
-          middle_count: layer.middle_count, 
-          right_count: layer.right_count,
-          filled_slots: layer.filled_slots,
-          max_slots: layer.max_slots
+      // Debug: Show layer data structure 
+      layer_stats?.forEach((layer: any) => {
+        console.log(`🔍 Layer ${layer.layer} data:`, {
+          leftMembers: layer.leftMembers,
+          middleMembers: layer.middleMembers, 
+          rightMembers: layer.rightMembers,
+          totalMembers: layer.totalMembers,
+          maxCapacity: layer.maxCapacity
         });
       });
 
