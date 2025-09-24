@@ -43,8 +43,8 @@ interface ProfileData {
 
 interface RewardsData {
   total: number;
-  thisMonth: number;
-  lastMonth: number;
+  totalWithdrawn: number;
+  netEarnings: number;
   pending: number;
   claimable: number;
   history: RewardHistory[];
