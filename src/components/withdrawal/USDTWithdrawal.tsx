@@ -158,122 +158,50 @@ export default function USDTWithdrawal() {
         }
         
         const { supabase } = await import('../../lib/supabase');
-      
-      // First, let's check what columns actually exist
-      console.log('🔍 Checking available columns...');
-      const { data: schemaCheck } = await supabase
-        .from('user_balances')
-        .select('*')
-        .limit(1);
-      
-      if (schemaCheck && schemaCheck[0]) {
-        console.log('📊 Available columns:', Object.keys(schemaCheck[0]));
-      }
-      
-      // Try different possible column names (put the most likely first based on curl test)
-      const possibleQueries = [
-        'balance, withdrawn, updated_at, wallet_address', // Most likely based on curl
-        'claimable_reward_balance_usdc, total_rewards_withdrawn_usdc, updated_at, wallet_address',
-        'claimable_rewards, total_withdrawn, updated_at, wallet_address', 
-        'claimable_reward_balance, total_rewards_withdrawn, updated_at, wallet_address',
-        '*' // Get all columns as fallback
-      ];
-      
-      let data = null;
-      let error = null;
-      let usedQuery = '';
-      
-      for (const queryColumns of possibleQueries) {
-        try {
-          console.log(`🔄 Trying query with columns: ${queryColumns}`);
-          const result = await supabase
-            .from('user_balances')
-            .select(queryColumns)
-            .eq('wallet_address', memberWalletAddress!)
-            .single();
-          
-          if (!result.error) {
-            data = result.data;
-            error = result.error;
-            usedQuery = queryColumns;
-            console.log(`✅ Query successful with: ${queryColumns}`);
-            break;
-          }
-        } catch (queryError) {
-          console.log(`❌ Query failed with: ${queryColumns}`, queryError);
-          continue;
-        }
-      }
-      
-      // If no exact match, try case-insensitive with the working query
-      if (error && error.code === 'PGRST116' && usedQuery) {
-        console.log('🔄 Trying case-insensitive search...');
-        const result = await supabase
+        
+        // Query using correct user_balances table structure
+        const { data, error } = await supabase
           .from('user_balances')
-          .select(usedQuery)
+          .select('available_balance, reward_balance, total_withdrawn, updated_at, wallet_address')
           .ilike('wallet_address', memberWalletAddress!)
           .single();
-        data = result.data;
-        error = result.error;
-      }
-      
-      // If still no match, check if any user_balances exist at all
-      if (error && error.code === 'PGRST116') {
-        console.log('🔍 No balance record found, checking all user_balances...');
-        const { data: allBalances } = await supabase
-          .from('user_balances')
-          .select('wallet_address, claimable_reward_balance_usdc')
-          .limit(5);
         
-        console.log('📊 Sample user_balances records:', allBalances);
-        console.log(`❌ No balance record found for wallet: ${memberWalletAddress}`);
-        
-        return {
-          balance: 0,
-          balanceUSD: '0.00',
-          lastUpdated: new Date().toISOString(),
-          notFound: true
-        };
-      }
-      
-      if (error) {
-        console.warn('Balance query error:', error);
-        return {
-          balance: 0,
-          balanceUSD: '0.00',
-          lastUpdated: new Date().toISOString(),
-          error: error.message
-        };
-      }
-      
-      // Extract balance from different possible column names (prioritize 'balance' based on curl test)
-      let balanceAmount = 0;
-      const possibleBalanceFields = [
-        'balance', // Most likely based on curl test
-        'claimable_reward_balance_usdc',
-        'claimable_rewards', 
-        'claimable_reward_balance',
-        'reward_balance'
-      ];
-      
-      for (const field of possibleBalanceFields) {
-        if (data && data[field] !== undefined && data[field] !== null) {
-          balanceAmount = data[field];
-          console.log(`💰 Found balance in field '${field}': ${balanceAmount} USDT`);
-          break;
+        if (error) {
+          if (error.code === 'PGRST116') {
+            console.log(`❌ No balance record found for wallet: ${memberWalletAddress}`);
+            return {
+              balance: 0,
+              balanceUSD: '0.00',
+              lastUpdated: new Date().toISOString(),
+              notFound: true
+            };
+          }
+          
+          console.warn('Balance query error:', error);
+          return {
+            balance: 0,
+            balanceUSD: '0.00',
+            lastUpdated: new Date().toISOString(),
+            error: error.message
+          };
         }
-      }
-      
-      console.log(`💰 Final balance: ${balanceAmount} USDT for wallet: ${data?.wallet_address}`);
-      console.log(`📊 Full data object:`, data);
-      
-      return {
-        balance: Math.round((balanceAmount || 0) * 100),
-        balanceUSD: (balanceAmount || 0).toFixed(2),
-        lastUpdated: data?.updated_at || data?.created_at || new Date().toISOString(),
-        foundWallet: data?.wallet_address || '',
-        rawData: data || {} // Include raw data for debugging
-      };
+        
+        // Use reward_balance as the claimable amount for withdrawals
+        const balanceAmount = data?.reward_balance || 0;
+        console.log(`💰 Claimable balance: ${balanceAmount} USDT for wallet: ${data?.wallet_address}`);
+        console.log(`📊 Full balance data:`, {
+          available_balance: data?.available_balance || 0,
+          reward_balance: data?.reward_balance || 0,
+          total_withdrawn: data?.total_withdrawn || 0
+        });
+        
+        return {
+          balance: Math.round((balanceAmount || 0) * 100),
+          balanceUSD: (balanceAmount || 0).toFixed(2),
+          lastUpdated: data?.updated_at || new Date().toISOString(),
+          foundWallet: data?.wallet_address || '',
+          rawData: data || {}
+        };
       
       } catch (overallError: any) {
         console.error('❌ Overall query function error:', overallError);
@@ -704,31 +632,6 @@ export default function USDTWithdrawal() {
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* Debug Info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="bg-gray-800/50 rounded-lg p-3 text-xs">
-            <h4 className="font-semibold mb-2 text-gray-300">Debug Info:</h4>
-            <div className="space-y-1 text-gray-400">
-              <p>userData?.wallet_address: {userData?.wallet_address || 'null'}</p>
-              <p>account?.address: {account?.address || 'null'}</p>
-              <p>memberWalletAddress: {memberWalletAddress || 'null'}</p>
-              <p>balance query enabled: {!!memberWalletAddress ? 'true' : 'false'}</p>
-              <p>balanceLoading: {balanceLoading ? 'true' : 'false'}</p>
-              <p>balance?.balanceUSD: {balance?.balanceUSD || 'null'}</p>
-              {balance?.notFound && <p className="text-red-400">❌ No balance record found in database</p>}
-              {balance?.foundWallet && <p className="text-green-400">✅ Found wallet: {balance.foundWallet}</p>}
-              {balance?.error && <p className="text-red-400">❌ Query error: {balance.error}</p>}
-              {balance?.rawData && (
-                <details className="mt-2">
-                  <summary className="cursor-pointer text-blue-400">Raw Database Data</summary>
-                  <pre className="mt-1 p-2 bg-black/50 rounded text-xs overflow-x-auto">
-                    {JSON.stringify(balance.rawData || {}, null, 2)}
-                  </pre>
-                </details>
-              )}
-            </div>
-          </div>
-        )}
         
         {/* No balance record found - offer to create one */}
         {balance?.notFound && (
