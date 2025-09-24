@@ -38,16 +38,29 @@ serve(async (req: Request) => {
       // Get layer statistics using matrix_layers_view and referrals_stats_view
       console.log(`📊 Getting layer statistics for wallet: ${walletAddress}`)
       
-      // Get basic stats first
+      // Get enhanced stats from improved referrals_stats_view
       const { data: statsData, error: statsError } = await supabase
         .from('referrals_stats_view')
-        .select('*')
+        .select(`
+          wallet_address,
+          username, 
+          direct_referrals_count,
+          activated_referrals_count,
+          total_team_size,
+          max_layer,
+          active_layers,
+          total_activated_members,
+          total_network_size,
+          has_matrix_team
+        `)
         .eq('wallet_address', walletAddress)
         .single()
 
       if (statsError && statsError.code !== 'PGRST116') { // Ignore not found error
-        console.log('Stats not found, using fallback:', statsError.message)
+        console.log('Enhanced stats not found, using fallback:', statsError.message)
       }
+
+      console.log('📊 Enhanced stats data:', statsData)
 
       // Try to get matrix layers data, with fallback if view doesn't exist
       let matrixData = null;
@@ -173,15 +186,27 @@ serve(async (req: Request) => {
           wallet_address: walletAddress,
           layer_stats: completeStats,
           summary: {
+            // Matrix layer statistics
             total_members: completeStats.reduce((sum, stat) => sum + stat.totalMembers, 0),
             total_active: completeStats.reduce((sum, stat) => sum + stat.activeMembers, 0),
             deepest_layer: Math.max(...completeStats.filter(s => s.totalMembers > 0).map(s => s.layer), 0),
-            max_layer: Math.max(...completeStats.filter(s => s.totalMembers > 0).map(s => s.layer), 0), // Alias for deepest_layer
-            total_team_size: completeStats.reduce((sum, stat) => sum + stat.totalMembers, 0), // Alias for total_members
+            max_layer: Math.max(...completeStats.filter(s => s.totalMembers > 0).map(s => s.layer), 0),
             layers_with_data: completeStats.filter(s => s.totalMembers > 0).length,
+            
+            // Enhanced referral statistics (from improved referrals_stats_view)
             direct_referrals: statsData?.direct_referrals_count || 0,
             activated_referrals: statsData?.activated_referrals_count || 0,
-            network_strength: (completeStats.reduce((sum, stat) => sum + stat.totalMembers, 0) * 5) + (statsData?.activated_referrals_count || 0) * 10
+            total_team_size: statsData?.total_team_size || completeStats.reduce((sum, stat) => sum + stat.totalMembers, 0),
+            total_network_size: statsData?.total_network_size || 0,
+            active_layers: statsData?.active_layers || 0,
+            total_activated_members: statsData?.total_activated_members || 0,
+            has_matrix_team: statsData?.has_matrix_team || false,
+            
+            // Computed metrics
+            network_strength: (completeStats.reduce((sum, stat) => sum + stat.totalMembers, 0) * 5) + (statsData?.activated_referrals_count || 0) * 10,
+            
+            // Legacy aliases for backward compatibility
+            total_members_alias: completeStats.reduce((sum, stat) => sum + stat.totalMembers, 0)
           }
         }
       }), {

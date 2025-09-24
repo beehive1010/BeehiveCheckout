@@ -487,40 +487,60 @@ export function EnhancedMemberDashboard({ className = "" }: EnhancedMemberDashbo
               <CardContent>
                 {matrixView && matrixView.length > 0 ? (
                   <div className="space-y-4">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-honey mb-2">
-                        {t('dashboard.matrixRoots', { count: matrixView.length })}
+                    {/* Matrix Summary Stats */}
+                    <div className="grid grid-cols-2 gap-3 p-3 bg-honey/5 rounded-lg">
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-honey">
+                          {matrixView[0]?.total_downline || 0}
+                        </div>
+                        <div className="text-xs text-muted-foreground">Matrix Team</div>
                       </div>
-                      <div className="text-xs text-muted-foreground mb-4">
-                        {t('dashboard.showingLevels', { levels: 3 })}
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-blue-400">
+                          {matrixView[0]?.members?.filter((m: any) => m.layer <= 3).length || 0}
+                        </div>
+                        <div className="text-xs text-muted-foreground">First 3 Layers</div>
                       </div>
                     </div>
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {matrixView.slice(0, 5).map((root: any, index: number) => (
-                        <div key={root.wallet_address} className="flex items-center justify-between p-2 bg-honey/5 rounded">
+                    
+                    {/* Matrix Members List */}
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {matrixView[0]?.members?.slice(0, 4).map((member: any, index: number) => (
+                        <div key={member.member_wallet} className="flex items-center justify-between p-2 bg-honey/5 rounded text-xs">
                           <div className="flex items-center gap-2">
                             <Badge variant="outline" className="text-xs">
-                              L{root.current_level}
+                              L{member.layer}
                             </Badge>
-                            <span className="text-sm font-medium">
-                              {root.username || `${root.wallet_address.slice(0, 6)}...`}
+                            <span className="font-medium">
+                              {member.member_wallet?.slice(0, 6)}...{member.member_wallet?.slice(-4)}
                             </span>
                           </div>
-                          <div className="text-xs text-muted-foreground">
-                            {root.total_downline} {t('dashboard.downline')}
+                          <div className="flex items-center gap-1">
+                            <Badge 
+                              variant={member.position === 'L' ? 'default' : member.position === 'M' ? 'secondary' : 'outline'}
+                              className="text-xs"
+                            >
+                              {member.position}
+                            </Badge>
                           </div>
                         </div>
                       ))}
                     </div>
+                    
                     <Button variant="outline" className="w-full">
                       <BarChart3 className="mr-2 h-4 w-4" />
                       {t('dashboard.viewDetailedMatrix')}
                     </Button>
                   </div>
                 ) : (
-                  <div className="text-center">
-                    <div className="text-sm text-muted-foreground mb-4">
-                      {t('dashboard.noMatrixData')}
+                  <div className="text-center space-y-3">
+                    <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <div className="text-sm text-muted-foreground mb-2">
+                        {t('dashboard.noMatrixData')}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Start building your matrix by referring new members
+                      </div>
                     </div>
                     <Button variant="outline" className="w-full">
                       <BarChart3 className="mr-2 h-4 w-4" />

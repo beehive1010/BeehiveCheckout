@@ -115,44 +115,62 @@ export default function Dashboard() {
     }
   }, [walletAddress]);
 
-  // 加载矩阵数据 - 使用matrix-view Supabase函数
+  // 加载矩阵数据 - 使用改进的referrals_stats_view
   const loadMatrixData = useCallback(async () => {
     if (!walletAddress) return null;
 
     setLoadingState(prev => ({ ...prev, matrix: true }));
     try {
-      console.log('🌐 Fetching matrix data using matrix-view function for:', walletAddress);
+      console.log('🌐 Fetching matrix data from enhanced referrals_stats_view for:', walletAddress);
       
-      // 使用matrix-view Supabase函数获取层级统计数据
-      const { data: result, error: functionError } = await supabase.functions.invoke('matrix-view', {
-        body: {
-          action: 'get-layer-stats'
-        },
-        headers: {
-          'x-wallet-address': walletAddress
-        }
-      });
+      // 直接查询改进的referrals_stats_view获取综合数据
+      const { data: statsData, error: statsError } = await supabase
+        .from('referrals_stats_view')
+        .select(`
+          wallet_address,
+          username,
+          direct_referrals_count,
+          activated_referrals_count,
+          total_team_size,
+          max_layer,
+          active_layers,
+          total_activated_members,
+          total_network_size,
+          has_matrix_team
+        `)
+        .eq('wallet_address', walletAddress)
+        .single();
 
-      if (functionError) {
-        console.error('❌ Matrix function error:', functionError);
-        throw new Error(`Function error: ${functionError.message}`);
+      if (statsError && statsError.code !== 'PGRST116') {
+        console.error('❌ Stats query error:', statsError);
+        throw new Error(`Database error: ${statsError.message}`);
       }
 
-      console.log('🌐 Matrix data from function:', result);
+      console.log('🌐 Matrix data from enhanced view:', statsData);
 
-      if (result.success && result.data) {
-        const summary = result.data.summary;
+      if (statsData) {
         return {
-          directReferrals: summary.direct_referrals || 0,
-          totalTeamSize: summary.total_members || 0,
-          maxLayer: summary.deepest_layer || 0
+          directReferrals: statsData.direct_referrals_count || 0,
+          totalTeamSize: statsData.total_team_size || 0,
+          maxLayer: statsData.max_layer || 0,
+          activatedReferrals: statsData.activated_referrals_count || 0,
+          totalNetworkSize: statsData.total_network_size || 0,
+          hasMatrixTeam: statsData.has_matrix_team || false,
+          activeLayers: statsData.active_layers || 0,
+          totalActivatedMembers: statsData.total_activated_members || 0
         };
       }
 
+      // 如果没有统计数据，返回默认值
       return {
         directReferrals: 0,
         totalTeamSize: 0,
-        maxLayer: 0
+        maxLayer: 0,
+        activatedReferrals: 0,
+        totalNetworkSize: 0,
+        hasMatrixTeam: false,
+        activeLayers: 0,
+        totalActivatedMembers: 0
       };
     } catch (error) {
       console.error('❌ Matrix load error:', error);
