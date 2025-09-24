@@ -309,35 +309,54 @@ export default function USDTWithdrawal() {
       
       // Check if this is same-chain transfer or cross-chain bridge
       if (sourceChainId === targetChainId) {
-        // Direct thirdweb Engine API call for token transfer
-        console.log(`🔄 Direct thirdweb Engine API transfer`);
+        // Direct thirdweb SDK call for token transfer
+        console.log(`🔄 Direct thirdweb SDK transfer`);
         
+        const { createThirdwebClient } = await import('thirdweb');
+        const { privateKeyToAccount } = await import('thirdweb/wallets');
+        const { getContract, sendTransaction } = await import('thirdweb');
+        const { transfer } = await import('thirdweb/extensions/erc20');
+        const { defineChain } = await import('thirdweb/chains');
+        
+        // Create thirdweb client
+        const client = createThirdwebClient({
+          clientId: import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
+        });
+        
+        // Create server account from secret key (which should be a private key)
+        const account = privateKeyToAccount({
+          client,
+          privateKey: import.meta.env.VITE_THIRDWEB_SECRET_KEY!,
+        });
+        
+        // Define the target chain
+        const chain = defineChain(targetChainId);
+        
+        // Get token contract
+        const contract = getContract({
+          client,
+          chain,
+          address: targetTokenAddress,
+        });
+        
+        // Calculate amount in wei
         const tokenDecimals = getTokenInfo(targetChainId, selectedToken).decimals;
-        const amountInWei = (netAmount * Math.pow(10, tokenDecimals)).toString();
+        const amountInWei = BigInt(Math.floor(netAmount * Math.pow(10, tokenDecimals)));
         
-        // Call thirdweb Engine API directly
-        const engineResponse = await fetch(`https://api.thirdweb.com/v1/contract/${targetChainId}/${targetTokenAddress}/erc20/transfer`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_THIRDWEB_SECRET_KEY}`,
-            'x-client-id': import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
-          },
-          body: JSON.stringify({
-            chain_id: targetChainId.toString(),
-            contract_address: targetTokenAddress,
-            from_address: import.meta.env.VITE_SERVER_WALLET_ADDRESS!,
-            to_address: data.recipientAddress,
-            amount: amountInWei
-          })
-        }).then(res => res.json());
+        // Prepare and send the transfer transaction
+        const transaction = transfer({
+          contract,
+          to: data.recipientAddress,
+          amount: amountInWei,
+        });
         
-        if (!engineResponse.result || engineResponse.error) {
-          throw new Error(`Thirdweb Engine API failed: ${engineResponse.error?.message || 'Unknown error'}`);
-        }
+        const txResult = await sendTransaction({
+          transaction,
+          account,
+        });
         
         var result = {
-          transactionHash: engineResponse.result.transactionHash || engineResponse.result.queueId,
+          transactionHash: txResult.transactionHash,
           feeTransactionHash: null,
           bridged: false,
         };
