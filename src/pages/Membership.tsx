@@ -513,6 +513,7 @@ export default function Membership() {
                 targetLevel={
                   hasLevel2NFT && currentLevel === 1 ? 3 : 
                   hasLevel3NFT && currentLevel === 3 ? 4 : 
+                  // For Level 5+, always use sequential upgrade
                   currentLevel + 1
                 }
                 currentLevel={
