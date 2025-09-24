@@ -286,35 +286,7 @@ export default function Rewards() {
         </Card>
       </div>
 
-      {/* Pending Rewards Countdown */}
-      {pendingRewards.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <Clock className="h-5 w-5 text-honey" />
-            {t('rewards.pendingCountdowns')}
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {pendingRewards.map((reward) => (
-              <CountdownTimer
-                key={reward.id}
-                endTime={reward.expires_at}
-                title={t('rewards.pendingRewardTimer')}
-                description={t('rewards.pendingRewardDescription', { layer: reward.layer || 1 })}
-                rewardAmount={reward.amount_usdt || 0}
-                variant="detailed"
-                urgencyColors={true}
-                className="h-auto"
-                onExpired={() => {
-                  // Reload rewards data when timer expires
-                  loadRewardsData();
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Pending Rewards Timer Component */}
+      {/* Pending Rewards Timer Component - Enhanced version with upgrade incentives */}
       <PendingRewardsTimer 
         walletAddress={memberWalletAddress || ''} 
         onRewardClaimable={handleRewardClaimable}
