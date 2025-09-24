@@ -265,7 +265,7 @@ export default function Rewards() {
                 <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-br from-honey via-amber-400 to-amber-500 rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-honey/50 group-hover:scale-110 transition-all duration-500">
                   <BarChart3 className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-black drop-shadow-sm" />
                 </div>
-                <span className="text-sm sm:text-base font-bold bg-gradient-to-r from-honey to-amber-400 bg-clip-text text-transparent drop-shadow-sm tracking-wide">
+                <span className="text-base sm:text-lg font-bold bg-gradient-to-r from-honey to-amber-400 bg-clip-text text-transparent drop-shadow-sm tracking-wide">
                   {t('rewards.overview') || 'Rewards Overview'}
                 </span>
               </div>
