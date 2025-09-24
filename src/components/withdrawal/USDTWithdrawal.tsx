@@ -315,7 +315,7 @@ export default function USDTWithdrawal() {
         const tokenDecimals = getTokenInfo(targetChainId, selectedToken).decimals;
         const amountInWei = (netAmount * Math.pow(10, tokenDecimals)).toString();
         
-        // Call thirdweb wallets API
+        // Call thirdweb wallets API with correct parameters
         const walletResponse = await fetch('https://api.thirdweb.com/v1/wallets/send', {
           method: 'POST',
           headers: {
@@ -324,13 +324,13 @@ export default function USDTWithdrawal() {
             'x-client-id': import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
           },
           body: JSON.stringify({
-            chain_id: targetChainId.toString(),
-            from_wallet_address: import.meta.env.VITE_SERVER_WALLET_ADDRESS!,
-            to_wallet_address: data.recipientAddress,
-            contract_address: targetTokenAddress,
-            function_name: "transfer",
-            function_args: [data.recipientAddress, amountInWei],
-            value: "0"
+            from: import.meta.env.VITE_SERVER_WALLET_ADDRESS!,
+            chainId: targetChainId,
+            recipients: [{
+              to: data.recipientAddress,
+              amount: amountInWei,
+              currency: targetTokenAddress
+            }]
           })
         });
         

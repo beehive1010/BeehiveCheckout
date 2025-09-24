@@ -51,6 +51,8 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
           .order('position');
         
         if (!error && treeData) {
+          console.log(`🔍 SimpleMatrixView: Raw tree data for ${walletAddress}:`, treeData.length, 'records');
+          
           const organizedData: { [key: number]: MatrixLayerData } = {};
           
           // Initialize all 19 layers
@@ -85,6 +87,17 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
               }
             }
           });
+          
+          // Debug: Log layer data summary
+          const layersWithData = Object.keys(organizedData)
+            .map(layer => parseInt(layer))
+            .filter(layer => {
+              const data = organizedData[layer];
+              return (data.left.length + data.middle.length + data.right.length) > 0;
+            });
+          
+          console.log(`🔍 SimpleMatrixView: Layers with data:`, layersWithData);
+          console.log(`🔍 SimpleMatrixView: Highest layer with data:`, Math.max(...layersWithData, 0));
           
           setMatrixData(organizedData);
         } else {
