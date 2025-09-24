@@ -138,14 +138,12 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
   };
 
   const getLayerStatusColor = (fillPercentage: number, leftCount: number, middleCount: number, rightCount: number) => {
-    // A layer is "complete" when all 3 basic positions (L, M, R) have at least 1 member
-    const isLayerComplete = leftCount > 0 && middleCount > 0 && rightCount > 0;
-    
-    if (isLayerComplete) return 'text-green-400 bg-green-500/10 border-green-500/30'; // Complete
-    if (fillPercentage >= 50) return 'text-blue-400 bg-blue-500/10 border-blue-500/30'; // Good progress
-    if (fillPercentage >= 20) return 'text-orange-400 bg-orange-500/10 border-orange-500/30'; // Some progress
-    if (fillPercentage > 0) return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30'; // Started
-    return 'text-gray-400 bg-gray-500/10 border-gray-500/30'; // Empty
+    // Color based on fill percentage only - more accurate representation
+    if (fillPercentage >= 90) return 'text-green-400 bg-green-500/10 border-green-500/30'; // Complete (90%+)
+    if (fillPercentage >= 66) return 'text-blue-400 bg-blue-500/10 border-blue-500/30'; // Good progress (66%+)
+    if (fillPercentage >= 33) return 'text-orange-400 bg-orange-500/10 border-orange-500/30'; // Some progress (33%+)
+    if (fillPercentage > 0) return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30'; // Started (>0%)
+    return 'text-gray-400 bg-gray-500/10 border-gray-500/30'; // Empty (0%)
   };
 
   const renderLayerCard = (stat: LayerStatsData) => {

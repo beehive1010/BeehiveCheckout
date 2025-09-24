@@ -162,7 +162,7 @@ export default function Dashboard() {
     }
   }, [walletAddress]);
 
-  // 加载奖励数据 - 直接使用Supabase数据库查询
+  // 加载奖励数据 - 保持简单的数据库查询
   const loadRewardData = useCallback(async () => {
     if (!walletAddress) return null;
 
@@ -181,7 +181,7 @@ export default function Dashboard() {
           expires_at,
           claimed_at
         `)
-        .eq('reward_recipient_wallet', walletAddress)
+        .ilike('reward_recipient_wallet', walletAddress) // Use case-insensitive match
         .order('created_at', { ascending: false });
 
       if (rewardError) {
