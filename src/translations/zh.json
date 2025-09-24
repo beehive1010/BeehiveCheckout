@@ -950,6 +950,8 @@
     "available_to_claim": "可领取",
     "available_usdt": "可用 USDT",
     "available_bcc": "可用 BCC",
+    "management": "奖励管理",
+    "selectCategory": "选择下方分类查看和管理您的奖励",
     "tabs": {
       "overview": "概览",
       "rollup": "汇总", 
