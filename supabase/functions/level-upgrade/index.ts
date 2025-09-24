@@ -191,11 +191,21 @@ async function processLevelUpgrade(
     // 1. Get current member data
     const { data: memberData, error: memberError } = await supabase
       .from('members')
-      .select('current_level, levels_owned, activation_rank, tier_level')
+      .select('current_level, wallet_address')
       .ilike('wallet_address', walletAddress) // Case insensitive match
       .maybeSingle()
 
-    if (memberError || !memberData) {
+    if (memberError) {
+      console.error('Member query error:', memberError)
+      return {
+        success: false,
+        action: 'upgrade_level',
+        message: 'Member query failed',
+        error: memberError.message
+      }
+    }
+
+    if (!memberData) {
       return {
         success: false,
         action: 'upgrade_level',
@@ -205,7 +215,7 @@ async function processLevelUpgrade(
     }
 
     const currentLevel = memberData.current_level
-    const levelsOwned = memberData.levels_owned || []
+    console.log(`📊 Found member: ${memberData.wallet_address} at Level ${currentLevel}`)
     
     // Members must start at Level 1 - no Level 0 exists
     if (!currentLevel || currentLevel < 1) {
@@ -398,7 +408,7 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
     // 1. Get member data
     const { data: memberData } = await supabase
       .from('members')
-      .select('current_level, levels_owned')
+      .select('current_level, wallet_address')
       .ilike('wallet_address', walletAddress) // Case insensitive match
       .maybeSingle()
 
@@ -412,7 +422,6 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
     }
 
     const currentLevel = memberData.current_level
-    const levelsOwned = memberData.levels_owned || []
     
     // Members must start at Level 1 - no Level 0 exists
     if (!currentLevel || currentLevel < 1) {
@@ -439,7 +448,15 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
       }
     }
 
-    if (levelsOwned.includes(targetLevel)) {
+    // Check if user already has membership record for this level
+    const { data: existingMembership } = await supabase
+      .from('membership')
+      .select('nft_level')
+      .ilike('wallet_address', walletAddress)
+      .eq('nft_level', targetLevel)
+      .maybeSingle()
+
+    if (existingMembership) {
       return {
         success: false,
         action: 'check_requirements',

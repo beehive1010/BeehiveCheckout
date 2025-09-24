@@ -64,27 +64,36 @@ export default function AdminDashboard() {
 
   const loadDashboardStats = async () => {
     try {
+      console.log('🔍 Loading dashboard stats...');
+      console.log('Environment vars:', {
+        url: import.meta.env.VITE_SUPABASE_URL,
+        key: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'Set' : 'Missing'
+      });
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://cvqibjcbfrwsgkvthccp.supabase.co';
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNjU0MDUsImV4cCI6MjA3MjY0MTQwNX0.7CfL8CS1dQ8Gua89maSCDkgnMsNb19qp97mJyoJqJjs';
+
       // Use multiple endpoint calls to get accurate data
       const [usersResponse, membersResponse, rewardsResponse] = await Promise.allSettled([
         // Get total users count
-        fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/users?select=wallet_address&count=exact&head=true`, {
+        fetch(`${supabaseUrl}/rest/v1/users?select=wallet_address&count=exact&head=true`, {
           headers: {
-            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
           },
         }),
         // Get active members count  
-        fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/members?select=wallet_address&current_level=gt.0&count=exact&head=true`, {
+        fetch(`${supabaseUrl}/rest/v1/members?select=wallet_address&current_level=gt.0&count=exact&head=true`, {
           headers: {
-            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
           },
         }),
         // Get pending rewards count
-        fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/layer_rewards?select=id&status=eq.pending&count=exact&head=true`, {
+        fetch(`${supabaseUrl}/rest/v1/layer_rewards?select=id&status=eq.pending&count=exact&head=true`, {
           headers: {
-            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
           },
         })
       ]);

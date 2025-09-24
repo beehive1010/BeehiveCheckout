@@ -687,9 +687,83 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
                 ⏳ Level 2 NFT owned, membership record exists, but member level not updated (Current: {dataSync.currentMemberLevel}). Data syncing in progress.
               </p>
             ) : (
-              <p className="text-xs text-orange-600">
-                ⚠️ Level 2 NFT owned but no membership record found. This may indicate a sync issue.
-              </p>
+              <div className="space-y-2">
+                <p className="text-xs text-orange-600">
+                  ⚠️ Level 2 NFT owned but no membership record found. This may indicate a sync issue.
+                </p>
+                <button
+                  onClick={async () => {
+                    try {
+                      console.log('🔄 Manual sync: Updating current_level to 2...');
+                      
+                      // Method 1: Try to update members table current_level
+                      const { data: updateData, error: updateError } = await supabase
+                        .from('members')
+                        .update({ current_level: 2 })
+                        .ilike('wallet_address', account?.address!)
+                        .select();
+                      
+                      if (!updateError && updateData && updateData.length > 0) {
+                        console.log('✅ Manual sync successful:', updateData);
+                        toast({
+                          title: "Sync Successful",
+                          description: "Level 2 membership data has been synchronized.",
+                          variant: "default",
+                        });
+                        
+                        // Refresh data after successful sync
+                        await checkDataSynchronization(account?.address!);
+                        await checkLevel2Eligibility();
+                        
+                      } else {
+                        console.warn('⚠️ Member update failed:', updateError);
+                        
+                        // Method 2: Try calling balance function to trigger sync
+                        const balanceResponse = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/balance`, {
+                          method: 'POST',
+                          headers: {
+                            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY!,
+                            'Content-Type': 'application/json',
+                            'x-wallet-address': account?.address!,
+                          },
+                          body: JSON.stringify({
+                            action: 'sync-nft-level',
+                            targetLevel: 2
+                          }),
+                        });
+                        
+                        if (balanceResponse.ok) {
+                          console.log('✅ Balance API sync triggered');
+                          toast({
+                            title: "Sync Initiated",
+                            description: "Level 2 sync has been initiated via balance API. Please refresh in a moment.",
+                            variant: "default",
+                          });
+                        } else {
+                          toast({
+                            title: "Sync Failed",
+                            description: "Unable to sync Level 2 data. Please contact support.",
+                            variant: "destructive",
+                          });
+                        }
+                      }
+                      
+                    } catch (error: any) {
+                      console.error('❌ Manual sync error:', error);
+                      toast({
+                        title: "Sync Error",
+                        description: error.message || "Failed to sync Level 2 data",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
+                  className="px-3 py-1 text-xs bg-orange-500/20 text-orange-400 rounded hover:bg-orange-500/30 transition-colors"
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? 'Syncing...' : 'Sync Level 2 Data'}
+                </button>
+              </div>
             )}
           </div>
         )}
