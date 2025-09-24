@@ -46,12 +46,13 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
         const { data: treeData, error } = await supabase
           .from('matrix_referrals_tree_view')
           .select('*')
-          .eq('matrix_root_wallet', walletAddress)
+          .ilike('matrix_root_wallet', walletAddress) // Use ilike for case-insensitive comparison
           .order('layer')
           .order('position');
         
         if (!error && treeData) {
           console.log(`🔍 SimpleMatrixView: Raw tree data for ${walletAddress}:`, treeData.length, 'records');
+          console.log(`🔍 SimpleMatrixView: Sample data:`, treeData.slice(0, 5));
           
           const organizedData: { [key: number]: MatrixLayerData } = {};
           
@@ -64,6 +65,13 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
           treeData.forEach((node: any) => {
             const layer = node.layer;
             const position = node.position;
+            
+            console.log(`🔍 Processing node:`, { 
+              layer, 
+              position, 
+              member_wallet: node.member_wallet,
+              matrix_root_wallet: node.matrix_root_wallet
+            });
             
             const member: MatrixMember = {
               walletAddress: node.member_wallet,
@@ -88,7 +96,7 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
             }
           });
           
-          // Debug: Log layer data summary
+          // Debug: Log layer data summary with detailed info
           const layersWithData = Object.keys(organizedData)
             .map(layer => parseInt(layer))
             .filter(layer => {
@@ -98,6 +106,17 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
           
           console.log(`🔍 SimpleMatrixView: Layers with data:`, layersWithData);
           console.log(`🔍 SimpleMatrixView: Highest layer with data:`, Math.max(...layersWithData, 0));
+          
+          // Log detailed layer breakdown
+          layersWithData.forEach(layer => {
+            const data = organizedData[layer];
+            console.log(`🔍 Layer ${layer} details:`, {
+              left: data.left.length,
+              middle: data.middle.length,
+              right: data.right.length,
+              total: data.left.length + data.middle.length + data.right.length
+            });
+          });
           
           setMatrixData(organizedData);
         } else {
