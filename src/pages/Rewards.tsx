@@ -285,16 +285,16 @@ export default function Rewards() {
           <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-900 dark:from-black dark:via-gray-950 dark:to-black rounded-2xl border-2 border-gray-700 dark:border-gray-800 p-4 sm:p-6 mt-3 shadow-3xl animate-in slide-in-from-top-2 duration-300">
             <div className="absolute inset-0 bg-gradient-to-r from-honey/8 via-transparent to-amber-400/8 opacity-40"></div>
             <div className="relative grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-4">
-              <div className="group relative overflow-hidden p-4 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-gray-700 hover:via-gray-600 hover:to-gray-700 border-2 border-gray-600 hover:border-honey/50 rounded-xl shadow-lg hover:shadow-2xl hover:shadow-honey/20 transition-all duration-500 hover:scale-[1.05] hover:-translate-y-1">
-                <div className="absolute inset-0 bg-gradient-to-r from-honey/5 via-transparent to-amber-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="group relative overflow-hidden p-4 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-honey/20 hover:via-honey/10 hover:to-amber-400/20 border-2 border-honey/30 hover:border-honey/60 rounded-xl shadow-lg hover:shadow-2xl hover:shadow-honey/30 transition-all duration-500 hover:scale-[1.05] hover:-translate-y-1">
+                <div className="absolute inset-0 bg-gradient-to-r from-honey/8 via-transparent to-amber-400/8 opacity-30 group-hover:opacity-70 transition-opacity duration-300"></div>
                 <div className="relative text-center space-y-2">
-                  <div className="w-8 h-8 mx-auto bg-gradient-to-br from-gray-500 via-gray-400 to-gray-500 group-hover:from-honey/80 group-hover:via-honey group-hover:to-amber-400 rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-all duration-300 shadow-lg">
-                    <TrendingUp className="h-4 w-4 text-white group-hover:text-black transition-colors duration-300" />
+                  <div className="w-8 h-8 mx-auto bg-gradient-to-br from-honey/60 via-honey to-amber-400 rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-all duration-300 shadow-lg">
+                    <TrendingUp className="h-4 w-4 text-black" />
                   </div>
-                  <p className="text-xs font-semibold text-gray-100 group-hover:text-gray-200 uppercase tracking-wide">
+                  <p className="text-xs font-semibold text-honey group-hover:text-amber-300 uppercase tracking-wide">
                     {t('rewards.overview.totalEarned')}
                   </p>
-                  <p className="text-sm sm:text-lg font-bold text-white group-hover:text-honey transition-colors duration-300">
+                  <p className="text-sm sm:text-lg font-bold text-honey group-hover:text-amber-300 transition-colors duration-300">
                     ${rewardsData?.total || 0}
                   </p>
                 </div>
@@ -333,7 +333,7 @@ export default function Rewards() {
               <div className="group relative overflow-hidden p-4 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-honey/20 hover:via-honey/10 hover:to-amber-400/20 border-2 border-honey/40 hover:border-honey/70 rounded-xl shadow-lg hover:shadow-2xl hover:shadow-honey/40 transition-all duration-500 hover:scale-[1.05] hover:-translate-y-1">
                 <div className="absolute inset-0 bg-gradient-to-r from-honey/10 via-transparent to-amber-400/10 opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="relative text-center space-y-2">
-                  <div className="w-8 h-8 mx-auto bg-gradient-to-br from-honey/70 via-honey to-amber-400 rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300 shadow-lg animate-pulse">
+                  <div className="w-8 h-8 mx-auto bg-gradient-to-br from-honey/70 via-honey to-amber-400 rounded-xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-300 shadow-lg">
                     <Gift className="h-4 w-4 text-black" />
                   </div>
                   <p className="text-xs font-semibold text-honey group-hover:text-amber-300 uppercase tracking-wide">
