@@ -8,55 +8,37 @@ export async function getDirectReferralCount(referrerWallet: string): Promise<nu
   try {
     console.log(`🔍 Fetching direct referrals for wallet: ${referrerWallet}`);
     
-    // Primary: Use referrals_new table (correct direct referrals source)
-    const { count, error, data } = await supabase
-      .from('referrals_new')
-      .select('*', { count: 'exact' })
-      .ilike('referrer_wallet', referrerWallet);
-
-    // Add debug logging
-    console.log('🔍 referrals_new query result:', { count, error, dataLength: data?.length });
+    // Primary: Use referrals_stats_view for optimized referral stats
+    const { data, error } = await supabase
+      .from('referrals_stats_view')
+      .select('direct_referrals_count')
+      .ilike('wallet_address', referrerWallet)
+      .single();
 
     if (error) {
-      console.error('❌ referrals_new table query failed:', error);
-      // Fallback to referrals table (check if it has is_direct_referral column)
-      console.log('🔄 Falling back to referrals table...');
+      console.error('❌ referrals_stats_view query failed:', error);
       
-      try {
-        const { count: fallbackCount, error: referralsError } = await supabase
-          .from('referrals')
-          .select('*', { count: 'exact', head: true })
-          .ilike('referrer_wallet', referrerWallet)
-          .eq('is_direct_referral', true);
+      // Fallback to direct referrals_new table query
+      console.log('🔄 Falling back to referrals_new table...');
+      
+      const { count, error: fallbackError } = await supabase
+        .from('referrals_new')
+        .select('*', { count: 'exact', head: true })
+        .ilike('referrer_wallet', referrerWallet)
+        .neq('referred_wallet', '0x0000000000000000000000000000000000000001');
 
-        if (referralsError) {
-          console.error('❌ referrals fallback failed:', referralsError);
-          // Final fallback: count all referrals (may include spillovers)
-          const { count: finalCount, error: finalError } = await supabase
-            .from('referrals')
-            .select('*', { count: 'exact', head: true })
-            .ilike('referrer_wallet', referrerWallet);
-          
-          if (finalError) {
-            console.error('❌ All fallback queries failed:', finalError);
-            return 0;
-          }
-          
-          console.log(`⚠️ Using all referrals count (may include spillovers): ${finalCount || 0}`);
-          return finalCount || 0;
-        }
-
-        const directCount = fallbackCount || 0;
-        console.log(`✅ Direct referral count (referrals fallback) for ${referrerWallet}: ${directCount}`);
-        return directCount;
-      } catch (fallbackError) {
-        console.error('❌ Referrals fallback error:', fallbackError);
+      if (fallbackError) {
+        console.error('❌ referrals_new fallback failed:', fallbackError);
         return 0;
       }
+
+      const directCount = count || 0;
+      console.log(`✅ Direct referral count (referrals_new fallback) for ${referrerWallet}: ${directCount}`);
+      return directCount;
     }
 
-    const directCount = count || 0;
-    console.log(`✅ Direct referral count from referrals_new table for ${referrerWallet}: ${directCount}`);
+    const directCount = data?.direct_referrals_count || 0;
+    console.log(`✅ Direct referral count from view for ${referrerWallet}: ${directCount}`);
     
     return directCount;
   } catch (error) {
