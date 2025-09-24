@@ -302,38 +302,11 @@ async function processLevelUpgrade(
 
     console.log(`✅ Member level updated - upgrade triggers fired:`, memberUpdateResult)
 
-    // 5.1. Trigger layer rewards for this level upgrade  
-    console.log(`💰 Creating layer rewards for Level ${targetLevel} upgrade...`)
-    // Calculate layer reward amount 
-    // Level 1: 100 USD (NFT price 130 - 30 platform fee)
-    // Level 2+: Full NFT price (no platform fee)
-    const nftPrice = LEVEL_CONFIG.PRICING[targetLevel] || 0;
-    const layerRewardAmount = targetLevel === 1 ? 100 : nftPrice; // Level 1: 100 USD, others: full NFT price (no platform fee)
+    // 5.1. Note: Layer rewards will be handled by membership table triggers
+    console.log(`💰 Layer rewards will be processed by database triggers...`)
     
-    const { data: layerReward, error: layerRewardError } = await supabase.rpc('trigger_layer_rewards_on_upgrade', {
-      p_upgrading_member_wallet: walletAddress,
-      p_new_level: targetLevel,
-      p_nft_price: layerRewardAmount
-    });
-    
-    if (layerRewardError) {
-      console.warn('⚠️ Layer reward creation failed:', layerRewardError);
-    } else {
-      console.log(`✅ Layer reward created for Level ${targetLevel}:`, layerReward);
-    }
-
-    // 5.2. Check and update pending rewards that may now be claimable
-    console.log(`🎁 Checking pending rewards after Level ${targetLevel} upgrade...`);
-    const { data: pendingRewardCheck, error: pendingRewardError } = await supabase.rpc('check_pending_rewards_after_upgrade', {
-      p_upgraded_wallet: walletAddress,
-      p_new_level: targetLevel
-    });
-
-    if (pendingRewardError) {
-      console.warn('⚠️ Pending reward check failed:', pendingRewardError);
-    } else {
-      console.log(`✅ Pending reward check completed:`, pendingRewardCheck);
-    }
+    // 5.2. Note: Pending rewards will be handled by member level update triggers  
+    console.log(`🎁 Pending rewards will be processed by database triggers...`)
 
     // 6. Get final results from triggered functions
     await new Promise(resolve => setTimeout(resolve, 2000)) // Wait for triggers to complete
@@ -493,7 +466,7 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
     
     if (targetLevel === 2) {
       const { data: referrerStatsData } = await supabase
-        .from('referrer_stats')
+        .from('rewards_stats_view')
         .select('total_direct_referrals')
         .ilike('referrer', walletAddress) // Use ilike for case insensitive match
         .maybeSingle()
