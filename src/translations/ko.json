@@ -2229,6 +2229,11 @@
         "title": "커뮤니티 가입",
         "text": "이 놀라운 커뮤니티에 가입하고 보상 획득을 시작하세요!"
       },
+      "ui": {
+        "unknown": "알 수 없음",
+        "showLess": "적게 보기",
+        "showAllLayers": "모든 19개 레이어 보기"
+      },
       "errors": {
         "loadFailed": "매트릭스 데이터 로딩 실패",
         "copyFailed": "링크 복사 실패"
