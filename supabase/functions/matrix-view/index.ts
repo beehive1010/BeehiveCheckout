@@ -176,6 +176,8 @@ serve(async (req: Request) => {
             total_members: completeStats.reduce((sum, stat) => sum + stat.totalMembers, 0),
             total_active: completeStats.reduce((sum, stat) => sum + stat.activeMembers, 0),
             deepest_layer: Math.max(...completeStats.filter(s => s.totalMembers > 0).map(s => s.layer), 0),
+            max_layer: Math.max(...completeStats.filter(s => s.totalMembers > 0).map(s => s.layer), 0), // Alias for deepest_layer
+            total_team_size: completeStats.reduce((sum, stat) => sum + stat.totalMembers, 0), // Alias for total_members
             layers_with_data: completeStats.filter(s => s.totalMembers > 0).length,
             direct_referrals: statsData?.direct_referrals_count || 0,
             activated_referrals: statsData?.activated_referrals_count || 0,

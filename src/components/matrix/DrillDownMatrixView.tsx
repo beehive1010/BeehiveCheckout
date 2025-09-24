@@ -77,12 +77,33 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
       
       console.log(`🔍 Matrix data for ${walletAddress}:`, result.data);
       const matrixData = result.data.tree_members || [];
+      
+      console.log(`🔍 Matrix members count: ${matrixData.length}`);
+      console.log(`🔍 Matrix members sample:`, matrixData.slice(0, 3));
 
       if (matrixData && matrixData.length > 0) {
         // For the current wallet, show its direct children (layer 1 from their perspective)
         // When navigating, currentNode will be based on navigationPath length
         const currentViewLayer = navigationPath.length > 0 ? 1 : 1; // Always show layer 1 for any selected node
         const layerMembers = matrixData.filter((member: any) => member.layer === currentViewLayer);
+        
+        console.log(`🔍 Current view layer: ${currentViewLayer}`);
+        console.log(`🔍 Layer members found: ${layerMembers.length}`);
+        console.log(`🔍 Layer members sample:`, layerMembers.slice(0, 3));
+        
+        // If no members found at the expected layer, check what layers are available
+        if (layerMembers.length === 0) {
+          const availableLayers = [...new Set(matrixData.map((m: any) => m.layer))].sort();
+          console.log(`🔍 No members at layer ${currentViewLayer}, available layers:`, availableLayers);
+          
+          // Try to get members from the first available layer
+          if (availableLayers.length > 0) {
+            const firstLayer = availableLayers[0];
+            const firstLayerMembers = matrixData.filter((member: any) => member.layer === firstLayer);
+            console.log(`🔍 Using first available layer ${firstLayer} with ${firstLayerMembers.length} members`);
+            layerMembers.push(...firstLayerMembers);
+          }
+        }
         
         // Group members by position (L, M, R)
         const leftMembers: MatrixMember[] = [];
