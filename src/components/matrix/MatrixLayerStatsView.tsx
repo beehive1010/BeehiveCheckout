@@ -149,7 +149,10 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
   };
 
   const renderLayerCard = (stat: LayerStatsData) => {
-    const isLayerComplete = stat.fillPercentage >= 100;
+    // A layer is "complete" if it has basic L-M-R structure OR significant fill
+    const hasBasicStructure = stat.leftMembers > 0 && stat.middleMembers > 0 && stat.rightMembers > 0;
+    const hasSignificantFill = stat.fillPercentage >= 33;
+    const isLayerComplete = hasBasicStructure || hasSignificantFill;
     
     return (
       <div
@@ -230,7 +233,12 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
     const totalMembers = layerStats.reduce((sum, stat) => sum + stat.totalMembers, 0);
     const totalActive = layerStats.reduce((sum, stat) => sum + stat.activeMembers, 0);
     const layersWithMembers = layerStats.filter(stat => stat.totalMembers > 0).length;
-    const layersCompleted = layerStats.filter(stat => stat.fillPercentage >= 100).length;
+    const layersCompleted = layerStats.filter(stat => {
+      // A layer is "completed" if it has basic L-M-R structure OR has significant fill
+      const hasBasicStructure = stat.leftMembers > 0 && stat.middleMembers > 0 && stat.rightMembers > 0;
+      const hasSignificantFill = stat.fillPercentage >= 33; // At least 1/3 filled
+      return hasBasicStructure || hasSignificantFill;
+    }).length;
     const avgFillRate = layersWithMembers > 0 ? layerStats.slice(0, layersWithMembers).reduce((sum, stat) => sum + stat.fillPercentage, 0) / layersWithMembers : 0;
     const avgCompletionRate = totalMembers > 0 ? (totalActive / totalMembers) * 100 : 0;
 

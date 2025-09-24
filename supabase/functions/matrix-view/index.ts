@@ -67,6 +67,7 @@ serve(async (req: Request) => {
         // Don't throw, continue with empty data
       }
 
+      console.log(`📊 Matrix layer data for ${walletAddress}:`, matrixData)
       console.log(`📊 Matrix layer data retrieved: ${matrixData?.length || 0} layers`)
 
       // Get detailed member positions for L/M/R breakdown
