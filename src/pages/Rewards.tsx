@@ -275,7 +275,9 @@ export default function Rewards() {
                     ${rewardsData?.claimable || 0} {t('rewards.available_to_claim') || 'Available to Claim'}
                   </span>
                 </div>
-                <ChevronDown className={`h-4 w-4 sm:h-5 sm:w-5 text-honey transition-all duration-500 group-hover:scale-110 ${isOverviewOpen ? 'rotate-180' : ''}`} />
+                <div className="bg-honey/20 hover:bg-honey/30 rounded-full p-1 transition-all duration-300">
+                  <ChevronDown className={`h-4 w-4 sm:h-5 sm:w-5 text-honey transition-all duration-500 group-hover:scale-110 ${isOverviewOpen ? 'rotate-180' : ''}`} />
+                </div>
               </div>
             </div>
           </div>
