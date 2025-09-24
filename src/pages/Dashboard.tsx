@@ -1,19 +1,11 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useWallet } from '../hooks/useWallet';
-import { useI18n } from '../contexts/I18nContext';
-import { useLocation } from 'wouter';
-import { useToast } from '../hooks/use-toast';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {useWallet} from '../hooks/useWallet';
+import {useI18n} from '../contexts/I18nContext';
+import {useLocation} from 'wouter';
+import {useToast} from '../hooks/use-toast';
 import Navigation from '../components/shared/Navigation';
-import { 
-  supabase
-} from '../lib/supabase';
-import { 
-  Users, 
-  DollarSign,
-  Award,
-  Plus,
-  RefreshCw
-} from 'lucide-react';
+import {supabase} from '../lib/supabase';
+import {Award, DollarSign, Plus, RefreshCw, Users} from 'lucide-react';
 import UserProfile from '../components/dashboard/UserProfile';
 import PremiumDataCard from '../components/dashboard/PremiumDataCard';
 import ReferralLinkCard from '../components/dashboard/ReferralLinkCard';
@@ -138,7 +130,7 @@ export default function Dashboard() {
           total_network_size,
           has_matrix_team
         `)
-        .eq('wallet_address', walletAddress)
+        .ilike('wallet_address', walletAddress)
         .single();
 
       if (statsError && statsError.code !== 'PGRST116') {

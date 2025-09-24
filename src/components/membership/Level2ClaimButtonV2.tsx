@@ -1,17 +1,16 @@
-import { useState, useEffect } from 'react';
-import { useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain } from 'thirdweb/react';
-import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from 'thirdweb';
-import { arbitrum } from 'thirdweb/chains';
-import { createThirdwebClient } from 'thirdweb';
-import { claimTo, balanceOf } from 'thirdweb/extensions/erc1155';
-import { approve, balanceOf as erc20BalanceOf, allowance } from 'thirdweb/extensions/erc20';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { useToast } from '../../hooks/use-toast';
-import { Loader2, Crown, TrendingUp, Coins, Clock, Star } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
-import { useI18n } from '../../contexts/I18nContext';
+import {useEffect, useState} from 'react';
+import {useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain} from 'thirdweb/react';
+import {createThirdwebClient, getContract, sendTransaction, waitForReceipt} from 'thirdweb';
+import {arbitrum} from 'thirdweb/chains';
+import {balanceOf, claimTo} from 'thirdweb/extensions/erc1155';
+import {allowance, approve, balanceOf as erc20BalanceOf} from 'thirdweb/extensions/erc20';
+import {Button} from '../ui/button';
+import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
+import {Badge} from '../ui/badge';
+import {useToast} from '../../hooks/use-toast';
+import {Clock, Coins, Crown, Loader2, Star, TrendingUp} from 'lucide-react';
+import {supabase} from '../../lib/supabase';
+import {useI18n} from '../../contexts/I18nContext';
 
 interface Level2ClaimButtonV2Props {
   onSuccess?: () => void;
@@ -151,9 +150,17 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
         return;
       }
       
-      if (memberData.current_level !== 1) {
-        console.log(`❌ User current level: ${memberData.current_level}, must be Level 1 to claim Level 2`);
+      if (memberData.current_level < 1) {
+        console.log(`❌ User current level: ${memberData.current_level}, must claim Level 1 first`);
         setCanClaimLevel2(false);
+        setIsCheckingEligibility(false);
+        return;
+      }
+      
+      if (memberData.current_level >= 2) {
+        console.log(`✅ User already has Level ${memberData.current_level}, no need to claim Level 2`);
+        setCanClaimLevel2(false);
+        setAlreadyOwnsLevel2(true);  // Set this to show user already has higher level
         setIsCheckingEligibility(false);
         return;
       }
