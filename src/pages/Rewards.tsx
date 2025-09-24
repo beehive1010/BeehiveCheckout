@@ -258,7 +258,7 @@ export default function Rewards() {
       {/* Enhanced Collapsible Stats Overview */}
       <Collapsible open={isOverviewOpen} onOpenChange={setIsOverviewOpen} className="mb-1 animate-in slide-in-from-bottom-2 duration-500">
         <CollapsibleTrigger className="w-full">
-          <div className="relative overflow-hidden bg-gradient-to-br from-yellow-400/20 via-amber-500/30 to-yellow-600/20 dark:from-yellow-400/25 dark:via-amber-500/35 dark:to-yellow-600/25 rounded-xl border-2 border-yellow-500/30 dark:border-yellow-400/40 px-3 py-1.5 sm:px-4 sm:py-2 hover:border-honey/70 transition-all duration-500 cursor-pointer shadow-2xl hover:shadow-3xl hover:shadow-honey/40 group hover:scale-[1.02] transform animate-pulse">
+          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 dark:from-black/95 dark:via-slate-950/90 dark:to-black/95 rounded-xl border-2 border-slate-700 dark:border-slate-800 px-3 py-1.5 sm:px-4 sm:py-2 hover:border-honey/50 transition-all duration-500 cursor-pointer shadow-2xl hover:shadow-3xl hover:shadow-honey/20 group hover:scale-[1.02] transform">
             {/* Golden background gradient */}
             <div className="absolute inset-0 bg-gradient-to-br from-honey/20 via-amber-300/15 to-yellow-400/20 opacity-70"></div>
             {/* Strong animated border glow effect with pulse */}
@@ -281,7 +281,7 @@ export default function Rewards() {
               </div>
               <div className="flex items-center gap-1.5 flex-shrink-0">
                 <div className="bg-gradient-to-r from-honey/90 to-amber-400 px-2 py-1 rounded-full shadow-lg transform group-hover:scale-105 transition-all duration-300">
-                  <span className="text-xs font-bold text-black drop-shadow-sm">
+                  <span className="text-xs font-bold text-white drop-shadow-sm">
                     <span className="hidden xs:inline">${rewardsData?.claimable || 0} </span>
                     <span className="hidden sm:inline">{t('rewards.available_to_claim') || 'Available'}</span>
                     <span className="sm:hidden">${rewardsData?.claimable || 0}</span>
@@ -297,7 +297,7 @@ export default function Rewards() {
         </CollapsibleTrigger>
         
         <CollapsibleContent>
-          <div className="relative overflow-hidden bg-gradient-to-br from-yellow-400/15 via-amber-500/25 to-yellow-600/15 dark:from-yellow-400/20 dark:via-amber-500/30 dark:to-yellow-600/20 rounded-2xl border-2 border-yellow-500/20 dark:border-yellow-400/30 p-3 sm:p-4 mt-3 mb-6 shadow-3xl animate-in slide-in-from-top-2 duration-300 animate-pulse">
+          <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-900 dark:from-black dark:via-gray-950 dark:to-black rounded-2xl border-2 border-gray-700 dark:border-gray-800 p-3 sm:p-4 mt-3 mb-6 shadow-3xl animate-in slide-in-from-top-2 duration-300">
             <div className="absolute inset-0 bg-gradient-to-r from-honey/8 via-transparent to-amber-400/8 opacity-40"></div>
             <div className="relative grid grid-cols-2 gap-2 sm:gap-3">
               <div className="group relative overflow-hidden p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-honey/20 hover:via-honey/10 hover:to-amber-400/20 border-2 border-honey/30 hover:border-honey/60 rounded-xl shadow-lg hover:shadow-2xl hover:shadow-honey/30 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-0.5">
