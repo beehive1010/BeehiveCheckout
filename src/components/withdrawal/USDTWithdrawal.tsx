@@ -78,7 +78,7 @@ export default function USDTWithdrawal() {
     },
   });
 
-  // Withdrawal mutation
+  // Withdrawal mutation with real backend call
   const withdrawalMutation = useMutation({
     mutationFn: async (data: { amount: number; chainId: number }) => {
       setIsProcessing(true);
@@ -93,22 +93,69 @@ export default function USDTWithdrawal() {
         throw new Error(`Amount too small. Minimum: ${(fee + 0.01).toFixed(2)} USDT (includes ${fee} USDT fee)`);
       }
 
-      // Simulate withdrawal request - in production, this would call your backend
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      if (!memberWalletAddress) {
+        throw new Error('Wallet address not found');
+      }
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       
-      // For now, just simulate success
+      if (!supabaseUrl || !anonKey) {
+        throw new Error('Missing Supabase configuration');
+      }
+
+      console.log(`🚀 Starting withdrawal: ${netAmount} USDT to ${targetChainInfo.name} (fee: ${fee} USDT)`);
+
+      // Call withdrawal API endpoint (backend handles thirdweb credentials securely)
+      const response = await fetch(`${supabaseUrl}/functions/v1/withdrawal`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${anonKey}`,
+          'apikey': anonKey,
+          'Content-Type': 'application/json',
+          'x-wallet-address': memberWalletAddress,
+        },
+        body: JSON.stringify({
+          action: 'process-withdrawal',
+          amount: data.amount,
+          net_amount: netAmount,
+          fee_amount: fee,
+          target_chain_id: data.chainId,
+          recipient_address: memberWalletAddress,
+          source_chain_id: 42161, // Arbitrum One (where our USDT is held)
+          is_cross_chain: data.chainId !== 42161,
+          withdrawal_method: 'rewards_dashboard'
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Withdrawal API error:', errorText);
+        throw new Error(`Withdrawal failed: ${response.status} ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Withdrawal API result:', result);
+
+      if (!result.success) {
+        throw new Error(result.error || 'Withdrawal failed');
+      }
+
       return {
         success: true,
-        transactionHash: `0x${Math.random().toString(16).substr(2, 64)}`,
+        transactionHash: result.transaction_hash || result.txHash,
         netAmount,
         fee,
-        chain: targetChainInfo.name
+        chain: targetChainInfo.name,
+        isCrossChain: data.chainId !== 42161,
+        withdrawalId: result.withdrawal_id
       };
     },
     onSuccess: (data) => {
+      const method = data.isCrossChain ? 'bridged via thirdweb' : 'transferred directly';
       toast({
-        title: "Withdrawal Submitted! ✅",
-        description: `${data.netAmount.toFixed(2)} USDT will be sent to ${data.chain} (${data.fee} USDT fee)`,
+        title: `Withdrawal ${data.isCrossChain ? 'Bridged' : 'Submitted'}! ${data.isCrossChain ? '🌉' : '✅'}`,
+        description: `${data.netAmount.toFixed(2)} USDT will be ${method} to ${data.chain} (${data.fee} USDT fee)`,
       });
       
       setAmount('');
