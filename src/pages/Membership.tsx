@@ -59,11 +59,12 @@ export default function Membership() {
     fetchUserReferrer();
   }, [walletAddress]);
 
-  // Check if user has Level 2 NFT directly from blockchain
+  // Check if user has Level 2 and Level 3 NFTs directly from blockchain
   useEffect(() => {
-    const checkLevel2NFT = async () => {
+    const checkNFTOwnership = async () => {
       if (!walletAddress) {
         setHasLevel2NFT(false);
+        setHasLevel3NFT(false);
         return;
       }
       
@@ -82,22 +83,39 @@ export default function Membership() {
           chain: arbitrum
         });
         
-        const level2Balance = await balanceOf({
-          contract: nftContract,
-          owner: walletAddress,
-          tokenId: BigInt(2)
-        });
+        const [level2Balance, level3Balance] = await Promise.all([
+          balanceOf({
+            contract: nftContract,
+            owner: walletAddress,
+            tokenId: BigInt(2)
+          }),
+          balanceOf({
+            contract: nftContract,
+            owner: walletAddress,
+            tokenId: BigInt(3)
+          })
+        ]);
         
-        const hasNFT = Number(level2Balance) > 0;
-        setHasLevel2NFT(hasNFT);
-        console.log(`📊 Level 2 NFT check: ${hasNFT ? 'OWNS' : 'DOES NOT OWN'} Level 2 NFT`);
+        const hasLevel2 = Number(level2Balance) > 0;
+        const hasLevel3 = Number(level3Balance) > 0;
+        
+        setHasLevel2NFT(hasLevel2);
+        setHasLevel3NFT(hasLevel3);
+        
+        console.log(`📊 Level 2 NFT check: ${hasLevel2 ? 'OWNS' : 'DOES NOT OWN'} Level 2 NFT`);
+        console.log(`📊 Level 3 NFT check: ${hasLevel3 ? 'OWNS' : 'DOES NOT OWN'} Level 3 NFT`);
+        
+        if (hasLevel3) {
+          console.log(`✅ User eligible for Level 4 claim`);
+        }
       } catch (error) {
-        console.warn('⚠️ Failed to check Level 2 NFT ownership:', error);
+        console.warn('⚠️ Failed to check NFT ownership:', error);
         setHasLevel2NFT(false);
+        setHasLevel3NFT(false);
       }
     };
 
-    checkLevel2NFT();
+    checkNFTOwnership();
   }, [walletAddress, currentLevel]); // Re-check when currentLevel changes
 
   // Fetch user's direct referrals count for Level 2 condition (from referrals table)
