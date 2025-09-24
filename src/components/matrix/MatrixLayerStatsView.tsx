@@ -50,20 +50,30 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
     try {
       console.log('🔍 Loading matrix layer stats for:', walletAddress);
       
-      // Get layer summary data
-      const { data: matrixData, error: layerError } = await supabase
-        .from('matrix_layers_view')
-        .select('*')
-        .eq('matrix_root_wallet', walletAddress) // Exact case match
-        .order('layer', { ascending: true });
+      // Use matrix-view Supabase function instead of direct database queries
+      const response = await fetch('/functions/v1/matrix-view', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet-address': walletAddress
+        },
+        body: JSON.stringify({
+          action: 'get-layer-stats'
+        })
+      });
 
-      if (layerError) {
-        console.error('❌ Matrix layers query error:', layerError);
-        throw new Error(`Matrix layers error: ${layerError.message}`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      console.log('📊 Matrix layers data:', matrixData);
-      console.log('📊 Sample layer data structure:', matrixData?.[0]);
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to get layer stats');
+      }
+
+      console.log('📊 Matrix layer stats from function:', result.data);
+      const { layer_stats } = result.data;
       
       // Debug: Check specific Layer 2 data
       const layer2Data = matrixData?.find(layer => layer.layer === 2);
