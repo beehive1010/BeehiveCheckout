@@ -1,31 +1,29 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useActiveAccount } from 'thirdweb/react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Badge } from './ui/badge';
-import { Input } from './ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { useToast } from '../hooks/use-toast';
-import { useI18n } from '../contexts/I18nContext';
-import { client } from '../lib/web3';
-import { ethereum, polygon, arbitrum, base } from 'thirdweb/chains';
+import React, {useCallback, useState} from 'react';
+import {useActiveAccount} from 'thirdweb/react';
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
+import {Card, CardContent, CardHeader, CardTitle} from './ui/card';
+import {Button} from './ui/button';
+import {Badge} from './ui/badge';
+import {Input} from './ui/input';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from './ui/select';
+import {useToast} from '../hooks/use-toast';
+import {useI18n} from '../contexts/I18nContext';
+import {arbitrum, base, ethereum, polygon} from 'thirdweb/chains';
 import Web3BuyModal from './Web3BuyModal';
-import { 
-  Coins, 
-  CreditCard,
-  ArrowRight,
-  Loader2, 
-  CheckCircle, 
-  ExternalLink,
-  DollarSign,
-  Wallet,
-  Network,
-  Clock,
-  Info,
-  Zap,
-  ShoppingCart,
-  Shuffle
+import {
+    ArrowRight,
+    CheckCircle,
+    Clock,
+    Coins,
+    CreditCard,
+    ExternalLink,
+    Info,
+    Loader2,
+    Network,
+    ShoppingCart,
+    Shuffle,
+    Wallet,
+    Zap
 } from 'lucide-react';
 
 interface BccPurchaseConfig {
@@ -90,7 +88,7 @@ export function BccPurchaseInterface({
     enabled: !!account?.address,
     queryFn: async (): Promise<{ success: boolean; config: BccPurchaseConfig }> => {
       const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-      const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1MjUwMTYsImV4cCI6MjA0MDEwMTAxNn0.gBWZUvwCJgP1lsVQlZNDsYXDxBEr31QfRtNEgYzS6NA';
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       
       const response = await fetch(`${baseUrl}/bcc-purchase`, {
         method: 'POST',
@@ -117,7 +115,7 @@ export function BccPurchaseInterface({
     enabled: !!account?.address && showBalance,
     queryFn: async () => {
       const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-      const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1MjUwMTYsImV4cCI6MjA0MDEwMTAxNn0.gBWZUvwCJgP1lsVQlZNDsYXDxBEr31QfRtNEgYzS6NA';
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       
       const response = await fetch(`${baseUrl}/balance`, {
         method: 'POST',
@@ -142,7 +140,7 @@ export function BccPurchaseInterface({
   const createPurchaseMutation = useMutation({
     mutationFn: async (purchaseData: any) => {
       const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-      const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1MjUwMTYsImV4cCI6MjA0MDEwMTAxNn0.gBWZUvwCJgP1lsVQlZNDsYXDxBEr31QfRtNEgYzS6NA';
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       
       const response = await fetch(`${baseUrl}/bcc-purchase`, {
         method: 'POST',
@@ -183,7 +181,7 @@ export function BccPurchaseInterface({
   const confirmPaymentMutation = useMutation({
     mutationFn: async (confirmData: any) => {
       const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-      const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQ1MjUwMTYsImV4cCI6MjA0MDEwMTAxNn0.gBWZUvwCJgP1lsVQlZNDsYXDxBEr31QfRtNEgYzS6NA';
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       
       const response = await fetch(`${baseUrl}/bcc-purchase`, {
         method: 'POST',
