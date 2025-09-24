@@ -8,15 +8,15 @@ export async function getDirectReferralCount(referrerWallet: string): Promise<nu
   try {
     console.log(`🔍 Fetching direct referrals for wallet: ${referrerWallet}`);
     
-    // Primary: Use referrer_stats view as source of truth
+    // Primary: Use rewards_stats_view as source of truth
     const { data, error } = await supabase
-      .from('referrer_stats')
-      .select('direct_referrals')
+      .from('rewards_stats_view')
+      .select('total_direct_referrals')
       .ilike('referrer', referrerWallet)
       .single();
 
     if (error) {
-      console.error('❌ referrer_stats view query failed:', error);
+      console.error('❌ rewards_stats_view query failed:', error);
       // Fallback to referrals_new table for direct count
       console.log('🔄 Falling back to referrals_new table...');
       
