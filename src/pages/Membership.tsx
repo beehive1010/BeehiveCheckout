@@ -83,7 +83,7 @@ export default function Membership() {
           chain: arbitrum
         });
         
-        // Check NFTs for levels 1-19
+        // Check NFTs for levels 1-19 (batch query for efficiency)
         const nftChecks = [];
         for (let level = 1; level <= 19; level++) {
           nftChecks.push(
