@@ -1016,7 +1016,19 @@
     "timeRemaining": "剩余时间",
     "expiresAt": "到期时间",
     "refreshCountdown": "刷新倒计时",
-    "pendingRewards": "待处理奖励"
+    "pendingRewards": "待处理奖励",
+    "rollup": {
+      "title": "上滚奖励",
+      "noRollupRewards": "暂无上滚奖励",
+      "noRollupDescription": "当待处理奖励未被及时领取而过期时，将自动上滚给符合条件的上级会员。",
+      "totalRolledUp": "总上滚数量",
+      "totalAmount": "总金额",
+      "reasons": "上滚原因",
+      "rollupBreakdown": "上滚明细",
+      "recentRollups": "最近上滚",
+      "aboutRollup": "关于上滚机制",
+      "aboutRollupDescription": "当会员未能及时升级时，其待处理奖励将自动上滚给矩阵网络中下一位符合条件的上级会员。"
+    }
   },
   "nft": {
     "claimError": "认领失败",

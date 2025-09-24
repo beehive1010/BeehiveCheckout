@@ -1036,7 +1036,19 @@
     "timeRemaining": "Time Remaining",
     "expiresAt": "Expires At",
     "refreshCountdown": "Refresh Countdown",
-    "pendingRewards": "Pending Rewards"
+    "pendingRewards": "Pending Rewards",
+    "rollup": {
+      "title": "Rollup Rewards",
+      "noRollupRewards": "No rollup rewards",
+      "noRollupDescription": "When pending rewards expire without being claimed, they roll up to qualified upline members.",
+      "totalRolledUp": "Total Rolled Up",
+      "totalAmount": "Total Amount",
+      "reasons": "Rollup Reasons",
+      "rollupBreakdown": "Rollup Breakdown",
+      "recentRollups": "Recent Rollups",
+      "aboutRollup": "About Rollup",
+      "aboutRollupDescription": "When a member doesn't upgrade in time, their pending rewards automatically roll up to the next qualified upline member in the matrix network."
+    }
   },
   "me": {
     "title": "User Center",
