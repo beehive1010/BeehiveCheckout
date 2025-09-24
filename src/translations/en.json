@@ -99,25 +99,6 @@
     "redirectingToDashboard": "Redirecting to your dashboard...",
     "backToLogin": "Back to Login"
   },
-  "landing": {
-    "features": {
-      "smartContracts": {
-        "title": "Smart Contracts",
-        "description": "100% automated blockchain execution"
-      },
-      "nftMarketplace": {
-        "title": "NFT Marketplace", 
-        "description": "Trade exclusive Beehive NFTs"
-      },
-      "matrixRewards": {
-        "title": "Matrix Rewards",
-        "description": "Exponential wealth growth system"
-      }
-    },
-    "cta": {
-      "subtitle": "Join thousands of members earning passive income"
-    }
-  },
   "dashboard": {
     "welcomeBack": "Welcome back, {username}!",
     "welcomeMember": "Welcome back, Member!",
@@ -400,6 +381,18 @@
       "rewards": {
         "title": "Smart Rewards",
         "description": "48-hour upgrade countdown with roll-up mechanisms"
+      },
+      "smartContracts": {
+        "title": "Smart Contracts",
+        "description": "100% automated blockchain execution"
+      },
+      "nftMarketplace": {
+        "title": "NFT Marketplace",
+        "description": "Trade exclusive Beehive NFTs"
+      },
+      "matrixRewards": {
+        "title": "Matrix Rewards",
+        "description": "Exponential wealth growth system"
       }
     },
     "stats": {
@@ -441,7 +434,17 @@
     "cta": {
       "title": "Ready to Start Your Journey?",
       "description": "Join thousands of members already earning in the Beehive ecosystem",
-      "button": "Join Beehive Now"
+      "button": "Join Beehive Now",
+      "subtitle": "Join thousands of members earning passive income"
+    }
+  },
+  "matrix": {
+    "navigation": {
+      "home": "Home",
+      "features": "Features",
+      "howItWorks": "How It Works",
+      "education": "Education",
+      "getStarted": "Get Started"
     }
   },
   "footer": {
@@ -938,6 +941,12 @@
       "pendingRewards": "Pending Rewards",
       "rewardsThisMonth": "This Month",
       "recentActivity": "Recent Activity"
+    },
+    "rewards": {
+      "level1Direct": "Level 1 Direct: $30 USDC per referral",
+      "level2Matrix": "Level 2 Matrix: $10 USDC per position",
+      "spilloverBonuses": "Spillover Bonuses: Additional rewards",
+      "claimWindow": "72-hour claim window"
     },
     "claimable": {
       "title": "Claimable Rewards",
