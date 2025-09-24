@@ -137,11 +137,21 @@ const getComprehensiveUserData = async (walletAddress: string, method: string) =
       
     } else if (method === 'views') {
       // Method 2: Supabase Views
-      const [balanceView, memberView, matrixView] = await Promise.all([
+      const [balanceView, memberView, referralCountResult] = await Promise.all([
         supabase.from('user_bcc_balance_overview').select('*').eq('wallet_address', walletAddress).single(),
         supabase.from('member_requirements_view').select('*').eq('wallet_address', walletAddress).single(),
-        supabase.from('rewards_stats_view').select('*').eq('referrer', walletAddress).single()
+        supabase.from('referrals').select('*', { count: 'exact', head: true }).ilike('referrer_wallet', walletAddress).eq('is_direct_referral', true)
       ]);
+      
+      // Create matrix view data structure
+      const matrixView = {
+        data: {
+          referrer: walletAddress,
+          direct_referrals_count: referralCountResult.count || 0,
+          total_direct_referrals: referralCountResult.count || 0
+        },
+        error: referralCountResult.error
+      };
       
       return {
         profile: {

@@ -49,6 +49,7 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
       // Create a stats object with the count
       const data = {
         referrer: walletAddress,
+        direct_referrals_count: directReferralsCount || 0,
         total_direct_referrals: directReferralsCount || 0,
         total_referrals: directReferralsCount || 0, // For now, same as direct
         direct_referrals: directReferralsCount || 0
