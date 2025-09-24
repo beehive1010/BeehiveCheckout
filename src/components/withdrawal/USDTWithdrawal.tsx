@@ -601,12 +601,15 @@ export default function USDTWithdrawal() {
         <div className="flex items-center justify-between">
           <p className="text-muted-foreground">Withdraw your claimable rewards to any supported blockchain</p>
           <div className="text-right">
-            <p className="text-sm text-muted-foreground">Claimable Rewards</p>
-            <p className="text-lg font-semibold text-honey">
+            <p className="text-sm text-muted-foreground">Reward Balance</p>
+            <p className="text-2xl font-bold text-honey">
               ${balance?.balanceUSD || '0.00'} USDT
             </p>
             {balanceLoading && (
-              <p className="text-xs text-muted-foreground">Loading balance...</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Loading balance...
+              </div>
             )}
             {!balanceLoading && memberWalletAddress && (
               <p className="text-xs text-muted-foreground">
@@ -618,6 +621,7 @@ export default function USDTWithdrawal() {
             )}
             {balanceError && (
               <div className="text-xs text-red-400 flex items-center gap-2">
+                <AlertTriangle className="h-3 w-3" />
                 <span>Balance query failed</span>
                 <button 
                   onClick={() => refetchBalance()} 
@@ -625,6 +629,11 @@ export default function USDTWithdrawal() {
                 >
                   Retry
                 </button>
+              </div>
+            )}
+            {balance && !balanceLoading && !balanceError && (
+              <div className="mt-1 text-xs text-green-400">
+                ✓ Balance loaded successfully
               </div>
             )}
           </div>
