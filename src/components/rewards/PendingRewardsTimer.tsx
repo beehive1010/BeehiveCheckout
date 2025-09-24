@@ -9,7 +9,7 @@ interface PendingReward {
   reward_id: string;
   reward_amount: number;
   triggering_member_username: string;
-  timer_type: 'super_root_upgrade' | 'qualification_wait';
+  timer_type: 'layer_r_upgrade_incentive' | 'layer_qualification_wait' | 'qualification_wait';
   time_remaining_seconds: number;
   expires_at: string;
   status_description: string;
@@ -53,13 +53,37 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
     }
   };
 
-  // 获取倒计时状态颜色
+  // 获取倒计时状态颜色和样式
   const getTimerColor = (seconds: number, timerType: string) => {
     if (seconds <= 0) return 'destructive';
-    if (seconds <= 3600) return 'destructive'; // 1小时内
-    if (seconds <= 86400) return 'warning'; // 24小时内
-    if (timerType === 'super_root_upgrade') return 'secondary';
+    if (seconds <= 3600) return 'destructive'; // 1小时内红色警告
+    if (seconds <= 86400) return 'warning'; // 24小时内黄色提醒
+    if (timerType === 'layer_r_upgrade_incentive') return 'secondary'; // R位置升级激励
     return 'default';
+  };
+
+  // 获取timer类型的显示文本和图标
+  const getTimerTypeDisplay = (timerType: string) => {
+    switch (timerType) {
+      case 'layer_r_upgrade_incentive':
+        return {
+          label: 'R位置升级激励',
+          color: 'bg-purple-100 text-purple-800 border-purple-300',
+          icon: '🚀'
+        };
+      case 'layer_qualification_wait':
+        return {
+          label: '等级资格等待',
+          color: 'bg-blue-100 text-blue-800 border-blue-300',
+          icon: '⏳'
+        };
+      default:
+        return {
+          label: '资格等待',
+          color: 'bg-gray-100 text-gray-800 border-gray-300',
+          icon: '⏱️'
+        };
+    }
   };
 
   // 获取pending奖励
@@ -191,25 +215,43 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
           >
             {/* 奖励信息 */}
             <div className="flex justify-between items-start">
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Trophy className="w-4 h-4 text-yellow-500" />
-                  <span className="font-semibold">{reward.reward_amount} USDT</span>
-                  <Badge variant="outline">
-                    {reward.timer_type === 'super_root_upgrade' ? t('rewards.superRootUpgrade') : t('rewards.qualificationWait')}
-                  </Badge>
+                  <span className="font-semibold text-lg">{reward.reward_amount} USDT</span>
                 </div>
+                
+                {/* Timer类型标签 */}
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{getTimerTypeDisplay(reward.timer_type).icon}</span>
+                  <Badge variant="outline" className={getTimerTypeDisplay(reward.timer_type).color}>
+                    {getTimerTypeDisplay(reward.timer_type).label}
+                  </Badge>
+                  {reward.timer_type === 'layer_r_upgrade_incentive' && (
+                    <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300">
+                      升级激励
+                    </Badge>
+                  )}
+                </div>
+                
                 <div className="flex items-center gap-1 text-sm text-gray-600">
                   <User className="w-3 h-3" />
-                  {t('rewards.from')}: {reward.triggering_member_username}
+                  触发者: {reward.triggering_member_username}
                 </div>
               </div>
               
-              {reward.can_claim && (
-                <Badge variant="default" className="bg-green-500">
-                  {t('rewards.claimable')}
-                </Badge>
-              )}
+              <div className="flex flex-col items-end gap-2">
+                {reward.can_claim && (
+                  <Badge variant="default" className="bg-green-500">
+                    可领取
+                  </Badge>
+                )}
+                {reward.timer_type === 'layer_r_upgrade_incentive' && !reward.can_claim && (
+                  <Badge variant="outline" className="bg-purple-50 text-purple-600">
+                    需要升级
+                  </Badge>
+                )}
+              </div>
             </div>
 
             {/* 倒计时 */}
@@ -237,9 +279,7 @@ export function PendingRewardsTimer({ walletAddress, onRewardClaimable }: Pendin
                       : 'bg-blue-500'
                   }`}
                   style={{
-                    width: reward.timer_type === 'super_root_upgrade'
-                      ? `${Math.max(0, (reward.time_remaining_seconds / (72 * 3600)) * 100)}%`
-                      : `${Math.max(0, (reward.time_remaining_seconds / (30 * 24 * 3600)) * 100)}%`
+                    width: `${Math.max(0, (reward.time_remaining_seconds / (72 * 3600)) * 100)}%`
                   }}
                 ></div>
               </div>
