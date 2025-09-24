@@ -238,84 +238,187 @@ export default function Rewards() {
   }
 
   return (
-    <div className="w-full px-3 md:px-4 lg:container lg:mx-auto py-2 md:py-4 space-y-3 md:space-y-4">
+    <div className="w-full px-4 md:px-6 lg:container lg:mx-auto py-4 md:py-6 space-y-6 md:space-y-8">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 md:gap-6 mb-4 md:mb-6">
-        <div className="flex-1">
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-honey mb-1 md:mb-2">
-            {t('nav.rewards')}
-          </h1>
-          <p className="text-sm md:text-lg text-muted-foreground">
-            {t('rewards.subtitle')}
-          </p>
-        </div>
+      <div className="text-center md:text-left mb-6 md:mb-8">
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-honey mb-2 md:mb-3">
+          {t('nav.rewards')}
+        </h1>
+        <p className="text-base md:text-lg text-muted-foreground">
+          {t('rewards.subtitle')}
+        </p>
       </div>
 
       {/* Rewards Overview Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-4 md:mb-6">
-        <Card className="hover:scale-[1.02] transition-transform duration-200">
-          <CardContent className="p-2 md:p-4 text-center">
-            <DollarSign className="h-4 w-4 md:h-6 md:w-6 text-honey mx-auto mb-1 md:mb-2" />
-            <div className="text-sm md:text-lg font-bold text-honey">${rewardsData?.total || 0}</div>
-            <div className="text-[10px] md:text-xs text-muted-foreground leading-tight">{t('rewards.totalEarned')}</div>
-          </CardContent>
-        </Card>
+      <div className="space-y-4 mb-6">
+        {/* Mobile: Stack cards vertically for better readability */}
+        <div className="md:hidden space-y-3">
+          <Card className="bg-gradient-to-r from-honey/10 to-amber-50 dark:from-honey/20 dark:to-amber-900/30 border-honey/20">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-honey/20 rounded-lg">
+                    <DollarSign className="h-5 w-5 text-honey" />
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-honey">${rewardsData?.total || 0}</div>
+                    <div className="text-sm text-muted-foreground">{t('rewards.totalEarned')}</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card className="hover:scale-[1.02] transition-transform duration-200">
-          <CardContent className="p-2 md:p-4 text-center">
-            <TrendingUp className="h-4 w-4 md:h-6 md:w-6 text-amber-500 mx-auto mb-1 md:mb-2" />
-            <div className="text-sm md:text-lg font-bold text-amber-500">${rewardsData?.totalWithdrawn || 0}</div>
-            <div className="text-[10px] md:text-xs text-muted-foreground leading-tight">{t('rewards.totalWithdrawn')}</div>
-          </CardContent>
-        </Card>
+          <Card className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 border-amber-200/30">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-amber-500/20 rounded-lg">
+                    <TrendingUp className="h-5 w-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-amber-600">${rewardsData?.totalWithdrawn || 0}</div>
+                    <div className="text-sm text-muted-foreground">{t('rewards.totalWithdrawn')}</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card className="hover:scale-[1.02] transition-transform duration-200">
-          <CardContent className="p-2 md:p-4 text-center">
-            <Timer className="h-4 w-4 md:h-6 md:w-6 text-yellow-400 mx-auto mb-1 md:mb-2" />
-            <div className="text-sm md:text-lg font-bold text-yellow-400">${rewardsData?.pending || 0}</div>
-            <div className="text-[10px] md:text-xs text-muted-foreground leading-tight">{t('rewards.pending')}</div>
-          </CardContent>
-        </Card>
+          <Card className="bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/30 dark:to-amber-900/30 border-yellow-200/30">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-yellow-500/20 rounded-lg">
+                    <Timer className="h-5 w-5 text-yellow-600" />
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-yellow-600">${rewardsData?.pending || 0}</div>
+                    <div className="text-sm text-muted-foreground">{t('rewards.pending')}</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-        <Card className="hover:scale-[1.02] transition-transform duration-200">
-          <CardContent className="p-2 md:p-4 text-center">
-            <Gift className="h-4 w-4 md:h-6 md:w-6 text-honey mx-auto mb-1 md:mb-2" />
-            <div className="text-sm md:text-lg font-bold text-honey">${rewardsData?.claimable || 0}</div>
-            <div className="text-[10px] md:text-xs text-muted-foreground leading-tight">{t('rewards.claimable')}</div>
-          </CardContent>
-        </Card>
+          <Card className="bg-gradient-to-r from-honey/15 to-amber-100 dark:from-honey/25 dark:to-amber-800/30 border-honey/30">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-honey/30 rounded-lg">
+                    <Gift className="h-5 w-5 text-honey" />
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-honey">${rewardsData?.claimable || 0}</div>
+                    <div className="text-sm text-muted-foreground">{t('rewards.claimable')}</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Desktop: Grid layout */}
+        <div className="hidden md:grid grid-cols-4 gap-4">
+          <Card className="hover:scale-[1.02] transition-transform duration-200 bg-gradient-to-br from-honey/10 to-amber-50 dark:from-honey/20 dark:to-amber-900/30 border-honey/20">
+            <CardContent className="p-4 text-center">
+              <DollarSign className="h-6 w-6 text-honey mx-auto mb-2" />
+              <div className="text-lg font-bold text-honey">${rewardsData?.total || 0}</div>
+              <div className="text-xs text-muted-foreground">{t('rewards.totalEarned')}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:scale-[1.02] transition-transform duration-200 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 border-amber-200/30">
+            <CardContent className="p-4 text-center">
+              <TrendingUp className="h-6 w-6 text-amber-600 mx-auto mb-2" />
+              <div className="text-lg font-bold text-amber-600">${rewardsData?.totalWithdrawn || 0}</div>
+              <div className="text-xs text-muted-foreground">{t('rewards.totalWithdrawn')}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:scale-[1.02] transition-transform duration-200 bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/30 dark:to-amber-900/30 border-yellow-200/30">
+            <CardContent className="p-4 text-center">
+              <Timer className="h-6 w-6 text-yellow-600 mx-auto mb-2" />
+              <div className="text-lg font-bold text-yellow-600">${rewardsData?.pending || 0}</div>
+              <div className="text-xs text-muted-foreground">{t('rewards.pending')}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:scale-[1.02] transition-transform duration-200 bg-gradient-to-br from-honey/15 to-amber-100 dark:from-honey/25 dark:to-amber-800/30 border-honey/30">
+            <CardContent className="p-4 text-center">
+              <Gift className="h-6 w-6 text-honey mx-auto mb-2" />
+              <div className="text-lg font-bold text-honey">${rewardsData?.claimable || 0}</div>
+              <div className="text-xs text-muted-foreground">{t('rewards.claimable')}</div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
-      {/* Sticky TabBar Container */}
-      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border/40 -mx-3 md:-mx-4 lg:mx-0 px-3 md:px-4 lg:px-0 pb-2 mb-3 md:mb-6">
+      {/* Mobile-Optimized TabBar Container */}
+      <div className="mb-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto md:h-auto bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm gap-1 p-1">
-            <TabsTrigger value="pending" className="flex items-center gap-1 md:gap-2 px-1 sm:px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm min-h-[40px] md:min-h-[48px]">
-              <Clock className="h-3 w-3 md:h-4 md:w-4" />
-              <span className="hidden xs:inline sm:inline">{t('rewards.tabs.pending')}</span>
-              <span className="xs:hidden sm:hidden text-[10px]">{t('rewards.pending')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="rollup" className="flex items-center gap-1 md:gap-2 px-1 sm:px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm min-h-[40px] md:min-h-[48px]">
-              <BarChart3 className="h-3 w-3 md:h-4 md:w-4" />
-              <span className="hidden xs:inline sm:inline">{t('rewards.tabs.rollup')}</span>
-              <span className="xs:hidden sm:hidden text-[10px]">{t('rewards.rollup')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="withdrawal" className="flex items-center gap-1 md:gap-2 px-1 sm:px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm min-h-[40px] md:min-h-[48px]">
-              <DollarSign className="h-3 w-3 md:h-4 md:w-4" />
-              <span className="hidden xs:inline sm:inline">{t('rewards.tabs.withdrawal')}</span>
-              <span className="xs:hidden sm:hidden text-[10px]">{t('rewards.withdrawal')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="history" className="flex items-center gap-1 md:gap-2 px-1 sm:px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm min-h-[40px] md:min-h-[48px]">
-              <Award className="h-3 w-3 md:h-4 md:w-4" />
-              <span className="hidden xs:inline sm:inline">{t('rewards.tabs.history')}</span>
-              <span className="xs:hidden sm:hidden text-[10px]">{t('rewards.history')}</span>
-            </TabsTrigger>
-          </TabsList>
+          {/* Mobile: 2x2 Grid */}
+          <div className="md:hidden">
+            <TabsList className="grid grid-cols-2 gap-2 h-auto bg-transparent p-0">
+              <TabsTrigger 
+                value="pending" 
+                className="flex flex-col items-center gap-2 p-4 h-auto bg-gradient-to-br from-honey/10 to-amber-50 dark:from-honey/20 dark:to-amber-900/30 border border-honey/20 data-[state=active]:bg-honey data-[state=active]:text-white rounded-xl"
+              >
+                <Clock className="h-5 w-5" />
+                <span className="text-sm font-medium">{t('rewards.tabs.pending')}</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="rollup" 
+                className="flex flex-col items-center gap-2 p-4 h-auto bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 border border-amber-200/30 data-[state=active]:bg-amber-500 data-[state=active]:text-white rounded-xl"
+              >
+                <BarChart3 className="h-5 w-5" />
+                <span className="text-sm font-medium">{t('rewards.tabs.rollup')}</span>
+              </TabsTrigger>
+            </TabsList>
+            <TabsList className="grid grid-cols-2 gap-2 h-auto bg-transparent p-0 mt-2">
+              <TabsTrigger 
+                value="withdrawal" 
+                className="flex flex-col items-center gap-2 p-4 h-auto bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/30 dark:to-amber-900/30 border border-yellow-200/30 data-[state=active]:bg-yellow-500 data-[state=active]:text-white rounded-xl"
+              >
+                <DollarSign className="h-5 w-5" />
+                <span className="text-sm font-medium">{t('rewards.tabs.withdrawal')}</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="history" 
+                className="flex flex-col items-center gap-2 p-4 h-auto bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/30 dark:to-red-900/30 border border-orange-200/30 data-[state=active]:bg-orange-500 data-[state=active]:text-white rounded-xl"
+              >
+                <Award className="h-5 w-5" />
+                <span className="text-sm font-medium">{t('rewards.tabs.history')}</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          {/* Desktop: Traditional horizontal tabs */}
+          <div className="hidden md:block sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border/40 -mx-4 lg:mx-0 px-4 lg:px-0 pb-2">
+            <TabsList className="grid w-full grid-cols-4 h-auto bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm gap-1 p-1">
+              <TabsTrigger value="pending" className="flex items-center gap-2 px-4 py-3 text-sm min-h-[48px] data-[state=active]:bg-honey data-[state=active]:text-white">
+                <Clock className="h-4 w-4" />
+                <span>{t('rewards.tabs.pending')}</span>
+              </TabsTrigger>
+              <TabsTrigger value="rollup" className="flex items-center gap-2 px-4 py-3 text-sm min-h-[48px] data-[state=active]:bg-amber-500 data-[state=active]:text-white">
+                <BarChart3 className="h-4 w-4" />
+                <span>{t('rewards.tabs.rollup')}</span>
+              </TabsTrigger>
+              <TabsTrigger value="withdrawal" className="flex items-center gap-2 px-4 py-3 text-sm min-h-[48px] data-[state=active]:bg-yellow-500 data-[state=active]:text-white">
+                <DollarSign className="h-4 w-4" />
+                <span>{t('rewards.tabs.withdrawal')}</span>
+              </TabsTrigger>
+              <TabsTrigger value="history" className="flex items-center gap-2 px-4 py-3 text-sm min-h-[48px] data-[state=active]:bg-orange-500 data-[state=active]:text-white">
+                <Award className="h-4 w-4" />
+                <span>{t('rewards.tabs.history')}</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
         </Tabs>
       </div>
 
       {/* Tab Content Container with proper spacing */}
-      <div className="pt-2 space-y-3 md:space-y-6">
+      <div className="pt-4 space-y-6 md:space-y-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
 
         {/* Pending Tab */}
