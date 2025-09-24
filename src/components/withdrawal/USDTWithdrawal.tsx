@@ -137,7 +137,7 @@ export default function USDTWithdrawal() {
   const [step, setStep] = useState<'form' | 'confirm' | 'processing' | 'success'>('form');
   const [selectedToken, setSelectedToken] = useState<'usdt' | 'testUSDT'>('usdt'); // Token selection for Arbitrum
 
-  // Get user USDT balance from user_balances table
+  // Get user USDT balance using the same balance API as other components
   const { data: balance, isLoading: balanceLoading, error: balanceError, refetch: refetchBalance } = useQuery<USDTBalance>({
     queryKey: ['user-balance', memberWalletAddress],
     enabled: !!memberWalletAddress,
@@ -145,7 +145,7 @@ export default function USDTWithdrawal() {
     refetchOnWindowFocus: false,
     queryFn: async () => {
       try {
-        console.log(`🔍 Querying user balance for wallet: ${memberWalletAddress}`);
+        console.log(`🔍 Querying user balance via balance API for wallet: ${memberWalletAddress}`);
         
         if (!memberWalletAddress) {
           console.warn('❌ No memberWalletAddress provided');
@@ -157,59 +157,77 @@ export default function USDTWithdrawal() {
           };
         }
         
-        const { supabase } = await import('../../lib/supabase');
+        // Use the same balance Edge Function as other components
+        const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/balance`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY!,
+            'Content-Type': 'application/json',
+            'x-wallet-address': memberWalletAddress,
+          },
+          body: JSON.stringify({
+            action: 'get-balance'
+          }),
+        });
         
-        // Query using correct user_balances table structure
-        const { data, error } = await supabase
-          .from('user_balances')
-          .select('available_balance, reward_balance, total_withdrawn, updated_at, wallet_address')
-          .ilike('wallet_address', memberWalletAddress!)
-          .single();
-        
-        if (error) {
-          if (error.code === 'PGRST116') {
-            console.log(`❌ No balance record found for wallet: ${memberWalletAddress}`);
-            return {
-              balance: 0,
-              balanceUSD: '0.00',
-              lastUpdated: new Date().toISOString(),
-              notFound: true
-            };
-          }
-          
-          console.warn('Balance query error:', error);
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.warn('Balance API error:', errorText);
           return {
             balance: 0,
             balanceUSD: '0.00',
             lastUpdated: new Date().toISOString(),
-            error: error.message
+            error: `Balance API error: ${response.status} ${errorText}`
           };
         }
         
-        // Use reward_balance as the claimable amount for withdrawals
-        const balanceAmount = data?.reward_balance || 0;
-        console.log(`💰 Claimable balance: ${balanceAmount} USDT for wallet: ${data?.wallet_address}`);
-        console.log(`📊 Full balance data:`, {
-          available_balance: data?.available_balance || 0,
-          reward_balance: data?.reward_balance || 0,
-          total_withdrawn: data?.total_withdrawn || 0
-        });
+        const result = await response.json();
+        console.log(`🔍 Balance API result:`, result);
+        
+        if (!result.success) {
+          if (result.balance && !result.isRegistered) {
+            console.log(`📝 User not registered, using default balance`);
+            return {
+              balance: 0,
+              balanceUSD: '0.00',
+              lastUpdated: new Date().toISOString(),
+              notFound: true,
+              isRegistered: false
+            };
+          }
+          
+          console.warn('Balance API returned error:', result.error);
+          return {
+            balance: 0,
+            balanceUSD: '0.00',
+            lastUpdated: new Date().toISOString(),
+            error: result.error || 'Balance query failed'
+          };
+        }
+        
+        // Use reward_balance from the balance API response
+        const balanceData = result.balance;
+        const balanceAmount = balanceData?.reward_balance || 0;
+        console.log(`💰 Claimable balance from API: ${balanceAmount} USDT for wallet: ${balanceData?.wallet_address}`);
+        console.log(`📊 Full balance data from API:`, balanceData);
         
         return {
           balance: Math.round((balanceAmount || 0) * 100),
           balanceUSD: (balanceAmount || 0).toFixed(2),
-          lastUpdated: data?.updated_at || new Date().toISOString(),
-          foundWallet: data?.wallet_address || '',
-          rawData: data || {}
+          lastUpdated: balanceData?.last_updated || new Date().toISOString(),
+          foundWallet: balanceData?.wallet_address || '',
+          rawData: balanceData || {},
+          isRegistered: result.isRegistered !== false
         };
       
       } catch (overallError: any) {
-        console.error('❌ Overall query function error:', overallError);
+        console.error('❌ Balance API call error:', overallError);
         return {
           balance: 0,
           balanceUSD: '0.00',
           lastUpdated: new Date().toISOString(),
-          error: `Query function error: ${overallError?.message || 'Unknown error'}`,
+          error: `Balance API call error: ${overallError?.message || 'Unknown error'}`,
           rawData: {}
         };
       }
@@ -642,8 +660,8 @@ export default function USDTWithdrawal() {
 
       <CardContent className="space-y-6">
         
-        {/* No balance record found - offer to create one */}
-        {balance?.notFound && (
+        {/* No balance record found - show user registration status */}
+        {(balance?.notFound || balance?.isRegistered === false) && (
           <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
             <div className="flex items-start gap-3">
               <div className="text-yellow-400 mt-1">
@@ -652,78 +670,20 @@ export default function USDTWithdrawal() {
                 </svg>
               </div>
               <div className="flex-1">
-                <h4 className="text-sm font-medium text-yellow-400 mb-1">No Balance Record Found</h4>
+                <h4 className="text-sm font-medium text-yellow-400 mb-1">
+                  {balance?.isRegistered === false ? 'User Not Registered' : 'No Balance Record Found'}
+                </h4>
                 <p className="text-xs text-muted-foreground mb-3">
-                  Your wallet address ({formatWalletAddress(memberWalletAddress)}) doesn't have a balance record in our system yet.
+                  {balance?.isRegistered === false 
+                    ? `Your wallet address (${formatWalletAddress(memberWalletAddress)}) is not registered in our system yet. You need to register and activate membership to have reward balances.`
+                    : `Your wallet address (${formatWalletAddress(memberWalletAddress)}) doesn't have a balance record in our system yet.`
+                  }
                 </p>
                 <button
-                  onClick={async () => {
-                    const { supabase } = await import('../../lib/supabase');
-                    try {
-                      // Create test balance record using correct column structure
-                      const insertData = {
-                        wallet_address: memberWalletAddress,
-                        available_balance: 0,
-                        reward_balance: 100,
-                        total_withdrawn: 0,
-                        updated_at: new Date().toISOString()
-                      };
-                      
-                      const { error: insertError } = await supabase
-                        .from('user_balances')
-                        .insert(insertData);
-                      
-                      if (insertError) {
-                        throw insertError;
-                      }
-                      
-                      console.log('✅ Test balance record created:', insertData);
-                      refetchBalance();
-                      toast({
-                        title: "Test Record Created",
-                        description: "Created a test balance record with 100 USDT",
-                      });
-                    } catch (error) {
-                      console.error('Create balance error:', error);
-                      toast({
-                        title: "Error",
-                        description: "Failed to create balance record",
-                        variant: 'destructive',
-                      });
-                    }
-                  }}
-                  className="px-3 py-1 text-xs bg-yellow-500/20 text-yellow-400 rounded hover:bg-yellow-500/30 transition-colors"
+                  onClick={() => refetchBalance()}
+                  className="px-3 py-1 text-xs bg-blue-500/20 text-blue-400 rounded hover:bg-blue-500/30 transition-colors"
                 >
-                  Create Test Balance (100 USDT)
-                </button>
-                <button
-                  onClick={async () => {
-                    try {
-                      // Test direct API call like the curl command
-                      const response = await fetch(`https://cvqibjcbfrwsgkvthccp.supabase.co/rest/v1/user_balances?select=available_balance,reward_balance,total_withdrawn,updated_at,wallet_address&wallet_address=eq.${memberWalletAddress}`, {
-                        headers: {
-                          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY || '',
-                          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || ''}`,
-                        }
-                      });
-                      const data = await response.json();
-                      console.log('🔍 Direct API test result:', data);
-                      toast({
-                        title: "API Test Complete",
-                        description: `Found ${data?.length || 0} records. Check console for details.`,
-                      });
-                    } catch (error) {
-                      console.error('❌ Direct API test failed:', error);
-                      toast({
-                        title: "API Test Failed",
-                        description: "Check console for error details",
-                        variant: 'destructive',
-                      });
-                    }
-                  }}
-                  className="ml-2 px-3 py-1 text-xs bg-blue-500/20 text-blue-400 rounded hover:bg-blue-500/30 transition-colors"
-                >
-                  Test Direct API
+                  Refresh Balance
                 </button>
               </div>
             </div>
