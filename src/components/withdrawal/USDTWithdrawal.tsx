@@ -261,7 +261,7 @@ export default function USDTWithdrawal() {
         const tokenDecimals = getTokenInfo(targetChainId, selectedToken).decimals;
         const amountInWei = (netAmount * Math.pow(10, tokenDecimals)).toString();
         
-        // Call thirdweb wallets API with correct parameters
+        // Call thirdweb wallets API with updated format for ERC20 transfers
         const walletResponse = await fetch('https://api.thirdweb.com/v1/wallets/send', {
           method: 'POST',
           headers: {
@@ -270,13 +270,12 @@ export default function USDTWithdrawal() {
             'x-client-id': import.meta.env.VITE_THIRDWEB_CLIENT_ID!,
           },
           body: JSON.stringify({
-            from: import.meta.env.VITE_SERVER_WALLET_ADDRESS!,
+            type: "erc20",
+            fromAddress: import.meta.env.VITE_SERVER_WALLET_ADDRESS!,
             chainId: targetChainId,
-            recipients: [{
-              to: data.recipientAddress,
-              amount: amountInWei,
-              currency: targetTokenAddress
-            }]
+            toAddress: data.recipientAddress,
+            amount: amountInWei,
+            tokenAddress: targetTokenAddress
           })
         });
         

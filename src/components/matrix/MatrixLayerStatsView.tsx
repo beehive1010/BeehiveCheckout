@@ -318,9 +318,11 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
     maxLayerWithData,
     minLayersToShow,
     showAllLayers,
-    totalLayerStats: layerStats.length
+    totalLayerStats: layerStats.length,
+    layersWithDataDetails: layersWithData.map(l => ({ layer: l.layer, members: l.totalMembers }))
   });
   
+  // FIXED: Show all layers up to the highest layer with data (not slice from 0)
   const visibleLayers = showAllLayers ? layerStats : layerStats.slice(0, minLayersToShow);
 
   return (
