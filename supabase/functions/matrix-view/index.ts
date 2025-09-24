@@ -124,7 +124,8 @@ serve(async (req: Request) => {
         if (layerData) {
           // Manual percentage calculation to avoid database view issues
           const totalMembers = layerData.filled_slots || 0;
-          const maxCapacity = layerData.max_slots || Math.pow(3, layer);
+          // Use database max_slots if available, otherwise calculate properly for 3x3 matrix
+          const maxCapacity = layerData.max_slots || (layer === 1 ? 3 : Math.pow(3, Math.min(layer, 10))); // Cap at layer 10 to prevent overflow
           const calculatedPercentage = maxCapacity > 0 ? (totalMembers / maxCapacity) * 100 : 0;
           const safePercentage = Math.min(Math.max(calculatedPercentage, 0), 100); // Clamp between 0-100
           
@@ -150,7 +151,7 @@ serve(async (req: Request) => {
           })
         } else {
           // Layer not in view - calculate from position data
-          const maxCapacity = Math.pow(3, layer);
+          const maxCapacity = layer === 1 ? 3 : Math.pow(3, Math.min(layer, 10)); // Cap at layer 10 to prevent overflow
           const totalMembers = posData.L + posData.M + posData.R;
           const calculatedPercentage = maxCapacity > 0 ? (totalMembers / maxCapacity) * 100 : 0;
           const safePercentage = Math.min(Math.max(calculatedPercentage, 0), 100);

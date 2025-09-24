@@ -15,6 +15,7 @@ import {
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { SystemFixPanel } from '../../components/admin/SystemFixPanel';
+import { ServerWalletPanel } from '../../components/admin/ServerWalletPanel';
 
 interface DashboardStats {
   totalUsers: number;
@@ -351,6 +352,13 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Server Wallet Management */}
+      {hasPermission('system.read') && (
+        <div className="mt-6">
+          <ServerWalletPanel />
+        </div>
+      )}
 
       {/* System Health & Auto-Fix Panel */}
       {hasPermission('system.write') && (
