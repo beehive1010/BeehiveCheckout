@@ -70,10 +70,7 @@ const NotFound = () => {
 
 // Admin components
 import AdminLogin from "@/pages/AdminLogin";
-const AdminDashboard = () => {
-  const { t } = useI18n();
-  return <div>{t('common.comingSoon')} - Admin Dashboard</div>;
-};
+import AdminDashboard from "@/pages/admin/AdminDashboard";
 const AdminUsers = () => {
   const { t } = useI18n();
   return <div>{t('common.comingSoon')} - Admin Users</div>;
