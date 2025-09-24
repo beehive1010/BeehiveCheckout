@@ -298,7 +298,7 @@ export default function Rewards() {
         </CollapsibleTrigger>
         
         <CollapsibleContent>
-          <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-900 dark:from-black dark:via-gray-950 dark:to-black rounded-2xl border-2 border-gray-700 dark:border-gray-800 p-3 sm:p-4 mt-3 shadow-3xl animate-in slide-in-from-top-2 duration-300">
+          <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-900 dark:from-black dark:via-gray-950 dark:to-black rounded-2xl border-2 border-gray-700 dark:border-gray-800 p-3 sm:p-4 mt-3 mb-6 shadow-3xl animate-in slide-in-from-top-2 duration-300">
             <div className="absolute inset-0 bg-gradient-to-r from-honey/8 via-transparent to-amber-400/8 opacity-40"></div>
             <div className="relative grid grid-cols-2 gap-2 sm:gap-3">
               <div className="group relative overflow-hidden p-3 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 hover:from-honey/20 hover:via-honey/10 hover:to-amber-400/20 border-2 border-honey/30 hover:border-honey/60 rounded-xl shadow-lg hover:shadow-2xl hover:shadow-honey/30 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-0.5">
