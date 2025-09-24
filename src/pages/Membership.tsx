@@ -107,6 +107,10 @@ export default function Membership() {
         setHasLevel2NFT(hasLevel2);
         setHasLevel3NFT(hasLevel3);
         
+        // Also set the state variables used in calculation (ensure consistency)
+        const hasLevel2NFT = hasLevel2;
+        const hasLevel3NFT = hasLevel3;
+        
         console.log(`📊 Owned NFT Levels:`, ownedLevels);
         console.log(`📊 Level 2 NFT: ${hasLevel2 ? 'OWNS' : 'DOES NOT OWN'}`);
         console.log(`📊 Level 3 NFT: ${hasLevel3 ? 'OWNS' : 'DOES NOT OWN'}`);
@@ -120,6 +124,20 @@ export default function Membership() {
         if (hasLevel3) {
           console.log(`✅ User eligible for Level 4+ claims`);
         }
+        
+        // Debug target level calculation
+        const calculatedTargetLevel = hasLevel2NFT && currentLevel === 1 ? 3 : 
+                                      hasLevel3NFT && currentLevel === 3 ? 4 : 
+                                      currentLevel + 1;
+        console.log(`🔧 TARGET LEVEL CALCULATION:`, {
+          hasLevel2NFT,
+          hasLevel3NFT,
+          currentLevel,
+          'hasLevel2NFT && currentLevel === 1': hasLevel2NFT && currentLevel === 1,
+          'hasLevel3NFT && currentLevel === 3': hasLevel3NFT && currentLevel === 3,
+          calculatedTargetLevel,
+          'fallback currentLevel + 1': currentLevel + 1
+        });
       } catch (error) {
         console.warn('⚠️ Failed to check NFT ownership:', error);
         setHasLevel2NFT(false);
