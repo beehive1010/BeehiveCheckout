@@ -266,13 +266,13 @@ export default function Rewards() {
                   <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-black drop-shadow-sm" />
                 </div>
                 <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-honey to-amber-400 bg-clip-text text-transparent drop-shadow-sm tracking-wide">
-                  {t('rewards.overview')}
+                  {t('rewards.overview') || 'Rewards Overview'}
                 </span>
               </div>
               <div className="flex flex-col xs:flex-row items-start xs:items-center gap-2 xs:gap-3">
                 <div className="bg-gradient-to-r from-honey/90 to-amber-400 px-4 py-2 rounded-full shadow-xl transform group-hover:scale-105 transition-all duration-300">
                   <span className="text-sm sm:text-base font-bold text-black drop-shadow-sm whitespace-nowrap">
-                    ${rewardsData?.claimable || 0} {t('rewards.available_to_claim')}
+                    ${rewardsData?.claimable || 0} {t('rewards.available_to_claim') || 'Available to Claim'}
                   </span>
                 </div>
                 <ChevronDown className={`h-5 w-5 sm:h-6 sm:w-6 text-honey transition-all duration-500 group-hover:scale-110 ${isOverviewOpen ? 'rotate-180' : ''}`} />
@@ -292,7 +292,7 @@ export default function Rewards() {
                     <TrendingUp className="h-4 w-4 text-black" />
                   </div>
                   <p className="text-xs font-semibold text-honey group-hover:text-amber-300 uppercase tracking-wide">
-                    {t('rewards.overview.totalEarned')}
+                    {t('rewards.overview.totalEarned') || 'Total Earned'}
                   </p>
                   <p className="text-sm sm:text-lg font-bold text-honey group-hover:text-amber-300 transition-colors duration-300">
                     ${rewardsData?.total || 0}
@@ -307,7 +307,7 @@ export default function Rewards() {
                     <ArrowDownLeft className="h-4 w-4 text-white group-hover:text-black transition-colors duration-300" />
                   </div>
                   <p className="text-xs font-semibold text-gray-100 group-hover:text-gray-200 uppercase tracking-wide">
-                    {t('rewards.overview.totalWithdrawn')}
+                    {t('rewards.overview.totalWithdrawn') || 'Total Withdrawn'}
                   </p>
                   <p className="text-sm sm:text-lg font-bold text-white group-hover:text-honey transition-colors duration-300">
                     ${rewardsData?.totalWithdrawn || 0}
@@ -322,7 +322,7 @@ export default function Rewards() {
                     <Clock className="h-4 w-4 text-white group-hover:text-black transition-colors duration-300" />
                   </div>
                   <p className="text-xs font-semibold text-gray-100 group-hover:text-gray-200 uppercase tracking-wide">
-                    {t('rewards.overview.pending')}
+                    {t('rewards.overview.pending') || 'Pending'}
                   </p>
                   <p className="text-sm sm:text-lg font-bold text-white group-hover:text-honey transition-colors duration-300">
                     ${rewardsData?.pending || 0}
@@ -337,7 +337,7 @@ export default function Rewards() {
                     <Gift className="h-4 w-4 text-black" />
                   </div>
                   <p className="text-xs font-semibold text-honey group-hover:text-amber-300 uppercase tracking-wide">
-                    {t('rewards.overview.claimable')}
+                    {t('rewards.overview.claimable') || 'Claimable'}
                   </p>
                   <p className="text-sm sm:text-lg font-bold text-honey group-hover:text-amber-300">
                     ${rewardsData?.claimable || 0}
