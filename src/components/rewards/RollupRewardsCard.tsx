@@ -16,7 +16,7 @@ interface RollupReward {
   reward_amount: number;
   status: string;
   roll_up_reason: string | null;
-  rolled_up_at: string | null;
+  rolled_up_at?: string | null;
   created_at: string | null;
   expires_at: string | null;
   matrix_layer: number;
@@ -39,10 +39,10 @@ interface RollupStats {
 export default function RollupRewardsCard({ walletAddress, className }: RollupRewardsCardProps) {
   const { t } = useI18n();
 
-  const { data: rollupStats, isLoading, error } = useQuery<RollupStats>({
+  const { data: rollupStats, isLoading, error } = useQuery({
     queryKey: ['rollup-rewards', walletAddress],
     enabled: !!walletAddress,
-    queryFn: async () => {
+    queryFn: async (): Promise<RollupStats> => {
       // Get all rolled up rewards for this wallet
       const { data: rollupRewards, error: rollupError } = await supabase
         .from('layer_rewards')

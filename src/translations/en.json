@@ -1566,7 +1566,7 @@
     },
     "pendingDescription": "Your pending rewards with countdown timers",
     "rollup": {
-      "title": "Rollup Rewards System",
+      "title": "Rollup Rewards",
       "subtitle": "Automatic distribution of unclaimed rewards to eligible upline members",
       "autoDistribution": "Auto Distribution",
       "automatic": "Automatic",
@@ -1576,7 +1576,21 @@
       "realTime": "Real-time",
       "tracking": "Tracking",
       "transparent": "Transparent",
-      "system": "System"
+      "system": "System",
+      "noRollupRewards": "No rollup rewards",
+      "noRollupDescription": "When pending rewards expire without being claimed, they roll up to qualified upline members.",
+      "totalRolledUp": "Total Rolled Up",
+      "totalAmount": "Total Amount",
+      "reasons": "Rollup Reasons",
+      "rollupBreakdown": "Rollup Breakdown",
+      "recentRollups": "Recent Rollups",
+      "aboutRollup": "About Rollup",
+      "aboutRollupDescription": "When a member doesn't upgrade in time, their pending rewards automatically roll up to the next qualified upline member in the matrix network.",
+      "items": "Items",
+      "distributedRewards": "Distributed rewards",
+      "totalValue": "total value",
+      "reasonTypes": "different reason types",
+      "efficient": "Efficient"
     },
     "tabs": {
       "overview": "Overview",
