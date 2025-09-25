@@ -1,1259 +1,1135 @@
 {
-  "nav": {
-    "dashboard": "Dashboard",
-    "referrals": "Referrals",
-    "rewards": "Rewards",
-    "tasks": "Tasks",
-    "nfts": "NFTs",
-    "membership": "Membership",
-    "marketplace": "Marketplace",
-    "education": "Education",
-    "discover": "Discover",
-    "hiveworld": "HiveWorld",
-    "me": "Me",
-    "home": "Home"
+  "activity": {
+    "fromReferralUpgrade": "From referral upgrade",
+    "memberSince": "Member since",
+    "newReferral": "New Referral",
+    "nftClaimed": "NFT Claimed",
+    "rewardReceived": "Reward Received"
+  },
+  "ads": {
+    "available": "Available",
+    "bccRequired": "BCC Required",
+    "browseNfts": "Browse Advertisement NFTs",
+    "bucketSelection": "Choose which BCC bucket to use for claiming this Advertisement NFT",
+    "burn": {
+      "description": "Service code: {code}",
+      "error": {
+        "description": "Failed to burn NFT",
+        "title": "Burn Failed"
+      },
+      "title": "NFT Burned Successfully!"
+    },
+    "claim": {
+      "error": {
+        "description": "Failed to claim Advertisement NFT",
+        "title": "Claim Failed"
+      },
+      "success": {
+        "description": "Your Advertisement NFT has been claimed and BCC tokens are locked.",
+        "title": "NFT Claimed Successfully!"
+      }
+    },
+    "claimNft": "Claim NFT",
+    "claiming": "Claiming...",
+    "confirmClaim": "Confirm Claim",
+    "cost": "Cost",
+    "description": "Claim Advertisement NFTs with your BCC tokens to unlock promotional services",
+    "exploreServices": "Explore available promotional services and DApp partnerships",
+    "manageNfts": "Manage Your NFTs",
+    "nftCenter": {
+      "activatedOn": "Activated On",
+      "activating": "Activating...",
+      "activeCode": "Active Code",
+      "backToTasks": "Back to Tasks",
+      "bccLocked": "BCC Locked",
+      "bucketUsed": "Bucket Used",
+      "currentStatus": "Current Status",
+      "description": "Manage your Advertisement NFTs, view locked BCC amounts, and activate promotional services",
+      "noNfts": {
+        "browse": "Browse Advertisement NFTs",
+        "description": "You don't have any Advertisement NFTs yet",
+        "title": "No NFTs Found"
+      },
+      "readyToActivate": "Ready to Activate",
+      "serviceStatus": "Service Status",
+      "title": "NFT Center",
+      "useNft": "Use NFT Service",
+      "warning": {
+        "description": "Using this NFT will permanently burn both the NFT and the {amount} BCC tokens locked within it. In return, you'll receive the service code to activate your promotional service with {service}. This action cannot be undone.",
+        "title": "Important"
+      }
+    },
+    "restrictedBcc": "Restricted BCC",
+    "soldOut": "Sold Out",
+    "status": {
+      "active": "ACTIVE",
+      "burned": "BURNED",
+      "claimed": "Ready to Use",
+      "serviceActivated": "Service Activated",
+      "used": "USED"
+    },
+    "title": "Advertisement NFTs",
+    "transferableBcc": "Transferable BCC"
+  },
+  "benefits": {
+    "basic": {
+      "communityAccess": "Community access",
+      "learningMaterials": "Basic learning materials",
+      "matrixEntry": "Entry to 3×3 matrix system",
+      "platformFeatures": "Access to basic platform features",
+      "tokenId1": "Token ID: 1"
+    },
+    "bonusMultiplier": "Bonus multiplier x{multiplier}",
+    "diamondBee": {
+      "tier": "Diamond Bee Tier {tier}"
+    },
+    "eliteStatus": "Elite member status",
+    "enhanced": {
+      "advancedFeatures": "Advanced features access",
+      "matrixRewards": "Enhanced matrix rewards",
+      "premiumContent": "Premium learning content",
+      "referralBonuses": "Direct referral bonuses",
+      "tokenId2": "Token ID: 2"
+    },
+    "enhancedFeatures": "Enhanced features",
+    "enhancedMatrix": "Enhanced matrix rewards (Layer 1-{maxLayer})",
+    "exclusiveMerchant": "Exclusive merchant NFTs",
+    "founderStatus": "Founder status recognition",
+    "goldBee": {
+      "tier": "Gold Bee Tier {tier}"
+    },
+    "governance": "Platform governance rights",
+    "masterBee": {
+      "tier": "Master Bee Tier {tier}"
+    },
+    "platinumBee": {
+      "tier": "Platinum Bee Tier {tier}"
+    },
+    "premium": "Premium benefits",
+    "prioritySupport": "Priority support",
+    "tokenId": "Token ID: {level}",
+    "vipStatus": "VIP status benefits"
+  },
+  "blogpost": {
+    "author": "Author",
+    "linkCopied": {
+      "description": "Blog post link copied to clipboard",
+      "title": "Link copied!"
+    },
+    "publishedOn": "Published on",
+    "relatedPosts": "Related Posts",
+    "sharePost": "Share this post",
+    "tags": "Tags"
+  },
+  "buttons": {
+    "burnForService": "Burn for Service Code",
+    "burnNft": "Burn NFT",
+    "burning": "Burning...",
+    "close": "Close",
+    "confirmBurn": "Confirm Burn",
+    "connectWallet": "Connect Wallet",
+    "copied": "Copied!",
+    "getStarted": "Get Started",
+    "topUp": "Top Up",
+    "useNftService": "Use NFT Service",
+    "viewInCenter": "View in NFT Center"
+  },
+  "claim": {
+    "alreadyHaveNFT": "You already have your Level 1 membership NFT. Redirecting to dashboard...",
+    "checkingApproval": "Checking USDC approval...",
+    "checkingBalance": "Checking USDC balance...",
+    "checkingRegistration": "Checking registration status...",
+    "claimFailed": "Claim failed",
+    "claimLevel1NFT": "Claim Your Level 1 Membership NFT",
+    "claimLevel1NFT130USDC": "Claim Level 1 NFT (130 USDC)",
+    "claimUniqueNFTDesc": "Claim your unique ERC-5115 NFT (Token ID 1) to activate Level 1 membership",
+    "connectWalletToClaimNFT": "Please connect your wallet to claim your NFT",
+    "doNotClosePageWarning": "⚠️ Please do not close the page or disconnect your wallet",
+    "ensureApproval130USDC": "Please ensure you approve the contract to spend 130 USDC and try again.",
+    "instantActivation": "🎯 Instant membership activation upon successful claim",
+    "insufficientBalance": "Insufficient USDC Balance",
+    "insufficientGasFunds": "⛽ Insufficient Gas Funds",
+    "invalidReferrer": "Invalid Referrer",
+    "mintingNFT": "Minting NFT...",
+    "need130USDC": "You need 130 USDC to claim Level 1 NFT. Please add USDC to your wallet and try again.",
+    "needETHForGas": "You need ETH on Arbitrum Sepolia network to pay for transaction gas fees. Please add some ETH to your wallet first.",
+    "networkError": "Network Error",
+    "nftClaimedActivatedWithBackendPending": "Your Level 1 NFT has been claimed and membership activated! (Backend processing may need manual completion) Redirecting to dashboard...",
+    "nftClaimedAndActivated": "Your Level 1 NFT has been claimed and membership activated! Redirecting to dashboard...",
+    "nftClaimedBlockchainSuccess": "Your Level 1 NFT claim succeeded on blockchain! Backend processing is slow - you may need to refresh or check your membership status in a few minutes.",
+    "nftClaimedProcessedActivationPending": "Your Level 1 NFT has been claimed and processed! (Membership activation pending) Redirecting to dashboard...",
+    "nftClaimedSuccessfully": "Your Level 1 NFT has been claimed successfully!",
+    "nftClaimedTitle": "🎉 NFT Claimed Successfully!",
+    "nftMintedToWallet": "🔗 NFT will be minted to your connected wallet address",
+    "paymentRequired": "🪙 130 USDC payment required (100 NFT + 30 platform activation fee)",
+    "processing": "Processing...",
+    "rateLimited": "Rate Limited",
+    "referrerRequired": "Referrer Required",
+    "referrerRequiredDesc": "You must use a valid referral link to claim your NFT. Please ask an existing member for a referral link.",
+    "selfReferralNotAllowed": "Self-referral Not Allowed",
+    "selfReferralNotAllowedDesc": "You cannot use your own wallet address as a referrer.",
+    "switchToArbitrumSepolia": "Please switch to Arbitrum Sepolia network and try again.",
+    "tokenApprovalFailed": "Token Approval Failed",
+    "twoTransactions": "⚡ Two transactions: Token approval + NFT minting",
+    "useValidReferrer": "Please use a valid referrer wallet address.",
+    "validatingReferrer": "Validating referrer...",
+    "validationFailed": "Validation Failed",
+    "validationFailedDesc": "Unable to verify registration or referrer status. Please refresh and try again.",
+    "verifyingAndActivating": "Verifying transaction and activating membership",
+    "waitingApproval": "Waiting for USDC approval...",
+    "waitingApprovalConfirmation": "Waiting for USDC approval confirmation...",
+    "waitingBlockchainConfirmation": "Waiting for blockchain confirmation...",
+    "waitingNFTConfirmation": "Waiting for NFT minting confirmation...",
+    "walletNotConnected": "Wallet not connected",
+    "welcomeBack": "🎉 Welcome Back!"
   },
   "common": {
-    "cancel": "Cancel",
-    "confirm": "Confirm",
-    "close": "Close",
-    "save": "Save",
-    "loading": "Loading...",
-    "error": "Error",
-    "success": "Success",
-    "back": "Back",
-    "active": "Active",
-    "pending": "Pending"
+    "backToProfile": "Back to Profile",
+    "cancel": "Cancel"
+  },
+  "connectWallet": {
+    "description": "Please connect your wallet to access the membership system",
+    "title": "Connect Your Wallet"
   },
   "dashboard": {
-    "welcomeBack": "Welcome back, {username}!",
-    "welcomeMember": "Welcome back, Member!",
-    "buildNetwork": "Let's build your hive network together",
-    "upgrade": "Upgrade",
-    "bccBalance": "BCC Balance",
-    "bccLocked": "BCC Locked",
-    "referralNetwork": "Referral Network",
-    "directReferrals": "Direct Referrals",
-    "maxLayer": "Max Layer",
-    "rewardCenter": "Reward Center",
-    "totalRewards": "Total Rewards",
-    "pendingRewards": "Pending Rewards",
-    "shareReferral": "Share Referral Link",
-    "shareDescription": "Share your link to invite friends and earn referral rewards",
-    "copyLink": "Copy Link",
-    "linkCopied": "Link copied to clipboard!",
-    "quickNavigation": "Quick Navigation",
-    "viewMatrix": "View Matrix",
-    "claimRewards": "Claim Rewards",
-    "inviteTip": "💡 Invite friends to unlock more features and rewards",
-    "topUp": "Top Up",
-    "totalTeamSize": "Total Team Size",
-    "claimableRewards": "Claimable Rewards",
-    "level2Requirements": {
-      "title": "Level 2 Requirements",
-      "needLevel1": "You need to reach Level 1 first",
-      "needReferrals": "Level 2 requires more than 3 direct referrals (current: {current})",
-      "directReferralsOnly": "Only counts users who registered directly through your referral link",
-      "excludesSpillover": "Excludes spillover users from matrix placement",
-      "howToInvite": "How to invite: Share your referral link and have friends register through your link"
+    "accountOverview": "Account Overview",
+    "actions": {
+      "claimNFT": "Claim NFT",
+      "educationDescription": "Access premium courses",
+      "learnEarn": "Learn & Earn",
+      "nftDescription": "Claim merchant NFTs with BCC",
+      "referralsDescription": "Manage your referral network",
+      "upgradeDescription": "Purchase next membership level",
+      "upgradeLevel": "Upgrade Level",
+      "viewReferrals": "View Referrals"
     },
-    "errors": {
-      "dataLoadFailed": "Data loading failed",
-      "refreshToRetry": "Please refresh to retry",
-      "loadError": "Loading Error",
-      "retry": "Retry"
-    },
-    "success": {
-      "copied": "Copied!",
-      "linkCopiedToClipboard": "Referral link copied to clipboard",
-      "refreshed": "Data Refreshed",
-      "dataUpdated": "Dashboard data has been updated"
-    },
-    "refresh": "Refresh",
-    "refreshing": "Refreshing...",
-    "loadingData": "Loading",
-    "lastUpdated": "Last updated",
-    "activitiesWillAppear": "Your activities will appear here as you interact with the platform",
-    "noActivities": "No recent activities",
-    "recentActivities": "Recent Activities",
-    "referralDescription": "Share this link to earn referral rewards",
-    "referrals": "Referrals",
-    "nftRequired": {
-      "title": "Welcome to Beehive! 🎉",
-      "description": "Complete your membership by purchasing your Level 1 Warrior NFT. This activates your position in the matrix and starts your Web3 journey.",
-      "requiredNft": "Level 1 Warrior NFT",
-      "nftDescription": "One-time purchase to activate your membership",
-      "level1Warrior": "Level 1 Warrior",
-      "tokenId": "Token ID: 0",
-      "price": "Price",
-      "priceAmount": "130 USDT",
-      "benefitsTitle": "What You'll Unlock:",
-      "benefits": {
-        "dashboard": "Full Dashboard Access",
-        "tasks": "Tasks & NFT Marketplace",
-        "education": "Education Center",
-        "discover": "Discover Web3 DApps",
-        "tokens": "BCC Token System",
-        "matrix": "HiveWorld Matrix System"
-      },
-      "premiumTitle": "Premium Membership",
-      "premiumDescription": "Activate your Level 1 NFT membership, take positions in matrix, and start earning rewards.",
-      "supportText": "Secure Web3 payment powered by blockchain technology",
-      "purchaseSuccess": {
-        "title": "Membership Activated!",
-        "description": "Your Level 1 NFT has been purchased and your membership is now active."
-      },
-      "purchaseError": {
-        "title": "Purchase Failed",
-        "description": "Failed to purchase NFT. Please try again."
-      },
-      "getButton": "Purchase Membership",
-      "level1Membership": "Level 1 Membership",
-      "bumblebeeNFT": "Bumblebee NFT",
-      "levelOne": "Level 1",
-      "benefits": "Benefits",
-      "accessTasks": "Access Tasks & Marketplace",
-      "referralRewards": "Referral Rewards",
-      "nftClaiming": "NFT Claiming",
-      "premiumContent": "Premium Content"
-    },
+    "activateLevel1": "Activate Level 1 Bumblebees (BBC) NFT",
+    "activating": "Activating...",
     "activation": {
-      "title": "Welcome to Beehive",
+      "activationNote": "After activation, you'll have access to all member features including Tasks, Education, and HiveWorld.",
       "description": "Web3 membership and learning platform with blockchain-based rewards. Activate your Level 1 membership to get started!",
+      "error": {
+        "description": "Unable to activate your membership. Please try again or contact support.",
+        "title": "Activation Failed"
+      },
       "membershipLevel": "Membership Level",
       "price": "Price",
       "priceLevel1": "130 USDT",
-      "activationNote": "After activation, you'll have access to all member features including Tasks, Education, and HiveWorld.",
       "success": {
-        "title": "Membership Activated!",
-        "description": "Welcome to Beehive! You now have access to all member features."
+        "description": "Welcome to Beehive! You now have access to all member features.",
+        "title": "Membership Activated!"
       },
-      "error": {
-        "title": "Activation Failed",
-        "description": "Unable to activate your membership. Please try again or contact support."
-      }
+      "title": "Welcome to Beehive"
     },
-    "membershipLevel": "Membership Level",
-    "activateLevel1": "Activate Level 1 Bumblebees (BBC) NFT",
-    "activating": "Activating...",
-    "status": {
-      "active": "Active"
+    "activitiesWillAppear": "Your activities will appear here as you interact with the platform",
+    "activity": {
+      "activeStatus": "Active",
+      "bccDeduction": "-{{amount}} BCC",
+      "fromReferralUpgrade": "From referral upgrade",
+      "merchantNft": "Merchant NFT purchased",
+      "newReferral": "New Referral",
+      "nftClaimed": "NFT Claimed",
+      "rewardAmount": "+{{amount}} Rewards",
+      "rewardReceived": "Reward Received",
+      "userJoined": "User joined your network"
     },
     "balances": {
       "bccFree": "BCC (Free)",
       "bccLocked": "BCC (Locked)"
     },
+    "bccBalance": "BCC Balance",
+    "bccLocked": "BCC Locked",
+    "buildNetwork": "Let's build your hive network together",
+    "claimRewards": "Claim Rewards",
+    "claimableRewards": "Claimable Rewards",
+    "copyLink": "Copy Link",
+    "directReferrals": "Direct Referrals",
+    "downlineMatrix": {
+      "placement": "Placement",
+      "title": "Downline Matrix"
+    },
+    "downlineNetwork": {
+      "title": "Your Downline Network"
+    },
+    "errors": {
+      "dataLoadFailed": "Data loading failed",
+      "loadError": "Loading Error",
+      "refreshToRetry": "Please refresh to retry",
+      "retry": "Retry"
+    },
+    "globalStats": {
+      "highestLevel": "Highest Level",
+      "members": "Members",
+      "membersByLevel": "Members by Level",
+      "pendingRewards": "Pending Rewards",
+      "title": "Global Statistics",
+      "totalMembers": "Total Members",
+      "totalRewardsPaid": "Total Rewards Paid"
+    },
+    "inviteTip": "💡 Invite friends to unlock more features and rewards",
+    "lastUpdated": "Last updated",
+    "layer": {
+      "members": "members",
+      "name": "Layer",
+      "placements": "placements",
+      "upgraded": "upgraded"
+    },
+    "level2Requirements": {
+      "directReferralsOnly": "Only counts users who registered directly through your referral link",
+      "excludesSpillover": "Excludes spillover users from matrix placement",
+      "howToInvite": "How to invite: Share your referral link and have friends register through your link",
+      "needLevel1": "You need to reach Level 1 first",
+      "needReferrals": "Level 2 requires more than 3 direct referrals (current: {current})",
+      "title": "Level 2 Requirements"
+    },
+    "levelText": "Level {{level}}",
+    "linkCopied": "Link copied to clipboard!",
+    "loadingData": "Loading",
+    "maxLayer": "Max Layer",
+    "member": "Member",
+    "membershipLevel": "Membership Level",
+    "nftRequired": {
+      "accessTasks": "Access Tasks & Marketplace",
+      "benefits": "Benefits",
+      "benefitsTitle": "What You'll Unlock:",
+      "bumblebeeNFT": "Bumblebee NFT",
+      "description": "Complete your membership by purchasing your Level 1 Warrior NFT. This activates your position in the matrix and starts your Web3 journey.",
+      "getButton": "Purchase Membership",
+      "level1Membership": "Level 1 Membership",
+      "level1Warrior": "Level 1 Warrior",
+      "levelOne": "Level 1",
+      "nftClaiming": "NFT Claiming",
+      "nftDescription": "One-time purchase to activate your membership",
+      "premiumContent": "Premium Content",
+      "premiumDescription": "Activate your Level 1 NFT membership, take positions in matrix, and start earning rewards.",
+      "premiumTitle": "Premium Membership",
+      "price": "Price",
+      "priceAmount": "130 USDT",
+      "purchaseError": {
+        "description": "Failed to purchase NFT. Please try again.",
+        "title": "Purchase Failed"
+      },
+      "purchaseSuccess": {
+        "description": "Your Level 1 NFT has been purchased and your membership is now active.",
+        "title": "Membership Activated!"
+      },
+      "referralRewards": "Referral Rewards",
+      "requiredNft": "Level 1 Warrior NFT",
+      "supportText": "Secure Web3 payment powered by blockchain technology",
+      "title": "Welcome to Beehive! 🎉",
+      "tokenId": "Token ID: 0"
+    },
+    "nftVerified": "NFT Verified",
+    "nfts": "NFTs",
+    "noActivities": "No recent activities",
+    "pendingRewards": "Pending Rewards",
+    "priceLevel1": "130 USDT",
     "quickActions": {
-      "tokens": {
-        "title": "Buy Tokens",
-        "description": "Purchase BCC and CTH tokens across multiple chains",
-        "stat": "Balance:"
-      },
-      "tasks": {
-        "description": "Browse and claim merchant NFTs with your BCC tokens"
-      },
       "education": {
         "description": "Access courses and learning materials"
       },
       "hiveworld": {
         "description": "View your referral matrix and rewards"
+      },
+      "tasks": {
+        "description": "Browse and claim merchant NFTs with your BCC tokens"
+      },
+      "tokens": {
+        "description": "Purchase BCC and CTH tokens across multiple chains",
+        "stat": "Balance:",
+        "title": "Buy Tokens"
       }
     },
+    "quickNavigation": "Quick Navigation",
+    "recentActivities": "Recent Activities",
     "recentActivity": "Recent Activity",
-    "member": "Member",
-    "userCentre": "User Centre",
-    "verifying": "Verifying NFT ownership...",
-    "nftVerified": "NFT Verified",
-    "reward": "Reward",
-    "nfts": "NFTs",
-    "accountOverview": "Account Overview",
-    "userAvatar": "User Avatar",
-    "levelText": "Level {{level}}",
-    "priceLevel1": "130 USDT",
-    "activity": {
-      "rewardReceived": "Reward Received",
-      "fromReferralUpgrade": "From referral upgrade",
-      "rewardAmount": "+{{amount}} Rewards",
-      "nftClaimed": "NFT Claimed",
-      "merchantNft": "Merchant NFT purchased",
-      "bccDeduction": "-{{amount}} BCC",
-      "newReferral": "New Referral",
-      "userJoined": "User joined your network",
-      "activeStatus": "Active"
-    },
+    "referralDescription": "Share this link to earn referral rewards",
     "referralLink": {
-      "title": "Referral Link",
-      "show": "Show",
-      "hide": "Hide",
-      "copy": "Copy Referral Link",
       "copied": "Link Copied!",
-      "copiedDesc": "Referral link copied to clipboard"
+      "copiedDesc": "Referral link copied to clipboard",
+      "copy": "Copy Referral Link",
+      "hide": "Hide",
+      "show": "Show",
+      "title": "Referral Link"
     },
-    "shareToEarn": "Share your link to earn commissions from your referrals",
     "referralLinkCopied": "Referral link copied",
+    "referralNetwork": "Referral Network",
+    "referrals": "Referrals",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing...",
+    "registrationExpiry": {
+      "warning": "Registration expires soon! Activate membership to continue:"
+    },
+    "reward": "Reward",
+    "rewardCenter": "Reward Center",
+    "shareDescription": "Share your link to invite friends and earn referral rewards",
+    "shareReferral": "Share Referral Link",
+    "shareToEarn": "Share your link to earn commissions from your referrals",
     "social": {
-      "twitter": "Twitter",
       "telegram": "Telegram",
+      "twitter": "Twitter",
       "whatsapp": "WhatsApp"
     },
     "stats": {
-      "directReferrals": "Direct Referrals",
-      "teamSize": "Team Size",
-      "totalEarnings": "Total Earnings",
-      "bccBalance": "BCC Balance",
-      "thisMonth": "This Month",
-      "totalMembers": "Total Members",
       "allTime": "All Time",
+      "bccBalance": "BCC Balance",
+      "bccLocked": "BCC Locked",
+      "directReferrals": "Direct Referrals",
+      "layerProgress": "Layer Progress",
       "matrixNetwork": "Matrix Network",
       "networkGrowth": "Network Growth",
+      "nftsOwned": "NFTs Owned",
       "teamPerformance": "Team Performance",
-      "layerProgress": "Layer Progress",
-      "totalRewards": "Total Rewards",
-      "bccLocked": "BCC Locked",
-      "nftsOwned": "NFTs Owned"
+      "teamSize": "Team Size",
+      "thisMonth": "This Month",
+      "totalEarnings": "Total Earnings",
+      "totalMembers": "Total Members",
+      "totalRewards": "Total Rewards"
+    },
+    "status": {
+      "active": "Active"
+    },
+    "success": {
+      "copied": "Copied!",
+      "dataUpdated": "Dashboard data has been updated",
+      "linkCopiedToClipboard": "Referral link copied to clipboard",
+      "refreshed": "Data Refreshed"
     },
     "tokenPurchase": {
       "bccDescription": "Purchase Beehive Crypto Coins for platform usage",
       "cthDescription": "Buy CTH tokens for Alpha Centauri ecosystem",
       "topUpDescription": "Buy BCC and CTH tokens to participate in the Beehive ecosystem"
     },
-    "globalStats": {
-      "title": "Global Statistics",
-      "totalMembers": "Total Members",
-      "totalRewardsPaid": "Total Rewards Paid",
-      "pendingRewards": "Pending Rewards",
-      "highestLevel": "Highest Level",
-      "membersByLevel": "Members by Level",
-      "members": "Members"
-    },
+    "topUp": "Top Up",
+    "totalRewards": "Total Rewards",
+    "totalTeamSize": "Total Team Size",
+    "upgrade": "Upgrade",
     "uplineNetwork": {
-      "title": "Upline Network",
       "earnings": "Earnings",
       "loading": "Loading network data...",
       "noReferrals": "No referral data available",
-      "shareMessage": "Share your referral link to grow your network"
+      "shareMessage": "Share your referral link to grow your network",
+      "title": "Upline Network"
     },
-    "downlineNetwork": {
-      "title": "Your Downline Network"
-    },
-    "downlineMatrix": {
-      "title": "Downline Matrix",
-      "placement": "Placement"
-    },
-    "actions": {
-      "upgradeLevel": "Upgrade Level",
-      "upgradeDescription": "Purchase next membership level",
-      "viewReferrals": "View Referrals",
-      "referralsDescription": "Manage your referral network",
-      "claimNFT": "Claim NFT",
-      "nftDescription": "Claim merchant NFTs with BCC",
-      "learnEarn": "Learn & Earn",
-      "educationDescription": "Access premium courses"
-    },
-    "registrationExpiry": {
-      "warning": "Registration expires soon! Activate membership to continue:"
-    },
-    "layer": {
-      "name": "Layer",
-      "members": "members",
-      "upgraded": "upgraded",
-      "placements": "placements"
-    }
-  },
-  "wallet": {
-    "connect": "Connect Wallet",
-    "disconnect": "Disconnect",
-    "connected": "Connected"
-  },
-  "header": {
-    "connectWallet": "Connect Wallet"
-  },
-  "landing": {
-    "hero": {
-      "title": "Welcome to Beehive",
-      "subtitle": "Web3 membership and learning platform with blockchain-based rewards"
-    },
-    "getStarted": "Get Started",
-    "matrix": {
-      "explainTitle": "Learn the 3×3 Matrix",
-      "explainDescription": "Discover how our matrix system works and how you can earn rewards",
-      "explainButton": "Matrix Explained"
-    },
-    "features": {
-      "membership": {
-        "title": "Web3 Membership",
-        "description": "Secure on-chain membership credentials with 19 levels"
-      },
-      "referral": {
-        "title": "3×3 Matrix System",
-        "description": "Earn rewards through our forced matrix referral program"
-      },
-      "education": {
-        "title": "Learn & Earn",
-        "description": "Access premium courses and workshops while earning tokens"
-      },
-      "marketplace": {
-        "title": "NFT Marketplace",
-        "description": "Claim exclusive merchant NFTs with your BCC tokens"
-      },
-      "tokens": {
-        "title": "BCC Rewards",
-        "description": "Dual token system with transferable and restricted buckets"
-      },
-      "rewards": {
-        "title": "Smart Rewards",
-        "description": "48-hour upgrade countdown with roll-up mechanisms"
-      }
-    },
-    "stats": {
-      "membershipLevels": "19 Membership Levels",
-      "matrixSystem": "3×3 Matrix System",
-      "nftMarketplace": "NFT Marketplace"
-    },
-    "platformFeatures": {
-      "title": "Platform Features",
-      "subtitle": "Discover the powerful features that make Beehive the ultimate Web3 membership platform",
-      "exclusiveLevels": "19 Exclusive Levels",
-      "exclusiveCollections": "Exclusive Collections",
-      "autoPlacement": "Auto-placement System",
-      "dualTokenSystem": "Dual Token System",
-      "premiumCourses": "Premium Courses",
-      "countdown": "48hr Countdown"
-    },
-    "ctaStats": {
-      "membershipLevels": "Membership Levels",
-      "matrixSystem": "Matrix System",
-      "earningPotential": "Earning Potential"
-    },
-    "howItWorks": {
-      "title": "How It Works",
-      "subtitle": "Get started in just three simple steps and unlock the power of Web3 membership",
-      "step1": {
-        "title": "Connect Wallet",
-        "description": "Connect your Web3 wallet to get started"
-      },
-      "step2": {
-        "title": "Register & Activate",
-        "description": "Complete registration and activate Level 1 membership"
-      },
-      "step3": {
-        "title": "Learn & Earn",
-        "description": "Access platform features and start earning rewards"
-      }
-    },
-    "cta": {
-      "title": "Ready to Start Your Journey?",
-      "description": "Join thousands of members already earning in the Beehive ecosystem",
-      "button": "Join Beehive Now"
-    }
-  },
-  "footer": {
-    "platform": {
-      "title": "Platform",
-      "membership": "Membership Levels",
-      "rewards": "Rewards System",
-      "nfts": "NFT Marketplace",
-      "education": "Education Center"
-    },
-    "resources": {
-      "title": "Resources",
-      "whitepaper": "Whitepaper",
-      "documentation": "Documentation",
-      "tutorials": "Tutorials",
-      "faq": "FAQ"
-    },
-    "community": {
-      "title": "Community",
-      "discord": "Discord",
-      "telegram": "Telegram",
-      "twitter": "Twitter",
-      "medium": "Medium"
-    },
-    "legal": {
-      "title": "Legal",
-      "privacy": "Privacy Policy",
-      "terms": "Terms of Service",
-      "cookies": "Cookie Policy",
-      "disclaimer": "Disclaimer"
-    },
-    "newsletter": {
-      "title": "Stay Updated",
-      "description": "Get the latest updates about new features, rewards, and community events",
-      "placeholder": "Enter your email address",
-      "button": "Subscribe",
-      "disclaimer": "We respect your privacy and never share your information"
-    },
-    "brand": {
-      "tagline": "Web3 Membership & Learning Platform"
-    },
-    "copyright": {
-      "rights": "All rights reserved.",
-      "blockchain": "Powered by blockchain technology"
-    },
-    "backToTop": "Back to Top"
-  },
-  "registration": {
-    "title": "Complete Registration",
-    "subtitle": "Set up your Beehive profile",
-    "walletAddress": "Wallet Address",
-    "email": "Email Address",
-    "emailPlaceholder": "Enter your email",
-    "username": "Username",
-    "usernamePlaceholder": "Choose a username",
-    "secondaryPassword": "Secondary Password",
-    "passwordPlaceholder": "Create a secure password",
-    "confirmPassword": "Confirm Password",
-    "confirmPasswordPlaceholder": "Confirm your password",
-    "referrer": "Upline Referrer",
-    "register": "Complete Registration",
-    "registering": "Processing...",
-    "agreement": "By registering, you agree to our Terms of Service and Privacy Policy",
-    "noReferrerInfo": {
-      "title": "Referral Link Required",
-      "description": "To join Beehive, you need a referral link from an existing member. This connects you to your upline in our 3×3 matrix system.",
-      "getLink": "Ask a Beehive member for their referral link to get started."
-    },
-    "errors": {
-      "emailRequired": "Email address is required",
-      "emailInvalid": "Please enter a valid email address",
-      "usernameRequired": "Username is required",
-      "usernameTooShort": "Username must be at least 3 characters",
-      "passwordRequired": "Secondary password is required",
-      "passwordTooShort": "Password must be at least 6 characters",
-      "passwordMismatch": "Passwords do not match",
-      "referrerRequired": "A valid referral link is required to register"
-    },
-    "success": "Registration Successful!",
-    "welcomeBack": "Welcome Back!",
-    "accountExists": "Account already exists, no need to register again",
-    "welcomeMessage": "Your profile has been created. You can now activate your membership.",
-    "failed": "Registration Failed",
-    "unknownError": "Please try again or contact support if the problem persists.",
-    "registering": "Processing...",
-    "register": "Complete Registration",
-    "error": {
-      "title": "Registration Failed",
-      "description": "Please try again or contact support if the problem persists."
-    },
-    "walletRequired": {
-      "title": "Wallet Connection Required",
-      "description": "Please connect your wallet first to complete registration."
-    },
-    "optional": "optional",
-    "referredBy": "Referred by",
-    "referrerValidationFailed": "Referrer validation failed",
-    "referrerNotActiveMember": "Referrer is not an active member",
-    "checkUserError": "Error checking user status",
-    "invalidReferrer": "Invalid referrer",
-    "memberCreated": "Member record created",
-    "memberCreatedMessage": "Your member profile has been set up",
-    "registrationError": "Registration error",
-    "registrationErrorOccurred": "A registration error occurred",
-    "usernameRequired": "Username is required",
-    "usernameMinLength": "Username must be at least 3 characters",
-    "usernameFormat": "Username can only contain letters, numbers and underscores",
-    "emailInvalid": "Please enter a valid email address",
-    "referrerRequired": "Valid referrer is required",
-    "validating": "Validating",
-    "validationFailed": "Validation failed",
-    "referrerValidated": "Referrer validated",
-    "directReferrals": "direct referrals",
-    "teamMembers": "team members",
-    "nextSteps": "Next Steps",
-    "nextStep1": "Complete NFT claiming to activate membership",
-    "nextStep2": "Start referring friends to build your matrix network", 
-    "nextStep3": "Earn BCC rewards and upgrade to higher levels",
-    "matrixAdvantages": "Matrix System Advantages",
-    "matrixFeature1": "3×3 forced matrix ensures fair distribution",
-    "matrixFeature2": "Spillover mechanism benefits from upline referrals",
-    "matrixFeature3": "Multi-layer reward system maximizes earning potential",
-    "matrixFeature4": "Transparent blockchain records guarantee reward distribution"
-  },
-  "notifications": {
-    "title": "Notifications",
-    "markAllRead": "Mark all read",
-    "empty": {
-      "title": "No notifications yet",
-      "description": "You'll receive notifications for BCC rewards, upgrades, and referrals"
-    },
-    "showLess": "Show less",
-    "showAll": "Show all {{count}} notifications"
-  },
-  "claim": {
-    "walletNotConnected": "Wallet not connected",
-    "connectWalletToClaimNFT": "Please connect your wallet to claim your NFT",
-    "referrerRequired": "Referrer Required",
-    "referrerRequiredDesc": "You must use a valid referral link to claim your NFT. Please ask an existing member for a referral link.",
-    "selfReferralNotAllowed": "Self-referral Not Allowed",
-    "selfReferralNotAllowedDesc": "You cannot use your own wallet address as a referrer.",
-    "checkingRegistration": "Checking registration status...",
-    "validatingReferrer": "Validating referrer...",
-    "invalidReferrer": "Invalid Referrer",
-    "useValidReferrer": "Please use a valid referrer wallet address.",
-    "validationFailed": "Validation Failed",
-    "validationFailedDesc": "Unable to verify registration or referrer status. Please refresh and try again.",
-    "checkingBalance": "Checking USDC balance...",
-    "checkingApproval": "Checking USDC approval...",
-    "waitingApproval": "Waiting for USDC approval...",
-    "waitingApprovalConfirmation": "Waiting for USDC approval confirmation...",
-    "mintingNFT": "Minting NFT...",
-    "waitingNFTConfirmation": "Waiting for NFT minting confirmation...",
-    "waitingBlockchainConfirmation": "Waiting for blockchain confirmation...",
-    "verifyingAndActivating": "Verifying transaction and activating membership",
-    "nftClaimedSuccessfully": "Your Level 1 NFT has been claimed successfully!",
-    "nftClaimedAndActivated": "Your Level 1 NFT has been claimed and membership activated! Redirecting to dashboard...",
-    "nftClaimedActivatedWithBackendPending": "Your Level 1 NFT has been claimed and membership activated! (Backend processing may need manual completion) Redirecting to dashboard...",
-    "nftClaimedProcessedActivationPending": "Your Level 1 NFT has been claimed and processed! (Membership activation pending) Redirecting to dashboard...",
-    "nftClaimedBlockchainSuccess": "Your Level 1 NFT claim succeeded on blockchain! Backend processing is slow - you may need to refresh or check your membership status in a few minutes.",
-    "nftClaimedTitle": "🎉 NFT Claimed Successfully!",
-    "rateLimited": "Rate Limited",
-    "welcomeBack": "🎉 Welcome Back!",
-    "alreadyHaveNFT": "You already have your Level 1 membership NFT. Redirecting to dashboard...",
-    "insufficientBalance": "Insufficient USDC Balance",
-    "need130USDC": "You need 130 USDC to claim Level 1 NFT. Please add USDC to your wallet and try again.",
-    "tokenApprovalFailed": "Token Approval Failed",
-    "ensureApproval130USDC": "Please ensure you approve the contract to spend 130 USDC and try again.",
-    "networkError": "Network Error",
-    "switchToArbitrumSepolia": "Please switch to Arbitrum Sepolia network and try again.",
-    "claimFailed": "Claim failed",
-    "insufficientGasFunds": "⛽ Insufficient Gas Funds",
-    "needETHForGas": "You need ETH on Arbitrum Sepolia network to pay for transaction gas fees. Please add some ETH to your wallet first.",
-    "claimLevel1NFT": "Claim Your Level 1 Membership NFT",
-    "claimUniqueNFTDesc": "Claim your unique ERC-5115 NFT (Token ID 1) to activate Level 1 membership",
-    "processing": "Processing...",
-    "claimLevel1NFT130USDC": "Claim Level 1 NFT (130 USDC)",
-    "doNotClosePageWarning": "⚠️ Please do not close the page or disconnect your wallet",
-    "paymentRequired": "🪙 130 USDC payment required (100 NFT + 30 platform activation fee)",
-    "instantActivation": "🎯 Instant membership activation upon successful claim",
-    "nftMintedToWallet": "🔗 NFT will be minted to your connected wallet address",
-    "twoTransactions": "⚡ Two transactions: Token approval + NFT minting"
-  },
-  "referrals": {
-    "title": "Referral System",
-    "activated": "Activated",
-    "copy": "Copy", 
-    "linkDescription": "Share this link to earn rewards when people join through your referral and activate membership",
-    "matrixLevel": "Matrix Level",
-    "matrixView": "Your Matrix Network",
-    "noReferrals": "No referrals yet. Start sharing your link to build your 3x3 matrix!",
-    "pending": "Pending",
-    "recentReferrals": "Recent Referrals",
-    "subtitle": "Build your 3x3 matrix network and earn rewards through referrals",
-    "totalEarnings": "Total Earnings",
-    "totalReferrals": "Total Referrals", 
-    "yourLink": "Your Referral Link",
-    "copied": {
-      "title": "Copied!",
-      "description": "Referral link copied to clipboard"
-    },
-    "tabs": {
-      "team": "My Team",
-      "matrix": "3x3 Matrix",
-      "stats": "Statistics"
-    },
-    "legacySystem": "Legacy System (For Comparison)",
-    "activeMembers": "Active Members",
-    "matrixLayers": "Matrix Layers",
-    "recentActivity": "Recent Referral Activity",
-    "recentlyJoined": "Recently joined",
-    "rewardSystemInfo": "Reward System Information",
-    "matrixRewardsTitle": "Matrix Rewards",
-    "bccTokenRewardsTitle": "BCC Token Rewards",
-    "rewards": {
-      "level1Direct": "Level 1 Direct: $30 USDC per referral",
-      "level2Matrix": "Level 2 Matrix: $10 USDC per position",
-      "spilloverBonuses": "Spillover Bonuses: Additional rewards",
-      "claimWindow": "72-hour claim window",
-      "bccTransferable": "BCC ที่สามารถโอน: ใช้ได้ทันที",
-      "bccLocked": "BCC ที่ล็อก: ปลดล็อกตามระดับ",
-      "bccMultipliers": "ตัวคูณระดับ: 1.0x, 0.5x, 0.25x, 0.125x",
-      "bccUpgrades": "การอัพเกรดระดับปลดล็อก BCC เพิ่มเติม"
-    },
-    "bccRewards": {
-      "transferable": "Transferable BCC: Immediate use",
-      "locked": "Locked BCC: Tier-based release",
-      "multipliers": "Tier multipliers: 1.0x, 0.5x, 0.25x, 0.125x",
-      "upgrades": "Level upgrades unlock more BCC"
-    },
-    "team_overview": "Team Overview",
-    "view_matrix": "View Matrix",
-    "total_team": "Total Team",
-    "active_members": "Active Members",
-    "max_layers": "Max Layers",
-    "network_strength": "Network Strength",
-    "layer_progress": "Layer Progress",
-    "recent_referrals": "Recent Referrals",
-    "share_link": "Share Referral Link",
-    "rewardStructure": {
-      "title": "BeeHive Reward Structure",
-      "globalMatrix": "Global Matrix System",
-      "layerBased": "Layer-Based Rewards Only (72h Timer)",
-      "specialRules": "SPECIAL RULES:",
-      "rule1": "Level 1: 3rd reward requires Level 2 upgrade",
-      "rule2": "Level 2: Must own L2 + at least one Layer 1 member with L2",
-      "rule3": "Level 3-19: Just need to own that level or higher"
-    },
-    "referralLink": {
-      "title": "Your Referral Link"
-    },
-    "availableRewards": {
-      "title": "Available Rewards",
-      "withdraw": "Withdraw Rewards"
-    },
-    "matrixPerformance": {
-      "title": "Matrix Performance",
-      "status": "Status",
-      "active": "Active",
-      "currentLevel": "Current Level",
-      "level": "Level",
-      "matrixRewards": "Matrix Rewards",
-      "pendingRewards": "Pending Rewards",
-      "viewMatrix": "View 3x3 Matrix"
-    },
-    "matrixManagement": {
-      "title": "Matrix Layer Management",
-      "directReferrals": "Direct Referrals",
-      "yourTeamPlaced": "Your Team Placed",
-      "totalMatrix": "Total Matrix",
-      "members": "members",
-      "yourTeam": "Your Team (Direct + Spillover)",
-      "upperSpillover": "Upper Spillover",
-      "layerDetails": "Layer Details",
-      "upgradeRewards": "Upgrade Rewards",
-      "loadingLayers": "Loading layers...",
-      "noMembers": "No team members yet"
-    },
-    "layerView": {
-      "layer": "Layer",
-      "positionsFilled": "positions filled",
-      "upgradedToLevel": "upgraded to Level 2+",
-      "full": "Full",
-      "available": "Available",
-      "backToOverview": "Back to Overview",
-      "details": "Details",
-      "members": "Members",
-      "upgraded": "Upgraded",
-      "filledPositions": "Filled Positions:",
-      "upgradedMembers": "Upgraded Members:",
-      "completionRate": "Completion Rate:",
-      "lastUpdated": "Last Updated:"
-    },
-    "notifications": {
-      "memberUpgraded": "Layer {{layer}} member upgraded to Level {{level}}",
-      "reward": "Reward",
-      "from": "From",
-      "member": "member",
-      "noRecentActivity": "No recent activity",
-      "activitiesAppear": "Your activities will appear here as you interact with the platform",
-      "noNotifications": "No upgrade notifications yet",
-      "notificationsAppear": "Notifications will appear when team members upgrade their levels"
-    },
-    "upgradeRewards": {
-      "description": "Track upgrade rewards from your matrix layers. You have 72 hours to upgrade when members purchase higher level NFTs."
-    },
-    "matrixVisualization": {
-      "title": "Matrix Visualization",
-      "lmrLayout": "L-M-R Layout",
-      "leftPosition": "Left Position",
-      "middlePosition": "Middle Position",
-      "rightPosition": "Right Position",
-      "matrixTree": "Matrix Tree",
-      "placement": "Placement",
-      "spillover": "Spillover",
-      "autoPlacement": "Auto Placement",
-      "position": "Position",
-      "layer": "Layer",
-      "level": "Level",
-      "empty": "Empty",
-      "filled": "Filled",
-      "viewDetails": "View Details",
-      "expand": "Expand",
-      "collapse": "Collapse"
-    },
-    "networkStats": {
-      "title": "Network Statistics",
-      "directReferrals": "Direct Referrals Count",
-      "totalTeamSize": "Total Team Size",
-      "maxLayer": "Max Layer",
-      "activeMembers": "Active Members",
-      "recentActivity": "Recent Activity",
-      "teamGrowth": "Team Growth",
-      "performance": "Performance",
-      "thisWeek": "This Week",
-      "thisMonth": "This Month",
-      "allTime": "All Time"
-    },
-    "matrixPosition": {
-      "left": "Left",
-      "middle": "Middle",
-      "right": "Right",
-      "leftPosition": "Left Position",
-      "middlePosition": "Middle Position",
-      "rightPosition": "Right Position",
-      "position1": "Position 1",
-      "position2": "Position 2",
-      "position3": "Position 3",
-      "yourPosition": "Your Position",
-      "available": "Available",
-      "occupied": "Occupied"
-    },
-    "copied": {
-      "title": "Copied!",
-      "description": "Referral link copied to clipboard"
-    },
-    "tabs": {
-      "matrix": "3x3 Matrix",
-      "stats": "Statistics",
-      "rewards": "Rewards"
-    },
-    "legacySystem": "Legacy System (For Comparison)",
-    "matrixLayers": "Matrix Layers",
-    "recentActivity": "Recent Referral Activity",
-    "recentlyJoined": "Recently joined",
-    "activated": "Activated",
-    "rewardSystemInfo": "Reward System Information",
-    "matrixRewardsTitle": "Matrix Rewards",
-    "bccTokenRewardsTitle": "BCC Token Rewards",
-    "rewards": {
-      "level1Direct": "Level 1 Direct: $30 USDC per referral",
-      "level2Matrix": "Level 2 Matrix: $10 USDC per position",
-      "spilloverBonuses": "Spillover Bonuses: Additional rewards",
-      "claimWindow": "72-hour claim window",
-      "bccTransferable": "BCC ที่สามารถโอน: ใช้ได้ทันที",
-      "bccLocked": "BCC ที่ล็อก: ปลดล็อกตามระดับ",
-      "bccMultipliers": "ตัวคูณระดับ: 1.0x, 0.5x, 0.25x, 0.125x",
-      "bccUpgrades": "การอัพเกรดระดับปลดล็อก BCC เพิ่มเติม"
-    },
-    "bccRewards": {
-      "transferable": "Transferable BCC: Immediate use",
-      "locked": "Locked BCC: Tier-based release",
-      "multipliers": "Tier multipliers: 1.0x, 0.5x, 0.25x, 0.125x",
-      "upgrades": "Level upgrades unlock more BCC"
-    },
-    "matrixSystem": {
-      "title": "3×3 Matrix Network",
-      "matrixTree": "3×3 Matrix Tree",
-      "enhancedMatrixTree": "Enhanced 3×3 Matrix Tree",
-      "layer": "Layer",
-      "layers": "L1-L19",
-      "matrixInformation": "Matrix Information",
-      "yourMatrixTree": "Your 3×3 Matrix Tree",
-      "matrixNetworkLayer": "3×3 Matrix Network - Layer {{layer}}"
-    }
-  },
-  "rewards": {
-    "title": "Rewards & Earnings",
-    "subtitle": "Track your rewards, claim earnings, and view transaction history",
-    "tabs": {
-      "overview": "Overview",
-      "claimable": "Claimable", 
-      "history": "History"
-    },
-    "overview": {
-      "totalEarnings": "Total Earnings",
-      "availableBalance": "Available Balance",
-      "pendingRewards": "Pending Rewards",
-      "rewardsThisMonth": "This Month",
-      "recentActivity": "Recent Activity"
-    },
-    "claimable": {
-      "title": "Claimable Rewards",
-      "claimAll": "Claim All",
-      "noRewards": "No claimable rewards",
-      "noRewardsDescription": "Complete tasks and invite referrals to earn rewards"
-    },
-    "history": {
-      "title": "Transaction History",
-      "noHistory": "No transactions yet",
-      "noHistoryDescription": "Your reward and transaction history will appear here"
-    },
-    "pendingCountdowns": "การนับถอยหลังของรางวัลที่รอดำเนินการ",
-    "pendingRewardTimer": "ตัวจับเวลารางวัลที่รอดำเนินการ",
-    "pendingRewardDescription": "รางวัลชั้น {layer} จะหมดอายุเร็วๆ นี้ - อัปเกรดเพื่อรับ"
-  },
-  "me": {
-    "title": "User Center",
-    "profile": {
-      "levelMember": "Level {{level}} Member",
-      "member": "Member",
-      "defaultEmail": "member@beehive.app"
-    },
-    "tabs": {
-      "learn": "Learn",
-      "referrals": "Referrals",
-      "settings": "Settings"
-    }
-  },
-  "tasks": {
-    "title": "Tasks & Marketplace",
-    "pageTitle": "Tasks",
-    "categories": {
-      "membership": "Membership",
-      "advertisement": "Advertisement"
-    },
-    "membership": {
-      "title": "Bumblebees Membership NFTs",
-      "description": "Authentic membership levels with USDT payments on multi-chain support",
-      "level": "Level",
-      "usdt": "USDT",
-      "status": {
-        "owned": "Owned",
-        "available": "Available",
-        "locked": "Locked"
-      },
-      "getStarted": "Get Started",
-      "upgradeNow": "Upgrade Now",
-      "lockedMessage": "Complete previous levels first"
-    },
-    "advertisement": {
-      "title": "Advertisement NFT Collection", 
-      "description": "Exclusive merchant NFTs claimable with BCC tokens",
-      "noNfts": "No advertisement NFTs available at the moment.",
-      "loading": "Loading NFTs..."
-    },
-    "availableBalance": "Available Balance",
-    "restrictedFirst": "Restricted BCC will be used first",
-    "restrictedBCC": "Restricted Beehive Crypto Coin",
-    "transferableBCC": "Transferable Beehive Crypto Coin",
-    "claim": "Claim",
-    "claiming": "Claiming...",
-    "insufficientBCC": "Insufficient BCC",
-    "claimModal": {
-      "title": "Claim NFT",
-      "price": "Price",
-      "availableRestricted": "Available (Restricted)",
-      "availableTransferable": "Available (Transferable)",
-      "confirmation": "Restricted BCC will be used first. Proceed with claiming this NFT?",
-      "confirm": "Confirm Claim",
-      "cancel": "Cancel"
-    },
-    "claim": {
-      "checkingRegistration": "Checking registration status...",
-      "registrationCheckFailed": "Registration Check Failed",
-      "registrationCheckFailedDesc": "Unable to verify registration status. Please refresh and try again.",
-      "referrerRequired": "Referrer Required",
-      "referrerRequiredDesc": "You must use a valid referral link to claim your NFT. Please ask an existing member for a referral link.",
-      "selfReferralNotAllowed": "Self-Referral Not Allowed",
-      "selfReferralNotAllowedDesc": "You cannot refer yourself. Please use a referral link from another member.",
-      "validatingReferrer": "Validating referrer...",
-      "invalidReferrer": "Invalid Referrer",
-      "useValidReferrer": "Please use a referral link from a registered member.",
-      "validationFailed": "Validation Failed",
-      "validationFailedDesc": "Unable to verify registration or referrer status. Please refresh and try again.",
-      "success": {
-        "title": "NFT Claimed Successfully!",
-        "description": "The NFT has been minted to your wallet."
-      },
-      "error": {
-        "title": "Claim Failed",
-        "description": "Unable to claim NFT. Please check your balance and try again."
-      }
-    }
-  },
-  "membership": {
-    "title": "Membership Levels",
-    "subtitle": "Upgrade your membership to unlock exclusive benefits and higher rewards",
-    "currentLevel": "Current Level",
-    "directReferrals": "Direct Referrals",
-    "featured": "Featured",
-    "owned": "Owned",
-    "claim": "Claim for",
-    "locked": "Locked",
-    "specialRequirements": "Special Requirements",
-    "directReferralReq": "Direct Referral Requirement",
-    "statusQualified": "✅ Qualified: {count}/3+ people (excess {excess} people)",
-    "statusNotQualified": "❌ Not qualified: {count}/3+ people (need {needed} more)",
-    "directRegisterTip": "💡 Only counts users registered via referral link",
-    "exclusiveBenefits": "Exclusive Benefits",
-    "purchaseSuccess": "Purchase Successful",
-    "unlockNow": "Unlock Now ${price}",
-    "processing": "Processing...",
-    "notUnlocked": "Not Yet Unlocked",
-    "useQuickUpgrade": "ใช้ Quick Upgrade ด้านบนเพื่อรับเลเวล {level}",
-    "progressInfo": {
-      "title": "Progressive Membership System",
-      "description": "Membership levels must be claimed sequentially. Each level unlocks enhanced benefits, increased rewards, and exclusive platform features.",
-      "sequential": "Sequential upgrades required",
-      "rewards": "Enhanced reward multipliers",
-      "benefits": "Exclusive benefits & features"
-    },
-    "errors": {
-      "walletRequired": "Wallet Required",
-      "connectWallet": "Please connect your wallet first",
-      "levelLocked": "Level Locked",
-      "previousLevelRequired": "You must own Level {level} NFT before claiming Level {nextLevel}",
-      "claimFailed": "Claim Failed",
-      "sequentialUpgrade": "You must upgrade to Level {nextLevel} first. Cannot skip levels.",
-      "alreadyOwned": "You already own Level {level} NFT. Each level can only be purchased once.",
-      "level2Requirements": "Level 2 requires 3 active direct referrals. Invite more members first.",
-      "missingPrerequisites": "Missing prerequisite levels. Please complete lower levels first."
-    },
-    "claiming": {
-      "started": "Level {level} Claim Started",
-      "processing": "Processing NFT claim for ${price} USDC",
-      "inProgress": "Claiming...",
-      "success": "🎉 Level {level} NFT Claimed!",
-      "successDescription": "Successfully processed claim for Level {level}. Earned ${price} BCC reward!"
-    }
-  },
-  "education": {
-    "title": "Education Center",
-    "subtitle": "Learn blockchain, DeFi, and Web3 technologies",
-    "allLevels": "All Levels",
-    "filterByLevel": "Filter by Level",
-    "insufficientBalance": "Insufficient Balance",
-    "insufficientBalanceDesc": "You don't have enough BCC to purchase this course",
-    "level": "Level",
-    "levelRequiredDesc": "This course requires a higher membership level",
-    "noCourses": "No courses available",
-    "purchaseError": "Purchase Failed",
-    "purchaseErrorDesc": "Failed to purchase course. Please try again.",
-    "purchaseSuccess": "Purchase Successful",
-    "purchaseSuccessDesc": "Course has been added to your library",
-    "searchPlaceholder": "Search courses...",
-    "search": {
-      "placeholder": "Search courses, topics, or instructors..."
-    },
-    "filters": {
-      "category": "Category",
-      "allCategories": "All Categories",
-      "level": "Level",
-      "allLevels": "All Levels",
-      "type": "Type",
-      "allTypes": "All Types",
-      "payment": "Payment",
-      "allCourses": "All Courses",
-      "onlineZoom": "Online (Zoom)",
-      "videoLessons": "Video Lessons",
-      "freeCourses": "Free Courses",
-      "paidBCC": "Paid (BCC)"
-    },
-    "progress": {
-      "title": "Learning Progress",
-      "subtitle": "Track your educational journey",
-      "completed": "Completed",
-      "inProgress": "In Progress",
-      "hours": "Hours",
-      "label": "Progress",
-      "coursesCompleted": "Courses Completed",
-      "hoursLearned": "Hours Learned"
-    },
-    "free": "Free",
-    "levelRequired": "Level Required",
-    "duration": "Duration",
-    "completed": "Completed",
-    "continue": "Continue Learning",
-    "startFree": "Start Course",
-    "purchase": "Purchase Course",
-    "enrolling": "Enrolling...",
-    "insufficientBCC": "Insufficient BCC",
-    "courseType": {
-      "online": "Live Online",
-      "video": "Self-Paced Video"
-    },
-    "buttons": {
-      "viewDetails": "View Details",
-      "claimFree": "Claim Free Course",
-      "purchaseCourse": "Purchase Course",
-      "completed": "Completed",
-      "continue": "Continue",
-      "getAccess": "Get Access",
-      "enrollNow": "Enroll Now",
-      "startLearning": "Start Learning",
-      "enrolled": "Enrolled",
-      "levelRequired": "Level Required"
-    },
-    "status": {
-      "clickToView": "Click to view details and enroll",
-      "enrolled": "Enrolled",
-      "available": "Available",
-      "requiresUpgrade": "Requires Level {level}",
-      "requiresBCC": "Requires {amount} BCC"
-    },
-    "courseDetails": {
-      "overview": "Course Overview",
-      "curriculum": "Curriculum",
-      "lessons": "Lessons",
-      "instructor": "Instructor",
-      "requirements": "Requirements",
-      "whatYouLearn": "What You'll Learn",
-      "courseContent": "Course Content",
-      "zoomDetails": "Zoom Meeting Details",
-      "meetingId": "Meeting ID",
-      "password": "Password",
-      "joinLink": "Join Meeting"
-    },
-    "lessons": {
-      "lesson": "Lesson",
-      "unlock": "Unlock Lesson",
-      "unlocking": "Unlocking...",
-      "watch": "Watch Lesson",
-      "completed": "Completed",
-      "locked": "Locked",
-      "free": "Free",
-      "progress": "Progress: {percent}%"
-    },
-    "enroll": {
-      "success": {
-        "title": "Enrollment Successful!",
-        "description": "You now have access to this course."
-      },
-      "error": {
-        "title": "Enrollment Failed",
-        "description": "Unable to enroll in course. Please try again."
-      }
-    },
-    "errors": {
-      "courseNotFound": "Course not found",
-      "loadingError": "Failed to load course data",
-      "accessDenied": "Access denied - insufficient level or BCC",
-      "networkError": "Network error - please try again"
-    }
+    "userAvatar": "User Avatar",
+    "userCentre": "User Centre",
+    "verifying": "Verifying NFT ownership...",
+    "viewMatrix": "View Matrix",
+    "welcomeBack": "Welcome back, {username}!",
+    "welcomeMember": "Welcome back, Member!"
   },
   "discover": {
-    "title": "Discover",
-    "subtitle": "Explore Web3 DApps and Services",
-    "searchPlaceholder": "Search partners...",
-    "search": {
-      "placeholder": "Search DApps, protocols, or services...",
-      "recent": "Recent",
-      "trending": "Trending",
-      "clear": "Clear"
-    },
-    "featured": {
-      "title": "Featured on Beehive",
-      "viewAll": "View All"
-    },
     "categories": {
-      "title": "Categories",
       "all": "All",
-      "defi": "DeFi",
-      "nft": "NFT",
-      "gamefi": "GameFi", 
-      "dao": "DAO",
       "bridge": "Bridge",
-      "lending": "Lending",
+      "dao": "DAO",
+      "defi": "DeFi",
       "dex": "DEX",
-      "yield": "Yield",
+      "education": "Education",
+      "gamefi": "GameFi",
       "insurance": "Insurance",
+      "lending": "Lending",
+      "nft": "NFT",
       "social": "Social",
+      "title": "Categories",
       "tools": "Tools",
-      "education": "Education"
+      "yield": "Yield"
     },
-    "trending": {
-      "title": "Trending Now",
-      "subtitle": "Popular DApps in the ecosystem",
-      "users": "users",
-      "tvl": "TVL",
-      "volume": "24h Volume"
-    },
-    "ecosystem": {
-      "title": "BeeHive Ecosystem",
-      "subtitle": "Native platform services and tools",
-      "membership": {
-        "title": "Membership System",
-        "subtitle": "19-level progression from Warrior to Mythical Peak",
-        "levels": "19 Levels",
-        "members": "Active Members"
-      },
-      "matrix": {
-        "title": "3×3 Matrix",
-        "subtitle": "Decentralized referral and reward system",
-        "structure": "Auto-placement",
-        "rewards": "Instant Rewards"
-      },
-      "education": {
-        "title": "Education Hub",
-        "subtitle": "Web3 learning and skill development",
-        "courses": "Courses",
-        "certificates": "Certificates"
-      }
-    },
-    "networks": {
-      "title": "Supported Networks",
-      "subtitle": "Multi-chain ecosystem support"
-    },
-    "stats": {
-      "title": "Platform Statistics",
-      "totalValue": "Total Value Locked",
-      "transactions": "Total Transactions",
-      "users": "Active Users",
-      "protocols": "Integrated Protocols"
-    },
-    "news": {
-      "title": "Latest News",
-      "subtitle": "Stay updated with Web3 developments",
-      "readMore": "Read More",
-      "minutes": "min read",
-      "matrix30": {
-        "title": "Matrix 3.0 Launch - Enhanced Rewards",
-        "description": "Experience our upgraded matrix system with improved reward distribution and faster processing times"
-      },
-      "bridge": {
-        "title": "Multi-Chain Bridge Integration", 
-        "description": "Seamlessly transfer assets across multiple blockchains with our new bridge technology"
-      },
-      "education": {
-        "title": "New Web3 Certification Program",
-        "description": "Advanced certification courses now available for blockchain development and DeFi protocols"
-      }
+    "chains": {
+      "arbitrum": "Arbitrum",
+      "avalanche": "Avalanche",
+      "bsc": "BSC",
+      "ethereum": "Ethereum",
+      "optimism": "Optimism",
+      "polygon": "Polygon"
     },
     "dapps": {
+      "axieinfinity": "Axie Infinity",
+      "axieinfinityDesc": "Play-to-earn game where players battle, breed, and trade fantasy creatures called Axies",
       "beehive": "Beehive Platform",
       "beehiveDesc": "Web3 membership platform with 19-level progression, 3×3 matrix rewards, and educational ecosystem",
-      "uniswap": "Uniswap",
-      "uniswapDesc": "Leading decentralized exchange for token swapping and liquidity provision",
-      "opensea": "OpenSea",
-      "openseaDesc": "The world's largest NFT marketplace for buying, selling, and trading digital assets",
       "compound": "Compound",
       "compoundDesc": "Algorithmic money market protocol for earning interest on crypto assets",
       "matrixRewards": "Matrix Rewards",
       "matrixRewardsDesc": "Beehive's 3×3 matrix system for earning passive income through referral networks",
+      "opensea": "OpenSea",
+      "openseaDesc": "The world's largest NFT marketplace for buying, selling, and trading digital assets",
       "pancakeswap": "PancakeSwap",
       "pancakeswapDesc": "Popular DEX on BSC chain with farming, pools, and lottery features",
-      "axieinfinity": "Axie Infinity",
-      "axieinfinityDesc": "Play-to-earn game where players battle, breed, and trade fantasy creatures called Axies"
+      "uniswap": "Uniswap",
+      "uniswapDesc": "Leading decentralized exchange for token swapping and liquidity provision"
     },
-    "chains": {
-      "ethereum": "Ethereum",
-      "polygon": "Polygon",
-      "arbitrum": "Arbitrum",
-      "optimism": "Optimism", 
-      "bsc": "BSC",
-      "avalanche": "Avalanche"
+    "ecosystem": {
+      "education": {
+        "certificates": "Certificates",
+        "courses": "Courses",
+        "subtitle": "Web3 learning and skill development",
+        "title": "Education Hub"
+      },
+      "matrix": {
+        "rewards": "Instant Rewards",
+        "structure": "Auto-placement",
+        "subtitle": "Decentralized referral and reward system",
+        "title": "3×3 Matrix"
+      },
+      "membership": {
+        "levels": "19 Levels",
+        "members": "Active Members",
+        "subtitle": "19-level progression from Warrior to Mythical Peak",
+        "title": "Membership System"
+      },
+      "subtitle": "Native platform services and tools",
+      "title": "BeeHive Ecosystem"
     },
     "featured": "Featured",
+    "networks": {
+      "subtitle": "Multi-chain ecosystem support",
+      "title": "Supported Networks"
+    },
+    "news": {
+      "bridge": {
+        "description": "Seamlessly transfer assets across multiple blockchains with our new bridge technology",
+        "title": "Multi-Chain Bridge Integration"
+      },
+      "education": {
+        "description": "Advanced certification courses now available for blockchain development and DeFi protocols",
+        "title": "New Web3 Certification Program"
+      },
+      "matrix30": {
+        "description": "Experience our upgraded matrix system with improved reward distribution and faster processing times",
+        "title": "Matrix 3.0 Launch - Enhanced Rewards"
+      },
+      "minutes": "min read",
+      "readMore": "Read More",
+      "subtitle": "Stay updated with Web3 developments",
+      "title": "Latest News"
+    },
+    "search": {
+      "clear": "Clear",
+      "placeholder": "Search DApps, protocols, or services...",
+      "recent": "Recent",
+      "trending": "Trending"
+    },
+    "searchPlaceholder": "Search partners...",
+    "stats": {
+      "protocols": "Integrated Protocols",
+      "title": "Platform Statistics",
+      "totalValue": "Total Value Locked",
+      "transactions": "Total Transactions",
+      "users": "Active Users"
+    },
+    "subtitle": "Explore Web3 DApps and Services",
+    "title": "Discover",
     "trending": "Trending"
   },
-  "welcome": {
-    "title": "Welcome to Beehive Community",
-    "subtitle": "Activate your Level 1 membership by claiming your ERC-5115 NFT",
-    "description": "Complete your membership by purchasing your Level 1 Warrior NFT. This unlocks all platform features and starts your Web3 journey!",
-    "checkingMembership": "Checking membership status...",
-    "checkingChain": "Checking on-chain NFT status...",
-    "referredBy": "Referred by",
-    "matrixPlacement": "You'll be placed in their 3×3 matrix system",
-    "matrixPlacementInfo": "💡 Matrix Placement: You'll be automatically placed in the first available slot in your referrer's matrix tree, following the 3×3 structure (Layer 1→2→3...). This determines your position for earning layer rewards.",
-    "instructions": {
-      "step1": "🎯 Connect your wallet and claim your NFT to activate Level 1 membership",
-      "step2": "⚡ This will enable access to the 3x3 referral matrix and BCC reward system"
+  "education": {
+    "allLevels": "All Levels",
+    "buttons": {
+      "claimFree": "Claim Free Course",
+      "completed": "Completed",
+      "continue": "Continue",
+      "enrollNow": "Enroll Now",
+      "enrolled": "Enrolled",
+      "getAccess": "Get Access",
+      "levelRequired": "Level Required",
+      "purchaseCourse": "Purchase Course",
+      "startLearning": "Start Learning",
+      "viewDetails": "View Details"
     },
-    "referralRequired": {
-      "title": "Referral Link Required",
-      "description": "You need a valid referral link to access Beehive Community. Please ask an existing member to share their referral link with you.",
-      "example": "💡 Referral links look like:",
-      "howToGet": "Existing members can generate referral links from their dashboard."
+    "completed": "Completed",
+    "continue": "Continue Learning",
+    "courseDetails": {
+      "courseContent": "Course Content",
+      "curriculum": "Curriculum",
+      "instructor": "Instructor",
+      "joinLink": "Join Meeting",
+      "lessons": "Lessons",
+      "meetingId": "Meeting ID",
+      "overview": "Course Overview",
+      "password": "Password",
+      "requirements": "Requirements",
+      "whatYouLearn": "What You'll Learn",
+      "zoomDetails": "Zoom Meeting Details"
     },
-    "referral": {
-      "rewards": "Referral Rewards: Earn 100% rewards on each level when NFTs are purchased in your network"
+    "courseType": {
+      "online": "Live Online",
+      "video": "Self-Paced Video"
     },
-    "button": {
-      "unlock": "Unlock Membership Benefits - 130 USDT"
-    },
-    "nft": {
-      "title": "Level 1 Warrior NFT",
-      "description": "Your membership credential on the blockchain",
-      "tokenId": "Token ID: 1",
-      "price": "Price",
-      "priceAmount": "130 USDT"
-    },
-    "benefits": {
-      "title": "What You'll Unlock:",
-      "dashboard": "Full Dashboard Access",
-      "tasks": "Tasks & NFT Marketplace",
-      "education": "Education Center",
-      "discover": "Discover Web3 DApps",
-      "tokens": "BCC Token Rewards",
-      "hiveworld": "HiveWorld Matrix System"
-    },
-    "premium": {
-      "title": "💎 Premium Membership",
-      "description": "Purchase your Level 1 Warrior NFT for 130 USDT with multi-chain payment support!"
-    },
-    "success": {
-      "title": "Purchase Successful!",
-      "description": "Your Level 1 membership has been activated. Welcome to Beehive!"
-    },
-    "error": {
-      "title": "Purchase Failed",
-      "description": "There was an error with your purchase. Please try again."
-    },
-    "supportText": "Secure payments across multiple blockchains with instant NFT delivery"
-  },
-  "tokenPurchase": {
-    "title": "Purchase Tokens",
-    "description": "Buy BCC and CTH tokens at 1 token = 0.01 USDT across multiple chains",
-    "testnet": {
-      "warning": "Testnet Notice: Universal Bridge does not support testnets at this time.",
-      "note": "For testing purposes, payments may be simulated. Real payments require mainnet deployment."
-    },
-    "connectWallet": {
-      "title": "Connect Your Wallet",
-      "description": "Connect your wallet to purchase BCC and CTH tokens"
-    },
-    "form": {
-      "tokenType": "Token Type",
-      "paymentChain": "Payment Chain",
-      "tokenAmount": "Token Amount",
-      "enterAmount": "Enter token amount",
-      "totalCost": "Total Cost: ${amount} USDT"
-    },
-    "tokens": {
-      "bcc": {
-        "name": "BCC (Beehive Crypto Coin)",
-        "title": "BCC Token",
-        "description": "Transferable utility token for marketplace purchases and rewards",
-        "uses": {
-          "marketplace": "Use in NFT Marketplace",
-          "education": "Education Course Access", 
-          "advertisement": "Advertisement NFTs"
-        }
+    "duration": "Duration",
+    "enroll": {
+      "error": {
+        "description": "Unable to enroll in course. Please try again.",
+        "title": "Enrollment Failed"
       },
-      "cth": {
-        "name": "CTH (Centauri Honey)",
-        "title": "CTH Token", 
-        "description": "Native gas token for Alpha Centauri chain transactions",
-        "uses": {
-          "gas": "Network Gas Fees",
-          "operations": "Chain Operations",
-          "transactions": "Transaction Costs"
-        }
+      "success": {
+        "description": "You now have access to this course.",
+        "title": "Enrollment Successful!"
       }
     },
-    "buttons": {
-      "creating": "Creating Purchase...",
-      "purchase": "Purchase {amount} {token} Tokens",
-      "cancelPayment": "Cancel Payment"
+    "enrolling": "Enrolling...",
+    "errors": {
+      "accessDenied": "Access denied - insufficient level or BCC",
+      "courseNotFound": "Course not found",
+      "loadingError": "Failed to load course data",
+      "networkError": "Network error - please try again"
     },
-    "payment": {
-      "title": "Complete Your Payment",
-      "description": "Pay ${amount} USDT to receive {tokenAmount} {tokenType} tokens"
+    "filterByLevel": "Filter by Level",
+    "filters": {
+      "allCategories": "All Categories",
+      "allCourses": "All Courses",
+      "allLevels": "All Levels",
+      "allTypes": "All Types",
+      "category": "Category",
+      "freeCourses": "Free Courses",
+      "level": "Level",
+      "onlineZoom": "Online (Zoom)",
+      "paidBCC": "Paid (BCC)",
+      "payment": "Payment",
+      "type": "Type",
+      "videoLessons": "Video Lessons"
     },
-    "balances": {
-      "title": "Your Token Balances",
-      "bccTotal": "BCC Total:",
-      "transferable": "Transferable:",
-      "restricted": "Restricted:",
-      "cthBalance": "CTH Balance:",
-      "noBalances": "No balances found"
+    "free": "Free",
+    "insufficientBCC": "Insufficient BCC",
+    "insufficientBalance": "Insufficient Balance",
+    "insufficientBalanceDesc": "You don't have enough BCC to purchase this course",
+    "lessons": {
+      "completed": "Completed",
+      "free": "Free",
+      "lesson": "Lesson",
+      "locked": "Locked",
+      "progress": "Progress: {percent}%",
+      "unlock": "Unlock Lesson",
+      "unlocking": "Unlocking...",
+      "watch": "Watch Lesson"
     },
-    "history": {
-      "title": "Recent Purchases",
-      "noPurchases": "No purchases yet"
+    "level": "Level",
+    "levelRequired": "Level Required",
+    "levelRequiredDesc": "This course requires a higher membership level",
+    "noCourses": "No courses available",
+    "progress": {
+      "completed": "Completed",
+      "coursesCompleted": "Courses Completed",
+      "hours": "Hours",
+      "hoursLearned": "Hours Learned",
+      "inProgress": "In Progress",
+      "label": "Progress",
+      "subtitle": "Track your educational journey",
+      "title": "Learning Progress"
     },
-    "messages": {
-      "purchaseCreated": "Purchase Created",
-      "readyToPurchase": "Ready to purchase {amount} {token} tokens",
-      "error": "Error",
-      "createFailed": "Failed to create purchase",
-      "tokensAirdropped": "Tokens Airdropped! 🪂",
-      "tokensAdded": "{amount} {token} tokens have been added to your wallet",
-      "confirmFailed": "Failed to confirm purchase",
-      "walletNotConnected": "Wallet Not Connected",
-      "connectToPurchase": "Please connect your wallet to purchase tokens",
-      "invalidAmount": "Invalid Amount",
-      "enterValidAmount": "Please enter a valid token amount"
+    "purchase": "Purchase Course",
+    "purchaseError": "Purchase Failed",
+    "purchaseErrorDesc": "Failed to purchase course. Please try again.",
+    "purchaseSuccess": "Purchase Successful",
+    "purchaseSuccessDesc": "Course has been added to your library",
+    "search": {
+      "placeholder": "Search courses, topics, or instructors..."
+    },
+    "searchPlaceholder": "Search courses...",
+    "startFree": "Start Course",
+    "status": {
+      "available": "Available",
+      "clickToView": "Click to view details and enroll",
+      "enrolled": "Enrolled",
+      "requiresBCC": "Requires {amount} BCC",
+      "requiresUpgrade": "Requires Level {level}"
+    },
+    "subtitle": "Learn blockchain, DeFi, and Web3 technologies",
+    "title": "Education Center"
+  },
+  "error": {
+    "generic": "An error occurred",
+    "loadData": "Failed to load data",
+    "loadMembershipLevels": "Failed to load membership levels",
+    "tryRefresh": "Please try refreshing the page"
+  },
+  "errors": {
+    "failedToBurn": "Failed to burn NFT",
+    "failedToClaim": "Failed to claim NFT",
+    "failedToFetch": "Failed to fetch NFTs",
+    "inactive": "Inactive",
+    "insufficientBcc": "Insufficient BCC",
+    "maxLevel": "Max Level",
+    "walletNotConnected": "Wallet not connected"
+  },
+  "footer": {
+    "contact": "Contact Us",
+    "cookies": "Cookie Policy",
+    "copyright": "© 2024 Beehive. All rights reserved.",
+    "description": "Web3 membership and learning platform with blockchain-based rewards.",
+    "documentation": "Documentation",
+    "helpCenter": "Help Center",
+    "legal": "Legal",
+    "platform": "Platform",
+    "privacy": "Privacy Policy",
+    "status": "Status",
+    "support": "Support",
+    "terms": "Terms of Service"
+  },
+  "header": {
+    "connectWallet": "Connect Wallet"
+  },
+  "hiveworld": {
+    "blog": {
+      "allTopics": "All Topics",
+      "noArticles": "No articles found",
+      "noArticlesDesc": "Try adjusting your search terms or browse different topics",
+      "posts": {
+        "1": {
+          "author": "Beehive Team",
+          "excerpt": "Exploring how blockchain technology is revolutionizing membership and loyalty programs across industries.",
+          "title": "The Future of Web3 Membership Systems"
+        },
+        "2": {
+          "author": "Technical Team",
+          "excerpt": "How NFTs are being used to gate content and create exclusive community experiences.",
+          "title": "Understanding NFT-Based Access Control"
+        },
+        "3": {
+          "author": "Strategy Team",
+          "excerpt": "The mechanics behind successful referral programs and how they create lasting value.",
+          "title": "Building Sustainable Referral Economies"
+        },
+        "4": {
+          "author": "Dev Team",
+          "excerpt": "Technical deep-dive into implementing cross-chain payment solutions for dApps.",
+          "title": "Multi-Chain Payment Integration Guide"
+        },
+        "5": {
+          "author": "Community Team",
+          "excerpt": "Best practices for implementing fair and effective governance systems in Web3 communities.",
+          "title": "Community Governance in Decentralized Platforms"
+        }
+      },
+      "searchPlaceholder": "Search articles...",
+      "subtitle": "Stay informed with the latest insights on Web3, blockchain technology, and decentralized ecosystems",
+      "tags": {
+        "Access Control": "Access Control",
+        "Blockchain": "Blockchain",
+        "Community": "Community",
+        "DAO": "DAO",
+        "Development": "Development",
+        "Economics": "Economics",
+        "Governance": "Governance",
+        "Membership": "Membership",
+        "Multi-chain": "Multi-chain",
+        "NFT": "NFT",
+        "Payments": "Payments",
+        "Referrals": "Referrals",
+        "Strategy": "Strategy",
+        "Technology": "Technology",
+        "Web3": "Web3"
+      },
+      "title": "HiveWorld Knowledge Center"
+    },
+    "matrix": {
+      "activeDirect": "Active Direct",
+      "activeIndirect": "Active Indirect",
+      "availableSlot": "Available Slot",
+      "title": "Your 3×3 Matrix",
+      "you": "YOU"
+    },
+    "noPosts": "No articles found",
+    "readMore": "Read More",
+    "referralLink": {
+      "copy": "Copy",
+      "title": "Your Referral Link"
+    },
+    "rewardHistory": {
+      "directBonus": "Direct Referral Bonus",
+      "title": "Reward History"
+    },
+    "searchPlaceholder": "Search articles...",
+    "stats": {
+      "directReferrals": "Direct Referrals",
+      "pending": "Pending",
+      "totalEarned": "Total Earned",
+      "totalTeam": "Total Team"
+    },
+    "subtitle": "Discover insights, tutorials, and the latest news from the Beehive ecosystem",
+    "title": "HiveWorld - Your Matrix"
+  },
+  "landing": {
+    "cta": {
+      "button": "Join Beehive Now",
+      "description": "Join thousands of members already earning in the Beehive ecosystem",
+      "title": "Ready to Start Your Journey?"
+    },
+    "ctaStats": {
+      "earningPotential": "Earning Potential",
+      "matrixSystem": "Matrix System",
+      "membershipLevels": "Membership Levels"
+    },
+    "features": {
+      "education": {
+        "description": "Access premium courses and workshops while earning tokens",
+        "title": "Learn & Earn"
+      },
+      "marketplace": {
+        "description": "Claim exclusive merchant NFTs with your BCC tokens",
+        "title": "NFT Marketplace"
+      },
+      "membership": {
+        "description": "Secure on-chain membership credentials with 19 levels",
+        "title": "Web3 Membership"
+      },
+      "referral": {
+        "description": "Earn rewards through our forced matrix referral program",
+        "title": "3×3 Matrix System"
+      },
+      "rewards": {
+        "description": "48-hour upgrade countdown with roll-up mechanisms",
+        "title": "Smart Rewards"
+      },
+      "tokens": {
+        "description": "Dual token system with transferable and restricted buckets",
+        "title": "BCC Rewards"
+      }
+    },
+    "getStarted": "Get Started",
+    "hero": {
+      "subtitle": "Web3 membership and learning platform with blockchain-based rewards",
+      "title": "Welcome to Beehive"
+    },
+    "howItWorks": {
+      "step1": {
+        "description": "Connect your Web3 wallet to get started",
+        "title": "Connect Wallet"
+      },
+      "step2": {
+        "description": "Complete registration and activate Level 1 membership",
+        "title": "Register & Activate"
+      },
+      "step3": {
+        "description": "Access platform features and start earning rewards",
+        "title": "Learn & Earn"
+      },
+      "subtitle": "Get started in just three simple steps and unlock the power of Web3 membership",
+      "title": "How It Works"
+    },
+    "matrix": {
+      "explainButton": "Matrix Explained",
+      "explainDescription": "Discover how our matrix system works and how you can earn rewards",
+      "explainTitle": "Learn the 3×3 Matrix"
+    },
+    "platformFeatures": {
+      "autoPlacement": "Auto-placement System",
+      "countdown": "48hr Countdown",
+      "dualTokenSystem": "Dual Token System",
+      "exclusiveCollections": "Exclusive Collections",
+      "exclusiveLevels": "19 Exclusive Levels",
+      "premiumCourses": "Premium Courses",
+      "subtitle": "Discover the powerful features that make Beehive the ultimate Web3 membership platform",
+      "title": "Platform Features"
+    },
+    "stats": {
+      "matrixSystem": "3×3 Matrix System",
+      "membershipLevels": "19 Membership Levels",
+      "nftMarketplace": "NFT Marketplace"
     }
+  },
+  "loading": {
+    "data": "Loading data...",
+    "membershipLevels": "Loading membership levels...",
+    "please_wait": "Please wait...",
+    "processing": "Processing..."
+  },
+  "me": {
+    "balances": {
+      "bccRestricted": "Beehive Crypto Coin (Restricted)",
+      "bccTransferable": "Beehive Crypto Coin (Transferable)",
+      "cth": "Centauri Honey (CTH)",
+      "usdt": "USDT Balance"
+    },
+    "directReferrals": "Direct Referrals",
+    "editProfile": "Edit Profile",
+    "indirectReferrals": "Team Referrals",
+    "learning": {
+      "certificates": "Certificates Earned",
+      "coursesCompleted": "Courses Completed",
+      "studyHours": "Study Hours",
+      "title": "Learning Progress"
+    },
+    "noReferralData": "No referral data available",
+    "referral": {
+      "directReferrals": "Direct Referrals",
+      "thisMonth": "This Month",
+      "title": "Referral Performance",
+      "totalEarnings": "Total Earnings",
+      "totalTeamSize": "Total Team Size"
+    },
+    "referralStats": "Referral Statistics",
+    "referrals": "Referrals",
+    "rewards": "Rewards",
+    "settings": {
+      "changePassword": "Change Password",
+      "deactivateAccount": "Deactivate Account",
+      "disabled": "Disabled",
+      "enable2FA": "Enable 2FA",
+      "enabled": "Enabled",
+      "language": "Language",
+      "languageDescription": "Choose your preferred language",
+      "notifications": "Email Notifications",
+      "notificationsDescription": "Receive updates about rewards and activities",
+      "title": "Account Settings",
+      "twoFactor": "Two-Factor Authentication",
+      "twoFactorDescription": "Add extra security to your account"
+    },
+    "status": {
+      "active": "Active",
+      "memberSince": "Member since"
+    },
+    "subtitle": "View your stats, balances, and account details",
+    "title": "Profile & Settings",
+    "totalEarnings": "Total Earnings",
+    "totalReferrals": "Total Referrals"
+  },
+  "membership": {
+    "claiming": {
+      "processing": "Processing claim for ${price}...",
+      "started": "Claiming Level {level}",
+      "success": "Level {level} Claimed!",
+      "successDescription": "Successfully claimed Level {level} membership for ${price}"
+    },
+    "currentLevel": "Current Level",
+    "directReferralRequirement": "Direct Referral Requirement",
+    "directReferrals": "Direct Referrals",
+    "directRegisterTip": "💡 Direct register means users who registered using your referral link",
+    "errors": {
+      "alreadyOwned": "You already own Level {level}",
+      "checkReferralError": "Referral Check Error",
+      "claimFailed": "Claim Failed for Level {level}",
+      "connectWallet": "Please connect your wallet to continue",
+      "level2Requirements": "Level 2 requires 3+ direct referrals",
+      "levelLocked": "Level Locked",
+      "missingPrerequisites": "Missing required prerequisites",
+      "previousLevelRequired": "You must own Level {level} before upgrading to Level {nextLevel}",
+      "sequentialUpgrade": "You must upgrade to Level {nextLevel} first",
+      "verificationFailed": "Failed to verify referral requirements",
+      "walletRequired": "Wallet Required"
+    },
+    "exclusiveBenefits": "Exclusive Benefits",
+    "featured": "Featured",
+    "level2Requirements": {
+      "howTo": "Share your referral link to invite more users and unlock Level 2",
+      "needLevel1": "You need Level 1 membership first",
+      "needLevel1AndReferrals": "Level 1 + 3+ Direct Referrals Required",
+      "tip": "Direct referrals are users who registered using your referral link",
+      "title": "Level 2 Requirements"
+    },
+    "notUnlocked": "Not Unlocked",
+    "processing": "Processing...",
+    "progressInfo": {
+      "benefits": "Exclusive benefits and perks",
+      "description": "Unlock higher levels step by step",
+      "rewards": "Matrix rewards at each level",
+      "sequential": "Sequential upgrades required",
+      "title": "Membership Progress"
+    },
+    "purchaseSuccess": "Purchase Successful",
+    "qualifiedStatus": "✅ Qualified: {count} referrals (Excess: {excess})",
+    "rewards": {
+      "distributed": "Rewards Distributed",
+      "distributionIssue": "Rewards may be delayed, but your membership is active",
+      "distributionResult": "{claimableCount} claimable, {pendingCount} pending rewards created",
+      "distributionWarning": "Reward Distribution Issue"
+    },
+    "status": {
+      "available": "Available",
+      "locked": "Locked",
+      "owned": "Owned"
+    },
+    "statusNotQualified": "❌ Not Qualified: {count}/{needed} referrals needed",
+    "subtitle": "Unlock higher levels and exclusive benefits",
+    "title": "Membership Levels",
+    "unlockNow": "Unlock Now ${price}"
+  },
+  "membershipSystem": {
+    "activation": {
+      "confirm": {
+        "email": "Email",
+        "level1": "Level 1",
+        "network": "Network",
+        "nftLevel": "NFT Level",
+        "referrer": "Referrer",
+        "summaryTitle": "Activation Summary",
+        "username": "Username"
+      },
+      "description": "Join the community and start earning rewards",
+      "errors": {
+        "activationFailed": "Activation failed",
+        "fillRequiredFields": "Please fill in all required fields",
+        "loadStatusFailed": "Failed to load activation status",
+        "transactionHashRequired": "Please provide transaction hash for blockchain activation",
+        "tryAgain": "Activation failed. Please try again."
+      },
+      "form": {
+        "activateMembership": "Activate Membership",
+        "activating": "Activating...",
+        "back": "Back",
+        "continueToConfirmation": "Continue to Confirmation",
+        "continueToPayment": "Continue to Payment",
+        "email": "Email *",
+        "emailPlaceholder": "Enter your email",
+        "referrer": "Referrer Wallet (Optional)",
+        "referrerPlaceholder": "0x... (if you have a referrer)",
+        "username": "Username *",
+        "usernamePlaceholder": "Enter your username"
+      },
+      "payment": {
+        "activationFee": "• 30 USDC activation fee",
+        "cost": "Membership Cost: 130 USDC",
+        "networkLabel": "Select Network",
+        "networks": {
+          "mainnet": "Mainnet",
+          "simulation": "Simulation",
+          "testnet": "Testnet"
+        },
+        "nftCost": "• 100 USDC for Level 1 NFT",
+        "transactionHashHelper": "Complete the NFT purchase first, then paste the transaction hash",
+        "transactionHashLabel": "Transaction Hash *",
+        "transactionHashPlaceholder": "0x... (transaction hash of NFT purchase)"
+      },
+      "steps": {
+        "complete": "Complete",
+        "confirm": "Confirm",
+        "details": "Details",
+        "payment": "Payment"
+      },
+      "success": {
+        "activated": "Membership activated successfully!",
+        "continueToDashboard": "Continue to Dashboard",
+        "welcomeDescription": "Your membership has been activated successfully. You can now access all member features.",
+        "welcomeTitle": "Welcome to the Community!"
+      },
+      "title": "Activate Your Membership"
+    },
+    "matrix": {
+      "connectDescription": "Connect your wallet to view the referral matrix",
+      "controls": {
+        "gridView": "Grid",
+        "reset": "Reset",
+        "treeView": "Tree",
+        "viewLayer": "View Layer:",
+        "zoomIn": "Zoom In",
+        "zoomOut": "Zoom Out"
+      },
+      "errors": {
+        "copyFailed": "Failed to copy link",
+        "loadFailed": "Failed to load matrix data"
+      },
+      "layerFillStatus": "Layer Fill Status",
+      "quickStats": {
+        "activeLayers": "Active Layers:",
+        "layersCount": "{{count}} Layers",
+        "matrixDepth": "Matrix Depth:",
+        "title": "Quick Stats",
+        "totalMembers": "Total Members:",
+        "yourDirectRefs": "Your Direct Refs:"
+      },
+      "referralLink": {
+        "copy": "Copy",
+        "share": "Share Link",
+        "title": "Your Referral Link"
+      },
+      "share": {
+        "text": "Join me in this amazing community and start earning rewards!",
+        "title": "Join the Community"
+      },
+      "stats": {
+        "directRefs": "Direct Refs",
+        "matrixDepth": "Matrix Depth",
+        "totalMembers": "{{count}} Members",
+        "yourPosition": "You're in Layer {{layer}}, Position {{position}}"
+      },
+      "success": {
+        "linkCopied": "Referral link copied to clipboard!"
+      },
+      "title": "Referral Matrix",
+      "ui": {
+        "showAllLayers": "แสดงทั้ง 19 ชั้น",
+        "showLess": "แสดงน้อยลง",
+        "unknown": "ไม่ทราบ"
+      },
+      "visualization": {
+        "active": "Active",
+        "available": "Available",
+        "inactive": "Inactive",
+        "layerNumber": "Layer {{layer}}",
+        "layerRoot": "Root",
+        "member": "Member",
+        "you": "You"
+      }
+    },
+    "rewards": {
+      "actions": {
+        "claim": "Claim"
+      },
+      "errors": {
+        "claimFailed": "Failed to claim reward"
+      },
+      "levelProgress": {
+        "completeRequirements": "Complete requirements to unlock Level {{level}}",
+        "readyToUpgrade": "Ready to upgrade to Level {{level}}!",
+        "title": "Level Progress"
+      },
+      "pendingTitle": "Pending Rewards ({{count}})",
+      "quickActions": {
+        "claimRewards": "Claim {{count}} Rewards",
+        "title": "Quick Actions",
+        "upgrade": "Upgrade to Level {{level}}",
+        "withdraw": "Quick Withdraw $100 USDC"
+      },
+      "rewardDescription": "Level {{level}} Reward • {{hours}}h remaining",
+      "status": {
+        "claimable": "Claimable",
+        "pending": "Pending"
+      },
+      "success": {
+        "claimed": "Successfully claimed {{amount}} USDC!"
+      }
+    },
+    "upgrade": {
+      "bccUnlock": "BCC Unlock",
+      "buttons": {
+        "upgrade": "Upgrade to Level {{level}}",
+        "upgrading": "Upgrading..."
+      },
+      "cost": "Upgrade Cost",
+      "maxLevel": {
+        "description": "Congratulations on reaching Level {{level}}!",
+        "title": "Maximum Level Reached!"
+      },
+      "requirements": {
+        "directReferrals": "Direct Referrals: {{current}}/{{required}} required",
+        "notMet": "Requirements Not Met"
+      },
+      "title": "Level Upgrade"
+    },
+    "wallet": {
+      "connectDescription": "Please connect your wallet to access the membership system",
+      "connectTitle": "Connect Your Wallet"
+    },
+    "withdrawal": {
+      "dailyLimit": "Daily Limit",
+      "monthlyLimit": "Monthly Limit",
+      "remaining": "Remaining:",
+      "title": "Withdrawal Limits",
+      "used": "Used:"
+    }
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "discover": "Discover",
+    "education": "Education",
+    "hiveworld": "HiveWorld",
+    "home": "Home",
+    "marketplace": "Marketplace",
+    "me": "Me",
+    "membership": "Membership",
+    "nfts": "NFTs",
+    "referrals": "Referrals",
+    "rewards": "Rewards",
+    "tasks": "Tasks"
   },
   "nft": {
     "claimError": "Claim Failed",
@@ -1262,7 +1138,7 @@
     "claimSuccess": "NFT Claimed Successfully",
     "claimSuccessDesc": "Your NFT has been claimed and added to your collection",
     "confirmAndClaim": "Confirm & Claim",
-    "confirmClaim": "Confirm NFT Claim", 
+    "confirmClaim": "Confirm NFT Claim",
     "confirmClaimDesc": "You are about to claim this exclusive NFT. This action cannot be undone.",
     "connectWallet": "Connect Wallet",
     "connectWalletDesc": "Please connect your wallet to claim NFTs",
@@ -1274,1095 +1150,716 @@
     "yourBalance": "Your Balance"
   },
   "nftCenter": {
-    "title": "NFT Center",
-    "description": "Manage your Advertisement NFTs, view locked BCC amounts, and activate promotional services",
     "backToTasks": "Back to Tasks",
-    "noNfts": {
-      "title": "No NFTs Found",
-      "description": "You don't have any Advertisement NFTs yet",
-      "browseButton": "Browse Advertisement NFTs"
-    },
+    "description": "Manage your Advertisement NFTs, view locked BCC amounts, and activate promotional services",
     "dialog": {
       "title": "Advertisement NFT Details and Service Management"
-    }
+    },
+    "noNfts": {
+      "browseButton": "Browse Advertisement NFTs",
+      "description": "You don't have any Advertisement NFTs yet",
+      "title": "No NFTs Found"
+    },
+    "title": "NFT Center"
   },
-  "userProfile": {
-    "username": "Username",
-    "level": "Level", 
-    "userCenter": "User Center",
-    "center": "Center"
-  },
-  "rewardHistory": {
-    "upgradeReward": "Upgrade Reward (Pending)",
-    "rollupReward": "Roll-up Reward",
-    "completed": "Completed",
-    "expired": "Expired",
-    "noRewards": "No reward history yet",
-    "linkCopied": {
-      "title": "Link Copied!",
-      "description": "Your referral link has been copied to clipboard."
-    }
-  },
-  "me": {
-    "title": "Profile & Settings", 
-    "directReferrals": "Direct Referrals",
-    "editProfile": "Edit Profile",
-    "indirectReferrals": "Team Referrals",
-    "noReferralData": "No referral data available",
-    "referrals": "Referrals",
-    "referralStats": "Referral Statistics", 
-    "rewards": "Rewards",
-    "subtitle": "View your stats, balances, and account details",
-    "totalEarnings": "Total Earnings",
-    "totalReferrals": "Total Referrals",
-    "status": {
-      "active": "Active",
-      "memberSince": "Member since"
+  "notifications": {
+    "actionRequired": "Action Required",
+    "actions": {
+      "archive": "Archive",
+      "markAllAsRead": "Mark All as Read",
+      "markAsRead": "Mark as Read",
+      "takeAction": "Take Action",
+      "viewDetails": "View Details"
     },
-    "balances": {
-      "usdt": "USDT Balance",
-      "bccTransferable": "Beehive Crypto Coin (Transferable)",
-      "bccRestricted": "Beehive Crypto Coin (Restricted)",
-      "cth": "Centauri Honey (CTH)"
+    "additionalInfo": "Additional Information",
+    "amount": "Amount",
+    "archived": "Archived",
+    "created": "Created",
+    "delete": "Delete",
+    "emailSent": "Email sent",
+    "empty": {
+      "action": "No actions required",
+      "all": "No notifications to display",
+      "archived": "No archived notifications",
+      "unread": "No unread notifications",
+      "urgent": "No urgent notifications"
     },
-    "learning": {
-      "title": "Learning Progress",
-      "coursesCompleted": "Courses Completed",
-      "studyHours": "Study Hours",
-      "certificates": "Certificates Earned"
-    },
-    "referral": {
-      "title": "Referral Performance",
-      "directReferrals": "Direct Referrals",
-      "totalTeamSize": "Total Team Size",
-      "totalEarnings": "Total Earnings",
-      "thisMonth": "This Month"
-    },
-    "settings": {
-      "title": "Account Settings",
-      "language": "Language",
-      "languageDescription": "Choose your preferred language",
-      "notifications": "Email Notifications",
-      "notificationsDescription": "Receive updates about rewards and activities",
-      "twoFactor": "Two-Factor Authentication",
-      "twoFactorDescription": "Add extra security to your account",
-      "enabled": "Enabled",
-      "disabled": "Disabled",
-      "enable2FA": "Enable 2FA",
-      "changePassword": "Change Password",
-      "deactivateAccount": "Deactivate Account"
-    }
-  },
-  "membership": {
-    "levels": {
-      "title": "Membership Levels",
-      "subtitle": "Choose your level and unlock exclusive benefits", 
-      "currentLevel": "Current Level",
-      "priceUSDT": "USDT",
-      "benefits": "Key Benefits",
-      "owned": "Owned",
-      "selected": "Selected",
-      "activated": "Activated", 
-      "higherLevelOwned": "Higher Level Active",
-      "selectionInfo": "Click the purchase button to acquire this membership level"
-    },
-    "purchase": {
-      "activationSuccess": "Membership activated successfully!",
-      "nftActivationFailed": "NFT activation failed. Please try again.",
-      "walletNotConnected": "Please connect your wallet first",
-      "button": "Purchase Level {level} (${price} USDT)",
-      "approving": "Approving USDT...",
-      "preparing": "Preparing Payment...",
-      "paying": "Processing Payment...",
-      "verifying": "Verifying Transaction...",
-      "finalizing": "Finalizing Purchase...",
-      "completed": "Purchase Complete!",
-      "retry": "Retry Purchase",
-      "connectWallet": "Connect Wallet to Purchase",
-      "selectChain": "Select Payment Chain",
-      "selectChainDescription": "Choose which blockchain to pay USDT on for your Level {level} membership",
-      "payWithGas": "Pay with USDT • Gas in {symbol}",
-      "success": {
-        "title": "Membership Purchased!",
-        "description": "Your membership has been successfully activated."
-      },
-      "error": {
-        "title": "Purchase Failed",
-        "description": "There was an error processing your purchase. Please try again."
-      }
-    },
-    "levels": {
-      "title": "Membership Levels",
-      "subtitle": "Choose your level and unlock exclusive benefits",
-      "currentLevel": "Current Level",
-      "priceUSDT": "USDT",
-      "benefits": "Key Benefits",
-      "owned": "Owned",
-      "selected": "Selected",
-      "activated": "Activated",
-      "higherLevelOwned": "Higher Level Active",
-      "selectionInfo": "Click the purchase button to acquire this membership level"
-    },
-    "level": {
-      "1": {
-        "title": "Warrior",
-        "subtitle": "Warrior • Begin your ascent • $130 USDT"
-      },
-      "2": {
-        "title": "Bronze",
-        "subtitle": "Bronze • Proven dedication • $130 USDT"
-      },
-      "3": {
-        "title": "Silver",
-        "subtitle": "Silver • Rising star • $160 USDT"
-      },
-      "4": {
-        "title": "Gold",
-        "subtitle": "Gold • Elite status • $240 USDT"
-      },
-      "5": {
-        "title": "Platinum",
-        "subtitle": "Platinum • Distinguished member • $400 USDT"
-      },
-      "6": {
-        "title": "Diamond",
-        "subtitle": "Diamond • Prestigious rank • $720 USDT"
-      },
-      "7": {
-        "title": "Master",
-        "subtitle": "Master • Skilled practitioner • $1,360 USDT"
-      },
-      "8": {
-        "title": "Grandmaster",
-        "subtitle": "Grandmaster • Supreme mastery • $2,640 USDT"
-      },
-      "9": {
-        "title": "Elite",
-        "subtitle": "Elite • Exceptional excellence • $5,200 USDT"
-      },
-      "10": {
-        "title": "Supreme",
-        "subtitle": "Supreme • Radiant achievement • $10,320 USDT"
-      },
-      "11": {
-        "title": "Legendary",
-        "subtitle": "Legendary • Mythical power • $20,560 USDT"
-      },
-      "12": {
-        "title": "Mythical",
-        "subtitle": "Mythical • Ancient wisdom • $41,040 USDT"
-      },
-      "13": {
-        "title": "Immortal",
-        "subtitle": "Immortal • Eternal existence • $82,000 USDT"
-      },
-      "14": {
-        "title": "Celestial",
-        "subtitle": "Celestial • Divine ascension • $163,920 USDT"
-      },
-      "15": {
-        "title": "Transcendent",
-        "subtitle": "Transcendent • Beyond mortal realm • $327,760 USDT"
-      },
-      "16": {
-        "title": "Divine",
-        "subtitle": "Divine • Godlike power • $655,440 USDT"
-      },
-      "17": {
-        "title": "Cosmic",
-        "subtitle": "Cosmic • Universal force • $1,310,800 USDT"
-      },
-      "18": {
-        "title": "Universal",
-        "subtitle": "Universal • Infinite mastery • $2,621,520 USDT"
-      },
-      "19": {
-        "title": "Mythic Peak",
-        "subtitle": "Mythic Peak • Ultimate pinnacle • $1,000,000 USDT"
-      }
-    },
-    "benefits": {
-      "l1": {
-        "basic": "Basic platform access",
-        "education": "Educational content access",
-        "rewards": "Referral rewards eligibility"
-      },
-      "l2": {
-        "enhanced": "Enhanced rewards multiplier",
-        "bonus": "Level 2 bonus features",
-        "network": "Extended network access"
-      },
-      "l3": {
-        "advanced": "Advanced trading tools",
-        "exclusive": "Exclusive member events",
-        "priority": "Priority customer support"
-      },
-      "l4": {
-        "premium": "Premium content library",
-        "mentorship": "Mentorship opportunities",
-        "tools": "Professional trading tools"
-      },
-      "l5": {
-        "elite": "Elite member status",
-        "leadership": "Leadership development",
-        "insights": "Market insights access"
-      },
-      "l6": {
-        "mastery": "Mastery-level resources",
-        "networking": "VIP networking events",
-        "rewards": "Enhanced reward rates"
-      },
-      "l7": {
-        "expert": "Expert-level certification",
-        "community": "Private community access",
-        "alpha": "Alpha investment opportunities"
-      },
-      "l8": {
-        "legendary": "Legendary status perks",
-        "influence": "Platform influence voting",
-        "opportunities": "Exclusive opportunities"
-      },
-      "l9": {
-        "mastery": "Complete system mastery",
-        "inner_circle": "Inner circle membership",
-        "exclusive": "Ultra-exclusive benefits"
-      },
-      "l10": {
-        "grandmaster": "Grandmaster recognition",
-        "authority": "Platform authority role",
-        "legacy": "Legacy program access"
-      },
-      "l11": {
-        "wisdom": "Wisdom council member",
-        "cosmic": "Cosmic-level rewards",
-        "transcendent": "Transcendent benefits"
-      },
-      "l12": {
-        "oracle": "Oracle advisory role",
-        "foresight": "Market foresight tools",
-        "divine": "Divine tier privileges"
-      },
-      "l13": {
-        "immortal": "Immortal status benefits",
-        "eternal": "Eternal reward streams",
-        "infinite": "Infinite growth potential"
-      },
-      "l14": {
-        "celestial": "Celestial tier access",
-        "heavenly": "Heavenly reward rates",
-        "ascended": "Ascended member perks"
-      },
-      "l15": {
-        "divine": "Divine authority status",
-        "godlike": "Godlike influence power",
-        "ultimate": "Ultimate platform access"
-      },
-      "l16": {
-        "supreme": "Supreme commander role",
-        "omnipotent": "Omnipotent decision power",
-        "sovereign": "Sovereign member rights"
-      },
-      "l17": {
-        "transcendent": "Transcendent existence",
-        "beyond": "Beyond normal limits",
-        "unlimited": "Unlimited possibilities"
-      },
-      "l18": {
-        "absolute": "Absolute power access",
-        "perfection": "Perfection tier benefits",
-        "apex": "Apex predator status"
-      },
-      "l19": {
-        "mythical": "Mythical legend status",
-        "peak": "Peak performance tier",
-        "legendary": "Legendary founder perks"
-      }
-    },
-    "purchase": {
-      "button": "Purchase Membership",
-      "connectWallet": "Connect Wallet to Purchase",
-      "paying": "Processing Payment...",
-      "verifying": "Verifying On-Chain...",
-      "finalizing": "Finalizing Membership...",
-      "completed": "Membership Activated!",
-      "retry": "Retry Purchase",
-      "cancel": "Cancel Payment",
-      "success": {
-        "title": "Membership Purchase Successful!",
-        "description": "Your new membership level has been activated and benefits unlocked."
-      },
-      "error": {
-        "title": "Purchase Failed",
-        "description": "Unable to complete membership purchase. Please try again."
-      }
-    }
-  },
-  "footer": {
-    "description": "Web3 membership and learning platform with blockchain-based rewards.",
-    "platform": "Platform",
-    "support": "Support",
-    "helpCenter": "Help Center",
-    "documentation": "Documentation",
-    "contact": "Contact Us",
-    "status": "Status",
-    "legal": "Legal",
-    "privacy": "Privacy Policy",
-    "terms": "Terms of Service",
-    "cookies": "Cookie Policy",
-    "copyright": "© 2024 Beehive. All rights reserved."
-  },
-  "ads": {
-    "title": "Advertisement NFTs",
-    "description": "Claim Advertisement NFTs with your BCC tokens to unlock promotional services",
-    "nftCenter": "NFT Center",
-    "manageNfts": "Manage Your NFTs",
-    "browseNfts": "Browse Advertisement NFTs",
-    "exploreServices": "Explore available promotional services and DApp partnerships",
-    "claimNft": "Claim NFT",
-    "soldOut": "Sold Out",
-    "claiming": "Claiming...",
-    "confirmClaim": "Confirm Claim",
-    "bccRequired": "BCC Required",
-    "available": "Available",
-    "cost": "Cost",
-    "bucketSelection": "Choose which BCC bucket to use for claiming this Advertisement NFT",
-    "transferableBcc": "Transferable BCC",
-    "restrictedBcc": "Restricted BCC",
-    "claim": {
-      "success": {
-        "title": "NFT Claimed Successfully!",
-        "description": "Your Advertisement NFT has been claimed and BCC tokens are locked."
-      },
-      "error": {
-        "title": "Claim Failed",
-        "description": "Failed to claim Advertisement NFT"
-      }
-    },
-    "burn": {
-      "title": "NFT Burned Successfully!",
-      "description": "Service code: {code}",
-      "error": {
-        "title": "Burn Failed",
-        "description": "Failed to burn NFT"
-      }
-    },
-    "status": {
-      "active": "ACTIVE",
-      "used": "USED",
-      "burned": "BURNED",
-      "claimed": "Ready to Use",
-      "serviceActivated": "Service Activated"
-    },
-    "nftCenter": {
-      "title": "NFT Center",
-      "description": "Manage your Advertisement NFTs, view locked BCC amounts, and activate promotional services",
-      "backToTasks": "Back to Tasks",
-      "noNfts": {
-        "title": "No NFTs Found",
-        "description": "You don't have any Advertisement NFTs yet",
-        "browse": "Browse Advertisement NFTs"
-      },
-      "useNft": "Use NFT Service",
-      "activating": "Activating...",
-      "activeCode": "Active Code",
-      "serviceStatus": "Service Status",
-      "currentStatus": "Current Status",
-      "activatedOn": "Activated On",
-      "readyToActivate": "Ready to Activate",
-      "bccLocked": "BCC Locked",
-      "bucketUsed": "Bucket Used",
-      "warning": {
-        "title": "Important",
-        "description": "Using this NFT will permanently burn both the NFT and the {amount} BCC tokens locked within it. In return, you'll receive the service code to activate your promotional service with {service}. This action cannot be undone."
-      }
-    }
-  },
-  "hiveworld": {
-    "title": "HiveWorld - Your Matrix",
-    "noPosts": "No articles found",
-    "readMore": "Read More",
-    "searchPlaceholder": "Search articles...",
-    "subtitle": "Discover insights, tutorials, and the latest news from the Beehive ecosystem",
-    "stats": {
-      "directReferrals": "Direct Referrals",
-      "totalTeam": "Total Team",
-      "pending": "Pending",
-      "totalEarned": "Total Earned"
-    },
-    "matrix": {
-      "title": "Your 3×3 Matrix",
-      "you": "YOU",
-      "activeDirect": "Active Direct",
-      "activeIndirect": "Active Indirect",
-      "availableSlot": "Available Slot"
-    },
-    "referralLink": {
-      "title": "Your Referral Link",
-      "copy": "Copy"
-    },
-    "rewardHistory": {
-      "title": "Reward History",
-      "directBonus": "Direct Referral Bonus"
-    },
-    "blog": {
-      "title": "HiveWorld Knowledge Center",
-      "subtitle": "Stay informed with the latest insights on Web3, blockchain technology, and decentralized ecosystems",
-      "searchPlaceholder": "Search articles...",
-      "allTopics": "All Topics",
-      "noArticles": "No articles found",
-      "noArticlesDesc": "Try adjusting your search terms or browse different topics",
-      "tags": {
-        "Web3": "Web3",
-        "Blockchain": "Blockchain",
-        "Membership": "Membership",
-        "NFT": "NFT",
-        "Access Control": "Access Control",
-        "Technology": "Technology",
-        "Referrals": "Referrals",
-        "Economics": "Economics",
-        "Strategy": "Strategy",
-        "Multi-chain": "Multi-chain",
-        "Payments": "Payments",
-        "Development": "Development",
-        "Governance": "Governance",
-        "Community": "Community",
-        "DAO": "DAO"
-      },
-      "posts": {
-        "1": {
-          "title": "The Future of Web3 Membership Systems",
-          "excerpt": "Exploring how blockchain technology is revolutionizing membership and loyalty programs across industries.",
-          "author": "Beehive Team"
-        },
-        "2": {
-          "title": "Understanding NFT-Based Access Control",
-          "excerpt": "How NFTs are being used to gate content and create exclusive community experiences.",
-          "author": "Technical Team"
-        },
-        "3": {
-          "title": "Building Sustainable Referral Economies",
-          "excerpt": "The mechanics behind successful referral programs and how they create lasting value.",
-          "author": "Strategy Team"
-        },
-        "4": {
-          "title": "Multi-Chain Payment Integration Guide",
-          "excerpt": "Technical deep-dive into implementing cross-chain payment solutions for dApps.",
-          "author": "Dev Team"
-        },
-        "5": {
-          "title": "Community Governance in Decentralized Platforms",
-          "excerpt": "Best practices for implementing fair and effective governance systems in Web3 communities.",
-          "author": "Community Team"
-        }
-      }
-    }
-  },
-  "blogpost": {
-    "linkCopied": {
-      "title": "Link copied!",
-      "description": "Blog post link copied to clipboard"
-    },
-    "author": "Author",
-    "publishedOn": "Published on",
-    "tags": "Tags",
-    "relatedPosts": "Related Posts",
-    "sharePost": "Share this post"
-  },
-  "activity": {
-    "rewardReceived": "Reward Received",
-    "fromReferralUpgrade": "From referral upgrade",
-    "nftClaimed": "NFT Claimed",
-    "newReferral": "New Referral",
-    "memberSince": "Member since"
-  },
-  "errors": {
-    "walletNotConnected": "Wallet not connected",
-    "failedToFetch": "Failed to fetch NFTs",
-    "failedToClaim": "Failed to claim NFT",
-    "failedToBurn": "Failed to burn NFT",
-    "insufficientBcc": "Insufficient BCC",
-    "maxLevel": "Max Level",
-    "inactive": "Inactive"
-  },
-  "buttons": {
-    "getStarted": "Get Started",
-    "connectWallet": "Connect Wallet",
-    "copied": "Copied!",
-    "close": "Close",
-    "viewInCenter": "View in NFT Center",
-    "burnForService": "Burn for Service Code",
-    "burnNft": "Burn NFT",
-    "confirmBurn": "Confirm Burn",
-    "burning": "Burning...",
-    "useNftService": "Use NFT Service",
-    "topUp": "Top Up"
-  },
-  "selectors": {
-    "category": "Category",
+    "expires": "Expires",
+    "layer": "Layer",
+    "layerValue": "Layer {layer}",
     "level": "Level",
-    "type": "Type",
-    "payment": "Payment",
-    "onlineZoom": "Online (Zoom)",
-    "videoLessons": "Video Lessons",
-    "freeCourses": "Free Courses",
-    "paidBcc": "Paid (BCC)",
-    "completed": "Completed",
-    "enrolled": "Enrolled"
-  },
-  "membership": {
-    "purchase": {
-      "button": "Unlock Membership - 130 USDT",
-      "connectWallet": "Connect Wallet to Purchase",
-      "selectChain": "Select Payment Chain",
-      "selectChainDescription": "Choose which blockchain to use for your Level {level} membership payment",
-      "payWithGas": "Pay with {symbol} for gas",
-      "approving": "Approving USDT...",
-      "preparing": "Preparing...",
-      "paying": "Processing Payment...",
-      "verifying": "Verifying Transaction...",
-      "finalizing": "Finalizing Membership...",
-      "completed": "✅ Membership Activated!",
-      "retry": "Retry Purchase",
-      "success": {
-        "title": "Membership Activated!",
-        "description": "Welcome to Beehive! Your Level 1 membership is now active."
-      },
-      "error": {
-        "title": "Purchase Failed",
-        "description": "Unable to complete membership purchase. Please try again."
-      }
+    "levelValue": "Level {level}",
+    "matrixInfo": "Matrix Information",
+    "message": "Message",
+    "new": "New",
+    "position": "Position",
+    "positionValue": "Position {position}",
+    "priority": {
+      "high": "High",
+      "low": "Low",
+      "normal": "Normal",
+      "urgent": "Urgent"
     },
-    "status": {
-      "owned": "Owned"
+    "relatedMember": "Related member",
+    "relatedMembers": "Related Members",
+    "search": {
+      "placeholder": "Search notifications..."
     },
-    "level2Requirements": {
-      "title": "Level 2 Requirements Not Met",
-      "tip": "Tip: Only users directly registered through your referral link count, excluding spillover users from matrix placement",
-      "howTo": "How to qualify: Share your referral link to get more friends to register"
+    "tabs": {
+      "action": "Action Required",
+      "all": "All",
+      "archived": "Archived",
+      "unread": "Unread",
+      "urgent": "Urgent"
     },
-    "errors": {
-      "checkReferralError": "Error checking referral requirements",
-      "verificationFailed": "Unable to verify your direct referral count, please try again later"
+    "takeAction": "Take Action",
+    "time": {
+      "expires": "Expires",
+      "recently": "Recently"
     },
-    "rewards": {
-      "distributed": "🎁 Layer Rewards Distributed",
-      "distributionResult": "Created {claimableCount} claimable rewards and {pendingCount} pending rewards",
-      "distributionWarning": "⚠️ Reward Distribution Warning",
-      "distributionIssue": "Membership upgrade successful, but reward distribution encountered issues"
-    },
-    "directReferralRequirement": "Direct Referral Requirement",
-    "qualifiedStatus": "✅ Qualified: {count}/3+ people (excess {excess} people)",
-    "statusNotQualified": "❌ Not qualified: {count}/4 people (need {needed} more)",
-    "directRegisterTip": "Only direct registrations through your referral link count"
+    "timing": "Timing",
+    "title": "Notifications",
+    "triggeredBy": "Triggered by",
+    "types": {
+      "countdown_warning": "Countdown Warning",
+      "level_unlock": "Level Unlocked",
+      "matrix_placement": "Matrix Placement",
+      "membership_activation": "Membership Activated",
+      "notification": "Notification",
+      "payment_received": "Payment Received",
+      "referral_bonus": "Referral Bonus",
+      "reward_claim": "Reward Available",
+      "security_alert": "Security Alert",
+      "system_update": "System Update",
+      "upgrade_reminder": "Upgrade Reminder",
+      "withdrawal_completed": "Withdrawal Completed"
+    }
   },
   "notificationsPage": {
-    "title": "Notifications",
-    "subtitle": "Stay updated with your BeeHive matrix activities",
     "backToDashboard": "Back to Dashboard",
+    "detail": {
+      "selectNotification": "Select a notification to view details"
+    },
+    "quickActions": {
+      "actionRequired": "Action Required",
+      "matrixDashboard": "Matrix Dashboard",
+      "title": "Quick Actions",
+      "urgentNotifications": "Urgent Notifications"
+    },
     "settings": "Settings",
+    "settingsDialog": {
+      "allNotifications": "All notifications",
+      "cancel": "Cancel",
+      "emailNotifications": "Email Notifications",
+      "highPriorityOnly": "High priority only",
+      "levelUpgrades": "Level upgrades",
+      "memberActivations": "Member activations",
+      "pushNotifications": "Push Notifications",
+      "rewardNotifications": "Reward notifications",
+      "saveSettings": "Save Settings",
+      "title": "Notification Settings",
+      "upgradeReminders": "Upgrade reminders",
+      "urgentNotifications": "Urgent notifications"
+    },
     "stats": {
       "total": "Total",
       "unread": "Unread",
       "urgent": "Urgent"
     },
-    "quickActions": {
-      "title": "Quick Actions",
-      "urgentNotifications": "Urgent Notifications",
-      "actionRequired": "Action Required",
-      "matrixDashboard": "Matrix Dashboard"
-    },
-    "detail": {
-      "selectNotification": "Select a notification to view details"
-    },
-    "settingsDialog": {
-      "title": "Notification Settings",
-      "emailNotifications": "Email Notifications",
-      "pushNotifications": "Push Notifications",
-      "memberActivations": "Member activations",
-      "levelUpgrades": "Level upgrades",
-      "upgradeReminders": "Upgrade reminders",
-      "rewardNotifications": "Reward notifications",
-      "urgentNotifications": "Urgent notifications",
-      "highPriorityOnly": "High priority only",
-      "allNotifications": "All notifications",
-      "cancel": "Cancel",
-      "saveSettings": "Save Settings"
-    }
+    "subtitle": "Stay updated with your BeeHive matrix activities",
+    "title": "Notifications"
   },
   "profileSettings": {
-    "title": "Profile Settings",
-    "backToProfile": "Back to Profile",
-    "profileInformation": {
-      "title": "Profile Information",
-      "profileImage": "Profile Image",
-      "username": "Username",
-      "usernamePlaceholder": "Enter your username",
-      "email": "Email (Optional)",
-      "emailPlaceholder": "Enter your email",
-      "bio": "Bio",
-      "bioPlaceholder": "Tell us about yourself...",
-      "language": "Language"
-    },
-    "notificationSettings": {
-      "title": "Notification Settings",
-      "emailNotifications": "Email Notifications",
-      "emailDescription": "Receive important updates via email",
-      "pushNotifications": "Push Notifications",
-      "pushDescription": "Receive real-time notifications in the app",
-      "rewardNotifications": "Reward Notifications",
-      "rewardDescription": "Get notified when you receive rewards",
-      "referralNotifications": "Referral Notifications",
-      "referralDescription": "Get notified about new referrals and team activities"
-    },
-    "privacySettings": {
-      "title": "Privacy Settings",
-      "profileVisibility": "Profile Visibility",
-      "profileVisibilityDescription": "Control who can view your profile information",
-      "showEarnings": "Show Earnings",
-      "showEarningsDescription": "Display your earnings publicly",
-      "showReferrals": "Show Referral Count",
-      "showReferralsDescription": "Display your referral statistics",
-      "visibilityOptions": {
-        "public": "Public",
-        "teamOnly": "Team Members Only",
-        "private": "Private"
-      }
-    },
-    "accountSummary": {
-      "title": "Account Summary",
-      "wallet": "Wallet:",
-      "memberSince": "Member Since:",
-      "recentlyJoined": "Recently Joined"
-    },
-    "actions": {
-      "saveChanges": "Save Changes",
-      "cancel": "Cancel"
-    },
-    "toast": {
-      "profileUpdated": "Profile Updated",
-      "profileUpdatedDescription": "Your profile settings have been saved successfully.",
-      "updateFailed": "Update Failed",
-      "updateFailedDescription": "There was an error updating your profile. Please try again.",
-      "profileImageUpdated": "Profile Image Updated",
-      "profileImageUpdatedDescription": "Your profile image has been uploaded successfully.",
-      "uploadFailed": "Upload Failed"
-    }
-  },
-  "membershipSystem": {
-    "wallet": {
-      "connectTitle": "Connect Your Wallet",
-      "connectDescription": "Please connect your wallet to access the membership system"
-    },
-    "activation": {
-      "title": "Activate Your Membership",
-      "description": "Join the community and start earning rewards",
-      "steps": {
-        "details": "Details",
-        "payment": "Payment",
-        "confirm": "Confirm",
-        "complete": "Complete"
-      },
-      "form": {
-        "username": "Username *",
-        "usernamePlaceholder": "Enter your username",
-        "email": "Email *",
-        "emailPlaceholder": "Enter your email",
-        "referrer": "Referrer Wallet (Optional)",
-        "referrerPlaceholder": "0x... (if you have a referrer)",
-        "continueToPayment": "Continue to Payment",
-        "continueToConfirmation": "Continue to Confirmation",
-        "back": "Back",
-        "activateMembership": "Activate Membership",
-        "activating": "Activating..."
-      },
-      "payment": {
-        "cost": "Membership Cost: 130 USDC",
-        "nftCost": "• 100 USDC for Level 1 NFT",
-        "activationFee": "• 30 USDC activation fee",
-        "networkLabel": "Select Network",
-        "networks": {
-          "simulation": "Simulation",
-          "testnet": "Testnet",
-          "mainnet": "Mainnet"
-        },
-        "transactionHashLabel": "Transaction Hash *",
-        "transactionHashPlaceholder": "0x... (transaction hash of NFT purchase)",
-        "transactionHashHelper": "Complete the NFT purchase first, then paste the transaction hash"
-      },
-      "confirm": {
-        "summaryTitle": "Activation Summary",
-        "username": "Username",
-        "email": "Email", 
-        "network": "Network",
-        "nftLevel": "NFT Level",
-        "level1": "Level 1",
-        "referrer": "Referrer"
-      },
-      "success": {
-        "welcomeTitle": "Welcome to the Community!",
-        "welcomeDescription": "Your membership has been activated successfully. You can now access all member features.",
-        "continueToDashboard": "Continue to Dashboard",
-        "activated": "Membership activated successfully!"
-      },
-      "errors": {
-        "fillRequiredFields": "Please fill in all required fields",
-        "transactionHashRequired": "Please provide transaction hash for blockchain activation",
-        "activationFailed": "Activation failed",
-        "tryAgain": "Activation failed. Please try again.",
-        "loadStatusFailed": "Failed to load activation status"
-      }
-    },
-    "rewards": {
-      "pendingTitle": "Pending Rewards ({{count}})",
-      "rewardDescription": "Level {{level}} Reward • {{hours}}h remaining",
-      "status": {
-        "claimable": "Claimable",
-        "pending": "Pending"
-      },
-      "actions": {
-        "claim": "Claim"
-      },
-      "success": {
-        "claimed": "Successfully claimed {{amount}} USDC!"
-      },
-      "errors": {
-        "claimFailed": "Failed to claim reward"
-      },
-      "quickActions": {
-        "title": "Quick Actions",
-        "upgrade": "Upgrade to Level {{level}}",
-        "withdraw": "Quick Withdraw $100 USDC",
-        "claimRewards": "Claim {{count}} Rewards"
-      },
-      "levelProgress": {
-        "title": "Level Progress",
-        "readyToUpgrade": "Ready to upgrade to Level {{level}}!",
-        "completeRequirements": "Complete requirements to unlock Level {{level}}"
-      }
-    },
-    "matrix": {
-      "title": "Referral Matrix",
-      "connectDescription": "Connect your wallet to view the referral matrix",
-      "layerFillStatus": "Layer Fill Status",
-      "stats": {
-        "totalMembers": "{{count}} Members",
-        "yourPosition": "You're in Layer {{layer}}, Position {{position}}",
-        "directRefs": "Direct Refs",
-        "matrixDepth": "Matrix Depth"
-      },
-      "visualization": {
-        "layerRoot": "Root",
-        "layerNumber": "Layer {{layer}}",
-        "available": "Available",
-        "member": "Member",
-        "you": "You",
-        "active": "Active",
-        "inactive": "Inactive"
-      },
-      "controls": {
-        "viewLayer": "View Layer:",
-        "zoomIn": "Zoom In",
-        "zoomOut": "Zoom Out",
-        "reset": "Reset",
-        "treeView": "Tree",
-        "gridView": "Grid"
-      },
-      "referralLink": {
-        "title": "Your Referral Link",
-        "copy": "Copy",
-        "share": "Share Link"
-      },
-      "quickStats": {
-        "title": "Quick Stats",
-        "totalMembers": "Total Members:",
-        "activeLayers": "Active Layers:",
-        "yourDirectRefs": "Your Direct Refs:",
-        "matrixDepth": "Matrix Depth:",
-        "layersCount": "{{count}} Layers"
-      },
-      "share": {
-        "title": "Join the Community",
-        "text": "Join me in this amazing community and start earning rewards!"
-      },
-      "ui": {
-        "unknown": "ไม่ทราบ",
-        "showLess": "แสดงน้อยลง",
-        "showAllLayers": "แสดงทั้ง 19 ชั้น"
-      },
-      "errors": {
-        "loadFailed": "Failed to load matrix data",
-        "copyFailed": "Failed to copy link"
-      },
-      "success": {
-        "linkCopied": "Referral link copied to clipboard!"
-      }
-    },
-    "upgrade": {
-      "title": "Level Upgrade",
-      "cost": "Upgrade Cost",
-      "bccUnlock": "BCC Unlock",
-      "requirements": {
-        "notMet": "Requirements Not Met",
-        "directReferrals": "Direct Referrals: {{current}}/{{required}} required"
-      },
-      "maxLevel": {
-        "title": "Maximum Level Reached!",
-        "description": "Congratulations on reaching Level {{level}}!"
-      },
-      "buttons": {
-        "upgrade": "Upgrade to Level {{level}}",
-        "upgrading": "Upgrading..."
-      }
-    },
-    "withdrawal": {
-      "title": "Withdrawal Limits",
-      "dailyLimit": "Daily Limit",
-      "monthlyLimit": "Monthly Limit",
-      "used": "Used:",
-      "remaining": "Remaining:"
-    }
-  },
-  "connectWallet": {
-    "title": "Connect Your Wallet",
-    "description": "Please connect your wallet to access the membership system"
-  },
-  "tabs": {
-    "overview": "Overview",
-    "rewards": "Rewards", 
-    "upgrade": "Upgrade",
-    "matrix": "Matrix",
-    "withdraw": "Withdraw"
-  },
-  "notifications": {
-    "title": "Notifications",
-    "tabs": {
-      "all": "All",
-      "unread": "Unread",
-      "urgent": "Urgent",
-      "action": "Action Required",
-      "archived": "Archived"
-    },
-    "search": {
-      "placeholder": "Search notifications..."
-    },
-    "empty": {
-      "all": "No notifications to display",
-      "unread": "No unread notifications",
-      "urgent": "No urgent notifications", 
-      "action": "No actions required",
-      "archived": "No archived notifications"
-    },
-    "actions": {
-      "markAsRead": "Mark as Read",
-      "markAllAsRead": "Mark All as Read",
-      "archive": "Archive",
-      "viewDetails": "View Details",
-      "takeAction": "Take Action"
-    },
-    "priority": {
-      "low": "Low",
-      "normal": "Normal",
-      "high": "High", 
-      "urgent": "Urgent"
-    },
-    "types": {
-      "level_unlock": "Level Unlocked",
-      "reward_claim": "Reward Available",
-      "membership_activation": "Membership Activated",
-      "referral_bonus": "Referral Bonus",
-      "withdrawal_completed": "Withdrawal Completed",
-      "system_update": "System Update",
-      "security_alert": "Security Alert",
-      "payment_received": "Payment Received"
-      ,"upgrade_reminder": "Upgrade Reminder",
-      "countdown_warning": "Countdown Warning",
-      "matrix_placement": "Matrix Placement",
-      "notification": "Notification"
-    },
-    "new": "New",
-    "actionRequired": "Action Required",
-    "archived": "Archived",
-    "message": "Message",
-    "amount": "Amount",
-    "matrixInfo": "Matrix Information",
-    "level": "Level",
-    "levelValue": "Level {level}",
-    "layer": "Layer",
-    "layerValue": "Layer {layer}",
-    "position": "Position",
-    "positionValue": "Position {position}",
-    "relatedMembers": "Related Members",
-    "triggeredBy": "Triggered by",
-    "relatedMember": "Related member",
-    "timing": "Timing",
-    "created": "Created",
-    "expires": "Expires",
-    "emailSent": "Email sent",
-    "additionalInfo": "Additional Information",
-    "takeAction": "Take Action",
-    "delete": "Delete",
-    "time": {
-      "recently": "Recently",
-      "expires": "Expires"
-    }
-  },
-  "loading": {
-    "membershipLevels": "Loading membership levels...",
-    "data": "Loading data...",
-    "processing": "Processing...",
-    "please_wait": "Please wait..."
-  },
-  "error": {
-    "loadMembershipLevels": "Failed to load membership levels",
-    "loadData": "Failed to load data",
-    "tryRefresh": "Please try refreshing the page",
-    "generic": "An error occurred"
-  },
-  "benefits": {
-    "basic": {
-      "platformFeatures": "Access to basic platform features",
-      "matrixEntry": "Entry to 3×3 matrix system", 
-      "learningMaterials": "Basic learning materials",
-      "communityAccess": "Community access",
-      "tokenId1": "Token ID: 1"
-    },
-    "enhanced": {
-      "matrixRewards": "Enhanced matrix rewards",
-      "premiumContent": "Premium learning content", 
-      "referralBonuses": "Direct referral bonuses",
-      "advancedFeatures": "Advanced features access",
-      "tokenId2": "Token ID: 2"
-    },
-    "goldBee": {
-      "tier": "Gold Bee Tier {tier}"
-    },
-    "platinumBee": {
-      "tier": "Platinum Bee Tier {tier}"
-    },
-    "diamondBee": {
-      "tier": "Diamond Bee Tier {tier}"
-    },
-    "masterBee": {
-      "tier": "Master Bee Tier {tier}"
-    },
-    "enhancedMatrix": "Enhanced matrix rewards (Layer 1-{maxLayer})",
-    "bonusMultiplier": "Bonus multiplier x{multiplier}",
-    "vipStatus": "VIP status benefits",
-    "premium": "Premium benefits",
-    "exclusiveMerchant": "Exclusive merchant NFTs",
-    "enhancedFeatures": "Enhanced features",
-    "governance": "Platform governance rights",
-    "prioritySupport": "Priority support",
-    "founderStatus": "Founder status recognition",
-    "eliteStatus": "Elite member status",
-    "tokenId": "Token ID: {level}"
-  },
-  "profileSettings": {
-    "title": "Profile Settings",
-    "profileUpdated": "Profile Updated",
-    "profileUpdatedDesc": "Your profile settings have been saved successfully.",
-    "updateFailed": "Update Failed",
-    "updateFailedDesc": "There was an error updating your profile. Please try again.",
-    "profileInformation": "Profile Information",
+    "accountSummary": "Account Summary",
+    "bio": "Bio",
+    "bioPlaceholder": "Tell us about yourself...",
+    "email": "Email (Optional)",
+    "emailNotifications": "Email Notifications",
+    "emailNotificationsDesc": "Receive important updates via email",
+    "enterEmail": "Enter your email",
+    "enterUsername": "Enter your username",
+    "language": "Language",
+    "levelMember": "Level {level} Member",
+    "memberSince": "Member Since",
+    "notificationSettings": "Notification Settings",
+    "privacySettings": "Privacy Settings",
+    "private": "Private",
     "profileImage": "Profile Image",
     "profileImageUpdated": "Profile Image Updated",
     "profileImageUpdatedDesc": "Your profile image has been uploaded successfully.",
-    "uploadFailed": "Upload Failed",
-    "username": "Username",
-    "enterUsername": "Enter your username",
-    "email": "Email (Optional)",
-    "enterEmail": "Enter your email",
-    "bio": "Bio",
-    "bioPlaceholder": "Tell us about yourself...",
-    "language": "Language",
-    "notificationSettings": "Notification Settings",
-    "emailNotifications": "Email Notifications",
-    "emailNotificationsDesc": "Receive important updates via email",
-    "pushNotifications": "Push Notifications",
-    "pushNotificationsDesc": "Receive real-time notifications in the app",
-    "rewardNotifications": "Reward Notifications",
-    "rewardNotificationsDesc": "Get notified when you receive rewards",
-    "referralNotifications": "Referral Notifications",
-    "referralNotificationsDesc": "Get notified about new referrals and team activities",
-    "privacySettings": "Privacy Settings",
+    "profileInformation": "Profile Information",
+    "profileUpdated": "Profile Updated",
+    "profileUpdatedDesc": "Your profile settings have been saved successfully.",
     "profileVisibility": "Profile Visibility",
     "profileVisibilityDesc": "Control who can view your profile information",
     "public": "Public",
-    "teamMembersOnly": "Team Members Only",
-    "private": "Private",
+    "pushNotifications": "Push Notifications",
+    "pushNotificationsDesc": "Receive real-time notifications in the app",
+    "recentlyJoined": "Recently Joined",
+    "referralNotifications": "Referral Notifications",
+    "referralNotificationsDesc": "Get notified about new referrals and team activities",
+    "rewardNotifications": "Reward Notifications",
+    "rewardNotificationsDesc": "Get notified when you receive rewards",
+    "saveChanges": "Save Changes",
     "showEarnings": "Show Earnings",
     "showEarningsDesc": "Display your earnings publicly",
     "showReferralCount": "Show Referral Count",
     "showReferralCountDesc": "Display your referral statistics",
-    "accountSummary": "Account Summary",
-    "levelMember": "Level {level} Member",
-    "wallet": "Wallet",
-    "memberSince": "Member Since",
-    "recentlyJoined": "Recently Joined",
-    "saveChanges": "Save Changes"
+    "teamMembersOnly": "Team Members Only",
+    "title": "Profile Settings",
+    "updateFailed": "Update Failed",
+    "updateFailedDesc": "There was an error updating your profile. Please try again.",
+    "uploadFailed": "Upload Failed",
+    "username": "Username",
+    "wallet": "Wallet"
   },
-  "common": {
-    "backToProfile": "Back to Profile",
-    "cancel": "Cancel"
-  },
-  "membership": {
-    "title": "Membership Levels",
-    "subtitle": "Unlock higher levels and exclusive benefits",
-    "currentLevel": "Current Level",
-    "directReferrals": "Direct Referrals",
-    "featured": "Featured",
-    "exclusiveBenefits": "Exclusive Benefits",
-    "purchaseSuccess": "Purchase Successful",
-    "processing": "Processing...",
-    "notUnlocked": "Not Unlocked",
-    "directReferralRequirement": "Direct Referral Requirement",
-    "directRegisterTip": "💡 Direct register means users who registered using your referral link",
-    "status": {
-      "owned": "Owned",
-      "available": "Available", 
-      "locked": "Locked"
+  "referrals": {
+    "activated": "Activated",
+    "activeMembers": "Active Members",
+    "active_members": "Active Members",
+    "availableRewards": {
+      "title": "Available Rewards",
+      "withdraw": "Withdraw Rewards"
     },
-    "qualifiedStatus": "✅ Qualified: {count} referrals (Excess: {excess})",
-    "statusNotQualified": "❌ Not Qualified: {count}/{needed} referrals needed",
-    "unlockNow": "Unlock Now ${price}",
-    "level2Requirements": {
-      "title": "Level 2 Requirements",
-      "needLevel1": "You need Level 1 membership first", 
-      "needLevel1AndReferrals": "Level 1 + 3+ Direct Referrals Required",
-      "tip": "Direct referrals are users who registered using your referral link",
-      "howTo": "Share your referral link to invite more users and unlock Level 2"
+    "bccRewards": {
+      "locked": "Locked BCC: Tier-based release",
+      "multipliers": "Tier multipliers: 1.0x, 0.5x, 0.25x, 0.125x",
+      "transferable": "Transferable BCC: Immediate use",
+      "upgrades": "Level upgrades unlock more BCC"
+    },
+    "bccTokenRewardsTitle": "BCC Token Rewards",
+    "copied": {
+      "description": "Referral link copied to clipboard",
+      "title": "Copied!"
+    },
+    "copy": "Copy",
+    "layerView": {
+      "available": "Available",
+      "backToOverview": "Back to Overview",
+      "completionRate": "Completion Rate:",
+      "details": "Details",
+      "filledPositions": "Filled Positions:",
+      "full": "Full",
+      "lastUpdated": "Last Updated:",
+      "layer": "Layer",
+      "members": "Members",
+      "positionsFilled": "positions filled",
+      "upgraded": "Upgraded",
+      "upgradedMembers": "Upgraded Members:",
+      "upgradedToLevel": "upgraded to Level 2+"
+    },
+    "layer_progress": "Layer Progress",
+    "legacySystem": "Legacy System (For Comparison)",
+    "linkDescription": "Share this link to earn rewards when people join through your referral and activate membership",
+    "matrixLayers": "Matrix Layers",
+    "matrixLevel": "Matrix Level",
+    "matrixManagement": {
+      "directReferrals": "Direct Referrals",
+      "layerDetails": "Layer Details",
+      "loadingLayers": "Loading layers...",
+      "members": "members",
+      "noMembers": "No team members yet",
+      "title": "Matrix Layer Management",
+      "totalMatrix": "Total Matrix",
+      "upgradeRewards": "Upgrade Rewards",
+      "upperSpillover": "Upper Spillover",
+      "yourTeam": "Your Team (Direct + Spillover)",
+      "yourTeamPlaced": "Your Team Placed"
+    },
+    "matrixPerformance": {
+      "active": "Active",
+      "currentLevel": "Current Level",
+      "level": "Level",
+      "matrixRewards": "Matrix Rewards",
+      "pendingRewards": "Pending Rewards",
+      "status": "Status",
+      "title": "Matrix Performance",
+      "viewMatrix": "View 3x3 Matrix"
+    },
+    "matrixPosition": {
+      "available": "Available",
+      "left": "Left",
+      "leftPosition": "Left Position",
+      "middle": "Middle",
+      "middlePosition": "Middle Position",
+      "occupied": "Occupied",
+      "position1": "Position 1",
+      "position2": "Position 2",
+      "position3": "Position 3",
+      "right": "Right",
+      "rightPosition": "Right Position",
+      "yourPosition": "Your Position"
+    },
+    "matrixRewardsTitle": "Matrix Rewards",
+    "matrixSystem": {
+      "enhancedMatrixTree": "Enhanced 3×3 Matrix Tree",
+      "layer": "Layer",
+      "layers": "L1-L19",
+      "matrixInformation": "Matrix Information",
+      "matrixNetworkLayer": "3×3 Matrix Network - Layer {{layer}}",
+      "matrixTree": "3×3 Matrix Tree",
+      "title": "3×3 Matrix Network",
+      "yourMatrixTree": "Your 3×3 Matrix Tree"
+    },
+    "matrixView": "Your Matrix Network",
+    "matrixVisualization": {
+      "autoPlacement": "Auto Placement",
+      "collapse": "Collapse",
+      "empty": "Empty",
+      "expand": "Expand",
+      "filled": "Filled",
+      "layer": "Layer",
+      "leftPosition": "Left Position",
+      "level": "Level",
+      "lmrLayout": "L-M-R Layout",
+      "matrixTree": "Matrix Tree",
+      "middlePosition": "Middle Position",
+      "placement": "Placement",
+      "position": "Position",
+      "rightPosition": "Right Position",
+      "spillover": "Spillover",
+      "title": "Matrix Visualization",
+      "viewDetails": "View Details"
+    },
+    "max_layers": "Max Layers",
+    "networkStats": {
+      "activeMembers": "Active Members",
+      "allTime": "All Time",
+      "directReferrals": "Direct Referrals Count",
+      "maxLayer": "Max Layer",
+      "performance": "Performance",
+      "recentActivity": "Recent Activity",
+      "teamGrowth": "Team Growth",
+      "thisMonth": "This Month",
+      "thisWeek": "This Week",
+      "title": "Network Statistics",
+      "totalTeamSize": "Total Team Size"
+    },
+    "network_strength": "Network Strength",
+    "noReferrals": "No referrals yet. Start sharing your link to build your 3x3 matrix!",
+    "notifications": {
+      "activitiesAppear": "Your activities will appear here as you interact with the platform",
+      "from": "From",
+      "member": "member",
+      "memberUpgraded": "Layer {{layer}} member upgraded to Level {{level}}",
+      "noNotifications": "No upgrade notifications yet",
+      "noRecentActivity": "No recent activity",
+      "notificationsAppear": "Notifications will appear when team members upgrade their levels",
+      "reward": "Reward"
+    },
+    "pending": "Pending",
+    "recentActivity": "Recent Referral Activity",
+    "recentReferrals": "Recent Referrals",
+    "recent_referrals": "Recent Referrals",
+    "recentlyJoined": "Recently joined",
+    "referralLink": {
+      "title": "Your Referral Link"
+    },
+    "rewardStructure": {
+      "globalMatrix": "Global Matrix System",
+      "layerBased": "Layer-Based Rewards Only (72h Timer)",
+      "rule1": "Level 1: 3rd reward requires Level 2 upgrade",
+      "rule2": "Level 2: Must own L2 + at least one Layer 1 member with L2",
+      "rule3": "Level 3-19: Just need to own that level or higher",
+      "specialRules": "SPECIAL RULES:",
+      "title": "BeeHive Reward Structure"
+    },
+    "rewardSystemInfo": "Reward System Information",
+    "rewards": {
+      "bccLocked": "BCC ที่ล็อก: ปลดล็อกตามระดับ",
+      "bccMultipliers": "ตัวคูณระดับ: 1.0x, 0.5x, 0.25x, 0.125x",
+      "bccTransferable": "BCC ที่สามารถโอน: ใช้ได้ทันที",
+      "bccUpgrades": "การอัพเกรดระดับปลดล็อก BCC เพิ่มเติม",
+      "claimWindow": "72-hour claim window",
+      "level1Direct": "Level 1 Direct: $30 USDC per referral",
+      "level2Matrix": "Level 2 Matrix: $10 USDC per position",
+      "spilloverBonuses": "Spillover Bonuses: Additional rewards"
+    },
+    "share_link": "Share Referral Link",
+    "subtitle": "Build your 3x3 matrix network and earn rewards through referrals",
+    "tabs": {
+      "matrix": "3x3 Matrix",
+      "rewards": "Rewards",
+      "stats": "Statistics"
+    },
+    "team_overview": "Team Overview",
+    "title": "Referral System",
+    "totalEarnings": "Total Earnings",
+    "totalReferrals": "Total Referrals",
+    "total_team": "Total Team",
+    "upgradeRewards": {
+      "description": "Track upgrade rewards from your matrix layers. You have 72 hours to upgrade when members purchase higher level NFTs."
+    },
+    "view_matrix": "View Matrix",
+    "yourLink": "Your Referral Link"
+  },
+  "registration": {
+    "accountExists": "Account already exists, no need to register again",
+    "agreement": "By registering, you agree to our Terms of Service and Privacy Policy",
+    "checkUserError": "Error checking user status",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "directReferrals": "direct referrals",
+    "email": "Email Address",
+    "emailInvalid": "Please enter a valid email address",
+    "emailPlaceholder": "Enter your email",
+    "error": {
+      "description": "Please try again or contact support if the problem persists.",
+      "title": "Registration Failed"
     },
     "errors": {
-      "walletRequired": "Wallet Required",
-      "connectWallet": "Please connect your wallet to continue",
-      "levelLocked": "Level Locked",
-      "previousLevelRequired": "You must own Level {level} before upgrading to Level {nextLevel}",
-      "checkReferralError": "Referral Check Error",
-      "verificationFailed": "Failed to verify referral requirements",
-      "claimFailed": "Claim Failed for Level {level}",
-      "sequentialUpgrade": "You must upgrade to Level {nextLevel} first",
-      "alreadyOwned": "You already own Level {level}",
-      "level2Requirements": "Level 2 requires 3+ direct referrals",
-      "missingPrerequisites": "Missing required prerequisites"
+      "emailInvalid": "Please enter a valid email address",
+      "emailRequired": "Email address is required",
+      "passwordMismatch": "Passwords do not match",
+      "passwordRequired": "Secondary password is required",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "referrerRequired": "A valid referral link is required to register",
+      "usernameRequired": "Username is required",
+      "usernameTooShort": "Username must be at least 3 characters"
     },
-    "claiming": {
-      "started": "Claiming Level {level}",
-      "processing": "Processing claim for ${price}...",
-      "success": "Level {level} Claimed!",
-      "successDescription": "Successfully claimed Level {level} membership for ${price}"
+    "failed": "Registration Failed",
+    "invalidReferrer": "Invalid referrer",
+    "matrixAdvantages": "Matrix System Advantages",
+    "matrixFeature1": "3×3 forced matrix ensures fair distribution",
+    "matrixFeature2": "Spillover mechanism benefits from upline referrals",
+    "matrixFeature3": "Multi-layer reward system maximizes earning potential",
+    "matrixFeature4": "Transparent blockchain records guarantee reward distribution",
+    "memberCreated": "Member record created",
+    "memberCreatedMessage": "Your member profile has been set up",
+    "nextStep1": "Complete NFT claiming to activate membership",
+    "nextStep2": "Start referring friends to build your matrix network",
+    "nextStep3": "Earn BCC rewards and upgrade to higher levels",
+    "nextSteps": "Next Steps",
+    "noReferrerInfo": {
+      "description": "To join Beehive, you need a referral link from an existing member. This connects you to your upline in our 3×3 matrix system.",
+      "getLink": "Ask a Beehive member for their referral link to get started.",
+      "title": "Referral Link Required"
     },
-    "rewards": {
-      "distributed": "Rewards Distributed",
-      "distributionResult": "{claimableCount} claimable, {pendingCount} pending rewards created",
-      "distributionWarning": "Reward Distribution Issue", 
-      "distributionIssue": "Rewards may be delayed, but your membership is active"
+    "optional": "optional",
+    "passwordPlaceholder": "Create a secure password",
+    "referredBy": "Referred by",
+    "referrer": "Upline Referrer",
+    "referrerNotActiveMember": "Referrer is not an active member",
+    "referrerRequired": "Valid referrer is required",
+    "referrerValidated": "Referrer validated",
+    "referrerValidationFailed": "Referrer validation failed",
+    "register": "Complete Registration",
+    "registering": "Processing...",
+    "registrationError": "Registration error",
+    "registrationErrorOccurred": "A registration error occurred",
+    "secondaryPassword": "Secondary Password",
+    "subtitle": "Set up your Beehive profile",
+    "success": "Registration Successful!",
+    "teamMembers": "team members",
+    "title": "Complete Registration",
+    "unknownError": "Please try again or contact support if the problem persists.",
+    "username": "Username",
+    "usernameFormat": "Username can only contain letters, numbers and underscores",
+    "usernameMinLength": "Username must be at least 3 characters",
+    "usernamePlaceholder": "Choose a username",
+    "usernameRequired": "Username is required",
+    "validating": "Validating",
+    "validationFailed": "Validation failed",
+    "walletAddress": "Wallet Address",
+    "walletRequired": {
+      "description": "Please connect your wallet first to complete registration.",
+      "title": "Wallet Connection Required"
     },
-    "progressInfo": {
-      "title": "Membership Progress",
-      "description": "Unlock higher levels step by step",
-      "sequential": "Sequential upgrades required",
-      "rewards": "Matrix rewards at each level",
-      "benefits": "Exclusive benefits and perks"
+    "welcomeBack": "Welcome Back!",
+    "welcomeMessage": "Your profile has been created. You can now activate your membership."
+  },
+  "rewardHistory": {
+    "completed": "Completed",
+    "expired": "Expired",
+    "linkCopied": {
+      "description": "Your referral link has been copied to clipboard.",
+      "title": "Link Copied!"
+    },
+    "noRewards": "No reward history yet",
+    "rollupReward": "Roll-up Reward",
+    "upgradeReward": "Upgrade Reward (Pending)"
+  },
+  "rewards": {
+    "claimable": {
+      "claimAll": "Claim All",
+      "noRewards": "No claimable rewards",
+      "noRewardsDescription": "Complete tasks and invite referrals to earn rewards",
+      "title": "Claimable Rewards"
+    },
+    "history": {
+      "noHistory": "No transactions yet",
+      "noHistoryDescription": "Your reward and transaction history will appear here",
+      "title": "Transaction History"
+    },
+    "overview": {
+      "availableBalance": "Available Balance",
+      "pendingRewards": "Pending Rewards",
+      "recentActivity": "Recent Activity",
+      "rewardsThisMonth": "This Month",
+      "totalEarnings": "Total Earnings"
+    },
+    "pendingCountdowns": "การนับถอยหลังของรางวัลที่รอดำเนินการ",
+    "pendingRewardDescription": "รางวัลชั้น {layer} จะหมดอายุเร็วๆ นี้ - อัปเกรดเพื่อรับ",
+    "pendingRewardTimer": "ตัวจับเวลารางวัลที่รอดำเนินการ",
+    "subtitle": "Track your rewards, claim earnings, and view transaction history",
+    "tabs": {
+      "claimable": "Claimable",
+      "history": "History",
+      "overview": "Overview"
+    },
+    "title": "Rewards & Earnings"
+  },
+  "selectors": {
+    "category": "Category",
+    "completed": "Completed",
+    "enrolled": "Enrolled",
+    "freeCourses": "Free Courses",
+    "level": "Level",
+    "onlineZoom": "Online (Zoom)",
+    "paidBcc": "Paid (BCC)",
+    "payment": "Payment",
+    "type": "Type",
+    "videoLessons": "Video Lessons"
+  },
+  "tabs": {
+    "matrix": "Matrix",
+    "overview": "Overview",
+    "rewards": "Rewards",
+    "upgrade": "Upgrade",
+    "withdraw": "Withdraw"
+  },
+  "tasks": {
+    "advertisement": {
+      "description": "Exclusive merchant NFTs claimable with BCC tokens",
+      "loading": "Loading NFTs...",
+      "noNfts": "No advertisement NFTs available at the moment.",
+      "title": "Advertisement NFT Collection"
+    },
+    "availableBalance": "Available Balance",
+    "categories": {
+      "advertisement": "Advertisement",
+      "membership": "Membership"
+    },
+    "claim": {
+      "checkingRegistration": "Checking registration status...",
+      "error": {
+        "description": "Unable to claim NFT. Please check your balance and try again.",
+        "title": "Claim Failed"
+      },
+      "invalidReferrer": "Invalid Referrer",
+      "referrerRequired": "Referrer Required",
+      "referrerRequiredDesc": "You must use a valid referral link to claim your NFT. Please ask an existing member for a referral link.",
+      "registrationCheckFailed": "Registration Check Failed",
+      "registrationCheckFailedDesc": "Unable to verify registration status. Please refresh and try again.",
+      "selfReferralNotAllowed": "Self-Referral Not Allowed",
+      "selfReferralNotAllowedDesc": "You cannot refer yourself. Please use a referral link from another member.",
+      "success": {
+        "description": "The NFT has been minted to your wallet.",
+        "title": "NFT Claimed Successfully!"
+      },
+      "useValidReferrer": "Please use a referral link from a registered member.",
+      "validatingReferrer": "Validating referrer...",
+      "validationFailed": "Validation Failed",
+      "validationFailedDesc": "Unable to verify registration or referrer status. Please refresh and try again."
+    },
+    "claimModal": {
+      "availableRestricted": "Available (Restricted)",
+      "availableTransferable": "Available (Transferable)",
+      "cancel": "Cancel",
+      "confirm": "Confirm Claim",
+      "confirmation": "Restricted BCC will be used first. Proceed with claiming this NFT?",
+      "price": "Price",
+      "title": "Claim NFT"
+    },
+    "claiming": "Claiming...",
+    "insufficientBCC": "Insufficient BCC",
+    "membership": {
+      "description": "Authentic membership levels with USDT payments on multi-chain support",
+      "getStarted": "Get Started",
+      "level": "Level",
+      "lockedMessage": "Complete previous levels first",
+      "status": {
+        "available": "Available",
+        "locked": "Locked",
+        "owned": "Owned"
+      },
+      "title": "Bumblebees Membership NFTs",
+      "upgradeNow": "Upgrade Now",
+      "usdt": "USDT"
+    },
+    "pageTitle": "Tasks",
+    "restrictedBCC": "Restricted Beehive Crypto Coin",
+    "restrictedFirst": "Restricted BCC will be used first",
+    "title": "Tasks & Marketplace",
+    "transferableBCC": "Transferable Beehive Crypto Coin"
+  },
+  "tokenPurchase": {
+    "balances": {
+      "bccTotal": "BCC Total:",
+      "cthBalance": "CTH Balance:",
+      "noBalances": "No balances found",
+      "restricted": "Restricted:",
+      "title": "Your Token Balances",
+      "transferable": "Transferable:"
+    },
+    "buttons": {
+      "cancelPayment": "Cancel Payment",
+      "creating": "Creating Purchase...",
+      "purchase": "Purchase {amount} {token} Tokens"
+    },
+    "connectWallet": {
+      "description": "Connect your wallet to purchase BCC and CTH tokens",
+      "title": "Connect Your Wallet"
+    },
+    "description": "Buy BCC and CTH tokens at 1 token = 0.01 USDT across multiple chains",
+    "form": {
+      "enterAmount": "Enter token amount",
+      "paymentChain": "Payment Chain",
+      "tokenAmount": "Token Amount",
+      "tokenType": "Token Type",
+      "totalCost": "Total Cost: ${amount} USDT"
+    },
+    "history": {
+      "noPurchases": "No purchases yet",
+      "title": "Recent Purchases"
+    },
+    "messages": {
+      "confirmFailed": "Failed to confirm purchase",
+      "connectToPurchase": "Please connect your wallet to purchase tokens",
+      "createFailed": "Failed to create purchase",
+      "enterValidAmount": "Please enter a valid token amount",
+      "error": "Error",
+      "invalidAmount": "Invalid Amount",
+      "purchaseCreated": "Purchase Created",
+      "readyToPurchase": "Ready to purchase {amount} {token} tokens",
+      "tokensAdded": "{amount} {token} tokens have been added to your wallet",
+      "tokensAirdropped": "Tokens Airdropped! 🪂",
+      "walletNotConnected": "Wallet Not Connected"
+    },
+    "payment": {
+      "description": "Pay ${amount} USDT to receive {tokenAmount} {tokenType} tokens",
+      "title": "Complete Your Payment"
+    },
+    "testnet": {
+      "note": "For testing purposes, payments may be simulated. Real payments require mainnet deployment.",
+      "warning": "Testnet Notice: Universal Bridge does not support testnets at this time."
+    },
+    "title": "Purchase Tokens",
+    "tokens": {
+      "bcc": {
+        "description": "Transferable utility token for marketplace purchases and rewards",
+        "name": "BCC (Beehive Crypto Coin)",
+        "title": "BCC Token",
+        "uses": {
+          "advertisement": "Advertisement NFTs",
+          "education": "Education Course Access",
+          "marketplace": "Use in NFT Marketplace"
+        }
+      },
+      "cth": {
+        "description": "Native gas token for Alpha Centauri chain transactions",
+        "name": "CTH (Centauri Honey)",
+        "title": "CTH Token",
+        "uses": {
+          "gas": "Network Gas Fees",
+          "operations": "Chain Operations",
+          "transactions": "Transaction Costs"
+        }
+      }
     }
+  },
+  "userProfile": {
+    "center": "Center",
+    "level": "Level",
+    "userCenter": "User Center",
+    "username": "Username"
+  },
+  "wallet": {
+    "connect": "Connect Wallet",
+    "connected": "Connected",
+    "disconnect": "Disconnect"
+  },
+  "welcome": {
+    "benefits": {
+      "dashboard": "Full Dashboard Access",
+      "discover": "Discover Web3 DApps",
+      "education": "Education Center",
+      "hiveworld": "HiveWorld Matrix System",
+      "tasks": "Tasks & NFT Marketplace",
+      "title": "What You'll Unlock:",
+      "tokens": "BCC Token Rewards"
+    },
+    "button": {
+      "unlock": "Unlock Membership Benefits - 130 USDT"
+    },
+    "checkingChain": "Checking on-chain NFT status...",
+    "checkingMembership": "Checking membership status...",
+    "description": "Complete your membership by purchasing your Level 1 Warrior NFT. This unlocks all platform features and starts your Web3 journey!",
+    "error": {
+      "description": "There was an error with your purchase. Please try again.",
+      "title": "Purchase Failed"
+    },
+    "instructions": {
+      "step1": "🎯 Connect your wallet and claim your NFT to activate Level 1 membership",
+      "step2": "⚡ This will enable access to the 3x3 referral matrix and BCC reward system"
+    },
+    "matrixPlacement": "You'll be placed in their 3×3 matrix system",
+    "matrixPlacementInfo": "💡 Matrix Placement: You'll be automatically placed in the first available slot in your referrer's matrix tree, following the 3×3 structure (Layer 1→2→3...). This determines your position for earning layer rewards.",
+    "nft": {
+      "description": "Your membership credential on the blockchain",
+      "price": "Price",
+      "priceAmount": "130 USDT",
+      "title": "Level 1 Warrior NFT",
+      "tokenId": "Token ID: 1"
+    },
+    "premium": {
+      "description": "Purchase your Level 1 Warrior NFT for 130 USDT with multi-chain payment support!",
+      "title": "💎 Premium Membership"
+    },
+    "referral": {
+      "rewards": "Referral Rewards: Earn 100% rewards on each level when NFTs are purchased in your network"
+    },
+    "referralRequired": {
+      "description": "You need a valid referral link to access Beehive Community. Please ask an existing member to share their referral link with you.",
+      "example": "💡 Referral links look like:",
+      "howToGet": "Existing members can generate referral links from their dashboard.",
+      "title": "Referral Link Required"
+    },
+    "referredBy": "Referred by",
+    "subtitle": "Activate your Level 1 membership by claiming your ERC-5115 NFT",
+    "success": {
+      "description": "Your Level 1 membership has been activated. Welcome to Beehive!",
+      "title": "Purchase Successful!"
+    },
+    "supportText": "Secure payments across multiple blockchains with instant NFT delivery",
+    "title": "Welcome to Beehive Community"
+  },
+  "withdrawal": {
+    "amount": "จำนวน",
+    "available_balance": "ยอดเงินคงเหลือ",
+    "available_balance_is": "ยอดเงินคงเหลือ: {amount} USDT",
+    "connect_wallet": "โปรดเชื่อมต่อกระเป๋าเงินก่อน",
+    "cross_chain_note": "การถอนข้ามเชนไป {targetChain} อาจใช้เวลา 5-15 นาที",
+    "enter_amount": "ใส่จำนวน",
+    "enter_valid_amount": "โปรดใส่จำนวนที่ถูกต้อง",
+    "insufficient_balance": "ยอดเงินไม่เพียงพอ",
+    "invalid_amount": "จำนวนไม่ถูกต้อง",
+    "multi_chain_description": "ถอนไป Ethereum, Arbitrum, Polygon, Optimism, BSC หรือ Base",
+    "multi_chain_support": "รองรับหลายเชน",
+    "network_fee": "ค่าธรรมเนียมเครือข่าย",
+    "processing": "กำลังดำเนินการ...",
+    "select_target_chain": "เลือกเชนปลายทาง",
+    "select_target_token": "เลือกโทเค็นปลายทาง",
+    "selected_chain": "เชนที่เลือก",
+    "subtitle": "ถอนรางวัลไปยังบล็อกเชนที่รองรับ",
+    "target_token": "โทเค็นปลายทาง",
+    "title": "ถอน",
+    "wallet": "กระเป๋าเงิน",
+    "wallet_required": "ต้องการกระเป๋าเงิน",
+    "withdraw_to": "ถอนไป",
+    "withdrawal_amount": "จำนวนที่ถอน",
+    "withdrawal_chain": "เชนสำหรับถอน",
+    "withdrawal_failed": "การถอนล้มเหลว",
+    "you_receive": "คุณจะได้รับ"
   }
 }

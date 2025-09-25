@@ -11,6 +11,7 @@ import {useToast} from '../hooks/use-toast';
 import {supabase} from '../lib/supabase';
 import RollupRewardsCard from '../components/rewards/RollupRewardsCard';
 import USDTWithdrawal from '../components/withdrawal/USDTWithdrawal';
+import WithdrawalTransactionHistory from '../components/withdrawal/WithdrawalTransactionHistory';
 import {PendingRewardsList} from '../components/rewards/PendingRewardsList';
 import RewardHistory from '../components/rewards/RewardHistory';
 import {
@@ -22,6 +23,7 @@ import {
     Clock,
     DollarSign,
     Gift,
+    History,
     RefreshCw,
     Shield,
     TrendingUp,
@@ -75,6 +77,7 @@ export default function Rewards() {
   const [isOverviewOpen, setIsOverviewOpen] = useState(false);
   const [isRewardInfoExpanded, setIsRewardInfoExpanded] = useState(false);
   const [mobileRewardTab, setMobileRewardTab] = useState<'matrix' | 'bcc'>('matrix');
+  const [showTransactionHistory, setShowTransactionHistory] = useState(false);
   
 
   // Use imported supabase client
@@ -622,7 +625,27 @@ export default function Rewards() {
 
         {/* Withdrawal Tab */}
         <TabsContent value="withdrawal" className="space-y-6">
-          <USDTWithdrawal />
+          {showTransactionHistory ? (
+            <WithdrawalTransactionHistory
+              walletAddress={memberWalletAddress || ''}
+              onBack={() => setShowTransactionHistory(false)}
+            />
+          ) : (
+            <>
+              <USDTWithdrawal />
+              {/* Transaction History Button */}
+              <div className="flex justify-center">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowTransactionHistory(true)}
+                  className="flex items-center gap-2 border-honey/30 hover:border-honey hover:bg-honey/5 text-honey hover:text-honey"
+                >
+                  <History className="h-4 w-4" />
+                  {t('withdrawal.view_transaction_history')}
+                </Button>
+              </div>
+            </>
+          )}
         </TabsContent>
 
         {/* Enhanced History Tab */}

@@ -1,17 +1,16 @@
-import { useState, useEffect } from 'react';
-import { useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain } from 'thirdweb/react';
-import { getContract, prepareContractCall, sendTransaction, waitForReceipt } from 'thirdweb';
-import { arbitrum } from 'thirdweb/chains';
-import { createThirdwebClient } from 'thirdweb';
-import { claimTo, balanceOf } from 'thirdweb/extensions/erc1155';
-import { approve, balanceOf as erc20BalanceOf, allowance } from 'thirdweb/extensions/erc20';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { useToast } from '../../hooks/use-toast';
-import { Loader2, Crown, TrendingUp, Coins, Clock, Star } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
-import { useI18n } from '../../contexts/I18nContext';
+import {useEffect, useState} from 'react';
+import {useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain} from 'thirdweb/react';
+import {createThirdwebClient, getContract, sendTransaction, waitForReceipt} from 'thirdweb';
+import {arbitrum} from 'thirdweb/chains';
+import {balanceOf, claimTo} from 'thirdweb/extensions/erc1155';
+import {allowance, approve, balanceOf as erc20BalanceOf} from 'thirdweb/extensions/erc20';
+import {Button} from '../ui/button';
+import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
+import {Badge} from '../ui/badge';
+import {useToast} from '../../hooks/use-toast';
+import {Clock, Coins, Crown, Loader2, Star, TrendingUp} from 'lucide-react';
+import {supabase} from '../../lib/supabase';
+import {useI18n} from '../../contexts/I18nContext';
 
 interface LevelUpgradeButtonGenericProps {
   targetLevel: number;
@@ -445,8 +444,7 @@ export function LevelUpgradeButtonGeneric({
             const { data: updateResult, error: updateError } = await supabase
               .from('members')
               .update({ 
-                current_level: targetLevel,
-                updated_at: new Date().toISOString()
+                current_level: targetLevel
               })
               .eq('wallet_address', account.address)
               .select('*')

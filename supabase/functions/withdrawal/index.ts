@@ -227,16 +227,21 @@ serve(async (req) => {
         from: Deno.env.get('VITE_SERVER_WALLET_ADDRESS'),
         to: Deno.env.get('VITE_SERVER_WALLET_ADDRESS'), // Bridge to our wallet first
         tokenIn: {
-          chainId: (sourceChainId || 42161).toString(),
-          tokenAddress: sourceTokenAddress,
+          chainId: sourceChainId || 42161, // 数字类型
+          address: sourceTokenAddress, // 修复字段名
           amount: grossAmountInWei,
           decimals: sourceToken.decimals
         },
         tokenOut: {
-          chainId: targetChainId.toString(),
-          tokenAddress: targetTokenInfo.isNative ? null : targetTokenAddress,
+          chainId: targetChainId, // 数字类型
+          address: targetTokenInfo.isNative ? undefined : targetTokenAddress, // undefined而不是null
           decimals: targetTokenInfo.decimals
         }
+      }
+      
+      // 如果是native token，移除address字段
+      if (targetTokenInfo.isNative) {
+        delete swapRequestBody.tokenOut.address;
       }
       
       const swapResponse = await fetch('https://api.thirdweb.com/v1/bridge/swap', {
