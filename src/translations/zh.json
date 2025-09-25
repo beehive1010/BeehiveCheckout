@@ -141,7 +141,18 @@
       "activateRequiredLevel": "激活所需级别以立即领取",
       "expiryRedistribution": "过期重新分配",
       "expiredRewardsRedistribute": "过期奖励分配给上级符合条件的成员",
-      "layerText": "层级{{layer}}"
+      "layerText": "层级{{layer}}",
+      "matrixVisualization": {
+        "legend": {
+          "activeMember": "活跃成员",
+          "pendingMember": "待处理成员",
+          "hasRewards": "有奖励",
+          "you": "您",
+          "member": "成员",
+          "members": "成员"
+        },
+        "level": "级别"
+      }
     },
     "subtitle": "跟踪和管理您的BEEHIVE奖励",
     "title": "奖励",

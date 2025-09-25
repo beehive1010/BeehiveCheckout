@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MatrixVisualization } from '@/components/illustrations/MatrixVisualization';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { 
   Info, 
   TrendingUp, 
@@ -30,6 +31,7 @@ export const LayerRewardExplanation: React.FC<LayerRewardExplanationProps> = ({
   className = ''
 }) => {
   const { t } = useI18n();
+  const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -51,7 +53,7 @@ export const LayerRewardExplanation: React.FC<LayerRewardExplanationProps> = ({
       <DialogTrigger asChild>
         {trigger || defaultTrigger}
       </DialogTrigger>
-      <DialogContent className="max-w-6xl h-[90vh] overflow-hidden bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900 border-2 border-honey/30 shadow-2xl">
+      <DialogContent className={`${isMobile ? 'max-w-[95vw] h-[95vh]' : 'max-w-6xl h-[90vh]'} overflow-hidden bg-gradient-to-br from-slate-900 via-gray-900 to-slate-900 border-2 border-honey/30 shadow-2xl`}>
         <div className="absolute inset-0 bg-gradient-to-r from-honey/5 via-transparent to-amber-400/5 opacity-50"></div>
         <DialogHeader className="relative border-b border-honey/20 pb-4">
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-honey via-amber-400 to-honey bg-clip-text text-transparent">
@@ -64,7 +66,7 @@ export const LayerRewardExplanation: React.FC<LayerRewardExplanationProps> = ({
         
         <div className="relative flex-1 overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
-            <TabsList className="grid w-full grid-cols-4 gap-2 bg-slate-800/50 p-1 rounded-lg border border-honey/20">
+            <TabsList className={`grid w-full ${isMobile ? 'grid-cols-2' : 'grid-cols-4'} gap-2 bg-slate-800/50 p-1 rounded-lg border border-honey/20`}>
               <TabsTrigger 
                 value="overview" 
                 className="data-[state=active]:bg-honey data-[state=active]:text-black font-medium"
@@ -101,7 +103,7 @@ export const LayerRewardExplanation: React.FC<LayerRewardExplanationProps> = ({
 
             <div className="flex-1 overflow-y-auto mt-4 space-y-4 pb-4">
               <TabsContent value="overview" className="space-y-4 mt-0">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className={`grid grid-cols-1 ${isMobile ? '' : 'lg:grid-cols-2'} gap-6 ${isMobile ? 'px-2' : ''}`}>
                   <Card className="bg-slate-800/50 border-honey/20">
                     <CardHeader>
                       <CardTitle className="text-honey flex items-center gap-2">
@@ -114,12 +116,14 @@ export const LayerRewardExplanation: React.FC<LayerRewardExplanationProps> = ({
                     </CardHeader>
                     <CardContent>
                       <div className="bg-slate-900/50 rounded-lg p-4 border border-honey/10">
-                        <MatrixVisualization 
-                          maxLevels={4} 
-                          showAnimation={true} 
-                          compact={true}
-                          className="w-full"
-                        />
+                        <div className={`${isMobile ? 'flex justify-center items-center' : ''}`}>
+                          <MatrixVisualization 
+                            maxLevels={4} 
+                            showAnimation={true} 
+                            compact={isMobile ? true : true}
+                            className={`${isMobile ? 'scale-90 w-auto' : 'w-full'}`}
+                          />
+                        </div>
                       </div>
                       <p className="text-sm text-slate-400 mt-3">
                         {t('rewards.layerRewardSystem.matrixVisualization.positions')}
@@ -152,7 +156,7 @@ export const LayerRewardExplanation: React.FC<LayerRewardExplanationProps> = ({
               </TabsContent>
 
               <TabsContent value="structure" className="space-y-4 mt-0">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className={`grid grid-cols-1 ${isMobile ? '' : 'lg:grid-cols-2'} gap-6 ${isMobile ? 'px-2' : ''}`}>
                   <Card className="bg-slate-800/50 border-honey/20">
                     <CardHeader>
                       <CardTitle className="text-honey flex items-center gap-2">

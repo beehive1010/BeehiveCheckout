@@ -273,8 +273,8 @@ serve(async (req: Request) => {
       try {
         console.log(`📐 Completing matrix placement: ${walletAddress} -> ${normalizedReferrerWallet}`);
         
-        // Use the matrix function to place member and create referral record
-        const matrixPlacementResult = await supabase.rpc('place_new_member_in_matrix_correct', {
+        // Use the SAFE matrix function to place member without affecting referrer relationships
+        const matrixPlacementResult = await supabase.rpc('place_member_matrix_safe', {
           p_member_wallet: userData.wallet_address, // Use exact case from users table
           p_referrer_wallet: normalizedReferrerWallet
         });

@@ -2049,7 +2049,16 @@
       "rightPosition": "Right Position",
       "spillover": "Spillover",
       "title": "Matrix Visualization",
-      "viewDetails": "View Details"
+      "viewDetails": "View Details",
+      "legend": {
+        "activeMember": "Active Member",
+        "pendingMember": "Pending Member", 
+        "hasRewards": "Has Rewards",
+        "you": "YOU",
+        "member": "member",
+        "members": "members"
+      },
+      "level": "Level"
     },
     "max_layers": "Max Layers",
     "networkStats": {

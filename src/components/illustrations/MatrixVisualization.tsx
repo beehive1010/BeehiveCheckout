@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {animated, useSpring} from 'react-spring';
 import {useInView} from 'react-intersection-observer';
+import {useI18n} from '../../contexts/I18nContext';
 
 interface MatrixNode {
   id: string;
@@ -26,6 +27,7 @@ export const MatrixVisualization: React.FC<MatrixVisualizationProps> = ({
   className = '',
   compact = false
 }) => {
+  const { t } = useI18n();
   const [ref, inView] = useInView({
     threshold: 0.2,
     triggerOnce: true
@@ -141,7 +143,7 @@ export const MatrixVisualization: React.FC<MatrixVisualizationProps> = ({
             y={compact ? 55 + level * 80 : 85 + level * 120}
             className="text-sm fill-honey font-semibold transition-all duration-300 hover:fill-yellow-300"
           >
-            Level {level + 1}
+            {t('rewards.information.matrixVisualization.level')} {level + 1}
           </text>
         ))}
 
@@ -153,7 +155,7 @@ export const MatrixVisualization: React.FC<MatrixVisualizationProps> = ({
             y={compact ? 55 + level * 80 : 85 + level * 120}
             className="text-xs fill-gray-400 transition-all duration-300 hover:fill-gray-200"
           >
-            {Math.pow(3, level)} {Math.pow(3, level) === 1 ? 'member' : 'members'}
+            {Math.pow(3, level)} {Math.pow(3, level) === 1 ? t('rewards.information.matrixVisualization.legend.member') : t('rewards.information.matrixVisualization.legend.members')}
           </text>
         ))}
       </svg>
@@ -162,15 +164,15 @@ export const MatrixVisualization: React.FC<MatrixVisualizationProps> = ({
       <div className="mt-4 flex flex-wrap gap-4 text-sm animate-in slide-in-from-bottom-2 fade-in-0 duration-1000 delay-500">
         <div className="flex items-center gap-2 transition-all duration-300 hover:scale-105">
           <div className="w-4 h-4 rounded-full bg-honey transition-all duration-300 hover:scale-125 hover:shadow-lg hover:shadow-honey/50"></div>
-          <span className="text-gray-300 transition-colors duration-300 hover:text-honey">Active Member</span>
+          <span className="text-gray-300 transition-colors duration-300 hover:text-honey">{t('rewards.information.matrixVisualization.legend.activeMember')}</span>
         </div>
         <div className="flex items-center gap-2 transition-all duration-300 hover:scale-105">
           <div className="w-4 h-4 rounded-full bg-gray-600 transition-all duration-300 hover:scale-125 hover:bg-gray-500"></div>
-          <span className="text-gray-300 transition-colors duration-300 hover:text-gray-100">Pending Member</span>
+          <span className="text-gray-300 transition-colors duration-300 hover:text-gray-100">{t('rewards.information.matrixVisualization.legend.pendingMember')}</span>
         </div>
         <div className="flex items-center gap-2 transition-all duration-300 hover:scale-105">
           <div className="w-4 h-4 rounded-full bg-honey ring-2 ring-yellow-400 transition-all duration-300 hover:scale-125 animate-pulse hover:shadow-lg hover:shadow-yellow-400/50"></div>
-          <span className="text-gray-300 transition-colors duration-300 hover:text-yellow-300">Has Rewards</span>
+          <span className="text-gray-300 transition-colors duration-300 hover:text-yellow-300">{t('rewards.information.matrixVisualization.legend.hasRewards')}</span>
         </div>
       </div>
     </animated.div>
@@ -221,6 +223,7 @@ const MatrixNodeComponent: React.FC<MatrixNodeComponentProps> = ({
   delay,
   compact 
 }) => {
+  const { t } = useI18n();
   const nodeAnimation = useSpring({
     transform: isHighlighted ? 'scale(1.3) rotate(360deg)' : 'scale(1) rotate(0deg)',
     opacity: 1,
@@ -265,7 +268,7 @@ const MatrixNodeComponent: React.FC<MatrixNodeComponentProps> = ({
         fill="#000"
         fontSize={fontSize}
       >
-        {node.level === 0 ? 'YOU' : ['L', 'M', 'R'][node.position % 3]}
+        {node.level === 0 ? t('rewards.information.matrixVisualization.legend.you') : ['L', 'M', 'R'][node.position % 3]}
       </text>
       
       {/* User name if available */}
