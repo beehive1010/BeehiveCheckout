@@ -142,6 +142,17 @@
       "expiryRedistribution": "过期重新分配",
       "expiredRewardsRedistribute": "过期奖励分配给上级符合条件的成员",
       "layerText": "层级{{layer}}",
+      "eligibilityRules": {
+        "firstSecondTitle": "第1和第2奖励",
+        "thirdOnwardTitle": "第3及以上奖励",
+        "importantTitle": "重要提示"
+      },
+      "pendingSystem": {
+        "notEligibleTitle": "不符合条件",
+        "windowTitle": "72小时窗口",
+        "immediateTitle": "立即领取",
+        "rollupTitle": "上滚系统"
+      },
       "matrixVisualization": {
         "legend": {
           "activeMember": "活跃成员",

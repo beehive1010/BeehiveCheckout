@@ -2310,8 +2310,11 @@
     "layerRewardSystem": {
       "eligibilityRules": {
         "firstSecond": "1st & 2nd rewards: Your level must equal the layer level",
+        "firstSecondTitle": "1st & 2nd Rewards",
         "thirdOnward": "3rd+ rewards: Your level must be higher than the layer level",
+        "thirdOnwardTitle": "3rd+ Rewards",
         "title": "Eligibility Rules",
+        "importantTitle": "Important",
         "verification": "Level verification is required before reward distribution"
       },
       "explanation": "Learn how layer rewards are triggered when members upgrade their membership levels",
@@ -2329,9 +2332,13 @@
       "pendingSystem": {
         "expiry": "After 72 hours, unclaimed rewards roll up to eligible upline members",
         "immediate": "Upgrade immediately to claim pending rewards instantly",
+        "immediateTitle": "Immediate Claim",
         "notEligible": "If you don't meet level requirements, rewards enter pending status",
+        "notEligibleTitle": "Not Eligible",
+        "rollupTitle": "Roll-up System",
         "title": "72-Hour Pending System",
-        "upgradeWindow": "You have 72 hours to upgrade and claim the reward"
+        "upgradeWindow": "You have 72 hours to upgrade and claim the reward",
+        "windowTitle": "72-Hour Window"
       },
       "rewardAmounts": {
         "continuation": "Pattern continues to Level 19",
