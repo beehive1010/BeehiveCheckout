@@ -148,6 +148,10 @@
       "layerRewardsSubtitle": "19-Layer Reward System",
       "bccRewardsSubtitle": "BCC Release Rewards",
       "layerRewardsSystem": "Layer Rewards System",
+      "bccRewardsSystem": "BCC Release System",
+      "bccRewardsSystemDesc": "Four-phase BCC release system based on member activation milestones. Rewards decrease progressively to ensure long-term sustainability.",
+      "bccRewardsMobileDesc": "Four-phase BCC release system based on member activation milestones. Each phase has different reward amounts that decrease over time.",
+      "bccPhasesPreview": "BCC Phases Preview",
       "layerRewardsSystemDesc": "When members in your matrix upgrade membership levels, corresponding layer rewards are triggered. 19 layers total, each layer reward equals 100% of the corresponding level NFT price",
       "layerRewardsMobileDesc": "When members in your matrix upgrade membership levels, corresponding layer rewards are triggered. 19 layers total, each layer reward amount is 100% of the corresponding level NFT price.",
       "layerRewardsPreview": "Layer Rewards Preview",
@@ -1137,7 +1141,9 @@
         "insufficient_level": "Insufficient Level",
         "network_spillover": "Network Spillover",
         "manual_rollup": "Manual Rollup",
-        "system_rollup": "System Rollup"
+        "system_rollup": "System Rollup",
+        "expired_timeout": "Expired - Timeout",
+        "no_qualified_upline": "No Qualified Upline"
       }
     },
     "history": {

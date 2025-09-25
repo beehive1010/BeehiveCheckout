@@ -176,6 +176,10 @@
       "layerRewardsSubtitle": "19层奖励系统",
       "bccRewardsSubtitle": "BCC释放奖励",
       "layerRewardsSystem": "层级奖励系统",
+      "bccRewardsSystem": "BCC释放系统",
+      "bccRewardsSystemDesc": "基于会员激活里程碑的四阶段BCC释放系统。奖励逐步递减以确保长期可持续性。",
+      "bccRewardsMobileDesc": "基于会员激活里程碑的四阶段BCC释放系统。每个阶段有不同的奖励金额，随时间递减。",
+      "bccPhasesPreview": "BCC阶段预览",
       "layerRewardsSystemDesc": "当您矩阵中的会员升级会员级别时触发相应层级奖励，共19层，每层奖励为对应级别NFT价格100%",
       "layerRewardsMobileDesc": "当您矩阵中的会员升级会员级别时触发相应层级奖励。共19层，每层奖励金额为对应级别NFT价格的100%。",
       "layerRewardsPreview": "层级奖励预览",
@@ -1129,15 +1133,32 @@
     "totalWithdrawn": "总提取金额",
     "rollup": {
       "title": "上滚奖励",
+      "subtitle": "因过期或资格问题而重新分配的奖励",
+      "items": "上滚项目",
       "noRollupRewards": "暂无上滚奖励",
-      "noRollupDescription": "当待处理奖励未被及时领取而过期时，将自动上滚给符合条件的上级会员。",
+      "noRollupDescription": "当待处理奖励过期或被重新分配时会出现上滚奖励",
       "totalRolledUp": "总上滚数量",
       "totalAmount": "总金额",
       "reasons": "上滚原因",
       "rollupBreakdown": "上滚明细",
       "recentRollups": "最近上滚",
-      "aboutRollup": "关于上滚机制",
-      "aboutRollupDescription": "当会员未能及时升级时，其待处理奖励将自动上滚给矩阵网络中下一位符合条件的上级会员。"
+      "aboutRollup": "关于上滚奖励",
+      "aboutRollupDescription": "上滚奖励是由于过期、级别不足或其他原因而无法领取的待处理奖励。这些奖励会根据矩阵上滚系统在网络内重新分配。",
+      "automatic": "自动",
+      "transparent": "透明",
+      "efficient": "高效",
+      "distributedRewards": "已分配奖励",
+      "totalValue": "总价值",
+      "reasonTypes": "不同原因类型",
+      "reasons": {
+        "expired_unclaimed": "过期 - 未领取",
+        "insufficient_level": "级别不足",
+        "network_spillover": "网络溢出",
+        "manual_rollup": "手动上滚",
+        "system_rollup": "系统上滚",
+        "expired_timeout": "过期超时",
+        "no_qualified_upline": "无符合条件的上级"
+      }
     }
   },
   "nft": {

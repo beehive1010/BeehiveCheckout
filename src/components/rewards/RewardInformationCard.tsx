@@ -6,7 +6,6 @@ import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} fro
 import {Collapsible, CollapsibleContent, CollapsibleTrigger} from '@/components/ui/collapsible';
 import {useI18n} from '@/contexts/I18nContext';
 import {useIsMobile} from '@/hooks/use-mobile';
-import {BCCRewardInformation} from './BCCRewardInformation';
 import {
     AlertCircle,
     ArrowRight,
@@ -233,15 +232,21 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                         <Target className="h-4 w-4" />
                         {t('rewards.information.layerRewardsPreview')}
                       </h4>
-                      <div className="grid grid-cols-2 gap-2">
-                        {[1, 2, 3, 19].map((layer, index) => {
-                          const reward = LAYER_REWARDS[layer - 1];
+                      <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
+                        {LAYER_REWARDS.map((reward, index) => {
+                          const isHighlight = reward.layer === 1 || reward.layer === 19;
                           return (
-                            <div key={layer} className="bg-slate-700/50 rounded-lg p-2 text-center">
-                              <div className="text-honey text-xs font-bold">
-                                Layer {layer}{index === 3 ? ' (Max)' : ''}
+                            <div key={reward.layer} className={`rounded-lg p-2 text-center transition-all duration-200 ${
+                              isHighlight ? 'bg-honey/20 border border-honey/30' : 'bg-slate-700/50'
+                            }`}>
+                              <div className={`text-xs font-bold ${
+                                isHighlight ? 'text-honey' : 'text-slate-300'
+                              }`}>
+                                L{reward.layer}{reward.layer === 19 ? ' (Max)' : ''}
                               </div>
-                              <div className="text-green-400 text-xs font-semibold">
+                              <div className={`text-xs font-semibold ${
+                                isHighlight ? 'text-honey' : 'text-green-400'
+                              }`}>
                                 ${reward.levelPrice}
                               </div>
                             </div>
@@ -253,15 +258,59 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
 
                   {/* BCC Rewards */}
                   <div className="space-y-4">
-                    <BCCRewardInformation compact={true} showAnimation={false} />
-                    <div className="text-center">
-                      <Button 
-                        onClick={() => openDialog('bcc')}
-                        className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-400 hover:to-purple-400 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-sm px-4 py-2"
-                      >
-                        <Eye className="mr-2 h-4 w-4" />
-                        查看全部阶段
-                      </Button>
+                    <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl p-4 border border-blue-500/30 shadow-lg">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center mt-1">
+                          <Lock className="h-4 w-4 text-blue-400" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-bold text-blue-400 mb-2 text-base">
+                            {t('rewards.information.bccRewardsSystem')}
+                          </h3>
+                          <p className="text-muted-foreground mb-3 text-sm">
+                            {t('rewards.information.bccRewardsSystemDesc')}
+                          </p>
+                          <Button 
+                            onClick={() => openDialog('bcc')}
+                            className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-400 hover:to-purple-400 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-sm px-4 py-2"
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            {t('rewards.information.viewAllPhases')}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* BCC Phases Quick Preview */}
+                    <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-600">
+                      <h4 className="font-semibold text-blue-400 mb-3 flex items-center gap-2 text-sm">
+                        <TrendingUp className="h-4 w-4" />
+                        {t('rewards.information.bccPhasesPreview')}
+                      </h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {BCC_PHASES.map((phase) => {
+                          const isCurrent = phase.status === 'current';
+                          return (
+                            <div key={phase.phase} className={`rounded-lg p-2 text-center transition-all duration-200 ${
+                              isCurrent ? 'bg-green-500/20 border border-green-500/30' : 'bg-slate-700/50'
+                            }`}>
+                              <div className={`text-xs font-bold ${
+                                isCurrent ? 'text-green-400' : 'text-slate-300'
+                              }`}>
+                                阶段 {phase.phase}{isCurrent ? ' (当前)' : ''}
+                              </div>
+                              <div className={`text-xs font-semibold ${
+                                isCurrent ? 'text-green-400' : 'text-blue-400'
+                              }`}>
+                                {phase.totalReward} BCC
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {phase.members}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -314,20 +363,31 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                             <Target className="h-4 w-4" />
                             {t('rewards.information.layerRewardsPreview')}
                           </h4>
-                          <div className="grid grid-cols-2 gap-2">
-                            {[1, 2, 3, 19].map((layer, index) => {
-                              const reward = LAYER_REWARDS[layer - 1];
+                          <div className="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto">
+                            {LAYER_REWARDS.slice(0, 12).map((reward) => {
+                              const isHighlight = reward.layer === 1 || reward.layer === 19;
                               return (
-                                <div key={layer} className="bg-slate-700/50 rounded-lg p-2 text-center">
-                                  <div className="text-honey text-xs font-bold">
-                                    Layer {layer}{index === 3 ? ' (Max)' : ''}
+                                <div key={reward.layer} className={`rounded-lg p-2 text-center transition-all duration-200 ${
+                                  isHighlight ? 'bg-honey/20 border border-honey/30' : 'bg-slate-700/50'
+                                }`}>
+                                  <div className={`text-xs font-bold ${
+                                    isHighlight ? 'text-honey' : 'text-slate-300'
+                                  }`}>
+                                    L{reward.layer}
                                   </div>
-                                  <div className="text-green-400 text-xs font-semibold">
+                                  <div className={`text-xs font-semibold ${
+                                    isHighlight ? 'text-honey' : 'text-green-400'
+                                  }`}>
                                     ${reward.levelPrice}
                                   </div>
                                 </div>
                               );
                             })}
+                          </div>
+                          <div className="text-center mt-2">
+                            <span className="text-muted-foreground text-xs">
+                              ... 到 L19 ($1,000) 共19层
+                            </span>
                           </div>
                         </div>
 
@@ -343,9 +403,62 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                       </div>
 
                       {/* BCC Rewards Slide */}
-                      <div className="w-full flex-shrink-0">
-                        <BCCRewardInformation compact={true} showAnimation={true} />
-                        <div className="text-center mt-4">
+                      <div className="w-full flex-shrink-0 space-y-4">
+                        <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl p-4 border border-blue-500/30 shadow-lg">
+                          <div className="text-center space-y-3">
+                            <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto">
+                              <Lock className="h-6 w-6 text-blue-400" />
+                            </div>
+                            <h3 className="font-bold text-blue-400 text-base">
+                              {t('rewards.information.bccRewardsSystem')}
+                            </h3>
+                            <p className="text-muted-foreground text-xs leading-relaxed">
+                              {t('rewards.information.bccRewardsMobileDesc')}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* BCC Phases Mobile Preview */}
+                        <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-600">
+                          <h4 className="font-semibold text-blue-400 mb-3 flex items-center justify-center gap-2 text-sm">
+                            <TrendingUp className="h-4 w-4" />
+                            {t('rewards.information.bccPhasesPreview')}
+                          </h4>
+                          <div className="grid grid-cols-2 gap-2">
+                            {BCC_PHASES.map((phase) => {
+                              const isCurrent = phase.status === 'current';
+                              return (
+                                <div key={phase.phase} className={`rounded-lg p-2 text-center transition-all duration-200 ${
+                                  isCurrent ? 'bg-green-500/20 border border-green-500/30' : 'bg-slate-700/50'
+                                }`}>
+                                  <div className={`text-xs font-bold ${
+                                    isCurrent ? 'text-green-400' : 'text-slate-300'
+                                  }`}>
+                                    阶段 {phase.phase}
+                                  </div>
+                                  <div className={`text-xs font-semibold ${
+                                    isCurrent ? 'text-green-400' : 'text-blue-400'
+                                  }`}>
+                                    {phase.totalReward}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {phase.members.split(' ')[0]}
+                                  </div>
+                                  {isCurrent && (
+                                    <div className="text-xs text-green-400">当前</div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <div className="text-center mt-2">
+                            <span className="text-muted-foreground text-xs">
+                              4 个阶段递减释放系统
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="text-center">
                           <Button 
                             onClick={() => openDialog('bcc')}
                             className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-400 hover:to-purple-400 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 w-full py-2 text-sm"
