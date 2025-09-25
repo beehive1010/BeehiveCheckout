@@ -211,7 +211,22 @@
         "title": "资格规则",
         "firstSecond": "第1和第2奖励：您的级别必须等于层级级别",
         "thirdOnward": "第3及以上奖励：您的级别必须高于层级级别",
-        "verification": "奖励分配前需要进行级别验证"
+        "verification": "奖励分配前需要进行级别验证",
+        "firstSecondTitle": "第1和第2奖励",
+        "thirdOnwardTitle": "第3及以上奖励",
+        "importantTitle": "重要提示",
+        "layer1Special": {
+          "title": "层级1特殊规则",
+          "firstSecond": "第1和第2奖励：必须是Level 1才能接收",
+          "thirdOnward": "第3+奖励：必须是Level 2+或进入72小时待处理",
+          "pending": "待处理奖励在72小时内升级后变为可领取",
+          "rollup": "过期奖励上滚给符合等级的上层成员"
+        },
+        "layer2to19Standard": {
+          "title": "层级2-19标准规则",
+          "firstSecond": "第1和第2奖励：级别必须等于或高于层级级别",
+          "thirdOnward": "第3+奖励：级别必须高于层级级别"
+        }
       },
       "pendingSystem": {
         "title": "72小时待处理系统",

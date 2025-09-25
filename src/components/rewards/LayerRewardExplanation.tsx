@@ -299,25 +299,80 @@ export const LayerRewardExplanation: React.FC<LayerRewardExplanationProps> = ({
                       {t('rewards.layerRewardSystem.eligibilityRules.title')}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className={`grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-2'} gap-4`}>
-                      <div className="p-4 bg-green-500/10 rounded-lg border border-green-500/20">
-                        <div className="flex items-center gap-3 mb-3">
-                          <CheckCircle className="h-5 w-5 text-green-400" />
-                          <span className="font-medium text-green-400">{t('rewards.information.eligibilityRules.firstSecondTitle')}</span>
+                  <CardContent className="space-y-6">
+                    {/* Layer 1 Special Rules */}
+                    <div className="space-y-3">
+                      <h4 className="text-lg font-semibold text-blue-400 flex items-center gap-2">
+                        <Badge className="bg-blue-500 text-white text-xs">Layer 1</Badge>
+                        {t('rewards.layerRewardSystem.eligibilityRules.layer1Special.title')}
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CheckCircle className="h-4 w-4 text-blue-400" />
+                            <span className="text-sm font-medium text-blue-400">1st & 2nd</span>
+                          </div>
+                          <p className="text-xs text-slate-300">
+                            {t('rewards.layerRewardSystem.eligibilityRules.layer1Special.firstSecond')}
+                          </p>
                         </div>
-                        <p className="text-sm text-slate-300">
-                          {t('rewards.layerRewardSystem.eligibilityRules.firstSecond')}
-                        </p>
+                        <div className="p-3 bg-orange-500/10 rounded-lg border border-orange-500/20">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Clock className="h-4 w-4 text-orange-400" />
+                            <span className="text-sm font-medium text-orange-400">3rd+</span>
+                          </div>
+                          <p className="text-xs text-slate-300">
+                            {t('rewards.layerRewardSystem.eligibilityRules.layer1Special.thirdOnward')}
+                          </p>
+                        </div>
                       </div>
-                      <div className="p-4 bg-orange-500/10 rounded-lg border border-orange-500/20">
-                        <div className="flex items-center gap-3 mb-3">
-                          <ArrowUp className="h-5 w-5 text-orange-400" />
-                          <span className="font-medium text-orange-400">{t('rewards.information.eligibilityRules.thirdOnwardTitle')}</span>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CheckCircle className="h-4 w-4 text-green-400" />
+                            <span className="text-sm font-medium text-green-400">Pending → Claimable</span>
+                          </div>
+                          <p className="text-xs text-slate-300">
+                            {t('rewards.layerRewardSystem.eligibilityRules.layer1Special.pending')}
+                          </p>
                         </div>
-                        <p className="text-sm text-slate-300">
-                          {t('rewards.layerRewardSystem.eligibilityRules.thirdOnward')}
-                        </p>
+                        <div className="p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                          <div className="flex items-center gap-2 mb-2">
+                            <ArrowUp className="h-4 w-4 text-purple-400" />
+                            <span className="text-sm font-medium text-purple-400">Roll-up</span>
+                          </div>
+                          <p className="text-xs text-slate-300">
+                            {t('rewards.layerRewardSystem.eligibilityRules.layer1Special.rollup')}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Layer 2-19 Standard Rules */}
+                    <div className="space-y-3">
+                      <h4 className="text-lg font-semibold text-honey flex items-center gap-2">
+                        <Badge className="bg-honey text-black text-xs">Layer 2-19</Badge>
+                        {t('rewards.layerRewardSystem.eligibilityRules.layer2to19Standard.title')}
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CheckCircle className="h-4 w-4 text-green-400" />
+                            <span className="text-sm font-medium text-green-400">1st & 2nd</span>
+                          </div>
+                          <p className="text-xs text-slate-300">
+                            {t('rewards.layerRewardSystem.eligibilityRules.layer2to19Standard.firstSecond')}
+                          </p>
+                        </div>
+                        <div className="p-3 bg-orange-500/10 rounded-lg border border-orange-500/20">
+                          <div className="flex items-center gap-2 mb-2">
+                            <ArrowUp className="h-4 w-4 text-orange-400" />
+                            <span className="text-sm font-medium text-orange-400">3rd+</span>
+                          </div>
+                          <p className="text-xs text-slate-300">
+                            {t('rewards.layerRewardSystem.eligibilityRules.layer2to19Standard.thirdOnward')}
+                          </p>
+                        </div>
                       </div>
                     </div>
                     <div className="p-4 bg-honey/10 rounded-lg border border-honey/20">

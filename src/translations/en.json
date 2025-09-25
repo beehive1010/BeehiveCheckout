@@ -2315,7 +2315,19 @@
         "thirdOnwardTitle": "3rd+ Rewards",
         "title": "Eligibility Rules",
         "importantTitle": "Important",
-        "verification": "Level verification is required before reward distribution"
+        "verification": "Level verification is required before reward distribution",
+        "layer1Special": {
+          "title": "Layer 1 Special Rules",
+          "firstSecond": "1st & 2nd rewards: Must be Level 1 to receive",
+          "thirdOnward": "3rd+ rewards: Must be Level 2+ or enter 72h pending",
+          "pending": "Pending rewards become claimable upon upgrade within 72h",
+          "rollup": "Expired rewards roll up to qualified higher-level members"
+        },
+        "layer2to19Standard": {
+          "title": "Layer 2-19 Standard Rules",
+          "firstSecond": "1st & 2nd rewards: Level must equal or exceed layer level",
+          "thirdOnward": "3rd+ rewards: Level must exceed layer level"
+        }
       },
       "explanation": "Learn how layer rewards are triggered when members upgrade their membership levels",
       "howItWorks": {
