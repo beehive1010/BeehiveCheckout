@@ -779,12 +779,1411 @@
       "shareMessage": "Share your referral link to grow your network",
       "title": "Upline Network"
     },
+    "downlineNetwork": {
+      "title": "Your Downline Network"
+    },
+    "downlineMatrix": {
+      "title": "Downline Matrix",
+      "placement": "Placement"
+    },
+    "actions": {
+      "upgradeLevel": "Upgrade Level",
+      "upgradeDescription": "Purchase next membership level",
+      "viewReferrals": "View Referrals",
+      "referralsDescription": "Manage your referral network",
+      "claimNFT": "Claim NFT",
+      "nftDescription": "Claim merchant NFTs with BCC",
+      "learnEarn": "Learn & Earn",
+      "educationDescription": "Access premium courses"
+    },
+    "registrationExpiry": {
+      "warning": "Registration expires soon! Activate membership to continue:"
+    },
+    "layer": {
+      "name": "Layer",
+      "members": "members",
+      "upgraded": "upgraded",
+      "placements": "placements"
+    },
     "userAvatar": "User Avatar",
     "userCentre": "User Centre",
     "verifying": "Verifying NFT ownership...",
     "viewMatrix": "View Matrix",
     "welcomeBack": "Welcome back, {username}!",
     "welcomeMember": "Welcome back, Member!"
+  },
+  "wallet": {
+    "connect": "Connect Wallet",
+    "disconnect": "Disconnect",
+    "connected": "Connected"
+  },
+  "header": {
+    "connectWallet": "Connect Wallet"
+  },
+  "landing": {
+    "hero": {
+      "title": "Welcome to Beehive",
+      "subtitle": "Web3 membership and learning platform with blockchain-based rewards"
+    },
+    "getStarted": "Get Started",
+    "matrix": {
+      "explainTitle": "Learn the 3×3 Matrix",
+      "explainDescription": "Discover how our matrix system works and how you can earn rewards",
+      "explainButton": "Matrix Explained"
+    },
+    "features": {
+      "membership": {
+        "title": "Web3 Membership",
+        "description": "Secure on-chain membership credentials with 19 levels"
+      },
+      "referral": {
+        "title": "3×3 Matrix System",
+        "description": "Earn rewards through our forced matrix referral program"
+      },
+      "education": {
+        "title": "Learn & Earn",
+        "description": "Access premium courses and workshops while earning tokens"
+      },
+      "marketplace": {
+        "title": "NFT Marketplace",
+        "description": "Claim exclusive merchant NFTs with your BCC tokens"
+      },
+      "tokens": {
+        "title": "BCC Rewards",
+        "description": "Dual token system with transferable and restricted buckets"
+      },
+      "rewards": {
+        "title": "Smart Rewards",
+        "description": "48-hour upgrade countdown with roll-up mechanisms"
+      },
+      "smartContracts": {
+        "title": "Smart Contracts",
+        "description": "100% automated blockchain execution"
+      },
+      "nftMarketplace": {
+        "title": "NFT Marketplace",
+        "description": "Trade exclusive Beehive NFTs"
+      },
+      "matrixRewards": {
+        "title": "Matrix Rewards",
+        "description": "Exponential wealth growth system"
+      }
+    },
+    "stats": {
+      "membershipLevels": "19 Membership Levels",
+      "matrixSystem": "3×3 Matrix System",
+      "nftMarketplace": "NFT Marketplace"
+    },
+    "platformFeatures": {
+      "title": "Platform Features",
+      "subtitle": "Discover the powerful features that make Beehive the ultimate Web3 membership platform",
+      "exclusiveLevels": "19 Exclusive Levels",
+      "exclusiveCollections": "Exclusive Collections",
+      "autoPlacement": "Auto-placement System",
+      "dualTokenSystem": "Dual Token System",
+      "premiumCourses": "Premium Courses",
+      "countdown": "48hr Countdown"
+    },
+    "ctaStats": {
+      "membershipLevels": "Membership Levels",
+      "matrixSystem": "Matrix System",
+      "earningPotential": "Earning Potential"
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "subtitle": "Get started in just three simple steps and unlock the power of Web3 membership",
+      "step1": {
+        "title": "Connect Wallet",
+        "description": "Connect your Web3 wallet to get started"
+      },
+      "step2": {
+        "title": "Register & Activate",
+        "description": "Complete registration and activate Level 1 membership"
+      },
+      "step3": {
+        "title": "Learn & Earn",
+        "description": "Access platform features and start earning rewards"
+      }
+    },
+    "cta": {
+      "title": "Ready to Start Your Journey?",
+      "description": "Join thousands of members already earning in the Beehive ecosystem",
+      "button": "Join Beehive Now",
+      "subtitle": "Join thousands of members earning passive income"
+    }
+  },
+  "matrix": {
+    "navigation": {
+      "home": "Home",
+      "features": "Features",
+      "howItWorks": "How It Works",
+      "education": "Education",
+      "getStarted": "Get Started"
+    }
+  },
+  "footer": {
+    "platform": {
+      "title": "Platform",
+      "membership": "Membership Levels",
+      "rewards": "Rewards System",
+      "nfts": "NFT Marketplace",
+      "education": "Education Center"
+    },
+    "resources": {
+      "title": "Resources",
+      "whitepaper": "Whitepaper",
+      "documentation": "Documentation",
+      "tutorials": "Tutorials",
+      "faq": "FAQ"
+    },
+    "community": {
+      "title": "Community",
+      "discord": "Discord",
+      "telegram": "Telegram",
+      "twitter": "Twitter",
+      "medium": "Medium"
+    },
+    "legal": {
+      "title": "Legal",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "cookies": "Cookie Policy",
+      "disclaimer": "Disclaimer"
+    },
+    "newsletter": {
+      "title": "Stay Updated",
+      "description": "Get the latest updates about new features, rewards, and community events",
+      "placeholder": "Enter your email address",
+      "button": "Subscribe",
+      "disclaimer": "We respect your privacy and never share your information"
+    },
+    "brand": {
+      "tagline": "Web3 Membership & Learning Platform"
+    },
+    "copyright": {
+      "rights": "All rights reserved.",
+      "blockchain": "Powered by blockchain technology"
+    },
+    "backToTop": "Back to Top"
+  },
+  "registration": {
+    "title": "Complete Registration",
+    "subtitle": "Set up your Beehive profile",
+    "description": "Complete your registration to join the BEEHIVE community",
+    "walletAddress": "Wallet Address",
+    "email": "Email Address",
+    "emailPlaceholder": "Enter your email",
+    "username": "Username",
+    "usernamePlaceholder": "Choose a username",
+    "secondaryPassword": "Secondary Password",
+    "passwordPlaceholder": "Create a secure password",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "referrer": "Upline Referrer",
+    "register": "Complete Registration",
+    "registering": "Processing...",
+    "agreement": "By registering, you agree to our Terms of Service and Privacy Policy",
+    "noReferrerInfo": {
+      "title": "Referral Link Required",
+      "description": "To join Beehive, you need a referral link from an existing member. This connects you to your upline in our 3×3 matrix system.",
+      "getLink": "Ask a Beehive member for their referral link to get started."
+    },
+    "errors": {
+      "emailRequired": "Email address is required",
+      "emailInvalid": "Please enter a valid email address",
+      "usernameRequired": "Username is required",
+      "usernameTooShort": "Username must be at least 3 characters",
+      "passwordRequired": "Secondary password is required",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "passwordMismatch": "Passwords do not match",
+      "referrerRequired": "A valid referral link is required to register",
+      "alreadyRegistered": "Already Registered",
+      "alreadyRegisteredDescription": "You are already registered! Redirecting to welcome page...",
+      "cannotReferSelf": "You cannot refer yourself",
+      "failedToValidateReferrer": "Failed to validate referrer",
+      "referrerNotValid": "Referrer is not a valid activated member",
+      "walletRequired": "Wallet Required",
+      "walletRequiredDescription": "Please connect your wallet first",
+      "referrerRequired": "Referrer Required",
+      "referrerRequiredDescription": "You must use a valid referral link to register. Please ask an existing member for a referral link.",
+      "invalidReferrer": "Invalid Referrer",
+      "invalidReferrerDescription": "Please check your referral link",
+      "registrationFailed": "Registration Failed",
+      "registrationFailedDescription": "Please try again later"
+    },
+    "success": "Registration Successful! 🎉",
+    "successDescription": "Welcome to Beehive! Redirecting to claim your Level 1 NFT...",
+    "welcomeBack": "Welcome Back!",
+    "accountExists": "Account already exists, no need to register again",
+    "welcomeMessage": "Your profile has been created. You can now activate your membership.",
+    "validatingReferrer": "Validating referrer...",
+    "invalidReferrer": "Invalid referrer",
+    "validReferrer": "Valid referrer",
+    "level": "Level",
+    "checkingStatus": "Checking registration status...",
+    "connected": "Connected",
+    "referralStatus": "Referral Status",
+    "usernameLabel": "Username *",
+    "usernamePlaceholder": "Enter your username",
+    "emailLabel": "Email (optional)",
+    "emailPlaceholder": "Enter your email",
+    "nextSteps": "Next Steps",
+    "nextStepsDescription": {
+      "step1": "Complete registration to create your account",
+      "step2": "Claim your Level 1 NFT for 130 USDC (100 NFT + 30 fee)",
+      "step3": "Join the 3x3 matrix referral system",
+      "step4": "Start earning BCC tokens and USDC rewards"
+    },
+    "registerButton": "Register & Join Beehive",
+    "registeringButton": "Registering...",
+    "referralLinkRequired": "Referral Link Required",
+    "footerText": "By registering, you'll be part of the 3x3 matrix referral system.",
+    "referredBy": "Referred by",
+    "referralLinkExample": "💡 Referral links look like:",
+    "referralRequired": {
+      "title": "Referral Required",
+      "description": "You need a valid referral link to join Beehive Community. Please ask an existing member to share their referral link with you."
+    },
+    "failed": "Registration Failed",
+    "unknownError": "Please try again or contact support if the problem persists.",
+    "registering": "Processing...",
+    "register": "Complete Registration",
+    "error": {
+      "title": "Registration Failed",
+      "description": "Please try again or contact support if the problem persists."
+    },
+    "walletRequired": {
+      "title": "Wallet Connection Required",
+      "description": "Please connect your wallet first to complete registration."
+    },
+    "optional": "optional",
+    "referredBy": "Referred by",
+    "referrerValidationFailed": "Referrer validation failed",
+    "referrerNotActiveMember": "Referrer is not an active member",
+    "checkUserError": "Error checking user status",
+    "invalidReferrer": "Invalid referrer",
+    "memberCreated": "Member record created",
+    "memberCreatedMessage": "Your member profile has been set up",
+    "registrationError": "Registration error",
+    "registrationErrorOccurred": "A registration error occurred",
+    "usernameRequired": "Username is required",
+    "usernameMinLength": "Username must be at least 3 characters",
+    "usernameFormat": "Username can only contain letters, numbers and underscores",
+    "emailInvalid": "Please enter a valid email address",
+    "referrerRequired": "Valid referrer is required",
+    "validating": "Validating",
+    "validationFailed": "Validation failed",
+    "referrerValidated": "Referrer validated",
+    "directReferrals": "direct referrals",
+    "teamMembers": "team members",
+    "nextSteps": "Next Steps",
+    "nextStep1": "Complete NFT claiming to activate membership",
+    "nextStep2": "Start referring friends to build your matrix network", 
+    "nextStep3": "Earn BCC rewards and upgrade to higher levels",
+    "matrixAdvantages": "Matrix System Advantages",
+    "matrixFeature1": "3×3 forced matrix ensures fair distribution",
+    "matrixFeature2": "Spillover mechanism benefits from upline referrals",
+    "matrixFeature3": "Multi-layer reward system maximizes earning potential",
+    "matrixFeature4": "Transparent blockchain records guarantee reward distribution"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "recentNotifications": "Recent Notifications",
+    "noNotificationsYet": "No notifications yet",
+    "defaultTitle": "Notification",
+    "noMessage": "No message",
+    "empty": {
+      "title": "No notifications yet",
+      "description": "You'll receive notifications for BCC rewards, upgrades, and referrals"
+    },
+    "showLess": "Show less",
+    "showAll": "Show all {{count}} notifications",
+    "viewAll": "View All",
+    "errors": {
+      "fetchStatsFailed": "Failed to fetch notification stats",
+      "fetchNotificationsFailed": "Failed to fetch notifications", 
+      "markAsReadFailed": "Failed to mark notification as read",
+      "markAllAsReadFailed": "Failed to mark all notifications as read",
+      "archiveNotImplemented": "Archive functionality not yet implemented",
+      "deleteNotImplemented": "Delete functionality not yet implemented"
+    },
+    "placeholders": {
+      "searchNotifications": "Search notifications..."
+    },
+    "actions": {
+      "takeAction": "Take Action",
+      "act": "Act"
+    },
+    "fallback": {
+      "recently": "Recently"
+    },
+    "navigation": {
+      "navigatingTo": "Navigating to action"
+    },
+    "settings": {
+      "saved": "Settings Saved",
+      "preferencesUpdated": "Your notification preferences have been updated."
+    },
+    "examples": {
+      "layerRewardTitle": "Layer Reward Available",
+      "layerRewardMessage": "You have a $50 USDT layer reward ready to claim from Layer 1.",
+      "claimNow": "Claim Now",
+      "newReferralTitle": "New Referral Joined", 
+      "newReferralMessage": "Alice has joined your network and activated Level 1 membership.",
+      "viewNetwork": "View Network",
+      "levelUnlockedTitle": "Level 2 Unlocked!",
+      "levelUnlockedMessage": "Congratulations! You can now upgrade to Level 2 membership.",
+      "upgradeNow": "Upgrade Now",
+      "rewardExpiringTitle": "Reward Expiring Soon",
+      "rewardExpiringMessage": "Your $100 layer reward will expire in 24 hours. Claim it now to avoid losing it.",
+      "claimBeforeExpiry": "Claim Before Expiry",
+      "paymentConfirmedTitle": "Payment Confirmed",
+      "paymentConfirmedMessage": "Your NFT Level 2 purchase has been confirmed on the blockchain.",
+      "matrixFilledTitle": "Matrix Layer Filled",
+      "matrixFilledMessage": "Your Layer 1 matrix is now completely filled with active members.",
+      "viewMatrix": "View Matrix"
+    }
+  },
+  "claim": {
+    "walletNotConnected": "Wallet not connected",
+    "connectWalletToClaimNFT": "Please connect your wallet to claim your NFT",
+    "referrerRequired": "Referrer Required",
+    "referrerRequiredDesc": "You must use a valid referral link to claim your NFT. Please ask an existing member for a referral link.",
+    "selfReferralNotAllowed": "Self-referral Not Allowed",
+    "selfReferralNotAllowedDesc": "You cannot use your own wallet address as a referrer.",
+    "checkingRegistration": "Checking registration status...",
+    "validatingReferrer": "Validating referrer...",
+    "invalidReferrer": "Invalid Referrer",
+    "useValidReferrer": "Please use a valid referrer wallet address.",
+    "referrerMustBeRegistered": "Referrer must be a registered user on the platform",
+    "validationFailed": "Validation Failed",
+    "validationFailedDesc": "Unable to verify registration or referrer status. Please refresh and try again.",
+    "checkingBalance": "Checking USDC balance...",
+    "checkingApproval": "Checking USDC approval...",
+    "waitingApproval": "Waiting for USDC approval...",
+    "waitingApprovalConfirmation": "Waiting for USDC approval confirmation...",
+    "mintingNFT": "Minting NFT...",
+    "waitingNFTConfirmation": "Waiting for NFT minting confirmation...",
+    "waitingBlockchainConfirmation": "Waiting for blockchain confirmation...",
+    "verifyingAndActivating": "Verifying transaction and activating membership",
+    "nftClaimedSuccessfully": "Your Level 1 NFT has been claimed successfully!",
+    "nftClaimedAndActivated": "Your Level 1 NFT has been claimed and membership activated! Redirecting to dashboard...",
+    "nftClaimedActivatedWithBackendPending": "Your Level 1 NFT has been claimed and membership activated! (Backend processing may need manual completion) Redirecting to dashboard...",
+    "nftClaimedProcessedActivationPending": "Your Level 1 NFT has been claimed and processed! (Membership activation pending) Redirecting to dashboard...",
+    "nftClaimedBlockchainSuccess": "Your Level 1 NFT claim succeeded on blockchain! Backend processing is slow - you may need to refresh or check your membership status in a few minutes.",
+    "nftClaimedTitle": "🎉 NFT Claimed Successfully!",
+    "rateLimited": "Rate Limited",
+    "welcomeBack": "🎉 Welcome Back!",
+    "alreadyHaveNFT": "You already have your Level 1 membership NFT. Redirecting to dashboard...",
+    "insufficientBalance": "Insufficient USDC Balance",
+    "need130USDC": "You need 130 USDC to claim Level 1 NFT. Please add USDC to your wallet and try again.",
+    "tokenApprovalFailed": "Token Approval Failed",
+    "ensureApproval130USDC": "Please ensure you approve the contract to spend 130 USDC and try again.",
+    "networkError": "Network Error",
+    "switchToArbitrumSepolia": "Please switch to Arbitrum Sepolia network and try again.",
+    "claimFailed": "Claim failed",
+    "insufficientGasFunds": "⛽ Insufficient Gas Funds",
+    "needETHForGas": "You need ETH on Arbitrum Sepolia network to pay for transaction gas fees. Please add some ETH to your wallet first.",
+    "claimLevel1NFT": "Claim Your Level 1 Membership NFT",
+    "claimUniqueNFTDesc": "Claim your unique ERC-5115 NFT (Token ID 1) to activate Level 1 membership",
+    "processing": "Processing...",
+    "claimLevel1NFT130USDC": "Claim Level 1 NFT (130 USDC)",
+    "doNotClosePageWarning": "⚠️ Please do not close the page or disconnect your wallet",
+    "paymentRequired": "🪙 130 USDC payment required (100 NFT + 30 platform activation fee)",
+    "instantActivation": "🎯 Instant membership activation upon successful claim",
+    "nftMintedToWallet": "🔗 NFT will be minted to your connected wallet address",
+    "twoTransactions": "⚡ Two transactions: Token approval + NFT minting"
+  },
+  "referrals": {
+    "title": "Referral System",
+    "activated": "Activated",
+    "copy": "Copy", 
+    "linkDescription": "Share this link to earn rewards when people join through your referral and activate membership",
+    "matrixLevel": "Matrix Level",
+    "matrixView": "Your Matrix Network",
+    "noReferrals": "No referrals yet. Start sharing your link to build your 3x3 matrix!",
+    "pending": "Pending",
+    "recentReferrals": "Recent Referrals",
+    "subtitle": "Build your 3x3 matrix network and earn rewards through referrals",
+    "totalEarnings": "Total Earnings",
+    "totalReferrals": "Total Referrals", 
+    "yourLink": "Your Referral Link",
+    "copied": {
+      "title": "Copied!",
+      "description": "Referral link copied to clipboard"
+    },
+    "tabs": {
+      "team": "My Team",
+      "matrix": "3x3 Matrix",
+      "stats": "Statistics"
+    },
+    "legacySystem": "Legacy System (For Comparison)",
+    "activeMembers": "Active Members",
+    "matrixLayers": "Matrix Layers",
+    "recentActivity": "Recent Referral Activity",
+    "recentlyJoined": "Recently joined",
+    "rewardSystemInfo": "Reward System Information",
+    "matrixRewardsTitle": "Matrix Rewards",
+    "bccTokenRewardsTitle": "BCC Token Rewards",
+    "rewards": {
+      "level1Direct": "Level 1 Direct: $30 USDC per referral",
+      "level2Matrix": "Level 2 Matrix: $10 USDC per position",
+      "spilloverBonuses": "Spillover Bonuses: Additional rewards",
+      "claimWindow": "72-hour claim window"
+    },
+    "bccRewards": {
+      "transferable": "Transferable BCC: Immediate use",
+      "locked": "Locked BCC: Tier-based release",
+      "multipliers": "Tier multipliers: 1.0x, 0.5x, 0.25x, 0.125x",
+      "upgrades": "Level upgrades unlock more BCC"
+    },
+    "team_overview": "Team Overview",
+    "view_matrix": "View Matrix",
+    "total_team": "Total Team",
+    "active_members": "Active Members",
+    "max_layers": "Max Layers",
+    "network_strength": "Network Strength",
+    "layer_progress": "Layer Progress",
+    "recent_referrals": "Recent Referrals",
+    "share_link": "Share Referral Link",
+    "rewardStructure": {
+      "title": "BeeHive Reward Structure",
+      "globalMatrix": "Global Matrix System",
+      "layerBased": "Layer-Based Rewards Only (72h Timer)",
+      "specialRules": "SPECIAL RULES:",
+      "rule1": "Level 1: 3rd reward requires Level 2 upgrade",
+      "rule2": "Level 2: Must own L2 + at least one Layer 1 member with L2",
+      "rule3": "Level 3-19: Just need to own that level or higher"
+    },
+    "referralLink": {
+      "title": "Your Referral Link"
+    },
+    "availableRewards": {
+      "title": "Available Rewards",
+      "withdraw": "Withdraw Rewards"
+    },
+    "matrixPerformance": {
+      "title": "Matrix Performance",
+      "status": "Status",
+      "active": "Active",
+      "currentLevel": "Current Level",
+      "level": "Level",
+      "matrixRewards": "Matrix Rewards",
+      "pendingRewards": "Pending Rewards",
+      "viewMatrix": "View 3x3 Matrix"
+    },
+    "matrixManagement": {
+      "title": "Matrix Layer Management",
+      "directReferrals": "Direct Referrals",
+      "yourTeamPlaced": "Your Team Placed",
+      "totalMatrix": "Total Matrix",
+      "members": "members",
+      "yourTeam": "Your Team (Direct + Spillover)",
+      "upperSpillover": "Upper Spillover",
+      "layerDetails": "Layer Details",
+      "upgradeRewards": "Upgrade Rewards",
+      "loadingLayers": "Loading layers...",
+      "noMembers": "No team members yet"
+    },
+    "layerView": {
+      "layer": "Layer",
+      "positionsFilled": "positions filled",
+      "upgradedToLevel": "upgraded to Level 2+",
+      "full": "Full",
+      "available": "Available",
+      "backToOverview": "Back to Overview",
+      "details": "Details",
+      "members": "Members",
+      "upgraded": "Upgraded",
+      "filledPositions": "Filled Positions:",
+      "upgradedMembers": "Upgraded Members:",
+      "completionRate": "Completion Rate:",
+      "lastUpdated": "Last Updated:"
+    },
+    "notifications": {
+      "memberUpgraded": "Layer {{layer}} member upgraded to Level {{level}}",
+      "reward": "Reward",
+      "from": "From",
+      "member": "member",
+      "noRecentActivity": "No recent activity",
+      "activitiesAppear": "Your activities will appear here as you interact with the platform",
+      "noNotifications": "No upgrade notifications yet",
+      "notificationsAppear": "Notifications will appear when team members upgrade their levels"
+    },
+    "upgradeRewards": {
+      "description": "Track upgrade rewards from your matrix layers. You have 72 hours to upgrade when members purchase higher level NFTs."
+    },
+    "matrixVisualization": {
+      "title": "Matrix Visualization",
+      "lmrLayout": "L-M-R Layout",
+      "leftPosition": "Left Position",
+      "middlePosition": "Middle Position",
+      "rightPosition": "Right Position",
+      "matrixTree": "Matrix Tree",
+      "placement": "Placement",
+      "spillover": "Spillover",
+      "autoPlacement": "Auto Placement",
+      "position": "Position",
+      "layer": "Layer",
+      "level": "Level",
+      "empty": "Empty",
+      "filled": "Filled",
+      "viewDetails": "View Details",
+      "expand": "Expand",
+      "collapse": "Collapse"
+    },
+    "networkStats": {
+      "title": "Network Statistics",
+      "directReferrals": "Direct Referrals Count",
+      "totalTeamSize": "Total Team Size",
+      "maxLayer": "Max Layer",
+      "activeMembers": "Active Members",
+      "recentActivity": "Recent Activity",
+      "teamGrowth": "Team Growth",
+      "performance": "Performance",
+      "thisWeek": "This Week",
+      "thisMonth": "This Month",
+      "allTime": "All Time"
+    },
+    "matrixPosition": {
+      "left": "Left",
+      "middle": "Middle",
+      "right": "Right",
+      "leftPosition": "Left Position",
+      "middlePosition": "Middle Position",
+      "rightPosition": "Right Position",
+      "position1": "Position 1",
+      "position2": "Position 2",
+      "position3": "Position 3",
+      "yourPosition": "Your Position",
+      "available": "Available",
+      "occupied": "Occupied"
+    },
+    "copied": {
+      "title": "Copied!",
+      "description": "Referral link copied to clipboard"
+    },
+    "tabs": {
+      "matrix": "3x3 Matrix",
+      "stats": "Statistics",
+      "rewards": "Rewards"
+    },
+    "legacySystem": "Legacy System (For Comparison)",
+    "matrixLayers": "Matrix Layers",
+    "recentActivity": "Recent Referral Activity",
+    "recentlyJoined": "Recently joined",
+    "activated": "Activated",
+    "rewardSystemInfo": "Reward System Information",
+    "matrixRewardsTitle": "Matrix Rewards",
+    "bccTokenRewardsTitle": "BCC Token Rewards",
+    "rewards": {
+      "level1Direct": "Level 1 Direct: $30 USDC per referral",
+      "level2Matrix": "Level 2 Matrix: $10 USDC per position",
+      "spilloverBonuses": "Spillover Bonuses: Additional rewards",
+      "claimWindow": "72-hour claim window"
+    },
+    "bccRewards": {
+      "transferable": "Transferable BCC: Immediate use",
+      "locked": "Locked BCC: Tier-based release",
+      "multipliers": "Tier multipliers: 1.0x, 0.5x, 0.25x, 0.125x",
+      "upgrades": "Level upgrades unlock more BCC"
+    },
+    "matrixSystem": {
+      "title": "3×3 Matrix Network",
+      "matrixTree": "3×3 Matrix Tree",
+      "enhancedMatrixTree": "Enhanced 3×3 Matrix Tree",
+      "layer": "Layer",
+      "layers": "L1-L19",
+      "matrixInformation": "Matrix Information",
+      "yourMatrixTree": "Your 3×3 Matrix Tree",
+      "matrixNetworkLayer": "3×3 Matrix Network - Layer {{layer}}"
+    }
+  },
+  "rewards": {
+    "title": "Rewards & Earnings",
+    "subtitle": "Track your rewards, claim earnings, and view transaction history",
+    "learnMore": "Learn More",
+    "rollup": "Rollup",
+    "history": "History",
+    "withdrawal": "Withdrawal",
+    "claimAll": "Claim All",
+    "loading": "Loading rewards...",
+    "error": "Error loading rewards",
+    "totalEarned": "Total Earned",
+    "totalWithdrawn": "Total Withdrawn",
+    "pending": "Pending",
+    "claimable": "Claimable",
+    "active": "Active",
+    "pendingCountdowns": "Pending Countdowns",
+    "overview": "Reward_balance:",
+    "overviewSubtitle": "Click to expand and view detailed statistics",
+    "loading_overview": "Loading rewards overview...",
+    "no_data": "No rewards data available",
+    "start_earning": "Start earning rewards by participating in the platform!",
+    "total_rewards": "Total Rewards",
+    "claimed": "Claimed",
+    "new": "NEW",
+    "available_to_claim": "Available to Claim",
+    "available_usdt": "Available USDT",
+    "available_bcc": "Available BCC",
+    "management": "Reward Management",
+    "selectCategory": "Select a category below to view and manage your rewards",
+    "layerRewardSystem": {
+      "title": "Layer Reward System",
+      "subtitle": "Understanding How Matrix Layer Rewards Work",
+      "explanation": "Learn how layer rewards are triggered when members upgrade their membership levels",
+      "learnMore": "Learn More",
+      "howItWorks": {
+        "title": "How It Works",
+        "description": "Layer rewards are triggered when members in your matrix upgrade their membership levels. The reward amount equals the NFT price of that level."
+      },
+      "rewardStructure": {
+        "title": "Reward Structure",
+        "layer1": "Layer 1 Reward: Triggered when your Layer 1 members upgrade to Level 1",
+        "layer2": "Layer 2 Reward: Triggered when your Layer 2 members upgrade to Level 2", 
+        "layer3": "Layer 3 Reward: Triggered when your Layer 3 members upgrade to Level 3",
+        "pattern": "This pattern continues through all 19 layers"
+      },
+      "rewardAmounts": {
+        "title": "Reward Amounts",
+        "level1": "Level 1: $100 (100% of NFT price)",
+        "level2": "Level 2: $150 (100% of NFT price)",
+        "level3": "Level 3: $200 (100% of NFT price)", 
+        "continuation": "Pattern continues to Level 19"
+      },
+      "eligibilityRules": {
+        "title": "Eligibility Rules",
+        "firstSecond": "1st & 2nd rewards: Your level must equal the layer level",
+        "thirdOnward": "3rd+ rewards: Your level must be higher than the layer level",
+        "verification": "Level verification is required before reward distribution"
+      },
+      "pendingSystem": {
+        "title": "72-Hour Pending System",
+        "notEligible": "If you don't meet level requirements, rewards enter pending status",
+        "upgradeWindow": "You have 72 hours to upgrade and claim the reward", 
+        "expiry": "After 72 hours, unclaimed rewards roll up to eligible upline members",
+        "immediate": "Upgrade immediately to claim pending rewards instantly"
+      },
+      "matrixVisualization": {
+        "title": "3×3 Matrix Structure",
+        "description": "Your downline is organized in a 3×3 matrix with 19 layers",
+        "positions": "Each layer has Left, Middle, and Right positions",
+        "rewards": "Rewards are triggered when members in these positions upgrade"
+      },
+      "bccReleaseSystem": {
+        "title": "BCC Release Rewards",
+        "subtitle": "Staged BCC Token Release Based on Member Activation Count",
+        "description": "BCC tokens are released through a four-stage system based on total activated members",
+        "stages": {
+          "stage1": {
+            "title": "Stage 1: Members 1-9,999",
+            "totalLocked": "Total Locked Rewards: 10,450 BCC",
+            "level1": "Level 1 Activation: 100 BCC Released",
+            "level2": "Level 2 Activation: 150 BCC Released",
+            "level3": "Level 3 Activation: 200 BCC Released",
+            "levelPattern": "Pattern continues +50 BCC per level",
+            "level19": "Level 19 Activation: 1,000 BCC Released",
+            "description": "Full release amounts for early adopters"
+          },
+          "stage2": {
+            "title": "Stage 2: Members 10,000-29,999",
+            "totalLocked": "Total Locked Rewards: 5,225 BCC (50% of Stage 1)",
+            "level1": "Level 1 Activation: 50 BCC Released",
+            "level2": "Level 2 Activation: 75 BCC Released",
+            "level3": "Level 3 Activation: 100 BCC Released",
+            "levelPattern": "All release amounts are 50% of Stage 1",
+            "level19": "Level 19 Activation: 500 BCC Released",
+            "description": "Release amounts reduced by half"
+          },
+          "stage3": {
+            "title": "Stage 3: Members 30,000-99,999",
+            "totalLocked": "Total Locked Rewards: 2,612.5 BCC (50% of Stage 2)",
+            "level1": "Level 1 Activation: 25 BCC Released",
+            "level2": "Level 2 Activation: 37.5 BCC Released",
+            "level3": "Level 3 Activation: 50 BCC Released",
+            "levelPattern": "All release amounts are 50% of Stage 2",
+            "level19": "Level 19 Activation: 250 BCC Released",
+            "description": "Release amounts reduced by another half"
+          },
+          "stage4": {
+            "title": "Stage 4: Members 100,000-186,000",
+            "totalLocked": "Total Locked Rewards: 1,306.25 BCC (50% of Stage 3)",
+            "level1": "Level 1 Activation: 12.5 BCC Released",
+            "level2": "Level 2 Activation: 18.75 BCC Released",
+            "level3": "Level 3 Activation: 25 BCC Released",
+            "levelPattern": "All release amounts are 50% of Stage 3",
+            "level19": "Level 19 Activation: 125 BCC Released",
+            "description": "Final stage with minimum release amounts"
+          }
+        },
+        "mechanismTitle": "Release Mechanism",
+        "mechanismDescription": "BCC tokens are automatically released to your balance when you activate each membership level",
+        "stageReduction": "Each stage reduces release amounts by 50% as community grows",
+        "totalMembers": "Total member capacity: 186,000 activated members"
+      }
+    },
+    "pendingDescription": "Your pending rewards with countdown timers",
+    "tabs": {
+      "overview": "Overview",
+      "pending": "Pending",
+      "rollup": "Rollup",
+      "history": "History",
+      "withdrawal": "Withdraw"
+    },
+    "overview": {
+      "title": "Rewards Overview",
+      "totalEarnings": "Total Earnings",
+      "totalEarned": "Total Earned",
+      "totalWithdrawn": "Total Withdrawn",
+      "pending": "Pending",
+      "claimable": "Claimable",
+      "availableBalance": "Available Balance",
+      "pendingRewards": "Pending Rewards",
+      "rewardsThisMonth": "This Month",
+      "recentActivity": "Recent Activity"
+    },
+    "sections": {
+      "title": "Select Rewards Section",
+      "description": "Choose a section below to view and manage your rewards"
+    },
+    "rewards": {
+      "level1Direct": "Level 1 Direct: $30 USDC per referral",
+      "level2Matrix": "Level 2 Matrix: $10 USDC per position",
+      "spilloverBonuses": "Spillover Bonuses: Additional rewards",
+      "claimWindow": "72-hour claim window"
+    },
+    "claimable": {
+      "title": "Claimable Rewards",
+      "claimAll": "Claim All",
+      "noRewards": "No claimable rewards",
+      "noRewardsDescription": "Complete tasks and invite referrals to earn rewards",
+      "claimSuccess": "Reward Claimed Successfully! 🎉",
+      "claimFailed": "Claim Failed",
+      "claimFailedDescription": "Failed to claim reward. Please try again.",
+      "withdrawSuccess": "Withdrawal Successful",
+      "withdrawFailed": "Withdrawal Failed",
+      "withdrawFailedDescription": "Failed to withdraw rewards. Please try again.",
+      "walletNotConnected": "Wallet Not Connected",
+      "walletRequiredClaim": "Please connect your wallet to claim rewards.",
+      "walletRequiredWithdraw": "Please connect your wallet to withdraw rewards.",
+      "noBalanceAvailable": "No Balance Available",
+      "noBalanceDescription": "You need to have claimed rewards to withdraw.",
+      "failedToClaim": "Failed to claim reward",
+      "failedToWithdraw": "Failed to initiate withdrawal",
+      "withdrawalSuccessful": "Withdrawal successful"
+    },
+    "rollup": {
+      "title": "Rollup Rewards",
+      "subtitle": "Rewards that were redistributed due to expiration or qualification issues",
+      "items": "Rollup Items",
+      "totalAmount": "Total Amount",
+      "noRollupRewards": "No rollup rewards found",
+      "noRollupDescription": "Rollup rewards appear when pending rewards expire or are redistributed",
+      "totalRolledUp": "Total Rolled Up",
+      "reasons": "Reasons",
+      "recentRollups": "Recent Rollups",
+      "rollupBreakdown": "Rollup Breakdown",
+      "aboutRollup": "About Rollup Rewards",
+      "aboutRollupDescription": "Rollup rewards are rewards that were pending but couldn't be claimed due to expiration, insufficient level, or other reasons. These rewards are redistributed within the network according to the matrix rollup system.",
+      "autoDistribution": "Auto Distribution",
+      "automatic": "Automatic",
+      "distribution": "Distribution",
+      "networkBased": "Network",
+      "based": "Based",
+      "realTime": "Real-time",
+      "tracking": "Tracking",
+      "transparent": "Transparent",
+      "system": "System",
+      "distributedRewards": "Distributed rewards",
+      "totalValue": "total value",
+      "reasonTypes": "different reason types",
+      "efficient": "Efficient",
+      "reasons": {
+        "expired_unclaimed": "Expired - Not Claimed",
+        "insufficient_level": "Insufficient Level",
+        "network_spillover": "Network Spillover",
+        "manual_rollup": "Manual Rollup",
+        "system_rollup": "System Rollup",
+        "expired_timeout": "Expired - Timeout",
+        "no_qualified_upline": "No Qualified Upline"
+      }
+    },
+    "history": {
+      "title": "Transaction History",
+      "subtitle": "Complete transaction history",
+      "transactions": "Transaction History",
+      "noHistory": "No transactions yet",
+      "noHistoryDescription": "Your reward and transaction history will appear here",
+      "items": "History Items",
+      "totalTransactions": "Total Transactions",
+      "search": "Search transactions...",
+      "allLayers": "All Layers",
+      "allStatus": "All Status",
+      "clearFilters": "Clear Filters",
+      "showing": "Showing",
+      "of": "of",
+      "results": "results",
+      "noFilteredResults": "No transactions match your filters"
+    },
+    "bccRewards": {
+      "bccTransferable": "BCC Transferable",
+      "bccLocked": "BCC Locked", 
+      "bccMultipliers": "BCC Multipliers",
+      "bccUpgrades": "BCC Upgrades"
+    },
+    "errors": {
+      "loadFailed": "Failed to load rewards",
+      "claimFailed": "Failed to claim rewards"
+    },
+    "rewardReady": "Reward Ready",
+    "rewardReadyDescription": "Your reward is ready to claim",
+    "claimSuccessDescription": "Successfully claimed {amount} USDT",
+    "available_usdt": "Available USDT",
+    "available_bcc": "Available BCC",
+    "total_earned": "Total Earned",
+    "pending_rewards": "Pending Rewards",
+    "withdraw": "Withdraw",
+    "top_up_bcc": "Top Up BCC",
+    "refresh": "Refresh",
+    "claim": "Claim",
+    "no_claimable_rewards": "No claimable rewards available",
+    "withdrawRewards": "Withdraw Rewards",
+    "withdrawDescription": "Withdraw your claimable rewards to any supported blockchain",
+    "withdrawAvailable": "Withdraw Available: ${amount}",
+    "claimSuccess": "Rewards Claimed Successfully!",
+    "claimSuccessDescription": "Successfully claimed ${amount} USDT in rewards",
+    "claimFailed": "Failed to Claim Rewards",
+    "claimFailedDescription": "Unable to claim rewards. Please try again later.",
+    "loading": "Loading rewards data...",
+    "error": "Error loading rewards",
+    "totalEarned": "Total Earned",
+    "thisMonth": "This Month",
+    "pending": "Pending",
+    "quickActions": "Quick Actions",
+    "claimAvailable": "Claim ${amount} Available",
+    "viewAnalytics": "View Analytics",
+    "rewardSystemInfo": "Reward System Information",
+    "matrixRewardsTitle": "Matrix Rewards",
+    "bccTokenRewardsTitle": "BCC Token Rewards",
+    "bccTransferable": "Transferable BCC: Immediate use",
+    "bccLocked": "Locked BCC: Tier-based release",
+    "bccMultipliers": "Tier multipliers: 1.0x, 0.5x, 0.25x, 0.125x",
+    "bccUpgrades": "Level upgrades unlock more BCC",
+    "recentRewards": "Recent Rewards",
+    "noHistory": "No reward history yet",
+    "pendingCountdowns": "Pending Rewards Countdown",
+    "pendingRewardTimer": "Pending Reward Timer",
+    "pendingRewardDescription": "Layer {layer} reward expires soon - upgrade to claim",
+    "expired": "Expired",
+    "timeFormat": {
+      "days": "{days}d {hours}h {minutes}m",
+      "hours": "{hours}h {minutes}m",
+      "minutes": "{minutes}m {seconds}s",
+      "seconds": "{seconds}s"
+    },
+    "fetchError": "Failed to load pending rewards",
+    "noPendingRewards": "No pending rewards",
+    "noPendingDescription": "Complete tasks and invite referrals to start earning pending rewards with countdown timers",
+    "pendingDescription": "Monitor your pending rewards with real-time countdown timers",
+    "pendingRewardDetails": "Pending Reward Details",
+    "pendingRewardsCount": "{count} Pending Rewards",
+    "totalPendingValue": "Total Pending Value",
+    "rewardSystemSubtitle": "Understanding the complete reward ecosystem",
+    "systemActive": "Reward system active and processing",
+    "viewDetails": "View Details",
+    "howItWorks": "How It Works",
+    "historySubtitle": "Complete transaction history and reward tracking",
+    "historyItems": "Items",
+    "receipt": "Receipt",
+    "noHistoryDescription": "Your reward transactions will appear here once you start earning through the matrix system",
+    "startEarning": "Start Earning Rewards",
+    "swipeToExplore": "← Swipe to explore more →",
+    "viewAll": "View All",
+    "status": {
+      "completed": "Completed",
+      "pending": "Pending", 
+      "failed": "Failed"
+    },
+    "superRootUpgrade": "Super Root Upgrade",
+    "qualificationWait": "Qualification Wait",
+    "from": "From",
+    "claimable": "Claimable",
+    "timeRemaining": "Time Remaining",
+    "expiresAt": "Expires At",
+    "refreshCountdown": "Refresh Countdown",
+    "pendingRewards": "Pending Rewards",
+    "totalWithdrawn": "Total Withdrawn",
+    "rollup": {
+      "title": "Rollup Rewards",
+      "noRollupRewards": "No rollup rewards",
+      "noRollupDescription": "When pending rewards expire without being claimed, they roll up to qualified upline members.",
+      "totalRolledUp": "Total Rolled Up",
+      "totalAmount": "Total Amount",
+      "reasons": "Rollup Reasons",
+      "rollupBreakdown": "Rollup Breakdown",
+      "recentRollups": "Recent Rollups",
+      "aboutRollup": "About Rollup",
+      "aboutRollupDescription": "When a member doesn't upgrade in time, their pending rewards automatically roll up to the next qualified upline member in the matrix network."
+    }
+  },
+  "me": {
+    "title": "User Center",
+    "profile": {
+      "levelMember": "Level {{level}} Member",
+      "member": "Member",
+      "defaultEmail": "member@beehive.app",
+      "editProfile": "Edit Profile"
+    },
+    "tabs": {
+      "learn": "Learn",
+      "referrals": "Referrals",
+      "settings": "Settings"
+    },
+    "balances": {
+      "title": "Enhanced Balance Breakdown",
+      "transferableBCC": "Transferable BCC",
+      "restrictedBCC": "Restricted BCC",
+      "lockedBCC": "Locked BCC",
+      "totalUSDTEarned": "Total USDT Earned",
+      "totalTeamSize": "Total Team Size",
+      "directReferrals": "Direct Referrals",
+      "deepestLayer": "Deepest Layer",
+      "spilloverRate": "Spillover Rate",
+      "layerRewards": "Layer Rewards",
+      "matrixTree": "Matrix Tree",
+      "analytics": "Analytics",
+      "nftUpgrade": "NFT Upgrade",
+      "balances": "Balances"
+    },
+    "performance": {
+      "overview": "Matrix Performance Overview",
+      "totalTeamSize": "Total Team Size",
+      "directReferrals": "Direct Referrals",
+      "deepestLayer": "Deepest Layer",
+      "spilloverRate": "Spillover Rate",
+      "layerRewards": "Layer Rewards",
+      "matrixTree": "Matrix Tree",
+      "analytics": "Analytics",
+      "stats": "Stats",
+      "upgrade": "Upgrade",
+      "balance": "Balance",
+      "rewardPerformance": "Reward Performance",
+      "totalEarnings": "Total Earnings",
+      "readyToClaim": "Ready to Claim",
+      "pendingRewards": "Pending Rewards",
+      "efficiency": "Efficiency",
+      "detailedMetrics": "Detailed Performance Metrics",
+      "growthVelocity": "Growth Velocity",
+      "rewardEfficiency": "Reward Efficiency",
+      "layerDistribution": "Layer Distribution",
+      "membersPerDay": "members/day",
+      "usdtPerMember": "USDT per member"
+    },
+    "tokens": {
+      "management": "BCC Token Management",
+      "transferable": "Transferable",
+      "restricted": "Restricted",
+      "locked": "Locked",
+      "active": "Active",
+      "limited": "Limited",
+      "usage": "Usage"
+    },
+    "usdt": {
+      "earningsBreakdown": "USDT Earnings Breakdown",
+      "totalEarned": "Total Earned",
+      "available": "Available",
+      "withdrawn": "Withdrawn",
+      "pending": "Pending"
+    },
+    "account": {
+      "information": "Account Information",
+      "activationTier": "Activation Tier",
+      "activationOrder": "Activation Order",
+      "memberSince": "Member since",
+      "lastUpdated": "Last Updated",
+      "dataRefresh": "Data refresh"
+    },
+    "loading": {
+      "balanceDetails": "Loading balance details...",
+      "noBalanceData": "No balance data available"
+    },
+    "system": {
+      "subtitle": "V2 Matrix System • Layer-based Rewards • Advanced Analytics",
+      "refresh": "Refresh",
+      "profileRefreshed": "Profile Refreshed",
+      "refreshSuccess": "All data has been updated successfully",
+      "refreshFailed": "Refresh Failed",
+      "refreshError": "Failed to refresh profile data"
+    }
+  },
+  "countdown": {
+    "timer": "Countdown Timer",
+    "expired": "EXPIRED",
+    "loading": "Loading...",
+    "timerExpired": "Timer Expired",
+    "timerExpiredDesc": "Your countdown timer has expired.",
+    "countdownEnded": "The countdown has ended",
+    "loadingTimer": "Loading timer...",
+    "timeRemaining": "Time Remaining",
+    "rewardAtStake": "Reward at Stake",
+    "upgradeToClaimReward": "Upgrade to claim this reward before it expires",
+    "urgentUpgradeWarning": "⚠️ Upgrade urgently or this reward will be rolled up to your upline",
+    "upgradeToClaim": "Upgrade to Claim",
+    "urgentUpgradeNow": "Urgent: Upgrade Now",
+    "upgradeNowPreventLoss": "Upgrade Now to Prevent Future Loss",
+    "criticalExpiring": "⚠️ CRITICAL: Reward expires in {time}!",
+    "status": {
+      "safe": "Safe",
+      "caution": "Caution",
+      "warning": "Warning",
+      "critical": "Critical"
+    },
+    "units": {
+      "days": "Days",
+      "hours": "Hours",
+      "minutes": "Minutes",
+      "seconds": "Seconds",
+      "daysHoursMinutes": "days, hours, minutes",
+      "hoursMinutesSeconds": "hours, minutes, seconds",
+      "minutesSeconds": "minutes, seconds",
+      "min": "Min",
+      "sec": "Sec",
+      "d": "d",
+      "h": "h",
+      "m": "m",
+      "s": "s"
+    },
+    "complete": "Complete! Ready to claim",
+    "ready": "Ready!"
+  },
+  "claimableRewards": {
+    "rewardClaimedSuccess": "Reward Claimed Successfully! 🎉",
+    "rewardClaimedDescription": "{amount} {currency} added to your balance. {message}",
+    "viewDetails": "View Details",
+    "claimFailed": "Claim Failed",
+    "claimFailedDescription": "Failed to claim reward. Please try again.",
+    "walletNotConnected": "Wallet Not Connected",
+    "connectWalletToClaim": "Please connect your wallet to claim rewards.",
+    "layerBasedRewards": "Layer-Based Rewards",
+    "readyToClaim": "Ready to Claim",
+    "pending": "Pending",
+    "pendingValue": "Pending Value",
+    "claimingRewards": "Claiming Rewards...",
+    "claimAllRewards": "Claim All Rewards ({amount} USDT)",
+    "claimableLayerRewards": "Claimable Layer Rewards",
+    "triggerLabel": "L{level} Trigger",
+    "claiming": "Claiming...",
+    "claim": "Claim ${amount}",
+    "pendingRewardsLevelUp": "Pending Rewards (Level Up Required)",
+    "requiresLevel": "Requires L{level}",
+    "currentlyLevel": "(Currently L{level})",
+    "expires": "Expires: {date}",
+    "noRewardsAvailable": "No Layer Rewards Available",
+    "noRewardsDescription": "Your layer-based matrix rewards will appear here when members in your downline upgrade their levels.",
+    "howRewardsWork": "How Layer Rewards Work:",
+    "rewardRules": {
+      "layerRewards": "Layer 1-19 rewards from matrix downline upgrades",
+      "timer": "72-hour timer for pending rewards",
+      "rollup": "Automatic rollup to next qualified upline",
+      "protection": "Level requirements protect reward distribution"
+    },
+    "connectWallet": "Connect your wallet to view claimable rewards",
+    "loadingRewards": "Loading layer rewards...",
+    "root": "Root",
+    "layer": "Layer {number}",
+    "expired": "Expired",
+    "rollupInProgress": "⏰ Expired - Rollup in progress",
+    "timeRemaining": "⏰ {time} remaining",
+    "from": "From: {address}",
+    "created": "Created: {date}"
+  },
+  "rewardsPage": {
+    "overview": "Rewards Overview",
+    "overviewSubtitle": "Click to expand and view detailed statistics",
+    "availableToClaim": "Available",
+    "management": "Rewards Management",
+    "selectCategory": "Select a category below to view and manage your rewards",
+    "pendingCountdowns": "Pending Reward Countdowns",
+    "pendingDescription": "Monitor your pending rewards and claim them before they expire",
+    "claimAll": "Claim All Available Rewards",
+    "rollup": {
+      "title": "Rollup Rewards System",
+      "subtitle": "Automatic distribution of unclaimed rewards to eligible upline members",
+      "autoDistribution": "Auto Distribution",
+      "automatic": "Automatic",
+      "distribution": "Distribution",
+      "networkBased": "Network",
+      "based": "Based",
+      "realTime": "Real-time",
+      "tracking": "Tracking",
+      "transparent": "Transparent",
+      "system": "System"
+    },
+    "overview": {
+      "totalEarned": "Total Earned",
+      "totalWithdrawn": "Total Withdrawn",
+      "pending": "Pending",
+      "claimable": "Claimable"
+    },
+    "tabs": {
+      "pending": "Pending Rewards",
+      "rollup": "Rollup System",
+      "withdrawal": "Withdrawal",
+      "history": "Reward History"
+    },
+    "errors": {
+      "loadFailed": "Failed to load rewards data",
+      "claimFailed": "Failed to claim rewards"
+    },
+    "rewardReady": "Reward Ready!",
+    "rewardReadyDescription": "A pending reward has become claimable",
+    "claimSuccess": "Rewards Claimed!",
+    "claimSuccessDescription": "Successfully claimed ${amount} USDT",
+    "claimFailedDescription": "Failed to claim rewards. Please try again.",
+    "loading": "Loading rewards data...",
+    "error": "Error loading rewards",
+    "subtitle": "Manage your layer-based matrix rewards, track earnings, and withdraw your USDT"
+  },
+  "tasks": {
+    "title": "Tasks & Marketplace",
+    "pageTitle": "Tasks",
+    "categories": {
+      "membership": "Membership",
+      "advertisement": "Advertisement"
+    },
+    "membership": {
+      "title": "Bumblebees Membership NFTs",
+      "description": "Authentic membership levels with USDT payments on multi-chain support",
+      "level": "Level",
+      "usdt": "USDT",
+      "status": {
+        "owned": "Owned",
+        "available": "Available",
+        "locked": "Locked"
+      },
+      "getStarted": "Get Started",
+      "upgradeNow": "Upgrade Now",
+      "lockedMessage": "Complete previous levels first"
+    },
+    "advertisement": {
+      "title": "Advertisement NFT Collection", 
+      "description": "Exclusive merchant NFTs claimable with BCC tokens",
+      "noNfts": "No advertisement NFTs available at the moment.",
+      "loading": "Loading NFTs..."
+    },
+    "availableBalance": "Available Balance",
+    "restrictedFirst": "Restricted BCC will be used first",
+    "restrictedBCC": "Restricted Beehive Crypto Coin",
+    "transferableBCC": "Transferable Beehive Crypto Coin",
+    "claim": "Claim",
+    "claiming": "Claiming...",
+    "insufficientBCC": "Insufficient BCC",
+    "claimModal": {
+      "title": "Claim NFT",
+      "price": "Price",
+      "availableRestricted": "Available (Restricted)",
+      "availableTransferable": "Available (Transferable)",
+      "confirmation": "Restricted BCC will be used first. Proceed with claiming this NFT?",
+      "confirm": "Confirm Claim",
+      "cancel": "Cancel"
+    },
+    "claim": {
+      "checkingRegistration": "Checking registration status...",
+      "registrationCheckFailed": "Registration Check Failed",
+      "registrationCheckFailedDesc": "Unable to verify registration status. Please refresh and try again.",
+      "referrerRequired": "Referrer Required",
+      "referrerRequiredDesc": "You must use a valid referral link to claim your NFT. Please ask an existing member for a referral link.",
+      "selfReferralNotAllowed": "Self-Referral Not Allowed",
+      "selfReferralNotAllowedDesc": "You cannot refer yourself. Please use a referral link from another member.",
+      "validatingReferrer": "Validating referrer...",
+      "invalidReferrer": "Invalid Referrer",
+      "useValidReferrer": "Please use a referral link from a registered member.",
+      "validationFailed": "Validation Failed",
+      "validationFailedDesc": "Unable to verify registration or referrer status. Please refresh and try again.",
+      "success": {
+        "title": "NFT Claimed Successfully!",
+        "description": "The NFT has been minted to your wallet."
+      },
+      "error": {
+        "title": "Claim Failed",
+        "description": "Unable to claim NFT. Please check your balance and try again."
+      }
+    }
+  },
+  "membership": {
+    "title": "Membership Levels",
+    "subtitle": "Upgrade your membership to unlock exclusive benefits and higher rewards",
+    "currentLevel": "Current Level",
+    "directReferrals": "Direct Referrals",
+    "featured": "Featured",
+    "owned": "Owned",
+    "claim": "Claim for",
+    "locked": "Locked",
+    "specialRequirements": "Special Requirements",
+    "directReferralReq": "Direct Referral Requirement",
+    "statusQualified": "✅ Qualified: {count}/3+ people (excess {excess} people)",
+    "statusNotQualified": "❌ Not qualified: {count}/3+ people (need {needed} more)",
+    "directRegisterTip": "💡 Only counts users registered via referral link",
+    "exclusiveBenefits": "Exclusive Benefits",
+    "purchaseSuccess": "Purchase Successful",
+    "unlockNow": "Unlock Now ${price}",
+    "processing": "Processing...",
+    "notUnlocked": "Not Yet Unlocked",
+    "useQuickUpgrade": "Use Quick Upgrade above to claim Level {level}",
+    "quickUpgrade": "Quick NFT Upgrade",
+    "nftClaimDescription": "Use blockchain NFT claiming to upgrade your membership level instantly",
+    "nftClaimNote": "This uses the same smart contract as the welcome page with automatic level detection",
+    "needsActivation": "Please activate your Level 1 membership on the Welcome page first.",
+    "goToWelcome": "Go to Welcome Page →",
+    "level2Requirements": "Level 2 Requirements",
+    "level2DirectReferralsRequired": "You need 3 direct referrals to unlock Level 2",
+    "currentDirectReferrals": "Current direct referrals",
+    "upgradeSuccess": "Upgrade Successful!",
+    "upgradeSuccessDescription": "Your membership has been upgraded successfully",
+    "upgradeNow": "Upgrade to Level {level} - ${price}",
+    "quickUpgradeNow": "Quick Upgrade to Level {level}",
+    "progressInfo": {
+      "title": "Progressive Membership System",
+      "description": "Membership levels must be claimed sequentially. Each level unlocks enhanced benefits, increased rewards, and exclusive platform features.",
+      "sequential": "Sequential upgrades required",
+      "rewards": "Enhanced reward multipliers",
+      "benefits": "Exclusive benefits & features"
+    },
+    "errors": {
+      "walletRequired": "Wallet Required",
+      "connectWallet": "Please connect your wallet first",
+      "levelLocked": "Level Locked",
+      "previousLevelRequired": "You must own Level {level} NFT before claiming Level {nextLevel}",
+      "claimFailed": "Claim Failed",
+      "sequentialUpgrade": "You must upgrade to Level {nextLevel} first. Cannot skip levels.",
+      "alreadyOwned": "You already own Level {level} NFT. Each level can only be purchased once.",
+      "level2Requirements": "Level 2 Requirements Not Met",
+      "level2DirectReferrals": "You need at least 3 direct referrals to claim Level 2 NFT.",
+      "levelNotAvailable": "This level is not currently unlockable. Please complete your current level first.",
+      "missingPrerequisites": "Missing prerequisite levels. Please complete lower levels first."
+    },
+    "claiming": {
+      "started": "Level {level} Claim Started",
+      "processing": "Processing NFT claim for ${price} USDC",
+      "inProgress": "Claiming...",
+      "success": "🎉 Level {level} NFT Claimed!",
+      "successDescription": "Successfully processed claim for Level {level}. Earned ${price} BCC reward!"
+    }
+  },
+  "education": {
+    "title": "Education Center",
+    "subtitle": "Learn blockchain, DeFi, and Web3 technologies",
+    "allLevels": "All Levels",
+    "filterByLevel": "Filter by Level",
+    "insufficientBalance": "Insufficient Balance",
+    "insufficientBalanceDesc": "You don't have enough BCC to purchase this course",
+    "level": "Level",
+    "levelRequiredDesc": "This course requires a higher membership level",
+    "noCourses": "No courses available",
+    "purchaseError": "Purchase Failed",
+    "purchaseErrorDesc": "Failed to purchase course. Please try again.",
+    "purchaseSuccess": "Purchase Successful",
+    "purchaseSuccessDesc": "Course has been added to your library",
+    "searchPlaceholder": "Search courses...",
+    "search": {
+      "placeholder": "Search courses, topics, or instructors..."
+    },
+    "filters": {
+      "category": "Category",
+      "allCategories": "All Categories",
+      "level": "Level",
+      "allLevels": "All Levels",
+      "type": "Type",
+      "allTypes": "All Types",
+      "payment": "Payment",
+      "allCourses": "All Courses",
+      "onlineZoom": "Online (Zoom)",
+      "videoLessons": "Video Lessons",
+      "freeCourses": "Free Courses",
+      "paidBCC": "Paid (BCC)"
+    },
+    "progress": {
+      "title": "Learning Progress",
+      "subtitle": "Track your educational journey",
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "hours": "Hours",
+      "label": "Progress",
+      "coursesCompleted": "Courses Completed",
+      "hoursLearned": "Hours Learned"
+    },
+    "free": "Free",
+    "levelRequired": "Level Required",
+    "duration": "Duration",
+    "completed": "Completed",
+    "continue": "Continue Learning",
+    "startFree": "Start Course",
+    "purchase": "Purchase Course",
+    "enrolling": "Enrolling...",
+    "insufficientBCC": "Insufficient BCC",
+    "courseType": {
+      "online": "Live Online",
+      "video": "Self-Paced Video"
+    },
+    "buttons": {
+      "viewDetails": "View Details",
+      "claimFree": "Claim Free Course",
+      "purchaseCourse": "Purchase Course",
+      "completed": "Completed",
+      "continue": "Continue",
+      "getAccess": "Get Access",
+      "enrollNow": "Enroll Now",
+      "startLearning": "Start Learning",
+      "enrolled": "Enrolled",
+      "levelRequired": "Level Required"
+    },
+    "status": {
+      "clickToView": "Click to view details and enroll",
+      "enrolled": "Enrolled",
+      "available": "Available",
+      "requiresUpgrade": "Requires Level {level}",
+      "requiresBCC": "Requires {amount} BCC"
+    },
+    "courseDetails": {
+      "overview": "Course Overview",
+      "curriculum": "Curriculum",
+      "lessons": "Lessons",
+      "instructor": "Instructor",
+      "requirements": "Requirements",
+      "whatYouLearn": "What You'll Learn",
+      "courseContent": "Course Content",
+      "zoomDetails": "Zoom Meeting Details",
+      "meetingId": "Meeting ID",
+      "password": "Password",
+      "joinLink": "Join Meeting"
+    },
+    "lessons": {
+      "lesson": "Lesson",
+      "unlock": "Unlock Lesson",
+      "unlocking": "Unlocking...",
+      "watch": "Watch Lesson",
+      "completed": "Completed",
+      "locked": "Locked",
+      "free": "Free",
+      "progress": "Progress: {percent}%"
+    },
+    "enroll": {
+      "success": {
+        "title": "Enrollment Successful!",
+        "description": "You now have access to this course."
+      },
+      "error": {
+        "title": "Enrollment Failed",
+        "description": "Unable to enroll in course. Please try again."
+      }
+    },
+    "errors": {
+      "courseNotFound": "Course not found",
+      "loadingError": "Failed to load course data",
+      "accessDenied": "Access denied - insufficient level or BCC",
+      "networkError": "Network error - please try again"
+    }
   },
   "discover": {
     "categories": {

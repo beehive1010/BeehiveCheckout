@@ -1,24 +1,25 @@
-import React, {useState} from 'react';
-import {useI18n} from '../../contexts/I18nContext';
-import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from '@/components/ui/dialog';
-import {Button} from '@/components/ui/button';
-import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
-import {Badge} from '@/components/ui/badge';
-import {MatrixVisualization} from '@/components/illustrations/MatrixVisualization';
-import {useIsMobile} from '@/hooks/use-mobile';
-import {
-    AlertTriangle,
-    ArrowUp,
-    Award,
-    CheckCircle,
-    Clock,
-    DollarSign,
-    GitBranch,
-    Info,
-    Target,
-    TrendingUp,
-    Users
+import React, { useState } from 'react';
+import { useI18n } from '../../contexts/I18nContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { MatrixVisualization } from '@/components/illustrations/MatrixVisualization';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { 
+  Info, 
+  TrendingUp, 
+  Clock, 
+  DollarSign, 
+  Users, 
+  AlertTriangle,
+  CheckCircle,
+  ArrowUp,
+  Target,
+  Award,
+  GitBranch,
+  Coins
 } from 'lucide-react';
 
 interface LayerRewardExplanationProps {
@@ -66,37 +67,45 @@ export const LayerRewardExplanation: React.FC<LayerRewardExplanationProps> = ({
         
         <div className="relative flex-1 overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
-            <TabsList className={`grid w-full ${isMobile ? 'grid-cols-2' : 'grid-cols-4'} gap-2 bg-slate-800/50 p-1 rounded-lg border border-honey/20`}>
+            <TabsList className={`grid w-full ${isMobile ? 'grid-cols-2' : 'grid-cols-5'} gap-2 bg-slate-800/50 p-1 rounded-lg border border-honey/20`}>
               <TabsTrigger 
                 value="overview" 
-                className="data-[state=active]:bg-honey data-[state=active]:text-black font-medium"
+                className="data-[state=active]:bg-honey data-[state=active]:text-black font-medium text-xs"
                 data-testid="tab-overview"
               >
-                <TrendingUp className="h-4 w-4 mr-2" />
+                <TrendingUp className="h-3 w-3 mr-1" />
                 {t('rewards.layerRewardSystem.howItWorks.title')}
               </TabsTrigger>
               <TabsTrigger 
                 value="structure" 
-                className="data-[state=active]:bg-honey data-[state=active]:text-black font-medium"
+                className="data-[state=active]:bg-honey data-[state=active]:text-black font-medium text-xs"
                 data-testid="tab-structure"
               >
-                <GitBranch className="h-4 w-4 mr-2" />
+                <GitBranch className="h-3 w-3 mr-1" />
                 {t('rewards.layerRewardSystem.rewardStructure.title')}
               </TabsTrigger>
               <TabsTrigger 
+                value="bcc" 
+                className="data-[state=active]:bg-honey data-[state=active]:text-black font-medium text-xs"
+                data-testid="tab-bcc"
+              >
+                <Coins className="h-3 w-3 mr-1" />
+                {t('rewards.layerRewardSystem.bccReleaseSystem.title')}
+              </TabsTrigger>
+              <TabsTrigger 
                 value="rules" 
-                className="data-[state=active]:bg-honey data-[state=active]:text-black font-medium"
+                className="data-[state=active]:bg-honey data-[state=active]:text-black font-medium text-xs"
                 data-testid="tab-rules"
               >
-                <Target className="h-4 w-4 mr-2" />
+                <Target className="h-3 w-3 mr-1" />
                 {t('rewards.layerRewardSystem.eligibilityRules.title')}
               </TabsTrigger>
               <TabsTrigger 
                 value="pending" 
-                className="data-[state=active]:bg-honey data-[state=active]:text-black font-medium"
+                className="data-[state=active]:bg-honey data-[state=active]:text-black font-medium text-xs"
                 data-testid="tab-pending"
               >
-                <Clock className="h-4 w-4 mr-2" />
+                <Clock className="h-3 w-3 mr-1" />
                 {t('rewards.layerRewardSystem.pendingSystem.title')}
               </TabsTrigger>
             </TabsList>
@@ -383,6 +392,130 @@ export const LayerRewardExplanation: React.FC<LayerRewardExplanationProps> = ({
                       <p className="text-sm text-slate-300">
                         {t('rewards.layerRewardSystem.eligibilityRules.verification')}
                       </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="bcc" className="space-y-4 mt-0">
+                <Card className="bg-slate-800/50 border-honey/20">
+                  <CardHeader>
+                    <CardTitle className="text-honey flex items-center gap-2">
+                      <Coins className="h-5 w-5" />
+                      {t('rewards.layerRewardSystem.bccReleaseSystem.title')}
+                    </CardTitle>
+                    <CardDescription className="text-slate-400">
+                      {t('rewards.layerRewardSystem.bccReleaseSystem.subtitle')}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-slate-300 text-sm">
+                      {t('rewards.layerRewardSystem.bccReleaseSystem.description')}
+                    </p>
+                    
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      {/* Stage 1 */}
+                      <div className="p-4 bg-green-500/10 rounded-lg border border-green-500/20">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Badge className="bg-green-500 text-white">Stage 1</Badge>
+                          <span className="font-medium text-green-400">
+                            {t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage1.title')}
+                          </span>
+                        </div>
+                        <div className="space-y-2 text-sm text-slate-300">
+                          <p className="font-medium text-green-400">
+                            {t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage1.totalLocked')}
+                          </p>
+                          <div className="space-y-1">
+                            <p>{t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage1.level1')}</p>
+                            <p>{t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage1.level2')}</p>
+                            <p>{t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage1.level3')}</p>
+                            <p className="text-honey">{t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage1.levelPattern')}</p>
+                            <p>{t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage1.level19')}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Stage 2 */}
+                      <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Badge className="bg-blue-500 text-white">Stage 2</Badge>
+                          <span className="font-medium text-blue-400">
+                            {t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage2.title')}
+                          </span>
+                        </div>
+                        <div className="space-y-2 text-sm text-slate-300">
+                          <p className="font-medium text-blue-400">
+                            {t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage2.totalLocked')}
+                          </p>
+                          <div className="space-y-1">
+                            <p>{t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage2.level1')}</p>
+                            <p>{t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage2.level2')}</p>
+                            <p>{t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage2.level3')}</p>
+                            <p className="text-honey">{t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage2.levelPattern')}</p>
+                            <p>{t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage2.level19')}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Stage 3 */}
+                      <div className="p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Badge className="bg-purple-500 text-white">Stage 3</Badge>
+                          <span className="font-medium text-purple-400">
+                            {t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage3.title')}
+                          </span>
+                        </div>
+                        <div className="space-y-2 text-sm text-slate-300">
+                          <p className="font-medium text-purple-400">
+                            {t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage3.totalLocked')}
+                          </p>
+                          <div className="space-y-1">
+                            <p>{t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage3.level1')}</p>
+                            <p>{t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage3.level2')}</p>
+                            <p>{t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage3.level3')}</p>
+                            <p className="text-honey">{t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage3.levelPattern')}</p>
+                            <p>{t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage3.level19')}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Stage 4 */}
+                      <div className="p-4 bg-orange-500/10 rounded-lg border border-orange-500/20">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Badge className="bg-orange-500 text-white">Stage 4</Badge>
+                          <span className="font-medium text-orange-400">
+                            {t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage4.title')}
+                          </span>
+                        </div>
+                        <div className="space-y-2 text-sm text-slate-300">
+                          <p className="font-medium text-orange-400">
+                            {t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage4.totalLocked')}
+                          </p>
+                          <div className="space-y-1">
+                            <p>{t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage4.level1')}</p>
+                            <p>{t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage4.level2')}</p>
+                            <p>{t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage4.level3')}</p>
+                            <p className="text-honey">{t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage4.levelPattern')}</p>
+                            <p>{t('rewards.layerRewardSystem.bccReleaseSystem.stages.stage4.level19')}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Release Mechanism */}
+                    <div className="p-4 bg-honey/10 rounded-lg border border-honey/20">
+                      <div className="flex items-center gap-3 mb-3">
+                        <Coins className="h-5 w-5 text-honey" />
+                        <span className="font-medium text-honey">
+                          {t('rewards.layerRewardSystem.bccReleaseSystem.mechanismTitle')}
+                        </span>
+                      </div>
+                      <div className="space-y-2 text-sm text-slate-300">
+                        <p>{t('rewards.layerRewardSystem.bccReleaseSystem.mechanismDescription')}</p>
+                        <p className="text-honey">{t('rewards.layerRewardSystem.bccReleaseSystem.stageReduction')}</p>
+                        <p className="font-medium">{t('rewards.layerRewardSystem.bccReleaseSystem.totalMembers')}</p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
