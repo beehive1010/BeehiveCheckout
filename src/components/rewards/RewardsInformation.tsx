@@ -221,13 +221,13 @@ export const RewardsInformation: React.FC<RewardsInformationProps> = ({
                         <Card key={layer} className="bg-slate-800/50 border-slate-600 hover:border-honey/50 transition-all duration-200 hover:scale-105 shadow-lg">
                           <CardContent className={`${isMobile ? 'p-3' : 'p-4'} text-center`}>
                             <div className={`font-bold text-honey ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                              Layer {layer}{index === 3 ? ' (Max)' : ''}
+                              {t('rewards.information.layerText', { layer })}{index === 3 ? ` (${t('rewards.information.maxLayer')})` : ''}
                             </div>
                             <div className={`text-green-400 font-semibold ${isMobile ? 'text-xs' : 'text-sm'}`}>
                               ${reward.levelPrice}
                             </div>
                             <div className={`text-muted-foreground ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
-                              {reward.percentage}% NFT Price
+                              {reward.percentage}% {t('rewards.information.nftPrice')}
                             </div>
                           </CardContent>
                         </Card>
@@ -308,7 +308,7 @@ export const RewardsInformation: React.FC<RewardsInformationProps> = ({
               <h4 className="font-semibold text-honey mb-4 flex items-center gap-3 text-lg">
                 <Users className="h-5 w-5" />
                 {t('rewards.information.matrixVisualization')}
-                <Badge className="bg-honey/20 text-honey text-xs">Live Animation</Badge>
+                <Badge className="bg-honey/20 text-honey text-xs">{t('rewards.information.liveAnimation')}</Badge>
               </h4>
               <div className="bg-black/40 rounded-xl p-4">
                 <MatrixVisualization 
@@ -320,8 +320,7 @@ export const RewardsInformation: React.FC<RewardsInformationProps> = ({
               </div>
               <div className="mt-4 p-4 bg-slate-700/30 rounded-lg">
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  <strong className="text-honey">Matrix Structure:</strong> Each level represents a layer in the matrix. 
-                  When members in your layer upgrade their membership level, it triggers layer rewards based on the upgraded level.
+                  <strong className="text-honey">{t('rewards.information.matrixStructureTitle')}:</strong> {t('rewards.information.matrixStructureDesc')}
                 </p>
               </div>
             </div>
@@ -344,19 +343,19 @@ export const RewardsInformation: React.FC<RewardsInformationProps> = ({
                             <div className="w-8 h-8 bg-honey/20 rounded-full flex items-center justify-center text-xs font-bold text-honey">
                               {reward.layer}
                             </div>
-                            Layer {reward.layer} Reward
+                            {t('rewards.information.layerRewardText', { layer: reward.layer })}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            Triggered by Level {reward.layer} upgrades in your layer {reward.layer}
+                            {t('rewards.information.triggeredByLevel', { layer: reward.layer })}
                           </div>
                           <div className="flex items-center gap-4 text-xs">
                             <div className="flex items-center gap-1 text-green-400">
                               <CheckCircle className="h-3 w-3" />
-                              1st & 2nd: {reward.conditions.firstSecond}
+                              {t('rewards.information.firstSecond')}: {reward.conditions.firstSecond}
                             </div>
                             <div className="flex items-center gap-1 text-blue-400">
                               <Target className="h-3 w-3" />
-                              3rd+: {reward.conditions.third}
+                              {t('rewards.information.thirdPlus')}: {reward.conditions.third}
                             </div>
                           </div>
                         </div>
@@ -365,10 +364,10 @@ export const RewardsInformation: React.FC<RewardsInformationProps> = ({
                             ${reward.levelPrice}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            {reward.percentage}% of Level {reward.layer} NFT price
+                            {reward.percentage}% {t('rewards.information.ofLevelNftPrice', { level: reward.layer })}
                           </div>
                           <div className="text-xs text-honey font-medium mt-1">
-                            Instant payout if eligible
+                            {t('rewards.information.instantPayout')}
                           </div>
                         </div>
                       </div>
@@ -380,7 +379,7 @@ export const RewardsInformation: React.FC<RewardsInformationProps> = ({
                 <div className="text-center py-4">
                   <div className="flex items-center justify-center gap-2 text-muted-foreground">
                     <div className="w-2 h-2 bg-honey rounded-full animate-pulse"></div>
-                    <span className="text-sm">Continues to Layer 19</span>
+                    <span className="text-sm">{t('rewards.information.continuesToLayer19')}</span>
                     <div className="w-2 h-2 bg-honey rounded-full animate-pulse"></div>
                   </div>
                 </div>
@@ -394,11 +393,11 @@ export const RewardsInformation: React.FC<RewardsInformationProps> = ({
                           <div className="w-8 h-8 bg-gradient-to-br from-honey to-amber-400 rounded-full flex items-center justify-center text-xs font-bold text-black">
                             19
                           </div>
-                          Layer 19 Reward (Maximum)
-                          <Badge className="bg-honey text-black text-xs">MAX</Badge>
+                          {t('rewards.information.layer19RewardMax')}
+                          <Badge className="bg-honey text-black text-xs">{t('rewards.information.max')}</Badge>
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          Final layer reward - highest earning potential
+                          {t('rewards.information.finalLayerReward')}
                         </div>
                       </div>
                       <div className="text-right">
@@ -406,7 +405,7 @@ export const RewardsInformation: React.FC<RewardsInformationProps> = ({
                           ${LAYER_REWARDS[18].levelPrice}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          100% of Level 19 NFT price
+                          100% {t('rewards.information.ofLevel19NftPrice')}
                         </div>
                       </div>
                     </div>
@@ -425,21 +424,21 @@ export const RewardsInformation: React.FC<RewardsInformationProps> = ({
                 <div className="space-y-4">
                   <h5 className="font-medium text-white flex items-center gap-2">
                     <Timer className="h-4 w-4 text-green-400" />
-                    Instant Rewards
+                    {t('rewards.information.instantRewards')}
                   </h5>
                   <div className="space-y-3 text-sm">
                     <div className="flex items-start gap-3">
                       <CheckCircle className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
                       <div>
-                        <div className="font-medium text-green-400">1st & 2nd Rewards per Layer</div>
-                        <div className="text-muted-foreground">Your level must equal the layer level to receive instantly</div>
+                        <div className="font-medium text-green-400">{t('rewards.information.firstSecondRewards')}</div>
+                        <div className="text-muted-foreground">{t('rewards.information.levelMustEqualLayer')}</div>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
                       <CheckCircle className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
                       <div>
-                        <div className="font-medium text-green-400">3rd+ Rewards per Layer</div>
-                        <div className="text-muted-foreground">Your level must be greater than the layer level</div>
+                        <div className="font-medium text-green-400">{t('rewards.information.thirdPlusRewards')}</div>
+                        <div className="text-muted-foreground">{t('rewards.information.levelMustBeGreater')}</div>
                       </div>
                     </div>
                   </div>
@@ -447,28 +446,28 @@ export const RewardsInformation: React.FC<RewardsInformationProps> = ({
                 <div className="space-y-4">
                   <h5 className="font-medium text-white flex items-center gap-2">
                     <Clock className="h-4 w-4 text-orange-400" />
-                    Pending System
+                    {t('rewards.information.pendingSystem')}
                   </h5>
                   <div className="space-y-3 text-sm">
                     <div className="flex items-start gap-3">
                       <Clock className="h-4 w-4 text-orange-400 mt-0.5 flex-shrink-0" />
                       <div>
-                        <div className="font-medium text-orange-400">72-Hour Pending</div>
-                        <div className="text-muted-foreground">If level requirements not met, reward enters pending state</div>
+                        <div className="font-medium text-orange-400">{t('rewards.information.seventyTwoHourPending')}</div>
+                        <div className="text-muted-foreground">{t('rewards.information.levelRequirementsNotMet')}</div>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
                       <Zap className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
                       <div>
-                        <div className="font-medium text-blue-400">Upgrade to Claim</div>
-                        <div className="text-muted-foreground">Activate required level to claim immediately</div>
+                        <div className="font-medium text-blue-400">{t('rewards.information.upgradeToClaim')}</div>
+                        <div className="text-muted-foreground">{t('rewards.information.activateRequiredLevel')}</div>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
                       <ArrowRight className="h-4 w-4 text-purple-400 mt-0.5 flex-shrink-0" />
                       <div>
-                        <div className="font-medium text-purple-400">Expiry Redistribution</div>
-                        <div className="text-muted-foreground">Expired rewards go to eligible members above</div>
+                        <div className="font-medium text-purple-400">{t('rewards.information.expiryRedistribution')}</div>
+                        <div className="text-muted-foreground">{t('rewards.information.expiredRewardsRedistribute')}</div>
                       </div>
                     </div>
                   </div>

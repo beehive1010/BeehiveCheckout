@@ -1,17 +1,16 @@
-import { useState, useEffect } from 'react';
-import { useI18n } from '../contexts/I18nContext';
-import { useWallet } from '../hooks/useWallet';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useLocation } from 'wouter';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
-import { useToast } from '../hooks/use-toast';
-import { Crown, Shield, Star, Zap, Gift, Lock, CheckCircle, Loader2, ArrowRight, Users, Award } from 'lucide-react';
+import {useEffect, useState} from 'react';
+import {useI18n} from '../contexts/I18nContext';
+import {useWallet} from '../hooks/useWallet';
+import {useQuery, useQueryClient} from '@tanstack/react-query';
+import {useLocation} from 'wouter';
+import {Card, CardContent, CardHeader, CardTitle} from '../components/ui/card';
+import {Button} from '../components/ui/button';
+import {Badge} from '../components/ui/badge';
+import {useToast} from '../hooks/use-toast';
+import {ArrowRight, Award, CheckCircle, Crown, Gift, Loader2, Lock, Shield, Star, Users, Zap} from 'lucide-react';
 import MembershipBadge from '../components/membership/MembershipBadge';
-import { getMembershipLevel } from '../lib/config/membershipLevels';
-import { LevelUpgradeButtonGeneric } from '../components/membership/LevelUpgradeButtonGeneric';
-import { Level2ClaimButtonV2 } from '../components/membership/Level2ClaimButtonV2';
+import {LevelUpgradeButtonGeneric} from '../components/membership/LevelUpgradeButtonGeneric';
+import {Level2ClaimButtonV2} from '../components/membership/Level2ClaimButtonV2';
 
 interface MembershipLevel {
   level: number;
@@ -145,6 +144,18 @@ export default function Membership() {
         if (currentLevel < maxOwnedLevel) {
           console.warn(`⚠️ LEVEL SYNC ISSUE: DB level ${currentLevel} < Max NFT level ${maxOwnedLevel}`);
           console.log(`🔄 Consider refreshing page or syncing levels manually`);
+          
+          // Show sync notification to user
+          toast({
+            title: '🔄 数据同步中',
+            description: `检测到您拥有 Level ${maxOwnedLevel} NFT，正在同步会员等级数据...`,
+            duration: 5000
+          });
+          
+          // Automatically trigger data synchronization
+          setTimeout(() => {
+            triggerDataSynchronization(walletAddress, maxOwnedLevel);
+          }, 1000);
         }
       } catch (error) {
         console.warn('⚠️ Failed to check NFT ownership:', error);
@@ -155,6 +166,61 @@ export default function Membership() {
 
     checkNFTOwnership();
   }, [walletAddress, currentLevel]); // Re-check when currentLevel changes
+
+  // Function to trigger automatic data synchronization
+  const triggerDataSynchronization = async (walletAddress: string, maxOwnedLevel: number) => {
+    try {
+      console.log(`🔄 Triggering data synchronization for ${walletAddress}, max NFT level: ${maxOwnedLevel}`);
+      
+      // Call our NFT claim validator function via Supabase Edge Function
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/nft-claim-validator`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
+        },
+        body: JSON.stringify({
+          wallet_address: walletAddress,
+          force_sync: true
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Data synchronization completed:', result);
+        
+        // Refresh all relevant queries after sync
+        setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ['user-status', walletAddress] });
+          queryClient.invalidateQueries({ queryKey: ['/direct-referrals', walletAddress] });
+          queryClient.invalidateQueries({ queryKey: ['/next-unlock-level', walletAddress] });
+        }, 1500);
+        
+        toast({
+          title: '✅ 数据同步完成',
+          description: '会员等级已成功同步到最新状态',
+          duration: 3000
+        });
+      } else {
+        console.error('❌ Data synchronization failed:', await response.text());
+        toast({
+          title: '⚠️ 同步失败',
+          description: '请手动刷新页面或联系客服',
+          variant: 'destructive',
+          duration: 5000
+        });
+      }
+    } catch (error) {
+      console.error('❌ Data synchronization error:', error);
+      toast({
+        title: '⚠️ 同步错误',
+        description: '网络连接问题，请稍后重试',
+        variant: 'destructive',
+        duration: 5000
+      });
+    }
+  };
 
   // Fetch user's direct referrals count for Level 2 condition (from referrals table)
   const { data: directReferralsCount } = useQuery({
@@ -519,28 +585,33 @@ export default function Membership() {
             ) : (currentLevel && currentLevel >= 2 && currentLevel < 19) || (currentLevel === 1 && hasLevel2NFT) ? (
               <LevelUpgradeButtonGeneric 
                 targetLevel={
-                  hasLevel2NFT && currentLevel === 1 ? 3 : 
-                  hasLevel3NFT && currentLevel === 3 ? 4 : 
-                  // For Level 5+, always use sequential upgrade
+                  // Fix: If user has Level 2 NFT but DB shows Level 1, show Level 2 upgrade first
+                  hasLevel2NFT && currentLevel === 1 ? 2 : 
+                  // If user has Level 3 NFT but DB shows Level 2, show Level 3 upgrade
+                  hasLevel3NFT && currentLevel === 2 ? 3 :
+                  // For normal sequential upgrades
                   currentLevel + 1
                 }
-                currentLevel={
-                  hasLevel2NFT && currentLevel === 1 ? 2 : 
-                  currentLevel
-                }
+                currentLevel={currentLevel}
                 directReferralsCount={directReferralsCount || 0}
                 onSuccess={() => {
+                  const nextLevel = hasLevel2NFT && currentLevel === 1 ? 2 : 
+                                  hasLevel3NFT && currentLevel === 2 ? 3 : 
+                                  currentLevel + 1;
+                  
                   toast({
                     title: t('membership.upgradeSuccess') || 'Upgrade Successful!',
                     description: t('membership.upgradeSuccessDescription') || 'Your membership has been upgraded successfully',
                     duration: 5000
                   });
-                  // Refresh user data and referrals count after successful upgrade
-                  console.log(`✅ Level ${currentLevel + 1} claim successful - refreshing user data`);
-                  // Add a small delay to ensure database updates have been processed
+                  
+                  console.log(`✅ Level ${nextLevel} claim successful - refreshing user data`);
+                  // Trigger data synchronization check
                   setTimeout(() => {
                     queryClient.invalidateQueries({ queryKey: ['user-status', walletAddress] });
                     queryClient.invalidateQueries({ queryKey: ['/direct-referrals', walletAddress] });
+                    // Force refresh NFT ownership check
+                    window.location.reload();
                   }, 2000);
                 }}
               />

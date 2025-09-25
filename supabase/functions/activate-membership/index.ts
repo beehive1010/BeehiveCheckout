@@ -209,26 +209,57 @@ serve(async (req: Request) => {
     let memberRecord = null;
     try {
       console.log(`👥 Creating members record AFTER referrals_new: ${walletAddress}`);
+      
+      // Validate referrer exists in members table first (防止无效引荐人)
+      if (normalizedReferrerWallet && normalizedReferrerWallet !== '0x0000000000000000000000000000000000000001') {
+        const { data: referrerExists, error: referrerCheckError } = await supabase
+          .from('members')
+          .select('wallet_address, current_level')
+          .ilike('wallet_address', normalizedReferrerWallet)
+          .maybeSingle();
+          
+        if (referrerCheckError || !referrerExists) {
+          console.warn(`⚠️ Referrer ${normalizedReferrerWallet} not found in members table, proceeding without referrer`);
+          normalizedReferrerWallet = null;
+        } else {
+          console.log(`✅ Referrer validation passed: ${referrerExists.wallet_address} (Level ${referrerExists.current_level})`);
+        }
+      }
+      
       // Get the next activation sequence number
       const { data: sequenceData } = await supabase.from('members').select('activation_sequence').order('activation_sequence', {
         ascending: false
       }).limit(1);
       const nextSequence = sequenceData && sequenceData.length > 0 ? (sequenceData[0].activation_sequence || 0) + 1 : 1;
+      
       const memberData = {
         wallet_address: userData.wallet_address, // Use exact case from users table
-        referrer_wallet: normalizedReferrerWallet,
+        referrer_wallet: normalizedReferrerWallet, // Validated referrer
         current_level: level,
         activation_sequence: nextSequence,
         activation_time: new Date().toISOString(),
         total_nft_claimed: 1
       };
+      
+      console.log(`📝 Inserting member record with data:`, {
+        wallet_address: memberData.wallet_address,
+        referrer_wallet: memberData.referrer_wallet,
+        current_level: memberData.current_level,
+        activation_sequence: memberData.activation_sequence
+      });
+      
       const { data: newMember, error: memberError } = await supabase.from('members').insert(memberData).select().single();
       if (memberError) {
         console.error('❌ Failed to create members record:', memberError);
         throw new Error(`Failed to create members record: ${memberError.message}`);
       } else {
         memberRecord = newMember;
-        console.log(`✅ Members record created AFTER referrals_new: ${memberRecord.wallet_address} with referrer: ${memberRecord.referrer_wallet}`);
+        console.log(`✅ Members record created: ${memberRecord.wallet_address} with referrer: ${memberRecord.referrer_wallet}`);
+        
+        // 立即验证referrer是否正确保存
+        if (normalizedReferrerWallet && !memberRecord.referrer_wallet) {
+          console.error(`🚨 CRITICAL: Referrer lost during member creation! Expected: ${normalizedReferrerWallet}, Got: ${memberRecord.referrer_wallet}`);
+        }
       }
     } catch (memberErr) {
       console.error('❌ Members record creation error (critical):', memberErr);
@@ -237,6 +268,8 @@ serve(async (req: Request) => {
     
     // Step 6: Complete matrix placement after both referrals_new and members exist
     if (normalizedReferrerWallet && normalizedReferrerWallet !== '0x0000000000000000000000000000000000000001' && memberRecord) {
+      const originalReferrer = memberRecord.referrer_wallet; // 保存原始referrer
+      
       try {
         console.log(`📐 Completing matrix placement: ${walletAddress} -> ${normalizedReferrerWallet}`);
         
@@ -250,9 +283,58 @@ serve(async (req: Request) => {
         } else {
           console.log(`✅ Matrix placement completed:`, matrixPlacementResult.data);
           referralRecord = matrixPlacementResult.data;
+          
+          // 关键：验证Matrix placement是否意外修改了referrer
+          const { data: memberAfterMatrix, error: checkError } = await supabase
+            .from('members')
+            .select('referrer_wallet')
+            .ilike('wallet_address', userData.wallet_address)
+            .single();
+            
+          if (checkError) {
+            console.error('❌ Failed to verify member referrer after matrix placement:', checkError);
+          } else if (memberAfterMatrix.referrer_wallet !== originalReferrer) {
+            console.error(`🚨 CRITICAL: Matrix placement changed referrer! ${originalReferrer} -> ${memberAfterMatrix.referrer_wallet}`);
+            
+            // 立即修复referrer
+            console.log(`🔧 Fixing referrer back to original: ${originalReferrer}`);
+            const { error: fixError } = await supabase
+              .from('members')
+              .update({ 
+                referrer_wallet: originalReferrer,
+                updated_at: new Date().toISOString()
+              })
+              .ilike('wallet_address', userData.wallet_address);
+              
+            if (fixError) {
+              console.error('❌ Failed to fix referrer after matrix placement:', fixError);
+            } else {
+              console.log(`✅ Referrer successfully restored to: ${originalReferrer}`);
+            }
+          } else {
+            console.log(`✅ Matrix placement preserved referrer: ${memberAfterMatrix.referrer_wallet}`);
+          }
         }
       } catch (referralErr) {
         console.warn('⚠️ Matrix placement error (non-critical):', referralErr);
+        
+        // 即使matrix placement失败，也要确保referrer没有丢失
+        const { data: memberAfterError, error: errorCheckError } = await supabase
+          .from('members')
+          .select('referrer_wallet')
+          .ilike('wallet_address', userData.wallet_address)
+          .single();
+          
+        if (!errorCheckError && memberAfterError.referrer_wallet !== originalReferrer) {
+          console.log(`🔧 Restoring referrer after matrix error: ${originalReferrer}`);
+          await supabase
+            .from('members')
+            .update({ 
+              referrer_wallet: originalReferrer,
+              updated_at: new Date().toISOString()
+            })
+            .ilike('wallet_address', userData.wallet_address);
+        }
       }
     }
     // Matrix placement was already done in Step 6
