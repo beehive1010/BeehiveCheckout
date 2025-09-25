@@ -113,7 +113,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
     {
       id: 'layer',
       title: t('rewards.information.layerRewards'),
-      subtitle: '19层奖励系统',
+      subtitle: t('rewards.information.layerRewardsSubtitle'),
       icon: Layers,
       gradient: 'from-honey/20 to-amber-500/20',
       borderColor: 'border-honey/30',
@@ -122,7 +122,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
     {
       id: 'bcc',
       title: t('rewards.information.bccRewards'),
-      subtitle: 'BCC释放奖励',
+      subtitle: t('rewards.information.bccRewardsSubtitle'),
       icon: Lock,
       gradient: 'from-blue-500/20 to-purple-500/20',
       borderColor: 'border-blue-500/30',
@@ -211,17 +211,17 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                         </div>
                         <div className="flex-1">
                           <h3 className="font-bold text-honey mb-2 text-base">
-                            层级奖励系统
+                            {t('rewards.information.layerRewardsSystem')}
                           </h3>
                           <p className="text-muted-foreground mb-3 text-sm">
-                            当您矩阵中的会员升级会员级别时触发相应层级奖励，共19层，每层奖励为对应级别NFT价格100%
+                            {t('rewards.information.layerRewardsSystemDesc')}
                           </p>
                           <Button 
                             onClick={() => openDialog('layer')}
                             className="bg-gradient-to-r from-honey to-amber-400 text-black hover:from-honey/90 hover:to-amber-400/90 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-sm px-4 py-2"
                           >
                             <Eye className="mr-2 h-4 w-4" />
-                            查看全部19层
+                            {t('rewards.information.viewAll19Layers')}
                           </Button>
                         </div>
                       </div>
@@ -231,7 +231,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                     <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-600">
                       <h4 className="font-semibold text-honey mb-3 flex items-center gap-2 text-sm">
                         <Target className="h-4 w-4" />
-                        层级奖励预览
+                        {t('rewards.information.layerRewardsPreview')}
                       </h4>
                       <div className="grid grid-cols-2 gap-2">
                         {[1, 2, 3, 19].map((layer, index) => {
