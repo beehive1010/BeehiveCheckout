@@ -154,10 +154,9 @@ export default function USDTWithdrawal() {
       };
     },
     onSuccess: (data) => {
-      const method = data.isCrossChain ? 'bridged via thirdweb' : 'transferred directly';
       toast({
-        title: `Withdrawal ${data.isCrossChain ? 'Bridged' : 'Submitted'}! ${data.isCrossChain ? '🌉' : '✅'}`,
-        description: `${data.netAmount.toFixed(2)} USDT will be ${method} to ${data.chain} (${data.fee} USDT fee)`,
+        title: `提现${data.isCrossChain ? '跨链' : ''}处理中 ${data.isCrossChain ? '🌉' : '⏳'}`,
+        description: data.message || `${data.netAmount} ${data.chain} 预计 ${data.estimatedMinutes} 分钟内到账`,
       });
       
       setAmount('');
@@ -299,6 +298,48 @@ export default function USDTWithdrawal() {
                   </div>
                 </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Token Selection */}
+        <div className="space-y-2">
+          <Label htmlFor="target-token" className="text-sm font-medium">
+            Target Token
+          </Label>
+          <Select value={selectedToken} onValueChange={setSelectedToken}>
+            <SelectTrigger data-testid="select-token">
+              <SelectValue placeholder="Select target token" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="USDT">
+                <div className="flex items-center gap-2">
+                  <span>💰</span>
+                  <span>USDT</span>
+                  <Badge variant="outline">Stablecoin</Badge>
+                </div>
+              </SelectItem>
+              <SelectItem value="BNB">
+                <div className="flex items-center gap-2">
+                  <span>🟡</span>
+                  <span>BNB</span>
+                  <Badge variant="outline">Native Token</Badge>
+                </div>
+              </SelectItem>
+              <SelectItem value="ETH">
+                <div className="flex items-center gap-2">
+                  <span>🔷</span>
+                  <span>ETH</span>
+                  <Badge variant="outline">Native Token</Badge>
+                </div>
+              </SelectItem>
+              <SelectItem value="MATIC">
+                <div className="flex items-center gap-2">
+                  <span>🟣</span>
+                  <span>MATIC</span>
+                  <Badge variant="outline">Native Token</Badge>
+                </div>
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
