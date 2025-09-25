@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useSpring, animated, useSpringValue } from 'react-spring';
-import { useInView } from 'react-intersection-observer';
+import React, {useEffect, useState} from 'react';
+import {animated, useSpring} from 'react-spring';
+import {useInView} from 'react-intersection-observer';
 
 interface MatrixNode {
   id: string;
@@ -81,8 +81,9 @@ export const MatrixVisualization: React.FC<MatrixVisualizationProps> = ({
 
   const containerAnimation = useSpring({
     opacity: inView ? 1 : 0,
-    transform: inView ? 'scale(1)' : 'scale(0.9)',
-    config: { mass: 1, tension: 280, friction: 60 }
+    transform: inView ? 'scale(1) rotate(0deg)' : 'scale(0.8) rotate(-5deg)',
+    filter: inView ? 'blur(0px)' : 'blur(4px)',
+    config: { mass: 1, tension: 200, friction: 50 }
   });
 
   const svgWidth = compact ? 400 : 600;
@@ -92,13 +93,13 @@ export const MatrixVisualization: React.FC<MatrixVisualizationProps> = ({
     <animated.div 
       ref={ref}
       style={containerAnimation}
-      className={`relative ${className}`}
+      className={`relative ${className} transition-all duration-1000`}
     >
       <svg 
         width={svgWidth} 
         height={svgHeight}
         viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-        className="w-full h-auto"
+        className="w-full h-auto transition-all duration-500 hover:drop-shadow-2xl"
       >
         {/* Connection lines */}
         {nodes.map((node) => {
@@ -138,7 +139,7 @@ export const MatrixVisualization: React.FC<MatrixVisualizationProps> = ({
             key={`level-${level}`}
             x="20"
             y={compact ? 55 + level * 80 : 85 + level * 120}
-            className="text-sm fill-honey font-semibold"
+            className="text-sm fill-honey font-semibold transition-all duration-300 hover:fill-yellow-300"
           >
             Level {level + 1}
           </text>
@@ -150,7 +151,7 @@ export const MatrixVisualization: React.FC<MatrixVisualizationProps> = ({
             key={`size-${level}`}
             x={svgWidth - 80}
             y={compact ? 55 + level * 80 : 85 + level * 120}
-            className="text-xs fill-gray-400"
+            className="text-xs fill-gray-400 transition-all duration-300 hover:fill-gray-200"
           >
             {Math.pow(3, level)} {Math.pow(3, level) === 1 ? 'member' : 'members'}
           </text>
@@ -158,18 +159,18 @@ export const MatrixVisualization: React.FC<MatrixVisualizationProps> = ({
       </svg>
       
       {/* Legend */}
-      <div className="mt-4 flex flex-wrap gap-4 text-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded-full bg-honey"></div>
-          <span className="text-gray-300">Active Member</span>
+      <div className="mt-4 flex flex-wrap gap-4 text-sm animate-in slide-in-from-bottom-2 fade-in-0 duration-1000 delay-500">
+        <div className="flex items-center gap-2 transition-all duration-300 hover:scale-105">
+          <div className="w-4 h-4 rounded-full bg-honey transition-all duration-300 hover:scale-125 hover:shadow-lg hover:shadow-honey/50"></div>
+          <span className="text-gray-300 transition-colors duration-300 hover:text-honey">Active Member</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded-full bg-gray-600"></div>
-          <span className="text-gray-300">Pending Member</span>
+        <div className="flex items-center gap-2 transition-all duration-300 hover:scale-105">
+          <div className="w-4 h-4 rounded-full bg-gray-600 transition-all duration-300 hover:scale-125 hover:bg-gray-500"></div>
+          <span className="text-gray-300 transition-colors duration-300 hover:text-gray-100">Pending Member</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded-full bg-honey ring-2 ring-yellow-400"></div>
-          <span className="text-gray-300">Has Rewards</span>
+        <div className="flex items-center gap-2 transition-all duration-300 hover:scale-105">
+          <div className="w-4 h-4 rounded-full bg-honey ring-2 ring-yellow-400 transition-all duration-300 hover:scale-125 animate-pulse hover:shadow-lg hover:shadow-yellow-400/50"></div>
+          <span className="text-gray-300 transition-colors duration-300 hover:text-yellow-300">Has Rewards</span>
         </div>
       </div>
     </animated.div>
@@ -186,8 +187,10 @@ interface ConnectionLineProps {
 const ConnectionLine: React.FC<ConnectionLineProps> = ({ from, to, isActive, delay }) => {
   const lineAnimation = useSpring({
     strokeDashoffset: isActive ? 0 : 100,
-    opacity: isActive ? 0.6 : 0.2,
-    config: { mass: 1, tension: 280, friction: 60 },
+    opacity: isActive ? 0.8 : 0.1,
+    strokeWidth: isActive ? 3 : 1,
+    filter: isActive ? 'drop-shadow(0 0 4px #FFD700)' : 'drop-shadow(0 0 0px transparent)',
+    config: { mass: 1, tension: 200, friction: 40 },
     delay
   });
 
@@ -198,10 +201,9 @@ const ConnectionLine: React.FC<ConnectionLineProps> = ({ from, to, isActive, del
       x2={to.x}
       y2={to.y - 15}
       stroke="#FFD700"
-      strokeWidth="2"
-      strokeDasharray="4 4"
+      strokeDasharray="6 4"
       style={lineAnimation}
-      className="transition-all duration-500"
+      className="transition-all duration-700 hover:stroke-yellow-300"
     />
   );
 };
@@ -220,9 +222,10 @@ const MatrixNodeComponent: React.FC<MatrixNodeComponentProps> = ({
   compact 
 }) => {
   const nodeAnimation = useSpring({
-    transform: isHighlighted ? 'scale(1.2)' : 'scale(1)',
+    transform: isHighlighted ? 'scale(1.3) rotate(360deg)' : 'scale(1) rotate(0deg)',
     opacity: 1,
-    config: { mass: 1, tension: 300, friction: 40 },
+    filter: isHighlighted ? 'drop-shadow(0 0 8px #FFD700)' : 'drop-shadow(0 0 2px rgba(0,0,0,0.3))',
+    config: { mass: 1, tension: 250, friction: 25 },
     delay
   });
 
@@ -237,7 +240,7 @@ const MatrixNodeComponent: React.FC<MatrixNodeComponentProps> = ({
         cy={node.y}
         r={radius}
         fill={node.isActive ? '#FFD700' : '#6B7280'}
-        className={`transition-colors duration-300 ${isHighlighted ? 'animate-pulse' : ''}`}
+        className={`transition-all duration-500 hover:r-[${radius + 2}] ${isHighlighted ? 'animate-bounce' : ''}`}
       />
       
       {/* Reward indicator */}
@@ -249,7 +252,7 @@ const MatrixNodeComponent: React.FC<MatrixNodeComponentProps> = ({
           fill="none"
           stroke="#FBBF24"
           strokeWidth="2"
-          className="animate-pulse"
+          className="animate-pulse hover:animate-spin hover:stroke-yellow-300"
         />
       )}
       
@@ -271,7 +274,7 @@ const MatrixNodeComponent: React.FC<MatrixNodeComponentProps> = ({
           x={node.x}
           y={node.y + radius + 15}
           textAnchor="middle"
-          className="text-xs fill-gray-300"
+          className="text-xs fill-gray-300 transition-all duration-300 hover:fill-white"
         >
           {node.userName}
         </text>
