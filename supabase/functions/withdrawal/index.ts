@@ -138,8 +138,8 @@ serve(async (req) => {
     }
 
     // Get target token info based on user's choice
-    const targetTokenSymbol = targetTokenSymbol || selectedToken || 'USDT'
-    const targetTokenInfo = getTokenInfo(targetChainId, targetTokenSymbol)
+    const requestedTokenSymbol = targetTokenSymbol || selectedToken || 'USDT'
+    const targetTokenInfo = getTokenInfo(targetChainId, requestedTokenSymbol)
     
     // Source: We settle in ARB USDT
     const sourceTokenAddress = sourceToken.address // ARB USDT
@@ -180,6 +180,7 @@ serve(async (req) => {
         headers: {
           'Content-Type': 'application/json',
           'x-secret-key': Deno.env.get('VITE_THIRDWEB_SECRET_KEY') || '',
+          'x-vault-access-token': Deno.env.get('VITE_VAULT_ACCESS_TOKEN') || '',
         },
         body: JSON.stringify(requestBody)
       })
@@ -190,13 +191,26 @@ serve(async (req) => {
       }
 
       const walletData = await walletResponse.json()
+      console.log('🔍 Wallet API Response:', JSON.stringify(walletData, null, 2))
       
-      if (!walletData.result || !walletData.result.queueId) {
-        throw new Error(`Thirdweb wallets API error: ${walletData.error || 'No queue ID returned'}`)
+      // Handle different response formats
+      let queueId = null
+      if (walletData.result && walletData.result.transactionIds && walletData.result.transactionIds.length > 0) {
+        queueId = walletData.result.transactionIds[0]
+      } else if (walletData.result && walletData.result.queueId) {
+        queueId = walletData.result.queueId
+      } else if (walletData.queueId) {
+        queueId = walletData.queueId
+      } else if (walletData.transactionHash) {
+        queueId = walletData.transactionHash
+      }
+      
+      if (!queueId) {
+        throw new Error(`Thirdweb wallets API error: ${JSON.stringify(walletData)}`)
       }
 
       result = {
-        transactionHash: walletData.result.queueId, // ThirdWeb returns queueId for async operations
+        transactionHash: queueId, // Use the resolved queueId
         feeTransactionHash: null,
         bridged: false,
       }
@@ -208,22 +222,21 @@ serve(async (req) => {
       // Step 1: Use bridge/swap API to convert ARB USDT to target chain/token
       const grossAmountInWei = calculateAmountWithDecimals(withdrawalAmount, sourceToken.decimals) // Source ARB USDT decimals
       
-      // Prepare swap request body
+      // Prepare swap request body with correct thirdweb bridge format
       const swapRequestBody: any = {
-        fromChainId: (sourceChainId || 42161).toString(),
-        toChainId: targetChainId.toString(),
-        fromTokenAddress: sourceTokenAddress,
-        fromAddress: Deno.env.get('VITE_SERVER_WALLET_ADDRESS'),
-        toAddress: Deno.env.get('VITE_SERVER_WALLET_ADDRESS'), // Swap to our wallet first
-        amount: grossAmountInWei,
-      }
-      
-      // Handle target token address - use null for native tokens
-      if (targetTokenInfo.isNative) {
-        // For native tokens like BNB, ETH, don't specify toTokenAddress
-        swapRequestBody.toTokenAddress = null
-      } else {
-        swapRequestBody.toTokenAddress = targetTokenAddress
+        from: Deno.env.get('VITE_SERVER_WALLET_ADDRESS'),
+        to: Deno.env.get('VITE_SERVER_WALLET_ADDRESS'), // Bridge to our wallet first
+        tokenIn: {
+          chainId: (sourceChainId || 42161).toString(),
+          tokenAddress: sourceTokenAddress,
+          amount: grossAmountInWei,
+          decimals: sourceToken.decimals
+        },
+        tokenOut: {
+          chainId: targetChainId.toString(),
+          tokenAddress: targetTokenInfo.isNative ? null : targetTokenAddress,
+          decimals: targetTokenInfo.decimals
+        }
       }
       
       const swapResponse = await fetch('https://api.thirdweb.com/v1/bridge/swap', {
@@ -231,6 +244,7 @@ serve(async (req) => {
         headers: {
           'Content-Type': 'application/json',
           'x-secret-key': Deno.env.get('VITE_THIRDWEB_SECRET_KEY') || '',
+          'x-vault-access-token': Deno.env.get('VITE_VAULT_ACCESS_TOKEN') || '',
         },
         body: JSON.stringify(swapRequestBody)
       })
@@ -269,6 +283,7 @@ serve(async (req) => {
         headers: {
           'Content-Type': 'application/json',
           'x-secret-key': Deno.env.get('VITE_THIRDWEB_SECRET_KEY') || '',
+          'x-vault-access-token': Deno.env.get('VITE_VAULT_ACCESS_TOKEN') || '',
         },
         body: JSON.stringify(sendRequestBody)
       })

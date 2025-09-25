@@ -44,6 +44,7 @@ export default function USDTWithdrawal() {
   
   const [amount, setAmount] = useState('');
   const [targetChain, setTargetChain] = useState(currentChainId.toString());
+  const [selectedToken, setSelectedToken] = useState('USDT'); // 添加目标代币选择
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Get reward balance
@@ -118,13 +119,11 @@ export default function USDTWithdrawal() {
         body: JSON.stringify({
           action: 'process-withdrawal',
           amount: data.amount,
-          net_amount: netAmount,
-          fee_amount: fee,
-          target_chain_id: data.chainId,
-          recipient_address: memberWalletAddress,
-          source_chain_id: 42161, // Arbitrum One (where our USDT is held)
-          is_cross_chain: data.chainId !== 42161,
-          withdrawal_method: 'rewards_dashboard'
+          recipientAddress: memberWalletAddress,
+          targetChainId: data.chainId,
+          targetTokenSymbol: selectedToken || 'USDT', // 从UI获取目标代币
+          memberWallet: memberWalletAddress,
+          sourceChainId: 42161, // Arbitrum One (where our USDT is held)
         }),
       });
 
@@ -143,12 +142,15 @@ export default function USDTWithdrawal() {
 
       return {
         success: true,
-        transactionHash: result.transaction_hash || result.txHash,
-        netAmount,
-        fee,
-        chain: targetChainInfo.name,
-        isCrossChain: data.chainId !== 42161,
-        withdrawalId: result.withdrawal_id
+        transactionHash: result.transaction_hash || result.send_queue_id,
+        netAmount: result.net_amount,
+        fee: result.fee_amount,
+        chain: result.target_token?.symbol || targetChainInfo.name,
+        isCrossChain: result.is_cross_chain,
+        withdrawalId: result.withdrawal_id,
+        processingMethod: result.processing_method,
+        estimatedMinutes: result.estimated_completion_minutes,
+        message: result.message
       };
     },
     onSuccess: (data) => {

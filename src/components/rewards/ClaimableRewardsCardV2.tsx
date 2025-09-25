@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Clock, Gift, DollarSign, CheckCircle, ExternalLink, Loader2, ArrowUpLeft, Timer, Target, TrendingUp } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useWeb3 } from '@/contexts/Web3Context';
-import { rewardsV2Client, LayerReward, PendingReward } from '@/api/v2/rewards.client';
-import { useClaimableRewardsV2, usePendingRewardsV2 } from '@/hooks/useMatrixData';
+import React, {useState} from 'react';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {Button} from '@/components/ui/button';
+import {Badge} from '@/components/ui/badge';
+import {CheckCircle, Clock, DollarSign, ExternalLink, Gift, Loader2, Target, Timer, TrendingUp} from 'lucide-react';
+import {useToast} from '@/hooks/use-toast';
+import {useWeb3} from '@/contexts/Web3Context';
+import {useI18n} from '@/contexts/I18nContext';
+import {LayerReward, rewardsV2Client} from '@/api/v2/rewards.client';
+import {useClaimableRewardsV2, usePendingRewardsV2} from '@/hooks/useMatrixData';
 
 export default function ClaimableRewardsCardV2({ walletAddress }: { walletAddress: string }) {
+  const { t } = useI18n();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [claimingRewards, setClaimingRewards] = useState<string[]>([]);
@@ -33,13 +35,17 @@ export default function ClaimableRewardsCardV2({ walletAddress }: { walletAddres
     },
     onSuccess: (data, rewardId) => {
       toast({
-        title: "Reward Claimed Successfully! 🎉",
-        description: `${data.amountClaimed} ${data.currency} added to your balance. ${data.message}`,
+        title: t('claimableRewards.rewardClaimedSuccess'),
+        description: t('claimableRewards.rewardClaimedDescription', { 
+          amount: data.amountClaimed, 
+          currency: data.currency, 
+          message: data.message 
+        }),
         action: data.txHash ? (
           <Button variant="outline" size="sm" asChild>
             <a href={`#tx-${data.txHash}`} target="_blank" rel="noopener noreferrer">
               <ExternalLink className="w-4 h-4 mr-2" />
-              View Details
+              {t('claimableRewards.viewDetails')}
             </a>
           </Button>
         ) : undefined,
@@ -53,8 +59,8 @@ export default function ClaimableRewardsCardV2({ walletAddress }: { walletAddres
     },
     onError: (error: Error, rewardId) => {
       toast({
-        title: "Claim Failed",
-        description: error.message || "Failed to claim reward. Please try again.",
+        title: t('claimableRewards.claimFailed'),
+        description: error.message || t('claimableRewards.claimFailedDescription'),
         variant: "destructive",
       });
     },
@@ -66,8 +72,8 @@ export default function ClaimableRewardsCardV2({ walletAddress }: { walletAddres
   const handleClaimReward = (reward: LayerReward) => {
     if (!isConnected) {
       toast({
-        title: "Wallet Not Connected",
-        description: "Please connect your wallet to claim rewards.",
+        title: t('claimableRewards.walletNotConnected'),
+        description: t('claimableRewards.connectWalletToClaim'),
         variant: "destructive",
       });
       return;
@@ -81,8 +87,8 @@ export default function ClaimableRewardsCardV2({ walletAddress }: { walletAddres
     
     if (!isConnected) {
       toast({
-        title: "Wallet Not Connected",
-        description: "Please connect your wallet to claim rewards.",
+        title: t('claimableRewards.walletNotConnected'),
+        description: t('claimableRewards.connectWalletToClaim'),
         variant: "destructive",
       });
       return;
@@ -105,8 +111,8 @@ export default function ClaimableRewardsCardV2({ walletAddress }: { walletAddres
   };
 
   const getLayerDisplayName = (layerNumber: number): string => {
-    if (layerNumber === 0) return 'Root';
-    return `Layer ${layerNumber}`;
+    if (layerNumber === 0) return t('claimableRewards.root');
+    return t('claimableRewards.layer', { number: layerNumber });
   };
 
   const getRewardTypeIcon = (layerNumber: number, triggerLevel: number) => {
@@ -116,10 +122,10 @@ export default function ClaimableRewardsCardV2({ walletAddress }: { walletAddres
   };
 
   const formatTimeRemaining = (timeRemaining: string): string => {
-    if (timeRemaining === 'Expired') {
-      return '⏰ Expired - Rollup in progress';
+    if (timeRemaining === t('claimableRewards.expired')) {
+      return t('claimableRewards.rollupInProgress');
     }
-    return `⏰ ${timeRemaining} remaining`;
+    return t('claimableRewards.timeRemaining', { time: timeRemaining });
   };
 
   const isClaimingReward = (rewardId: string) => claimingRewards.includes(rewardId);
@@ -128,7 +134,7 @@ export default function ClaimableRewardsCardV2({ walletAddress }: { walletAddres
     return (
       <Card className="bg-secondary border-border">
         <CardContent className="p-6 text-center">
-          <p className="text-muted-foreground">Connect your wallet to view claimable rewards</p>
+          <p className="text-muted-foreground">{t('claimableRewards.connectWallet')}</p>
         </CardContent>
       </Card>
     );
@@ -139,7 +145,7 @@ export default function ClaimableRewardsCardV2({ walletAddress }: { walletAddres
       <Card className="bg-secondary border-border">
         <CardContent className="p-6 text-center">
           <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
-          <p className="text-muted-foreground">Loading layer rewards...</p>
+          <p className="text-muted-foreground">{t('claimableRewards.loadingRewards')}</p>
         </CardContent>
       </Card>
     );
@@ -158,7 +164,7 @@ export default function ClaimableRewardsCardV2({ walletAddress }: { walletAddres
           <CardTitle className="flex items-center justify-between text-honey">
             <span className="flex items-center gap-2">
               <Gift className="w-5 h-5" />
-              Layer-Based Rewards
+              {t('claimableRewards.layerBasedRewards')}
             </span>
             <div className="flex items-center gap-3">
               <Badge variant="outline" className="bg-honey/10 text-honey border-honey/30">
@@ -171,15 +177,15 @@ export default function ClaimableRewardsCardV2({ walletAddress }: { walletAddres
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center p-3 bg-green-500/5 rounded-lg border border-green-500/20">
               <div className="text-2xl font-bold text-green-400">{claimableRewards.length}</div>
-              <div className="text-sm text-muted-foreground">Ready to Claim</div>
+              <div className="text-sm text-muted-foreground">{t('claimableRewards.readyToClaim')}</div>
             </div>
             <div className="text-center p-3 bg-orange-500/5 rounded-lg border border-orange-500/20">
               <div className="text-2xl font-bold text-orange-400">{pendingRewards.length}</div>
-              <div className="text-sm text-muted-foreground">Pending</div>
+              <div className="text-sm text-muted-foreground">{t('claimableRewards.pending')}</div>
             </div>
             <div className="text-center p-3 bg-blue-500/5 rounded-lg border border-blue-500/20">
               <div className="text-2xl font-bold text-blue-400">${totalPending.toFixed(2)}</div>
-              <div className="text-sm text-muted-foreground">Pending Value</div>
+              <div className="text-sm text-muted-foreground">{t('claimableRewards.pendingValue')}</div>
             </div>
           </div>
           
@@ -203,12 +209,12 @@ export default function ClaimableRewardsCardV2({ walletAddress }: { walletAddres
               {claimingRewards.length > 0 ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Claiming Rewards...
+                  {t('claimableRewards.claimingRewards')}
                 </>
               ) : (
                 <>
                   <DollarSign className="w-4 h-4 mr-2" />
-                  Claim All Rewards (${totalClaimable.toFixed(2)} USDT)
+                  {t('claimableRewards.claimAllRewards', { amount: `$${totalClaimable.toFixed(2)}` })}
                 </>
               )}
             </Button>
@@ -221,7 +227,7 @@ export default function ClaimableRewardsCardV2({ walletAddress }: { walletAddres
         <div className="space-y-3">
           <h3 className="text-lg font-semibold text-honey flex items-center gap-2">
             <CheckCircle className="w-5 h-5" />
-            Claimable Layer Rewards
+            {t('claimableRewards.claimableLayerRewards')}
           </h3>
           {claimableRewards.map((reward) => (
             <Card key={reward.id} className="bg-secondary border-border hover:border-honey/30 transition-colors">
@@ -237,14 +243,14 @@ export default function ClaimableRewardsCardV2({ walletAddress }: { walletAddres
                         {getLayerDisplayName(reward.layerNumber)}
                       </Badge>
                       <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/30">
-                        L{reward.triggerLevel} Trigger
+                        {t('claimableRewards.triggerLabel', { level: reward.triggerLevel })}
                       </Badge>
                     </div>
                     <div className="text-sm text-muted-foreground space-y-1">
                       <div className="flex items-center gap-4">
-                        <span>From: {reward.triggerWallet.slice(0, 8)}...{reward.triggerWallet.slice(-6)}</span>
+                        <span>{t('claimableRewards.from', { address: `${reward.triggerWallet.slice(0, 8)}...${reward.triggerWallet.slice(-6)}` })}</span>
                         <span>•</span>
-                        <span>Created: {formatDate(reward.createdAt)}</span>
+                        <span>{t('claimableRewards.created', { date: formatDate(reward.createdAt) })}</span>
                       </div>
                     </div>
                   </div>
@@ -256,12 +262,12 @@ export default function ClaimableRewardsCardV2({ walletAddress }: { walletAddres
                     {isClaimingReward(reward.id) ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Claiming...
+                        {t('claimableRewards.claiming')}
                       </>
                     ) : (
                       <>
                         <CheckCircle className="w-4 h-4 mr-2" />
-                        Claim ${reward.rewardAmount}
+                        {t('claimableRewards.claim', { amount: reward.rewardAmount })}
                       </>
                     )}
                   </Button>
@@ -277,7 +283,7 @@ export default function ClaimableRewardsCardV2({ walletAddress }: { walletAddres
         <div className="space-y-3">
           <h3 className="text-lg font-semibold text-orange-400 flex items-center gap-2">
             <Timer className="w-5 h-5" />
-            Pending Rewards (Level Up Required)
+            {t('claimableRewards.pendingRewardsLevelUp')}
           </h3>
           {pendingRewards.map((reward) => (
             <Card key={reward.id} className="bg-secondary border-border border-orange-500/20">
@@ -293,7 +299,7 @@ export default function ClaimableRewardsCardV2({ walletAddress }: { walletAddres
                         {getLayerDisplayName(reward.layerNumber)}
                       </Badge>
                       <Badge variant="destructive" className="bg-red-500/10 text-red-400 border-red-500/30">
-                        Requires L{reward.requiresLevel}
+                        {t('claimableRewards.requiresLevel', { level: reward.requiresLevel })}
                       </Badge>
                     </div>
                     <div className="text-sm text-muted-foreground space-y-1">
@@ -302,11 +308,11 @@ export default function ClaimableRewardsCardV2({ walletAddress }: { walletAddres
                           {reward.unlockCondition}
                         </span>
                         <span className="text-muted-foreground ml-2">
-                          (Currently L{reward.currentRecipientLevel})
+                          {t('claimableRewards.currentlyLevel', { level: reward.currentRecipientLevel })}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span>From: {reward.triggerWallet.slice(0, 8)}...{reward.triggerWallet.slice(-6)}</span>
+                        <span>{t('claimableRewards.from', { address: `${reward.triggerWallet.slice(0, 8)}...${reward.triggerWallet.slice(-6)}` })}</span>
                         <span className="text-orange-400 font-medium">
                           {formatTimeRemaining(reward.timeRemaining)}
                         </span>
@@ -314,14 +320,14 @@ export default function ClaimableRewardsCardV2({ walletAddress }: { walletAddres
                       {reward.expiresAt && (
                         <div className="flex items-center gap-1 text-xs">
                           <Clock className="w-3 h-3" />
-                          Expires: {formatDate(reward.expiresAt)}
+                          {t('claimableRewards.expires', { date: formatDate(reward.expiresAt) })}
                         </div>
                       )}
                     </div>
                   </div>
                   <Button variant="outline" disabled className="border-orange-500/30">
                     <Clock className="w-4 h-4 mr-2" />
-                    Pending
+                    {t('claimableRewards.pending')}
                   </Button>
                 </div>
               </CardContent>
@@ -337,17 +343,17 @@ export default function ClaimableRewardsCardV2({ walletAddress }: { walletAddres
             <div className="w-16 h-16 bg-honey/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <Gift className="w-8 h-8 text-honey" />
             </div>
-            <h3 className="text-lg font-semibold text-honey mb-2">No Layer Rewards Available</h3>
+            <h3 className="text-lg font-semibold text-honey mb-2">{t('claimableRewards.noRewardsAvailable')}</h3>
             <p className="text-muted-foreground mb-4">
-              Your layer-based matrix rewards will appear here when members in your downline upgrade their levels.
+              {t('claimableRewards.noRewardsDescription')}
             </p>
             <div className="text-sm text-muted-foreground bg-muted/40 rounded-lg p-3">
-              <p className="font-medium mb-2">How Layer Rewards Work:</p>
+              <p className="font-medium mb-2">{t('claimableRewards.howRewardsWork')}</p>
               <ul className="text-left space-y-1 max-w-md mx-auto">
-                <li>• Layer 1-19 rewards from matrix downline upgrades</li>
-                <li>• 72-hour timer for pending rewards</li>
-                <li>• Automatic rollup to next qualified upline</li>
-                <li>• Level requirements protect reward distribution</li>
+                <li>• {t('claimableRewards.rewardRules.layerRewards')}</li>
+                <li>• {t('claimableRewards.rewardRules.timer')}</li>
+                <li>• {t('claimableRewards.rewardRules.rollup')}</li>
+                <li>• {t('claimableRewards.rewardRules.protection')}</li>
               </ul>
             </div>
           </CardContent>

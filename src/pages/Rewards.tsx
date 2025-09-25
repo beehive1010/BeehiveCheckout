@@ -223,7 +223,7 @@ export default function Rewards() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <RefreshCw className="h-8 w-8 animate-spin text-honey" />
-        <div className="text-muted-foreground">{t('rewards.loading')}</div>
+        <div className="text-muted-foreground">{t('rewardsPage.loading')}</div>
       </div>
     );
   }
@@ -231,7 +231,7 @@ export default function Rewards() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <div className="text-red-500">{t('rewards.error')}: {error}</div>
+        <div className="text-red-500">{t('rewardsPage.error')}: {error}</div>
         <Button onClick={loadRewardsData} variant="outline">
           <RefreshCw className="h-4 w-4 mr-2" />
           {t('common.retry')}
@@ -251,7 +251,7 @@ export default function Rewards() {
           </h1>
         </div>
         <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto sm:mx-0">
-          {t('rewards.subtitle')}
+          {t('rewardsPage.subtitle')}
         </p>
       </div>
 
@@ -274,7 +274,7 @@ export default function Rewards() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <span className="text-sm sm:text-lg font-bold text-slate-200 group-hover:text-white transition-all duration-500 tracking-wide block truncate">
-                      {t('rewards.overview') || 'Rewards Overview'}
+                      {t('rewardsPage.overview')}
                     </span>
                   </div>
                   {/* 移动端：右侧显示金额和箭头 */}
@@ -292,7 +292,7 @@ export default function Rewards() {
                 </div>
                 <div className="sm:ml-8">
                   <span className="text-xs text-gray-400 dark:text-gray-500 group-hover:text-gray-300 transition-colors duration-300 line-clamp-2 sm:line-clamp-1">
-                    {t('rewards.overviewSubtitle') || 'Click to expand and view detailed statistics'}
+                    {t('rewardsPage.overviewSubtitle')}
                   </span>
                 </div>
               </div>
