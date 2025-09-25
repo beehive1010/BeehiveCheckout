@@ -255,19 +255,26 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                           </div>
                         </div>
 
-                        {/* Matrix Preview */}
+                        {/* Layer Rewards Quick Preview */}
                         <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-600">
                           <h4 className="font-semibold text-honey mb-3 flex items-center justify-center gap-2 text-sm">
-                            <Users className="h-4 w-4" />
-                            矩阵结构预览
+                            <Target className="h-4 w-4" />
+                            层级奖励预览
                           </h4>
-                          <div className="bg-black/30 rounded-lg p-2">
-                            <MatrixVisualization 
-                              maxLevels={3} 
-                              compact={true}
-                              showAnimation={true}
-                              className="w-full"
-                            />
+                          <div className="grid grid-cols-2 gap-2">
+                            {[1, 2, 3, 19].map((layer, index) => {
+                              const reward = LAYER_REWARDS[layer - 1];
+                              return (
+                                <div key={layer} className="bg-slate-700/50 rounded-lg p-2 text-center">
+                                  <div className="text-honey text-xs font-bold">
+                                    Layer {layer}{index === 3 ? ' (Max)' : ''}
+                                  </div>
+                                  <div className="text-green-400 text-xs font-semibold">
+                                    ${reward.levelPrice}
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
 
