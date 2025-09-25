@@ -1,15 +1,10 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { 
-  Users, 
-  TrendingUp,
-  Layers,
-  Target
-} from 'lucide-react';
-import { supabase } from '../../lib/supabaseClient';
-import { useI18n } from '../../contexts/I18nContext';
+import {useQuery} from '@tanstack/react-query';
+import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
+import {Badge} from '../ui/badge';
+import {Layers, Target, TrendingUp, Users} from 'lucide-react';
+import {supabase} from '../../lib/supabaseClient';
+import {useI18n} from '../../contexts/I18nContext';
 
 interface ReferralsStatsProps {
   walletAddress: string;
@@ -37,12 +32,11 @@ export default function ReferralsStats({ walletAddress, className }: ReferralsSt
     queryKey: ['referrer-stats', walletAddress],
     enabled: !!walletAddress,
     queryFn: async () => {
-      // Get referral stats by counting direct referrals from referrals table
+      // Get referral stats by counting direct referrals from referrals_new table (correct table)
       const { count: directReferralsCount, error: directError } = await supabase
-        .from('referrals')
+        .from('referrals_new')
         .select('*', { count: 'exact', head: true })
-        .ilike('referrer_wallet', walletAddress)
-        .eq('is_direct_referral', true);
+        .eq('referrer_wallet', walletAddress);
       
       if (directError) throw directError;
       

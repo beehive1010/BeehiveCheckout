@@ -59,7 +59,7 @@ export const MatrixVisualization: React.FC<MatrixVisualizationProps> = ({
             y: baseY + (level * levelHeight),
             hasReward: Math.random() > 0.7,
             isActive: level === 0 || Math.random() > 0.5,
-            userName: level === 0 ? 'You' : Math.random() > 0.6 ? `User${pos + 1}` : undefined
+            userName: level === 0 ? t('rewards.information.matrixVisualization.legend.you') : Math.random() > 0.6 ? `User${pos + 1}` : undefined
           });
         }
       }
@@ -68,7 +68,7 @@ export const MatrixVisualization: React.FC<MatrixVisualizationProps> = ({
     };
 
     generateNodes();
-  }, [maxLevels, compact]);
+  }, [maxLevels, compact, t]);
 
   // Animation sequence
   useEffect(() => {
@@ -89,9 +89,8 @@ export const MatrixVisualization: React.FC<MatrixVisualizationProps> = ({
 
   const containerAnimation = useSpring({
     opacity: inView ? 1 : 0,
-    transform: inView ? 'scale(1) rotate(0deg)' : 'scale(0.8) rotate(-5deg)',
-    filter: inView ? 'blur(0px)' : 'blur(4px)',
-    config: { mass: 1, tension: 200, friction: 50 }
+    transform: inView ? 'scale(1)' : 'scale(0.9)',
+    config: { mass: 1, tension: 280, friction: 60 }
   });
 
   const svgWidth = compact ? 400 : 600;

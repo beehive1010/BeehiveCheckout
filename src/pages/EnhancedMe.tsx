@@ -120,7 +120,7 @@ const getComprehensiveUserData = async (walletAddress: string, method: string) =
       const [balanceView, memberView, referralCountResult] = await Promise.all([
         supabase.from('user_bcc_balance_overview').select('*').eq('wallet_address', walletAddress).single(),
         supabase.from('member_requirements_view').select('*').eq('wallet_address', walletAddress).single(),
-        supabase.from('referrals').select('*', { count: 'exact', head: true }).ilike('referrer_wallet', walletAddress).eq('is_direct_referral', true)
+        supabase.from('referrals_new').select('*', { count: 'exact', head: true }).eq('referrer_wallet', walletAddress)
       ]);
       
       // Create matrix view data structure
