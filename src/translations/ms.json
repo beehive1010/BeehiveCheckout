@@ -1,72 +1,100 @@
 {
-  "nav": {
-    "dashboard": "Papan Pemuka",
-    "referrals": "Rujukan",
-    "tasks": "Tugas",
-    "education": "Pendidikan",
-    "discover": "Terokai",
-    "hiveworld": "Dunia Sarang",
-    "me": "Saya"
-  },
   "common": {
-    "cancel": "Batal",
-    "confirm": "Sahkan",
-    "close": "Tutup",
-    "save": "Simpan",
-    "loading": "Memuat...",
-    "error": "Ralat",
-    "success": "Berjaya",
-    "back": "Kembali",
     "active": "Aktif",
+    "back": "Kembali",
+    "backToProfile": "Kembali ke Profil",
+    "cancel": "Batal",
+    "close": "Tutup",
+    "confirm": "Sahkan",
+    "error": "Ralat",
+    "loading": "Memuat...",
     "pending": "Tertunda",
     "refresh": "Muat Semula",
     "retry": "Cuba Lagi",
-    "backToProfile": "Kembali ke Profil"
+    "save": "Simpan",
+    "success": "Berjaya"
   },
   "dashboard": {
-    "welcomeBack": "Selamat kembali, {username}!",
-    "welcomeMember": "Selamat kembali, Ahli!",
-    "buildNetwork": "Mari bina rangkaian sarang anda bersama",
-    "upgrade": "Naik Taraf",
     "bccBalance": "Baki BCC",
     "bccLocked": "BCC Terkunci",
-    "referralNetwork": "Rangkaian Rujukan",
-    "directReferrals": "Rujukan Langsung",
-    "maxLayer": "Lapisan Maksimum",
-    "rewardCenter": "Pusat Ganjaran",
-    "totalRewards": "Jumlah Ganjaran",
-    "pendingRewards": "Ganjaran Tertunda",
-    "shareReferral": "Kongsi Pautan Rujukan",
-    "shareDescription": "Kongsi pautan anda untuk menjemput rakan dan peroleh ganjaran rujukan",
-    "copyLink": "Salin Pautan",
-    "linkCopied": "Pautan disalin ke papan klip!",
-    "quickNavigation": "Navigasi Pantas",
-    "viewMatrix": "Lihat Matrix",
+    "buildNetwork": "Mari bina rangkaian sarang anda bersama",
     "claimRewards": "Tuntut Ganjaran",
+    "copyLink": "Salin Pautan",
+    "directReferrals": "Rujukan Langsung",
     "inviteTip": "💡 Jemput rakan untuk membuka kunci lebih banyak ciri dan ganjaran",
-    "topUp": "Tambah Nilai"
+    "linkCopied": "Pautan disalin ke papan klip!",
+    "maxLayer": "Lapisan Maksimum",
+    "pendingRewards": "Ganjaran Tertunda",
+    "quickNavigation": "Navigasi Pantas",
+    "referralNetwork": "Rangkaian Rujukan",
+    "rewardCenter": "Pusat Ganjaran",
+    "shareDescription": "Kongsi pautan anda untuk menjemput rakan dan peroleh ganjaran rujukan",
+    "shareReferral": "Kongsi Pautan Rujukan",
+    "topUp": "Tambah Nilai",
+    "totalRewards": "Jumlah Ganjaran",
+    "upgrade": "Naik Taraf",
+    "viewMatrix": "Lihat Matrix",
+    "welcomeBack": "Selamat kembali, {username}!",
+    "welcomeMember": "Selamat kembali, Ahli!"
   },
   "membershipSystem": {
-    "wallet": {
-      "connectTitle": "Sambung Dompet Anda",
-      "connectDescription": "Sila sambung dompet anda untuk mengakses sistem keahlian"
-    },
     "matrix": {
-      "title": "Matrix Rujukan",
       "connectDescription": "Sambung dompet anda untuk melihat matrix rujukan",
-      "layerFillStatus": "Status Pengisian Lapisan",
-      "ui": {
-        "unknown": "Tidak Diketahui",
-        "showLess": "Tunjuk Kurang",
-        "showAllLayers": "Tunjuk Semua 19 Lapisan"
-      },
       "errors": {
-        "loadFailed": "Gagal memuatkan data matrix",
-        "copyFailed": "Gagal menyalin pautan"
+        "copyFailed": "Gagal menyalin pautan",
+        "loadFailed": "Gagal memuatkan data matrix"
       },
+      "layerFillStatus": "Status Pengisian Lapisan",
       "success": {
         "linkCopied": "Pautan rujukan disalin ke papan keratan!"
+      },
+      "title": "Matrix Rujukan",
+      "ui": {
+        "showAllLayers": "Tunjuk Semua 19 Lapisan",
+        "showLess": "Tunjuk Kurang",
+        "unknown": "Tidak Diketahui"
       }
+    },
+    "wallet": {
+      "connectDescription": "Sila sambung dompet anda untuk mengakses sistem keahlian",
+      "connectTitle": "Sambung Dompet Anda"
     }
+  },
+  "nav": {
+    "dashboard": "Papan Pemuka",
+    "discover": "Terokai",
+    "education": "Pendidikan",
+    "hiveworld": "Dunia Sarang",
+    "me": "Saya",
+    "referrals": "Rujukan",
+    "tasks": "Tugas"
+  },
+  "withdrawal": {
+    "amount": "Jumlah",
+    "available_balance": "Baki Tersedia",
+    "available_balance_is": "Baki tersedia: {amount} USDT",
+    "connect_wallet": "Sila sambungkan dompet anda terlebih dahulu",
+    "cross_chain_note": "Pengeluaran merentas chain ke {targetChain} mungkin mengambil masa 5-15 minit",
+    "enter_amount": "Masukkan jumlah",
+    "enter_valid_amount": "Sila masukkan jumlah yang sah",
+    "insufficient_balance": "Baki Tidak Mencukupi",
+    "invalid_amount": "Jumlah Tidak Sah",
+    "multi_chain_description": "Keluarkan ke Ethereum, Arbitrum, Polygon, Optimism, BSC, atau Base",
+    "multi_chain_support": "Sokongan Multi-Chain",
+    "network_fee": "Yuran Rangkaian",
+    "processing": "Memproses...",
+    "select_target_chain": "Pilih chain sasaran",
+    "select_target_token": "Pilih token sasaran",
+    "selected_chain": "Chain Terpilih",
+    "subtitle": "Keluarkan ganjaran anda ke mana-mana blockchain yang disokong",
+    "target_token": "Token Sasaran",
+    "title": "Pengeluaran",
+    "wallet": "Dompet",
+    "wallet_required": "Dompet Diperlukan",
+    "withdraw_to": "Keluarkan ke",
+    "withdrawal_amount": "Jumlah Pengeluaran",
+    "withdrawal_chain": "Chain Pengeluaran",
+    "withdrawal_failed": "Pengeluaran Gagal",
+    "you_receive": "Anda Akan Terima"
   }
 }

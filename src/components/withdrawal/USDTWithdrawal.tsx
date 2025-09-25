@@ -12,6 +12,7 @@ import {useIsMobile} from '@/hooks/use-mobile';
 import {ArrowRight, Coins, Loader2, RefreshCw, Zap} from 'lucide-react';
 import {Badge} from '@/components/ui/badge';
 import {Alert, AlertDescription} from '@/components/ui/alert';
+import {useTranslation} from '@/contexts/I18nContext';
 
 interface USDTBalance {
   balance: number;
@@ -32,6 +33,7 @@ const SUPPORTED_CHAINS = {
 
 export default function USDTWithdrawal() {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const account = useActiveAccount();
   const activeChain = useActiveWalletChain();
   const { userData } = useWallet();
@@ -165,7 +167,7 @@ export default function USDTWithdrawal() {
     },
     onError: (error: any) => {
       toast({
-        title: "Withdrawal Failed",
+        title: t('withdrawal.withdrawal_failed'),
         description: error.message,
         variant: 'destructive',
       });
@@ -178,8 +180,8 @@ export default function USDTWithdrawal() {
     
     if (!amount || withdrawAmount <= 0) {
       toast({
-        title: "Invalid Amount",
-        description: "Please enter a valid amount",
+        title: t('withdrawal.invalid_amount'),
+        description: t('withdrawal.enter_valid_amount'),
         variant: 'destructive',
       });
       return;
@@ -187,8 +189,8 @@ export default function USDTWithdrawal() {
 
     if (!memberWalletAddress) {
       toast({
-        title: "Wallet Required",
-        description: "Please connect your wallet",
+        title: t('withdrawal.wallet_required'),
+        description: t('withdrawal.connect_wallet'),
         variant: 'destructive',
       });
       return;
@@ -196,8 +198,8 @@ export default function USDTWithdrawal() {
 
     if (!balance || withdrawAmount > parseFloat(balance.balanceUSD)) {
       toast({
-        title: "Insufficient Balance",
-        description: `You have ${balance?.balanceUSD || '0'} USDT available`,
+        title: t('withdrawal.insufficient_balance'),
+        description: t('withdrawal.available_balance_is', { amount: balance?.balanceUSD || '0' }),
         variant: 'destructive',
       });
       return;
@@ -221,9 +223,9 @@ export default function USDTWithdrawal() {
             <Coins className="h-5 w-5 text-black" />
           </div>
           <div>
-            <div className="text-lg font-bold">USDT Withdrawal</div>
+            <div className="text-lg font-bold">{t('withdrawal.title')}</div>
             <div className="text-sm font-normal text-slate-600 dark:text-slate-400">
-              Multi-chain withdrawal with bridge support
+              {t('withdrawal.subtitle')}
             </div>
           </div>
         </CardTitle>
@@ -234,7 +236,7 @@ export default function USDTWithdrawal() {
         <div className={`${isMobile ? 'text-center' : 'flex items-center justify-between'} bg-gradient-to-r from-honey/10 via-amber-50 to-honey/10 dark:from-honey/10 dark:via-slate-800 dark:to-honey/10 p-4 rounded-xl border border-honey/20`}>
           <div className={isMobile ? 'space-y-1' : ''}>
             <div className="text-sm font-medium text-slate-600 dark:text-slate-400">
-              Available Reward Balance
+              {t('withdrawal.available_balance')}
             </div>
             <div className="flex items-center gap-2 justify-center sm:justify-start">
               <span className="text-2xl font-bold text-honey">
@@ -258,7 +260,7 @@ export default function USDTWithdrawal() {
         {/* Wallet Address - Centered on Mobile */}
         {memberWalletAddress && (
           <div className={`${isMobile ? 'text-center' : ''} text-sm text-slate-600 dark:text-slate-400`}>
-            <span className="font-medium">Wallet: </span>
+            <span className="font-medium">{t('withdrawal.wallet')}: </span>
             <span className="font-mono">
               {`${memberWalletAddress.slice(0, 6)}...${memberWalletAddress.slice(-4)}`}
             </span>
@@ -269,19 +271,18 @@ export default function USDTWithdrawal() {
         <Alert className="border-honey/30 bg-honey/5">
           <Zap className="h-4 w-4 text-honey" />
           <AlertDescription className="text-sm">
-            <strong>Multi-chain Support:</strong> We settle in USDT on Arbitrum, but you can withdraw to any supported chain. 
-            Cross-chain transfers use thirdweb Bridge with automatic token swapping.
+            <strong>{t('withdrawal.multi_chain_support')}:</strong> {t('withdrawal.multi_chain_description')}
           </AlertDescription>
         </Alert>
 
         {/* Chain Selection */}
         <div className="space-y-2">
           <Label htmlFor="target-chain" className="text-sm font-medium">
-            Withdrawal Chain
+            {t('withdrawal.withdrawal_chain')}
           </Label>
           <Select value={targetChain} onValueChange={setTargetChain}>
             <SelectTrigger data-testid="select-chain">
-              <SelectValue placeholder="Select target chain" />
+              <SelectValue placeholder={t('withdrawal.select_target_chain')} />
             </SelectTrigger>
             <SelectContent>
               {Object.entries(SUPPORTED_CHAINS).map(([chainId, info]) => (
@@ -305,11 +306,11 @@ export default function USDTWithdrawal() {
         {/* Token Selection */}
         <div className="space-y-2">
           <Label htmlFor="target-token" className="text-sm font-medium">
-            Target Token
+            {t('withdrawal.target_token')}
           </Label>
           <Select value={selectedToken} onValueChange={setSelectedToken}>
             <SelectTrigger data-testid="select-token">
-              <SelectValue placeholder="Select target token" />
+              <SelectValue placeholder={t('withdrawal.select_target_token')} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="USDT">
@@ -347,14 +348,14 @@ export default function USDTWithdrawal() {
         {/* Amount Input */}
         <div className="space-y-2">
           <Label htmlFor="amount" className="text-sm font-medium">
-            Withdrawal Amount (USDT)
+            {t('withdrawal.withdrawal_amount')} (USDT)
           </Label>
           <Input
             id="amount"
             type="number"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="Enter amount..."
+            placeholder={t('withdrawal.enter_amount')}
             min="0"
             step="0.01"
             className="text-lg"
@@ -363,15 +364,15 @@ export default function USDTWithdrawal() {
           {amount && (
             <div className="text-sm text-slate-600 dark:text-slate-400 space-y-1">
               <div className="flex justify-between">
-                <span>Amount:</span>
+                <span>{t('withdrawal.amount')}:</span>
                 <span>{parseFloat(amount).toFixed(2)} USDT</span>
               </div>
               <div className="flex justify-between">
-                <span>Network Fee:</span>
+                <span>{t('withdrawal.network_fee')}:</span>
                 <span>-{fee.toFixed(2)} USDT</span>
               </div>
               <div className="flex justify-between font-semibold border-t pt-1">
-                <span>You Receive:</span>
+                <span>{t('withdrawal.you_receive')}:</span>
                 <span className={netAmount > 0 ? 'text-green-600' : 'text-red-500'}>
                   {Math.max(0, netAmount).toFixed(2)} USDT
                 </span>
@@ -390,11 +391,11 @@ export default function USDTWithdrawal() {
           {isProcessing ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing Withdrawal...
+              {t('withdrawal.processing')}
             </>
           ) : (
             <>
-              Withdraw to {targetChainInfo?.name || 'Selected Chain'}
+              {t('withdrawal.withdraw_to')} {targetChainInfo?.name || t('withdrawal.selected_chain')}
               <ArrowRight className="ml-2 h-4 w-4" />
             </>
           )}
@@ -404,7 +405,7 @@ export default function USDTWithdrawal() {
         {parseInt(targetChain) !== 42161 && (
           <div className="text-xs text-slate-500 dark:text-slate-400 text-center p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
             <Zap className="h-3 w-3 inline mr-1" />
-            Cross-chain withdrawal: USDT will be bridged from Arbitrum to {targetChainInfo?.name} using thirdweb Bridge
+            {t('withdrawal.cross_chain_note', { targetChain: targetChainInfo?.name })}
           </div>
         )}
       </CardContent>
