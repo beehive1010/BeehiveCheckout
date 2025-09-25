@@ -2499,7 +2499,6 @@
     },
     "loading": "Loading rewards data...",
     "management": "Rewards Management",
-    "overview": "Overview",
     "overview": {
       "claimable": "Claimable",
       "pending": "Pending",
