@@ -165,6 +165,55 @@
         "level": "级别"
       }
     },
+    "layerRewardSystem": {
+      "title": "层级奖励系统",
+      "subtitle": "了解矩阵层级奖励的工作原理",
+      "learnMore": "了解更多",
+      "explanation": "了解当成员升级会员级别时如何触发层级奖励",
+      "howItWorks": {
+        "title": "工作原理",
+        "description": "当您矩阵中的成员升级其会员级别时，会触发层级奖励。奖励金额等于该级别的NFT价格。"
+      },
+      "matrixVisualization": {
+        "title": "3×3矩阵结构",
+        "description": "您的下级以19层3×3矩阵的形式组织",
+        "positions": "每一层都有左、中、右位置",
+        "rewards": "当这些位置的成员升级时会触发奖励",
+        "animationTitle": "实时动画功能",
+        "animationActive": "金色节点显示当前升级的活跃成员",
+        "animationPending": "灰色节点代表待处理或未来的矩阵位置",
+        "animationRewards": "脉动光环表示有奖励可领取的成员",
+        "animationConnections": "金色连线显示矩阵中的活跃连接路径",
+        "interactiveHint": "观看动画循环了解奖励如何在矩阵层级间流动！"
+      },
+      "rewardStructure": {
+        "title": "奖励结构",
+        "layer1": "层级1奖励：当您的层级1成员升级到级别1时触发",
+        "layer2": "层级2奖励：当您的层级2成员升级到级别2时触发",
+        "layer3": "层级3奖励：当您的层级3成员升级到级别3时触发",
+        "pattern": "这个模式持续到所有19层"
+      },
+      "rewardAmounts": {
+        "title": "奖励金额",
+        "level1": "级别1：$100（NFT价格的100%）",
+        "level2": "级别2：$150（NFT价格的100%）",
+        "level3": "级别3：$200（NFT价格的100%）",
+        "continuation": "模式持续到级别19"
+      },
+      "eligibilityRules": {
+        "title": "资格规则",
+        "firstSecond": "第1和第2奖励：您的级别必须等于层级级别",
+        "thirdOnward": "第3及以上奖励：您的级别必须高于层级级别",
+        "verification": "奖励分配前需要进行级别验证"
+      },
+      "pendingSystem": {
+        "title": "72小时待处理系统",
+        "notEligible": "如果不满足级别要求，奖励进入待处理状态",
+        "upgradeWindow": "您有72小时时间升级并领取奖励",
+        "immediate": "立即升级以立即领取待处理奖励",
+        "expiry": "72小时后，未领取的奖励会上滚给符合条件的上级成员"
+      }
+    },
     "subtitle": "跟踪和管理您的BEEHIVE奖励",
     "title": "奖励",
     "total_rewards": "总奖励"
