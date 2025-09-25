@@ -300,10 +300,10 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                               <Layers className="h-6 w-6 text-honey" />
                             </div>
                             <h3 className="font-bold text-honey text-base">
-                              层级奖励系统
+                              {t('rewards.information.layerRewardsSystem')}
                             </h3>
                             <p className="text-muted-foreground text-xs leading-relaxed">
-                              当您矩阵中的会员升级会员级别时触发相应层级奖励。共19层，每层奖励金额为对应级别NFT价格的100%。
+                              {t('rewards.information.layerRewardsMobileDesc')}
                             </p>
                           </div>
                         </div>
@@ -312,7 +312,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                         <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-600">
                           <h4 className="font-semibold text-honey mb-3 flex items-center justify-center gap-2 text-sm">
                             <Target className="h-4 w-4" />
-                            层级奖励预览
+                            {t('rewards.information.layerRewardsPreview')}
                           </h4>
                           <div className="grid grid-cols-2 gap-2">
                             {[1, 2, 3, 19].map((layer, index) => {
