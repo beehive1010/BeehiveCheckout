@@ -21,6 +21,8 @@ import {
     Layers,
     Lock,
     Target,
+    Timer,
+    TrendingUp,
     Users,
     Zap
 } from 'lucide-react';
@@ -42,6 +44,58 @@ const LAYER_REWARDS = Array.from({ length: 19 }, (_, i) => ({
     third: `Level must be greater than Layer ${i + 1}`
   }
 }));
+
+// BCC staking phases data with complete release schedule
+const BCC_PHASES = [
+  {
+    phase: 1,
+    members: '1st - 9,999th',
+    totalReward: 10450,
+    description: '阶段一：早期采用者',
+    color: 'from-green-500 to-emerald-600',
+    status: 'current' as const,
+    releases: Array.from({ length: 19 }, (_, i) => ({
+      level: i + 1,
+      amount: 100 + (i * 50)
+    }))
+  },
+  {
+    phase: 2,
+    members: '10,000th - 29,999th',
+    totalReward: 5225,
+    description: '阶段二：成长阶段（减半）',
+    color: 'from-yellow-500 to-orange-500',
+    status: 'upcoming' as const,
+    releases: Array.from({ length: 19 }, (_, i) => ({
+      level: i + 1,
+      amount: Math.round((100 + (i * 50)) / 2)
+    }))
+  },
+  {
+    phase: 3,
+    members: '30,000th - 99,999th',
+    totalReward: 2612.5,
+    description: '阶段三：扩张阶段（再减半）',
+    color: 'from-orange-500 to-red-500',
+    status: 'upcoming' as const,
+    releases: Array.from({ length: 19 }, (_, i) => ({
+      level: i + 1,
+      amount: Math.round((100 + (i * 50)) / 4)
+    }))
+  },
+  {
+    phase: 4,
+    members: '100,000th - 186,000th',
+    totalReward: 1306.25,
+    description: '阶段四：最终阶段（再减半）',
+    color: 'from-red-500 to-pink-600',
+    status: 'upcoming' as const,
+    releases: Array.from({ length: 19 }, (_, i) => ({
+      level: i + 1,
+      amount: Math.round((100 + (i * 50)) / 8)
+    }))
+  }
+];
 
 export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
   isExpanded = false,
@@ -160,14 +214,14 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                             层级奖励系统
                           </h3>
                           <p className="text-muted-foreground mb-3 text-sm">
-                            当您矩阵中的会员升级会员级别时触发相应层级奖励
+                            当您矩阵中的会员升级会员级别时触发相应层级奖励，共19层，每层奖励为对应级别NFT价格100%
                           </p>
                           <Button 
                             onClick={() => openDialog('layer')}
                             className="bg-gradient-to-r from-honey to-amber-400 text-black hover:from-honey/90 hover:to-amber-400/90 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-sm px-4 py-2"
                           >
                             <Eye className="mr-2 h-4 w-4" />
-                            详细说明
+                            查看全部19层
                           </Button>
                         </div>
                       </div>
@@ -206,7 +260,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                         className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-400 hover:to-purple-400 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-sm px-4 py-2"
                       >
                         <Eye className="mr-2 h-4 w-4" />
-                        详细说明
+                        查看全部阶段
                       </Button>
                     </div>
                   </div>
@@ -249,7 +303,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                               层级奖励系统
                             </h3>
                             <p className="text-muted-foreground text-xs leading-relaxed">
-                              当您矩阵中的会员升级会员级别时触发相应层级奖励。每个层级都有特定的资格要求和奖励金额。
+                              当您矩阵中的会员升级会员级别时触发相应层级奖励。共19层，每层奖励金额为对应级别NFT价格的100%。
                             </p>
                           </div>
                         </div>
@@ -283,7 +337,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                             className="bg-gradient-to-r from-honey to-amber-400 text-black hover:from-honey/90 hover:to-amber-400/90 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 w-full py-2 text-sm"
                           >
                             <Eye className="mr-2 h-4 w-4" />
-                            查看完整说明
+                            查看全部19层详情
                           </Button>
                         </div>
                       </div>
@@ -297,7 +351,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                             className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-400 hover:to-purple-400 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 w-full py-2 text-sm"
                           >
                             <Eye className="mr-2 h-4 w-4" />
-                            查看完整说明
+                            查看全部阶段详情
                           </Button>
                         </div>
                       </div>
@@ -342,7 +396,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
           <DialogHeader className="border-b border-slate-700 pb-4">
             <DialogTitle className="flex items-center gap-3 text-honey text-xl">
               <Layers className="h-6 w-6" />
-              层级奖励 - 完整指南
+              层级奖励 - 完整19层详情
             </DialogTitle>
             <DialogDescription className="text-muted-foreground text-base">
               19层奖励系统的全面解释，包括资格规则和支付机制
@@ -383,11 +437,11 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
               </div>
             </div>
 
-            {/* Detailed Reward Structure */}
+            {/* Complete 19-Layer Reward Structure */}
             <div className="space-y-4">
               <h4 className="font-semibold text-honey flex items-center gap-2 text-lg">
                 <Gift className="h-5 w-5" />
-                详细奖励结构
+                完整19层奖励结构
               </h4>
               
               {/* Layer Groups */}
@@ -522,83 +576,6 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                   </div>
                 </div>
               </div>
-                  <Card key={reward.layer} className="bg-gradient-to-r from-slate-800/60 to-slate-700/40 border-slate-600 hover:border-honey/50 transition-all duration-300">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-2">
-                          <div className="font-semibold text-honey flex items-center gap-2">
-                            <div className="w-8 h-8 bg-honey/20 rounded-full flex items-center justify-center text-xs font-bold text-honey">
-                              {reward.layer}
-                            </div>
-                            Layer {reward.layer} 奖励
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            当您的 Layer {reward.layer} 中有会员升级到 Level {reward.layer} 时触发
-                          </div>
-                          <div className="flex items-center gap-4 text-xs">
-                            <div className="flex items-center gap-1 text-green-400">
-                              <CheckCircle className="h-3 w-3" />
-                              1st & 2nd: 您的等级必须等于 Layer {reward.layer}
-                            </div>
-                            <div className="flex items-center gap-1 text-blue-400">
-                              <Target className="h-3 w-3" />
-                              3rd+: 您的等级必须大于 Layer {reward.layer}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-bold text-green-400 text-xl">
-                            ${reward.levelPrice}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Level {reward.layer} NFT价格的 100%
-                          </div>
-                          <div className="text-xs text-honey font-medium mt-1">
-                            符合条件立即发放
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-                
-                {/* Continuation indicator */}
-                <div className="text-center py-4">
-                  <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                    <div className="w-2 h-2 bg-honey rounded-full animate-pulse"></div>
-                    <span className="text-sm">继续到 Layer 19</span>
-                    <div className="w-2 h-2 bg-honey rounded-full animate-pulse"></div>
-                  </div>
-                </div>
-                
-                {/* Final layer */}
-                <Card className="bg-gradient-to-r from-amber-900/30 to-yellow-800/20 border-honey/50 shadow-xl">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-2">
-                        <div className="font-semibold text-honey flex items-center gap-2">
-                          <div className="w-8 h-8 bg-gradient-to-br from-honey to-amber-400 rounded-full flex items-center justify-center text-xs font-bold text-black">
-                            19
-                          </div>
-                          Layer 19 奖励 (最高)
-                          <Badge className="bg-honey text-black text-xs">MAX</Badge>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          最终层级奖励 - 最高收益潜力
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold text-green-400 text-2xl">
-                          ${LAYER_REWARDS[18].levelPrice}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Level 19 NFT价格的 100%
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
             </div>
 
             {/* Eligibility Rules & Timing */}
@@ -671,20 +648,202 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
           <DialogHeader className="border-b border-slate-700 pb-4">
             <DialogTitle className="flex items-center gap-3 text-blue-400 text-xl">
               <Lock className="h-6 w-6" />
-              BCC锁仓奖励 - 释放时间表
+              BCC锁仓奖励 - 完整四阶段详情
             </DialogTitle>
             <DialogDescription className="text-muted-foreground text-base">
-              基于总激活会员数量的四阶段BCC释放系统，奖励递减
+              基于总激活会员数量的四阶段BCC释放系统，包含所有级别的详细释放数量
             </DialogDescription>
           </DialogHeader>
           
-          <div className="flex-1 overflow-y-auto">
-            <BCCRewardInformation showAnimation={true} />
+          <div className="flex-1 overflow-y-auto space-y-6 py-4">
+            {/* BCC Release Overview */}
+            <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-xl p-6 border border-blue-500/30 shadow-xl">
+              <h4 className="font-semibold text-blue-400 mb-4 flex items-center gap-3 text-lg">
+                <Timer className="h-5 w-5" />
+                BCC释放机制说明
+                <Badge className="bg-blue-500/20 text-blue-400 text-xs">自动分发</Badge>
+              </h4>
+              <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
+                BCC奖励根据会员激活人数达标分为四个阶段，每个阶段的总锁仓奖励和单级别释放数量都会递减。
+                当会员激活新的级别时，系统会自动释放对应数量的BCC到余额中。
+              </p>
+            </div>
+
+            {/* Complete Four-Phase Breakdown */}
+            <div className="space-y-6">
+              <h4 className="font-semibold text-blue-400 flex items-center gap-2 text-lg">
+                <TrendingUp className="h-5 w-5" />
+                完整四阶段释放详情
+              </h4>
+              
+              {BCC_PHASES.map((phase, index) => (
+                <Card key={phase.phase} className={`bg-gradient-to-r from-slate-800/60 to-slate-700/40 border-slate-600 ${phase.status === 'current' ? 'ring-2 ring-green-500/30 border-green-500/50' : ''}`}>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold bg-gradient-to-br ${phase.color}`}>
+                          {phase.phase}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-blue-400 text-lg">
+                            {phase.description}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            激活会员: {phase.members}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-blue-400 text-2xl">
+                          {phase.totalReward} BCC
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          每位会员总锁仓池
+                        </div>
+                        {phase.status === 'current' && (
+                          <Badge className="bg-green-500 text-white text-xs mt-1">当前阶段</Badge>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Complete Release Schedule */}
+                    <div className="bg-slate-700/30 rounded-xl p-4">
+                      <div className="text-sm font-medium text-blue-300 mb-4 flex items-center gap-2">
+                        <Gift className="h-4 w-4" />
+                        完整释放时间表 (BCC数量/级别激活)
+                      </div>
+                      
+                      {/* Level 1-5 */}
+                      <div className="mb-4">
+                        <h6 className="text-xs font-medium text-green-400 mb-2">Level 1-5 (初级)</h6>
+                        <div className="grid grid-cols-5 gap-2">
+                          {phase.releases.slice(0, 5).map((release) => (
+                            <div key={release.level} className="text-center bg-slate-600/30 rounded p-2">
+                              <div className="text-xs font-medium text-honey">L{release.level}</div>
+                              <div className="text-xs text-green-400 font-semibold">{release.amount}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Level 6-10 */}
+                      <div className="mb-4">
+                        <h6 className="text-xs font-medium text-blue-400 mb-2">Level 6-10 (中级)</h6>
+                        <div className="grid grid-cols-5 gap-2">
+                          {phase.releases.slice(5, 10).map((release) => (
+                            <div key={release.level} className="text-center bg-slate-600/30 rounded p-2">
+                              <div className="text-xs font-medium text-honey">L{release.level}</div>
+                              <div className="text-xs text-green-400 font-semibold">{release.amount}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Level 11-15 */}
+                      <div className="mb-4">
+                        <h6 className="text-xs font-medium text-orange-400 mb-2">Level 11-15 (高级)</h6>
+                        <div className="grid grid-cols-5 gap-2">
+                          {phase.releases.slice(10, 15).map((release) => (
+                            <div key={release.level} className="text-center bg-slate-600/30 rounded p-2">
+                              <div className="text-xs font-medium text-honey">L{release.level}</div>
+                              <div className="text-xs text-green-400 font-semibold">{release.amount}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Level 16-19 */}
+                      <div className="mb-4">
+                        <h6 className="text-xs font-medium text-purple-400 mb-2">Level 16-19 (顶级)</h6>
+                        <div className="grid grid-cols-4 gap-2">
+                          {phase.releases.slice(15, 19).map((release) => (
+                            <div key={release.level} className={`text-center bg-slate-600/30 rounded p-2 ${release.level === 19 ? 'ring-1 ring-honey/50' : ''}`}>
+                              <div className={`text-xs font-medium ${release.level === 19 ? 'text-honey' : 'text-honey'}`}>
+                                L{release.level}{release.level === 19 ? ' (MAX)' : ''}
+                              </div>
+                              <div className={`text-xs font-semibold ${release.level === 19 ? 'text-honey' : 'text-green-400'}`}>
+                                {release.amount}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Phase Summary */}
+                      <div className="mt-4 p-3 bg-blue-500/10 rounded-lg border border-blue-500/30">
+                        <div className="text-xs text-blue-400 font-medium flex items-center gap-2">
+                          <Target className="h-3 w-3" />
+                          阶段{phase.phase}总结: Level 1释放{phase.releases[0].amount} BCC → Level 19释放{phase.releases[18].amount} BCC
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Release Mechanism Details */}
+            <div className="bg-gradient-to-r from-purple-500/10 to-indigo-500/10 rounded-xl p-6 border border-purple-500/30 shadow-xl">
+              <h4 className="font-semibold text-purple-400 mb-4 flex items-center gap-2 text-lg">
+                <Zap className="h-5 w-5" />
+                BCC释放运作机制
+              </h4>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center mt-1">
+                      <span className="text-xs font-bold text-purple-400">1</span>
+                    </div>
+                    <div>
+                      <div className="font-medium text-purple-400">会员激活</div>
+                      <div className="text-sm text-muted-foreground">
+                        当会员激活新级别时，系统自动计算并释放对应BCC数量
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center mt-1">
+                      <span className="text-xs font-bold text-purple-400">2</span>
+                    </div>
+                    <div>
+                      <div className="font-medium text-purple-400">阶段判断</div>
+                      <div className="text-sm text-muted-foreground">
+                        系统根据总激活会员数自动判断当前阶段
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center mt-1">
+                      <span className="text-xs font-bold text-purple-400">3</span>
+                    </div>
+                    <div>
+                      <div className="font-medium text-purple-400">即时释放</div>
+                      <div className="text-sm text-muted-foreground">
+                        对应BCC数量立即释放到会员余额中
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center mt-1">
+                      <span className="text-xs font-bold text-purple-400">4</span>
+                    </div>
+                    <div>
+                      <div className="font-medium text-purple-400">阶段递进</div>
+                      <div className="text-sm text-muted-foreground">
+                        达到人数门槛时自动进入下一阶段，奖励减半
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 };
 
 export default RewardInformationCard;
