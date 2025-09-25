@@ -1565,6 +1565,19 @@
       "eligibilityRules": "Eligibility Rules"
     },
     "pendingDescription": "Your pending rewards with countdown timers",
+    "rollup": {
+      "title": "Rollup Rewards System",
+      "subtitle": "Automatic distribution of unclaimed rewards to eligible upline members",
+      "autoDistribution": "Auto Distribution",
+      "automatic": "Automatic",
+      "distribution": "Distribution", 
+      "networkBased": "Network",
+      "based": "Based",
+      "realTime": "Real-time",
+      "tracking": "Tracking",
+      "transparent": "Transparent",
+      "system": "System"
+    },
     "tabs": {
       "overview": "Overview",
       "pending": "Pending",
