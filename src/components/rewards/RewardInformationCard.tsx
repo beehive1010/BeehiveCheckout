@@ -520,10 +520,10 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
               </h4>
               <div className="space-y-4">
                 <div className="p-4 bg-slate-700/30 rounded-lg">
-                  <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-3 text-center md:text-left">
                     <strong className="text-honey">矩阵结构原理：</strong>BEEHIVE采用19层3×3矩阵系统，每个级别代表矩阵中的一层。
                   </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm justify-items-center md:justify-items-start">
                     <div className="space-y-2">
                       <h5 className="font-medium text-honey">触发条件：</h5>
                       <ul className="space-y-1 text-muted-foreground">
@@ -560,9 +560,9 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                     <Badge className="bg-green-500/20 text-green-400">初级</Badge>
                     Layer 1-5 奖励
                   </h5>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 justify-items-center">
                     {LAYER_REWARDS.slice(0, 5).map((reward) => (
-                      <div key={reward.layer} className="bg-slate-800/50 rounded-lg p-3 border border-slate-600">
+                      <div key={reward.layer} className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 w-full max-w-xs">
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="font-semibold text-honey text-sm">Layer {reward.layer}</div>
@@ -584,9 +584,9 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                     <Badge className="bg-blue-500/20 text-blue-400">中级</Badge>
                     Layer 6-10 奖励
                   </h5>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 justify-items-center">
                     {LAYER_REWARDS.slice(5, 10).map((reward) => (
-                      <div key={reward.layer} className="bg-slate-800/50 rounded-lg p-3 border border-slate-600">
+                      <div key={reward.layer} className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 w-full max-w-xs">
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="font-semibold text-honey text-sm">Layer {reward.layer}</div>
@@ -608,9 +608,9 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                     <Badge className="bg-orange-500/20 text-orange-400">高级</Badge>
                     Layer 11-15 奖励
                   </h5>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 justify-items-center">
                     {LAYER_REWARDS.slice(10, 15).map((reward) => (
-                      <div key={reward.layer} className="bg-slate-800/50 rounded-lg p-3 border border-slate-600">
+                      <div key={reward.layer} className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 w-full max-w-xs">
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="font-semibold text-honey text-sm">Layer {reward.layer}</div>
@@ -632,7 +632,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                     <Badge className="bg-purple-500/20 text-purple-400">顶级</Badge>
                     Layer 16-19 奖励
                   </h5>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 justify-items-center">
                     {LAYER_REWARDS.slice(15, 19).map((reward) => (
                       <div key={reward.layer} className={`bg-slate-800/50 rounded-lg p-4 border ${reward.layer === 19 ? 'border-honey/50 bg-gradient-to-r from-honey/10 to-amber-500/10' : 'border-slate-600'}`}>
                         <div className="flex items-center justify-between">
@@ -664,20 +664,20 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                     <Target className="h-4 w-4" />
                     层级奖励总结
                   </h5>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-                    <div className="bg-slate-800/50 rounded-lg p-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center justify-items-center">
+                    <div className="bg-slate-800/50 rounded-lg p-3 w-full max-w-xs">
                       <div className="font-bold text-green-400 text-lg">$100-$250</div>
                       <div className="text-xs text-muted-foreground">Layer 1-5</div>
                     </div>
-                    <div className="bg-slate-800/50 rounded-lg p-3">
+                    <div className="bg-slate-800/50 rounded-lg p-3 w-full max-w-xs">
                       <div className="font-bold text-blue-400 text-lg">$300-$500</div>
                       <div className="text-xs text-muted-foreground">Layer 6-10</div>
                     </div>
-                    <div className="bg-slate-800/50 rounded-lg p-3">
+                    <div className="bg-slate-800/50 rounded-lg p-3 w-full max-w-xs">
                       <div className="font-bold text-orange-400 text-lg">$550-$750</div>
                       <div className="text-xs text-muted-foreground">Layer 11-15</div>
                     </div>
-                    <div className="bg-slate-800/50 rounded-lg p-3">
+                    <div className="bg-slate-800/50 rounded-lg p-3 w-full max-w-xs">
                       <div className="font-bold text-honey text-lg">$800-$1,000</div>
                       <div className="text-xs text-muted-foreground">Layer 16-19</div>
                     </div>

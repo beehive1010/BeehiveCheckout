@@ -1272,6 +1272,42 @@
       "refreshSuccess": "所有数据已成功更新",
       "refreshFailed": "刷新失败",
       "refreshError": "刷新个人资料数据失败"
+    },
+    "learning": {
+      "title": "学习进度",
+      "coursesCompleted": "完成的课程",
+      "studyHours": "学习时间",
+      "certificates": "获得的证书"
+    },
+    "referral": {
+      "title": "推荐表现",
+      "directReferrals": "直接推荐",
+      "totalTeamSize": "团队总规模",
+      "totalEarnings": "总收益",
+      "thisMonth": "本月"
+    },
+    "directReferrals": "直接推荐",
+    "indirectReferrals": "团队推荐",
+    "noReferralData": "暂无推荐数据",
+    "referrals": "推荐",
+    "referralStats": "推荐统计",
+    "rewards": "奖励",
+    "subtitle": "查看您的统计数据、余额和账户详情",
+    "totalEarnings": "总收益",
+    "totalReferrals": "总推荐数",
+    "settings": {
+      "title": "账户设置",
+      "language": "语言",
+      "languageDescription": "选择您的首选语言",
+      "notifications": "邮件通知",
+      "notificationsDescription": "接收有关奖励和活动的更新",
+      "twoFactor": "双因素身份验证",
+      "twoFactorDescription": "为您的账户添加额外安全性",
+      "enabled": "已启用",
+      "disabled": "已禁用",
+      "enable2FA": "启用双因素验证",
+      "changePassword": "更改密码",
+      "deactivateAccount": "停用账户"
     }
   },
   "countdown": {
@@ -1313,43 +1349,6 @@
     },
     "complete": "完成！准备领取",
     "ready": "准备好！"
-  },
-    "learning": {
-      "title": "学习进度",
-      "coursesCompleted": "完成的课程",
-      "studyHours": "学习时间",
-      "certificates": "获得的证书"
-    },
-    "referral": {
-      "title": "推荐表现",
-      "directReferrals": "直接推荐",
-      "totalTeamSize": "团队总规模",
-      "totalEarnings": "总收益",
-      "thisMonth": "本月"
-    },
-    "directReferrals": "直接推荐",
-    "indirectReferrals": "团队推荐",
-    "noReferralData": "暂无推荐数据",
-    "referrals": "推荐",
-    "referralStats": "推荐统计",
-    "rewards": "奖励",
-    "subtitle": "查看您的统计数据、余额和账户详情",
-    "totalEarnings": "总收益",
-    "totalReferrals": "总推荐数",
-    "settings": {
-      "title": "账户设置",
-      "language": "语言",
-      "languageDescription": "选择您的首选语言",
-      "notifications": "邮件通知",
-      "notificationsDescription": "接收有关奖励和活动的更新",
-      "twoFactor": "双因素身份验证",
-      "twoFactorDescription": "为您的账户添加额外安全性",
-      "enabled": "已启用",
-      "disabled": "已禁用",
-      "enable2FA": "启用双因素验证",
-      "changePassword": "更改密码",
-      "deactivateAccount": "停用账户"
-    }
   },
   "tasks": {
     "title": "任务和市场",
