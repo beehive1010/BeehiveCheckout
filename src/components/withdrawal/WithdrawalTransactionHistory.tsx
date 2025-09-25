@@ -1,21 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { useTranslation } from '@/contexts/I18nContext';
-import { 
-  ArrowLeft, 
-  RefreshCw, 
-  ExternalLink, 
-  Clock, 
-  CheckCircle, 
-  XCircle,
-  AlertCircle,
-  Copy
-} from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
+import React from 'react';
+import {useQuery} from '@tanstack/react-query';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {Button} from '@/components/ui/button';
+import {Badge} from '@/components/ui/badge';
+import {useToast} from '@/hooks/use-toast';
+import {useI18n} from '@/contexts/I18nContext';
+import {AlertCircle, ArrowLeft, CheckCircle, Clock, Copy, ExternalLink, RefreshCw, XCircle} from 'lucide-react';
+import {useIsMobile} from '@/hooks/use-mobile';
 
 interface WithdrawalTransaction {
   id: string;
@@ -64,7 +55,7 @@ const CHAIN_NAMES: { [key: number]: { name: string; explorer: string; icon: stri
 
 export default function WithdrawalTransactionHistory({ walletAddress, onBack }: WithdrawalTransactionHistoryProps) {
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t } = useI18n();
   const isMobile = useIsMobile();
 
   // Fetch withdrawal transactions

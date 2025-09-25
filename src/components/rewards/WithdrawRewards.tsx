@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../../lib/supabase';
-import { CompactCountdownTimer } from '../bcc/CountdownTimer';
+import React, {useState} from 'react';
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
+import {supabase} from '../../lib/supabase';
+import {CompactCountdownTimer} from '../bcc/CountdownTimer';
+import {useI18n} from '@/contexts/I18nContext';
 
 interface WithdrawRewardsProps {
   walletAddress: string;
@@ -26,6 +27,7 @@ interface UserBalance {
 }
 
 export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress }) => {
+  const { t } = useI18n();
   const [withdrawAmount, setWithdrawAmount] = useState<string>('');
   const [showWithdrawForm, setShowWithdrawForm] = useState(false);
   const queryClient = useQueryClient();
@@ -151,25 +153,25 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
     <div className="space-y-6">
       {/* Balance Overview */}
       <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6 border border-green-200">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Reward Balance</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">{t('withdrawal.rewardBalance')}</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white rounded-lg p-4 shadow-sm">
-            <div className="text-sm text-gray-600 mb-1">Available to Withdraw</div>
+            <div className="text-sm text-gray-600 mb-1">{t('withdrawal.available_balance')}</div>
             <div className="text-2xl font-bold text-green-600">
               ${balance?.available_balance?.toFixed(2) || '0.00'}
             </div>
           </div>
           
           <div className="bg-white rounded-lg p-4 shadow-sm">
-            <div className="text-sm text-gray-600 mb-1">Claimable Rewards</div>
+            <div className="text-sm text-gray-600 mb-1">{t('rewards.claim_rewards')}</div>
             <div className="text-2xl font-bold text-blue-600">
               ${totalClaimable.toFixed(2)}
             </div>
           </div>
           
           <div className="bg-white rounded-lg p-4 shadow-sm">
-            <div className="text-sm text-gray-600 mb-1">Total Withdrawn</div>
+            <div className="text-sm text-gray-600 mb-1">{t('withdrawal.totalWithdrawn')}</div>
             <div className="text-2xl font-bold text-gray-600">
               ${balance?.total_withdrawn?.toFixed(2) || '0.00'}
             </div>
@@ -184,14 +186,14 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
                 onClick={() => setShowWithdrawForm(true)}
                 className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
               >
-                Withdraw Rewards
+                {t('buttons.withdraw')}
               </button>
             ) : (
               <div className="bg-white rounded-lg p-4 border">
                 <div className="flex items-center gap-4">
                   <div className="flex-1">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Withdrawal Amount (USD)
+                      {t('withdrawal.withdrawal_amount')} (USD)
                     </label>
                     <input
                       type="number"
@@ -203,7 +205,7 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     />
                     <div className="text-xs text-gray-500 mt-1">
-                      Max: ${balance?.available_balance?.toFixed(2) || '0.00'}
+                      {t('withdrawal.max')}: ${balance?.available_balance?.toFixed(2) || '0.00'}
                     </div>
                   </div>
                   
@@ -218,7 +220,7 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
                       }
                       className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {withdrawMutation.isPending ? 'Processing...' : 'Confirm'}
+                      {withdrawMutation.isPending ? t('withdrawal.processing') : t('common.confirm')}
                     </button>
                     
                     <button
@@ -228,7 +230,7 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
                       }}
                       className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-400"
                     >
-                      Cancel
+                      {t('common.cancel')}
                     </button>
                   </div>
                 </div>
@@ -242,7 +244,7 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
       {claimableRewards.length > 0 && (
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h4 className="text-lg font-semibold text-gray-800 mb-4">
-            Ready to Claim ({claimableRewards.length})
+            {t('withdrawal.readyToClaim')} ({claimableRewards.length})
           </h4>
           
           <div className="space-y-3">
@@ -267,7 +269,7 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
                   disabled={claimRewardMutation.isPending}
                   className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50"
                 >
-                  {claimRewardMutation.isPending ? 'Claiming...' : 'Claim'}
+                  {claimRewardMutation.isPending ? t('withdrawal.claiming') : t('buttons.claim')}
                 </button>
               </div>
             ))}
@@ -279,7 +281,7 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
       {pendingRewards.length > 0 && (
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h4 className="text-lg font-semibold text-gray-800 mb-4">
-            Pending Rewards ({pendingRewards.length})
+            {t('rewards.pending_rewards')} ({pendingRewards.length})
           </h4>
           
           <div className="space-y-3">
@@ -295,7 +297,7 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
                 </div>
                 
                 <div className="text-right">
-                  <div className="text-sm text-orange-600 mb-1">Available in:</div>
+                  <div className="text-sm text-orange-600 mb-1">{t('withdrawal.availableIn')}:</div>
                   <CompactCountdownTimer
                     targetDate={reward.expires_at}
                     className="text-orange-700 font-medium"
@@ -313,9 +315,9 @@ export const WithdrawRewards: React.FC<WithdrawRewardsProps> = ({ walletAddress 
       {/* No Rewards Message */}
       {claimableRewards.length === 0 && pendingRewards.length === 0 && (
         <div className="bg-gray-50 rounded-lg p-8 text-center">
-          <div className="text-gray-600 mb-2">No rewards available</div>
+          <div className="text-gray-600 mb-2">{t('rewards.no_rewards')}</div>
           <div className="text-sm text-gray-500">
-            Rewards will appear here when team members upgrade their memberships
+            {t('withdrawal.rewardsWillAppear')}
           </div>
         </div>
       )}

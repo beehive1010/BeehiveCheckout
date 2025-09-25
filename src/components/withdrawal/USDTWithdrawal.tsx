@@ -12,7 +12,7 @@ import {useIsMobile} from '@/hooks/use-mobile';
 import {ArrowRight, Coins, Loader2, RefreshCw, Zap} from 'lucide-react';
 import {Badge} from '@/components/ui/badge';
 import {Alert, AlertDescription} from '@/components/ui/alert';
-import {useTranslation} from '@/contexts/I18nContext';
+import {useI18n} from '@/contexts/I18nContext';
 
 interface USDTBalance {
   balance: number;
@@ -33,7 +33,7 @@ const SUPPORTED_CHAINS = {
 
 export default function USDTWithdrawal() {
   const { toast } = useToast();
-  const { t } = useTranslation();
+  const { t } = useI18n();
   const account = useActiveAccount();
   const activeChain = useActiveWalletChain();
   const { userData } = useWallet();
