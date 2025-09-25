@@ -232,7 +232,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                         <Target className="h-4 w-4" />
                         {t('rewards.information.layerRewardsPreview')}
                       </h4>
-                      <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
+                      <div className="grid grid-cols-5 gap-2 max-h-56 overflow-y-auto">
                         {LAYER_REWARDS.map((reward, index) => {
                           const isHighlight = reward.layer === 1 || reward.layer === 19;
                           return (
@@ -363,8 +363,8 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                             <Target className="h-4 w-4" />
                             {t('rewards.information.layerRewardsPreview')}
                           </h4>
-                          <div className="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto">
-                            {LAYER_REWARDS.slice(0, 12).map((reward) => {
+                          <div className="grid grid-cols-4 gap-1 max-h-40 overflow-y-auto">
+                            {LAYER_REWARDS.map((reward) => {
                               const isHighlight = reward.layer === 1 || reward.layer === 19;
                               return (
                                 <div key={reward.layer} className={`rounded-lg p-2 text-center transition-all duration-200 ${
@@ -383,11 +383,6 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                                 </div>
                               );
                             })}
-                          </div>
-                          <div className="text-center mt-2">
-                            <span className="text-muted-foreground text-xs">
-                              {t('rewards.information.toLayer19Summary')}
-                            </span>
                           </div>
                         </div>
 
