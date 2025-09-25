@@ -337,7 +337,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                             className="bg-gradient-to-r from-honey to-amber-400 text-black hover:from-honey/90 hover:to-amber-400/90 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 w-full py-2 text-sm"
                           >
                             <Eye className="mr-2 h-4 w-4" />
-                            查看全部19层详情
+                            {t('rewards.information.viewAll19LayersDetails')}
                           </Button>
                         </div>
                       </div>
@@ -351,7 +351,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                             className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-400 hover:to-purple-400 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 w-full py-2 text-sm"
                           >
                             <Eye className="mr-2 h-4 w-4" />
-                            查看全部阶段详情
+                            {t('rewards.information.viewAllPhasesDetails')}
                           </Button>
                         </div>
                       </div>
@@ -396,10 +396,10 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
           <DialogHeader className="border-b border-slate-700 pb-4">
             <DialogTitle className="flex items-center gap-3 text-honey text-xl">
               <Layers className="h-6 w-6" />
-              层级奖励 - 完整19层详情
+              {t('rewards.information.layerRewardsDialogTitle')}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground text-base">
-              19层奖励系统的全面解释，包括资格规则和支付机制
+              {t('rewards.information.layerRewardsDialogDesc')}
             </DialogDescription>
           </DialogHeader>
           
@@ -408,7 +408,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
             <div className="bg-gradient-to-br from-slate-800/80 to-slate-700/60 rounded-xl p-6 border border-slate-600 shadow-xl">
               <h4 className="font-semibold text-honey mb-4 flex items-center gap-3 text-lg">
                 <Users className="h-5 w-5" />
-                矩阵结构说明
+                {t('rewards.information.matrixStructureExplanation')}
               </h4>
               <div className="space-y-4">
                 <div className="p-4 bg-slate-700/30 rounded-lg">
