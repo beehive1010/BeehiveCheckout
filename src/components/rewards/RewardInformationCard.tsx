@@ -6,7 +6,6 @@ import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} fro
 import {Collapsible, CollapsibleContent, CollapsibleTrigger} from '@/components/ui/collapsible';
 import {useI18n} from '@/contexts/I18nContext';
 import {useIsMobile} from '@/hooks/use-mobile';
-import {MatrixVisualization} from '@/components/illustrations/MatrixVisualization';
 import {BCCRewardInformation} from './BCCRewardInformation';
 import {
     AlertCircle,
@@ -351,26 +350,36 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
           </DialogHeader>
           
           <div className="flex-1 overflow-y-auto space-y-6 py-4">
-            {/* Interactive Matrix Visualization */}
+            {/* Matrix Explanation */}
             <div className="bg-gradient-to-br from-slate-800/80 to-slate-700/60 rounded-xl p-6 border border-slate-600 shadow-xl">
               <h4 className="font-semibold text-honey mb-4 flex items-center gap-3 text-lg">
                 <Users className="h-5 w-5" />
-                矩阵结构可视化
-                <Badge className="bg-honey/20 text-honey text-xs">实时动画</Badge>
+                矩阵结构说明
               </h4>
-              <div className="bg-black/40 rounded-xl p-4">
-                <MatrixVisualization 
-                  maxLevels={isMobile ? 4 : 5} 
-                  compact={isMobile}
-                  showAnimation={true}
-                  className="w-full"
-                />
-              </div>
-              <div className="mt-4 p-4 bg-slate-700/30 rounded-lg">
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  <strong className="text-honey">矩阵结构：</strong>每个级别代表矩阵中的一层。
-                  当您层级中的会员升级其会员级别时，会根据升级的级别触发层级奖励。
-                </p>
+              <div className="space-y-4">
+                <div className="p-4 bg-slate-700/30 rounded-lg">
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                    <strong className="text-honey">矩阵结构原理：</strong>BEEHIVE采用19层3×3矩阵系统，每个级别代表矩阵中的一层。
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div className="space-y-2">
+                      <h5 className="font-medium text-honey">触发条件：</h5>
+                      <ul className="space-y-1 text-muted-foreground">
+                        <li>• 层级中的会员升级会员级别</li>
+                        <li>• 根据升级的级别触发对应奖励</li>
+                        <li>• 每层可获得多次奖励</li>
+                      </ul>
+                    </div>
+                    <div className="space-y-2">
+                      <h5 className="font-medium text-honey">奖励金额：</h5>
+                      <ul className="space-y-1 text-muted-foreground">
+                        <li>• Layer 1: $100 (Level 1 NFT价格)</li>
+                        <li>• Layer 2: $150 (Level 2 NFT价格)</li>
+                        <li>• Layer 19: $1,000 (Level 19 NFT价格)</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
