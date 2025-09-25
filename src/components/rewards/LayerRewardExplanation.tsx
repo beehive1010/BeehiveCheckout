@@ -1,24 +1,24 @@
-import React, { useState } from 'react';
-import { useI18n } from '../../contexts/I18nContext';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { MatrixVisualization } from '@/components/illustrations/MatrixVisualization';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { 
-  Info, 
-  TrendingUp, 
-  Clock, 
-  DollarSign, 
-  Users, 
-  AlertTriangle,
-  CheckCircle,
-  ArrowUp,
-  Target,
-  Award,
-  GitBranch
+import React, {useState} from 'react';
+import {useI18n} from '../../contexts/I18nContext';
+import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from '@/components/ui/dialog';
+import {Button} from '@/components/ui/button';
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import {Badge} from '@/components/ui/badge';
+import {MatrixVisualization} from '@/components/illustrations/MatrixVisualization';
+import {useIsMobile} from '@/hooks/use-mobile';
+import {
+    AlertTriangle,
+    ArrowUp,
+    Award,
+    CheckCircle,
+    Clock,
+    DollarSign,
+    GitBranch,
+    Info,
+    Target,
+    TrendingUp,
+    Users
 } from 'lucide-react';
 
 interface LayerRewardExplanationProps {
@@ -246,11 +246,11 @@ export const LayerRewardExplanation: React.FC<LayerRewardExplanationProps> = ({
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className={`grid grid-cols-1 ${isMobile ? '' : 'md:grid-cols-2'} gap-4`}>
                       <div className="p-4 bg-green-500/10 rounded-lg border border-green-500/20">
                         <div className="flex items-center gap-3 mb-3">
                           <CheckCircle className="h-5 w-5 text-green-400" />
-                          <span className="font-medium text-green-400">1st & 2nd Rewards</span>
+                          <span className="font-medium text-green-400">{t('rewards.layerRewardSystem.eligibilityRules.firstSecondTitle')}</span>
                         </div>
                         <p className="text-sm text-slate-300">
                           {t('rewards.layerRewardSystem.eligibilityRules.firstSecond')}
@@ -259,7 +259,7 @@ export const LayerRewardExplanation: React.FC<LayerRewardExplanationProps> = ({
                       <div className="p-4 bg-orange-500/10 rounded-lg border border-orange-500/20">
                         <div className="flex items-center gap-3 mb-3">
                           <ArrowUp className="h-5 w-5 text-orange-400" />
-                          <span className="font-medium text-orange-400">3rd+ Rewards</span>
+                          <span className="font-medium text-orange-400">{t('rewards.layerRewardSystem.eligibilityRules.thirdOnwardTitle')}</span>
                         </div>
                         <p className="text-sm text-slate-300">
                           {t('rewards.layerRewardSystem.eligibilityRules.thirdOnward')}
@@ -269,7 +269,7 @@ export const LayerRewardExplanation: React.FC<LayerRewardExplanationProps> = ({
                     <div className="p-4 bg-honey/10 rounded-lg border border-honey/20">
                       <div className="flex items-center gap-3 mb-2">
                         <AlertTriangle className="h-5 w-5 text-honey" />
-                        <span className="font-medium text-honey">Important</span>
+                        <span className="font-medium text-honey">{t('rewards.layerRewardSystem.eligibilityRules.importantTitle')}</span>
                       </div>
                       <p className="text-sm text-slate-300">
                         {t('rewards.layerRewardSystem.eligibilityRules.verification')}
@@ -292,7 +292,7 @@ export const LayerRewardExplanation: React.FC<LayerRewardExplanationProps> = ({
                       <div className="p-4 bg-red-500/10 rounded-lg border border-red-500/20">
                         <div className="flex items-center gap-3 mb-2">
                           <AlertTriangle className="h-5 w-5 text-red-400" />
-                          <span className="font-medium text-red-400">Not Eligible</span>
+                          <span className="font-medium text-red-400">{t('rewards.layerRewardSystem.pendingSystem.notEligibleTitle')}</span>
                         </div>
                         <p className="text-sm text-slate-300">
                           {t('rewards.layerRewardSystem.pendingSystem.notEligible')}
@@ -301,7 +301,7 @@ export const LayerRewardExplanation: React.FC<LayerRewardExplanationProps> = ({
                       <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
                         <div className="flex items-center gap-3 mb-2">
                           <Clock className="h-5 w-5 text-blue-400" />
-                          <span className="font-medium text-blue-400">72-Hour Window</span>
+                          <span className="font-medium text-blue-400">{t('rewards.layerRewardSystem.pendingSystem.windowTitle')}</span>
                         </div>
                         <p className="text-sm text-slate-300">
                           {t('rewards.layerRewardSystem.pendingSystem.upgradeWindow')}
@@ -310,7 +310,7 @@ export const LayerRewardExplanation: React.FC<LayerRewardExplanationProps> = ({
                       <div className="p-4 bg-green-500/10 rounded-lg border border-green-500/20">
                         <div className="flex items-center gap-3 mb-2">
                           <CheckCircle className="h-5 w-5 text-green-400" />
-                          <span className="font-medium text-green-400">Immediate Claim</span>
+                          <span className="font-medium text-green-400">{t('rewards.layerRewardSystem.pendingSystem.immediateTitle')}</span>
                         </div>
                         <p className="text-sm text-slate-300">
                           {t('rewards.layerRewardSystem.pendingSystem.immediate')}
@@ -319,7 +319,7 @@ export const LayerRewardExplanation: React.FC<LayerRewardExplanationProps> = ({
                       <div className="p-4 bg-orange-500/10 rounded-lg border border-orange-500/20">
                         <div className="flex items-center gap-3 mb-2">
                           <ArrowUp className="h-5 w-5 text-orange-400" />
-                          <span className="font-medium text-orange-400">Roll-up System</span>
+                          <span className="font-medium text-orange-400">{t('rewards.layerRewardSystem.pendingSystem.rollupTitle')}</span>
                         </div>
                         <p className="text-sm text-slate-300">
                           {t('rewards.layerRewardSystem.pendingSystem.expiry')}
