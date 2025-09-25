@@ -1273,12 +1273,89 @@
     "profile": {
       "levelMember": "Level {{level}} Member",
       "member": "Member",
-      "defaultEmail": "member@beehive.app"
+      "defaultEmail": "member@beehive.app",
+      "editProfile": "Edit Profile"
     },
     "tabs": {
       "learn": "Learn",
       "referrals": "Referrals",
       "settings": "Settings"
+    },
+    "balances": {
+      "title": "Enhanced Balance Breakdown",
+      "transferableBCC": "Transferable BCC",
+      "restrictedBCC": "Restricted BCC",
+      "lockedBCC": "Locked BCC",
+      "totalUSDTEarned": "Total USDT Earned",
+      "totalTeamSize": "Total Team Size",
+      "directReferrals": "Direct Referrals",
+      "deepestLayer": "Deepest Layer",
+      "spilloverRate": "Spillover Rate",
+      "layerRewards": "Layer Rewards",
+      "matrixTree": "Matrix Tree",
+      "analytics": "Analytics",
+      "nftUpgrade": "NFT Upgrade",
+      "balances": "Balances"
+    },
+    "performance": {
+      "overview": "Matrix Performance Overview",
+      "totalTeamSize": "Total Team Size",
+      "directReferrals": "Direct Referrals",
+      "deepestLayer": "Deepest Layer",
+      "spilloverRate": "Spillover Rate",
+      "layerRewards": "Layer Rewards",
+      "matrixTree": "Matrix Tree",
+      "analytics": "Analytics",
+      "stats": "Stats",
+      "upgrade": "Upgrade",
+      "balance": "Balance",
+      "rewardPerformance": "Reward Performance",
+      "totalEarnings": "Total Earnings",
+      "readyToClaim": "Ready to Claim",
+      "pendingRewards": "Pending Rewards",
+      "efficiency": "Efficiency",
+      "detailedMetrics": "Detailed Performance Metrics",
+      "growthVelocity": "Growth Velocity",
+      "rewardEfficiency": "Reward Efficiency",
+      "layerDistribution": "Layer Distribution",
+      "membersPerDay": "members/day",
+      "usdtPerMember": "USDT per member"
+    },
+    "tokens": {
+      "management": "BCC Token Management",
+      "transferable": "Transferable",
+      "restricted": "Restricted",
+      "locked": "Locked",
+      "active": "Active",
+      "limited": "Limited",
+      "usage": "Usage"
+    },
+    "usdt": {
+      "earningsBreakdown": "USDT Earnings Breakdown",
+      "totalEarned": "Total Earned",
+      "available": "Available",
+      "withdrawn": "Withdrawn",
+      "pending": "Pending"
+    },
+    "account": {
+      "information": "Account Information",
+      "activationTier": "Activation Tier",
+      "activationOrder": "Activation Order",
+      "memberSince": "Member since",
+      "lastUpdated": "Last Updated",
+      "dataRefresh": "Data refresh"
+    },
+    "loading": {
+      "balanceDetails": "Loading balance details...",
+      "noBalanceData": "No balance data available"
+    },
+    "system": {
+      "subtitle": "V2 Matrix System • Layer-based Rewards • Advanced Analytics",
+      "refresh": "Refresh",
+      "profileRefreshed": "Profile Refreshed",
+      "refreshSuccess": "All data has been updated successfully",
+      "refreshFailed": "Refresh Failed",
+      "refreshError": "Failed to refresh profile data"
     }
   },
   "tasks": {

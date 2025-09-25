@@ -1186,6 +1186,9 @@
   "me": {
     "title": "个人资料和设置",
     "editProfile": "编辑个人资料",
+    "profile": {
+      "editProfile": "编辑资料"
+    },
     "status": {
       "active": "活跃",
       "memberSince": "会员开始于"
@@ -1194,7 +1197,81 @@
       "usdt": "USDT余额",
       "bccTransferable": "BCC（可转移）",
       "bccRestricted": "BCC（受限制）",
-      "cth": "CTH代币"
+      "cth": "CTH代币",
+      "title": "增强余额详情",
+      "transferableBCC": "可转账BCC",
+      "restrictedBCC": "限制BCC",
+      "lockedBCC": "锁定BCC",
+      "totalUSDTEarned": "总USDT收益",
+      "totalTeamSize": "团队总人数",
+      "directReferrals": "直推人数",
+      "deepestLayer": "最深层级",
+      "spilloverRate": "溢出率",
+      "layerRewards": "层级奖励",
+      "matrixTree": "矩阵树",
+      "analytics": "分析",
+      "nftUpgrade": "NFT升级",
+      "balances": "余额"
+    },
+    "performance": {
+      "overview": "矩阵性能概览",
+      "totalTeamSize": "团队总规模",
+      "directReferrals": "直接推荐",
+      "deepestLayer": "最深层级",
+      "spilloverRate": "溢出率",
+      "layerRewards": "层级奖励",
+      "matrixTree": "矩阵树",
+      "analytics": "数据分析",
+      "stats": "统计",
+      "upgrade": "升级",
+      "balance": "余额",
+      "rewardPerformance": "奖励性能",
+      "totalEarnings": "总收益",
+      "readyToClaim": "可领取",
+      "pendingRewards": "待处理奖励",
+      "efficiency": "效率",
+      "detailedMetrics": "详细性能指标",
+      "growthVelocity": "增长速度",
+      "rewardEfficiency": "奖励效率",
+      "layerDistribution": "层级分布",
+      "membersPerDay": "成员/天",
+      "usdtPerMember": "USDT/成员"
+    },
+    "tokens": {
+      "management": "BCC代币管理",
+      "transferable": "可转移",
+      "restricted": "受限",
+      "locked": "锁定",
+      "active": "活跃",
+      "limited": "受限",
+      "usage": "用途"
+    },
+    "usdt": {
+      "earningsBreakdown": "USDT收益明细",
+      "totalEarned": "总收益",
+      "available": "可用",
+      "withdrawn": "已提取",
+      "pending": "待处理"
+    },
+    "account": {
+      "information": "账户信息",
+      "activationTier": "激活等级",
+      "activationOrder": "激活序号",
+      "memberSince": "成员自",
+      "lastUpdated": "最后更新",
+      "dataRefresh": "数据刷新"
+    },
+    "loading": {
+      "balanceDetails": "加载余额详情...",
+      "noBalanceData": "无余额数据"
+    },
+    "system": {
+      "subtitle": "V2矩阵系统 • 基于层级的奖励 • 高级分析",
+      "refresh": "刷新",
+      "profileRefreshed": "个人资料已刷新",
+      "refreshSuccess": "所有数据已成功更新",
+      "refreshFailed": "刷新失败",
+      "refreshError": "刷新个人资料数据失败"
     },
     "learning": {
       "title": "学习进度",

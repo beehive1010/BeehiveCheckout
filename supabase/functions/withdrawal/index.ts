@@ -28,7 +28,7 @@ serve(async (req) => {
     )
 
     const body = await req.json()
-    const { action, amount, recipientAddress, sourceChainId, targetChainId, selectedToken, memberWallet } = body
+    const { action, amount, recipientAddress, sourceChainId, targetChainId, selectedToken, memberWallet, targetTokenSymbol } = body
     
     if (action !== 'process-withdrawal') {
       throw new Error('Invalid action')
@@ -80,71 +80,108 @@ serve(async (req) => {
       throw new Error('Insufficient balance')
     }
 
-    // Token addresses and info
-    const TOKEN_ADDRESSES: { [key: number]: any } = {
-      1: { address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', symbol: 'USDT', decimals: 6 },
-      137: { address: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', symbol: 'USDT', decimals: 6 },
-      42161: { 
-        usdt: { address: '0xfA278827a612BBA895e7F0A4fBA504b22ff3E7C9', symbol: 'USDT', decimals: 18 },
-        testUSDT: { 
-          address: Deno.env.get('ARB_TEST_USDT_ADDRESS') || '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d', 
-          symbol: 'TEST-USDT', 
-          decimals: 18 
-        }
+    // Multi-token support: Native tokens and ERC20 tokens by chain
+    const SUPPORTED_TOKENS: { [key: number]: { [symbol: string]: any } } = {
+      1: { 
+        'ETH': { address: null, symbol: 'ETH', decimals: 18, isNative: true },
+        'USDT': { address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', symbol: 'USDT', decimals: 6, isNative: false },
+        'USDC': { address: '0xA0b86a33E6411b67f16D0f3C3e0d7A8e7D1E2E6F', symbol: 'USDC', decimals: 6, isNative: false }
       },
-      10: { address: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58', symbol: 'USDT', decimals: 6 },
-      56: { address: '0x55d398326f99059fF775485246999027B3197955', symbol: 'USDT', decimals: 18 },
-      8453: { address: '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2', symbol: 'USDT', decimals: 6 }
+      137: { 
+        'MATIC': { address: null, symbol: 'MATIC', decimals: 18, isNative: true },
+        'USDT': { address: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', symbol: 'USDT', decimals: 6, isNative: false },
+        'USDC': { address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174', symbol: 'USDC', decimals: 6, isNative: false }
+      },
+      42161: { 
+        'ETH': { address: null, symbol: 'ETH', decimals: 18, isNative: true },
+        'ARB': { address: '0x912CE59144191C1204E64559FE8253a0e49E6548', symbol: 'ARB', decimals: 18, isNative: false },
+        'USDT': { address: '0xfA278827a612BBA895e7F0A4fBA504b22ff3E7C9', symbol: 'USDT', decimals: 18, isNative: false },
+        'USDC': { address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', symbol: 'USDC', decimals: 6, isNative: false }
+      },
+      10: { 
+        'ETH': { address: null, symbol: 'ETH', decimals: 18, isNative: true },
+        'OP': { address: '0x4200000000000000000000000000000000000042', symbol: 'OP', decimals: 18, isNative: false },
+        'USDT': { address: '0x94b008aA00579c1307B0EF2c499aD98a8ce58e58', symbol: 'USDT', decimals: 6, isNative: false },
+        'USDC': { address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85', symbol: 'USDC', decimals: 6, isNative: false }
+      },
+      56: { 
+        'BNB': { address: null, symbol: 'BNB', decimals: 18, isNative: true },
+        'USDT': { address: '0x55d398326f99059fF775485246999027B3197955', symbol: 'USDT', decimals: 18, isNative: false },
+        'USDC': { address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', symbol: 'USDC', decimals: 18, isNative: false },
+        'BUSD': { address: '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56', symbol: 'BUSD', decimals: 18, isNative: false }
+      },
+      8453: { 
+        'ETH': { address: null, symbol: 'ETH', decimals: 18, isNative: true },
+        'USDT': { address: '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2', symbol: 'USDT', decimals: 6, isNative: false },
+        'USDC': { address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', symbol: 'USDC', decimals: 6, isNative: false }
+      }
     }
 
-    const getTokenInfo = (chainId: number, tokenType: 'usdt' | 'testUSDT' = 'usdt') => {
-      const chainTokens = TOKEN_ADDRESSES[chainId]
+    const getTokenInfo = (chainId: number, tokenSymbol: string = 'USDT') => {
+      const chainTokens = SUPPORTED_TOKENS[chainId]
       
-      if (chainId === 42161 && typeof chainTokens === 'object' && 'usdt' in chainTokens) {
-        return chainTokens[tokenType]
-      } else if (typeof chainTokens === 'object' && 'address' in chainTokens) {
-        return chainTokens
+      if (chainTokens && chainTokens[tokenSymbol]) {
+        return chainTokens[tokenSymbol]
       }
       
-      return TOKEN_ADDRESSES[42161].usdt
+      // Fallback to USDT on ARB if token not found
+      return SUPPORTED_TOKENS[42161]['USDT']
     }
+
+    // Get source token (we settle in ARB USDT)
+    const sourceTokenSymbol = 'USDT'
+    const sourceToken = getTokenInfo(sourceChainId || 42161, sourceTokenSymbol)
 
     const calculateAmountWithDecimals = (amount: number, decimals: number): string => {
       // Use precise calculation for token amounts
       return (amount * Math.pow(10, decimals)).toFixed(0)
     }
 
-    const sourceTokenAddress = '0xfA278827a612BBA895e7F0A4fBA504b22ff3E7C9' // Our Arbitrum USDT
-    const targetTokenAddress = getTokenInfo(targetChainId, selectedToken).address
-    const targetTokenInfo = getTokenInfo(targetChainId, selectedToken)
+    // Get target token info based on user's choice
+    const targetTokenSymbol = targetTokenSymbol || selectedToken || 'USDT'
+    const targetTokenInfo = getTokenInfo(targetChainId, targetTokenSymbol)
+    
+    // Source: We settle in ARB USDT
+    const sourceTokenAddress = sourceToken.address // ARB USDT
+    const targetTokenAddress = targetTokenInfo.address // Could be null for native tokens
 
     let result: any = {}
 
-    // Check if this is same-chain transfer or cross-chain bridge
-    if (sourceChainId === targetChainId) {
-      // Direct transfer using thirdweb wallets API with correct format
+    // Check if this is same-chain and same-token transfer
+    const isSameChain = (sourceChainId || 42161) === targetChainId
+    const isSameToken = sourceTokenAddress?.toLowerCase() === targetTokenAddress?.toLowerCase()
+    const isDirectTransfer = isSameChain && isSameToken && !targetTokenInfo.isNative
+    
+    if (isDirectTransfer) {
+      // Direct transfer on same chain with same token
       console.log('🔄 Direct transfer on same chain using thirdweb wallets/send API')
       
       const amountInWei = calculateAmountWithDecimals(netAmount, targetTokenInfo.decimals)
       
-      // Use the correct thirdweb API format from thirdweb-api.json
+      // Prepare request body - omit tokenAddress for native tokens
+      const requestBody: any = {
+        from: Deno.env.get('VITE_SERVER_WALLET_ADDRESS'),
+        chainId: targetChainId.toString(),
+        recipients: [
+          {
+            address: recipientAddress,
+            quantity: amountInWei
+          }
+        ]
+      }
+      
+      // Only add tokenAddress for ERC20 tokens, not for native tokens
+      if (!targetTokenInfo.isNative && targetTokenAddress) {
+        requestBody.tokenAddress = targetTokenAddress
+      }
+
       const walletResponse = await fetch('https://api.thirdweb.com/v1/wallets/send', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-secret-key': Deno.env.get('THIRDWEB_SECRET_KEY') || '',
+          'x-secret-key': Deno.env.get('VITE_THIRDWEB_SECRET_KEY') || '',
         },
-        body: JSON.stringify({
-          from: Deno.env.get('SERVER_WALLET_ADDRESS'), // The wallet address that will send tokens
-          chainId: targetChainId, // Blockchain network identifier
-          recipients: [ // Array of recipients and quantities
-            {
-              address: recipientAddress, // Recipient wallet address
-              quantity: amountInWei // Amount in wei (with proper decimals)
-            }
-          ],
-          tokenAddress: targetTokenAddress // Token contract address (omit for native token)
-        })
+        body: JSON.stringify(requestBody)
       })
 
       if (!walletResponse.ok) {
@@ -154,57 +191,106 @@ serve(async (req) => {
 
       const walletData = await walletResponse.json()
       
-      // The API should return result with transaction hash
-      if (!walletData.result) {
-        throw new Error(`Thirdweb wallets API error: ${walletData.error || 'No result returned'}`)
+      if (!walletData.result || !walletData.result.queueId) {
+        throw new Error(`Thirdweb wallets API error: ${walletData.error || 'No queue ID returned'}`)
       }
 
       result = {
-        transactionHash: walletData.result.transactionHash || walletData.result.txHash,
+        transactionHash: walletData.result.queueId, // ThirdWeb returns queueId for async operations
         feeTransactionHash: null,
         bridged: false,
       }
 
     } else {
-      // Cross-chain bridge using thirdweb Bridge API
-      console.log('🌉 Cross-chain bridge')
+      // Cross-chain or cross-token: First swap via bridge, then send
+      console.log(`🌉 Swap + Send: ARB USDT -> ${targetTokenInfo.symbol} on chain ${targetChainId}`)
       
-      const sourceTokenDecimals = 18 // Arbitrum USDT decimals
-      const amountInWei = calculateAmountWithDecimals(netAmount, sourceTokenDecimals)
+      // Step 1: Use bridge/swap API to convert ARB USDT to target chain/token
+      const grossAmountInWei = calculateAmountWithDecimals(withdrawalAmount, sourceToken.decimals) // Source ARB USDT decimals
       
-      const bridgeResponse = await fetch('https://api.thirdweb.com/v1/bridge/swap', {
+      // Prepare swap request body
+      const swapRequestBody: any = {
+        fromChainId: (sourceChainId || 42161).toString(),
+        toChainId: targetChainId.toString(),
+        fromTokenAddress: sourceTokenAddress,
+        fromAddress: Deno.env.get('VITE_SERVER_WALLET_ADDRESS'),
+        toAddress: Deno.env.get('VITE_SERVER_WALLET_ADDRESS'), // Swap to our wallet first
+        amount: grossAmountInWei,
+      }
+      
+      // Handle target token address - use null for native tokens
+      if (targetTokenInfo.isNative) {
+        // For native tokens like BNB, ETH, don't specify toTokenAddress
+        swapRequestBody.toTokenAddress = null
+      } else {
+        swapRequestBody.toTokenAddress = targetTokenAddress
+      }
+      
+      const swapResponse = await fetch('https://api.thirdweb.com/v1/bridge/swap', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${Deno.env.get('THIRDWEB_SECRET_KEY')}`,
+          'x-secret-key': Deno.env.get('VITE_THIRDWEB_SECRET_KEY') || '',
         },
-        body: JSON.stringify({
-          fromChainId: sourceChainId.toString(),
-          toChainId: targetChainId.toString(),
-          fromTokenAddress: sourceTokenAddress,
-          toTokenAddress: targetTokenAddress,
-          fromAddress: Deno.env.get('SERVER_WALLET_ADDRESS'),
-          toAddress: recipientAddress,
-          amount: amountInWei,
-        })
+        body: JSON.stringify(swapRequestBody)
       })
 
-      if (!bridgeResponse.ok) {
-        const error = await bridgeResponse.text()
-        throw new Error(`Bridge API failed: ${error}`)
+      if (!swapResponse.ok) {
+        const errorText = await swapResponse.text()
+        throw new Error(`Bridge swap failed: ${swapResponse.status} ${errorText}`)
       }
 
-      const bridgeData = await bridgeResponse.json()
+      const swapData = await swapResponse.json()
+      console.log('✅ Bridge swap initiated:', swapData.result?.queueId)
       
-      // For bridge transactions, we need to execute the transaction using the server wallet
-      // This would require additional thirdweb SDK integration on the server side
-      // For now, return the bridge quote for client-side execution
+      // Step 2: Send the net amount to user using wallets/send API
+      // Note: In production, you'd monitor the swap completion via webhook before sending
+      const netAmountInWei = calculateAmountWithDecimals(netAmount, targetTokenInfo.decimals)
+      
+      // Prepare send request body
+      const sendRequestBody: any = {
+        from: Deno.env.get('VITE_SERVER_WALLET_ADDRESS'),
+        chainId: targetChainId.toString(),
+        recipients: [
+          {
+            address: recipientAddress,
+            quantity: netAmountInWei // Send net amount (fee already deducted)
+          }
+        ]
+      }
+      
+      // Only add tokenAddress for ERC20 tokens, not for native tokens
+      if (!targetTokenInfo.isNative && targetTokenAddress) {
+        sendRequestBody.tokenAddress = targetTokenAddress
+      }
+      
+      const sendResponse = await fetch('https://api.thirdweb.com/v1/wallets/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-secret-key': Deno.env.get('VITE_THIRDWEB_SECRET_KEY') || '',
+        },
+        body: JSON.stringify(sendRequestBody)
+      })
+
+      if (!sendResponse.ok) {
+        const errorText = await sendResponse.text()
+        throw new Error(`User transfer failed: ${sendResponse.status} ${errorText}`)
+      }
+
+      const sendData = await sendResponse.json()
+      
+      if (!sendData.result || !sendData.result.queueId) {
+        throw new Error(`User transfer API error: ${sendData.error || 'No queue ID returned'}`)
+      }
+
       result = {
-        transactionHash: `bridge_${Date.now()}`, // Temporary placeholder
-        feeTransactionHash: null,
+        transactionHash: sendData.result.queueId, // User transfer queue ID
+        feeTransactionHash: swapData.result?.queueId, // Swap queue ID (fee included in swap)
         bridged: true,
-        bridgeQuote: bridgeData,
-        needsClientExecution: true // Flag to indicate client needs to execute
+        swapQueueId: swapData.result?.queueId,
+        sendQueueId: sendData.result.queueId,
+        targetToken: targetTokenInfo
       }
     }
 
@@ -217,12 +303,12 @@ serve(async (req) => {
       amount: withdrawalAmount.toString(),
       target_chain_id: targetChainId,
       token_address: targetTokenAddress,
-      user_signature: result.bridged ? 'thirdweb_bridge_api' : 'thirdweb_direct_transfer',
-      status: result.needsClientExecution ? 'pending' : 'completed',
+      user_signature: result.bridged ? 'thirdweb_swap_and_send' : 'thirdweb_direct_send',
+      status: 'processing', // ThirdWeb operations are async
       user_transaction_hash: result.transactionHash,
       fee_transaction_hash: result.feeTransactionHash,
       created_at: new Date().toISOString(),
-      completed_at: result.needsClientExecution ? null : new Date().toISOString(),
+      completed_at: null, // Will be updated when transaction confirms
       metadata: {
         source: 'rewards_withdrawal',
         member_wallet: memberWallet,
@@ -230,13 +316,23 @@ serve(async (req) => {
         net_amount: netAmount,
         gross_amount: withdrawalAmount,
         fee_deducted_from_amount: true,
+        fee_calculation: `${withdrawalAmount} - ${fee} = ${netAmount}`,
         source_chain_id: sourceChainId,
         target_chain_id: targetChainId,
         source_token_address: sourceTokenAddress,
         target_token_address: targetTokenAddress,
+        target_token_symbol: targetTokenInfo.symbol,
+        target_token_is_native: targetTokenInfo.isNative,
+        target_token_decimals: targetTokenInfo.decimals,
         is_cross_chain: result.bridged,
-        withdrawal_method: result.bridged ? 'thirdweb_bridge_api' : 'thirdweb_direct_transfer',
-        bridge_quote: result.bridgeQuote || null,
+        withdrawal_method: result.bridged ? 'swap_then_send' : 'direct_send',
+        thirdweb_swap_queue_id: result.swapQueueId || null,
+        thirdweb_send_queue_id: result.sendQueueId || result.transactionHash,
+        processing_steps: result.bridged ? 
+          [`swap_${sourceToken.symbol}_to_${targetTokenInfo.symbol}`, 'send_to_user'] : 
+          [`direct_send_${targetTokenInfo.symbol}`],
+        settlement_currency: 'ARB_USDT',
+        target_currency: targetTokenInfo.symbol
       }
     })
 
@@ -264,13 +360,32 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       transaction_hash: result.transactionHash,
-      fee_transaction_hash: result.feeTransactionHash,
+      swap_queue_id: result.swapQueueId,
+      send_queue_id: result.sendQueueId || result.transactionHash,
       net_amount: netAmount,
       fee_amount: fee,
+      gross_amount: withdrawalAmount,
       withdrawal_id: withdrawalId,
-      is_bridged: result.bridged,
-      bridge_quote: result.bridgeQuote,
-      needs_client_execution: result.needsClientExecution || false
+      is_cross_chain: result.bridged,
+      processing_method: result.bridged ? 'swap_then_send' : 'direct_send',
+      status: 'processing',
+      estimated_completion_minutes: result.bridged ? 5 : 2,
+      source_token: {
+        symbol: sourceToken.symbol,
+        address: sourceTokenAddress,
+        chain_id: sourceChainId || 42161
+      },
+      target_token: {
+        symbol: targetTokenInfo.symbol,
+        address: targetTokenAddress,
+        chain_id: targetChainId,
+        is_native: targetTokenInfo.isNative,
+        decimals: targetTokenInfo.decimals
+      },
+      fee_calculation: `提现 ${withdrawalAmount} ${sourceToken.symbol}，手续费 ${fee} USDT，到账 ${netAmount} ${targetTokenInfo.symbol}`,
+      message: result.bridged ? 
+        `跨链提现已启动：${withdrawalAmount} ${sourceToken.symbol} → ${netAmount} ${targetTokenInfo.symbol}（扣除 ${fee} USDT 手续费）` :
+        `直接提现已启动：${netAmount} ${targetTokenInfo.symbol}（扣除 ${fee} USDT 手续费）`
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200

@@ -88,24 +88,53 @@ serve(async (req) => {
 
 // Handle transaction sent event
 async function handleTransactionSent(supabase: any, data: any) {
-  const { transactionHash, from, to, value, tokenAddress, chainId } = data
+  const { queueId, transactionHash, from, to, value, tokenAddress, chainId } = data
   
-  console.log(`📤 Transaction sent: ${transactionHash}`)
+  console.log(`📤 Transaction sent: ${queueId || transactionHash}`)
+  
+  // Find withdrawal request by queue ID (either swap or send queue ID)
+  const { data: withdrawal, error: fetchError } = await supabase
+    .from('withdrawal_requests')
+    .select('*')
+    .or(`user_transaction_hash.eq.${queueId || transactionHash},metadata->>thirdweb_swap_queue_id.eq.${queueId},metadata->>thirdweb_send_queue_id.eq.${queueId}`)
+    .maybeSingle()
+  
+  if (fetchError || !withdrawal) {
+    console.log(`⚠️ No matching withdrawal found for queue ID: ${queueId || transactionHash}`)
+    return
+  }
   
   // Update withdrawal request status to 'processing'
+  let updateData: any = {
+    status: 'processing',
+    updated_at: new Date().toISOString()
+  }
+  
+  // Update the appropriate queue ID based on transaction type
+  const metadata = withdrawal.metadata || {}
+  if (metadata.thirdweb_swap_queue_id === queueId) {
+    updateData.metadata = {
+      ...metadata,
+      swap_transaction_hash: transactionHash,
+      swap_status: 'sent',
+      webhook_event: 'swap_transaction.sent',
+      processed_at: new Date().toISOString()
+    }
+  } else {
+    updateData.user_transaction_hash = transactionHash
+    updateData.metadata = {
+      ...metadata,
+      send_transaction_hash: transactionHash,
+      send_status: 'sent',
+      webhook_event: 'send_transaction.sent',
+      processed_at: new Date().toISOString()
+    }
+  }
+  
   const { error } = await supabase
     .from('withdrawal_requests')
-    .update({
-      status: 'processing',
-      user_transaction_hash: transactionHash,
-      updated_at: new Date().toISOString(),
-      metadata: {
-        ...data,
-        webhook_event: 'transaction.sent',
-        processed_at: new Date().toISOString()
-      }
-    })
-    .eq('user_transaction_hash', transactionHash)
+    .update(updateData)
+    .eq('id', withdrawal.id)
   
   if (error) {
     console.error('Error updating withdrawal request:', error)
@@ -116,34 +145,76 @@ async function handleTransactionSent(supabase: any, data: any) {
 
 // Handle transaction mined event
 async function handleTransactionMined(supabase: any, data: any) {
-  const { transactionHash, blockNumber, gasUsed, status } = data
+  const { queueId, transactionHash, blockNumber, gasUsed, status } = data
   
-  console.log(`⛏️ Transaction mined: ${transactionHash}, Block: ${blockNumber}`)
+  console.log(`⛏️ Transaction mined: ${queueId || transactionHash}, Block: ${blockNumber}`)
   
-  // Update withdrawal request status to 'completed'
+  // Find withdrawal request by queue ID or transaction hash
+  const { data: withdrawal, error: fetchError } = await supabase
+    .from('withdrawal_requests')
+    .select('*')
+    .or(`user_transaction_hash.eq.${queueId || transactionHash},metadata->>thirdweb_swap_queue_id.eq.${queueId},metadata->>thirdweb_send_queue_id.eq.${queueId}`)
+    .maybeSingle()
+  
+  if (fetchError || !withdrawal) {
+    console.log(`⚠️ No matching withdrawal found for queue ID: ${queueId || transactionHash}`)
+    return
+  }
+  
+  const metadata = withdrawal.metadata || {}
+  let updateData: any = {
+    updated_at: new Date().toISOString()
+  }
+  
+  // Check if this is swap completion or send completion
+  const isSwapCompletion = metadata.thirdweb_swap_queue_id === queueId
+  const isSendCompletion = metadata.thirdweb_send_queue_id === queueId || withdrawal.user_transaction_hash === (queueId || transactionHash)
+  
+  if (isSwapCompletion) {
+    // Swap transaction completed
+    updateData.metadata = {
+      ...metadata,
+      swap_transaction_hash: transactionHash,
+      swap_status: 'completed',
+      swap_block_number: blockNumber,
+      swap_gas_used: gasUsed,
+      webhook_event: 'swap_transaction.mined',
+      processed_at: new Date().toISOString()
+    }
+    console.log('✅ Bridge swap completed')
+  } else if (isSendCompletion) {
+    // Send transaction completed - this is the final step
+    updateData.status = 'completed'
+    updateData.completed_at = new Date().toISOString()
+    updateData.user_transaction_hash = transactionHash
+    updateData.metadata = {
+      ...metadata,
+      send_transaction_hash: transactionHash,
+      send_status: 'completed',
+      send_block_number: blockNumber,
+      send_gas_used: gasUsed,
+      webhook_event: 'send_transaction.mined',
+      processed_at: new Date().toISOString()
+    }
+    
+    // Now update user balance since withdrawal is fully completed
+    await updateUserBalanceAfterWithdrawal(supabase, withdrawal)
+    
+    console.log('✅ User send completed - withdrawal fully processed')
+  }
+  
   const { error } = await supabase
     .from('withdrawal_requests')
-    .update({
-      status: 'completed',
-      completed_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      metadata: {
-        ...data,
-        webhook_event: 'transaction.mined',
-        block_number: blockNumber,
-        gas_used: gasUsed,
-        processed_at: new Date().toISOString()
-      }
-    })
-    .eq('user_transaction_hash', transactionHash)
+    .update(updateData)
+    .eq('id', withdrawal.id)
   
   if (error) {
     console.error('Error updating withdrawal request:', error)
-  } else {
+  } else if (isSendCompletion) {
     console.log('✅ Updated withdrawal request status to completed')
     
-    // Send notification to user (optional)
-    await sendWithdrawalNotification(supabase, transactionHash, 'completed')
+    // Send notification to user
+    await sendWithdrawalNotification(supabase, transactionHash, 'completed', withdrawal)
   }
 }
 
@@ -241,17 +312,73 @@ async function handleWalletSend(supabase: any, data: any) {
   }
 }
 
-// Send notification to user about withdrawal status
-async function sendWithdrawalNotification(supabase: any, transactionHash: string, status: string, reason?: string) {
+// Update user balance after successful withdrawal
+async function updateUserBalanceAfterWithdrawal(supabase: any, withdrawal: any) {
   try {
-    // Get withdrawal details
-    const { data: withdrawal } = await supabase
-      .from('withdrawal_requests')
-      .select('user_wallet, amount')
-      .eq('user_transaction_hash', transactionHash)
+    const { user_wallet, amount, metadata } = withdrawal
+    const withdrawalAmount = parseFloat(amount)
+    
+    // Get current user balance
+    const { data: userBalance } = await supabase
+      .from('user_balances')
+      .select('reward_balance, total_withdrawn')
+      .eq('wallet_address', user_wallet)
       .single()
     
-    if (!withdrawal) return
+    if (!userBalance) {
+      console.error(`❌ User balance not found for wallet: ${user_wallet}`)
+      return
+    }
+    
+    const currentRewardBalance = userBalance.reward_balance || 0
+    const currentTotalWithdrawn = userBalance.total_withdrawn || 0
+    
+    // Update balances: deduct from reward_balance, add to total_withdrawn
+    const newRewardBalance = Math.max(0, currentRewardBalance - withdrawalAmount)
+    const newTotalWithdrawn = currentTotalWithdrawn + withdrawalAmount
+    
+    const { error } = await supabase
+      .from('user_balances')
+      .update({
+        reward_balance: newRewardBalance,
+        total_withdrawn: newTotalWithdrawn,
+        last_withdrawal_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('wallet_address', user_wallet)
+    
+    if (error) {
+      console.error('❌ Error updating user balance after withdrawal:', error)
+    } else {
+      console.log(`💰 Updated user balance: ${user_wallet}`)
+      console.log(`   Reward balance: ${currentRewardBalance} → ${newRewardBalance}`)
+      console.log(`   Total withdrawn: ${currentTotalWithdrawn} → ${newTotalWithdrawn}`)
+    }
+    
+  } catch (error) {
+    console.error('❌ Error in updateUserBalanceAfterWithdrawal:', error)
+  }
+}
+
+// Send notification to user about withdrawal status
+async function sendWithdrawalNotification(supabase: any, transactionHash: string, status: string, withdrawal?: any, reason?: string) {
+  try {
+    // Get withdrawal details if not provided
+    let withdrawalData = withdrawal
+    if (!withdrawalData) {
+      const { data } = await supabase
+        .from('withdrawal_requests')
+        .select('user_wallet, amount, metadata')
+        .eq('user_transaction_hash', transactionHash)
+        .single()
+      withdrawalData = data
+    }
+    
+    if (!withdrawalData) return
+    
+    const targetTokenSymbol = withdrawalData.metadata?.target_token_symbol || 'USDT'
+    const netAmount = withdrawalData.metadata?.net_amount || withdrawalData.amount
+    const feeAmount = withdrawalData.metadata?.fee_amount || 0
     
     // Create notification
     let title, message
@@ -259,11 +386,11 @@ async function sendWithdrawalNotification(supabase: any, transactionHash: string
     switch (status) {
       case 'completed':
         title = '提现成功 ✅'
-        message = `您的 ${withdrawal.amount} USDT 提现已成功完成`
+        message = `您的 ${netAmount} ${targetTokenSymbol} 提现已成功完成（扣除 ${feeAmount} USDT 手续费）`
         break
       case 'failed':
         title = '提现失败 ❌'
-        message = `您的 ${withdrawal.amount} USDT 提现失败${reason ? `: ${reason}` : ''}，余额已退回`
+        message = `您的 ${withdrawalData.amount} USDT 提现失败${reason ? `: ${reason}` : ''}，余额已退回`
         break
       default:
         return
@@ -272,20 +399,23 @@ async function sendWithdrawalNotification(supabase: any, transactionHash: string
     await supabase
       .from('notifications')
       .insert({
-        wallet_address: withdrawal.user_wallet,
+        wallet_address: withdrawalData.user_wallet,
         title: title,
         message: message,
         type: 'withdrawal',
         data: {
           transaction_hash: transactionHash,
-          amount: withdrawal.amount,
+          amount: withdrawalData.amount,
+          net_amount: netAmount,
+          target_token: targetTokenSymbol,
+          fee_amount: feeAmount,
           status: status,
           reason: reason || null
         },
         created_at: new Date().toISOString()
       })
     
-    console.log(`📧 Notification sent to ${withdrawal.user_wallet}: ${title}`)
+    console.log(`📧 Notification sent to ${withdrawalData.user_wallet}: ${title}`)
     
   } catch (error) {
     console.error('Error sending notification:', error)
