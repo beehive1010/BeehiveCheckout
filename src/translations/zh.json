@@ -952,6 +952,49 @@
     "available_bcc": "可用 BCC",
     "management": "奖励管理",
     "selectCategory": "选择下方分类查看和管理您的奖励",
+    "layerRewardSystem": {
+      "title": "层级奖励系统",
+      "subtitle": "了解矩阵层级奖励运作方式",
+      "explanation": "了解当会员升级会员等级时如何触发层级奖励",
+      "learnMore": "了解更多",
+      "howItWorks": {
+        "title": "运作原理",
+        "description": "当您矩阵中的会员升级其会员等级时会触发层级奖励。奖励金额等于该等级NFT价格的100%。"
+      },
+      "rewardStructure": {
+        "title": "奖励结构",
+        "layer1": "第1层奖励：当您第1层会员升级至等级1时触发",
+        "layer2": "第2层奖励：当您第2层会员升级至等级2时触发",
+        "layer3": "第3层奖励：当您第3层会员升级至等级3时触发",
+        "pattern": "此模式延续至全部19层"
+      },
+      "rewardAmounts": {
+        "title": "奖励金额",
+        "level1": "等级1：$100（NFT价格100%）",
+        "level2": "等级2：$150（NFT价格100%）",
+        "level3": "等级3：$200（NFT价格100%）",
+        "continuation": "模式延续至等级19"
+      },
+      "eligibilityRules": {
+        "title": "资格规则",
+        "firstSecond": "第1、2个奖励：您的等级必须等于该层级等级",
+        "thirdOnward": "第3个及以上奖励：您的等级必须高于该层级等级",
+        "verification": "奖励分发前需要等级验证"
+      },
+      "pendingSystem": {
+        "title": "72小时待处理系统",
+        "notEligible": "如果您不符合等级要求，奖励将进入待处理状态",
+        "upgradeWindow": "您有72小时时间升级并领取奖励",
+        "expiry": "72小时后，未领取的奖励将上卷给符合条件的上级会员",
+        "immediate": "立即升级可即时领取待处理奖励"
+      },
+      "matrixVisualization": {
+        "title": "3×3矩阵结构",
+        "description": "您的下级网络以3×3矩阵组织，共19层",
+        "positions": "每层有左、中、右三个位置",
+        "rewards": "当这些位置的会员升级时会触发奖励"
+      }
+    },
     "tabs": {
       "overview": "概览",
       "rollup": "汇总", 

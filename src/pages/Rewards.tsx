@@ -28,6 +28,7 @@ import {
     Users
 } from 'lucide-react';
 import RewardSystemInfoCard from '../components/rewards/RewardSystemInfoCard';
+import { LayerRewardExplanation } from '../components/rewards/LayerRewardExplanation';
 
 interface ProfileData {
   wallet_address: string;
@@ -381,19 +382,26 @@ export default function Rewards() {
         </CollapsibleContent>
       </Collapsible>
 
+      {/* Spacer - maintains spacing between overview and tabs */}
+      <div className="h-8 sm:h-12 lg:h-16"></div>
+
       {/* Enhanced Unified Tab Navigation and Content Container */}
       <div className="relative overflow-hidden bg-gradient-to-br from-white via-slate-50 to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-700 shadow-2xl animate-in slide-in-from-bottom-3 duration-500">
         <div className="absolute inset-0 bg-gradient-to-r from-honey/5 via-transparent to-amber-400/5 opacity-50"></div>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="relative w-full">
           {/* Enhanced Header with Description */}
           <div className="p-4 sm:p-6 border-b-2 border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-gray-100 dark:from-slate-800 dark:to-slate-700">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-6 h-6 bg-gradient-to-br from-honey to-amber-500 rounded-lg flex items-center justify-center shadow-lg">
-                <Award className="h-3 w-3 text-black" />
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 bg-gradient-to-br from-honey to-amber-500 rounded-lg flex items-center justify-center shadow-lg">
+                  <Award className="h-3 w-3 text-black" />
+                </div>
+                <h2 className="text-base sm:text-lg lg:text-xl font-bold bg-gradient-to-r from-slate-700 to-gray-800 dark:from-slate-200 dark:to-gray-100 bg-clip-text text-transparent">
+                  {t('rewards.management')}
+                </h2>
               </div>
-              <h2 className="text-base sm:text-lg lg:text-xl font-bold bg-gradient-to-r from-slate-700 to-gray-800 dark:from-slate-200 dark:to-gray-100 bg-clip-text text-transparent">
-                {t('rewards.management')}
-              </h2>
+              {/* Layer Reward System Explanation Button */}
+              <LayerRewardExplanation />
             </div>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
               {t('rewards.selectCategory')}
