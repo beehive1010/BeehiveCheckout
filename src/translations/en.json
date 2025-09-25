@@ -981,6 +981,49 @@
     "available_bcc": "Available BCC",
     "management": "Reward Management",
     "selectCategory": "Select a category below to view and manage your rewards",
+    "layerRewardSystem": {
+      "title": "Layer Reward System",
+      "subtitle": "Understanding How Matrix Layer Rewards Work",
+      "explanation": "Learn how layer rewards are triggered when members upgrade their membership levels",
+      "learnMore": "Learn More",
+      "howItWorks": {
+        "title": "How It Works",
+        "description": "Layer rewards are triggered when members in your matrix upgrade their membership levels. The reward amount equals the NFT price of that level."
+      },
+      "rewardStructure": {
+        "title": "Reward Structure",
+        "layer1": "Layer 1 Reward: Triggered when your Layer 1 members upgrade to Level 1",
+        "layer2": "Layer 2 Reward: Triggered when your Layer 2 members upgrade to Level 2", 
+        "layer3": "Layer 3 Reward: Triggered when your Layer 3 members upgrade to Level 3",
+        "pattern": "This pattern continues through all 19 layers"
+      },
+      "rewardAmounts": {
+        "title": "Reward Amounts",
+        "level1": "Level 1: $100 (100% of NFT price)",
+        "level2": "Level 2: $150 (100% of NFT price)",
+        "level3": "Level 3: $200 (100% of NFT price)", 
+        "continuation": "Pattern continues to Level 19"
+      },
+      "eligibilityRules": {
+        "title": "Eligibility Rules",
+        "firstSecond": "1st & 2nd rewards: Your level must equal the layer level",
+        "thirdOnward": "3rd+ rewards: Your level must be higher than the layer level",
+        "verification": "Level verification is required before reward distribution"
+      },
+      "pendingSystem": {
+        "title": "72-Hour Pending System",
+        "notEligible": "If you don't meet level requirements, rewards enter pending status",
+        "upgradeWindow": "You have 72 hours to upgrade and claim the reward", 
+        "expiry": "After 72 hours, unclaimed rewards roll up to eligible upline members",
+        "immediate": "Upgrade immediately to claim pending rewards instantly"
+      },
+      "matrixVisualization": {
+        "title": "3×3 Matrix Structure",
+        "description": "Your downline is organized in a 3×3 matrix with 19 layers",
+        "positions": "Each layer has Left, Middle, and Right positions",
+        "rewards": "Rewards are triggered when members in these positions upgrade"
+      }
+    },
     "pendingDescription": "Your pending rewards with countdown timers",
     "tabs": {
       "overview": "Overview",
