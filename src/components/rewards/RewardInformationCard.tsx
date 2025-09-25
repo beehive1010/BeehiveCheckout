@@ -390,9 +390,138 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                 详细奖励结构
               </h4>
               
-              <div className="grid gap-3">
-                {/* Show first 6 layers in detail */}
-                {LAYER_REWARDS.slice(0, 6).map((reward) => (
+              {/* Layer Groups */}
+              <div className="space-y-4">
+                {/* Layers 1-5 */}
+                <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl p-4 border border-green-500/30">
+                  <h5 className="font-medium text-green-400 mb-3 flex items-center gap-2">
+                    <Badge className="bg-green-500/20 text-green-400">初级</Badge>
+                    Layer 1-5 奖励
+                  </h5>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {LAYER_REWARDS.slice(0, 5).map((reward) => (
+                      <div key={reward.layer} className="bg-slate-800/50 rounded-lg p-3 border border-slate-600">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-semibold text-honey text-sm">Layer {reward.layer}</div>
+                            <div className="text-xs text-muted-foreground">Level {reward.layer} 升级触发</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-bold text-green-400">${reward.levelPrice}</div>
+                            <div className="text-xs text-muted-foreground">100% NFT价格</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Layers 6-10 */}
+                <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-xl p-4 border border-blue-500/30">
+                  <h5 className="font-medium text-blue-400 mb-3 flex items-center gap-2">
+                    <Badge className="bg-blue-500/20 text-blue-400">中级</Badge>
+                    Layer 6-10 奖励
+                  </h5>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {LAYER_REWARDS.slice(5, 10).map((reward) => (
+                      <div key={reward.layer} className="bg-slate-800/50 rounded-lg p-3 border border-slate-600">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-semibold text-honey text-sm">Layer {reward.layer}</div>
+                            <div className="text-xs text-muted-foreground">Level {reward.layer} 升级触发</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-bold text-green-400">${reward.levelPrice}</div>
+                            <div className="text-xs text-muted-foreground">100% NFT价格</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Layers 11-15 */}
+                <div className="bg-gradient-to-r from-orange-500/10 to-amber-500/10 rounded-xl p-4 border border-orange-500/30">
+                  <h5 className="font-medium text-orange-400 mb-3 flex items-center gap-2">
+                    <Badge className="bg-orange-500/20 text-orange-400">高级</Badge>
+                    Layer 11-15 奖励
+                  </h5>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {LAYER_REWARDS.slice(10, 15).map((reward) => (
+                      <div key={reward.layer} className="bg-slate-800/50 rounded-lg p-3 border border-slate-600">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-semibold text-honey text-sm">Layer {reward.layer}</div>
+                            <div className="text-xs text-muted-foreground">Level {reward.layer} 升级触发</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-bold text-green-400">${reward.levelPrice}</div>
+                            <div className="text-xs text-muted-foreground">100% NFT价格</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Layers 16-19 */}
+                <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl p-4 border border-purple-500/30">
+                  <h5 className="font-medium text-purple-400 mb-3 flex items-center gap-2">
+                    <Badge className="bg-purple-500/20 text-purple-400">顶级</Badge>
+                    Layer 16-19 奖励
+                  </h5>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
+                    {LAYER_REWARDS.slice(15, 19).map((reward) => (
+                      <div key={reward.layer} className={`bg-slate-800/50 rounded-lg p-4 border ${reward.layer === 19 ? 'border-honey/50 bg-gradient-to-r from-honey/10 to-amber-500/10' : 'border-slate-600'}`}>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className={`font-semibold text-sm flex items-center gap-2 ${reward.layer === 19 ? 'text-honey' : 'text-honey'}`}>
+                              Layer {reward.layer}
+                              {reward.layer === 19 && <Badge className="bg-honey text-black text-xs">MAX</Badge>}
+                            </div>
+                            <div className="text-xs text-muted-foreground">Level {reward.layer} 升级触发</div>
+                            {reward.layer === 19 && (
+                              <div className="text-xs text-honey mt-1">最高收益层级</div>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <div className={`font-bold ${reward.layer === 19 ? 'text-honey text-lg' : 'text-green-400'}`}>
+                              ${reward.levelPrice}
+                            </div>
+                            <div className="text-xs text-muted-foreground">100% NFT价格</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Layer Reward Summary */}
+                <div className="bg-gradient-to-r from-honey/10 to-amber-500/10 rounded-xl p-4 border border-honey/30">
+                  <h5 className="font-medium text-honey mb-3 flex items-center gap-2">
+                    <Target className="h-4 w-4" />
+                    层级奖励总结
+                  </h5>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                    <div className="bg-slate-800/50 rounded-lg p-3">
+                      <div className="font-bold text-green-400 text-lg">$100-$250</div>
+                      <div className="text-xs text-muted-foreground">Layer 1-5</div>
+                    </div>
+                    <div className="bg-slate-800/50 rounded-lg p-3">
+                      <div className="font-bold text-blue-400 text-lg">$300-$500</div>
+                      <div className="text-xs text-muted-foreground">Layer 6-10</div>
+                    </div>
+                    <div className="bg-slate-800/50 rounded-lg p-3">
+                      <div className="font-bold text-orange-400 text-lg">$550-$750</div>
+                      <div className="text-xs text-muted-foreground">Layer 11-15</div>
+                    </div>
+                    <div className="bg-slate-800/50 rounded-lg p-3">
+                      <div className="font-bold text-honey text-lg">$800-$1,000</div>
+                      <div className="text-xs text-muted-foreground">Layer 16-19</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
                   <Card key={reward.layer} className="bg-gradient-to-r from-slate-800/60 to-slate-700/40 border-slate-600 hover:border-honey/50 transition-all duration-300">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
@@ -555,7 +684,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
         </DialogContent>
       </Dialog>
     </>
-  );
+  )
 };
 
 export default RewardInformationCard;
