@@ -201,13 +201,32 @@ export const LayerRewardExplanation: React.FC<LayerRewardExplanationProps> = ({
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                          <span className="text-sm text-slate-300">
-                            {t('rewards.layerRewardSystem.rewardStructure.layer1')}
-                          </span>
-                          <Badge variant="outline" className="border-blue-400 text-blue-400">
-                            Layer 1
-                          </Badge>
+                        <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm text-slate-300">
+                              {t('rewards.layerRewardSystem.rewardStructure.layer1')}
+                            </span>
+                            <Badge variant="outline" className="border-blue-400 text-blue-400">
+                              Layer 1
+                            </Badge>
+                          </div>
+                          {/* Layer 1 Special Logic */}
+                          <div className="mt-3 pt-2 border-t border-blue-400/20">
+                            <p className="text-xs text-blue-300 font-medium mb-1">
+                              {t('rewards.layerRewardSystem.layer1Special.title')}
+                            </p>
+                            <div className="grid grid-cols-1 gap-1">
+                              <span className="text-xs text-slate-400">
+                                • {t('rewards.layerRewardSystem.layer1Special.directReferral')}
+                              </span>
+                              <span className="text-xs text-slate-400">
+                                • {t('rewards.layerRewardSystem.layer1Special.matrixDisplay')}
+                              </span>
+                              <span className="text-xs text-slate-400">
+                                • {t('rewards.layerRewardSystem.layer1Special.recursiveView')}
+                              </span>
+                            </div>
+                          </div>
                         </div>
                         <div className="flex items-center justify-between p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
                           <span className="text-sm text-slate-300">

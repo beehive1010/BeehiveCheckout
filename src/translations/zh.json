@@ -100,7 +100,7 @@
       "layerRewards": "层级奖励",
       "bccRewards": "BCC释放",
       "layerRewardsTitle": "层级奖励系统",
-      "layerRewardsDescription": "了解当您矩阵中的成员升级会员资格时，层级奖励是如何运作的。每个层级都有特定的资格要求和奖励金额。",
+      "layerRewardsDescription": "下级成员升级触发层级奖励。层级1奖励基于直推但通过matrix层级显示。层级2-19遵循标准matrix位置，递归树视图最多19层。",
       "bccRewardsTitle": "BCC释放奖励",
       "bccRewardsDescription": "了解基于成员激活里程碑的四阶段BCC释放系统。奖励逐渐递减以确保长期可持续性。",
       "viewDetails": "查看详情",
@@ -172,7 +172,14 @@
       "explanation": "了解当成员升级会员级别时如何触发层级奖励",
       "howItWorks": {
         "title": "工作原理",
-        "description": "当您矩阵中的成员升级其会员级别时，会触发层级奖励。奖励金额等于该级别的NFT价格。"
+        "description": "下级成员升级会员级别时触发层级奖励。层级1有特殊逻辑：奖励基于直推但通过matrix层级结构显示并递归树视图。"
+      },
+      "layer1Special": {
+        "title": "层级1特殊逻辑",
+        "description": "层级1奖励基于直推（非matrix位置），但分配和显示遵循您的matrix层级结构，通过matrix_referrals_tree_view递归19层成员树视图。",
+        "directReferral": "基于直推",
+        "matrixDisplay": "Matrix层级显示",
+        "recursiveView": "19层递归树视图"
       },
       "matrixVisualization": {
         "title": "3×3矩阵结构",
@@ -188,7 +195,7 @@
       },
       "rewardStructure": {
         "title": "奖励结构",
-        "layer1": "层级1奖励：当您的层级1成员升级到级别1时触发",
+        "layer1": "层级1奖励：基于直推奖励，但按照自身matrix层级会员树显示并递归19层会员视图",
         "layer2": "层级2奖励：当您的层级2成员升级到级别2时触发",
         "layer3": "层级3奖励：当您的层级3成员升级到级别3时触发",
         "pattern": "这个模式持续到所有19层"

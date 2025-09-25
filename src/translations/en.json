@@ -569,7 +569,7 @@
       "layerRewardsSubtitle": "19-Layer Reward System",
       "layerRewardsSummary": "Layer Rewards Summary",
       "layerRewardsSystem": "Layer Rewards System",
-      "layerRewardsSystemDesc": "When members in your matrix upgrade membership levels, corresponding layer rewards are triggered. 19 layers total, each layer reward equals 100% of the corresponding level NFT price",
+      "layerRewardsSystemDesc": "Layer rewards are triggered by member upgrades in your downline. Layer 1 rewards are based on direct referrals but display through matrix hierarchy. Layers 2-19 follow standard matrix placement with recursive tree view up to 19 levels.",
       "layerRewardsTitle": "Layer Rewards System",
       "levelUpgradeTriggered": "Level {{level}} upgrade triggered",
       "matrixDescription": "This visualization shows how the matrix structure works. When members upgrade levels in your layers, it triggers corresponding layer rewards.",
@@ -2319,8 +2319,15 @@
       },
       "explanation": "Learn how layer rewards are triggered when members upgrade their membership levels",
       "howItWorks": {
-        "description": "Layer rewards are triggered when members in your matrix upgrade their membership levels. The reward amount equals the NFT price of that level.",
+        "description": "Layer rewards are triggered when members in your downline upgrade their membership levels. Layer 1 has special logic: rewards are based on direct referrals but displayed through your matrix hierarchy with recursive tree view.",
         "title": "How It Works"
+      },
+      "layer1Special": {
+        "title": "Layer 1 Special Logic",
+        "description": "Layer 1 rewards are based on direct referrals (not matrix placement), but the distribution and display follow your matrix hierarchy structure with recursive 19-layer member tree view from matrix_referrals_tree_view.",
+        "directReferral": "Direct Referral Based",
+        "matrixDisplay": "Matrix Hierarchy Display",
+        "recursiveView": "19-Layer Recursive Tree View"
       },
       "learnMore": "Learn More",
       "matrixVisualization": {
@@ -2354,7 +2361,7 @@
         "title": "Reward Amounts"
       },
       "rewardStructure": {
-        "layer1": "Layer 1 Reward: Triggered when your Layer 1 members upgrade to Level 1",
+        "layer1": "Layer 1 Reward: Based on direct referrals, but displayed through your matrix hierarchy with recursive 19-layer member tree view",
         "layer2": "Layer 2 Reward: Triggered when your Layer 2 members upgrade to Level 2",
         "layer3": "Layer 3 Reward: Triggered when your Layer 3 members upgrade to Level 3",
         "pattern": "This pattern continues through all 19 layers",
