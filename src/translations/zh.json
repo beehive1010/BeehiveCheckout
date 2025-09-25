@@ -129,6 +129,13 @@
     "track_withdrawal_status": "实时跟踪您的提现交易状态",
     "no_transactions": "暂无提现交易",
     "created_at": "创建时间",
-    "completed_at": "完成时间"
+    "completed_at": "完成时间",
+    "rewardBalance": "奖励余额",
+    "totalWithdrawn": "已提现总额",
+    "max": "最大",
+    "readyToClaim": "准备领取",
+    "claiming": "领取中...",
+    "availableIn": "可用时间",
+    "rewardsWillAppear": "当团队成员升级会员资格时，奖励将在此处显示"
   }
 }

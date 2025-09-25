@@ -2726,6 +2726,13 @@
     "track_withdrawal_status": "Track your withdrawal transactions in real-time",
     "no_transactions": "No withdrawal transactions yet",
     "created_at": "Created At",
-    "completed_at": "Completed At"
+    "completed_at": "Completed At",
+    "rewardBalance": "Reward Balance",
+    "totalWithdrawn": "Total Withdrawn",
+    "max": "Max",
+    "readyToClaim": "Ready to Claim",
+    "claiming": "Claiming...",
+    "availableIn": "Available in",
+    "rewardsWillAppear": "Rewards will appear here when team members upgrade their memberships"
   }
 }
