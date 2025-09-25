@@ -139,6 +139,28 @@
       "excludesSpillover": "Excludes spillover users from matrix placement",
       "howToInvite": "How to invite: Share your referral link and have friends register through your link"
     },
+    "information": {
+      "title": "Reward System Information",
+      "subtitle": "Learn about Layer Rewards and BCC Release Mechanisms",
+      "badge": "Educational",
+      "layerRewards": "Layer Rewards",
+      "bccRewards": "BCC Staking",
+      "layerRewardsTitle": "Layer Rewards System",
+      "layerRewardsDescription": "Understand how layer rewards work when members in your matrix upgrade their membership levels. Each layer has specific eligibility requirements and reward amounts.",
+      "bccRewardsTitle": "BCC Release Rewards",
+      "bccRewardsDescription": "Learn about the four-phase BCC release system based on member activation milestones. Rewards decrease progressively to ensure long-term sustainability.",
+      "viewDetails": "View Full Details",
+      "matrixPreview": "Matrix Structure Preview",
+      "matrixDescription": "This visualization shows how the matrix structure works. When members upgrade levels in your layers, it triggers corresponding layer rewards.",
+      "layerRewardsDetailTitle": "Layer Rewards - Complete Guide",
+      "layerRewardsDetailDescription": "Comprehensive explanation of the 19-layer reward system with eligibility rules and payout mechanisms.",
+      "bccRewardsDetailTitle": "BCC Staking Rewards - Release Schedule",
+      "bccRewardsDetailDescription": "Four-phase BCC release system with decreasing rewards based on total activated member count.",
+      "matrixVisualization": "Matrix Structure Visualization",
+      "detailedRewardStructure": "Detailed Reward Structure",
+      "eligibilityRules": "Eligibility Rules & Timing",
+      "releaseMechanism": "BCC Release Mechanism"
+    },
     "errors": {
       "dataLoadFailed": "Data loading failed",
       "refreshToRetry": "Please refresh to retry",

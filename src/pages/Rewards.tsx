@@ -27,7 +27,7 @@ import {
     TrendingUp,
     Users
 } from 'lucide-react';
-import RewardSystemInfoCard from '../components/rewards/RewardSystemInfoCard';
+import {RewardInformationCard} from '../components/rewards/RewardInformationCard';
 
 interface ProfileData {
   wallet_address: string;
@@ -636,12 +636,15 @@ export default function Rewards() {
       {/* Extra spacing between tabs and info card */}
       <div className="h-8 sm:h-12 lg:h-16"></div>
 
-      {/* Reward System Information - Premium Expandable Card (moved to bottom) */}
-      <RewardSystemInfoCard 
+      {/* Reward Information - Comprehensive Card with sliding content */}
+      <RewardInformationCard 
         isExpanded={isRewardInfoExpanded}
         onExpandChange={setIsRewardInfoExpanded}
-        className="mt-8 sm:mt-10 lg:mt-12"
+        className="mt-6 sm:mt-8 lg:mt-10"
       />
+
+      {/* Extra spacing when information is closed to maintain distance from TabBar */}
+      <div className={`transition-all duration-300 ${!isRewardInfoExpanded ? 'h-8 sm:h-12 lg:h-16' : 'h-0'}`}></div>
 
     </div>
   );

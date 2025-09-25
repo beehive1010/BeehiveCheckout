@@ -167,6 +167,28 @@
       "directReferralRequirement": "直推要求",
       "onlyCountsDirect": "只计算推荐链接直接注册的用户"
     },
+    "information": {
+      "title": "奖励系统信息",
+      "subtitle": "了解层级奖励和BCC释放机制",
+      "badge": "教育资料",
+      "layerRewards": "层级奖励",
+      "bccRewards": "BCC锁仓",
+      "layerRewardsTitle": "层级奖励系统",
+      "layerRewardsDescription": "了解当您矩阵中的会员升级会员级别时，层级奖励如何运作。每个层级都有特定的资格要求和奖励金额。",
+      "bccRewardsTitle": "BCC释放奖励",
+      "bccRewardsDescription": "了解基于会员激活里程碑的四阶段BCC释放系统。奖励逐步减少以确保长期可持续性。",
+      "viewDetails": "查看详细信息",
+      "matrixPreview": "矩阵结构预览",
+      "matrixDescription": "此可视化显示了矩阵结构的工作原理。当您层级中的会员升级级别时，会触发相应的层级奖励。",
+      "layerRewardsDetailTitle": "层级奖励 - 完整指南",
+      "layerRewardsDetailDescription": "19层奖励系统的全面解释，包括资格规则和支付机制。",
+      "bccRewardsDetailTitle": "BCC锁仓奖励 - 释放时间表",
+      "bccRewardsDetailDescription": "基于总激活会员数量的四阶段BCC释放系统，奖励递减。",
+      "matrixVisualization": "矩阵结构可视化",
+      "detailedRewardStructure": "详细奖励结构",
+      "eligibilityRules": "资格规则和时间",
+      "releaseMechanism": "BCC释放机制"
+    },
     "errors": {
       "dataLoadFailed": "数据加载失败",
       "refreshToRetry": "请刷新页面重试",
