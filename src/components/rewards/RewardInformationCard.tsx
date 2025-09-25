@@ -297,7 +297,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                               <div className={`text-xs font-bold ${
                                 isCurrent ? 'text-green-400' : 'text-slate-300'
                               }`}>
-                                阶段 {phase.phase}{isCurrent ? ' (当前)' : ''}
+                                {t('rewards.information.phase')} {phase.phase}{isCurrent ? ` (${t('rewards.information.current')})` : ''}
                               </div>
                               <div className={`text-xs font-semibold ${
                                 isCurrent ? 'text-green-400' : 'text-blue-400'
@@ -386,7 +386,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                           </div>
                           <div className="text-center mt-2">
                             <span className="text-muted-foreground text-xs">
-                              ... 到 L19 ($1,000) 共19层
+                              {t('rewards.information.toLayer19Summary')}
                             </span>
                           </div>
                         </div>
@@ -434,7 +434,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                                   <div className={`text-xs font-bold ${
                                     isCurrent ? 'text-green-400' : 'text-slate-300'
                                   }`}>
-                                    阶段 {phase.phase}
+                                    {t('rewards.information.phase')} {phase.phase}
                                   </div>
                                   <div className={`text-xs font-semibold ${
                                     isCurrent ? 'text-green-400' : 'text-blue-400'
@@ -445,7 +445,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                                     {phase.members.split(' ')[0]}
                                   </div>
                                   {isCurrent && (
-                                    <div className="text-xs text-green-400">当前</div>
+                                    <div className="text-xs text-green-400">{t('rewards.information.current')}</div>
                                   )}
                                 </div>
                               );
@@ -453,7 +453,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                           </div>
                           <div className="text-center mt-2">
                             <span className="text-muted-foreground text-xs">
-                              4 个阶段递减释放系统
+                              {t('rewards.information.fourPhasesSystem')}
                             </span>
                           </div>
                         </div>
