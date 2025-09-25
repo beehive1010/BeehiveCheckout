@@ -30,7 +30,7 @@ export const MatrixVisualization: React.FC<MatrixVisualizationProps> = ({
   const { t } = useI18n();
   const [ref, inView] = useInView({
     threshold: 0.2,
-    triggerOnce: true
+    triggerOnce: false
   });
 
   const [animationStep, setAnimationStep] = useState(0);
@@ -72,8 +72,14 @@ export const MatrixVisualization: React.FC<MatrixVisualizationProps> = ({
 
   // Animation sequence
   useEffect(() => {
-    if (!inView || !showAnimation) return;
+    if (!inView || !showAnimation) {
+      setAnimationStep(0);
+      return;
+    }
 
+    // Reset animation when component comes into view
+    setAnimationStep(0);
+    
     const timer = setInterval(() => {
       setAnimationStep((prev) => (prev + 1) % maxLevels);
     }, 2000);

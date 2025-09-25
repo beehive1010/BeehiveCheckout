@@ -125,9 +125,44 @@ export const LayerRewardExplanation: React.FC<LayerRewardExplanationProps> = ({
                           />
                         </div>
                       </div>
-                      <p className="text-sm text-slate-400 mt-3">
-                        {t('rewards.layerRewardSystem.matrixVisualization.positions')}
-                      </p>
+                      <div className="mt-4 space-y-3">
+                        <p className="text-sm text-slate-400">
+                          {t('rewards.layerRewardSystem.matrixVisualization.positions')}
+                        </p>
+                        
+                        {/* Animation explanation */}
+                        <div className="bg-slate-800/30 rounded-lg p-3 border border-honey/10">
+                          <h4 className="text-sm font-medium text-honey mb-2 flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-honey animate-pulse"></div>
+                            {t('rewards.layerRewardSystem.matrixVisualization.animationTitle')}
+                          </h4>
+                          <div className="space-y-2 text-xs text-slate-300">
+                            <p className="flex items-center gap-2">
+                              <span className="w-3 h-3 rounded-full bg-honey flex-shrink-0"></span>
+                              {t('rewards.layerRewardSystem.matrixVisualization.animationActive')}
+                            </p>
+                            <p className="flex items-center gap-2">
+                              <span className="w-3 h-3 rounded-full bg-gray-600 flex-shrink-0"></span>
+                              {t('rewards.layerRewardSystem.matrixVisualization.animationPending')}
+                            </p>
+                            <p className="flex items-center gap-2">
+                              <span className="w-3 h-3 rounded-full bg-honey ring-2 ring-yellow-400 animate-pulse flex-shrink-0"></span>
+                              {t('rewards.layerRewardSystem.matrixVisualization.animationRewards')}
+                            </p>
+                            <p className="flex items-center gap-2">
+                              <div className="w-6 h-0.5 bg-honey opacity-80 flex-shrink-0" style={{background: 'linear-gradient(90deg, #FFD700, transparent)'}}></div>
+                              {t('rewards.layerRewardSystem.matrixVisualization.animationConnections')}
+                            </p>
+                          </div>
+                          
+                          {/* Interactive hint */}
+                          <div className="mt-3 pt-2 border-t border-honey/10">
+                            <p className="text-xs text-honey/80 italic">
+                              💡 {t('rewards.layerRewardSystem.matrixVisualization.interactiveHint')}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
 

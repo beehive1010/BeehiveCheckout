@@ -2327,7 +2327,13 @@
         "description": "Your downline is organized in a 3×3 matrix with 19 layers",
         "positions": "Each layer has Left, Middle, and Right positions",
         "rewards": "Rewards are triggered when members in these positions upgrade",
-        "title": "3×3 Matrix Structure"
+        "title": "3×3 Matrix Structure",
+        "animationTitle": "Live Animation Features",
+        "animationActive": "Golden nodes show active members with current upgrades",
+        "animationPending": "Gray nodes represent pending or future matrix positions",
+        "animationRewards": "Pulsing rings indicate members with available rewards",
+        "animationConnections": "Golden lines show active connection paths in the matrix",
+        "interactiveHint": "Watch the animation cycle to see how rewards flow through matrix levels!"
       },
       "pendingSystem": {
         "expiry": "After 72 hours, unclaimed rewards roll up to eligible upline members",
@@ -2462,6 +2468,18 @@
     "viewAll": "View All",
     "viewAnalytics": "View Analytics",
     "viewDetails": "View Details",
+    "rollup": {
+      "networkBased": "Network-Based",
+      "based": "Based",
+      "realTime": "Real-Time",
+      "tracking": "Tracking",
+      "transparent": "Transparent",
+      "system": "System",
+      "subtitle": "Automatic reward redistribution system",
+      "autoDistribution": "Auto Distribution",
+      "automatic": "Automatic",
+      "distribution": "Distribution"
+    },
     "withdraw": "Withdraw",
     "withdrawAvailable": "Withdraw Available: ${amount}",
     "withdrawDescription": "Withdraw your claimable rewards to any supported blockchain",
@@ -2481,6 +2499,7 @@
     },
     "loading": "Loading rewards data...",
     "management": "Rewards Management",
+    "overview": "Overview",
     "overview": {
       "claimable": "Claimable",
       "pending": "Pending",
