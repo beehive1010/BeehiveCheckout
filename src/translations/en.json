@@ -1358,6 +1358,46 @@
       "refreshError": "Failed to refresh profile data"
     }
   },
+  "countdown": {
+    "timer": "Countdown Timer",
+    "expired": "EXPIRED",
+    "loading": "Loading...",
+    "timerExpired": "Timer Expired",
+    "timerExpiredDesc": "Your countdown timer has expired.",
+    "countdownEnded": "The countdown has ended",
+    "loadingTimer": "Loading timer...",
+    "timeRemaining": "Time Remaining",
+    "rewardAtStake": "Reward at Stake",
+    "upgradeToClaimReward": "Upgrade to claim this reward before it expires",
+    "urgentUpgradeWarning": "⚠️ Upgrade urgently or this reward will be rolled up to your upline",
+    "upgradeToClaim": "Upgrade to Claim",
+    "urgentUpgradeNow": "Urgent: Upgrade Now",
+    "upgradeNowPreventLoss": "Upgrade Now to Prevent Future Loss",
+    "criticalExpiring": "⚠️ CRITICAL: Reward expires in {time}!",
+    "status": {
+      "safe": "Safe",
+      "caution": "Caution",
+      "warning": "Warning",
+      "critical": "Critical"
+    },
+    "units": {
+      "days": "Days",
+      "hours": "Hours",
+      "minutes": "Minutes",
+      "seconds": "Seconds",
+      "daysHoursMinutes": "days, hours, minutes",
+      "hoursMinutesSeconds": "hours, minutes, seconds",
+      "minutesSeconds": "minutes, seconds",
+      "min": "Min",
+      "sec": "Sec",
+      "d": "d",
+      "h": "h",
+      "m": "m",
+      "s": "s"
+    },
+    "complete": "Complete! Ready to claim",
+    "ready": "Ready!"
+  },
   "tasks": {
     "title": "Tasks & Marketplace",
     "pageTitle": "Tasks",

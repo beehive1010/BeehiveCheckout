@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
+import {useI18n} from '../../contexts/I18nContext';
 
 interface CountdownTimerProps {
   targetDate: string;
@@ -23,6 +24,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   showDays = true,
   showSeconds = true,
 }) => {
+  const { t } = useI18n();
   const [timeRemaining, setTimeRemaining] = useState<TimeRemaining>({
     days: 0,
     hours: 0,
@@ -70,7 +72,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   if (timeRemaining.total <= 0) {
     return (
       <div className={`text-green-600 font-semibold ${className}`}>
-        ✅ Complete! Ready to claim
+        ✅ {t('countdown.complete')}
       </div>
     );
   }
@@ -86,7 +88,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
           <>
             <div className="flex flex-col items-center">
               <span className="text-lg font-bold">{formatNumber(timeRemaining.days)}</span>
-              <span className="text-xs uppercase tracking-wide opacity-75">Days</span>
+              <span className="text-xs uppercase tracking-wide opacity-75">{t('countdown.units.days')}</span>
             </div>
             <span className="text-lg font-bold opacity-50">:</span>
           </>
@@ -94,13 +96,13 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
         
         <div className="flex flex-col items-center">
           <span className="text-lg font-bold">{formatNumber(timeRemaining.hours)}</span>
-          <span className="text-xs uppercase tracking-wide opacity-75">Hours</span>
+          <span className="text-xs uppercase tracking-wide opacity-75">{t('countdown.units.hours')}</span>
         </div>
         <span className="text-lg font-bold opacity-50">:</span>
         
         <div className="flex flex-col items-center">
           <span className="text-lg font-bold">{formatNumber(timeRemaining.minutes)}</span>
-          <span className="text-xs uppercase tracking-wide opacity-75">Min</span>
+          <span className="text-xs uppercase tracking-wide opacity-75">{t('countdown.units.min')}</span>
         </div>
         
         {showSeconds && (
@@ -108,7 +110,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
             <span className="text-lg font-bold opacity-50">:</span>
             <div className="flex flex-col items-center">
               <span className="text-lg font-bold">{formatNumber(timeRemaining.seconds)}</span>
-              <span className="text-xs uppercase tracking-wide opacity-75">Sec</span>
+              <span className="text-xs uppercase tracking-wide opacity-75">{t('countdown.units.sec')}</span>
             </div>
           </>
         )}
@@ -135,6 +137,7 @@ export const CompactCountdownTimer: React.FC<CountdownTimerProps> = ({
   onComplete,
   className = '',
 }) => {
+  const { t } = useI18n();
   const [timeRemaining, setTimeRemaining] = useState<TimeRemaining>({
     days: 0,
     hours: 0,
@@ -169,7 +172,7 @@ export const CompactCountdownTimer: React.FC<CountdownTimerProps> = ({
   }, [targetDate, onComplete]);
 
   if (timeRemaining.total <= 0) {
-    return <span className={`text-green-600 ${className}`}>Ready!</span>;
+    return <span className={`text-green-600 ${className}`}>{t('countdown.ready')}</span>;
   }
 
   const formatCompact = (): string => {

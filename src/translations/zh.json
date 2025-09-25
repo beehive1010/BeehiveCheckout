@@ -1272,7 +1272,48 @@
       "refreshSuccess": "所有数据已成功更新",
       "refreshFailed": "刷新失败",
       "refreshError": "刷新个人资料数据失败"
+    }
+  },
+  "countdown": {
+    "timer": "倒计时器",
+    "expired": "已过期",
+    "loading": "加载中...",
+    "timerExpired": "计时器已过期",
+    "timerExpiredDesc": "您的倒计时器已过期。",
+    "countdownEnded": "倒计时已结束",
+    "loadingTimer": "加载计时器...",
+    "timeRemaining": "剩余时间",
+    "rewardAtStake": "奖励金额",
+    "upgradeToClaimReward": "在过期前升级领取此奖励",
+    "urgentUpgradeWarning": "⚠️ 紧急升级，否则此奖励将会上滚给您的上级",
+    "upgradeToClaim": "升级领取",
+    "urgentUpgradeNow": "紧急：立即升级",
+    "upgradeNowPreventLoss": "立即升级防止未来损失",
+    "criticalExpiring": "⚠️ 严重：奖励将在 {time} 后过期！",
+    "status": {
+      "safe": "安全",
+      "caution": "小心",
+      "warning": "警告",
+      "critical": "严重"
     },
+    "units": {
+      "days": "天",
+      "hours": "小时",
+      "minutes": "分钟",
+      "seconds": "秒",
+      "daysHoursMinutes": "天、小时、分钟",
+      "hoursMinutesSeconds": "小时、分钟、秒",
+      "minutesSeconds": "分钟、秒",
+      "min": "分",
+      "sec": "秒",
+      "d": "天",
+      "h": "时",
+      "m": "分",
+      "s": "秒"
+    },
+    "complete": "完成！准备领取",
+    "ready": "准备好！"
+  },
     "learning": {
       "title": "学习进度",
       "coursesCompleted": "完成的课程",

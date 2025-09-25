@@ -1,18 +1,11 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
-import { Progress } from '../ui/progress';
-import { 
-  Clock, 
-  AlertCircle, 
-  CheckCircle, 
-  Zap, 
-  TrendingUp,
-  ArrowUp
-} from 'lucide-react';
-import { useI18n } from '../../contexts/I18nContext';
-import { useToast } from '../../hooks/use-toast';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
+import {Badge} from '../ui/badge';
+import {Button} from '../ui/button';
+import {Progress} from '../ui/progress';
+import {AlertCircle, ArrowUp, Clock, TrendingUp, Zap} from 'lucide-react';
+import {useI18n} from '../../contexts/I18nContext';
+import {useToast} from '../../hooks/use-toast';
 
 interface CountdownTimerProps {
   endTime: string;
@@ -38,7 +31,7 @@ interface TimeRemaining {
 
 export function CountdownTimer({
   endTime,
-  title = "Countdown Timer",
+  title,
   description,
   rewardAmount,
   canUpgrade = false,
@@ -121,8 +114,8 @@ export function CountdownTimer({
         if (!hasNotifiedExpiryRef.current) {
           hasNotifiedExpiryRef.current = true;
           toast({
-            title: "⏰ Timer Expired",
-            description: "Your countdown timer has expired.",
+            title: `⏰ ${t('countdown.timerExpired')}`,
+            description: t('countdown.timerExpiredDesc'),
             variant: "destructive"
           });
           onExpired?.();
@@ -158,7 +151,7 @@ export function CountdownTimer({
       <div className={`flex items-center gap-2 ${className}`}>
         <Clock className={`h-4 w-4 ${isExpired ? 'text-red-400' : urgencyStyle.color}`} />
         <span className={`font-mono text-sm ${isExpired ? 'text-red-400' : urgencyStyle.color}`}>
-          {isExpired ? 'EXPIRED' : timeRemaining ? formatTimeDisplay(timeRemaining) : 'Loading...'}
+          {isExpired ? t('countdown.expired') : timeRemaining ? formatTimeDisplay(timeRemaining) : t('countdown.loading')}
         </span>
       </div>
     );
@@ -174,13 +167,13 @@ export function CountdownTimer({
               <AlertCircle className="h-8 w-8 text-red-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-red-400 mb-1">Timer Expired</h3>
+              <h3 className="font-semibold text-red-400 mb-1">{t('countdown.timerExpired')}</h3>
               <p className="text-sm text-muted-foreground">
-                {description || "The countdown has ended"}
+                {description || t('countdown.countdownEnded')}
               </p>
               {rewardAmount && (
                 <p className="text-xs text-red-400 mt-2">
-                  Reward: ${rewardAmount} USDT (May be rolled up to upline)
+                  {t('rewards.reward')}: ${rewardAmount} USDT ({t('rewards.mayRollupToUpline')})
                 </p>
               )}
             </div>
@@ -191,7 +184,7 @@ export function CountdownTimer({
                 className="border-red-500/30 text-red-400 hover:bg-red-500/10"
               >
                 <TrendingUp className="mr-2 h-4 w-4" />
-                Upgrade Now to Prevent Future Loss
+                {t('countdown.upgradeNowPreventLoss')}
               </Button>
             )}
           </div>
@@ -207,7 +200,7 @@ export function CountdownTimer({
         <CardContent className="pt-6">
           <div className="text-center">
             <Clock className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">Loading timer...</p>
+            <p className="text-sm text-muted-foreground">{t('countdown.loadingTimer')}</p>
           </div>
         </CardContent>
       </Card>
@@ -220,15 +213,15 @@ export function CountdownTimer({
         <div className="flex items-center justify-between">
           <CardTitle className={`text-lg ${urgencyStyle.color} flex items-center gap-2`}>
             <Clock className="h-5 w-5" />
-            {title}
+            {title || t('countdown.timer')}
           </CardTitle>
           <Badge 
             variant="outline" 
             className={`${urgencyStyle.bg} ${urgencyStyle.color} ${urgencyStyle.border}`}
           >
-            {timeRemaining.percentage > 50 ? 'Safe' : 
-             timeRemaining.percentage > 25 ? 'Caution' :
-             timeRemaining.percentage > 10 ? 'Warning' : 'Critical'}
+            {timeRemaining.percentage > 50 ? t('countdown.status.safe') : 
+             timeRemaining.percentage > 25 ? t('countdown.status.caution') :
+             timeRemaining.percentage > 10 ? t('countdown.status.warning') : t('countdown.status.critical')}
           </Badge>
         </div>
         {description && (
@@ -243,15 +236,15 @@ export function CountdownTimer({
             {formatTimeDisplay(timeRemaining)}
           </div>
           <div className="text-xs text-muted-foreground">
-            {timeRemaining.days > 0 ? 'days, hours, minutes' : 
-             timeRemaining.hours > 0 ? 'hours, minutes, seconds' : 'minutes, seconds'}
+            {timeRemaining.days > 0 ? t('countdown.units.daysHoursMinutes') : 
+             timeRemaining.hours > 0 ? t('countdown.units.hoursMinutesSeconds') : t('countdown.units.minutesSeconds')}
           </div>
         </div>
 
         {/* Progress Bar */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Time Remaining</span>
+            <span className="text-muted-foreground">{t('countdown.timeRemaining')}</span>
             <span className={urgencyStyle.color}>{timeRemaining.percentage.toFixed(1)}%</span>
           </div>
           <Progress 
@@ -265,7 +258,7 @@ export function CountdownTimer({
           <div className={`rounded-lg p-3 ${urgencyStyle.bg} border ${urgencyStyle.border}`}>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm font-medium">Reward at Stake</div>
+                <div className="text-sm font-medium">{t('countdown.rewardAtStake')}</div>
                 <div className={`text-lg font-bold ${urgencyStyle.color}`}>
                   ${rewardAmount} USDT
                 </div>
@@ -274,8 +267,8 @@ export function CountdownTimer({
             </div>
             <p className="text-xs text-muted-foreground mt-2">
               {timeRemaining.percentage > 25 
-                ? "Upgrade to claim this reward before it expires"
-                : "⚠️ Upgrade urgently or this reward will be rolled up to your upline"
+                ? t('countdown.upgradeToClaimReward')
+                : t('countdown.urgentUpgradeWarning')
               }
             </p>
           </div>
@@ -291,12 +284,12 @@ export function CountdownTimer({
               {timeRemaining.percentage <= 25 ? (
                 <>
                   <AlertCircle className="mr-2 h-4 w-4" />
-                  Urgent: Upgrade Now
+                  {t('countdown.urgentUpgradeNow')}
                 </>
               ) : (
                 <>
                   <ArrowUp className="mr-2 h-4 w-4" />
-                  Upgrade to Claim
+                  {t('countdown.upgradeToClaim')}
                 </>
               )}
             </Button>
@@ -304,7 +297,7 @@ export function CountdownTimer({
             {timeRemaining.percentage <= 10 && (
               <div className="text-center">
                 <p className="text-xs text-red-400 font-medium animate-pulse">
-                  ⚠️ CRITICAL: Reward expires in {formatTimeDisplay(timeRemaining)}!
+                  {t('countdown.criticalExpiring', { time: formatTimeDisplay(timeRemaining) })}
                 </p>
               </div>
             )}
@@ -315,19 +308,19 @@ export function CountdownTimer({
         <div className="grid grid-cols-4 gap-2 pt-2 border-t border-border">
           <div className="text-center">
             <div className={`text-lg font-bold ${urgencyStyle.color}`}>{timeRemaining.days}</div>
-            <div className="text-xs text-muted-foreground">Days</div>
+            <div className="text-xs text-muted-foreground">{t('countdown.units.days')}</div>
           </div>
           <div className="text-center">
             <div className={`text-lg font-bold ${urgencyStyle.color}`}>{timeRemaining.hours}</div>
-            <div className="text-xs text-muted-foreground">Hours</div>
+            <div className="text-xs text-muted-foreground">{t('countdown.units.hours')}</div>
           </div>
           <div className="text-center">
             <div className={`text-lg font-bold ${urgencyStyle.color}`}>{timeRemaining.minutes}</div>
-            <div className="text-xs text-muted-foreground">Minutes</div>
+            <div className="text-xs text-muted-foreground">{t('countdown.units.minutes')}</div>
           </div>
           <div className="text-center">
             <div className={`text-lg font-bold ${urgencyStyle.color}`}>{timeRemaining.seconds}</div>
-            <div className="text-xs text-muted-foreground">Seconds</div>
+            <div className="text-xs text-muted-foreground">{t('countdown.units.seconds')}</div>
           </div>
         </div>
       </CardContent>
