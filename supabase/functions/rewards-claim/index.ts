@@ -1,10 +1,13 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import {serve} from "https://deno.land/std@0.168.0/http/server.ts"
+import {createClient} from 'https://esm.sh/@supabase/supabase-js@2'
+import {EdgeFunctionLogger, PerformanceTimer} from '../shared/logger.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
+
+console.log('🏆 Rewards-claim function started successfully!')
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -22,6 +25,9 @@ serve(async (req) => {
     )
   }
 
+  let logger: EdgeFunctionLogger
+  let timer: PerformanceTimer
+
   try {
     // Create Supabase client
     const supabaseClient = createClient(
@@ -29,9 +35,22 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Initialize logger
+    logger = new EdgeFunctionLogger(supabaseClient, 'rewards-claim')
+    timer = new PerformanceTimer('rewards-claim-request', logger)
+
     const { walletAddress, rewardId } = await req.json()
+    
+    console.log(`🏆 Reward claim request: wallet=${walletAddress}, rewardId=${rewardId}`)
+    
+    await logger.logInfo('claim-request-started', 'layer_rewards', { 
+      walletAddress, 
+      rewardId 
+    })
 
     if (!walletAddress || !rewardId) {
+      await logger.logValidationError('invalid-claim-request', 'Missing wallet address or reward ID', { walletAddress, rewardId })
+      
       return new Response(
         JSON.stringify({ error: 'Wallet address and reward ID required' }),
         { 
@@ -42,6 +61,8 @@ serve(async (req) => {
     }
 
     // Get the reward to verify it's claimable
+    console.log(`🔍 Fetching reward: ID=${rewardId} for wallet=${walletAddress}`)
+    
     const { data: reward, error: rewardError } = await supabaseClient
       .from('layer_rewards')
       .select('*')
@@ -50,6 +71,12 @@ serve(async (req) => {
       .single()
 
     if (rewardError || !reward) {
+      console.error('❌ Reward not found:', rewardError)
+      await logger.logError('reward-not-found', 'layer_rewards', rewardError || 'Reward not found', 'REWARD_NOT_FOUND', { 
+        rewardId, 
+        walletAddress 
+      })
+      
       return new Response(
         JSON.stringify({ error: 'Reward not found' }),
         { 
@@ -58,8 +85,25 @@ serve(async (req) => {
         }
       )
     }
+    
+    console.log(`✅ Reward found: ${reward.reward_amount} for layer ${reward.matrix_layer} position ${reward.layer_position}`)
+    
+    await logger.logInfo('reward-found', 'layer_rewards', {
+      rewardId: reward.id,
+      amount: reward.reward_amount,
+      layer: reward.matrix_layer,
+      position: reward.layer_position,
+      status: reward.status
+    })
 
     if (reward.status !== 'claimable') {
+      console.log(`❌ Reward not claimable: status=${reward.status}`)
+      await logger.logWarning('reward-not-claimable', 'layer_rewards', `Reward status is ${reward.status}, expected claimable`, {
+        rewardId: reward.id,
+        currentStatus: reward.status,
+        expiresAt: reward.expires_at
+      })
+      
       return new Response(
         JSON.stringify({ 
           error: 'Reward not claimable',
@@ -74,6 +118,12 @@ serve(async (req) => {
     }
 
     if (reward.claimed_at) {
+      console.log(`❌ Reward already claimed at: ${reward.claimed_at}`)
+      await logger.logWarning('reward-already-claimed', 'layer_rewards', 'Reward already claimed', {
+        rewardId: reward.id,
+        claimedAt: reward.claimed_at
+      })
+      
       return new Response(
         JSON.stringify({ error: 'Reward already claimed' }),
         { 
@@ -85,6 +135,13 @@ serve(async (req) => {
 
     // Check if reward has expired
     if (reward.expires_at && new Date(reward.expires_at) < new Date()) {
+      console.log(`❌ Reward has expired: ${reward.expires_at}`)
+      await logger.logWarning('reward-expired', 'layer_rewards', 'Reward has expired', {
+        rewardId: reward.id,
+        expiresAt: reward.expires_at,
+        currentTime: new Date().toISOString()
+      })
+      
       return new Response(
         JSON.stringify({ error: 'Reward has expired' }),
         { 
@@ -93,8 +150,12 @@ serve(async (req) => {
         }
       )
     }
+    
+    console.log(`✅ Reward validation passed, proceeding to claim`)
 
     // Update reward status to claimed
+    console.log(`🔄 Updating reward status to claimed: ID=${rewardId}`)
+    
     const { error: updateRewardError } = await supabaseClient
       .from('layer_rewards')
       .update({
@@ -104,7 +165,9 @@ serve(async (req) => {
       .eq('id', rewardId)
 
     if (updateRewardError) {
-      console.error('Update reward error:', updateRewardError)
+      console.error('❌ Update reward error:', updateRewardError)
+      await logger.logDatabaseError('reward-status-update-failed', updateRewardError, { rewardId })
+      
       return new Response(
         JSON.stringify({ error: 'Failed to update reward status' }),
         { 
@@ -113,8 +176,13 @@ serve(async (req) => {
         }
       )
     }
+    
+    console.log(`✅ Reward status updated to claimed`)
+    await logger.logInfo('reward-status-updated', 'layer_rewards', { rewardId, status: 'claimed' })
 
     // Update user balance
+    console.log(`💰 Fetching current balance for wallet: ${walletAddress}`)
+    
     const { data: currentBalance, error: balanceError } = await supabaseClient
       .from('user_balances')
       .select('reward_balance, total_earned, available_balance')
@@ -122,13 +190,18 @@ serve(async (req) => {
       .maybeSingle()
 
     if (balanceError) {
-      console.error('Balance query error:', balanceError)
+      console.error('❌ Balance query error:', balanceError)
+      await logger.logDatabaseError('balance-query-failed', balanceError, { walletAddress })
       // Continue even if balance query fails - we'll create a record
     }
+    
+    console.log(`💰 Current balance: reward=${currentBalance?.reward_balance || 0}, total=${currentBalance?.total_earned || 0}, available=${currentBalance?.available_balance || 0}`)
 
     const newRewardBalance = (currentBalance?.reward_balance || 0) + reward.reward_amount
     const newTotalEarned = (currentBalance?.total_earned || 0) + reward.reward_amount
     const newAvailableBalance = (currentBalance?.available_balance || 0) + reward.reward_amount
+    
+    console.log(`💰 Updating balance: reward=${newRewardBalance}, total=${newTotalEarned}, available=${newAvailableBalance}`)
 
     const { error: updateBalanceError } = await supabaseClient
       .from('user_balances')
@@ -141,7 +214,15 @@ serve(async (req) => {
       })
 
     if (updateBalanceError) {
-      console.error('Balance update error:', updateBalanceError)
+      console.error('❌ Balance update error:', updateBalanceError)
+      await logger.logDatabaseError('balance-update-failed', updateBalanceError, { 
+        walletAddress, 
+        newRewardBalance, 
+        newTotalEarned, 
+        newAvailableBalance 
+      })
+      
+      console.log(`🔄 Rolling back reward status to claimable`)
       // Rollback reward status
       await supabaseClient
         .from('layer_rewards')
@@ -151,6 +232,8 @@ serve(async (req) => {
         })
         .eq('id', rewardId)
       
+      await logger.logWarning('reward-rollback-executed', 'layer_rewards', 'Balance update failed, rolled back reward status', { rewardId })
+      
       return new Response(
         JSON.stringify({ error: 'Failed to update balance' }),
         { 
@@ -159,33 +242,72 @@ serve(async (req) => {
         }
       )
     }
+    
+    console.log(`✅ Balance updated successfully`)
+    await logger.logInfo('balance-updated', 'wallet_operations', {
+      walletAddress,
+      rewardAmount: reward.reward_amount,
+      newRewardBalance,
+      newTotalEarned,
+      newAvailableBalance
+    })
+
+    // Log final success and complete performance timer
+    const responseData = {
+      success: true,
+      claimedReward: {
+        id: reward.id,
+        amount: reward.reward_amount,
+        layer: reward.matrix_layer,
+        position: reward.layer_position,
+        claimedAt: new Date().toISOString(),
+      },
+      updatedBalance: {
+        rewardBalance: newRewardBalance,
+        totalEarned: newTotalEarned,
+        availableBalance: newAvailableBalance,
+      },
+      message: `Successfully claimed $${reward.reward_amount.toFixed(2)} reward`,
+    }
+    
+    console.log(`🎉 Reward claim successful: $${reward.reward_amount} claimed for ${walletAddress}`)
+    
+    // Complete performance timer and log final success
+    await timer.end('layer_rewards', true, responseData)
+    
+    await logger.logSuccess('reward-claim-completed', 'layer_rewards', {
+      walletAddress,
+      rewardId: reward.id,
+      amount: reward.reward_amount,
+      layer: reward.matrix_layer,
+      finalBalance: newAvailableBalance
+    })
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        claimedReward: {
-          id: reward.id,
-          amount: reward.reward_amount,
-          layer: reward.matrix_layer,
-          position: reward.layer_position,
-          claimedAt: new Date().toISOString(),
-        },
-        updatedBalance: {
-          rewardBalance: newRewardBalance,
-          totalEarned: newTotalEarned,
-          availableBalance: newAvailableBalance,
-        },
-        message: `Successfully claimed $${reward.reward_amount.toFixed(2)} reward`,
-      }),
+      JSON.stringify(responseData),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     )
 
   } catch (error) {
-    console.error('Claim reward function error:', error)
+    console.error('❌ Claim reward function error:', error)
+    
+    // Log critical error if logger is available
+    if (logger) {
+      await logger.logCritical('reward-claim-function-error', 'layer_rewards', error)
+      
+      // Complete timer with error if available
+      if (timer) {
+        await timer.end('layer_rewards', false, null, error)
+      }
+    }
+    
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ 
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : String(error)
+      }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

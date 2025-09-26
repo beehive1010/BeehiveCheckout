@@ -12,6 +12,7 @@ import {
     Gift,
     Globe,
     Image,
+    Languages,
     TrendingUp,
     Users
 } from 'lucide-react';
@@ -22,6 +23,8 @@ import {ServerWalletPanel} from '../../components/admin/ServerWalletPanel';
 import {UserManagement} from '../../components/admin/UserManagement';
 import {RewardsManagement} from '../../components/admin/RewardsManagement';
 import {WithdrawalManagement} from '../../components/admin/WithdrawalManagement';
+import TranslationManagement from '../../components/admin/TranslationManagement';
+import TranslationModeControl from '../../components/admin/TranslationModeControl';
 
 interface DashboardStats {
   totalUsers: number;
@@ -54,7 +57,7 @@ export default function AdminDashboard() {
     systemHealth: 'healthy',
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState<'overview' | 'users' | 'rewards' | 'withdrawals'>('overview');
+  const [activeSection, setActiveSection] = useState<'overview' | 'users' | 'rewards' | 'withdrawals' | 'translations'>('overview');
 
   useEffect(() => {
     loadDashboardStats();
@@ -311,6 +314,13 @@ export default function AdminDashboard() {
       description: 'Track and manage user withdrawals',
       permission: 'withdrawals.read',
     },
+    {
+      id: 'translations' as const,
+      label: 'Translation Management',
+      icon: Languages,
+      description: 'Manage multilingual content and translations',
+      permission: 'translations.read',
+    },
   ];
 
   return (
@@ -325,7 +335,7 @@ export default function AdminDashboard() {
 
       {/* Navigation Tabs */}
       <div className="border-b border-border">
-        <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-4'} gap-2 pb-4`}>
+        <div className={`grid ${isMobile ? 'grid-cols-2' : 'grid-cols-5'} gap-2 pb-4`}>
           {managementSections
             .filter(section => !section.permission || hasPermission(section.permission))
             .map((section) => (
@@ -474,6 +484,17 @@ export default function AdminDashboard() {
       {/* Withdrawal Management Section */}
       {activeSection === 'withdrawals' && hasPermission('withdrawals.read') && (
         <WithdrawalManagement />
+      )}
+
+      {/* Translation Management Section */}
+      {activeSection === 'translations' && hasPermission('translations.read') && (
+        <div className="space-y-6">
+          {/* Translation Mode Control */}
+          <TranslationModeControl />
+          
+          {/* Translation Management Interface */}
+          <TranslationManagement />
+        </div>
       )}
     </div>
   );

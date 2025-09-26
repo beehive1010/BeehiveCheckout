@@ -17,6 +17,9 @@ interface LayerStatsData {
   fillPercentage: number;
   activeMembers: number;
   completedPercentage: number;
+  activationRate?: number;
+  layerStatus?: 'completed' | 'active' | 'started' | 'empty';
+  isBalanced?: boolean;
 }
 
 interface MatrixLayerStatsViewProps {
@@ -95,6 +98,9 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
         fillPercentage: layer.fillPercentage || 0,
         activeMembers: layer.activeMembers || 0,
         completedPercentage: layer.completedPercentage || 0,
+        activationRate: layer.activationRate || 0,
+        layerStatus: layer.layerStatus || 'empty',
+        isBalanced: layer.isBalanced || false,
       })) || [];
 
       console.log('📊 Final layer stats:', layerStats);

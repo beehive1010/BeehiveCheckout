@@ -28,6 +28,46 @@ serve(async (req: Request) => {
     const { transactionHash, level = 1, action, referrerWallet, walletAddress: bodyWalletAddress, ...data } = requestBody;
     const headerWalletAddress = req.headers.get('x-wallet-address');
     const rawWalletAddress = headerWalletAddress || bodyWalletAddress;
+    
+    // Generate correlation ID for tracking related operations
+    const correlationId = `activation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Helper function for logging operations
+    const logOperation = async (
+      logLevel: 'info' | 'warning' | 'error' | 'critical',
+      category: string,
+      operationName: string,
+      status: 'success' | 'failure' | 'pending' | 'retry' = 'pending',
+      inputParams?: any,
+      outputResult?: any,
+      errorCode?: string,
+      errorMessage?: string,
+      errorDetails?: any,
+      durationMs?: number
+    ) => {
+      try {
+        await supabase.rpc('log_operation', {
+          p_log_level: logLevel,
+          p_category: category,
+          p_operation_name: operationName,
+          p_status: status,
+          p_wallet_address: walletAddress,
+          p_referrer_wallet: normalizedReferrerWallet,
+          p_function_name: 'activate-membership',
+          p_operation_data: null,
+          p_input_parameters: inputParams ? JSON.stringify(inputParams) : null,
+          p_output_result: outputResult ? JSON.stringify(outputResult) : null,
+          p_error_code: errorCode,
+          p_error_message: errorMessage,
+          p_error_details: errorDetails ? JSON.stringify(errorDetails) : null,
+          p_correlation_id: correlationId,
+          p_duration_ms: durationMs
+        });
+      } catch (logError) {
+        console.error('❌ Failed to log operation:', logError);
+      }
+    };
+    
     // 保持钱包地址的原始大小写，不要转换为小写
     const walletAddress = rawWalletAddress;
     let normalizedReferrerWallet = referrerWallet;
@@ -39,6 +79,10 @@ serve(async (req: Request) => {
     });
     if (!walletAddress) {
       console.error('❌ No wallet address found in headers or body');
+      await logOperation('error', 'validation', 'wallet_address_validation', 'failure', 
+        { headers: headerWalletAddress, body: bodyWalletAddress }, 
+        null, 'MISSING_WALLET_ADDRESS', 'No wallet address found in headers or body');
+      
       return new Response(JSON.stringify({
         success: false,
         error: 'Wallet address missing - please provide wallet address in x-wallet-address header or request body'
@@ -50,6 +94,10 @@ serve(async (req: Request) => {
         }
       });
     }
+    
+    // Log activation start
+    await logOperation('info', 'member_activation', 'activation_started', 'pending',
+      { transactionHash, level, referrerWallet, action });
     // Handle NFT ownership check action
     if (action === 'check-nft-ownership') {
       const targetLevel = level || 1;
@@ -283,30 +331,8 @@ serve(async (req: Request) => {
       console.log(`✅ New membership record created successfully: ${membership.wallet_address}`);
     }
     
-    // Step 4: FIRST create referrals_new record (权威推荐关系) - 必须在members记录之前
-    let referralRecord = null;
-    if (normalizedReferrerWallet && normalizedReferrerWallet !== '0x0000000000000000000000000000000000000001') {
-      try {
-        console.log(`🔗 Creating referrals_new record FIRST: ${userData.wallet_address} -> ${normalizedReferrerWallet}`);
-        
-        // Create referrals_new record for view consistency (权威来源)
-        const { error: referralNewError } = await supabase.from('referrals_new').insert({
-          referrer_wallet: normalizedReferrerWallet,
-          referred_wallet: userData.wallet_address,
-          created_at: new Date().toISOString()
-        });
-        
-        if (referralNewError && !referralNewError.message?.includes('duplicate')) {
-          console.warn('⚠️ Failed to create referrals_new record:', referralNewError);
-        } else {
-          console.log(`✅ Referrals_new record created FIRST: ${userData.wallet_address} -> ${normalizedReferrerWallet}`);
-        }
-      } catch (referralErr) {
-        console.warn('⚠️ Referrals_new creation error (non-critical):', referralErr);
-      }
-    }
-    
-    // Step 5: Now create members record (after referrals_new exists)
+    // Step 4: Create members record FIRST (required for referrals_new foreign key constraints)
+    // Step 5: Then create referrals_new record AFTER members record exists
     let memberRecord = null;
     try {
       console.log(`👥 Creating members record AFTER referrals_new: ${walletAddress}`);
@@ -466,14 +492,21 @@ serve(async (req: Request) => {
           
           if (memberError) {
             console.error('❌ Failed to create members record:', memberError);
+            await logOperation('error', 'member_activation', 'members_record_creation', 'failure',
+              memberData, null, 'MEMBER_CREATION_ERROR', memberError.message, memberError);
             throw new Error(`Failed to create members record: ${memberError.message}`);
           } else {
             memberRecord = newMember;
             console.log(`✅ Members record created successfully: ${memberRecord.wallet_address} with referrer: ${memberRecord.referrer_wallet}`);
+            await logOperation('info', 'member_activation', 'members_record_creation', 'success',
+              memberData, memberRecord);
             
             // 验证referrer是否正确保存
             if (normalizedReferrerWallet && !memberRecord.referrer_wallet) {
               console.error(`🚨 CRITICAL: Referrer lost during member creation! Expected: ${normalizedReferrerWallet}, Got: ${memberRecord.referrer_wallet}`);
+              await logOperation('critical', 'member_activation', 'referrer_validation', 'failure',
+                { expected: normalizedReferrerWallet, actual: memberRecord.referrer_wallet },
+                null, 'REFERRER_LOST', 'Referrer wallet lost during member creation');
             }
           }
         } catch (memberCreateError) {
@@ -486,37 +519,135 @@ serve(async (req: Request) => {
       throw memberErr;
     }
     
-    // Step 6: Advanced matrix placement AFTER members record is safely created
+    // Step 5: Create referrals_new record AFTER members record exists (for foreign key constraints)
+    let referralRecord = null;
     if (normalizedReferrerWallet && normalizedReferrerWallet !== '0x0000000000000000000000000000000000000001' && memberRecord) {
       try {
-        console.log(`📐 Starting ADVANCED matrix placement (separate from members creation): ${walletAddress} -> ${normalizedReferrerWallet}`);
+        console.log(`🔗 Creating referrals_new record AFTER members: ${userData.wallet_address} -> ${normalizedReferrerWallet}`);
         
-        // 🔧 NEW: Use our improved matrix placement function
-        const advancedPlacementResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/matrix-fix`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            action: 'place_member_advanced',
-            memberWallet: userData.wallet_address,
-            referrerWallet: normalizedReferrerWallet
-          })
+        // 🔧 FIXED: Use UPSERT after members record exists to satisfy foreign key constraints
+        const { data: referralNewData, error: referralNewError } = await supabase.from('referrals_new').upsert({
+          referrer_wallet: normalizedReferrerWallet,
+          referred_wallet: userData.wallet_address,
+          created_at: new Date().toISOString()
+        }, {
+          onConflict: 'referred_wallet'  // Update if exists, insert if not
+        }).select();
+        
+        if (referralNewError) {
+          console.warn('⚠️ Failed to upsert referrals_new record:', referralNewError);
+          await logOperation('warning', 'referral_processing', 'referrals_new_creation', 'failure',
+            { referrer_wallet: normalizedReferrerWallet, referred_wallet: userData.wallet_address },
+            null, 'REFERRALS_NEW_ERROR', referralNewError.message, referralNewError);
+        } else {
+          console.log(`✅ Referrals_new record upserted successfully: ${userData.wallet_address} -> ${normalizedReferrerWallet}`);
+          referralRecord = referralNewData?.[0] || null;
+          await logOperation('info', 'referral_processing', 'referrals_new_creation', 'success',
+            { referrer_wallet: normalizedReferrerWallet, referred_wallet: userData.wallet_address },
+            referralRecord);
+          
+          // 🔧 CRITICAL: Verify the record was actually created/updated
+          const { data: verifyReferral, error: verifyError } = await supabase
+            .from('referrals_new')
+            .select('referrer_wallet, referred_wallet, created_at')
+            .eq('referred_wallet', userData.wallet_address)
+            .single();
+            
+          if (verifyError || !verifyReferral) {
+            console.error(`🚨 CRITICAL: Failed to verify referrals_new record after upsert!`, verifyError);
+            await logOperation('critical', 'referral_processing', 'referrals_new_verification', 'failure',
+              { referred_wallet: userData.wallet_address }, null, 'VERIFICATION_FAILED', 'Failed to verify referrals_new record', verifyError);
+          } else {
+            console.log(`✅ Verified referrals_new record: ${verifyReferral.referred_wallet} -> ${verifyReferral.referrer_wallet}`);
+          }
+        }
+      } catch (referralErr) {
+        console.error('❌ Referrals_new creation error (CRITICAL for consistency):', referralErr);
+        await logOperation('critical', 'referral_processing', 'referrals_new_creation', 'failure',
+          { referrer_wallet: normalizedReferrerWallet, referred_wallet: userData.wallet_address },
+          null, 'REFERRALS_NEW_CRITICAL_ERROR', referralErr.message, referralErr);
+        // Don't throw error, but make sure this is logged for debugging
+      }
+    }
+    
+    // Step 6: SMART matrix placement AFTER members record is safely created
+    if (normalizedReferrerWallet && normalizedReferrerWallet !== '0x0000000000000000000000000000000000000001' && memberRecord) {
+      try {
+        console.log(`📐 Starting SMART matrix placement: ${userData.wallet_address} -> ${normalizedReferrerWallet}`);
+        
+        // 🔧 UPDATED: Use smart matrix placement algorithm with intelligent position finding
+        const { data: matrixPlacementResult, error: matrixPlacementError } = await supabase.rpc('place_member_matrix_smart', {
+          p_member_wallet: userData.wallet_address,
+          p_referrer_wallet: normalizedReferrerWallet
         });
         
-        const advancedPlacementResult = await advancedPlacementResponse.json();
-        
-        if (advancedPlacementResult.success) {
-          console.log(`✅ ADVANCED matrix placement succeeded:`, advancedPlacementResult.placement);
-          referralRecord = advancedPlacementResult.placement;
+        if (matrixPlacementError || !matrixPlacementResult?.success) {
+          console.warn('⚠️ Smart matrix placement failed, trying alternative:', matrixPlacementError?.message || matrixPlacementResult?.error);
+          await logOperation('warning', 'matrix_placement', 'smart_matrix_placement', 'failure',
+            { member_wallet: userData.wallet_address, referrer_wallet: normalizedReferrerWallet },
+            matrixPlacementResult, 'SMART_PLACEMENT_FAILED', 
+            matrixPlacementError?.message || matrixPlacementResult?.error, matrixPlacementError);
+          
+          // 🔧 FALLBACK: If smart placement fails, try the complete algorithm
+          try {
+            console.log('🔧 Attempting alternative matrix placement...');
+            
+            const { data: completeResult, error: completeError } = await supabase.rpc('place_member_matrix_complete', {
+              p_member_wallet: userData.wallet_address,
+              p_referrer_wallet: normalizedReferrerWallet
+            });
+            
+            if (!completeError && completeResult?.success) {
+              console.log('✅ Alternative matrix placement succeeded');
+              await logOperation('info', 'matrix_placement', 'complete_matrix_placement', 'success',
+                { member_wallet: userData.wallet_address, referrer_wallet: normalizedReferrerWallet },
+                completeResult);
+              referralRecord = completeResult;
+            } else {
+              console.warn('⚠️ All matrix placement methods failed');
+              await logOperation('error', 'matrix_placement', 'complete_matrix_placement', 'failure',
+                { member_wallet: userData.wallet_address, referrer_wallet: normalizedReferrerWallet },
+                completeResult, 'COMPLETE_PLACEMENT_FAILED', completeError?.message, completeError);
+              
+              // Check if member already has placement from a previous attempt
+              const { data: existingMatrix, error: checkError } = await supabase
+                .from('matrix_referrals')
+                .select('*')
+                .eq('member_wallet', userData.wallet_address)
+                .maybeSingle();
+                
+              if (!checkError && existingMatrix) {
+                console.log('✅ Found existing matrix placement from previous attempt');
+                await logOperation('info', 'matrix_placement', 'existing_placement_found', 'success',
+                  { member_wallet: userData.wallet_address }, existingMatrix);
+                referralRecord = { 
+                  method: 'existing_placement', 
+                  success: true,
+                  placement_data: existingMatrix
+                };
+              } else {
+                console.error('❌ Matrix placement completely failed - this should be investigated');
+                await logOperation('critical', 'matrix_placement', 'all_placements_failed', 'failure',
+                  { member_wallet: userData.wallet_address, referrer_wallet: normalizedReferrerWallet },
+                  null, 'ALL_PLACEMENTS_FAILED', 'All matrix placement methods failed and no existing placement found');
+              }
+            }
+          } catch (fallbackError) {
+            console.error('❌ Matrix placement fallback error:', fallbackError);
+            await logOperation('error', 'matrix_placement', 'fallback_error', 'failure',
+              { member_wallet: userData.wallet_address, referrer_wallet: normalizedReferrerWallet },
+              null, 'FALLBACK_ERROR', fallbackError.message, fallbackError);
+          }
         } else {
-          console.warn('⚠️ ADVANCED matrix placement failed, but members record is SAFE:', advancedPlacementResult.error);
-          // 重要：矩阵安置失败不影响会员激活，用户依然可以正常使用
+          console.log(`✅ SMART matrix placement succeeded:`, matrixPlacementResult);
+          await logOperation('info', 'matrix_placement', 'smart_matrix_placement', 'success',
+            { member_wallet: userData.wallet_address, referrer_wallet: normalizedReferrerWallet },
+            matrixPlacementResult);
+          referralRecord = matrixPlacementResult;
         }
       } catch (matrixErr) {
-        console.warn('⚠️ Advanced matrix placement error (non-critical, members record is SAFE):', matrixErr);
-        // 矩阵安置失败不影响会员激活状态
+        console.error('❌ Matrix placement critical error (members record is SAFE):', matrixErr);
+        // 矩阵安置失败不影响会员激活状态，但需要记录错误
       }
     }
     // Matrix placement was already done in Step 6
@@ -749,6 +880,10 @@ serve(async (req: Request) => {
       },
       transactionHash
     };
+    // Log successful activation completion
+    await logOperation('info', 'member_activation', 'activation_completed', 'success',
+      { transactionHash, level, referrerWallet }, responseData.result);
+    
     console.log(`🎉 Activation completed successfully for: ${walletAddress}`);
     return new Response(JSON.stringify(responseData), {
       headers: {
@@ -759,6 +894,15 @@ serve(async (req: Request) => {
     });
   } catch (error) {
     console.error('❌ Activation function error:', error);
+    
+    // Log critical activation failure
+    try {
+      await logOperation('critical', 'member_activation', 'activation_failed', 'failure',
+        { transactionHash, level, referrerWallet }, null, 'ACTIVATION_ERROR', error.message, error);
+    } catch (logErr) {
+      console.error('❌ Failed to log activation error:', logErr);
+    }
+    
     return new Response(JSON.stringify({
       success: false,
       error: `Activation failed: ${error.message}`,

@@ -1,5 +1,6 @@
 import {serve} from "https://deno.land/std@0.168.0/http/server.ts"
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2'
+import {EdgeFunctionLogger, PerformanceTimer} from '../shared/logger.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,6 +16,9 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  let logger: EdgeFunctionLogger
+  let timer: PerformanceTimer
+
   try {
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -27,30 +31,59 @@ serve(async (req) => {
       }
     )
 
+    // Initialize logger and performance timer
+    logger = new EdgeFunctionLogger(supabase, 'withdrawal')
+    timer = new PerformanceTimer('withdrawal-request', logger)
+
     const body = await req.json()
     const { action, amount, recipientAddress, sourceChainId, targetChainId, selectedToken, memberWallet, targetTokenSymbol } = body
     
+    console.log('💰 Withdrawal request:', { action, amount, recipientAddress, targetChainId, memberWallet, targetTokenSymbol })
+    
+    await logger.logInfo('withdrawal-request-started', 'wallet_operations', {
+      action,
+      amount,
+      recipientAddress,
+      targetChainId,
+      memberWallet,
+      targetTokenSymbol
+    })
+    
     if (action !== 'process-withdrawal') {
+      await logger.logValidationError('invalid-action', `Invalid action: ${action}`, { action })
       throw new Error('Invalid action')
     }
 
-    console.log('🔄 Processing withdrawal:', { amount, recipientAddress, targetChainId, memberWallet })
-
     // Validate inputs
     if (!amount || !recipientAddress || !targetChainId || !memberWallet) {
+      await logger.logValidationError('missing-parameters', 'Missing required parameters', {
+        amount: !!amount,
+        recipientAddress: !!recipientAddress,
+        targetChainId: !!targetChainId,
+        memberWallet: !!memberWallet
+      })
       throw new Error('Missing required parameters')
     }
 
     // Validate wallet address format
     if (!/^0x[a-fA-F0-9]{40}$/.test(recipientAddress)) {
+      await logger.logValidationError('invalid-wallet-format', 'Invalid recipient wallet address format', { recipientAddress })
       throw new Error('Invalid recipient wallet address format')
     }
 
     // Validate amount
     const withdrawalAmount = parseFloat(amount.toString())
     if (withdrawalAmount <= 0) {
+      await logger.logValidationError('invalid-amount', 'Invalid withdrawal amount', { amount, withdrawalAmount })
       throw new Error('Invalid withdrawal amount')
     }
+    
+    console.log(`✅ Validation passed: ${withdrawalAmount} USDT to ${recipientAddress}`)
+    await logger.logInfo('validation-passed', 'wallet_operations', {
+      withdrawalAmount,
+      recipientAddress,
+      targetChainId
+    })
 
     // Get withdrawal fee for target chain
     const WITHDRAWAL_FEES: { [key: number]: number } = {
@@ -65,20 +98,54 @@ serve(async (req) => {
     const fee = WITHDRAWAL_FEES[targetChainId] || 2.0
     const netAmount = withdrawalAmount - fee
 
+    console.log(`💰 Fee calculation: ${withdrawalAmount} - ${fee} = ${netAmount}`)
+    await logger.logInfo('fee-calculated', 'wallet_operations', {
+      withdrawalAmount,
+      fee,
+      netAmount,
+      targetChainId
+    })
+
     if (netAmount <= 0) {
+      await logger.logValidationError('amount-too-small', `Amount too small: ${withdrawalAmount}, required minimum: ${fee + 0.01}`, {
+        withdrawalAmount,
+        fee,
+        netAmount
+      })
       throw new Error(`Amount too small. Minimum withdrawal is ${fee + 0.01} USDT (including ${fee} USDT fee)`)
     }
 
     // Verify user has sufficient balance
-    const { data: userBalance } = await supabase
+    console.log(`🔍 Checking balance for wallet: ${memberWallet}`)
+    const { data: userBalance, error: balanceError } = await supabase
       .from('user_balances')
-      .select('reward_balance')
+      .select('reward_balance, available_balance, total_earned')
       .ilike('wallet_address', memberWallet)
       .single()
 
+    if (balanceError) {
+      console.error('❌ Balance check error:', balanceError)
+      await logger.logDatabaseError('balance-check-failed', balanceError, { memberWallet })
+      throw new Error('Failed to check user balance')
+    }
+
     if (!userBalance || (userBalance.reward_balance || 0) < withdrawalAmount) {
+      console.error(`❌ Insufficient balance: ${userBalance?.reward_balance || 0} < ${withdrawalAmount}`)
+      await logger.logWarning('insufficient-balance', 'wallet_operations', 'Insufficient balance for withdrawal', {
+        memberWallet,
+        requestedAmount: withdrawalAmount,
+        availableBalance: userBalance?.reward_balance || 0
+      })
       throw new Error('Insufficient balance')
     }
+    
+    console.log(`✅ Balance sufficient: ${userBalance.reward_balance} >= ${withdrawalAmount}`)
+    await logger.logInfo('balance-verified', 'wallet_operations', {
+      memberWallet,
+      rewardBalance: userBalance.reward_balance,
+      withdrawalAmount,
+      netAmount
+    })
 
     // Multi-token support: Native tokens and ERC20 tokens by chain
     const SUPPORTED_TOKENS: { [key: number]: { [symbol: string]: any } } = {
@@ -156,6 +223,14 @@ serve(async (req) => {
       // Direct transfer on same chain with same token
       console.log('🔄 Direct transfer on same chain using thirdweb wallets/send API')
       
+      await logger.logInfo('direct-transfer-initiated', 'api_calls', {
+        transferType: 'direct',
+        targetChainId,
+        targetToken: targetTokenInfo.symbol,
+        netAmount,
+        recipientAddress
+      })
+      
       const amountInWei = calculateAmountWithDecimals(netAmount, targetTokenInfo.decimals)
       
       // Prepare request body - omit tokenAddress for native tokens
@@ -175,6 +250,8 @@ serve(async (req) => {
         requestBody.tokenAddress = targetTokenAddress
       }
 
+      console.log('🚀 Calling thirdweb wallets/send API:', JSON.stringify(requestBody, null, 2))
+      
       const walletResponse = await fetch('https://api.thirdweb.com/v1/wallets/send', {
         method: 'POST',
         headers: {
@@ -187,11 +264,19 @@ serve(async (req) => {
 
       if (!walletResponse.ok) {
         const errorText = await walletResponse.text()
+        console.error(`❌ Thirdweb API error: ${walletResponse.status}`, errorText)
+        await logger.logAPICall('thirdweb-wallets-send', false, null, { 
+          status: walletResponse.status, 
+          error: errorText,
+          requestBody 
+        })
         throw new Error(`Thirdweb wallets API failed: ${walletResponse.status} ${errorText}`)
       }
 
       const walletData = await walletResponse.json()
       console.log('🔍 Wallet API Response:', JSON.stringify(walletData, null, 2))
+      
+      await logger.logAPICall('thirdweb-wallets-send', true, walletData)
       
       // Handle different response formats
       let queueId = null
@@ -206,8 +291,13 @@ serve(async (req) => {
       }
       
       if (!queueId) {
+        console.error('❌ No queue ID found in response:', walletData)
+        await logger.logError('thirdweb-queue-id-missing', 'api_calls', `No queue ID found in thirdweb response`, 'QUEUE_ID_MISSING', walletData)
         throw new Error(`Thirdweb wallets API error: ${JSON.stringify(walletData)}`)
       }
+      
+      console.log(`✅ Direct transfer queue ID: ${queueId}`)
+      await logger.logInfo('direct-transfer-queued', 'api_calls', { queueId, netAmount, recipientAddress })
 
       result = {
         transactionHash: queueId, // Use the resolved queueId
@@ -317,7 +407,18 @@ serve(async (req) => {
     // Record withdrawal in database
     const withdrawalId = `wd_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
     
-    await supabase.from('withdrawal_requests').insert({
+    console.log(`💾 Recording withdrawal in database: ${withdrawalId}`)
+    await logger.logInfo('withdrawal-record-created', 'database_operations', {
+      withdrawalId,
+      memberWallet,
+      withdrawalAmount,
+      netAmount,
+      fee,
+      targetChainId,
+      isCrossChain: result.bridged
+    })
+    
+    const { error: insertError } = await supabase.from('withdrawal_requests').insert({
       id: withdrawalId,
       user_wallet: recipientAddress,
       amount: withdrawalAmount.toString(),
@@ -355,29 +456,65 @@ serve(async (req) => {
         target_currency: targetTokenInfo.symbol
       }
     })
+    
+    if (insertError) {
+      console.error('❌ Database insert error:', insertError)
+      await logger.logDatabaseError('withdrawal-record-insert-failed', insertError, { withdrawalId })
+      throw new Error('Failed to record withdrawal in database')
+    }
 
     // Update user balance
+    console.log(`💰 Updating user balance for: ${memberWallet}`)
     const currentRewardBalance = userBalance.reward_balance || 0
-    const { data: currentBalanceData } = await supabase
+    const { data: currentBalanceData, error: balanceQueryError } = await supabase
       .from('user_balances')
       .select('total_withdrawn')
       .ilike('wallet_address', memberWallet)
       .single()
     
-    const currentWithdrawn = currentBalanceData?.total_withdrawn || 0
+    if (balanceQueryError) {
+      console.error('❌ Balance query error:', balanceQueryError)
+      await logger.logDatabaseError('balance-query-error', balanceQueryError, { memberWallet })
+    }
     
-    await supabase
+    const currentWithdrawn = currentBalanceData?.total_withdrawn || 0
+    const newRewardBalance = Math.max(0, currentRewardBalance - withdrawalAmount)
+    const newTotalWithdrawn = currentWithdrawn + withdrawalAmount
+    
+    console.log(`💰 Balance update: reward ${currentRewardBalance} -> ${newRewardBalance}, withdrawn ${currentWithdrawn} -> ${newTotalWithdrawn}`)
+    
+    const { error: balanceUpdateError } = await supabase
       .from('user_balances')
       .update({
-        reward_balance: Math.max(0, currentRewardBalance - withdrawalAmount),
-        total_withdrawn: currentWithdrawn + withdrawalAmount,
+        reward_balance: newRewardBalance,
+        total_withdrawn: newTotalWithdrawn,
         updated_at: new Date().toISOString(),
       })
       .ilike('wallet_address', memberWallet)
+      
+    if (balanceUpdateError) {
+      console.error('❌ Balance update error:', balanceUpdateError)
+      await logger.logDatabaseError('balance-update-failed', balanceUpdateError, { 
+        memberWallet, 
+        newRewardBalance, 
+        newTotalWithdrawn 
+      })
+      throw new Error('Failed to update user balance')
+    }
+    
+    console.log(`✅ Balance updated successfully`)
+    await logger.logInfo('balance-updated', 'wallet_operations', {
+      memberWallet,
+      previousRewardBalance: currentRewardBalance,
+      newRewardBalance,
+      withdrawalAmount,
+      newTotalWithdrawn
+    })
 
     console.log('✅ Withdrawal processed successfully:', withdrawalId)
 
-    return new Response(JSON.stringify({
+    // Final success response
+    const responseData = {
       success: true,
       transaction_hash: result.transactionHash,
       swap_queue_id: result.swapQueueId,
@@ -406,17 +543,50 @@ serve(async (req) => {
       message: result.bridged ? 
         `跨链提现已启动：${withdrawalAmount} ${sourceToken.symbol} → ${netAmount} ${targetTokenInfo.symbol}（扣除 ${fee} USDT 手续费）` :
         `直接提现已启动：${netAmount} ${targetTokenInfo.symbol}（扣除 ${fee} USDT 手续费）`
-    }), {
+    }
+    
+    // Complete performance timer and log final success
+    await timer.end('wallet_operations', true, responseData)
+    
+    await logger.logSuccess('withdrawal-completed', 'wallet_operations', {
+      withdrawalId,
+      memberWallet,
+      recipientAddress,
+      withdrawalAmount,
+      netAmount,
+      fee,
+      targetChainId,
+      targetToken: targetTokenInfo.symbol,
+      transactionHash: result.transactionHash,
+      isCrossChain: result.bridged
+    })
+
+    return new Response(JSON.stringify(responseData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200
     })
 
   } catch (error: any) {
-    console.error('Withdrawal error:', error)
+    console.error('❌ Withdrawal function error:', error)
+    
+    // Log critical error if logger is available
+    if (logger) {
+      await logger.logCritical('withdrawal-function-error', 'wallet_operations', error, 'WITHDRAWAL_ERROR', {
+        errorMessage: error.message,
+        errorStack: error.stack
+      })
+      
+      // Complete timer with error if available
+      if (timer) {
+        await timer.end('wallet_operations', false, null, error)
+      }
+    }
+    
     return new Response(JSON.stringify({ 
       success: false,
       error: error.message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      details: error instanceof Error ? error.message : String(error)
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500

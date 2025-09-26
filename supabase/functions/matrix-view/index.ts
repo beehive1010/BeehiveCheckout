@@ -62,19 +62,26 @@ serve(async (req: Request) => {
 
       console.log('📊 Enhanced stats data:', statsData)
 
-      // Try to get matrix layers data, with fallback if view doesn't exist
+      // Get matrix layers data from updated matrix_layer_view
       let matrixData = null;
       let matrixError = null;
       
       try {
         const result = await supabase
-          .from('matrix_layers_view')
+          .from('matrix_layer_view')
           .select(`
             layer,
             filled_slots,
             empty_slots,
             max_slots,
-            completion_rate
+            left_members,
+            middle_members,
+            right_members,
+            activated_members,
+            completion_rate,
+            activation_rate,
+            layer_status,
+            is_balanced
           `)
           .eq('matrix_root_wallet', walletAddress)
           .order('layer');
@@ -82,7 +89,7 @@ serve(async (req: Request) => {
         matrixData = result.data;
         matrixError = result.error;
       } catch (error) {
-        console.log('matrix_layers_view not available, using fallback calculation');
+        console.log('matrix_layer_view not available, using fallback calculation');
         matrixError = error;
       }
 
@@ -96,13 +103,13 @@ serve(async (req: Request) => {
       console.log(`📊 Matrix layer data for ${walletAddress}:`, matrixData)
       console.log(`📊 Matrix layer data retrieved: ${matrixData?.length || 0} layers`)
 
-      // Get detailed member positions for L/M/R breakdown from matrix_referrals_tree_view (now shows complete 19-layer data)
+      // Get detailed member positions for L/M/R breakdown from matrix_referrals_tree_view if matrix_layer_view data is incomplete
       const { data: membersData } = await supabase
         .from('matrix_referrals_tree_view')
         .select('layer, position')
         .eq('matrix_root_wallet', walletAddress)
 
-      // Count positions by layer
+      // Count positions by layer as fallback
       const positionCounts: any = {}
       membersData?.forEach(member => {
         if (!positionCounts[member.layer]) {
@@ -113,7 +120,7 @@ serve(async (req: Request) => {
         }
       })
 
-      // Transform data from matrix_layers_view
+      // Transform data from matrix_layer_view (optimized)
       const completeStats = []
       
       // Initialize all 19 layers
@@ -122,36 +129,42 @@ serve(async (req: Request) => {
         const posData = positionCounts[layer] || { L: 0, M: 0, R: 0 }
         
         if (layerData) {
-          // Manual percentage calculation to avoid database view issues
+          // Use data directly from matrix_layer_view (already calculated)
           const totalMembers = layerData.filled_slots || 0;
-          // Use database max_slots if available, otherwise calculate properly for 3x3 matrix
-          const maxCapacity = layerData.max_slots || Math.pow(3, layer); // Full 3^layer calculation for all 19 layers
-          const calculatedPercentage = maxCapacity > 0 ? (totalMembers / maxCapacity) * 100 : 0;
-          const safePercentage = Math.min(Math.max(calculatedPercentage, 0), 100); // Clamp between 0-100
+          const maxCapacity = layerData.max_slots || Math.pow(3, layer);
+          const fillPercentage = layerData.completion_rate || 0;
+          const activationRate = layerData.activation_rate || 0;
           
-          console.log(`🔍 Layer ${layer} calculation:`, {
+          console.log(`🔍 Layer ${layer} from matrix_layer_view:`, {
             totalMembers,
             maxCapacity,
-            calculatedPercentage,
-            safePercentage,
-            db_completion_rate: layerData.completion_rate
+            fillPercentage,
+            activationRate,
+            leftMembers: layerData.left_members,
+            middleMembers: layerData.middle_members,
+            rightMembers: layerData.right_members,
+            layer_status: layerData.layer_status,
+            is_balanced: layerData.is_balanced
           });
           
           completeStats.push({
             layer: layerData.layer,
             totalMembers: totalMembers,
-            leftMembers: posData.L,
-            middleMembers: posData.M,
-            rightMembers: posData.R,
+            leftMembers: layerData.left_members || 0,
+            middleMembers: layerData.middle_members || 0,
+            rightMembers: layerData.right_members || 0,
             maxCapacity: maxCapacity,
-            fillPercentage: safePercentage,
-            activeMembers: totalMembers, // All filled slots are considered active
-            completedPercentage: safePercentage,
-            emptySlots: Math.max(maxCapacity - totalMembers, 0)
+            fillPercentage: fillPercentage,
+            activeMembers: layerData.activated_members || 0,
+            completedPercentage: fillPercentage, // Use completion_rate as fill percentage
+            emptySlots: layerData.empty_slots || 0,
+            activationRate: activationRate,
+            layerStatus: layerData.layer_status || 'empty',
+            isBalanced: layerData.is_balanced || false
           })
         } else {
-          // Layer not in view - calculate from position data
-          const maxCapacity = Math.pow(3, layer); // Full 3^layer calculation for all 19 layers
+          // Layer not in matrix_layer_view - use fallback calculation
+          const maxCapacity = Math.pow(3, layer);
           const totalMembers = posData.L + posData.M + posData.R;
           const calculatedPercentage = maxCapacity > 0 ? (totalMembers / maxCapacity) * 100 : 0;
           const safePercentage = Math.min(Math.max(calculatedPercentage, 0), 100);
@@ -174,7 +187,10 @@ serve(async (req: Request) => {
             fillPercentage: safePercentage,
             activeMembers: totalMembers,
             completedPercentage: safePercentage,
-            emptySlots: Math.max(maxCapacity - totalMembers, 0)
+            emptySlots: Math.max(maxCapacity - totalMembers, 0),
+            activationRate: totalMembers > 0 ? 100 : 0,
+            layerStatus: totalMembers > 0 ? 'active' : 'empty',
+            isBalanced: Math.abs(posData.L - posData.M) <= 1 && Math.abs(posData.M - posData.R) <= 1
           })
         }
       }

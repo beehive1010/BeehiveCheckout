@@ -303,7 +303,7 @@ export default function USDTWithdrawal() {
           </Select>
         </div>
 
-        {/* Token Selection */}
+        {/* Token Selection - 根据选择的链动态显示可用代币 */}
         <div className="space-y-2">
           <Label htmlFor="target-token" className="text-sm font-medium">
             {t('withdrawal.target_token')}
@@ -313,6 +313,7 @@ export default function USDTWithdrawal() {
               <SelectValue placeholder={t('withdrawal.select_target_token')} />
             </SelectTrigger>
             <SelectContent>
+              {/* 始终支持 USDT */}
               <SelectItem value="USDT">
                 <div className="flex items-center gap-2">
                   <span>💰</span>
@@ -320,29 +321,41 @@ export default function USDTWithdrawal() {
                   <Badge variant="outline">Stablecoin</Badge>
                 </div>
               </SelectItem>
-              <SelectItem value="BNB">
-                <div className="flex items-center gap-2">
-                  <span>🟡</span>
-                  <span>BNB</span>
-                  <Badge variant="outline">Native Token</Badge>
-                </div>
-              </SelectItem>
-              <SelectItem value="ETH">
-                <div className="flex items-center gap-2">
-                  <span>🔷</span>
-                  <span>ETH</span>
-                  <Badge variant="outline">Native Token</Badge>
-                </div>
-              </SelectItem>
-              <SelectItem value="MATIC">
-                <div className="flex items-center gap-2">
-                  <span>🟣</span>
-                  <span>MATIC</span>
-                  <Badge variant="outline">Native Token</Badge>
-                </div>
-              </SelectItem>
+              
+              {/* 根据选择的链显示原生代币 */}
+              {targetChainInfo?.native && (
+                <SelectItem value={targetChainInfo.symbol}>
+                  <div className="flex items-center gap-2">
+                    <span>{targetChainInfo.icon}</span>
+                    <span>{targetChainInfo.symbol}</span>
+                    <Badge className="bg-honey text-black">Native Token</Badge>
+                    {parseInt(targetChain) !== 42161 && (
+                      <Badge variant="outline" className="text-xs">Cross-chain</Badge>
+                    )}
+                  </div>
+                </SelectItem>
+              )}
+
+              {/* USDC 支持 */}
+              {[1, 137, 42161, 10, 8453].includes(parseInt(targetChain)) && (
+                <SelectItem value="USDC">
+                  <div className="flex items-center gap-2">
+                    <span>🔵</span>
+                    <span>USDC</span>
+                    <Badge variant="outline">Stablecoin</Badge>
+                  </div>
+                </SelectItem>
+              )}
             </SelectContent>
           </Select>
+          
+          {/* 代币切换提示 */}
+          {selectedToken !== 'USDT' && (
+            <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 p-2 rounded-lg">
+              <Zap className="h-3 w-3 inline mr-1" />
+              Cross-chain conversion: USDT → {selectedToken} on {targetChainInfo?.name}
+            </div>
+          )}
         </div>
 
         {/* Amount Input */}

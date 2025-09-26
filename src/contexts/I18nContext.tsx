@@ -1,13 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../lib/supabaseClient';
-// Import JSON translations as fallback
-import enTranslations from '../translations/en.json';
-import zhTranslations from '../translations/zh.json';
-import zhTwTranslations from '../translations/zh-tw.json';
-import thTranslations from '../translations/th.json';
-import msTranslations from '../translations/ms.json';
-import koTranslations from '../translations/ko.json';
-import jaTranslations from '../translations/ja.json';
+import React, {createContext, useContext, useEffect, useState} from 'react';
+import {hybridI18nService} from '../lib/services/hybridI18nService';
 
 type Language = 'en' | 'zh' | 'zh-tw' | 'th' | 'ms' | 'ko' | 'ja';
 
@@ -16,6 +8,9 @@ interface I18nContextType {
   setLanguage: (lang: Language) => void;
   t: (key: string, interpolations?: Record<string, string | number>) => string;
   languages: { code: Language; name: string }[];
+  useLocalOnly: boolean;
+  setLocalOnlyMode: (localOnly: boolean) => void;
+  refreshTranslations: () => Promise<void>;
 }
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
@@ -25,147 +20,132 @@ const languageOptions = [
   { code: 'zh' as Language, name: '中文简体' },
   { code: 'zh-tw' as Language, name: '中文繁體' },
   { code: 'th' as Language, name: 'ไทย' },
-  { code: 'ms' as Language, name: 'Malay' },
+  { code: 'ms' as Language, name: 'Bahasa Malaysia' },
   { code: 'ko' as Language, name: '한국어' },
   { code: 'ja' as Language, name: '日本語' },
 ];
 
-// Helper function to flatten nested JSON objects
-const flattenTranslations = (obj: any, prefix = ''): Record<string, string> => {
-  const flattened: Record<string, string> = {};
-  
-  for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      const newKey = prefix ? `${prefix}.${key}` : key;
-      
-      if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
-        Object.assign(flattened, flattenTranslations(obj[key], newKey));
-      } else {
-        flattened[newKey] = String(obj[key]);
-      }
-    }
-  }
-  
-  return flattened;
-};
-
-// JSON fallback translations (flattened)
-const jsonTranslations: Record<Language, Record<string, string>> = {
-  en: flattenTranslations(enTranslations),
-  zh: flattenTranslations(zhTranslations),
-  'zh-tw': flattenTranslations(zhTwTranslations),
-  th: flattenTranslations(thTranslations),
-  ms: flattenTranslations(msTranslations),
-  ko: flattenTranslations(koTranslations),
-  ja: flattenTranslations(jaTranslations)
-};
-
 const I18nProvider = ({ children }: { children: React.ReactNode }) => {
   const [language, setLanguageState] = useState<Language>('en');
-  const [translations, setTranslations] = useState<Record<Language, Record<string, string>>>(jsonTranslations);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [useLocalOnly, setUseLocalOnly] = useState(false);
 
-  // Load translations from database and merge with JSON fallbacks
-  const loadTranslations = async () => {
+  // Get supported languages from hybrid service
+  const getSupportedLanguages = () => {
+    return hybridI18nService.getSupportedLanguages();
+  };
+
+  // Load translations using hybrid strategy (local + database)
+  const loadHybridTranslations = async (forceReload = false) => {
+    if (useLocalOnly) {
+      console.log('🌍 Using local-only translations mode');
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('app_translations')
-        .select('translation_key, language_code, translated_text');
-
-      if (error) {
-        console.error('Error loading translations from database:', error);
-        // Use JSON translations as fallback if database fails
-        console.log('🌍 Using JSON fallback translations');
-        setIsLoading(false);
-        return;
-      }
-
-      // Start with JSON translations as base
-      const mergedTranslations: Record<Language, Record<string, string>> = {
-        en: { ...jsonTranslations.en },
-        zh: { ...jsonTranslations.zh },
-        'zh-tw': { ...jsonTranslations['zh-tw'] },
-        th: { ...jsonTranslations.th },
-        ms: { ...jsonTranslations.ms },
-        ko: { ...jsonTranslations.ko },
-        ja: { ...jsonTranslations.ja }
-      };
-
-      // Override with database translations
-      data?.forEach(item => {
-        const lang = item.language_code as Language;
-        if (mergedTranslations[lang]) {
-          mergedTranslations[lang][item.translation_key] = item.translated_text;
-        }
-      });
-
-      setTranslations(mergedTranslations);
-      console.log(`🌍 Loaded translations (DB + JSON fallback):`, {
-        en: Object.keys(mergedTranslations.en).length,
-        zh: Object.keys(mergedTranslations.zh).length,
-        'zh-tw': Object.keys(mergedTranslations['zh-tw']).length,
-        th: Object.keys(mergedTranslations.th).length,
-        ms: Object.keys(mergedTranslations.ms).length,
-        ko: Object.keys(mergedTranslations.ko).length,
-        ja: Object.keys(mergedTranslations.ja).length
-      });
+      await hybridI18nService.getTranslationsForLanguage(language, forceReload);
+      console.log(`🌍 Loaded hybrid translations for ${language}`);
     } catch (error) {
-      console.error('Failed to load translations:', error);
-      // Use JSON translations as fallback if anything fails
-      console.log('🌍 Using JSON fallback translations due to error');
+      console.error('Failed to load hybrid translations:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Initialize language from localStorage and load translations
+  // Force local-only mode (for admin manual control)
+  const setLocalOnlyMode = (localOnly: boolean) => {
+    setUseLocalOnly(localOnly);
+    if (localOnly) {
+      console.log('🌍 Switched to local-only translation mode');
+    } else {
+      console.log('🌍 Switched to hybrid translation mode');
+      loadHybridTranslations(true);
+    }
+  };
+
+  // Initialize language from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('beehive-language');
-    const validLanguages: Language[] = ['en', 'zh', 'zh-tw', 'th', 'ms', 'ko', 'ja'];
-    if (saved && validLanguages.includes(saved as Language)) {
+    const savedMode = localStorage.getItem('beehive-translation-mode');
+    const supportedLanguages = getSupportedLanguages();
+    
+    if (saved && supportedLanguages.includes(saved)) {
       setLanguageState(saved as Language);
     } else {
-      // Default to English and clear invalid stored language
       localStorage.setItem('beehive-language', 'en');
       setLanguageState('en');
     }
 
-    // Load translations from database
-    loadTranslations();
+    // Set translation mode preference
+    const isLocalOnly = savedMode === 'local-only';
+    setUseLocalOnly(isLocalOnly);
+    
+    if (!isLocalOnly) {
+      // Load hybrid translations only if not in local-only mode
+      loadHybridTranslations();
+    } else {
+      console.log('🌍 Starting in local-only translation mode');
+    }
   }, []);
 
-  const setLanguage = (lang: Language) => {
+  const setLanguage = async (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem('beehive-language', lang);
+    
+    // Load translations for new language if not in local-only mode
+    if (!useLocalOnly) {
+      await loadHybridTranslations();
+    }
   };
 
   const t = (key: string, interpolations?: Record<string, string | number>): string => {
     try {
-      // If translations are still loading, return the key as fallback
       if (isLoading) {
         return key;
       }
 
-      // Get translation from current language
-      let result = translations[language]?.[key];
+      let result: string;
       
-      // If translation not found in current language, try English as fallback
-      if (!result && language !== 'en') {
-        result = translations.en?.[key];
+      if (useLocalOnly) {
+        // Local-only mode: directly access local translations from hybrid service
+        const cacheInfo = hybridI18nService.getCacheInfo();
+        const currentCache = cacheInfo.cacheStatus[language];
+        
+        if (currentCache) {
+          // Use cached translations (which include local translations)
+          const cachedTranslations = hybridI18nService['cache'][language]?.translations || {};
+          result = cachedTranslations[key];
+          
+          // Fallback to English if available
+          if (!result && language !== 'en') {
+            const enCache = hybridI18nService['cache']['en']?.translations || {};
+            result = enCache[key];
+          }
+        }
+      } else {
+        // Hybrid mode: get translations synchronously from cache
+        const cachedTranslations = hybridI18nService['cache'][language]?.translations || {};
+        result = cachedTranslations[key];
+        
+        // Fallback to English
+        if (!result && language !== 'en') {
+          const enTranslations = hybridI18nService['cache']['en']?.translations || {};
+          result = enTranslations[key];
+        }
       }
       
-      // If still no translation found, return the key
       if (!result) {
-        console.warn(`Translation missing for key: ${key} (language: ${language})`);
+        console.warn(`Translation missing for key: ${key} (language: ${language}, mode: ${useLocalOnly ? 'local' : 'hybrid'})`);
         return key;
       }
       
-      // Handle interpolation
+      // Handle interpolation for local-only mode
       if (interpolations && typeof result === 'string') {
         for (const [placeholder, replacement] of Object.entries(interpolations)) {
-          // Handle both {placeholder} and ${placeholder} formats
-          result = result.replace(new RegExp(`\\{${placeholder}\\}`, 'g'), String(replacement));
-          result = result.replace(new RegExp(`\\$\\{${placeholder}\\}`, 'g'), String(replacement));
+          result = result.replace(new RegExp(`\\\\{\\\\{${placeholder}\\\\}\\\\}`, 'g'), String(replacement));
+          result = result.replace(new RegExp(`\\\\{${placeholder}\\\\}`, 'g'), String(replacement));
+          result = result.replace(new RegExp(`\\\\$\\\\{\\\\{${placeholder}\\\\}\\\\}`, 'g'), String(replacement));
         }
       }
       
@@ -176,11 +156,20 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const refreshTranslations = async () => {
+    if (!useLocalOnly) {
+      await loadHybridTranslations(true);
+    }
+  };
+
   const value = {
     language,
     setLanguage,
     t,
     languages: languageOptions,
+    useLocalOnly,
+    setLocalOnlyMode,
+    refreshTranslations,
   };
 
   return (
@@ -193,8 +182,6 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
 const useI18n = () => {
   const context = useContext(I18nContext);
   if (context === undefined) {
-    // Provide a safe fallback instead of throwing error immediately
-    // This prevents crashes during hot reloading or timing issues
     console.warn('useI18n hook called outside I18nProvider, using fallback');
     return {
       language: 'en' as Language,
@@ -203,9 +190,16 @@ const useI18n = () => {
       },
       t: (key: string, interpolations?: Record<string, string | number>): string => {
         console.warn(`Translation fallback used for key: ${key}`);
-        return key; // Return the key as fallback
+        return key;
       },
       languages: languageOptions,
+      useLocalOnly: false,
+      setLocalOnlyMode: () => {
+        console.warn('setLocalOnlyMode called outside I18nProvider context');
+      },
+      refreshTranslations: async () => {
+        console.warn('refreshTranslations called outside I18nProvider context');
+      },
     };
   }
   return context;
