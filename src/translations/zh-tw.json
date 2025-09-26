@@ -173,7 +173,55 @@
     },
     "thisMonth": "本月",
     "title": "獎勵",
-    "totalEarned": "總收益"
+    "totalEarned": "總收益",
+    "bcc": {
+      "subtitle": "基於激活人數的四階段釋放系統",
+      "autoDistribution": "自動分發",
+      "currentPhase": "當前階段",
+      "active": "活躍中",
+      "activationProgress": "激活進度",
+      "phaseRewardPool": "階段一獎勵池",
+      "remaining": "剩餘",
+      "currentReleaseStandard": "當前釋放標準 (每激活一次)",
+      "upToL19": "... 到 L19 ({{amount}} BCC)",
+      "fourPhaseSystemOverview": "四階段系統概覽",
+      "current": "當前",
+      "releaseMechanism": "釋放機制",
+      "phase1InProgress": "階段一進行中",
+      "activateToGetMaxRewards": "激活會員級別即可獲得最高BCC獎勵",
+      "phases": {
+        "phase1": {
+          "description": "階段一：早期採用者",
+          "members": "第1 - 9,999位"
+        },
+        "phase2": {
+          "description": "階段二：成長階段（減半）",
+          "members": "第10,000 - 29,999位"
+        },
+        "phase3": {
+          "description": "階段三：擴張階段（再減半）",
+          "members": "第30,000 - 99,999位"
+        },
+        "phase4": {
+          "description": "階段四：最終階段（再減半）",
+          "members": "第100,000 - 186,000位"
+        }
+      },
+      "mechanisms": {
+        "activationTrigger": "激活觸發",
+        "activationTriggerDesc": "當會員激活新級別時，自動釋放對應數量的BCC到餘額",
+        "decreasingRewards": "遞減獎勵",
+        "decreasingRewardsDesc": "每個階段獎勵減半，確保系統長期可持續發展",
+        "realtimeDistribution": "即時分發",
+        "realtimeDistributionDesc": "基於總激活會員數即時切換階段，無需人工干預"
+      },
+      "benefits": {
+        "autoRelease": "自動釋放",
+        "autoReleaseDesc": "激活即釋放，無需額外操作",
+        "earlyAdvantage": "早期優勢",
+        "earlyAdvantageDesc": "越早參與，獲得越多BCC獎勵"
+      }
+    }
   },
   "withdrawal": {
     "amount": "金額",

@@ -611,6 +611,17 @@
       "expiredRewardsRedistribute": "Expired rewards go to eligible members above",
       "layerText": "Layer {{layer}}",
       "rewardAmounts": "Reward Amounts:",
+      "eligibilityRules": {
+        "firstSecondTitle": "1st & 2nd Rewards",
+        "thirdOnwardTitle": "3rd+ Rewards", 
+        "importantTitle": "Important"
+      },
+      "pendingSystem": {
+        "notEligibleTitle": "Not Eligible",
+        "windowTitle": "72-Hour Window",
+        "immediateTitle": "Immediate Claim",
+        "rollupTitle": "Roll-up System"
+      },
       "subtitle": "Learn about Layer Rewards and BCC Release Mechanisms",
       "title": "Reward System Information",
       "toLayer19Summary": "... to L19 ($1,000) total 19 layers",
@@ -2503,7 +2514,55 @@
     "withdrawAvailable": "Withdraw Available: ${amount}",
     "withdrawDescription": "Withdraw your claimable rewards to any supported blockchain",
     "withdrawRewards": "Withdraw Rewards",
-    "withdrawal": "Withdrawal"
+    "withdrawal": "Withdrawal",
+    "bcc": {
+      "subtitle": "Four-phase release system based on activation count",
+      "autoDistribution": "Auto Distribution",
+      "currentPhase": "Current Phase",
+      "active": "Active",
+      "activationProgress": "Activation Progress",
+      "phaseRewardPool": "Phase 1 Reward Pool",
+      "remaining": "remaining",
+      "currentReleaseStandard": "Current Release Standard (per activation)",
+      "upToL19": "... up to L19 ({{amount}} BCC)",
+      "fourPhaseSystemOverview": "Four-Phase System Overview",
+      "current": "Current",
+      "releaseMechanism": "Release Mechanism",
+      "phase1InProgress": "Phase 1 In Progress",
+      "activateToGetMaxRewards": "Activate membership levels to get maximum BCC rewards",
+      "phases": {
+        "phase1": {
+          "description": "Phase 1: Early Adopters",
+          "members": "1st - 9,999th"
+        },
+        "phase2": {
+          "description": "Phase 2: Growth Stage (Halved)",
+          "members": "10,000th - 29,999th"
+        },
+        "phase3": {
+          "description": "Phase 3: Expansion Stage (Halved Again)",
+          "members": "30,000th - 99,999th"
+        },
+        "phase4": {
+          "description": "Phase 4: Final Stage (Halved Again)",
+          "members": "100,000th - 186,000th"
+        }
+      },
+      "mechanisms": {
+        "activationTrigger": "Activation Trigger",
+        "activationTriggerDesc": "When members activate new levels, corresponding BCC amounts are automatically released to balance",
+        "decreasingRewards": "Decreasing Rewards",
+        "decreasingRewardsDesc": "Each phase halves rewards, ensuring long-term system sustainability",
+        "realtimeDistribution": "Real-time Distribution",
+        "realtimeDistributionDesc": "Phase transitions based on total activated members in real-time, no manual intervention required"
+      },
+      "benefits": {
+        "autoRelease": "Auto Release",
+        "autoReleaseDesc": "Released upon activation, no additional operations required",
+        "earlyAdvantage": "Early Advantage",
+        "earlyAdvantageDesc": "The earlier you participate, the more BCC rewards you earn"
+      }
+    }
   },
   "rewardsPage": {
     "availableToClaim": "Available",
