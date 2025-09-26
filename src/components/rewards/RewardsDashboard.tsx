@@ -316,7 +316,7 @@ export default function RewardsDashboard({ className }: RewardsDashboardProps) {
         </TabsContent>
 
         <TabsContent value="history">
-          <RewardHistory walletAddress={walletAddress || ''} />
+          <RewardHistory />
         </TabsContent>
       </Tabs>
 

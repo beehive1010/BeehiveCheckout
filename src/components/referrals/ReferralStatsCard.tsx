@@ -121,13 +121,13 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
         // Fallback using only referrals_stats_view
         setMatrixStats({
           as_root: {
-            total_team_size: statsData.direct_referrals_count || 0,
+            total_team_size: statsData.total_team_size || 0,
             activated_members: statsData.activated_referrals_count || 0,
-            max_depth: (statsData.direct_referrals_count || 0) > 0 ? 1 : 0,
+            max_depth: statsData.max_layer || 0,
             layer_distribution: { 1: statsData.direct_referrals_count || 0 }
           },
           overall: {
-            network_strength: (statsData.direct_referrals_count || 0) * 5 + (statsData.activated_referrals_count || 0) * 10
+            network_strength: statsData.network_strength || 0
           }
         });
       } else {

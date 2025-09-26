@@ -164,7 +164,48 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
   const hasActiveFilters = historyFilters.layer || historyFilters.searchKeyword || 
                           historyFilters.dateFrom || historyFilters.dateTo || historyFilters.status;
 
-  if (!history || history.length === 0) {
+  if (loading) {
+    return (
+      <Card className={`border-0 shadow-lg bg-gradient-to-br from-amber-50/50 to-yellow-50/50 dark:from-amber-900/10 dark:to-yellow-900/10 ${className}`}>
+        <CardContent className="p-8 md:p-12">
+          <div className="text-center">
+            <div className="animate-pulse space-y-4">
+              <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
+              <div className="h-4 bg-gray-200 rounded w-2/3 mx-auto"></div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className={`border-0 shadow-lg bg-gradient-to-br from-red-50/50 to-red-50/50 dark:from-red-900/10 dark:to-red-900/10 ${className}`}>
+        <CardContent className="p-8 md:p-12">
+          <div className="text-center">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-red-100 flex items-center justify-center">
+              <svg className="h-10 w-10 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-2">
+              Error Loading Rewards
+            </h3>
+            <p className="text-muted-foreground max-w-md mx-auto mb-6">
+              {error}
+            </p>
+            <Button variant="outline" onClick={loadLayerRewards}>
+              Retry
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!layerRewards || layerRewards.length === 0) {
     return (
       <Card className={`border-0 shadow-lg bg-gradient-to-br from-amber-50/50 to-yellow-50/50 dark:from-amber-900/10 dark:to-yellow-900/10 ${className}`}>
         <CardContent className="p-8 md:p-12">
@@ -268,9 +309,9 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
                 className="w-full px-3 py-3 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-honey/20 focus:border-honey"
               >
                 <option value="">{t('rewards.history.allLayers') || 'All Layers'}</option>
-                <option value="1">Layer 1</option>
-                <option value="2">Layer 2</option>
-                <option value="3">Layer 3</option>
+                {Array.from({ length: 19 }, (_, i) => i + 1).map(layer => (
+                  <option key={layer} value={layer.toString()}>Layer {layer}</option>
+                ))}
               </select>
 
               {/* Status Filter */}
@@ -280,9 +321,12 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
                 className="w-full px-3 py-3 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-honey/20 focus:border-honey"
               >
                 <option value="">{t('rewards.history.allStatus') || 'All Status'}</option>
-                <option value="completed">{t('rewards.status.completed') || 'Completed'}</option>
                 <option value="pending">{t('rewards.status.pending') || 'Pending'}</option>
-                <option value="failed">{t('rewards.status.failed') || 'Failed'}</option>
+                <option value="claimable">{t('rewards.status.claimable') || 'Claimable'}</option>
+                <option value="claimed">{t('rewards.status.claimed') || 'Claimed'}</option>
+                <option value="expired">{t('rewards.status.expired') || 'Expired'}</option>
+                <option value="rolled_up">{t('rewards.status.rolled_up') || 'Rolled Up'}</option>
+                <option value="forfeited">{t('rewards.status.forfeited') || 'Forfeited'}</option>
               </select>
 
               {/* Date From */}
@@ -349,21 +393,31 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   {/* Status Icon */}
                   <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    reward.status === 'completed' 
+                    reward.status === 'claimed' 
                       ? 'bg-gradient-to-br from-honey to-amber-500' :
+                    reward.status === 'claimable' 
+                      ? 'bg-gradient-to-br from-green-500 to-green-600' :
                     reward.status === 'pending' 
                       ? 'bg-gradient-to-br from-yellow-500 to-orange-500' :
-                      'bg-gradient-to-br from-red-500 to-red-600'
+                    reward.status === 'expired' || reward.status === 'forfeited'
+                      ? 'bg-gradient-to-br from-red-500 to-red-600' :
+                      'bg-gradient-to-br from-blue-500 to-blue-600'
                   } shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                    {reward.status === 'completed' ? (
+                    {reward.status === 'claimed' ? (
                       <svg className="h-4 w-4 md:h-5 md:w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
+                    ) : reward.status === 'claimable' ? (
+                      <Award className="h-4 w-4 md:h-5 md:w-5 text-white" />
                     ) : reward.status === 'pending' ? (
                       <Clock className="h-4 w-4 md:h-5 md:w-5 text-white" />
-                    ) : (
+                    ) : reward.status === 'expired' || reward.status === 'forfeited' ? (
                       <svg className="h-4 w-4 md:h-5 md:w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    ) : (
+                      <svg className="h-4 w-4 md:h-5 md:w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
                       </svg>
                     )}
                   </div>
@@ -371,14 +425,16 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
                   {/* Transaction Details */}
                   <div className="flex-1 min-w-0">
                     <h5 className="font-semibold text-sm md:text-base text-foreground line-clamp-1 mb-1">
-                      {reward.description}
+                      Layer {reward.matrix_layer} Reward {reward.layer_position ? `(${reward.layer_position})` : ''}
                     </h5>
                     <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground">
-                      <span>{reward.date}</span>
-                      {reward.layer && (
+                      <span>{new Date(reward.created_at).toLocaleDateString()}</span>
+                      <span>•</span>
+                      <span>From: {reward.triggering_member?.username || `User${reward.triggering_member_wallet?.slice(-4)}`}</span>
+                      {reward.matrix_root_wallet !== reward.reward_recipient_wallet && (
                         <>
                           <span>•</span>
-                          <span>Layer {reward.layer}</span>
+                          <span>Matrix: {reward.matrix_root?.username || `User${reward.matrix_root_wallet?.slice(-4)}`}</span>
                         </>
                       )}
                     </div>
@@ -388,21 +444,29 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
                 {/* Amount and Status */}
                 <div className="text-right flex-shrink-0">
                   <div className="text-lg md:text-xl font-bold text-honey dark:text-amber-400">
-                    ${reward.amount.toFixed(2)}
+                    ${Number(reward.reward_amount).toFixed(2)}
                   </div>
                   <Badge 
                     variant="outline" 
                     className={`text-xs mt-1 ${
-                      reward.status === 'completed' 
+                      reward.status === 'claimed' 
                         ? 'bg-honey/10 border-honey/30 text-honey dark:text-amber-400' :
+                      reward.status === 'claimable' 
+                        ? 'bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400' :
                       reward.status === 'pending' 
                         ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-600 dark:text-yellow-400' :
-                        'bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400'
+                      reward.status === 'expired' || reward.status === 'forfeited'
+                        ? 'bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400' :
+                        'bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400'
                     }`}
                   >
-                    {reward.status === 'completed' ? t('rewards.status.completed') || 'Completed' :
+                    {reward.status === 'claimed' ? t('rewards.status.claimed') || 'Claimed' :
+                     reward.status === 'claimable' ? t('rewards.status.claimable') || 'Claimable' :
                      reward.status === 'pending' ? t('rewards.status.pending') || 'Pending' :
-                     t('rewards.status.failed') || 'Failed'}
+                     reward.status === 'expired' ? t('rewards.status.expired') || 'Expired' :
+                     reward.status === 'rolled_up' ? t('rewards.status.rolled_up') || 'Rolled Up' :
+                     reward.status === 'forfeited' ? t('rewards.status.forfeited') || 'Forfeited' :
+                     reward.status}
                   </Badge>
                 </div>
               </div>
@@ -411,11 +475,15 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
               <div className="w-full bg-muted/50 rounded-full h-1.5">
                 <div 
                   className={`h-1.5 rounded-full transition-all duration-500 ${
-                    reward.status === 'completed' 
+                    reward.status === 'claimed' 
                       ? 'bg-gradient-to-r from-honey to-amber-500 w-full' :
+                    reward.status === 'claimable' 
+                      ? 'bg-gradient-to-r from-green-500 to-green-600 w-5/6' :
                     reward.status === 'pending' 
                       ? 'bg-gradient-to-r from-yellow-500 to-orange-500 w-2/3' :
-                      'bg-gradient-to-r from-red-500 to-red-600 w-1/3'
+                    reward.status === 'expired' || reward.status === 'forfeited'
+                      ? 'bg-gradient-to-r from-red-500 to-red-600 w-1/3' :
+                      'bg-gradient-to-r from-blue-500 to-blue-600 w-1/2'
                   }`}
                 />
               </div>

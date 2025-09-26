@@ -650,7 +650,7 @@ export default function Rewards() {
 
         {/* Enhanced History Tab */}
         <TabsContent value="history" className="space-y-6">
-          <RewardHistory history={rewardsData?.history || []} />
+          <RewardHistory />
         </TabsContent>
           </div>
         </Tabs>
