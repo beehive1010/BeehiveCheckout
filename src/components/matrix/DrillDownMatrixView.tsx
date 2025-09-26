@@ -57,26 +57,29 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
     try {
       console.log(`🔍 Loading matrix for wallet: ${walletAddress}, using matrix-view function`);
       
-      // Use matrix-view Supabase function with proper authentication
-      const { data: result, error: functionError } = await supabase.functions.invoke('matrix-view', {
-        body: {
-          action: 'get-matrix-members'
-        },
-        headers: {
-          'x-wallet-address': walletAddress
-        }
-      });
+      // Use direct database view query instead of edge function
+      console.log('👥 Using direct database query for matrix members');
 
-      if (functionError) {
-        throw new Error(`Function error: ${functionError.message}`);
+      const { data: matrixData, error: matrixError } = await supabase
+        .from('matrix_referrals_tree_view')
+        .select(`
+          wallet_address,
+          username,
+          matrix_layer,
+          matrix_position,
+          is_active,
+          current_level,
+          placed_at
+        `)
+        .eq('matrix_root_wallet', walletAddress)
+        .order('matrix_layer')
+        .order('matrix_position');
+
+      if (matrixError) {
+        throw new Error(`Database error: ${matrixError.message}`);
       }
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to get matrix members');
-      }
-      
-      console.log(`🔍 Matrix data for ${walletAddress}:`, result.data);
-      const matrixData = result.data.tree_members || [];
+
+      console.log(`🔍 Matrix data for ${walletAddress}:`, matrixData);
       
       console.log(`🔍 Matrix members count: ${matrixData.length}`);
       console.log(`🔍 Matrix members sample:`, matrixData.slice(0, 3));
@@ -84,21 +87,21 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
       if (matrixData && matrixData.length > 0) {
         // For root view, show layer 1. For navigated views, show the immediate children
         const currentViewLayer = isRoot ? 1 : 1; // Always show the next layer down
-        let layerMembers = matrixData.filter((member: any) => member.layer === currentViewLayer);
+        let layerMembers = matrixData.filter((member: any) => member.matrix_layer === currentViewLayer);
         
         console.log(`🔍 Current view layer: ${currentViewLayer}`);
         console.log(`🔍 Layer members found: ${layerMembers.length}`);
         console.log(`🔍 Matrix members sample:`, layerMembers.slice(0, 3));
-        console.log(`🔍 All matrix data:`, matrixData.map(m => ({ layer: m.layer, position: m.matrix_position, wallet: m.wallet_address?.slice(0, 8) })));
+        console.log(`🔍 All matrix data:`, matrixData.map(m => ({ layer: m.matrix_layer, position: m.matrix_position, wallet: m.wallet_address?.slice(0, 8) })));
         
         // If no members found at layer 1, try layer 0 (exclude root) or any available layer
         if (layerMembers.length === 0) {
-          const availableLayers = [...new Set(matrixData.map((m: any) => m.layer))].sort().filter(l => l > 0); // Exclude layer 0 (root)
+          const availableLayers = [...new Set(matrixData.map((m: any) => m.matrix_layer))].sort().filter(l => l > 0); // Exclude layer 0 (root)
           console.log(`🔍 No members at layer ${currentViewLayer}, available layers:`, availableLayers);
           
           if (availableLayers.length > 0) {
             const firstLayer = availableLayers[0];
-            layerMembers = matrixData.filter((member: any) => member.layer === firstLayer);
+            layerMembers = matrixData.filter((member: any) => member.matrix_layer === firstLayer);
             console.log(`🔍 Using first available layer ${firstLayer} with ${layerMembers.length} members`);
           }
         }
@@ -112,18 +115,18 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
           console.log(`🔍 Processing member:`, {
             wallet: member.wallet_address,
             position: member.matrix_position,
-            layer: member.layer,
+            layer: member.matrix_layer,
             fullMember: member
           });
-          
+
           const memberData: MatrixMember = {
             walletAddress: member.wallet_address,
             username: member.username || `User_${member.wallet_address?.slice(-6)}`,
             level: member.current_level || 1,
-            isActive: member.is_activated || false,
-            layer: member.layer || currentViewLayer,
+            isActive: member.is_active || false,
+            layer: member.matrix_layer || currentViewLayer,
             position: member.matrix_position as 'L' | 'M' | 'R',
-            placedAt: member.joined_at || new Date().toISOString()
+            placedAt: member.placed_at || new Date().toISOString()
           };
           
           // Filter by position - exact match since function uses 'L', 'M', 'R'

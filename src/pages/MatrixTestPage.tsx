@@ -125,7 +125,7 @@ const MatrixTestPage: React.FC = () => {
                   </div>
                   <div className="bg-blue-500/10 rounded p-3 border border-blue-500/30">
                     <div className="text-lg font-bold text-blue-400">
-                      {Math.max(...matrixData.map(r => r.matrix_layer || 0), 0)}
+                      {matrixData.length > 0 ? Math.max(...matrixData.map(r => r.matrix_layer || r.layer || 0), 0) : 0}
                     </div>
                     <div className="text-xs text-muted-foreground">Max Layer</div>
                   </div>
@@ -137,7 +137,7 @@ const MatrixTestPage: React.FC = () => {
                   </div>
                   <div className="bg-honey/10 rounded p-3 border border-honey/30">
                     <div className="text-lg font-bold text-honey">
-                      {matrixData.filter(r => r.is_active).length}
+                      {matrixData.filter(r => r.is_active || r.is_activated).length}
                     </div>
                     <div className="text-xs text-muted-foreground">Active Records</div>
                   </div>
@@ -148,7 +148,7 @@ const MatrixTestPage: React.FC = () => {
                   <h3 className="text-lg font-semibold mb-3 text-honey">Layer Distribution</h3>
                   {Object.entries(
                     matrixData.reduce((acc: any, record) => {
-                      const layer = record.matrix_layer || 1;
+                      const layer = record.matrix_layer || record.layer || 1;
                       if (!acc[layer]) acc[layer] = [];
                       acc[layer].push(record);
                       return acc;
@@ -163,7 +163,10 @@ const MatrixTestPage: React.FC = () => {
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {['L', 'M', 'R'].map(position => {
-                          const positionRecords = records.filter(r => r.matrix_position === position);
+                          const positionRecords = records.filter(r =>
+                            (r.matrix_position || r.position) === position ||
+                            (r.matrix_position || r.position)?.endsWith('.' + position)
+                          );
                           return (
                             <div key={position} className="border rounded p-3 space-y-2">
                               <div className="font-semibold text-center">
@@ -175,7 +178,7 @@ const MatrixTestPage: React.FC = () => {
                                     {record.member_wallet?.slice(0, 8)}...{record.member_wallet?.slice(-4)}
                                   </div>
                                   <div className="text-muted-foreground">
-                                    {record.is_active ? '🟢 Active' : '🔴 Inactive'}
+                                    {(record.is_active || record.is_activated) ? '🟢 Active' : '🔴 Inactive'}
                                   </div>
                                 </div>
                               ))}
@@ -210,8 +213,8 @@ const MatrixTestPage: React.FC = () => {
                       <tbody>
                         {matrixData.map((record, idx) => (
                           <tr key={idx} className="hover:bg-muted/50">
-                            <td className="border border-border px-2 py-1 text-xs">{record.matrix_layer}</td>
-                            <td className="border border-border px-2 py-1 text-xs">{record.matrix_position}</td>
+                            <td className="border border-border px-2 py-1 text-xs">{record.matrix_layer || record.layer}</td>
+                            <td className="border border-border px-2 py-1 text-xs">{record.matrix_position || record.position}</td>
                             <td className="border border-border px-2 py-1 text-xs font-mono">
                               {record.member_wallet?.slice(0, 8)}...{record.member_wallet?.slice(-4)}
                             </td>
@@ -219,10 +222,12 @@ const MatrixTestPage: React.FC = () => {
                               {record.referrer_wallet?.slice(0, 8)}...{record.referrer_wallet?.slice(-4)}
                             </td>
                             <td className="border border-border px-2 py-1 text-xs">
-                              {record.is_active ? '✅' : '❌'}
+                              {(record.is_active || record.is_activated) ? '✅' : '❌'}
                             </td>
                             <td className="border border-border px-2 py-1 text-xs">
-                              {new Date(record.placed_at).toLocaleString()}
+                              {record.placed_at ? new Date(record.placed_at).toLocaleString() :
+                               record.created_at ? new Date(record.created_at).toLocaleString() :
+                               record.activation_time ? new Date(record.activation_time).toLocaleString() : 'N/A'}
                             </td>
                           </tr>
                         ))}

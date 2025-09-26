@@ -98,7 +98,7 @@ serve(async (req: Request) => {
     // Log activation start
     await logOperation('info', 'member_activation', 'activation_started', 'pending',
       { transactionHash, level, referrerWallet, action });
-    // Handle NFT ownership check action
+    // Handle different action types
     if (action === 'check-nft-ownership') {
       const targetLevel = level || 1;
       console.log(`🔍 Checking NFT ownership for ${walletAddress}, Level: ${targetLevel}`);
@@ -160,16 +160,152 @@ serve(async (req: Request) => {
         });
       }
     }
+
+    // Handle get member info action
+    if (action === 'get-member-info') {
+      console.log(`🔍 Getting member info for ${walletAddress}`);
+      try {
+        // Check if user exists
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('wallet_address, username, referrer_wallet, created_at')
+          .ilike('wallet_address', walletAddress)
+          .maybeSingle();
+
+        if (userError || !userData) {
+          return new Response(JSON.stringify({
+            success: false,
+            isRegistered: false,
+            isActivated: false,
+            message: 'User not found'
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200
+          });
+        }
+
+        // Check member status
+        const { data: memberData, error: memberError } = await supabase
+          .from('members')
+          .select('current_level, activation_sequence, activation_time, referrer_wallet')
+          .ilike('wallet_address', walletAddress)
+          .maybeSingle();
+
+        const isActivated = !memberError && memberData && memberData.current_level > 0;
+
+        return new Response(JSON.stringify({
+          success: true,
+          isRegistered: true,
+          isActivated: isActivated,
+          currentLevel: memberData?.current_level || 0,
+          member: memberData,
+          user: userData
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        });
+      } catch (error) {
+        console.error('❌ Get member info error:', error);
+        return new Response(JSON.stringify({
+          success: false,
+          error: error.message
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500
+        });
+      }
+    }
+
+    // Handle check existing activation
+    if (action === 'check_existing') {
+      console.log(`🔍 Checking existing activation for ${walletAddress}`);
+      try {
+        // Check membership table
+        const { data: membership, error: membershipError } = await supabase
+          .from('membership')
+          .select('*')
+          .ilike('wallet_address', walletAddress)
+          .maybeSingle();
+
+        // Check members table
+        const { data: member, error: memberError } = await supabase
+          .from('members')
+          .select('*')
+          .ilike('wallet_address', walletAddress)
+          .maybeSingle();
+
+        if (member && !memberError && member.current_level > 0) {
+          return new Response(JSON.stringify({
+            success: true,
+            action: 'already_activated',
+            member: member,
+            membership: membership,
+            level: member.current_level,
+            message: `User already activated at Level ${member.current_level}`
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200
+          });
+        }
+
+        // Check on-chain NFT ownership and sync if needed
+        const thirdwebClientId = Deno.env.get('THIRDWEB_CLIENT_ID');
+        if (thirdwebClientId) {
+          const client = createThirdwebClient({
+            clientId: thirdwebClientId,
+            secretKey: Deno.env.get('THIRDWEB_SECRET_KEY')
+          });
+
+          const contract = getContract({
+            client,
+            chain: arbitrum,
+            address: '0x36a1aC6D8F0204827Fad16CA5e222F1Aeae4Adc8'
+          });
+
+          // Check Level 1 NFT first
+          const level1Balance = await readContract({
+            contract,
+            method: "function balanceOf(address account, uint256 id) view returns (uint256)",
+            params: [walletAddress, BigInt(1)]
+          });
+
+          if (Number(level1Balance) > 0) {
+            console.log(`✅ Found Level 1 NFT on-chain, syncing to database...`);
+            // Continue with normal activation flow to sync chain state
+            // Don't return here, let the function continue to create records
+          } else {
+            return new Response(JSON.stringify({
+              success: false,
+              action: 'no_nft_found',
+              message: 'No NFT found on-chain or in database'
+            }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              status: 200
+            });
+          }
+        }
+      } catch (error) {
+        console.error('❌ Check existing error:', error);
+        return new Response(JSON.stringify({
+          success: false,
+          error: error.message
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500
+        });
+      }
+    }
+
     // Handle membership activation (main functionality)
     console.log(`🚀 Starting membership activation for: ${walletAddress}, Level: ${level}`);
-    
+
     // 🚨 CRITICAL: 验证level参数必须有效且 >= 1
-    if (!level || level < 1 || level > 5) {
+    if (!level || level < 1 || level > 19) {
       console.error(`🚨 CRITICAL: 无效的membership level: ${level}`);
       return new Response(JSON.stringify({
         success: false,
-        error: `无效的membership level: ${level}. 有效范围: 1-5`,
-        detail: { receivedLevel: level, validRange: '1-5' }
+        error: `无效的membership level: ${level}. 有效范围: 1-19`,
+        detail: { receivedLevel: level, validRange: '1-19' }
       }), {
         headers: {
           ...corsHeaders,
@@ -371,7 +507,7 @@ serve(async (req: Request) => {
       // 🚨 CRITICAL: 强制referrer验证 - members创建必须有referrer (除了root用户)
       if (nextSequence > 1 && !normalizedReferrerWallet) {
         console.log(`🔧 Attempting to find referrer for sequence ${nextSequence} user: ${userData.wallet_address}`);
-        
+
         // 第一优先级：从用户注册数据中获取referrer
         if (userData.referrer_wallet && userData.referrer_wallet !== '0x0000000000000000000000000000000000000001') {
           normalizedReferrerWallet = userData.referrer_wallet;
@@ -384,20 +520,35 @@ serve(async (req: Request) => {
             .select('referrer_wallet')
             .eq('referred_wallet', userData.wallet_address)
             .maybeSingle();
-          
+
           if (!referralError && referralData && referralData.referrer_wallet) {
             normalizedReferrerWallet = referralData.referrer_wallet;
             console.log(`✅ Using referrer from referrals_new: ${normalizedReferrerWallet}`);
           } else {
-            // 无法找到任何有效referrer - 严格拒绝
-            console.error(`🚨 CRITICAL: NO VALID REFERRER FOUND!`, {
-              wallet: userData.wallet_address,
-              sequence: nextSequence,
-              usersTableReferrer: userData.referrer_wallet,
-              referralsNewCheck: referralError ? 'ERROR' : 'NOT_FOUND'
-            });
-            
-            throw new Error(`REFERRER REQUIRED: Cannot create member record without valid referrer. Wallet: ${userData.wallet_address}, Sequence: ${nextSequence}. All users after the first must have a referrer.`);
+            // 第三优先级：查找系统默认referrer (第一个激活的用户)
+            console.log(`🔍 Looking for system default referrer (first activated member)...`);
+            const { data: defaultReferrer, error: defaultError } = await supabase
+              .from('members')
+              .select('wallet_address')
+              .order('activation_sequence', { ascending: true })
+              .limit(1)
+              .maybeSingle();
+
+            if (!defaultError && defaultReferrer && defaultReferrer.wallet_address) {
+              normalizedReferrerWallet = defaultReferrer.wallet_address;
+              console.log(`✅ Using system default referrer: ${normalizedReferrerWallet}`);
+            } else {
+              // 无法找到任何有效referrer - 严格拒绝
+              console.error(`🚨 CRITICAL: NO VALID REFERRER FOUND!`, {
+                wallet: userData.wallet_address,
+                sequence: nextSequence,
+                usersTableReferrer: userData.referrer_wallet,
+                referralsNewCheck: referralError ? 'ERROR' : 'NOT_FOUND',
+                systemDefaultCheck: defaultError ? 'ERROR' : 'NOT_FOUND'
+              });
+
+              throw new Error(`REFERRER REQUIRED: Cannot create member record without valid referrer. Wallet: ${userData.wallet_address}, Sequence: ${nextSequence}. All users after the first must have a referrer.`);
+            }
           }
         }
       }
@@ -575,10 +726,13 @@ serve(async (req: Request) => {
       try {
         console.log(`📐 Starting SMART matrix placement: ${userData.wallet_address} -> ${normalizedReferrerWallet}`);
         
-        // 🔧 UPDATED: Use smart matrix placement algorithm with intelligent position finding
-        const { data: matrixPlacementResult, error: matrixPlacementError } = await supabase.rpc('place_member_matrix_smart', {
-          p_member_wallet: userData.wallet_address,
-          p_referrer_wallet: normalizedReferrerWallet
+        // 🔧 UPDATED: Use matrix-fix function with BFS algorithm for proper placement
+        const { data: matrixPlacementResult, error: matrixPlacementError } = await supabase.functions.invoke('matrix-fix', {
+          body: {
+            action: 'place_member_advanced',
+            memberWallet: userData.wallet_address,
+            referrerWallet: normalizedReferrerWallet
+          }
         });
         
         if (matrixPlacementError || !matrixPlacementResult?.success) {
@@ -682,27 +836,31 @@ serve(async (req: Request) => {
       console.warn('⚠️ BCC release error (non-critical):', bccError);
     }
     
-    // Step 8: Create Layer 1 rewards ONLY after member record is confirmed to exist
-    let layerRewardResult = null;
-    if (memberRecord && memberRecord.wallet_address) {
+    // Step 8: Create Direct Referral Rewards for Level 1 activation (not layer rewards)
+    let directReferralRewardResult = null;
+    if (memberRecord && memberRecord.wallet_address && normalizedReferrerWallet) {
       try {
-        console.log(`💰 Creating Layer 1 rewards for Level 1 activation: ${walletAddress}`);
-        console.log(`🔍 Verified member exists before triggering rewards: ${memberRecord.wallet_address}`);
-        
-        const { data: layerReward, error: layerRewardError } = await supabase.rpc('trigger_layer_rewards_on_upgrade', {
-          p_upgrading_member_wallet: userData.wallet_address,
-          p_new_level: 1, // Level 1 activation triggers Layer 1 reward
-          p_nft_price: 100 // Layer 1 reward is 100 USD, not 130
+        console.log(`💰 Creating Direct Referral Rewards for Level 1 activation: ${walletAddress} -> referrer: ${normalizedReferrerWallet}`);
+        console.log(`🔍 Verified member exists before triggering direct referral rewards: ${memberRecord.wallet_address}`);
+
+        // Level 1 activation triggers direct_referral_reward to the referrer
+        // Reward amount = Level 1 NFT price = 100 USDC (not including platform fee)
+        const { data: directReferralReward, error: directReferralRewardError } = await supabase.rpc('trigger_direct_referral_reward', {
+          p_new_member_wallet: userData.wallet_address,
+          p_referrer_wallet: normalizedReferrerWallet,
+          p_nft_level: 1,
+          p_nft_price: 100, // Level 1 NFT base price (excluding platform fee)
+          p_reward_type: 'direct_referral'
         });
-        
-        if (layerRewardError) {
-          console.warn('⚠️ Layer 1 reward creation failed:', layerRewardError);
+
+        if (directReferralRewardError) {
+          console.warn('⚠️ Direct referral reward creation failed:', directReferralRewardError);
         } else {
-          console.log(`✅ Layer 1 reward created:`, layerReward);
-          layerRewardResult = layerReward;
+          console.log(`✅ Direct referral reward created for referrer ${normalizedReferrerWallet}:`, directReferralReward);
+          directReferralRewardResult = directReferralReward;
         }
-      } catch (layerRewardErr) {
-        console.warn('⚠️ Layer 1 reward error (non-critical):', layerRewardErr);
+      } catch (directReferralRewardErr) {
+        console.warn('⚠️ Direct referral reward error (non-critical):', directReferralRewardErr);
       }
 
       // Step 8.1: Check and update pending rewards that may now be claimable after Level 1 activation
@@ -872,10 +1030,10 @@ serve(async (req: Request) => {
           referralRecorded: !!referralRecord,
           matrixPlaced: !!matrixResult,
           bccReleased: !!bccReleaseResult && bccReleaseResult.success,
-          layerRewardCreated: !!layerRewardResult && layerRewardResult.success
+          directReferralRewardCreated: !!directReferralRewardResult && directReferralRewardResult.success
         },
         bccRelease: bccReleaseResult,
-        layerReward: layerRewardResult,
+        directReferralReward: directReferralRewardResult,
         chainVerification: chainVerification
       },
       transactionHash

@@ -176,33 +176,33 @@ serve(async (req: Request) => {
 
 async function findNextAvailablePosition(supabase: any, rootWallet: string): Promise<PlacementResult> {
   console.log(`🔍 Finding next available position for root: ${rootWallet} using 3x3 spillover logic`);
-  
-  // Check layer 1 first (direct positions under root)
+
+  // Check layer 1 first (direct positions under root) - slots 1,2,3 = L,M,R
   const layer1Positions = ['L', 'M', 'R'];
-  
+
   for (const position of layer1Positions) {
-    const { data: existingReferrals, error: referralsError } = await supabase
-      .from('referrals')
+    const { data: existingMatrix, error: matrixError } = await supabase
+      .from('matrix_referrals')
       .select('id, member_wallet')
       .eq('matrix_root_wallet', rootWallet)
-      .eq('matrix_layer', 1)
+      .eq('layer', 1)
       .eq('matrix_position', position)
       .limit(1);
-    
-    if (referralsError) {
-      console.error(`❌ Error checking referrals: ${referralsError.message}`);
+
+    if (matrixError) {
+      console.error(`❌ Error checking matrix_referrals: ${matrixError.message}`);
       return {
         success: false,
         layer: 0,
         position: '',
-        error: `Database error: ${referralsError.message}`
+        error: `Database error: ${matrixError.message}`
       };
     }
-    
-    const isOccupied = (existingReferrals?.length > 0);
-    
+
+    const isOccupied = (existingMatrix?.length > 0);
+
     if (!isOccupied) {
-      console.log(`✅ Found available Layer 1 position: ${position}`);
+      console.log(`✅ Found available Layer 1 position: ${position} (slot ${layer1Positions.indexOf(position) + 1})`);
       return {
         success: true,
         layer: 1,

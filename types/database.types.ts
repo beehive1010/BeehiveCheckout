@@ -1,16 +1,380 @@
 export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+    | string
+    | number
+    | boolean
+    | null
+    | { [key: string]: Json | undefined }
+    | Json[]
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
+  }
+  cron: {
+    Tables: {
+      job: {
+        Row: {
+          active: boolean
+          command: string
+          database: string
+          jobid: number
+          jobname: string | null
+          nodename: string
+          nodeport: number
+          schedule: string
+          username: string
+        }
+        Insert: {
+          active?: boolean
+          command: string
+          database?: string
+          jobid?: number
+          jobname?: string | null
+          nodename?: string
+          nodeport?: number
+          schedule: string
+          username?: string
+        }
+        Update: {
+          active?: boolean
+          command?: string
+          database?: string
+          jobid?: number
+          jobname?: string | null
+          nodename?: string
+          nodeport?: number
+          schedule?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      job_run_details: {
+        Row: {
+          command: string | null
+          database: string | null
+          end_time: string | null
+          job_pid: number | null
+          jobid: number | null
+          return_message: string | null
+          runid: number
+          start_time: string | null
+          status: string | null
+          username: string | null
+        }
+        Insert: {
+          command?: string | null
+          database?: string | null
+          end_time?: string | null
+          job_pid?: number | null
+          jobid?: number | null
+          return_message?: string | null
+          runid?: number
+          start_time?: string | null
+          status?: string | null
+          username?: string | null
+        }
+        Update: {
+          command?: string | null
+          database?: string | null
+          end_time?: string | null
+          job_pid?: number | null
+          jobid?: number | null
+          return_message?: string | null
+          runid?: number
+          start_time?: string | null
+          status?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      alter_job: {
+        Args: {
+          active?: boolean
+          command?: string
+          database?: string
+          job_id: number
+          schedule?: string
+          username?: string
+        }
+        Returns: undefined
+      }
+      schedule: {
+        Args:
+            | { command: string; job_name: string; schedule: string }
+            | { command: string; schedule: string }
+        Returns: number
+      }
+      schedule_in_database: {
+        Args: {
+          active?: boolean
+          command: string
+          database: string
+          job_name: string
+          schedule: string
+          username?: string
+        }
+        Returns: number
+      }
+      unschedule: {
+        Args: { job_id: number } | { job_name: string }
+        Returns: boolean
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+  graphql: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      _internal_resolve: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+      comment_directive: {
+        Args: { comment_: string }
+        Returns: Json
+      }
+      exception: {
+        Args: { message: string }
+        Returns: string
+      }
+      get_schema_version: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      resolve: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+  pgmq: {
+    Tables: {
+      meta: {
+        Row: {
+          created_at: string
+          is_partitioned: boolean
+          is_unlogged: boolean
+          queue_name: string
+        }
+        Insert: {
+          created_at?: string
+          is_partitioned: boolean
+          is_unlogged: boolean
+          queue_name: string
+        }
+        Update: {
+          created_at?: string
+          is_partitioned?: boolean
+          is_unlogged?: boolean
+          queue_name?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      _belongs_to_pgmq: {
+        Args: { table_name: string }
+        Returns: boolean
+      }
+      _ensure_pg_partman_installed: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      _get_partition_col: {
+        Args: { partition_interval: string }
+        Returns: string
+      }
+      _get_pg_partman_major_version: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      _get_pg_partman_schema: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      archive: {
+        Args:
+            | { msg_id: number; queue_name: string }
+            | { msg_ids: number[]; queue_name: string }
+        Returns: boolean
+      }
+      convert_archive_partitioned: {
+        Args: {
+          leading_partition?: number
+          partition_interval?: string
+          retention_interval?: string
+          table_name: string
+        }
+        Returns: undefined
+      }
+      create: {
+        Args: { queue_name: string }
+        Returns: undefined
+      }
+      create_non_partitioned: {
+        Args: { queue_name: string }
+        Returns: undefined
+      }
+      create_partitioned: {
+        Args: {
+          partition_interval?: string
+          queue_name: string
+          retention_interval?: string
+        }
+        Returns: undefined
+      }
+      create_unlogged: {
+        Args: { queue_name: string }
+        Returns: undefined
+      }
+      delete: {
+        Args:
+            | { msg_id: number; queue_name: string }
+            | { msg_ids: number[]; queue_name: string }
+        Returns: boolean
+      }
+      detach_archive: {
+        Args: { queue_name: string }
+        Returns: undefined
+      }
+      drop_queue: {
+        Args: { queue_name: string }
+        Returns: boolean
+      }
+      format_table_name: {
+        Args: { prefix: string; queue_name: string }
+        Returns: string
+      }
+      list_queues: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["pgmq"]["CompositeTypes"]["queue_record"][]
+      }
+      metrics: {
+        Args: { queue_name: string }
+        Returns: Database["pgmq"]["CompositeTypes"]["metrics_result"]
+      }
+      metrics_all: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["pgmq"]["CompositeTypes"]["metrics_result"][]
+      }
+      pop: {
+        Args: { queue_name: string }
+        Returns: Database["pgmq"]["CompositeTypes"]["message_record"][]
+      }
+      purge_queue: {
+        Args: { queue_name: string }
+        Returns: number
+      }
+      read: {
+        Args: { qty: number; queue_name: string; vt: number }
+        Returns: Database["pgmq"]["CompositeTypes"]["message_record"][]
+      }
+      read_with_poll: {
+        Args: {
+          max_poll_seconds?: number
+          poll_interval_ms?: number
+          qty: number
+          queue_name: string
+          vt: number
+        }
+        Returns: Database["pgmq"]["CompositeTypes"]["message_record"][]
+      }
+      send: {
+        Args: { delay?: number; msg: Json; queue_name: string }
+        Returns: number[]
+      }
+      send_batch: {
+        Args: { delay?: number; msgs: Json[]; queue_name: string }
+        Returns: number[]
+      }
+      set_vt: {
+        Args: { msg_id: number; queue_name: string; vt: number }
+        Returns: Database["pgmq"]["CompositeTypes"]["message_record"][]
+      }
+      validate_queue_name: {
+        Args: { queue_name: string }
+        Returns: undefined
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      message_record: {
+        msg_id: number | null
+        read_ct: number | null
+        enqueued_at: string | null
+        vt: string | null
+        message: Json | null
+      }
+      metrics_result: {
+        queue_name: string | null
+        queue_length: number | null
+        newest_msg_age_sec: number | null
+        oldest_msg_age_sec: number | null
+        total_messages: number | null
+        scrape_time: string | null
+      }
+      queue_record: {
+        queue_name: string | null
+        is_partitioned: boolean | null
+        is_unlogged: boolean | null
+        created_at: string | null
+      }
+    }
   }
   public: {
     Tables: {
@@ -178,6 +542,54 @@ export type Database = {
           wallet_address?: string
         }
         Relationships: []
+      }
+      advertisement_nft_translations: {
+        Row: {
+          advertisement_nft_id: string
+          click_url: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          language_code: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          advertisement_nft_id: string
+          click_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          language_code: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          advertisement_nft_id?: string
+          click_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          language_code?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advertisement_nft_translations_advertisement_nft_id_fkey"
+            columns: ["advertisement_nft_id"]
+            isOneToOne: false
+            referencedRelation: "advertisement_nfts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advertisement_nft_translations_advertisement_nft_id_fkey"
+            columns: ["advertisement_nft_id"]
+            isOneToOne: false
+            referencedRelation: "advertisement_nfts_multilingual"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       advertisement_nfts: {
         Row: {
@@ -478,6 +890,63 @@ export type Database = {
           wallet_address?: string
         }
         Relationships: []
+      }
+      blog_post_translations: {
+        Row: {
+          author: string
+          blog_post_id: string
+          content: string
+          created_at: string | null
+          excerpt: string
+          id: string
+          language_code: string
+          slug: string
+          tags: Json | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          author: string
+          blog_post_id: string
+          content: string
+          created_at?: string | null
+          excerpt: string
+          id?: string
+          language_code: string
+          slug: string
+          tags?: Json | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          author?: string
+          blog_post_id?: string
+          content?: string
+          created_at?: string | null
+          excerpt?: string
+          id?: string
+          language_code?: string
+          slug?: string
+          tags?: Json | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_translations_blog_post_id_fkey"
+            columns: ["blog_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_translations_blog_post_id_fkey"
+            columns: ["blog_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts_multilingual"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       blog_posts: {
         Row: {
@@ -1630,6 +2099,36 @@ export type Database = {
           },
         ]
       }
+      member_activation_tiers: {
+        Row: {
+          bcc_multiplier: number
+          created_at: string | null
+          is_active: boolean | null
+          max_activation_rank: number | null
+          min_activation_rank: number
+          tier: number
+          tier_name: string
+        }
+        Insert: {
+          bcc_multiplier?: number
+          created_at?: string | null
+          is_active?: boolean | null
+          max_activation_rank?: number | null
+          min_activation_rank: number
+          tier: number
+          tier_name: string
+        }
+        Update: {
+          bcc_multiplier?: number
+          created_at?: string | null
+          is_active?: boolean | null
+          max_activation_rank?: number | null
+          min_activation_rank?: number
+          tier?: number
+          tier_name?: string
+        }
+        Relationships: []
+      }
       members: {
         Row: {
           activation_sequence: number
@@ -1741,6 +2240,44 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["wallet_address"]
+          },
+        ]
+      }
+      merchant_nft_translations: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          language_code: string
+          merchant_nft_id: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          language_code: string
+          merchant_nft_id: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          language_code?: string
+          merchant_nft_id?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "merchant_nft_translations_merchant_nft_id_fkey"
+            columns: ["merchant_nft_id"]
+            isOneToOne: false
+            referencedRelation: "merchant_nfts"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -2218,62 +2755,96 @@ export type Database = {
         }
         Relationships: []
       }
-      reward_records: {
+      reward_notifications: {
         Row: {
-          bcc_released: number | null
-          claimed_at: string | null
+          countdown_hours: number | null
           created_at: string | null
-          expires_at: string | null
           id: string
-          layer_number: number
-          nft_level: number | null
-          recipient_wallet: string
-          reward_amount: number
-          reward_status: string
-          reward_type: string
-          rolled_up_at: string | null
-          triggered_by_placement: string
-          triggered_by_wallet: string
-          upgrade_from_level: number | null
-          upgrade_to_level: number | null
+          is_read: boolean | null
+          is_sent: boolean | null
+          message: string
+          metadata: Json | null
+          notification_type: string
+          read_at: string | null
+          reward_claim_id: string
+          sent_at: string | null
+          title: string
+          wallet_address: string
         }
         Insert: {
-          bcc_released?: number | null
-          claimed_at?: string | null
+          countdown_hours?: number | null
           created_at?: string | null
-          expires_at?: string | null
           id?: string
-          layer_number?: number
-          nft_level?: number | null
-          recipient_wallet: string
-          reward_amount: number
-          reward_status?: string
-          reward_type: string
-          rolled_up_at?: string | null
-          triggered_by_placement: string
-          triggered_by_wallet: string
-          upgrade_from_level?: number | null
-          upgrade_to_level?: number | null
+          is_read?: boolean | null
+          is_sent?: boolean | null
+          message: string
+          metadata?: Json | null
+          notification_type: string
+          read_at?: string | null
+          reward_claim_id: string
+          sent_at?: string | null
+          title: string
+          wallet_address: string
         }
         Update: {
-          bcc_released?: number | null
-          claimed_at?: string | null
+          countdown_hours?: number | null
           created_at?: string | null
-          expires_at?: string | null
           id?: string
-          layer_number?: number
-          nft_level?: number | null
-          recipient_wallet?: string
-          reward_amount?: number
-          reward_status?: string
-          reward_type?: string
-          rolled_up_at?: string | null
-          triggered_by_placement?: string
-          triggered_by_wallet?: string
-          upgrade_from_level?: number | null
-          upgrade_to_level?: number | null
+          is_read?: boolean | null
+          is_sent?: boolean | null
+          message?: string
+          metadata?: Json | null
+          notification_type?: string
+          read_at?: string | null
+          reward_claim_id?: string
+          sent_at?: string | null
+          title?: string
+          wallet_address?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reward_notifications_reward_claim_id_fkey"
+            columns: ["reward_claim_id"]
+            isOneToOne: false
+            referencedRelation: "reward_claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reward_notifications_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "member_balance_complete"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "reward_notifications_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "member_complete_info"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "reward_notifications_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "member_rewards_overview_v2"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "reward_notifications_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["wallet_address"]
+          },
+          {
+            foreignKeyName: "reward_notifications_wallet_address_fkey"
+            columns: ["wallet_address"]
+            isOneToOne: false
+            referencedRelation: "referrer_stats"
+            referencedColumns: ["wallet_address"]
+          },
+        ]
       }
       reward_timers: {
         Row: {
@@ -2323,121 +2894,6 @@ export type Database = {
           {
             foreignKeyName: "reward_timers_reward_id_fkey"
             columns: ["reward_id"]
-            isOneToOne: false
-            referencedRelation: "v_r_zone_status"
-            referencedColumns: ["reward_id"]
-          },
-        ]
-      }
-      roll_up_rewards: {
-        Row: {
-          created_at: string | null
-          final_recipient: string
-          id: string
-          original_recipient: string
-          original_reward_id: string
-          reward_amount: number
-          roll_up_reason: string
-        }
-        Insert: {
-          created_at?: string | null
-          final_recipient: string
-          id?: string
-          original_recipient: string
-          original_reward_id: string
-          reward_amount: number
-          roll_up_reason: string
-        }
-        Update: {
-          created_at?: string | null
-          final_recipient?: string
-          id?: string
-          original_recipient?: string
-          original_reward_id?: string
-          reward_amount?: number
-          roll_up_reason?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "roll_up_rewards_final_recipient_fkey"
-            columns: ["final_recipient"]
-            isOneToOne: false
-            referencedRelation: "member_balance_complete"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "roll_up_rewards_final_recipient_fkey"
-            columns: ["final_recipient"]
-            isOneToOne: false
-            referencedRelation: "member_complete_info"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "roll_up_rewards_final_recipient_fkey"
-            columns: ["final_recipient"]
-            isOneToOne: false
-            referencedRelation: "member_rewards_overview_v2"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "roll_up_rewards_final_recipient_fkey"
-            columns: ["final_recipient"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "roll_up_rewards_final_recipient_fkey"
-            columns: ["final_recipient"]
-            isOneToOne: false
-            referencedRelation: "referrer_stats"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "roll_up_rewards_original_recipient_fkey"
-            columns: ["original_recipient"]
-            isOneToOne: false
-            referencedRelation: "member_balance_complete"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "roll_up_rewards_original_recipient_fkey"
-            columns: ["original_recipient"]
-            isOneToOne: false
-            referencedRelation: "member_complete_info"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "roll_up_rewards_original_recipient_fkey"
-            columns: ["original_recipient"]
-            isOneToOne: false
-            referencedRelation: "member_rewards_overview_v2"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "roll_up_rewards_original_recipient_fkey"
-            columns: ["original_recipient"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "roll_up_rewards_original_recipient_fkey"
-            columns: ["original_recipient"]
-            isOneToOne: false
-            referencedRelation: "referrer_stats"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "roll_up_rewards_original_reward_id_fkey"
-            columns: ["original_reward_id"]
-            isOneToOne: false
-            referencedRelation: "layer_rewards"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "roll_up_rewards_original_reward_id_fkey"
-            columns: ["original_reward_id"]
             isOneToOne: false
             referencedRelation: "v_r_zone_status"
             referencedColumns: ["reward_id"]
@@ -2534,6 +2990,42 @@ export type Database = {
         }
         Relationships: []
       }
+      supported_languages: {
+        Row: {
+          code: string
+          created_at: string | null
+          flag_emoji: string | null
+          is_active: boolean | null
+          is_default: boolean | null
+          name: string
+          native_name: string
+          rtl: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          flag_emoji?: string | null
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name: string
+          native_name: string
+          rtl?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          flag_emoji?: string | null
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name?: string
+          native_name?: string
+          rtl?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       system_settings: {
         Row: {
           description: string | null
@@ -2555,6 +3047,45 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
           value?: Json
+        }
+        Relationships: []
+      }
+      translation_cache: {
+        Row: {
+          cache_key: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          original_text: string
+          provider_name: string | null
+          source_language: string
+          target_language: string
+          translated_text: string
+          updated_at: string | null
+        }
+        Insert: {
+          cache_key: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          original_text: string
+          provider_name?: string | null
+          source_language: string
+          target_language: string
+          translated_text: string
+          updated_at?: string | null
+        }
+        Update: {
+          cache_key?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          original_text?: string
+          provider_name?: string | null
+          source_language?: string
+          target_language?: string
+          translated_text?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -2899,165 +3430,95 @@ export type Database = {
         }
         Relationships: []
       }
-      empty_slot_flags_view: {
+      advertisement_nfts_multilingual: {
         Row: {
-          layer: number | null
-          matrix_root_wallet: string | null
-          parent_wallet: string | null
-          slot_l_empty: boolean | null
-          slot_m_empty: boolean | null
-          slot_r_empty: boolean | null
-          total_empty_slots: number | null
+          advertiser_wallet: string | null
+          category: string | null
+          created_at: string | null
+          ends_at: string | null
+          id: string | null
+          image_url: string | null
+          impressions_current: number | null
+          impressions_target: number | null
+          is_active: boolean | null
+          metadata: Json | null
+          price_bcc: number | null
+          price_usdt: number | null
+          starts_at: string | null
+          translations: Json | null
+          updated_at: string | null
         }
         Relationships: []
       }
-      matrix_layers_view: {
+      blog_posts_multilingual: {
         Row: {
-          completion_rate: number | null
-          empty_slots: number | null
-          filled_slots: number | null
-          layer: number | null
-          matrix_root_wallet: string | null
-          max_slots: number | null
+          author_wallet: string | null
+          created_at: string | null
+          id: string | null
+          image_url: string | null
+          metadata: Json | null
+          published: boolean | null
+          published_at: string | null
+          translations: Json | null
+          updated_at: string | null
+          views: number | null
         }
         Relationships: []
       }
       matrix_referrals_tree_view: {
         Row: {
-          child_activation_time: string | null
+          activation_sequence: number | null
+          activation_time: string | null
+          current_level: number | null
+          is_activated: boolean | null
+          is_spillover: boolean | null
           layer: number | null
-          matrix_root_activation_sequence: number | null
           matrix_root_wallet: string | null
           member_wallet: string | null
           parent_wallet: string | null
           position: string | null
-          referral_type: string | null
+          referral_depth: number | null
+          referrer_wallet: string | null
+          username: string | null
+        }
+        Relationships: []
+      }
+      matrix_referrals_unified_view: {
+        Row: {
+          activation_sequence: number | null
+          activation_time: string | null
+          current_level: number | null
+          data_source: string | null
+          is_activated: boolean | null
+          is_spillover: boolean | null
+          layer: number | null
+          matrix_root_wallet: string | null
+          member_wallet: string | null
+          parent_wallet: string | null
+          position: string | null
+          referral_depth: number | null
+          referrer_wallet: string | null
+          username: string | null
         }
         Relationships: []
       }
       matrix_referrals_view: {
         Row: {
           activation_sequence: number | null
-          created_at: string | null
+          activation_time: string | null
           current_level: number | null
-          depth: number | null
-          is_active: boolean | null
+          is_activated: boolean | null
+          is_spillover: boolean | null
           layer: number | null
-          layer_label: string | null
           matrix_root_wallet: string | null
+          member_wallet: string | null
           parent_wallet: string | null
           position: string | null
-          referral_type: string | null
+          referral_depth: number | null
+          referrer_wallet: string | null
           username: string | null
-          wallet_address: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "matrix_referrals_matrix_root_wallet_fkey"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_balance_complete"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "matrix_referrals_matrix_root_wallet_fkey"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_complete_info"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "matrix_referrals_matrix_root_wallet_fkey"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_rewards_overview_v2"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "matrix_referrals_matrix_root_wallet_fkey"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "matrix_referrals_matrix_root_wallet_fkey"
-            columns: ["matrix_root_wallet"]
-            isOneToOne: false
-            referencedRelation: "referrer_stats"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "matrix_referrals_member_wallet_fkey"
-            columns: ["wallet_address"]
-            isOneToOne: false
-            referencedRelation: "member_balance_complete"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "matrix_referrals_member_wallet_fkey"
-            columns: ["wallet_address"]
-            isOneToOne: false
-            referencedRelation: "member_complete_info"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "matrix_referrals_member_wallet_fkey"
-            columns: ["wallet_address"]
-            isOneToOne: false
-            referencedRelation: "member_rewards_overview_v2"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "matrix_referrals_member_wallet_fkey"
-            columns: ["wallet_address"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "matrix_referrals_member_wallet_fkey"
-            columns: ["wallet_address"]
-            isOneToOne: false
-            referencedRelation: "referrer_stats"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "matrix_referrals_parent_wallet_fkey"
-            columns: ["parent_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_balance_complete"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "matrix_referrals_parent_wallet_fkey"
-            columns: ["parent_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_complete_info"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "matrix_referrals_parent_wallet_fkey"
-            columns: ["parent_wallet"]
-            isOneToOne: false
-            referencedRelation: "member_rewards_overview_v2"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "matrix_referrals_parent_wallet_fkey"
-            columns: ["parent_wallet"]
-            isOneToOne: false
-            referencedRelation: "members"
-            referencedColumns: ["wallet_address"]
-          },
-          {
-            foreignKeyName: "matrix_referrals_parent_wallet_fkey"
-            columns: ["parent_wallet"]
-            isOneToOne: false
-            referencedRelation: "referrer_stats"
-            referencedColumns: ["wallet_address"]
-          },
-        ]
+        Relationships: []
       }
       member_balance_complete: {
         Row: {
@@ -3170,11 +3631,15 @@ export type Database = {
           claimed_rewards_count: number | null
           current_level: number | null
           expired_rewards_count: number | null
+          forfeited_amount_usdt: number | null
+          forfeited_rewards_count: number | null
           latest_claim_time: string | null
           latest_reward_time: string | null
           level_name: string | null
           pending_amount_usdt: number | null
           pending_rewards_count: number | null
+          rolled_up_amount_usdt: number | null
+          rolled_up_rewards_count: number | null
           total_amount_usdt: number | null
           total_rewards_count: number | null
           username: string | null
@@ -3190,17 +3655,33 @@ export type Database = {
           },
         ]
       }
-      referrals_stats_view: {
+      referrals_matrix_positions: {
         Row: {
-          activated_referrals_count: number | null
           activation_sequence: number | null
+          activation_time: string | null
           current_level: number | null
-          direct_referrals_count: number | null
-          first_referral_time: string | null
-          last_referral_time: string | null
-          level2_upgrade_eligible: boolean | null
+          has_matrix_position: boolean | null
+          is_activated: boolean | null
+          layer: number | null
+          member_wallet: string | null
+          position: string | null
+          position_in_layer: number | null
+          referrer_wallet: string | null
+          root_wallet: string | null
+        }
+        Relationships: []
+      }
+      referrals_tree_hierarchy: {
+        Row: {
+          activation_sequence: number | null
+          activation_time: string | null
+          current_level: number | null
+          depth: number | null
+          member_wallet: string | null
+          path: string[] | null
+          referrer_wallet: string | null
+          root_wallet: string | null
           username: string | null
-          wallet_address: string | null
         }
         Relationships: []
       }
@@ -3217,20 +3698,23 @@ export type Database = {
       }
       referrer_stats: {
         Row: {
-          activation_sequence: number | null
-          activation_time: string | null
+          activation_id: number | null
+          claimed_rewards: number | null
+          created_at: string | null
           current_level: number | null
           direct_referrals: number | null
-          email: string | null
-          l_position_filled: boolean | null
-          layer1_filled_count: number | null
-          m_position_filled: boolean | null
-          max_layer: number | null
+          is_activated: boolean | null
+          l_filled: number | null
+          layer1_filled: number | null
+          m_filled: number | null
           next_vacant_position: string | null
-          r_position_filled: boolean | null
-          referrer_category: string | null
+          pending_amount: number | null
+          pending_rewards: number | null
+          r_filled: number | null
           spillover_count: number | null
-          total_team_size: number | null
+          total_earned: number | null
+          total_matrix_members: number | null
+          total_rewards: number | null
           username: string | null
           wallet_address: string | null
         }
@@ -3244,12 +3728,46 @@ export type Database = {
           },
         ]
       }
+      rewards_stats_view: {
+        Row: {
+          available_balance: number | null
+          balance_claimed: number | null
+          current_reward_balance: number | null
+          has_claimable_rewards: boolean | null
+          has_pending_rewards: boolean | null
+          last_updated: string | null
+          net_earnings: number | null
+          total_claimable: number | null
+          total_claimed: number | null
+          total_direct_referrals: number | null
+          total_earned: number | null
+          total_pending: number | null
+          total_rewards_count: number | null
+          total_rolled_up: number | null
+          total_withdrawn: number | null
+          wallet_address: string | null
+          withdrawal_rate_percent: number | null
+        }
+        Relationships: []
+      }
       system_views_info: {
         Row: {
           description: string | null
           frontend_usage: string | null
           key_columns: string | null
           view_name: string | null
+        }
+        Relationships: []
+      }
+      translation_cache_stats: {
+        Row: {
+          active_cache: number | null
+          avg_text_length: number | null
+          cached_translations: number | null
+          expired_cache: number | null
+          last_cached_at: string | null
+          provider_name: string | null
+          target_language: string | null
         }
         Relationships: []
       }
@@ -3376,7 +3894,7 @@ export type Database = {
       }
     }
     Functions: {
-      activate_membership_fallback: {
+      activate_membership_fallback_deprecated: {
         Args: {
           p_level?: number
           p_referrer_wallet?: string
@@ -3386,13 +3904,11 @@ export type Database = {
         Returns: Json
       }
       activate_nft_level1_membership: {
-        Args:
-          | {
-              p_referrer_wallet?: string
-              p_transaction_hash?: string
-              p_wallet_address: string
-            }
-          | { p_referrer_wallet?: string; p_wallet_address: string }
+        Args: {
+          p_referrer_wallet?: string
+          p_transaction_hash?: string
+          p_wallet_address: string
+        }
         Returns: Json
       }
       calculate_level_bcc_unlock: {
@@ -3416,10 +3932,34 @@ export type Database = {
           status: string
         }[]
       }
+      check_pending_rewards_after_upgrade: {
+        Args: { p_new_level: number; p_upgraded_wallet: string }
+        Returns: Json
+      }
       check_reward_qualification: {
-        Args: {
+        Args:
+            | {
           p_recipient_wallet: string
-          p_reward_amount: number
+          p_reward_amount?: number
+          p_reward_layer: number
+        }
+            | { target_level: number; wallet_address: string }
+        Returns: Json
+      }
+      check_reward_qualification_v2: {
+        Args: {
+          p_matrix_position: string
+          p_recipient_wallet: string
+          p_reward_amount?: number
+          p_reward_layer: number
+        }
+        Returns: Json
+      }
+      check_reward_qualification_with_rules: {
+        Args: {
+          p_matrix_position?: string
+          p_recipient_wallet: string
+          p_reward_amount?: number
           p_reward_layer: number
         }
         Returns: Json
@@ -3428,25 +3968,46 @@ export type Database = {
         Args: { p_member_wallet: string; p_reward_id: string }
         Returns: Json
       }
+      cleanup_duplicate_matrix_placements: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          action_taken: string
+          kept_root: string
+          member_wallet: string
+          removed_roots: string
+        }[]
+      }
+      cleanup_expired_translation_cache: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      cleanup_test_data: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      cleanup_test_data_safe: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       create_notification: {
         Args:
-          | {
-              p_action_url?: string
-              p_category?: string
-              p_message: string
-              p_metadata?: Json
-              p_priority?: number
-              p_title: string
-              p_type: string
-              p_user_wallet: string
-            }
-          | {
-              p_data?: Json
-              p_message: string
-              p_title: string
-              p_type: string
-              p_user_wallet: string
-            }
+            | {
+          p_action_url?: string
+          p_category?: string
+          p_message: string
+          p_metadata?: Json
+          p_priority?: number
+          p_title: string
+          p_type: string
+          p_user_wallet: string
+        }
+            | {
+          p_data?: Json
+          p_message: string
+          p_title: string
+          p_type: string
+          p_user_wallet: string
+        }
         Returns: Json
       }
       create_reward_earned_notification: {
@@ -3469,17 +4030,114 @@ export type Database = {
         }
         Returns: Json
       }
+      determine_reward_status: {
+        Args: {
+          p_matrix_position: string
+          p_recipient_wallet: string
+          p_reward_layer: number
+        }
+        Returns: string
+      }
+      find_available_matrix_positions: {
+        Args: { p_matrix_root: string }
+        Returns: {
+          available_positions: string[]
+          layer: number
+          parent_wallet: string
+          slots_total: number
+          slots_used: number
+        }[]
+      }
       find_next_qualified_upline: {
         Args: { current_wallet: string; required_level: number }
         Returns: string
       }
       generate_level_based_rewards: {
+        Args:
+            | {
+          activation_type?: string
+          level_activated: number
+          member_wallet: string
+          nft_price: number
+        }
+            | { p_member_level: number; p_member_wallet: string }
+        Returns: Json
+      }
+      generate_level_based_rewards_with_pending: {
         Args: { p_member_level: number; p_member_wallet: string }
         Returns: Json
       }
       generate_qualified_rewards: {
+        Args:
+            | {
+          activation_type?: string
+          level_activated: number
+          member_wallet: string
+          nft_price: number
+        }
+            | { p_member_level: number; p_member_wallet: string }
+        Returns: Json
+      }
+      generate_qualified_rewards_fixed: {
         Args: { p_member_level: number; p_member_wallet: string }
         Returns: Json
+      }
+      get_advertisement_nft_content: {
+        Args: { p_language_code?: string; p_nft_id: string }
+        Returns: {
+          advertiser_wallet: string
+          category: string
+          click_url: string
+          created_at: string
+          description: string
+          id: string
+          image_url: string
+          is_active: boolean
+          language_code: string
+          price_bcc: number
+          price_usdt: number
+          title: string
+        }[]
+      }
+      get_blog_post_content: {
+        Args: { p_language_code?: string; p_post_id?: string; p_slug?: string }
+        Returns: {
+          author: string
+          author_wallet: string
+          content: string
+          created_at: string
+          excerpt: string
+          id: string
+          image_url: string
+          language_code: string
+          published: boolean
+          published_at: string
+          slug: string
+          tags: Json
+          title: string
+          views: number
+        }[]
+      }
+      get_course_with_translations: {
+        Args: { p_course_id: string; p_language_code?: string }
+        Returns: {
+          category: string
+          course_type: string
+          description: string
+          difficulty_level: string
+          duration_hours: number
+          id: string
+          image_url: string
+          instructor_name: string
+          instructor_wallet: string
+          is_active: boolean
+          language_code: string
+          lessons: Json
+          price_bcc: number
+          price_usdt: number
+          required_level: number
+          title: string
+        }[]
       }
       get_current_activation_tier: {
         Args: Record<PropertyKey, never>
@@ -3503,6 +4161,17 @@ export type Database = {
         Args: { p_level: number }
         Returns: number
       }
+      get_translation_cache_info: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          active_entries: number
+          cache_size_mb: number
+          expired_entries: number
+          newest_cache: string
+          oldest_cache: string
+          total_entries: number
+        }[]
+      }
       get_user_pending_rewards: {
         Args: { p_wallet_address: string }
         Returns: {
@@ -3514,6 +4183,24 @@ export type Database = {
           time_remaining_seconds: number
           timer_type: string
           triggering_member_username: string
+        }[]
+      }
+      get_user_rewards_stats: {
+        Args: { p_wallet_address: string }
+        Returns: {
+          current_reward_balance: number
+          has_claimable_rewards: boolean
+          has_pending_rewards: boolean
+          last_updated: string
+          net_earnings: number
+          total_claimable: number
+          total_claimed: number
+          total_earned: number
+          total_pending: number
+          total_rewards_count: number
+          total_withdrawn: number
+          wallet_address: string
+          withdrawal_rate_percent: number
         }[]
       }
       is_admin: {
@@ -3530,8 +4217,36 @@ export type Database = {
         }
         Returns: undefined
       }
+      place_member_matrix_complete: {
+        Args: { p_member_wallet: string; p_referrer_wallet: string }
+        Returns: Json
+      }
+      place_member_spillover: {
+        Args: { p_member_wallet: string; p_original_referrer: string }
+        Returns: {
+          placed_layer: number
+          placed_parent: string
+          placed_position: string
+          placed_root: string
+          placement_type: string
+        }[]
+      }
+      place_member_spillover_safe: {
+        Args: { p_member_wallet: string; p_original_referrer: string }
+        Returns: {
+          placed_layer: number
+          placed_parent: string
+          placed_position: string
+          placed_root: string
+          placement_type: string
+        }[]
+      }
       place_new_member_in_matrix_correct: {
         Args: { p_member_wallet: string; p_referrer_wallet: string }
+        Returns: Json
+      }
+      process_all_eligible_pending_rewards: {
+        Args: Record<PropertyKey, never>
         Returns: Json
       }
       process_expired_layer_rewards: {
@@ -3541,6 +4256,22 @@ export type Database = {
       process_expired_timers: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      process_level_upgrade_rewards: {
+        Args: { p_new_level: number; p_wallet_address: string }
+        Returns: Json
+      }
+      process_pending_spillovers: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          original_referrer: string
+          placed_layer: number
+          placed_parent: string
+          placed_position: string
+          placed_root: string
+          processed_member: string
+          processing_status: string
+        }[]
       }
       process_user_registration: {
         Args: {
@@ -3593,6 +4324,60 @@ export type Database = {
         }
         Returns: Json
       }
+      rpc_matrix_layer_members: {
+        Args: { _layer?: number; _root_wallet: string }
+        Returns: {
+          created_at: string
+          layer: number
+          matrix_position: string
+          matrix_root_wallet: string
+          member_wallet: string
+          parent_wallet: string
+          source: string
+        }[]
+      }
+      rpc_matrix_layer_summary: {
+        Args: { _root_wallet: string }
+        Returns: {
+          completion_rate: number
+          cumulative_team_size: number
+          direct_referrals_of_root: number
+          filled_slots: number
+          layer: number
+          layer_capacity: number
+          matrix_root_wallet: string
+        }[]
+      }
+      rpc_matrix_node_slots: {
+        Args: { _parent_wallet: string; _root_wallet: string }
+        Returns: {
+          created_at: string
+          member_wallet: string
+          parent_wallet: string
+          slot: string
+          source: string
+        }[]
+      }
+      run_complete_system_test: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          details: string
+          status: string
+          step_name: string
+          success: boolean
+          test_phase: string
+        }[]
+      }
+      run_fixed_system_test: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          details: string
+          status: string
+          step_name: string
+          success: boolean
+          test_phase: string
+        }[]
+      }
       spend_bcc_tokens: {
         Args: {
           p_amount: number
@@ -3606,12 +4391,106 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      sync_missing_matrix_referrals: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          action_taken: string
+          assigned_position: string
+          layer_position: number
+          matrix_root: string
+          member_wallet: string
+          result_status: string
+        }[]
+      }
       sync_rewards_to_user_balances: {
         Args: Record<PropertyKey, never>
         Returns: {
           message: string
           total_usdc_added: number
           updated_wallets: number
+        }[]
+      }
+      test_activate_membership_complete: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          details: string
+          status: string
+          step_name: string
+          success: boolean
+        }[]
+      }
+      test_auth_user_creation: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          details: string
+          status: string
+          step_name: string
+          success: boolean
+        }[]
+      }
+      test_layer1_rewards: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          details: string
+          status: string
+          step_name: string
+          success: boolean
+        }[]
+      }
+      test_level_upgrade_functionality: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          details: string
+          status: string
+          step_name: string
+          success: boolean
+        }[]
+      }
+      test_membership_activation: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          details: string
+          status: string
+          step_name: string
+          success: boolean
+        }[]
+      }
+      test_membership_activation_records: {
+        Args: { p_member_wallet: string }
+        Returns: {
+          check_category: string
+          key_details: string
+          record_count: number
+          record_exists: boolean
+          result_status: string
+          table_name: string
+        }[]
+      }
+      test_pending_mechanism: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          details: string
+          status: string
+          step_name: string
+          success: boolean
+        }[]
+      }
+      test_upgrade_mechanism: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          details: string
+          status: string
+          step_name: string
+          success: boolean
+        }[]
+      }
+      test_user_creation: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          details: string
+          status: string
+          step_name: string
+          success: boolean
         }[]
       }
       toggle_activation_pending_global: {
@@ -3624,6 +4503,10 @@ export type Database = {
           p_nft_price: number
           p_upgrading_member_wallet: string
         }
+        Returns: Json
+      }
+      trigger_layer_rewards_on_upgrade_backup: {
+        Args: Record<PropertyKey, never>
         Returns: Json
       }
       unlock_bcc_for_level: {
@@ -3654,11 +4537,1005 @@ export type Database = {
     }
     Enums: {
       enum_wallet_ref_type:
-        | "USER"
-        | "MEMBER"
-        | "REFERRER"
-        | "MATRIX_ROOT"
-        | "BALANCE_HOLDER"
+          | "USER"
+          | "MEMBER"
+          | "REFERRER"
+          | "MATRIX_ROOT"
+          | "BALANCE_HOLDER"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+  realtime: {
+    Tables: {
+      messages: {
+        Row: {
+          event: string | null
+          extension: string
+          id: string
+          inserted_at: string
+          payload: Json | null
+          private: boolean | null
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          event?: string | null
+          extension: string
+          id?: string
+          inserted_at?: string
+          payload?: Json | null
+          private?: boolean | null
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          event?: string | null
+          extension?: string
+          id?: string
+          inserted_at?: string
+          payload?: Json | null
+          private?: boolean | null
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      messages_2025_09_25: {
+        Row: {
+          event: string | null
+          extension: string
+          id: string
+          inserted_at: string
+          payload: Json | null
+          private: boolean | null
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          event?: string | null
+          extension: string
+          id?: string
+          inserted_at?: string
+          payload?: Json | null
+          private?: boolean | null
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          event?: string | null
+          extension?: string
+          id?: string
+          inserted_at?: string
+          payload?: Json | null
+          private?: boolean | null
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      messages_2025_09_26: {
+        Row: {
+          event: string | null
+          extension: string
+          id: string
+          inserted_at: string
+          payload: Json | null
+          private: boolean | null
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          event?: string | null
+          extension: string
+          id?: string
+          inserted_at?: string
+          payload?: Json | null
+          private?: boolean | null
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          event?: string | null
+          extension?: string
+          id?: string
+          inserted_at?: string
+          payload?: Json | null
+          private?: boolean | null
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      messages_2025_09_27: {
+        Row: {
+          event: string | null
+          extension: string
+          id: string
+          inserted_at: string
+          payload: Json | null
+          private: boolean | null
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          event?: string | null
+          extension: string
+          id?: string
+          inserted_at?: string
+          payload?: Json | null
+          private?: boolean | null
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          event?: string | null
+          extension?: string
+          id?: string
+          inserted_at?: string
+          payload?: Json | null
+          private?: boolean | null
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      messages_2025_09_28: {
+        Row: {
+          event: string | null
+          extension: string
+          id: string
+          inserted_at: string
+          payload: Json | null
+          private: boolean | null
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          event?: string | null
+          extension: string
+          id?: string
+          inserted_at?: string
+          payload?: Json | null
+          private?: boolean | null
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          event?: string | null
+          extension?: string
+          id?: string
+          inserted_at?: string
+          payload?: Json | null
+          private?: boolean | null
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      messages_2025_09_29: {
+        Row: {
+          event: string | null
+          extension: string
+          id: string
+          inserted_at: string
+          payload: Json | null
+          private: boolean | null
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          event?: string | null
+          extension: string
+          id?: string
+          inserted_at?: string
+          payload?: Json | null
+          private?: boolean | null
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          event?: string | null
+          extension?: string
+          id?: string
+          inserted_at?: string
+          payload?: Json | null
+          private?: boolean | null
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      messages_2025_09_30: {
+        Row: {
+          event: string | null
+          extension: string
+          id: string
+          inserted_at: string
+          payload: Json | null
+          private: boolean | null
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          event?: string | null
+          extension: string
+          id?: string
+          inserted_at?: string
+          payload?: Json | null
+          private?: boolean | null
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          event?: string | null
+          extension?: string
+          id?: string
+          inserted_at?: string
+          payload?: Json | null
+          private?: boolean | null
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      messages_2025_10_01: {
+        Row: {
+          event: string | null
+          extension: string
+          id: string
+          inserted_at: string
+          payload: Json | null
+          private: boolean | null
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          event?: string | null
+          extension: string
+          id?: string
+          inserted_at?: string
+          payload?: Json | null
+          private?: boolean | null
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          event?: string | null
+          extension?: string
+          id?: string
+          inserted_at?: string
+          payload?: Json | null
+          private?: boolean | null
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      schema_migrations: {
+        Row: {
+          inserted_at: string | null
+          version: number
+        }
+        Insert: {
+          inserted_at?: string | null
+          version: number
+        }
+        Update: {
+          inserted_at?: string | null
+          version?: number
+        }
+        Relationships: []
+      }
+      subscription: {
+        Row: {
+          claims: Json
+          claims_role: unknown
+          created_at: string
+          entity: unknown
+          filters: Database["realtime"]["CompositeTypes"]["user_defined_filter"][]
+          id: number
+          subscription_id: string
+        }
+        Insert: {
+          claims: Json
+          claims_role?: unknown
+          created_at?: string
+          entity: unknown
+          filters?: Database["realtime"]["CompositeTypes"]["user_defined_filter"][]
+          id?: never
+          subscription_id: string
+        }
+        Update: {
+          claims?: Json
+          claims_role?: unknown
+          created_at?: string
+          entity?: unknown
+          filters?: Database["realtime"]["CompositeTypes"]["user_defined_filter"][]
+          id?: never
+          subscription_id?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      apply_rls: {
+        Args: { max_record_bytes?: number; wal: Json }
+        Returns: Database["realtime"]["CompositeTypes"]["wal_rls"][]
+      }
+      broadcast_changes: {
+        Args: {
+          event_name: string
+          level?: string
+          new: Record<string, unknown>
+          old: Record<string, unknown>
+          operation: string
+          table_name: string
+          table_schema: string
+          topic_name: string
+        }
+        Returns: undefined
+      }
+      build_prepared_statement_sql: {
+        Args: {
+          columns: Database["realtime"]["CompositeTypes"]["wal_column"][]
+          entity: unknown
+          prepared_statement_name: string
+        }
+        Returns: string
+      }
+      cast: {
+        Args: { type_: unknown; val: string }
+        Returns: Json
+      }
+      check_equality_op: {
+        Args: {
+          op: Database["realtime"]["Enums"]["equality_op"]
+          type_: unknown
+          val_1: string
+          val_2: string
+        }
+        Returns: boolean
+      }
+      is_visible_through_filters: {
+        Args: {
+          columns: Database["realtime"]["CompositeTypes"]["wal_column"][]
+          filters: Database["realtime"]["CompositeTypes"]["user_defined_filter"][]
+        }
+        Returns: boolean
+      }
+      list_changes: {
+        Args: {
+          max_changes: number
+          max_record_bytes: number
+          publication: unknown
+          slot_name: unknown
+        }
+        Returns: Database["realtime"]["CompositeTypes"]["wal_rls"][]
+      }
+      quote_wal2json: {
+        Args: { entity: unknown }
+        Returns: string
+      }
+      send: {
+        Args: { event: string; payload: Json; private?: boolean; topic: string }
+        Returns: undefined
+      }
+      to_regrole: {
+        Args: { role_name: string }
+        Returns: unknown
+      }
+      topic: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+    }
+    Enums: {
+      action: "INSERT" | "UPDATE" | "DELETE" | "TRUNCATE" | "ERROR"
+      equality_op: "eq" | "neq" | "lt" | "lte" | "gt" | "gte" | "in"
+    }
+    CompositeTypes: {
+      user_defined_filter: {
+        column_name: string | null
+        op: Database["realtime"]["Enums"]["equality_op"] | null
+        value: string | null
+      }
+      wal_column: {
+        name: string | null
+        type_name: string | null
+        type_oid: unknown | null
+        value: Json | null
+        is_pkey: boolean | null
+        is_selectable: boolean | null
+      }
+      wal_rls: {
+        wal: Json | null
+        is_rls_enabled: boolean | null
+        subscription_ids: string[] | null
+        errors: string[] | null
+      }
+    }
+  }
+  storage: {
+    Tables: {
+      buckets: {
+        Row: {
+          allowed_mime_types: string[] | null
+          avif_autodetection: boolean | null
+          created_at: string | null
+          file_size_limit: number | null
+          id: string
+          name: string
+          owner: string | null
+          owner_id: string | null
+          public: boolean | null
+          type: Database["storage"]["Enums"]["buckettype"]
+          updated_at: string | null
+        }
+        Insert: {
+          allowed_mime_types?: string[] | null
+          avif_autodetection?: boolean | null
+          created_at?: string | null
+          file_size_limit?: number | null
+          id: string
+          name: string
+          owner?: string | null
+          owner_id?: string | null
+          public?: boolean | null
+          type?: Database["storage"]["Enums"]["buckettype"]
+          updated_at?: string | null
+        }
+        Update: {
+          allowed_mime_types?: string[] | null
+          avif_autodetection?: boolean | null
+          created_at?: string | null
+          file_size_limit?: number | null
+          id?: string
+          name?: string
+          owner?: string | null
+          owner_id?: string | null
+          public?: boolean | null
+          type?: Database["storage"]["Enums"]["buckettype"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      buckets_analytics: {
+        Row: {
+          created_at: string
+          format: string
+          id: string
+          type: Database["storage"]["Enums"]["buckettype"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          format?: string
+          id: string
+          type?: Database["storage"]["Enums"]["buckettype"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          format?: string
+          id?: string
+          type?: Database["storage"]["Enums"]["buckettype"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      migrations: {
+        Row: {
+          executed_at: string | null
+          hash: string
+          id: number
+          name: string
+        }
+        Insert: {
+          executed_at?: string | null
+          hash: string
+          id: number
+          name: string
+        }
+        Update: {
+          executed_at?: string | null
+          hash?: string
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      objects: {
+        Row: {
+          bucket_id: string | null
+          created_at: string | null
+          id: string
+          last_accessed_at: string | null
+          level: number | null
+          metadata: Json | null
+          name: string | null
+          owner: string | null
+          owner_id: string | null
+          path_tokens: string[] | null
+          updated_at: string | null
+          user_metadata: Json | null
+          version: string | null
+        }
+        Insert: {
+          bucket_id?: string | null
+          created_at?: string | null
+          id?: string
+          last_accessed_at?: string | null
+          level?: number | null
+          metadata?: Json | null
+          name?: string | null
+          owner?: string | null
+          owner_id?: string | null
+          path_tokens?: string[] | null
+          updated_at?: string | null
+          user_metadata?: Json | null
+          version?: string | null
+        }
+        Update: {
+          bucket_id?: string | null
+          created_at?: string | null
+          id?: string
+          last_accessed_at?: string | null
+          level?: number | null
+          metadata?: Json | null
+          name?: string | null
+          owner?: string | null
+          owner_id?: string | null
+          path_tokens?: string[] | null
+          updated_at?: string | null
+          user_metadata?: Json | null
+          version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "objects_bucketId_fkey"
+            columns: ["bucket_id"]
+            isOneToOne: false
+            referencedRelation: "buckets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prefixes: {
+        Row: {
+          bucket_id: string
+          created_at: string | null
+          level: number
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          bucket_id: string
+          created_at?: string | null
+          level?: number
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          bucket_id?: string
+          created_at?: string | null
+          level?: number
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prefixes_bucketId_fkey"
+            columns: ["bucket_id"]
+            isOneToOne: false
+            referencedRelation: "buckets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      s3_multipart_uploads: {
+        Row: {
+          bucket_id: string
+          created_at: string
+          id: string
+          in_progress_size: number
+          key: string
+          owner_id: string | null
+          upload_signature: string
+          user_metadata: Json | null
+          version: string
+        }
+        Insert: {
+          bucket_id: string
+          created_at?: string
+          id: string
+          in_progress_size?: number
+          key: string
+          owner_id?: string | null
+          upload_signature: string
+          user_metadata?: Json | null
+          version: string
+        }
+        Update: {
+          bucket_id?: string
+          created_at?: string
+          id?: string
+          in_progress_size?: number
+          key?: string
+          owner_id?: string | null
+          upload_signature?: string
+          user_metadata?: Json | null
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "s3_multipart_uploads_bucket_id_fkey"
+            columns: ["bucket_id"]
+            isOneToOne: false
+            referencedRelation: "buckets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      s3_multipart_uploads_parts: {
+        Row: {
+          bucket_id: string
+          created_at: string
+          etag: string
+          id: string
+          key: string
+          owner_id: string | null
+          part_number: number
+          size: number
+          upload_id: string
+          version: string
+        }
+        Insert: {
+          bucket_id: string
+          created_at?: string
+          etag: string
+          id?: string
+          key: string
+          owner_id?: string | null
+          part_number: number
+          size?: number
+          upload_id: string
+          version: string
+        }
+        Update: {
+          bucket_id?: string
+          created_at?: string
+          etag?: string
+          id?: string
+          key?: string
+          owner_id?: string | null
+          part_number?: number
+          size?: number
+          upload_id?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "s3_multipart_uploads_parts_bucket_id_fkey"
+            columns: ["bucket_id"]
+            isOneToOne: false
+            referencedRelation: "buckets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "s3_multipart_uploads_parts_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "s3_multipart_uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      add_prefixes: {
+        Args: { _bucket_id: string; _name: string }
+        Returns: undefined
+      }
+      can_insert_object: {
+        Args: { bucketid: string; metadata: Json; name: string; owner: string }
+        Returns: undefined
+      }
+      delete_leaf_prefixes: {
+        Args: { bucket_ids: string[]; names: string[] }
+        Returns: undefined
+      }
+      delete_prefix: {
+        Args: { _bucket_id: string; _name: string }
+        Returns: boolean
+      }
+      extension: {
+        Args: { name: string }
+        Returns: string
+      }
+      filename: {
+        Args: { name: string }
+        Returns: string
+      }
+      foldername: {
+        Args: { name: string }
+        Returns: string[]
+      }
+      get_level: {
+        Args: { name: string }
+        Returns: number
+      }
+      get_prefix: {
+        Args: { name: string }
+        Returns: string
+      }
+      get_prefixes: {
+        Args: { name: string }
+        Returns: string[]
+      }
+      get_size_by_bucket: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          bucket_id: string
+          size: number
+        }[]
+      }
+      list_multipart_uploads_with_delimiter: {
+        Args: {
+          bucket_id: string
+          delimiter_param: string
+          max_keys?: number
+          next_key_token?: string
+          next_upload_token?: string
+          prefix_param: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          key: string
+        }[]
+      }
+      list_objects_with_delimiter: {
+        Args: {
+          bucket_id: string
+          delimiter_param: string
+          max_keys?: number
+          next_token?: string
+          prefix_param: string
+          start_after?: string
+        }
+        Returns: {
+          id: string
+          metadata: Json
+          name: string
+          updated_at: string
+        }[]
+      }
+      lock_top_prefixes: {
+        Args: { bucket_ids: string[]; names: string[] }
+        Returns: undefined
+      }
+      operation: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      search: {
+        Args: {
+          bucketname: string
+          levels?: number
+          limits?: number
+          offsets?: number
+          prefix: string
+          search?: string
+          sortcolumn?: string
+          sortorder?: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          last_accessed_at: string
+          metadata: Json
+          name: string
+          updated_at: string
+        }[]
+      }
+      search_legacy_v1: {
+        Args: {
+          bucketname: string
+          levels?: number
+          limits?: number
+          offsets?: number
+          prefix: string
+          search?: string
+          sortcolumn?: string
+          sortorder?: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          last_accessed_at: string
+          metadata: Json
+          name: string
+          updated_at: string
+        }[]
+      }
+      search_v1_optimised: {
+        Args: {
+          bucketname: string
+          levels?: number
+          limits?: number
+          offsets?: number
+          prefix: string
+          search?: string
+          sortcolumn?: string
+          sortorder?: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          last_accessed_at: string
+          metadata: Json
+          name: string
+          updated_at: string
+        }[]
+      }
+      search_v2: {
+        Args: {
+          bucket_name: string
+          levels?: number
+          limits?: number
+          prefix: string
+          sort_column?: string
+          sort_column_after?: string
+          sort_order?: string
+          start_after?: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          key: string
+          last_accessed_at: string
+          metadata: Json
+          name: string
+          updated_at: string
+        }[]
+      }
+    }
+    Enums: {
+      buckettype: "STANDARD" | "ANALYTICS"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+  vault: {
+    Tables: {
+      secrets: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          key_id: string | null
+          name: string | null
+          nonce: string | null
+          secret: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          key_id?: string | null
+          name?: string | null
+          nonce?: string | null
+          secret: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          key_id?: string | null
+          name?: string | null
+          nonce?: string | null
+          secret?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      decrypted_secrets: {
+        Row: {
+          created_at: string | null
+          decrypted_secret: string | null
+          description: string | null
+          id: string | null
+          key_id: string | null
+          name: string | null
+          nonce: string | null
+          secret: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          decrypted_secret?: never
+          description?: string | null
+          id?: string | null
+          key_id?: string | null
+          name?: string | null
+          nonce?: string | null
+          secret?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          decrypted_secret?: never
+          description?: string | null
+          id?: string | null
+          key_id?: string | null
+          name?: string | null
+          nonce?: string | null
+          secret?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+    }
+    Functions: {
+      _crypto_aead_det_decrypt: {
+        Args: {
+          additional: string
+          context?: string
+          key_id: number
+          message: string
+          nonce?: string
+        }
+        Returns: string
+      }
+      _crypto_aead_det_encrypt: {
+        Args: {
+          additional: string
+          context?: string
+          key_id: number
+          message: string
+          nonce?: string
+        }
+        Returns: string
+      }
+      _crypto_aead_det_noncegen: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      create_secret: {
+        Args: {
+          new_description?: string
+          new_key_id?: string
+          new_name?: string
+          new_secret: string
+        }
+        Returns: string
+      }
+      update_secret: {
+        Args: {
+          new_description?: string
+          new_key_id?: string
+          new_name?: string
+          new_secret?: string
+          secret_id: string
+        }
+        Returns: undefined
+      }
+    }
+    Enums: {
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3671,119 +5548,131 @@ type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    DefaultSchemaTableNameOrOptions extends
+            | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+        | { schema: keyof DatabaseWithoutInternals },
+    TableName extends DefaultSchemaTableNameOrOptions extends {
+          schema: keyof DatabaseWithoutInternals
+        }
+        ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+            DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+        : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
+      schema: keyof DatabaseWithoutInternals
     }
-    ? R
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
+    ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+          Row: infer R
+        }
+        ? R
+        : never
+    : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+            DefaultSchema["Views"])
+        ? (DefaultSchema["Tables"] &
+            DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+              Row: infer R
+            }
+            ? R
+            : never
+        : never
 
 export type TablesInsert<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    DefaultSchemaTableNameOrOptions extends
+            | keyof DefaultSchema["Tables"]
+        | { schema: keyof DatabaseWithoutInternals },
+    TableName extends DefaultSchemaTableNameOrOptions extends {
+          schema: keyof DatabaseWithoutInternals
+        }
+        ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+        : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
+      schema: keyof DatabaseWithoutInternals
     }
-    ? I
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
+    ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+          Insert: infer I
+        }
+        ? I
+        : never
+    : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+        ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+              Insert: infer I
+            }
+            ? I
+            : never
+        : never
 
 export type TablesUpdate<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    DefaultSchemaTableNameOrOptions extends
+            | keyof DefaultSchema["Tables"]
+        | { schema: keyof DatabaseWithoutInternals },
+    TableName extends DefaultSchemaTableNameOrOptions extends {
+          schema: keyof DatabaseWithoutInternals
+        }
+        ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+        : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
+      schema: keyof DatabaseWithoutInternals
     }
-    ? U
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
+    ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+          Update: infer U
+        }
+        ? U
+        : never
+    : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+        ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+              Update: infer U
+            }
+            ? U
+            : never
+        : never
 
 export type Enums<
-  DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    DefaultSchemaEnumNameOrOptions extends
+            | keyof DefaultSchema["Enums"]
+        | { schema: keyof DatabaseWithoutInternals },
+    EnumName extends DefaultSchemaEnumNameOrOptions extends {
+          schema: keyof DatabaseWithoutInternals
+        }
+        ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+        : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
+      schema: keyof DatabaseWithoutInternals
+    }
+    ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+    : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+        ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+        : never
 
 export type CompositeTypes<
-  PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    PublicCompositeTypeNameOrOptions extends
+            | keyof DefaultSchema["CompositeTypes"]
+        | { schema: keyof DatabaseWithoutInternals },
+    CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+          schema: keyof DatabaseWithoutInternals
+        }
+        ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+        : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+      schema: keyof DatabaseWithoutInternals
+    }
+    ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+    : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+        ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+        : never
 
 export const Constants = {
+  cron: {
+    Enums: {},
+  },
+  graphql: {
+    Enums: {},
+  },
+  graphql_public: {
+    Enums: {},
+  },
+  pgmq: {
+    Enums: {},
+  },
   public: {
     Enums: {
       enum_wallet_ref_type: [
@@ -3794,5 +5683,19 @@ export const Constants = {
         "BALANCE_HOLDER",
       ],
     },
+  },
+  realtime: {
+    Enums: {
+      action: ["INSERT", "UPDATE", "DELETE", "TRUNCATE", "ERROR"],
+      equality_op: ["eq", "neq", "lt", "lte", "gt", "gte", "in"],
+    },
+  },
+  storage: {
+    Enums: {
+      buckettype: ["STANDARD", "ANALYTICS"],
+    },
+  },
+  vault: {
+    Enums: {},
   },
 } as const

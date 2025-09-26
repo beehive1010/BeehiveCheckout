@@ -53,26 +53,62 @@ const MatrixLayerStatsView: React.FC<MatrixLayerStatsViewProps> = ({
     try {
       console.log('🔍 Loading matrix layer stats for:', walletAddress);
       
-      // Use matrix-view Supabase function with proper authentication
-      const { data: result, error: functionError } = await supabase.functions.invoke('matrix-view', {
-        body: {
-          action: 'get-layer-stats'
-        },
-        headers: {
-          'x-wallet-address': walletAddress
+      // Use direct database view query instead of edge function
+      console.log('📊 Using direct database query for matrix stats');
+
+      // Get matrix layer statistics directly from matrix_referrals_tree_view
+      const { data: matrixData, error: matrixError } = await supabase
+        .from('matrix_referrals_tree_view')
+        .select('matrix_layer, matrix_position, is_active')
+        .eq('matrix_root_wallet', walletAddress);
+
+      if (matrixError) {
+        throw new Error(`Database error: ${matrixError.message}`);
+      }
+
+      console.log('📊 Matrix data from database:', matrixData);
+
+      // Calculate layer statistics from raw data
+      const layerCounts: Record<number, { L: number, M: number, R: number, active: number }> = {};
+
+      matrixData?.forEach(member => {
+        const layer = member.matrix_layer;
+        if (!layerCounts[layer]) {
+          layerCounts[layer] = { L: 0, M: 0, R: 0, active: 0 };
         }
+
+        // Count positions
+        if (member.matrix_position === 'L') layerCounts[layer].L++;
+        else if (member.matrix_position === 'M') layerCounts[layer].M++;
+        else if (member.matrix_position === 'R') layerCounts[layer].R++;
+
+        // Count active members
+        if (member.is_active) layerCounts[layer].active++;
       });
 
-      if (functionError) {
-        throw new Error(`Function error: ${functionError.message}`);
-      }
+      // Generate layer stats for all 19 layers
+      const layer_stats = [];
+      for (let layer = 1; layer <= 19; layer++) {
+        const counts = layerCounts[layer] || { L: 0, M: 0, R: 0, active: 0 };
+        const totalMembers = counts.L + counts.M + counts.R;
+        const maxCapacity = Math.pow(3, layer);
+        const fillPercentage = maxCapacity > 0 ? (totalMembers / maxCapacity) * 100 : 0;
 
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to get layer stats');
+        layer_stats.push({
+          layer,
+          totalMembers,
+          leftMembers: counts.L,
+          middleMembers: counts.M,
+          rightMembers: counts.R,
+          maxCapacity,
+          fillPercentage: Math.min(fillPercentage, 100),
+          activeMembers: counts.active,
+          completedPercentage: fillPercentage,
+          activationRate: totalMembers > 0 ? (counts.active / totalMembers) * 100 : 0,
+          layerStatus: totalMembers >= maxCapacity ? 'completed' : totalMembers > 0 ? 'active' : 'empty',
+          isBalanced: Math.abs(counts.L - counts.M) <= 1 && Math.abs(counts.M - counts.R) <= 1
+        });
       }
-
-      console.log('📊 Matrix layer stats from function:', result.data);
-      const { layer_stats } = result.data;
       
       // Debug: Check specific Layer 2 data
       const layer2Data = layer_stats?.find((layer: any) => layer.layer === 2);

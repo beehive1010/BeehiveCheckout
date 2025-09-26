@@ -271,17 +271,23 @@ async function processLevelUpgrade(
       console.log(`✅ Referrals_new record verified: ${referralsNewData.referred_wallet} -> ${referralsNewData.referrer_wallet}`)
     }
 
-    // 5. Create membership record (triggers BCC release and other membership processing)
+    // 5. Create or verify membership record (triggers BCC release and other membership processing)
     console.log(`💫 Creating membership record for Level ${targetLevel}...`)
+
+    // Use upsert to avoid duplicate key errors
     const { data: membershipData, error: membershipError } = await supabase
       .from('membership')
-      .insert({
+      .upsert({
         wallet_address: walletAddress, // Preserve case
         nft_level: targetLevel,
         claim_price: LEVEL_CONFIG.PRICING[targetLevel] || 0,
         claimed_at: new Date().toISOString(),
         is_member: true,
-        unlock_membership_level: targetLevel + 1 // Dynamic unlock level
+        unlock_membership_level: targetLevel + 1, // Dynamic unlock level
+        platform_activation_fee: targetLevel === 1 ? 30 : 0, // Only Level 1 has platform fee
+        total_cost: LEVEL_CONFIG.PRICING[targetLevel] || 0
+      }, {
+        onConflict: 'wallet_address,nft_level'
       })
       .select()
       .single()
@@ -296,7 +302,7 @@ async function processLevelUpgrade(
       }
     }
 
-    console.log(`✅ Membership record created - triggers fired:`, membershipData)
+    console.log(`✅ Membership record upserted - triggers fired:`, membershipData)
 
     // 6. Update member level (triggers level upgrade rewards and layer rewards)
     console.log(`⬆️ Updating member level to ${targetLevel}...`)
@@ -327,49 +333,109 @@ async function processLevelUpgrade(
     // 6.2. Note: Pending rewards will be handled by member level update triggers  
     console.log(`🎁 Pending rewards will be processed by database triggers...`)
 
-    // 6.3. Check and compensate for missing layer rewards (trigger补偿逻辑)
-    console.log(`🔍 Checking if layer rewards were triggered for ${walletAddress} Level ${targetLevel}...`)
+    // 6.3. Trigger BCC release for Level upgrade
+    let bccReleaseResult = null;
     try {
-      // Check if layer reward exists for this level upgrade
-      const { data: existingLayerReward, error: checkError } = await supabase
-        .from('layer_rewards')
-        .select('id, status, reward_amount')
-        .ilike('triggering_member_wallet', walletAddress)
-        .eq('matrix_layer', targetLevel)
-        .maybeSingle()
+      console.log(`🔓 Unlocking BCC for Level ${targetLevel} upgrade...`);
+      const bccResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/bcc-release-system`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}`
+        },
+        body: JSON.stringify({
+          action: 'process_level_unlock',
+          walletAddress: walletAddress,
+          targetLevel: targetLevel
+        })
+      });
 
-      if (checkError) {
-        console.warn('⚠️ Layer reward check query failed:', checkError)
-      } else if (!existingLayerReward) {
-        console.log(`❌ Missing layer reward detected for Level ${targetLevel}, compensating with manual trigger...`)
-        
-        // Calculate correct layer reward amount for all levels (1-19)
-        // This should match the get_nft_level_price database function
-        const getLayerRewardAmount = (lvl) => {
-          const rewardAmounts = {
+      if (bccResponse.ok) {
+        bccReleaseResult = await bccResponse.json();
+        console.log(`✅ BCC release completed:`, bccReleaseResult);
+      } else {
+        console.warn(`⚠️ BCC release failed with status ${bccResponse.status}`);
+        const errorText = await bccResponse.text();
+        console.warn(`BCC release error:`, errorText);
+      }
+    } catch (bccError) {
+      console.warn('⚠️ BCC release error (non-critical):', bccError);
+    }
+
+    // 6.4. Trigger Layer Rewards for Level Upgrade (Level 2-19)
+    // Layer rewards are only triggered for upgrades from Level 2 onwards
+    console.log(`🔍 Triggering layer rewards for ${walletAddress} Level ${targetLevel} upgrade...`)
+    let layerRewardResult = null;
+
+    if (targetLevel >= 2) {
+      try {
+        // For Level 2-19 upgrades, trigger layer rewards to matrix_root members
+        // Reward amount = NFT price of the target level
+        const getNftPrice = (lvl) => {
+          const prices = {
             1: 100, 2: 150, 3: 200, 4: 250, 5: 300, 6: 350, 7: 400, 8: 450, 9: 500,
             10: 550, 11: 600, 12: 650, 13: 700, 14: 750, 15: 800, 16: 850, 17: 900, 18: 950, 19: 1000
           };
-          return rewardAmounts[lvl] || (lvl <= 19 ? 100 + (lvl - 1) * 50 : 0);
+          return prices[lvl] || (lvl <= 19 ? 100 + (lvl - 1) * 50 : 0);
         };
-        
-        // Manually trigger the layer reward creation
-        const { data: compensationResult, error: compensationError } = await supabase.rpc('trigger_layer_rewards_on_upgrade', {
+
+        console.log(`💰 Creating layer rewards for Level ${targetLevel} upgrade...`);
+        console.log(`🎯 Reward amount will be: ${getNftPrice(targetLevel)} USDC (Level ${targetLevel} NFT price)`);
+
+        // Trigger layer rewards with level eligibility verification:
+        // 1st-2nd layer: minimum required level = target level
+        // 3rd+ layer: minimum required level = target level + 1
+        const { data: layerRewardData, error: layerRewardError } = await supabase.rpc('trigger_layer_rewards_on_upgrade', {
           p_upgrading_member_wallet: walletAddress,
           p_new_level: targetLevel,
-          p_nft_price: getLayerRewardAmount(targetLevel)
-        })
+          p_nft_price: getNftPrice(targetLevel),
+          p_reward_type: 'layer_reward'
+        });
 
-        if (compensationError) {
-          console.warn('⚠️ Layer reward compensation failed:', compensationError)
+        if (layerRewardError) {
+          console.warn('⚠️ Layer reward creation failed:', layerRewardError);
         } else {
-          console.log(`✅ Layer reward compensation successful:`, compensationResult)
+          console.log(`✅ Layer rewards triggered for Level ${targetLevel} upgrade:`, layerRewardData);
+          layerRewardResult = layerRewardData;
         }
-      } else {
-        console.log(`✅ Layer reward already exists: ${existingLayerReward.id} (${existingLayerReward.status}, ${existingLayerReward.reward_amount})`)
+
+        // Additional check: Verify layer rewards were created
+        const { data: createdLayerRewards, error: checkError } = await supabase
+          .from('layer_rewards')
+          .select('id, matrix_layer, reward_recipient_wallet, reward_amount, status')
+          .ilike('triggering_member_wallet', walletAddress)
+          .eq('matrix_layer', targetLevel);
+
+        if (!checkError && createdLayerRewards && createdLayerRewards.length > 0) {
+          console.log(`✅ Verified ${createdLayerRewards.length} layer rewards created for Level ${targetLevel}:`,
+            createdLayerRewards.map(r => `${r.reward_recipient_wallet}: ${r.reward_amount} USDC (${r.status})`));
+        } else if (!checkError && (!createdLayerRewards || createdLayerRewards.length === 0)) {
+          console.warn(`⚠️ No layer rewards found after Level ${targetLevel} upgrade - may indicate missing matrix members at this layer`);
+        }
+
+      } catch (layerRewardErr) {
+        console.warn('⚠️ Layer reward error (non-critical):', layerRewardErr);
       }
-    } catch (compensationErr) {
-      console.warn('⚠️ Layer reward compensation error (non-critical):', compensationErr)
+    } else {
+      console.log(`ℹ️ Level 1 upgrades do not trigger layer rewards - only direct referral rewards`);
+      layerRewardResult = { success: true, note: 'Level 1 does not trigger layer rewards' };
+    }
+
+    // 6.5. Check and update pending rewards that may now be claimable after upgrade
+    console.log(`🎁 Checking pending rewards after Level ${targetLevel} upgrade for ${walletAddress}...`);
+    try {
+      const { data: pendingRewardCheck, error: pendingRewardError } = await supabase.rpc('check_pending_rewards_after_upgrade', {
+        p_upgraded_wallet: walletAddress,
+        p_new_level: targetLevel
+      });
+
+      if (pendingRewardError) {
+        console.warn('⚠️ Pending reward check failed:', pendingRewardError);
+      } else {
+        console.log(`✅ Pending reward check completed for Level ${targetLevel} upgrade:`, pendingRewardCheck);
+      }
+    } catch (pendingRewardErr) {
+      console.warn('⚠️ Pending reward check error (non-critical):', pendingRewardErr);
     }
 
     // 7. Get final results from triggered functions
@@ -470,10 +536,7 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
       }
     }
 
-    // 2. Check sequential upgrade requirement
-    const expectedNextLevel = currentLevel + 1
-    const isSequential = targetLevel === expectedNextLevel
-    
+    // 2. Check target level validity
     if (targetLevel > 19) {
       return {
         success: false,
@@ -484,7 +547,43 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
       }
     }
 
-    // Check if user already has membership record for this level
+    if (targetLevel <= currentLevel) {
+      return {
+        success: false,
+        action: 'check_requirements',
+        canUpgrade: false,
+        message: `Cannot downgrade or claim same level. Current: ${currentLevel}, Target: ${targetLevel}`,
+        error: 'Invalid target level - must be higher than current level'
+      }
+    }
+
+    // 3. STRICT Sequential upgrade requirement verification
+    const expectedNextLevel = currentLevel + 1
+    const isSequential = targetLevel === expectedNextLevel
+
+    if (!isSequential) {
+      return {
+        success: false,
+        action: 'check_requirements',
+        canUpgrade: false,
+        requirements: {
+          directReferrals: { required: 0, current: 0, satisfied: true },
+          sequentialUpgrade: {
+            required: true,
+            nextLevel: expectedNextLevel,
+            satisfied: false
+          },
+          pricing: {
+            usdcCost: LEVEL_CONFIG.PRICING[targetLevel] || 0,
+            bccUnlocked: LEVEL_CONFIG.BCC_UNLOCK[targetLevel] || 0
+          }
+        },
+        message: `SEQUENTIAL UPGRADE REQUIRED: Must upgrade one level at a time. Current Level: ${currentLevel}, Must claim Level: ${expectedNextLevel}. Cannot skip to Level ${targetLevel}.`,
+        error: 'Non-sequential upgrade not allowed'
+      }
+    }
+
+    // 4. Check if user already has membership record for this level
     const { data: existingMembership } = await supabase
       .from('membership')
       .select('nft_level')
@@ -502,29 +601,39 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
       }
     }
 
-    if (!isSequential) {
-      return {
-        success: false,
-        action: 'check_requirements',
-        canUpgrade: false,
-        requirements: {
-          directReferrals: { required: 0, current: 0, satisfied: true },
-          sequentialUpgrade: { 
-            required: true, 
-            nextLevel: expectedNextLevel, 
-            satisfied: false 
-          },
-          pricing: {
-            usdcCost: LEVEL_CONFIG.PRICING[targetLevel] || 0,
-            bccUnlocked: LEVEL_CONFIG.BCC_UNLOCK[targetLevel] || 0
+    // 5. Verify user has ALL prerequisite levels (double-check against membership table)
+    console.log(`🔍 Verifying user has all prerequisite levels (1 to ${currentLevel})...`);
+    const { data: allMemberships } = await supabase
+      .from('membership')
+      .select('nft_level')
+      .ilike('wallet_address', walletAddress)
+      .order('nft_level', { ascending: true });
+
+    const ownedLevels = allMemberships ? allMemberships.map(m => m.nft_level).sort((a, b) => a - b) : [];
+
+    // Check for gaps in owned levels
+    for (let level = 1; level <= currentLevel; level++) {
+      if (!ownedLevels.includes(level)) {
+        return {
+          success: false,
+          action: 'check_requirements',
+          canUpgrade: false,
+          message: `Missing prerequisite Level ${level} NFT. Must own all levels 1-${currentLevel} before upgrading to Level ${targetLevel}.`,
+          error: `Missing Level ${level} NFT`,
+          debug: {
+            currentLevel,
+            targetLevel,
+            ownedLevels,
+            missingLevel: level
           }
-        },
-        message: `Must upgrade sequentially. Next level: ${expectedNextLevel}`,
-        error: 'Non-sequential upgrade'
+        }
       }
     }
 
-    // 3. Check Level 2 special requirement (3 direct referrals)
+    console.log(`✅ Prerequisite verification passed: User owns Levels ${ownedLevels.join(', ')}`);
+    console.log(`✅ Sequential upgrade validation passed: ${currentLevel} -> ${targetLevel}`);
+
+    // 6. Check Level 2 special requirement (3 direct referrals)
     let directReferralsCheck = { required: 0, current: 0, satisfied: true }
     
     if (targetLevel === 2) {
@@ -592,7 +701,7 @@ async function checkUpgradeRequirements(supabase: any, walletAddress: string, ta
           bccUnlocked: LEVEL_CONFIG.BCC_UNLOCK[targetLevel] || 0
         }
       },
-      message: `Can upgrade to Level ${targetLevel}. Cost: ${LEVEL_CONFIG.PRICING[targetLevel]} USDC`
+      message: `✅ ALL REQUIREMENTS SATISFIED: Can upgrade to Level ${targetLevel}. Cost: ${LEVEL_CONFIG.PRICING[targetLevel]} USDC. Prerequisites verified: owns all required levels, sequential upgrade validated${directReferralsCheck.required > 0 ? `, direct referrals: ${directReferralsCheck.current}/${directReferralsCheck.required}` : ''}.`
     }
 
   } catch (error) {

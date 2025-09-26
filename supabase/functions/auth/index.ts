@@ -124,33 +124,82 @@ async function registerUser(supabase: any, walletAddress: string, data: any) {
 // Get user function - simplified using unified member status
 async function getUser(supabase: any, walletAddress: string) {
   console.log(`👤 Getting user: ${walletAddress}`);
-  // Use unified member status function
-  const { data: statusResult, error: statusError } = await supabase.rpc('get_member_status', {
-    p_wallet_address: walletAddress
-  });
-  if (statusError) {
-    console.error('❌ get_member_status error:', statusError);
-    throw new Error(`Failed to get user status: ${statusError.message || statusError.details || statusError.hint || JSON.stringify(statusError)}`);
-  }
-  if (!statusResult.is_registered) {
+
+  // Validate wallet address format
+  if (!walletAddress || !walletAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
     return {
       success: false,
-      action: 'not_found',
+      action: 'invalid_wallet',
       isRegistered: false,
-      message: 'User does not exist'
+      message: 'Invalid wallet address format'
     };
   }
 
-  // 🔧 FALLBACK: If members table shows no activation, check membership table
-  let finalStatus = statusResult;
+  try {
+    // Use unified member status function with fallback
+    const { data: statusResult, error: statusError } = await supabase.rpc('get_member_status', {
+      p_wallet_address: walletAddress
+    });
+
+    if (statusError) {
+      console.error('❌ get_member_status error:', statusError);
+
+      // Fallback: Direct table queries if RPC fails
+      console.log('🔧 Falling back to direct table queries...');
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('wallet_address, username, referrer_wallet, created_at')
+        .ilike('wallet_address', walletAddress)
+        .maybeSingle();
+
+      if (userError || !userData) {
+        return {
+          success: false,
+          action: 'not_found',
+          isRegistered: false,
+          message: 'User does not exist'
+        };
+      }
+
+      // Create minimal status result for fallback
+      const fallbackResult = {
+        is_registered: true,
+        is_member: false,
+        is_activated: false,
+        current_level: 0,
+        user_info: userData,
+        balance_info: null,
+        activation_sequence: null,
+        referrer_wallet: userData.referrer_wallet,
+        activation_time: null,
+        can_access_referrals: false
+      };
+
+      // Continue with fallback status
+      statusResult = fallbackResult;
+    }
+
+    if (!statusResult?.is_registered) {
+      return {
+        success: false,
+        action: 'not_found',
+        isRegistered: false,
+        message: 'User does not exist'
+      };
+    }
+
+    // 🔧 FALLBACK: If members table shows no activation, check membership table
+    let finalStatus = statusResult;
   if (!statusResult.is_member || !statusResult.is_activated) {
     console.log(`🔍 Checking membership table fallback for ${walletAddress}`);
     const { data: membershipData, error: membershipError } = await supabase
       .from('membership')
       .select('nft_level, is_member, claimed_at')
       .ilike('wallet_address', walletAddress)
+      .order('nft_level', { ascending: false })
+      .limit(1)
       .maybeSingle();
-    
+
     if (!membershipError && membershipData && membershipData.is_member) {
       console.log(`✅ Found active membership record: Level ${membershipData.nft_level}`);
       finalStatus = {
@@ -161,6 +210,27 @@ async function getUser(supabase: any, walletAddress: string) {
         activation_time: membershipData.claimed_at,
         can_access_referrals: true
       };
+    } else {
+      // Additional fallback: Check if user has any membership record at all
+      const { data: anyMembership, error: anyError } = await supabase
+        .from('membership')
+        .select('nft_level, claimed_at')
+        .ilike('wallet_address', walletAddress)
+        .order('nft_level', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!anyError && anyMembership) {
+        console.log(`✅ Found membership record without is_member flag: Level ${anyMembership.nft_level}`);
+        finalStatus = {
+          ...statusResult,
+          is_member: true,
+          is_activated: true,
+          current_level: anyMembership.nft_level,
+          activation_time: anyMembership.claimed_at,
+          can_access_referrals: true
+        };
+      }
     }
   }
   // Get referral statistics only if member - using new MasterSpec table structure
@@ -173,25 +243,35 @@ async function getUser(supabase: any, walletAddress: string) {
       matrix_members: matrixMembers?.length || 0
     };
   }
-  console.log(`🔍 User status: member=${finalStatus.is_member}, level=${finalStatus.current_level}, activated=${finalStatus.is_activated}`);
-  return {
-    success: true,
-    action: 'found',
-    user: statusResult.user_info,
-    member: finalStatus.is_member ? {
-      activation_sequence: finalStatus.activation_sequence,
-      current_level: finalStatus.current_level,
-      referrer_wallet: finalStatus.referrer_wallet,
-      activation_time: finalStatus.activation_time
-    } : null,
-    balance: statusResult.balance_info,
-    referral_stats: referralStats,
-    isRegistered: statusResult.is_registered,
-    isMember: finalStatus.is_member,
-    membershipLevel: finalStatus.current_level,
-    canAccessReferrals: finalStatus.can_access_referrals,
-    message: 'User information retrieved successfully'
-  };
+    console.log(`🔍 User status: member=${finalStatus.is_member}, level=${finalStatus.current_level}, activated=${finalStatus.is_activated}`);
+    return {
+      success: true,
+      action: 'found',
+      user: statusResult.user_info,
+      member: finalStatus.is_member ? {
+        activation_sequence: finalStatus.activation_sequence,
+        current_level: finalStatus.current_level,
+        referrer_wallet: finalStatus.referrer_wallet,
+        activation_time: finalStatus.activation_time
+      } : null,
+      balance: statusResult.balance_info,
+      referral_stats: referralStats,
+      isRegistered: statusResult.is_registered,
+      isMember: finalStatus.is_member,
+      membershipLevel: finalStatus.current_level,
+      canAccessReferrals: finalStatus.can_access_referrals,
+      message: 'User information retrieved successfully'
+    };
+  } catch (error) {
+    console.error('❌ Get user function error:', error);
+    return {
+      success: false,
+      action: 'error',
+      isRegistered: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+      message: 'Failed to retrieve user information'
+    };
+  }
 }
 // Validate referrer function - simplified using unified status
 async function validateReferrer(supabase: any, referrerWallet: string) {
