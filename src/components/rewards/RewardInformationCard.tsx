@@ -556,7 +556,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
             <div className="space-y-4">
               <h4 className="font-semibold text-honey flex items-center gap-2 text-lg">
                 <Gift className="h-5 w-5" />
-                完整19层奖励结构
+                {t('rewards.information.complete19LayerRewardStructure')}
               </h4>
               
               {/* Layer Groups */}
@@ -564,8 +564,8 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                 {/* Layers 1-5 */}
                 <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl p-4 border border-green-500/30">
                   <h5 className="font-medium text-green-400 mb-3 flex items-center gap-2">
-                    <Badge className="bg-green-500/20 text-green-400">初级</Badge>
-                    Layer 1-5 奖励
+                    <Badge className="bg-green-500/20 text-green-400">{t('rewards.information.layerGroupBasicBadge')}</Badge>
+                    Layer 1-5 {t('rewards.information.layerRewards')}
                   </h5>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 justify-items-center">
                     {LAYER_REWARDS.slice(0, 5).map((reward) => (
@@ -573,11 +573,11 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="font-semibold text-honey text-sm">Layer {reward.layer}</div>
-                            <div className="text-xs text-muted-foreground">Level {reward.layer} 升级触发</div>
+                            <div className="text-xs text-muted-foreground">{t('rewards.information.levelUpgradeTrigger', { level: reward.layer })}</div>
                           </div>
                           <div className="text-right">
                             <div className="font-bold text-green-400">${reward.levelPrice}</div>
-                            <div className="text-xs text-muted-foreground">100% NFT价格</div>
+                            <div className="text-xs text-muted-foreground">{t('rewards.information.percentageNftPrice')}</div>
                           </div>
                         </div>
                       </div>
@@ -588,8 +588,8 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                 {/* Layers 6-10 */}
                 <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-xl p-4 border border-blue-500/30">
                   <h5 className="font-medium text-blue-400 mb-3 flex items-center gap-2">
-                    <Badge className="bg-blue-500/20 text-blue-400">中级</Badge>
-                    Layer 6-10 奖励
+                    <Badge className="bg-blue-500/20 text-blue-400">{t('rewards.information.layerGroupIntermediateBadge')}</Badge>
+                    Layer 6-10 {t('rewards.information.layerRewards')}
                   </h5>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 justify-items-center">
                     {LAYER_REWARDS.slice(5, 10).map((reward) => (
@@ -597,11 +597,11 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="font-semibold text-honey text-sm">Layer {reward.layer}</div>
-                            <div className="text-xs text-muted-foreground">Level {reward.layer} 升级触发</div>
+                            <div className="text-xs text-muted-foreground">{t('rewards.information.levelUpgradeTrigger', { level: reward.layer })}</div>
                           </div>
                           <div className="text-right">
                             <div className="font-bold text-green-400">${reward.levelPrice}</div>
-                            <div className="text-xs text-muted-foreground">100% NFT价格</div>
+                            <div className="text-xs text-muted-foreground">{t('rewards.information.percentageNftPrice')}</div>
                           </div>
                         </div>
                       </div>
@@ -612,8 +612,8 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                 {/* Layers 11-15 */}
                 <div className="bg-gradient-to-r from-orange-500/10 to-amber-500/10 rounded-xl p-4 border border-orange-500/30">
                   <h5 className="font-medium text-orange-400 mb-3 flex items-center gap-2">
-                    <Badge className="bg-orange-500/20 text-orange-400">高级</Badge>
-                    Layer 11-15 奖励
+                    <Badge className="bg-orange-500/20 text-orange-400">{t('rewards.information.layerGroupAdvancedBadge')}</Badge>
+                    Layer 11-15 {t('rewards.information.layerRewards')}
                   </h5>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 justify-items-center">
                     {LAYER_REWARDS.slice(10, 15).map((reward) => (
@@ -621,11 +621,11 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="font-semibold text-honey text-sm">Layer {reward.layer}</div>
-                            <div className="text-xs text-muted-foreground">Level {reward.layer} 升级触发</div>
+                            <div className="text-xs text-muted-foreground">{t('rewards.information.levelUpgradeTrigger', { level: reward.layer })}</div>
                           </div>
                           <div className="text-right">
                             <div className="font-bold text-green-400">${reward.levelPrice}</div>
-                            <div className="text-xs text-muted-foreground">100% NFT价格</div>
+                            <div className="text-xs text-muted-foreground">{t('rewards.information.percentageNftPrice')}</div>
                           </div>
                         </div>
                       </div>
@@ -636,8 +636,8 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                 {/* Layers 16-19 */}
                 <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl p-4 border border-purple-500/30">
                   <h5 className="font-medium text-purple-400 mb-3 flex items-center gap-2">
-                    <Badge className="bg-purple-500/20 text-purple-400">顶级</Badge>
-                    Layer 16-19 奖励
+                    <Badge className="bg-purple-500/20 text-purple-400">{t('rewards.information.layerGroupTopBadge')}</Badge>
+                    Layer 16-19 {t('rewards.information.layerRewards')}
                   </h5>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 justify-items-center">
                     {LAYER_REWARDS.slice(15, 19).map((reward) => (
@@ -648,16 +648,16 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                               Layer {reward.layer}
                               {reward.layer === 19 && <Badge className="bg-honey text-black text-xs">MAX</Badge>}
                             </div>
-                            <div className="text-xs text-muted-foreground">Level {reward.layer} 升级触发</div>
+                            <div className="text-xs text-muted-foreground">{t('rewards.information.levelUpgradeTrigger', { level: reward.layer })}</div>
                             {reward.layer === 19 && (
-                              <div className="text-xs text-honey mt-1">最高收益层级</div>
+                              <div className="text-xs text-honey mt-1">{t('rewards.information.highestRewardLayer')}</div>
                             )}
                           </div>
                           <div className="text-right">
                             <div className={`font-bold ${reward.layer === 19 ? 'text-honey text-lg' : 'text-green-400'}`}>
                               ${reward.levelPrice}
                             </div>
-                            <div className="text-xs text-muted-foreground">100% NFT价格</div>
+                            <div className="text-xs text-muted-foreground">{t('rewards.information.percentageNftPrice')}</div>
                           </div>
                         </div>
                       </div>
@@ -669,7 +669,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                 <div className="bg-gradient-to-r from-honey/10 to-amber-500/10 rounded-xl p-4 border border-honey/30">
                   <h5 className="font-medium text-honey mb-3 flex items-center gap-2">
                     <Target className="h-4 w-4" />
-                    层级奖励总结
+                    {t('rewards.information.layerRewardsSummary')}
                   </h5>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center justify-items-center">
                     <div className="bg-slate-800/50 rounded-lg p-3 w-full max-w-xs">
@@ -697,27 +697,27 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
             <div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-xl p-6 border border-orange-500/30 shadow-xl">
               <h4 className="font-semibold text-orange-400 mb-4 flex items-center gap-2 text-lg">
                 <AlertCircle className="h-5 w-5" />
-                资格规则和时间机制
+                {t('rewards.information.eligibilityRulesAndTiming')}
               </h4>
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <h5 className="font-medium text-white flex items-center gap-2">
                     <Zap className="h-4 w-4 text-green-400" />
-                    即时奖励
+                    {t('rewards.information.instantRewards')}
                   </h5>
                   <div className="space-y-3 text-sm">
                     <div className="flex items-start gap-3">
                       <CheckCircle className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
                       <div>
-                        <div className="font-medium text-green-400">每层前1、2个奖励</div>
-                        <div className="text-muted-foreground">您的等级必须等于该层级才能立即获得</div>
+                        <div className="font-medium text-green-400">{t('rewards.information.instantReward1')}</div>
+                        <div className="text-muted-foreground">{t('rewards.information.instantReward1Desc')}</div>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
                       <CheckCircle className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
                       <div>
-                        <div className="font-medium text-green-400">每层第3+个奖励</div>
-                        <div className="text-muted-foreground">您的等级必须大于该层级</div>
+                        <div className="font-medium text-green-400">{t('rewards.information.instantReward2')}</div>
+                        <div className="text-muted-foreground">{t('rewards.information.instantReward2Desc')}</div>
                       </div>
                     </div>
                   </div>
@@ -725,28 +725,28 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                 <div className="space-y-4">
                   <h5 className="font-medium text-white flex items-center gap-2">
                     <Clock className="h-4 w-4 text-orange-400" />
-                    待处理系统
+                    {t('rewards.information.pendingSystem')}
                   </h5>
                   <div className="space-y-3 text-sm">
                     <div className="flex items-start gap-3">
                       <Clock className="h-4 w-4 text-orange-400 mt-0.5 flex-shrink-0" />
                       <div>
-                        <div className="font-medium text-orange-400">72小时待处理</div>
-                        <div className="text-muted-foreground">如未满足等级要求，奖励进入待处理状态</div>
+                        <div className="font-medium text-orange-400">{t('rewards.information.pending72Hours')}</div>
+                        <div className="text-muted-foreground">{t('rewards.information.pending72HoursDesc')}</div>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
                       <Zap className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
                       <div>
-                        <div className="font-medium text-blue-400">升级领取</div>
-                        <div className="text-muted-foreground">激活所需等级即可立即领取</div>
+                        <div className="font-medium text-blue-400">{t('rewards.information.upgradeToClain')}</div>
+                        <div className="text-muted-foreground">{t('rewards.information.upgradeToClainDesc')}</div>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
                       <ArrowRight className="h-4 w-4 text-purple-400 mt-0.5 flex-shrink-0" />
                       <div>
-                        <div className="font-medium text-purple-400">过期重分配</div>
-                        <div className="text-muted-foreground">过期奖励转给上级符合条件的会员</div>
+                        <div className="font-medium text-purple-400">{t('rewards.information.expiredReallocation')}</div>
+                        <div className="text-muted-foreground">{t('rewards.information.expiredReallocationDesc')}</div>
                       </div>
                     </div>
                   </div>
@@ -763,10 +763,10 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
           <DialogHeader className="border-b border-slate-700 pb-4">
             <DialogTitle className="flex items-center gap-3 text-blue-400 text-xl">
               <Lock className="h-6 w-6" />
-              BCC锁仓奖励 - 完整四阶段详情
+              {t('rewards.information.bccLockingRewardsTitle')}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground text-base">
-              基于总激活会员数量的四阶段BCC释放系统，包含所有级别的详细释放数量
+              {t('rewards.information.bccLockingRewardsDesc')}
             </DialogDescription>
           </DialogHeader>
           
@@ -775,12 +775,11 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
             <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-xl p-6 border border-blue-500/30 shadow-xl">
               <h4 className="font-semibold text-blue-400 mb-4 flex items-center gap-3 text-lg">
                 <Timer className="h-5 w-5" />
-                BCC释放机制说明
-                <Badge className="bg-blue-500/20 text-blue-400 text-xs">自动分发</Badge>
+                {t('rewards.information.bccReleaseMechanism')}
+                <Badge className="bg-blue-500/20 text-blue-400 text-xs">{t('rewards.information.autoDistribution')}</Badge>
               </h4>
               <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
-                BCC奖励根据会员激活人数达标分为四个阶段，每个阶段的总锁仓奖励和单级别释放数量都会递减。
-                当会员激活新的级别时，系统会自动释放对应数量的BCC到余额中。
+                {t('rewards.information.bccReleaseMechanismDesc')}
               </p>
             </div>
 
@@ -788,7 +787,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
             <div className="space-y-6">
               <h4 className="font-semibold text-blue-400 flex items-center gap-2 text-lg">
                 <TrendingUp className="h-5 w-5" />
-                完整四阶段释放详情
+                {t('rewards.information.completeFourPhaseDetails')}
               </h4>
               
               {BCC_PHASES.map((phase, index) => (
@@ -804,7 +803,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                             {phase.description}
                           </div>
                           <div className="text-sm text-muted-foreground">
-                            激活会员: {phase.members}
+                            {t('rewards.information.activatedMembers')}: {phase.members}
                           </div>
                         </div>
                       </div>
@@ -813,10 +812,10 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                           {phase.totalReward} BCC
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          每位会员总锁仓池
+                          {t('rewards.information.perMemberTotalLockingPool')}
                         </div>
                         {phase.status === 'current' && (
-                          <Badge className="bg-green-500 text-white text-xs mt-1">当前阶段</Badge>
+                          <Badge className="bg-green-500 text-white text-xs mt-1">{t('rewards.information.currentPhase')}</Badge>
                         )}
                       </div>
                     </div>
@@ -825,12 +824,12 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                     <div className="bg-slate-700/30 rounded-xl p-4">
                       <div className="text-sm font-medium text-blue-300 mb-4 flex items-center gap-2">
                         <Gift className="h-4 w-4" />
-                        完整释放时间表 (BCC数量/级别激活)
+                        {t('rewards.information.completeReleaseSchedule')}
                       </div>
                       
                       {/* Level 1-5 */}
                       <div className="mb-4">
-                        <h6 className="text-xs font-medium text-green-400 mb-2">Level 1-5 (初级)</h6>
+                        <h6 className="text-xs font-medium text-green-400 mb-2">{t('rewards.information.levelBasic')}</h6>
                         <div className="grid grid-cols-5 gap-2">
                           {phase.releases.slice(0, 5).map((release) => (
                             <div key={release.level} className="text-center bg-slate-600/30 rounded p-2">
@@ -843,7 +842,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
 
                       {/* Level 6-10 */}
                       <div className="mb-4">
-                        <h6 className="text-xs font-medium text-blue-400 mb-2">Level 6-10 (中级)</h6>
+                        <h6 className="text-xs font-medium text-blue-400 mb-2">{t('rewards.information.levelIntermediate')}</h6>
                         <div className="grid grid-cols-5 gap-2">
                           {phase.releases.slice(5, 10).map((release) => (
                             <div key={release.level} className="text-center bg-slate-600/30 rounded p-2">
@@ -856,7 +855,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
 
                       {/* Level 11-15 */}
                       <div className="mb-4">
-                        <h6 className="text-xs font-medium text-orange-400 mb-2">Level 11-15 (高级)</h6>
+                        <h6 className="text-xs font-medium text-orange-400 mb-2">{t('rewards.information.levelAdvanced')}</h6>
                         <div className="grid grid-cols-5 gap-2">
                           {phase.releases.slice(10, 15).map((release) => (
                             <div key={release.level} className="text-center bg-slate-600/30 rounded p-2">
@@ -869,7 +868,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
 
                       {/* Level 16-19 */}
                       <div className="mb-4">
-                        <h6 className="text-xs font-medium text-purple-400 mb-2">Level 16-19 (顶级)</h6>
+                        <h6 className="text-xs font-medium text-purple-400 mb-2">{t('rewards.information.levelTop')}</h6>
                         <div className="grid grid-cols-4 gap-2">
                           {phase.releases.slice(15, 19).map((release) => (
                             <div key={release.level} className={`text-center bg-slate-600/30 rounded p-2 ${release.level === 19 ? 'ring-1 ring-honey/50' : ''}`}>
@@ -888,7 +887,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                       <div className="mt-4 p-3 bg-blue-500/10 rounded-lg border border-blue-500/30">
                         <div className="text-xs text-blue-400 font-medium flex items-center gap-2">
                           <Target className="h-3 w-3" />
-                          阶段{phase.phase}总结: Level 1释放{phase.releases[0].amount} BCC → Level 19释放{phase.releases[18].amount} BCC
+                          {t('rewards.information.phaseSummary', { phase: phase.phase, amount1: phase.releases[0].amount, amount19: phase.releases[18].amount })}
                         </div>
                       </div>
                     </div>
@@ -901,7 +900,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
             <div className="bg-gradient-to-r from-purple-500/10 to-indigo-500/10 rounded-xl p-6 border border-purple-500/30 shadow-xl">
               <h4 className="font-semibold text-purple-400 mb-4 flex items-center gap-2 text-lg">
                 <Zap className="h-5 w-5" />
-                BCC释放运作机制
+                {t('rewards.information.bccReleaseOperationMechanism')}
               </h4>
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-4">
@@ -910,9 +909,9 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                       <span className="text-xs font-bold text-purple-400">1</span>
                     </div>
                     <div>
-                      <div className="font-medium text-purple-400">会员激活</div>
+                      <div className="font-medium text-purple-400">{t('rewards.information.memberActivation')}</div>
                       <div className="text-sm text-muted-foreground">
-                        当会员激活新级别时，系统自动计算并释放对应BCC数量
+                        {t('rewards.information.memberActivationDesc')}
                       </div>
                     </div>
                   </div>
@@ -921,9 +920,9 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                       <span className="text-xs font-bold text-purple-400">2</span>
                     </div>
                     <div>
-                      <div className="font-medium text-purple-400">阶段判断</div>
+                      <div className="font-medium text-purple-400">{t('rewards.information.phaseJudgment')}</div>
                       <div className="text-sm text-muted-foreground">
-                        系统根据总激活会员数自动判断当前阶段
+                        {t('rewards.information.phaseJudgmentDesc')}
                       </div>
                     </div>
                   </div>
@@ -934,9 +933,9 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                       <span className="text-xs font-bold text-purple-400">3</span>
                     </div>
                     <div>
-                      <div className="font-medium text-purple-400">即时释放</div>
+                      <div className="font-medium text-purple-400">{t('rewards.information.instantRelease')}</div>
                       <div className="text-sm text-muted-foreground">
-                        对应BCC数量立即释放到会员余额中
+                        {t('rewards.information.instantReleaseDesc')}
                       </div>
                     </div>
                   </div>
@@ -945,9 +944,9 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                       <span className="text-xs font-bold text-purple-400">4</span>
                     </div>
                     <div>
-                      <div className="font-medium text-purple-400">阶段递进</div>
+                      <div className="font-medium text-purple-400">{t('rewards.information.phaseProgression')}</div>
                       <div className="text-sm text-muted-foreground">
-                        达到人数门槛时自动进入下一阶段，奖励减半
+                        {t('rewards.information.phaseProgressionDesc')}
                       </div>
                     </div>
                   </div>
