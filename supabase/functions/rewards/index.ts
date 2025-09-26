@@ -183,7 +183,7 @@ async function claimReward(req, supabaseClient) {
             .from('layer_rewards')
             .select('*')
             .eq('id', claim_id)
-            .ilike('reward_reward_recipient_wallet', wallet_address.toLowerCase());
+            .ilike('reward_recipient_wallet', wallet_address.toLowerCase());
         
         const reward = rewardArray?.[0] || null;
         
@@ -201,23 +201,14 @@ async function claimReward(req, supabaseClient) {
             });
         }
         
-        console.log(`📋 Found reward: Layer ${reward.matrix_layer}, ${reward.reward_amount} USDT, Status: ${reward.reward_type}, Claimed: ${reward.status}`);
+        console.log(`📋 Found reward: Layer ${reward.matrix_layer}, ${reward.reward_amount} USDT, Status: ${reward.status}`);
         
-        // 2. Handle different reward types - claimable vs pending
-        if (reward.reward_type === 'layer_reward') {
-            // ✅ CLAIMABLE REWARD - Process immediately
-            console.log(`💰 Processing claimable reward: ${reward.reward_amount} USDT`);
-            
-        } else if (reward.reward_type === 'pending_layer_reward') {
-            // ⏳ PENDING REWARD - Create countdown timer
-            console.log(`⏳ Processing pending reward: ${reward.reward_amount} USDT`);
-            return await handlePendingRewardClaim(supabaseClient, reward, wallet_address);
-            
-        } else {
+        // 2. Check if reward is already claimed
+        if (reward.status === 'claimed') {
             return new Response(JSON.stringify({
                 success: false,
-                error: `Reward type '${reward.reward_type}' cannot be claimed. Must be 'layer_reward' or 'pending_layer_reward'`,
-                current_status: reward.reward_type
+                error: 'Reward has already been claimed',
+                claimed_at: reward.claimed_at
             }), {
                 headers: {
                     ...corsHeaders,
@@ -227,11 +218,21 @@ async function claimReward(req, supabaseClient) {
             });
         }
         
-        if (reward.status) {
+        // 3. Handle different reward statuses - claimable vs pending
+        if (reward.status === 'claimable') {
+            // ✅ CLAIMABLE REWARD - Process immediately
+            console.log(`💰 Processing claimable reward: ${reward.reward_amount} USDT`);
+            
+        } else if (reward.status === 'pending') {
+            // ⏳ PENDING REWARD - Create countdown timer
+            console.log(`⏳ Processing pending reward: ${reward.reward_amount} USDT`);
+            return await handlePendingRewardClaim(supabaseClient, reward, wallet_address);
+            
+        } else {
             return new Response(JSON.stringify({
                 success: false,
-                error: 'Reward has already been claimed',
-                claimed_at: reward.updated_at
+                error: `Reward status '${reward.status}' cannot be claimed. Must be 'claimable' or 'pending'`,
+                current_status: reward.status
             }), {
                 headers: {
                     ...corsHeaders,

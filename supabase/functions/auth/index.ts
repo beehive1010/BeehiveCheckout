@@ -139,9 +139,32 @@ async function getUser(supabase: any, walletAddress: string) {
       message: 'User does not exist'
     };
   }
+
+  // 🔧 FALLBACK: If members table shows no activation, check membership table
+  let finalStatus = statusResult;
+  if (!statusResult.is_member || !statusResult.is_activated) {
+    console.log(`🔍 Checking membership table fallback for ${walletAddress}`);
+    const { data: membershipData, error: membershipError } = await supabase
+      .from('membership')
+      .select('nft_level, is_member, claimed_at')
+      .ilike('wallet_address', walletAddress)
+      .maybeSingle();
+    
+    if (!membershipError && membershipData && membershipData.is_member) {
+      console.log(`✅ Found active membership record: Level ${membershipData.nft_level}`);
+      finalStatus = {
+        ...statusResult,
+        is_member: true,
+        is_activated: true,
+        current_level: membershipData.nft_level,
+        activation_time: membershipData.claimed_at,
+        can_access_referrals: true
+      };
+    }
+  }
   // Get referral statistics only if member - using new MasterSpec table structure
   let referralStats = null;
-  if (statusResult.is_member) {
+  if (finalStatus.is_member) {
     const { data: directReferrals } = await supabase.from('referrals_new').select('referred_wallet').eq('referrer_wallet', walletAddress);
     const { data: matrixMembers } = await supabase.from('matrix_referrals').select('member_wallet').eq('matrix_root_wallet', walletAddress);
     referralStats = {
@@ -149,23 +172,23 @@ async function getUser(supabase: any, walletAddress: string) {
       matrix_members: matrixMembers?.length || 0
     };
   }
-  console.log(`🔍 User status: member=${statusResult.is_member}, level=${statusResult.current_level}`);
+  console.log(`🔍 User status: member=${finalStatus.is_member}, level=${finalStatus.current_level}, activated=${finalStatus.is_activated}`);
   return {
     success: true,
     action: 'found',
     user: statusResult.user_info,
-    member: statusResult.is_member ? {
-      activation_sequence: statusResult.activation_sequence,
-      current_level: statusResult.current_level,
-      referrer_wallet: statusResult.referrer_wallet,
-      activation_time: statusResult.activation_time
+    member: finalStatus.is_member ? {
+      activation_sequence: finalStatus.activation_sequence,
+      current_level: finalStatus.current_level,
+      referrer_wallet: finalStatus.referrer_wallet,
+      activation_time: finalStatus.activation_time
     } : null,
     balance: statusResult.balance_info,
     referral_stats: referralStats,
     isRegistered: statusResult.is_registered,
-    isMember: statusResult.is_member,
-    membershipLevel: statusResult.current_level,
-    canAccessReferrals: statusResult.can_access_referrals,
+    isMember: finalStatus.is_member,
+    membershipLevel: finalStatus.current_level,
+    canAccessReferrals: finalStatus.can_access_referrals,
     message: 'User information retrieved successfully'
   };
 }

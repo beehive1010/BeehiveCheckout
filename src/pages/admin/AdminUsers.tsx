@@ -31,12 +31,14 @@ import {
   Upload,
   Download,
   Database,
-  Settings
+  Settings,
+  ArrowLeft
 } from 'lucide-react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import { useToast } from '../../hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useIsMobile } from '../../hooks/use-mobile';
+import { useLocation } from 'wouter';
 
 interface PlatformUser {
   walletAddress: string;
@@ -102,6 +104,7 @@ export default function AdminUsers() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
+  const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -395,20 +398,42 @@ export default function AdminUsers() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className={`${isMobile ? 'space-y-3' : 'flex justify-between items-center'}`}>
-        <div>
-          <h1 className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-foreground`}>
-            {viewMode === 'users' ? 'Users Management' : 'Members Management'}
-          </h1>
-          <p className="text-muted-foreground">
-            {viewMode === 'users' 
-              ? 'Manage platform user accounts and registration data' 
-              : 'Manage membership levels, balances and member data'
-            }
-          </p>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-6 space-y-6">
+        
+        {/* Header with back button */}
+        <div className="flex items-center space-x-4">
+          <Button 
+            variant="outline" 
+            size={isMobile ? "sm" : "default"}
+            onClick={() => setLocation('/admin')}
+            className="flex items-center space-x-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {!isMobile && <span>Back</span>}
+          </Button>
+          
+          <div>
+            <div className="flex items-center space-x-2">
+              <Users className="h-6 w-6 text-honey" />
+              <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-foreground`}>
+                {viewMode === 'users' ? 'Users Management' : 'Members Management'}
+              </h1>
+            </div>
+            <p className={`${isMobile ? 'text-sm' : 'text-base'} text-muted-foreground`}>
+              {viewMode === 'users' 
+                ? 'Manage platform user accounts and registration data' 
+                : 'Manage membership levels, balances and member data'
+              }
+            </p>
+          </div>
         </div>
+
+        {/* Main Content */}
+        <div className="space-y-6">
+          {/* View Mode Toggle and Controls */}
+          <div className={`${isMobile ? 'space-y-3' : 'flex justify-between items-center'}`}>
+            <div></div>
         
         {/* Controls */}
         <div className={`${isMobile ? 'w-full' : ''} flex ${isMobile ? 'flex-col' : 'flex-row'} gap-3`}>
@@ -1042,6 +1067,9 @@ export default function AdminUsers() {
           </CardContent>
         </Card>
       )}
+      
+        </div>
+      </div>
     </div>
   );
 }

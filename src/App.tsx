@@ -71,10 +71,10 @@ const NotFound = () => {
 // Admin components
 import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
-const AdminUsers = () => {
-  const { t } = useI18n();
-  return <div>{t('common.comingSoon')} - Admin Users</div>;
-};
+import AdminHome from "@/pages/admin/AdminHome";
+import AdminUsers from "@/pages/admin/AdminUsers";
+import AdminWithdrawals from "@/pages/admin/AdminWithdrawals";
+import AdminRewards from "@/pages/admin/AdminRewards";
 const AdminUserManagement = () => {
   const { t } = useI18n();
   return <div>{t('common.comingSoon')} - Admin User Management</div>;
@@ -186,6 +186,13 @@ function Router() {
       <AdminAuthProvider>
         <Switch>
           <Route path="/admin/login" component={AdminLogin} />
+        <Route path="/admin" component={() => (
+          <AdminRouteGuard>
+            <AdminLayout>
+              <AdminHome />
+            </AdminLayout>
+          </AdminRouteGuard>
+        )} />
         <Route path="/admin/dashboard" component={() => (
           <AdminRouteGuard>
             <AdminLayout>
@@ -260,6 +267,20 @@ function Router() {
           <AdminRouteGuard requiredPermission="discover.read">
             <AdminLayout>
               <AdminDiscover />
+            </AdminLayout>
+          </AdminRouteGuard>
+        )} />
+        <Route path="/admin/withdrawals" component={() => (
+          <AdminRouteGuard requiredPermission="withdrawals.read">
+            <AdminLayout>
+              <AdminWithdrawals />
+            </AdminLayout>
+          </AdminRouteGuard>
+        )} />
+        <Route path="/admin/rewards" component={() => (
+          <AdminRouteGuard requiredPermission="rewards.read">
+            <AdminLayout>
+              <AdminRewards />
             </AdminLayout>
           </AdminRouteGuard>
         )} />

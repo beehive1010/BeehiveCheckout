@@ -86,7 +86,8 @@
       "Bash(SUPABASE_ACCESS_TOKEN=sbp_537d0dbe16b7a13c92181067507bd4cb32bd1302 supabase functions deploy rewards --project-ref cvqibjcbfrwsgkvthccp)",
       "Bash(SUPABASE_ACCESS_TOKEN=sbp_537d0dbe16b7a13c92181067507bd4cb32bd1302 supabase functions deploy activate-membership --project-ref cvqibjcbfrwsgkvthccp)",
       "Bash(SUPABASE_ACCESS_TOKEN=sbp_537d0dbe16b7a13c92181067507bd4cb32bd1302 supabase functions deploy auth --project-ref cvqibjcbfrwsgkvthccp)",
-      "Bash(SUPABASE_ACCESS_TOKEN=sbp_537d0dbe16b7a13c92181067507bd4cb32bd1302 supabase functions deploy balance --project-ref cvqibjcbfrwsgkvthccp)"
+      "Bash(SUPABASE_ACCESS_TOKEN=sbp_537d0dbe16b7a13c92181067507bd4cb32bd1302 supabase functions deploy balance --project-ref cvqibjcbfrwsgkvthccp)",
+      "Bash(SUPABASE_ACCESS_TOKEN=sbp_537d0dbe16b7a13c92181067507bd4cb32bd1302 timeout 30 npx supabase db push --dry-run)"
     ],
     "deny": [],
     "ask": []

@@ -1,17 +1,16 @@
-import { useState, useEffect } from 'react';
-import { useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain } from 'thirdweb/react';
-import { getContract, prepareContractCall, sendTransaction, waitForReceipt, readContract } from 'thirdweb';
-import { arbitrum } from 'thirdweb/chains';
-import { createThirdwebClient } from 'thirdweb';
-import { balanceOf, claimTo } from 'thirdweb/extensions/erc1155';
-import { approve, balanceOf as erc20BalanceOf, allowance } from 'thirdweb/extensions/erc20';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { useToast } from '../../hooks/use-toast';
-import { Loader2, Zap, Crown, Gift, Coins, Clock } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
-import { useI18n } from '../../contexts/I18nContext';
+import {useEffect, useState} from 'react';
+import {useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain} from 'thirdweb/react';
+import {createThirdwebClient, getContract, prepareContractCall, sendTransaction, waitForReceipt} from 'thirdweb';
+import {arbitrum} from 'thirdweb/chains';
+import {balanceOf, claimTo} from 'thirdweb/extensions/erc1155';
+import {allowance, approve, balanceOf as erc20BalanceOf} from 'thirdweb/extensions/erc20';
+import {Button} from '../ui/button';
+import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
+import {Badge} from '../ui/badge';
+import {useToast} from '../../hooks/use-toast';
+import {Clock, Coins, Crown, Gift, Loader2, Zap} from 'lucide-react';
+import {supabase} from '../../lib/supabase';
+import {useI18n} from '../../contexts/I18nContext';
 import RegistrationModal from '../modals/RegistrationModal';
 
 interface WelcomeLevel1ClaimButtonProps {
@@ -219,7 +218,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         referrerUsername: referrerData.username
       });
 
-      // Step 3: Check network - must be Arbitrum Sepolia
+      // Step 3: Check network - must be Arbitrum One (42161)
       const chainId = activeChain?.id;
       if (chainId !== arbitrum.id) {
         const networkName = chainId === 1 ? 'Ethereum Mainnet' : `Network ${chainId}`;
@@ -678,7 +677,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       } else if (errorMessage.includes('network')) {
         toast({
           title: 'Network Error',
-          description: 'Please switch to Arbitrum Sepolia network.',
+          description: 'Please switch to Arbitrum One network.',
           variant: "destructive",
         });
       } else {
@@ -747,7 +746,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                 </div>
                 <p className="text-xs text-yellow-700 mb-3">
                   You're on {activeChain?.id === 1 ? 'Ethereum Mainnet' : `Network ${activeChain?.id}`}. 
-                  Switch to Arbitrum Sepolia to claim your NFT.
+                  Switch to Arbitrum One to claim your NFT.
                 </p>
                 <Button 
                   onClick={handleSwitchNetwork}
@@ -761,7 +760,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                       Switching Network...
                     </>
                   ) : (
-                    'Switch to Arbitrum Sepolia'
+                    'Switch to Arbitrum One'
                   )}
                 </Button>
               </div>
