@@ -1,0 +1,175 @@
+/* Matrix Page 样式 */
+.matrix-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+}
+
+/* 钱包选择器 */
+.wallet-selector {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  margin: 0 20px 20px 20px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.selector-header h3 {
+  color: #ffd700;
+  text-align: center;
+  margin: 0 0 20px 0;
+  font-size: 1.5rem;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+/* 预设钱包 */
+.preset-wallets {
+  margin-bottom: 20px;
+}
+
+.preset-wallets h4 {
+  color: #e0e0e0;
+  margin: 0 0 15px 0;
+  font-size: 1.1rem;
+}
+
+.wallet-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.wallet-btn {
+  background: linear-gradient(135deg, #2a2a40 0%, #1e1e30 100%);
+  border: 2px solid #444;
+  border-radius: 10px;
+  padding: 15px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.wallet-btn:hover {
+  transform: translateY(-2px);
+  border-color: #ffd700;
+  box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+}
+
+.wallet-btn.active {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  color: #1a1a2e;
+  border-color: #ffd700;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.wallet-name {
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 1rem;
+}
+
+.wallet-address {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* 自定义钱包输入 */
+.custom-wallet {
+  margin-bottom: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.custom-wallet h4 {
+  color: #e0e0e0;
+  margin: 0 0 15px 0;
+  font-size: 1.1rem;
+}
+
+.custom-form {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.wallet-input {
+  flex: 1;
+  padding: 12px 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid #444;
+  border-radius: 8px;
+  color: white;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  transition: border-color 0.3s ease;
+}
+
+.wallet-input:focus {
+  outline: none;
+  border-color: #ffd700;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.wallet-input::placeholder {
+  color: #888;
+}
+
+.submit-btn {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(78, 205, 196, 0.3);
+}
+
+/* 当前选择显示 */
+.current-selection {
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  color: #e0e0e0;
+  font-size: 0.9rem;
+}
+
+.current-wallet {
+  font-family: 'Courier New', monospace;
+  color: #ffd700;
+  font-weight: bold;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .wallet-selector {
+    margin: 0 10px 10px 10px;
+    padding: 15px;
+  }
+  
+  .wallet-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .custom-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .submit-btn {
+    margin-top: 10px;
+  }
+  
+  .selector-header h3 {
+    font-size: 1.3rem;
+  }
+}
