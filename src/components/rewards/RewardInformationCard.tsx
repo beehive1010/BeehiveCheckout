@@ -528,23 +528,23 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
               <div className="space-y-4">
                 <div className="p-4 bg-slate-700/30 rounded-lg">
                   <p className="text-sm text-muted-foreground leading-relaxed mb-3 text-center md:text-left">
-                    <strong className="text-honey">矩阵结构原理：</strong>BEEHIVE采用19层3×3矩阵系统，每个级别代表矩阵中的一层。
+                    {t('rewards.information.matrixStructureExplanation')}
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm justify-items-center md:justify-items-start">
                     <div className="space-y-2">
-                      <h5 className="font-medium text-honey">触发条件：</h5>
+                      <h5 className="font-medium text-honey">{t('rewards.information.triggerConditions')}</h5>
                       <ul className="space-y-1 text-muted-foreground">
-                        <li>• 层级中的会员升级会员级别</li>
-                        <li>• 根据升级的级别触发对应奖励</li>
-                        <li>• 每层可获得多次奖励</li>
+                        <li>• {t('rewards.information.triggerCondition1')}</li>
+                        <li>• {t('rewards.information.triggerCondition2')}</li>
+                        <li>• {t('rewards.information.triggerCondition3')}</li>
                       </ul>
                     </div>
                     <div className="space-y-2">
-                      <h5 className="font-medium text-honey">奖励金额：</h5>
+                      <h5 className="font-medium text-honey">{t('rewards.information.rewardAmounts')}</h5>
                       <ul className="space-y-1 text-muted-foreground">
-                        <li>• Layer 1: $100 (Level 1 NFT价格)</li>
-                        <li>• Layer 2: $150 (Level 2 NFT价格)</li>
-                        <li>• Layer 19: $1,000 (Level 19 NFT价格)</li>
+                        <li>• {t('rewards.information.rewardAmount1')}</li>
+                        <li>• {t('rewards.information.rewardAmount2')}</li>
+                        <li>• {t('rewards.information.rewardAmount19')}</li>
                       </ul>
                     </div>
                   </div>
