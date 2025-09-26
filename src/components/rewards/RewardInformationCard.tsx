@@ -44,13 +44,13 @@ const LAYER_REWARDS = Array.from({ length: 19 }, (_, i) => ({
   }
 }));
 
-// BCC staking phases data with complete release schedule
-const BCC_PHASES = [
+// BCC staking phases data structure - descriptions will be populated from translations
+const BCC_PHASES_BASE = [
   {
     phase: 1,
-    members: '1st - 9,999th',
+    membersKey: 'rewards.bcc.phases.phase1.members',
     totalReward: 10450,
-    description: '阶段一：早期采用者',
+    descriptionKey: 'rewards.bcc.phases.phase1.description',
     color: 'from-green-500 to-emerald-600',
     status: 'current' as const,
     releases: Array.from({ length: 19 }, (_, i) => ({
@@ -60,9 +60,9 @@ const BCC_PHASES = [
   },
   {
     phase: 2,
-    members: '10,000th - 29,999th',
+    membersKey: 'rewards.bcc.phases.phase2.members',
     totalReward: 5225,
-    description: '阶段二：成长阶段（减半）',
+    descriptionKey: 'rewards.bcc.phases.phase2.description',
     color: 'from-yellow-500 to-orange-500',
     status: 'upcoming' as const,
     releases: Array.from({ length: 19 }, (_, i) => ({
@@ -72,9 +72,9 @@ const BCC_PHASES = [
   },
   {
     phase: 3,
-    members: '30,000th - 99,999th',
+    membersKey: 'rewards.bcc.phases.phase3.members',
     totalReward: 2612.5,
-    description: '阶段三：扩张阶段（再减半）',
+    descriptionKey: 'rewards.bcc.phases.phase3.description',
     color: 'from-orange-500 to-red-500',
     status: 'upcoming' as const,
     releases: Array.from({ length: 19 }, (_, i) => ({
@@ -84,9 +84,9 @@ const BCC_PHASES = [
   },
   {
     phase: 4,
-    members: '100,000th - 186,000th',
+    membersKey: 'rewards.bcc.phases.phase4.members',
     totalReward: 1306.25,
-    description: '阶段四：最终阶段（再减半）',
+    descriptionKey: 'rewards.bcc.phases.phase4.description',
     color: 'from-red-500 to-pink-600',
     status: 'upcoming' as const,
     releases: Array.from({ length: 19 }, (_, i) => ({
@@ -107,6 +107,13 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState<'layer' | 'bcc'>('layer');
   const [autoSlide, setAutoSlide] = useState(true);
+
+  // Create BCC_PHASES with translations
+  const BCC_PHASES = BCC_PHASES_BASE.map(phase => ({
+    ...phase,
+    description: t(phase.descriptionKey),
+    members: t(phase.membersKey)
+  }));
 
   const slides = [
     {

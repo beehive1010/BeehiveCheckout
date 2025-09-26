@@ -6,6 +6,19 @@ import {useI18n} from '@/contexts/I18nContext';
 import {useIsMobile} from '@/hooks/use-mobile';
 import {CheckCircle, Gift, Lock, Timer, TrendingUp, Unlock, Users, Zap} from 'lucide-react';
 
+interface BCCPhaseBase {
+  phase: number;
+  members: string;
+  totalReward: number;
+  descriptionKey: string;
+  releases: Array<{
+    level: number;
+    amount: number;
+  }>;
+  color: string;
+  status: 'current' | 'upcoming' | 'completed';
+}
+
 interface BCCPhase {
   phase: number;
   members: string;
@@ -19,14 +32,15 @@ interface BCCPhase {
   status: 'current' | 'upcoming' | 'completed';
 }
 
-const BCC_PHASES: BCCPhase[] = [
+// BCC phases data will be populated with translations in the component
+const BCC_PHASES_BASE: BCCPhaseBase[] = [
   {
     phase: 1,
     members: '1st - 9,999th',
     totalReward: 10450,
-    description: '阶段一：早期采用者',
+    descriptionKey: 'rewards.bcc.phases.phase1.description',
     color: 'from-green-500 to-emerald-600',
-    status: 'current',
+    status: 'current' as const,
     releases: Array.from({ length: 19 }, (_, i) => ({
       level: i + 1,
       amount: 100 + (i * 50)
@@ -36,9 +50,9 @@ const BCC_PHASES: BCCPhase[] = [
     phase: 2,
     members: '10,000th - 29,999th',
     totalReward: 5225,
-    description: '阶段二：成长阶段（减半）',
+    descriptionKey: 'rewards.bcc.phases.phase2.description',
     color: 'from-yellow-500 to-orange-500',
-    status: 'upcoming',
+    status: 'upcoming' as const,
     releases: Array.from({ length: 19 }, (_, i) => ({
       level: i + 1,
       amount: Math.round((100 + (i * 50)) / 2)
@@ -48,9 +62,9 @@ const BCC_PHASES: BCCPhase[] = [
     phase: 3,
     members: '30,000th - 99,999th',
     totalReward: 2612.5,
-    description: '阶段三：扩张阶段（再减半）',
+    descriptionKey: 'rewards.bcc.phases.phase3.description',
     color: 'from-orange-500 to-red-500',
-    status: 'upcoming',
+    status: 'upcoming' as const,
     releases: Array.from({ length: 19 }, (_, i) => ({
       level: i + 1,
       amount: Math.round((100 + (i * 50)) / 4)
@@ -60,9 +74,9 @@ const BCC_PHASES: BCCPhase[] = [
     phase: 4,
     members: '100,000th - 186,000th',
     totalReward: 1306.25,
-    description: '阶段四：最终阶段（再减半）',
+    descriptionKey: 'rewards.bcc.phases.phase4.description',
     color: 'from-red-500 to-pink-600',
-    status: 'upcoming',
+    status: 'upcoming' as const,
     releases: Array.from({ length: 19 }, (_, i) => ({
       level: i + 1,
       amount: Math.round((100 + (i * 50)) / 8)
@@ -84,6 +98,13 @@ export const BCCRewardInformation: React.FC<BCCRewardInformationProps> = ({
   const { t } = useI18n();
   const isMobile = useIsMobile();
 
+  // Create BCC_PHASES with translations
+  const BCC_PHASES = BCC_PHASES_BASE.map(phase => ({
+    ...phase,
+    description: t(phase.descriptionKey),
+    members: t(`rewards.bcc.phases.phase${phase.phase}.members`)
+  }));
+
   const currentPhase = BCC_PHASES[0]; // Assume phase 1 is current
   const currentProgress = 1500; // Example: 1500 members activated
   const progressPercentage = (currentProgress / 9999) * 100;
@@ -101,12 +122,12 @@ export const BCCRewardInformation: React.FC<BCCRewardInformationProps> = ({
                 {t('rewards.information.bccRewardsTitle')}
               </span>
               <p className={`text-muted-foreground ${compact || isMobile ? 'text-xs' : 'text-sm'} mt-1`}>
-                基于激活人数的四阶段释放系统
+                {t('rewards.bcc.subtitle')}
               </p>
             </div>
           </div>
           <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 animate-pulse">
-            自动分发
+            {t('rewards.bcc.autoDistribution')}
           </Badge>
         </CardTitle>
       </CardHeader>
@@ -119,22 +140,22 @@ export const BCCRewardInformation: React.FC<BCCRewardInformationProps> = ({
               <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
                 <CheckCircle className="h-3 w-3 text-white" />
               </div>
-              <span className="font-semibold text-green-400">当前阶段：{currentPhase.description}</span>
+              <span className="font-semibold text-green-400">{t('rewards.bcc.currentPhase')}: {currentPhase.description}</span>
             </div>
-            <Badge className="bg-green-500 text-white text-xs">活跃中</Badge>
+            <Badge className="bg-green-500 text-white text-xs">{t('rewards.bcc.active')}</Badge>
           </div>
           
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">激活进度</span>
+              <span className="text-muted-foreground">{t('rewards.bcc.activationProgress')}</span>
               <span className="text-green-400 font-medium">{currentProgress.toLocaleString()} / 9,999</span>
             </div>
             <Progress value={progressPercentage} className="h-2 bg-slate-700">
               <div className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-500" style={{ width: `${progressPercentage}%` }} />
             </Progress>
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>阶段一奖励池：{currentPhase.totalReward.toLocaleString()} BCC</span>
-              <span>{(100 - progressPercentage).toFixed(1)}% 剩余</span>
+              <span>{t('rewards.bcc.phaseRewardPool')}: {currentPhase.totalReward.toLocaleString()} BCC</span>
+              <span>{(100 - progressPercentage).toFixed(1)}% {t('rewards.bcc.remaining')}</span>
             </div>
           </div>
         </div>
@@ -143,7 +164,7 @@ export const BCCRewardInformation: React.FC<BCCRewardInformationProps> = ({
         <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-600">
           <h4 className={`font-semibold text-blue-400 mb-3 flex items-center gap-2 ${compact || isMobile ? 'text-sm' : 'text-base'}`}>
             <Gift className={`${compact || isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-            当前释放标准 (每激活一次)
+            {t('rewards.bcc.currentReleaseStandard')}
           </h4>
           
           <div className={`grid gap-2 ${compact || isMobile ? 'grid-cols-4' : 'grid-cols-6'}`}>
@@ -162,7 +183,7 @@ export const BCCRewardInformation: React.FC<BCCRewardInformationProps> = ({
           {currentPhase.releases.length > (compact || isMobile ? 8 : 12) && (
             <div className="text-center mt-2">
               <span className="text-muted-foreground text-xs">
-                ... 到 L19 ({currentPhase.releases[18].amount} BCC)
+                {t('rewards.bcc.upToL19', { amount: currentPhase.releases[18].amount })}
               </span>
             </div>
           )}
@@ -172,7 +193,7 @@ export const BCCRewardInformation: React.FC<BCCRewardInformationProps> = ({
         <div className="space-y-3">
           <h4 className={`font-semibold text-blue-400 flex items-center gap-2 ${compact || isMobile ? 'text-sm' : 'text-base'}`}>
             <TrendingUp className={`${compact || isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-            四阶段系统概览
+            {t('rewards.bcc.fourPhaseSystemOverview')}
           </h4>
           
           <div className={`grid gap-2 ${compact || isMobile ? 'grid-cols-2' : 'grid-cols-4'}`}>
@@ -195,7 +216,7 @@ export const BCCRewardInformation: React.FC<BCCRewardInformationProps> = ({
                     {phase.members}
                   </div>
                   {phase.status === 'current' && (
-                    <Badge className="bg-green-500 text-white text-xs mt-1">当前</Badge>
+                    <Badge className="bg-green-500 text-white text-xs mt-1">{t('rewards.bcc.current')}</Badge>
                   )}
                 </CardContent>
               </Card>
@@ -207,7 +228,7 @@ export const BCCRewardInformation: React.FC<BCCRewardInformationProps> = ({
         <div className="bg-purple-500/10 rounded-xl p-4 border border-purple-500/30">
           <h4 className={`font-semibold text-purple-400 mb-3 flex items-center gap-2 ${compact || isMobile ? 'text-sm' : 'text-base'}`}>
             <Zap className={`${compact || isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-            释放机制
+            {t('rewards.bcc.releaseMechanism')}
           </h4>
           
           <div className={`space-y-3 ${compact || isMobile ? 'text-xs' : 'text-sm'}`}>
@@ -216,9 +237,9 @@ export const BCCRewardInformation: React.FC<BCCRewardInformationProps> = ({
                 <Users className="h-3 w-3 text-purple-400" />
               </div>
               <div>
-                <div className="font-medium text-purple-400">激活触发</div>
+                <div className="font-medium text-purple-400">{t('rewards.bcc.mechanisms.activationTrigger')}</div>
                 <div className="text-muted-foreground">
-                  当会员激活新级别时，自动释放对应数量的BCC到余额
+                  {t('rewards.bcc.mechanisms.activationTriggerDesc')}
                 </div>
               </div>
             </div>
@@ -228,9 +249,9 @@ export const BCCRewardInformation: React.FC<BCCRewardInformationProps> = ({
                 <TrendingUp className="h-3 w-3 text-purple-400" />
               </div>
               <div>
-                <div className="font-medium text-purple-400">递减奖励</div>
+                <div className="font-medium text-purple-400">{t('rewards.bcc.mechanisms.decreasingRewards')}</div>
                 <div className="text-muted-foreground">
-                  每个阶段奖励减半，确保系统长期可持续发展
+                  {t('rewards.bcc.mechanisms.decreasingRewardsDesc')}
                 </div>
               </div>
             </div>
@@ -240,9 +261,9 @@ export const BCCRewardInformation: React.FC<BCCRewardInformationProps> = ({
                 <Timer className="h-3 w-3 text-purple-400" />
               </div>
               <div>
-                <div className="font-medium text-purple-400">实时分发</div>
+                <div className="font-medium text-purple-400">{t('rewards.bcc.mechanisms.realtimeDistribution')}</div>
                 <div className="text-muted-foreground">
-                  基于总激活会员数实时切换阶段，无需人工干预
+                  {t('rewards.bcc.mechanisms.realtimeDistributionDesc')}
                 </div>
               </div>
             </div>
@@ -255,11 +276,11 @@ export const BCCRewardInformation: React.FC<BCCRewardInformationProps> = ({
             <div className="flex items-center gap-2 mb-2">
               <Unlock className="h-4 w-4 text-blue-400" />
               <span className={`font-medium text-blue-400 ${compact || isMobile ? 'text-xs' : 'text-sm'}`}>
-                自动释放
+                {t('rewards.bcc.benefits.autoRelease')}
               </span>
             </div>
             <p className={`text-muted-foreground ${compact || isMobile ? 'text-xs' : 'text-sm'}`}>
-              激活即释放，无需额外操作
+              {t('rewards.bcc.benefits.autoReleaseDesc')}
             </p>
           </div>
           
@@ -267,11 +288,11 @@ export const BCCRewardInformation: React.FC<BCCRewardInformationProps> = ({
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="h-4 w-4 text-green-400" />
               <span className={`font-medium text-green-400 ${compact || isMobile ? 'text-xs' : 'text-sm'}`}>
-                早期优势
+                {t('rewards.bcc.benefits.earlyAdvantage')}
               </span>
             </div>
             <p className={`text-muted-foreground ${compact || isMobile ? 'text-xs' : 'text-sm'}`}>
-              越早参与，获得越多BCC奖励
+              {t('rewards.bcc.benefits.earlyAdvantageDesc')}
             </p>
           </div>
         </div>
@@ -282,12 +303,12 @@ export const BCCRewardInformation: React.FC<BCCRewardInformationProps> = ({
             <div className="flex items-center justify-center gap-2 mb-2">
               <div className="w-2 h-2 bg-honey rounded-full animate-pulse"></div>
               <span className={`font-semibold text-honey ${compact || isMobile ? 'text-sm' : 'text-base'}`}>
-                阶段一进行中
+                {t('rewards.bcc.phase1InProgress')}
               </span>
               <div className="w-2 h-2 bg-honey rounded-full animate-pulse"></div>
             </div>
             <p className={`text-muted-foreground ${compact || isMobile ? 'text-xs' : 'text-sm'}`}>
-              激活会员级别即可获得最高BCC奖励
+              {t('rewards.bcc.activateToGetMaxRewards')}
             </p>
           </div>
         )}
