@@ -130,7 +130,7 @@ export default function Dashboard() {
           total_network_size,
           has_matrix_team
         `)
-        .ilike('wallet_address', walletAddress)
+        .eq('wallet_address', walletAddress)
         .single();
 
       if (statsError && statsError.code !== 'PGRST116') {

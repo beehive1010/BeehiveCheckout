@@ -1,8 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { useWallet } from './useWallet';
-import { membershipLevels } from '../lib/config/membershipLevels';
-import { apiRequest } from '../lib/queryClient';
-import { supabase } from '../lib/supabaseClient';
+import {useQuery} from '@tanstack/react-query';
+import {useWallet} from './useWallet';
+import {supabase} from '../lib/supabaseClient';
 
 interface MemberData {
   current_level: number;
@@ -140,7 +138,7 @@ export function useUserMatrixStats() {
     queryFn: async () => {
       if (!walletAddress) throw new Error('No wallet address');
       
-      // Get matrix placements by layer using matrix_referrals_tree_view
+      // Get matrix placements by layer using matrix_referrals_tree_view (now shows actual placement)
       const { data: matrixData } = await supabase
         .from('matrix_referrals_tree_view')
         .select('layer, position, member_wallet')

@@ -1,27 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
-import { Clock, ChevronLeft, ChevronRight, Award, Filter, Search, Calendar, X } from 'lucide-react';
-import { useI18n } from '../../contexts/I18nContext';
+import React, {useEffect, useState} from 'react';
+import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
+import {Badge} from '../ui/badge';
+import {Button} from '../ui/button';
+import {Award, Calendar, ChevronLeft, ChevronRight, Clock, Filter, Search, X} from 'lucide-react';
+import {useI18n} from '../../contexts/I18nContext';
+import {useWallet} from '../../hooks/useWallet';
+import {supabase} from '../../lib/supabase';
 
-interface RewardHistory {
+interface LayerReward {
   id: string;
-  type: string;
-  amount: number;
+  triggering_member_wallet: string;
+  reward_recipient_wallet: string;
+  matrix_root_wallet: string;
+  triggering_nft_level: number;
+  reward_amount: number;
+  layer_position: string;
+  matrix_layer: number;
   status: string;
-  description: string;
-  date: string;
-  layer?: number;
+  recipient_required_level: number;
+  recipient_current_level: number;
+  expires_at: string;
+  created_at: string;
+  claimed_at: string;
+  rolled_up_to: string;
+  roll_up_reason: string;
+  triggering_member?: {
+    username: string;
+  };
+  matrix_root?: {
+    username: string;
+  };
 }
 
 interface RewardHistoryProps {
-  history: RewardHistory[];
   className?: string;
+  walletAddress?: string;
 }
 
-export default function RewardHistory({ history, className }: RewardHistoryProps) {
+export default function RewardHistory({ className, walletAddress }: RewardHistoryProps) {
+  const { walletAddress: connectedWallet } = useWallet();
   const { t } = useI18n();
+  const activeWallet = walletAddress || connectedWallet;
+  
+  // Data state
+  const [layerRewards, setLayerRewards] = useState<LayerReward[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // Filters and pagination state
   const [historyFilters, setHistoryFilters] = useState({
@@ -33,37 +57,89 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(6);
-  const [filteredHistory, setFilteredHistory] = useState<RewardHistory[]>([]);
+  const [filteredHistory, setFilteredHistory] = useState<LayerReward[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+
+  // Load layer rewards data
+  const loadLayerRewards = async () => {
+    if (!activeWallet) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const { data, error } = await supabase
+        .from('layer_rewards')
+        .select(`
+          id,
+          triggering_member_wallet,
+          reward_recipient_wallet,
+          matrix_root_wallet,
+          triggering_nft_level,
+          reward_amount,
+          layer_position,
+          matrix_layer,
+          status,
+          recipient_required_level,
+          recipient_current_level,
+          expires_at,
+          created_at,
+          claimed_at,
+          rolled_up_to,
+          roll_up_reason,
+          triggering_member:users!triggering_member_wallet(username),
+          matrix_root:users!matrix_root_wallet(username)
+        `)
+        .or(`reward_recipient_wallet.eq.${activeWallet},triggering_member_wallet.eq.${activeWallet}`)
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+      
+      setLayerRewards(data || []);
+    } catch (err) {
+      console.error('Failed to load layer rewards:', err);
+      setError('Failed to load reward history');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load data when wallet changes
+  useEffect(() => {
+    loadLayerRewards();
+  }, [activeWallet]);
 
   // Filter and pagination logic
   useEffect(() => {
-    if (!history) {
+    if (!layerRewards) {
       setFilteredHistory([]);
       return;
     }
 
-    let filtered = [...history];
+    let filtered = [...layerRewards];
 
     // Apply filters
     if (historyFilters.layer) {
-      filtered = filtered.filter(item => item.layer?.toString() === historyFilters.layer);
+      filtered = filtered.filter(item => item.matrix_layer?.toString() === historyFilters.layer);
     }
     
     if (historyFilters.searchKeyword) {
       const keyword = historyFilters.searchKeyword.toLowerCase();
       filtered = filtered.filter(item => 
-        item.description?.toLowerCase().includes(keyword) ||
-        item.id?.toLowerCase().includes(keyword)
+        item.triggering_member?.username?.toLowerCase().includes(keyword) ||
+        item.matrix_root?.username?.toLowerCase().includes(keyword) ||
+        item.id?.toLowerCase().includes(keyword) ||
+        item.layer_position?.toLowerCase().includes(keyword)
       );
     }
     
     if (historyFilters.dateFrom) {
-      filtered = filtered.filter(item => new Date(item.date) >= new Date(historyFilters.dateFrom));
+      filtered = filtered.filter(item => new Date(item.created_at) >= new Date(historyFilters.dateFrom));
     }
     
     if (historyFilters.dateTo) {
-      filtered = filtered.filter(item => new Date(item.date) <= new Date(historyFilters.dateTo));
+      filtered = filtered.filter(item => new Date(item.created_at) <= new Date(historyFilters.dateTo));
     }
     
     if (historyFilters.status) {
@@ -72,7 +148,7 @@ export default function RewardHistory({ history, className }: RewardHistoryProps
 
     setFilteredHistory(filtered);
     setCurrentPage(1); // Reset to first page when filters change
-  }, [history, historyFilters]);
+  }, [layerRewards, historyFilters]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredHistory.length / itemsPerPage);

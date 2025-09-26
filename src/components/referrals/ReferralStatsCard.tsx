@@ -1,19 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Progress } from '../ui/progress';
-import { 
-  Users, 
-  Trophy, 
-  TrendingUp, 
-  Eye,
-  Share2,
-  BarChart3
-} from 'lucide-react';
-import { useWallet } from '../../hooks/useWallet';
-import { useI18n } from '../../contexts/I18nContext';
-import { supabase } from '../../lib/supabase';
+import React, {useEffect, useState} from 'react';
+import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
+import {Button} from '../ui/button';
+import {Badge} from '../ui/badge';
+import {Progress} from '../ui/progress';
+import {BarChart3, Eye, Share2, TrendingUp, Users} from 'lucide-react';
+import {useWallet} from '../../hooks/useWallet';
+import {useI18n} from '../../contexts/I18nContext';
+import {supabase} from '../../lib/supabase';
 
 interface ReferralStatsCardProps {
   className?: string;
@@ -54,7 +47,7 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
             if (error) throw error;
             return { data };
           }),
-        // Get team members from matrix_referrals_tree_view
+        // Get team members from matrix_referrals_tree_view (now shows actual placement)
         supabase
           .from('matrix_referrals_tree_view')
           .select(`

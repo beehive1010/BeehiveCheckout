@@ -1,5 +1,5 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import {serve} from "https://deno.land/std@0.168.0/http/server.ts"
+import {createClient} from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -96,7 +96,7 @@ serve(async (req: Request) => {
       console.log(`📊 Matrix layer data for ${walletAddress}:`, matrixData)
       console.log(`📊 Matrix layer data retrieved: ${matrixData?.length || 0} layers`)
 
-      // Get detailed member positions for L/M/R breakdown
+      // Get detailed member positions for L/M/R breakdown from matrix_referrals_tree_view (now shows complete 19-layer data)
       const { data: membersData } = await supabase
         .from('matrix_referrals_tree_view')
         .select('layer, position')
@@ -217,10 +217,10 @@ serve(async (req: Request) => {
     }
 
     if (action === 'get-matrix-members' || action === 'get-matrix-tree') {
-      // Get detailed matrix member data using matrix_referrals_tree_view
-      console.log(`👥 Getting matrix members for wallet: ${walletAddress}`)
+      // Get detailed matrix member data using matrix_referrals_tree_view (now shows complete 19-layer recursive data)
+      console.log(`👥 Getting complete 19-layer matrix members for wallet: ${walletAddress}`)
       
-      console.log(`👥 Querying matrix_referrals_tree_view for wallet: ${walletAddress}`)
+      console.log(`👥 Querying matrix_referrals_tree_view (complete 19-layer data) for wallet: ${walletAddress}`)
       
       const { data: matrixMembers, error: membersError } = await supabase
         .from('matrix_referrals_tree_view')
@@ -229,11 +229,14 @@ serve(async (req: Request) => {
           matrix_root_wallet,
           layer,
           position,
-          is_spillover,
-          activation_time,
+          referral_type,
+          child_activation_time,
+          parent_wallet,
           username,
           current_level,
-          is_activated
+          is_activated,
+          is_spillover,
+          referral_depth
         `)
         .eq('matrix_root_wallet', walletAddress)
         .order('layer')
@@ -284,41 +287,23 @@ serve(async (req: Request) => {
         })
       }
 
-      // Get additional user info
-      const memberWallets = matrixMembers?.map(m => m.member_wallet).filter(Boolean) || []
-      let usersData = []
-      let membersData = []
-
-      if (memberWallets.length > 0) {
-        const [usersResult, membersResult] = await Promise.all([
-          supabase.from('users').select('wallet_address, username').in('wallet_address', memberWallets),
-          supabase.from('members').select('wallet_address, current_level').in('wallet_address', memberWallets)
-        ])
-
-        usersData = usersResult.data || []
-        membersData = membersResult.data || []
-      }
-
-      const usersMap = new Map(usersData.map((u: any) => [u.wallet_address, u]))
-      const membersMap = new Map(membersData.map((m: any) => [m.wallet_address, m]))
-
-      // Organize by layer
+      // Data is already enriched from matrix_referrals_tree_view
       const byLayer: any = {}
       const treeMembers: any [] = []
 
       matrixMembers?.forEach((member: any) => {
-        const userInfo = usersMap.get(member.member_wallet)
-        const memberInfo = membersMap.get(member.member_wallet)
-
         const memberData = {
           wallet_address: member.member_wallet,
-          username: member.username || userInfo?.username || `User${member.member_wallet?.slice(-4) || ''}`,
-          matrix_position: member.position,
-          current_level: member.current_level || (memberInfo as any)?.current_level || 1,
-          is_activated: member.is_activated || Boolean((memberInfo as any)?.current_level && (memberInfo as any).current_level > 0),
-          joined_at: member.activation_time,
-          is_spillover: member.is_spillover || false,
-          layer: member.layer
+          username: member.username || `User${member.member_wallet?.slice(-4) || ''}`,
+          matrix_position: member.position,  // L, M, R from matrix placement
+          current_level: member.current_level || 1,
+          is_activated: Boolean(member.is_activated),
+          joined_at: member.child_activation_time,  // Use activation time
+          is_spillover: Boolean(member.is_spillover),  // Actual spillover status from view
+          layer: member.layer,  // Use layer from view
+          parent_wallet: member.parent_wallet,  // Include parent info
+          placement_type: member.referral_type,  // Direct or indirect placement
+          referral_depth: member.referral_depth  // Original referral depth
         }
 
         // Add to layer organization

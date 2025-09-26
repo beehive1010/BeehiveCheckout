@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, Users, Trophy } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
-import { useI18n } from '@/contexts/I18nContext';
+import React, {useEffect, useState} from 'react';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {Button} from '@/components/ui/button';
+import {Badge} from '@/components/ui/badge';
+import {ChevronLeft, ChevronRight, Trophy, Users} from 'lucide-react';
+import {supabase} from '../../lib/supabase';
+import {useI18n} from '@/contexts/I18nContext';
 
 interface MatrixMember {
   walletAddress: string;
@@ -42,7 +42,7 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
       setError(null);
       
       try {
-        // Get complete 19-layer matrix tree from matrix_referrals_tree_view
+        // Get complete 19-layer matrix tree from matrix_referrals_tree_view (now shows actual placement)
         const { data: treeData, error } = await supabase
           .from('matrix_referrals_tree_view')
           .select('*')
