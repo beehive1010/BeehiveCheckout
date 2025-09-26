@@ -575,10 +575,13 @@ serve(async (req: Request) => {
       try {
         console.log(`📐 Starting SMART matrix placement: ${userData.wallet_address} -> ${normalizedReferrerWallet}`);
         
-        // 🔧 UPDATED: Use smart matrix placement algorithm with intelligent position finding
-        const { data: matrixPlacementResult, error: matrixPlacementError } = await supabase.rpc('place_member_matrix_smart', {
-          p_member_wallet: userData.wallet_address,
-          p_referrer_wallet: normalizedReferrerWallet
+        // 🔧 UPDATED: Use matrix-fix function with BFS algorithm for proper placement
+        const { data: matrixPlacementResult, error: matrixPlacementError } = await supabase.functions.invoke('matrix-fix', {
+          body: {
+            action: 'place_member_advanced',
+            memberWallet: userData.wallet_address,
+            referrerWallet: normalizedReferrerWallet
+          }
         });
         
         if (matrixPlacementError || !matrixPlacementResult?.success) {

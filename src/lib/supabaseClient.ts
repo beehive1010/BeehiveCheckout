@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
-import type { Database } from '../../types/database.types';
+import {createClient} from '@supabase/supabase-js';
+import type {Database} from '../../types/database.types';
 
 // Environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL!;
@@ -497,28 +497,28 @@ export const matrixService = {
         .select('*', { count: 'exact', head: true })
         .ilike('matrix_root_wallet', walletAddress);
 
-      // Get max depth from matrix_referrals table
+      // Get max depth from matrix_referrals_tree_view
       const { data: maxDepthData } = await supabase
-        .from('matrix_referrals')
-        .select('parent_depth')
+        .from('matrix_referrals_tree_view')
+        .select('layer')
         .ilike('matrix_root_wallet', walletAddress)
-        .order('parent_depth', { ascending: false })
+        .order('layer', { ascending: false })
         .limit(1);
 
-      const maxLayer = maxDepthData?.[0]?.parent_depth || 0;
+      const maxLayer = maxDepthData?.[0]?.layer || 0;
 
       // Get recent matrix activity (last 10 placements)
       const { data: recentActivity } = await supabase
-        .from('matrix_referrals')
+        .from('matrix_referrals_tree_view')
         .select(`
           member_wallet,
-          created_at,
-          parent_depth,
+          child_activation_time,
+          layer,
           position,
           referral_type
         `)
         .ilike('matrix_root_wallet', walletAddress)
-        .order('created_at', { ascending: false })
+        .order('child_activation_time', { ascending: false })
         .limit(10);
 
       return {

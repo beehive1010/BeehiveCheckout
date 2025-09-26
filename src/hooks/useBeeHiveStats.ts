@@ -74,18 +74,18 @@ export function useUserReferralStats() {
 
       const totalEarnings = rewardsData?.reduce((sum, reward) => sum + (Number(reward.reward_amount) || 0), 0) || 0;
 
-      // Get recent referrals with activation status - use separate queries to avoid complex joins
+      // Get recent referrals with activation status - use tree view for position data
       const { data: recentReferralsData } = await supabase
-        .from('matrix_referrals')
+        .from('matrix_referrals_tree_view')
         .select(`
           member_wallet,
-          created_at,
+          child_activation_time,
           position,
-          parent_depth
+          layer
         `)
         .eq('matrix_root_wallet', walletAddress)
-        .eq('parent_depth', 1) // Only direct layer 1 members
-        .order('created_at', { ascending: false })
+        .eq('layer', 1) // Only direct layer 1 members
+        .order('child_activation_time', { ascending: false })
         .limit(5);
 
       // Get activation status for recent referrals
@@ -99,7 +99,7 @@ export function useUserReferralStats() {
 
           return {
             walletAddress: referral.member_wallet,
-            joinedAt: referral.created_at || new Date().toISOString(),
+            joinedAt: referral.child_activation_time || new Date().toISOString(),
             activated: (memberData?.current_level || 0) > 0
           };
         })
