@@ -113,56 +113,64 @@ export default function Dashboard() {
 
     setLoadingState(prev => ({ ...prev, matrix: true }));
     try {
-      console.log('🌐 Fetching matrix data from enhanced referrals_stats_view for:', walletAddress);
+      console.log('🌐 Fetching matrix data from referrals table for:', walletAddress);
       
-      // 直接查询改进的referrals_stats_view获取综合数据
-      const { data: statsData, error: statsError } = await supabase
-        .from('referrals_stats_view')
-        .select(`
-          wallet_address,
-          username,
-          direct_referrals_count,
-          activated_referrals_count,
-          total_team_size,
-          max_layer,
-          active_layers,
-          total_activated_members,
-          total_network_size,
-          has_matrix_team
-        `)
-        .eq('wallet_address', walletAddress)
-        .single();
+      // 从多个表获取数据进行综合统计
+      const [
+        { data: directReferralsData },
+        { data: matrixTeamData }, 
+        { data: memberData }
+      ] = await Promise.all([
+        // 直接推荐统计
+        supabase
+          .from('members')
+          .select('wallet_address, current_level, activation_time')
+          .eq('referrer_wallet', walletAddress),
+          
+        // Matrix团队统计 
+        supabase
+          .from('referrals')
+          .select('member_wallet, matrix_layer, is_direct_referral, is_spillover_placement')
+          .eq('matrix_root_wallet', walletAddress),
+          
+        // 当前用户信息
+        supabase
+          .from('members')
+          .select('wallet_address, current_level, activation_time')
+          .eq('wallet_address', walletAddress)
+          .single()
+      ]);
 
-      if (statsError && statsError.code !== 'PGRST116') {
-        console.error('❌ Stats query error:', statsError);
-        throw new Error(`Database error: ${statsError.message}`);
-      }
+      // 计算直接推荐数据
+      const directReferrals = directReferralsData?.length || 0;
+      const activatedDirectReferrals = directReferralsData?.filter(m => m.current_level > 0).length || 0;
+      
+      // 计算Matrix团队数据
+      const totalTeamSize = matrixTeamData?.length || 0;
+      const maxLayer = matrixTeamData && matrixTeamData.length > 0 
+        ? Math.max(...matrixTeamData.map(m => m.matrix_layer)) 
+        : 0;
+      const activeLayers = matrixTeamData && matrixTeamData.length > 0
+        ? new Set(matrixTeamData.map(m => m.matrix_layer)).size
+        : 0;
 
-      console.log('🌐 Matrix data from enhanced view:', statsData);
+      console.log('🌐 Matrix data calculated:', {
+        directReferrals,
+        activatedDirectReferrals,
+        totalTeamSize,
+        maxLayer,
+        activeLayers
+      });
 
-      if (statsData) {
-        return {
-          directReferrals: statsData.direct_referrals_count || 0,
-          totalTeamSize: statsData.total_team_size || 0,
-          maxLayer: statsData.max_layer || 0,
-          activatedReferrals: statsData.activated_referrals_count || 0,
-          totalNetworkSize: statsData.total_network_size || 0,
-          hasMatrixTeam: statsData.has_matrix_team || false,
-          activeLayers: statsData.active_layers || 0,
-          totalActivatedMembers: statsData.total_activated_members || 0
-        };
-      }
-
-      // 如果没有统计数据，返回默认值
       return {
-        directReferrals: 0,
-        totalTeamSize: 0,
-        maxLayer: 0,
-        activatedReferrals: 0,
-        totalNetworkSize: 0,
-        hasMatrixTeam: false,
-        activeLayers: 0,
-        totalActivatedMembers: 0
+        directReferrals,
+        totalTeamSize,
+        maxLayer,
+        activatedReferrals: activatedDirectReferrals,
+        totalNetworkSize: directReferrals + totalTeamSize,
+        hasMatrixTeam: totalTeamSize > 0,
+        activeLayers,
+        totalActivatedMembers: totalTeamSize // 假设matrix团队都是激活的
       };
     } catch (error) {
       console.error('❌ Matrix load error:', error);
