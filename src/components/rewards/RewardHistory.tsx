@@ -25,10 +25,16 @@ interface LayerReward {
   rolled_up_to: string;
   roll_up_reason: string;
   triggering_member?: {
-    username: string;
+    wallet_address: string;
+    users?: {
+      username: string;
+    };
   };
   matrix_root?: {
-    username: string;
+    wallet_address: string;
+    users?: {
+      username: string;
+    };
   };
 }
 
@@ -87,8 +93,14 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
           claimed_at,
           rolled_up_to,
           roll_up_reason,
-          triggering_member:users!triggering_member_wallet(username),
-          matrix_root:users!matrix_root_wallet(username)
+          triggering_member:members!triggering_member_wallet(
+            wallet_address,
+            users!wallet_address(username)
+          ),
+          matrix_root:members!matrix_root_wallet(
+            wallet_address,
+            users!wallet_address(username)
+          )
         `)
         .or(`reward_recipient_wallet.eq.${activeWallet},triggering_member_wallet.eq.${activeWallet}`)
         .order('created_at', { ascending: false })
@@ -127,8 +139,8 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
     if (historyFilters.searchKeyword) {
       const keyword = historyFilters.searchKeyword.toLowerCase();
       filtered = filtered.filter(item => 
-        item.triggering_member?.username?.toLowerCase().includes(keyword) ||
-        item.matrix_root?.username?.toLowerCase().includes(keyword) ||
+        item.triggering_member?.users?.username?.toLowerCase().includes(keyword) ||
+        item.matrix_root?.users?.username?.toLowerCase().includes(keyword) ||
         item.id?.toLowerCase().includes(keyword) ||
         item.layer_position?.toLowerCase().includes(keyword)
       );
@@ -430,11 +442,11 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
                     <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground">
                       <span>{new Date(reward.created_at).toLocaleDateString()}</span>
                       <span>•</span>
-                      <span>From: {reward.triggering_member?.username || `User${reward.triggering_member_wallet?.slice(-4)}`}</span>
+                      <span>From: {reward.triggering_member?.users?.username || `User${reward.triggering_member_wallet?.slice(-4)}`}</span>
                       {reward.matrix_root_wallet !== reward.reward_recipient_wallet && (
                         <>
                           <span>•</span>
-                          <span>Matrix: {reward.matrix_root?.username || `User${reward.matrix_root_wallet?.slice(-4)}`}</span>
+                          <span>Matrix: {reward.matrix_root?.users?.username || `User${reward.matrix_root_wallet?.slice(-4)}`}</span>
                         </>
                       )}
                     </div>
