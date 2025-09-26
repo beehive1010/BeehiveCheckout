@@ -92,15 +92,7 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
           created_at,
           claimed_at,
           rolled_up_to,
-          roll_up_reason,
-          triggering_member:members!triggering_member_wallet(
-            wallet_address,
-            users!wallet_address(username)
-          ),
-          matrix_root:members!matrix_root_wallet(
-            wallet_address,
-            users!wallet_address(username)
-          )
+          roll_up_reason
         `)
         .or(`reward_recipient_wallet.eq.${activeWallet},triggering_member_wallet.eq.${activeWallet}`)
         .order('created_at', { ascending: false })
@@ -108,7 +100,49 @@ export default function RewardHistory({ className, walletAddress }: RewardHistor
 
       if (error) throw error;
       
-      setLayerRewards(data || []);
+      // Get unique wallet addresses for username lookups
+      const allWallets = new Set<string>();
+      data?.forEach(reward => {
+        if (reward.triggering_member_wallet) allWallets.add(reward.triggering_member_wallet);
+        if (reward.matrix_root_wallet) allWallets.add(reward.matrix_root_wallet);
+      });
+      
+      // Fetch usernames for all wallets
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('wallet_address, username')
+        .in('wallet_address', Array.from(allWallets));
+      
+      if (usersError) {
+        console.warn('Failed to load usernames:', usersError);
+      }
+      
+      // Create a map of wallet addresses to usernames
+      const usernameMap = new Map<string, string>();
+      usersData?.forEach(user => {
+        if (user.username) {
+          usernameMap.set(user.wallet_address, user.username);
+        }
+      });
+      
+      // Enhance the rewards data with username information
+      const enhancedRewards = data?.map(reward => ({
+        ...reward,
+        triggering_member: {
+          wallet_address: reward.triggering_member_wallet,
+          users: usernameMap.has(reward.triggering_member_wallet) ? {
+            username: usernameMap.get(reward.triggering_member_wallet)!
+          } : undefined
+        },
+        matrix_root: {
+          wallet_address: reward.matrix_root_wallet,
+          users: usernameMap.has(reward.matrix_root_wallet) ? {
+            username: usernameMap.get(reward.matrix_root_wallet)!
+          } : undefined
+        }
+      })) || [];
+      
+      setLayerRewards(enhancedRewards);
     } catch (err) {
       console.error('Failed to load layer rewards:', err);
       setError('Failed to load reward history');
