@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useWallet } from '../hooks/useWallet';
+import { useWeb3 } from '../contexts/Web3Context';
 
 const MatrixTestPage: React.FC = () => {
   const [matrixData, setMatrixData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentWallet, setCurrentWallet] = useState<string | null>(null);
+  
+  // Use same user data connection as other components
+  const { walletAddress, isConnected } = useWeb3();
+  const { userQuery } = useWallet();
 
+  // Fallback test wallets for demonstration
   const testWallets = [
     '0x0000000000000000000000000000000000000001',
     '0x2C84e7DC65209730C067827b49AC7d5A1d25C8dC',
@@ -16,6 +24,7 @@ const MatrixTestPage: React.FC = () => {
   const loadMatrixData = async (walletAddress: string) => {
     setLoading(true);
     setError(null);
+    setCurrentWallet(walletAddress);
     
     try {
       console.log('Testing matrix data for wallet:', walletAddress);
@@ -75,23 +84,79 @@ const MatrixTestPage: React.FC = () => {
   };
 
   useEffect(() => {
-    // Load data for first test wallet on mount
-    if (testWallets.length > 0) {
-      loadMatrixData(testWallets[0]);
+    // Priority: Use connected wallet address, fallback to first test wallet
+    const addressToLoad = walletAddress || testWallets[0];
+    if (addressToLoad) {
+      loadMatrixData(addressToLoad);
     }
-  }, []);
+  }, [walletAddress, isConnected]);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold text-honey">Matrix Data Test Page</h1>
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold text-honey">Matrix Data Test Page</h1>
+        <p className="text-muted-foreground">
+          This page uses the same user data connection as other components in the app. 
+          It automatically loads matrix data for your connected wallet or allows testing with sample wallets.
+        </p>
+      </div>
+      
+      {/* User Connection Status */}
+      <Card>
+        <CardHeader>
+          <CardTitle>User Connection Status</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Badge variant={isConnected ? "default" : "secondary"}>
+                {isConnected ? "🟢 Connected" : "🔴 Disconnected"}
+              </Badge>
+              {walletAddress && (
+                <span className="font-mono text-sm">
+                  {walletAddress.slice(0, 8)}...{walletAddress.slice(-4)}
+                </span>
+              )}
+            </div>
+            {userQuery.data && (
+              <div className="flex flex-wrap gap-2">
+                <Badge variant={userQuery.data.isRegistered ? "default" : "secondary"}>
+                  {userQuery.data.isRegistered ? "✅ Registered" : "❌ Not Registered"}
+                </Badge>
+                <Badge variant={userQuery.data.isActivated ? "default" : "secondary"}>
+                  {userQuery.data.isActivated ? "✅ Activated" : "❌ Not Activated"}
+                </Badge>
+                {userQuery.data.memberData?.current_level && (
+                  <Badge variant="outline">
+                    Level {userQuery.data.memberData.current_level}
+                  </Badge>
+                )}
+              </div>
+            )}
+            <p className="text-sm text-muted-foreground">
+              {walletAddress 
+                ? "Using connected wallet for matrix data" 
+                : "No wallet connected - using test wallet"}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
       
       {/* Wallet Selector */}
       <Card>
         <CardHeader>
-          <CardTitle>Select Test Wallet</CardTitle>
+          <CardTitle>Test Wallets (Alternative)</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
+            {walletAddress && (
+              <button
+                onClick={() => loadMatrixData(walletAddress)}
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                🔗 Current: {walletAddress.slice(0, 8)}...{walletAddress.slice(-4)}
+              </button>
+            )}
             {testWallets.map(wallet => (
               <button
                 key={wallet}
@@ -130,7 +195,20 @@ const MatrixTestPage: React.FC = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex justify-between items-center">
-              <span>Matrix Data Results</span>
+              <div className="space-y-1">
+                <span>Matrix Data Results</span>
+                {currentWallet && (
+                  <div className="text-sm font-normal text-muted-foreground flex items-center gap-2">
+                    <span>Viewing:</span>
+                    <span className="font-mono bg-muted px-2 py-1 rounded">
+                      {currentWallet.slice(0, 12)}...{currentWallet.slice(-6)}
+                    </span>
+                    {currentWallet === walletAddress && (
+                      <Badge variant="default" className="text-xs">Your Wallet</Badge>
+                    )}
+                  </div>
+                )}
+              </div>
               <Badge variant="outline">
                 {matrixData.length} records found
               </Badge>
