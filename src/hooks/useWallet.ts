@@ -110,6 +110,23 @@ export function useWallet() {
         
       } catch (error: any) {
         console.error('❌ User status check error:', error);
+        
+        // If error indicates user needs registration, return registration flow
+        if (error.message?.includes('REGISTRATION REQUIRED') || 
+            error.message?.includes('User not found in database') ||
+            error.message?.includes('not found') ||
+            error.message?.includes('404')) {
+          console.log('👤 Error indicates user needs registration');
+          return { 
+            isRegistered: false, 
+            hasNFT: false, 
+            isActivated: false,
+            isMember: false,
+            membershipLevel: 0,
+            userFlow: 'registration' as const
+          };
+        }
+        
         throw error;
       }
     },

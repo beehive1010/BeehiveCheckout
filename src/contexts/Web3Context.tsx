@@ -272,9 +272,12 @@ function Web3ContextProvider({ children }: { children: React.ReactNode }) {
             return;
           }
           
-          // If user doesn't exist, redirect to registration page
-          if (error.message?.includes('not found') || error.message?.includes('404')) {
-            console.log('👤 User not found, redirecting to registration...');
+          // If user doesn't exist or needs registration, redirect to registration page
+          if (error.message?.includes('not found') || 
+              error.message?.includes('404') ||
+              error.message?.includes('REGISTRATION REQUIRED') ||
+              error.message?.includes('User not found in database')) {
+            console.log('👤 User needs registration, redirecting to registration...');
             setIsMember(false);
             setLocation('/register');
           } else {

@@ -231,25 +231,35 @@ export const authService = {
     } catch (error: any) {
       console.error('Error checking member activation:', error);
       
-      // Final fallback: direct database check
+      // Final fallback: Use Edge Function instead of direct database check
       try {
-        console.log('🔄 Error occurred, trying direct database fallback...');
-        const { data: fallbackMember } = await supabase
-          .from('members')
-          .select('current_level, wallet_address, activation_time')
-          .ilike('wallet_address', walletAddress)
-          .single();
-        
-        if (fallbackMember && fallbackMember.current_level > 0) {
-          console.log('✅ Found membership in final database fallback');
-          return { 
-            isActivated: true, 
-            memberData: fallbackMember, 
-            error: null 
-          };
+        console.log('🔄 Error occurred, trying Edge Function fallback...');
+        const fallbackResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/activate-membership`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json',
+            'x-wallet-address': walletAddress,
+          },
+          body: JSON.stringify({
+            action: 'get-member-info'
+          })
+        });
+
+        if (fallbackResponse.ok) {
+          const fallbackResult = await fallbackResponse.json();
+          if (fallbackResult.success && fallbackResult.member && fallbackResult.member.current_level > 0) {
+            console.log('✅ Found membership in Edge Function fallback');
+            return { 
+              isActivated: true, 
+              memberData: fallbackResult.member, 
+              error: null 
+            };
+          }
         }
       } catch (fallbackError) {
-        console.warn('Final database fallback failed:', fallbackError);
+        console.warn('Edge Function fallback failed:', fallbackError);
       }
       
       return { isActivated: false, memberData: null, error: { message: error.message } };
