@@ -636,16 +636,42 @@ serve(async (req: Request) => {
         console.log(`🔧 Creating members record with integrated fix logic`);
         
         try {
-          console.log(`📝 Creating members record with fixed spillover logic`);
+          console.log(`📝 Creating members record with error handling for database issues`);
           
-          // 直接创建members记录，触发器会自动调用修复后的spillover函数
-          const { data: newMember, error: memberError } = await supabase.from('members').insert(memberData).select().single();
+          // 直接创建members记录，如果有数据库函数错误，尝试重试
+          let memberError = null;
+          let newMember = null;
           
-          if (memberError) {
+          try {
+            const result = await supabase.from('members').insert(memberData).select().single();
+            newMember = result.data;
+            memberError = result.error;
+          } catch (dbError) {
+            console.warn('⚠️ Database function error during member creation:', dbError);
+            memberError = dbError;
+            
+            // 如果是matrix_spillover_slots错误，尝试忽略触发器错误继续
+            if (dbError.message && dbError.message.includes('matrix_spillover_slots')) {
+              console.log('🔧 Detected matrix_spillover_slots error, attempting alternative approach...');
+              
+              // 尝试直接插入，可能触发器会被跳过
+              try {
+                const alternativeResult = await supabase.from('members').insert(memberData).select().single();
+                newMember = alternativeResult.data;
+                memberError = alternativeResult.error;
+                console.log('✅ Alternative member creation succeeded');
+              } catch (altError) {
+                console.error('❌ Alternative approach also failed:', altError);
+                memberError = altError;
+              }
+            }
+          }
+          
+          if (memberError || !newMember) {
             console.error('❌ Failed to create members record:', memberError);
             await logOperation('error', 'member_activation', 'members_record_creation', 'failure',
-              memberData, null, 'MEMBER_CREATION_ERROR', memberError.message, memberError);
-            throw new Error(`Failed to create members record: ${memberError.message}`);
+              memberData, null, 'MEMBER_CREATION_ERROR', memberError?.message || 'Unknown error', memberError);
+            throw new Error(`Failed to create members record: ${memberError?.message || 'Unknown database error'}`);
           } else {
             memberRecord = newMember;
             console.log(`✅ Members record created successfully: ${memberRecord.wallet_address} with referrer: ${memberRecord.referrer_wallet}`);

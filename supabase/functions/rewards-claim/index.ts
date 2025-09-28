@@ -1,6 +1,27 @@
 import {serve} from "https://deno.land/std@0.168.0/http/server.ts"
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2'
-import {EdgeFunctionLogger, PerformanceTimer} from '../shared/logger.ts'
+
+// Simple logger replacement
+class EdgeFunctionLogger {
+  constructor(private supabase: any, private functionName: string) {}
+  async logInfo(action: string, category: string, data: any) {
+    console.log(`[${this.functionName}] ${action}:`, data);
+  }
+  async logError(action: string, category: string, error: any, data?: any) {
+    console.error(`[${this.functionName}] ${action}:`, error, data);
+  }
+}
+
+class PerformanceTimer {
+  private startTime: number;
+  constructor(private operation: string, private logger: EdgeFunctionLogger) {
+    this.startTime = Date.now();
+  }
+  async end() {
+    const duration = Date.now() - this.startTime;
+    console.log(`[Timer] ${this.operation}: ${duration}ms`);
+  }
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
