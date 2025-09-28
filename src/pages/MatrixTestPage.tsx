@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
@@ -21,22 +20,51 @@ const MatrixTestPage: React.FC = () => {
     try {
       console.log('Testing matrix data for wallet:', walletAddress);
       
-      // Test direct query to matrix_referrals_tree_view
-      const { data: referralsData, error: referralsError } = await supabase
-        .from('matrix_referrals_tree_view')
-        .select('*')
-        .eq('matrix_root_wallet', walletAddress)
-        .order('layer')
-        .order('position');
+      // Use matrix-view Edge Function instead of direct database query
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/matrix-view`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json',
+          'x-wallet-address': walletAddress,
+        },
+        body: JSON.stringify({
+          action: 'get-matrix-tree'
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Matrix API error: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
       
-      if (referralsError) {
-        console.error('Referrals query error:', referralsError);
-        setError(`Referrals query error: ${referralsError.message}`);
-        return;
+      if (!result.success) {
+        throw new Error(result.error || 'Matrix API returned error');
       }
       
-      console.log('Referrals data:', referralsData);
-      setMatrixData(referralsData || []);
+      console.log('Matrix data from Edge Function:', result.data);
+      
+      // Transform the data to match the expected format
+      const treeMembers = result.data.tree_members || [];
+      const matrixData = treeMembers.map((member: any) => ({
+        matrix_layer: member.layer,
+        layer: member.layer,
+        matrix_position: member.matrix_position,
+        position: member.matrix_position,
+        member_wallet: member.wallet_address,
+        parent_wallet: member.parent_wallet,
+        referrer_wallet: member.parent_wallet,
+        is_active: member.is_activated,
+        is_activated: member.is_activated,
+        placed_at: member.joined_at,
+        created_at: member.joined_at,
+        activation_time: member.joined_at
+      }));
+      
+      setMatrixData(matrixData);
       
     } catch (error: any) {
       console.error('Error loading matrix data:', error);
