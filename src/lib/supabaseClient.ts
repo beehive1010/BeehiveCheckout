@@ -1332,14 +1332,41 @@ export const activationService = {
         };
       }
 
-      // Check if user exists in users table
-      const { data: userData } = await supabase
-        .from('users')
-        .select('wallet_address, username, referrer_wallet')
-        .ilike('wallet_address', walletAddress)
-        .single();
+      // Check if user exists using Edge Function (avoid direct table access)
+      try {
+        const userCheckResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json',
+            'x-wallet-address': walletAddress,
+          },
+          body: JSON.stringify({
+            action: 'get-user'
+          })
+        });
 
-      if (!userData) {
+        if (!userCheckResponse.ok) {
+          return {
+            eligible: false,
+            reason: 'User must be registered first',
+            data: null
+          };
+        }
+
+        const userResult = await userCheckResponse.json();
+        if (!userResult.success || !userResult.user) {
+          return {
+            eligible: false,
+            reason: 'User must be registered first',
+            data: null
+          };
+        }
+
+        const userData = userResult.user;
+      } catch (error) {
+        console.error('Error checking user via Edge Function:', error);
         return {
           eligible: false,
           reason: 'User must be registered first',

@@ -10,6 +10,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster as HotToaster } from "react-hot-toast";
 import { setupGlobalChunkErrorHandler, preloadThirdwebModules } from "@/utils/moduleLoader";
 import { useEffect } from "react";
+import ErrorBoundary from "@/components/ui/error-boundary";
 
 // Refactored pages with clean architecture
 import LandingPage from "@/pages/LandingPage";
@@ -442,35 +443,54 @@ function App() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-        <Web3Provider>
-          <I18nProvider>
-              <TooltipProvider>
-              <div className="min-h-screen bg-background text-foreground">
-                {!isAdminPage && !isMatrixPage && <Header />}
-                {!isAdminPage && !isMatrixPage && <Navigation />}
-                <main className={isAdminPage || isMatrixPage ? "min-h-screen" : "min-h-[calc(100vh-theme(spacing.32))] pb-16 md:pb-0"}>
-                  <Router />
-                </main>
-                <Toaster />
-                <HotToaster 
-                  position="top-right"
-                  toastOptions={{
-                    duration: 4000,
-                    style: {
-                      background: 'var(--background)',
-                      color: 'var(--foreground)',
-                      border: '1px solid var(--border)',
-                    },
-                  }}
-                />
-              </div>
-            </TooltipProvider>
-          </I18nProvider>
-        </Web3Provider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ErrorBoundary
+      onError={(error, errorInfo) => {
+        console.error('🔴 App Error Boundary caught error:', error, errorInfo);
+        // Send to error tracking service in production
+      }}
+    >
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+          <ErrorBoundary
+            onError={(error, errorInfo) => {
+              console.error('🔴 Web3Provider Error:', error, errorInfo);
+            }}
+          >
+            <Web3Provider>
+              <I18nProvider>
+                <TooltipProvider>
+                  <div className="min-h-screen bg-background text-foreground">
+                    {!isAdminPage && !isMatrixPage && <Header />}
+                    {!isAdminPage && !isMatrixPage && <Navigation />}
+                    <main className={isAdminPage || isMatrixPage ? "min-h-screen" : "min-h-[calc(100vh-theme(spacing.32))] pb-16 md:pb-0"}>
+                      <ErrorBoundary
+                        onError={(error, errorInfo) => {
+                          console.error('🔴 Router Error:', error, errorInfo);
+                        }}
+                      >
+                        <Router />
+                      </ErrorBoundary>
+                    </main>
+                    <Toaster />
+                    <HotToaster 
+                      position="top-right"
+                      toastOptions={{
+                        duration: 4000,
+                        style: {
+                          background: 'var(--background)',
+                          color: 'var(--foreground)',
+                          border: '1px solid var(--border)',
+                        },
+                      }}
+                    />
+                  </div>
+                </TooltipProvider>
+              </I18nProvider>
+            </Web3Provider>
+          </ErrorBoundary>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 
