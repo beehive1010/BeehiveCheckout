@@ -190,32 +190,63 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       
       console.log('✅ User registration verified');
       
-      // Step 2: Validate referrer (check users table, not members)
+      // Step 2: Validate referrer with fallback logic
       setCurrentStep(t('claim.validatingReferrer'));
-      
-      const { data: referrerData, error: referrerError } = await supabase
-        .from('users')
+
+      let referrerData = null;
+      let isValidReferrer = false;
+
+      // First try members table (activated users)
+      const { data: memberReferrer, error: memberError } = await supabase
+        .from('members')
         .select('wallet_address, username')
         .ilike('wallet_address', referrerWallet)
         .single();
-      
-      if (referrerError || !referrerData) {
-        console.log('❌ Referrer validation failed - referrer not registered:', {
+
+      if (memberReferrer && !memberError) {
+        referrerData = memberReferrer;
+        isValidReferrer = true;
+        console.log('✅ Referrer found in members table (activated user):', {
+          wallet: memberReferrer.wallet_address,
+          username: memberReferrer.username
+        });
+      } else {
+        // Fallback: try users table (registered users)
+        const { data: userReferrer, error: userError } = await supabase
+          .from('users')
+          .select('wallet_address, username')
+          .ilike('wallet_address', referrerWallet)
+          .single();
+
+        if (userReferrer && !userError) {
+          referrerData = userReferrer;
+          isValidReferrer = true;
+          console.log('✅ Referrer found in users table (registered user):', {
+            wallet: userReferrer.wallet_address,
+            username: userReferrer.username
+          });
+        }
+      }
+
+      if (!isValidReferrer || !referrerData) {
+        console.log('❌ Referrer validation failed - referrer not found in members or users:', {
           referrerWallet,
-          error: referrerError
+          memberError: memberError?.message,
+          userError: userError?.message
         });
         toast({
           title: t('claim.invalidReferrer'),
-          description: t('claim.referrerMustBeRegistered') || 'Referrer must be a registered user on the platform',
+          description: t('claim.referrerMustBeRegistered') || 'Referrer must be a registered and activated user on the platform',
           variant: "destructive",
         });
         setIsProcessing(false);
         return;
       }
-      
-      console.log('✅ Referrer validation passed - valid registered user:', {
+
+      console.log('✅ Referrer validation passed:', {
         referrerWallet: referrerData.wallet_address,
-        referrerUsername: referrerData.username
+        referrerUsername: referrerData.username,
+        foundIn: memberReferrer ? 'members' : 'users'
       });
 
       // Step 3: Check network - must be Arbitrum One (42161)

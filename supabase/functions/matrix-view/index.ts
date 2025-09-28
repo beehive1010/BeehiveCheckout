@@ -38,34 +38,38 @@ serve(async (req: Request) => {
       // Get layer statistics using matrix_layers_view and referrals_stats_view
       console.log(`📊 Getting layer statistics for wallet: ${walletAddress}`)
       
-      // Get enhanced stats from improved referrals_stats_view
-      const { data: statsData, error: statsError } = await supabase
-        .from('referrals_stats_view')
-        .select(`
-          wallet_address,
-          username, 
-          direct_referrals_count,
-          activated_referrals_count,
-          total_team_size,
-          max_layer,
-          active_layers,
-          total_activated_members,
-          total_network_size,
-          has_matrix_team
-        `)
-        .eq('wallet_address', walletAddress)
-        .single()
+      // Try to get enhanced stats from referrals_stats_view (with fallback if view doesn't exist)
+      let statsData = null;
+      try {
+        const { data: enhancedStats, error: statsError } = await supabase
+          .from('referrals_stats_view')
+          .select(`
+            wallet_address,
+            username,
+            direct_referrals_count,
+            activated_referrals_count,
+            total_team_size,
+            max_layer,
+            active_layers,
+            total_activated_members,
+            total_network_size,
+            has_matrix_team
+          `)
+          .eq('wallet_address', walletAddress)
+          .single();
 
-      if (statsError && statsError.code !== 'PGRST116') { // Ignore not found error
-        console.log('Enhanced stats not found, using fallback:', statsError.message)
+        if (!statsError) {
+          statsData = enhancedStats;
+          console.log('📊 Enhanced stats data from view:', statsData);
+        }
+      } catch (error) {
+        console.log('⚠️ referrals_stats_view not available, will calculate manually');
       }
 
-      console.log('📊 Enhanced stats data:', statsData)
-
-      // Get matrix layers data from updated matrix_layer_view
+      // Try to get matrix layers data from matrix_layer_view (with fallback if view doesn't exist)
       let matrixData = null;
       let matrixError = null;
-      
+
       try {
         const result = await supabase
           .from('matrix_layer_view')
@@ -85,12 +89,17 @@ serve(async (req: Request) => {
           `)
           .eq('matrix_root_wallet', walletAddress)
           .order('layer');
-        
+
         matrixData = result.data;
         matrixError = result.error;
+
+        if (!matrixError && matrixData) {
+          console.log('📊 Matrix layer data from view:', matrixData.length, 'layers');
+        }
       } catch (error) {
-        console.log('matrix_layer_view not available, using fallback calculation');
+        console.log('⚠️ matrix_layer_view not available, using fallback calculation');
         matrixError = error;
+        matrixData = null;
       }
 
       if (matrixError) {
@@ -106,17 +115,17 @@ serve(async (req: Request) => {
       // Get detailed member positions for L/M/R breakdown from matrix_referrals_tree_view if matrix_layer_view data is incomplete
       const { data: membersData } = await supabase
         .from('matrix_referrals_tree_view')
-        .select('layer, position')
+        .select('matrix_layer, matrix_position')
         .eq('matrix_root_wallet', walletAddress)
 
       // Count positions by layer as fallback
       const positionCounts: any = {}
       membersData?.forEach(member => {
-        if (!positionCounts[member.layer]) {
-          positionCounts[member.layer] = { L: 0, M: 0, R: 0 }
+        if (!positionCounts[member.matrix_layer]) {
+          positionCounts[member.matrix_layer] = { L: 0, M: 0, R: 0 }
         }
-        if (member.position && ['L', 'M', 'R'].includes(member.position)) {
-          positionCounts[member.layer][member.position]++
+        if (member.matrix_position && ['L', 'M', 'R'].includes(member.matrix_position)) {
+          positionCounts[member.matrix_layer][member.matrix_position]++
         }
       })
 
@@ -243,20 +252,20 @@ serve(async (req: Request) => {
         .select(`
           member_wallet,
           matrix_root_wallet,
-          layer,
-          position,
+          matrix_layer,
+          matrix_position,
           referral_type,
-          child_activation_time,
+          activation_time,
           parent_wallet,
           username,
           current_level,
-          is_activated,
+          is_active,
           is_spillover,
           referral_depth
         `)
         .eq('matrix_root_wallet', walletAddress)
-        .order('layer')
-        .order('position')
+        .order('matrix_layer')
+        .order('matrix_position')
 
       console.log(`👥 Matrix query result:`, { 
         memberCount: matrixMembers?.length || 0,
@@ -311,12 +320,12 @@ serve(async (req: Request) => {
         const memberData = {
           wallet_address: member.member_wallet,
           username: member.username || `User${member.member_wallet?.slice(-4) || ''}`,
-          matrix_position: member.position,  // L, M, R from matrix placement
+          matrix_position: member.matrix_position,  // L, M, R from matrix placement
           current_level: member.current_level || 1,
-          is_activated: Boolean(member.is_activated),
-          joined_at: member.child_activation_time,  // Use activation time
+          is_activated: Boolean(member.is_active),
+          joined_at: member.activation_time,  // Use activation time
           is_spillover: Boolean(member.is_spillover),  // Actual spillover status from view
-          layer: member.layer,  // Use layer from view
+          layer: member.matrix_layer,  // Use layer from view
           parent_wallet: member.parent_wallet,  // Include parent info
           placement_type: member.referral_type,  // Direct or indirect placement
           referral_depth: member.referral_depth  // Original referral depth
