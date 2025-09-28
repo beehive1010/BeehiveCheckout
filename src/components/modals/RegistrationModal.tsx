@@ -55,27 +55,37 @@ export default function RegistrationModal({
 
   const validateReferrer = async () => {
     if (!referrerWallet) return;
-    
-    // Handle default referrer for development/testing
-    if (referrerWallet === '0x0000000000000000000000000000000000000001') {
-      setReferrerInfo({
-        username: 'DefaultReferrer',
-        wallet_address: referrerWallet,
-        current_level: 1,
-        direct_referrals_count: 0,
-        matrix_members_count: 0
-      });
-      console.log('🔧 Using default referrer for development');
-      return;
-    }
-    
+
     setValidatingReferrer(true);
     try {
       const { isValid, referrer, error } = await authService.validateReferrer(referrerWallet);
-      
+
       if (isValid && referrer) {
         setReferrerInfo(referrer);
       } else {
+        // If validation fails and this is not the default referrer, try fallback to default
+        if (referrerWallet !== '0x0000000000000000000000000000000000000001') {
+          console.warn('❌ Referrer validation failed, falling back to default referrer:', error);
+
+          // Test if default referrer is valid
+          const defaultReferrer = '0x0000000000000000000000000000000000000001';
+          const { isValid: defaultIsValid, referrer: defaultReferrerInfo } = await authService.validateReferrer(defaultReferrer);
+
+          if (defaultIsValid && defaultReferrerInfo) {
+            console.log('✅ Using default referrer as fallback');
+            setReferrerInfo(defaultReferrerInfo);
+            // Update the referrer wallet to default
+            // Note: The parent component should handle this, but we can suggest it
+            localStorage.setItem('beehive-referrer', defaultReferrer);
+            toast({
+              title: 'Referrer Updated',
+              description: 'Using default referrer as your original referrer was not found.',
+              variant: 'default',
+            });
+            return;
+          }
+        }
+
         throw new Error(error?.message || t('registration.invalidReferrer'));
       }
     } catch (error: any) {
