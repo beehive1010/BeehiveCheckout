@@ -254,8 +254,7 @@ serve(async (req: Request) => {
           matrix_root_wallet,
           matrix_layer,
           matrix_position,
-          referral_type,
-          activation_time,
+          placed_at,
           parent_wallet,
           username,
           current_level,
@@ -323,19 +322,19 @@ serve(async (req: Request) => {
           matrix_position: member.matrix_position,  // L, M, R from matrix placement
           current_level: member.current_level || 1,
           is_activated: Boolean(member.is_active),
-          joined_at: member.activation_time,  // Use activation time
+          joined_at: member.placed_at,  // Use placed_at time
           is_spillover: Boolean(member.is_spillover),  // Actual spillover status from view
           layer: member.matrix_layer,  // Use layer from view
           parent_wallet: member.parent_wallet,  // Include parent info
-          placement_type: member.referral_type,  // Direct or indirect placement
+          placement_type: 'matrix_placement',  // Default placement type
           referral_depth: member.referral_depth  // Original referral depth
         }
 
         // Add to layer organization
-        if (!byLayer[member.layer]) {
-          byLayer[member.layer] = []
+        if (!byLayer[member.matrix_layer]) {
+          byLayer[member.matrix_layer] = []
         }
-        byLayer[member.layer].push(memberData)
+        byLayer[member.matrix_layer].push(memberData)
 
         // Add to tree members
         treeMembers.push(memberData)

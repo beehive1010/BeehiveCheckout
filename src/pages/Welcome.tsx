@@ -22,10 +22,11 @@ export default function Welcome() {
   const [noReferrerError, setNoReferrerError] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Get referrer from URL params and localStorage
+  // Get referrer from URL params and localStorage with immediate fallback
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const ref = urlParams.get('ref');
+
     if (ref && ref.startsWith('0x') && ref.length === 42) {
       setReferrerWallet(ref);
       referralService.handleReferralParameter();
@@ -39,9 +40,13 @@ export default function Welcome() {
         setNoReferrerError(false);
         console.log('🔗 Referrer loaded from storage:', storedReferrer);
       } else {
-        // No valid referrer found
-        setNoReferrerError(true);
-        console.log('❌ No valid referrer found');
+        // Immediately set default referrer instead of setting error first
+        const defaultReferrer = '0x0000000000000000000000000000000000000001';
+        setReferrerWallet(defaultReferrer);
+        // Store the default referrer to localStorage so Registration can access it
+        localStorage.setItem('beehive-referrer', defaultReferrer);
+        setNoReferrerError(false);
+        console.log('🔧 No valid referrer found, using default referrer immediately:', defaultReferrer);
       }
     }
   }, []);
@@ -172,18 +177,7 @@ export default function Welcome() {
     }
   };
 
-  // Handle default referrer when no valid referrer is found
-  useEffect(() => {
-    if (noReferrerError && !referrerWallet) {
-      // Set default referrer for testing purposes and store it
-      const defaultReferrer = '0x0000000000000000000000000000000000000001';
-      setReferrerWallet(defaultReferrer);
-      // Store the default referrer to localStorage so Registration can access it
-      localStorage.setItem('beehive-referrer', defaultReferrer);
-      setNoReferrerError(false);
-      console.log('🔧 Using default referrer for development:', defaultReferrer);
-    }
-  }, [noReferrerError, referrerWallet]);
+  // Note: Default referrer handling is now done immediately in the first useEffect above
 
   // Auto-detect status inconsistency and prompt user to refresh
   useEffect(() => {
