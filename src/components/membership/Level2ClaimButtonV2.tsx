@@ -37,7 +37,7 @@ export function Level2ClaimButtonV2({ onSuccess, className = '' }: Level2ClaimBu
     isDataSynced: false
   });
   
-  // Fixed Level 2 pricing - same as Level1 logic
+  // Fixed Level 2 pricing - corrected to match layer rewards (150 USDC)
   const LEVEL_2_PRICE_USDC = 150;
   const LEVEL_2_PRICE_WEI = BigInt(LEVEL_2_PRICE_USDC) * BigInt('1000000000000000000');
 

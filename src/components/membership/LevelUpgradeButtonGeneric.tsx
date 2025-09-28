@@ -20,13 +20,30 @@ interface LevelUpgradeButtonGenericProps {
   className?: string;
 }
 
-// Dynamic pricing based on level
+// Dynamic pricing based on level (Layer 2-19: 150-1000 USDC)
 const getLevelPrice = (level: number): number => {
-  if (level === 1) return 130;
-  if (level === 2) return 150;
-  if (level === 3) return 200;
-  // Level 4+: 200 + (50 * (level - 3))
-  return 200 + (50 * (level - 3));
+  const prices = {
+    1: 130,   // Level 1 activation
+    2: 150,   // Level 2 upgrade 
+    3: 200,   // Level 3 upgrade
+    4: 250,   // Level 4 upgrade
+    5: 300,   // Level 5 upgrade
+    6: 350,   // Level 6 upgrade
+    7: 400,   // Level 7 upgrade
+    8: 450,   // Level 8 upgrade
+    9: 500,   // Level 9 upgrade
+    10: 550,  // Level 10 upgrade
+    11: 600,  // Level 11 upgrade
+    12: 650,  // Level 12 upgrade
+    13: 700,  // Level 13 upgrade
+    14: 750,  // Level 14 upgrade
+    15: 800,  // Level 15 upgrade
+    16: 850,  // Level 16 upgrade
+    17: 900,  // Level 17 upgrade
+    18: 950,  // Level 18 upgrade
+    19: 1000  // Level 19 upgrade
+  };
+  return prices[level] || (level <= 19 ? 130 + (level - 1) * 50 : 0);
 };
 
 // Level requirements

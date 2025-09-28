@@ -13,6 +13,9 @@ interface MatrixMember {
   isActive: boolean;
   layer: number;
   position: string;
+  isDirect?: boolean;
+  isSpillover?: boolean;
+  referrerWallet?: string;
 }
 
 interface MatrixLayerData {
@@ -42,13 +45,23 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
       setError(null);
       
       try {
-        // Get complete 19-layer matrix tree from matrix_referrals_tree_view (now shows actual placement)
+        // Get complete 19-layer matrix tree from referrals table with direct/spillover info
         const { data: treeData, error } = await supabase
-          .from('matrix_referrals_tree_view')
-          .select('*')
+          .from('referrals')
+          .select(`
+            member_wallet,
+            matrix_root_wallet,
+            matrix_layer,
+            matrix_position,
+            is_direct_referral,
+            is_spillover_placement,
+            placed_at,
+            referrer_wallet,
+            member_activation_sequence
+          `)
           .ilike('matrix_root_wallet', walletAddress) // Use ilike for case-insensitive comparison
-          .order('layer')
-          .order('position');
+          .order('matrix_layer')
+          .order('member_activation_sequence');
         
         if (!error && treeData) {
           console.log(`🔍 SimpleMatrixView: Raw tree data for ${walletAddress}:`, treeData.length, 'records');
@@ -61,25 +74,61 @@ const SimpleMatrixView: React.FC<SimpleMatrixViewProps> = ({ walletAddress, root
             organizedData[i] = { left: [], middle: [], right: [] };
           }
           
-          // Organize matrix data by layer and position (from matrix_referrals_tree_view)
+          // Get user and member information
+          const memberWallets = treeData.map(node => node.member_wallet);
+          let usersData = [];
+          let membersDetailData = [];
+
+          if (memberWallets.length > 0) {
+            const [usersResult, membersResult] = await Promise.allSettled([
+              supabase
+                .from('users')
+                .select('wallet_address, username')
+                .in('wallet_address', memberWallets),
+              supabase
+                .from('members')
+                .select('wallet_address, current_level')
+                .in('wallet_address', memberWallets)
+            ]);
+
+            if (usersResult.status === 'fulfilled' && usersResult.value.data) {
+              usersData = usersResult.value.data;
+            }
+            if (membersResult.status === 'fulfilled' && membersResult.value.data) {
+              membersDetailData = membersResult.value.data;
+            }
+          }
+
+          // Organize matrix data by layer and position (from referrals table)
           treeData.forEach((node: any) => {
-            const layer = node.layer;
-            const position = node.position;
+            const layer = node.matrix_layer;
+            const position = node.matrix_position;
             
             console.log(`🔍 Processing node:`, { 
               layer, 
               position, 
               member_wallet: node.member_wallet,
-              matrix_root_wallet: node.matrix_root_wallet
+              isDirect: node.is_direct_referral,
+              isSpillover: node.is_spillover_placement
             });
+
+            const userData = usersData.find(u => 
+              u.wallet_address.toLowerCase() === node.member_wallet.toLowerCase()
+            );
+            const memberDetail = membersDetailData.find(m => 
+              m.wallet_address.toLowerCase() === node.member_wallet.toLowerCase()
+            );
             
             const member: MatrixMember = {
               walletAddress: node.member_wallet,
-              username: node.username || `User${node.member_wallet.slice(-4)}`,
-              level: node.current_level || 1,
-              isActive: node.is_activated || false,
+              username: userData?.username || `User${node.member_wallet.slice(-4)}`,
+              level: memberDetail?.current_level || 1,
+              isActive: true, // All in matrix are active
               layer: layer,
-              position: position
+              position: position,
+              isDirect: node.is_direct_referral || false,
+              isSpillover: node.is_spillover_placement || false,
+              referrerWallet: node.referrer_wallet
             };
             
             // Distribute to L-M-R based on position

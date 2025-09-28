@@ -195,13 +195,18 @@ export default function UpdatedRegistrationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" aria-describedby="updated-registration-description">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-honey">
             <User className="h-5 w-5" />
             加入BEEHIVE平台
           </DialogTitle>
         </DialogHeader>
+        
+        {/* Hidden description for accessibility */}
+        <p id="updated-registration-description" className="sr-only">
+          Complete your registration to join the BEEHIVE community
+        </p>
 
         <div className="space-y-6">
           {/* 钱包信息 */}

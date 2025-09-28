@@ -726,12 +726,11 @@ serve(async (req: Request) => {
       try {
         console.log(`📐 Starting SMART matrix placement: ${userData.wallet_address} -> ${normalizedReferrerWallet}`);
         
-        // 🔧 UPDATED: Use matrix-fix function with BFS algorithm for proper placement
-        const { data: matrixPlacementResult, error: matrixPlacementError } = await supabase.functions.invoke('matrix-fix', {
+        // 🔧 UPDATED: Use new recursive matrix-placement function with 19-layer 3x3 algorithm
+        const { data: matrixPlacementResult, error: matrixPlacementError } = await supabase.functions.invoke('matrix-placement', {
           body: {
-            action: 'place_member_advanced',
-            memberWallet: userData.wallet_address,
-            referrerWallet: normalizedReferrerWallet
+            member_wallet: userData.wallet_address,
+            referrer_wallet: normalizedReferrerWallet
           }
         });
         
@@ -742,13 +741,16 @@ serve(async (req: Request) => {
             matrixPlacementResult, 'SMART_PLACEMENT_FAILED', 
             matrixPlacementError?.message || matrixPlacementResult?.error, matrixPlacementError);
           
-          // 🔧 FALLBACK: If smart placement fails, try the complete algorithm
+          // 🔧 FALLBACK: If smart placement fails, try direct matrix placement call
           try {
-            console.log('🔧 Attempting alternative matrix placement...');
+            console.log('🔧 Attempting alternative matrix placement via direct call...');
             
-            const { data: completeResult, error: completeError } = await supabase.rpc('place_member_matrix_complete', {
-              p_member_wallet: userData.wallet_address,
-              p_referrer_wallet: normalizedReferrerWallet
+            // Try calling matrix-placement again with retry logic
+            const { data: completeResult, error: completeError } = await supabase.functions.invoke('matrix-placement', {
+              body: {
+                member_wallet: userData.wallet_address,
+                referrer_wallet: normalizedReferrerWallet
+              }
             });
             
             if (!completeError && completeResult?.success) {

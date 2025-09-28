@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { ChevronRight, Users, Trophy, ArrowLeft, Home } from 'lucide-react';
+import { ChevronRight, Users, Trophy, ArrowLeft, Home, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useI18n } from '../../contexts/I18nContext';
 
@@ -14,6 +14,9 @@ interface MatrixMember {
   layer: number;
   position: 'L' | 'M' | 'R';
   placedAt?: string;
+  isDirect?: boolean;        // 是否直推
+  isSpillover?: boolean;     // 是否滑落
+  referrerWallet?: string;   // 推荐人
 }
 
 interface MatrixNode {
@@ -60,20 +63,23 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
       // Use direct database view query instead of edge function
       console.log('👥 Using direct database query for matrix members');
 
+      // Use the new referrals table to get direct/spillover information
       const { data: matrixData, error: matrixError } = await supabase
-        .from('matrix_referrals_tree_view')
+        .from('referrals')
         .select(`
-          wallet_address,
-          username,
+          member_wallet,
+          referrer_wallet,
+          matrix_root_wallet,
           matrix_layer,
           matrix_position,
-          is_active,
-          current_level,
-          placed_at
+          is_direct_referral,
+          is_spillover_placement,
+          placed_at,
+          member_activation_sequence
         `)
         .eq('matrix_root_wallet', walletAddress)
         .order('matrix_layer')
-        .order('matrix_position');
+        .order('member_activation_sequence');
 
       if (matrixError) {
         throw new Error(`Database error: ${matrixError.message}`);
@@ -111,22 +117,58 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
         const middleMembers: MatrixMember[] = [];
         const rightMembers: MatrixMember[] = [];
         
+        // Get user and member detail data for display
+        const memberWallets = layerMembers.map(m => m.member_wallet);
+        let usersData = [];
+        let membersDetailData = [];
+
+        if (memberWallets.length > 0) {
+          const [usersResult, membersResult] = await Promise.allSettled([
+            supabase
+              .from('users')
+              .select('wallet_address, username')
+              .in('wallet_address', memberWallets),
+            supabase
+              .from('members')
+              .select('wallet_address, current_level')
+              .in('wallet_address', memberWallets)
+          ]);
+
+          if (usersResult.status === 'fulfilled' && usersResult.value.data) {
+            usersData = usersResult.value.data;
+          }
+          if (membersResult.status === 'fulfilled' && membersResult.value.data) {
+            membersDetailData = membersResult.value.data;
+          }
+        }
+
         layerMembers.forEach((member: any) => {
           console.log(`🔍 Processing member:`, {
-            wallet: member.wallet_address,
+            wallet: member.member_wallet,
             position: member.matrix_position,
             layer: member.matrix_layer,
-            fullMember: member
+            isDirect: member.is_direct_referral,
+            isSpillover: member.is_spillover_placement
           });
 
+          const userData = usersData.find(u => 
+            u.wallet_address.toLowerCase() === member.member_wallet.toLowerCase()
+          );
+          const memberDetail = membersDetailData.find(m => 
+            m.wallet_address.toLowerCase() === member.member_wallet.toLowerCase()
+          );
+
           const memberData: MatrixMember = {
-            walletAddress: member.wallet_address,
-            username: member.username || `User_${member.wallet_address?.slice(-6)}`,
-            level: member.current_level || 1,
-            isActive: member.is_active || false,
+            walletAddress: member.member_wallet,
+            username: userData?.username || `User_${member.member_wallet?.slice(-6)}`,
+            level: memberDetail?.current_level || 1,
+            isActive: true, // All in matrix are active
             layer: member.matrix_layer || currentViewLayer,
             position: member.matrix_position as 'L' | 'M' | 'R',
-            placedAt: member.placed_at || new Date().toISOString()
+            placedAt: member.placed_at || new Date().toISOString(),
+            isDirect: member.is_direct_referral || false,
+            isSpillover: member.is_spillover_placement || false,
+            referrerWallet: member.referrer_wallet
           };
           
           // Filter by position - exact match since function uses 'L', 'M', 'R'
@@ -269,6 +311,15 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
       >
         {member ? (
           <>
+            {/* 直推/滑落标识 */}
+            <div className="absolute top-2 right-2">
+              {member.isDirect ? (
+                <ArrowUpRight className="h-4 w-4 text-green-500" title="直推" />
+              ) : member.isSpillover ? (
+                <ArrowDownLeft className="h-4 w-4 text-blue-500" title="滑落" />
+              ) : null}
+            </div>
+            
             <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-honey to-honey/80 rounded-full flex items-center justify-center mb-2 shadow-lg flex-shrink-0">
               <span className="text-black font-bold text-sm md:text-lg">
                 {member.username?.charAt(0).toUpperCase() || member.walletAddress?.charAt(2).toUpperCase()}
@@ -282,6 +333,27 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
               <div className="text-xs text-muted-foreground mb-2 truncate">
                 {member.walletAddress?.slice(0, 4)}...{member.walletAddress?.slice(-4)}
               </div>
+              
+              {/* 显示类型标识 */}
+              <div className="flex items-center justify-center gap-1 mb-2">
+                {member.isDirect && (
+                  <Badge 
+                    variant="secondary" 
+                    className="text-xs bg-green-100 text-green-800 border-green-300"
+                  >
+                    直推
+                  </Badge>
+                )}
+                {member.isSpillover && (
+                  <Badge 
+                    variant="secondary" 
+                    className="text-xs bg-blue-100 text-blue-800 border-blue-300"
+                  >
+                    滑落
+                  </Badge>
+                )}
+              </div>
+              
               <Badge 
                 variant={member.isActive ? 'default' : 'secondary'} 
                 className={`text-xs ${
