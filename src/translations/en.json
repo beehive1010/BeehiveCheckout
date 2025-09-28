@@ -1919,6 +1919,165 @@
       "instantReleaseDesc": "No waiting period - tokens are released immediately upon activation",
       "phaseProgression": "Phase Progression",
       "phaseProgressionDesc": "As more members join, phases progress with reduced BCC amounts"
+    },
+    "layerRewardSystem": {
+      "title": "Layer Reward System",
+      "subtitle": "Understanding How Matrix Layer Rewards Work",
+      "learnMore": "Learn More",
+      "howItWorks": {
+        "title": "How It Works",
+        "description": "Layer rewards are triggered when members in your matrix upgrade their membership levels. The reward amount equals the NFT price of that level."
+      },
+      "rewardStructure": {
+        "title": "Reward Structure",
+        "layer1": "Layer 1 Reward: Triggered when your Layer 1 members upgrade to Level 1",
+        "layer2": "Layer 2 Reward: Triggered when your Layer 2 members upgrade to Level 2",
+        "layer3": "Layer 3 Reward: Triggered when your Layer 3 members upgrade to Level 3",
+        "pattern": "This pattern continues through all 19 layers"
+      },
+      "rewardAmounts": {
+        "title": "Reward Amounts",
+        "level1": "Level 1: $100 (100% of NFT price)",
+        "level2": "Level 2: $150 (100% of NFT price)",
+        "level3": "Level 3: $200 (100% of NFT price)",
+        "continuation": "Pattern continues to Level 19"
+      },
+      "eligibilityRules": {
+        "title": "Eligibility Rules",
+        "verification": "Level verification is required before reward distribution",
+        "layer1Special": {
+          "title": "Layer 1 Special Rules",
+          "firstSecond": "1st & 2nd rewards: Must be Level 1 to receive",
+          "thirdOnward": "3rd+ rewards: Must be Level 2+ or enter 72-hour pending",
+          "pending": "Pending rewards become claimable after upgrading within 72 hours",
+          "rollup": "Expired rewards roll up to qualified upline members"
+        },
+        "layer2to19Standard": {
+          "title": "Layer 2-19 Standard Rules",
+          "firstSecond": "1st & 2nd rewards: Level must equal or exceed layer level",
+          "thirdOnward": "3rd+ rewards: Level must exceed layer level"
+        }
+      },
+      "pendingSystem": {
+        "title": "72-Hour Pending System",
+        "notEligible": "If you don't meet level requirements, rewards enter pending status",
+        "upgradeWindow": "You have 72 hours to upgrade and claim the reward",
+        "immediate": "Upgrade immediately to claim pending rewards instantly",
+        "expiry": "After 72 hours, unclaimed rewards roll up to eligible upline members"
+      },
+      "matrixVisualization": {
+        "title": "3×3 Matrix Structure",
+        "description": "Your downline is organized in a 3×3 matrix with 19 layers",
+        "positions": "Each layer has Left, Middle, and Right positions",
+        "rewards": "Rewards are triggered when members in these positions upgrade",
+        "animationTitle": "Animation Legend",
+        "animationActive": "Active member positions",
+        "animationPending": "Pending member slots",
+        "animationRewards": "Reward trigger points",
+        "animationConnections": "Matrix connections",
+        "interactiveHint": "Matrix visualization shows real-time member placement and reward opportunities"
+      },
+      "bccReleaseSystem": {
+        "title": "BCC Release System",
+        "subtitle": "Four-phase token release based on global activation count",
+        "description": "BCC tokens are released through a four-stage system based on total activated members",
+        "mechanismTitle": "Release Mechanism",
+        "mechanismDescription": "BCC tokens are automatically released when members activate their membership levels",
+        "stageReduction": "Each phase reduces BCC amounts as more members join",
+        "totalMembers": "Total system capacity: 186,000 members across 4 phases",
+        "stages": {
+          "stage1": {
+            "title": "Stage 1: Members 1-9,999",
+            "totalLocked": "Total Locked Rewards: 10,450 BCC",
+            "level1": "Level 1 Activation: 100 BCC Released",
+            "level2": "Level 2 Activation: 150 BCC Released",
+            "level3": "Level 3 Activation: 200 BCC Released",
+            "levelPattern": "Pattern continues +50 BCC per level",
+            "level19": "Level 19 Activation: 1,000 BCC Released"
+          },
+          "stage2": {
+            "title": "Stage 2: Members 10,000-29,999",
+            "totalLocked": "Total Locked Rewards: 5,225 BCC (50% of Stage 1)",
+            "level1": "Level 1 Activation: 50 BCC Released",
+            "level2": "Level 2 Activation: 75 BCC Released",
+            "level3": "Level 3 Activation: 100 BCC Released",
+            "levelPattern": "Pattern continues at 50% reduction",
+            "level19": "Level 19 Activation: 500 BCC Released"
+          },
+          "stage3": {
+            "title": "Stage 3: Members 30,000-99,999",
+            "totalLocked": "Total Locked Rewards: 2,612.5 BCC (25% of Stage 1)",
+            "level1": "Level 1 Activation: 25 BCC Released",
+            "level2": "Level 2 Activation: 37.5 BCC Released",
+            "level3": "Level 3 Activation: 50 BCC Released",
+            "levelPattern": "Pattern continues at 25% reduction",
+            "level19": "Level 19 Activation: 250 BCC Released"
+          },
+          "stage4": {
+            "title": "Stage 4: Members 100,000-186,000",
+            "totalLocked": "Total Locked Rewards: 1,306.25 BCC (12.5% of Stage 1)",
+            "level1": "Level 1 Activation: 12.5 BCC Released",
+            "level2": "Level 2 Activation: 18.75 BCC Released",
+            "level3": "Level 3 Activation: 25 BCC Released",
+            "levelPattern": "Pattern continues at 12.5% reduction",
+            "level19": "Level 19 Activation: 125 BCC Released"
+          }
+        }
+      },
+      "layer1Special": {
+        "title": "Layer 1 Special Logic",
+        "directReferral": "Based on direct referral rewards",
+        "matrixDisplay": "Displayed according to your matrix layer member tree",
+        "recursiveView": "Recursive 19-layer member view"
+      }
+    },
+    "bcc": {
+      "subtitle": "Four-phase release system based on activation count",
+      "autoDistribution": "Auto Distribution",
+      "currentPhase": "Current Phase",
+      "active": "Active",
+      "activationProgress": "Activation Progress",
+      "phaseRewardPool": "Phase 1 Reward Pool",
+      "remaining": "remaining",
+      "currentReleaseStandard": "Current Release Standard (per activation)",
+      "upToL19": "... up to L19 ({amount} BCC)",
+      "fourPhaseSystemOverview": "Four-Phase System Overview",
+      "current": "Current",
+      "releaseMechanism": "Release Mechanism",
+      "phase1InProgress": "Phase 1 In Progress",
+      "activateToGetMaxRewards": "Activate membership levels to get maximum BCC rewards",
+      "phases": {
+        "phase1": {
+          "description": "Phase 1: Early Adopters",
+          "members": "1st - 9,999th"
+        },
+        "phase2": {
+          "description": "Phase 2: Growth Phase",
+          "members": "10,000th - 29,999th"
+        },
+        "phase3": {
+          "description": "Phase 3: Expansion Phase",
+          "members": "30,000th - 99,999th"
+        },
+        "phase4": {
+          "description": "Phase 4: Mature Phase",
+          "members": "100,000th - 186,000th"
+        }
+      },
+      "mechanisms": {
+        "activationTrigger": "Member Activation",
+        "activationTriggerDesc": "When a member activates any level, BCC tokens are released instantly",
+        "decreasingRewards": "Decreasing Rewards",
+        "decreasingRewardsDesc": "As more members join, BCC amounts decrease across phases",
+        "realtimeDistribution": "Real-time Distribution",
+        "realtimeDistributionDesc": "No waiting period - tokens are released immediately upon activation"
+      },
+      "benefits": {
+        "autoRelease": "Auto Release",
+        "autoReleaseDesc": "Instant BCC release upon level activation",
+        "earlyAdvantage": "Early Advantage",
+        "earlyAdvantageDesc": "Higher rewards for early adopters"
+      }
     }
   },
   "me": {

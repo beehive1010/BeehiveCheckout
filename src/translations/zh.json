@@ -799,6 +799,165 @@
       "instantReleaseDesc": "无等待期 - 激活后立即释放代币",
       "phaseProgression": "阶段进展",
       "phaseProgressionDesc": "随着更多成员加入，阶段进展，BCC数量减少"
+    },
+    "layerRewardSystem": {
+      "title": "层级奖励系统",
+      "subtitle": "了解矩阵层级奖励的工作原理",
+      "learnMore": "了解更多",
+      "howItWorks": {
+        "title": "工作原理",
+        "description": "当您矩阵中的成员升级会员级别时，层级奖励被触发。奖励金额等于该级别的NFT价格。"
+      },
+      "rewardStructure": {
+        "title": "奖励结构",
+        "layer1": "层级1奖励：当您的层级1成员升级到级别1时触发",
+        "layer2": "层级2奖励：当您的层级2成员升级到级别2时触发",
+        "layer3": "层级3奖励：当您的层级3成员升级到级别3时触发",
+        "pattern": "这个模式持续通过所有19层"
+      },
+      "rewardAmounts": {
+        "title": "奖励金额",
+        "level1": "级别1：$100（NFT价格的100%）",
+        "level2": "级别2：$150（NFT价格的100%）",
+        "level3": "级别3：$200（NFT价格的100%）",
+        "continuation": "模式持续到级别19"
+      },
+      "eligibilityRules": {
+        "title": "资格规则",
+        "verification": "奖励分配前需要进行级别验证",
+        "layer1Special": {
+          "title": "层级1特殊规则",
+          "firstSecond": "第1和第2奖励：必须是级别1才能接收",
+          "thirdOnward": "第3+奖励：必须是级别2+或进入72小时待处理",
+          "pending": "待处理奖励在72小时内升级后变为可领取",
+          "rollup": "过期奖励上滚给符合条件的上线成员"
+        },
+        "layer2to19Standard": {
+          "title": "层级2-19标准规则",
+          "firstSecond": "第1和第2奖励：级别必须等于或超过层级级别",
+          "thirdOnward": "第3+奖励：级别必须超过层级级别"
+        }
+      },
+      "pendingSystem": {
+        "title": "72小时待处理系统",
+        "notEligible": "如果您不符合级别要求，奖励进入待处理状态",
+        "upgradeWindow": "您有72小时升级并领取奖励",
+        "immediate": "立即升级以立即领取待处理奖励",
+        "expiry": "72小时后，未领取的奖励上滚给符合条件的上线成员"
+      },
+      "matrixVisualization": {
+        "title": "3×3矩阵结构",
+        "description": "您的下线按3×3矩阵组织，共19层",
+        "positions": "每层有左、中、右位置",
+        "rewards": "当这些位置的成员升级时会触发奖励",
+        "animationTitle": "动画图例",
+        "animationActive": "活跃成员位置",
+        "animationPending": "待处理成员槽位",
+        "animationRewards": "奖励触发点",
+        "animationConnections": "矩阵连接",
+        "interactiveHint": "矩阵可视化显示实时成员放置和奖励机会"
+      },
+      "bccReleaseSystem": {
+        "title": "BCC释放系统",
+        "subtitle": "基于全球激活计数的四阶段代币释放",
+        "description": "BCC代币通过基于总激活成员的四阶段系统释放",
+        "mechanismTitle": "释放机制",
+        "mechanismDescription": "当成员激活其会员级别时，BCC代币自动释放",
+        "stageReduction": "每个阶段随着更多成员加入而减少BCC数量",
+        "totalMembers": "系统总容量：4个阶段共186,000成员",
+        "stages": {
+          "stage1": {
+            "title": "阶段1：成员1-9,999",
+            "totalLocked": "总锁定奖励：10,450 BCC",
+            "level1": "级别1激活：释放100 BCC",
+            "level2": "级别2激活：释放150 BCC",
+            "level3": "级别3激活：释放200 BCC",
+            "levelPattern": "模式持续每级别+50 BCC",
+            "level19": "级别19激活：释放1,000 BCC"
+          },
+          "stage2": {
+            "title": "阶段2：成员10,000-29,999",
+            "totalLocked": "总锁定奖励：5,225 BCC（阶段1的50%）",
+            "level1": "级别1激活：释放50 BCC",
+            "level2": "级别2激活：释放75 BCC",
+            "level3": "级别3激活：释放100 BCC",
+            "levelPattern": "模式以50%减少继续",
+            "level19": "级别19激活：释放500 BCC"
+          },
+          "stage3": {
+            "title": "阶段3：成员30,000-99,999",
+            "totalLocked": "总锁定奖励：2,612.5 BCC（阶段1的25%）",
+            "level1": "级别1激活：释放25 BCC",
+            "level2": "级别2激活：释放37.5 BCC",
+            "level3": "级别3激活：释放50 BCC",
+            "levelPattern": "模式以25%减少继续",
+            "level19": "级别19激活：释放250 BCC"
+          },
+          "stage4": {
+            "title": "阶段4：成员100,000-186,000",
+            "totalLocked": "总锁定奖励：1,306.25 BCC（阶段1的12.5%）",
+            "level1": "级别1激活：释放12.5 BCC",
+            "level2": "级别2激活：释放18.75 BCC",
+            "level3": "级别3激活：释放25 BCC",
+            "levelPattern": "模式以12.5%减少继续",
+            "level19": "级别19激活：释放125 BCC"
+          }
+        }
+      },
+      "layer1Special": {
+        "title": "层级1特殊逻辑",
+        "directReferral": "基于直推奖励",
+        "matrixDisplay": "按照您的矩阵层级成员树显示",
+        "recursiveView": "递归19层成员视图"
+      }
+    },
+    "bcc": {
+      "subtitle": "基于激活计数的四阶段释放系统",
+      "autoDistribution": "自动分配",
+      "currentPhase": "当前阶段",
+      "active": "活跃",
+      "activationProgress": "激活进度",
+      "phaseRewardPool": "阶段1奖励池",
+      "remaining": "剩余",
+      "currentReleaseStandard": "当前释放标准（每次激活）",
+      "upToL19": "...直到L19（{amount} BCC）",
+      "fourPhaseSystemOverview": "四阶段系统概览",
+      "current": "当前",
+      "releaseMechanism": "释放机制",
+      "phase1InProgress": "阶段1进行中",
+      "activateToGetMaxRewards": "激活会员级别以获得最大BCC奖励",
+      "phases": {
+        "phase1": {
+          "description": "阶段1：早期采用者",
+          "members": "第1-9,999名"
+        },
+        "phase2": {
+          "description": "阶段2：增长阶段",
+          "members": "第10,000-29,999名"
+        },
+        "phase3": {
+          "description": "阶段3：扩展阶段",
+          "members": "第30,000-99,999名"
+        },
+        "phase4": {
+          "description": "阶段4：成熟阶段",
+          "members": "第100,000-186,000名"
+        }
+      },
+      "mechanisms": {
+        "activationTrigger": "成员激活",
+        "activationTriggerDesc": "当成员激活任何级别时，BCC代币立即释放",
+        "decreasingRewards": "递减奖励",
+        "decreasingRewardsDesc": "随着更多成员加入，BCC数量在各阶段减少",
+        "realtimeDistribution": "实时分配",
+        "realtimeDistributionDesc": "无等待期 - 激活后立即释放代币"
+      },
+      "benefits": {
+        "autoRelease": "自动释放",
+        "autoReleaseDesc": "级别激活后立即释放BCC",
+        "earlyAdvantage": "早期优势",
+        "earlyAdvantageDesc": "早期采用者获得更高奖励"
+      }
     }
   },
   "tasks": {
