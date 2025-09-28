@@ -30,7 +30,27 @@ serve(async (req: Request) => {
         }
       });
     }
-    const { action, ...requestData } = await req.json();
+    // Handle both GET and POST requests
+    let action, requestData = {};
+    
+    if (req.method === 'GET') {
+      // For GET requests, get action from URL parameters
+      const url = new URL(req.url);
+      action = url.searchParams.get('action') || 'get-balance';
+      requestData = Object.fromEntries(url.searchParams.entries());
+    } else {
+      // For POST requests, get action from JSON body
+      try {
+        const bodyData = await req.json();
+        action = bodyData.action;
+        requestData = bodyData;
+      } catch (jsonError) {
+        console.warn('Failed to parse JSON body, defaulting to get-balance action');
+        action = 'get-balance';
+        requestData = {};
+      }
+    }
+    
     switch(action){
       case 'get-balance':
         return await handleGetBalance(supabase, walletAddress);

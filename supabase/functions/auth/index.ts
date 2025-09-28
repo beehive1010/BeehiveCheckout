@@ -283,33 +283,106 @@ async function validateReferrer(supabase: any, referrerWallet: string) {
       error: 'Referrer wallet address is required'
     };
   }
-  // Use unified member status function
+  
+  // Special handling for default referrer
+  const defaultReferrer = '0x0000000000000000000000000000000000000001';
+  if (referrerWallet === defaultReferrer) {
+    console.log(`🔧 Default referrer detected, ensuring it exists: ${defaultReferrer}`);
+    
+    // Check if default referrer exists, if not create it (case-insensitive)
+    const { data: existingDefault } = await supabase
+      .from('users')
+      .select('wallet_address, username')
+      .ilike('wallet_address', defaultReferrer)
+      .maybeSingle();
+    
+    if (!existingDefault) {
+      console.log(`📝 Creating default referrer: ${defaultReferrer}`);
+      const { error: createError } = await supabase
+        .from('users')
+        .insert({
+          wallet_address: defaultReferrer,
+          username: 'BeehiveSystem',
+          referrer_wallet: null,
+          created_at: new Date().toISOString()
+        });
+      
+      if (createError) {
+        console.error('Failed to create default referrer:', createError);
+      } else {
+        console.log(`✅ Default referrer created successfully`);
+      }
+    }
+    
+    // Return valid default referrer
+    return {
+      success: true,
+      isValid: true,
+      referrer: {
+        wallet_address: defaultReferrer,
+        username: 'BeehiveSystem',
+        current_level: 0,
+        activation_sequence: null,
+        is_activated_member: false,
+        direct_referrals_count: 0,
+        matrix_members_count: 0
+      },
+      message: 'Using default system referrer'
+    };
+  }
+  // Use unified member status function with fallback
   const { data: referrerStatus, error: statusError } = await supabase.rpc('get_member_status', {
     p_wallet_address: referrerWallet
   });
-  if (statusError) {
-    console.log(`❌ Error checking referrer: ${statusError.message}`);
-    return {
-      success: false,
-      isValid: false,
-      error: 'Failed to validate referrer'
+  
+  let finalReferrerStatus = referrerStatus;
+  
+  if (statusError || !referrerStatus?.is_registered) {
+    console.log(`🔧 RPC failed or not registered, trying direct table query for: ${referrerWallet}`);
+    
+    // Fallback: Direct table query for referrer validation (case-insensitive)
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('wallet_address, username, referrer_wallet, created_at')
+      .ilike('wallet_address', referrerWallet)
+      .maybeSingle();
+    
+    if (userError || !userData) {
+      console.log(`❌ Referrer not found in users table: ${referrerWallet}`);
+      return {
+        success: false,
+        isValid: false,
+        error: 'Referrer wallet not found'
+      };
+    }
+    
+    // Check for any membership/activation status (case-insensitive)
+    const { data: membershipData } = await supabase
+      .from('membership')
+      .select('nft_level, is_member, claimed_at')
+      .ilike('wallet_address', referrerWallet)
+      .order('nft_level', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    // Create fallback status object
+    finalReferrerStatus = {
+      is_registered: true,
+      is_member: !!membershipData?.is_member,
+      is_activated: !!membershipData?.is_member,
+      current_level: membershipData?.nft_level || 0,
+      wallet_address: userData.wallet_address,
+      user_info: userData,
+      activation_time: membershipData?.claimed_at
     };
   }
-  if (!referrerStatus.is_registered) {
-    console.log(`❌ Referrer not registered: ${referrerWallet}`);
-    return {
-      success: false,
-      isValid: false,
-      error: 'Referrer wallet not found'
-    };
-  }
-  console.log(`✅ Referrer validation: ${referrerWallet}, registered: true, activated: ${referrerStatus.is_activated}`);
+  console.log(`✅ Referrer validation: ${referrerWallet}, registered: true, activated: ${finalReferrerStatus.is_activated}`);
   // Get referrer's referral statistics (only if they are an activated member)
   let referralStats = {
     direct_referrals_count: 0,
     matrix_members_count: 0
   };
-  if (referrerStatus.is_activated) {
+  if (finalReferrerStatus.is_activated) {
     const { data: directReferrals } = await supabase.from('referrals_new').select('referred_wallet').eq('referrer_wallet', referrerWallet);
     const { data: matrixMembers } = await supabase.from('matrix_referrals').select('member_wallet').eq('matrix_root_wallet', referrerWallet);
     referralStats = {
@@ -317,19 +390,19 @@ async function validateReferrer(supabase: any, referrerWallet: string) {
       matrix_members_count: matrixMembers?.length || 0
     };
   }
-  console.log(`✅ Referrer validation passed: ${referrerWallet}, level: ${referrerStatus.current_level}, direct referrals: ${referralStats.direct_referrals_count}`);
+  console.log(`✅ Referrer validation passed: ${referrerWallet}, level: ${finalReferrerStatus.current_level}, direct referrals: ${referralStats.direct_referrals_count}`);
   return {
     success: true,
     isValid: true,
     referrer: {
-      wallet_address: referrerStatus.wallet_address,
-      username: referrerStatus.user_info?.username,
-      current_level: referrerStatus.current_level,
-      activation_sequence: referrerStatus.activation_sequence,
-      is_activated_member: referrerStatus.is_activated,
+      wallet_address: finalReferrerStatus.wallet_address,
+      username: finalReferrerStatus.user_info?.username,
+      current_level: finalReferrerStatus.current_level,
+      activation_sequence: finalReferrerStatus.activation_sequence,
+      is_activated_member: finalReferrerStatus.is_activated,
       ...referralStats
     },
-    message: referrerStatus.is_activated ? 'Referrer is a valid activated member' : 'Referrer is a valid registered user (not activated yet)'
+    message: finalReferrerStatus.is_activated ? 'Referrer is a valid activated member' : 'Referrer is a valid registered user (not activated yet)'
   };
 }
 // Update user profile function - using new database structure
