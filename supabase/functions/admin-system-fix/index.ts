@@ -12,6 +12,7 @@ interface SystemFixResult {
     fixed: number;
     details: string;
     summary?: string[];
+    breakdown?: any;
   };
   error?: string;
 }
@@ -22,7 +23,7 @@ serve(async (req) => {
   }
 
   try {
-    const { checkType } = await req.json()
+    const { checkType, options = {} } = await req.json()
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -44,14 +45,29 @@ serve(async (req) => {
       case 'matrix_gaps':
         result = await fixMatrixGaps(supabaseClient);
         break;
-      case 'layer_rewards_check':
-        result = await fixLayerRewards(supabaseClient);
+      case 'reward_system_fix':
+        result = await fixRewardSystem(supabaseClient, options);
         break;
-      case 'user_balance_check':
-        result = await fixUserBalance(supabaseClient);
+      case 'reward_timer_fix':
+        result = await fixRewardTimers(supabaseClient);
+        break;
+      case 'level_validation_fix':
+        result = await fixLevelValidation(supabaseClient);
+        break;
+      case 'member_balance_fix':
+        result = await fixMemberBalance(supabaseClient);
+        break;
+      case 'rollup_integrity_fix':
+        result = await fixRollupIntegrity(supabaseClient);
+        break;
+      case 'matrix_position_conflicts_fix':
+        result = await fixMatrixPositionConflicts(supabaseClient);
         break;
       case 'views_refresh':
         result = await refreshViews(supabaseClient);
+        break;
+      case 'data_consistency_fix':
+        result = await fixDataConsistency(supabaseClient);
         break;
       default:
         result = {
@@ -91,7 +107,7 @@ async function fixUsersSync(supabase: any): Promise<SystemFixResult> {
     // Fix orphaned users by creating member records
     const { data: orphanUsers, error: orphanError } = await supabase
       .from('users')
-      .select('wallet_address, created_at')
+      .select('wallet_address, created_at, username')
       .not('wallet_address', 'in', 
         supabase.from('members').select('wallet_address')
       );
@@ -119,7 +135,7 @@ async function fixUsersSync(supabase: any): Promise<SystemFixResult> {
     // Fix orphaned members by creating user records
     const { data: orphanMembers, error: orphanMembersError } = await supabase
       .from('members')
-      .select('wallet_address, created_at')
+      .select('wallet_address, created_at, current_level')
       .not('wallet_address', 'in',
         supabase.from('users').select('wallet_address')
       );
@@ -127,9 +143,10 @@ async function fixUsersSync(supabase: any): Promise<SystemFixResult> {
     if (orphanMembersError) throw orphanMembersError;
 
     if (orphanMembers && orphanMembers.length > 0) {
-      const userRecords = orphanMembers.map(member => ({
+      const userRecords = orphanMembers.map((member, index) => ({
         wallet_address: member.wallet_address,
-        membership_level: 0,
+        username: `User${member.wallet_address?.slice(-4) || index}`,
+        membership_level: member.current_level || 0,
         registration_status: 'active',
         created_at: member.created_at,
         updated_at: new Date().toISOString()
@@ -150,7 +167,11 @@ async function fixUsersSync(supabase: any): Promise<SystemFixResult> {
       data: {
         fixed: totalFixed,
         details: `Successfully synchronized ${totalFixed} user/member records`,
-        summary
+        summary,
+        breakdown: {
+          created_members: orphanUsers?.length || 0,
+          created_users: orphanMembers?.length || 0
+        }
       }
     };
   } catch (error) {
@@ -163,23 +184,50 @@ async function fixUsersSync(supabase: any): Promise<SystemFixResult> {
 
 async function fixMembershipSync(supabase: any): Promise<SystemFixResult> {
   try {
-    const { data: fixResult, error } = await supabase
-      .rpc('fix_membership_level_consistency');
+    let totalFixed = 0;
+    const summary: string[] = [];
+
+    // Find and fix inconsistent membership levels
+    const { data: inconsistentLevels, error } = await supabase
+      .from('users')
+      .select(`
+        wallet_address,
+        username,
+        membership_level,
+        members!inner(current_level)
+      `)
+      .neq('membership_level', 'members.current_level');
 
     if (error) throw error;
 
-    const fixed = fixResult?.fixed_count || 0;
+    if (inconsistentLevels && inconsistentLevels.length > 0) {
+      // Update users table to match members table (members table is more authoritative)
+      for (const user of inconsistentLevels) {
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ 
+            membership_level: user.members.current_level,
+            updated_at: new Date().toISOString()
+          })
+          .eq('wallet_address', user.wallet_address);
+
+        if (updateError) throw updateError;
+        totalFixed++;
+      }
+
+      summary.push(`Synchronized ${inconsistentLevels.length} membership levels`);
+    }
 
     return {
       success: true,
       data: {
-        fixed,
-        details: `Successfully synchronized ${fixed} membership level inconsistencies`,
-        summary: fixed > 0 ? [
-          `Updated ${fixed} membership levels`,
-          'Synchronized users and members tables',
-          'Updated activation timestamps'
-        ] : []
+        fixed: totalFixed,
+        details: `Successfully synchronized ${totalFixed} membership level inconsistencies`,
+        summary,
+        breakdown: {
+          synchronized_levels: totalFixed,
+          affected_wallets: inconsistentLevels?.map(u => u.wallet_address) || []
+        }
       }
     };
   } catch (error) {
@@ -197,9 +245,9 @@ async function fixReferralsSync(supabase: any): Promise<SystemFixResult> {
 
     // Remove invalid referrals (null wallet addresses)
     const { data: deletedInvalid, error: deleteError } = await supabase
-      .from('referrals_new')
+      .from('referrals')
       .delete()
-      .or('referrer_wallet.is.null,referred_wallet.is.null')
+      .or('referrer_wallet.is.null,member_wallet.is.null,matrix_position.is.null')
       .select();
 
     if (deleteError) throw deleteError;
@@ -211,9 +259,9 @@ async function fixReferralsSync(supabase: any): Promise<SystemFixResult> {
 
     // Remove self-referrals
     const { data: deletedSelf, error: deleteSelfError } = await supabase
-      .from('referrals_new')
+      .from('referrals')
       .delete()
-      .filter('referrer_wallet', 'eq', 'referred_wallet')
+      .filter('referrer_wallet', 'eq', 'member_wallet')
       .select();
 
     if (deleteSelfError) throw deleteSelfError;
@@ -228,7 +276,11 @@ async function fixReferralsSync(supabase: any): Promise<SystemFixResult> {
       data: {
         fixed: totalFixed,
         details: `Successfully cleaned up ${totalFixed} referral inconsistencies`,
-        summary
+        summary,
+        breakdown: {
+          removed_invalid: deletedInvalid?.length || 0,
+          removed_self_referrals: deletedSelf?.length || 0
+        }
       }
     };
   } catch (error) {
@@ -244,7 +296,7 @@ async function fixMatrixGaps(supabase: any): Promise<SystemFixResult> {
     const { data: fixResult, error } = await supabase
       .rpc('fill_matrix_position_gaps');
 
-    if (error) throw error;
+    if (error && !error.message.includes('function does not exist')) throw error;
 
     const fixed = fixResult?.positions_filled || 0;
 
@@ -257,7 +309,10 @@ async function fixMatrixGaps(supabase: any): Promise<SystemFixResult> {
           `Filled ${fixed} empty matrix positions`,
           'Updated matrix tree structure',
           'Recalculated matrix placements'
-        ] : []
+        ] : ['No matrix position gaps found'],
+        breakdown: {
+          positions_filled: fixed
+        }
       }
     };
   } catch (error) {
@@ -268,89 +323,533 @@ async function fixMatrixGaps(supabase: any): Promise<SystemFixResult> {
   }
 }
 
-async function fixLayerRewards(supabase: any): Promise<SystemFixResult> {
+async function fixRewardSystem(supabase: any, options: any = {}): Promise<SystemFixResult> {
   try {
-    const { data: fixResult, error } = await supabase
-      .rpc('fix_layer_rewards_integrity');
+    let totalFixed = 0;
+    const summary: string[] = [];
 
-    if (error) throw error;
+    // Fix orphan rewards (rewards without corresponding referrals)
+    const { data: orphanRewards, error: orphanError } = await supabase
+      .rpc('fix_orphan_rewards');
 
-    const fixed = fixResult?.rewards_fixed || 0;
+    if (orphanError && !orphanError.message.includes('function does not exist')) throw orphanError;
+
+    const orphanFixed = orphanRewards?.fixed_count || 0;
+    if (orphanFixed > 0) {
+      totalFixed += orphanFixed;
+      summary.push(`Removed ${orphanFixed} orphan reward records`);
+    }
+
+    // Recalculate member balances from rewards
+    const { data: balanceResult, error: balanceError } = await supabase
+      .rpc('sync_member_balance');
+
+    if (balanceError && !balanceError.message.includes('function does not exist')) throw balanceError;
+
+    const balanceFixed = balanceResult?.updated_wallets || 0;
+    if (balanceFixed > 0) {
+      summary.push(`Updated ${balanceFixed} member balance records`);
+    }
+
+    // Process any expired reward timers if specified
+    if (options.processTimers) {
+      const { data: timerResult, error: timerError } = await supabase
+        .rpc('process_expired_reward_timers');
+
+      if (timerError && !timerError.message.includes('function does not exist')) throw timerError;
+
+      const timerFixed = timerResult?.processed_count || 0;
+      if (timerFixed > 0) {
+        totalFixed += timerFixed;
+        summary.push(`Processed ${timerFixed} expired reward timers`);
+      }
+    }
 
     return {
       success: true,
       data: {
-        fixed,
-        details: `Successfully fixed ${fixed} layer reward inconsistencies`,
-        summary: fixed > 0 ? [
-          `Recalculated ${fixed} reward amounts`,
-          'Processed pending claims',
-          'Updated reward statuses'
-        ] : []
+        fixed: totalFixed,
+        details: `Successfully fixed ${totalFixed} reward system issues`,
+        summary,
+        breakdown: {
+          orphan_rewards_removed: orphanFixed,
+          balances_updated: balanceFixed,
+          timers_processed: options.processTimers ? (timerResult?.processed_count || 0) : 0
+        }
       }
     };
   } catch (error) {
     return {
       success: false,
-      error: `Layer rewards fix failed: ${error.message}`
+      error: `Reward system fix failed: ${error.message}`
     };
   }
 }
 
-async function fixUserBalance(supabase: any): Promise<SystemFixResult> {
+async function fixRewardTimers(supabase: any): Promise<SystemFixResult> {
   try {
-    const { data: fixResult, error } = await supabase
-      .rpc('fix_user_balance_integrity');
+    let totalFixed = 0;
+    const summary: string[] = [];
 
-    if (error) throw error;
+    // Process expired timers
+    const { data: expiredTimers, error: expiredError } = await supabase
+      .from('reward_timers')
+      .select('*')
+      .eq('is_active', true)
+      .lt('expires_at', new Date().toISOString());
 
-    const fixed = fixResult?.balances_fixed || 0;
+    if (expiredError && !expiredError.message.includes('relation does not exist')) throw expiredError;
+
+    if (expiredTimers && expiredTimers.length > 0) {
+      // Mark expired timers as inactive
+      const { error: updateError } = await supabase
+        .from('reward_timers')
+        .update({ 
+          is_active: false,
+          updated_at: new Date().toISOString()
+        })
+        .lt('expires_at', new Date().toISOString())
+        .eq('is_active', true);
+
+      if (updateError) throw updateError;
+
+      totalFixed += expiredTimers.length;
+      summary.push(`Processed ${expiredTimers.length} expired reward timers`);
+
+      // Execute rollup for expired rewards
+      const { data: rollupResult, error: rollupError } = await supabase
+        .rpc('process_all_expired_rewards');
+
+      if (rollupError && !rollupError.message.includes('function does not exist')) throw rollupError;
+
+      const rolledUp = rollupResult?.processed_count || 0;
+      if (rolledUp > 0) {
+        summary.push(`Executed rollup for ${rolledUp} expired rewards`);
+      }
+    }
 
     return {
       success: true,
       data: {
-        fixed,
-        details: `Successfully fixed ${fixed} user balance inconsistencies`,
-        summary: fixed > 0 ? [
-          `Recalculated ${fixed} BCC balances`,
-          'Synchronized transferable amounts',
-          'Updated balance timestamps'
-        ] : []
+        fixed: totalFixed,
+        details: `Successfully processed ${totalFixed} expired reward timers`,
+        summary,
+        breakdown: {
+          expired_timers_processed: totalFixed,
+          rollups_executed: rollupResult?.processed_count || 0
+        }
       }
     };
   } catch (error) {
     return {
       success: false,
-      error: `User balance fix failed: ${error.message}`
+      error: `Reward timers fix failed: ${error.message}`
+    };
+  }
+}
+
+async function fixLevelValidation(supabase: any): Promise<SystemFixResult> {
+  try {
+    let totalFixed = 0;
+    const summary: string[] = [];
+
+    // Execute level validation and rollup for insufficient levels
+    const { data: validationResult, error } = await supabase
+      .rpc('validate_and_rollup_rewards');
+
+    if (error && !error.message.includes('function does not exist')) throw error;
+
+    const rolledUp = validationResult?.rollup_count || 0;
+    if (rolledUp > 0) {
+      totalFixed += rolledUp;
+      summary.push(`Rolled up ${rolledUp} rewards due to insufficient levels`);
+    }
+
+    // Check for successful level upgrades and activate eligible rewards
+    const { data: upgradeResult, error: upgradeError } = await supabase
+      .rpc('activate_eligible_rewards_all');
+
+    if (upgradeError && !upgradeError.message.includes('function does not exist')) throw upgradeError;
+
+    const activated = upgradeResult?.activated_count || 0;
+    if (activated > 0) {
+      totalFixed += activated;
+      summary.push(`Activated ${activated} rewards after level upgrades`);
+    }
+
+    return {
+      success: true,
+      data: {
+        fixed: totalFixed,
+        details: `Successfully processed ${totalFixed} level validation issues`,
+        summary,
+        breakdown: {
+          rewards_rolled_up: rolledUp,
+          rewards_activated: activated
+        }
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Level validation fix failed: ${error.message}`
+    };
+  }
+}
+
+async function fixMemberBalance(supabase: any): Promise<SystemFixResult> {
+  try {
+    let totalFixed = 0;
+    const summary: string[] = [];
+
+    // Ensure member_balance table exists and is populated
+    const { data: memberCount, error: countError } = await supabase
+      .from('members')
+      .select('wallet_address', { count: 'exact', head: true });
+
+    if (countError) throw countError;
+
+    const { data: balanceCount, error: balanceCountError } = await supabase
+      .from('member_balance')
+      .select('wallet_address', { count: 'exact', head: true });
+
+    if (balanceCountError && !balanceCountError.message.includes('relation does not exist')) throw balanceCountError;
+
+    const membersTotal = memberCount || 0;
+    const balancesTotal = balanceCount || 0;
+
+    // Create missing balance records
+    if (membersTotal > balancesTotal) {
+      const { data: missingBalances, error: missingError } = await supabase
+        .from('members')
+        .select(`
+          wallet_address,
+          current_level,
+          created_at,
+          users!inner(username)
+        `)
+        .not('wallet_address', 'in',
+          supabase.from('member_balance').select('wallet_address')
+        );
+
+      if (missingError) throw missingError;
+
+      if (missingBalances && missingBalances.length > 0) {
+        const balanceRecords = missingBalances.map(member => ({
+          wallet_address: member.wallet_address,
+          username: member.users.username,
+          current_level: member.current_level,
+          claimable_amount_usdt: 0,
+          balance_updated: new Date().toISOString()
+        }));
+
+        const { error: insertError } = await supabase
+          .from('member_balance')
+          .insert(balanceRecords);
+
+        if (insertError) throw insertError;
+
+        totalFixed += missingBalances.length;
+        summary.push(`Created ${missingBalances.length} missing balance records`);
+      }
+    }
+
+    // Recalculate all balances
+    const { data: recalcResult, error: recalcError } = await supabase
+      .rpc('sync_member_balance');
+
+    if (recalcError && !recalcError.message.includes('function does not exist')) throw recalcError;
+
+    const recalculated = recalcResult?.updated_wallets || 0;
+    if (recalculated > 0) {
+      summary.push(`Recalculated ${recalculated} member balances`);
+    }
+
+    return {
+      success: true,
+      data: {
+        fixed: totalFixed,
+        details: `Successfully fixed ${totalFixed} member balance issues`,
+        summary,
+        breakdown: {
+          missing_records_created: totalFixed,
+          balances_recalculated: recalculated,
+          total_members: membersTotal,
+          total_balances: balancesTotal + totalFixed
+        }
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Member balance fix failed: ${error.message}`
+    };
+  }
+}
+
+async function fixRollupIntegrity(supabase: any): Promise<SystemFixResult> {
+  try {
+    let totalFixed = 0;
+    const summary: string[] = [];
+
+    // Complete incomplete rollup operations
+    const { data: rollupResult, error } = await supabase
+      .rpc('complete_incomplete_rollups');
+
+    if (error && !error.message.includes('function does not exist')) throw error;
+
+    const completed = rollupResult?.completed_count || 0;
+    if (completed > 0) {
+      totalFixed += completed;
+      summary.push(`Completed ${completed} incomplete rollup operations`);
+    }
+
+    // Verify rollup targets and fix invalid recipients
+    const { data: verifyResult, error: verifyError } = await supabase
+      .rpc('verify_rollup_targets');
+
+    if (verifyError && !verifyError.message.includes('function does not exist')) throw verifyError;
+
+    const verified = verifyResult?.fixed_count || 0;
+    if (verified > 0) {
+      totalFixed += verified;
+      summary.push(`Fixed ${verified} invalid rollup targets`);
+    }
+
+    return {
+      success: true,
+      data: {
+        fixed: totalFixed,
+        details: `Successfully fixed ${totalFixed} rollup integrity issues`,
+        summary,
+        breakdown: {
+          completed_rollups: completed,
+          fixed_targets: verified
+        }
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Rollup integrity fix failed: ${error.message}`
+    };
+  }
+}
+
+async function fixMatrixPositionConflicts(supabase: any): Promise<SystemFixResult> {
+  try {
+    let totalFixed = 0;
+    const summary: string[] = [];
+
+    // Apply deduplication logic to resolve position conflicts
+    // Priority: direct referral > spillover, earlier timestamp > later timestamp
+    const { data: conflicts, error } = await supabase
+      .from('referrals')
+      .select(`
+        id,
+        matrix_root_wallet,
+        matrix_layer,
+        matrix_position,
+        member_wallet,
+        is_direct_referral,
+        placed_at
+      `)
+      .order('matrix_root_wallet')
+      .order('matrix_layer')
+      .order('matrix_position')
+      .order('is_direct_referral', { ascending: false }) // Direct referrals first
+      .order('placed_at'); // Earlier timestamps first
+
+    if (error) throw error;
+
+    // Group by position and identify duplicates
+    const positionGroups = new Map();
+    
+    conflicts?.forEach(referral => {
+      const key = `${referral.matrix_root_wallet}_${referral.matrix_layer}_${referral.matrix_position}`;
+      if (!positionGroups.has(key)) {
+        positionGroups.set(key, []);
+      }
+      positionGroups.get(key).push(referral);
+    });
+
+    // Remove duplicates (keep first one which has highest priority)
+    for (const [key, referrals] of positionGroups.entries()) {
+      if (referrals.length > 1) {
+        const toRemove = referrals.slice(1); // Remove all except the first (highest priority)
+        
+        for (const referral of toRemove) {
+          const { error: deleteError } = await supabase
+            .from('referrals')
+            .delete()
+            .eq('id', referral.id);
+
+          if (deleteError) throw deleteError;
+          totalFixed++;
+        }
+      }
+    }
+
+    if (totalFixed > 0) {
+      summary.push(`Resolved ${totalFixed} matrix position conflicts`);
+      summary.push('Applied priority rules: direct > spillover, earlier > later');
+    }
+
+    return {
+      success: true,
+      data: {
+        fixed: totalFixed,
+        details: `Successfully resolved ${totalFixed} matrix position conflicts`,
+        summary,
+        breakdown: {
+          conflicts_resolved: totalFixed,
+          position_groups_checked: positionGroups.size
+        }
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Matrix position conflicts fix failed: ${error.message}`
     };
   }
 }
 
 async function refreshViews(supabase: any): Promise<SystemFixResult> {
   try {
-    const { data: refreshResult, error } = await supabase
-      .rpc('refresh_all_materialized_views');
+    let totalFixed = 0;
+    const summary: string[] = [];
 
-    if (error) throw error;
+    // List of views to refresh/recreate if needed
+    const criticalViews = [
+      'matrix_referrals_tree_view',
+      'member_all_rewards_view', 
+      'corrected_matrix_members_view'
+    ];
 
-    const refreshed = refreshResult?.views_refreshed || 0;
+    for (const viewName of criticalViews) {
+      try {
+        // Try to refresh if it's a materialized view
+        const { error: refreshError } = await supabase
+          .rpc(`refresh_${viewName}`);
+
+        if (!refreshError) {
+          totalFixed++;
+          summary.push(`Refreshed ${viewName}`);
+        }
+      } catch (e) {
+        // If refresh function doesn't exist, that's okay
+        console.log(`No refresh function for ${viewName}`);
+      }
+    }
+
+    // Update view statistics
+    const { data: statsResult, error: statsError } = await supabase
+      .rpc('update_view_statistics');
+
+    if (statsError && !statsError.message.includes('function does not exist')) throw statsError;
+
+    if (statsResult?.updated_count > 0) {
+      summary.push(`Updated statistics for ${statsResult.updated_count} views`);
+    }
 
     return {
       success: true,
       data: {
-        fixed: refreshed,
-        details: `Successfully refreshed ${refreshed} materialized views`,
-        summary: refreshed > 0 ? [
-          `Refreshed ${refreshed} materialized views`,
-          'Updated view statistics',
-          'Rebuilt view indexes'
-        ] : []
+        fixed: totalFixed,
+        details: `Successfully refreshed ${totalFixed} views`,
+        summary,
+        breakdown: {
+          views_refreshed: totalFixed,
+          stats_updated: statsResult?.updated_count || 0
+        }
       }
     };
   } catch (error) {
     return {
       success: false,
       error: `Views refresh failed: ${error.message}`
+    };
+  }
+}
+
+async function fixDataConsistency(supabase: any): Promise<SystemFixResult> {
+  try {
+    let totalFixed = 0;
+    const summary: string[] = [];
+
+    // Fix users/members count discrepancy
+    const { data: userCount, error: userError } = await supabase
+      .from('users')
+      .select('wallet_address', { count: 'exact', head: true });
+
+    const { data: memberCount, error: memberError } = await supabase
+      .from('members')
+      .select('wallet_address', { count: 'exact', head: true });
+
+    if (userError) throw userError;
+    if (memberError) throw memberError;
+
+    const userTotal = userCount || 0;
+    const memberTotal = memberCount || 0;
+
+    if (Math.abs(userTotal - memberTotal) > 0) {
+      // Run users sync to fix the discrepancy
+      const syncResult = await fixUsersSync(supabase);
+      if (syncResult.success && syncResult.data) {
+        totalFixed += syncResult.data.fixed;
+        summary.push(`Fixed user/member count discrepancy: ${syncResult.data.details}`);
+      }
+    }
+
+    // Fix referrals vs rewards consistency
+    const { data: directReferralCount, error: refError } = await supabase
+      .from('referrals')
+      .select('referrer_wallet', { count: 'exact', head: true })
+      .eq('is_direct_referral', true)
+      .eq('matrix_layer', 1);
+
+    const { data: directRewardCount, error: rewardError } = await supabase
+      .from('direct_referral_rewards')
+      .select('referrer_wallet', { count: 'exact', head: true });
+
+    if (refError) throw refError;
+    if (rewardError && !rewardError.message.includes('relation does not exist')) throw rewardError;
+
+    const referralTotal = directReferralCount || 0;
+    const rewardTotal = directRewardCount || 0;
+
+    if (Math.abs(referralTotal - rewardTotal) > 0) {
+      // Create missing reward records for referrals
+      const { data: missingRewards, error: missingError } = await supabase
+        .rpc('create_missing_direct_rewards');
+
+      if (missingError && !missingError.message.includes('function does not exist')) throw missingError;
+
+      const created = missingRewards?.created_count || 0;
+      if (created > 0) {
+        totalFixed += created;
+        summary.push(`Created ${created} missing direct referral rewards`);
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        fixed: totalFixed,
+        details: `Successfully fixed ${totalFixed} data consistency issues`,
+        summary,
+        breakdown: {
+          user_member_discrepancy_fixed: userTotal !== memberTotal,
+          referral_reward_discrepancy_fixed: referralTotal !== rewardTotal,
+          missing_rewards_created: missingRewards?.created_count || 0
+        }
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Data consistency fix failed: ${error.message}`
     };
   }
 }

@@ -387,15 +387,34 @@ serve(async (req: Request) => {
           matrix_position,
           placed_at,
           referrer_wallet,
-          is_direct_referral,
-          users:member_wallet (username),
-          members:member_wallet (current_level)
+          is_direct_referral
         `)
         .eq('matrix_root_wallet', walletAddress)
         .not('matrix_position', 'is', null)
         .order('matrix_layer')
         .order('matrix_position')
         .order('placed_at')
+      
+      // Get user and member data separately to avoid join issues
+      const memberWallets = matrixMembers?.map(r => r.member_wallet) || []
+      
+      let usersData = []
+      let membersData = []
+      
+      if (memberWallets.length > 0) {
+        const { data: users } = await supabase
+          .from('users')
+          .select('wallet_address, username')
+          .in('wallet_address', memberWallets)
+
+        const { data: members } = await supabase
+          .from('members')
+          .select('wallet_address, current_level')
+          .in('wallet_address', memberWallets)
+
+        usersData = users || []
+        membersData = members || []
+      }
 
       console.log(`👥 Matrix query result:`, { 
         memberCount: matrixMembers?.length || 0,
@@ -459,12 +478,16 @@ serve(async (req: Request) => {
                               new Date(member.placed_at) < new Date(positionTracker[positionKey].placed_at))
         
         if (shouldInclude) {
+          // Find corresponding user and member data
+          const userData = usersData.find(u => u.wallet_address === member.member_wallet)
+          const memberInfo = membersData.find(m => m.wallet_address === member.member_wallet)
+          
           const memberData = {
             wallet_address: member.member_wallet,
-            username: member.users?.username || `User${member.member_wallet?.slice(-4) || ''}`,
+            username: userData?.username || `User${member.member_wallet?.slice(-4) || ''}`,
             matrix_position: member.matrix_position,  // L, M, R from matrix placement
-            current_level: member.members?.current_level || 1,
-            is_activated: Boolean(member.members?.current_level >= 1),
+            current_level: memberInfo?.current_level || 1,
+            is_activated: Boolean(memberInfo?.current_level >= 1),
             joined_at: member.placed_at,  // Use placed_at time
             is_spillover: !Boolean(member.is_direct_referral),  // Spillover = not direct referral
             layer: member.matrix_layer,  // Use layer from referrals table
