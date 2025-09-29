@@ -167,7 +167,7 @@ export function useMatrixChildren(matrixRootWallet: string, parentWallet: string
 // 主要的分层矩阵显示hook
 export function useLayeredMatrix(matrixRootWallet: string) {
   return useQuery({
-    queryKey: ['layered-matrix', matrixRootWallet],
+    queryKey: ['layered-matrix', matrixRootWallet, Date.now()], // Add timestamp to force refresh
     queryFn: async () => {
       if (!matrixRootWallet) throw new Error('No matrix root wallet');
       
@@ -176,6 +176,13 @@ export function useLayeredMatrix(matrixRootWallet: string) {
       console.log('🔍 Query params - matrix_root_wallet:', matrixRootWallet);
       console.log('🔍 Query params - layer:', 1);
       console.log('🔍 Query params - parent_wallet:', matrixRootWallet);
+      
+      // Add detailed debugging
+      console.log('🔍 About to query matrix_referrals table...');
+      console.log('🔍 Supabase client config:', { 
+        url: import.meta.env.VITE_SUPABASE_URL,
+        hasKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY 
+      });
       
       const { data: layer1Data, error } = await supabase
         .from('matrix_referrals')
@@ -189,6 +196,8 @@ export function useLayeredMatrix(matrixRootWallet: string) {
         .eq('layer', 1)
         .eq('parent_wallet', matrixRootWallet) // 确保是直接挂在root下的
         .order('position');
+        
+      console.log('🔍 Raw Supabase response:', { data: layer1Data, error });
       
       console.log('📊 Layer 1 query result:', { layer1Data, error, matrixRootWallet });
       console.log('📊 Layer 1 data count:', layer1Data?.length || 0);
@@ -242,7 +251,8 @@ export function useLayeredMatrix(matrixRootWallet: string) {
       };
     },
     enabled: !!matrixRootWallet,
-    staleTime: 3000,
-    refetchInterval: 10000,
+    staleTime: 0, // Force fresh data
+    refetchInterval: 5000,
+    cacheTime: 0, // Don't cache results
   });
 }

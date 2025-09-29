@@ -66,13 +66,13 @@ serve(async (req: Request) => {
         console.log('⚠️ referrals_stats_view not available, will calculate manually');
       }
 
-      // Try to get matrix layers data from matrix_layer_view (with fallback if view doesn't exist)
+      // Try to get matrix layers data from matrix_layer_details (with fallback if view doesn't exist)
       let matrixData = null;
       let matrixError = null;
 
       try {
         const result = await supabase
-          .from('matrix_layer_view')
+          .from('matrix_layer_details')
           .select(`
             layer,
             filled_slots,
@@ -94,10 +94,10 @@ serve(async (req: Request) => {
         matrixError = result.error;
 
         if (!matrixError && matrixData) {
-          console.log('📊 Matrix layer data from view:', matrixData.length, 'layers');
+          console.log('📊 Matrix layer data from matrix_layer_details:', matrixData.length, 'layers');
         }
       } catch (error) {
-        console.log('⚠️ matrix_layer_view not available, using fallback calculation');
+        console.log('⚠️ matrix_layer_details not available, using fallback calculation');
         matrixError = error;
         matrixData = null;
       }
@@ -112,7 +112,7 @@ serve(async (req: Request) => {
       console.log(`📊 Matrix layer data for ${walletAddress}:`, matrixData)
       console.log(`📊 Matrix layer data retrieved: ${matrixData?.length || 0} layers`)
 
-      // Get detailed member positions for L/M/R breakdown from matrix_referrals_tree_view if matrix_layer_view data is incomplete
+      // Get detailed member positions for L/M/R breakdown from matrix_referrals_tree_view if matrix_layer_details data is incomplete
       const { data: membersData } = await supabase
         .from('matrix_referrals_tree_view')
         .select('matrix_layer, matrix_position')
@@ -129,7 +129,7 @@ serve(async (req: Request) => {
         }
       })
 
-      // Transform data from matrix_layer_view (optimized)
+      // Transform data from matrix_layer_details (optimized)
       const completeStats = []
       
       // Initialize all 19 layers
@@ -144,7 +144,7 @@ serve(async (req: Request) => {
           const fillPercentage = layerData.completion_rate || 0;
           const activationRate = layerData.activation_rate || 0;
           
-          console.log(`🔍 Layer ${layer} from matrix_layer_view:`, {
+          console.log(`🔍 Layer ${layer} from matrix_layer_details:`, {
             totalMembers,
             maxCapacity,
             fillPercentage,
@@ -172,7 +172,7 @@ serve(async (req: Request) => {
             isBalanced: layerData.is_balanced || false
           })
         } else {
-          // Layer not in matrix_layer_view - use fallback calculation
+          // Layer not in matrix_layer_details - use fallback calculation
           const maxCapacity = Math.pow(3, layer);
           const totalMembers = posData.L + posData.M + posData.R;
           const calculatedPercentage = maxCapacity > 0 ? (totalMembers / maxCapacity) * 100 : 0;
