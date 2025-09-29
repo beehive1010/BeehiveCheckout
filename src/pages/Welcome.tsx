@@ -9,6 +9,9 @@ import {Badge} from '../components/ui/badge';
 import {Crown, RefreshCw, User, Users} from 'lucide-react';
 import {useI18n} from '../contexts/I18nContext';
 import {useWallet} from '../hooks/useWallet';
+import RegistrationModal from '../components/modals/RegistrationModal';
+import {Button} from '../components/ui/button';
+import ErrorBoundary from '../components/ui/error-boundary';
 
 export default function Welcome() {
   const { t } = useI18n();
@@ -21,6 +24,8 @@ export default function Welcome() {
   const [isCheckingMembership, setIsCheckingMembership] = useState(false);
   const [noReferrerError, setNoReferrerError] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [userRegistrationStatus, setUserRegistrationStatus] = useState<'unknown' | 'registered' | 'not_registered'>('unknown');
 
   // Get referrer from URL params and localStorage with immediate fallback
   useEffect(() => {
@@ -80,6 +85,34 @@ export default function Welcome() {
 
     loadReferrerInfo();
   }, [referrerWallet]);
+
+  // Check user registration status
+  useEffect(() => {
+    const checkUserRegistration = async () => {
+      if (!account?.address) {
+        setUserRegistrationStatus('unknown');
+        return;
+      }
+
+      try {
+        console.log('🔍 Checking user registration status...');
+        const { data: userData, error } = await authService.getUser(account.address);
+        
+        if (error || !userData) {
+          console.log('❌ User not registered:', error);
+          setUserRegistrationStatus('not_registered');
+        } else {
+          console.log('✅ User is registered:', userData.username);
+          setUserRegistrationStatus('registered');
+        }
+      } catch (error) {
+        console.error('Failed to check registration status:', error);
+        setUserRegistrationStatus('unknown');
+      }
+    };
+
+    checkUserRegistration();
+  }, [account?.address]);
 
   // Check if user is already an activated member and redirect to dashboard
   useEffect(() => {
@@ -142,6 +175,13 @@ export default function Welcome() {
       console.log('🔄 Redirecting to dashboard after complete Level 1 activation...');
       setLocation('/dashboard');
     }, 2000); // 2 second delay for thorough processing
+  };
+
+  // Handle registration completion
+  const handleRegistrationComplete = () => {
+    console.log('✅ Registration completed');
+    setShowRegistrationModal(false);
+    setUserRegistrationStatus('registered');
   };
 
   // Handle manual status refresh
@@ -221,8 +261,9 @@ export default function Welcome() {
   }
 
   return (
-    <div className="min-h-screen bg-background py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
+    <ErrorBoundary>
+      <div className="min-h-screen bg-background py-8">
+        <div className="container mx-auto px-4 max-w-4xl">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-4">
             {t('welcome.title')}
@@ -307,6 +348,29 @@ export default function Welcome() {
         </div>
         
         <div className="max-w-lg mx-auto">
+          {/* Registration prompt for unregistered users */}
+          {account?.address && userRegistrationStatus === 'not_registered' && (
+            <Card className="mb-6 border-blue-500/30 bg-blue-500/5">
+              <CardContent className="pt-4">
+                <div className="text-center space-y-3">
+                  <div className="flex items-center justify-center space-x-2">
+                    <User className="h-5 w-5 text-blue-400" />
+                    <span className="font-medium text-blue-400">Registration Required</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Please complete your registration to claim your Level 1 NFT and join the matrix.
+                  </p>
+                  <Button 
+                    onClick={() => setShowRegistrationModal(true)}
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+                  >
+                    Complete Registration
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
           <WelcomeLevel1ClaimButton
             onSuccess={handleActivationComplete}
             referrerWallet={referrerWallet}
@@ -337,7 +401,17 @@ export default function Welcome() {
             </p>
           </div>
         </div>
+        </div>
+
+        {/* Registration Modal */}
+        <RegistrationModal
+          isOpen={showRegistrationModal}
+          onClose={() => setShowRegistrationModal(false)}
+          walletAddress={account?.address || ''}
+          referrerWallet={referrerWallet}
+          onRegistrationComplete={handleRegistrationComplete}
+        />
       </div>
-    </div>
+    </ErrorBoundary>
   );
 }

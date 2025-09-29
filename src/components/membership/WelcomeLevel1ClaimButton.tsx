@@ -169,7 +169,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
-        .ilike('wallet_address', account.address)
+        .eq('wallet_address', account.address.toLowerCase())
         .single();
       
       if (userError || !userData) {
@@ -178,8 +178,21 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
           hasUserData: !!userData,
           walletAddress: account.address
         });
+        
+        // Show user-friendly message
+        toast({
+          title: "Registration Required",
+          description: "Please complete your registration to claim your Level 1 NFT.",
+          duration: 3000
+        });
+        
         setIsProcessing(false);
-        setShowRegistrationModal(true);
+        setCurrentStep('');
+        
+        // Small delay to ensure UI updates before showing modal
+        setTimeout(() => {
+          setShowRegistrationModal(true);
+        }, 500);
         return;
       }
       

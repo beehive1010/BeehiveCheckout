@@ -12,6 +12,55 @@ import {useToast} from '../hooks/use-toast';
 import {Eye, Loader2, Megaphone, Package, Palette, ShoppingCart, Star} from 'lucide-react';
 import {orderService, supabase} from '../lib/supabaseClient';
 
+// Stable Image component to prevent flickering
+const StableImage = React.memo(({ src, alt, className, fallback }: {
+  src: string | null;
+  alt: string;
+  className?: string;
+  fallback: string;
+}) => {
+  const [imageSrc, setImageSrc] = useState(src || fallback);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (src && src !== imageSrc && !error) {
+      setImageSrc(src);
+    }
+  }, [src, imageSrc, error]);
+
+  const handleLoad = () => {
+    setLoading(false);
+    setError(false);
+  };
+
+  const handleError = () => {
+    if (imageSrc !== fallback) {
+      setImageSrc(fallback);
+      setError(true);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className={`relative ${className || ''}`}>
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-muted rounded-lg">
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        </div>
+      )}
+      <img
+        src={imageSrc}
+        alt={alt}
+        className={`${className || ''} ${loading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
+        onLoad={handleLoad}
+        onError={handleError}
+        loading="lazy"
+      />
+    </div>
+  );
+});
+
 interface AdvertisementNFT {
   id: string;
   title: string;
@@ -381,6 +430,25 @@ export default function NFTs() {
       return;
     }
 
+    // Validate amount before sending to API
+    const purchaseAmount = Number(nft.price_bcc);
+    if (!purchaseAmount || purchaseAmount <= 0 || isNaN(purchaseAmount)) {
+      console.error('❌ Invalid purchase amount:', nft.price_bcc);
+      toast({
+        title: 'Invalid Amount',
+        description: `Invalid NFT price: ${nft.price_bcc}`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    console.log('🛒 Starting NFT purchase:', {
+      nft_id: nft.id,
+      nft_title: nft.title,
+      price_bcc: purchaseAmount,
+      wallet: walletAddress
+    });
+
     setPurchaseState({ nftId: nft.id, loading: true, error: null });
 
     try {
@@ -391,6 +459,17 @@ export default function NFTs() {
       const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
       const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       
+      const requestPayload = {
+        action: 'spend-bcc',
+        amount: purchaseAmount,
+        purpose: 'nft_purchase',
+        itemType: 'nft',
+        itemId: nft.id,
+        nftType: nftType
+      };
+
+      console.log('📤 Sending BCC spend request:', requestPayload);
+      
       const spendResponse = await fetch(`${baseUrl}/balance`, {
         method: 'POST',
         headers: {
@@ -398,14 +477,7 @@ export default function NFTs() {
           'Authorization': `Bearer ${anonKey}`,
           'x-wallet-address': walletAddress,
         },
-        body: JSON.stringify({
-          action: 'spend-bcc',
-          amount: nft.price_bcc,
-          purpose: 'nft_purchase',
-          itemType: 'nft',
-          itemId: nft.id,
-          nftType: nftType
-        })
+        body: JSON.stringify(requestPayload)
       });
       
       if (!spendResponse.ok) {
@@ -422,14 +494,14 @@ export default function NFTs() {
         throw new Error(spendResult?.error || spendResult?.message || 'BCC spending failed - insufficient balance or system error');
       }
 
-      console.log(`✅ BCC spent successfully: ${nft.price_bcc} BCC for NFT ${nft.title}`);
+      console.log(`✅ BCC spent successfully: ${purchaseAmount} BCC for NFT ${nft.title}`);
 
       // Create NFT purchase record using the orderService
       const { data: purchaseRecord, error: purchaseError } = await orderService.createNFTPurchase({
         buyer_wallet: walletAddress,
         nft_id: nft.id,
         nft_type: nftType,
-        price_bcc: nft.price_bcc,
+        price_bcc: purchaseAmount,
         price_usdt: nft.price_usdt || 0,
         payment_method: 'bcc',
         transaction_hash: transactionHash,
@@ -609,14 +681,11 @@ export default function NFTs() {
               {advertisementNFTs.map((nft) => (
                 <Card key={nft.id} className="group hover:shadow-lg transition-all duration-200 border-blue-500/20 hover:border-blue-500/40">
                   <CardHeader className="pb-3">
-                    <img 
-                      src={nft.image_url || 'https://via.placeholder.com/400x300/e2e8f0/64748b?text=Advertisement+NFT'} 
+                    <StableImage
+                      src={nft.image_url}
                       alt={nft.title}
                       className="w-full h-48 object-cover rounded-lg mb-3"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = 'https://via.placeholder.com/400x300/e2e8f0/64748b?text=NFT+Image';
-                      }}
+                      fallback="https://via.placeholder.com/400x300/e2e8f0/64748b?text=Advertisement+NFT"
                     />
                     <Badge className="w-fit bg-blue-500/20 text-blue-400 border-blue-500/30">
                       <HybridTranslation
@@ -731,14 +800,11 @@ export default function NFTs() {
               {merchantNFTs.map((nft) => (
                 <Card key={nft.id} className="group hover:shadow-lg transition-all duration-200 border-purple-500/20 hover:border-purple-500/40">
                   <CardHeader className="pb-3">
-                    <img 
-                      src={nft.image_url || 'https://via.placeholder.com/400x300/9333ea/e9d5ff?text=Merchant+NFT'} 
+                    <StableImage
+                      src={nft.image_url}
                       alt={nft.title}
                       className="w-full h-48 object-cover rounded-lg mb-3"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = 'https://via.placeholder.com/400x300/9333ea/e9d5ff?text=Service+NFT';
-                      }}
+                      fallback="https://via.placeholder.com/400x300/9333ea/e9d5ff?text=Merchant+NFT"
                     />
                     <div className="flex items-center justify-between">
                       <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
@@ -863,14 +929,11 @@ export default function NFTs() {
                 return (
                   <Card key={purchase.id} className="border-green-500/20">
                     <CardHeader className="pb-3">
-                      <img 
-                        src={nft.image_url || 'https://via.placeholder.com/400x300/10b981/dcfce7?text=My+NFT'} 
+                      <StableImage
+                        src={nft.image_url}
                         alt={nft.title}
                         className="w-full h-48 object-cover rounded-lg mb-3"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = 'https://via.placeholder.com/400x300/10b981/dcfce7?text=Owned+NFT';
-                        }}
+                        fallback="https://via.placeholder.com/400x300/10b981/dcfce7?text=My+NFT"
                       />
                       <div className="flex items-center justify-between">
                         <Badge className={`${
