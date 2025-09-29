@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { ChevronDown, ChevronRight, Users, User, Trophy, ArrowLeft, Home } from 'lucide-react';
-import { useLayeredMatrix, useMatrixChildren } from '../../hooks/useMatrixByLevel';
+import { Users, User } from 'lucide-react';
+import { useLayeredMatrix } from '../../hooks/useMatrixByLevel';
 import { useI18n } from '../../contexts/I18nContext';
 
 interface DrillDownMatrixViewProps {
@@ -120,93 +120,6 @@ const MatrixNode: React.FC<MatrixNodeProps> = ({
   );
 };
 
-const ChildrenMatrix: React.FC<{ 
-  parentWallet: string; 
-  matrixRootWallet: string; 
-  onClose: () => void;
-  t: (key: string, options?: any) => string;
-}> = ({ parentWallet, matrixRootWallet, onClose, t }) => {
-  const { data: childrenData, isLoading, error } = useMatrixChildren(matrixRootWallet, parentWallet);
-
-  if (isLoading) {
-    return (
-      <div className="mt-6 p-4 bg-gray-50 rounded border text-center">
-        <div className="text-gray-500 flex items-center justify-center">
-          <User className="animate-spin mr-2" size={16} />
-          加载下级成员中...
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="mt-6 p-4 bg-red-50 rounded border text-center">
-        <div className="text-red-500">加载失败: {error.message}</div>
-      </div>
-    );
-  }
-
-  if (!childrenData || childrenData.totalChildren === 0) {
-    return (
-      <div className="mt-6 p-4 bg-gray-50 rounded border text-center">
-        <div className="text-gray-500">该成员暂无下级</div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mt-6 p-4 bg-blue-50 rounded border">
-      <div className="flex items-center justify-between mb-4">
-        <h4 className="text-lg font-semibold text-gray-800 flex items-center">
-          <Users size={18} className="mr-2" />
-          下级成员 ({childrenData.totalChildren}/3)
-        </h4>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onClose}
-          className="text-gray-600 hover:text-gray-800"
-        >
-          <ArrowLeft size={16} className="mr-1" />
-          收起
-        </Button>
-      </div>
-      
-      <div className="grid grid-cols-3 gap-3">
-        {childrenData.children.map((child, index) => (
-          <div key={index} className="border border-gray-200 rounded p-3 bg-white text-center">
-            <div className="text-lg font-bold text-gray-700 mb-2">
-              {child.position}
-            </div>
-            
-            {child.member ? (
-              <>
-                {/* Type Badge */}
-                <div className={`inline-block px-2 py-1 rounded-full text-xs font-medium mb-2 ${
-                  child.member.type === 'is_spillover' || child.member.type !== 'is_direct'
-                    ? 'bg-blue-100 text-blue-700' 
-                    : 'bg-green-100 text-green-700'
-                }`}>
-                  {child.member.type === 'is_spillover' || child.member.type !== 'is_direct' ? '滑落' : '直推'}
-                </div>
-                
-                <div className="text-xs text-gray-600 font-mono mb-2 bg-gray-50 px-2 py-1 rounded">
-                  {child.member.wallet.slice(0, 6)}...{child.member.wallet.slice(-4)}
-                </div>
-                <div className="text-xs text-gray-500">
-                  {new Date(child.member.joinedAt).toLocaleDateString()}
-                </div>
-              </>
-            ) : (
-              <div className="text-xs text-gray-400">空位</div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
 
 const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({ 
   rootWalletAddress, 
