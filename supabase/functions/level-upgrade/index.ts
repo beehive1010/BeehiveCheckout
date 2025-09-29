@@ -382,14 +382,10 @@ async function processLevelUpgrade(
         console.log(`💰 Creating layer rewards for Level ${targetLevel} upgrade...`);
         console.log(`🎯 Reward amount will be: ${getNftPrice(targetLevel)} USDC (Level ${targetLevel} NFT price)`);
 
-        // Trigger layer rewards with level eligibility verification:
-        // 1st-2nd layer: minimum required level = target level
-        // 3rd+ layer: minimum required level = target level + 1
-        const { data: layerRewardData, error: layerRewardError } = await supabase.rpc('trigger_layer_rewards_on_upgrade', {
-          p_upgrading_member_wallet: walletAddress,
-          p_new_level: targetLevel,
-          p_nft_price: getNftPrice(targetLevel),
-          p_reward_type: 'layer_reward'
+        // Trigger layer rewards using the correct function name
+        const { data: layerRewardData, error: layerRewardError } = await supabase.rpc('process_matrix_layer_rewards', {
+          p_member_wallet: walletAddress,
+          p_new_level: targetLevel
         });
 
         if (layerRewardError) {
@@ -401,9 +397,9 @@ async function processLevelUpgrade(
 
         // Additional check: Verify layer rewards were created
         const { data: createdLayerRewards, error: checkError } = await supabase
-          .from('layer_rewards')
-          .select('id, matrix_layer, reward_recipient_wallet, reward_amount, status')
-          .ilike('triggering_member_wallet', walletAddress)
+          .from('matrix_layer_rewards')
+          .select('id, matrix_layer, matrix_root_wallet, reward_amount, reward_status')
+          .ilike('rewarded_member_wallet', walletAddress)
           .eq('matrix_layer', targetLevel);
 
         if (!checkError && createdLayerRewards && createdLayerRewards.length > 0) {
