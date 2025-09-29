@@ -12,6 +12,7 @@ import { apiRequest, queryClient } from '../lib/queryClient';
 import { Check, AlertCircle, User, Mail, Users } from 'lucide-react';
 import { authService } from '../lib/supabaseClient';
 import { referralService } from '../api/landing/referral.client';
+import ErrorBoundary from '../components/ui/error-boundary';
 
 export default function Registration() {
   const { t } = useI18n();
@@ -102,6 +103,9 @@ export default function Registration() {
       }
       
       try {
+        // Add stability delay to prevent ThirdWeb DOM errors
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         const { exists } = await authService.userExists(walletAddress);
         if (exists) {
           console.log('👤 User already registered, redirecting to welcome page');
@@ -118,12 +122,14 @@ export default function Registration() {
         }
       } catch (error) {
         console.error('Error checking existing user:', error);
-        // On error, show the registration form
+        // On error, show the registration form anyway
         setIsCheckingExistingUser(false);
       }
     };
 
-    checkExistingUser();
+    // Add debounce to prevent rapid state changes
+    const timeoutId = setTimeout(checkExistingUser, 300);
+    return () => clearTimeout(timeoutId);
   }, [walletAddress, setLocation, toast]);
 
   // Validate referrer exists and is not self-referral
@@ -206,6 +212,12 @@ export default function Registration() {
     }
 
     try {
+      // Prevent rapid submissions that could cause ThirdWeb errors
+      const submitButton = document.querySelector('[data-testid="button-register"]') as HTMLButtonElement;
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+
       await registerMutation.mutateAsync({
         walletAddress,
         username: formData.username,
@@ -219,17 +231,24 @@ export default function Registration() {
         duration: 3000,
       });
       
-      // Add a small delay to show the success message
+      // Add a small delay to show the success message and prevent DOM conflicts
       setTimeout(() => {
         // Redirect with referrer parameter to preserve referrer info on Welcome page
         setLocation(`/welcome?ref=${encodeURIComponent(referrerWallet)}`);
       }, 1500);
     } catch (error: any) {
+      console.error('Registration error:', error);
       toast({
         title: t('registration.errors.registrationFailed'),
         description: error.message || t('registration.errors.registrationFailedDescription'),
         variant: 'destructive'
       });
+      
+      // Re-enable submit button on error
+      const submitButton = document.querySelector('[data-testid="button-register"]') as HTMLButtonElement;
+      if (submitButton) {
+        submitButton.disabled = false;
+      }
     }
   };
 
@@ -309,98 +328,100 @@ export default function Registration() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-secondary border-border">
-        <CardHeader>
-          <CardTitle className="text-honey text-center text-2xl">
-            {t('registration.title')}
-          </CardTitle>
-          <p className="text-center text-muted-foreground text-sm">
-            {t('registration.connected')}: {walletAddress?.slice(0, 8)}...{walletAddress?.slice(-6)}
-          </p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Referrer Status - Always show since referrer is required */}
-            <div className="p-3 bg-muted rounded-lg">
-              <div className="flex items-center mb-2">
-                <Users className="h-4 w-4 mr-2 text-honey" />
-                <span className="text-sm font-medium">{t('registration.referralStatus')}</span>
-              </div>
-              {getReferrerStatus()}
-            </div>
-
-            {/* Username */}
-            <div className="space-y-2">
-              <Label htmlFor="username" className="flex items-center">
-                <User className="h-4 w-4 mr-2" />
-                {t('registration.usernameLabel')}
-              </Label>
-              <Input
-                id="username"
-                value={formData.username}
-                onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
-                placeholder={t('registration.usernamePlaceholder')}
-                className="bg-muted border-border"
-                required
-                data-testid="input-username"
-              />
-            </div>
-
-            {/* Email */}
-            <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center">
-                <Mail className="h-4 w-4 mr-2" />
-                {t('registration.emailLabel')}
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                placeholder={t('registration.emailPlaceholder')}
-                className="bg-muted border-border"
-                data-testid="input-email"
-              />
-            </div>
-
-
-            {/* Information Box */}
-            <div className="p-4 bg-honey/10 rounded-lg border border-honey/30">
-              <h4 className="font-semibold text-honey mb-2">{t('registration.nextSteps')}</h4>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• {t('registration.nextStepsDescription.step1')}</li>
-                <li>• {t('registration.nextStepsDescription.step2')}</li>
-                <li>• {t('registration.nextStepsDescription.step3')}</li>
-                <li>• {t('registration.nextStepsDescription.step4')}</li>
-              </ul>
-            </div>
-
-            <Button
-              type="submit"
-              disabled={registerMutation.isPending || !referrerWallet || (!!referrerWallet && (isValidatingReferrer || !!referrerError))}
-              className="w-full bg-honey text-secondary hover:bg-honey/90"
-              data-testid="button-register"
-            >
-              {registerMutation.isPending ? t('registration.registeringButton') : 
-               !referrerWallet ? t('registration.referralLinkRequired') :
-               t('registration.registerButton')}
-            </Button>
-          </form>
-          
-          {/* Footer Information */}
-          <div className="mt-4 pt-4 border-t border-border/50">
-            <p className="text-xs text-muted-foreground text-center">
-              {t('registration.footerText')}
-              {referrerWallet && <span className="block mt-1">
-                {t('registration.referredBy')}: <span className="font-mono text-honey">
-                  {referrerWallet.slice(0, 8)}...{referrerWallet.slice(-6)}
-                </span>
-              </span>}
+    <ErrorBoundary>
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md bg-secondary border-border">
+          <CardHeader>
+            <CardTitle className="text-honey text-center text-2xl">
+              {t('registration.title')}
+            </CardTitle>
+            <p className="text-center text-muted-foreground text-sm">
+              {t('registration.connected')}: {walletAddress?.slice(0, 8)}...{walletAddress?.slice(-6)}
             </p>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Referrer Status - Always show since referrer is required */}
+              <div className="p-3 bg-muted rounded-lg">
+                <div className="flex items-center mb-2">
+                  <Users className="h-4 w-4 mr-2 text-honey" />
+                  <span className="text-sm font-medium">{t('registration.referralStatus')}</span>
+                </div>
+                {getReferrerStatus()}
+              </div>
+
+              {/* Username */}
+              <div className="space-y-2">
+                <Label htmlFor="username" className="flex items-center">
+                  <User className="h-4 w-4 mr-2" />
+                  {t('registration.usernameLabel')}
+                </Label>
+                <Input
+                  id="username"
+                  value={formData.username}
+                  onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                  placeholder={t('registration.usernamePlaceholder')}
+                  className="bg-muted border-border"
+                  required
+                  data-testid="input-username"
+                />
+              </div>
+
+              {/* Email */}
+              <div className="space-y-2">
+                <Label htmlFor="email" className="flex items-center">
+                  <Mail className="h-4 w-4 mr-2" />
+                  {t('registration.emailLabel')}
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder={t('registration.emailPlaceholder')}
+                  className="bg-muted border-border"
+                  data-testid="input-email"
+                />
+              </div>
+
+
+              {/* Information Box */}
+              <div className="p-4 bg-honey/10 rounded-lg border border-honey/30">
+                <h4 className="font-semibold text-honey mb-2">{t('registration.nextSteps')}</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• {t('registration.nextStepsDescription.step1')}</li>
+                  <li>• {t('registration.nextStepsDescription.step2')}</li>
+                  <li>• {t('registration.nextStepsDescription.step3')}</li>
+                  <li>• {t('registration.nextStepsDescription.step4')}</li>
+                </ul>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={registerMutation.isPending || !referrerWallet || (!!referrerWallet && (isValidatingReferrer || !!referrerError))}
+                className="w-full bg-honey text-secondary hover:bg-honey/90"
+                data-testid="button-register"
+              >
+                {registerMutation.isPending ? t('registration.registeringButton') : 
+                 !referrerWallet ? t('registration.referralLinkRequired') :
+                 t('registration.registerButton')}
+              </Button>
+            </form>
+            
+            {/* Footer Information */}
+            <div className="mt-4 pt-4 border-t border-border/50">
+              <p className="text-xs text-muted-foreground text-center">
+                {t('registration.footerText')}
+                {referrerWallet && <span className="block mt-1">
+                  {t('registration.referredBy')}: <span className="font-mono text-honey">
+                    {referrerWallet.slice(0, 8)}...{referrerWallet.slice(-6)}
+                  </span>
+                </span>}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </ErrorBoundary>
   );
 }
