@@ -157,7 +157,8 @@ export default function AdvertisementNFTCard({ nft, onPurchase, className = '' }
   };
 
   return (
-    <Card className={`group bg-secondary border-border hover:border-blue-400/50 hover:shadow-xl hover:shadow-blue-400/10 transition-all duration-300 ${className}`}>
+    <>
+      <Card className={`group bg-secondary border-border hover:border-blue-400/50 hover:shadow-xl hover:shadow-blue-400/10 transition-all duration-300 ${className}`}>
       {/* NFT Image */}
       <div className="aspect-square bg-gradient-to-br from-blue-500/10 to-purple-500/5 rounded-t-2xl overflow-hidden relative">
         <img 
@@ -347,18 +348,19 @@ export default function AdvertisementNFTCard({ nft, onPurchase, className = '' }
       </CardContent>
     </Card>
 
-    {/* Payment Confirmation Modal */}
-    <PaymentConfirmationModal
-      isOpen={showPaymentModal}
-      onClose={() => setShowPaymentModal(false)}
-      course={{
-        id: nft.id,
-        title: nft.title,
-        priceBCC: nft.priceBCC,
-        priceUSDT: nft.priceUSDT
-      }}
-      userBalance={userBalance}
-      onConfirmPayment={handleConfirmPayment}
-    />
+      {/* Payment Confirmation Modal */}
+      <PaymentConfirmationModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        course={{
+          id: nft.id,
+          title: nft.title,
+          priceBCC: nft.priceBCC,
+          priceUSDT: nft.priceUSDT
+        }}
+        userBalance={userBalance}
+        onConfirmPayment={handleConfirmPayment}
+      />
+    </>
   );
 }
