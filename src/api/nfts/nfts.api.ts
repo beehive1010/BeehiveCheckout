@@ -195,12 +195,12 @@ export const nftsApi = {
     }
   },
 
-  // Purchase NFT with BCC
+  // Purchase NFT with BCC - Using Edge Function for better security
   async purchaseNFTWithBCC(nftId: string, nftType: 'advertisement' | 'merchant', walletAddress: string) {
     try {
       console.log(`💰 用户购买NFT: ${walletAddress} -> ${nftId} (${nftType})`);
       
-      // Get NFT details to check price
+      // Get NFT details to check price and show immediate feedback
       let nftData: any = null;
       if (nftType === 'advertisement') {
         const { data } = await supabase
@@ -224,46 +224,29 @@ export const nftsApi = {
         throw new Error('NFT不存在或已下架');
       }
 
-      // Check supply for merchant NFTs
-      if (nftType === 'merchant' && nftData.supply_available !== null && nftData.supply_available <= 0) {
-        throw new Error('NFT库存不足');
-      }
-
-      // Check if user already owns this NFT
-      const { data: existingPurchase } = await supabase
-        .from('nft_purchases')
-        .select('id')
-        .eq('buyer_wallet', walletAddress)
-        .eq('nft_id', nftId)
-        .eq('nft_type', nftType)
-        .eq('status', 'completed')
-        .maybeSingle();
-
-      if (existingPurchase) {
-        throw new Error('您已经拥有此NFT');
-      }
-
-      // Check user's BCC balance
-      const { data: balance } = await supabase
-        .from('user_balances')
-        .select('bcc_balance')
-        .eq('wallet_address', walletAddress)
-        .maybeSingle();
-
-      if (!balance || (balance.bcc_balance || 0) < nftData.price_bcc) {
-        throw new Error(`BCC余额不足，需要 ${nftData.price_bcc} BCC，当前余额 ${balance?.bcc_balance || 0} BCC`);
-      }
-
-      // Use database function to purchase NFT (handles BCC deduction and purchase record)
-      const { data: result, error } = await supabase.rpc('purchase_nft_with_bcc', {
-        p_buyer_wallet: walletAddress,
-        p_nft_id: nftId,
-        p_nft_type: nftType,
-        p_price_bcc: nftData.price_bcc
+      // Use Edge Function for secure purchase processing
+      const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      const purchaseResponse = await fetch(`${baseUrl}/nft-purchase`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${anonKey}`,
+          'x-wallet-address': walletAddress,
+        },
+        body: JSON.stringify({
+          nft_id: nftId,
+          nft_type: nftType,
+          price_bcc: nftData.price_bcc,
+          price_usdt: 0
+        })
       });
 
-      if (error) {
-        throw new Error(`NFT购买失败: ${error.message}`);
+      const purchaseResult = await purchaseResponse.json();
+      
+      if (!purchaseResponse.ok || !purchaseResult?.success) {
+        throw new Error(purchaseResult?.error || purchaseResult?.details || 'NFT购买失败');
       }
 
       console.log(`✅ NFT购买成功: ${nftData.title}`);
@@ -271,9 +254,10 @@ export const nftsApi = {
       return {
         success: true,
         message: `成功购买NFT: ${nftData.title}`,
-        purchase: result,
+        purchase: purchaseResult.purchase,
         nftId: nftId,
-        pricePaid: nftData.price_bcc
+        pricePaid: nftData.price_bcc,
+        newBalance: purchaseResult.new_balance
       };
     } catch (error) {
       console.error('购买NFT失败:', error);

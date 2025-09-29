@@ -337,7 +337,80 @@
       "phaseProgressionDesc": "达到人数门槛时自动进入下一阶段，奖励减半",
       "levelUpgradeTrigger": "Level {level} 升级触发",
       "percentageNftPrice": "100% NFT价格",
-      "highestRewardLayer": "最高收益层级"
+      "highestRewardLayer": "最高收益层级",
+      "layerText": "层级 {layer}",
+      "maxLayer": "最高",
+      "nftPrice": "NFT价格",
+      "nftPricePercent": "NFT价格的100%",
+      "ofLevelNftPrice": "Level {level} NFT价格的",
+      "triggeredByLevel": "由您的层级 {layer} 中的Level {level} 升级触发",
+      "ofLevel19NftPrice": "Level 19 NFT价格的",
+      "thirdPlus": "第3+",
+      "continuesToLayer19": "延续到层级19",
+      "layer19RewardMax": "层级19奖励（最大值）",
+      "finalLayerReward": "最终层级奖励 - 最高收益潜力",
+      "levelRequirementsNotMet": "如果不满足级别要求，奖励进入待定状态",
+      "seventyTwoHourPending": "72小时待定",
+      "levelMustEqualLayer": "您的级别必须等于层级级别才能立即获得",
+      "firstSecondRewards": "第一和第二奖励",
+      "thirdPlusRewards": "第三+奖励",
+      "levelMustBeGreater": "您的级别必须大于层级级别",
+      "upgradeToClaim": "升级以领取",
+      "activateRequiredLevel": "激活所需级别以立即领取",
+      "expiryRedistribution": "到期重新分配",
+      "expiredRewardsRedistribute": "过期奖励自动重新分配",
+      "matrixStructureTitle": "矩阵结构",
+      "matrixStructureDesc": "每个级别代表矩阵中的一个层级。当您层级中的成员升级他们的会员级别时，会根据升级的级别触发层级奖励。",
+      "layerRewardText": "层级 {layer} 奖励"
+    },
+    "bcc": {
+      "title": "BCC奖励系统",
+      "subtitle": "基于全球成员激活的分阶段BCC代币释放",
+      "autoDistribution": "自动分配",
+      "currentPhase": "当前阶段",
+      "active": "活跃",
+      "current": "当前",
+      "activationProgress": "激活进度",
+      "phaseRewardPool": "阶段奖励池",
+      "remaining": "剩余",
+      "currentReleaseStandard": "当前释放标准",
+      "upToL19": "... 直到L19 ({amount} BCC)",
+      "fourPhaseSystemOverview": "四阶段系统概览",
+      "releaseMechanism": "释放机制",
+      "phase1InProgress": "阶段1进行中 - 最大奖励可用",
+      "activateToGetMaxRewards": "激活您的会员级别以在阶段1期间获得最大BCC奖励",
+      "phases": {
+        "phase1": {
+          "description": "阶段1：早期采用者（成员1-9,999）",
+          "members": "第1-9,999名"
+        },
+        "phase2": {
+          "description": "阶段2：成长阶段（成员10,000-29,999）",
+          "members": "第10,000-29,999名"
+        },
+        "phase3": {
+          "description": "阶段3：扩展阶段（成员30,000-99,999）",
+          "members": "第30,000-99,999名"
+        },
+        "phase4": {
+          "description": "阶段4：最终阶段（成员100,000-186,000）",
+          "members": "第100,000-186,000名"
+        }
+      },
+      "mechanisms": {
+        "activationTrigger": "级别激活触发",
+        "activationTriggerDesc": "当成员激活新的会员级别时释放BCC代币",
+        "decreasingRewards": "基于阶段的减少",
+        "decreasingRewardsDesc": "随着社区发展，每个阶段奖励金额减少50%",
+        "realtimeDistribution": "实时分配",
+        "realtimeDistributionDesc": "级别激活后立即分配BCC代币"
+      },
+      "benefits": {
+        "autoRelease": "自动释放",
+        "autoReleaseDesc": "无需手动领取 - 代币即时释放",
+        "earlyAdvantage": "早期成员优势",
+        "earlyAdvantageDesc": "阶段1成员获得最大奖励"
+      }
     },
     "tabs": {
       "overview": "概览",

@@ -1607,7 +1607,80 @@
       "phaseProgressionDesc": "Automatically enter next phase when reaching population threshold, rewards halved",
       "levelUpgradeTrigger": "Level {level} upgrade trigger",
       "percentageNftPrice": "100% NFT price",
-      "highestRewardLayer": "Highest reward layer"
+      "highestRewardLayer": "Highest reward layer",
+      "layerText": "Layer {layer}",
+      "maxLayer": "MAX",
+      "nftPrice": "NFT Price",
+      "nftPricePercent": "100% NFT price",
+      "ofLevelNftPrice": "of Level {level} NFT price",
+      "triggeredByLevel": "Triggered by Level {level} upgrades in your layer {layer}",
+      "ofLevel19NftPrice": "of Level 19 NFT price",
+      "thirdPlus": "3rd+",
+      "continuesToLayer19": "Continues to Layer 19",
+      "layer19RewardMax": "Layer 19 Reward (Maximum)",
+      "finalLayerReward": "Final layer reward - highest earning potential",
+      "levelRequirementsNotMet": "If level requirements not met, reward enters pending state",
+      "seventyTwoHourPending": "72-Hour Pending",
+      "levelMustEqualLayer": "Your level must equal the layer level to receive immediately",
+      "firstSecondRewards": "First & Second Rewards",
+      "thirdPlusRewards": "Third Plus Rewards",
+      "levelMustBeGreater": "Your level must be greater than the layer level",
+      "upgradeToClaim": "Upgrade to Claim",
+      "activateRequiredLevel": "Activate required level to claim immediately",
+      "expiryRedistribution": "Expiry Redistribution",
+      "expiredRewardsRedistribute": "Expired rewards redistribute automatically",
+      "matrixStructureTitle": "Matrix Structure",
+      "matrixStructureDesc": "Each level represents a layer in the matrix. When members in your layer upgrade their membership level, it triggers layer rewards based on the upgraded level.",
+      "layerRewardText": "Layer {layer} Reward"
+    },
+    "bcc": {
+      "title": "BCC Rewards System",
+      "subtitle": "Staged BCC token release based on global member activation",
+      "autoDistribution": "Auto Distribution",
+      "currentPhase": "Current Phase",
+      "active": "Active",
+      "current": "Current",
+      "activationProgress": "Activation Progress",
+      "phaseRewardPool": "Phase Reward Pool",
+      "remaining": "remaining",
+      "currentReleaseStandard": "Current Release Standard",
+      "upToL19": "... up to L19 ({amount} BCC)",
+      "fourPhaseSystemOverview": "Four-Phase System Overview",
+      "releaseMechanism": "Release Mechanism",
+      "phase1InProgress": "Phase 1 in Progress - Maximum Rewards Available",
+      "activateToGetMaxRewards": "Activate your membership level to receive maximum BCC rewards while in Phase 1",
+      "phases": {
+        "phase1": {
+          "description": "Phase 1: Early Adopters (Members 1-9,999)",
+          "members": "1st - 9,999th"
+        },
+        "phase2": {
+          "description": "Phase 2: Growth Phase (Members 10,000-29,999)",
+          "members": "10,000th - 29,999th"
+        },
+        "phase3": {
+          "description": "Phase 3: Expansion Phase (Members 30,000-99,999)",
+          "members": "30,000th - 99,999th"
+        },
+        "phase4": {
+          "description": "Phase 4: Final Phase (Members 100,000-186,000)",
+          "members": "100,000th - 186,000th"
+        }
+      },
+      "mechanisms": {
+        "activationTrigger": "Level Activation Trigger",
+        "activationTriggerDesc": "BCC tokens are released when members activate new membership levels",
+        "decreasingRewards": "Phase-Based Reduction",
+        "decreasingRewardsDesc": "Reward amounts decrease by 50% each phase as community grows",
+        "realtimeDistribution": "Real-time Distribution",
+        "realtimeDistributionDesc": "BCC tokens are distributed immediately upon level activation"
+      },
+      "benefits": {
+        "autoRelease": "Automatic Release",
+        "autoReleaseDesc": "No manual claiming required - tokens released instantly",
+        "earlyAdvantage": "Early Member Advantage",
+        "earlyAdvantageDesc": "Maximum rewards for Phase 1 members"
+      }
     },
     "pendingDescription": "Your pending rewards with countdown timers",
     "rollup": {

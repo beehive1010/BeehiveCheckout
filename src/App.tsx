@@ -26,6 +26,7 @@ import Rewards from "@/pages/Rewards";
 import Discover from "@/pages/Discover";
 import NotificationsPage from "@/pages/NotificationsPage";
 import MatrixTestPage from "@/pages/MatrixTestPage";
+import NFTTestPage from "@/components/nfts/NFTTestPage";
 
 // Additional pages  
 import Registration from "@/pages/Registration";
@@ -385,6 +386,18 @@ function Router() {
         <Route path="/nft-center" component={() => (
           <MemberGuard requireActivation={true} redirectTo="/welcome">
             <NFTCenter />
+          </MemberGuard>
+        )} />
+        <Route path="/member-matrix-test" component={() => (
+          <MemberGuard requireActivation={true} redirectTo="/welcome">
+            <MatrixTestPage />
+          </MemberGuard>
+        )} />
+        <Route path="/member-nft-test" component={() => (
+          <MemberGuard requireActivation={true} redirectTo="/welcome">
+            <div className="min-h-screen bg-background p-4">
+              <NFTTestPage />
+            </div>
           </MemberGuard>
         )} />
         <Route path="/admin-nft-manager" component={AdminNFTManager} />
