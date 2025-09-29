@@ -4,6 +4,8 @@ import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { useWallet } from '../hooks/useWallet';
 import { useWeb3 } from '../contexts/Web3Context';
+import { useLayeredMatrix } from '../hooks/useMatrixByLevel';
+import DrillDownMatrixView from '../components/matrix/DrillDownMatrixView';
 import { 
   NetworkIcon, 
   UserIcon, 
