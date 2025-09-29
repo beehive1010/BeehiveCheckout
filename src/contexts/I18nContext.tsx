@@ -66,27 +66,40 @@ const I18nProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Initialize language from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('beehive-language');
-    const savedMode = localStorage.getItem('beehive-translation-mode');
-    const supportedLanguages = getSupportedLanguages();
-    
-    if (saved && supportedLanguages.includes(saved)) {
-      setLanguageState(saved as Language);
-    } else {
-      localStorage.setItem('beehive-language', 'en');
-      setLanguageState('en');
-    }
+    const initializeTranslations = async () => {
+      const saved = localStorage.getItem('beehive-language');
+      const savedMode = localStorage.getItem('beehive-translation-mode');
+      const supportedLanguages = getSupportedLanguages();
+      
+      let targetLanguage: Language;
+      if (saved && supportedLanguages.includes(saved)) {
+        targetLanguage = saved as Language;
+      } else {
+        localStorage.setItem('beehive-language', 'en');
+        targetLanguage = 'en';
+      }
+      setLanguageState(targetLanguage);
 
-    // Set translation mode preference
-    const isLocalOnly = savedMode === 'local-only';
-    setUseLocalOnly(isLocalOnly);
+      // Set translation mode preference
+      const isLocalOnly = savedMode === 'local-only';
+      setUseLocalOnly(isLocalOnly);
+      
+      // Always load translations for the target language, regardless of mode
+      try {
+        await hybridI18nService.getTranslationsForLanguage(targetLanguage);
+        console.log(`🌍 Initialized translations for ${targetLanguage} (mode: ${isLocalOnly ? 'local-only' : 'hybrid'})`);
+      } catch (error) {
+        console.error('Failed to initialize translations:', error);
+      }
+      
+      if (!isLocalOnly) {
+        console.log('🌍 Starting in hybrid translation mode');
+      } else {
+        console.log('🌍 Starting in local-only translation mode');
+      }
+    };
     
-    if (!isLocalOnly) {
-      // Load hybrid translations only if not in local-only mode
-      loadHybridTranslations();
-    } else {
-      console.log('🌍 Starting in local-only translation mode');
-    }
+    initializeTranslations();
   }, []);
 
   const setLanguage = async (lang: Language) => {

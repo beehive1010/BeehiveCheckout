@@ -1078,23 +1078,35 @@ async function fixMemberData(supabase: any, options: any): Promise<SystemFixResu
         .single();
 
       const currentLevel = memberData?.current_level || 1;
+      
+      // Get direct referrals for this member (for generating direct referral rewards)
+      const { data: directReferrals } = await supabase
+        .from('referrals')
+        .select('member_wallet, is_direct_referral, placed_at')
+        .eq('referrer_wallet', wallet_address)
+        .eq('is_direct_referral', true)
+        .order('placed_at', { ascending: false });
+
       const sampleRewards = [];
 
-      // 1. 直推奖励 (Direct Referral Reward): Level 1 = 100 USD
-      if (currentLevel >= 1) {
-        sampleRewards.push({
-          triggering_member_wallet: wallet_address,
-          reward_recipient_wallet: wallet_address,
-          matrix_root_wallet: wallet_address,
-          reward_amount: 100.0, // Level 1 direct referral = 100 USD
-          matrix_layer: 1,
-          triggering_nft_level: 1,
-          recipient_required_level: 1,
-          recipient_current_level: currentLevel,
-          status: 'claimable',
-          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-          created_at: new Date().toISOString()
-        });
+      // 1. 直推奖励 (Direct Referral Rewards): 每个直推产生100 USD奖励
+      if (directReferrals && directReferrals.length > 0) {
+        for (const referral of directReferrals) {
+          sampleRewards.push({
+            triggering_member_wallet: referral.member_wallet,
+            reward_recipient_wallet: wallet_address,
+            matrix_root_wallet: wallet_address,
+            reward_amount: 100.0, // Level 1 direct referral = 100 USD
+            matrix_layer: 1,
+            triggering_nft_level: 1,
+            recipient_required_level: 1,
+            recipient_current_level: currentLevel,
+            status: 'claimable',
+            expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            created_at: referral.placed_at || new Date().toISOString()
+          });
+        }
+        fixes.actions_taken.push(`Generated ${directReferrals.length} direct referral rewards`);
       }
 
       // 2. Layer奖励 (Layer Rewards): Layer 2-19 升级触发, 金额=该level NFT价格100%
