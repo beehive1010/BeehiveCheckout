@@ -228,10 +228,10 @@ export function HybridTranslation({
   };
 
   return (
-    <div className={`space-y-2 ${className}`}>
+    <span className={`inline-block ${className}`}>
       {/* UI标签 - 使用i18n */}
       {uiLabel && (
-        <div className={`flex items-center gap-2 ${uiLabelStyle}`}>
+        <span className={`inline-flex items-center gap-2 ${uiLabelStyle}`}>
           <span>{t(uiLabel)}</span>
           {showTranslationSource && (
             <Badge variant="outline" className="text-xs bg-purple-500/20 text-purple-400">
@@ -239,26 +239,26 @@ export function HybridTranslation({
               i18n
             </Badge>
           )}
-        </div>
+        </span>
       )}
 
       {/* 动态内容 - 使用DeepL */}
-      <div className="space-y-2">
-        <div className={`flex items-start gap-2 ${contentStyle}`}>
-          <div className="flex-1">
+      <span className="inline-block">
+        <span className={`inline-flex items-start gap-2 ${contentStyle}`}>
+          <span className="flex-1">
             {isTranslating ? (
-              <div className="flex items-center gap-2 text-muted-foreground">
+              <span className="inline-flex items-center gap-2 text-muted-foreground">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span className="text-sm">DeepL翻译中...</span>
-              </div>
+              </span>
             ) : (
               <span>{translatedContent}</span>
             )}
-          </div>
+          </span>
           
           {/* 翻译源标识 */}
           {getTranslationBadge()}
-        </div>
+        </span>
 
         {/* 手动翻译按钮 */}
         {enableManualTranslate && translationSource !== 'deepl' && (
@@ -267,7 +267,7 @@ export function HybridTranslation({
             variant="outline"
             onClick={handleManualTranslate}
             disabled={isTranslating}
-            className="text-xs"
+            className="text-xs ml-2"
           >
             {isTranslating ? (
               <>
@@ -282,8 +282,8 @@ export function HybridTranslation({
             )}
           </Button>
         )}
-      </div>
-    </div>
+      </span>
+    </span>
   );
 }
 
