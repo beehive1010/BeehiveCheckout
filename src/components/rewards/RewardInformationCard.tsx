@@ -180,7 +180,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
 
   return (
     <>
-      <Card className={`bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 border-2 border-slate-700 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-[1.02] animate-in slide-in-from-bottom-4 fade-in-0 duration-700 ${className}`}>
+      <Card className={`bg-gradient-to-br from-slate-900/95 via-gray-900/90 to-slate-900/95 border-2 border-slate-700 shadow-2xl hover:shadow-3xl transition-all duration-300 animate-in slide-in-from-bottom-4 fade-in-0 duration-700 ${className}`}>
         <Collapsible open={isExpanded} onOpenChange={handleExpandChange}>
           <CollapsibleTrigger className="w-full">
             <CardHeader className="cursor-pointer hover:bg-slate-800/50 transition-all duration-300 rounded-t-xl group">
@@ -211,11 +211,11 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
           </CollapsibleTrigger>
 
           <CollapsibleContent className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-top-1 data-[state=open]:slide-in-from-top-1">
-            <CardContent className={`bg-gradient-to-br from-slate-800/30 to-slate-700/20 rounded-b-xl ${isMobile ? 'p-4' : 'p-6'}`}>
+            <CardContent className={`bg-gradient-to-br from-slate-800/30 to-slate-700/20 rounded-b-xl ${isMobile ? 'p-3 sm:p-4' : 'p-4 lg:p-6'}`}>
               
               {/* Desktop: Side-by-side Layout */}
               {!isMobile && (
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid lg:grid-cols-2 md:grid-cols-1 gap-6">
                   {/* Layer Rewards */}
                   <div className="space-y-4">
                     <div className="bg-gradient-to-r from-honey/10 to-amber-500/10 rounded-xl p-4 border border-honey/30 shadow-lg">
@@ -232,7 +232,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                           </p>
                           <Button 
                             onClick={() => openDialog('layer')}
-                            className="bg-gradient-to-r from-honey to-amber-400 text-black hover:from-honey/90 hover:to-amber-400/90 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 hover:animate-pulse text-sm px-4 py-2"
+                            className="bg-gradient-to-r from-honey to-amber-400 text-black hover:from-honey/90 hover:to-amber-400/90 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-95 text-sm px-4 py-2"
                           >
                             <Eye className="mr-2 h-4 w-4" />
                             {t('rewards.information.viewAll19Layers')}
@@ -247,11 +247,11 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                         <Target className="h-4 w-4" />
                         {t('rewards.information.layerRewardsPreview')}
                       </h4>
-                      <div className="grid grid-cols-5 gap-2 max-h-56 overflow-y-auto">
+                      <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-2 max-h-56 overflow-y-auto">
                         {LAYER_REWARDS.map((reward, index) => {
                           const isHighlight = reward.layer === 1 || reward.layer === 19;
                           return (
-                            <div key={reward.layer} className={`rounded-lg p-2 text-center transition-all duration-300 hover:scale-110 hover:shadow-lg ${
+                            <div key={reward.layer} className={`rounded-lg p-2 text-center transition-all duration-300 hover:scale-[1.05] hover:shadow-lg ${
                               isHighlight ? 'bg-honey/20 border border-honey/30 shadow-honey/20' : 'bg-slate-700/50 hover:bg-slate-700'
                             }`}>
                               <div className={`text-xs font-bold ${
@@ -287,7 +287,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                           </p>
                           <Button 
                             onClick={() => openDialog('bcc')}
-                            className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-400 hover:to-purple-400 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 hover:animate-pulse text-sm px-4 py-2"
+                            className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-400 hover:to-purple-400 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-95 text-sm px-4 py-2"
                           >
                             <Eye className="mr-2 h-4 w-4" />
                             {t('rewards.information.viewAllPhases')}
@@ -302,11 +302,11 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                         <TrendingUp className="h-4 w-4" />
                         {t('rewards.information.bccPhasesPreview')}
                       </h4>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {BCC_PHASES.map((phase) => {
                           const isCurrent = phase.status === 'current';
                           return (
-                            <div key={phase.phase} className={`rounded-lg p-2 text-center transition-all duration-300 hover:scale-105 hover:shadow-md ${
+                            <div key={phase.phase} className={`rounded-lg p-2 text-center transition-all duration-300 hover:scale-[1.02] hover:shadow-md ${
                               isCurrent ? 'bg-green-500/20 border border-green-500/30 animate-pulse' : 'bg-slate-700/50 hover:bg-slate-700'
                             }`}>
                               <div className={`text-xs font-bold ${
@@ -378,11 +378,11 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                             <Target className="h-4 w-4" />
                             {t('rewards.information.layerRewardsPreview')}
                           </h4>
-                          <div className="grid grid-cols-4 gap-1 max-h-40 overflow-y-auto">
+                          <div className="grid grid-cols-3 xs:grid-cols-4 gap-1 max-h-40 overflow-y-auto">
                             {LAYER_REWARDS.map((reward) => {
                               const isHighlight = reward.layer === 1 || reward.layer === 19;
                               return (
-                                <div key={reward.layer} className={`rounded-lg p-2 text-center transition-all duration-300 hover:scale-105 hover:shadow-md ${
+                                <div key={reward.layer} className={`rounded-lg p-2 text-center transition-all duration-300 hover:scale-[1.02] hover:shadow-md ${
                                   isHighlight ? 'bg-honey/20 border border-honey/30 animate-pulse' : 'bg-slate-700/50 hover:bg-slate-700'
                                 }`}>
                                   <div className={`text-xs font-bold ${
@@ -404,7 +404,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                         <div className="text-center">
                           <Button 
                             onClick={() => openDialog('layer')}
-                            className="bg-gradient-to-r from-honey to-amber-400 text-black hover:from-honey/90 hover:to-amber-400/90 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 w-full py-2 text-sm"
+                            className="bg-gradient-to-r from-honey to-amber-400 text-black hover:from-honey/90 hover:to-amber-400/90 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-95 w-full py-2 text-sm"
                           >
                             <Eye className="mr-2 h-4 w-4" />
                             {t('rewards.information.viewAll19LayersDetails')}
@@ -438,7 +438,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                             {BCC_PHASES.map((phase) => {
                               const isCurrent = phase.status === 'current';
                               return (
-                                <div key={phase.phase} className={`rounded-lg p-2 text-center transition-all duration-300 hover:scale-105 ${
+                                <div key={phase.phase} className={`rounded-lg p-2 text-center transition-all duration-300 hover:scale-[1.02] ${
                                   isCurrent ? 'bg-green-500/20 border border-green-500/30 animate-pulse shadow-green-500/20 shadow-lg' : 'bg-slate-700/50 hover:bg-slate-600/70'
                                 }`}>
                                   <div className={`text-xs font-bold ${
@@ -471,7 +471,7 @@ export const RewardInformationCard: React.FC<RewardInformationCardProps> = ({
                         <div className="text-center">
                           <Button 
                             onClick={() => openDialog('bcc')}
-                            className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-400 hover:to-purple-400 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 w-full py-2 text-sm"
+                            className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-400 hover:to-purple-400 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-95 w-full py-2 text-sm"
                           >
                             <Eye className="mr-2 h-4 w-4" />
                             {t('rewards.information.viewAllPhasesDetails')}
