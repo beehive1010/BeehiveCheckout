@@ -114,49 +114,76 @@ export function useMatrixChildren(matrixRootWallet: string, parentWallet: string
         throw new Error('Matrix root and parent wallet required');
       }
       
-      const { data: childrenData, error } = await supabase
-        .from('matrix_referrals')
-        .select(`
-          layer,
-          position,
-          member_wallet,
-          parent_wallet,
-          referral_type,
-          created_at
-        `)
-        .eq('matrix_root_wallet', matrixRootWallet)
-        .eq('parent_wallet', parentWallet)
-        .order('position');
+      console.log('🔍 Getting matrix children via API for parent:', parentWallet);
       
-      if (error) {
-        console.error('Children query error:', error);
-        throw error;
-      }
-      
-      // 组织成3x3子矩阵
-      const childPositions = ['L', 'M', 'R'];
-      const children3x3 = childPositions.map(pos => {
-        // 查找该位置对应的子成员
-        // 例如：parent在L位置，子位置就是L.L, L.M, L.R
-        const child = childrenData?.find(c => c.position.endsWith(`.${pos}`));
+      try {
+        // 使用Matrix API获取完整的矩阵成员数据
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/matrix-view`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'x-wallet-address': matrixRootWallet,
+          },
+          body: JSON.stringify({
+            action: 'get-matrix-members'
+          }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Matrix API Error: ${response.status} - ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log('🔍 Matrix API response for children:', result);
+
+        if (!result.success) {
+          throw new Error(result.error || 'Matrix API call failed');
+        }
+
+        // 从所有成员中找到指定parent的下级
+        const allMembers = result.data.tree_members || [];
+        const childrenMembers = allMembers.filter((member: any) => 
+          member.parent_wallet === parentWallet
+        );
+        
+        console.log('📊 Children found for parent', parentWallet, ':', childrenMembers);
+
+        // 组织成3x3子矩阵
+        const childPositions = ['L', 'M', 'R'];
+        const children3x3 = childPositions.map(pos => {
+          // 查找该位置对应的子成员
+          const child = childrenMembers.find((c: any) => 
+            c.matrix_position === pos || c.matrix_position?.endsWith(`.${pos}`)
+          );
+          
+          return {
+            position: pos,
+            member: child ? {
+              wallet: child.wallet_address,
+              joinedAt: child.joined_at,
+              type: child.placement_type || 'matrix_placement',
+              fullPosition: child.matrix_position,
+              username: child.username,
+              isActivated: child.is_activated
+            } : null
+          };
+        });
+        
+        console.log('📊 Organized children 3x3:', children3x3);
         
         return {
-          position: pos,
-          member: child ? {
-            wallet: child.member_wallet,
-            joinedAt: child.created_at,
-            type: child.referral_type,
-            fullPosition: child.position
-          } : null
+          parentWallet,
+          matrixRootWallet,
+          children: children3x3,
+          totalChildren: childrenMembers.length
         };
-      });
-      
-      return {
-        parentWallet,
-        matrixRootWallet,
-        children: children3x3,
-        totalChildren: childrenData?.length || 0
-      };
+        
+      } catch (error) {
+        console.error('❌ Matrix children API error:', error);
+        throw error;
+      }
     },
     enabled: !!matrixRootWallet && !!parentWallet,
     staleTime: 5000,
@@ -171,84 +198,85 @@ export function useLayeredMatrix(matrixRootWallet: string) {
     queryFn: async () => {
       if (!matrixRootWallet) throw new Error('No matrix root wallet');
       
-      // 只获取Layer 1的直接成员
-      console.log('🔍 Querying matrix data for root:', matrixRootWallet);
-      console.log('🔍 Query params - matrix_root_wallet:', matrixRootWallet);
-      console.log('🔍 Query params - layer:', 1);
-      console.log('🔍 Query params - parent_wallet:', matrixRootWallet);
+      console.log('🔍 Getting matrix data via Matrix API for root:', matrixRootWallet);
       
-      // Add detailed debugging
-      console.log('🔍 About to query matrix_referrals table...');
-      console.log('🔍 Supabase client config:', { 
-        url: import.meta.env.VITE_SUPABASE_URL,
-        hasKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY 
-      });
-      
-      const { data: layer1Data, error } = await supabase
-        .from('matrix_referrals')
-        .select(`
-          position,
-          member_wallet,
-          referral_type,
-          created_at
-        `)
-        .eq('matrix_root_wallet', matrixRootWallet)
-        .eq('layer', 1)
-        .eq('parent_wallet', matrixRootWallet) // 确保是直接挂在root下的
-        .order('position');
+      try {
+        // 使用Matrix API获取成员数据，而不是直接查询数据库
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/matrix-view`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'x-wallet-address': matrixRootWallet,
+          },
+          body: JSON.stringify({
+            action: 'get-matrix-members'
+          }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Matrix API Error: ${response.status} - ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log('🔍 Matrix API response:', result);
+
+        if (!result.success) {
+          throw new Error(result.error || 'Matrix API call failed');
+        }
+
+        const matrixData = result.data;
+        const layer1Members = matrixData.matrix_data.by_layer['1'] || [];
         
-      console.log('🔍 Raw Supabase response:', { data: layer1Data, error });
-      
-      console.log('📊 Layer 1 query result:', { layer1Data, error, matrixRootWallet });
-      console.log('📊 Layer 1 data count:', layer1Data?.length || 0);
-      if (layer1Data && layer1Data.length > 0) {
-        console.log('📊 Sample data:', layer1Data[0]);
-      }
-      
-      if (error) {
-        console.error('Layered matrix query error:', error);
-        throw error;
-      }
-      
-      // 检查每个Layer 1成员是否有下级
-      const layer1WithChildren = await Promise.all(
-        (layer1Data || []).map(async (member) => {
-          const { count } = await supabase
-            .from('matrix_referrals')
-            .select('*', { count: 'exact', head: true })
-            .eq('matrix_root_wallet', matrixRootWallet)
-            .eq('parent_wallet', member.member_wallet);
+        console.log('📊 Layer 1 members from API:', layer1Members);
+        console.log('📊 Layer 1 member count:', layer1Members.length);
+
+        // 组织成标准3x3格式并计算每个成员的下级数量
+        const matrixPositions = ['L', 'M', 'R'];
+        const allMembers = matrixData.tree_members || [];
+        
+        const matrix3x3 = matrixPositions.map(position => {
+          const member = layer1Members.find((m: any) => m.matrix_position === position);
+          
+          if (!member) {
+            return {
+              position,
+              member: null
+            };
+          }
+
+          // 计算该成员的下级数量
+          const childrenCount = allMembers.filter((m: any) => 
+            m.parent_wallet === member.wallet_address
+          ).length;
           
           return {
-            ...member,
-            hasChildren: (count || 0) > 0,
-            childrenCount: count || 0
+            position,
+            member: {
+              wallet: member.wallet_address,
+              joinedAt: member.joined_at,
+              type: member.placement_type || 'matrix_placement',
+              hasChildren: childrenCount > 0,
+              childrenCount: childrenCount,
+              username: member.username,
+              isActivated: member.is_activated
+            }
           };
-        })
-      );
-      
-      // 组织成标准3x3格式
-      const matrixPositions = ['L', 'M', 'R'];
-      const matrix3x3 = matrixPositions.map(position => {
-        const member = layer1WithChildren.find(m => m.position === position);
-        
+        });
+
+        console.log('📊 Organized matrix 3x3:', matrix3x3);
+
         return {
-          position,
-          member: member ? {
-            wallet: member.member_wallet,
-            joinedAt: member.created_at,
-            type: member.referral_type,
-            hasChildren: member.hasChildren,
-            childrenCount: member.childrenCount
-          } : null
+          matrixRootWallet,
+          layer1Matrix: matrix3x3,
+          totalLayer1Members: layer1Members.length
         };
-      });
-      
-      return {
-        matrixRootWallet,
-        layer1Matrix: matrix3x3,
-        totalLayer1Members: layer1Data?.length || 0
-      };
+        
+      } catch (error) {
+        console.error('❌ Matrix API error:', error);
+        throw error;
+      }
     },
     enabled: !!matrixRootWallet,
     staleTime: 0, // Force fresh data
