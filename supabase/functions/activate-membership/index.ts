@@ -99,6 +99,62 @@ serve(async (req: Request) => {
     await logOperation('info', 'member_activation', 'activation_started', 'pending',
       { transactionHash, level, referrerWallet, action });
     // Handle different action types
+    if (action === 'check-activation-status') {
+      console.log(`🔍 Checking activation status for ${walletAddress}`);
+      try {
+        // Check if user exists
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('wallet_address, username, referrer_wallet, created_at')
+          .eq('wallet_address', walletAddress)
+          .maybeSingle();
+
+        if (userError || !userData) {
+          // User not registered - return status without error
+          return new Response(JSON.stringify({
+            success: true,
+            isRegistered: false,
+            isActivated: false,
+            membershipLevel: 0,
+            message: 'User not registered'
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200
+          });
+        }
+
+        // Check member status
+        const { data: memberData, error: memberError } = await supabase
+          .from('members')
+          .select('current_level, activation_sequence, activation_time, referrer_wallet')
+          .eq('wallet_address', walletAddress)
+          .maybeSingle();
+
+        const isActivated = !memberError && memberData && memberData.current_level > 0;
+
+        return new Response(JSON.stringify({
+          success: true,
+          isRegistered: true,
+          isActivated: isActivated,
+          membershipLevel: memberData?.current_level || 0,
+          memberData: memberData,
+          userData: userData
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        });
+      } catch (error) {
+        console.error('❌ Check activation status error:', error);
+        return new Response(JSON.stringify({
+          success: false,
+          error: error.message
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500
+        });
+      }
+    }
+
     if (action === 'check-nft-ownership') {
       const targetLevel = level || 1;
       console.log(`🔍 Checking NFT ownership for ${walletAddress}, Level: ${targetLevel}`);
@@ -169,7 +225,7 @@ serve(async (req: Request) => {
         const { data: userData, error: userError } = await supabase
           .from('users')
           .select('wallet_address, username, referrer_wallet, created_at')
-          .ilike('wallet_address', walletAddress)
+          .eq('wallet_address', walletAddress)
           .maybeSingle();
 
         if (userError || !userData) {
@@ -188,7 +244,7 @@ serve(async (req: Request) => {
         const { data: memberData, error: memberError } = await supabase
           .from('members')
           .select('current_level, activation_sequence, activation_time, referrer_wallet')
-          .ilike('wallet_address', walletAddress)
+          .eq('wallet_address', walletAddress)
           .maybeSingle();
 
         const isActivated = !memberError && memberData && memberData.current_level > 0;
@@ -224,14 +280,14 @@ serve(async (req: Request) => {
         const { data: membership, error: membershipError } = await supabase
           .from('membership')
           .select('*')
-          .ilike('wallet_address', walletAddress)
+          .eq('wallet_address', walletAddress)
           .maybeSingle();
 
         // Check members table
         const { data: member, error: memberError } = await supabase
           .from('members')
           .select('*')
-          .ilike('wallet_address', walletAddress)
+          .eq('wallet_address', walletAddress)
           .maybeSingle();
 
         if (member && !memberError && member.current_level > 0) {
@@ -332,11 +388,11 @@ serve(async (req: Request) => {
       });
     }
     
-    // 严格的用户注册查询 - 使用精确匹配和case-insensitive
+    // 严格的用户注册查询 - 使用精确匹配
     let { data: userData, error: userError } = await supabase
       .from('users')
       .select('wallet_address, referrer_wallet, username, created_at')
-      .ilike('wallet_address', walletAddress)
+      .eq('wallet_address', walletAddress)
       .single();
     
     // 严格验证：用户必须存在且有完整数据
@@ -386,7 +442,7 @@ serve(async (req: Request) => {
     }
     console.log(`✅ User registration confirmed: ${userData.wallet_address}`);
     // Step 2: Check if this membership level has already been claimed
-    const { data: existingMembership, error: membershipCheckError } = await supabase.from('membership').select('*').ilike('wallet_address', walletAddress).eq('nft_level', level).single();
+    const { data: existingMembership, error: membershipCheckError } = await supabase.from('membership').select('*').eq('wallet_address', walletAddress).eq('nft_level', level).single();
     if (existingMembership && !membershipCheckError) {
       console.log(`✅ Found existing Level ${level} membership for: ${walletAddress}`);
       
@@ -394,7 +450,7 @@ serve(async (req: Request) => {
       const { data: existingMember, error: memberCheckError } = await supabase
         .from('members')
         .select('*')
-        .ilike('wallet_address', walletAddress)
+        .eq('wallet_address', walletAddress)
         .maybeSingle();
       
       if (existingMember && !memberCheckError) {
@@ -478,7 +534,7 @@ serve(async (req: Request) => {
         const { data: referrerExists, error: referrerCheckError } = await supabase
           .from('users')
           .select('wallet_address, username')
-          .ilike('wallet_address', normalizedReferrerWallet)
+          .eq('wallet_address', normalizedReferrerWallet)
           .maybeSingle();
           
         if (referrerCheckError || !referrerExists) {
@@ -566,7 +622,7 @@ serve(async (req: Request) => {
         const { data: referrerExists, error: referrerCheckError } = await supabase
           .from('users')
           .select('wallet_address')
-          .ilike('wallet_address', normalizedReferrerWallet)
+          .eq('wallet_address', normalizedReferrerWallet)
           .single();
           
         if (referrerCheckError || !referrerExists) {
@@ -603,7 +659,7 @@ serve(async (req: Request) => {
       const { data: existingMember, error: existingError } = await supabase
         .from('members')
         .select('*')
-        .ilike('wallet_address', userData.wallet_address)
+        .eq('wallet_address', userData.wallet_address)
         .maybeSingle();
 
       if (existingMember) {

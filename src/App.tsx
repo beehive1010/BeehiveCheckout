@@ -39,7 +39,7 @@ import SupabaseAuth from "@/pages/SupabaseAuth";
 import AuthCallback from "@/pages/AuthCallback";
 import AdminNFTsPage from "@/pages/AdminNFTs";
 import TestUpgradeMembership from "@/pages/TestUpgradeMembership";
-import PhotoUploadDemo from "@/pages/PhotoUploadDemo";
+// import PhotoUploadDemo from "@/pages/PhotoUploadDemo";
 
 // Import proper Header and Navigation components
 import Header from "@/components/shared/Header";
@@ -415,12 +415,12 @@ function Router() {
           </MemberGuard>
         )} />
 
-        {/* Photo Upload Demo */}
-        <Route path="/photo-upload-demo" component={() => (
+        {/* Photo Upload Demo - Temporarily disabled */}
+        {/* <Route path="/photo-upload-demo" component={() => (
           <MemberGuard requireActivation={true} redirectTo="/welcome">
             <PhotoUploadDemo />
           </MemberGuard>
-        )} />
+        )} /> */}
 
         <Route path="/hiveworld" component={() => (
           <MemberGuard requireActivation={true} redirectTo="/welcome">

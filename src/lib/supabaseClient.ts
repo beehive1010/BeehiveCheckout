@@ -192,8 +192,7 @@ export const authService = {
       // If not activated in database, fall back to blockchain check
       console.log(`🔗 Database shows no activation, checking blockchain for ${walletAddress}`);
       const chainResult = await callEdgeFunction('activate-membership', {
-        transactionHash: 'check_existing',
-        level: 1
+        action: 'check-activation-status'
       }, walletAddress);
       
       if (!chainResult.success) {
