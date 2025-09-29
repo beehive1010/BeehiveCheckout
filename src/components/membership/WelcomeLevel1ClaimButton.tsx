@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useState, useCallback} from 'react';
 import {useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain} from 'thirdweb/react';
 import {createThirdwebClient, getContract, prepareContractCall, sendTransaction, waitForReceipt} from 'thirdweb';
 import {arbitrum} from 'thirdweb/chains';
@@ -10,8 +10,10 @@ import {Badge} from '../ui/badge';
 import {useToast} from '../../hooks/use-toast';
 import {Clock, Coins, Crown, Gift, Loader2, Zap} from 'lucide-react';
 import {supabase} from '../../lib/supabaseClient';
+import {authService} from '../../lib/supabase';
 import {useI18n} from '../../contexts/I18nContext';
 import RegistrationModal from '../modals/RegistrationModal';
+import ErrorBoundary from '../ui/error-boundary';
 
 interface WelcomeLevel1ClaimButtonProps {
   onSuccess?: () => void;
@@ -29,6 +31,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
   const [currentStep, setCurrentStep] = useState<string>('');
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [isWrongNetwork, setIsWrongNetwork] = useState(false);
+  const [isStabilizing, setIsStabilizing] = useState(false);
   
   // Fixed Level 1 pricing and info
   const LEVEL_1_PRICE_USDC = 130;
@@ -119,13 +122,31 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
     }
   };
 
-  const handleRegistrationComplete = () => {
+  const handleRegistrationComplete = useCallback(() => {
     console.log('✅ Registration completed - closing modal and retrying claim');
     setShowRegistrationModal(false);
+    setIsStabilizing(true);
+    
+    // Add stabilization delay to prevent ThirdWeb DOM errors
     setTimeout(() => {
-      handleClaimLevel1NFT();
-    }, 500);
-  };
+      setIsStabilizing(false);
+      setTimeout(() => {
+        handleClaimLevel1NFT();
+      }, 300);
+    }, 1000);
+  }, []);
+
+  // Add stabilization effect for ThirdWeb DOM errors
+  useEffect(() => {
+    if (showRegistrationModal) {
+      setIsStabilizing(true);
+      const stabilizeTimer = setTimeout(() => {
+        setIsStabilizing(false);
+      }, 800);
+      
+      return () => clearTimeout(stabilizeTimer);
+    }
+  }, [showRegistrationModal]);
 
   const handleClaimLevel1NFT = async () => {
     console.log('🎯 Level 1 NFT Claim attempt started');
@@ -162,94 +183,106 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
     setIsProcessing(true);
 
     try {
-      // Step 1: Check if user is registered
+      // Step 1: Check if user is registered using authService
       console.log('🔍 Checking user registration status...');
       setCurrentStep(t('claim.checkingRegistration') || 'Checking registration status...');
       
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('wallet_address', account.address)
-        .single();
-      
-      if (userError || !userData) {
-        console.log('❌ User not registered:', {
-          error: userError,
-          hasUserData: !!userData,
-          walletAddress: account.address
+      try {
+        const { data: userData } = await authService.getUser(account.address);
+        
+        if (!userData) {
+          console.log('❌ User not registered:', {
+            walletAddress: account.address
+          });
+          
+          // Show user-friendly message
+          toast({
+            title: "Registration Required",
+            description: "Please complete your registration to claim your Level 1 NFT.",
+            duration: 3000
+          });
+          
+          setIsProcessing(false);
+          setCurrentStep('');
+          
+          // Add stabilization delay before showing modal
+          setIsStabilizing(true);
+          setTimeout(() => {
+            setIsStabilizing(false);
+            setTimeout(() => {
+              setShowRegistrationModal(true);
+            }, 300);
+          }, 800);
+          return;
+        }
+        
+        console.log('✅ User registration confirmed:', {
+          walletAddress: userData.wallet_address,
+          username: userData.username
         });
         
-        // Show user-friendly message
+        console.log('✅ User registration verified');
+        
+      } catch (registrationError) {
+        console.error('❌ Failed to check user registration:', registrationError);
+        
+        // Treat as unregistered and show registration modal
         toast({
-          title: "Registration Required",
-          description: "Please complete your registration to claim your Level 1 NFT.",
+          title: "Registration Check Failed",
+          description: "Please complete your registration to proceed.",
           duration: 3000
         });
         
         setIsProcessing(false);
         setCurrentStep('');
         
-        // Small delay to ensure UI updates before showing modal
         setTimeout(() => {
           setShowRegistrationModal(true);
         }, 500);
         return;
       }
       
-      console.log('✅ User registration confirmed:', {
-        walletAddress: userData.wallet_address,
-        username: userData.username
-      });
-      
-      console.log('✅ User registration verified');
-      
-      // Step 2: Validate referrer with fallback logic
+      // Step 2: Validate referrer with fallback logic using authService
       setCurrentStep(t('claim.validatingReferrer'));
 
       let referrerData = null;
       let isValidReferrer = false;
 
-      // First try members table (activated users)
-      const { data: memberReferrer, error: memberError } = await supabase
-        .from('members')
-        .select('wallet_address, username')
-        .eq('wallet_address', referrerWallet)
-        .single();
-
-      if (memberReferrer && !memberError) {
-        referrerData = memberReferrer;
-        isValidReferrer = true;
-        console.log('✅ Referrer found in members table (activated user):', {
-          wallet: memberReferrer.wallet_address,
-          username: memberReferrer.username
-        });
-      } else {
-        // Fallback: try users table (registered users)
-        const { data: userReferrer, error: userError } = await supabase
-          .from('users')
-          .select('wallet_address, username')
-          .eq('wallet_address', referrerWallet)
-          .single();
-
-        if (userReferrer && !userError) {
-          referrerData = userReferrer;
+      try {
+        // First try to get referrer as activated member
+        const membershipResult = await authService.isActivatedMember(referrerWallet);
+        
+        if (membershipResult.isActivated && membershipResult.memberData) {
+          referrerData = membershipResult.memberData;
           isValidReferrer = true;
-          console.log('✅ Referrer found in users table (registered user):', {
-            wallet: userReferrer.wallet_address,
-            username: userReferrer.username
+          console.log('✅ Referrer found as activated member:', {
+            wallet: membershipResult.memberData.wallet_address,
+            username: membershipResult.memberData.username
           });
+        } else {
+          // Fallback: try to get referrer as registered user
+          const { data: userReferrer } = await authService.getUser(referrerWallet);
+          
+          if (userReferrer) {
+            referrerData = userReferrer;
+            isValidReferrer = true;
+            console.log('✅ Referrer found as registered user:', {
+              wallet: userReferrer.wallet_address,
+              username: userReferrer.username
+            });
+          }
         }
+      } catch (referrerError) {
+        console.error('❌ Error validating referrer:', referrerError);
       }
 
       if (!isValidReferrer || !referrerData) {
-        console.log('❌ Referrer validation failed - referrer not found in members or users:', {
-          referrerWallet,
-          memberError: memberError?.message,
-          userError: userError?.message
+        console.log('❌ Referrer validation failed - referrer not found:', {
+          referrerWallet
         });
         toast({
           title: t('claim.invalidReferrer'),
-          description: t('claim.referrerMustBeRegistered') || 'Referrer must be a registered and activated user on the platform',
+          description: t('claim.referrerMustBeRegistered') || 'Referrer must be a registered user on the platform',
           variant: "destructive",
         });
         setIsProcessing(false);
@@ -258,8 +291,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
       console.log('✅ Referrer validation passed:', {
         referrerWallet: referrerData.wallet_address,
-        referrerUsername: referrerData.username,
-        foundIn: memberReferrer ? 'members' : 'users'
+        referrerUsername: referrerData.username
       });
 
       // Step 3: Check network - must be Arbitrum One (42161)
@@ -294,20 +326,15 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
       // Step 6: Check if user already owns Level 1 NFT
       console.log('🔍 Checking Level 1 NFT ownership...');
       
-      // First check database records
+      // First check database records using authService
       try {
-        const { data: membershipData } = await supabase
-          .from('members')
-          .select('current_level')
-          .eq('wallet_address', account.address)
-          .gte('current_level', 1)
-          .single();
-          
-        if (membershipData) {
+        const membershipResult = await authService.isActivatedMember(account.address);
+        
+        if (membershipResult.isActivated && membershipResult.memberData?.current_level >= 1) {
           console.log('✅ User already has Level 1+ membership in database - redirecting');
           toast({
             title: 'Welcome Back! 🎉',
-            description: 'You already have Level 1 membership. Redirecting to dashboard.',
+            description: `You already have Level ${membershipResult.memberData.current_level} membership. Redirecting to dashboard.`,
             variant: "default",
             duration: 3000,
           });
@@ -737,7 +764,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
   };
 
   return (
-    <>
+    <ErrorBoundary>
       <Card className={`bg-gradient-to-br from-honey/5 to-honey/15 border-honey/30 ${className}`}>
         <CardHeader className="text-center pb-4">
           <div className="flex items-center justify-center mb-3">
@@ -812,7 +839,7 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
 
             <Button 
               onClick={handleClaimLevel1NFT}
-              disabled={isProcessing || !account?.address || isWrongNetwork}
+              disabled={isProcessing || !account?.address || isWrongNetwork || isStabilizing}
               className="w-full h-12 bg-gradient-to-r from-honey to-orange-500 hover:from-honey/90 hover:to-orange-500/90 text-background font-semibold text-lg shadow-lg disabled:opacity-50"
             >
               {!account?.address ? (
@@ -824,6 +851,11 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
                 <>
                   <Crown className="mr-2 h-5 w-5" />
                   Switch Network First
+                </>
+              ) : isStabilizing ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Stabilizing...
                 </>
               ) : isProcessing ? (
                 <>
@@ -874,6 +906,6 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
         referrerWallet={referrerWallet}
         onRegistrationComplete={handleRegistrationComplete}
       />
-    </>
+    </ErrorBoundary>
   );
 }
