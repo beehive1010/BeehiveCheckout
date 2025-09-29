@@ -197,20 +197,20 @@ export default function Dashboard() {
     try {
       console.log('🏆 Fetching reward data from database for:', walletAddress);
       
-      // 查询奖励统计 - 使用正确的layer_rewards表
+      // 查询奖励统计 - 使用正确的matrix_layer_rewards表
       const { data: rewardData, error: rewardError } = await supabase
-        .from('layer_rewards')
+        .from('matrix_layer_rewards')
         .select(`
           id,
           reward_amount,
-          status,
+          reward_status,
           created_at,
           expires_at,
           claimed_at,
           matrix_layer,
-          triggering_member_wallet
+          rewarded_member_wallet
         `)
-        .ilike('reward_recipient_wallet', walletAddress) // Use correct column name
+        .ilike('matrix_root_wallet', walletAddress) // Use correct column name
         .order('created_at', { ascending: false });
 
       if (rewardError) {

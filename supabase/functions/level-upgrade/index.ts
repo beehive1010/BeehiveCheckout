@@ -404,7 +404,7 @@ async function processLevelUpgrade(
 
         if (!checkError && createdLayerRewards && createdLayerRewards.length > 0) {
           console.log(`✅ Verified ${createdLayerRewards.length} layer rewards created for Level ${targetLevel}:`,
-            createdLayerRewards.map(r => `${r.reward_recipient_wallet}: ${r.reward_amount} USDC (${r.status})`));
+            createdLayerRewards.map(r => `${r.matrix_root_wallet}: ${r.reward_amount} USDC (${r.reward_status})`));
         } else if (!checkError && (!createdLayerRewards || createdLayerRewards.length === 0)) {
           console.warn(`⚠️ No layer rewards found after Level ${targetLevel} upgrade - may indicate missing matrix members at this layer`);
         }
