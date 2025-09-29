@@ -48,8 +48,8 @@ export function MatrixNetworkStatsV2({ walletAddress }: MatrixNetworkStatsV2Prop
     try {
       console.log('🚀 Loading matrix stats directly from Supabase for:', walletAddress);
       
-      // Import supabase client (assuming it's available)
-      const { supabase } = await import('../../lib/supabase');
+      // Import supabase client 
+      const { supabase } = await import('../../lib/supabaseClient');
       
       // Get layer statistics directly from matrix_layers_view
       const { data: matrixData, error: layerError } = await supabase
