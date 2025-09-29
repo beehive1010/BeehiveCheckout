@@ -580,7 +580,7 @@ serve(async (req: Request) => {
         treeMembers.push(memberData)
       })
 
-      console.log(`✅ Retrieved ${matrixMembers?.length || 0} matrix members`)
+      console.log(`✅ Retrieved ${allMatrixMembers?.length || 0} matrix members`)
 
       return new Response(JSON.stringify({
         success: true,
@@ -588,7 +588,7 @@ serve(async (req: Request) => {
           wallet_address: walletAddress,
           matrix_data: {
             by_layer: byLayer,
-            total_members: matrixMembers?.length || 0
+            total_members: allMatrixMembers?.length || 0
           },
           tree_members: treeMembers
         }
