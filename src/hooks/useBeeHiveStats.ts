@@ -141,13 +141,13 @@ export function useUserMatrixStats() {
       // Get matrix placements by layer using matrix_referrals table directly
       const { data: matrixData } = await supabase
         .from('matrix_referrals')
-        .select('parent_depth, position, member_wallet')
+        .select('layer, position, member_wallet, parent_wallet')
         .eq('matrix_root_wallet', walletAddress)
-        .order('parent_depth');
+        .order('layer');
 
-      // Group by layer and count (using parent_depth as layer)
+      // Group by layer and count
       const layerStats = matrixData?.reduce((acc, placement) => {
-        const layer = placement.parent_depth;
+        const layer = placement.layer;
         const position = placement.position;
         if (layer !== null && layer !== undefined && position !== null && position !== undefined) {
           if (!acc[layer]) {
@@ -162,12 +162,76 @@ export function useUserMatrixStats() {
       return {
         totalLayers: Object.keys(layerStats).length,
         layerStats,
-        totalMembers: matrixData?.length || 0
+        totalMembers: matrixData?.length || 0,
+        matrixData: matrixData || [] // 原始数据供详细显示
       };
     },
     enabled: !!walletAddress,
     staleTime: 5000,
     refetchInterval: 15000,
+  });
+}
+
+// 19层递归矩阵详细数据hook
+export function useFullMatrixStructure() {
+  const { walletAddress } = useWallet();
+
+  return useQuery({
+    queryKey: ['/api/matrix/full-structure', walletAddress],
+    queryFn: async () => {
+      if (!walletAddress) throw new Error('No wallet address');
+      
+      // 获取完整的19层矩阵结构
+      const { data: fullMatrixData } = await supabase
+        .from('matrix_referrals')
+        .select(`
+          layer,
+          position,
+          member_wallet,
+          parent_wallet,
+          parent_depth,
+          referral_type,
+          created_at
+        `)
+        .eq('matrix_root_wallet', walletAddress)
+        .order('layer, position');
+
+      // 按层级组织数据
+      const matrixByLayers = fullMatrixData?.reduce((acc, member) => {
+        const layer = member.layer;
+        if (!acc[layer]) {
+          acc[layer] = [];
+        }
+        acc[layer].push(member);
+        return acc;
+      }, {} as Record<number, typeof fullMatrixData>) || {};
+
+      // 计算每层统计
+      const layerSummary = Object.entries(matrixByLayers).map(([layer, members]) => ({
+        layer: parseInt(layer),
+        memberCount: members.length,
+        maxCapacity: Math.pow(3, parseInt(layer)), // Layer n可容纳3^n个成员
+        fillPercentage: (members.length / Math.pow(3, parseInt(layer))) * 100,
+        positions: members.map(m => ({
+          position: m.position,
+          wallet: m.member_wallet,
+          parent: m.parent_wallet,
+          joinedAt: m.created_at,
+          type: m.referral_type
+        }))
+      }));
+
+      return {
+        matrixByLayers,
+        layerSummary,
+        totalMembers: fullMatrixData?.length || 0,
+        totalLayers: Object.keys(matrixByLayers).length,
+        fullMatrixData: fullMatrixData || []
+      };
+    },
+    enabled: !!walletAddress,
+    staleTime: 3000,
+    refetchInterval: 10000,
   });
 }
 
@@ -186,13 +250,23 @@ export function useUserRewardStats() {
         .select('*')
         .eq('reward_recipient_wallet', walletAddress);
 
+      // 区分 direct rewards (matrix_layer = 0) 和 layer rewards (matrix_layer >= 1)
+      const directRewards = rewardsData?.filter(r => r.matrix_layer === 0) || [];
+      const layerRewards = rewardsData?.filter(r => r.matrix_layer >= 1) || [];
+
       const claimableRewards = rewardsData?.filter(r => r.status === 'claimable') || [];
       const pendingRewards = rewardsData?.filter(r => r.status === 'pending') || [];
       const claimedRewards = rewardsData?.filter(r => r.status === 'claimed') || [];
 
+      const claimableDirectRewards = directRewards.filter(r => r.status === 'claimable');
+      const claimableLayerRewards = layerRewards.filter(r => r.status === 'claimable');
+
       const totalClaimableAmount = claimableRewards.reduce((sum, r) => sum + (Number(r.reward_amount) || 0), 0);
       const totalPendingAmount = pendingRewards.reduce((sum, r) => sum + (Number(r.reward_amount) || 0), 0);
       const totalClaimedAmount = claimedRewards.reduce((sum, r) => sum + (Number(r.reward_amount) || 0), 0);
+
+      const directRewardsAmount = directRewards.reduce((sum, r) => sum + (Number(r.reward_amount) || 0), 0);
+      const layerRewardsAmount = layerRewards.reduce((sum, r) => sum + (Number(r.reward_amount) || 0), 0);
 
       return {
         claimableRewards: claimableRewards.length,
@@ -201,6 +275,19 @@ export function useUserRewardStats() {
         totalClaimableAmount,
         totalPendingAmount,
         totalClaimedAmount,
+        // Direct vs Layer rewards breakdown
+        directRewards: {
+          count: directRewards.length,
+          claimableCount: claimableDirectRewards.length,
+          totalAmount: directRewardsAmount,
+          claimableAmount: claimableDirectRewards.reduce((sum, r) => sum + (Number(r.reward_amount) || 0), 0)
+        },
+        layerRewards: {
+          count: layerRewards.length,
+          claimableCount: claimableLayerRewards.length,
+          totalAmount: layerRewardsAmount,
+          claimableAmount: claimableLayerRewards.reduce((sum, r) => sum + (Number(r.reward_amount) || 0), 0)
+        },
         recentRewards: rewardsData?.slice(0, 10) || []
       };
     },

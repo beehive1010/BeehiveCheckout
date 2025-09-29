@@ -379,14 +379,33 @@ async function processLevelUpgrade(
           return prices[lvl] || (lvl <= 19 ? 100 + (lvl - 1) * 50 : 0);
         };
 
-        console.log(`💰 Creating layer rewards for Level ${targetLevel} upgrade...`);
+        console.log(`💰 Creating rewards for Level ${targetLevel} upgrade...`);
         console.log(`🎯 Reward amount will be: ${getNftPrice(targetLevel)} USDC (Level ${targetLevel} NFT price)`);
 
-        // Trigger layer rewards using the correct function name
-        const { data: layerRewardData, error: layerRewardError } = await supabase.rpc('process_matrix_layer_rewards', {
-          p_member_wallet: walletAddress,
-          p_new_level: targetLevel
-        });
+        // Level 1: Trigger direct referral rewards to referrer
+        // Level 2-19: Trigger layer rewards to matrix root (19 layers)
+        let layerRewardData: any = null;
+        let layerRewardError: any = null;
+
+        if (targetLevel === 1) {
+          console.log(`🎯 Level 1 upgrade - triggering direct referral rewards to referrer`);
+          const result = await supabase.rpc('trigger_direct_referral_rewards', {
+            p_upgrading_member_wallet: walletAddress,
+            p_new_level: targetLevel,
+            p_nft_price: getNftPrice(targetLevel)
+          });
+          layerRewardData = result.data;
+          layerRewardError = result.error;
+        } else {
+          console.log(`🎯 Level ${targetLevel} upgrade - triggering layer rewards to matrix root (19 layers)`);
+          const result = await supabase.rpc('trigger_layer_rewards_on_upgrade', {
+            p_upgrading_member_wallet: walletAddress,
+            p_new_level: targetLevel,
+            p_nft_price: getNftPrice(targetLevel)
+          });
+          layerRewardData = result.data;
+          layerRewardError = result.error;
+        }
 
         if (layerRewardError) {
           console.warn('⚠️ Layer reward creation failed:', layerRewardError);
@@ -404,7 +423,7 @@ async function processLevelUpgrade(
 
         if (!checkError && createdLayerRewards && createdLayerRewards.length > 0) {
           console.log(`✅ Verified ${createdLayerRewards.length} layer rewards created for Level ${targetLevel}:`,
-            createdLayerRewards.map(r => `${r.reward_recipient_wallet}: ${r.reward_amount} USDC (${r.status})`));
+            createdLayerRewards.map(r => `${r.matrix_root_wallet}: ${r.reward_amount} USDC (${r.reward_status})`));
         } else if (!checkError && (!createdLayerRewards || createdLayerRewards.length === 0)) {
           console.warn(`⚠️ No layer rewards found after Level ${targetLevel} upgrade - may indicate missing matrix members at this layer`);
         }

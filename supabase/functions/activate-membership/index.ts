@@ -972,7 +972,7 @@ serve(async (req: Request) => {
       const { data: existingLayerReward, error: checkError } = await supabase
         .from('layer_rewards')
         .select('id, status, reward_amount')
-        .eq('triggering_member_wallet', userData.wallet_address)
+        .eq('reward_recipient_wallet', userData.wallet_address)
         .eq('matrix_layer', level)
         .maybeSingle();
 
@@ -991,10 +991,9 @@ serve(async (req: Request) => {
         };
         
         // Manually trigger the layer reward creation
-        const { data: compensationResult, error: compensationError } = await supabase.rpc('trigger_layer_rewards_on_upgrade', {
-          p_upgrading_member_wallet: userData.wallet_address,
-          p_new_level: level,
-          p_nft_price: getNftPrice(level)
+        const { data: compensationResult, error: compensationError } = await supabase.rpc('process_matrix_layer_rewards', {
+          p_member_wallet: userData.wallet_address,
+          p_new_level: level
         });
 
         if (compensationError) {
@@ -1065,7 +1064,7 @@ serve(async (req: Request) => {
           supabase.from('members').select('id').eq('wallet_address', userData.wallet_address).single(),
           supabase.from('referrals_new').select('id').eq('referred_wallet', userData.wallet_address).maybeSingle(),
           supabase.from('matrix_referrals').select('id').eq('member_wallet', userData.wallet_address).maybeSingle(),
-          supabase.from('layer_rewards').select('id').eq('triggering_member_wallet', userData.wallet_address).eq('matrix_layer', level).maybeSingle()
+          supabase.from('layer_rewards').select('id').eq('reward_recipient_wallet', userData.wallet_address).eq('matrix_layer', level).maybeSingle()
         ]);
 
         const [membershipCheck, membersCheck, referralsCheck, matrixCheck, rewardsCheck] = verificationQueries;
