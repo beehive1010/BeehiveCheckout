@@ -2197,7 +2197,24 @@
         "autoReleaseDesc": "Instant BCC release upon level activation",
         "earlyAdvantage": "Early Advantage",
         "earlyAdvantageDesc": "Higher rewards for early adopters"
-      }
+      },
+      "levelBasic": "Basic Level",
+      "levelIntermediate": "Intermediate Level", 
+      "levelAdvanced": "Advanced Level",
+      "levelTop": "Top Level",
+      "phaseSummary": "Phase Summary",
+      "activatedMembers": "Activated Members",
+      "perMemberTotalLockingPool": "Per Member Total Locking Pool",
+      "completeReleaseSchedule": "Complete Release Schedule",
+      "bccReleaseOperationMechanism": "BCC Release Operation Mechanism",
+      "memberActivation": "Member Activation",
+      "memberActivationDesc": "When a new member joins and activates their account",
+      "phaseJudgment": "Phase Judgment", 
+      "phaseJudgmentDesc": "System determines current phase based on total activated members",
+      "instantRelease": "Instant Release",
+      "instantReleaseDesc": "Immediate BCC release upon meeting criteria",
+      "phaseProgression": "Phase Progression",
+      "phaseProgressionDesc": "Automatic progression through phases as membership grows"
     }
   },
   "me": {
@@ -2656,6 +2673,52 @@
       "loadingError": "Failed to load course data",
       "accessDenied": "Access denied - insufficient level or BCC",
       "networkError": "Network error - please try again"
+    },
+    "payment": {
+      "confirm_title": "Confirm Payment",
+      "course_details": "Course Details",
+      "price": "Price",
+      "method": "Payment Method",
+      "balance": "Balance",
+      "blockchain": "Blockchain Payment",
+      "coming_soon": "Coming Soon",
+      "blockchain_description": "Direct on-chain payment will be available soon",
+      "wallet": "Wallet Address",
+      "sufficient_balance": "Sufficient balance",
+      "remaining": "remaining",
+      "insufficient_balance": "Insufficient BCC balance",
+      "processing": "Processing...",
+      "confirm": "Confirm Payment",
+      "success": "Payment successful!",
+      "failed": "Payment failed",
+      "cancelled": "Payment cancelled"
+    }
+  },
+  "nfts": {
+    "advertisement": {
+      "title": "Advertisement NFTs",
+      "subtitle": "Discover and purchase advertising opportunities",
+      "purchase": "Purchase NFT",
+      "category": "Category",
+      "impressions": "Impressions",
+      "available": "Available",
+      "soldOut": "Sold Out",
+      "insufficient": "Insufficient BCC"
+    },
+    "merchant": {
+      "title": "Merchant NFTs",
+      "subtitle": "Explore unique merchant offerings",
+      "supply": "Supply",
+      "available": "Available",
+      "creator": "Creator"
+    },
+    "common": {
+      "purchase": "Purchase with BCC",
+      "purchasing": "Processing...",
+      "price": "Price",
+      "description": "Description",
+      "metadata": "Details",
+      "viewDetails": "View Details"
     }
   },
   "discover": {

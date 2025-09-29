@@ -1,34 +1,31 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { useToast } from '../../hooks/use-toast';
-import { useBalance } from '../../hooks/useBalance';
 import { useI18n } from '../../contexts/I18nContext';
-import { HybridTranslation } from '../shared/HybridTranslation';
-import { ShoppingCart, Eye, Package, Star, Zap } from 'lucide-react';
+import { useActiveAccount } from 'thirdweb/react';
+import PaymentConfirmationModal from '../education/PaymentConfirmationModal';
+import { nftsApi } from '../../api/nfts/nfts.api';
+import { supabase } from '../../lib/supabase';
+import { ShoppingCart, Eye, Package, Star, Zap, Loader2 } from 'lucide-react';
 import { IconBriefcase, IconPalette, IconCode, IconSchool } from '@tabler/icons-react';
 
 export interface MerchantNFT {
   id: string;
   title: string;
   description: string;
-  image_url: string;
-  price_usdt: number;
-  price_bcc: number;
+  imageUrl: string | null;
   category: string;
-  supply_total?: number;
-  supply_available?: number;
-  is_active: boolean;
-  creator_wallet?: string;
+  priceBCC: number;
+  priceUSDT: number;
+  supplyTotal: number | null;
+  supplyAvailable: number | null;
+  creatorWallet: string | null;
   metadata: any;
-  created_at: string;
-  // 多语言支持
-  language?: string;
-  translations?: Record<string, { title?: string; description?: string; category?: string; }>;
-  // 可用语言列表
-  availableLanguages?: string[];
+  createdAt: string;
+  type: 'merchant';
 }
 
 interface MerchantNFTCardProps {
@@ -46,12 +43,38 @@ export default function MerchantNFTCard({
   isOwned = false,
   className = '' 
 }: MerchantNFTCardProps) {
-  const { getBalanceBreakdown } = useBalance();
+  const activeAccount = useActiveAccount();
   const { toast } = useToast();
   const { t } = useI18n();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [userBalance, setUserBalance] = useState({ bcc_balance: 0, usdt_balance: 0 });
+  const [purchasing, setPurchasing] = useState(false);
   
-  // Get BCC balance from useBalance hook with fallback
+  // Load user balance when component mounts
+  React.useEffect(() => {
+    if (activeAccount?.address) {
+      loadUserBalance();
+    }
+  }, [activeAccount?.address]);
+
+  const loadUserBalance = async () => {
+    if (!activeAccount?.address) return;
+    
+    try {
+      const { data: balance } = await supabase
+        .from('user_balances')
+        .select('bcc_balance, usdt_balance')
+        .eq('wallet_address', activeAccount.address)
+        .maybeSingle();
+      
+      if (balance) {
+        setUserBalance(balance);
+      }
+    } catch (error) {
+      console.error('Failed to load user balance:', error);
+    }
+  };
   const balanceBreakdown = getBalanceBreakdown();
   const bccBalance = balanceBreakdown ? {
     transferable: balanceBreakdown.transferable

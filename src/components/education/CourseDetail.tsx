@@ -6,6 +6,8 @@ import { Badge } from '../ui/badge';
 import { Progress } from '../ui/progress';
 import { Calendar } from '../ui/calendar';
 import { Input } from '../ui/input';
+import PaymentConfirmationModal from './PaymentConfirmationModal';
+import { supabase } from '../../lib/supabase';
 import { 
   Play, 
   Lock, 
@@ -38,6 +40,9 @@ export default function CourseDetail({ courseId, onClose }: CourseDetailProps) {
   const [selectedTime, setSelectedTime] = useState('');
   const [meetingType, setMeetingType] = useState<'zoom' | 'voov'>('zoom');
   const [bookingResult, setBookingResult] = useState<any>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [userBalance, setUserBalance] = useState({ bcc_balance: 0, usdt_balance: 0 });
+  const [purchasing, setPurchasing] = useState(false);
 
   useEffect(() => {
     loadCourseData();
@@ -53,10 +58,21 @@ export default function CourseDetail({ courseId, onClose }: CourseDetailProps) {
       const courseData = coursesData.find((c: any) => c.id === courseId);
       setCourse(courseData);
       
-      // 获取用户访问权限
+      // 获取用户访问权限和余额
       if (walletAddress) {
         const accessData = await coursesApi.getCourseAccess(walletAddress);
         setUserAccess(accessData);
+        
+        // 获取用户BCC余额
+        const { data: balance } = await supabase
+          .from('user_balances')
+          .select('bcc_balance, usdt_balance')
+          .eq('wallet_address', walletAddress)
+          .maybeSingle();
+        
+        if (balance) {
+          setUserBalance(balance);
+        }
       }
       
       // 如果是video类型，获取lessons
@@ -73,12 +89,29 @@ export default function CourseDetail({ courseId, onClose }: CourseDetailProps) {
 
   const handlePurchase = async () => {
     if (!activeAccount?.address || !course) return;
+    setShowPaymentModal(true);
+  };
+
+  const handleConfirmPayment = async (paymentMethod: 'bcc' | 'blockchain') => {
+    if (!activeAccount?.address || !course) return;
     
     try {
-      await coursesApi.purchaseCourse(courseId, course.priceBCC, activeAccount.address);
-      await loadCourseData(); // Refresh data after purchase
+      setPurchasing(true);
+      
+      if (paymentMethod === 'bcc') {
+        // Use BCC balance payment (current implementation)
+        await coursesApi.purchaseCourse(courseId, course.priceBCC, activeAccount.address);
+        await loadCourseData(); // Refresh data after purchase
+      } else if (paymentMethod === 'blockchain') {
+        // Future: Implement blockchain payment
+        // This would call a different function that handles on-chain transactions
+        throw new Error('Blockchain payment not implemented yet');
+      }
     } catch (error) {
-      console.error('Purchase failed:', error);
+      console.error('Payment failed:', error);
+      throw error; // Let the modal handle the error display
+    } finally {
+      setPurchasing(false);
     }
   };
 
@@ -195,9 +228,16 @@ export default function CourseDetail({ courseId, onClose }: CourseDetailProps) {
                 <Button 
                   onClick={handlePurchase}
                   className="bg-honey text-secondary hover:bg-honey/90"
-                  disabled={!activeAccount?.address}
+                  disabled={!activeAccount?.address || purchasing}
                 >
-                  Purchase Course
+                  {purchasing ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black mr-2"></div>
+                      {t('education.enrolling')}
+                    </>
+                  ) : (
+                    t('education.purchase')
+                  )}
                 </Button>
               ) : (
                 <Badge variant="default" className="bg-green-500">
@@ -351,6 +391,22 @@ export default function CourseDetail({ courseId, onClose }: CourseDetailProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Payment Confirmation Modal */}
+      {course && (
+        <PaymentConfirmationModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          course={{
+            id: course.id,
+            title: course.title,
+            priceBCC: course.priceBCC,
+            priceUSDT: course.priceUSDT || 0
+          }}
+          userBalance={userBalance}
+          onConfirmPayment={handleConfirmPayment}
+        />
+      )}
     </div>
   );
 }

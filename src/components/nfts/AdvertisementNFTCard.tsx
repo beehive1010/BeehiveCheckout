@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -6,27 +6,30 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useToast } from '../../hooks/use-toast';
 import { useBalance } from '../../hooks/useBalance';
 import { useI18n } from '../../contexts/I18nContext';
-import { HybridTranslation } from '../shared/HybridTranslation';
-import { MultilingualText } from '../shared/MultilingualContent';
-import { ShoppingCart, Eye, ExternalLink, Zap } from 'lucide-react';
+import { useActiveAccount } from 'thirdweb/react';
+import PaymentConfirmationModal from '../education/PaymentConfirmationModal';
+import { nftsApi } from '../../api/nfts/nfts.api';
+import { supabase } from '../../lib/supabase';
+import { ShoppingCart, Eye, ExternalLink, Zap, Loader2 } from 'lucide-react';
 import { IconCode, IconWallet, IconFlame } from '@tabler/icons-react';
 
 export interface AdvertisementNFT {
   id: string;
   title: string;
   description: string;
-  imageUrl: string;
-  serviceName: string;
-  serviceType: 'dapp' | 'banner' | 'promotion';
+  imageUrl: string | null;
+  category: string;
   priceBCC: number;
-  totalSupply: number;
-  claimedCount: number;
+  priceUSDT: number;
+  clickUrl: string | null;
+  impressionsTarget: number | null;
+  impressionsCurrent: number | null;
+  startsAt: string | null;
+  endsAt: string | null;
+  advertiserWallet: string | null;
+  metadata: any;
   createdAt: string;
-  // 多语言支持
-  language?: string;
-  translations?: Record<string, { title?: string; description?: string; serviceName?: string; }>;
-  // 可用语言列表
-  availableLanguages?: string[];
+  type: 'advertisement';
 }
 
 interface AdvertisementNFTCardProps {
@@ -36,60 +39,121 @@ interface AdvertisementNFTCardProps {
 }
 
 export default function AdvertisementNFTCard({ nft, onPurchase, className = '' }: AdvertisementNFTCardProps) {
-  const { getBalanceBreakdown } = useBalance();
+  const activeAccount = useActiveAccount();
   const { toast } = useToast();
   const { t } = useI18n();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [userBalance, setUserBalance] = useState({ bcc_balance: 0, usdt_balance: 0 });
+  const [purchasing, setPurchasing] = useState(false);
   
-  // Get BCC balance from useBalance hook with fallback
-  const balanceBreakdown = getBalanceBreakdown();
-  const bccBalance = balanceBreakdown ? {
-    transferable: balanceBreakdown.transferable
-  } : { transferable: 600 }; // Default 600 BCC for new members
+  // Load user balance when component mounts
+  React.useEffect(() => {
+    if (activeAccount?.address) {
+      loadUserBalance();
+    }
+  }, [activeAccount?.address]);
 
-  const getServiceTypeIcon = (type: string) => {
-    switch (type) {
-      case 'dapp':
+  const loadUserBalance = async () => {
+    if (!activeAccount?.address) return;
+    
+    try {
+      const { data: balance } = await supabase
+        .from('user_balances')
+        .select('bcc_balance, usdt_balance')
+        .eq('wallet_address', activeAccount.address)
+        .maybeSingle();
+      
+      if (balance) {
+        setUserBalance(balance);
+      }
+    } catch (error) {
+      console.error('Failed to load user balance:', error);
+    }
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category.toLowerCase()) {
+      case 'defi':
         return <IconCode className="w-4 h-4" />;
-      case 'banner':
+      case 'nft':
         return <Eye className="w-4 h-4" />;
-      case 'promotion':
+      case 'gaming':
         return <IconFlame className="w-4 h-4" />;
+      case 'education':
+        return <IconWallet className="w-4 h-4" />;
+      case 'infrastructure':
+        return <Zap className="w-4 h-4" />;
       default:
         return <IconWallet className="w-4 h-4" />;
     }
   };
 
-  const getServiceTypeColor = (type: string) => {
-    switch (type) {
-      case 'dapp':
+  const getCategoryColor = (category: string) => {
+    switch (category.toLowerCase()) {
+      case 'defi':
         return 'border-blue-500/50 text-blue-400';
-      case 'banner':
+      case 'nft':
         return 'border-purple-500/50 text-purple-400';
-      case 'promotion':
+      case 'gaming':
         return 'border-orange-500/50 text-orange-400';
+      case 'education':
+        return 'border-green-500/50 text-green-400';
+      case 'infrastructure':
+        return 'border-yellow-500/50 text-yellow-400';
       default:
         return 'border-gray-500/50 text-gray-400';
     }
   };
 
-  const availableCount = nft.totalSupply - nft.claimedCount;
-  const availabilityPercentage = (availableCount / nft.totalSupply) * 100;
-  const canPurchase = (bccBalance?.transferable || 0) >= nft.priceBCC && availableCount > 0;
+  // Calculate availability based on impression targets
+  const totalProgress = nft.impressionsTarget ? 
+    Math.min((nft.impressionsCurrent || 0) / nft.impressionsTarget * 100, 100) : 0;
+  const canPurchase = userBalance.bcc_balance >= nft.priceBCC && activeAccount?.address;
 
   const handlePurchaseClick = () => {
-    if (!canPurchase) {
+    if (!activeAccount?.address) {
       toast({
-        title: 'Cannot Purchase',
-        description: (bccBalance?.transferable || 0) < nft.priceBCC 
-          ? 'Insufficient BCC balance' 
-          : 'NFT is sold out',
+        title: t('common.error'),
+        description: 'Please connect your wallet first',
         variant: 'destructive',
       });
       return;
     }
+    setShowPaymentModal(true);
+  };
 
-    onPurchase?.(nft);
+  const handleConfirmPayment = async (paymentMethod: 'bcc' | 'blockchain') => {
+    if (!activeAccount?.address) return;
+    
+    try {
+      setPurchasing(true);
+      
+      if (paymentMethod === 'bcc') {
+        await nftsApi.purchaseNFTWithBCC(nft.id, 'advertisement', activeAccount.address);
+        await loadUserBalance(); // Refresh balance
+        
+        if (onPurchase) {
+          onPurchase(nft);
+        }
+        
+        toast({
+          title: t('common.success'),
+          description: `Successfully purchased ${nft.title}`,
+        });
+      } else {
+        throw new Error('Blockchain payment not implemented yet');
+      }
+    } catch (error: any) {
+      toast({
+        title: t('common.error'),
+        description: error.message || 'Purchase failed',
+        variant: 'destructive',
+      });
+      throw error;
+    } finally {
+      setPurchasing(false);
+    }
   };
 
   return (
@@ -97,7 +161,7 @@ export default function AdvertisementNFTCard({ nft, onPurchase, className = '' }
       {/* NFT Image */}
       <div className="aspect-square bg-gradient-to-br from-blue-500/10 to-purple-500/5 rounded-t-2xl overflow-hidden relative">
         <img 
-          src={nft.imageUrl} 
+          src={nft.imageUrl || 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400'} 
           alt={nft.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
@@ -105,27 +169,19 @@ export default function AdvertisementNFTCard({ nft, onPurchase, className = '' }
         {/* Overlay gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         
-        {/* Service badge */}
+        {/* Category badge */}
         <div className="absolute top-3 left-3">
-          <Badge variant="secondary" className={`bg-black/70 text-white border-0 ${getServiceTypeColor(nft.serviceType)}`}>
+          <Badge variant="secondary" className={`bg-black/70 text-white border-0 ${getCategoryColor(nft.category)}`}>
             <div className="flex items-center gap-1">
-              {getServiceTypeIcon(nft.serviceType)}
-              <MultilingualText
-                text={nft.serviceName}
-                language={nft.language}
-                translations={nft.translations ? Object.fromEntries(
-                  Object.entries(nft.translations).map(([lang, trans]) => [lang, trans.serviceName || nft.serviceName])
-                ) : {}}
-                className="text-xs"
-                autoTranslate={true}
-              />
+              {getCategoryIcon(nft.category)}
+              <span className="text-xs capitalize">{nft.category}</span>
             </div>
           </Badge>
         </div>
         
-        {/* Availability indicator */}
+        {/* Active indicator */}
         <div className="absolute top-3 right-3">
-          <div className={`w-3 h-3 rounded-full ${availableCount > 0 ? 'bg-green-500' : 'bg-red-500'} shadow-lg`} />
+          <div className="w-3 h-3 rounded-full bg-green-500 shadow-lg" />
         </div>
         
         {/* Quick view button */}
@@ -257,7 +313,7 @@ export default function AdvertisementNFTCard({ nft, onPurchase, className = '' }
           
           <Button
             onClick={handlePurchaseClick}
-            disabled={!canPurchase}
+            disabled={!canPurchase || purchasing}
             className={`w-full font-semibold transition-all duration-300 ${
               canPurchase 
                 ? 'bg-blue-500 hover:bg-blue-600 text-white group-hover:shadow-lg group-hover:shadow-blue-500/25' 
@@ -266,22 +322,43 @@ export default function AdvertisementNFTCard({ nft, onPurchase, className = '' }
             data-testid={`button-purchase-nft-${nft.id}`}
           >
             <div className="flex items-center gap-2">
-              {canPurchase ? <ShoppingCart className="w-4 h-4" /> : <Zap className="w-4 h-4" />}
+              {purchasing ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : canPurchase ? (
+                <ShoppingCart className="w-4 h-4" />
+              ) : (
+                <Zap className="w-4 h-4" />
+              )}
               <span>
-                {canPurchase ? 'Purchase with BCC' : 
-                 (bccBalance?.transferable || 0) < nft.priceBCC ? 'Insufficient BCC' : 'Sold Out'}
+                {purchasing ? 'Processing...' :
+                 canPurchase ? 'Purchase with BCC' : 
+                 userBalance.bcc_balance < nft.priceBCC ? 'Insufficient BCC' : 'Connect Wallet'}
               </span>
             </div>
           </Button>
           
           {/* Balance warning */}
-          {!canPurchase && (bccBalance?.transferable || 0) < nft.priceBCC && (
+          {!canPurchase && userBalance.bcc_balance < nft.priceBCC && activeAccount?.address && (
             <p className="text-xs text-destructive text-center">
-              You need {nft.priceBCC - (bccBalance?.transferable || 0)} more BCC
+              You need {nft.priceBCC - userBalance.bcc_balance} more BCC
             </p>
           )}
         </div>
       </CardContent>
     </Card>
+
+    {/* Payment Confirmation Modal */}
+    <PaymentConfirmationModal
+      isOpen={showPaymentModal}
+      onClose={() => setShowPaymentModal(false)}
+      course={{
+        id: nft.id,
+        title: nft.title,
+        priceBCC: nft.priceBCC,
+        priceUSDT: nft.priceUSDT
+      }}
+      userBalance={userBalance}
+      onConfirmPayment={handleConfirmPayment}
+    />
   );
 }

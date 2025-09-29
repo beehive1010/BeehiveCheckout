@@ -153,9 +153,9 @@ export const UserManagement: React.FC = () => {
         try {
           // Get referral stats
           const { data: referralStats } = await supabase
-            .from('referrals_stats_view')
-            .select('direct_referrals_count, activated_referrals_count')
-            .eq('wallet_address', user.wallet_address)
+            .from('referrals_matrix_stats')
+            .select('direct_referrals, total_members')
+            .eq('matrix_root_wallet', user.wallet_address)
             .single();
 
           // Get reward stats
@@ -167,8 +167,8 @@ export const UserManagement: React.FC = () => {
 
           return {
             ...user,
-            total_referrals: referralStats?.direct_referrals_count || 0,
-            activated_referrals: referralStats?.activated_referrals_count || 0,
+            total_referrals: referralStats?.direct_referrals || 0,
+            activated_referrals: referralStats?.total_members || 0,
             total_rewards: (rewardStats?.reward_balance || 0) + (rewardStats?.total_withdrawn || 0)
           };
         } catch (error) {

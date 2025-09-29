@@ -1232,5 +1232,186 @@
     "claiming": "领取中...",
     "availableIn": "可用时间",
     "rewardsWillAppear": "当团队成员升级会员资格时，奖励将在此处显示"
+  },
+  "education": {
+    "title": "教育中心",
+    "subtitle": "学习区块链、DeFi和Web3技术",
+    "allLevels": "所有等级",
+    "filterByLevel": "按等级筛选",
+    "insufficientBalance": "余额不足",
+    "insufficientBalanceDesc": "您的BCC余额不足，无法购买此课程",
+    "level": "等级",
+    "levelRequiredDesc": "此课程需要更高的会员等级",
+    "noCourses": "暂无可用课程",
+    "purchaseError": "购买失败",
+    "purchaseErrorDesc": "课程购买失败，请重试。",
+    "purchaseSuccess": "购买成功",
+    "purchaseSuccessDesc": "课程已添加到您的学习库",
+    "searchPlaceholder": "搜索课程...",
+    "search": {
+      "placeholder": "搜索课程、主题或讲师..."
+    },
+    "filters": {
+      "category": "分类",
+      "allCategories": "所有分类",
+      "level": "等级",
+      "allLevels": "所有等级",
+      "type": "类型",
+      "allTypes": "所有类型",
+      "payment": "付费方式",
+      "allCourses": "所有课程",
+      "onlineZoom": "在线直播(Zoom)",
+      "videoLessons": "视频课程",
+      "freeCourses": "免费课程",
+      "paidBCC": "付费(BCC)"
+    },
+    "progress": {
+      "title": "学习进度",
+      "subtitle": "跟踪您的学习之旅",
+      "completed": "已完成",
+      "inProgress": "学习中",
+      "hours": "小时",
+      "label": "进度",
+      "coursesCompleted": "已完成课程",
+      "hoursLearned": "学习时长"
+    },
+    "free": "免费",
+    "levelRequired": "需要等级",
+    "duration": "时长",
+    "completed": "已完成",
+    "continue": "继续学习",
+    "startFree": "开始课程",
+    "purchase": "购买课程",
+    "enrolling": "注册中...",
+    "insufficientBCC": "BCC不足",
+    "courseType": {
+      "online": "在线直播",
+      "video": "自主学习视频"
+    },
+    "buttons": {
+      "viewDetails": "查看详情",
+      "claimFree": "免费获取课程",
+      "purchaseCourse": "购买课程",
+      "completed": "已完成",
+      "continue": "继续",
+      "getAccess": "获取访问权限",
+      "enrollNow": "立即注册",
+      "startLearning": "开始学习",
+      "enrolled": "已注册",
+      "levelRequired": "需要等级"
+    },
+    "status": {
+      "clickToView": "点击查看详情并注册",
+      "enrolled": "已注册",
+      "available": "可用",
+      "requiresUpgrade": "需要等级 {level}",
+      "requiresBCC": "需要 {amount} BCC"
+    },
+    "courseDetails": {
+      "overview": "课程概述",
+      "curriculum": "课程大纲",
+      "lessons": "课时",
+      "instructor": "讲师",
+      "requirements": "要求",
+      "whatYouLearn": "您将学到",
+      "courseContent": "课程内容",
+      "zoomDetails": "Zoom会议详情",
+      "meetingId": "会议ID",
+      "password": "密码",
+      "joinLink": "加入会议"
+    },
+    "lessons": {
+      "lesson": "课时",
+      "unlock": "解锁课时",
+      "unlocking": "解锁中...",
+      "watch": "观看课时",
+      "completed": "已完成",
+      "locked": "已锁定",
+      "free": "免费",
+      "progress": "进度: {percent}%"
+    },
+    "enroll": {
+      "success": {
+        "title": "注册成功！",
+        "description": "您现在可以访问此课程。"
+      },
+      "error": {
+        "title": "注册失败",
+        "description": "无法注册课程，请重试。"
+      }
+    },
+    "errors": {
+      "courseNotFound": "课程未找到",
+      "loadingError": "加载课程数据失败",
+      "accessDenied": "访问被拒绝 - 等级或BCC不足",
+      "networkError": "网络错误 - 请重试"
+    },
+    "payment": {
+      "confirm_title": "确认支付",
+      "course_details": "课程详情",
+      "price": "价格",
+      "method": "支付方式",
+      "balance": "余额",
+      "blockchain": "区块链支付",
+      "coming_soon": "即将推出",
+      "blockchain_description": "链上直接支付功能即将推出",
+      "wallet": "钱包地址",
+      "sufficient_balance": "余额充足",
+      "remaining": "剩余",
+      "insufficient_balance": "BCC余额不足",
+      "processing": "处理中...",
+      "confirm": "确认支付",
+      "success": "支付成功！",
+      "failed": "支付失败",
+      "cancelled": "支付已取消"
+    }
+  },
+  "rewards": {
+    "information": {
+      "levelBasic": "基础等级",
+      "levelIntermediate": "中级等级", 
+      "levelAdvanced": "高级等级",
+      "levelTop": "顶级等级",
+      "phaseSummary": "阶段摘要",
+      "activatedMembers": "激活成员",
+      "perMemberTotalLockingPool": "每位成员总锁定池",
+      "completeReleaseSchedule": "完整释放计划",
+      "bccReleaseOperationMechanism": "BCC释放操作机制",
+      "memberActivation": "成员激活",
+      "memberActivationDesc": "当新成员加入并激活其账户时",
+      "phaseJudgment": "阶段判断", 
+      "phaseJudgmentDesc": "系统根据总激活成员数确定当前阶段",
+      "instantRelease": "即时释放",
+      "instantReleaseDesc": "满足条件时立即释放BCC",
+      "phaseProgression": "阶段进展",
+      "phaseProgressionDesc": "随着会员增长自动推进阶段"
+    }
+  },
+  "nfts": {
+    "advertisement": {
+      "title": "广告NFT",
+      "subtitle": "发现并购买广告机会",
+      "purchase": "购买NFT",
+      "category": "分类",
+      "impressions": "展示次数",
+      "available": "可用",
+      "soldOut": "已售完",
+      "insufficient": "BCC不足"
+    },
+    "merchant": {
+      "title": "商户NFT",
+      "subtitle": "探索独特的商户产品",
+      "supply": "供应量",
+      "available": "可用",
+      "creator": "创作者"
+    },
+    "common": {
+      "purchase": "使用BCC购买",
+      "purchasing": "处理中...",
+      "price": "价格",
+      "description": "描述",
+      "metadata": "详情",
+      "viewDetails": "查看详情"
+    }
   }
 }

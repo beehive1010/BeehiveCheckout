@@ -217,56 +217,30 @@ export const coursesApi = {
         }
       }
 
-      // 6. 扣除BCC（如果需要）- 使用balance edge function
-      if (course.price_bcc > 0) {
-        const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
-        const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-        
-        const spendResponse = await fetch(`${baseUrl}/balance`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${anonKey}`,
-            'x-wallet-address': walletAddress,
-          },
-          body: JSON.stringify({
-            action: 'spend-bcc',
-            amount: course.price_bcc,
-            purpose: 'course_purchase',
-            itemType: 'course',
-            itemId: courseId
-          })
-        });
-        
-        const spendResult = await spendResponse.json();
-        const spendError = !spendResponse.ok ? new Error(spendResult.error || 'Failed to spend BCC') : null;
-
-        if (spendError || !spendResult?.success) {
-          throw new Error(`BCC扣除失败: ${spendError?.message || spendResult?.error || '未知错误'}`)
-        }
-      }
-
-      // 7. 创建课程激活记录
-      const { data: courseAccess, error: accessError } = await supabase
-        .from('course_activations')
-        .insert({
-          wallet_address: walletAddress,
-          course_id: courseId,
-          activation_type: course.price_bcc > 0 ? 'purchase' : 'free',
-          activated_at: new Date().toISOString(),
-          progress_percentage: 0,
-          metadata: {
-            payment_method: course.price_bcc > 0 ? 'bcc' : 'free',
-            amount_paid_bcc: course.price_bcc || 0,
-            amount_paid_usdt: course.price_usdt || 0
-          }
+      // 6. 使用courses Edge Function购买课程以正确处理RLS和BCC扣除
+      const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      const purchaseResponse = await fetch(`${baseUrl}/courses`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${anonKey}`,
+          'x-wallet-address': walletAddress,
+        },
+        body: JSON.stringify({
+          action: 'purchase-course',
+          courseId: courseId,
+          bccAmount: course.price_bcc
         })
-        .select()
-        .maybeSingle()
+      });
 
-      if (accessError) {
-        throw new Error(`创建课程访问记录失败: ${accessError.message}`)
+      const purchaseResult = await purchaseResponse.json();
+      
+      if (!purchaseResponse.ok || !purchaseResult?.success) {
+        throw new Error(`课程购买失败: ${purchaseResult?.error || '未知错误'}`)
       }
+
+      const courseAccess = purchaseResult.data;
 
       console.log(`✅ 课程购买成功: ${course.title}`)
 

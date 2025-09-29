@@ -37,11 +37,11 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
       
       // Use existing views from database
       const [matrixStatsResult, matrixDownlineResult, matrixLayersResult] = await Promise.allSettled([
-        // Get stats from referrals_stats_view
+        // Get stats from referrals_matrix_stats
         supabase
-          .from('referrals_stats_view')
+          .from('referrals_matrix_stats')
           .select('*')
-          .eq('wallet_address', walletAddress)
+          .eq('matrix_root_wallet', walletAddress)
           .single()
           .then(({ data, error }) => {
             if (error) throw error;
@@ -76,7 +76,7 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
           })
       ]);
 
-      // Extract stats data from referrals_stats_view
+      // Extract stats data from referrals_matrix_stats
       let statsData = null;
       if (matrixStatsResult.status === 'fulfilled' && matrixStatsResult.value.data) {
         statsData = matrixStatsResult.value.data;
@@ -94,7 +94,7 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
         layersData = matrixLayersResult.value.data;
       }
 
-      // Process matrix stats from referrals_stats_view and matrix_layers_view
+      // Process matrix stats from referrals_matrix_stats and matrix_layers_view
       if (statsData && layersData) {
         const layerDistribution: { [key: string]: number } = {};
         layersData.forEach(layer => {
@@ -109,22 +109,22 @@ export default function ReferralStatsCard({ className, onViewMatrix }: ReferralS
         setMatrixStats({
           as_root: {
             total_team_size: totalTeamSize,
-            activated_members: statsData.activated_referrals_count || 0,
+            activated_members: statsData.total_members || 0, // mapped from total_members
             max_depth: maxDepth,
             layer_distribution: layerDistribution
           },
           overall: {
-            network_strength: totalTeamSize * 5 + (statsData.activated_referrals_count || 0) * 10
+            network_strength: totalTeamSize * 5 + (statsData.total_members || 0) * 10
           }
         });
       } else if (statsData) {
-        // Fallback using only referrals_stats_view
+        // Fallback using only referrals_matrix_stats
         setMatrixStats({
           as_root: {
-            total_team_size: statsData.total_team_size || 0,
-            activated_members: statsData.activated_referrals_count || 0,
-            max_depth: statsData.max_layer || 0,
-            layer_distribution: { 1: statsData.direct_referrals_count || 0 }
+            total_team_size: statsData.total_members || 0,
+            activated_members: statsData.total_members || 0,
+            max_depth: statsData.active_layers || 0,
+            layer_distribution: { 1: statsData.direct_referrals || 0 }
           },
           overall: {
             network_strength: statsData.network_strength || 0
