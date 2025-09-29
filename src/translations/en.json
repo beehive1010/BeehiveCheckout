@@ -3721,6 +3721,38 @@
         "linkCopied": "Referral link copied to clipboard!"
       },
       "title": "Referral Matrix",
+      "drillDown": {
+        "title": "3×3 Matrix - Layer 1",
+        "loading": "Loading matrix data...",
+        "noData": "No matrix data available",
+        "rootNode": "ROOT",
+        "rootNodeTitle": "Matrix Root Node",
+        "upline": "Upline",
+        "uplineTitle": "Upline Referrer",
+        "emptySlot": "Empty Slot",
+        "directReferral": "Direct",
+        "spillover": "Spillover",
+        "expand": "Expand",
+        "collapse": "Collapse",
+        "loadingChildren": "Loading sub-members...",
+        "loadingFailed": "Loading failed",
+        "noChildren": "No sub-members yet",
+        "childrenTitle": "Sub-Matrix",
+        "childrenCount": "({count}/3)",
+        "explanation": {
+          "title": "3×3 Matrix Structure Explanation",
+          "rootPosition": "Center position shows the matrix root node (ROOT) - your position",
+          "lmrPositions": "L (Left), M (Bottom), R (Right) three positions surround the root node",
+          "expandFeature": "Click members with sub-levels to expand and view their 3×3 sub-matrix",
+          "spilloverLogic": "When Layer 1 is full, new members will spill to sub-levels",
+          "layeredDisplay": "Layered display avoids gaps and maintains clear parent-child relationships"
+        },
+        "positions": {
+          "left": "L",
+          "middle": "M", 
+          "right": "R"
+        }
+      },
       "ui": {
         "showAllLayers": "Show All 19 Layers",
         "showLess": "Show Less",
