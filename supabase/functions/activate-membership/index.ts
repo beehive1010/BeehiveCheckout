@@ -169,7 +169,7 @@ serve(async (req: Request) => {
         const { data: userData, error: userError } = await supabase
           .from('users')
           .select('wallet_address, username, referrer_wallet, created_at')
-          .ilike('wallet_address', walletAddress)
+          .eq('wallet_address', walletAddress)
           .maybeSingle();
 
         if (userError || !userData) {
@@ -188,7 +188,7 @@ serve(async (req: Request) => {
         const { data: memberData, error: memberError } = await supabase
           .from('members')
           .select('current_level, activation_sequence, activation_time, referrer_wallet')
-          .ilike('wallet_address', walletAddress)
+          .eq('wallet_address', walletAddress)
           .maybeSingle();
 
         const isActivated = !memberError && memberData && memberData.current_level > 0;
@@ -224,14 +224,14 @@ serve(async (req: Request) => {
         const { data: membership, error: membershipError } = await supabase
           .from('membership')
           .select('*')
-          .ilike('wallet_address', walletAddress)
+          .eq('wallet_address', walletAddress)
           .maybeSingle();
 
         // Check members table
         const { data: member, error: memberError } = await supabase
           .from('members')
           .select('*')
-          .ilike('wallet_address', walletAddress)
+          .eq('wallet_address', walletAddress)
           .maybeSingle();
 
         if (member && !memberError && member.current_level > 0) {
@@ -332,11 +332,11 @@ serve(async (req: Request) => {
       });
     }
     
-    // 严格的用户注册查询 - 使用精确匹配和case-insensitive
+    // 严格的用户注册查询 - 使用精确匹配
     let { data: userData, error: userError } = await supabase
       .from('users')
       .select('wallet_address, referrer_wallet, username, created_at')
-      .ilike('wallet_address', walletAddress)
+      .eq('wallet_address', walletAddress)
       .single();
     
     // 严格验证：用户必须存在且有完整数据
@@ -386,7 +386,7 @@ serve(async (req: Request) => {
     }
     console.log(`✅ User registration confirmed: ${userData.wallet_address}`);
     // Step 2: Check if this membership level has already been claimed
-    const { data: existingMembership, error: membershipCheckError } = await supabase.from('membership').select('*').ilike('wallet_address', walletAddress).eq('nft_level', level).single();
+    const { data: existingMembership, error: membershipCheckError } = await supabase.from('membership').select('*').eq('wallet_address', walletAddress).eq('nft_level', level).single();
     if (existingMembership && !membershipCheckError) {
       console.log(`✅ Found existing Level ${level} membership for: ${walletAddress}`);
       
@@ -394,7 +394,7 @@ serve(async (req: Request) => {
       const { data: existingMember, error: memberCheckError } = await supabase
         .from('members')
         .select('*')
-        .ilike('wallet_address', walletAddress)
+        .eq('wallet_address', walletAddress)
         .maybeSingle();
       
       if (existingMember && !memberCheckError) {
@@ -478,7 +478,7 @@ serve(async (req: Request) => {
         const { data: referrerExists, error: referrerCheckError } = await supabase
           .from('users')
           .select('wallet_address, username')
-          .ilike('wallet_address', normalizedReferrerWallet)
+          .eq('wallet_address', normalizedReferrerWallet)
           .maybeSingle();
           
         if (referrerCheckError || !referrerExists) {
@@ -566,7 +566,7 @@ serve(async (req: Request) => {
         const { data: referrerExists, error: referrerCheckError } = await supabase
           .from('users')
           .select('wallet_address')
-          .ilike('wallet_address', normalizedReferrerWallet)
+          .eq('wallet_address', normalizedReferrerWallet)
           .single();
           
         if (referrerCheckError || !referrerExists) {
@@ -603,7 +603,7 @@ serve(async (req: Request) => {
       const { data: existingMember, error: existingError } = await supabase
         .from('members')
         .select('*')
-        .ilike('wallet_address', userData.wallet_address)
+        .eq('wallet_address', userData.wallet_address)
         .maybeSingle();
 
       if (existingMember) {

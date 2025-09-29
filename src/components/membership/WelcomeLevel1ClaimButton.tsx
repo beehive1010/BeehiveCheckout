@@ -9,7 +9,7 @@ import {Card, CardContent, CardHeader, CardTitle} from '../ui/card';
 import {Badge} from '../ui/badge';
 import {useToast} from '../../hooks/use-toast';
 import {Clock, Coins, Crown, Gift, Loader2, Zap} from 'lucide-react';
-import {supabase} from '../../lib/supabase';
+import {authService} from '../../lib/supabaseClient';
 import {useI18n} from '../../contexts/I18nContext';
 import RegistrationModal from '../modals/RegistrationModal';
 
@@ -122,9 +122,12 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
   const handleRegistrationComplete = () => {
     console.log('✅ Registration completed - closing modal and retrying claim');
     setShowRegistrationModal(false);
+    
+    // Add a longer delay to ensure the database is updated
     setTimeout(() => {
+      console.log('🔄 Starting NFT claim after registration completion...');
       handleClaimLevel1NFT();
-    }, 500);
+    }, 2000); // Increased delay to 2 seconds
   };
 
   const handleClaimLevel1NFT = async () => {
@@ -162,15 +165,11 @@ export function WelcomeLevel1ClaimButton({ onSuccess, referrerWallet, className 
     setIsProcessing(true);
 
     try {
-      // Step 1: Check if user is registered
+      // Step 1: Check if user is registered using authService
       console.log('🔍 Checking user registration status...');
       setCurrentStep(t('claim.checkingRegistration') || 'Checking registration status...');
       
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('wallet_address', account.address.toLowerCase())
-        .single();
+      const { data: userData, error: userError } = await authService.getUser(account.address);
       
       if (userError || !userData) {
         console.log('❌ User not registered:', {

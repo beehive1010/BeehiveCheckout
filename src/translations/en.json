@@ -360,6 +360,19 @@
     "viewDetails": "View Details",
     "walletNotConnected": "Wallet Not Connected"
   },
+  "registration": {
+    "newUserCreated": "New user created successfully",
+    "userExists": "User already exists",
+    "registrationComplete": "Registration complete",
+    "enterUsername": "Enter username",
+    "enterEmail": "Enter email (optional)",
+    "createAccount": "Create Account",
+    "processing": "Processing...",
+    "error": "Registration failed",
+    "referrer": "Referrer",
+    "required": "Required",
+    "optional": "Optional"
+  },
   "common": {
     "accessDenied": "Access Denied",
     "active": "Active",

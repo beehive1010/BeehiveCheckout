@@ -13,6 +13,19 @@
     "view_transaction": "查看交易",
     "withdraw": "提现"
   },
+  "registration": {
+    "newUserCreated": "新用户创建成功",
+    "userExists": "用户已存在",
+    "registrationComplete": "注册完成",
+    "enterUsername": "请输入用户名",
+    "enterEmail": "请输入邮箱（可选）",
+    "createAccount": "创建账户",
+    "processing": "处理中...",
+    "error": "注册失败",
+    "referrer": "推荐人",
+    "required": "必填",
+    "optional": "可选"
+  },
   "common": {
     "active": "激活",
     "address_copied": "地址已复制",
