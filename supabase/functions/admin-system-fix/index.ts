@@ -1062,47 +1062,75 @@ async function fixMemberData(supabase: any, options: any): Promise<SystemFixResu
       fixes.actions_taken.push('Balance record exists');
     }
 
-    // 5. Create sample reward data for testing
+    // 5. Create sample reward data for testing (using layer_rewards table)
     const { data: existingRewards } = await supabase
-      .from('reward_claims')
+      .from('layer_rewards')
       .select('*')
-      .eq('wallet_address', wallet_address)
+      .eq('reward_recipient_wallet', wallet_address)
       .limit(1);
 
     if (!existingRewards || existingRewards.length === 0) {
-      // Try to create some basic reward claims based on matrix position
-      const sampleRewards = [
-        {
-          wallet_address: wallet_address,
-          root_wallet: wallet_address,
-          reward_amount: 50.0,
-          reward_type: 'layer_completion',
-          status: 'available',
-          layer: 1,
+      // Get member's current level to create appropriate rewards
+      const { data: memberData } = await supabase
+        .from('members')
+        .select('current_level')
+        .eq('wallet_address', wallet_address)
+        .single();
+
+      const currentLevel = memberData?.current_level || 1;
+      const sampleRewards = [];
+
+      // 1. 直推奖励 (Direct Referral Reward): Level 1 = 100 USD
+      if (currentLevel >= 1) {
+        sampleRewards.push({
+          triggering_member_wallet: wallet_address,
+          reward_recipient_wallet: wallet_address,
+          matrix_root_wallet: wallet_address,
+          reward_amount: 100.0, // Level 1 direct referral = 100 USD
+          matrix_layer: 1,
+          triggering_nft_level: 1,
+          recipient_required_level: 1,
+          recipient_current_level: currentLevel,
+          status: 'claimable',
           expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
           created_at: new Date().toISOString()
-        },
-        {
-          wallet_address: wallet_address,
-          root_wallet: wallet_address,
-          reward_amount: 25.0,
-          reward_type: 'direct_referral',
-          status: 'pending',
-          layer: 1,
+        });
+      }
+
+      // 2. Layer奖励 (Layer Rewards): Layer 2-19 升级触发, 金额=该level NFT价格100%
+      // NFT价格规律: Level 1=100, Level 2=150, Level 3=200, Level 4=400, 依此类推
+      for (let level = 2; level <= Math.min(currentLevel, 19); level++) {
+        let nftPrice;
+        if (level === 2) {
+          nftPrice = 150; // Level 2 = 150 USD
+        } else {
+          nftPrice = 100 * Math.pow(2, level - 2); // Level 3=200, Level 4=400, etc.
+        }
+        
+        sampleRewards.push({
+          triggering_member_wallet: wallet_address,
+          reward_recipient_wallet: wallet_address, // 接收者是matrix root
+          matrix_root_wallet: wallet_address,
+          reward_amount: nftPrice, // 该level NFT价格的100%
+          matrix_layer: level,
+          triggering_nft_level: level,
+          recipient_required_level: level,
+          recipient_current_level: currentLevel,
+          status: 'claimable',
           expires_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
           created_at: new Date().toISOString()
-        }
-      ];
+        });
+      }
 
       for (const reward of sampleRewards) {
         const { error: rewardError } = await supabase
-          .from('reward_claims')
+          .from('layer_rewards')
           .insert(reward);
 
         if (rewardError) {
-          fixes.errors.push(`Failed to create reward ${reward.reward_type}: ${rewardError.message}`);
+          fixes.errors.push(`Failed to create reward: ${rewardError.message}`);
         } else {
-          fixes.actions_taken.push(`Created ${reward.reward_type} reward ($${reward.reward_amount})`);
+          fixes.actions_taken.push(`Created reward ($${reward.reward_amount})`);
         }
       }
     } else {

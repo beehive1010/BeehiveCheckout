@@ -124,9 +124,9 @@ serve(async (req: Request) => {
               } else {
                 const parentIndex = Math.floor((slotNum - 1) / 3)
                 const childIndex = (slotNum - 1) % 3
+                const parentPos = ['L', 'M', 'R'][parentIndex]  
                 const childPos = ['L', 'M', 'R'][childIndex]
-                // This is a simplified position calculation
-                position = `${parentIndex + 1}.${childPos}`
+                position = `${parentPos}.${childPos}`
               }
               
               slotsForLayer.push({

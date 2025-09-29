@@ -246,10 +246,16 @@ export function useLayeredMatrix(matrixRootWallet: string) {
             };
           }
 
-          // 计算该成员的下级数量
-          const childrenCount = allMembers.filter((m: any) => 
+          // 计算该成员的下级数量和具体位置
+          const childrenMembers = allMembers.filter((m: any) => 
             m.parent_wallet === member.wallet_address
-          ).length;
+          );
+          const childrenCount = childrenMembers.length;
+          
+          // 检查具体 L M R 位置是否有成员
+          const hasChildInL = childrenMembers.some((m: any) => m.matrix_position?.endsWith('.L'));
+          const hasChildInM = childrenMembers.some((m: any) => m.matrix_position?.endsWith('.M')); 
+          const hasChildInR = childrenMembers.some((m: any) => m.matrix_position?.endsWith('.R'));
           
           return {
             position,
@@ -260,7 +266,10 @@ export function useLayeredMatrix(matrixRootWallet: string) {
               hasChildren: childrenCount > 0,
               childrenCount: childrenCount,
               username: member.username,
-              isActivated: member.is_activated
+              isActivated: member.is_activated,
+              hasChildInL: hasChildInL,
+              hasChildInM: hasChildInM,
+              hasChildInR: hasChildInR
             }
           };
         });

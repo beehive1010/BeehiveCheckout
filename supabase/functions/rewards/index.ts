@@ -435,8 +435,8 @@ async function getRewardDashboard(req, supabaseClient) {
             status: 400
         });
     }
-    // Get reward claims summary
-    const { data: claimsSummary, error: claimsError } = await supabaseClient.from('reward_claims').select('status, layer, reward_amount_usdc').eq('root_wallet', wallet_address);
+    // Get reward claims summary from reward_claims_dashboard view (which maps to layer_rewards)
+    const { data: claimsSummary, error: claimsError } = await supabaseClient.from('reward_claims_dashboard').select('status, layer, reward_amount_usdc').eq('root_wallet', wallet_address);
     if (claimsError) {
         console.error('Dashboard claims error:', claimsError);
         return new Response(JSON.stringify({
@@ -646,7 +646,7 @@ async function checkPendingRewards(req, supabaseClient) {
     }
     try {
         // Get pending rewards with countdown timers
-        const { data: pendingRewards, error } = await supabaseClient.from('reward_claims').select(`
+        const { data: pendingRewards, error } = await supabaseClient.from('reward_claims_dashboard').select(`
         *,
         countdown_timers (
           id,
@@ -838,7 +838,7 @@ async function updateRewardStatus(req, supabaseClient) {
     }
     try {
         // Verify the reward claim exists and belongs to the user (unless admin override)
-        const { data: existingClaim, error: fetchError } = await supabaseClient.from('reward_claims').select('*').eq('id', claim_id).maybeSingle();
+        const { data: existingClaim, error: fetchError } = await supabaseClient.from('layer_rewards').select('*').eq('id', claim_id).maybeSingle();
         
         if (fetchError) {
             return new Response(JSON.stringify({
@@ -865,7 +865,7 @@ async function updateRewardStatus(req, supabaseClient) {
             });
         }
         // Check authorization (either owner or admin)
-        let isAuthorized = existingClaim.root_wallet === wallet_address;
+        let isAuthorized = existingClaim.reward_recipient_wallet === wallet_address;
         if (!isAuthorized && admin_override) {
             // Check if user is admin
             const { data: adminCheck } = await supabaseClient.rpc('is_admin', {
@@ -927,7 +927,7 @@ async function updateRewardStatus(req, supabaseClient) {
         } else if (new_status === 'claimable') {
             updateData.claimable_at = new Date().toISOString();
         }
-        const { data: updatedClaim, error: updateError } = await supabaseClient.from('reward_claims').update(updateData).eq('id', claim_id).select().single();
+        const { data: updatedClaim, error: updateError } = await supabaseClient.from('layer_rewards').update(updateData).eq('id', claim_id).select().single();
         if (updateError) {
             throw updateError;
         }
@@ -1088,12 +1088,13 @@ async function processLevelActivationRewards(req, supabaseClient) {
                 // Create reward record
                 const expiresAt = new Date();
                 expiresAt.setHours(expiresAt.getHours() + 72);
-                const { data: newReward, error: rewardError } = await supabaseClient.from('reward_claims').insert({
-                    root_wallet: position.matrix_root_wallet,
+                const { data: newReward, error: rewardError } = await supabaseClient.from('layer_rewards').insert({
+                    reward_recipient_wallet: position.matrix_root_wallet,
                     triggering_member_wallet: memberWallet,
-                    layer: position.matrix_layer,
-                    nft_level: activatedLevel,
-                    reward_amount_usdc: rewardAmount,
+                    matrix_root_wallet: position.matrix_root_wallet,
+                    matrix_layer: position.matrix_layer,
+                    triggering_nft_level: activatedLevel,
+                    reward_amount: rewardAmount,
                     status: rewardStatus,
                     expires_at: expiresAt.toISOString(),
                     metadata: {
