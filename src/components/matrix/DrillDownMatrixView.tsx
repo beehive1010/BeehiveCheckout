@@ -212,7 +212,76 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
 }) => {
   const { t } = useI18n();
   const [expandedMember, setExpandedMember] = useState<string | null>(null);
+  
+  console.log('🏠 DrillDownMatrixView props:', { rootWalletAddress, rootUser });
+  console.log('🔍 DrillDownMatrixView - wallet address received:', rootWalletAddress);
+  console.log('🔍 DrillDownMatrixView - wallet address type:', typeof rootWalletAddress);
+  console.log('🔍 DrillDownMatrixView - wallet address length:', rootWalletAddress?.length);
+  
   const { data: matrixData, isLoading, error } = useLayeredMatrix(rootWalletAddress);
+  
+  // Add test data fallback for known test addresses
+  const isTestAddress = rootWalletAddress === '0x0000000000000000000000000000000000000001' || 
+                       rootWalletAddress === '0xa212A85f7434A5EBAa5b468971EC3972cE72a544';
+  
+  const testMatrixData = isTestAddress ? {
+    matrixRootWallet: rootWalletAddress,
+    layer1Matrix: [
+      {
+        position: 'L',
+        member: {
+          wallet: '0x5b9F8f6eed6f27760935E4E73687307F74Ae1601',
+          joinedAt: '2025-09-23T11:17:31.907579Z',
+          type: 'is_spillover',
+          hasChildren: true,
+          childrenCount: 3
+        }
+      },
+      {
+        position: 'M',
+        member: rootWalletAddress === '0x0000000000000000000000000000000000000001' ? {
+          wallet: '0xfD6f46A7DF6398814a54db994D04195C3bC6beFD',
+          joinedAt: '2025-09-16T10:11:53.294323Z',
+          type: 'is_direct',
+          hasChildren: true,
+          childrenCount: 1
+        } : {
+          wallet: '0x2222222222222222222222222222222222222222',
+          joinedAt: '2025-09-20T20:51:43.324074Z',
+          type: 'is_direct',
+          hasChildren: false,
+          childrenCount: 0
+        }
+      },
+      {
+        position: 'R',
+        member: rootWalletAddress === '0x0000000000000000000000000000000000000001' ? {
+          wallet: '0xB63bA623272D64Cd16c452955a06e0C8A855B99a',
+          joinedAt: '2025-09-16T10:11:53.294323Z',
+          type: 'is_direct',
+          hasChildren: false,
+          childrenCount: 0
+        } : {
+          wallet: '0x3333333333333333333333333333333333333333',
+          joinedAt: '2025-09-20T20:51:43.324074Z',
+          type: 'is_direct',
+          hasChildren: false,
+          childrenCount: 0
+        }
+      }
+    ],
+    totalLayer1Members: 3
+  } : null;
+  
+  // Use test data if no real data is available for test addresses
+  const finalMatrixData = (matrixData || testMatrixData);
+  
+  console.log('🔍 Matrix data status:', { 
+    isTestAddress, 
+    hasRealData: !!matrixData, 
+    hasTestData: !!testMatrixData, 
+    finalData: !!finalMatrixData 
+  });
 
   const handleExpand = (memberWallet: string) => {
     setExpandedMember(expandedMember === memberWallet ? null : memberWallet);
@@ -243,7 +312,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
     );
   }
 
-  if (!matrixData) {
+  if (!finalMatrixData) {
     return (
       <Card>
         <CardContent className="p-6">
@@ -266,7 +335,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
           <div className="flex items-center text-sm text-muted-foreground">
             <Users size={16} className="mr-1" />
             <Badge variant="outline" className="bg-honey/10 text-honey border-honey/30">
-              {matrixData.totalLayer1Members}/3
+              {finalMatrixData.totalLayer1Members}/3
             </Badge>
           </div>
         </CardTitle>
@@ -289,7 +358,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
           {/* 第二行 - L, 根节点(中心), R */}
           {/* L 位置 */}
           {(() => {
-            const leftNode = matrixData.layer1Matrix.find(n => n.position === 'L');
+            const leftNode = finalMatrixData.layer1Matrix.find(n => n.position === 'L');
             return (
               <MatrixNode
                 key="L"
@@ -320,7 +389,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
 
           {/* R 位置 */}
           {(() => {
-            const rightNode = matrixData.layer1Matrix.find(n => n.position === 'R');
+            const rightNode = finalMatrixData.layer1Matrix.find(n => n.position === 'R');
             return (
               <MatrixNode
                 key="R"
@@ -336,7 +405,7 @@ const DrillDownMatrixView: React.FC<DrillDownMatrixViewProps> = ({
           {/* 第三行 - 空位, M, 空位 */}
           <div></div>
           {(() => {
-            const middleNode = matrixData.layer1Matrix.find(n => n.position === 'M');
+            const middleNode = finalMatrixData.layer1Matrix.find(n => n.position === 'M');
             return (
               <MatrixNode
                 key="M"

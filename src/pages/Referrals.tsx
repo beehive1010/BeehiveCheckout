@@ -13,14 +13,23 @@ import MatrixLayerStatsView from '../components/matrix/MatrixLayerStatsView';
 import ReferralsStats from '../components/referrals/ReferralsStats';
 import { Link } from 'wouter';
 import styles from '../styles/referrals/referrals.module.css';
+import { useActiveAccount } from 'thirdweb/react';
 
 export default function Referrals() {
   const { userData, walletAddress } = useWallet();
   const { data: userStats, isLoading: isLoadingUserStats } = useUserReferralStats();
   const { t } = useI18n();
   const { toast } = useToast();
+  const activeAccount = useActiveAccount();
 
-  const referralLink = `${window.location.origin}/welcome?ref=${walletAddress}`;
+  // Use ThirdWeb active account address directly if available
+  const activeWalletAddress = activeAccount?.address || walletAddress;
+  
+  console.log('🔍 Referrals page - useWallet address:', walletAddress);
+  console.log('🔍 Referrals page - ThirdWeb active account:', activeAccount?.address);
+  console.log('🔍 Referrals page - Final wallet address used:', activeWalletAddress);
+
+  const referralLink = `${window.location.origin}/welcome?ref=${activeWalletAddress}`;
 
   const copyReferralLink = () => {
     navigator.clipboard.writeText(referralLink);
@@ -86,12 +95,12 @@ export default function Referrals() {
         <TabsContent value="matrix" className="space-y-6">
           {/* Matrix Layer Statistics */}
           <MatrixLayerStatsView 
-            walletAddress={walletAddress || ''}
+            walletAddress={activeWalletAddress || ''}
           />
           
           {/* Drill-down Matrix View */}
           <DrillDownMatrixView 
-            rootWalletAddress={walletAddress || ''}
+            rootWalletAddress={activeWalletAddress || ''}
             rootUser={{username: userData?.username, currentLevel: userData?.currentLevel}}
           />
         </TabsContent>
@@ -100,7 +109,7 @@ export default function Referrals() {
         <TabsContent value="stats" className="space-y-4">
           {/* Core Statistics Only */}
           <ReferralsStats 
-            walletAddress={walletAddress || ''}
+            walletAddress={activeWalletAddress || ''}
           />
           {/* Simple Activity Summary - Mobile Optimized */}
           <Card className="bg-secondary border-border">

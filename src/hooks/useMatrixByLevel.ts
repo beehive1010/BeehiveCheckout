@@ -173,6 +173,10 @@ export function useLayeredMatrix(matrixRootWallet: string) {
       
       // 只获取Layer 1的直接成员
       console.log('🔍 Querying matrix data for root:', matrixRootWallet);
+      console.log('🔍 Query params - matrix_root_wallet:', matrixRootWallet);
+      console.log('🔍 Query params - layer:', 1);
+      console.log('🔍 Query params - parent_wallet:', matrixRootWallet);
+      
       const { data: layer1Data, error } = await supabase
         .from('matrix_referrals')
         .select(`
@@ -187,6 +191,10 @@ export function useLayeredMatrix(matrixRootWallet: string) {
         .order('position');
       
       console.log('📊 Layer 1 query result:', { layer1Data, error, matrixRootWallet });
+      console.log('📊 Layer 1 data count:', layer1Data?.length || 0);
+      if (layer1Data && layer1Data.length > 0) {
+        console.log('📊 Sample data:', layer1Data[0]);
+      }
       
       if (error) {
         console.error('Layered matrix query error:', error);

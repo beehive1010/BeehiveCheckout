@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
 import { useWallet } from '../hooks/useWallet';
 import { useWeb3 } from '../contexts/Web3Context';
 
@@ -12,7 +12,7 @@ const MatrixTestPage: React.FC = () => {
   
   // Use same user data connection as other components
   const { walletAddress, isConnected } = useWeb3();
-  const { userQuery } = useWallet();
+  const { userStatus, isUserLoading } = useWallet();
 
   // Fallback test wallets for demonstration
   const testWallets = [
@@ -118,17 +118,17 @@ const MatrixTestPage: React.FC = () => {
                 </span>
               )}
             </div>
-            {userQuery?.data && (
+            {userStatus && (
               <div className="flex flex-wrap gap-2">
-                <Badge variant={userQuery.data.isRegistered ? "default" : "secondary"}>
-                  {userQuery.data.isRegistered ? "✅ Registered" : "❌ Not Registered"}
+                <Badge variant={userStatus.isRegistered ? "default" : "secondary"}>
+                  {userStatus.isRegistered ? "✅ Registered" : "❌ Not Registered"}
                 </Badge>
-                <Badge variant={userQuery.data.isActivated ? "default" : "secondary"}>
-                  {userQuery.data.isActivated ? "✅ Activated" : "❌ Not Activated"}
+                <Badge variant={userStatus.isActivated ? "default" : "secondary"}>
+                  {userStatus.isActivated ? "✅ Activated" : "❌ Not Activated"}
                 </Badge>
-                {userQuery.data.memberData?.current_level && (
+                {userStatus.memberData?.current_level && (
                   <Badge variant="outline">
-                    Level {userQuery.data.memberData.current_level}
+                    Level {userStatus.memberData.current_level}
                   </Badge>
                 )}
               </div>
