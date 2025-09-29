@@ -206,9 +206,11 @@ export default function Dashboard() {
           status,
           created_at,
           expires_at,
-          claimed_at
+          claimed_at,
+          matrix_layer,
+          triggering_member_wallet
         `)
-        .ilike('reward_recipient_wallet', walletAddress) // Use case-insensitive match
+        .ilike('reward_recipient_wallet', walletAddress) // Use correct column name
         .order('created_at', { ascending: false });
 
       if (rewardError) {
@@ -527,10 +529,7 @@ export default function Dashboard() {
             data={[
               { value: data.directReferrals.toString(), label: t('dashboard.directReferrals'), color: 'text-blue-400' },
               { value: data.totalTeamSize.toString(), label: t('dashboard.totalTeamSize'), color: 'text-purple-400' }
-            ].map(item => {
-              console.log('🎯 Rendering referral data:', item.label, '=', item.value);
-              return item;
-            })}
+            ]}
           />
         </div>
 

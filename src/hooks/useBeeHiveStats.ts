@@ -65,7 +65,7 @@ export function useUserReferralStats() {
         console.error('Error fetching member data:', memberError);
       }
 
-      // Get total earnings from layer rewards using correct column names
+      // Get total earnings from layer_rewards using correct column names
       const { data: rewardsData } = await supabase
         .from('layer_rewards')
         .select('reward_amount')
