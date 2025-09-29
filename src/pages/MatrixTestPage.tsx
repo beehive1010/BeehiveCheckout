@@ -2,14 +2,203 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useWallet } from '../hooks/useWallet';
 import { useWeb3 } from '../contexts/Web3Context';
 import { useLayeredMatrix } from '../hooks/useMatrixByLevel';
+
+// Import all matrix components
 import DrillDownMatrixView from '../components/matrix/DrillDownMatrixView';
+import RecursiveMatrixViewer from '../components/matrix/RecursiveMatrixViewer';
+import MatrixLayerStats from '../components/matrix/MatrixLayerStats';
+import LayerLevelStatusCard from '../components/matrix/LayerLevelStatusCard';
+import DirectMatrixStatsView from '../components/matrix/DirectMatrixStatsView';
+import MatrixLayerStatsView from '../components/matrix/MatrixLayerStatsView';
+import EnhancedMatrixView from '../components/matrix/EnhancedMatrixView';
+import SimpleMatrixView from '../components/matrix/SimpleMatrixView';
+import LayeredMatrixView from '../components/matrix/LayeredMatrixView';
+import MatrixNetworkStatsV2 from '../components/matrix/MatrixNetworkStatsV2';
+
 import { CubeIcon } from '@heroicons/react/24/outline';
 
-// 简洁矩阵视图组件
-const SimpleMatrixView: React.FC<{ currentWallet: string }> = ({ currentWallet }) => {
+// 详细矩阵slots视图 - 显示正确的滑落层级
+const DetailedMatrixSlotsView: React.FC<{ currentWallet: string }> = ({ currentWallet }) => {
+  const [matrixData, setMatrixData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const formatWallet = (wallet: string) => {
+    return `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
+  };
+
+  useEffect(() => {
+    const fetchMatrixSlots = async () => {
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        // 直接查询matrix_referrals获取准确的滑落数据
+        const response = await fetch('https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1/matrix-view', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN2cWliamNiZnJ3c2drdnRoY2NwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNjU0MDUsImV4cCI6MjA3MjY0MTQwNX0.7CfL8CS1dQ8Gua89maSCDkgnMsNb19qp97mJyoJqJjs`,
+            'Content-Type': 'application/json',
+            'x-wallet-address': currentWallet,
+          },
+          body: JSON.stringify({
+            action: 'get-matrix-slots-detailed',
+            matrixRoot: currentWallet,
+            maxLayers: 3
+          })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          setMatrixData(result.data);
+        } else {
+          setError(result.error || '获取matrix数据失败');
+        }
+      } catch (err) {
+        setError('网络错误');
+        console.error('Matrix slots fetch error:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (currentWallet) {
+      fetchMatrixSlots();
+    }
+  }, [currentWallet]);
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <div className="text-gray-500">加载详细矩阵slots中...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <div className="text-red-500">错误: {error}</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // 渲染slots数据
+  const renderSlots = (layer: number, slots: any[]) => {
+    const slotsPerRow = layer === 1 ? 3 : 9;
+    const gridCols = layer === 1 ? 'grid-cols-3' : 'grid-cols-9';
+    
+    return (
+      <div className={`grid ${gridCols} gap-2 mb-6`}>
+        {Array.from({ length: slotsPerRow }, (_, index) => {
+          const slot = slots?.find(s => s.slot_number === index + 1);
+          const isEmpty = !slot || slot.slot_status === 'empty';
+          
+          return (
+            <div 
+              key={index} 
+              className={`border rounded p-2 text-center min-h-[120px] text-xs ${
+                isEmpty 
+                  ? 'bg-gray-50 border-gray-200' 
+                  : slot.referral_type === 'is_spillover' 
+                    ? 'bg-blue-50 border-blue-300'
+                    : 'bg-green-50 border-green-300'
+              }`}
+            >
+              <div className="font-bold mb-1">
+                Slot {index + 1}
+              </div>
+              <div className="text-xs mb-1">
+                {slot?.position || (layer === 1 ? ['L', 'M', 'R'][index] : `${Math.floor(index/3)+1}.${['L','M','R'][index%3]}`)}
+              </div>
+              
+              {!isEmpty && (
+                <>
+                  <div className={`text-xs px-1 py-0.5 rounded mb-1 ${
+                    slot.referral_type === 'is_spillover' 
+                      ? 'bg-blue-100 text-blue-700' 
+                      : 'bg-green-100 text-green-700'
+                  }`}>
+                    {slot.referral_type === 'is_spillover' ? '滑落' : '直推'}
+                  </div>
+                  
+                  {slot.member_username && (
+                    <div className="font-medium mb-1">
+                      {slot.member_username}
+                    </div>
+                  )}
+                  
+                  <div className="font-mono text-xs">
+                    {formatWallet(slot.member_wallet)}
+                  </div>
+                  
+                  <div className="text-xs text-gray-500 mt-1">
+                    Level {slot.member_level || 1}
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <span>详细Matrix Slots视图</span>
+          <Badge variant="outline">
+            {currentWallet ? formatWallet(currentWallet) : '未选择'}
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {/* 根钱包 */}
+        <div className="mb-6 p-4 bg-gray-100 rounded text-center">
+          <div className="text-lg font-medium text-gray-800 mb-2">🏠 Matrix Root</div>
+          <div className="text-sm font-mono text-gray-600 bg-white px-3 py-1 rounded border">
+            {formatWallet(currentWallet)}
+          </div>
+        </div>
+
+        {/* Layer 1 - 3个slots */}
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-3">Layer 1 (Slots 1-3)</h3>
+          {renderSlots(1, matrixData?.layer1 || [])}
+        </div>
+
+        {/* Layer 2 - 9个slots */}
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-3">Layer 2 (Slots 1-9) - 滑落层</h3>
+          {renderSlots(2, matrixData?.layer2 || [])}
+        </div>
+
+        {/* 说明 */}
+        <div className="p-3 bg-gray-50 rounded text-sm text-gray-600">
+          <div className="font-semibold mb-2">说明:</div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div>💚 绿色 = 直推用户</div>
+            <div>💙 蓝色 = 滑落用户</div>
+            <div>⚪ 灰色 = 空slots</div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// 简洁矩阵视图组件 (保持原有)
+const OriginalMatrixView: React.FC<{ currentWallet: string }> = ({ currentWallet }) => {
   const { data: matrixData, isLoading, error } = useLayeredMatrix(currentWallet);
 
   const formatWallet = (wallet: string) => {
@@ -50,7 +239,7 @@ const SimpleMatrixView: React.FC<{ currentWallet: string }> = ({ currentWallet }
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>矩阵视图</span>
+          <span>原始矩阵视图</span>
           <Badge variant="outline">
             {matrixData.totalLayer1Members}/3 位置已填充
           </Badge>
@@ -59,7 +248,7 @@ const SimpleMatrixView: React.FC<{ currentWallet: string }> = ({ currentWallet }
       <CardContent>
         {/* 当前根钱包 */}
         <div className="mb-6 p-4 bg-gray-100 rounded text-center">
-          <div className="text-lg font-medium text-gray-800 mb-2">🏠 根钱包 (你)</div>
+          <div className="text-lg font-medium text-gray-800 mb-2">🏠 根钱包</div>
           <div className="text-sm font-mono text-gray-600 bg-white px-3 py-1 rounded border">
             {formatWallet(currentWallet)}
           </div>
