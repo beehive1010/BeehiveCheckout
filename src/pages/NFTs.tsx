@@ -381,6 +381,25 @@ export default function NFTs() {
       return;
     }
 
+    // Validate amount before sending to API
+    const purchaseAmount = Number(nft.price_bcc);
+    if (!purchaseAmount || purchaseAmount <= 0 || isNaN(purchaseAmount)) {
+      console.error('❌ Invalid purchase amount:', nft.price_bcc);
+      toast({
+        title: 'Invalid Amount',
+        description: `Invalid NFT price: ${nft.price_bcc}`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    console.log('🛒 Starting NFT purchase:', {
+      nft_id: nft.id,
+      nft_title: nft.title,
+      price_bcc: purchaseAmount,
+      wallet: walletAddress
+    });
+
     setPurchaseState({ nftId: nft.id, loading: true, error: null });
 
     try {
@@ -391,6 +410,17 @@ export default function NFTs() {
       const baseUrl = 'https://cvqibjcbfrwsgkvthccp.supabase.co/functions/v1';
       const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       
+      const requestPayload = {
+        action: 'spend-bcc',
+        amount: purchaseAmount,
+        purpose: 'nft_purchase',
+        itemType: 'nft',
+        itemId: nft.id,
+        nftType: nftType
+      };
+
+      console.log('📤 Sending BCC spend request:', requestPayload);
+      
       const spendResponse = await fetch(`${baseUrl}/balance`, {
         method: 'POST',
         headers: {
@@ -398,14 +428,7 @@ export default function NFTs() {
           'Authorization': `Bearer ${anonKey}`,
           'x-wallet-address': walletAddress,
         },
-        body: JSON.stringify({
-          action: 'spend-bcc',
-          amount: nft.price_bcc,
-          purpose: 'nft_purchase',
-          itemType: 'nft',
-          itemId: nft.id,
-          nftType: nftType
-        })
+        body: JSON.stringify(requestPayload)
       });
       
       if (!spendResponse.ok) {
@@ -422,14 +445,14 @@ export default function NFTs() {
         throw new Error(spendResult?.error || spendResult?.message || 'BCC spending failed - insufficient balance or system error');
       }
 
-      console.log(`✅ BCC spent successfully: ${nft.price_bcc} BCC for NFT ${nft.title}`);
+      console.log(`✅ BCC spent successfully: ${purchaseAmount} BCC for NFT ${nft.title}`);
 
       // Create NFT purchase record using the orderService
       const { data: purchaseRecord, error: purchaseError } = await orderService.createNFTPurchase({
         buyer_wallet: walletAddress,
         nft_id: nft.id,
         nft_type: nftType,
-        price_bcc: nft.price_bcc,
+        price_bcc: purchaseAmount,
         price_usdt: nft.price_usdt || 0,
         payment_method: 'bcc',
         transaction_hash: transactionHash,
