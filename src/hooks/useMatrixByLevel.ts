@@ -172,6 +172,7 @@ export function useLayeredMatrix(matrixRootWallet: string) {
       if (!matrixRootWallet) throw new Error('No matrix root wallet');
       
       // 只获取Layer 1的直接成员
+      console.log('🔍 Querying matrix data for root:', matrixRootWallet);
       const { data: layer1Data, error } = await supabase
         .from('matrix_referrals')
         .select(`
@@ -184,6 +185,8 @@ export function useLayeredMatrix(matrixRootWallet: string) {
         .eq('layer', 1)
         .eq('parent_wallet', matrixRootWallet) // 确保是直接挂在root下的
         .order('position');
+      
+      console.log('📊 Layer 1 query result:', { layer1Data, error, matrixRootWallet });
       
       if (error) {
         console.error('Layered matrix query error:', error);
